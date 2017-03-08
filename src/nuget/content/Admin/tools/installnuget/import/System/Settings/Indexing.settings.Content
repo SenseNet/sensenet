@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>IndexingSettings</ContentType>
+  <ContentName>Indexing.settings</ContentName>
+  <Fields>
+    <Binary attachment="Indexing.settings" />
+    <GlobalOnly>true</GlobalOnly>
+  </Fields>
+  <Permissions>
+    <Clear />
+  </Permissions>
+</ContentMetaData>

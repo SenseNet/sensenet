@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>PortalSettings</ContentType>
+  <ContentName>Portal.settings</ContentName>
+  <Fields>
+    <Binary attachment="Portal.settings" />
+  </Fields>
+  <Permissions>
+    <Clear />
+  </Permissions>
+</ContentMetaData>

@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<StorageSchema xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/Storage/Schema">
+	<UsedPropertyTypes>
+		<PropertyType itemID="1" name="String1" dataType="String" mapping="nvarchar_1" />
+		<PropertyType itemID="2" name="String2" dataType="String" mapping="nvarchar_2" />
+		<PropertyType itemID="3" name="String3" dataType="String" mapping="nvarchar_3" />
+		<PropertyType itemID="4" name="Int1" dataType="Int" mapping="int_1" />
+		<PropertyType itemID="5" name="DateTime1" dataType="DateTime" mapping="datetime_1" />
+		<PropertyType itemID="6" name="Reference1" dataType="Reference" mapping="reference_1" />
+		<PropertyType itemID="7" name="Text" dataType="String" mapping="nvarchar_4" />
+	</UsedPropertyTypes>
+	<NodeTypeHierarchy>
+		<NodeType itemID="1" name="NodeType1" className="NodeTypeClass1">
+			<PropertyType itemID="1" name="String1" protected="yes" />
+			<PropertyType itemID="2" name="Int1" protected="yes" />
+			<NodeType itemID="2" name="NodeType11" className="NodeTypeClass2">
+				<PropertyType itemID="3" name="Int1" />
+				<PropertyType itemID="4" name="DateTime1" protected="yes" />
+				<NodeType itemID="8" name="NodeType111" className="NodeTypeClass111" />
+			</NodeType>
+			<NodeType itemID="6" name="NodeType12" className="NodeTypeClass12" />
+		</NodeType>
+		<NodeType itemID="4" name="Folder" className="SenseNet.ContentRepository.Folder" />
+		<NodeType itemID="5" name="File" className="SenseNet.ContentRepository.File">
+			<PropertyType itemID="8" name="Text" protected="no"/>
+		</NodeType>
+	</NodeTypeHierarchy>
+	<ContentListDefinitions>
+		<ContentListDefinition itemID="3" name="ExtensionType1">
+			<PropertyType itemID="6" name="String2" />
+			<PropertyType itemID="7" name="String3" />
+		</ContentListDefinition>
+		<ContentListDefinition itemID="7" name="ExtensionType2">
+			<PropertyType itemID="9" name="Int1" />
+		</ContentListDefinition>
+	</ContentListDefinitions>
+	<PermissionTypes>
+		<PermissionType itemID="1" name="Permission1" />
+		<PermissionType itemID="2" name="Permission2" />
+		<PermissionType itemID="3" name="Permission3" />
+	</PermissionTypes>
+</StorageSchema>

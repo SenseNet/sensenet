@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentType name="Resources" parentType="SystemFolder" handler="SenseNet.ContentRepository.SystemFolder" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+  <DisplayName>$Ctd-Resources,DisplayName</DisplayName>
+  <Description>$Ctd-Resources,Description</Description>
+  <Icon>Folder</Icon>
+  <AllowedChildTypes>
+    Resource
+  </AllowedChildTypes>
+  <Fields></Fields>
+</ContentType>

@@ -1,0 +1,294 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <configSections>
+    <section name="loggingConfiguration" type="Microsoft.Practices.EnterpriseLibrary.Logging.Configuration.LoggingSettings, Microsoft.Practices.EnterpriseLibrary.Logging" />
+    <section name="dataConfiguration" type="Microsoft.Practices.EnterpriseLibrary.Data.Configuration.DatabaseSettings, Microsoft.Practices.EnterpriseLibrary.Data" />
+    <section name="ExceptionStatusCodes" type="System.Configuration.NameValueSectionHandler" />
+    <section name="unity" type="Microsoft.Practices.Unity.Configuration.UnityConfigurationSection, Microsoft.Practices.Unity.Configuration" />
+    <sectionGroup name="sensenet">
+      <section name="webdav" type="System.Configuration.NameValueFileSectionHandler" />
+      <section name="webApplication" type="System.Configuration.NameValueFileSectionHandler" />
+      <section name="data" type="System.Configuration.NameValueFileSectionHandler" />
+      <section name="formsAuthenticationFromAD" type="SenseNet.Configuration.FormsAuthenticationFromADSection" allowLocation="true" allowDefinition="Everywhere" />
+      <section name="urlList" type="SenseNet.Configuration.UrlListSection" allowLocation="true" allowDefinition="Everywhere" />
+      <section name="contentNaming" type="System.Configuration.NameValueFileSectionHandler" />
+      <section name="detailedLogger" type="System.Configuration.NameValueSectionHandler" />
+      <section name="cryptography" type="System.Configuration.NameValueSectionHandler" />
+      <section name="cache" type="System.Configuration.NameValueSectionHandler" />
+      <section name="indexing" type="System.Configuration.NameValueSectionHandler" />
+      <section name="logging" type="System.Configuration.NameValueSectionHandler" />
+      <section name="messaging" type="System.Configuration.NameValueSectionHandler" />
+      <section name="providers" type="System.Configuration.NameValueSectionHandler" />
+      <section name="security" type="System.Configuration.NameValueSectionHandler" />
+      <section name="tracing" type="System.Configuration.NameValueSectionHandler" />
+      <section name="blobstorage" type="System.Configuration.NameValueSectionHandler" />
+      <section name="identityManagement" type="System.Configuration.NameValueSectionHandler" />
+      <section name="repositoryEnvironment" type="System.Configuration.NameValueSectionHandler" />
+    </sectionGroup>
+    <section name="uri" type="System.Configuration.UriSection, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  </configSections>
+  <loggingConfiguration name="Logging Application Block" tracingEnabled="false" defaultCategory="General" logWarningsWhenNoCategoriesMatch="true">
+    <listeners>
+      <add fileName="adsync.log" footer="" formatter="AdSync Text Formatter" header="" rollFileExistsBehavior="Increment" rollInterval="None" rollSizeKB="200" timeStampPattern="yyyy-MM-dd" listenerDataType="Microsoft.Practices.EnterpriseLibrary.Logging.Configuration.RollingFlatFileTraceListenerData, Microsoft.Practices.EnterpriseLibrary.Logging" traceOutputOptions="None" filter="All" type="Microsoft.Practices.EnterpriseLibrary.Logging.TraceListeners.RollingFlatFileTraceListener, Microsoft.Practices.EnterpriseLibrary.Logging" name="AdSync Flat File Trace Listener" />
+      <add source="Enterprise Library Logging" formatter="" log="Application" machineName="" listenerDataType="Microsoft.Practices.EnterpriseLibrary.Logging.Configuration.FormattedEventLogTraceListenerData, Microsoft.Practices.EnterpriseLibrary.Logging" traceOutputOptions="None" filter="All" type="Microsoft.Practices.EnterpriseLibrary.Logging.TraceListeners.FormattedEventLogTraceListener, Microsoft.Practices.EnterpriseLibrary.Logging" name="Application EventLog TraceListener" />
+      <add databaseInstanceName="SnCrMsSql" writeLogStoredProcName="proc_LogWrite" addCategoryStoredProcName="proc_LogAddCategory" formatter="SnXmlFormatter" listenerDataType="Microsoft.Practices.EnterpriseLibrary.Logging.Database.Configuration.FormattedDatabaseTraceListenerData, Microsoft.Practices.EnterpriseLibrary.Logging.Database" traceOutputOptions="None" filter="All" type="Microsoft.Practices.EnterpriseLibrary.Logging.Database.FormattedDatabaseTraceListener, Microsoft.Practices.EnterpriseLibrary.Logging.Database" name="Database Trace Listener" />
+      <add listenerDataType="Microsoft.Practices.EnterpriseLibrary.Logging.Configuration.CustomTraceListenerData, Microsoft.Practices.EnterpriseLibrary.Logging" traceOutputOptions="None" filter="All" type="SenseNet.Diagnostics.OneLineTraceListener, SenseNet.Storage, Version=5.9.1.2, Culture=neutral, PublicKeyToken=null" name="Debug Trace Listener" initializeData="" formatter="OneLineFormatter" />
+      <add source="SenseNetInstrumentation" formatter="Text Formatter" log="SenseNet" machineName="" listenerDataType="Microsoft.Practices.EnterpriseLibrary.Logging.Configuration.FormattedEventLogTraceListenerData, Microsoft.Practices.EnterpriseLibrary.Logging" traceOutputOptions="None" filter="Information" type="Microsoft.Practices.EnterpriseLibrary.Logging.TraceListeners.FormattedEventLogTraceListener, Microsoft.Practices.EnterpriseLibrary.Logging" name="SenseNet EventLog TraceListener" />
+    </listeners>
+    <formatters>
+      <add template="{timestamp} {severity} {message} {keyvalue(Messages)}" type="Microsoft.Practices.EnterpriseLibrary.Logging.Formatters.TextFormatter, Microsoft.Practices.EnterpriseLibrary.Logging" name="AdSync Text Formatter" />
+      <add template="{severity} {category} {message}: Properties: {dictionary({key}={value};)}; Timestamp: {timestamp}; Machine: {machine}; AppDomain: {appDomain}; ProcessId: {processId}; Process: {processName}; Win32ThreadId: {win32ThreadId}; ThreadName: {threadName}" type="Microsoft.Practices.EnterpriseLibrary.Logging.Formatters.TextFormatter, Microsoft.Practices.EnterpriseLibrary.Logging" name="OneLineFormatter" />
+      <add template="Timestamp: {timestamp}&#xD;&#xA;Message: {message}&#xD;&#xA;Category: {category}&#xD;&#xA;Priority: {priority}&#xD;&#xA;EventId: {eventid}&#xD;&#xA;Severity: {severity}&#xD;&#xA;Title:{title}&#xD;&#xA;Machine: {machine}&#xD;&#xA;Application Domain: {appDomain}&#xD;&#xA;Process Id: {processId}&#xD;&#xA;Process Name: {processName}&#xD;&#xA;Win32 Thread Id: {win32ThreadId}&#xD;&#xA;Thread Name: {threadName}&#xD;&#xA;Extended Properties: {dictionary({key} - {value}&#xD;&#xA;)}" type="Microsoft.Practices.EnterpriseLibrary.Logging.Formatters.TextFormatter, Microsoft.Practices.EnterpriseLibrary.Logging" name="Text Formatter" />
+      <add type="SenseNet.ContentRepository.Storage.Diagnostics.SnXmlFormatter, SenseNet.Storage" name="SnXmlFormatter" />
+    </formatters>
+    <categorySources>
+      <add switchValue="All" name="AdSync">
+        <listeners>
+          <add name="AdSync Flat File Trace Listener" />
+        </listeners>
+      </add>
+      <add switchValue="All" name="Audit">
+        <listeners>
+          <add name="Database Trace Listener" />
+          <add name="Debug Trace Listener" />
+        </listeners>
+      </add>
+      <add switchValue="All" name="General">
+        <listeners>
+          <add name="Debug Trace Listener" />
+        </listeners>
+      </add>
+    </categorySources>
+    <specialSources>
+      <allEvents switchValue="All" name="All Events">
+        <listeners>
+          <add name="SenseNet EventLog TraceListener" />
+        </listeners>
+      </allEvents>
+      <notProcessed switchValue="All" name="Unprocessed Category" />
+      <errors switchValue="All" name="Logging Errors &amp; Warnings">
+        <listeners>
+          <add name="SenseNet EventLog TraceListener" />
+        </listeners>
+      </errors>
+    </specialSources>
+  </loggingConfiguration>
+  <connectionStrings>
+    <add name="SnCrMsSql" connectionString="Data Source=MySenseNetContentRepositoryDatasource;Initial Catalog=SenseNetContentRepository;Integrated Security=True" providerName="System.Data.SqlClient" />
+  </connectionStrings>
+  <unity>
+    <typeAliases>
+      <!-- Provider aliases -->
+      <typeAlias alias="IApplicationCache" type="SenseNet.ContentRepository.Storage.AppModel.IApplicationCache, SenseNet.Storage" />
+      <!--<typeAlias alias="IActionFactory" type="SenseNet.ContentRepository.IActionFactory, SenseNet.ContentRepository" />-->
+      <typeAlias alias="ISearchEngine" type="SenseNet.ContentRepository.Storage.Search.ISearchEngine, SenseNet.Storage" />
+      <!-- Provider implementation aliases -->
+      <typeAlias alias="IApplicationCacheImpl" type="SenseNet.ContentRepository.ApplicationCache, SenseNet.ContentRepository" />
+      <!--<typeAlias alias="IActionFactoryImpl" type="SenseNet.Portal.PortalActionLinkManager, SenseNet.Portal" />-->
+      <typeAlias alias="ISearchEngineImpl" type="SenseNet.Search.LuceneSearchEngine, SenseNet.ContentRepository" />
+      <!--  -->
+      <typeAlias alias="MembershipExtenderBase" type="SenseNet.ContentRepository.Storage.Security.MembershipExtenderBase, SenseNet.Storage" />
+      <typeAlias alias="MembershipExtender" type="SenseNet.ContentRepository.Storage.Security.DefaultMembershipExtender, SenseNet.Storage" />
+      <typeAlias alias="PurgeUrlCollector" type="SenseNet.Portal.Virtualization.PurgeUrlCollector, SenseNet.Services" />
+      <!--<typeAlias alias="IViewManager" type="SenseNet.ContentRepository.IViewManager, SenseNet.ContentRepository" />-->
+      <!--<typeAlias alias="ViewManager" type="SenseNet.Portal.UI.ContentListViews.ViewManager, SenseNet.Portal" />-->
+      <typeAlias alias="singleton" type="Microsoft.Practices.Unity.ContainerControlledLifetimeManager, Microsoft.Practices.Unity" />
+    </typeAliases>
+    <containers>
+      <container name="Providers">
+        <types>
+          <!-- Binding providers to implementations -->
+          <type type="IApplicationCache" mapTo="IApplicationCacheImpl" />
+          <!--<type type="IActionFactory" mapTo="IActionFactoryImpl" />-->
+          <type type="ISearchEngine" mapTo="ISearchEngineImpl" />
+          <!--  -->
+          <type type="MembershipExtenderBase" mapTo="MembershipExtender">
+            <lifetime type="singleton" />
+          </type>
+          <type type="PurgeUrlCollector" mapTo="PurgeUrlCollector">
+            <lifetime type="singleton" />
+          </type>
+          <!--<type name="ViewManager" type="IViewManager" mapTo="ViewManager">
+            <lifetime type="singleton" />
+          </type>-->
+        </types>
+      </container>
+    </containers>
+  </unity>
+  <sensenet>
+    <webApplication>
+      <add key="AllowCssBundling" value="false" />
+      <add key="AllowJsBundling" value="false" />
+      <add key="DiskFSSupportMode" value="Prefer" />
+    </webApplication>
+    <contentNaming>
+      <!-- Regex pattern defining invalid name characters. Escape (\) character can be used as is (ie.: "[^a-zA-Z0-9.()[\]]"). Pattern must start with '[' and end with ']'. -->
+      <add key="InvalidNameCharsPattern" value="[\$&amp;\+,/:;=?@&quot;&lt;&gt;\#%{}|\\^~\[\u005D'’`\*\t\r\n]" />
+      <!-- Character that will be included to the place of the invalid characters.  -->
+    </contentNaming>
+    <providers>
+      <add key="AccessProvider" value="SenseNet.ContentRepository.Security.UserAccessProvider" />
+    </providers>
+    <identityManagement>
+      <add key="UserProfilesEnabled" value="true" />
+    </identityManagement>
+    <repositoryEnvironment>
+      <add key="DisabledNodeObservers" value="SenseNet.ContentRepository.Storage.AppModel.AppCacheInvalidator;SenseNet.ContentRepository.Storage.AppModel.RepositoryEventRouter" />
+    </repositoryEnvironment>
+  </sensenet>
+  <uri>
+    <idn enabled="All" />
+    <iriParsing enabled="true" />
+  </uri>
+  <appSettings>
+    <!-- ============== MVC =============== -->
+    <!-- Prevent .cshtml or .vbhtml files from being directly accessible from a web browser. -->
+    <add key="webpages:Enabled" value="false" />
+  </appSettings>
+  <system.web>
+    <sessionState mode="InProc" cookieless="false" />
+    <xhtmlConformance mode="Strict" />
+    <customErrors mode="Off" />
+    <!--<compilation debug="false" targetFramework="4.5.1">
+      <assemblies>
+        <add assembly="System.Web.Abstractions, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31BF3856AD364E35" />
+        <add assembly="System.Web.Routing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31BF3856AD364E35" />
+        <add assembly="System.Design, Version=4.0.0.0, Culture=neutral, PublicKeyToken=B03F5F7F11D50A3A" />
+      </assemblies>
+    </compilation>-->
+    <anonymousIdentification enabled="true" />
+    <!--<authentication mode="Windows">
+      <forms defaultUrl="/" />
+    </authentication>-->
+    <globalization resourceProviderFactoryType="SenseNet.ContentRepository.i18n.SenseNetResourceProviderFactory" />
+    <!-- Enable large file upload via webdav/upload. Max file size in KB. -->
+    <httpRuntime maxRequestLength="102400" requestLengthDiskThreshold="102400" requestValidationMode="2.0" />
+    <membership defaultProvider="SenseNetMembershipProvider">
+      <providers>
+        <clear />
+        <add name="SenseNetMembershipProvider" type="SenseNet.ContentRepository.Security.SenseNetMembershipProvider" />
+      </providers>
+    </membership>
+  </system.web>
+  <system.web.extensions>
+    <scripting>
+      <scriptResourceHandler enableCompression="true" enableCaching="true" />
+    </scripting>
+  </system.web.extensions>
+  <system.webServer>
+    <validation validateIntegratedModeConfiguration="false" />
+    <modules runAllManagedModulesForAllRequests="true">
+      <add name="ScriptModule" type="System.Web.Handlers.ScriptModule, System.Web.Extensions, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31BF3856AD364E35" />
+      <add name="PortalAuthentication" preCondition="integratedMode" type="SenseNet.Portal.Virtualization.PortalAuthenticationModule, SenseNet.Services" />
+      <add name="PortalContext" preCondition="integratedMode" type="SenseNet.Portal.Virtualization.PortalContextModule, SenseNet.Services" />
+    </modules>
+    <handlers>
+      <remove name="UrlRoutingHandler" />
+      <add name="WildCard32" path="*" verb="*" modules="IsapiModule" scriptProcessor="%SystemRoot%\Microsoft.NET\Framework\v2.0.50727\aspnet_isapi.dll" resourceType="Unspecified" requireAccess="None" preCondition="classicMode,runtimeVersionv2.0,bitness32" />
+      <add name="WildCard64" path="*" verb="*" modules="IsapiModule" scriptProcessor="%windir%\Microsoft.NET\Framework64\v2.0.50727\aspnet_isapi.dll" resourceType="Unspecified" requireAccess="None" preCondition="classicMode,runtimeVersionv2.0,bitness64" />
+      <add name="gifHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.gif" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="jpgHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.jpg" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="jpegHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.jpeg" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="pngHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.png" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="cssHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.css" type="System.Web.StaticFileHandler" />
+      <add name="jsHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.js" type="System.Web.StaticFileHandler" />
+      <add name="icoHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.ico" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="htcHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.htc" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="swfHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.swf" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="xmlHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.xml" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="htmHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.htm" type="System.Web.StaticFileHandler" />
+      <add name="htmlHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.html" type="System.Web.StaticFileHandler" />
+      <add name="pdfHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.pdf" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="docHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.doc" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="docxHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.docx" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="docmHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.docm" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="dotHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.dot" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="dotxHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.dotx" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="dotmHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.dotm" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="rtfHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.rtf" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="xlsHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.xls" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="xlsxHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.xlsx" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="xlsmHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.xlsm" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="xltHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.xlt" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="xltxHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.xltx" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="xltmHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.xltm" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="txtHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.txt" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="tiffHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.tiff" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="tifHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.tif" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="csvHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.csv" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="pptHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.ppt" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="pptxHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.pptx" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="pptmHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.pptm" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="potHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.pot" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="potxHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.potx" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="potmHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.potm" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="ppsHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.pps" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="ppsxHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.ppsx" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="ppsmHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.ppsm" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="rarHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.rar" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="vsdHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.vsd" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="vdwHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.vdw" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="vdxHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.vdx" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="vssHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.vss" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="vstHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.vst" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="vsxHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.vsx" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="vtxHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.vtx" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="prjHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.prj" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="mapHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.map" type="SenseNet.Services.GoogleSitemapHandler, SenseNet.Portal" />
+      <add name="xapHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.xap" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="woffHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.woff" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="woff2Handler" preCondition="integratedMode" verb="GET,HEAD" path="*.woff2" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="ttfHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.ttf" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="eotHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.eot" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="svgHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.svg" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="svgzHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.svgz" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="zipHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.zip" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="odpHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.odp" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="odsHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.ods" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="odtHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.odt" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="msgHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.msg" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="mp4Handler" preCondition="integratedMode" verb="GET,HEAD" path="*.mp4" type="SenseNet.Portal.Virtualization.SenseNetVideoStreamerHandler" />
+      <add name="webmHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.webm" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+      <add name="oggHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.ogg" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
+    </handlers>
+    <security>
+      <requestFiltering>
+        <fileExtensions>
+          <remove fileExtension=".ascx" />
+          <remove fileExtension=".config" />
+        </fileExtensions>
+        <!-- Enable large file upload via webdav/upload. Max file size in bytes. -->
+        <requestLimits maxAllowedContentLength="104857600" />
+      </requestFiltering>
+    </security>
+    <urlCompression doStaticCompression="false" />
+    <httpErrors errorMode="Custom">
+      <remove statusCode="404" subStatusCode="-1" />
+      <error statusCode="404" subStatusCode="-1" path="/Error_Pages/Error_404" responseMode="ExecuteURL" />
+      <remove statusCode="403" subStatusCode="-1" />
+      <error statusCode="403" subStatusCode="-1" path="/Error_Pages/Error_403" responseMode="ExecuteURL" />
+      <remove statusCode="403" subStatusCode="1" />
+      <error statusCode="403" subStatusCode="1" path="/Error_Pages/Error_403_1" responseMode="ExecuteURL" />
+      <remove statusCode="403" subStatusCode="2" />
+      <error statusCode="403" subStatusCode="2" path="/Error_Pages/Error_403_2" responseMode="ExecuteURL" />
+      <remove statusCode="403" subStatusCode="3" />
+      <error statusCode="403" subStatusCode="3" path="/Error_Pages/Error_403_3" responseMode="ExecuteURL" />
+      <remove statusCode="403" subStatusCode="8" />
+      <error statusCode="403" subStatusCode="8" path="/Error_Pages/Error_403_8" responseMode="ExecuteURL" />
+      <remove statusCode="403" subStatusCode="9" />
+      <error statusCode="403" subStatusCode="9" path="/Error_Pages/Error_403_9" responseMode="ExecuteURL" />
+    </httpErrors>
+  </system.webServer>
+  <ExceptionStatusCodes>
+    <add key="System.Security.SecurityException" value="403" />
+    <add key="System.Security.Policy.PolicyException" value="403.1" />
+    <add key="System.Security.AccessControl.PrivilegeNotHeldException" value="403.2" />
+    <add key="System.UnauthorizedAccessException" value="403.3" />
+    <add key="System.Security.HostProtectionException" value="403.8" />
+    <add key="System.Runtime.Remoting.RemotingTimeoutException" value="403.9" />
+    <add key="System.NotSupportedException" value="404" />
+  </ExceptionStatusCodes>
+  <system.serviceModel>
+    <serviceHostingEnvironment aspNetCompatibilityEnabled="true" multipleSiteBindingsEnabled="true" />
+  </system.serviceModel>
+</configuration>

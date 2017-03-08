@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>Settings</ContentType>
+  <ContentName>TaskManagement.settings</ContentName>
+  <Fields>
+    <Binary attachment="TaskManagement.settings" />
+    <GlobalOnly>true</GlobalOnly>
+  </Fields>
+  <Permissions>
+    <Clear />
+  </Permissions>
+</ContentMetaData>

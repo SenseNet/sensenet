@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>Group</ContentType>
+  <ContentName>Editors</ContentName>
+  <Fields>
+    <Members>
+      <Path>/Root/IMS/BuiltIn/Portal/Administrators</Path>
+    </Members>
+    <SyncGuid></SyncGuid>
+    <LastSync>0001-01-01T00:00:00</LastSync>
+    <DisplayName>Editors</DisplayName>
+    <Description><![CDATA[]]></Description>
+    <Hidden>false</Hidden>
+    <Index>0</Index>
+    <EnableLifespan>false</EnableLifespan>
+    <ValidFrom>0001-01-01T00:00:00</ValidFrom>
+    <ValidTill>0001-01-01T00:00:00</ValidTill>
+        <TrashDisabled>false</TrashDisabled>
+  </Fields>
+  <Permissions>
+    <Clear />
+  </Permissions>
+</ContentMetaData>

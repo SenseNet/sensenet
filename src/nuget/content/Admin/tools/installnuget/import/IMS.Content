@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>Domains</ContentType>
+  <ContentName>IMS</ContentName>
+  <Fields>
+    <DisplayName>Users and Groups</DisplayName>
+  </Fields>
+  <Permissions>
+    <Clear />
+    <Identity path="/Root/IMS/BuiltIn/Portal/Owners">
+      <See>Allow</See>
+      <Open>Allow</Open>
+      <OpenMinor>Allow</OpenMinor>
+      <Save>Allow</Save>
+      <RunApplication>Allow</RunApplication>
+    </Identity>
+    <Identity path="/Root/IMS/BuiltIn/Portal/HR">
+      <See>Allowed</See>
+      <Preview>Allowed</Preview>
+      <PreviewWithoutWatermark>Allowed</PreviewWithoutWatermark>
+      <PreviewWithoutRedaction>Allowed</PreviewWithoutRedaction>
+      <Open>Allowed</Open>
+      <OpenMinor>Allowed</OpenMinor>
+      <Save>Allowed</Save>
+      <AddNew>Allowed</AddNew>
+      <Delete>Allowed</Delete>
+    </Identity>
+  </Permissions>
+</ContentMetaData>

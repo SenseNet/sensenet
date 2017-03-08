@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentType name="PreviewImage" parentType="Image" handler="SenseNet.ContentRepository.Image" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+  <DisplayName>$Ctd-PreviewImage,DisplayName</DisplayName>
+  <Description>$Ctd-PreviewImage,Description</Description>
+  <Icon>Image</Icon>
+  <AllowIncrementalNaming>false</AllowIncrementalNaming>
+  <AllowIndexing>false</AllowIndexing>
+  <Fields>
+  </Fields>
+</ContentType>
+

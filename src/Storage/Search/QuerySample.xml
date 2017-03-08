@@ -1,0 +1,127 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<SearchExpression xmlns="http://schemas.sensenet.con/SenseNet/ContentRepository/SearchExpression">
+  <And>
+    <Or>
+      <String op="Contains" property="Path">{path}</String>
+      <String op="EndsWith" property="Path">{path}</String>
+      <String op="Equal" property="Path">{path}</String>
+      <String op="GreaterThan" property="Path">{path}</String>
+      <String op="GreaterThanOrEqual" property="Path">{path}</String>
+      <String op="LessThan" property="Path">{path}</String>
+      <String op="LessThanOrEqual" property="Path">{path}</String>
+      <String op="NotEqual" property="Path">{path}</String>
+      <String op="StartsWith" property="Path">{path}</String>
+    </Or>
+    <Or>
+      <String op="Equal" property="stringSlot1">{value}</String>
+      <String op="Equal" property="stringSlot1">
+        <Property name="stringSlot2" />
+      </String>
+      <String op="Equal" property="stringSlot1">
+        <Property name="Path" />
+      </String>
+      <String op="Equal" property="stringSlot1">
+        <NullValue />
+      </String>
+      <String op="Equal" property="Name">{value}</String>
+      <String op="Equal" property="Name">
+        <Property name="stringSlot2" />
+      </String>
+      <String op="Equal" property="Name">
+        <Property name="Path" />
+      </String>
+      <String op="Equal" property="Name">
+        <NullValue />
+      </String>
+    </Or>
+    <Or>
+      <Int op="Equal" property="Index">123</Int>
+      <Int op="Equal" property="Index">
+        <Property name="MajorVersion" />
+      </Int>
+      <Int op="Equal" property="Index">
+        <Property name="intSlot2" />
+      </Int>
+      <Int op="Equal" property="Index">
+        <NullValue />
+      </Int>
+      <Int op="Equal" property="intSlot1">123</Int>
+      <Int op="Equal" property="intSlot1">
+        <Property name="MajorVersion" />
+      </Int>
+      <Int op="Equal" property="intSlot1">
+        <Property name="intSlot2" />
+      </Int>
+      <Int op="Equal" property="intSlot1">
+        <NullValue />
+      </Int>
+    </Or>
+    <Or>
+      <DateTime op="Equal" property="CreationDate">2008-01-30T08:51:36.1301483</DateTime>
+      <DateTime op="Equal" property="CreationDate">
+        <Property name="ModificationDate" />
+      </DateTime>
+      <DateTime op="Equal" property="CreationDate">
+        <Property name="dateTimeSlot2" />
+      </DateTime>
+      <DateTime op="Equal" property="CreationDate">
+        <NullValue />
+      </DateTime>
+      <DateTime op="Equal" property="dateTimeSlot1">2008-01-30T08:51:36.1401629</DateTime>
+      <DateTime op="Equal" property="dateTimeSlot1">
+        <Property name="ModificationDate" />
+      </DateTime>
+      <DateTime op="Equal" property="dateTimeSlot1">
+        <Property name="dateTimeSlot2" />
+      </DateTime>
+      <DateTime op="Equal" property="dateTimeSlot1">
+        <NullValue />
+      </DateTime>
+    </Or>
+    <Or>
+      <Currency op="Equal" property="currencySlot1">123.456</Currency>
+      <Currency op="Equal" property="currencySlot1">
+        <Property name="currencySlot2" />
+      </Currency>
+      <Currency op="Equal" property="currencySlot1">
+        <NullValue />
+      </Currency>
+    </Or>
+    <Or>
+      <Reference property="refSlot1" existenceOnly="yes" />
+      <Reference property="LockedBy" existenceOnly="yes" />
+      <Reference property="refSlot1" />
+      <Reference property="refSlot1" referencedNodeId="2" />
+      <Reference property="LockedBy" />
+      <Reference property="LockedBy" referencedNodeId="2" />
+      <Reference property="refSlot1">
+        <And>
+          <Int op="GreaterThan" property="Index">123</Int>
+          <DateTime op="GreaterThan" property="CreationDate">2008-01-30T08:51:36.1401629</DateTime>
+        </And>
+      </Reference>
+      <Reference property="LockedBy">
+        <And>
+          <Int op="GreaterThan" property="Index">123</Int>
+          <DateTime op="GreaterThan" property="CreationDate">2008-01-30T08:51:36.1401629</DateTime>
+        </And>
+      </Reference>
+    </Or>
+    <Or>
+      <Type nodeType="nodeType1" />
+      <Type nodeType="nodeType2" exactMatch="yes" />
+    </Or>
+    <Not>
+      <And>
+        <String op="StartsWith" property="Path">/Root1/</String>
+        <String op="NotEqual" property="Name">name</String>
+      </And>
+    </Not>
+  </And>
+  <Orders>
+    <Order property="ModificationDate" direction="desc" />
+    <Order property="MajorVersion" />
+    <Order property="Name" />
+  </Orders>
+  <Page startIndex="987" pageSize="123" />
+</SearchExpression>

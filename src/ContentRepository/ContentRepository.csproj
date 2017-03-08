@@ -1,0 +1,587 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="12.0">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <Import Project="$(MSBuildExtensionsPath)\ExtensionPack\4.0\MSBuild.ExtensionPack.tasks" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{786E6165-CA02-45A9-BF58-207A45D7D6DF}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SenseNet.ContentRepository</RootNamespace>
+    <AssemblyName>SenseNet.ContentRepository</AssemblyName>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <IsWebBootstrapper>true</IsWebBootstrapper>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <PublishUrl>http://localhost/PortalEngine/</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Web</InstallFrom>
+    <UpdateEnabled>true</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <DocumentationFile>
+    </DocumentationFile>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="ICSharpCode.SharpZipLib, Version=0.84.0.0, Culture=neutral, PublicKeyToken=1b03e6acf1164f73">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\References\ICSharpCode.SharpZipLib.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Ionic.Zip, Version=1.8.4.28, Culture=neutral, PublicKeyToken=edbe51ad942a3f5c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\References\Ionic.Zip.dll</HintPath>
+    </Reference>
+    <Reference Include="itextsharp, Version=4.1.6.0, Culture=neutral, PublicKeyToken=8354ae6d2174ddca, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\References\itextsharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Lucene.Net, Version=2.9.4.2, Culture=neutral, PublicKeyToken=85089178b9ac3181, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\References\Lucene.Net.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.Exchange.WebServices, Version=15.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\References\Microsoft.Exchange.WebServices.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.JScript" />
+    <Reference Include="Microsoft.Practices.Unity, Version=1.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\References\Microsoft.Practices.Unity.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Web.Preview, Version=1.2.61025.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\References\Microsoft.Web.Preview.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="OpenPop, Version=2.0.6.1120, Culture=neutral, PublicKeyToken=6bdb97f144b7efc8, processorArchitecture=MSIL">
+      <HintPath>..\packages\OpenPop.NET.2.0.6.1120\lib\net40\OpenPop.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="SenseNet.Security, Version=2.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SenseNet.Security.2.3.0.0\lib\net45\SenseNet.Security.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="SenseNet.TaskManagement.Core, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SenseNet.TaskManagement.Core.1.1.0.0\lib\net45\SenseNet.TaskManagement.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="SenseNet.Tools, Version=2.1.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SenseNet.Tools.2.1.1-alpha\lib\net451\SenseNet.Tools.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Activities" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Design" />
+    <Reference Include="System.DirectoryServices" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.DurableInstancing" />
+    <Reference Include="System.Runtime.Serialization">
+      <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.ServiceModel">
+      <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.ApplicationServices" />
+    <Reference Include="System.Web.Extensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ApplicationCacheFile.cs" />
+    <Compile Include="ApplicationModel\ActionBase.cs" />
+    <Compile Include="ApplicationModel\ActionComparer.cs" />
+    <Compile Include="ApplicationModel\ActionFactory.cs" />
+    <Compile Include="ApplicationModel\ActionFramework.cs" />
+    <Compile Include="ApplicationModel\ActionIcon.cs" />
+    <Compile Include="ApplicationModel\Application.cs" />
+    <Compile Include="ApplicationModel\ApplicationStorage.cs" />
+    <Compile Include="ApplicationModel\AppStorageInvalidator.cs" />
+    <Compile Include="ApplicationModel\DeviceManager.cs" />
+    <Compile Include="ApplicationModel\Device.cs" />
+    <Compile Include="ApplicationModel\GenericScenario.cs" />
+    <Compile Include="ApplicationModel\GrantedToGenericAction.cs" />
+    <Compile Include="ApplicationModel\ScenarioAttribute.cs" />
+    <Compile Include="ApplicationModel\ScenarioManager.cs" />
+    <Compile Include="Aspect.cs" />
+    <Compile Include="BackgroundOperations\TaskManager.cs" />
+    <Compile Include="Book.cs" />
+    <Compile Include="CalendarEvent.cs" />
+    <Compile Include="Configuration\Actions.cs" />
+    <Compile Include="Configuration\Packaging.cs" />
+    <Compile Include="Configuration\Querying.cs" />
+    <Compile Include="Configuration\RepositoryStructure.cs" />
+    <Compile Include="Configuration\Services.cs" />
+    <Compile Include="Configuration\Versioning.cs" />
+    <Compile Include="Linq\CaseInsensitiveFilterVisitor.cs" />
+    <Compile Include="Packaging\ExecutionContext.cs" />
+    <Compile Include="Packaging\InstallResult.cs" />
+    <Compile Include="Packaging\InvalidPackageException.cs" />
+    <Compile Include="Packaging\InvalidStepParameterException.cs" />
+    <Compile Include="Packaging\Logger.cs" />
+    <Compile Include="Packaging\Manifest.cs" />
+    <Compile Include="Packaging\PackageManager.cs" />
+    <Compile Include="Packaging\PackageParameter.cs" />
+    <Compile Include="Packaging\PackagingException.cs" />
+    <Compile Include="Packaging\SR.cs" />
+    <Compile Include="Packaging\Steps\AddField.cs" />
+    <Compile Include="Packaging\Steps\AddMembers.cs" />
+    <Compile Include="Packaging\Steps\AddResource.cs" />
+    <Compile Include="Packaging\Steps\Assign.cs" />
+    <Compile Include="Packaging\Steps\ChangeContentType.cs" />
+    <Compile Include="Packaging\Steps\ChangeFieldType.cs" />
+    <Compile Include="Packaging\Steps\ChangeFieldTypeInCTD.cs" />
+    <Compile Include="Packaging\Steps\CheckIndexIntegrity.cs" />
+    <Compile Include="Packaging\Steps\ConditionalStep.cs" />
+    <Compile Include="Packaging\Steps\Copy.cs" />
+    <Compile Include="Packaging\Steps\DefaultPropertyAttribute.cs" />
+    <Compile Include="Packaging\Steps\Delete.cs" />
+    <Compile Include="Packaging\Steps\DisableIndexing.cs" />
+    <Compile Include="Packaging\Steps\EditConnectionString.cs" />
+    <Compile Include="Packaging\Steps\EditContentType.cs" />
+    <Compile Include="Packaging\Steps\EditJson.cs" />
+    <Compile Include="Packaging\Steps\EditText.cs" />
+    <Compile Include="Packaging\Steps\EnableIndexing.cs" />
+    <Compile Include="Packaging\Steps\EventLog.cs" />
+    <Compile Include="Packaging\Steps\EventLogManager.cs" />
+    <Compile Include="Packaging\Steps\ExecuteDatabaseScript.cs" />
+    <Compile Include="Packaging\Steps\Export.cs" />
+    <Compile Include="Packaging\Steps\Exporter.cs" />
+    <Compile Include="Packaging\Steps\ForEach.cs" />
+    <Compile Include="Packaging\Steps\IfCondition.cs" />
+    <Compile Include="Packaging\Steps\IfContentExists.cs" />
+    <Compile Include="Packaging\Steps\IfDatabaseExists.cs" />
+    <Compile Include="Packaging\Steps\IfDatabaseValue.cs" />
+    <Compile Include="Packaging\Steps\IfEquals.cs" />
+    <Compile Include="Packaging\Steps\IfXmlNodeExists.cs" />
+    <Compile Include="Packaging\Steps\Import.cs" />
+    <Compile Include="Packaging\Steps\ImportBase.cs" />
+    <Compile Include="Packaging\Steps\ImportSchema.cs" />
+    <Compile Include="Packaging\Steps\Internal\ClearAbortedWorkflows.cs" />
+    <Compile Include="Packaging\Steps\Internal\MoveConfigElement.cs" />
+    <Compile Include="Packaging\Steps\Internal\RefreshAspectReferences.cs" />
+    <Compile Include="Packaging\Steps\Internal\SafeQueries.cs" />
+    <Compile Include="Packaging\Steps\ManageIIS.cs" />
+    <Compile Include="Packaging\Steps\PopulateIndex.cs" />
+    <Compile Include="Packaging\Steps\Rename.cs" />
+    <Compile Include="Packaging\Steps\ReplaceText.cs" />
+    <Compile Include="Packaging\Steps\SetPermissions.cs" />
+    <Compile Include="Packaging\Steps\StartRepository.cs" />
+    <Compile Include="Packaging\Steps\Step.cs" />
+    <Compile Include="Packaging\Steps\Terminate.cs" />
+    <Compile Include="Packaging\Steps\Trace.cs" />
+    <Compile Include="Packaging\Steps\XmlEditorStep.cs" />
+    <Compile Include="Packaging\VersionControl.cs" />
+    <Compile Include="Packaging\ZipUnpacker.cs" />
+    <Compile Include="Schema\Metadata\IMetaNode.cs" />
+    <Compile Include="Schema\Metadata\MetaCollectionEnumerable.cs" />
+    <Compile Include="Schema\Metadata\SchemaVisitor.cs" />
+    <Compile Include="Setting\UserProfileSettings.cs" />
+    <Compile Include="ContentNamingHelper.cs" />
+    <Compile Include="ContentNamingProvider.cs" />
+    <Compile Include="ContentTemplate.cs" />
+    <Compile Include="DateTimeExtensions.cs" />
+    <Compile Include="JsonTreeCache.cs" />
+    <Compile Include="LoggingSettings.cs" />
+    <Compile Include="Schema\ISupportsVirtualChildren.cs" />
+    <Compile Include="Search\Indexing\Activities\RebuildActivity.cs" />
+    <Compile Include="Security\ADSync\ADSettings.cs" />
+    <Compile Include="Security\Cryptography\CryptoServiceProvider.cs" />
+    <Compile Include="Search\Parser\QueryClassifier.cs" />
+    <Compile Include="Search\Parser\SnLucToSqlCompiler.cs" />
+    <Compile Include="Search\Parser\SqlQueryFieldInfo.cs" />
+    <Compile Include="Search\QueryExecutors\IQueryExecutor.cs" />
+    <Compile Include="Search\QueryExecutors\LuceneQueryExecutor.cs" />
+    <Compile Include="Search\QueryExecutors\PermissionChecker.cs" />
+    <Compile Include="Search\QueryExecutors\QueryExecutor20131012.cs" />
+    <Compile Include="Search\QueryExecutors\QueryExecutor20131012CountOnly.cs" />
+    <Compile Include="Search\QueryExecutors\SqlQueryExecutor.cs" />
+    <Compile Include="Search\SearchProvider.cs" />
+    <Compile Include="SnElevatedModificationVisibilityRule.cs" />
+    <Compile Include="Fields\ColorFieldSetting.cs" />
+    <Compile Include="Fields\DateTimeFieldSetting.cs" />
+    <Compile Include="Fields\PermissionChoiceField.cs" />
+    <Compile Include="GroupMembershipObserver.cs" />
+    <Compile Include="Mail\ExchangeHelper.cs" />
+    <Compile Include="Json\JsonDynamicFieldHelper.cs" />
+    <Compile Include="Linq\ChildrenContentSet.cs" />
+    <Compile Include="Linq\ContentSet.cs" />
+    <Compile Include="Linq\CQVisitor.cs" />
+    <Compile Include="Linq\ExecutorVisitor.cs" />
+    <Compile Include="Linq\FilteredEnumerable.cs" />
+    <Compile Include="Linq\LinqChildrenEnumerator.cs" />
+    <Compile Include="Linq\LinqContentEnumerator.cs" />
+    <Compile Include="Linq\OptimizeBooleansVisitor.cs" />
+    <Compile Include="Linq\SetExecVisitor.cs" />
+    <Compile Include="Linq\SnExpr.cs" />
+    <Compile Include="Linq\SnExpression.cs" />
+    <Compile Include="Mail\MailHelper.cs" />
+    <Compile Include="Mail\MailProvider.cs" />
+    <Compile Include="Preview\DocumentPreviewObserver.cs" />
+    <Compile Include="Preview\DocumentPreviewProvider.cs" />
+    <Compile Include="DownloadCounter.cs" />
+    <Compile Include="ExpenseClaim.cs" />
+    <Compile Include="ExpenseClaimItem.cs" />
+    <Compile Include="FeedContent.cs" />
+    <Compile Include="FieldParsingException.cs" />
+    <Compile Include="Fields\AllowedChildTypesField.cs" />
+    <Compile Include="Fields\CaptchaField.cs" />
+    <Compile Include="Fields\CaptchaFieldSetting.cs" />
+    <Compile Include="Fields\ImageField.cs" />
+    <Compile Include="Fields\PageBreakField.cs" />
+    <Compile Include="Fields\PageBreakFieldSetting.cs" />
+    <Compile Include="Fields\PermissionChoiceFieldSetting.cs" />
+    <Compile Include="Fields\RatingField.cs" />
+    <Compile Include="Fields\RatingFieldSetting.cs" />
+    <Compile Include="Fields\SurveyRule.cs" />
+    <Compile Include="FileBase.cs" />
+    <Compile Include="Domain.cs" />
+    <Compile Include="ContentLink.cs" />
+    <Compile Include="ImageResizer.cs" />
+    <Compile Include="InvalidContentActionException.cs" />
+    <Compile Include="IViewManager.cs" />
+    <Compile Include="KPIData.cs" />
+    <Compile Include="KPIDatasource.cs" />
+    <Compile Include="NewsArticle.cs" />
+    <Compile Include="Preview\PreviewNotAvailableException.cs" />
+    <Compile Include="Preview\WatermarkTemplateReplacer.cs" />
+    <Compile Include="Query.cs" />
+    <Compile Include="Repository.cs" />
+    <Compile Include="RepositoryInstance.cs" />
+    <Compile Include="RepositoryStartSettings.cs" />
+    <Compile Include="RepositoryVersionInfo.cs" />
+    <Compile Include="RuntimeContentContainer.cs" />
+    <Compile Include="SafeQueries.cs" />
+    <Compile Include="Schema\FieldInfo.cs" />
+    <Compile Include="Schema\ISupportsAddingFieldsOnTheFly.cs" />
+    <Compile Include="SearchFolder.cs" />
+    <Compile Include="Search\ContentQuery.cs" />
+    <Compile Include="RestoreException.cs" />
+    <Compile Include="RestoreResultType.cs" />
+    <Compile Include="SavingAction.cs" />
+    <Compile Include="Schema\FieldMetadata.cs" />
+    <Compile Include="Schema\ISupportsDynamicFields.cs" />
+    <Compile Include="Search\IndexingSettings.cs" />
+    <Compile Include="Search\Indexing\Activities\AddDocumentActivity.cs" />
+    <Compile Include="Search\Indexing\Activities\AddTreeActivity.cs" />
+    <Compile Include="Search\Indexing\Activities\BackupActivity.cs" />
+    <Compile Include="Search\Indexing\Activities\LuceneDocumentActivity.cs" />
+    <Compile Include="Search\Indexing\Activities\LuceneIndexingActivity.cs" />
+    <Compile Include="Search\Indexing\Activities\LuceneTreeActivity.cs" />
+    <Compile Include="Search\Indexing\Activities\RemoveDocumentActivity.cs" />
+    <Compile Include="Search\Indexing\Activities\RemoveTreeActivity.cs" />
+    <Compile Include="Search\Indexing\Activities\UpdateDocumentActivity.cs" />
+    <Compile Include="Search\Indexing\IndexingActivityFactory.cs" />
+    <Compile Include="Search\Indexing\IndexingActivityQueue.cs" />
+    <Compile Include="Search\Indexing\BackupTools.cs" />
+    <Compile Include="Search\Indexing\Configuration\RepositoryIndexBehaviorSection.cs" />
+    <Compile Include="Search\Indexing\DocumentPopulator.cs" />
+    <Compile Include="Search\Indexing\FieldIndexHandler.cs" />
+    <Compile Include="Search\Indexing\IndexDocumentInfo.cs" />
+    <Compile Include="Search\Indexing\IndexFilePathHandler.cs" />
+    <Compile Include="Search\Indexing\IndexHealthMonitor.cs" />
+    <Compile Include="Search\Indexing\IndexingTools.cs" />
+    <Compile Include="Search\Indexing\IndexReaderFrame.cs" />
+    <Compile Include="Search\Indexing\IndexWriterFrame.cs" />
+    <Compile Include="Search\Indexing\IntegrityChecker.cs" />
+    <Compile Include="Search\Indexing\SnPerFieldAnalyzerWrapper.cs" />
+    <Compile Include="Search\IndexManager.cs" />
+    <Compile Include="Search\Indexing\Activities\DistributedLuceneActivity.cs" />
+    <Compile Include="Search\InvalidContentQueryException.cs" />
+    <Compile Include="Search\LuceneSearchEngine.cs" />
+    <Compile Include="Search\LucObject.cs" />
+    <Compile Include="Search\LucQuery.cs" />
+    <Compile Include="Search\Parser\ContentQueryTemplateReplacer.cs" />
+    <Compile Include="Search\Parser\FieldNameVisitor.cs" />
+    <Compile Include="Search\RichTextStripper.cs" />
+    <Compile Include="Search\SnCollector.cs" />
+    <Compile Include="Search\SnLucCompiler.cs" />
+    <Compile Include="Search\SnIFilter.cs" />
+    <Compile Include="Search\TextExtractor.cs" />
+    <Compile Include="Search\Indexing\LuceneManager.cs" />
+    <Compile Include="Search\Parser\DumpVisitor.cs" />
+    <Compile Include="Search\Parser\LucQueryTemplateReplacer.cs" />
+    <Compile Include="Search\Parser\LineInfo.cs" />
+    <Compile Include="Search\Parser\LucQueryVisitor.cs" />
+    <Compile Include="Search\Parser\ParserException.cs" />
+    <Compile Include="Search\Parser\SnLucLexer.cs" />
+    <Compile Include="Search\Parser\SnLucParser.cs" />
+    <Compile Include="Search\Indexing\PerFieldIndexingInfo.cs" />
+    <Compile Include="Search\Parser\RepositoryLucQueryTemplateReplacer.cs" />
+    <Compile Include="Search\TextSplitter.cs" />
+    <Compile Include="Security\ADSync\ADFolder.cs" />
+    <Compile Include="ApplicationCache.cs" />
+    <Compile Include="BinaryTypeResolver.cs" />
+    <Compile Include="Security\ADSync\DirectoryProvider.cs" />
+    <Compile Include="Fields\BinaryFieldSetting.cs" />
+    <Compile Include="Fields\CurrencyField.cs" />
+    <Compile Include="Fields\CurrencyFieldSetting.cs" />
+    <Compile Include="Fields\HyperLinkFieldSetting.cs" />
+    <Compile Include="Fields\LongTextFieldSetting.cs" />
+    <Compile Include="Fields\XmlField.cs" />
+    <Compile Include="Fields\XmlFieldSetting.cs" />
+    <Compile Include="Fields\YesNoField.cs" />
+    <Compile Include="Fields\YesNoFieldSetting.cs" />
+    <Compile Include="Security\ADSync\IADSyncable.cs" />
+    <Compile Include="IAction.cs" />
+    <Compile Include="RepositoryQueryTemplateReplacer.cs" />
+    <Compile Include="Schema\DynamicContentTools.cs" />
+    <Compile Include="Schema\FieldDataType.cs" />
+    <Compile Include="Schema\FieldSettingContent.cs" />
+    <Compile Include="Security\HtmlSanitizer.cs" />
+    <Compile Include="Security\PermissionQuery.cs" />
+    <Compile Include="Security\Sanitizer.cs" />
+    <Compile Include="Settings.cs" />
+    <Compile Include="SettingsCache.cs" />
+    <Compile Include="Survey.cs" />
+    <Compile Include="SurveyItem.cs" />
+    <Compile Include="SystemFolder.cs" />
+    <Compile Include="Task.cs" />
+    <Compile Include="TemplateManager.cs" />
+    <Compile Include="TemplateReplacerBase.cs" />
+    <Compile Include="TrashBag.cs" />
+    <Compile Include="TrashBin.cs" />
+    <Compile Include="Schema\DataSlotInfo.cs" />
+    <Compile Include="Schema\DefaultFieldControlAttribute.cs" />
+    <Compile Include="Schema\DefaultFieldSettingAttribute.cs" />
+    <Compile Include="ExportContext.cs" />
+    <Compile Include="Fields\ActivationFieldSetting.cs" />
+    <Compile Include="Fields\ApprovingModeField.cs" />
+    <Compile Include="Fields\ChoiceFieldSetting.cs" />
+    <Compile Include="Fields\ChoiceOption.cs" />
+    <Compile Include="Fields\NullFieldSetting.cs" />
+    <Compile Include="Fields\IntegerFieldSetting.cs" />
+    <Compile Include="Fields\NumberFieldSetting.cs" />
+    <Compile Include="Fields\PasswordFieldSetting.cs" />
+    <Compile Include="Fields\ShortTextFieldSetting.cs" />
+    <Compile Include="Fields\InheritableApprovingModeField.cs" />
+    <Compile Include="Fields\InheritableVersioningModeField.cs" />
+    <Compile Include="Schema\DataSlotAttribute.cs" />
+    <Compile Include="Fields\TextFieldSetting.cs" />
+    <Compile Include="Schema\ShortNameAttribute.cs" />
+    <Compile Include="TransferException.cs" />
+    <Compile Include="Content.cs" />
+    <Compile Include="Field.cs" />
+    <Compile Include="Fields\BinaryField.cs" />
+    <Compile Include="Fields\BooleanField.cs" />
+    <Compile Include="Fields\ChoiceField.cs" />
+    <Compile Include="Fields\PasswordField.cs" />
+    <Compile Include="Fields\ReferenceFieldSetting.cs" />
+    <Compile Include="Fields\VersioningModeField.cs" />
+    <Compile Include="Fields\SiteRelativeUrlField.cs" />
+    <Compile Include="Fields\DateTimeField.cs" />
+    <Compile Include="Fields\HyperLinkField.cs" />
+    <Compile Include="Fields\IntegerField.cs" />
+    <Compile Include="Fields\LockField.cs" />
+    <Compile Include="Fields\LongTextField.cs" />
+    <Compile Include="Fields\NodeTypeField.cs" />
+    <Compile Include="Fields\NumberField.cs" />
+    <Compile Include="Fields\ReferenceField.cs" />
+    <Compile Include="Fields\SecurityField.cs" />
+    <Compile Include="Fields\VersionField.cs" />
+    <Compile Include="Fields\ColorField.cs" />
+    <Compile Include="Fields\ShortTextField.cs" />
+    <Compile Include="Fields\WhoAndWhenField.cs" />
+    <Compile Include="GenericContent.cs" />
+    <Compile Include="ImportContext.cs" />
+    <Compile Include="TreeCache.cs" />
+    <Compile Include="UnknownActionException.cs" />
+    <Compile Include="UploadHelper.cs" />
+    <Compile Include="UserProfile.cs" />
+    <Compile Include="Versioning\VersioningType.cs" />
+    <Compile Include="HttpEndpointDemoContent.cs" />
+    <Compile Include="ICustomSingleNode.cs" />
+    <Compile Include="Image.cs" />
+    <Compile Include="CryptoApi.cs" />
+    <Compile Include="JscriptEvaluator.cs" />
+    <Compile Include="Schema\RepositorySchema.cs" />
+    <Compile Include="Schema\FieldValidationResult.cs" />
+    <Compile Include="SmartFolder.cs" />
+    <Compile Include="Security\DesktopAccessProvider.cs" />
+    <Compile Include="Schema\FieldManager.cs" />
+    <Compile Include="i18n\SenseNetResourceManager.cs" />
+    <Compile Include="i18n\SenseNetResourceProvider.cs" />
+    <Compile Include="i18n\SenseNetResourceProviderFactory.cs" />
+    <Compile Include="ContentList.cs" />
+    <Compile Include="PortalRoot.cs" />
+    <Compile Include="ReferenceNotFoundException.cs" />
+    <Compile Include="Security\PortalPrincipal.cs" />
+    <Compile Include="Security\SenseNetMembershipProvider.cs" />
+    <Compile Include="i18n\Resource.cs" />
+    <Compile Include="Schema\ContentHandlerAttribute.cs" />
+    <Compile Include="Schema\ContentRegistrationException.cs" />
+    <Compile Include="Schema\ContentType.cs" />
+    <Compile Include="Schema\ContentTypeInstaller.cs" />
+    <Compile Include="Schema\ContentTypeManager.cs" />
+    <Compile Include="Schema\FieldDescriptor.cs" />
+    <Compile Include="Schema\FieldSetting.cs" />
+    <Compile Include="Schema\NodeTypeRegistration.cs" />
+    <Compile Include="Schema\RepositoryDataType.cs" />
+    <Compile Include="Schema\RepositoryPropertyAttribute.cs" />
+    <Compile Include="Schema\PropertyTypeRegistration.cs" />
+    <Compile Include="ContentRotator.cs" />
+    <Compile Include="SR.cs" />
+    <Compile Include="Tools.cs" />
+    <Compile Include="Security\UserAccessProvider.cs" />
+    <Compile Include="Group.cs" />
+    <Compile Include="IFile.cs" />
+    <Compile Include="OrganizationalUnit.cs" />
+    <Compile Include="File.cs" />
+    <Compile Include="Folder.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="User.cs" />
+    <Compile Include="Voting.cs" />
+    <Compile Include="VotingItem.cs" />
+    <Compile Include="WorkflowNotificationEventArgs.cs" />
+    <Compile Include="Workspaces\Workspace.cs" />
+    <Compile Include="Xpath\ContentNavigator.cs" />
+    <Compile Include="Xpath\Elements.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Schema\ContentTypeDefinition.xsd">
+      <SubType>
+      </SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Schema\AspectDefinition.xsd">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <None Include="packages.config" />
+    <None Include="Schema\ContentTypeDefinition.xsx">
+      <DependentUpon>ContentTypeDefinition.xsd</DependentUpon>
+    </None>
+    <EmbeddedResource Include="Schema\ContentListDefinition.xsd">
+      <SubType>
+      </SubType>
+    </EmbeddedResource>
+    <None Include="Search\ClassDiagram1.cd" />
+    <None Include="Schema\ContentListDefinition.xsx">
+      <DependentUpon>ContentListDefinition.xsd</DependentUpon>
+    </None>
+    <None Include="Search\Indexing\Activities\IndexingActivities.cd" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Schema\ContentListDefinitionSample.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.2.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 2.0 %28x86%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Common\Common.csproj">
+      <Project>{A453E920-29C0-45CD-984C-0D8E3631B1E3}</Project>
+      <Name>Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Preview\Preview.csproj">
+      <Project>{01ae54af-db4e-431e-a3f9-fbcd2ad73d03}</Project>
+      <Name>Preview</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Storage\Storage.csproj">
+      <Project>{5DB4DDBA-81F6-4D81-943A-18F3178B3355}</Project>
+      <Name>Storage</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{3259AA49-8AA1-44D3-9025-A0B520596A8C}" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+       -->
+  <Target Name="BeforeBuild" Condition="$(SnProductVersion)!=''">
+    <ItemGroup>
+      <AssemblyInfoFiles Include="Properties\AssemblyInfo.cs" />
+    </ItemGroup>
+    <Message Text="&lt;?: Updating Version: $(SnProductVersion)">
+    </Message>
+    <Message Text="&lt;?: config: $(Configuration)">
+    </Message>
+    <AssemblyInfo AssemblyInfoFiles="@(AssemblyInfoFiles)" AssemblyProduct="$(ProductName) $(ProductEdition) ($(Configuration))" AssemblyTitle="$(ProductName) component ($(Configuration))" AssemblyVersion="$(SnProductVersion)" AssemblyFileVersion="$(SnProductVersion)" AssemblyCompany="Sense/Net Inc." AssemblyTrademark="Sense/Net Inc." AssemblyCopyright="Copyright © Sense/Net Inc.">
+    </AssemblyInfo>
+  </Target>
+  <!--<Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

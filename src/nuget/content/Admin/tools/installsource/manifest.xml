@@ -1,0 +1,48 @@
+<Package type='Product' level='Install'>
+  <Name>Sense/Net ECM</Name>
+  <ReleaseDate>2016-12-21</ReleaseDate>
+  <VersionControl target="6.5.4" />
+  <Parameters>
+    <Parameter name="@dataSource">MySenseNetContentRepositoryDatasource</Parameter>
+    <Parameter name="@initialCatalog">SenseNetContentRepository</Parameter>
+  </Parameters>
+  <Steps>
+    <Phase>
+      <!-- Create a temp copy of the DB creator script and insert the db name to create. -->
+      <Delete>..\Storage\Data\SqlClient\Scripts\Create_SenseNet_Database_TEMP.sql</Delete>
+      <Copy SourceIsRelativeTo="TargetDirectory" 
+            Source="..\Storage\Data\SqlClient\Scripts\Create_SenseNet_Database.sql"
+            TargetDirectory="..\Storage\Data\SqlClient\Scripts" 
+            NewName="Create_SenseNet_Database_TEMP.sql" />
+      <ReplaceText Template="$(INITIALCATALOG)" Path="..\Storage\Data\SqlClient\Scripts\Create_SenseNet_Database_TEMP.sql">@initialCatalog</ReplaceText>
+      
+      <ExecuteDatabaseScript initialCatalog="Master"              DataSource="@dataSource" Query="..\..\..\..\Storage\Data\SqlClient\Scripts\Create_SenseNet_Database_TEMP.sql" />
+      <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" Query="..\..\..\..\Storage\Data\SqlClient\Scripts\Install_Security.sql" />
+      <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" Query="..\..\..\..\Storage\Data\SqlClient\Scripts\Install_01_Schema.sql" />
+      <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" Query="..\..\..\..\Storage\Data\SqlClient\Scripts\Install_02_Procs.sql" />
+      <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" Query="..\..\..\..\Storage\Data\SqlClient\Scripts\Install_03_Data_Phase1.sql" />
+      <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" Query="..\..\..\..\Storage\Data\SqlClient\Scripts\Install_04_Data_Phase2.sql" />
+      <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" Query="..\..\..\..\Storage\Data\SqlClient\Scripts\SqlWorkflowInstanceStoreSchema.sql" />
+      <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" Query="..\..\..\..\Storage\Data\SqlClient\Scripts\SqlWorkflowInstanceStoreLogic.sql" />
+
+      <!-- Insert new connection string values into config files. -->
+      <EditConnectionString ConnectionName="SnCrMsSql" InitialCatalogName="@initialCatalog" DataSource="@dataSource" File="Web.config" />
+      <ForEach item="@configPath" files="Tools\*.config">
+        <Block>
+          <EditConnectionString ConnectionName="SnCrMsSql" InitialCatalogName="@initialCatalog" DataSource="@dataSource" File="@configPath" />
+        </Block>
+      </ForEach>
+      
+      <!-- Cleanup -->
+      <Delete>..\Storage\Data\SqlClient\Scripts\Create_SenseNet_Database_TEMP.sql</Delete>
+    </Phase>
+	  <Phase>
+		  <StartRepository startLuceneManager="false" startWorkflowEngine="false" />
+		  <Import target="/Root" resetSecurity="true" LogLevel="Verbose" source="..\..\..\Root" />
+    </Phase>
+    <Phase>
+      <StartRepository startLuceneManager="false" startWorkflowEngine="false" />
+      <PopulateIndex />
+	  </Phase>
+  </Steps>
+</Package>

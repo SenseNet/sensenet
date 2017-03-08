@@ -1,0 +1,191 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema targetNamespace="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentListDefinition"
+			xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentListDefinition"
+			xmlns:tns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentListDefinition"
+			xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified">
+  <xs:element name="ContentListDefinition" type="ContentListDecl">
+    <xs:annotation>
+      <xs:documentation>
+        Required attribute: @name, @handler. Subelement order: DisplayName, Description, Icon, AppInfo, Fields
+      </xs:documentation>
+    </xs:annotation>
+    <xs:unique name="UniqueContentListName">
+      <xs:selector xpath="."/>
+      <xs:field xpath="@name"/>
+    </xs:unique>
+  </xs:element>
+  <!-- -->
+  <xs:complexType name="BaseDecl" abstract="true">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="DisplayName" type="xs:string" />
+      <xs:element minOccurs="0" name="Description" type="xs:string" />
+      <xs:element minOccurs="0" name="Icon" type="xs:string" />
+      <xs:element minOccurs="0" name="AppInfo">
+        <xs:complexType mixed="true">
+          <xs:sequence minOccurs="0" maxOccurs="unbounded">
+            <xs:annotation>
+              <xs:documentation>
+                Extensibility point for any application. Contains any information in text or well formed xml fragment.
+              </xs:documentation>
+            </xs:annotation>
+            <xs:any namespace="##any" processContents="skip" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <!-- -->
+  <xs:complexType name="ContentListDecl">
+    <xs:complexContent>
+      <xs:extension base="BaseDecl">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="Fields">
+            <xs:complexType>
+              <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                <xs:element minOccurs="0" name="ContentListField" type="ContentListFieldDecl" />
+              </xs:sequence>
+            </xs:complexType>
+            <xs:unique name="UniqueContentListFieldName">
+              <xs:selector xpath="tns:ContentListField"/>
+              <xs:field xpath="@name"/>
+            </xs:unique>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!-- -->
+  <xs:complexType name="ContentListFieldDecl">
+    <xs:annotation>
+      <xs:documentation>
+        Required attributes: @name, @type or @handler.
+        Subelement order: DisplayName, Description, Icon, AppInfo, Indexing, Configuration, UI
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="BaseDecl">
+        <xs:sequence>
+          <xs:element name="Indexing" type ="IndexingDecl" minOccurs="0" />
+          <xs:element name="Configuration" minOccurs="0">
+            <xs:complexType mixed="true">
+              <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                <xs:any namespace="##any" processContents="skip" />
+              </xs:sequence>
+              <xs:attribute name="handler" use="optional" type="xs:string">
+                <xs:annotation>
+                  <xs:documentation>
+                    Contains fully qualified class name of a field handler configurator class (inherited from FieldSetting).
+                    The given class overrides the default configurator of Field.
+                  </xs:documentation>
+                </xs:annotation>
+              </xs:attribute>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="UI" minOccurs="0">
+            <xs:complexType mixed="true">
+              <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                <xs:any namespace="##any" processContents="skip" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+        <xs:attribute name="name" type="TypeName" use="required">
+          <xs:annotation>
+            <xs:documentation>
+              Valid name starts with '#' and one letter or '_'. Other characters can be letter or number or '_'.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="type" use="optional" type="xs:string">
+          <xs:annotation>
+            <xs:documentation>
+              Contains short name of a field handler.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="handler" use="optional" type="xs:string">
+          <xs:annotation>
+            <xs:documentation>
+              Contains fully qualified class name of a field handler. If @handler is specified, the @type will be neglected.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!-- -->
+  <xs:simpleType name="TypeName">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[#][a-zA-Z_][0-9a-zA-Z_]*"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <!-- -->
+  <xs:complexType name="IndexingDecl">
+    <xs:annotation>
+      <xs:documentation>
+        Subelement order: Mode, Store, TermVector, Analyzer, IndexHandler
+      </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="Mode" type="IndexingModeEnum" minOccurs="0" />
+      <xs:element name="Store" type="IndexStoringEnum" minOccurs="0" />
+      <xs:element name="TermVector" type="IndexingTermVectorEnum" minOccurs="0" />
+      <xs:element name="Analyzer" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            Specifies a Lucene Analyzer for indexing.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="IndexHandler" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            Specifies an IndexHandler for indexing and parsing.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <!-- -->
+  <xs:simpleType name="IndexingModeEnum">
+    <xs:annotation>
+      <xs:documentation>
+        Specifies whether and how a field should be indexed. Available values: Analyzed (default), AnalyzedNoNorms, No, NotAnalyzed, NotAnalyzedNoNorms
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Analyzed"/>
+      <xs:enumeration value="AnalyzedNoNorms"/>
+      <xs:enumeration value="No"/>
+      <xs:enumeration value="NotAnalyzed"/>
+      <xs:enumeration value="NotAnalyzedNoNorms"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <!-- -->
+  <xs:simpleType name="IndexStoringEnum">
+    <xs:annotation>
+      <xs:documentation>
+        Specifies whether and how a field should be stored. Available values: No (default), Yes
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="No"/>
+      <xs:enumeration value="Yes"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <!-- -->
+  <xs:simpleType name="IndexingTermVectorEnum">
+    <xs:annotation>
+      <xs:documentation>
+        Specifies whether and how a field should have term vectors. Available values: No (default), WithOffsets, WithPositions, WithPositionsOffsets, Yes
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="No"/>
+      <xs:enumeration value="WithOffsets"/>
+      <xs:enumeration value="WithPositions"/>
+      <xs:enumeration value="WithPositionsOffsets"/>
+      <xs:enumeration value="Yes"/>
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>

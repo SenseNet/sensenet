@@ -1,0 +1,15 @@
+<Package type='Product' level='Tool'>
+  <Name>Sense/Net ECM</Name>
+  <ReleaseDate>2016-12-21</ReleaseDate>
+  <Parameters>
+    <Parameter name="@source" />
+    <Parameter name="@target" />
+    <Parameter name="@filter" />
+  </Parameters>
+  <Steps>
+	  <Phase>
+		  <StartRepository />
+		  <Export Source="@source" Target="@target" Filter="@filter" />
+	  </Phase>
+  </Steps>
+</Package>

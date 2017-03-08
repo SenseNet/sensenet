@@ -1,0 +1,27 @@
+﻿<ContentType name="ImageLibrary" parentType="Library" handler="SenseNet.ContentRepository.ContentList" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+  <DisplayName>$Ctd-ImageLibrary,DisplayName</DisplayName>
+  <Description>$Ctd-ImageLibrary,Description</Description>
+  <Icon>ContentList</Icon>
+  <AllowedChildTypes>
+    Folder,Image
+  </AllowedChildTypes>
+  <Fields>
+    <Field name="Description" type="LongText">
+      <Configuration>
+        <VisibleBrowse>Show</VisibleBrowse>
+        <VisibleEdit>Show</VisibleEdit>
+        <VisibleNew>Show</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="CoverImage" type="Reference">
+      <DisplayName>$Ctd-GenericContent,CoverImage</DisplayName>
+      <Description>Select cover image</Description>
+      <Configuration>
+        <AllowMultiple>false</AllowMultiple>
+        <AllowedTypes>
+          <Type>Image</Type>
+        </AllowedTypes>
+      </Configuration>
+    </Field>
+  </Fields>
+</ContentType>

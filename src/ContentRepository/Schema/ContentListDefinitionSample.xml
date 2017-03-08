@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentListDefinition xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentListDefinition">
+	<!-- General UI data: DisplayName, Description, Icon -->
+	<DisplayName>Page title</DisplayName>
+	<Description>Page description</Description>
+	<Icon>automobile.gif</Icon>
+	<!-- Field container with 0..n ContentListField element -->
+	<Fields>
+		<!-- Field name="[]" type="[name of handler]" handler="[fieldhandler classsname]" -->
+		<ContentListField name="#Manufacturer" type="ShortText" handler="class2">
+			<!--General UI data: DisplayName, Description, Icon-->
+			<DisplayName>Manufacturer's name</DisplayName>
+			<Description>This is a demo automobile node definition</Description>
+			<Icon>icon.gif</Icon>
+			<!-- Contains any wellformed xml content suitable to the @type -->
+			<Configuration>
+				<!-- Some recommended configuration -->
+				<Compulsory>true</Compulsory>
+				<MaxLength>100</MaxLength>
+				<!-- Nongeneralized configuration -->
+				<Format>TitleCase</Format>
+			</Configuration>
+		</ContentListField>
+		<ContentListField name="#BodyColor" type="ColorPicker">
+			<Configuration>
+				<Compulsory>true</Compulsory>
+				<MaxLength>100</MaxLength>
+			</Configuration>
+		</ContentListField>
+		<ContentListField name="#Color" handler="Fields.ColorHandler">
+		</ContentListField>
+	</Fields>
+</ContentListDefinition>

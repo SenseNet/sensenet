@@ -1,0 +1,137 @@
+using System;
+using System.Collections.Generic;
+using SenseNet.ContentRepository.Storage.Schema;
+using System.ComponentModel;
+using SenseNet.ContentRepository.Storage.Search;
+
+namespace SenseNet.ContentRepository.Storage
+{
+    /// <summary>
+    /// ActiveSchema is a wrapper for NodeTypeManager. By using the ActiveSchema class you can the the NodeTypes, PropertyTypes and PermisionTypes currenly in the system.
+    /// </summary>
+	public static class ActiveSchema
+    {
+        public static readonly List<string> NodeAttributeNames = new List<string>(new string[]{
+            "Id", "Parent", "Name", "Path",
+			"Index", "Locked", "LockedBy", "ETag", "LockType", "LockTimeout", "LockDate", "LockToken",
+            "LastLockUpdate", "LastMinorVersionId", "LastMajorVersionId", "MajorVersion", "MinorVersion",
+            "CreationDate", "CreatedBy", "ModificationDate", "ModifiedBy", "IsSystem", "OwnerId", "SavingState" });
+
+        private static readonly Dictionary<NodeAttribute, DataType> _nodeAttributeDataTypes;
+
+        static ActiveSchema()
+        {
+            _nodeAttributeDataTypes = new Dictionary<NodeAttribute, DataType>();
+            _nodeAttributeDataTypes.Add(NodeAttribute.Id, DataType.Int);
+            _nodeAttributeDataTypes.Add(NodeAttribute.Parent, DataType.Reference);
+            _nodeAttributeDataTypes.Add(NodeAttribute.Name, DataType.String);
+            _nodeAttributeDataTypes.Add(NodeAttribute.Path, DataType.String);
+            _nodeAttributeDataTypes.Add(NodeAttribute.Index, DataType.Int);
+            _nodeAttributeDataTypes.Add(NodeAttribute.Locked, DataType.Int);
+            _nodeAttributeDataTypes.Add(NodeAttribute.LockedBy, DataType.Reference);
+            _nodeAttributeDataTypes.Add(NodeAttribute.ETag, DataType.String);
+            _nodeAttributeDataTypes.Add(NodeAttribute.LockType, DataType.Int);
+            _nodeAttributeDataTypes.Add(NodeAttribute.LockTimeout, DataType.Int);
+            _nodeAttributeDataTypes.Add(NodeAttribute.LockDate, DataType.DateTime);
+            _nodeAttributeDataTypes.Add(NodeAttribute.LockToken, DataType.String);
+            _nodeAttributeDataTypes.Add(NodeAttribute.LastLockUpdate, DataType.DateTime);
+            _nodeAttributeDataTypes.Add(NodeAttribute.LastMinorVersionId, DataType.Int);
+            _nodeAttributeDataTypes.Add(NodeAttribute.LastMajorVersionId, DataType.Int);
+            _nodeAttributeDataTypes.Add(NodeAttribute.MajorVersion, DataType.Int);
+            _nodeAttributeDataTypes.Add(NodeAttribute.MinorVersion, DataType.Int);
+            _nodeAttributeDataTypes.Add(NodeAttribute.CreationDate, DataType.DateTime);
+            _nodeAttributeDataTypes.Add(NodeAttribute.CreatedBy, DataType.Reference);
+            _nodeAttributeDataTypes.Add(NodeAttribute.ModificationDate, DataType.DateTime);
+            _nodeAttributeDataTypes.Add(NodeAttribute.ModifiedBy, DataType.Reference);
+            _nodeAttributeDataTypes.Add(NodeAttribute.IsSystem, DataType.Int);
+            _nodeAttributeDataTypes.Add(NodeAttribute.OwnerId, DataType.Int);
+            _nodeAttributeDataTypes.Add(NodeAttribute.SavingState, DataType.Int);
+        }
+
+        /// <summary>
+        /// Gets the DataProvider dependent earliest DateTime value
+        /// </summary>
+        public static DateTime DateTimeMinValue
+        {
+            get { return SenseNet.ContentRepository.Storage.Data.DataProvider.Current.DateTimeMinValue; }
+        }
+        /// <summary>
+        /// Gets the DataProvider dependent last DateTime value
+        /// </summary>
+        public static DateTime DateTimeMaxValue
+        {
+            get { return SenseNet.ContentRepository.Storage.Data.DataProvider.Current.DateTimeMaxValue; }
+        }
+        /// <summary>
+        /// Gets the maximum length of the short text datatype
+        /// </summary>
+        public static int ShortTextMaxLength { get { return 400; } }
+        /// <summary>
+        /// Gets the DataProvider dependent smallest decimal value
+        /// </summary>
+        public static decimal DecimalMinValue
+        {
+            get { return SenseNet.ContentRepository.Storage.Data.DataProvider.Current.DecimalMinValue; }
+        }
+        /// <summary>
+        /// Gets the DataProvider dependent biggest decimal value
+        /// </summary>
+        public static decimal DecimalMaxValue
+        {
+            get { return SenseNet.ContentRepository.Storage.Data.DataProvider.Current.DecimalMaxValue; }
+        }
+
+
+        /// <summary>
+        /// Gets the property types.
+        /// </summary>
+        /// <value>The property types.</value>
+		public static TypeCollection<PropertyType> PropertyTypes
+        {
+            get { return NodeTypeManager.Current.PropertyTypes; }
+        }
+        /// <summary>
+        /// Gets the node types.
+        /// </summary>
+        /// <value>The node types.</value>
+		public static TypeCollection<NodeType> NodeTypes
+        {
+            get { return NodeTypeManager.Current.NodeTypes; }
+        }
+        /// <summary>
+        /// Gets the ContentList types.
+        /// </summary>
+        /// <value>The ContentList types.</value>
+        public static TypeCollection<ContentListType> ContentListTypes
+        {
+            get { return NodeTypeManager.Current.ContentListTypes; }
+        }
+
+        /// <summary>
+        /// Resets the NodeTypeManager instance.
+        /// </summary>
+		public static void Reset()
+        {
+            // The NodeTypeManager distributes its restart, no distrib action needed
+            NodeTypeManager.Restart();
+        }
+
+        public static void Reload()
+        {
+            NodeTypeManager.Reload();
+        }
+
+        /// <summary>
+        /// Gets the type of the node attribute data.
+        /// </summary>
+        /// <param name="attributeName">Name of the attribute.</param>
+        /// <returns></returns>
+		public static DataType GetNodeAttributeDataType(NodeAttribute attribute)
+        {
+            DataType result;
+            if (_nodeAttributeDataTypes.TryGetValue(attribute, out result))
+                return result;
+            throw new SnNotSupportedException(String.Concat(SR.Exceptions.Schema.Msg_NodeAttributeDoesNotEsist, " ", attribute));
+        }
+    }
+}

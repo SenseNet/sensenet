@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>SystemFolder</ContentType>
+  <ContentName>Schema</ContentName>
+  <Fields>
+    <DisplayName>Schema</DisplayName>
+    <AllowedChildTypes>SystemFolder</AllowedChildTypes>
+  </Fields>
+  <Permissions>
+    <Clear />
+  </Permissions>
+</ContentMetaData>

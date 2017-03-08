@@ -1,0 +1,156 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" 
+		   xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/SearchExpression" 
+		   targetNamespace="http://schemas.sensenet.com/SenseNet/ContentRepository/SearchExpression" 
+		   xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:simpleType name="Direction">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="asc" />
+			<xs:enumeration value="desc" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="YesNo">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="yes" />
+			<xs:enumeration value="no" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ValueOperator">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Equal" />
+			<xs:enumeration value="NotEqual" />
+			<xs:enumeration value="LessThan" />
+			<xs:enumeration value="GreaterThan" />
+			<xs:enumeration value="LessThanOrEqual" />
+			<xs:enumeration value="GreaterThanOrEqual" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="StringOperator">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Equal" />
+			<xs:enumeration value="NotEqual" />
+			<xs:enumeration value="LessThan" />
+			<xs:enumeration value="GreaterThan" />
+			<xs:enumeration value="LessThanOrEqual" />
+			<xs:enumeration value="GreaterThanOrEqual" />
+			<xs:enumeration value="StartsWith" />
+			<xs:enumeration value="EndsWith" />
+			<xs:enumeration value="Contains" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:attributeGroup name="LeftValue">
+		<xs:attribute name="property" type="xs:string" use="required" />
+	</xs:attributeGroup>
+	<xs:complexType name="ElementWithName">
+		<xs:attribute name="name" type="xs:string" use="required" />
+	</xs:complexType>
+	<xs:group name="PropertyOrNull">
+		<xs:choice>
+			<xs:element name="NullValue" />
+			<xs:element name="Property" type="ElementWithName" />
+		</xs:choice>
+	</xs:group>
+	<xs:complexType name="Sequence">
+		<xs:sequence>
+			<xs:group ref="Expression" maxOccurs="unbounded" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:group name="Expression">
+		<xs:choice>
+			<xs:element name="Or" type="Sequence" />
+			<xs:element name="And" type="Sequence" />
+			<xs:element name="Not">
+				<xs:complexType>
+					<xs:group ref="Expression" />
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="FullText">
+			</xs:element>
+			<xs:element name="Type">
+				<xs:complexType>
+					<xs:attribute name="nodeType" type="xs:string" use="required" />
+					<xs:attribute name="exactMatch" type="YesNo" use="optional" />
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="Reference">
+				<xs:complexType>
+					<xs:sequence minOccurs="0">
+						<xs:group ref="Expression" />
+					</xs:sequence>
+					<xs:attributeGroup ref="LeftValue" />
+					<xs:attribute name="existenceOnly" type="xs:string" use="optional" />
+					<xs:attribute name="referencedNodeId" type="xs:nonNegativeInteger" use="optional" />
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="Currency">
+				<xs:complexType mixed="true">
+					<xs:sequence minOccurs="0">
+						<xs:group ref="PropertyOrNull" />
+					</xs:sequence>
+					<xs:attribute name="property" type="xs:string" use="required" />
+					<xs:attribute name="op" type="ValueOperator" use="required" />
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="DateTime">
+				<xs:complexType mixed="true">
+					<xs:sequence minOccurs="0">
+						<!--<xs:group ref="RightValue" />-->
+						<xs:group ref="PropertyOrNull" />
+					</xs:sequence>
+					<xs:attributeGroup ref="LeftValue" />
+					<xs:attribute name="op" type="ValueOperator" use="required" />
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="Int">
+				<xs:complexType mixed="true">
+					<xs:sequence minOccurs="0">
+						<!--<xs:group ref="RightValue" />-->
+						<xs:group ref="PropertyOrNull" />
+					</xs:sequence>
+					<xs:attributeGroup ref="LeftValue" />
+					<xs:attribute name="op" type="ValueOperator" use="required" />
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="String">
+				<xs:complexType mixed="true">
+					<xs:sequence minOccurs="0">
+						<!--<xs:group ref="RightValue" />-->
+						<xs:group ref="PropertyOrNull" />
+					</xs:sequence>
+					<xs:attributeGroup ref="LeftValue" />
+					<xs:attribute name="op" type="StringOperator" use="required" />
+				</xs:complexType>
+			</xs:element>
+		</xs:choice>
+	</xs:group>
+	<xs:complexType name="Order">
+		<xs:sequence>
+			<xs:element name="Order" minOccurs="0" maxOccurs="unbounded">
+				<xs:complexType>
+					<xs:attributeGroup ref="LeftValue" />
+					<xs:attribute name="direction" type="Direction" use="optional" />
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Page">
+		<xs:attribute name="startIndex" type="xs:int" use="optional" />
+		<xs:attribute name="pageSize" type="xs:int" use="optional" />
+	</xs:complexType>
+
+	<!-- Main declaration -->
+	<xs:element name="SearchExpression">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:choice>
+					<xs:element name="And" type="Sequence" />
+					<xs:element name="Or" type="Sequence" />
+				</xs:choice>
+				<xs:element name="Orders" type="Order" minOccurs="0" />
+				<xs:element name="Page" type="Page" minOccurs="0" />
+				<xs:element name="Top" type="xs:nonNegativeInteger" minOccurs="0" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+</xs:schema>

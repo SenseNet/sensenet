@@ -1,0 +1,12 @@
+{
+	MailProcessingMode: "ExchangePull",
+	StatusPollingIntervalInMinutes: 120,
+	PushNotificationServicePath: "http://example.com{0}?action=ExchangeService.asmx",
+	ExchangeAddress: "https://exchangeserveraddress/EWS/Exchange.asmx",
+	POP3: {
+		Server: "pop3.live.com",
+		Password: "",
+		Port: 995,
+		SSL: true
+	}
+}

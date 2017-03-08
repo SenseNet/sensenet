@@ -1,0 +1,14 @@
+<Package type='Product' level='Tool'>
+  <Name>Sense/Net ECM</Name>
+  <ReleaseDate>2016-12-21</ReleaseDate>
+  <Parameters>
+    <Parameter name="@logName" />
+    <Parameter name="@machine" />
+    <Parameter name="@sources" />
+  </Parameters>
+  <Steps>
+	  <Phase>
+		  <DeleteEventLog LogName="@logName" Machine="@machine" Sources="@sources" />
+	  </Phase>
+  </Steps>
+</Package>

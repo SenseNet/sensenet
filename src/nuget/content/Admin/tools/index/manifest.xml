@@ -1,0 +1,14 @@
+<Package type='Product' level='Tool'>
+  <Name>Sense/Net ECM</Name>
+  <ReleaseDate>2016-12-21</ReleaseDate>
+  <Parameters>
+    <Parameter name="@path" />
+    <Parameter name="@backup">true</Parameter>
+  </Parameters>
+  <Steps>
+	  <Phase>
+		  <StartRepository StartLuceneManager="false" StartWorkflowEngine="false" />
+		  <PopulateIndex Path="@path" Backup="@backup" />
+	  </Phase>
+  </Steps>
+</Package>

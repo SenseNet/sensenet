@@ -1,0 +1,17 @@
+<Package type='Product' level='Tool'>
+  <Name>Sense/Net ECM</Name>
+  <ReleaseDate>2016-12-21</ReleaseDate>
+  <Parameters>
+    <Parameter name="@source" />
+    <Parameter name="@target">/Root</Parameter>
+    <Parameter name="@resetSecurity">False</Parameter>
+    <Parameter name="@sourceIsRelativeTo">Package</Parameter>
+    <Parameter name="@logLevel">Verbose</Parameter>
+  </Parameters>
+  <Steps>
+	  <Phase>
+		  <StartRepository />
+		  <Import Source="@source" Target="@target" ResetSecurity="@resetSecurity" SourceIsRelativeTo="@sourceIsRelativeTo" LogLevel="@logLevel" />
+	  </Phase>
+  </Steps>
+</Package>

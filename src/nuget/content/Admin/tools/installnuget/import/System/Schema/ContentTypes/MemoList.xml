@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentType name="MemoList" parentType="ItemList" handler="SenseNet.ContentRepository.ContentList" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+  <DisplayName>$Ctd-MemoList,DisplayName</DisplayName>
+  <Description>$Ctd-MemoList,Description</Description>
+  <Icon>ContentList</Icon>
+  <AllowedChildTypes>
+    Memo
+  </AllowedChildTypes>
+  <Fields></Fields>
+</ContentType>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentType name="Workspace" parentType="Folder" handler="SenseNet.ContentRepository.Workspaces.Workspace" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+  <DisplayName>$Ctd-Workspace,DisplayName</DisplayName>
+  <Description>$Ctd-Workspace,Description</Description>
+  <Icon>Workspace</Icon>
+  <AllowedChildTypes>
+    Page,Folder,Blog,DocumentLibrary,ImageLibrary,EventList,MemoList,LinkList,TaskList,Survey,Voting,DiscussionForum,Form,CustomList,Posts,Workspace,DocumentWorkspace,ProjectWorkspace,SalesWorkspace,Wiki
+  </AllowedChildTypes>
+  <Fields>
+    <Field name="DisplayName" type="ShortText">
+      <DisplayName>$Ctd-Workspace,DisplayName-DisplayName</DisplayName>
+    </Field>
+    <Field name="Description" type="LongText">
+      <Configuration>
+        <VisibleBrowse>Show</VisibleBrowse>
+        <VisibleEdit>Show</VisibleEdit>
+        <VisibleNew>Show</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="Manager" type="Reference">
+      <DisplayName>$Ctd-Workspace,Manager-DisplayName</DisplayName>
+      <Description>$Ctd-Workspace,Manager-Description</Description>
+      <Configuration>
+        <AllowMultiple>false</AllowMultiple>
+        <AllowedTypes>
+          <Type>User</Type>
+        </AllowedTypes>
+        <SelectionRoot>
+          <Path>/Root/IMS</Path>
+          <Path>/Root</Path>
+        </SelectionRoot>
+      </Configuration>
+    </Field>
+    <Field name="Deadline" type="DateTime">
+      <DisplayName>$Ctd-Workspace,Deadline-DisplayName</DisplayName>
+      <Configuration>
+        <DateTimeMode>DateAndTime</DateTimeMode>
+      </Configuration>
+    </Field>
+    <Field name="IsActive" type="Boolean">
+      <DisplayName>$Ctd-Workspace,IsActive-DisplayName</DisplayName>
+      <Description>$Ctd-Workspace,IsActive-Description</Description>
+      <Configuration>
+        <Compulsory>true</Compulsory>
+        <DefaultValue>true</DefaultValue>
+      </Configuration>
+    </Field>
+    <Field name="WorkspaceSkin" type="Reference">
+      <DisplayName>$Ctd-Workspace,WorkspaceSkin-DisplayName</DisplayName>
+      <Configuration>
+        <AllowMultiple>false</AllowMultiple>
+        <AllowedTypes>
+          <Type>Skin</Type>
+        </AllowedTypes>
+        <SelectionRoot>
+          <Path>/Root/Skins</Path>
+        </SelectionRoot>
+      </Configuration>
+    </Field>
+    <Field name="IsCritical" type="Boolean">
+      <DisplayName>$Ctd-Workspace,IsCritical-DisplayName</DisplayName>
+      <Description>$Ctd-Workspace,IsCritical-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Show</VisibleBrowse>
+        <VisibleEdit>Advanced</VisibleEdit>
+        <VisibleNew>Advanced</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="IsWallContainer" type="Boolean">
+      <DisplayName>$Ctd-Workspace,IsWallContainer-DisplayName</DisplayName>
+      <Description>$Ctd-Workspace,IsWallContainer-Description</Description>
+    </Field>
+    <Field name="AllowedChildTypes" type="AllowedChildTypes">
+      <Configuration>
+        <VisibleBrowse>Show</VisibleBrowse>
+        <VisibleEdit>Show</VisibleEdit>
+        <VisibleNew>Show</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="InheritableVersioningMode" type="InheritableVersioningMode">
+      <Description>$Ctd-Workspace,WorkspaceInheritableVersioningMode-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Show</VisibleBrowse>
+        <VisibleEdit>Show</VisibleEdit>
+        <VisibleNew>Show</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="InheritableApprovingMode" type="InheritableApprovingMode">
+      <Description>$Ctd-Workspace,WorkspaceInheritableApprovingMode-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Show</VisibleBrowse>
+        <VisibleEdit>Show</VisibleEdit>
+        <VisibleNew>Show</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="IsFollowed" type="Boolean">
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+  </Fields>
+</ContentType>

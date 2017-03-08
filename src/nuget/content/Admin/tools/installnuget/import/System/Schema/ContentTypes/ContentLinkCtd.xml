@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentType name="ContentLink" parentType="GenericContent" handler="SenseNet.ContentRepository.ContentLink" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+  <DisplayName>$Ctd-ContentLink,DisplayName</DisplayName>
+	<Description>$Ctd-ContentLink,Description</Description>
+	<Icon>Folder</Icon>
+	<Fields>
+    <Field name="Link" type="Reference">
+      <DisplayName>$Ctd-ContentLink,Link-DisplayName</DisplayName>
+      <Description>$Ctd-ContentLink,Link-Description</Description>
+      <Configuration>
+        <AllowMultiple>false</AllowMultiple>
+      </Configuration>
+    </Field>
+    <Field name="DisplayName" type="ShortText">
+      <Configuration>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="Description" type="LongText">
+      <Configuration>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="Version" type="Version">
+      <Configuration>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+  </Fields>
+</ContentType>

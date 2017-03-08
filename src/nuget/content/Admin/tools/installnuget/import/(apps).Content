@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>SystemFolder</ContentType>
+  <ContentName>(apps)</ContentName>
+  <Fields>
+    <DisplayName><![CDATA[(apps)]]></DisplayName>
+    <Hidden>true</Hidden>
+    <Index>0</Index>
+    <EnableLifespan>false</EnableLifespan>
+    <ValidFrom>0001-01-01T00:00:00</ValidFrom>
+    <ValidTill>0001-01-01T00:00:00</ValidTill>
+    <CreatedBy>
+      <Path>/Root/IMS/BuiltIn/Portal/Admin</Path>
+    </CreatedBy>
+    <CreationDate>2014-01-15T11:28:13.763</CreationDate>
+    <ModifiedBy>
+      <Path>/Root/IMS/BuiltIn/Portal/Admin</Path>
+    </ModifiedBy>
+    <ModificationDate>2014-01-15T11:28:13.77</ModificationDate>
+    <TrashDisabled>false</TrashDisabled>
+    <IsTaggable>false</IsTaggable>
+    <IsRateable>false</IsRateable>
+    <RateAvg>0.0000</RateAvg>
+    <RateCount>0</RateCount>
+  </Fields>
+  <Permissions>
+    <Clear />
+    <Identity path="/Root/IMS/BuiltIn/Portal/Developers">
+      <See>Allowed</See>
+      <Preview>Allowed</Preview>
+      <PreviewWithoutWatermark>Allowed</PreviewWithoutWatermark>
+      <PreviewWithoutRedaction>Allowed</PreviewWithoutRedaction>
+      <Open>Allowed</Open>
+      <OpenMinor>Allowed</OpenMinor>
+      <Save>Allowed</Save>
+      <Publish>Allowed</Publish>
+      <ForceCheckin>Allowed</ForceCheckin>
+      <AddNew>Allowed</AddNew>
+      <Approve>Allowed</Approve>
+      <Delete>Allowed</Delete>
+      <RecallOldVersion>Allowed</RecallOldVersion>
+      <DeleteOldVersion>Allowed</DeleteOldVersion>
+      <SeePermissions>Allowed</SeePermissions>
+      <SetPermissions>Allowed</SetPermissions>
+      <RunApplication>Allowed</RunApplication>
+      <ManageListsAndWorkspaces>Allowed</ManageListsAndWorkspaces>
+      <TakeOwnership>Allowed</TakeOwnership>
+    </Identity>
+  </Permissions>
+</ContentMetaData>

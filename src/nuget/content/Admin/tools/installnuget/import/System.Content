@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>SystemFolder</ContentType>
+  <ContentName>System</ContentName>
+  <Fields>
+    <Hidden>true</Hidden>
+      </Fields>
+  <Permissions>
+    <Clear />
+    <Identity path="/Root/IMS/BuiltIn/Portal/Developers">
+      <See>Allowed</See>
+      <Preview>Allowed</Preview>
+      <PreviewWithoutWatermark>Allowed</PreviewWithoutWatermark>
+      <PreviewWithoutRedaction>Allowed</PreviewWithoutRedaction>
+      <Open>Allowed</Open>
+      <OpenMinor>Allowed</OpenMinor>
+      <Save>Allowed</Save>
+      <Publish>Allowed</Publish>
+      <ForceCheckin>Allowed</ForceCheckin>
+      <AddNew>Allowed</AddNew>
+      <Approve>Allowed</Approve>
+      <Delete>Allowed</Delete>
+      <RecallOldVersion>Allowed</RecallOldVersion>
+      <DeleteOldVersion>Allowed</DeleteOldVersion>
+      <SeePermissions>Allowed</SeePermissions>
+      <SetPermissions>Allowed</SetPermissions>
+      <RunApplication>Allowed</RunApplication>
+      <ManageListsAndWorkspaces>Allowed</ManageListsAndWorkspaces>
+      <TakeOwnership>Allowed</TakeOwnership>
+    </Identity>
+  </Permissions>
+</ContentMetaData>

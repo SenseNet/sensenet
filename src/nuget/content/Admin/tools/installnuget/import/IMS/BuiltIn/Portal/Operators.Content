@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>Group</ContentType>
+  <ContentName>Operators</ContentName>
+  <Fields>
+    <Members>
+      <Path>/Root/IMS/BuiltIn/Portal/Administrators</Path>
+    </Members>
+    <Description><![CDATA[Members of this group are able to perform administrative tasks in the Content Repository - e.g. importing the creation date of content.]]></Description>
+  </Fields>
+  <Permissions>
+    <Clear />
+  </Permissions>
+</ContentMetaData>

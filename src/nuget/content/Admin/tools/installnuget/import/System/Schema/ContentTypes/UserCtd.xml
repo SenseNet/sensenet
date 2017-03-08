@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentType name="User" parentType="GenericContent" handler="SenseNet.ContentRepository.User" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+  <DisplayName>$Ctd-User,DisplayName</DisplayName>
+  <Description>$Ctd-User,Description</Description>
+  <Icon>User</Icon>
+  <AllowedChildTypes>
+    Image
+  </AllowedChildTypes>
+  <Fields>
+    <Field name="Name" type="ShortText">
+      <DisplayName>$Ctd-User,Name-DisplayName</DisplayName>
+      <Description>$Ctd-User,Name-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Show</VisibleBrowse>
+        <VisibleEdit>Show</VisibleEdit>
+        <VisibleNew>Show</VisibleNew>
+        <Compulsory>true</Compulsory>
+        <MaxLength>20</MaxLength>
+        <ControlHint>sn:ShortText</ControlHint>
+      </Configuration>
+    </Field>
+    <Field name="LoginName" type="ShortText">
+      <DisplayName>$Ctd-User,LoginName-DisplayName</DisplayName>
+      <Description>$Ctd-User,LoginName-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Show</VisibleBrowse>
+        <VisibleEdit>Show</VisibleEdit>
+        <VisibleNew>Show</VisibleNew>
+        <Compulsory>true</Compulsory>
+        <MaxLength>100</MaxLength>
+      </Configuration>
+    </Field>
+    <Field name="DisplayName" type="ShortText">
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="JobTitle" type="ShortText">
+      <DisplayName>$Ctd-User,JobTitle-DisplayName</DisplayName>
+      <Description>$Ctd-User,JobTitle-Description</Description>
+    </Field>
+    <Field name="Enabled" type="Boolean">
+      <DisplayName>$Ctd-User,Enabled-DisplayName</DisplayName>
+      <Description>$Ctd-User,Enabled-Description</Description>
+    </Field>
+    <Field name="Domain" type="ShortText">
+      <DisplayName>$Ctd-User,Domain-DisplayName</DisplayName>
+      <Description>$Ctd-User,Domain-Description</Description>
+      <Configuration>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
+    <Field name="Email" type="ShortText">
+      <DisplayName>$Ctd-User,Email-DisplayName</DisplayName>
+      <Description>$Ctd-User,Email-Description</Description>
+      <Configuration>
+        <Compulsory>true</Compulsory>
+        <Regex>^[a-zA-Z0-9._%+-]+@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$</Regex>
+      </Configuration>
+    </Field>
+    <Field name="FullName" type="ShortText">
+      <DisplayName>$Ctd-User,FullName-DisplayName</DisplayName>
+      <Description>$Ctd-User,FullName-Description</Description>
+      <Configuration>
+        <Compulsory>true</Compulsory>
+        <Regex>[^&lt;]+</Regex>
+      </Configuration>
+    </Field>
+    <Field name="ImageRef" type="Reference">
+      <DisplayName>$Ctd-User,ImageRef-DisplayName</DisplayName>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <AllowMultiple>false</AllowMultiple>
+      </Configuration>
+    </Field>
+    <Field name="ImageData" type="Binary">
+      <DisplayName>$Ctd-User,ImageData-DisplayName</DisplayName>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="Avatar" type="Image">
+      <DisplayName>$Ctd-User,Avatar-DisplayName</DisplayName>
+      <Description>$Ctd-User,Avatar-Description</Description>
+      <Bind property="ImageRef" />
+      <Bind property="ImageData" />
+      <Configuration>
+        <Visible>true</Visible>
+        <ControlHint>sn:Image</ControlHint>
+      </Configuration>
+    </Field>
+    <Field name="Password" type="Password">
+      <DisplayName>$Ctd-User,Password-DisplayName</DisplayName>
+      <Description>$Ctd-User,Password-Description</Description>
+      <Bind property="PasswordHash"></Bind>
+      <Configuration>
+        <Compulsory>true</Compulsory>
+        <ReenterTitle>$Ctd-User,Password-ReenterTitle</ReenterTitle>
+        <ReenterDescription>$Ctd-User,Password-ReenterDescription</ReenterDescription>
+      </Configuration>
+    </Field>
+    <Field name="SyncGuid" type="ShortText">
+      <DisplayName>$Ctd-User,SyncGuid-DisplayName</DisplayName>
+      <Description>$Ctd-User,SyncGuid-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Advanced</VisibleBrowse>
+        <VisibleEdit>Advanced</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="LastSync" type="DateTime">
+      <DisplayName>$Ctd-User,LastSync-DisplayName</DisplayName>
+      <Description>$Ctd-User,LastSync-Description</Description>
+      <Configuration>
+        <DateTimeMode>DateAndTime</DateTimeMode>
+        <VisibleBrowse>Advanced</VisibleBrowse>
+        <VisibleEdit>Advanced</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="Captcha" type="Captcha">
+      <DisplayName>$Ctd-User,Captcha-DisplayName</DisplayName>
+      <Description>$Ctd-User,Captcha-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="Manager" type="Reference">
+      <DisplayName>$Ctd-User,Manager-DisplayName</DisplayName>
+      <Description>$Ctd-User,Manager-Description</Description>
+      <Configuration>
+        <AllowMultiple>false</AllowMultiple>
+        <AllowedTypes>
+          <Type>User</Type>
+        </AllowedTypes>
+        <SelectionRoot>
+          <Path>/Root/IMS</Path>
+        </SelectionRoot>
+      </Configuration>
+    </Field>
+    <Field name="Description" type="LongText">
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="Department" type="ShortText">
+      <DisplayName>$Ctd-User,Department-DisplayName</DisplayName>
+      <Description>$Ctd-User,Department-Description</Description>
+      <Indexing>
+        <Analyzer>Lucene.Net.Analysis.Standard.StandardAnalyzer</Analyzer>
+      </Indexing>
+      <Configuration>
+        <Visible>true</Visible>
+      </Configuration>
+    </Field>
+    <Field name="Languages" type="ShortText">
+      <DisplayName>$Ctd-User,Languages-DisplayName</DisplayName>
+      <Description>$Ctd-User,Languages-Description</Description>
+      <Indexing>
+        <Analyzer>Lucene.Net.Analysis.Standard.StandardAnalyzer</Analyzer>
+      </Indexing>
+      <Configuration>
+        <Visible>true</Visible>
+      </Configuration>
+    </Field>
+    <Field name="Phone" type="ShortText">
+      <DisplayName>$Ctd-User,Phone-DisplayName</DisplayName>
+      <Description>$Ctd-User,Phone-Description</Description>
+      <Configuration>
+        <Regex>(^\d*([-\s\+\(\)]\d*)*$)?</Regex>
+        <Visible>true</Visible>
+      </Configuration>
+    </Field>
+    <Field name="TrashDisabled" type="Boolean">
+      <DisplayName>$Ctd-User,TrashDisabled-DisplayName</DisplayName>
+      <Description>$Ctd-User,TrashDisabled-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <DefaultValue>false</DefaultValue>
+      </Configuration>
+    </Field>
+    <Field name="VersioningMode" type="VersioningMode">
+      <DisplayName>$Ctd-User,VersioningMode-DisplayName</DisplayName>
+      <Description>$Ctd-User,VersioningMode-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <AllowMultiple>false</AllowMultiple>
+        <AllowExtraValue>false</AllowExtraValue>
+        <Options>
+          <Option value="0">$Ctd-User,VersioningMode-0</Option>
+          <Option selected="true" value="1">$Ctd-User,VersioningMode-1</Option>
+          <Option value="2">$Ctd-User,VersioningMode-2</Option>
+          <Option value="3">$Ctd-User,VersioningMode-3</Option>
+        </Options>
+      </Configuration>
+    </Field>
+    <Field name="Gender" type="Choice">
+      <DisplayName>$Ctd-User,Gender-DisplayName</DisplayName>
+      <Description>$Ctd-User,Gender-Description</Description>
+      <Configuration>
+        <AllowMultiple>false</AllowMultiple>
+        <AllowExtraValue>false</AllowExtraValue>
+        <Options>
+          <Option value="...">$Ctd-User,Gender-...</Option>
+          <Option value="Female">$Ctd-User,Gender-Female</Option>
+          <Option value="Male">$Ctd-User,Gender-Male</Option>
+        </Options>
+        <VisibleBrowse>Advanced</VisibleBrowse>
+        <VisibleEdit>Advanced</VisibleEdit>
+        <VisibleNew>Advanced</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="MaritalStatus" type="Choice">
+      <DisplayName>$Ctd-User,MaritalStatus-DisplayName</DisplayName>
+      <Description>$Ctd-User,MaritalStatus-Description</Description>
+      <Configuration>
+        <AllowMultiple>false</AllowMultiple>
+        <AllowExtraValue>false</AllowExtraValue>
+        <Options>
+          <Option value="...">$Ctd-User,MaritalStatus-...</Option>
+          <Option value="Single">$Ctd-User,MaritalStatus-Single</Option>
+          <Option value="Married">$Ctd-User,MaritalStatus-Married</Option>
+        </Options>
+        <VisibleBrowse>Advanced</VisibleBrowse>
+        <VisibleEdit>Advanced</VisibleEdit>
+        <VisibleNew>Advanced</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="BirthDate" type="DateTime">
+      <DisplayName>$Ctd-User,BirthDate-DisplayName</DisplayName>
+      <Configuration>
+        <DateTimeMode>Date</DateTimeMode>
+        <VisibleBrowse>Advanced</VisibleBrowse>
+        <VisibleEdit>Advanced</VisibleEdit>
+        <VisibleNew>Advanced</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="Education" type="LongText">
+      <DisplayName>$Ctd-User,Education-DisplayName</DisplayName>
+      <Description>$Ctd-User,Education-Description</Description>
+      <Configuration>
+        <TextType>LongText</TextType>
+        <ControlHint>sn:EducationEditor</ControlHint>
+        <VisibleBrowse>Advanced</VisibleBrowse>
+        <VisibleEdit>Advanced</VisibleEdit>
+        <VisibleNew>Advanced</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="TwitterAccount" type="ShortText">
+      <DisplayName>$Ctd-User,TwitterAccount-DisplayName</DisplayName>
+      <Configuration>
+        <VisibleBrowse>Advanced</VisibleBrowse>
+        <VisibleEdit>Advanced</VisibleEdit>
+        <VisibleNew>Advanced</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="FacebookURL" type="ShortText">
+      <DisplayName>$Ctd-User,FacebookURL-DisplayName</DisplayName>
+      <Description>$Ctd-User,FacebookURL-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Advanced</VisibleBrowse>
+        <VisibleEdit>Advanced</VisibleEdit>
+        <VisibleNew>Advanced</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="LinkedInURL" type="ShortText">
+      <DisplayName>$Ctd-User,LinkedInURL-DisplayName</DisplayName>
+      <Description>$Ctd-User,LinkedInURL-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Advanced</VisibleBrowse>
+        <VisibleEdit>Advanced</VisibleEdit>
+        <VisibleNew>Advanced</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="Language" type="Choice">
+      <DisplayName>$Ctd-User,Language-DisplayName</DisplayName>
+      <Description>$Ctd-User,Language-Description</Description>
+      <Configuration>
+        <AllowMultiple>false</AllowMultiple>
+        <AllowExtraValue>false</AllowExtraValue>
+        <Options>
+          <Option value="en" selected="true">$Ctd-User,Language-En</Option>
+          <Option value="hu">$Ctd-User,Language-Hu</Option>
+        </Options>
+      </Configuration>
+    </Field>
+    <Field name="FollowedWorkspaces" type="Reference">
+      <DisplayName>$Ctd-User,FollowedWorkspaces-DisplayName</DisplayName>
+      <Description>$Ctd-User,FollowedWorkspaces-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Advanced</VisibleBrowse>
+        <VisibleEdit>Advanced</VisibleEdit>
+        <VisibleNew>Advanced</VisibleNew>
+        <AllowMultiple>true</AllowMultiple>
+        <AllowedTypes>
+          <Type>Workspace</Type>
+          <Type>DocumentWorkspace</Type>
+          <Type>ProjectWorkspace</Type>
+          <Type>SalesWorkspace</Type>
+        </AllowedTypes>
+      </Configuration>
+    </Field>
+    <Field name="Profile" type="Reference">
+      <DisplayName>Profile</DisplayName>
+      <Description></Description>
+      <Configuration>
+        <AllowedTypes>
+          <Type>UserProfile</Type>
+        </AllowedTypes>
+        <AllowMultiple>false</AllowMultiple>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="ProfilePath" type="ShortText">
+      <DisplayName>$Ctd-User,ProfilePath-DisplayName</DisplayName>
+      <Description>$Ctd-User,ProfilePath-Description</Description>
+      <Configuration>
+        <ReadOnly>true</ReadOnly>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+  </Fields>
+</ContentType>

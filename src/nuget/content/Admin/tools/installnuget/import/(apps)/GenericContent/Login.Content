@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>GenericODataApplication</ContentType>
+  <ContentName>Login</ContentName>
+  <Fields>
+    <ClassName><![CDATA[SenseNet.Portal.Virtualization.AuthenticationHelper]]></ClassName>
+    <MethodName><![CDATA[Login]]></MethodName>
+    <Parameters><![CDATA[
+      string username, 
+	  string password
+    ]]></Parameters>
+    <DisplayName><![CDATA[Login]]></DisplayName>
+    <ActionTypeName><![CDATA[GenericODataOperation]]></ActionTypeName>
+    <Icon><![CDATA[Application]]></Icon>
+  </Fields>
+  <Permissions>
+    <Clear />
+    <Identity path="/Root/IMS/BuiltIn/Portal/Visitor">
+      <RunApplication>Allow</RunApplication>
+    </Identity>
+    <Identity path="/Root/IMS/BuiltIn/Portal/Everyone">
+      <RunApplication>Allowed</RunApplication>
+    </Identity>
+  </Permissions>
+</ContentMetaData>

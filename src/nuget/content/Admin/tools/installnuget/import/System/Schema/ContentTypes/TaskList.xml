@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentType name="TaskList" parentType="ItemList" handler="SenseNet.ContentRepository.ContentList" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+  <DisplayName>$Ctd-TaskList,DisplayName</DisplayName>
+  <Description>$Ctd-TaskList,Description</Description>
+  <Icon>ContentList</Icon>
+  <AllowedChildTypes>
+    Task,ApprovalWorkflowTask,ExpenseClaimWorkflowTask
+  </AllowedChildTypes>
+  <Fields></Fields>
+</ContentType>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentType name="DocumentLibrary" parentType="Library" handler="SenseNet.ContentRepository.ContentList" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+  <DisplayName>$Ctd-DocumentLibrary,DisplayName</DisplayName>
+  <Description>$Ctd-DocumentLibrary,Description</Description>
+  <Icon>ContentList</Icon>
+  <AllowedChildTypes>
+    Folder,File
+  </AllowedChildTypes>
+  <Fields></Fields>
+</ContentType>

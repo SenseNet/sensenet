@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentType name="ProfileDomain" parentType="Folder" handler="SenseNet.ContentRepository.Folder" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+  <DisplayName>$Ctd-ProfileDomain,DisplayName</DisplayName>
+  <Description>$Ctd-ProfileDomain,Description</Description>
+  <Icon>Domain</Icon>
+  <AllowedChildTypes>
+    UserProfile
+  </AllowedChildTypes>
+  <Fields>
+    <Field name="Name" type="ShortText">
+      <Configuration>
+        <VisibleBrowse>Show</VisibleBrowse>
+        <VisibleEdit>Show</VisibleEdit>
+        <VisibleNew>Show</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="DisplayName" type="ShortText">
+      <DisplayName>$Ctd-ProfileDomain,DisplayName-DisplayName</DisplayName>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="Description" type="LongText">
+      <Configuration>
+        <VisibleBrowse>Advanced</VisibleBrowse>
+        <VisibleEdit>Advanced</VisibleEdit>
+        <VisibleNew>Advanced</VisibleNew>
+      </Configuration>
+    </Field>
+  </Fields>
+</ContentType>

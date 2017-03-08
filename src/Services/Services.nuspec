@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>SenseNet.Services</id>
+    <!--<version>$version$</version>-->
+    <version>7.0.0-alpha</version>
+    <title>Sense/Net Content Repository and Services</title>
+    <authors>kavics,aniko,iviclaci,tusmester</authors>
+    <owners>Sense/Net</owners>
+    <licenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/SenseNet/sensenet</projectUrl>
+    <iconUrl>https://avatars2.githubusercontent.com/u/4069121?v=3&amp;s=200</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Sense/Net is an Enterprise Content Management platform for .Net</description>
+    <releaseNotes>Initial release.</releaseNotes>
+    <copyright>Copyright 2017</copyright>
+    <tags>sensenet ecm ecms</tags>
+  </metadata>
+  <files>
+    <file src="bin\Release\*.*" target="lib\net451" />
+    <file src="..\nuget\content\**" target="content" />
+    <file src="..\Tools\SnAdminRuntime\bin\Release\SnAdminRuntime.*" target="content\Tools" />
+    <file src="..\Storage\Data\SqlClient\Scripts\Create_SenseNet_Database.sql" target="content\Admin\tools\installnuget\scripts" />
+    <file src="..\Storage\Data\SqlClient\Scripts\Install_Security.sql" target="content\Admin\tools\installnuget\scripts" />
+    <file src="..\Storage\Data\SqlClient\Scripts\Install_01_Schema.sql" target="content\Admin\tools\installnuget\scripts" />
+    <file src="..\Storage\Data\SqlClient\Scripts\Install_02_Procs.sql" target="content\Admin\tools\installnuget\scripts" />
+    <file src="..\Storage\Data\SqlClient\Scripts\Install_03_Data_Phase1.sql" target="content\Admin\tools\installnuget\scripts" />
+    <file src="..\Storage\Data\SqlClient\Scripts\Install_04_Data_Phase2.sql" target="content\Admin\tools\installnuget\scripts" />
+  </files>
+</package>

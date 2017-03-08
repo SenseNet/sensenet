@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentType name="Memo" parentType="ListItem" handler="SenseNet.ContentRepository.GenericContent" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+  <DisplayName>$Ctd-Memo,DisplayName</DisplayName>
+  <Description>$Ctd-Memo,Description</Description>
+  <Icon>Document</Icon>
+  <AllowIncrementalNaming>true</AllowIncrementalNaming>
+  <Fields>
+    <Field name="Description" type="LongText">
+      <DisplayName>$Ctd-Memo,Description-DisplayName</DisplayName>
+      <Description>$Ctd-Memo,Description-Description</Description>
+    </Field>
+    <Field name="Date" type="DateTime">
+      <DisplayName>$Ctd-Memo,Date-DisplayName</DisplayName>
+      <Description>$Ctd-Memo,Date-Description</Description>
+      <Configuration>
+        <DateTimeMode>DateAndTime</DateTimeMode>
+        <DefaultValue>[Script:jScript] DateTime.UtcNow; [/Script]</DefaultValue>
+      </Configuration>
+    </Field>
+    <Field name="MemoType" type="Choice">
+      <DisplayName>$Ctd-Memo,MemoType-DisplayName</DisplayName>
+      <Description>$Ctd-Memo,MemoType-Description</Description>
+      <Configuration>
+        <AllowMultiple>false</AllowMultiple>
+        <AllowExtraValue>true</AllowExtraValue>
+        <Options>
+          <Option value="generic" selected="true">$Ctd-Memo,MemoType-generic</Option>
+          <Option value="iso">$Ctd-Memo,MemoType-iso</Option>
+          <Option value="iaudit">$Ctd-Memo,MemoType-iaudit</Option>
+        </Options>
+      </Configuration>
+    </Field>
+    <Field name="SeeAlso" type="Reference">
+      <DisplayName>$Ctd-Memo,SeeAlso-DisplayName</DisplayName>
+      <Description>$Ctd-Memo,SeeAlso-Description</Description>
+      <Configuration>
+        <AllowMultiple>true</AllowMultiple>
+      </Configuration>
+    </Field>
+  </Fields>
+</ContentType>
