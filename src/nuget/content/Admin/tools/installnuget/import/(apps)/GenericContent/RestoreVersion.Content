@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>Application</ContentType>
+  <ContentName>RestoreVersion</ContentName>
+  <Fields>
+	<DisplayName><![CDATA[$Action,RestoreVersion]]></DisplayName>
+    <ActionTypeName><![CDATA[RestoreVersionAction]]></ActionTypeName>
+    <Icon><![CDATA[restoreversion]]></Icon>
+    <RequiredPermissions>Save;RecallOldVersion</RequiredPermissions>
+  </Fields>
+  <Permissions>
+    <Clear />
+    <Identity path="/Root/IMS/BuiltIn/Portal/Everyone">
+      <RunApplication>Allow</RunApplication>
+    </Identity>
+  </Permissions>
+</ContentMetaData>

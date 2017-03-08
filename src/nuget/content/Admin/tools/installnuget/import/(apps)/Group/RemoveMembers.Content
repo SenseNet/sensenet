@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>GenericODataApplication</ContentType>
+  <ContentName>RemoveMembers</ContentName>
+  <Fields>
+    <ClassName><![CDATA[SenseNet.ContentRepository.Group]]></ClassName>
+    <MethodName><![CDATA[RemoveMembers]]></MethodName>
+    <Parameters><![CDATA[int[] contentIds]]></Parameters>
+    <DisplayName><![CDATA[Remove members]]></DisplayName>
+    <ActionTypeName><![CDATA[GenericODataOperation]]></ActionTypeName>
+    <Icon><![CDATA[Application]]></Icon>
+  </Fields>
+  <Permissions>
+    <Clear />
+    <Identity path="/Root/IMS/BuiltIn/Portal/Administrators">
+      <See>Allow</See>
+      <Preview>Allow</Preview>
+      <PreviewWithoutWatermark>Allow</PreviewWithoutWatermark>
+      <PreviewWithoutRedaction>Allow</PreviewWithoutRedaction>
+      <Open>Allow</Open>
+      <RunApplication>Allow</RunApplication>
+      <TakeOwnership>Allow</TakeOwnership>
+    </Identity>
+  </Permissions>
+</ContentMetaData>

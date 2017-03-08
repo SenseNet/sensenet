@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>Application</ContentType>
+  <ContentName>CheckIn</ContentName>
+  <Fields>
+	<DisplayName><![CDATA[$Action,CheckIn]]></DisplayName>
+    <ActionTypeName><![CDATA[CheckInAction]]></ActionTypeName>
+    <Icon><![CDATA[checkin]]></Icon>
+    <RequiredPermissions>See;Open;OpenMinor;Save</RequiredPermissions>
+    <Scenario><![CDATA[ListItem;ExploreActions;SimpleApprovableListItem]]></Scenario>
+  </Fields>
+  <Permissions>
+    <Clear />
+    <Identity path="/Root/IMS/BuiltIn/Portal/Everyone">
+      <RunApplication>Allow</RunApplication>
+    </Identity>
+  </Permissions>
+</ContentMetaData>
