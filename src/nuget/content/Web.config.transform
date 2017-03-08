@@ -140,11 +140,6 @@
     <idn enabled="All" />
     <iriParsing enabled="true" />
   </uri>
-  <appSettings>
-    <!-- ============== MVC =============== -->
-    <!-- Prevent .cshtml or .vbhtml files from being directly accessible from a web browser. -->
-    <add key="webpages:Enabled" value="false" />
-  </appSettings>
   <system.web>
     <sessionState mode="InProc" cookieless="false" />
     <xhtmlConformance mode="Strict" />
@@ -178,7 +173,7 @@
   <system.webServer>
     <validation validateIntegratedModeConfiguration="false" />
     <modules runAllManagedModulesForAllRequests="true">
-      <add name="ScriptModule" type="System.Web.Handlers.ScriptModule, System.Web.Extensions, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31BF3856AD364E35" />
+      <!--<add name="ScriptModule" type="System.Web.Handlers.ScriptModule, System.Web.Extensions, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31BF3856AD364E35" />-->
       <add name="PortalAuthentication" preCondition="integratedMode" type="SenseNet.Portal.Virtualization.PortalAuthenticationModule, SenseNet.Services" />
       <add name="PortalContext" preCondition="integratedMode" type="SenseNet.Portal.Virtualization.PortalContextModule, SenseNet.Services" />
     </modules>
@@ -262,22 +257,6 @@
       </requestFiltering>
     </security>
     <urlCompression doStaticCompression="false" />
-    <httpErrors errorMode="Custom">
-      <remove statusCode="404" subStatusCode="-1" />
-      <error statusCode="404" subStatusCode="-1" path="/Error_Pages/Error_404" responseMode="ExecuteURL" />
-      <remove statusCode="403" subStatusCode="-1" />
-      <error statusCode="403" subStatusCode="-1" path="/Error_Pages/Error_403" responseMode="ExecuteURL" />
-      <remove statusCode="403" subStatusCode="1" />
-      <error statusCode="403" subStatusCode="1" path="/Error_Pages/Error_403_1" responseMode="ExecuteURL" />
-      <remove statusCode="403" subStatusCode="2" />
-      <error statusCode="403" subStatusCode="2" path="/Error_Pages/Error_403_2" responseMode="ExecuteURL" />
-      <remove statusCode="403" subStatusCode="3" />
-      <error statusCode="403" subStatusCode="3" path="/Error_Pages/Error_403_3" responseMode="ExecuteURL" />
-      <remove statusCode="403" subStatusCode="8" />
-      <error statusCode="403" subStatusCode="8" path="/Error_Pages/Error_403_8" responseMode="ExecuteURL" />
-      <remove statusCode="403" subStatusCode="9" />
-      <error statusCode="403" subStatusCode="9" path="/Error_Pages/Error_403_9" responseMode="ExecuteURL" />
-    </httpErrors>
   </system.webServer>
   <ExceptionStatusCodes>
     <add key="System.Security.SecurityException" value="403" />

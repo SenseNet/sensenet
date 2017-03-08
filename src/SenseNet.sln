@@ -25,6 +25,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6D908666-E47F-47A7-A7E5-C696B9CD517A}"
 	ProjectSection(SolutionItems) = preProject
 		nuget\content\Admin\tools\installnuget\manifest.xml = nuget\content\Admin\tools\installnuget\manifest.xml
+		nuget\readme.txt = nuget\readme.txt
 		nuget\content\Web.config.transform = nuget\content\Web.config.transform
 	EndProjectSection
 EndProject
