@@ -40,7 +40,7 @@ namespace SenseNet.Portal
 
         protected SkinManagerBase() { }
         private static readonly object _startSync = new object();
-        protected internal static SkinManagerBase Instance
+        public static SkinManagerBase Instance
         {
             get
             {
@@ -139,11 +139,11 @@ namespace SenseNet.Portal
 
         // ================================================================== Instance methods 
 
-        private string ResolvePath(string relpath, string skinname)
+        public string ResolvePath(string relpath, string skinname)
         {
             return ResolvePath(relpath, skinname, true);
         }
-        private bool TryResolvePath(string relpath, string skinname, out string resolvedpath)
+        public bool TryResolvePath(string relpath, string skinname, out string resolvedpath)
         {
             resolvedpath = ResolvePath(relpath, skinname, false);
             return !string.IsNullOrEmpty(resolvedpath);
