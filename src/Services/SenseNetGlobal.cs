@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Routing;
-using System.Configuration;
-using System.Collections.Specialized;
 using SenseNet.ContentRepository.Storage.Security;
 using File = System.IO.File;
 using SenseNet.ContentRepository;
@@ -18,6 +16,7 @@ using SenseNet.Portal.Resources;
 using SenseNet.Portal.Handlers;
 using System.Web.Hosting;
 using System.Web.SessionState;
+using SenseNet.Configuration;
 using SenseNet.Portal;
 using SenseNet.Tools;
 
@@ -205,9 +204,7 @@ namespace SenseNet.Services
             var exception = ex;
             if (exception.InnerException != null) exception = exception.InnerException;
 
-            int exceptionStatusCode;
-            int exceptionSubStatusCode;
-            var statusCodeExists = GetStatusCode(exception, out exceptionStatusCode, out exceptionSubStatusCode);
+            var statusCode = GetStatusCode(exception);
 
             if (response != null)
             {
@@ -218,10 +215,10 @@ namespace SenseNet.Services
 
                     // If there is a specified status code in statusCodeString then set Response.StatusCode to it.
                     // Otherwise go on to global error page.
-                    if (statusCodeExists)
+                    if (statusCode != null)
                     {
-                        application.Response.StatusCode = exceptionStatusCode;
-                        application.Response.SubStatusCode = exceptionSubStatusCode;
+                        application.Response.StatusCode = statusCode.StatusCode;
+                        application.Response.SubStatusCode = statusCode.SubStatusCode;
                         response.Clear();
                         HttpContext.Current.ClearError();
                         HttpContext.Current.ApplicationInstance.CompleteRequest();
@@ -274,10 +271,10 @@ namespace SenseNet.Services
 
             // If there is a specified status code in statusCodeString then set Response.StatusCode to it.
             // Otherwise go on to global error page.
-            if (statusCodeExists)
+            if (statusCode != null)
             {
-                application.Response.StatusCode = exceptionStatusCode;
-                application.Response.SubStatusCode = exceptionSubStatusCode;
+                application.Response.StatusCode = statusCode.StatusCode;
+                application.Response.SubStatusCode = statusCode.SubStatusCode;
                 response?.Clear();
 
                 HttpContext.Current.ClearError();
@@ -365,51 +362,30 @@ namespace SenseNet.Services
         }
 
         /*====================================================================================================================== Helpers */
-        private static bool GetStatusCode(Exception exception, out int exceptionStatusCode, out int exceptionSubStatusCode)
+        private static ErrorStatusCode GetStatusCode(Exception exception)
         {
-            exceptionStatusCode = 0;
-            exceptionSubStatusCode = 0;
+            if (exception == null)
+                return null;
 
-            var statusCodes = ConfigurationManager.GetSection("ExceptionStatusCodes") as NameValueCollection;
-            if (statusCodes == null) return false;
-
-            var tmpExceptionFullName = exception.GetType().FullName;
             var tmpException = exception.GetType();
+            var tmpExceptionFullName = tmpException.FullName;
 
-            while (tmpExceptionFullName != "System.Exception")
+            while (tmpExceptionFullName != null && tmpExceptionFullName != "System.Exception")
             {
-                if (tmpExceptionFullName != null)
-                {
-                    var statusCodeFullString = statusCodes[tmpExceptionFullName];
-                    if (!string.IsNullOrEmpty(statusCodeFullString))
-                    {
-                        string statusCodeString;
-                        string subStatusCodeString;
+                ErrorStatusCode statusCode;
+                if (WebApplication.ExceptionStatusCodes.TryGetValue(tmpExceptionFullName, out statusCode))
+                    return statusCode;
 
-                        if (statusCodes[tmpExceptionFullName].Contains("."))
-                        {
-                            statusCodeString = statusCodeFullString.Split('.')[0];
-                            subStatusCodeString = statusCodeFullString.Split('.')[1];
-                        }
-                        else
-                        {
-                            statusCodeString = statusCodeFullString;
-                            subStatusCodeString = "0";
-                        }
+                // move to parent
+                tmpException = tmpException.BaseType;
 
-                        if (Int32.TryParse(statusCodeString, out exceptionStatusCode) && Int32.TryParse(subStatusCodeString, out exceptionSubStatusCode))
-                            return true;
-                        return false;
-                    }
-
-                    if (tmpException != null) tmpException = tmpException.BaseType;
-                    if (tmpException != null) tmpExceptionFullName = tmpException.FullName;
-                }
-
-                return false;
+                if (tmpException != null)
+                    tmpExceptionFullName = tmpException.FullName;
+                else
+                    return null;
             }
 
-            return false;
+            return null;
         }
         private static string InsertErrorMessagesIntoHtml(Exception exception, string errorPageHtml)
         {

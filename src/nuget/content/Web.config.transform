@@ -3,7 +3,6 @@
   <configSections>
     <section name="loggingConfiguration" type="Microsoft.Practices.EnterpriseLibrary.Logging.Configuration.LoggingSettings, Microsoft.Practices.EnterpriseLibrary.Logging" />
     <!--<section name="dataConfiguration" type="Microsoft.Practices.EnterpriseLibrary.Data.Configuration.DatabaseSettings, Microsoft.Practices.EnterpriseLibrary.Data" />-->
-    <section name="ExceptionStatusCodes" type="System.Configuration.NameValueSectionHandler" />
     <section name="unity" type="Microsoft.Practices.Unity.Configuration.UnityConfigurationSection, Microsoft.Practices.Unity.Configuration" />
     <sectionGroup name="sensenet">
       <section name="webdav" type="System.Configuration.NameValueFileSectionHandler" />
@@ -258,15 +257,6 @@
     </security>
     <urlCompression doStaticCompression="false" />
   </system.webServer>
-  <ExceptionStatusCodes>
-    <add key="System.Security.SecurityException" value="403" />
-    <add key="System.Security.Policy.PolicyException" value="403.1" />
-    <add key="System.Security.AccessControl.PrivilegeNotHeldException" value="403.2" />
-    <add key="System.UnauthorizedAccessException" value="403.3" />
-    <add key="System.Security.HostProtectionException" value="403.8" />
-    <add key="System.Runtime.Remoting.RemotingTimeoutException" value="403.9" />
-    <add key="System.NotSupportedException" value="404" />
-  </ExceptionStatusCodes>
   <system.serviceModel>
     <serviceHostingEnvironment aspNetCompatibilityEnabled="true" multipleSiteBindingsEnabled="true" />
   </system.serviceModel>

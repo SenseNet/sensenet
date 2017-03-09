@@ -179,6 +179,7 @@
     <Compile Include="ApplicationModel\SetPermissionsAction.cs" />
     <Compile Include="ApplicationModel\UploadAction.cs" />
     <Compile Include="ApplicationModel\UrlAction.cs" />
+    <Compile Include="Configuration\ErrorStatusCode.cs" />
     <Compile Include="Configuration\WebApplication.cs" />
     <Compile Include="Configuration\Webdav.cs" />
     <Compile Include="ContentStore\ContentProperty.cs" />
