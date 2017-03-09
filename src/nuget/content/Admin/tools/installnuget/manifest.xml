@@ -4,7 +4,7 @@
   <VersionControl target="6.5.4" />
   <Parameters>
     <Parameter name="@dataSource">.</Parameter>
-    <Parameter name="@initialCatalog">SenseNetContentRepository</Parameter>
+    <Parameter name="@initialCatalog">sensenet</Parameter>
   </Parameters>
   <Steps>
     <Phase>

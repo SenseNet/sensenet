@@ -2,7 +2,7 @@
 <configuration>
   <configSections>
     <section name="loggingConfiguration" type="Microsoft.Practices.EnterpriseLibrary.Logging.Configuration.LoggingSettings, Microsoft.Practices.EnterpriseLibrary.Logging" />
-    <section name="dataConfiguration" type="Microsoft.Practices.EnterpriseLibrary.Data.Configuration.DatabaseSettings, Microsoft.Practices.EnterpriseLibrary.Data" />
+    <!--<section name="dataConfiguration" type="Microsoft.Practices.EnterpriseLibrary.Data.Configuration.DatabaseSettings, Microsoft.Practices.EnterpriseLibrary.Data" />-->
     <section name="ExceptionStatusCodes" type="System.Configuration.NameValueSectionHandler" />
     <section name="unity" type="Microsoft.Practices.Unity.Configuration.UnityConfigurationSection, Microsoft.Practices.Unity.Configuration" />
     <sectionGroup name="sensenet">
@@ -74,7 +74,7 @@
     </specialSources>
   </loggingConfiguration>
   <connectionStrings>
-    <add name="SnCrMsSql" connectionString="Data Source=MySenseNetContentRepositoryDatasource;Initial Catalog=SenseNetContentRepository;Integrated Security=True" providerName="System.Data.SqlClient" />
+    <add name="SnCrMsSql" connectionString="Data Source=.;Initial Catalog=sensenet;Integrated Security=True" providerName="System.Data.SqlClient" />
   </connectionStrings>
   <unity>
     <typeAliases>
