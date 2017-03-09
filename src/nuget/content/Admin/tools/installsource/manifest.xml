@@ -3,8 +3,8 @@
   <ReleaseDate>2016-12-21</ReleaseDate>
   <VersionControl target="6.5.4" />
   <Parameters>
-    <Parameter name="@dataSource">MySenseNetContentRepositoryDatasource</Parameter>
-    <Parameter name="@initialCatalog">SenseNetContentRepository</Parameter>
+    <Parameter name="@dataSource">.</Parameter>
+    <Parameter name="@initialCatalog">sensenet</Parameter>
   </Parameters>
   <Steps>
     <Phase>
