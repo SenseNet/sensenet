@@ -11,6 +11,7 @@ using System.Linq.Expressions;
 using SenseNet.ContentRepository.Storage;
 using System.Text.RegularExpressions;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.Portal.OData
 {
@@ -217,7 +218,7 @@ namespace SenseNet.Portal.OData
                 }
 
                 Content content;
-                if (req.RequestedContentId > 0 && (content = Content.Load(req.RequestedContentId)) != null)
+                if (req.RequestedContentId > 0 && (content = SystemAccount.Execute(() => Content.Load(req.RequestedContentId))) != null)
                 {
                     req.RepositoryPath = content.Path;
                 }

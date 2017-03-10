@@ -351,6 +351,9 @@ namespace SenseNet.Portal.Virtualization
 
         private bool CheckVisitorPermissions(NodeHead nodeHead)
         {
+            if (nodeHead == null)
+                return false;
+
             using (new SystemAccount())
             {
                 return SecurityHandler.HasPermission((IUser)User.Visitor, nodeHead.Id, PermissionType.See, PermissionType.Open);
