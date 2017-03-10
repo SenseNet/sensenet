@@ -201,7 +201,9 @@ namespace SenseNet.Portal.OData
                 var pathIsRelative = true;
                 if (resSegments.Count == 0)
                 {
-                    req.RepositoryPath = portalContext.Site.Path;
+                    req.RepositoryPath = portalContext.Site?.Path;
+                    if (req.RepositoryPath == null)
+                        pathIsRelative = false;
                     req.IsCollection = true;
                 }
                 else
@@ -226,9 +228,14 @@ namespace SenseNet.Portal.OData
                 {
                     var newPath = String.Concat("/", String.Join("/", resSegments));
                     if (pathIsRelative)
-                        newPath = newPath == "/"
-                            ? portalContext.Site.Path
-                            : String.Concat(portalContext.Site.Path, newPath);
+                    {
+                        if(portalContext.Site == null)
+                            newPath = "/";
+                        else
+                            newPath = newPath == "/"
+                                ? portalContext.Site.Path
+                                : string.Concat(portalContext.Site.Path, newPath);
+                    }
                     req.RepositoryPath = newPath;
                 }
 
