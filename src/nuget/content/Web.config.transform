@@ -97,9 +97,6 @@
     <iriParsing enabled="true" />
   </uri>
   <system.web>
-    <sessionState mode="InProc" cookieless="false" />
-    <xhtmlConformance mode="Strict" />
-    <customErrors mode="Off" />
     <anonymousIdentification enabled="true" />
     <globalization resourceProviderFactoryType="SenseNet.ContentRepository.i18n.SenseNetResourceProviderFactory" />
     <membership defaultProvider="SenseNetMembershipProvider">
@@ -109,11 +106,6 @@
       </providers>
     </membership>
   </system.web>
-  <system.web.extensions>
-    <scripting>
-      <scriptResourceHandler enableCompression="true" enableCaching="true" />
-    </scripting>
-  </system.web.extensions>
   <system.webServer>
     <modules runAllManagedModulesForAllRequests="true">
       <add name="PortalAuthentication" preCondition="integratedMode" type="SenseNet.Portal.Virtualization.PortalAuthenticationModule, SenseNet.Services" />
@@ -171,7 +163,6 @@
       <add name="vsxHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.vsx" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
       <add name="vtxHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.vtx" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
       <add name="prjHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.prj" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
-      <add name="mapHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.map" type="SenseNet.Services.GoogleSitemapHandler, SenseNet.Portal" />
       <add name="xapHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.xap" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
       <add name="woffHandler" preCondition="integratedMode" verb="GET,HEAD" path="*.woff" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
       <add name="woff2Handler" preCondition="integratedMode" verb="GET,HEAD" path="*.woff2" type="SenseNet.Portal.Virtualization.SenseNetStaticFileHandler" />
@@ -196,7 +187,6 @@
         </fileExtensions>
       </requestFiltering>
     </security>
-    <urlCompression doStaticCompression="false" />
   </system.webServer>
   <system.serviceModel>
     <serviceHostingEnvironment aspNetCompatibilityEnabled="true" multipleSiteBindingsEnabled="true" />
