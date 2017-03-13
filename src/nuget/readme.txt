@@ -7,7 +7,13 @@ To finalize the installation and get started with Sense/Net ECM platform, please
 
 1. Please make sure that the assembly bindings are correct in the 'runtime' section in Web.config: 
     - all Newtonsoft.Json versions should be redirected to the latest version (currently 9) instead of 6 
-      (it is possible that the install process already did this for you).
+      It is possible that the install process already did this for you. You should see the following binding:
+
+      <dependentAssembly>
+        <assemblyIdentity name="Newtonsoft.Json" culture="neutral" publicKeyToken="30ad4fe6b2a6aeed" />
+        <bindingRedirect oldVersion="0.0.0.0-9.0.0.0" newVersion="9.0.0.0" />
+      </dependentAssembly>
+
     - please copy the contents of the runtime section from your Web.config to the Tools\SnAdminRuntime.exe.config file.
       (see comment at the end of SnAdminRuntime.exe.config)
 
@@ -22,17 +28,14 @@ To finalize the installation and get started with Sense/Net ECM platform, please
     {
         base.Application_Start(sender, e, application);
         
-        // all generated and custom method calls should go here: GlobalConfiguration, RegisterRoutes, etc.
+        // all generated and custom method calls should remain here: GlobalConfiguration, RegisterRoutes, etc.
         // ....
-    }
+    
+    Please do not override the whole method, just the header, and add the base method call.
 
-4. Change Statup.cs: remove the following attribute
+4. Build your solution, make sure that there are no build errors.
 
-    [assembly: OwinStartupAttribute(typeof(WebApplication1.Startup))]
-
-5. Build your solution, make sure that there are no build errors.
-
-6. Install Sense/Net ECM Content Repository database. Please make sure that you have access to a SQL Server.
+5. Install Sense/Net ECM Content Repository database. Please make sure that you have access to a SQL Server.
     - open a command line and go to the \Admin\bin folder (added by this package)
     - execute the installnuget command with the SnAdmin tool (you can specify optional parameters for SQL server and database name)
         - dataSource: your SQL server instance name (e.g. . or MSSQLSERVER\SQL2016)
