@@ -18,8 +18,22 @@
   </metadata>
   <files>
     <file src="..\nuget\readme.txt" target="" />
-    <file src="bin\Release\*.*" target="lib\net451" />
     <file src="..\nuget\content\**" target="content" />
+    <file src="bin\Release\ICSharpCode.SharpZipLib.*" target="lib\net451" />
+    <file src="bin\Release\Ionic.Zip.*" target="lib\net451" />
+    <file src="bin\Release\itextsharp.*" target="lib\net451" />
+    <file src="bin\Release\Lucene.Net.*" target="lib\net451" />
+    <file src="bin\Release\Microsoft.Exchange.WebServices.*" target="lib\net451" />
+    <file src="bin\Release\Microsoft.Practices.EnterpriseLibrary.*" target="lib\net451" />
+    <file src="bin\Release\Microsoft.Practices.ServiceLocation.*" target="lib\net451" />
+    <file src="bin\Release\Microsoft.Practices.Unity.*" target="lib\net451" />
+    <file src="bin\Release\SenseNet.BlobStorage.*" target="lib\net451" />
+    <file src="bin\Release\SenseNet.Common.*" target="lib\net451" />
+    <file src="bin\Release\SenseNet.Configuration.*" target="lib\net451" />
+    <file src="bin\Release\SenseNet.ContentRepository.*" target="lib\net451" />
+    <file src="bin\Release\SenseNet.Preview.*" target="lib\net451" />
+    <file src="bin\Release\SenseNet.Services.*" target="lib\net451" />
+    <file src="bin\Release\SenseNet.Storage.*" target="lib\net451" />
     <file src="..\Tools\SnAdminRuntime\bin\Release\SnAdminRuntime.*" target="content\Tools" />
     <file src="..\Storage\Data\SqlClient\Scripts\Create_SenseNet_Database.sql" target="content\Admin\tools\installnuget\scripts" />
     <file src="..\Storage\Data\SqlClient\Scripts\Install_Security.sql" target="content\Admin\tools\installnuget\scripts" />
