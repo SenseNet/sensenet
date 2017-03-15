@@ -15,6 +15,9 @@
     <releaseNotes>Initial release.</releaseNotes>
     <copyright>Copyright 2017</copyright>
     <tags>sensenet ecm ecms</tags>
+    <dependencies>
+      <dependency id="SenseNet.Security.EF6SecurityStore" version="2.3.0" />
+    </dependencies>
   </metadata>
   <files>
     <file src="..\nuget\readme.txt" target="" />
