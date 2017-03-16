@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>SystemFolder</ContentType>
+  <ContentName>TypeScript</ContentName>
+  <Fields>
+    <DisplayName>TypeScript</DisplayName>
+    <AllowedChildTypes>GetMetadataApplication SystemFolder Folder</AllowedChildTypes>
+  </Fields>
+  <Permissions>
+    <Clear />
+  </Permissions>
+</ContentMetaData>
