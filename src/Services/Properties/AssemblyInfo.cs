@@ -19,5 +19,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyProduct("Sense/Net ECM")]
 [assembly: AssemblyTrademark("Sense/Net Inc.")]
 [assembly: AssemblyCulture("")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("7.0.0.0")]
+[assembly: AssemblyFileVersion("7.0.0.0")]
+
+// This attribute is used by NuGet to determine the package file name and version.
+// It may contain a SemVer value.
+[assembly: AssemblyInformationalVersion("7.0.0-beta")]

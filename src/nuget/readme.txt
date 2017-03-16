@@ -43,6 +43,13 @@ To finalize the installation and get started with Sense/Net ECM platform, please
 
     .\snadmin installnuget dataSource:. initialCatalog:sensenet
 
+6. Update your Razor views (you can do this later at any time).
+   If you use the built-in HtmlHelper.ActionLink method to render actions (as it is the case with the default project templates), 
+   you have to replace those calls in your .cshtml files with a new extension method added by this package:
+
+   HtmlHelper.MvcActionLink
+
+   (the parameters are the same, only the method name changes)
 
 You are good to go! Hit F5 and start experimenting with the Sense/Net REST api!
 For more information and support, please visit http://sensenet.com

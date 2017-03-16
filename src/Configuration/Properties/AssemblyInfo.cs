@@ -17,15 +17,10 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyProduct("Sense/Net ECM")]
 [assembly: AssemblyTrademark("Sense/Net Inc.")]
 [assembly: AssemblyCulture("")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("7.0.0.0")]
+[assembly: AssemblyFileVersion("7.0.0.0")]
+[assembly: AssemblyInformationalVersion("7.0.0-beta")]
 
-
-// Setting ComVisible to false makes the types in this assembly not visible 
-// to COM components.  If you need to access a type in this assembly from 
-// COM, set the ComVisible attribute to true on that type.
 [assembly: ComVisible(false)]
-
-// The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("dfbdb163-d9bb-481c-b3fd-e9eb0e37d27d")]
 
