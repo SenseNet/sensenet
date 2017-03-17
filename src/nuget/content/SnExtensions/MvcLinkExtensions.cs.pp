@@ -207,9 +207,12 @@ namespace $rootnamespace$
         }
         private static RouteValueDictionary FillValues(object anonymousObject, RouteValueDictionary values)
         {
-            var properties = anonymousObject.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
-            foreach (var propertyInfo in properties)
-                values[propertyInfo.Name] = propertyInfo.GetMethod.Invoke(anonymousObject, null);
+            var properties = anonymousObject?.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
+			if (properties != null)
+            {
+				foreach (var propertyInfo in properties)
+					values[propertyInfo.Name] = propertyInfo.GetMethod.Invoke(anonymousObject, null);
+			}
             return values;
         }
     }
