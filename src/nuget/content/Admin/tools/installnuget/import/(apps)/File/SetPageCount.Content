@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>GenericODataApplication</ContentType>
+  <ContentName>SetPageCount</ContentName>
+  <Fields>
+    <ClassName><![CDATA[SenseNet.Preview.DocumentPreviewProvider]]></ClassName>
+    <MethodName><![CDATA[SetPageCount]]></MethodName>
+    <Parameters><![CDATA[int pageCount]]></Parameters>
+    <DisplayName><![CDATA[Set page count]]></DisplayName>
+    <ActionTypeName><![CDATA[GenericODataOperation]]></ActionTypeName>
+    <Icon><![CDATA[Application]]></Icon>
+  </Fields>
+  <Permissions>
+    <Clear />
+  </Permissions>
+</ContentMetaData>

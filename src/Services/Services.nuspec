@@ -1,11 +1,10 @@
-<?xml version="1.0"?>
-<package >
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>SenseNet.Services</id>
-    <!--<version>$version$</version>-->
-    <version>7.0.0-alpha</version>
+    <version>$version$</version>
     <title>Sense/Net Content Repository and Services</title>
-    <authors>kavics,aniko,iviclaci,borsi,tusmester</authors>
+    <authors>kavics,aniko,laci,borsi,lajos,tusmester</authors>
     <owners>Sense/Net</owners>
     <licenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/SenseNet/sensenet</projectUrl>
@@ -13,13 +12,30 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Sense/Net is an Enterprise Content Management platform for .Net</description>
     <releaseNotes>Initial release.</releaseNotes>
-    <copyright>Copyright 2017</copyright>
+    <copyright>Copyright © Sense/Net Inc.</copyright>
     <tags>sensenet ecm ecms</tags>
+    <dependencies>
+      <dependency id="SenseNet.Security.EF6SecurityStore" version="2.3.0" />
+    </dependencies>
   </metadata>
   <files>
     <file src="..\nuget\readme.txt" target="" />
-    <file src="bin\Release\*.*" target="lib\net451" />
     <file src="..\nuget\content\**" target="content" />
+    <file src="bin\Release\ICSharpCode.SharpZipLib.*" target="lib\net451" />
+    <file src="bin\Release\Ionic.Zip.*" target="lib\net451" />
+    <file src="bin\Release\itextsharp.*" target="lib\net451" />
+    <file src="bin\Release\Lucene.Net.*" target="lib\net451" />
+    <file src="bin\Release\Microsoft.Exchange.WebServices.*" target="lib\net451" />
+    <file src="bin\Release\Microsoft.Practices.EnterpriseLibrary.*" target="lib\net451" />
+    <file src="bin\Release\Microsoft.Practices.ServiceLocation.*" target="lib\net451" />
+    <file src="bin\Release\Microsoft.Practices.Unity.*" target="lib\net451" />
+    <file src="bin\Release\SenseNet.BlobStorage.*" target="lib\net451" />
+    <file src="bin\Release\SenseNet.Common.*" target="lib\net451" />
+    <file src="bin\Release\SenseNet.Configuration.*" target="lib\net451" />
+    <file src="bin\Release\SenseNet.ContentRepository.*" target="lib\net451" />
+    <file src="bin\Release\SenseNet.Preview.*" target="lib\net451" />
+    <file src="bin\Release\SenseNet.Services.*" target="lib\net451" />
+    <file src="bin\Release\SenseNet.Storage.*" target="lib\net451" />
     <file src="..\Tools\SnAdminRuntime\bin\Release\SnAdminRuntime.*" target="content\Tools" />
     <file src="..\Storage\Data\SqlClient\Scripts\Create_SenseNet_Database.sql" target="content\Admin\tools\installnuget\scripts" />
     <file src="..\Storage\Data\SqlClient\Scripts\Install_Security.sql" target="content\Admin\tools\installnuget\scripts" />

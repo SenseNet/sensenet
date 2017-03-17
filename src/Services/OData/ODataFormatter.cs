@@ -106,20 +106,16 @@ namespace SenseNet.Portal.OData
         private string[] GetTopLevelNames(ODataRequest req)
         {
             var site = Node.Load<Site>(req.RepositoryPath);
-            return site.Children/*.Where(n => n is IFolder)*/.Select(n => n.Name).ToArray();
+            return site?.Children.Select(n => n.Name).ToArray()
+                   ?? new[] {Repository.RootName};
         }
         protected abstract void WriteServiceDocument(PortalContext portalContext, IEnumerable<string> names);
 
         internal void WriteMetadata(HttpContext context, ODataRequest req)
         {
             var content = ODataHandler.LoadContentByVersionRequest(req.RepositoryPath);
-            if (content == null)
-            {
-                ODataHandler.ResourceNotFound();
-                return;
-            }
 
-            var isRoot = content.ContentType.IsInstaceOfOrDerivedFrom("Site");
+            var isRoot = content?.ContentType.IsInstaceOfOrDerivedFrom("Site") ?? true;
             if (isRoot)
                 MetaGenerator.WriteMetadata(context.Response.Output, this);
             else

@@ -3,25 +3,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Routing;
-using System.Configuration;
-using System.Collections.Specialized;
 using SenseNet.ContentRepository.Storage.Security;
 using File = System.IO.File;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Portal.Virtualization;
 using System.IO;
+using System.Reflection;
 using SenseNet.Diagnostics;
 using SenseNet.Portal.Routing;
 using SenseNet.Portal.Resources;
 using SenseNet.Portal.Handlers;
 using System.Web.Hosting;
 using System.Web.SessionState;
+using SenseNet.Configuration;
 using SenseNet.Portal;
 using SenseNet.Tools;
 
 namespace SenseNet.Services
 {
+    [AttributeUsage(AttributeTargets.Class)]
+    public class InternalSenseNetHttpApplicationAttribute : Attribute { }
+
     public class SenseNetGlobal
     {
         /*====================================================================================================================== Static part */
@@ -30,22 +33,47 @@ namespace SenseNet.Services
         {
             get
             {
-                if (__instance != null)
-                    return __instance;
-                
-                var globalTypes = TypeResolver.GetTypesByBaseType(typeof(SenseNetGlobal));
-
-                // Try to load the first custom type unknown to us. If not found, try to load the Sense/Net
-                // global class, implemented in a higher layer by name.
-                var globalType = globalTypes.FirstOrDefault(t => t.FullName != "SenseNet.Portal.SenseNetGlobal") ??
-                                 TypeResolver.GetType("SenseNet.Portal.SenseNetGlobal", false);
-
-                __instance = globalType != null ? (SenseNetGlobal)Activator.CreateInstance(globalType) : new SenseNetGlobal();
-
-                SnTrace.System.Write("Global class loaded: " + __instance.GetType().FullName);
-
+                if (__instance == null)
+                {
+                    __instance = ChooseInstance(TypeResolver.GetTypesByBaseType(typeof(SenseNetGlobal)));
+                    SnTrace.System.Write("Global class loaded: " + __instance.GetType().FullName);
+                }
                 return __instance;
             }
+        }
+
+        internal static SenseNetGlobal ChooseInstance(Type[] inheritedTypes)
+        {
+            var globalType = ChooseType(inheritedTypes);
+            return globalType != null ? (SenseNetGlobal)Activator.CreateInstance(globalType) : new SenseNetGlobal();
+        }
+        internal static Type ChooseType(Type[] inheritedTypes)
+        {
+            // The internal global type is in the upper layer of Sense/Net that may or may not be present.
+            // An external global type is the one created by a 3rd party developer who integrates
+            // Sense/Net into an ASP.NET web application. Fallback order:
+            // 1. external global class if present (it must inherit the internal global class!)
+            // 2. internal global class if present
+            // 3. base global class (the one we are in now)
+
+            var internalGlobalType = inheritedTypes.FirstOrDefault(IsInternalSenseNetHttpApplication);
+            var externalGlobalType = inheritedTypes.FirstOrDefault(t => !IsInternalSenseNetHttpApplication(t));
+
+            if (internalGlobalType == null)
+                return externalGlobalType;
+
+            if (externalGlobalType == null)
+                return internalGlobalType;
+
+            if (externalGlobalType.BaseType == internalGlobalType)
+                return externalGlobalType;
+
+            return internalGlobalType;
+        }
+
+        private static bool IsInternalSenseNetHttpApplication(Type type)
+        {
+            return type.GetCustomAttribute(typeof(InternalSenseNetHttpApplicationAttribute), false) != null;
         }
 
         internal static void ApplicationStartHandler(object sender, EventArgs e, HttpApplication application)
@@ -80,7 +108,7 @@ namespace SenseNet.Services
             {
                 var runOnceMarkerPath = application.Server.MapPath("/" + RunOnceGuid);
                 var firstRun = File.Exists(runOnceMarkerPath);
-                var startConfig = new SenseNet.ContentRepository.RepositoryStartSettings { StartLuceneManager = !firstRun, IsWebContext = true };
+                var startConfig = new RepositoryStartSettings { StartLuceneManager = !firstRun, IsWebContext = true };
                 startConfig.ConfigureProvider(typeof(ElevatedModificationVisibilityRule), typeof(SnElevatedModificationVisibilityRule));
 
                 RepositoryInstance.WaitForWriterLockFileIsReleased(RepositoryInstance.WaitForLockFileType.OnStart);
@@ -99,8 +127,8 @@ namespace SenseNet.Services
         {
             using (var op = SnTrace.Repository.StartOperation("Application_End"))
             {
-                SenseNet.ContentRepository.Repository.Shutdown();
-                SnLog.WriteInformation("Application_End", EventId.RepositoryLifecycle, properties: new Dictionary<string, object> { 
+                Repository.Shutdown();
+                SnLog.WriteInformation("Application_End", EventId.RepositoryLifecycle, properties: new Dictionary<string, object> {
                     { "ShutdownReason", HostingEnvironment.ShutdownReason  }
                 });
                 op.Successful = true;
@@ -134,11 +162,12 @@ namespace SenseNet.Services
                 }
                 catch
                 {
+                    // if logging failed, cannot do much at this point
                 }
             }
 
-            if (ex.InnerException != null && ex.InnerException.StackTrace != null &&
-              (ex.InnerException.StackTrace.IndexOf("System.Web.UI.PageParser.GetCompiledPageInstanceInternal") != -1))
+            if (ex.InnerException?.StackTrace != null && 
+                (ex.InnerException.StackTrace.IndexOf("System.Web.UI.PageParser.GetCompiledPageInstanceInternal", StringComparison.InvariantCulture) != -1))
                 return;
 
             if (HttpContext.Current == null)
@@ -154,15 +183,15 @@ namespace SenseNet.Services
                 response = null;
             }
 
-            if (response != null)
-                response.Headers.Remove("Content-Disposition");
+            response?.Headers.Remove("Content-Disposition");
 
             // HACK: HttpAction.cs (and possibly StaticFileHandler) throws 404 and 403 HttpExceptions. 
             // These are not exceptions to be displayed, but "fake" exceptions to handle 404 and 403 requests.
             // Therefore, here we set the statuscode and return, no further logic is executed.
             if (originalHttpCode.HasValue && (originalHttpCode == 404 || originalHttpCode == 403))
             {
-                response.StatusCode = originalHttpCode.Value;
+                if (response != null)
+                    response.StatusCode = originalHttpCode.Value;
 
                 HttpContext.Current.ClearError();
                 HttpContext.Current.ApplicationInstance.CompleteRequest();
@@ -175,9 +204,7 @@ namespace SenseNet.Services
             var exception = ex;
             if (exception.InnerException != null) exception = exception.InnerException;
 
-            var exceptionStatusCode = 0;
-            var exceptionSubStatusCode = 0;
-            var statusCodeExists = GetStatusCode(exception, out exceptionStatusCode, out exceptionSubStatusCode);
+            var statusCode = GetStatusCode(exception);
 
             if (response != null)
             {
@@ -188,10 +215,10 @@ namespace SenseNet.Services
 
                     // If there is a specified status code in statusCodeString then set Response.StatusCode to it.
                     // Otherwise go on to global error page.
-                    if (statusCodeExists)
+                    if (statusCode != null)
                     {
-                        application.Response.StatusCode = exceptionStatusCode;
-                        application.Response.SubStatusCode = exceptionSubStatusCode;
+                        application.Response.StatusCode = statusCode.StatusCode;
+                        application.Response.SubStatusCode = statusCode.SubStatusCode;
                         response.Clear();
                         HttpContext.Current.ClearError();
                         HttpContext.Current.ApplicationInstance.CompleteRequest();
@@ -244,11 +271,12 @@ namespace SenseNet.Services
 
             // If there is a specified status code in statusCodeString then set Response.StatusCode to it.
             // Otherwise go on to global error page.
-            if (statusCodeExists)
+            if (statusCode != null)
             {
-                application.Response.StatusCode = exceptionStatusCode;
-                application.Response.SubStatusCode = exceptionSubStatusCode;
-                response.Clear();
+                application.Response.StatusCode = statusCode.StatusCode;
+                application.Response.SubStatusCode = statusCode.SubStatusCode;
+                response?.Clear();
+
                 HttpContext.Current.ClearError();
                 HttpContext.Current.ApplicationInstance.CompleteRequest();
             }
@@ -290,7 +318,7 @@ namespace SenseNet.Services
 
         protected virtual void RegisterRoutes(RouteCollection routes, HttpApplication application)
         {
-            routes.Add(new Route("odata.svc/{*path}", new ODataRouteHandler()));
+            routes.Add("SnODataRoute", new Route("odata.svc/{*path}", new ODataRouteHandler()));
 
             var resourceHandler = new ResourceHandler();
             routes.Add("SnResourceRoute", new Route(ResourceHandler.UrlPart + "/{*anything}", new ProxyingRouteHandler(ctx => resourceHandler)));
@@ -334,51 +362,30 @@ namespace SenseNet.Services
         }
 
         /*====================================================================================================================== Helpers */
-        private static bool GetStatusCode(Exception exception, out int exceptionStatusCode, out int exceptionSubStatusCode)
+        private static ErrorStatusCode GetStatusCode(Exception exception)
         {
-            exceptionStatusCode = 0;
-            exceptionSubStatusCode = 0;
+            if (exception == null)
+                return null;
 
-            var statusCodes = ConfigurationManager.GetSection("ExceptionStatusCodes") as NameValueCollection;
-            if (statusCodes == null) return false;
-
-            var tmpExceptionFullName = exception.GetType().FullName;
             var tmpException = exception.GetType();
+            var tmpExceptionFullName = tmpException.FullName;
 
-            while (tmpExceptionFullName != "System.Exception")
+            while (tmpExceptionFullName != null && tmpExceptionFullName != "System.Exception")
             {
-                if (tmpExceptionFullName != null)
-                {
-                    var statusCodeFullString = statusCodes[tmpExceptionFullName];
-                    if (!string.IsNullOrEmpty(statusCodeFullString))
-                    {
-                        string statusCodeString;
-                        string subStatusCodeString;
+                ErrorStatusCode statusCode;
+                if (WebApplication.ExceptionStatusCodes.TryGetValue(tmpExceptionFullName, out statusCode))
+                    return statusCode;
 
-                        if (statusCodes[tmpExceptionFullName].Contains("."))
-                        {
-                            statusCodeString = statusCodeFullString.Split('.')[0];
-                            subStatusCodeString = statusCodeFullString.Split('.')[1];
-                        }
-                        else
-                        {
-                            statusCodeString = statusCodeFullString;
-                            subStatusCodeString = "0";
-                        }
+                // move to parent
+                tmpException = tmpException.BaseType;
 
-                        if (Int32.TryParse(statusCodeString, out exceptionStatusCode) && Int32.TryParse(subStatusCodeString, out exceptionSubStatusCode))
-                            return true;
-                        return false;
-                    }
-
-                    if (tmpException != null) tmpException = tmpException.BaseType;
-                    if (tmpException != null) tmpExceptionFullName = tmpException.FullName;
-                }
-
-                return false;
+                if (tmpException != null)
+                    tmpExceptionFullName = tmpException.FullName;
+                else
+                    return null;
             }
 
-            return false;
+            return null;
         }
         private static string InsertErrorMessagesIntoHtml(Exception exception, string errorPageHtml)
         {
@@ -452,6 +459,5 @@ namespace SenseNet.Services
 
             return "<html><head><title>{exceptionType}</title></head><body style=\"font-family:Consolas, 'Courier New', Courier, monospace; background-color:#0033CC;color:#CCCCCC; font-weight:bold\"><br /><br /><br /><div style=\"text-align:center;background-color:#CCCCCC;color:#0033CC\">{exceptionType}</div><br /><br /><div style=\"font-size:large\">{exceptionMessage}<br /></div><br /><div style=\"font-size:x-small\">The source of the exception: {exceptionSource}</div><br /><div style=\"font-size:x-small\">Output of the Exception.ToString():<br />{exceptionToString}<br /><br /></div></body></html>";
         }
-
     }
 }

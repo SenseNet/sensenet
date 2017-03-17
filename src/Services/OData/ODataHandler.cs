@@ -114,7 +114,7 @@ namespace SenseNet.Portal.OData
                     throw new ODataException(ODataExceptionCode.Forbidden);
 
                 var exists = Node.Exists(odataReq.RepositoryPath);
-                if (!exists && !AllowedMethodNamesWithoutContent.Contains(httpMethod))
+                if (!exists && !odataReq.IsServiceDocumentRequest && !odataReq.IsMetadataRequest && !AllowedMethodNamesWithoutContent.Contains(httpMethod))
                 {
                     ContentNotFound(context, odataReq.RepositoryPath);
                     return;

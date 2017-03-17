@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>GenericODataApplication</ContentType>
+  <ContentName>GetExistingPreviewImages</ContentName>
+  <Fields>
+    <ClassName><![CDATA[SenseNet.Preview.DocumentPreviewProvider]]></ClassName>
+    <MethodName><![CDATA[GetExistingPreviewImagesForOData]]></MethodName>
+    <DisplayName><![CDATA[$Action,GetExistingPreviewImages]]></DisplayName>
+    <ActionTypeName><![CDATA[GenericODataOperation]]></ActionTypeName>
+    <Icon><![CDATA[Application]]></Icon>
+  </Fields>
+  <Permissions>
+    <Clear />
+    <Identity path="/Root/IMS/BuiltIn/Portal/Everyone">
+      <RunApplication>Allow</RunApplication>
+    </Identity>
+  </Permissions>
+</ContentMetaData>
