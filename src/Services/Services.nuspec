@@ -16,6 +16,7 @@
     <tags>sensenet ecm ecms</tags>
     <dependencies>
       <dependency id="SenseNet.Security.EF6SecurityStore" version="2.3.0" />
+      <dependency id="SenseNet.SnAdmin" version="1.4.0" />
     </dependencies>
   </metadata>
   <files>
