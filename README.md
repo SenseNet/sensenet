@@ -1,11 +1,11 @@
-# Welcome to SenseNet
+# Welcome to Sense/Net
 The first Open Source Enterprise Content Management platform for .NET!
 
 [![Join the chat at https://gitter.im/SenseNet/sn-taskmanagement](https://badges.gitter.im/SenseNet/sensenet.svg)](https://gitter.im/SenseNet/sensenet?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 If you need...
 - a **Content Repository** with a powerful query engine (built on [Lucene.Net](https://lucenenet.apache.org)) for storing *millions* of documents,
-- an extendable .Net **development platform** with many features developers will like (*OData REST API* with a .Net client SDK, *LINQ to SenseNet*, a unified *Content layer* - and many more),
+- an extendable .Net **development platform** with many features developers will like (*OData REST API* with a .Net client SDK, *LINQ to Sense/Net*, a unified *Content layer* - and many more),
 - a flexible **security** layer with customizable content permissions, honored by the query engine,
 - a scalable enterprise architecture with NLB and background task management,
 - *workspaces*, *lists* and *libraries* to make collaboration easier
@@ -14,7 +14,7 @@ If you need...
 
 ![Workspaces](http://wiki.sensenet.com/images/5/5e/Ws-main.png "Workspaces")
 
-## SenseNet can be a lots of things
+## Sense/Net can be a lots of things
 
 - a development platform
 - an internet and intranet portal
@@ -24,7 +24,7 @@ If you need...
 Let us know which part you're intrested in most!
 
 ## License
-SenseNet is available in two editions:
+Sense/Net is available in two editions:
 
 1. **Community Edition**: a community-supported [GPL v2](LICENSE) edition with almost all the features.
    The source code is available currently on [CodePlex](http://sensenet.codeplex.com), but we'll move it here soon :smiley:.
@@ -59,8 +59,8 @@ Take into account that currently there is _no UI layer available out of the box_
 ### Sense/Net ECM 6.5
 A feature-rich Enterprise CMS with predefined UI and building blocks: pages, portlets, action controls and more. Build your solution with almost no development effort.
 
-If you are new to SenseNet, it is worth checking out these introductory articles on our [wiki](http://wiki.sensenet.com):
-- [Getting started - using SenseNet](http://wiki.sensenet.com/Getting_started_-_using_Sense/Net)
+If you are new to Sense/Net, it is worth checking out these introductory articles on our [wiki](http://wiki.sensenet.com):
+- [Getting started - using Sense/Net](http://wiki.sensenet.com/Getting_started_-_using_Sense/Net)
 - [Getting started - installation and maintenance](http://wiki.sensenet.com/Getting_started_-_installation_and_maintenance)
 - [Getting started - building portals](http://wiki.sensenet.com/Getting_started_-_building_portals)
 - [Getting started - developing applications](http://wiki.sensenet.com/Getting_started_-_developing_applications)
