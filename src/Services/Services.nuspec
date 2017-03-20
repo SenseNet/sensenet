@@ -8,7 +8,7 @@
     <owners>Sense/Net</owners>
     <licenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/SenseNet/sensenet</projectUrl>
-    <iconUrl>https://avatars2.githubusercontent.com/u/4069121?v=3&amp;s=200</iconUrl>
+    <iconUrl>https://github.com/SenseNet/sn-resources/raw/master/images/sn-logo/sensenet.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Sense/Net is an Enterprise Content Management platform for .Net</description>
     <releaseNotes>Initial release.</releaseNotes>
