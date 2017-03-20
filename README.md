@@ -39,6 +39,26 @@ Whether you're a community member or enterprise customer, feel free to visit our
 - Enterprise support: http://support.sensenet.com
 
 ## Getting started
+Currently we offer two different versions of Sense/Net ECM. We recommend version 7.0 for new projects as it is more lightweight and flexible.
+### Sense/Net ECM 7.0 (beta)
+A modern ECM platform that can be integrated into existing or new web applications.
+- **Sense/Net Services** (the current GitHub repository): a robust Content Repository with enterprise features (security, querying, lists and libraries, dynamic content types), accessible through a REST API, often referred to as a _headless ECMS_.
+- a selection of [components and plugins](https://github.com/SenseNet/awesome-sensenet) that are built on this platform.
+
+Developers may start integrating the Sense/Net platform by installing the **Sense/Net Services NuGet package** into an ASP.NET MVC web application. 
+
+[![NuGet](https://img.shields.io/nuget/v/SenseNet.Services.svg)](https://www.nuget.org/packages/SenseNet.Services)
+
+1. Create a new ASP.NET web application (using the MVC template, optionally adding Web api or Web Forms), or use an existing one.
+2. Install the following NuGet package (either in the Package Manager console or the Manage NuGet Packages window)
+
+`> Install-Package SenseNet.Services`
+
+Take into account that currently there is _no UI layer available out of the box_ for Sense/Net ECM 7.0. We are working on moving features available in Sense/Net 6.5 to the new platform. They will be published as NuGet and SnAdmin install packages so that you will be able to build your solution easily using only the components that you truly need.
+
+### Sense/Net ECM 6.5
+A feature-rich Enterprise CMS with predefined UI and building blocks: pages, portlets, action controls and more. Build your solution with almost no development effort.
+
 If you are new to SenseNet, it is worth checking out these introductory articles on our [wiki](http://wiki.sensenet.com):
 - [Getting started - using SenseNet](http://wiki.sensenet.com/Getting_started_-_using_Sense/Net)
 - [Getting started - installation and maintenance](http://wiki.sensenet.com/Getting_started_-_installation_and_maintenance)
