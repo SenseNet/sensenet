@@ -181,6 +181,7 @@
     <Compile Include="ApplicationModel\SetPermissionsAction.cs" />
     <Compile Include="ApplicationModel\UploadAction.cs" />
     <Compile Include="ApplicationModel\UrlAction.cs" />
+    <Compile Include="Configuration\TokenAuthentication.cs" />
     <Compile Include="Configuration\ErrorStatusCode.cs" />
     <Compile Include="Configuration\WebApplication.cs" />
     <Compile Include="Configuration\Webdav.cs" />
@@ -308,6 +309,7 @@
     <Compile Include="SR.cs" />
     <Compile Include="UITools.cs" />
     <Compile Include="Virtualization\AuthenticationHelper.cs" />
+    <Compile Include="Virtualization\AuthorizationModule.cs" />
     <Compile Include="Virtualization\DiskFSSupportMode.cs" />
     <Compile Include="Virtualization\DocumentBinaryProvider.cs" />
     <Compile Include="Virtualization\EmbeddedFile.cs" />
@@ -356,6 +358,10 @@
     <ProjectReference Include="..\ContentRepository\ContentRepository.csproj">
       <Project>{786E6165-CA02-45A9-BF58-207A45D7D6DF}</Project>
       <Name>ContentRepository</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SenseNet.TokenAuthentication\SenseNet.TokenAuthentication.csproj">
+      <Project>{78febd73-8bc4-45b9-9b31-d512e1afad60}</Project>
+      <Name>SenseNet.TokenAuthentication</Name>
     </ProjectReference>
     <ProjectReference Include="..\Storage\Storage.csproj">
       <Project>{5DB4DDBA-81F6-4D81-943A-18F3178B3355}</Project>

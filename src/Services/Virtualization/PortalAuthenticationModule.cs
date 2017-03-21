@@ -20,8 +20,10 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Portal.Handlers;
 using System.Threading;
+using Newtonsoft.Json;
 using SenseNet.Configuration;
 using SenseNet.Security;
+using SenseNet.TokenAuthentication;
 
 namespace SenseNet.Portal.Virtualization
 {
@@ -29,134 +31,32 @@ namespace SenseNet.Portal.Virtualization
     {
         public void Dispose()
         {
-            // Nothing to dispose yet...
+            _securityKey = null;
         }
 
-        public void Init(HttpApplication context)
+        public void Init(HttpApplication application)
         {
             FormsAuthentication.Initialize();
-            context.AuthenticateRequest += new EventHandler(OnAuthenticateRequest);
-            context.EndRequest += new EventHandler(OnEndRequest); // Forms
-            context.AuthorizeRequest += new EventHandler(OnAuthorizeRequest);
+            application.AuthenticateRequest += new EventHandler(OnAuthenticateRequest);
+            application.EndRequest += new EventHandler(OnEndRequest); // Forms
         }
 
-        private void OnAuthorizeRequest(object sender, EventArgs e)
+        private static ISecurityKey _securityKey;
+        private static object _keyLock = new object();
+
+        private ISecurityKey SecurityKey
         {
-            OnAuthorizeRequest((sender as HttpApplication)?.Context);
-        }
-        internal void OnAuthorizeRequest(HttpContext context)
-        {
-            PortalContext currentPortalContext = PortalContext.Current;
-            if (currentPortalContext == null)
-                return;
-            var currentUser = context?.User.Identity as User;
-
-            // deny access for visitors in case of webdav or office protocol requests, if they have no See access to the content
-            if (currentUser != null && currentUser.Id == Identifiers.VisitorUserId && (currentPortalContext.IsOfficeProtocolRequest || currentPortalContext.IsWebdavRequest))
+            get
             {
-                if (!currentPortalContext.IsRequestedResourceExistInRepository ||
-                    currentPortalContext.ContextNodeHead == null ||
-                    !SecurityHandler.HasPermission(currentPortalContext.ContextNodeHead, PermissionType.See))
+                if (_securityKey == null)
                 {
-                    AuthenticationHelper.ForceBasicAuthentication(HttpContext.Current);
-                }
-            }
-
-            if (context == null)
-                return;
-
-            if (currentPortalContext.IsRequestedResourceExistInRepository)
-            {
-                var authMode = currentPortalContext.AuthenticationMode;
-                if (string.IsNullOrEmpty(authMode))
-                    authMode = WebApplication.DefaultAuthenticationMode;
-
-                bool appPerm;
-                if (authMode == "Forms")
-                {
-                    appPerm = currentPortalContext.CurrentAction.CheckPermission();
-                }
-                else if (authMode == "Windows")
-                {
-                    currentPortalContext.CurrentAction.AssertPermissions();
-                    appPerm = true;
-                }
-                else
-                {
-                    throw new NotSupportedException("None authentication is not supported");
-                }
-
-                var path = currentPortalContext.RepositoryPath;
-                var nodeHead = NodeHead.Get(path);
-                var permissionValue = SecurityHandler.GetPermission(nodeHead, PermissionType.Open);
-
-                if (permissionValue == PermissionValue.Allowed && DocumentPreviewProvider.Current.IsPreviewOrThumbnailImage(nodeHead))
-                {
-                    // In case of preview images we need to make sure that they belong to a content version that
-                    // is accessible by the user (e.g. must not serve images for minor versions if the user has
-                    // access only to major versions of the content).
-                    if (!DocumentPreviewProvider.Current.IsPreviewAccessible(nodeHead))
-                        permissionValue = PermissionValue.Denied;
-                }
-                else if (permissionValue != PermissionValue.Allowed && appPerm && DocumentPreviewProvider.Current.HasPreviewPermission(nodeHead))
-                {
-                    // In case Open permission is missing: check for Preview permissions. If the current Document
-                    // Preview Provider allows access to a preview, we should allow the user to access the content.
-                    permissionValue = PermissionValue.Allowed;
-                }
-
-                if (permissionValue != PermissionValue.Allowed)
-                    if (nodeHead.Id == Repository.Root.Id)
-                        if (currentPortalContext.IsOdataRequest)
-                            if (currentPortalContext.ODataRequest.IsMemberRequest)
-                                permissionValue = PermissionValue.Allowed;
-
-                if (permissionValue != PermissionValue.Allowed || !appPerm)
-                {
-                    if (currentPortalContext.IsOdataRequest)
+                    lock (_keyLock)
                     {
-                        AuthenticationHelper.ThrowForbidden();
-                    }
-                    switch (authMode)
-                    {
-                        case "Forms":
-                            if (User.Current.IsAuthenticated)
-                            {
-                                // user is authenticated, but has no permissions: return 403
-                                context.Response.StatusCode = 403;
-                                context.Response.Flush();
-                                context.Response.Close();
-                            }
-                            else
-                            {
-                                // let webdav and office protocol handle authentication - in these cases redirecting to a login page makes no sense
-                                if (PortalContext.Current.IsWebdavRequest || PortalContext.Current.IsOfficeProtocolRequest)
-                                    return;
-
-                                // user is not authenticated and visitor has no permissions: redirect to login page
-                                // Get the login page Url (eg. http://localhost:1315/home/login)
-                                string loginPageUrl = currentPortalContext.GetLoginPageUrl();
-                                // Append trailing slash
-                                if (loginPageUrl != null && !loginPageUrl.EndsWith("/"))
-                                    loginPageUrl = loginPageUrl + "/";
-
-                                // Cut down the querystring (eg. drop ?Param1=value1@Param2=value2)
-                                string currentRequestUrlWithoutQueryString = currentPortalContext.RequestedUri.GetComponents(UriComponents.Scheme | UriComponents.Host | UriComponents.Port | UriComponents.Path, UriFormat.Unescaped);
-
-                                // Append trailing slash
-                                if (!currentRequestUrlWithoutQueryString.EndsWith("/"))
-                                    currentRequestUrlWithoutQueryString = currentRequestUrlWithoutQueryString + "/";
-
-                                // Redirect to the login page, if neccessary.
-                                if (currentRequestUrlWithoutQueryString != loginPageUrl)
-                                    context.Response.Redirect(loginPageUrl + "?OriginalUrl=" + System.Web.HttpUtility.UrlEncode(currentPortalContext.RequestedUri.ToString()), true);
-                            }
-                            break;
-                        default:
-                            AuthenticationHelper.DenyAccess(context);
-                            break;
+                        _securityKey =
+                            EncryptionHelper.CreateSymmetricKey(Configuration.TokenAuthentication.SymmetricKeySecret);
                     }
                 }
+                return _securityKey;
             }
         }
 
@@ -166,7 +66,7 @@ namespace SenseNet.Portal.Virtualization
             if (authHeader == null || !authHeader.StartsWith("Basic "))
                 return false;
 
-            string base64Encoded = authHeader.Substring(6);  // 6: length of "Basic "
+            string base64Encoded = authHeader.Substring(6); // 6: length of "Basic "
             byte[] buff = Convert.FromBase64String(base64Encoded);
             string[] userPass = System.Text.Encoding.UTF8.GetString(buff).Split(":".ToCharArray());
             if (userPass.Length != 2)
@@ -202,12 +102,10 @@ namespace SenseNet.Portal.Virtualization
             HttpContext context = HttpContext.Current;
             HttpRequest request = context.Request;
 
-            if ( DispatchBasicAuthentication(application, request) )
-                return;
-
-            if (request.Headers["CharlesCrawler"] == "true")
+            var basicAuthenticated = DispatchBasicAuthentication(application, request);
+            // it is not SSL, so cannot be Token authentication
+            if (basicAuthenticated && !request.IsSecureConnection)
             {
-                application.Context.User = new PortalPrincipal(User.Visitor);
                 return;
             }
 
@@ -225,7 +123,8 @@ namespace SenseNet.Portal.Virtualization
 
             // if no site auth mode, no web.config default, then exception...
             if (string.IsNullOrEmpty(authenticationType))
-                throw new ApplicationException("The engine could not determine the authentication mode for this request. This request does not belong to a site, and there was no default authentication mode set in the web.config.");
+                throw new ApplicationException(
+                    "The engine could not determine the authentication mode for this request. This request does not belong to a site, and there was no default authentication mode set in the web.config.");
 
             switch (authenticationType)
             {
@@ -238,13 +137,17 @@ namespace SenseNet.Portal.Virtualization
                     CallInternalOnEnter(sender, e);
                     SetApplicationUser(application, authenticationType);
                     break;
+                case "Token":
+                    TokenAuthenticate(basicAuthenticated, context);
+                    break;
                 case "None":
                     // "None" authentication: set the Visitor Identity
                     application.Context.User = new PortalPrincipal(User.Visitor);
                     break;
                 default:
                     Site site = null;
-                    SenseNet.ContentRepository.Storage.Node problemNode = SenseNet.ContentRepository.Storage.Node.LoadNode(repositoryPath);
+                    SenseNet.ContentRepository.Storage.Node problemNode =
+                        SenseNet.ContentRepository.Storage.Node.LoadNode(repositoryPath);
                     if (problemNode != null)
                     {
                         site = Site.GetSiteByNode(problemNode);
@@ -253,11 +156,126 @@ namespace SenseNet.Portal.Virtualization
                     }
                     string message = null;
                     if (site == null)
-                        message = string.Format(HttpContext.GetGlobalResourceObject("Portal", "DefaultAuthenticationNotSupported") as string, authenticationType);
+                        message =
+                            string.Format(
+                                HttpContext.GetGlobalResourceObject("Portal", "DefaultAuthenticationNotSupported") as
+                                    string, authenticationType);
                     else
                         message = string.Format("AuthenticationNotSupportedOnSite", site.Name, authenticationType);
                     throw new NotSupportedException(message);
             }
+        }
+
+        private const string AccessSignatureName = "as";
+        private const string RefreshSignatureName = "rs";
+        private const string AccessHeaderName = "X-Access-Data";
+        private const string RefreshHeaderName = "X-Refresh-Data";
+
+        private void TokenAuthenticate(bool basicAuthenticated, HttpContext context)
+        {
+            try
+            {
+
+                ISecurityTokenHandler tokenHandler = new JwsSecurityTokenHandler();
+                var validFrom = DateTime.UtcNow;
+                ITokenParameters generateTokenParameter = new TokenParameters
+                {
+                    Audience = Configuration.TokenAuthentication.Audience
+                    , Issuer = Configuration.TokenAuthentication.Issuer
+                    , Subject = Configuration.TokenAuthentication.Subject
+                    , EncryptionAlgorithm = Configuration.TokenAuthentication.EncriptionAlgorithm
+                    , AccessLifeTimeInMinutes = Configuration.TokenAuthentication.AccessLifeTimeInMinutes
+                    , RefreshLifeTimeInMinutes = Configuration.TokenAuthentication.RefreshLifeTimeInMinutes
+                    , ClockSkewInMinutes = Configuration.TokenAuthentication.ClockSkewInMinutes
+                    , ValidFrom = validFrom
+                    , ValidateLifeTime = true
+                };
+                var tokenManager = new TokenManager(_securityKey, tokenHandler, generateTokenParameter);
+
+                if (basicAuthenticated)
+                {
+                    // user has just authenticated by basic auth, so let's emit a set of tokens and cookies in response 
+                    var userName = context.User.Identity.Name;
+                    var roleName = "";
+                    // emit both access and refresh token and cookie 
+                    EmitTokensAndCookies(context, tokenManager, validFrom, userName, roleName, true);
+                    //InsertCorsHeaders(System.Web.HttpContext.Current);
+                    context.Response.Flush();
+                    context.ApplicationInstance.CompleteRequest();
+                    return;
+                }
+                // user has not been authenticated yet, so there must be a valid token and cookie in the request
+                var header = context.Request.Headers[RefreshHeaderName];
+                if (header != null)
+                {
+                    // we got a refresh token
+                    var authCookie = CookieHelper.GetCookie(context.Request, RefreshSignatureName);
+                    if (authCookie == null)
+                    {
+                        throw new UnauthorizedAccessException("Missing refresh cookie.");
+                    }
+
+                    var refreshHeadAndPayload = header;
+                    var refreshSignature = authCookie.Value;
+                    var principal = tokenManager.ValidateToken(refreshHeadAndPayload + "." + refreshSignature);
+                    if (principal == null)
+                    {
+                        throw new UnauthorizedAccessException("Invalid refresh token.");
+                    }
+                    string userName = principal.Identity.Name;
+                    string roleName = "";
+                    // emit access token and cookie only
+                    EmitTokensAndCookies(context, tokenManager, validFrom, userName, roleName, false);
+                    context.Response.Flush();
+                    context.ApplicationInstance.CompleteRequest();
+                    return;
+                }
+                header = context.Request.Headers[AccessHeaderName];
+                if (header != null)
+                {
+                    // we got an access token
+                    var authCookie = CookieHelper.GetCookie(context.Request, AccessSignatureName);
+                    if (authCookie == null)
+                    {
+                        throw new UnauthorizedAccessException("Missing access cookie.");
+                    }
+
+                    var accessHeadAndPayload = header;
+                    var accessSignature = authCookie.Value;
+                    var principal = tokenManager.ValidateToken(accessHeadAndPayload + "." + accessSignature);
+                    if (principal == null)
+                    {
+                        throw new UnauthorizedAccessException("Invalid access token.");
+                    }
+                    context.User = principal;
+                }
+            }
+            catch (Exception ex)
+            {
+                SnLog.WriteException(ex);
+                if (!basicAuthenticated)
+                {
+                    context.User = new PortalPrincipal(User.Visitor);
+                }
+            }
+        }
+
+        private void EmitTokensAndCookies(HttpContext context, TokenManager tokenManager, DateTime validFrom, string userName, string roleName, bool refreshTokenAsWell)
+        {
+            string refreshToken;
+            var token = tokenManager.GenerateToken(userName, roleName, out refreshToken, refreshTokenAsWell);
+            var accessSignatureIndex = token.LastIndexOf('.');
+            var accessSignature = token.Substring(accessSignatureIndex + 1);
+            var accessHeadAndPayload = token.Substring(0, accessSignatureIndex - 1);
+            var refreshSignatureIndex = refreshToken.LastIndexOf('.');
+            var refreshSignature = token.Substring(refreshSignatureIndex + 1);
+            var refreshHeadAndPayload = token.Substring(0, refreshSignatureIndex - 1);
+
+            context.Response.Write(JsonConvert.SerializeObject(new { access = accessHeadAndPayload, refresh = refreshHeadAndPayload }));
+            var accessExpiration = validFrom.AddMinutes(Configuration.TokenAuthentication.AccessLifeTimeInMinutes);
+            var refreshExpiration = accessExpiration.AddMinutes(Configuration.TokenAuthentication.RefreshLifeTimeInMinutes);
+            CookieHelper.InsertSecureCookie(context.Response, accessSignature, AccessSignatureName, accessExpiration);
+            CookieHelper.InsertSecureCookie(context.Response, refreshSignature, RefreshSignatureName, refreshExpiration);
         }
 
         private static void CallInternalOnEnter(object sender, EventArgs e)
