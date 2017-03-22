@@ -31,14 +31,13 @@ namespace SenseNet.Portal.Virtualization
     {
         public void Dispose()
         {
-            _securityKey = null;
         }
 
         public void Init(HttpApplication application)
         {
             FormsAuthentication.Initialize();
-            application.AuthenticateRequest += new EventHandler(OnAuthenticateRequest);
-            application.EndRequest += new EventHandler(OnEndRequest); // Forms
+            application.AuthenticateRequest += OnAuthenticateRequest;
+            application.EndRequest += OnEndRequest; // Forms
         }
 
         private static ISecurityKey _securityKey;
@@ -52,8 +51,7 @@ namespace SenseNet.Portal.Virtualization
                 {
                     lock (_keyLock)
                     {
-                        _securityKey =
-                            EncryptionHelper.CreateSymmetricKey(Configuration.TokenAuthentication.SymmetricKeySecret);
+                        _securityKey = EncryptionHelper.CreateSymmetricKey(Configuration.TokenAuthentication.SymmetricKeySecret);
                     }
                 }
                 return _securityKey;
@@ -190,7 +188,7 @@ namespace SenseNet.Portal.Virtualization
                     , ValidFrom = validFrom
                     , ValidateLifeTime = true
                 };
-                var tokenManager = new TokenManager(_securityKey, tokenHandler, generateTokenParameter);
+                var tokenManager = new TokenManager(SecurityKey, tokenHandler, generateTokenParameter);
 
                 if (basicAuthenticated)
                 {

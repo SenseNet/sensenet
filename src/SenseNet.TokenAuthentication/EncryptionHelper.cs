@@ -28,9 +28,9 @@ namespace SenseNet.TokenAuthentication
             return new SymmetricSecurityKey(secret);
         }
 
-        public static SymmetricSecurityKey CreateSymmetricKey(string secret)
+        public static EncryptionKey CreateSymmetricKey(string secret)
         {
-            return new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+            return new EncryptionKey(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)));
         }
 
         private static RsaSecurityKey CreateRsaKey(int keyLength)
