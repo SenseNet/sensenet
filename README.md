@@ -54,6 +54,11 @@ Developers may start integrating the Sense/Net platform by installing the **Sens
 
 `> Install-Package SenseNet.Services`
 
+3. To finalize the install process, please follow the steps described in the [readme file](/src/nuget/readme.txt) of the NuGet package (it opens automatically when you install the package). 
+    - You will have to make a few modifications to your config files and Global.asax markup and codebehind file.
+    - You will have to compile your solution and **execute a command line tool** that will **create the database** and import the necessary initial content.
+    - If you are using the built-in _ActionLink_ helper method in your MVC views, you'll have to replace them with a new extension method added by this package: _MvcActionLink_.
+
 Take into account that currently there is _no UI layer available out of the box_ for Sense/Net ECM 7.0. We are working on moving features available in Sense/Net 6.5 to the new platform. They will be published as NuGet and SnAdmin install packages so that you will be able to build your solution easily using only the components that you truly need.
 
 ### Sense/Net ECM 6.5
