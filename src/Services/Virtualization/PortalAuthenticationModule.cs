@@ -40,6 +40,11 @@ namespace SenseNet.Portal.Virtualization
             application.EndRequest += OnEndRequest; // Forms
         }
 
+        private const string AccessSignatureName = "as";
+        private const string RefreshSignatureName = "rs";
+        private const string AccessHeaderName = "X-Access-Data";
+        private const string RefreshHeaderName = "X-Refresh-Data";
+        private const string AuthenticationTypeHeaderName = "X-Authentication-Type";
         private static ISecurityKey _securityKey;
         private static object _keyLock = new object();
 
@@ -100,9 +105,15 @@ namespace SenseNet.Portal.Virtualization
             HttpContext context = HttpContext.Current;
             HttpRequest request = context.Request;
 
+            var authenticationTypeHeader = GetAuthenticationTypeHeader(request);
             var basicAuthenticated = DispatchBasicAuthentication(application, request);
-            // it is not SSL, so cannot be Token authentication
-            if (basicAuthenticated && !request.IsSecureConnection)
+
+            if (request.IsSecureConnection && authenticationTypeHeader == "Token")
+            {
+                TokenAuthenticate(basicAuthenticated, context);
+            }
+
+            if (basicAuthenticated)
             {
                 return;
             }
@@ -135,9 +146,6 @@ namespace SenseNet.Portal.Virtualization
                     CallInternalOnEnter(sender, e);
                     SetApplicationUser(application, authenticationType);
                     break;
-                case "Token":
-                    TokenAuthenticate(basicAuthenticated, context);
-                    break;
                 case "None":
                     // "None" authentication: set the Visitor Identity
                     application.Context.User = new PortalPrincipal(User.Visitor);
@@ -164,10 +172,10 @@ namespace SenseNet.Portal.Virtualization
             }
         }
 
-        private const string AccessSignatureName = "as";
-        private const string RefreshSignatureName = "rs";
-        private const string AccessHeaderName = "X-Access-Data";
-        private const string RefreshHeaderName = "X-Refresh-Data";
+        private string GetAuthenticationTypeHeader(HttpRequest request)
+        {
+            return request.Headers[AuthenticationTypeHeaderName];
+        }
 
         private void TokenAuthenticate(bool basicAuthenticated, HttpContext context)
         {
