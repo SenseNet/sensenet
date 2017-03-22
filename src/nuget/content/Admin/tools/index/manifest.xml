@@ -1,9 +1,10 @@
 <Package type='Product' level='Tool'>
   <Name>Sense/Net ECM</Name>
+  <Description>Rebuilds the index for a subtree or the whole Content Repository.</Description>
   <ReleaseDate>2016-12-21</ReleaseDate>
   <Parameters>
-    <Parameter name="@path" />
-    <Parameter name="@backup">true</Parameter>
+    <Parameter name="@path" description="Subtree path to rebuild the index for. Default: the whole Content Repository." />
+    <Parameter name="@backup" description="Whether to compress and insert the new index into the database.">true</Parameter>
   </Parameters>
   <Steps>
 	  <Phase>
