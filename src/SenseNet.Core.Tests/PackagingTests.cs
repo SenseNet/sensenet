@@ -32,24 +32,27 @@ namespace SenseNet.Core.Tests
         private int _id;
         private List<Package> _storage = new List<Package>();
 
-        private Package ClonePackage(Package src)
+        private Package ClonePackage(Package source)
         {
-            return new Package
-            {
-                Id = src.Id,
-                Name = src.Name,
-                Edition = src.Edition,
-                Description = src.Description,
-                AppId = src.AppId,
-                PackageLevel = src.PackageLevel,
-                PackageType = src.PackageType,
-                ReleaseDate = src.ReleaseDate,
-                ExecutionDate = src.ExecutionDate,
-                ExecutionResult = src.ExecutionResult,
-                ApplicationVersion = src.ApplicationVersion,
-                SenseNetVersion = src.SenseNetVersion,
-                ExecutionError = src.ExecutionError
-            };
+            var target = new Package();
+            UpdatePackage(source, target);
+            return target;
+        }
+        private void UpdatePackage(Package source, Package target)
+        {
+            target.Id = source.Id;
+            target.Name = source.Name;
+            target.Edition = source.Edition;
+            target.Description = source.Description;
+            target.AppId = source.AppId;
+            target.PackageLevel = source.PackageLevel;
+            target.PackageType = source.PackageType;
+            target.ReleaseDate = source.ReleaseDate;
+            target.ExecutionDate = source.ExecutionDate;
+            target.ExecutionResult = source.ExecutionResult;
+            target.ApplicationVersion = source.ApplicationVersion;
+            target.SenseNetVersion = source.SenseNetVersion;
+            target.ExecutionError = source.ExecutionError;
         }
 
         public ApplicationInfo CreateInitialSenseNetVersion(string name, string edition, Version version, string description)
@@ -136,7 +139,7 @@ namespace SenseNet.Core.Tests
                 var nullVersion = new Version(0, 0);
                 if (package.ExecutionResult == ExecutionResult.Successful)
                 {
-                    if (package.ApplicationVersion > appinfo.AcceptableVersion)
+                    if (package.ApplicationVersion > (appinfo.AcceptableVersion ?? nullVersion))
                         appinfo.AcceptableVersion = package.ApplicationVersion;
                 }
                 else
@@ -166,7 +169,10 @@ namespace SenseNet.Core.Tests
 
         public void UpdatePackage(Package package)
         {
-            throw new NotImplementedException();
+            var existing = _storage.FirstOrDefault(p => p.Id == package.Id);
+            if(existing == null)
+                throw new InvalidOperationException("Package does not exist. Id: " + package.Id);
+            UpdatePackage(package, existing);
         }
 
         public bool IsPackageExist(string appId, PackageType packageType, PackageLevel packageLevel, Version version)
@@ -227,9 +233,6 @@ namespace SenseNet.Core.Tests
 
             PackageManager.StorageFactory = new TestPackageStorageProviderFactory(new TestPackageStorageProvider());
 
-            // cleaning packages table
-            PackageManager.Storage.DeletePackagesExceptFirst();
-
             RepositoryVersionInfo.Reset();
         }
 
@@ -244,5 +247,77 @@ namespace SenseNet.Core.Tests
             Assert.AreEqual(42, appInfo.Version.Minor);
         }
 
+        [TestMethod]
+        public void Packaging_Install_FirstComponent()
+        {
+            var appId = Guid.NewGuid().ToString();
+
+            var manifestSrc = @"<Package type='Application' level='Install'>
+                                    <Name>Sense/Net ECM</Name>
+                                    <Description>Sensenet Core</Description>
+                                    <AppId>" + appId + @"</AppId>
+                                    <VersionControl target='1.1' expectedMin='1.0' />
+                                    <ReleaseDate>2014-04-01</ReleaseDate>
+                                    <Steps><Trace>Tool is running.</Trace></Steps>
+                                </Package>";
+
+            var xml = new XmlDocument();
+            xml.LoadXml(manifestSrc);
+
+            var manifestAcc = new PrivateType(typeof(Manifest));
+            var pkgManAcc = new PrivateType(typeof(PackageManager));
+
+            var manifest = (Manifest)manifestAcc.InvokeStatic("Parse", xml, 0, true);
+            var console = new StringWriter();
+            for (int phase = 0; phase < manifest.CountOfPhases; phase++)
+            {
+                var executionContext = ExecutionContext.CreateForTest("packagePath", "targetPath", new string[0], "sandboxPath", manifest, phase, manifest.CountOfPhases, null, console);
+                var result = (PackagingResult)pkgManAcc.InvokeStatic("ExecuteCurrentPhase", manifest, executionContext);
+            }
+
+            var log = _log.ToString();
+            Assert.IsTrue(log.Contains("Tool is running."));
+            Assert.IsTrue(log.Contains("Errors: 0"));
+        }
+        [TestMethod]
+        public void Packaging_Install_FirstComponentTwice()
+        {
+            var appId = Guid.NewGuid().ToString();
+
+            var manifestSrc = @"<Package type='Application' level='Install'>
+                                    <Name>Sense/Net ECM</Name>
+                                    <Description>Sensenet Core</Description>
+                                    <AppId>" + appId + @"</AppId>
+                                    <VersionControl target='1.1' expectedMin='1.0' />
+                                    <ReleaseDate>2014-04-01</ReleaseDate>
+                                    <Steps><Trace>Tool is running.</Trace></Steps>
+                                </Package>";
+
+            var xml = new XmlDocument();
+            xml.LoadXml(manifestSrc);
+
+            var manifestAcc = new PrivateType(typeof(Manifest));
+            var pkgManAcc = new PrivateType(typeof(PackageManager));
+            var console = new StringWriter();
+
+            // first
+            var manifest = (Manifest)manifestAcc.InvokeStatic("Parse", xml, 0, true);
+            for (int phase = 0; phase < manifest.CountOfPhases; phase++)
+            {
+                var executionContext = ExecutionContext.CreateForTest("packagePath", "targetPath", new string[0], "sandboxPath", manifest, phase, manifest.CountOfPhases, null, console);
+                var result = (PackagingResult)pkgManAcc.InvokeStatic("ExecuteCurrentPhase", manifest, executionContext);
+            }
+
+            // second
+            try
+            {
+                manifest = (Manifest) manifestAcc.InvokeStatic("Parse", xml, 0, true);
+                Assert.Fail("PackagePreconditionException exception was not thrown.");
+            }
+            catch (PackagePreconditionException)
+            {
+
+            }
+        }
     }
 }
