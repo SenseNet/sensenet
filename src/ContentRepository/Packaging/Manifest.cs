@@ -14,7 +14,6 @@ namespace SenseNet.Packaging
         public PackageLevel Level { get; private set; }
         public PackageType Type { get; private set; }
         public string Name { get; private set; }
-        public string Edition { get; private set; }
         public string AppId { get; private set; }
         public string Description { get; private set; }
         public DateTime ReleaseDate { get; private set; }
@@ -110,11 +109,6 @@ namespace SenseNet.Packaging
             if (e != null)
                 manifest.Description = e.InnerText;
 
-            // parsing edition (optional)
-            e = (XmlElement)xml.DocumentElement.SelectSingleNode("Edition");
-            if (e != null)
-                manifest.Edition = e.InnerText;
-
             // parsing version control
             e = (XmlElement)xml.DocumentElement.SelectSingleNode("VersionControl");
             if (level != PackageLevel.Tool && e == null)
@@ -206,7 +200,6 @@ namespace SenseNet.Packaging
             if (log)
             {
                 Logger.LogMessage("Name:    " + this.Name);
-                Logger.LogMessage("Edition: " + this.Edition);
                 Logger.LogMessage("Type:    " + this.Type);
                 Logger.LogMessage("Level:   " + this.Level);
                 if (this.Level != PackageLevel.Tool)
@@ -223,7 +216,6 @@ namespace SenseNet.Packaging
                     RepositoryVersionInfo.SetInitialVersion(new ApplicationInfo
                     {
                         Name = this.Name,
-                        Edition = this.Edition, 
                         Version = this.VersionControl.Target,
                         Description = this.Description
                     });
@@ -250,7 +242,6 @@ namespace SenseNet.Packaging
                 case PackageType.Product:
                     if (null != this.AppId)
                         throw new InvalidPackageException(SR.Errors.Manifest.UnexpectedAppId);
-                    CheckEdition(versionInfo.OfficialSenseNetVersion);
                     current = versionInfo.OfficialSenseNetVersion.AcceptableVersion;
                     min = VersionControl.ExpectedProductMinimum;
                     max = VersionControl.ExpectedProductMaximum;
@@ -259,7 +250,6 @@ namespace SenseNet.Packaging
                     var existingApplication = versionInfo.Applications.FirstOrDefault(a => a.AppId == this.AppId);
                     if (existingApplication == null)
                         throw new PackagePreconditionException(SR.Errors.Precondition.AppIdDoesNotMatch);
-                    CheckEdition(existingApplication);
                     current = existingApplication.AcceptableVersion;
                     min = VersionControl.ExpectedApplicationMinimum;
                     max = VersionControl.ExpectedApplicationMaximum;
@@ -292,31 +282,6 @@ namespace SenseNet.Packaging
             if(Level != PackageLevel.Tool)
                 if (current >= VersionControl.Target)
                     throw new PackagePreconditionException(String.Format(SR.Errors.Precondition.TargetVersionTooSmall_3, this.Type.ToString().ToLower(), VersionControl.Target, current));
-        }
-
-        private void CheckEdition(ApplicationInfo appInfo)
-        {
-            if (this.Edition != null && this.Edition.Length == 0)
-                throw new InvalidPackageException(SR.Errors.Manifest.InvalidEdition);
-
-            if (this.Edition == null && this.Type == PackageType.Product && this.Level == PackageLevel.Install)
-                throw new InvalidPackageException(SR.Errors.Manifest.MissingEdition);
-
-            if (this.Level != PackageLevel.Tool)
-            {
-                if (appInfo.AppId == null && this.Edition == null)
-                    throw new InvalidPackageException(SR.Errors.Manifest.MissingEdition);
-                if (appInfo.Edition != this.Edition)
-                    throw new PackagePreconditionException(String.Format(SR.Errors.Precondition.EditionMismatch_2, appInfo.Edition ?? "[empty]", this.Edition ?? "[empty]"));
-            }
-            else
-            {
-                if (this.Edition != null)
-                {
-                    if (appInfo.Edition != this.Edition)
-                        throw new PackagePreconditionException(String.Format(SR.Errors.Precondition.EditionMismatch_2, appInfo.Edition ?? "[empty]", this.Edition ?? "[empty]"));
-                }
-            }
         }
     }
 }

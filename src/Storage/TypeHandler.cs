@@ -13,15 +13,14 @@ namespace SenseNet.ContentRepository.Storage
     public class ApplicationInfo
     {
         public string Name { get; set; }
-        public string Edition { get; set; }
         public string AppId { get; set; }
         public Version Version { get; set; }
         public Version AcceptableVersion { get; set; }
         public string Description { get; set; }
 
-        public static ApplicationInfo CreateInitialSenseNetVersion(string name, string edition, Version version, string description)
+        public static ApplicationInfo CreateInitialSenseNetVersion(string name, Version version, string description)
         {
-            return Data.DataProvider.Current.CreateInitialSenseNetVersion(name, edition, version, description);
+            return Data.DataProvider.Current.CreateInitialSenseNetVersion(name, version, description);
         }
     }
 

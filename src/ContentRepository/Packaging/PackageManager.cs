@@ -266,7 +266,6 @@ namespace SenseNet.Packaging
             return new ContentRepository.Storage.Package
             {
                 Name = manifest.Name,
-                Edition = manifest.Edition,
                 Description = manifest.Description,
                 ReleaseDate = manifest.ReleaseDate,
                 PackageLevel = manifest.Level,
@@ -295,7 +294,6 @@ namespace SenseNet.Packaging
             }
 
             package.Name = manifest.Name;
-            package.Edition = manifest.Edition;
             package.Description = manifest.Description;
             package.ReleaseDate = manifest.ReleaseDate;
             package.PackageLevel = manifest.Level;
@@ -375,7 +373,6 @@ namespace SenseNet.Packaging
       <xs:all>
         <xs:element name=""Name"" type=""xs:string"" minOccurs=""1"" maxOccurs=""1""/>
         <xs:element name=""Description"" type=""xs:string"" minOccurs=""0"" maxOccurs=""1""/>
-        <xs:element name=""Edition"" type=""xs:string"" minOccurs=""0"" maxOccurs=""1""/>
         <xs:element name=""AppId"" type=""xs:string"" minOccurs=""0"" maxOccurs=""1""/>
         <xs:element name=""ReleaseDate"" type=""xs:string"" minOccurs=""1"" maxOccurs=""1""/>
         <xs:element name=""VersionControl"" type=""VersionControl"" minOccurs=""0"" maxOccurs=""1""/>

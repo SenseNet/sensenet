@@ -25,8 +25,6 @@ namespace SenseNet.Packaging
                 internal static readonly string InvalidLevel = @"Invalid manifest: invalid ""level"" attribute. The value must be ""tool"", ""patch"", ""servicepack"" or ""upgrade""";
                 internal static readonly string MissingName = @"Invalid manifest: missing ""Name"" element.";
                 internal static readonly string InvalidName = @"Invalid manifest: invalid ""Name"" element. Value cannot be empty.";
-                internal static readonly string MissingEdition = @"Invalid manifest: missing ""Edition"" element.";
-                internal static readonly string InvalidEdition = @"Invalid manifest: invalid ""Edition"" element. Value cannot be empty.";
                 internal static readonly string MissingAppId = @"Invalid manifest: missing ""AppId"" element.";
                 internal static readonly string InvalidAppId = @"Invalid manifest: invalid ""AppId"" element. Value cannot be empty.";
                 internal static readonly string MissingReleaseDate = @"Invalid manifest: missing ""ReleaseDate"" element.";
@@ -45,7 +43,6 @@ namespace SenseNet.Packaging
                 internal static readonly string MinimumVersion_1 = "Package cannot be executed: the {0} version is smaller than permitted.";
                 internal static readonly string MaximumVersion_1 = "Package cannot be executed: the {0} version is greater than permitted.";
                 internal static readonly string TargetVersionTooSmall_3 = @"Invalid manifest: the target version ({1}) must be greater than the current {0} version ({2}).";
-                internal static readonly string EditionMismatch_2 = "Package cannot be executed: Edition mismatch. Installed: {0}, in package: {1}.";
                 internal static readonly string CannotInstallExistingApp = "Cannot install existing application.";
             }
 

@@ -78,9 +78,11 @@ namespace SenseNet.Search
                                 {"rtf", new RtfTextExtractor()}
                             };
 
-            var isCommunity = RepositoryVersionInfo.Instance != null &&
-                RepositoryVersionInfo.Instance.OfficialSenseNetVersion != null &&
-                RepositoryVersionInfo.Instance.OfficialSenseNetVersion.Edition == "Community";
+            //UNDONE: isCommunity is always false
+            //var isCommunity = RepositoryVersionInfo.Instance != null &&
+            //    RepositoryVersionInfo.Instance.OfficialSenseNetVersion != null &&
+            //    RepositoryVersionInfo.Instance.OfficialSenseNetVersion.Edition == "Community";
+            var isCommunity = false;
 
             // add text extractors available only in the Enterprise Edition
             if (!isCommunity)

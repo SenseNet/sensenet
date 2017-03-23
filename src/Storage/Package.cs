@@ -16,9 +16,10 @@ namespace SenseNet.ContentRepository.Storage
     [DebuggerDisplay("{Id}, {AppId}: {PackageType} {PackageLevel} {ExecutionResult}, SN: {SenseNetVersion}, App: {ApplicationVersion}")]
     public class Package
     {
+        //UNDONE: Not used field: [Edition] [nvarchar](450) NULL,
+
         public int Id { get; internal set; }                  // [Id] [int] IDENTITY(1,1) NOT NULL,
         public string Name { get; set; }                      // [Name] [nvarchar](450) NOT NULL,
-        public string Edition { get; set; }                   // [Edition] [nvarchar](450) NULL,
         public string Description { get; set; }               // [Description] [nvarchar](1000) NULL,
         public string AppId { get; set; }                     // [AppId] [varchar](50) NULL,
         public PackageLevel PackageLevel { get; set; }        // [PackageLevel] [varchar](50) NOT NULL,
