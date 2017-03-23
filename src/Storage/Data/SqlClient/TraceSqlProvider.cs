@@ -344,7 +344,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             WriteLog(MethodBase.GetCurrentMethod(), package);
             base.DeletePackage(package);
         }
-        internal override void DeletePackagesExceptFirst()
+        public override void DeletePackagesExceptFirst()
         {
             WriteLog(MethodBase.GetCurrentMethod());
             base.DeletePackagesExceptFirst();

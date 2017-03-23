@@ -14,9 +14,29 @@ using SenseNet.Packaging.Steps;
 
 namespace SenseNet.Packaging
 {
+    //UNDONE: move to new file: PackageStorageProviderFactory
+    internal interface IPackageStorageProviderFactory
+    {
+        IPackageStorageProvider CreateProvider();
+    }
+
+    //UNDONE: move to new file: PackageStorageProviderFactory
+    internal class BuiltinPackageStorageProviderFactory : IPackageStorageProviderFactory
+    {
+        public IPackageStorageProvider CreateProvider()
+        {
+            return DataProvider.Current;
+        }
+    }
+
     public class PackageManager
     {
         public const string SANDBOXDIRECTORYNAME = "run";
+
+        internal static IPackageStorageProviderFactory StorageFactory { get; set; } =
+            new BuiltinPackageStorageProviderFactory();
+
+        internal static IPackageStorageProvider Storage => StorageFactory.CreateProvider();
 
         public static PackagingResult Execute(string packagePath, string targetPath, int currentPhase, string[] parameters, TextWriter console)
         {
@@ -190,7 +210,7 @@ namespace SenseNet.Packaging
         private static void SaveInitialPackage(Manifest manifest)
         {
             var newPack = CreatePackage(manifest, ExecutionResult.Unfinished, null);
-            DataProvider.Current.SavePackage(newPack);
+            Storage.SavePackage(newPack);
         }
         private static void SavePackage(Manifest manifest, ExecutionContext executionContext, bool successful, Exception execError)
         {
@@ -220,12 +240,12 @@ namespace SenseNet.Packaging
             if (oldPack == null)
             {
                 var newPack = CreatePackage(manifest, executionResult, execError);
-                DataProvider.Current.SavePackage(newPack);
+                Storage.SavePackage(newPack);
             }
             else
             {
                 UpdatePackage(oldPack, manifest, executionResult, execError);
-                DataProvider.Current.UpdatePackage(oldPack);
+                Storage.UpdatePackage(oldPack);
             }
         }
         private static Package CreatePackage(Manifest manifest, ExecutionResult result, Exception execError)

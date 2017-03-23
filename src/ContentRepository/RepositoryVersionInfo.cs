@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using IO = System.IO;
 using System.Linq;
-using System.Text;
 using SenseNet.ContentRepository.Storage;
 using System.Reflection;
-using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Communication.Messaging;
+using SenseNet.Packaging;
 
 namespace SenseNet.ContentRepository
 {
@@ -44,10 +43,11 @@ namespace SenseNet.ContentRepository
 
         private static RepositoryVersionInfo Create()
         {
+            var storage = PackageManager.Storage;
             return Create(
-                DataProvider.Current.LoadOfficialSenseNetVersion(),
-                DataProvider.Current.LoadInstalledApplications(),
-                DataProvider.Current.LoadInstalledPackages());
+                storage.LoadOfficialSenseNetVersion(),
+                storage.LoadInstalledApplications(),
+                storage.LoadInstalledPackages());
         }
 
         private static RepositoryVersionInfo Create(ApplicationInfo productVersion, IEnumerable<ApplicationInfo> applicationVersions, IEnumerable<Package> packages)
