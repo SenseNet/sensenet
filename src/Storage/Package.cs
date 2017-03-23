@@ -22,6 +22,7 @@ namespace SenseNet.ContentRepository.Storage
         //UNDONE: Not used field: [SenseNetVersion] [varchar](50) NOT NULL,
 
         public int Id { get; internal set; }                  // [Id] [int] IDENTITY(1,1) NOT NULL,
+        [Obsolete("####", true)]
         public string Name { get; set; }                      // [Name] [nvarchar](450) NOT NULL,
         public string Description { get; set; }               // [Description] [nvarchar](1000) NULL,
         public string AppId { get; set; }                     // [AppId] [varchar](50) NULL,

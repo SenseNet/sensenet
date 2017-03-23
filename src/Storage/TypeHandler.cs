@@ -18,9 +18,9 @@ namespace SenseNet.ContentRepository.Storage
         public Version AcceptableVersion { get; set; }
         public string Description { get; set; }
 
-        public static ApplicationInfo CreateInitialSenseNetVersion(string name, Version version, string description)
+        public static ApplicationInfo CreateInitialSenseNetVersion(Version version, string description)
         {
-            return Data.DataProvider.Current.CreateInitialSenseNetVersion(name, version, description);
+            return Data.DataProvider.Current.CreateInitialSenseNetVersion(version, description);
         }
     }
 

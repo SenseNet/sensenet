@@ -23,8 +23,6 @@ namespace SenseNet.Packaging
                 internal static readonly string InvalidType = @"Invalid manifest: invalid ""type"" attribute. The value must be ""product"" or ""application""";
                 internal static readonly string MissingLevel = @"Invalid manifest: missing ""level"" attribute.";
                 internal static readonly string InvalidLevel = @"Invalid manifest: invalid ""level"" attribute. The value must be ""tool"", ""patch"", ""servicepack"" or ""upgrade""";
-                internal static readonly string MissingName = @"Invalid manifest: missing ""Name"" element.";
-                internal static readonly string InvalidName = @"Invalid manifest: invalid ""Name"" element. Value cannot be empty.";
                 internal static readonly string MissingAppId = @"Invalid manifest: missing ""AppId"" element.";
                 internal static readonly string InvalidAppId = @"Invalid manifest: invalid ""AppId"" element. Value cannot be empty.";
                 internal static readonly string MissingReleaseDate = @"Invalid manifest: missing ""ReleaseDate"" element.";

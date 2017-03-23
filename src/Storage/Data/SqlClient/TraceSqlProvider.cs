@@ -334,10 +334,10 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             WriteLog(MethodBase.GetCurrentMethod(), versionId, propertyTypeId, token, fullSize, source);
             base.CommitChunk(versionId, propertyTypeId, token, fullSize, source);
         }
-        public override ApplicationInfo CreateInitialSenseNetVersion(string name, Version version, string description)
+        public override ApplicationInfo CreateInitialSenseNetVersion(Version version, string description)
         {
-            WriteLog(MethodBase.GetCurrentMethod(), name, version, description);
-            return base.CreateInitialSenseNetVersion(name, version, description);
+            WriteLog(MethodBase.GetCurrentMethod(), version, description);
+            return base.CreateInitialSenseNetVersion(version, description);
         }
         public override void DeletePackage(Package package)
         {

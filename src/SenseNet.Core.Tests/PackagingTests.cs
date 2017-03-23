@@ -41,7 +41,6 @@ namespace SenseNet.Core.Tests
         private void UpdatePackage(Package source, Package target)
         {
             target.Id = source.Id;
-            target.Name = source.Name;
             target.Description = source.Description;
             target.AppId = source.AppId;
             target.PackageLevel = source.PackageLevel;
@@ -52,14 +51,10 @@ namespace SenseNet.Core.Tests
             target.ExecutionError = source.ExecutionError;
         }
 
-        public ApplicationInfo CreateInitialSenseNetVersion(string name, Version version, string description)
+        public ApplicationInfo CreateInitialSenseNetVersion(Version version, string description)
         {
-            if (name == null)
-                throw new ArgumentNullException(nameof(name));
             if (version == null)
                 throw new ArgumentNullException(nameof(version));
-            if (name.Length == 0)
-                throw new ArgumentException("The name cannot be empty.");
 
             var snAppInfo = LoadOfficialSenseNetVersion();
             if (snAppInfo != null)
@@ -67,7 +62,6 @@ namespace SenseNet.Core.Tests
 
             SavePackage(new Package
             {
-                Name = name,
                 Description = description,
                 ApplicationVersion = version,
                 AppId = null,
@@ -94,7 +88,6 @@ namespace SenseNet.Core.Tests
 
             return new ApplicationInfo
             {
-                Name = package.Name,
                 AppId = package.AppId,
                 Version = package.ApplicationVersion,
                 AcceptableVersion = package.ApplicationVersion,
@@ -116,7 +109,6 @@ namespace SenseNet.Core.Tests
                 {
                     appinfo = new ApplicationInfo
                     {
-                        Name = package.Name,
                         AppId = package.AppId,
                         Version = package.ApplicationVersion,
                         AcceptableVersion = null,
@@ -228,8 +220,7 @@ namespace SenseNet.Core.Tests
         [TestMethod]
         public void Packaging_GetRepositoryVersionInfo()
         {
-            PackageManager.Storage.CreateInitialSenseNetVersion(
-                "Sense/Net ECM", new Version(1, 42), "description");
+            PackageManager.Storage.CreateInitialSenseNetVersion(new Version(1, 42), "description");
 
             var appInfo = RepositoryVersionInfo.Instance.OfficialSenseNetVersion;
             Assert.AreEqual(1, appInfo.Version.Major);

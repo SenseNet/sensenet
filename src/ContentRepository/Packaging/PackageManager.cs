@@ -248,7 +248,6 @@ namespace SenseNet.Packaging
 
             return new ContentRepository.Storage.Package
             {
-                Name = manifest.Name,
                 Description = manifest.Description,
                 ReleaseDate = manifest.ReleaseDate,
                 PackageLevel = manifest.Level,
@@ -265,7 +264,6 @@ namespace SenseNet.Packaging
             if (manifest.Level != PackageLevel.Tool)
                 appVer = manifest.VersionControl.Target;
 
-            package.Name = manifest.Name;
             package.Description = manifest.Description;
             package.ReleaseDate = manifest.ReleaseDate;
             package.PackageLevel = manifest.Level;

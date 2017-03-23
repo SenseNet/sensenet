@@ -12,6 +12,7 @@ namespace SenseNet.Packaging
     public class Manifest
     {
         public PackageLevel Level { get; private set; }
+        [Obsolete("####", true)]
         public string Name { get; private set; }
         public string AppId { get; private set; }
         public string Description { get; private set; }
@@ -82,14 +83,6 @@ namespace SenseNet.Packaging
             {
                 throw new InvalidPackageException(SR.Errors.Manifest.MissingAppId);
             }
-
-            // parsing name (required)
-            e = (XmlElement)xml.DocumentElement.SelectSingleNode("Name");
-            if (e == null)
-                throw new InvalidPackageException(SR.Errors.Manifest.MissingName);
-            manifest.Name = e.InnerText;
-            if (String.IsNullOrEmpty(manifest.Name))
-                throw new InvalidPackageException(SR.Errors.Manifest.InvalidName);
 
             // parsing description (optional)
             e = (XmlElement)xml.DocumentElement.SelectSingleNode("Description");
@@ -186,11 +179,10 @@ namespace SenseNet.Packaging
         {
             if (log)
             {
-                Logger.LogMessage("Name:    " + this.Name);
+                Logger.LogMessage("AppId: {0}", this.AppId);
                 Logger.LogMessage("Level:   " + this.Level);
                 if (this.Level != PackageLevel.Tool)
                     Logger.LogMessage("Package version: " + this.VersionControl.Target);
-                Logger.LogMessage("AppId: {0}", this.AppId);
             }
 
             if (Level == PackageLevel.Install)
