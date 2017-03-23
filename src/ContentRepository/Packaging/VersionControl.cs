@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Xml;
 using SenseNet.ContentRepository.Storage;
 
@@ -10,15 +7,10 @@ namespace SenseNet.Packaging
     public class VersionControl
     {
         public Version Target { get; private set; }
-        public Version ExpectedProductMinimum { get; private set; }
-        public Version ExpectedProductMaximum { get; private set; }
-        public Version ExpectedApplicationMinimum { get; private set; }
-        public Version ExpectedApplicationMaximum { get; private set; }
+        public Version ExpectedMinimum { get; private set; }
+        public Version ExpectedMaximum { get; private set; }
 
-        private static Version _minVersion = new Version(0, 0);
-        private static Version _maxVersion = new Version(int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue);
-
-        internal static VersionControl Initialize(XmlElement element, PackageLevel level, PackageType type)
+        internal static VersionControl Initialize(XmlElement element, PackageLevel level)
         {
             var vc = new VersionControl();
             if (element == null)
@@ -43,28 +35,15 @@ namespace SenseNet.Packaging
             if (expected != null)
                 expectedMin = expectedMax = expected;
 
-            switch (type)
-            {
-                case PackageType.Product:
-                    vc.ExpectedProductMinimum = expectedMin;
-                    vc.ExpectedProductMaximum = expectedMax;
-                    break;
-                case PackageType.Application:
-                    vc.ExpectedApplicationMinimum = expectedMin;
-                    vc.ExpectedApplicationMaximum = expectedMax;
-                    break;
-                default:
-                    throw new SnNotSupportedException("Unknown PackageType: " + type);
-            }
+            vc.ExpectedMinimum = expectedMin;
+            vc.ExpectedMaximum = expectedMax;
 
             return vc;
         }
 
         private static Version GetVersion(XmlElement element, string name, bool required)
         {
-            var attr = element.Attributes[name];
-            if(attr == null)
-                attr = element.Attributes[PackageManager.ToPascalCase(name)];
+            var attr = element.Attributes[name] ?? element.Attributes[PackageManager.ToPascalCase(name)];
 
             if (attr == null)
             {

@@ -12,7 +12,6 @@ namespace SenseNet.Packaging
     public class Manifest
     {
         public PackageLevel Level { get; private set; }
-        public PackageType Type { get; private set; }
         public string Name { get; private set; }
         public string AppId { get; private set; }
         public string Description { get; private set; }
@@ -59,17 +58,6 @@ namespace SenseNet.Packaging
             if(e.Name != "Package")
                 throw new InvalidPackageException(SR.Errors.Manifest.WrongRootName);
 
-            // parsing type (required, product or application)
-            attr = e.Attributes["type"];
-            if (attr == null)
-                attr = e.Attributes["Type"];
-            if (attr == null)
-                throw new InvalidPackageException(SR.Errors.Manifest.MissingType);
-            PackageType type;
-            if (!Enum.TryParse<PackageType>(attr.Value, true, out type))
-                throw new InvalidPackageException(SR.Errors.Manifest.InvalidType);
-            manifest.Type = type;
-
             // parsing level (required, one of the tool, patch, servicepack or upgrade)
             attr = e.Attributes["level"];
             if (attr == null)
@@ -92,8 +80,7 @@ namespace SenseNet.Packaging
             }
             else
             {
-                if(type == PackageType.Application)
-                    throw new InvalidPackageException(SR.Errors.Manifest.MissingAppId);
+                throw new InvalidPackageException(SR.Errors.Manifest.MissingAppId);
             }
 
             // parsing name (required)
@@ -113,7 +100,7 @@ namespace SenseNet.Packaging
             e = (XmlElement)xml.DocumentElement.SelectSingleNode("VersionControl");
             if (level != PackageLevel.Tool && e == null)
                 throw new InvalidPackageException(SR.Errors.Manifest.MissingVersionControl);
-            manifest.VersionControl = VersionControl.Initialize(e, level, type);
+            manifest.VersionControl = VersionControl.Initialize(e, level);
 
             // parsing release date (required)
             e = (XmlElement)xml.DocumentElement.SelectSingleNode("ReleaseDate");
@@ -200,26 +187,15 @@ namespace SenseNet.Packaging
             if (log)
             {
                 Logger.LogMessage("Name:    " + this.Name);
-                Logger.LogMessage("Type:    " + this.Type);
                 Logger.LogMessage("Level:   " + this.Level);
                 if (this.Level != PackageLevel.Tool)
                     Logger.LogMessage("Package version: " + this.VersionControl.Target);
-                if (this.Type == PackageType.Application)
-                    Logger.LogMessage("AppId: {0}", this.AppId);
+                Logger.LogMessage("AppId: {0}", this.AppId);
             }
 
             if (Level == PackageLevel.Install)
             {
-                // Workaround for creating an in-memory version info in case the
-                // database does not exist yet (or will be overwritten anyway).
-                if (Type == PackageType.Product)
-                    RepositoryVersionInfo.SetInitialVersion(new ApplicationInfo
-                    {
-                        Name = this.Name,
-                        Version = this.VersionControl.Target,
-                        Description = this.Description
-                    });
-
+                //UNDONE: test the case when database does not exist yet (or will be overwritten anyway).
                 CheckInstall(RepositoryVersionInfo.Instance, log);
             }
             else
@@ -237,26 +213,14 @@ namespace SenseNet.Packaging
             Version current = null;
             Version min = null;
             Version max = null;
-            switch (this.Type)
-            {
-                case PackageType.Product:
-                    if (null != this.AppId)
-                        throw new InvalidPackageException(SR.Errors.Manifest.UnexpectedAppId);
-                    current = versionInfo.OfficialSenseNetVersion.AcceptableVersion;
-                    min = VersionControl.ExpectedProductMinimum;
-                    max = VersionControl.ExpectedProductMaximum;
-                    break;
-                case PackageType.Application:
-                    var existingApplication = versionInfo.Applications.FirstOrDefault(a => a.AppId == this.AppId);
-                    if (existingApplication == null)
-                        throw new PackagePreconditionException(SR.Errors.Precondition.AppIdDoesNotMatch);
-                    current = existingApplication.AcceptableVersion;
-                    min = VersionControl.ExpectedApplicationMinimum;
-                    max = VersionControl.ExpectedApplicationMaximum;
-                    break;
-                default:
-                    throw new SnNotSupportedException("Unknown PackageType: " + this.Type);
-            }
+
+            var existingApplication = versionInfo.Applications.FirstOrDefault(a => a.AppId == this.AppId);
+            if (existingApplication == null)
+                throw new PackagePreconditionException(SR.Errors.Precondition.AppIdDoesNotMatch);
+
+            current = existingApplication.AcceptableVersion;
+            min = VersionControl.ExpectedMinimum;
+            max = VersionControl.ExpectedMaximum;
 
             if (log)
             {
@@ -275,13 +239,13 @@ namespace SenseNet.Packaging
             }
 
             if (min != null && min > current)
-                throw new PackagePreconditionException(String.Format(SR.Errors.Precondition.MinimumVersion_1, this.Type.ToString().ToLower()));
+                throw new PackagePreconditionException(SR.Errors.Precondition.MinimumVersion);
             if (max != null && max < current)
-                throw new PackagePreconditionException(String.Format(SR.Errors.Precondition.MaximumVersion_1, this.Type.ToString().ToLower()));
+                throw new PackagePreconditionException(SR.Errors.Precondition.MaximumVersion);
 
             if(Level != PackageLevel.Tool)
                 if (current >= VersionControl.Target)
-                    throw new PackagePreconditionException(String.Format(SR.Errors.Precondition.TargetVersionTooSmall_3, this.Type.ToString().ToLower(), VersionControl.Target, current));
+                    throw new PackagePreconditionException(String.Format(SR.Errors.Precondition.TargetVersionTooSmall_2, VersionControl.Target, current));
         }
     }
 }

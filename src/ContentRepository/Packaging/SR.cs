@@ -40,9 +40,9 @@ namespace SenseNet.Packaging
             internal static class Precondition
             {
                 internal static readonly string AppIdDoesNotMatch = "Package cannot be executed: Application identifier mismatch.";
-                internal static readonly string MinimumVersion_1 = "Package cannot be executed: the {0} version is smaller than permitted.";
-                internal static readonly string MaximumVersion_1 = "Package cannot be executed: the {0} version is greater than permitted.";
-                internal static readonly string TargetVersionTooSmall_3 = @"Invalid manifest: the target version ({1}) must be greater than the current {0} version ({2}).";
+                internal static readonly string MinimumVersion = "Package cannot be executed: the version is smaller than permitted.";
+                internal static readonly string MaximumVersion = "Package cannot be executed: the version is greater than permitted.";
+                internal static readonly string TargetVersionTooSmall_2 = @"Invalid manifest: the target version ({0}) must be greater than the current version ({1}).";
                 internal static readonly string CannotInstallExistingApp = "Cannot install existing application.";
             }
 

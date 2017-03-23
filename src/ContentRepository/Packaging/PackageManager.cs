@@ -97,18 +97,19 @@ namespace SenseNet.Packaging
 
         private static PackagingResult ExecuteCurrentPhase(Manifest manifest, ExecutionContext executionContext)
         {
-            if (manifest.Type == PackageType.Product && manifest.Level == PackageLevel.Install)
-            {
-                // In case of product install create initial entry at the beginning of the
-                // second phase, after the new db was created in the first phase.
-                if (executionContext.CurrentPhase == 1)
-                    SaveInitialPackage(manifest);
-            }
-            else
-            {
+            //UNDONE: handle the "firsdt install" problem
+            //if (manifest.Type == PackageType.Product && manifest.Level == PackageLevel.Install)
+            //{
+            //    // In case of product install create initial entry at the beginning of the
+            //    // second phase, after the new db was created in the first phase.
+            //    if (executionContext.CurrentPhase == 1)
+            //        SaveInitialPackage(manifest);
+            //}
+            //else
+            //{
                 if (executionContext.CurrentPhase == 0)
                     SaveInitialPackage(manifest);
-            }
+            //}
 
             var stepElements = manifest.GetPhase(executionContext.CurrentPhase);
 
@@ -215,26 +216,17 @@ namespace SenseNet.Packaging
         private static void SavePackage(Manifest manifest, ExecutionContext executionContext, bool successful, Exception execError)
         {
             var executionResult = successful ? ExecutionResult.Successful : ExecutionResult.Faulty;
-            var isAppPack = manifest.Type== PackageType.Application;
 
             RepositoryVersionInfo.Reset();
-            Package[] oldPacks = null;
+            var oldPacks = RepositoryVersionInfo.Instance.InstalledPackages;
             if (manifest.Level == PackageLevel.Tool)
-            {
-                oldPacks = RepositoryVersionInfo.Instance.InstalledPackages
-                    .Where(p => p.AppId == manifest.AppId && p.PackageLevel == PackageLevel.Tool && p.ExecutionResult == ExecutionResult.Unfinished)
-                    .OrderBy(p => p.ExecutionDate).ToArray();
-            }
+                oldPacks = oldPacks
+                    .Where(p => p.AppId == manifest.AppId && p.PackageLevel == PackageLevel.Tool
+                    && p.ExecutionResult == ExecutionResult.Unfinished);
             else
-            {
-                oldPacks = isAppPack
-                    ? RepositoryVersionInfo.Instance.InstalledPackages
-                        .Where(p => p.AppId == manifest.AppId && p.ApplicationVersion == manifest.VersionControl.Target)
-                        .OrderBy(p => p.ExecutionDate).ToArray()
-                    : RepositoryVersionInfo.Instance.InstalledPackages
-                        .Where(p => p.AppId == manifest.AppId && p.SenseNetVersion == manifest.VersionControl.Target)
-                        .OrderBy(p => p.ExecutionDate).ToArray();
-            }
+                oldPacks = oldPacks
+                    .Where(p => p.AppId == manifest.AppId && p.ApplicationVersion == manifest.VersionControl.Target);
+            oldPacks = oldPacks.OrderBy(p => p.ExecutionDate).ToArray();
 
             var oldPack = oldPacks.LastOrDefault();
             if (oldPack == null)
@@ -250,18 +242,9 @@ namespace SenseNet.Packaging
         }
         private static Package CreatePackage(Manifest manifest, ExecutionResult result, Exception execError)
         {
-            var snInfo = RepositoryVersionInfo.Instance.OfficialSenseNetVersion;
-            var prodVer = (snInfo == null) ? new Version(42, 42, 42, 42) : snInfo.Version;
-
             Version appVer = null;
-
-            if (manifest.Level != ContentRepository.Storage.PackageLevel.Tool)
-            {
-                if (manifest.Type == ContentRepository.Storage.PackageType.Product)
-                    prodVer = manifest.VersionControl.Target;
-                else
-                    appVer = manifest.VersionControl.Target;
-            }
+            if (manifest.Level != PackageLevel.Tool)
+                appVer = manifest.VersionControl.Target;
 
             return new ContentRepository.Storage.Package
             {
@@ -269,41 +252,28 @@ namespace SenseNet.Packaging
                 Description = manifest.Description,
                 ReleaseDate = manifest.ReleaseDate,
                 PackageLevel = manifest.Level,
-                PackageType = manifest.Type,
                 AppId = manifest.AppId,
                 ExecutionDate = DateTime.UtcNow,
                 ExecutionResult = result,
                 ApplicationVersion = appVer,
-                SenseNetVersion = prodVer,
                 ExecutionError = execError
             };
         }
         private static void UpdatePackage(Package package, Manifest manifest, ExecutionResult result, Exception execError)
         {
-            var snInfo = RepositoryVersionInfo.Instance.OfficialSenseNetVersion;
-            var prodVer = (snInfo == null) ? new Version(42, 42, 42, 42) : snInfo.Version;
-
             Version appVer = null;
-
-            if (manifest.Level != ContentRepository.Storage.PackageLevel.Tool)
-            {
-                if (manifest.Type == ContentRepository.Storage.PackageType.Product)
-                    prodVer = manifest.VersionControl.Target;
-                else
-                    appVer = manifest.VersionControl.Target;
-            }
+            if (manifest.Level != PackageLevel.Tool)
+                appVer = manifest.VersionControl.Target;
 
             package.Name = manifest.Name;
             package.Description = manifest.Description;
             package.ReleaseDate = manifest.ReleaseDate;
             package.PackageLevel = manifest.Level;
-            package.PackageType = manifest.Type;
             package.AppId = manifest.AppId;
             package.ExecutionDate = DateTime.UtcNow;
             package.ExecutionResult = result;
             package.ExecutionError = execError;
             package.ApplicationVersion = appVer;
-            package.SenseNetVersion = prodVer;
         }
 
         public static string GetHelp()

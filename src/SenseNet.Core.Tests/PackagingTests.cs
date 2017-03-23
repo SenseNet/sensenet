@@ -45,7 +45,6 @@ namespace SenseNet.Core.Tests
             target.Description = source.Description;
             target.AppId = source.AppId;
             target.PackageLevel = source.PackageLevel;
-            target.PackageType = source.PackageType;
             target.ReleaseDate = source.ReleaseDate;
             target.ExecutionDate = source.ExecutionDate;
             target.ExecutionResult = source.ExecutionResult;
@@ -73,7 +72,6 @@ namespace SenseNet.Core.Tests
                 Description = description,
                 SenseNetVersion = version,
                 AppId = null,
-                PackageType = PackageType.Product,
                 PackageLevel = PackageLevel.Install,
                 ReleaseDate = DateTime.UtcNow,
                 ExecutionDate = DateTime.UtcNow,
@@ -167,7 +165,7 @@ namespace SenseNet.Core.Tests
             UpdatePackage(package, existing);
         }
 
-        public bool IsPackageExist(string appId, PackageType packageType, PackageLevel packageLevel, Version version)
+        public bool IsPackageExist(string appId, PackageLevel packageLevel, Version version)
         {
             throw new NotImplementedException();
         }
@@ -244,7 +242,7 @@ namespace SenseNet.Core.Tests
         {
             var appId = Guid.NewGuid().ToString();
 
-            var manifestSrc = @"<Package type='Application' level='Install'>
+            var manifestSrc = @"<Package level='Install'>
                                     <Name>Sense/Net ECM</Name>
                                     <Description>Sensenet Core</Description>
                                     <AppId>" + appId + @"</AppId>
@@ -276,7 +274,7 @@ namespace SenseNet.Core.Tests
         {
             var appId = Guid.NewGuid().ToString();
 
-            var manifestSrc = @"<Package type='Application' level='Install'>
+            var manifestSrc = @"<Package level='Install'>
                                     <Name>Sense/Net ECM</Name>
                                     <Description>Sensenet Core</Description>
                                     <AppId>" + appId + @"</AppId>
