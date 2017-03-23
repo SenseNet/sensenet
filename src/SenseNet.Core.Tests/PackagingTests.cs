@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace SenseNet.Core.Tests
 {
     [TestClass]
-    public class UnitTest1
+    public class PackagingTests
     {
         [TestMethod]
         public void TestMethod1()
