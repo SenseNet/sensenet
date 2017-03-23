@@ -19,6 +19,7 @@ namespace SenseNet.ContentRepository.Storage
     {
         //UNDONE: Not used field: [Edition] [nvarchar](450) NULL,
         //UNDONE: Not used field: [PackageType] [varchar](50) NOT NULL,
+        //UNDONE: Not used field: [SenseNetVersion] [varchar](50) NOT NULL,
 
         public int Id { get; internal set; }                  // [Id] [int] IDENTITY(1,1) NOT NULL,
         public string Name { get; set; }                      // [Name] [nvarchar](450) NOT NULL,
@@ -29,8 +30,6 @@ namespace SenseNet.ContentRepository.Storage
         public DateTime ExecutionDate { get; set; }           // [ExecutionDate] [datetime] NOT NULL,
         public ExecutionResult ExecutionResult { get; set; }  // [ExecutionResult] [varchar](50) NOT NULL,
         public Version ApplicationVersion { get; set; }       // [AppVersion] [varchar](50) NULL,
-        [Obsolete("####")]
-        public Version SenseNetVersion { get; set; }          // [SenseNetVersion] [varchar](50) NOT NULL,
         public Exception ExecutionError { get; set; }         // [ExecutionError] [nvarchar](max) NULL
     }
 }

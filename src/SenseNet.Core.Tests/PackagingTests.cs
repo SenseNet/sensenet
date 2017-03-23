@@ -49,7 +49,6 @@ namespace SenseNet.Core.Tests
             target.ExecutionDate = source.ExecutionDate;
             target.ExecutionResult = source.ExecutionResult;
             target.ApplicationVersion = source.ApplicationVersion;
-            target.SenseNetVersion = source.SenseNetVersion;
             target.ExecutionError = source.ExecutionError;
         }
 
@@ -70,7 +69,7 @@ namespace SenseNet.Core.Tests
             {
                 Name = name,
                 Description = description,
-                SenseNetVersion = version,
+                ApplicationVersion = version,
                 AppId = null,
                 PackageLevel = PackageLevel.Install,
                 ReleaseDate = DateTime.UtcNow,
@@ -87,7 +86,7 @@ namespace SenseNet.Core.Tests
                 .Where(p =>
                     (p.ExecutionResult != ExecutionResult.Faulty && p.ExecutionResult != ExecutionResult.Unfinished)
                     && p.AppId == null && p.PackageLevel == PackageLevel.Install)
-                .OrderBy(p => p.SenseNetVersion)
+                .OrderBy(p => p.ApplicationVersion)
                 .LastOrDefault();
 
             if (package == null)
@@ -97,8 +96,8 @@ namespace SenseNet.Core.Tests
             {
                 Name = package.Name,
                 AppId = package.AppId,
-                Version = package.SenseNetVersion,
-                AcceptableVersion = package.SenseNetVersion,
+                Version = package.ApplicationVersion,
+                AcceptableVersion = package.ApplicationVersion,
                 Description = package.Description
             };
         }
