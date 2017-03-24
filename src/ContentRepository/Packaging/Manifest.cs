@@ -12,8 +12,6 @@ namespace SenseNet.Packaging
     public class Manifest
     {
         public PackageLevel Level { get; private set; }
-        [Obsolete("####", true)]
-        public string Name { get; private set; }
         public string AppId { get; private set; }
         public string Description { get; private set; }
         public DateTime ReleaseDate { get; private set; }
