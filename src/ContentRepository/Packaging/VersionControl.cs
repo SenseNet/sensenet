@@ -6,10 +6,11 @@ namespace SenseNet.Packaging
 {
     public class VersionControl
     {
-        [Obsolete("####", true)]
-        public Version Target { get; private set; }
         public Version ExpectedMinimum { get; private set; }
         public Version ExpectedMaximum { get; private set; }
+        public bool ExpectedMinimumIsExclusive { get; private set; }
+        public bool ExpectedMaximumIsExclusive { get; private set; }
+
 
         internal static VersionControl Initialize(XmlElement element, PackageLevel level)
         {
@@ -17,18 +18,26 @@ namespace SenseNet.Packaging
             if (element == null)
                 return vc;
 
-            var expectedMin = GetVersion(element, "expectedMin", false);
-            var expectedMax = GetVersion(element, "expectedMax", false);
-            var expected = GetVersion(element, "expected", false);
-            if (expected != null && (expectedMin != null || expectedMax != null))
-                throw new InvalidPackageException(SR.Errors.Manifest.UnexpectedExpectedVersion);
+            var version = GetVersion(element, "version", false);
+            var minVersion = GetVersion(element, "minVersion", false);
+            var maxVersion = GetVersion(element, "maxVersion", false);
+            var minVersionExclusive = GetVersion(element, "minVersionExclusive", false);
+            var maxVersionExclusive = GetVersion(element, "maxVersionExclusive", false);
 
-            if (expected != null)
-                expectedMin = expectedMax = expected;
+            if (version != null && (minVersion != null || maxVersion != null || minVersionExclusive != null || maxVersionExclusive != null))
+                throw new InvalidPackageException(SR.Errors.Manifest.UnexpectedVersionAttribute);
+            if (minVersion != null && minVersionExclusive != null)
+                throw new InvalidPackageException(SR.Errors.Manifest.DoubleMinVersionAttribute);
+            if (maxVersion != null && maxVersionExclusive != null)
+                throw new InvalidPackageException(SR.Errors.Manifest.DoubleMaxVersionAttribute);
 
-            vc.ExpectedMinimum = expectedMin;
-            vc.ExpectedMaximum = expectedMax;
-
+            if (version != null)
+                minVersion = maxVersion = version;
+            
+            vc.ExpectedMinimum = minVersion ?? minVersionExclusive;
+            vc.ExpectedMaximum = maxVersion ?? maxVersionExclusive;
+            vc.ExpectedMinimumIsExclusive = minVersionExclusive != null;
+            vc.ExpectedMaximumIsExclusive = maxVersionExclusive != null;
             return vc;
         }
 
@@ -39,7 +48,7 @@ namespace SenseNet.Packaging
             if (attr == null)
             {
                 if(required)
-                    throw new InvalidPackageException(String.Format(SR.Errors.Manifest.MissingVersionAttribute_1, name));
+                    throw new InvalidPackageException(String.Format(SR.Errors.Manifest.MissingVersionAttribute1, name));
                 return null;
             }
 
@@ -50,7 +59,7 @@ namespace SenseNet.Packaging
             Version v;
             if (Version.TryParse(value, out v))
                 return v;
-            throw new InvalidPackageException(string.Format(SR.Errors.Manifest.InvalidVersion_1, value));
+            throw new InvalidPackageException(string.Format(SR.Errors.Manifest.InvalidVersion1, value));
         }
     }
 }

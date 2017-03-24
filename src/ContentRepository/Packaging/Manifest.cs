@@ -63,24 +63,24 @@ namespace SenseNet.Packaging
             if (attr == null)
                 attr = e.Attributes["Type"];
             if (attr == null)
-                throw new InvalidPackageException(SR.Errors.Manifest.MissingLevel);
+                throw new InvalidPackageException(SR.Errors.Manifest.MissingType);
             PackageLevel level;
             if(!Enum.TryParse<PackageLevel>(attr.Value, true, out level))
-                throw new InvalidPackageException(SR.Errors.Manifest.InvalidLevel);
+                throw new InvalidPackageException(SR.Errors.Manifest.InvalidType);
             manifest.Level = level;
 
-            // parsing application name (required if the "type" is "application")
+            // parsing ComponentId
             e = (XmlElement)xml.DocumentElement.SelectSingleNode("ComponentId");
             if (e != null)
             {
                 if (e.InnerText.Length == 0)
-                    throw new InvalidPackageException(SR.Errors.Manifest.InvalidAppId);
+                    throw new InvalidPackageException(SR.Errors.Manifest.InvalidComponentId);
                 else
                     manifest.AppId = e.InnerText;
             }
             else
             {
-                throw new InvalidPackageException(SR.Errors.Manifest.MissingAppId);
+                throw new InvalidPackageException(SR.Errors.Manifest.MissingComponentId);
             }
 
             // parsing description (optional)
@@ -107,7 +107,6 @@ namespace SenseNet.Packaging
 
             manifest.VersionControl = VersionControl.Initialize(e, level);
         }
-
         private static void ParseParameters(XmlDocument xml, Manifest manifest)
         {
             var parameters = new Dictionary<string, string>();

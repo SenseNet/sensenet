@@ -20,19 +20,19 @@ namespace SenseNet.Packaging
             {
                 internal static readonly string WrongRootName = @"Invalid manifest: root element must be ""Package"".";
                 internal static readonly string MissingType = @"Invalid manifest: missing ""type"" attribute.";
-                internal static readonly string InvalidType = @"Invalid manifest: invalid ""type"" attribute. The value must be ""product"" or ""application""";
-                internal static readonly string MissingLevel = @"Invalid manifest: missing ""level"" attribute.";
-                internal static readonly string InvalidLevel = @"Invalid manifest: invalid ""level"" attribute. The value must be ""tool"", ""patch"", ""servicepack"" or ""upgrade""";
-                internal static readonly string MissingAppId = @"Invalid manifest: missing ""AppId"" element.";
-                internal static readonly string InvalidAppId = @"Invalid manifest: invalid ""AppId"" element. Value cannot be empty.";
+                internal static readonly string InvalidType = @"Invalid manifest: invalid ""type"" attribute. The value must be ""tool"", ""patch"", or ""install""";
+                internal static readonly string MissingComponentId = @"Invalid manifest: missing ""ComponentId"" element.";
+                internal static readonly string InvalidComponentId = @"Invalid manifest: invalid ""ComponentId"" element. Value cannot be empty.";
                 internal static readonly string MissingReleaseDate = @"Invalid manifest: missing ""ReleaseDate"" element.";
                 internal static readonly string InvalidReleaseDate = @"Invalid manifest: invalid ""ReleaseDate"" element.";
                 internal static readonly string MissingVersion = @"Invaid manifest: missing ""Version"" element.";
-                internal static readonly string MissingVersionAttribute_1 = @"Invalid manifest: missing ""{0}"" VersionControl attribute.";
-                internal static readonly string InvalidVersion_1 = @"Invalid manifest: invalid version: ""{0}""";
-                internal static readonly string UnexpectedAppId = @"Invalid manifest: ""ApplicationIdentifier"" cannot be defined if the package type is ""product"".";
-                internal static readonly string UnexpectedTarget = @"Invalid manifest: the ""target"" VersionControl attribute cannot be defined if the package level is ""tool"".";
-                internal static readonly string UnexpectedExpectedVersion = @"Invalid manifest: the ""expected"" VersionControl attribute cannot be defined if the ""expectedMin"" or ""expectedMax"" exist.";
+                internal static readonly string MissingVersionAttribute1 = @"Invalid manifest: missing ""{0}"" VersionControl attribute.";
+                internal static readonly string InvalidVersion1 = @"Invalid manifest: invalid version: ""{0}""";
+                //internal static readonly string UnexpectedAppId = @"Invalid manifest: ""ApplicationIdentifier"" cannot be defined if the package type is ""product"".";
+                //internal static readonly string UnexpectedTarget = @"Invalid manifest: the ""target"" VersionControl attribute cannot be defined if the package level is ""tool"".";
+                internal static readonly string UnexpectedVersionAttribute = @"Invalid manifest: the ""version"" attribute cannot be defined if the ""minVersion"", ""maxVersion"", ""minVersionExclusive"" or ""maxVersionExclusive"" exist.";
+                internal static readonly string DoubleMinVersionAttribute = @"Invalid manifest: cannot use the ""minVersion"" and ""minVersionExclusive"" attributes together.";
+                internal static readonly string DoubleMaxVersionAttribute = @"Invalid manifest: cannot use the ""maxVersion"" and ""maxVersionExclusive"" attributes together.";
             }
 
             internal static class Precondition
