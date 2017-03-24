@@ -487,7 +487,7 @@ namespace SenseNet.Portal.Virtualization
             };
         }
 
-        internal static PortalContext Create(HttpContext context)
+        public static PortalContext Create(HttpContext context)
         {
             var initInfo = CreateInitInfo(context);
             return Create(context, initInfo);

@@ -13,13 +13,13 @@
             return GetValue<T>(SectionName, key, defaultValue);
         }
 
-        public static string SymmetricKeySecret { get; internal set; } = GetString(SectionName, "SymmetricKeySecret");
-        public static string Audience { get; internal set; } = GetString(SectionName, "Audience");
-        public static string Issuer { get; internal set; } = GetString(SectionName, "Issuer");
-        public static string Subject { get; internal set; } = GetString(SectionName, "Subject");
-        public static string EncriptionAlgorithm { get; internal set; } = GetString(SectionName, "EncriptionAlgorithm");
-        public static int AccessLifeTimeInMinutes { get; internal set; } = GetValue<int>(SectionName, "AccessLifeTimeInMinutes");
-        public static int RefreshLifeTimeInMinutes { get; internal set; } = GetValue<int>(SectionName, "RefreshLifeTimeInMinutes");
-        public static int ClockSkewInMinutes { get; internal set; } = GetValue<int>(SectionName, "ClockSkewInMinutes");
+        public static string SymmetricKeySecret { get;  set; } = GetString(SectionName, "SymmetricKeySecret");
+        public static string Audience { get;  set; } = GetString(SectionName, "Audience");
+        public static string Issuer { get;  set; } = GetString(SectionName, "Issuer");
+        public static string Subject { get;  set; } = GetString(SectionName, "Subject");
+        public static string EncriptionAlgorithm { get;  set; } = GetString(SectionName, "EncriptionAlgorithm");
+        public static int AccessLifeTimeInMinutes { get;  set; } = GetValue<int>(SectionName, "AccessLifeTimeInMinutes");
+        public static int RefreshLifeTimeInMinutes { get;  set; } = GetValue<int>(SectionName, "RefreshLifeTimeInMinutes");
+        public static int ClockSkewInMinutes { get;  set; } = GetValue<int>(SectionName, "ClockSkewInMinutes");
     }
 }

@@ -38,19 +38,23 @@ namespace SenseNet.TokenAuthentication
             return (int)(date - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds;
         }
 
-        public string GenerateToken(string name, string role, out string refreshToken, bool refreshTokenAsWell = false)
+        public string GenerateToken(string name, string role, out string refreshTokenString, bool refreshTokenAsWell = false)
         {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new ArgumentOutOfRangeException(nameof(name));
+            }
             string tokenString = null;
-            refreshToken = null;
+            refreshTokenString = null;
             if (_handler.CanWriteToken)
             {
                 var signingCredentials = new SigningCredentials(_securityKey.SecurityKey, _tokenParameters.EncryptionAlgorithm);
                 var now = _tokenParameters.ValidFrom ?? DateTime.UtcNow;
                 var numericNow = GetNumericDate(now);
-                var expiration = now.AddMinutes(_tokenParameters.AccessLifeTimeInMinutes);
-                var numericExpiration = GetNumericDate(expiration);
                 var notBefore = now;
                 var numericNotBefore = GetNumericDate(notBefore);
+                var expiration = now.AddMinutes(_tokenParameters.AccessLifeTimeInMinutes);
+                var numericExpiration = GetNumericDate(expiration);
                 var header = new JwtHeader(signingCredentials);
                 var payload = new JwtPayload
                 {
@@ -86,8 +90,8 @@ namespace SenseNet.TokenAuthentication
                         , { "nbf", numericNotBefore }
                         , { "name", name}
                     };
-                    accessToken = new JwtSecurityToken(header, payload);
-                    refreshToken = _handler.WriteToken(accessToken);
+                    var refreshToken = new JwtSecurityToken(header, payload);
+                    refreshTokenString = _handler.WriteToken(refreshToken);
                 }
             }
             return tokenString;

@@ -27,7 +27,7 @@ using SenseNet.TokenAuthentication;
 
 namespace SenseNet.Portal.Virtualization
 {
-    internal class PortalAuthenticationModule : IHttpModule
+    public class PortalAuthenticationModule : IHttpModule
     {
         public void Dispose()
         {
@@ -52,18 +52,23 @@ namespace SenseNet.Portal.Virtualization
         {
             get
             {
-                if (_securityKey == null)
+                lock (_keyLock)
                 {
-                    lock (_keyLock)
+                    if (_securityKey == null)
                     {
                         _securityKey = EncryptionHelper.CreateSymmetricKey(Configuration.TokenAuthentication.SymmetricKeySecret);
                     }
+                    return _securityKey;
                 }
-                return _securityKey;
             }
         }
 
-        private bool DispatchBasicAuthentication(HttpApplication application, HttpRequest request)
+        public Func<object, HttpContextBase> GetContext = (sender) => new HttpContextWrapper(((HttpApplication) sender).Context);
+        public Func<object, HttpRequestBase> GetRequest = (sender) => new HttpRequestWrapper(((HttpApplication)sender).Context.Request);
+        public Func<object, HttpResponseBase> GetResponse = (sender) => new HttpResponseWrapper(((HttpApplication)sender).Context.Response);
+
+
+        public virtual bool DispatchBasicAuthentication(HttpApplication application)
         {
             var authHeader = PortalContext.Current.BasicAuthHeaders;
             if (authHeader == null || !authHeader.StartsWith("Basic "))
@@ -71,7 +76,7 @@ namespace SenseNet.Portal.Virtualization
 
             string base64Encoded = authHeader.Substring(6); // 6: length of "Basic "
             byte[] buff = Convert.FromBase64String(base64Encoded);
-            string[] userPass = System.Text.Encoding.UTF8.GetString(buff).Split(":".ToCharArray());
+            string[] userPass = Encoding.UTF8.GetString(buff).Split(":".ToCharArray());
             if (userPass.Length != 2)
             {
                 application.Context.User = new PortalPrincipal(User.Visitor);
@@ -99,20 +104,20 @@ namespace SenseNet.Portal.Virtualization
             return true;
         }
 
-        private void OnAuthenticateRequest(object sender, EventArgs e)
+        public void OnAuthenticateRequest(object sender, EventArgs e)
         {
-            HttpApplication application = sender as HttpApplication;
-            HttpContext context = HttpContext.Current;
-            HttpRequest request = context.Request;
+            var application = sender as HttpApplication;
+            var context = GetContext(sender); //HttpContext.Current;
+            var request = GetRequest(sender);
 
             var authenticationTypeHeader = GetAuthenticationTypeHeader(request);
-            var basicAuthenticated = DispatchBasicAuthentication(application, request);
-
+            var basicAuthenticated = DispatchBasicAuthentication(application);
             if (request.IsSecureConnection && authenticationTypeHeader == "Token")
             {
                 TokenAuthenticate(basicAuthenticated, context);
+                return;
             }
-
+            // if it is a simple basic authentication case
             if (basicAuthenticated)
             {
                 return;
@@ -172,12 +177,12 @@ namespace SenseNet.Portal.Virtualization
             }
         }
 
-        private string GetAuthenticationTypeHeader(HttpRequest request)
+        private string GetAuthenticationTypeHeader(HttpRequestBase request)
         {
             return request.Headers[AuthenticationTypeHeaderName];
         }
 
-        private void TokenAuthenticate(bool basicAuthenticated, HttpContext context)
+        private void TokenAuthenticate(bool basicAuthenticated, HttpContextBase context)
         {
             try
             {
@@ -266,22 +271,29 @@ namespace SenseNet.Portal.Virtualization
             }
         }
 
-        private void EmitTokensAndCookies(HttpContext context, TokenManager tokenManager, DateTime validFrom, string userName, string roleName, bool refreshTokenAsWell)
+        private void EmitTokensAndCookies(HttpContextBase context, TokenManager tokenManager, DateTime validFrom, string userName, string roleName, bool refreshTokenAsWell)
         {
             string refreshToken;
             var token = tokenManager.GenerateToken(userName, roleName, out refreshToken, refreshTokenAsWell);
+            var bodyBuilder = new StringBuilder();
+
             var accessSignatureIndex = token.LastIndexOf('.');
             var accessSignature = token.Substring(accessSignatureIndex + 1);
             var accessHeadAndPayload = token.Substring(0, accessSignatureIndex - 1);
-            var refreshSignatureIndex = refreshToken.LastIndexOf('.');
-            var refreshSignature = token.Substring(refreshSignatureIndex + 1);
-            var refreshHeadAndPayload = token.Substring(0, refreshSignatureIndex - 1);
-
-            context.Response.Write(JsonConvert.SerializeObject(new { access = accessHeadAndPayload, refresh = refreshHeadAndPayload }));
             var accessExpiration = validFrom.AddMinutes(Configuration.TokenAuthentication.AccessLifeTimeInMinutes);
-            var refreshExpiration = accessExpiration.AddMinutes(Configuration.TokenAuthentication.RefreshLifeTimeInMinutes);
             CookieHelper.InsertSecureCookie(context.Response, accessSignature, AccessSignatureName, accessExpiration);
-            CookieHelper.InsertSecureCookie(context.Response, refreshSignature, RefreshSignatureName, refreshExpiration);
+            bodyBuilder.Append(JsonConvert.SerializeObject(new {access = accessHeadAndPayload}));
+
+            if (refreshTokenAsWell)
+            { 
+                var refreshSignatureIndex = refreshToken.LastIndexOf('.');
+                var refreshSignature = refreshToken.Substring(refreshSignatureIndex + 1);
+                var refreshHeadAndPayload = refreshToken.Substring(0, refreshSignatureIndex - 1);
+                var refreshExpiration = accessExpiration.AddMinutes(Configuration.TokenAuthentication.RefreshLifeTimeInMinutes);
+                CookieHelper.InsertSecureCookie(context.Response, refreshSignature, RefreshSignatureName, refreshExpiration);
+                bodyBuilder.Append(JsonConvert.SerializeObject(new { access = accessHeadAndPayload, refresh = refreshHeadAndPayload }));
+            }
+            context.Response.Write(bodyBuilder.ToString());
         }
 
         private static void CallInternalOnEnter(object sender, EventArgs e)

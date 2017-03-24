@@ -5,7 +5,7 @@ namespace SenseNet.TokenAuthentication
 {
     public static class CookieHelper
     {
-        public static void InsertSecureCookie(HttpResponse response, string token, string cookieName, DateTime expiration)
+        public static void InsertSecureCookie(HttpResponseBase response, string token, string cookieName, DateTime expiration)
         {
             var authCookie = new HttpCookie(cookieName, token);
             authCookie.HttpOnly = true;
@@ -14,7 +14,7 @@ namespace SenseNet.TokenAuthentication
             response.Cookies.Add(authCookie);
         }
 
-        public static HttpCookie GetCookie(HttpRequest request, string cookieName)
+        public static HttpCookie GetCookie(HttpRequestBase request, string cookieName)
         {
             return request.Cookies[cookieName];
         }
