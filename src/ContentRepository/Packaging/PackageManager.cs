@@ -95,7 +95,7 @@ namespace SenseNet.Packaging
             return result;
         }
 
-        private static PackagingResult ExecuteCurrentPhase(Manifest manifest, ExecutionContext executionContext)
+        internal static PackagingResult ExecuteCurrentPhase(Manifest manifest, ExecutionContext executionContext)
         {
             //UNDONE: handle the "firsdt install" problem
             //if (manifest.Type == PackageType.Product && manifest.Level == PackageLevel.Install)

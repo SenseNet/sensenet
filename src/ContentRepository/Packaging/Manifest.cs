@@ -35,7 +35,7 @@ namespace SenseNet.Packaging
             return Parse(xml, phase, log);
         }
         /// <summary>Test entry</summary>
-        private static Manifest Parse(XmlDocument xml, int currentPhase, bool log)
+        internal static Manifest Parse(XmlDocument xml, int currentPhase, bool log)
         {
             var manifest = new Manifest();
 
