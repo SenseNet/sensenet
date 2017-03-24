@@ -35,6 +35,7 @@ namespace SenseNet.Packaging
                 internal static readonly string DoubleMaxVersionAttribute = @"Invalid manifest: cannot use the ""maxVersion"" and ""maxVersionExclusive"" attributes together.";
                 internal static readonly string MissingDependencyId = @"Invalid manifest: missing ""id"" attribute in a Dependency element.";
                 internal static readonly string EmptyDependencyId = @"Invalid manifest: empty ""id"" attribute in a Dependency element.";
+                internal static readonly string MissingDependencyVersion = @"Invaid manifest: missing dependency version.";
             }
 
             internal static class Precondition

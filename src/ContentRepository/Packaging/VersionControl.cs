@@ -25,6 +25,8 @@ namespace SenseNet.Packaging
             var maxVersionExclusive = GetVersion(element, "maxVersionExclusive", false);
 
             if (version != null && (minVersion != null || maxVersion != null || minVersionExclusive != null || maxVersionExclusive != null))
+                throw new InvalidPackageException(SR.Errors.Manifest.MissingDependencyVersion);
+            if (version != null && (minVersion != null || maxVersion != null || minVersionExclusive != null || maxVersionExclusive != null))
                 throw new InvalidPackageException(SR.Errors.Manifest.UnexpectedVersionAttribute);
             if (minVersion != null && minVersionExclusive != null)
                 throw new InvalidPackageException(SR.Errors.Manifest.DoubleMinVersionAttribute);

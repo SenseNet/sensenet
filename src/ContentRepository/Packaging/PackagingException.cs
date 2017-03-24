@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.Packaging
@@ -13,7 +9,7 @@ namespace SenseNet.Packaging
         InvalidParameter, InvalidStepParameter,
         DependencyNotFound, DependencyMismatch,
         MissingDependencyId, EmptyDependencyId,
-        InvalidVersion, UnexpectedVersionAttribute, DoubleMinVersionAttribute, DoubleMaxVersionAttribute
+        MissingDependencyVersion, InvalidVersion, UnexpectedVersionAttribute, DoubleMinVersionAttribute, DoubleMaxVersionAttribute
     }
 
     [Serializable]

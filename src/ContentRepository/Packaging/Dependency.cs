@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 
 namespace SenseNet.Packaging
 {
-    //UNDONE: Rename to Dependency.cs
     public class Dependency
     {
         public string Id { get; private set; }
@@ -32,6 +27,8 @@ namespace SenseNet.Packaging
             if (id.Length == 0)
                 throw new InvalidPackageException(SR.Errors.Manifest.EmptyDependencyId, PackagingExceptionType.EmptyDependencyId);
 
+            if (version == null && minVersion == null && maxVersion == null && minVersionExclusive == null && maxVersionExclusive == null)
+                throw new InvalidPackageException(SR.Errors.Manifest.MissingDependencyVersion, PackagingExceptionType.MissingDependencyVersion);
             if (version != null && (minVersion != null || maxVersion != null || minVersionExclusive != null || maxVersionExclusive != null))
                 throw new InvalidPackageException(SR.Errors.Manifest.UnexpectedVersionAttribute, PackagingExceptionType.UnexpectedVersionAttribute);
 
@@ -66,6 +63,5 @@ namespace SenseNet.Packaging
                 return v;
             throw new InvalidPackageException(string.Format(SR.Errors.Manifest.InvalidVersion1, value), PackagingExceptionType.InvalidVersion);
         }
-
     }
 }

@@ -251,6 +251,132 @@ namespace SenseNet.Core.Tests
             Assert.IsFalse(dependency.MinVersionIsExclusive);
             Assert.IsFalse(dependency.MaxVersionIsExclusive);
         }
+        [TestMethod]
+        public void Packaging_Dependency_MissingId()
+        {
+            try
+            {
+                var manifest = ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component2</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.0</Version>
+                            <Dependencies>
+                                <Dependency version='1.0.1' />
+                            </Dependencies>
+                        </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.MissingDependencyId, e.ErrorType);
+            }
+        }
+        [TestMethod]
+        public void Packaging_Dependency_EmptyId()
+        {
+            try
+            {
+                var manifest = ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component2</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.0</Version>
+                            <Dependencies>
+                                <Dependency id='' version='1.0.1' />
+                            </Dependencies>
+                        </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.EmptyDependencyId, e.ErrorType);
+            }
+        }
+        [TestMethod]
+        public void Packaging_Dependency_MissingVersion()
+        {
+            try
+            {
+                ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component2</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.0</Version>
+                            <Dependencies>
+                                <Dependency id='Component1' />
+                            </Dependencies>
+                        </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.MissingDependencyVersion, e.ErrorType);
+            }
+        }
+        [TestMethod]
+        public void Packaging_Dependency_UnexpectedVersion()
+        {
+            try
+            {
+                ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component2</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.0</Version>
+                            <Dependencies>
+                                <Dependency id='Component1' version='1.0' maxVersion='2.0' />
+                            </Dependencies>
+                        </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.UnexpectedVersionAttribute, e.ErrorType);
+            }
+        }
+        [TestMethod]
+        public void Packaging_Dependency_DoubleMinVersion()
+        {
+            try
+            {
+                ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component2</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.0</Version>
+                            <Dependencies>
+                                <Dependency id='Component1' minVersion='1.0' minVersionExclusive='2.0' />
+                            </Dependencies>
+                        </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.DoubleMinVersionAttribute, e.ErrorType);
+            }
+        }
+        [TestMethod]
+        public void Packaging_Dependency_DoubleMaxVersion()
+        {
+            try
+            {
+                ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component2</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.0</Version>
+                            <Dependencies>
+                                <Dependency id='Component1' maxVersion='1.0' maxVersionExclusive='2.0' />
+                            </Dependencies>
+                        </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.DoubleMaxVersionAttribute, e.ErrorType);
+            }
+        }
 
         [TestMethod]
         public void Packaging_Install_NoDependency()
@@ -327,27 +453,6 @@ namespace SenseNet.Core.Tests
             Assert.Inconclusive();
         }
 
-
-        [TestMethod]
-        public void OldPackaging_VersionControl_ExpectedAndMin_IsInvalid()
-        {
-            Assert.Inconclusive();
-        }
-        [TestMethod]
-        public void OldPackaging_VersionControl_ExpectedAndMax_IsInvalid()
-        {
-            Assert.Inconclusive();
-        }
-        [TestMethod]
-        public void OldPackaging_VersionControl_WrongVersionValue_IsInvalid()
-        {
-            Assert.Inconclusive();
-        }
-        [TestMethod]
-        public void OldPackaging_VersionControl_ExpectedSetsMinAndMax()
-        {
-            Assert.Inconclusive();
-        }
 
 
         private Manifest ParseManifestHead(string manifestXml)
