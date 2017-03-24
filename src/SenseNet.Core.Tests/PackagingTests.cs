@@ -227,7 +227,33 @@ namespace SenseNet.Core.Tests
         //================================================= new manifest
 
         [TestMethod]
-        public void Packaging_InstallNoDependency()
+        public void Packaging_Dependency_ExactVersion()
+        {
+            var manifest = ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component2</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.0</Version>
+                            <Dependencies>
+                                <Dependency id='Component1' version='1.0.1' />
+                            </Dependencies>
+                            <Steps>
+                                <Trace>Package is running.</Trace>
+                            </Steps>
+                        </Package>");
+
+            var dependencies = manifest.Dependencies.ToArray();
+            var dependency = dependencies[0];
+            Assert.AreEqual(1, dependencies.Length);
+            Assert.AreEqual("Component1", dependency.Id);
+            Assert.AreEqual("1.0.1", dependency.MinVersion.ToString());
+            Assert.AreEqual("1.0.1", dependency.MaxVersion.ToString());
+            Assert.IsFalse(dependency.MinVersionIsExclusive);
+            Assert.IsFalse(dependency.MaxVersionIsExclusive);
+        }
+
+        [TestMethod]
+        public void Packaging_Install_NoDependency()
         {
             var recordCountBefore = GetDbRecordCount();
 
@@ -237,7 +263,6 @@ namespace SenseNet.Core.Tests
                             <ComponentId>MyCompany.MyComponent</ComponentId>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
-                            <Description>Installs MyCompany.MyComponent 1.0</Description>
                             <Steps>
                                 <Trace>Package is running.</Trace>
                             </Steps>
@@ -249,6 +274,39 @@ namespace SenseNet.Core.Tests
             Assert.IsTrue(result.Successful);
             Assert.AreEqual(0, result.Errors);
             Assert.AreEqual(recordCountBefore + 1, GetDbRecordCount());
+        }
+        [TestMethod]
+        public void Packaging_Install_MissingDependency()
+        {
+            var recordCountBefore = GetDbRecordCount();
+            var expectedErrorType = PackagingExceptionType.DependencyNotFound;
+            var actualErrorType = PackagingExceptionType.NotDefined;
+
+            // action
+            try
+            {
+                var result = ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component2</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.0</Version>
+                            <Dependencies>
+                                <Dependency id='Component1' version='7.0' />
+                            </Dependencies>
+                            <Steps>
+                                <Trace>Package is running.</Trace>
+                            </Steps>
+                        </Package>");
+                Assert.Fail("PackagingException was not thrown. Expected error type: PackagingExceptionType.DependencyNotFound");
+            }
+            catch (PackagingException e)
+            {
+                actualErrorType = e.ErrorType;
+            }
+
+            // assert
+            Assert.AreEqual(actualErrorType, expectedErrorType);
+            Assert.AreEqual(recordCountBefore, GetDbRecordCount());
         }
 
         //================================================= old manifest
@@ -291,6 +349,21 @@ namespace SenseNet.Core.Tests
             Assert.Inconclusive();
         }
 
+
+        private Manifest ParseManifestHead(string manifestXml)
+        {
+            var xml = new XmlDocument();
+            xml.LoadXml(manifestXml);
+            var manifest = new Manifest();
+            Manifest.ParseHead(xml, manifest);
+            return manifest;
+        }
+        private Manifest ParseManifest(string manifestXml)
+        {
+            var xml = new XmlDocument();
+            xml.LoadXml(manifestXml);
+            return Manifest.Parse(xml, 0, true);
+        }
 
         private PackagingResult ExecutePhases(string manifestXml, TextWriter console = null)
         {

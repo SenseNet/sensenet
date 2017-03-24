@@ -8,9 +8,9 @@ namespace SenseNet.Packaging
     [Serializable]
     public class InvalidStepParameterException : PackagingException
     {
-        public InvalidStepParameterException() { }
-        public InvalidStepParameterException(string message) : base(message) { }
-        public InvalidStepParameterException(string message, Exception inner) : base(message, inner) { }
+        public InvalidStepParameterException() : base(PackagingExceptionType.InvalidStepParameter) { }
+        public InvalidStepParameterException(string message) : base(message, PackagingExceptionType.InvalidStepParameter) { }
+        public InvalidStepParameterException(string message, Exception inner) : base(message, inner, PackagingExceptionType.InvalidStepParameter) { }
         protected InvalidStepParameterException(
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context)
@@ -20,9 +20,9 @@ namespace SenseNet.Packaging
     [Serializable]
     public class InvalidParameterException : PackagingException
     {
-        public InvalidParameterException() { }
-        public InvalidParameterException(string message) : base(message) { }
-        public InvalidParameterException(string message, Exception inner) : base(message, inner) { }
+        public InvalidParameterException() : base(PackagingExceptionType.InvalidParameter) { }
+        public InvalidParameterException(string message) : base(message, PackagingExceptionType.InvalidParameter) { }
+        public InvalidParameterException(string message, Exception inner) : base(message, inner, PackagingExceptionType.InvalidParameter) { }
         protected InvalidParameterException(
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context)

@@ -33,6 +33,8 @@ namespace SenseNet.Packaging
                 internal static readonly string UnexpectedVersionAttribute = @"Invalid manifest: the ""version"" attribute cannot be defined if the ""minVersion"", ""maxVersion"", ""minVersionExclusive"" or ""maxVersionExclusive"" exist.";
                 internal static readonly string DoubleMinVersionAttribute = @"Invalid manifest: cannot use the ""minVersion"" and ""minVersionExclusive"" attributes together.";
                 internal static readonly string DoubleMaxVersionAttribute = @"Invalid manifest: cannot use the ""maxVersion"" and ""maxVersionExclusive"" attributes together.";
+                internal static readonly string MissingDependencyId = @"Invalid manifest: missing ""id"" attribute in a Dependency element.";
+                internal static readonly string EmptyDependencyId = @"Invalid manifest: empty ""id"" attribute in a Dependency element.";
             }
 
             internal static class Precondition

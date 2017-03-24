@@ -16,6 +16,7 @@ namespace SenseNet.Packaging
         public string Description { get; private set; }
         public DateTime ReleaseDate { get; private set; }
         public VersionControl VersionControl { get; private set; }
+        public IEnumerable<Dependency> Dependencies { get; private set; }
         public Version Version { get; private set; }
         internal Dictionary<string, string> Parameters { get; private set; }
 
@@ -48,7 +49,7 @@ namespace SenseNet.Packaging
             return manifest;
         }
 
-        private static void ParseHead(XmlDocument xml, Manifest manifest)
+        internal static void ParseHead(XmlDocument xml, Manifest manifest)
         {
             XmlElement e;
             XmlAttribute attr;
@@ -105,7 +106,13 @@ namespace SenseNet.Packaging
                 throw new InvalidPackageException(SR.Errors.Manifest.InvalidReleaseDate);
             manifest.ReleaseDate = releaseDate;
 
-            manifest.VersionControl = VersionControl.Initialize(e, level);
+            // parsing dependencies
+            var dependencies = new List<Dependency>();
+            e = (XmlElement)xml.DocumentElement.SelectSingleNode("Dependencies");
+            if (e != null)
+                foreach (XmlElement dependencyElement in e.SelectNodes("Dependency"))
+                    dependencies.Add(Dependency.Parse(dependencyElement));
+            manifest.Dependencies = dependencies.ToArray();
         }
         private static void ParseParameters(XmlDocument xml, Manifest manifest)
         {
