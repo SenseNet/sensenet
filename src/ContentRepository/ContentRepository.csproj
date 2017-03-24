@@ -167,6 +167,7 @@
     <Compile Include="Configuration\Services.cs" />
     <Compile Include="Configuration\Versioning.cs" />
     <Compile Include="Linq\CaseInsensitiveFilterVisitor.cs" />
+    <Compile Include="Packaging\DependencyControl.cs" />
     <Compile Include="Packaging\ExecutionContext.cs" />
     <Compile Include="Packaging\InstallResult.cs" />
     <Compile Include="Packaging\InvalidPackageException.cs" />
