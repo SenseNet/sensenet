@@ -97,7 +97,7 @@ namespace SenseNet.Packaging
 
         internal static PackagingResult ExecuteCurrentPhase(Manifest manifest, ExecutionContext executionContext)
         {
-            //UNDONE: handle the "firsdt install" problem
+            //UNDONE: handle the "first install" problem
             //if (manifest.Type == PackageType.Product && manifest.Level == PackageLevel.Install)
             //{
             //    // In case of product install create initial entry at the beginning of the
@@ -225,7 +225,7 @@ namespace SenseNet.Packaging
                     && p.ExecutionResult == ExecutionResult.Unfinished);
             else
                 oldPacks = oldPacks
-                    .Where(p => p.AppId == manifest.AppId && p.ApplicationVersion == manifest.VersionControl.Target);
+                    .Where(p => p.AppId == manifest.AppId && p.ApplicationVersion == manifest.Version);
             oldPacks = oldPacks.OrderBy(p => p.ExecutionDate).ToArray();
 
             var oldPack = oldPacks.LastOrDefault();
@@ -244,7 +244,7 @@ namespace SenseNet.Packaging
         {
             Version appVer = null;
             if (manifest.Level != PackageLevel.Tool)
-                appVer = manifest.VersionControl.Target;
+                appVer = manifest.Version;
 
             return new ContentRepository.Storage.Package
             {
@@ -262,7 +262,7 @@ namespace SenseNet.Packaging
         {
             Version appVer = null;
             if (manifest.Level != PackageLevel.Tool)
-                appVer = manifest.VersionControl.Target;
+                appVer = manifest.Version;
 
             package.Description = manifest.Description;
             package.ReleaseDate = manifest.ReleaseDate;

@@ -16,6 +16,7 @@ namespace SenseNet.Packaging
         public string Description { get; private set; }
         public DateTime ReleaseDate { get; private set; }
         public VersionControl VersionControl { get; private set; }
+        public Version Version { get; private set; }
         internal Dictionary<string, string> Parameters { get; private set; }
 
         private List<List<XmlElement>> _phases;
@@ -57,10 +58,10 @@ namespace SenseNet.Packaging
             if(e.Name != "Package")
                 throw new InvalidPackageException(SR.Errors.Manifest.WrongRootName);
 
-            // parsing level (required, one of the tool, patch, servicepack or upgrade)
-            attr = e.Attributes["level"];
+            // parsing type (required, one of the tool, patch, or install)
+            attr = e.Attributes["type"];
             if (attr == null)
-                attr = e.Attributes["Level"];
+                attr = e.Attributes["Type"];
             if (attr == null)
                 throw new InvalidPackageException(SR.Errors.Manifest.MissingLevel);
             PackageLevel level;
@@ -69,7 +70,7 @@ namespace SenseNet.Packaging
             manifest.Level = level;
 
             // parsing application name (required if the "type" is "application")
-            e = (XmlElement)xml.DocumentElement.SelectSingleNode("AppId");
+            e = (XmlElement)xml.DocumentElement.SelectSingleNode("ComponentId");
             if (e != null)
             {
                 if (e.InnerText.Length == 0)
@@ -87,11 +88,11 @@ namespace SenseNet.Packaging
             if (e != null)
                 manifest.Description = e.InnerText;
 
-            // parsing version control
-            e = (XmlElement)xml.DocumentElement.SelectSingleNode("VersionControl");
-            if (level != PackageLevel.Tool && e == null)
-                throw new InvalidPackageException(SR.Errors.Manifest.MissingVersionControl);
-            manifest.VersionControl = VersionControl.Initialize(e, level);
+            // parsing version
+            e = (XmlElement)xml.DocumentElement.SelectSingleNode("Version");
+            if (e == null)
+                throw new InvalidPackageException(SR.Errors.Manifest.MissingVersion);
+            manifest.Version = Packaging.VersionControl.ParseVersion(e.InnerText);
 
             // parsing release date (required)
             e = (XmlElement)xml.DocumentElement.SelectSingleNode("ReleaseDate");
@@ -103,6 +104,8 @@ namespace SenseNet.Packaging
             if(releaseDate > DateTime.UtcNow)
                 throw new InvalidPackageException(SR.Errors.Manifest.InvalidReleaseDate);
             manifest.ReleaseDate = releaseDate;
+
+            manifest.VersionControl = VersionControl.Initialize(e, level);
         }
 
         private static void ParseParameters(XmlDocument xml, Manifest manifest)
@@ -180,7 +183,7 @@ namespace SenseNet.Packaging
                 Logger.LogMessage("AppId: {0}", this.AppId);
                 Logger.LogMessage("Level:   " + this.Level);
                 if (this.Level != PackageLevel.Tool)
-                    Logger.LogMessage("Package version: " + this.VersionControl.Target);
+                    Logger.LogMessage("Package version: " + this.Version);
             }
 
             if (Level == PackageLevel.Install)
@@ -234,8 +237,8 @@ namespace SenseNet.Packaging
                 throw new PackagePreconditionException(SR.Errors.Precondition.MaximumVersion);
 
             if(Level != PackageLevel.Tool)
-                if (current >= VersionControl.Target)
-                    throw new PackagePreconditionException(String.Format(SR.Errors.Precondition.TargetVersionTooSmall_2, VersionControl.Target, current));
+                if (current >= this.Version)
+                    throw new PackagePreconditionException(String.Format(SR.Errors.Precondition.TargetVersionTooSmall_2, this.Version, current));
         }
     }
 }

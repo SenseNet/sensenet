@@ -224,8 +224,37 @@ namespace SenseNet.Core.Tests
             RepositoryVersionInfo.Reset();
         }
 
+        //================================================= new manifest
+
         [TestMethod]
-        public void Packaging_GetRepositoryVersionInfo()
+        public void Packaging_InstallNoDependency()
+        {
+            var recordCountBefore = GetDbRecordCount();
+
+            // action
+            var result = ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.0</Version>
+                            <Description>Installs MyCompany.MyComponent 1.0</Description>
+                            <Steps>
+                                <Trace>Package is running.</Trace>
+                            </Steps>
+                        </Package>");
+
+            // assert
+            var log = _log.ToString();
+            Assert.IsTrue(log.Contains("Package is running."));
+            Assert.IsTrue(result.Successful);
+            Assert.AreEqual(0, result.Errors);
+            Assert.AreEqual(recordCountBefore + 1, GetDbRecordCount());
+        }
+
+        //================================================= old manifest
+
+        [TestMethod]
+        public void OldPackaging_GetRepositoryVersionInfo()
         {
             PackageManager.Storage.CreateInitialSenseNetVersion(new Version(1, 42), "description");
 
@@ -235,276 +264,48 @@ namespace SenseNet.Core.Tests
         }
 
         [TestMethod]
-        public void Packaging_Install_FirstComponent()
-        {
-            var console = new StringWriter();
-            var appId = Guid.NewGuid().ToString();
-            var xml = new XmlDocument();
-            xml.LoadXml(@"<Package level='Install'>
-                                    <Name>Sense/Net ECM</Name>
-                                    <Description>Sensenet Core</Description>
-                                    <AppId>" + appId + @"</AppId>
-                                    <VersionControl target='1.1' expectedMin='1.0' />
-                                    <ReleaseDate>2014-04-01</ReleaseDate>
-                                    <Steps><Trace>Tool is running.</Trace></Steps>
-                                </Package>");
-
-            // action
-            var result = ExecutePhases(xml, console);
-
-
-            var log = _log.ToString();
-            Assert.IsTrue(log.Contains("Tool is running."));
-            Assert.IsTrue(log.Contains("Errors: 0"));
-        }
-        [TestMethod]
         public void Packaging_Install_FirstComponentTwice()
         {
-            var console = new StringWriter();
-            var appId = Guid.NewGuid().ToString();
-            var xml = new XmlDocument();
-            xml.LoadXml(@"<Package level='Install'>
-                                    <Name>Sense/Net ECM</Name>
-                                    <Description>Sensenet Core</Description>
-                                    <AppId>" + appId + @"</AppId>
-                                    <VersionControl target='1.1' expectedMin='1.0' />
-                                    <ReleaseDate>2014-04-01</ReleaseDate>
-                                    <Steps><Trace>Tool is running.</Trace></Steps>
-                                </Package>");
-            var recordCountBefore = GetDbRecordCount();
-
-            // first
-            var result = ExecutePhases(xml, console);
-            Assert.AreEqual(recordCountBefore + 1, GetDbRecordCount());
-
-            // second
-            recordCountBefore++;
-            try
-            {
-                // var manifest = Manifest.Parse(xml, 0, true);
-                ExecutePhases(xml, console);
-                Assert.Fail("PackagePreconditionException exception was not thrown.");
-            }
-            catch (PackagePreconditionException)
-            {
-                // do nothing
-            }
-            Assert.AreEqual(recordCountBefore, GetDbRecordCount());
+            Assert.Inconclusive();
         }
 
 
         [TestMethod]
-        public void Packaging_VersionControl_TargetInTool_IsInvalid()
-        {
-            var appId = Guid.NewGuid().ToString();
-            var xml = new XmlDocument();
-            xml.LoadXml(@"<Package level='Tool'>
-                            <Name>Sense/Net ECM</Name>
-                            <Description>Sensenet Core</Description>
-                            <AppId>" + appId + @"</AppId>
-                            <VersionControl target='1.1' expectedMin='1.0' />
-                            <ReleaseDate>2014-04-01</ReleaseDate>
-                            <Steps><Trace>Tool is running.</Trace></Steps>
-                        </Package>");
-
-            // action
-            try
-            {
-                Manifest.Parse(xml, 0, true);
-                Assert.Fail("PackagePreconditionException exception was not thrown.");
-            }
-            catch (InvalidPackageException)
-            {
-                // do nothing
-            }
-        }
-        [TestMethod]
-        public void Packaging_VersionControl_ExpectedAndMin_IsInvalid()
-        {
-            var appId = Guid.NewGuid().ToString();
-            var xml = new XmlDocument();
-            xml.LoadXml(@"<Package level='Patch'>
-                            <Name>Sense/Net ECM</Name>
-                            <Description>Sensenet Core</Description>
-                            <AppId>" + appId + @"</AppId>
-                            <VersionControl target='1.1' expected='1.0' expectedMin='1.0' />
-                            <ReleaseDate>2014-04-01</ReleaseDate>
-                            <Steps><Trace>Tool is running.</Trace></Steps>
-                        </Package>");
-
-            // action
-            try
-            {
-                Manifest.Parse(xml, 0, true);
-                Assert.Fail("PackagePreconditionException exception was not thrown.");
-            }
-            catch (InvalidPackageException)
-            {
-                // do nothing
-            }
-        }
-        [TestMethod]
-        public void Packaging_VersionControl_ExpectedAndMax_IsInvalid()
-        {
-            var console = new StringWriter();
-            var appId = Guid.NewGuid().ToString();
-            var xml = new XmlDocument();
-            xml.LoadXml(@"<Package level='Patch'>
-                            <Name>Sense/Net ECM</Name>
-                            <Description>Sensenet Core</Description>
-                            <AppId>" + appId + @"</AppId>
-                            <VersionControl target='1.1' expected='1.0' expectedMax='1.0' />
-                            <ReleaseDate>2014-04-01</ReleaseDate>
-                            <Steps><Trace>Tool is running.</Trace></Steps>
-                        </Package>");
-
-            // action
-            try
-            {
-                Manifest.Parse(xml, 0, true);
-                Assert.Fail("PackagePreconditionException exception was not thrown.");
-            }
-            catch (InvalidPackageException)
-            {
-                // do nothing
-            }
-        }
-        [TestMethod]
-        public void Packaging_VersionControl_WrongVersionValue_IsInvalid()
-        {
-            var console = new StringWriter();
-            var appId = Guid.NewGuid().ToString();
-            var xml = new XmlDocument();
-            xml.LoadXml(@"<Package level='Install'>
-                            <Name>Sense/Net ECM</Name>
-                            <Description>Sensenet Core</Description>
-                            <AppId>" + appId + @"</AppId>
-                            <VersionControl target='1.1wrong' />
-                            <ReleaseDate>2014-04-01</ReleaseDate>
-                            <Steps><Trace>Tool is running.</Trace></Steps>
-                        </Package>");
-
-            // action
-            try
-            {
-                Manifest.Parse(xml, 0, true);
-                Assert.Fail("PackagePreconditionException exception was not thrown.");
-            }
-            catch (InvalidPackageException)
-            {
-                // do nothing
-            }
-        }
-        [TestMethod]
-        public void Packaging_VersionControl_MissingTargetInInstall_IsInvalid()
-        {
-            var console = new StringWriter();
-            var appId = Guid.NewGuid().ToString();
-            var xml = new XmlDocument();
-            xml.LoadXml(@"<Package level='Install'>
-                            <Name>Sense/Net ECM</Name>
-                            <Description>Sensenet Core</Description>
-                            <AppId>" + appId + @"</AppId>
-                            <VersionControl expected='1.0' />
-                            <ReleaseDate>2014-04-01</ReleaseDate>
-                            <Steps><Trace>Tool is running.</Trace></Steps>
-                        </Package>");
-
-            // action
-            try
-            {
-                Manifest.Parse(xml, 0, true);
-                Assert.Fail("PackagePreconditionException exception was not thrown.");
-            }
-            catch (InvalidPackageException)
-            {
-                // do nothing
-            }
-        }
-        [TestMethod]
-        public void Packaging_VersionControl_MissingTargetInPatch_IsInvalid()
-        {
-            var console = new StringWriter();
-            var appId = Guid.NewGuid().ToString();
-            var xml = new XmlDocument();
-            xml.LoadXml(@"<Package level='Patch'>
-                            <Name>Sense/Net ECM</Name>
-                            <Description>Sensenet Core</Description>
-                            <AppId>" + appId + @"</AppId>
-                            <VersionControl expected='1.0' />
-                            <ReleaseDate>2014-04-01</ReleaseDate>
-                            <Steps><Trace>Tool is running.</Trace></Steps>
-                        </Package>");
-
-            // action
-            try
-            {
-                Manifest.Parse(xml, 0, true);
-                Assert.Fail("PackagePreconditionException exception was not thrown.");
-            }
-            catch (InvalidPackageException)
-            {
-                // do nothing
-            }
-        }
-        [TestMethod]
-        public void Packaging_VersionControl_ExpectedSetsMinAndMax()
-        {
-            var appId = Guid.NewGuid().ToString();
-            var xml = new XmlDocument();
-            xml.LoadXml(@"<Package level='Install'>
-                            <Name>Sense/Net ECM</Name>
-                            <Description>Sensenet Core</Description>
-                            <AppId>" + appId + @"</AppId>
-                            <VersionControl target='2.0' expected='1.42.123' />
-                            <ReleaseDate>2014-04-01</ReleaseDate>
-                            <Steps><Trace>Tool is running.</Trace></Steps>
-                        </Package>");
-
-            // action
-            var manifest = Manifest.Parse(xml, 0, true);
-
-            var versionControl = manifest.VersionControl;
-            Assert.AreEqual("1.42.123", versionControl.ExpectedMinimum.ToString());
-            Assert.AreEqual("1.42.123", versionControl.ExpectedMaximum.ToString());
-        }
-
-        [TestMethod]
-        public void Packaging_VersionControl_ToolCanWorkWithoutVersionControl()
+        public void OldPackaging_VersionControl_ExpectedAndMin_IsInvalid()
         {
             Assert.Inconclusive();
-
-            var console = new StringWriter();
-            var appId = Guid.NewGuid().ToString();
-            var xml = new XmlDocument();
-            xml.LoadXml(@"<Package level='Tool'>
-                            <Name>Sense/Net ECM</Name>
-                            <Description>Sensenet Core</Description>
-                            <AppId>" + appId + @"</AppId>
-                            <ReleaseDate>2014-04-01</ReleaseDate>
-                            <Steps><Trace>Tool is running.</Trace></Steps>
-                        </Package>");
-            var recordCountBefore = GetDbRecordCount();
-
-            // action
-            var result = ExecutePhases(xml, console);
-
-            Assert.AreEqual(0, result.Errors);
-            Assert.IsTrue(result.Successful);
-            Assert.AreEqual(recordCountBefore + 1, GetDbRecordCount());
-            var log = _log.ToString();
-            Assert.IsTrue(log.Contains("Tool is running."));
-            Assert.IsTrue(log.Contains("Errors: 0"));
+        }
+        [TestMethod]
+        public void OldPackaging_VersionControl_ExpectedAndMax_IsInvalid()
+        {
+            Assert.Inconclusive();
+        }
+        [TestMethod]
+        public void OldPackaging_VersionControl_WrongVersionValue_IsInvalid()
+        {
+            Assert.Inconclusive();
+        }
+        [TestMethod]
+        public void OldPackaging_VersionControl_ExpectedSetsMinAndMax()
+        {
+            Assert.Inconclusive();
         }
 
-        private PackagingResult ExecutePhases(XmlDocument manifestXml, TextWriter console)
+
+        private PackagingResult ExecutePhases(string manifestXml, TextWriter console = null)
+        {
+            var xml = new XmlDocument();
+            xml.LoadXml(manifestXml);
+            return ExecutePhases(xml, console);
+        }
+        private PackagingResult ExecutePhases(XmlDocument manifestXml, TextWriter console = null)
         {
             var phase = -1;
             var errors = 0;
             PackagingResult result;
             do
             {
-                result = ExecutePhase(manifestXml, ++phase, console);
+                result = ExecutePhase(manifestXml, ++phase, console ?? new StringWriter());
                 errors += result.Errors;
             } while (result.NeedRestart);
             result.Errors = errors;

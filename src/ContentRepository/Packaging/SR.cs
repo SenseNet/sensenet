@@ -27,9 +27,9 @@ namespace SenseNet.Packaging
                 internal static readonly string InvalidAppId = @"Invalid manifest: invalid ""AppId"" element. Value cannot be empty.";
                 internal static readonly string MissingReleaseDate = @"Invalid manifest: missing ""ReleaseDate"" element.";
                 internal static readonly string InvalidReleaseDate = @"Invalid manifest: invalid ""ReleaseDate"" element.";
-                internal static readonly string MissingVersionControl = @"Invaid manifest: missing ""VersionControl"" element.";
+                internal static readonly string MissingVersion = @"Invaid manifest: missing ""Version"" element.";
                 internal static readonly string MissingVersionAttribute_1 = @"Invalid manifest: missing ""{0}"" VersionControl attribute.";
-                internal static readonly string InvalidVersionAttribute_1 = @"Invalid manifest: invalid ""{0}"" VersionControl attribute.";
+                internal static readonly string InvalidVersion_1 = @"Invalid manifest: invalid version: ""{0}""";
                 internal static readonly string UnexpectedAppId = @"Invalid manifest: ""ApplicationIdentifier"" cannot be defined if the package type is ""product"".";
                 internal static readonly string UnexpectedTarget = @"Invalid manifest: the ""target"" VersionControl attribute cannot be defined if the package level is ""tool"".";
                 internal static readonly string UnexpectedExpectedVersion = @"Invalid manifest: the ""expected"" VersionControl attribute cannot be defined if the ""expectedMin"" or ""expectedMax"" exist.";

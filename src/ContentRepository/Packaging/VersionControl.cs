@@ -6,6 +6,7 @@ namespace SenseNet.Packaging
 {
     public class VersionControl
     {
+        [Obsolete("####", true)]
         public Version Target { get; private set; }
         public Version ExpectedMinimum { get; private set; }
         public Version ExpectedMaximum { get; private set; }
@@ -15,16 +16,6 @@ namespace SenseNet.Packaging
             var vc = new VersionControl();
             if (element == null)
                 return vc;
-
-            if (level == PackageLevel.Tool)
-            {
-                if (GetVersion(element, "target", false) != null)
-                    throw new InvalidPackageException(SR.Errors.Manifest.UnexpectedTarget);
-            }
-            else
-            {
-                vc.Target = GetVersion(element, "target", true);
-            }
 
             var expectedMin = GetVersion(element, "expectedMin", false);
             var expectedMax = GetVersion(element, "expectedMax", false);
@@ -52,15 +43,14 @@ namespace SenseNet.Packaging
                 return null;
             }
 
-            return GetVersion(attr);
+            return ParseVersion(attr.Value);
         }
-        private static Version GetVersion(XmlAttribute attr)
+        internal static Version ParseVersion(string value)
         {
             Version v;
-            if (Version.TryParse(attr.Value, out v))
+            if (Version.TryParse(value, out v))
                 return v;
-            throw new InvalidPackageException(String.Format(SR.Errors.Manifest.InvalidVersionAttribute_1, attr.Name));
+            throw new InvalidPackageException(string.Format(SR.Errors.Manifest.InvalidVersion_1, value));
         }
-
     }
 }
