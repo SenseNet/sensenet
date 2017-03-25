@@ -75,8 +75,7 @@ namespace SenseNet.Packaging
             {
                 if (e.InnerText.Length == 0)
                     throw new InvalidPackageException(SR.Errors.Manifest.InvalidComponentId);
-                else
-                    manifest.AppId = e.InnerText;
+                manifest.AppId = e.InnerText;
             }
             else
             {
@@ -191,24 +190,41 @@ namespace SenseNet.Packaging
                     Logger.LogMessage("Package version: " + this.Version);
             }
 
-            //UNDONE: test the case when database does not exist yet (or will be overwritten anyway).
             var versionInfo = RepositoryVersionInfo.Instance;
+            var existingComponentInfo = versionInfo.Applications.FirstOrDefault(a => a.AppId == AppId);
+
+            //UNDONE: test the case when database does not exist yet (or will be overwritten anyway).
+            if (Level == PackageLevel.Install)
+            {
+                if (existingComponentInfo != null)
+                    throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.CannotInstallExistingComponent1, this.AppId),
+                        PackagingExceptionType.CannotInstallExistingComponent);
+            }
+            else if (Level != PackageLevel.Tool)
+            {
+                if (existingComponentInfo == null)
+                    throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.CannotUpdateMissingComponent1, this.AppId),
+                        PackagingExceptionType.CannotUpdateMissingComponent);
+                if (existingComponentInfo.Version >= this.Version)
+                    throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.TargetVersionTooSmall2, this.Version, existingComponentInfo.Version),
+                        PackagingExceptionType.TargetVersionTooSmall);
+            }
+
             foreach (var dependency in this.Dependencies)
                 CheckDependency(dependency, versionInfo, log);
         }
         private void CheckDependency(Dependency dependency, RepositoryVersionInfo versionInfo, bool log)
         {
-            Version current = null;
-            Version min = null;
-            Version max = null;
-
             var existingApplication = versionInfo.Applications.FirstOrDefault(a => a.AppId == this.AppId);
             if (existingApplication == null)
-                throw new PackagePreconditionException(SR.Errors.Precondition.AppIdDoesNotMatch);
+                throw new PackagePreconditionException(SR.Errors.Precondition.DependencyNotFound1,
+                    PackagingExceptionType.DependencyNotFound);
 
-            current = existingApplication.AcceptableVersion;
-            min = dependency.MinVersion;
-            max = dependency.MaxVersion;
+            var current = existingApplication.AcceptableVersion;
+            var min = dependency.MinVersion;
+            var max = dependency.MaxVersion;
+            var minEx = dependency.MinVersionIsExclusive;
+            var maxEx = dependency.MaxVersionIsExclusive;
 
             if (log)
             {
@@ -227,15 +243,19 @@ namespace SenseNet.Packaging
                 }
             }
 
-            //UNDONE: _ Rewrite version validation.
-            if (min != null && min > current)
-                throw new PackagePreconditionException(SR.Errors.Precondition.MinimumVersion);
-            if (max != null && max < current)
-                throw new PackagePreconditionException(SR.Errors.Precondition.MaximumVersion);
+            if (min != null)
+            {
+                if (minEx && min >= current || !minEx && min > current)
+                    throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.MinimumVersion1, dependency.Id),
+                        PackagingExceptionType.DependencyMinimumVersion);
+            }
+            if (max != null)
+            {
+                if (maxEx && max >= current || !maxEx && max > current)
+                    throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.MaximumVersion1, dependency.Id),
+                        PackagingExceptionType.DependencyMaximumVersion);
+            }
 
-            if (Level != PackageLevel.Tool)
-                if (current >= this.Version)
-                    throw new PackagePreconditionException(String.Format(SR.Errors.Precondition.TargetVersionTooSmall_2, this.Version, current));
         }
     }
 }

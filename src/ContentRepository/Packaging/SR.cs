@@ -40,11 +40,12 @@ namespace SenseNet.Packaging
 
             internal static class Precondition
             {
-                internal static readonly string AppIdDoesNotMatch = "Package cannot be executed: Application identifier mismatch.";
-                internal static readonly string MinimumVersion = "Package cannot be executed: the version is smaller than permitted.";
-                internal static readonly string MaximumVersion = "Package cannot be executed: the version is greater than permitted.";
-                internal static readonly string TargetVersionTooSmall_2 = @"Invalid manifest: the target version ({0}) must be greater than the current version ({1}).";
-                internal static readonly string CannotInstallExistingApp = "Cannot install existing application.";
+                internal static readonly string DependencyNotFound1 = "Package cannot be executed: Dependency not found: {0}";
+                internal static readonly string MinimumVersion1 = "Package cannot be executed: the version is smaller than permitted: {0}";
+                internal static readonly string MaximumVersion1 = "Package cannot be executed: the version is greater than permitted: {0}";
+                internal static readonly string TargetVersionTooSmall2 = @"Invalid manifest: the target version ({0}) must be greater than the current version ({1}).";
+                internal static readonly string CannotInstallExistingComponent1 = "Cannot install existing component: {0}";
+                internal static readonly string CannotUpdateMissingComponent1 = "Cannot update missing component: {0}";
             }
 
             internal static class StepParsing

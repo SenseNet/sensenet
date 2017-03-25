@@ -434,6 +434,12 @@ namespace SenseNet.Core.Tests
             Assert.AreEqual(actualErrorType, expectedErrorType);
             Assert.AreEqual(recordCountBefore, GetDbRecordCount());
         }
+        //UNDONE: Test CannotInstallExistingComponent
+        //UNDONE: Test CannotUpdateMissingComponent
+        //UNDONE: Test TargetVersionTooSmall
+        //UNDONE: Test DependencyNotFound
+        //UNDONE: Test DependencyMinimumVersion
+        //UNDONE: Test DependencyMaximumVersion
 
         //================================================= old manifest
 
