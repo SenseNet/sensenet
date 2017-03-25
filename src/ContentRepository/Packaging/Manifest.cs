@@ -15,7 +15,6 @@ namespace SenseNet.Packaging
         public string AppId { get; private set; }
         public string Description { get; private set; }
         public DateTime ReleaseDate { get; private set; }
-        public VersionControl VersionControl { get; private set; }
         public IEnumerable<Dependency> Dependencies { get; private set; }
         public Version Version { get; private set; }
         internal Dictionary<string, string> Parameters { get; private set; }
@@ -93,7 +92,7 @@ namespace SenseNet.Packaging
             e = (XmlElement)xml.DocumentElement.SelectSingleNode("Version");
             if (e == null)
                 throw new InvalidPackageException(SR.Errors.Manifest.MissingVersion);
-            manifest.Version = Packaging.VersionControl.ParseVersion(e.InnerText);
+            manifest.Version = Dependency.ParseVersion(e.InnerText);
 
             // parsing release date (required)
             e = (XmlElement)xml.DocumentElement.SelectSingleNode("ReleaseDate");
@@ -192,22 +191,12 @@ namespace SenseNet.Packaging
                     Logger.LogMessage("Package version: " + this.Version);
             }
 
-            if (Level == PackageLevel.Install)
-            {
-                //UNDONE: test the case when database does not exist yet (or will be overwritten anyway).
-                CheckInstall(RepositoryVersionInfo.Instance, log);
-            }
-            else
-            {
-                CheckUpdate(RepositoryVersionInfo.Instance, log);
-            }
+            //UNDONE: test the case when database does not exist yet (or will be overwritten anyway).
+            var versionInfo = RepositoryVersionInfo.Instance;
+            foreach (var dependency in this.Dependencies)
+                CheckDependency(dependency, versionInfo, log);
         }
-        private void CheckInstall(RepositoryVersionInfo versionInfo, bool log)
-        {
-            if (versionInfo.Applications.FirstOrDefault(a => a.AppId == AppId) != null)
-                throw new PackagePreconditionException(SR.Errors.Precondition.CannotInstallExistingApp);
-        }
-        private void CheckUpdate(RepositoryVersionInfo versionInfo, bool log)
+        private void CheckDependency(Dependency dependency, RepositoryVersionInfo versionInfo, bool log)
         {
             Version current = null;
             Version min = null;
@@ -218,11 +207,12 @@ namespace SenseNet.Packaging
                 throw new PackagePreconditionException(SR.Errors.Precondition.AppIdDoesNotMatch);
 
             current = existingApplication.AcceptableVersion;
-            min = VersionControl.ExpectedMinimum;
-            max = VersionControl.ExpectedMaximum;
+            min = dependency.MinVersion;
+            max = dependency.MaxVersion;
 
             if (log)
             {
+                //UNDONE: _ Write correct expectation e.g.:  1.0 <= 1.1 < 2.0
                 Logger.LogMessage("Current version: {0}", current);
                 if (min != null && min == max)
                 {
@@ -237,12 +227,13 @@ namespace SenseNet.Packaging
                 }
             }
 
+            //UNDONE: _ Rewrite version validation.
             if (min != null && min > current)
                 throw new PackagePreconditionException(SR.Errors.Precondition.MinimumVersion);
             if (max != null && max < current)
                 throw new PackagePreconditionException(SR.Errors.Precondition.MaximumVersion);
 
-            if(Level != PackageLevel.Tool)
+            if (Level != PackageLevel.Tool)
                 if (current >= this.Version)
                     throw new PackagePreconditionException(String.Format(SR.Errors.Precondition.TargetVersionTooSmall_2, this.Version, current));
         }

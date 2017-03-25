@@ -225,7 +225,6 @@
     <Compile Include="Packaging\Steps\Terminate.cs" />
     <Compile Include="Packaging\Steps\Trace.cs" />
     <Compile Include="Packaging\Steps\XmlEditorStep.cs" />
-    <Compile Include="Packaging\VersionControl.cs" />
     <Compile Include="Packaging\ZipUnpacker.cs" />
     <Compile Include="Schema\Metadata\IMetaNode.cs" />
     <Compile Include="Schema\Metadata\MetaCollectionEnumerable.cs" />
