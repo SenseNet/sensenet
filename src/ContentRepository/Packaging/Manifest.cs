@@ -56,17 +56,20 @@ namespace SenseNet.Packaging
             // root element inspection (required element name)
             e = xml.DocumentElement;
             if(e.Name != "Package")
-                throw new InvalidPackageException(SR.Errors.Manifest.WrongRootName);
+                throw new InvalidPackageException(SR.Errors.Manifest.WrongRootName,
+                    PackagingExceptionType.WrongRootName);
 
             // parsing type (required, one of the tool, patch, or install)
             attr = e.Attributes["type"];
             if (attr == null)
                 attr = e.Attributes["Type"];
             if (attr == null)
-                throw new InvalidPackageException(SR.Errors.Manifest.MissingType);
+                throw new InvalidPackageException(SR.Errors.Manifest.MissingType,
+                     PackagingExceptionType.MissingPackageType);
             PackageLevel level;
             if(!Enum.TryParse<PackageLevel>(attr.Value, true, out level))
-                throw new InvalidPackageException(SR.Errors.Manifest.InvalidType);
+                throw new InvalidPackageException(SR.Errors.Manifest.InvalidType,
+                    PackagingExceptionType.InvalidPackageType);
             manifest.Level = level;
 
             // parsing ComponentId
@@ -74,12 +77,14 @@ namespace SenseNet.Packaging
             if (e != null)
             {
                 if (e.InnerText.Length == 0)
-                    throw new InvalidPackageException(SR.Errors.Manifest.InvalidComponentId);
+                    throw new InvalidPackageException(SR.Errors.Manifest.InvalidComponentId,
+                    PackagingExceptionType.InvalidComponentId);
                 manifest.ComponentId = e.InnerText;
             }
             else
             {
-                throw new InvalidPackageException(SR.Errors.Manifest.MissingComponentId);
+                throw new InvalidPackageException(SR.Errors.Manifest.MissingComponentId,
+                    PackagingExceptionType.MissingComponentId);
             }
 
             // parsing description (optional)
@@ -90,18 +95,22 @@ namespace SenseNet.Packaging
             // parsing version
             e = (XmlElement)xml.DocumentElement.SelectSingleNode("Version");
             if (e == null)
-                throw new InvalidPackageException(SR.Errors.Manifest.MissingVersion);
+                throw new InvalidPackageException(SR.Errors.Manifest.MissingVersion,
+                    PackagingExceptionType.MissingVersion);
             manifest.Version = Dependency.ParseVersion(e.InnerText);
 
             // parsing release date (required)
             e = (XmlElement)xml.DocumentElement.SelectSingleNode("ReleaseDate");
             if (e == null)
-                throw new InvalidPackageException(SR.Errors.Manifest.MissingReleaseDate);
+                throw new InvalidPackageException(SR.Errors.Manifest.MissingReleaseDate,
+                    PackagingExceptionType.MissingReleaseDate);
             DateTime releaseDate;
             if (!DateTime.TryParse(e.InnerText, out releaseDate))
-                throw new InvalidPackageException(SR.Errors.Manifest.InvalidReleaseDate);
+                throw new InvalidPackageException(SR.Errors.Manifest.InvalidReleaseDate,
+                    PackagingExceptionType.InvalidReleaseDate);
             if(releaseDate > DateTime.UtcNow)
-                throw new InvalidPackageException(SR.Errors.Manifest.InvalidReleaseDate);
+                throw new InvalidPackageException(SR.Errors.Manifest.TooBigReleaseDate,
+                    PackagingExceptionType.TooBigReleaseDate);
             manifest.ReleaseDate = releaseDate;
 
             // parsing dependencies

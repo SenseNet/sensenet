@@ -227,6 +227,198 @@ namespace SenseNet.Core.Tests
         //================================================= new manifest
 
         [TestMethod]
+        public void Packaging_ManifestHead_Description()
+        {
+            Assert.AreEqual("Description text",
+                (ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component2</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.0</Version>
+                            <Description>Description text</Description>
+                        </Package>")).Description);
+        }
+
+        [TestMethod]
+        public void Packaging_ManifestHead_WrongRootName()
+        {
+            try
+            {
+                ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Manifest type='Install'>
+                            <ComponentId>Component2</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.0</Version>
+                        </Manifest>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.WrongRootName, e.ErrorType);
+            }
+        }
+        [TestMethod]
+        public void Packaging_ManifestHead_MissingPackageType()
+        {
+            try
+            {
+                ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package level='Install'>
+                            <ComponentId>Component2</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.0</Version>
+                        </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.MissingPackageType, e.ErrorType);
+            }
+        }
+        [TestMethod]
+        public void Packaging_ManifestHead_InvalidPackageType()
+        {
+            try
+            {
+                ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='asdf'>
+                            <ComponentId>Component2</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.0</Version>
+                        </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.InvalidPackageType, e.ErrorType);
+            }
+        }
+        [TestMethod]
+        public void Packaging_ManifestHead_MissingComponentId()
+        {
+            try
+            {
+                ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.0</Version>
+                        </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.MissingComponentId, e.ErrorType);
+            }
+        }
+        [TestMethod]
+        public void Packaging_ManifestHead_InvalidComponentId()
+        {
+            try
+            {
+                ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId />
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.0</Version>
+                        </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.InvalidComponentId, e.ErrorType);
+            }
+        }
+        [TestMethod]
+        public void Packaging_ManifestHead_MissingVersion()
+        {
+            try
+            {
+                ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component1</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                        </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.MissingVersion, e.ErrorType);
+            }
+        }
+        [TestMethod]
+        public void Packaging_ManifestHead_InvalidVersion()
+        {
+            try
+            {
+                ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component1</ComponentId>
+                            <Version>asdf</Version>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                        </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.InvalidVersion, e.ErrorType);
+            }
+        }
+        [TestMethod]
+        public void Packaging_ManifestHead_MissingReleaseDate()
+        {
+            try
+            {
+                ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component1</ComponentId>
+                            <Version>1.0</Version>
+                        </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.MissingReleaseDate, e.ErrorType);
+            }
+        }
+        [TestMethod]
+        public void Packaging_ManifestHead_InvalidReleaseDate()
+        {
+            try
+            {
+                ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component1</ComponentId>
+                            <Version>1.0</Version>
+                            <ReleaseDate>asdf</ReleaseDate>
+                        </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.InvalidReleaseDate, e.ErrorType);
+            }
+        }
+        [TestMethod]
+        public void Packaging_ManifestHead_TooBigReleaseDate()
+        {
+            try
+            {
+                ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component1</ComponentId>
+                            <Version>1.0</Version>
+                            <ReleaseDate>9999-01-01</ReleaseDate>
+                        </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.TooBigReleaseDate, e.ErrorType);
+            }
+        }
+
+
+        [TestMethod]
         public void Packaging_Dependency_ExactVersion()
         {
             var manifest = ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
@@ -251,6 +443,7 @@ namespace SenseNet.Core.Tests
             Assert.IsFalse(dependency.MinVersionIsExclusive);
             Assert.IsFalse(dependency.MaxVersionIsExclusive);
         }
+
         [TestMethod]
         public void Packaging_Dependency_MissingId()
         {

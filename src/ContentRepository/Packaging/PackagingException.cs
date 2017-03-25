@@ -8,6 +8,10 @@ namespace SenseNet.Packaging
         NotDefined,
         InvalidParameter, InvalidStepParameter,
         DependencyNotFound, DependencyMismatch,
+        // head parsing
+        WrongRootName, MissingPackageType, InvalidPackageType, MissingComponentId, InvalidComponentId,
+        MissingVersion, MissingReleaseDate, InvalidReleaseDate, TooBigReleaseDate,
+        // dependency parsing
         MissingDependencyId, EmptyDependencyId,
         MissingDependencyVersion, InvalidVersion, UnexpectedVersionAttribute, DoubleMinVersionAttribute, DoubleMaxVersionAttribute,
         CannotInstallExistingComponent, CannotUpdateMissingComponent, TargetVersionTooSmall,
