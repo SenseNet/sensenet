@@ -206,11 +206,11 @@ namespace SenseNet.Packaging
             var oldPacks = RepositoryVersionInfo.Instance.InstalledPackages;
             if (manifest.Level == PackageLevel.Tool)
                 oldPacks = oldPacks
-                    .Where(p => p.AppId == manifest.AppId && p.PackageLevel == PackageLevel.Tool
+                    .Where(p => p.AppId == manifest.ComponentId && p.PackageLevel == PackageLevel.Tool
                     && p.ExecutionResult == ExecutionResult.Unfinished);
             else
                 oldPacks = oldPacks
-                    .Where(p => p.AppId == manifest.AppId && p.ApplicationVersion == manifest.Version);
+                    .Where(p => p.AppId == manifest.ComponentId && p.ApplicationVersion == manifest.Version);
             oldPacks = oldPacks.OrderBy(p => p.ExecutionDate).ToArray();
 
             var oldPack = oldPacks.LastOrDefault();
@@ -236,7 +236,7 @@ namespace SenseNet.Packaging
                 Description = manifest.Description,
                 ReleaseDate = manifest.ReleaseDate,
                 PackageLevel = manifest.Level,
-                AppId = manifest.AppId,
+                AppId = manifest.ComponentId,
                 ExecutionDate = DateTime.UtcNow,
                 ExecutionResult = result,
                 ApplicationVersion = appVer,
@@ -252,7 +252,7 @@ namespace SenseNet.Packaging
             package.Description = manifest.Description;
             package.ReleaseDate = manifest.ReleaseDate;
             package.PackageLevel = manifest.Level;
-            package.AppId = manifest.AppId;
+            package.AppId = manifest.ComponentId;
             package.ExecutionDate = DateTime.UtcNow;
             package.ExecutionResult = result;
             package.ExecutionError = execError;

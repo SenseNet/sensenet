@@ -12,7 +12,7 @@ namespace SenseNet.Packaging
     public class Manifest
     {
         public PackageLevel Level { get; private set; }
-        public string AppId { get; private set; }
+        public string ComponentId { get; private set; }
         public string Description { get; private set; }
         public DateTime ReleaseDate { get; private set; }
         public IEnumerable<Dependency> Dependencies { get; private set; }
@@ -75,7 +75,7 @@ namespace SenseNet.Packaging
             {
                 if (e.InnerText.Length == 0)
                     throw new InvalidPackageException(SR.Errors.Manifest.InvalidComponentId);
-                manifest.AppId = e.InnerText;
+                manifest.ComponentId = e.InnerText;
             }
             else
             {
@@ -184,26 +184,26 @@ namespace SenseNet.Packaging
         {
             if (log)
             {
-                Logger.LogMessage("AppId: {0}", this.AppId);
+                Logger.LogMessage("AppId: {0}", this.ComponentId);
                 Logger.LogMessage("Level:   " + this.Level);
                 if (this.Level != PackageLevel.Tool)
                     Logger.LogMessage("Package version: " + this.Version);
             }
 
             var versionInfo = RepositoryVersionInfo.Instance;
-            var existingComponentInfo = versionInfo.Applications.FirstOrDefault(a => a.AppId == AppId);
+            var existingComponentInfo = versionInfo.Applications.FirstOrDefault(a => a.AppId == ComponentId);
 
             //UNDONE: test the case when database does not exist yet (or will be overwritten anyway).
             if (Level == PackageLevel.Install)
             {
                 if (existingComponentInfo != null)
-                    throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.CannotInstallExistingComponent1, this.AppId),
+                    throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.CannotInstallExistingComponent1, this.ComponentId),
                         PackagingExceptionType.CannotInstallExistingComponent);
             }
             else if (Level != PackageLevel.Tool)
             {
                 if (existingComponentInfo == null)
-                    throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.CannotUpdateMissingComponent1, this.AppId),
+                    throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.CannotUpdateMissingComponent1, this.ComponentId),
                         PackagingExceptionType.CannotUpdateMissingComponent);
                 if (existingComponentInfo.Version >= this.Version)
                     throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.TargetVersionTooSmall2, this.Version, existingComponentInfo.Version),
@@ -215,7 +215,7 @@ namespace SenseNet.Packaging
         }
         private void CheckDependency(Dependency dependency, RepositoryVersionInfo versionInfo, bool log)
         {
-            var existingApplication = versionInfo.Applications.FirstOrDefault(a => a.AppId == this.AppId);
+            var existingApplication = versionInfo.Applications.FirstOrDefault(a => a.AppId == this.ComponentId);
             if (existingApplication == null)
                 throw new PackagePreconditionException(SR.Errors.Precondition.DependencyNotFound1,
                     PackagingExceptionType.DependencyNotFound);
