@@ -176,6 +176,7 @@
     <Compile Include="Packaging\Manifest.cs" />
     <Compile Include="Packaging\PackageManager.cs" />
     <Compile Include="Packaging\PackageParameter.cs" />
+    <Compile Include="Packaging\IPackageStorageProviderFactory.cs" />
     <Compile Include="Packaging\PackagingException.cs" />
     <Compile Include="Packaging\SR.cs" />
     <Compile Include="Packaging\Steps\AddField.cs" />
