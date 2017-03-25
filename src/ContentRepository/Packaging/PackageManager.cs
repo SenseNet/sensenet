@@ -14,21 +14,6 @@ using SenseNet.Packaging.Steps;
 
 namespace SenseNet.Packaging
 {
-    //UNDONE: move to new file: PackageStorageProviderFactory
-    internal interface IPackageStorageProviderFactory
-    {
-        IPackageStorageProvider CreateProvider();
-    }
-
-    //UNDONE: move to new file: PackageStorageProviderFactory
-    internal class BuiltinPackageStorageProviderFactory : IPackageStorageProviderFactory
-    {
-        public IPackageStorageProvider CreateProvider()
-        {
-            return DataProvider.Current;
-        }
-    }
-
     public class PackageManager
     {
         public const string SANDBOXDIRECTORYNAME = "run";
