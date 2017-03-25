@@ -680,7 +680,7 @@ namespace SenseNet.Core.Tests
                                 <Trace>Package is running.</Trace>
                             </Steps>
                         </Package>");
-                Assert.Fail("PackagingException was not thrown. Expected error type: PackagingExceptionType.DependencyNotFound");
+                Assert.Fail("PackagingException was not thrown.");
             }
             catch (PackagingException e)
             {
@@ -691,15 +691,198 @@ namespace SenseNet.Core.Tests
             Assert.AreEqual(actualErrorType, expectedErrorType);
             Assert.AreEqual(recordCountBefore, GetDbRecordCount());
         }
-        //UNDONE: Test CannotInstallExistingComponent
-        //UNDONE: Test CannotUpdateMissingComponent
-        //UNDONE: Test TargetVersionTooSmall
-        //UNDONE: Test DependencyNotFound
-        //UNDONE: Test DependencyMinimumVersion
-        //UNDONE: Test DependencyMaximumVersion
 
+        [TestMethod]
+        public void Packaging_DependencyCheck_CannotInstallExistingComponent()
+        {
+            ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
+                    <Package type='Install'>
+                        <ComponentId>MyCompany.MyComponent</ComponentId>
+                        <ReleaseDate>2017-01-01</ReleaseDate>
+                        <Version>1.0</Version>
+                        <Steps>
+                            <Trace>Package is running.</Trace>
+                        </Steps>
+                    </Package>");
 
-        //UNDONE: public void Packaging_Install_FirstComponentTwice()
+            // action
+            try
+            {
+                ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.1</Version>
+                            <Steps>
+                                <Trace>Package is running.</Trace>
+                            </Steps>
+                        </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.CannotInstallExistingComponent, e.ErrorType);
+            }
+        }
+        [TestMethod]
+        public void Packaging_DependencyCheck_CannotUpdateMissingComponent()
+        {
+            try
+            {
+                ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
+                    <Package type='Patch'>
+                        <ComponentId>Component2</ComponentId>
+                        <ReleaseDate>2017-01-01</ReleaseDate>
+                        <Version>1.1</Version>
+                        <Steps>
+                            <Trace>Package is running.</Trace>
+                        </Steps>
+                    </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.CannotUpdateMissingComponent, e.ErrorType);
+            }
+        }
+        [TestMethod]
+        public void Packaging_DependencyCheck_TargetVersionTooSmall()
+        {
+            ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
+                    <Package type='Install'>
+                        <ComponentId>MyCompany.MyComponent</ComponentId>
+                        <ReleaseDate>2017-01-01</ReleaseDate>
+                        <Version>1.0</Version>
+                        <Steps>
+                            <Trace>Package is running.</Trace>
+                        </Steps>
+                    </Package>");
+
+            // action
+            try
+            {
+                ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Patch'>
+                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.0</Version>
+                            <Steps>
+                                <Trace>Package is running.</Trace>
+                            </Steps>
+                        </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.TargetVersionTooSmall, e.ErrorType);
+            }
+        }
+
+        [TestMethod]
+        public void Packaging_DependencyCheck_DependencyVersion()
+        {
+            ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
+                    <Package type='Install'>
+                        <ComponentId>Component1</ComponentId>
+                        <ReleaseDate>2017-01-01</ReleaseDate>
+                        <Version>1.0</Version>
+                        <Steps>
+                            <Trace>Package is running.</Trace>
+                        </Steps>
+                    </Package>");
+
+            // action
+            try
+            {
+                ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component2</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.1</Version>
+                            <Dependencies>
+                                <Dependency id='Component1' version='1.2' />
+                            </Dependencies>
+                            <Steps>
+                                <Trace>Package is running.</Trace>
+                            </Steps>
+                        </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.DependencyVersion, e.ErrorType);
+            }
+        }
+        [TestMethod]
+        public void Packaging_DependencyCheck_DependencyMinimumVersion()
+        {
+            ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
+                    <Package type='Install'>
+                        <ComponentId>Component1</ComponentId>
+                        <ReleaseDate>2017-01-01</ReleaseDate>
+                        <Version>1.0</Version>
+                        <Steps>
+                            <Trace>Package is running.</Trace>
+                        </Steps>
+                    </Package>");
+
+            // action
+            try
+            {
+                ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component2</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.1</Version>
+                            <Dependencies>
+                                <Dependency id='Component1' minVersion='1.1' />
+                            </Dependencies>
+                            <Steps>
+                                <Trace>Package is running.</Trace>
+                            </Steps>
+                        </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.DependencyMinimumVersion, e.ErrorType);
+            }
+        }
+        [TestMethod]
+        public void Packaging_DependencyCheck_DependencyMaximumVersion()
+        {
+            ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
+                    <Package type='Install'>
+                        <ComponentId>Component1</ComponentId>
+                        <ReleaseDate>2017-01-01</ReleaseDate>
+                        <Version>1.0</Version>
+                        <Steps>
+                            <Trace>Package is running.</Trace>
+                        </Steps>
+                    </Package>");
+
+            // action
+            try
+            {
+                ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component2</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>2.1</Version>
+                            <Dependencies>
+                                <Dependency id='Component1' maxVersion='2.0' />
+                            </Dependencies>
+                            <Steps>
+                                <Trace>Package is running.</Trace>
+                            </Steps>
+                        </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.DependencyMaximumVersion, e.ErrorType);
+            }
+        }
 
         /*================================================= old manifest */
 
