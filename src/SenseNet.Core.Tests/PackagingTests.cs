@@ -884,6 +884,48 @@ namespace SenseNet.Core.Tests
             }
         }
 
+        [TestMethod]
+        public void Packaging_ParsePhases_PhaseValidation()
+        {
+            var manifestXml = new XmlDocument();
+            manifestXml.LoadXml(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component2</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.0</Version>
+                            <Steps>
+                                <Phase><Trace>Package is running. Phase-1</Trace></Phase>
+                                <Phase><Trace>Package is running. Phase-2</Trace></Phase>
+                                <Phase><Trace>Package is running. Phase-3</Trace></Phase>
+                            </Steps>
+                        </Package>");
+
+            try
+            {
+                ExecutePhase(manifestXml, -1);
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.InvalidPhase, e.ErrorType);
+            }
+
+            ExecutePhase(manifestXml, 0);
+            ExecutePhase(manifestXml, 1);
+            ExecutePhase(manifestXml, 2);
+
+            try
+            {
+                ExecutePhase(manifestXml, 4);
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.InvalidPhase, e.ErrorType);
+            }
+
+        }
+
         /*================================================= old manifest */
 
         [TestMethod]
@@ -904,11 +946,11 @@ namespace SenseNet.Core.Tests
             Manifest.ParseHead(xml, manifest);
             return manifest;
         }
-        private Manifest ParseManifest(string manifestXml)
+        private Manifest ParseManifest(string manifestXml, int currentPhase)
         {
             var xml = new XmlDocument();
             xml.LoadXml(manifestXml);
-            return Manifest.Parse(xml, 0, true);
+            return Manifest.Parse(xml, currentPhase, true);
         }
 
         private PackagingResult ExecutePhases(string manifestXml, TextWriter console = null)
@@ -930,10 +972,10 @@ namespace SenseNet.Core.Tests
             result.Errors = errors;
             return result;
         }
-        private PackagingResult ExecutePhase(XmlDocument manifestXml, int phase, TextWriter console)
+        private PackagingResult ExecutePhase(XmlDocument manifestXml, int phase, TextWriter console = null)
         {
             var manifest = Manifest.Parse(manifestXml, phase, true);
-            var executionContext = ExecutionContext.CreateForTest("packagePath", "targetPath", new string[0], "sandboxPath", manifest, phase, manifest.CountOfPhases, null, console);
+            var executionContext = ExecutionContext.CreateForTest("packagePath", "targetPath", new string[0], "sandboxPath", manifest, phase, manifest.CountOfPhases, null, console ?? new StringWriter());
             return PackageManager.ExecuteCurrentPhase(manifest, executionContext);
         }
         private int GetDbRecordCount()

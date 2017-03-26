@@ -185,7 +185,8 @@ namespace SenseNet.Packaging
         public List<XmlElement > GetPhase(int index)
         {
             if (index < 0 || index > _phases.Count)
-                throw new PackagingException(String.Format(SR.Errors.InvalidPhaseIndex_2, _phases.Count, index));
+                throw new PackagingException(String.Format(SR.Errors.InvalidPhaseIndex_2, _phases.Count, index),
+                    PackagingExceptionType.InvalidPhase);
             return _phases[index];
         }
 

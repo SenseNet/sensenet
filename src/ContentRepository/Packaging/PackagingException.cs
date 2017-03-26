@@ -15,7 +15,8 @@ namespace SenseNet.Packaging
         MissingDependencyId, EmptyDependencyId,
         MissingDependencyVersion, InvalidVersion, UnexpectedVersionAttribute, DoubleMinVersionAttribute, DoubleMaxVersionAttribute,
         CannotInstallExistingComponent, CannotUpdateMissingComponent, TargetVersionTooSmall,
-        DependencyVersion, DependencyMinimumVersion, DependencyMaximumVersion
+        DependencyVersion, DependencyMinimumVersion, DependencyMaximumVersion,
+        InvalidPhase
     }
 
     [Serializable]
