@@ -885,14 +885,14 @@ namespace SenseNet.Core.Tests
         }
 
         [TestMethod]
-        public void Packaging_ParsePhases_PhaseValidation()
+        public void Packaging_ParsePhases_PhaseIndexValidation()
         {
             var manifestXml = new XmlDocument();
             manifestXml.LoadXml(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component2</ComponentId>
+                            <ComponentId>Component42</ComponentId>
                             <ReleaseDate>2017-01-01</ReleaseDate>
-                            <Version>1.0</Version>
+                            <Version>4.42</Version>
                             <Steps>
                                 <Phase><Trace>Package is running. Phase-1</Trace></Phase>
                                 <Phase><Trace>Package is running. Phase-2</Trace></Phase>
@@ -900,6 +900,7 @@ namespace SenseNet.Core.Tests
                             </Steps>
                         </Package>");
 
+            // error 1
             try
             {
                 ExecutePhase(manifestXml, -1);
@@ -910,10 +911,7 @@ namespace SenseNet.Core.Tests
                 Assert.AreEqual(PackagingExceptionType.InvalidPhase, e.ErrorType);
             }
 
-            ExecutePhase(manifestXml, 0);
-            ExecutePhase(manifestXml, 1);
-            ExecutePhase(manifestXml, 2);
-
+            // error 2
             try
             {
                 ExecutePhase(manifestXml, 4);
@@ -924,6 +922,89 @@ namespace SenseNet.Core.Tests
                 Assert.AreEqual(PackagingExceptionType.InvalidPhase, e.ErrorType);
             }
 
+            // normal flow
+            ExecutePhase(manifestXml, 0);
+            ExecutePhase(manifestXml, 1);
+            ExecutePhase(manifestXml, 2);
+
+            var app = RepositoryVersionInfo.Instance.Applications.FirstOrDefault();
+            Assert.IsNotNull(app);
+            Assert.IsNotNull(app.AcceptableVersion);
+            Assert.AreEqual("4.42", app.Version.ToString());
+            Assert.AreEqual("4.42", app.AcceptableVersion.ToString());
+            Assert.AreEqual("Component42", app.AppId);
+        }
+
+
+        [TestMethod]
+        public void Packaging_Install_ThreePhases()
+        {
+            var manifestXml = new XmlDocument();
+            manifestXml.LoadXml(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component42</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>4.42</Version>
+                            <Steps>
+                                <Phase><Trace>Package is running. Phase-1</Trace></Phase>
+                                <Phase><Trace>Package is running. Phase-2</Trace></Phase>
+                                <Phase><Trace>Package is running. Phase-3</Trace></Phase>
+                            </Steps>
+                        </Package>");
+            ApplicationInfo app;
+            Package pkg;
+
+            // phase 1
+            ExecutePhase(manifestXml, 0);
+
+            // validate state after phase 1
+            app = RepositoryVersionInfo.Instance.Applications.FirstOrDefault();
+            Assert.IsNotNull(app);
+            Assert.AreEqual("Component42", app.AppId);
+            Assert.AreEqual("4.42", app.Version.ToString());
+            Assert.IsNull(app.AcceptableVersion);
+            pkg = RepositoryVersionInfo.Instance.InstalledPackages.FirstOrDefault();
+            Assert.IsNotNull(pkg);
+            Assert.AreEqual("Component42", pkg.AppId);
+            Assert.AreEqual(ExecutionResult.Unfinished, pkg.ExecutionResult);
+            Assert.AreEqual(PackageLevel.Install, pkg.PackageLevel);
+            Assert.AreEqual("4.42", pkg.ApplicationVersion.ToString());
+
+            // phase 2
+            ExecutePhase(manifestXml, 1);
+
+            // validate state after phase 2
+            app = RepositoryVersionInfo.Instance.Applications.FirstOrDefault();
+            Assert.IsNotNull(app);
+            Assert.AreEqual("Component42", app.AppId);
+            Assert.AreEqual("4.42", app.Version.ToString());
+            Assert.IsNull(app.AcceptableVersion);
+            pkg = RepositoryVersionInfo.Instance.InstalledPackages.FirstOrDefault();
+            Assert.IsNotNull(pkg);
+            Assert.AreEqual("Component42", pkg.AppId);
+            Assert.AreEqual(ExecutionResult.Unfinished, pkg.ExecutionResult);
+            Assert.AreEqual(PackageLevel.Install, pkg.PackageLevel);
+            Assert.AreEqual("4.42", pkg.ApplicationVersion.ToString());
+
+            // phase 3
+            ExecutePhase(manifestXml, 2);
+
+            // validate state after phase 3
+            app = RepositoryVersionInfo.Instance.Applications.FirstOrDefault();
+            Assert.IsNotNull(app);
+            Assert.AreEqual("Component42", app.AppId);
+            Assert.AreEqual("4.42", app.Version.ToString());
+            Assert.IsNotNull(app.AcceptableVersion);
+            Assert.AreEqual("4.42", app.AcceptableVersion.ToString());
+            pkg = RepositoryVersionInfo.Instance.InstalledPackages.FirstOrDefault();
+            Assert.IsNotNull(pkg);
+            Assert.AreEqual("Component42", pkg.AppId);
+            Assert.AreEqual(ExecutionResult.Successful, pkg.ExecutionResult);
+            Assert.AreEqual(PackageLevel.Install, pkg.PackageLevel);
+            Assert.AreEqual("4.42", pkg.ApplicationVersion.ToString());
+
+            Assert.AreEqual(1, RepositoryVersionInfo.Instance.Applications.Count());
+            Assert.AreEqual(1, RepositoryVersionInfo.Instance.InstalledPackages.Count());
         }
 
         /*================================================= old manifest */

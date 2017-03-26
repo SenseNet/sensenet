@@ -201,7 +201,7 @@ namespace SenseNet.Packaging
             }
 
             var versionInfo = RepositoryVersionInfo.Instance;
-            var existingComponentInfo = versionInfo.Applications.FirstOrDefault(a => a.AppId == ComponentId);
+            var existingComponentInfo = versionInfo.Applications.FirstOrDefault(a => a.AppId == ComponentId && a.AcceptableVersion != null);
 
             //UNDONE: test the case when database does not exist yet (or will be overwritten anyway).
             if (Level == PackageLevel.Install)
