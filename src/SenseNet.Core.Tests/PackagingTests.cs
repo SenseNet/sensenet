@@ -638,25 +638,92 @@ namespace SenseNet.Core.Tests
         [TestMethod]
         public void Packaging_ParseParameters_DefaultValues()
         {
-            Assert.Inconclusive();
+            // action
+            var manifest = ParseManifest(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component2</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.0</Version>
+                            <Parameters>
+                                <Parameter name='@param1' />
+                                <Parameter name='@param2'>42</Parameter>
+                                <Parameter name='@param3'>value3</Parameter>
+                            </Parameters>
+                        </Package>", 0);
+
+            // check
+            Assert.AreEqual("@param1:[null], @param2:42, @param3:value3", 
+                string.Join(", ", manifest.Parameters.Select(x => $"{x.Key}:{x.Value ?? "[null]"}").ToArray()));
         }
         [TestMethod]
         public void Packaging_ParseParameters_MissingParameterName()
         {
-            // PackagingExceptionType.MissingParameterName
-            Assert.Inconclusive();
+            try
+            {
+                ParseManifest(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component2</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.0</Version>
+                            <Parameters>
+                                <Parameter name='@param1' />
+                                <Parameter/>
+                                <Parameter name='@param3' />
+                            </Parameters>
+                        </Package>", 0);
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.MissingParameterName, e.ErrorType);
+            }
         }
         [TestMethod]
         public void Packaging_ParseParameters_InvalidParameterName()
         {
-            // PackagingExceptionType.InvalidParameterName
-            Assert.Inconclusive();
+            try
+            {
+                ParseManifest(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component2</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.0</Version>
+                            <Parameters>
+                                <Parameter name='@param1' />
+                                <Parameter name='param2' />
+                                <Parameter name='@param3' />
+                            </Parameters>
+                        </Package>", 0);
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.InvalidParameterName, e.ErrorType);
+            }
         }
         [TestMethod]
         public void Packaging_ParseParameters_DuplicatedParameter()
         {
-            // PackagingExceptionType.DuplicatedParameter
-            Assert.Inconclusive();
+            try
+            {
+                ParseManifest(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component2</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.0</Version>
+                            <Parameters>
+                                <Parameter name='@param1' />
+                                <Parameter name='@param2' />
+                                <Parameter name='@param3' />
+                                <Parameter name='@param2' />
+                            </Parameters>
+                        </Package>", 0);
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.DuplicatedParameter, e.ErrorType);
+            }
         }
 
         [TestMethod]
