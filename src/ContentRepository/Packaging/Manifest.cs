@@ -218,7 +218,7 @@ namespace SenseNet.Packaging
                 if (existingComponentInfo == null)
                     throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.CannotUpdateMissingComponent1, this.ComponentId),
                         PackagingExceptionType.CannotUpdateMissingComponent);
-                if (existingComponentInfo.Version >= this.Version)
+                if (existingComponentInfo.AcceptableVersion >= this.Version)
                     throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.TargetVersionTooSmall2, this.Version, existingComponentInfo.Version),
                         PackagingExceptionType.TargetVersionTooSmall);
             }
