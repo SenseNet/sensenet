@@ -128,13 +128,16 @@ namespace SenseNet.Packaging
             {
                 var parameterName = parameterElement.Attributes["name"]?.Value;
                 if(parameterName == null)
-                    throw new InvalidParameterException("Missing parameter name.");
+                    throw new InvalidParameterException("Missing parameter name.",
+                        PackagingExceptionType.MissingParameterName);
                 if (!parameterName.StartsWith("@"))
-                    throw new InvalidParameterException("Parameter names must start with @.");
+                    throw new InvalidParameterException("Parameter names must start with @.",
+                        PackagingExceptionType.InvalidParameterName);
 
                 var lowerCaseParameterName = parameterName.ToLowerInvariant();
                 if(parameters.ContainsKey(lowerCaseParameterName))
-                    throw new InvalidParameterException($"Duplicated parameter name:{parameterName}");
+                    throw new InvalidParameterException($"Duplicated parameter name:{parameterName}",
+                        PackagingExceptionType.DuplicatedParameter);
 
                 var defaultValue = parameterElement.InnerXml;
 

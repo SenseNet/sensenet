@@ -636,6 +636,30 @@ namespace SenseNet.Core.Tests
         }
 
         [TestMethod]
+        public void Packaging_ParseParameters_DefaultValues()
+        {
+            Assert.Inconclusive();
+        }
+        [TestMethod]
+        public void Packaging_ParseParameters_MissingParameterName()
+        {
+            // PackagingExceptionType.MissingParameterName
+            Assert.Inconclusive();
+        }
+        [TestMethod]
+        public void Packaging_ParseParameters_InvalidParameterName()
+        {
+            // PackagingExceptionType.InvalidParameterName
+            Assert.Inconclusive();
+        }
+        [TestMethod]
+        public void Packaging_ParseParameters_DuplicatedParameter()
+        {
+            // PackagingExceptionType.DuplicatedParameter
+            Assert.Inconclusive();
+        }
+
+        [TestMethod]
         public void Packaging_Install_NoDependency()
         {
             var recordCountBefore = GetDbRecordCount();
@@ -935,9 +959,41 @@ namespace SenseNet.Core.Tests
             Assert.AreEqual("Component42", app.AppId);
         }
 
-
         [TestMethod]
-        public void Packaging_Install_ThreePhases()
+        public void Packaging_Exec_InstallNoSteps()
+        {
+            var manifestXml = new XmlDocument();
+            manifestXml.LoadXml(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component42</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>4.42</Version>
+                        </Package>");
+            ApplicationInfo app;
+            Package pkg;
+
+            // phase 1
+            ExecutePhase(manifestXml, 0);
+
+            // validate state after phase 3
+            app = RepositoryVersionInfo.Instance.Applications.FirstOrDefault();
+            Assert.IsNotNull(app);
+            Assert.AreEqual("Component42", app.AppId);
+            Assert.AreEqual("4.42", app.Version.ToString());
+            Assert.IsNotNull(app.AcceptableVersion);
+            Assert.AreEqual("4.42", app.AcceptableVersion.ToString());
+            pkg = RepositoryVersionInfo.Instance.InstalledPackages.FirstOrDefault();
+            Assert.IsNotNull(pkg);
+            Assert.AreEqual("Component42", pkg.AppId);
+            Assert.AreEqual(ExecutionResult.Successful, pkg.ExecutionResult);
+            Assert.AreEqual(PackageLevel.Install, pkg.PackageLevel);
+            Assert.AreEqual("4.42", pkg.ApplicationVersion.ToString());
+
+            Assert.AreEqual(1, RepositoryVersionInfo.Instance.Applications.Count());
+            Assert.AreEqual(1, RepositoryVersionInfo.Instance.InstalledPackages.Count());
+        }
+        [TestMethod]
+        public void Packaging_Exec_InstallThreePhases()
         {
             var manifestXml = new XmlDocument();
             manifestXml.LoadXml(@"<?xml version='1.0' encoding='utf-8'?>
