@@ -970,7 +970,7 @@ namespace SenseNet.Core.Tests
                     <Package type='Install'>
                         <ComponentId>Component1</ComponentId>
                         <ReleaseDate>2017-01-01</ReleaseDate>
-                        <Version>1.0</Version>
+                        <Version>3.0</Version>
                         <Steps>
                             <Trace>Package is running.</Trace>
                         </Steps>

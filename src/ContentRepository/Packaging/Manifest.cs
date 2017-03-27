@@ -264,7 +264,7 @@ namespace SenseNet.Packaging
             }
             if (max != null)
             {
-                if (maxEx && max >= current || !maxEx && max > current)
+                if (maxEx && max <= current || !maxEx && max < current)
                     throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.MaximumVersion1, dependency.Id),
                         min == max ? PackagingExceptionType.DependencyVersion : PackagingExceptionType.DependencyMaximumVersion);
             }
