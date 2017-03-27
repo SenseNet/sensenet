@@ -223,6 +223,8 @@ namespace SenseNet.Packaging
                         PackagingExceptionType.TargetVersionTooSmall);
             }
 
+            if (log && this.Dependencies.Any())
+                Logger.LogMessage("Dependencies:");
             foreach (var dependency in this.Dependencies)
                 CheckDependency(dependency, versionInfo, log);
         }
@@ -230,7 +232,7 @@ namespace SenseNet.Packaging
         {
             var existingApplication = versionInfo.Applications.FirstOrDefault(a => a.AppId == dependency.Id);
             if (existingApplication == null)
-                throw new PackagePreconditionException(SR.Errors.Precondition.DependencyNotFound1,
+                throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.DependencyNotFound1, dependency.Id),
                     PackagingExceptionType.DependencyNotFound);
 
             var current = existingApplication.AcceptableVersion;
@@ -241,18 +243,19 @@ namespace SenseNet.Packaging
 
             if (log)
             {
-                //UNDONE: _ Write correct expectation e.g.:  1.0 <= 1.1 < 2.0
-                Logger.LogMessage("Current version: {0}", current);
                 if (min != null && min == max)
                 {
-                    Logger.LogMessage("Expected version: {0}", min);
+                    Logger.LogMessage($"  {dependency.Id}: {min} = {current} (current)");
                 }
                 else
                 {
+                    var minStr = "";
                     if (min != null)
-                        Logger.LogMessage("Expected minimum version: {0}", min);
+                        minStr = $"{min} <{(minEx ?"":"=")} ";
+                    var maxStr = "";
                     if (max != null)
-                        Logger.LogMessage("Expected maximum version: {0}", max);
+                        maxStr = $" <{(minEx ? "" : "=")} {max}";
+                    Logger.LogMessage($"  {dependency.Id}: {minStr}{current} (current){maxStr}");
                 }
             }
 

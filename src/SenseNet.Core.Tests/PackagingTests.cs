@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -997,6 +998,64 @@ namespace SenseNet.Core.Tests
             {
                 Assert.AreEqual(PackagingExceptionType.DependencyMaximumVersion, e.ErrorType);
             }
+        }
+
+        [TestMethod]
+        public void Packaging_DependencyCheck_LoggingDependencies()
+        {
+            for (var i = 0; i < 9; i++)
+            {
+                ExecutePhases($@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component{i + 1}</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>{i + 1}.0</Version>
+                        </Package>");
+            }
+            _log.Clear();
+
+            // action
+            ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <ReleaseDate>2017-01-02</ReleaseDate>
+                            <Version>1.2</Version>
+                            <Dependencies>
+                                <Dependency id='Component1' version=            '1.0' />
+                                <Dependency id='Component2' minVersion=         '1.0' />
+                                <Dependency id='Component3' maxVersion=         '9.0' />
+                                <Dependency id='Component4' minVersionExclusive='1.0' />
+                                <Dependency id='Component5' maxVersionExclusive='9.0' />
+                                <Dependency id='Component6' minVersion=         '1.0' maxVersion=         '10.0' />
+                                <Dependency id='Component7' minVersion=         '1.0' maxVersionExclusive='10.0' />
+                                <Dependency id='Component8' minVersionExclusive='1.0' maxVersion=         '10.0' />
+                                <Dependency id='Component9' minVersionExclusive='1.0' maxVersionExclusive='10.0' />
+                            </Dependencies>
+                        </Package>");
+
+            // check
+            var log = _log.ToString();
+            var relevantLines = new List<string>();
+            using (var reader = new StringReader(log))
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    line = line.Trim();
+                    if(line.StartsWith("Component"))
+                        relevantLines.Add(line);
+                }
+            }
+
+            Assert.AreEqual("Component1: 1.0 = 1.0 (current)", relevantLines[0]);
+            Assert.AreEqual("Component2: 1.0 <= 2.0 (current)", relevantLines[1]);
+            Assert.AreEqual("Component3: 3.0 (current) <= 9.0", relevantLines[2]);
+            Assert.AreEqual("Component4: 1.0 < 4.0 (current)", relevantLines[3]);
+            Assert.AreEqual("Component5: 5.0 (current) <= 9.0", relevantLines[4]);
+            Assert.AreEqual("Component6: 1.0 <= 6.0 (current) <= 10.0", relevantLines[5]);
+            Assert.AreEqual("Component7: 1.0 <= 7.0 (current) <= 10.0", relevantLines[6]);
+            Assert.AreEqual("Component8: 1.0 < 8.0 (current) < 10.0", relevantLines[7]);
+            Assert.AreEqual("Component9: 1.0 < 9.0 (current) < 10.0", relevantLines[8]);
         }
 
         #endregion
