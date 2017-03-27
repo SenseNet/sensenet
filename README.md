@@ -3,6 +3,8 @@ The first Open Source Enterprise Content Management platform for .NET!
 
 [![Join the chat at https://gitter.im/SenseNet/sn-taskmanagement](https://badges.gitter.im/SenseNet/sensenet.svg)](https://gitter.im/SenseNet/sensenet?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+> **Sense/Net Services 7.0 beta** is out! Jump to the [Getting started](#GettingStarted) section below to start experimenting right away!
+
 If you need...
 - a **Content Repository** with a powerful query engine (built on [Lucene.Net](https://lucenenet.apache.org)) for storing *millions* of documents,
 - an extendable .Net **development platform** with many features developers will like (*OData REST API* with a .Net client SDK, *LINQ to Sense/Net*, a unified *Content layer* - and many more),
@@ -38,6 +40,7 @@ Whether you're a community member or enterprise customer, feel free to visit our
 - Community support: http://stackoverflow.com/questions/tagged/sensenet
 - Enterprise support: http://support.sensenet.com
 
+<a name="GettingStarted"></a>
 ## Getting started
 Currently we offer two different versions of Sense/Net ECM. We recommend version 7.0 for new projects as it is more lightweight and flexible.
 ### Sense/Net ECM 7.0 (beta)
@@ -60,6 +63,59 @@ Developers may start integrating the Sense/Net platform by installing the **Sens
     - If you are using the built-in _ActionLink_ helper method in your MVC views, you'll have to replace them with a new extension method added by this package: _MvcActionLink_.
 
 Take into account that currently there is _no UI layer available out of the box_ for Sense/Net ECM 7.0. We are working on moving features available in Sense/Net 6.5 to the new platform. They will be published as NuGet and SnAdmin install packages so that you will be able to build your solution easily using only the components that you truly need.
+
+#### After installing Sense/Net Services
+After you added the Sense/Net Services [NuGet package](https://www.nuget.org/packages/SenseNet.Services), you can start sending requests to the site. 
+
+Consider using the following client projects to manipulate data in the Content Repository through its REST API:
+
+- [Sense/Net JavaScript Client](https://github.com/SenseNet/sn-client-js)
+- [Sense/Net .Net Client](https://github.com/SenseNet/sn-client-dotnet)
+
+Here are a couple of examples for accessing the REST API from native JavaScript, if you prefer that. For detailed examples, please visit the [REST API article](http://wiki.sensenet.com/OData_REST_API).
+
+##### Log in
+This is how you can log in from JavaScript using one of the existing users:
+````
+$.ajax({
+     url: "/Odata.svc/('Root')/Login?metadata=no",
+     dataType: "json",
+     type: 'POST',
+     data: JSON.stringify({
+          'username': "admin",
+          'password': "admin"
+     }),
+     success: function (d) {
+          console.log('You are logged in!')
+     }
+});
+````
+The response will contain a standard ASP.NET authentication cookie that your browser will send with subsequent requests automatically.
+##### Create content
+You can create a workspace under the Root content:
+````
+$.ajax({
+    url: "/OData.svc/('Root')",
+    dataType: "json",
+    type: 'POST',
+    data: "models=[" + JSON.stringify({ '__ContentType':'Workspace' , 'DisplayName': 'Workspace' }) + "]",
+    success: function () {
+        console.log('Success');
+    }
+});
+````
+Create a document library in the workspace:
+````
+$.ajax({
+    url: "/OData.svc/Root/('Workspace')",
+    dataType: "json",
+    type: 'POST',
+    data: "models=[" + JSON.stringify({ '__ContentType':'DocumentLibrary' , 'DisplayName': 'DocLib' }) + "]",
+    success: function () {
+        console.log('Success');
+    }
+});
+````
 
 ### Sense/Net ECM 6.5
 A feature-rich Enterprise CMS with predefined UI and building blocks: pages, portlets, action controls and more. Build your solution with almost no development effort.
