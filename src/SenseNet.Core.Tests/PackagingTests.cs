@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -10,10 +9,12 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Packaging;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.Packaging.Steps;
 
 namespace SenseNet.Core.Tests
 {
     #region Implementations
+
     internal class TestPackageStorageProviderFactory : IPackageStorageProviderFactory
     {
         // An idea: to parallelize test execution, need to store the provider instance in the thread context.
@@ -194,6 +195,14 @@ namespace SenseNet.Core.Tests
         public void WriteMessage(string message)
         {
             _sb.AppendLine(message);
+        }
+    }
+
+    public class ForbiddenStep : Step
+    {
+        public override void Execute(ExecutionContext context)
+        {
+            throw new PackagingException("Do not use this step.");
         }
     }
 
@@ -507,7 +516,7 @@ namespace SenseNet.Core.Tests
         {
             try
             {
-                var manifest = ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
+                ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
                             <ComponentId>Component2</ComponentId>
                             <ReleaseDate>2017-01-01</ReleaseDate>
@@ -528,7 +537,7 @@ namespace SenseNet.Core.Tests
         {
             try
             {
-                var manifest = ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
+                ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
                             <ComponentId>Component2</ComponentId>
                             <ReleaseDate>2017-01-01</ReleaseDate>
@@ -785,7 +794,7 @@ namespace SenseNet.Core.Tests
             // action
             try
             {
-                var result = ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
+                ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
                             <ComponentId>Component2</ComponentId>
                             <ReleaseDate>2017-01-01</ReleaseDate>
@@ -1166,8 +1175,6 @@ namespace SenseNet.Core.Tests
         [TestMethod]
         public void Packaging_Patch_ThreePhases()
         {
-            var recordCountBefore = GetDbRecordCount();
-
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
                             <ComponentId>MyCompany.MyComponent</ComponentId>
@@ -1249,6 +1256,113 @@ namespace SenseNet.Core.Tests
             Assert.AreEqual(2, RepositoryVersionInfo.Instance.InstalledPackages.Count());
         }
 
+
+        [TestMethod]
+        public void Packaging_Patch_Faulty()
+        {
+            ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.0</Version>
+                            <Steps>
+                                <Trace>Package is running.</Trace>
+                            </Steps>
+                        </Package>");
+
+            // action
+            try
+            {
+                ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Patch'>
+                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <ReleaseDate>2017-01-02</ReleaseDate>
+                            <Version>1.2</Version>
+                            <Steps>
+                                <ForbiddenStep />
+                            </Steps>
+                        </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (Exception e)
+            {
+                // do not compensate anything
+            }
+
+            // check
+            Assert.AreEqual(1, RepositoryVersionInfo.Instance.Applications.Count());
+            Assert.AreEqual(2, RepositoryVersionInfo.Instance.InstalledPackages.Count());
+            var app = RepositoryVersionInfo.Instance.Applications.FirstOrDefault();
+            Assert.IsNotNull(app);
+            Assert.AreEqual("MyCompany.MyComponent", app.AppId);
+            Assert.AreEqual("1.2", app.Version.ToString());
+            Assert.IsNotNull(app.AcceptableVersion);
+            Assert.AreEqual("1.0", app.AcceptableVersion.ToString());
+            var pkg = RepositoryVersionInfo.Instance.InstalledPackages.LastOrDefault();
+            Assert.IsNotNull(pkg);
+            Assert.AreEqual("MyCompany.MyComponent", pkg.AppId);
+            Assert.AreEqual(ExecutionResult.Faulty, pkg.ExecutionResult);
+            Assert.AreEqual(PackageLevel.Patch, pkg.PackageLevel);
+            Assert.AreEqual("1.2", pkg.ApplicationVersion.ToString());
+        }
+        [TestMethod]
+        public void Packaging_Patch_FixFaulty()
+        {
+            ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.0</Version>
+                            <Steps>
+                                <Trace>Package is running.</Trace>
+                            </Steps>
+                        </Package>");
+
+            try
+            {
+                ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Patch'>
+                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <ReleaseDate>2017-01-02</ReleaseDate>
+                            <Version>1.2</Version>
+                            <Steps>
+                                <ForbiddenStep />
+                            </Steps>
+                        </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (Exception e)
+            {
+                // do not compensate anything
+            }
+
+            // action
+            ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Patch'>
+                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <ReleaseDate>2017-01-02</ReleaseDate>
+                            <Version>1.2</Version>
+                            <Steps>
+                                <Trace>Package is running.</Trace>
+                            </Steps>
+                        </Package>");
+
+            // check
+            Assert.AreEqual(1, RepositoryVersionInfo.Instance.Applications.Count());
+            Assert.AreEqual(3, RepositoryVersionInfo.Instance.InstalledPackages.Count());
+            var app = RepositoryVersionInfo.Instance.Applications.FirstOrDefault();
+            Assert.IsNotNull(app);
+            Assert.AreEqual("MyCompany.MyComponent", app.AppId);
+            Assert.AreEqual("1.2", app.Version.ToString());
+            Assert.IsNotNull(app.AcceptableVersion);
+            Assert.AreEqual("1.2", app.AcceptableVersion.ToString());
+            var pkg = RepositoryVersionInfo.Instance.InstalledPackages.LastOrDefault();
+            Assert.IsNotNull(pkg);
+            Assert.AreEqual("MyCompany.MyComponent", pkg.AppId);
+            Assert.AreEqual(ExecutionResult.Successful, pkg.ExecutionResult);
+            Assert.AreEqual(PackageLevel.Patch, pkg.PackageLevel);
+            Assert.AreEqual("1.2", pkg.ApplicationVersion.ToString());
+        }
         #endregion
 
         /*================================================= tools */
