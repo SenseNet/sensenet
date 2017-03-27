@@ -48,6 +48,8 @@ A modern ECM platform that can be integrated into existing or new web applicatio
 - **Sense/Net Services** (the current GitHub repository): a robust Content Repository with enterprise features (security, querying, lists and libraries, dynamic content types), accessible through a REST API, often referred to as a _headless ECMS_.
 - a selection of [components and plugins](https://github.com/SenseNet/awesome-sensenet) that are built on this platform.
 
+![Sense/Net Services](https://github.com/SenseNet/sn-resources/raw/master/images/sn-components/sn-components_services.png "Sense/Net Services")
+
 Developers may start integrating the Sense/Net platform by installing the **Sense/Net Services NuGet package** into an ASP.NET MVC web application. 
 
 [![NuGet](https://img.shields.io/nuget/v/SenseNet.Services.svg)](https://www.nuget.org/packages/SenseNet.Services)
