@@ -24,16 +24,11 @@ namespace SenseNet.TokenAuthentication.Tests
             _tokenParameters = new TokenParameters
             {
                 Audience = "audience"
-                ,
-                Issuer = "issuer"
-                ,
-                Subject = "subject"
-                ,
-                EncryptionAlgorithm = encription
-                ,
-                ValidFrom = DateTime.Now.AddMinutes(5)
-                ,
-                ValidateLifeTime = true
+                , Issuer = "issuer"
+                , Subject = "subject"
+                , EncryptionAlgorithm = encription
+                , ValidFrom = DateTime.Now.AddMinutes(5)
+                , ValidateLifeTime = true
             };
             _manager = new TokenManager(EncryptionHelper.CreateKey(encription), tokenHandler, _tokenParameters);
 

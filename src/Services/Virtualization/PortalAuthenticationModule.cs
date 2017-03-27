@@ -114,7 +114,7 @@ namespace SenseNet.Portal.Virtualization
             var basicAuthenticated = DispatchBasicAuthentication(application);
             if (request.IsSecureConnection && authenticationTypeHeader == "Token")
             {
-                TokenAuthenticate(basicAuthenticated, context);
+                TokenAuthenticate(basicAuthenticated, context, application);
                 return;
             }
             // if it is a simple basic authentication case
@@ -182,7 +182,7 @@ namespace SenseNet.Portal.Virtualization
             return request.Headers[AuthenticationTypeHeaderName];
         }
 
-        private void TokenAuthenticate(bool basicAuthenticated, HttpContextBase context)
+        private void TokenAuthenticate(bool basicAuthenticated, HttpContextBase context, HttpApplication application)
         {
             try
             {
@@ -212,7 +212,10 @@ namespace SenseNet.Portal.Virtualization
                     EmitTokensAndCookies(context, tokenManager, validFrom, userName, roleName, true);
                     //InsertCorsHeaders(System.Web.HttpContext.Current);
                     context.Response.Flush();
-                    context.ApplicationInstance.CompleteRequest();
+                    if (application.Context != null)
+                    {
+                        application.CompleteRequest();
+                    }
                     return;
                 }
                 // user has not been authenticated yet, so there must be a valid token and cookie in the request
@@ -238,7 +241,10 @@ namespace SenseNet.Portal.Virtualization
                     // emit access token and cookie only
                     EmitTokensAndCookies(context, tokenManager, validFrom, userName, roleName, false);
                     context.Response.Flush();
-                    context.ApplicationInstance.CompleteRequest();
+                    if (application.Context != null)
+                    {
+                        application.CompleteRequest();
+                    }
                     return;
                 }
                 header = context.Request.Headers[AccessHeaderName];
@@ -275,14 +281,13 @@ namespace SenseNet.Portal.Virtualization
         {
             string refreshToken;
             var token = tokenManager.GenerateToken(userName, roleName, out refreshToken, refreshTokenAsWell);
-            var bodyBuilder = new StringBuilder();
-
+            var tokenResponse = new TokenResponse();
             var accessSignatureIndex = token.LastIndexOf('.');
             var accessSignature = token.Substring(accessSignatureIndex + 1);
             var accessHeadAndPayload = token.Substring(0, accessSignatureIndex - 1);
             var accessExpiration = validFrom.AddMinutes(Configuration.TokenAuthentication.AccessLifeTimeInMinutes);
             CookieHelper.InsertSecureCookie(context.Response, accessSignature, AccessSignatureName, accessExpiration);
-            bodyBuilder.Append(JsonConvert.SerializeObject(new {access = accessHeadAndPayload}));
+            tokenResponse.access = accessHeadAndPayload;
 
             if (refreshTokenAsWell)
             { 
@@ -291,9 +296,15 @@ namespace SenseNet.Portal.Virtualization
                 var refreshHeadAndPayload = refreshToken.Substring(0, refreshSignatureIndex - 1);
                 var refreshExpiration = accessExpiration.AddMinutes(Configuration.TokenAuthentication.RefreshLifeTimeInMinutes);
                 CookieHelper.InsertSecureCookie(context.Response, refreshSignature, RefreshSignatureName, refreshExpiration);
-                bodyBuilder.Append(JsonConvert.SerializeObject(new { access = accessHeadAndPayload, refresh = refreshHeadAndPayload }));
+                tokenResponse.refresh = refreshHeadAndPayload;
             }
-            context.Response.Write(bodyBuilder.ToString());
+            context.Response.Write(JsonConvert.SerializeObject(tokenResponse, new JsonSerializerSettings {DefaultValueHandling = DefaultValueHandling.Ignore}));
+        }
+
+        private class TokenResponse
+        {
+            public string access;
+            public string refresh;
         }
 
         private static void CallInternalOnEnter(object sender, EventArgs e)
