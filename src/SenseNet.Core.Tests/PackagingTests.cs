@@ -1010,6 +1010,77 @@ namespace SenseNet.Core.Tests
         }
 
         [TestMethod]
+        public void Packaging_DependencyCheck_DependencyMinimumVersionExclusive()
+        {
+            ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
+                    <Package type='Install'>
+                        <ComponentId>Component1</ComponentId>
+                        <ReleaseDate>2017-01-01</ReleaseDate>
+                        <Version>1.0</Version>
+                        <Steps>
+                            <Trace>Package is running.</Trace>
+                        </Steps>
+                    </Package>");
+
+            // action
+            try
+            {
+                ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component2</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.1</Version>
+                            <Dependencies>
+                                <Dependency id='Component1' minVersionExclusive='1.0' />
+                            </Dependencies>
+                            <Steps>
+                                <Trace>Package is running.</Trace>
+                            </Steps>
+                        </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.DependencyMinimumVersion, e.ErrorType);
+            }
+        }
+        [TestMethod]
+        public void Packaging_DependencyCheck_DependencyMaximumVersionExclusive()
+        {
+            ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
+                    <Package type='Install'>
+                        <ComponentId>Component1</ComponentId>
+                        <ReleaseDate>2017-01-01</ReleaseDate>
+                        <Version>3.0</Version>
+                        <Steps>
+                            <Trace>Package is running.</Trace>
+                        </Steps>
+                    </Package>");
+
+            // action
+            try
+            {
+                ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component2</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>2.0</Version>
+                            <Dependencies>
+                                <Dependency id='Component1' maxVersionExclusive='2.0' />
+                            </Dependencies>
+                            <Steps>
+                                <Trace>Package is running.</Trace>
+                            </Steps>
+                        </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.DependencyMaximumVersion, e.ErrorType);
+            }
+        }
+
+        [TestMethod]
         public void Packaging_DependencyCheck_LoggingDependencies()
         {
             for (var i = 0; i < 9; i++)
@@ -1350,6 +1421,67 @@ namespace SenseNet.Core.Tests
             // check
             Assert.AreEqual(1, RepositoryVersionInfo.Instance.Applications.Count());
             Assert.AreEqual(3, RepositoryVersionInfo.Instance.InstalledPackages.Count());
+            var app = RepositoryVersionInfo.Instance.Applications.FirstOrDefault();
+            Assert.IsNotNull(app);
+            Assert.AreEqual("MyCompany.MyComponent", app.AppId);
+            Assert.AreEqual("1.2", app.Version.ToString());
+            Assert.IsNotNull(app.AcceptableVersion);
+            Assert.AreEqual("1.2", app.AcceptableVersion.ToString());
+            var pkg = RepositoryVersionInfo.Instance.InstalledPackages.LastOrDefault();
+            Assert.IsNotNull(pkg);
+            Assert.AreEqual("MyCompany.MyComponent", pkg.AppId);
+            Assert.AreEqual(ExecutionResult.Successful, pkg.ExecutionResult);
+            Assert.AreEqual(PackageLevel.Patch, pkg.PackageLevel);
+            Assert.AreEqual("1.2", pkg.ApplicationVersion.ToString());
+        }
+        [TestMethod]
+        public void Packaging_Patch_FixMoreFaulty()
+        {
+            ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.0</Version>
+                            <Steps>
+                                <Trace>Package is running.</Trace>
+                            </Steps>
+                        </Package>");
+
+            for (int i = 0; i < 2; i++)
+            {
+                try
+                {
+                    ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Patch'>
+                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <ReleaseDate>2017-01-02</ReleaseDate>
+                            <Version>1.2</Version>
+                            <Steps>
+                                <ForbiddenStep />
+                            </Steps>
+                        </Package>");
+                    Assert.Fail("PackagingException was not thrown.");
+                }
+                catch (Exception e)
+                {
+                    // do not compensate anything
+                }
+            }
+
+            // action
+            ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Patch'>
+                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <ReleaseDate>2017-01-02</ReleaseDate>
+                            <Version>1.2</Version>
+                            <Steps>
+                                <Trace>Package is running.</Trace>
+                            </Steps>
+                        </Package>");
+
+            // check
+            Assert.AreEqual(1, RepositoryVersionInfo.Instance.Applications.Count());
+            Assert.AreEqual(4, RepositoryVersionInfo.Instance.InstalledPackages.Count());
             var app = RepositoryVersionInfo.Instance.Applications.FirstOrDefault();
             Assert.IsNotNull(app);
             Assert.AreEqual("MyCompany.MyComponent", app.AppId);
