@@ -4,9 +4,9 @@
   <Description>$Ctd-Site,Description</Description>
   <Icon>Site</Icon>
   <AllowedChildTypes>
-    Folder,Page,Workspace,DocumentWorkspace,ProjectWorkspace,SalesWorkspace,
-    Profiles,Image,GoogleSitemap,Blog,DocumentLibrary,ImageLibrary,EventList,MemoList,
-    LinkList,TaskList,Survey,Voting,DiscussionForum,Form,CustomList,SmartFolder
+    Folder,Workspace,
+    Profiles,Image,DocumentLibrary,ImageLibrary,EventList,MemoList,
+    LinkList,TaskList,Form,CustomList,SmartFolder
   </AllowedChildTypes>
   <Fields>
     <Field name="DisplayName" type="ShortText">
