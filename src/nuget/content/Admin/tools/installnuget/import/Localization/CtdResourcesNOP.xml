@@ -1,0 +1,153 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Resources>
+  <ResourceClass name="Ctd-OrganizationalUnit">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Organizational Unit</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Organizational Unit (OU) provides a way of classifying objects located in directories.</value>
+        </data>
+        <data name="SyncGuid-DisplayName" xml:space="preserve">
+          <value>SyncGuid</value>
+        </data>
+        <data name="SyncGuid-Description" xml:space="preserve">
+          <value>GUID of corresponding AD object.</value>
+        </data>
+        <data name="LastSync-DisplayName" xml:space="preserve">
+          <value>LastSync</value>
+        </data>
+        <data name="LastSync-Description" xml:space="preserve">
+          <value>Date of last synchronization.</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Szervezeti egység</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>A szervezeti egység (Organizational Unit, OU) csoportok és felhasználók csoportosítására használható gyűjtőmappa (szinkronizálható Active Directory-val).</value>
+        </data>
+        <data name="SyncGuid-DisplayName" xml:space="preserve">
+          <value>AD azonosító</value>
+        </data>
+        <data name="SyncGuid-Description" xml:space="preserve">
+          <value>A megfelelő AD objektum egyedi azonosítója (GUID).</value>
+        </data>
+        <data name="LastSync-DisplayName" xml:space="preserve">
+          <value>Utolsó szinkronizálás</value>
+        </data>
+        <data name="LastSync-Description" xml:space="preserve">
+          <value>Utolsó szinkronizálás dátuma.</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+  <ResourceClass name="Ctd-PortalRoot">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Root</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Sense/Net Content Repository Master node. One installation can have only one Portal Root.</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Gyökér</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>A Sense/Net Content Repository "fa" legmagasabb szintű eleme. Egy telepítés csak egyet tartalmazhat.</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+  <ResourceClass name="Ctd-PortalSettings">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Portal settings</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value></value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Portál beállítások</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value></value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+  <ResourceClass name="Ctd-PreviewImage">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Preview image</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>A special content type for storing preview images.</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Előnézeti kép</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Speciális dokumentum típus előnézeti képeknek.</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>  
+  <ResourceClass name="Ctd-ProfileDomain">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>ProfileDomain</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Container for user profiles.</value>
+        </data>
+        <data name="DisplayName-DisplayName" xml:space="preserve">
+          <value>Display Name</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Profil tartomány</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Felhasználói profilok gyűjtője.</value>
+        </data>
+        <data name="DisplayName-DisplayName" xml:space="preserve">
+          <value>Olvasható név</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+  <ResourceClass name="Ctd-Profiles">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Profiles</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>This is the container type for profiles. Only a single instance is allowed at /Root/Profiles.</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Profilok</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Profilok gyűjtője. Csak egy lehet belőle, a /Root/Profiles címen.</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+</Resources>

@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>GenericODataApplication</ContentType>
+  <ContentName>GetAllowedUsers</ContentName>
+  <Fields>
+    <ClassName><![CDATA[SenseNet.ContentRepository.Security.PermissionQueryForRest]]></ClassName>
+    <MethodName><![CDATA[GetAllowedUsers]]></MethodName>
+    <Parameters><![CDATA[
+      string[] permissions
+    ]]></Parameters>
+    <DisplayName><![CDATA[GetAllowedUsers]]></DisplayName>
+    <Description><![CDATA[]]></Description>
+    <ActionTypeName><![CDATA[GenericODataOperation]]></ActionTypeName>
+    <Icon><![CDATA[Application]]></Icon>
+    <EnableLifespan>false</EnableLifespan>
+  </Fields>
+</ContentMetaData>

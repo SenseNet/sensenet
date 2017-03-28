@@ -12,7 +12,7 @@ namespace SenseNet.Configuration
 
         public static string DataProviderClassName { get; internal set; } = GetProvider("DataProvider", typeof(SqlProvider).FullName);
         public static string AccessProviderClassName { get; internal set; } = GetProvider("AccessProvider",
-            "SenseNet.ContentRepository.Security.DesktopAccessProvider");
+            "SenseNet.ContentRepository.Security.UserAccessProvider");
         public static string ContentNamingProviderClassName { get; internal set; } = GetProvider("ContentNamingProvider");
         public static string TaskManagerClassName { get; internal set; } = GetProvider("TaskManager");
         public static string PasswordHashProviderClassName { get; internal set; } = GetProvider("PasswordHashProvider",

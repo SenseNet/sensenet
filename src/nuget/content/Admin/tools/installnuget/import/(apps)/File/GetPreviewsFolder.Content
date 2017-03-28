@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>GenericODataApplication</ContentType>
+  <ContentName>GetPreviewsFolder</ContentName>
+  <Fields>
+    <ClassName><![CDATA[SenseNet.Preview.DocumentPreviewProvider]]></ClassName>
+    <MethodName><![CDATA[GetPreviewsFolder]]></MethodName>
+    <Parameters><![CDATA[bool empty]]></Parameters>
+    <DisplayName><![CDATA[Get previews folder]]></DisplayName>
+    <ActionTypeName><![CDATA[GenericODataOperation]]></ActionTypeName>
+    <Icon><![CDATA[Application]]></Icon>
+  </Fields>
+  <Permissions>
+    <Clear />
+  </Permissions>
+</ContentMetaData>

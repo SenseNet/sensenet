@@ -314,19 +314,6 @@
         </AllowedTypes>
       </Configuration>
     </Field>
-    <Field name="Profile" type="Reference">
-      <DisplayName>Profile</DisplayName>
-      <Description></Description>
-      <Configuration>
-        <AllowedTypes>
-          <Type>UserProfile</Type>
-        </AllowedTypes>
-        <AllowMultiple>false</AllowMultiple>
-        <VisibleBrowse>Hide</VisibleBrowse>
-        <VisibleEdit>Hide</VisibleEdit>
-        <VisibleNew>Hide</VisibleNew>
-      </Configuration>
-    </Field>
     <Field name="ProfilePath" type="ShortText">
       <DisplayName>$Ctd-User,ProfilePath-DisplayName</DisplayName>
       <Description>$Ctd-User,ProfilePath-Description</Description>

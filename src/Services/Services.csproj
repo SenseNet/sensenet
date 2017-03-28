@@ -104,7 +104,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="SenseNet.Tools, Version=2.1.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SenseNet.Tools.2.1.1-alpha\lib\net451\SenseNet.Tools.dll</HintPath>
+      <HintPath>..\packages\SenseNet.Tools.2.1.1\lib\net451\SenseNet.Tools.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -113,6 +113,8 @@
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Runtime.Serialization">
       <RequiredTargetFramework>3.0</RequiredTargetFramework>
@@ -179,6 +181,7 @@
     <Compile Include="ApplicationModel\SetPermissionsAction.cs" />
     <Compile Include="ApplicationModel\UploadAction.cs" />
     <Compile Include="ApplicationModel\UrlAction.cs" />
+    <Compile Include="Configuration\ErrorStatusCode.cs" />
     <Compile Include="Configuration\WebApplication.cs" />
     <Compile Include="Configuration\Webdav.cs" />
     <Compile Include="ContentStore\ContentProperty.cs" />
@@ -211,6 +214,7 @@
     <Compile Include="Handlers\DynamicJsonContent.cs" />
     <Compile Include="Handlers\ExportToCSVApplication.cs" />
     <Compile Include="Handlers\ExportToPdfAction.cs" />
+    <Compile Include="Handlers\GetMetadataApplication.cs" />
     <Compile Include="Handlers\HttpHandlerApplication.cs" />
     <Compile Include="Handlers\ODataActionHandler.cs" />
     <Compile Include="HtmlTemplate.cs" />
@@ -377,7 +381,9 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Services.nuspec" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

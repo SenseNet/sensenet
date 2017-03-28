@@ -484,7 +484,13 @@ namespace SenseNet.Portal.OData
 
             var lists = new List<string[]>();
             foreach (var contentTypeName in contentTypeNames)
-                lists.Add(ContentType.GetByName(contentTypeName).Path.Split('/').Skip(4).ToArray());
+            {
+                var contentType = ContentType.GetByName(contentTypeName);
+                if (contentType != null)
+                    lists.Add(contentType.Path.Split('/').Skip(4).ToArray());
+            }
+            if (lists.Count == 0)
+                return "GenericContent";
 
             var index = 0;
             var lastName = lists[0][0];

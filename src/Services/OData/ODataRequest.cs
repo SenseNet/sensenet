@@ -11,6 +11,7 @@ using System.Linq.Expressions;
 using SenseNet.ContentRepository.Storage;
 using System.Text.RegularExpressions;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.Portal.OData
 {
@@ -200,7 +201,9 @@ namespace SenseNet.Portal.OData
                 var pathIsRelative = true;
                 if (resSegments.Count == 0)
                 {
-                    req.RepositoryPath = portalContext.Site.Path;
+                    req.RepositoryPath = portalContext.Site?.Path;
+                    if (req.RepositoryPath == null)
+                        pathIsRelative = false;
                     req.IsCollection = true;
                 }
                 else
@@ -217,7 +220,7 @@ namespace SenseNet.Portal.OData
                 }
 
                 Content content;
-                if (req.RequestedContentId > 0 && (content = Content.Load(req.RequestedContentId)) != null)
+                if (req.RequestedContentId > 0 && (content = SystemAccount.Execute(() => Content.Load(req.RequestedContentId))) != null)
                 {
                     req.RepositoryPath = content.Path;
                 }
@@ -225,9 +228,14 @@ namespace SenseNet.Portal.OData
                 {
                     var newPath = String.Concat("/", String.Join("/", resSegments));
                     if (pathIsRelative)
-                        newPath = newPath == "/"
-                            ? portalContext.Site.Path
-                            : String.Concat(portalContext.Site.Path, newPath);
+                    {
+                        if(portalContext.Site == null)
+                            newPath = "/";
+                        else
+                            newPath = newPath == "/"
+                                ? portalContext.Site.Path
+                                : string.Concat(portalContext.Site.Path, newPath);
+                    }
                     req.RepositoryPath = newPath;
                 }
 

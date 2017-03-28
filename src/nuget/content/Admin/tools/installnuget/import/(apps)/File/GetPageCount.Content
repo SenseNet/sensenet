@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>GenericODataApplication</ContentType>
+  <ContentName>GetPageCount</ContentName>
+  <Fields>
+    <ClassName><![CDATA[SenseNet.Preview.DocumentPreviewProvider]]></ClassName>
+    <MethodName><![CDATA[GetPageCount]]></MethodName>
+    <DisplayName><![CDATA[Get page count]]></DisplayName>
+    <ActionTypeName><![CDATA[GenericODataOperation]]></ActionTypeName>
+    <Icon><![CDATA[Application]]></Icon>
+  </Fields>
+  <Permissions>
+    <Clear />
+    <Identity path="/Root/IMS/BuiltIn/Portal/IdentifiedUsers">
+      <RunApplication>Allow</RunApplication>
+    </Identity>
+  </Permissions>
+</ContentMetaData>

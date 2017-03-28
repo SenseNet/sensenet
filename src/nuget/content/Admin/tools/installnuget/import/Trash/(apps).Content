@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>SystemFolder</ContentType>
+  <ContentName>(apps)</ContentName>
+  <Fields>
+    <Hidden>true</Hidden>
+  </Fields>
+  <Permissions>
+    <Clear />
+  </Permissions>
+</ContentMetaData>

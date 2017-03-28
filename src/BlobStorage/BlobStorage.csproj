@@ -1,6 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -41,7 +40,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="SenseNet.Tools, Version=2.1.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SenseNet.Tools.2.1.1-alpha\lib\net451\SenseNet.Tools.dll</HintPath>
+      <HintPath>..\packages\SenseNet.Tools.2.1.1\lib\net451\SenseNet.Tools.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />

@@ -3,9 +3,7 @@
   <DisplayName>$Ctd-Workspace,DisplayName</DisplayName>
   <Description>$Ctd-Workspace,Description</Description>
   <Icon>Workspace</Icon>
-  <AllowedChildTypes>
-    Page,Folder,Blog,DocumentLibrary,ImageLibrary,EventList,MemoList,LinkList,TaskList,Survey,Voting,DiscussionForum,Form,CustomList,Posts,Workspace,DocumentWorkspace,ProjectWorkspace,SalesWorkspace,Wiki
-  </AllowedChildTypes>
+  <AllowedChildTypes>Page,Folder,DocumentLibrary,ImageLibrary,EventList,MemoList,LinkList,TaskList,CustomList,Workspace</AllowedChildTypes>
   <Fields>
     <Field name="DisplayName" type="ShortText">
       <DisplayName>$Ctd-Workspace,DisplayName-DisplayName</DisplayName>

@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>Application</ContentType>
+  <ContentName>MoveTo</ContentName>
+  <Fields>
+    <DisplayName><![CDATA[$Action,MoveTo]]></DisplayName>
+    <Description><![CDATA[]]></Description>
+    <Scenario><![CDATA[ListItem;ExploreActions;ManageViewsListItem]]></Scenario>
+    <ActionTypeName><![CDATA[MoveToAction]]></ActionTypeName>
+    <IsModal>false</IsModal>
+    <Disabled>false</Disabled>
+    <Clear>false</Clear>
+    <Icon><![CDATA[move]]></Icon>
+    <StyleHint><![CDATA[]]></StyleHint>
+    <RequiredPermissions>OpenMinor;Save</RequiredPermissions>
+    <DeepPermissionCheck>false</DeepPermissionCheck>
+    <IncludeBackUrl>0</IncludeBackUrl>
+    <CacheControl>Nondefined</CacheControl>
+    <MaxAge><![CDATA[]]></MaxAge>
+    <CustomUrlParameters><![CDATA[]]></CustomUrlParameters>
+    <Hidden>false</Hidden>
+    <Index>3800</Index>
+    <EnableLifespan>false</EnableLifespan>
+    <ValidFrom>0001-01-01T00:00:00</ValidFrom>
+    <ValidTill>0001-01-01T00:00:00</ValidTill>
+    <CreatedBy>
+      <Path>/Root/IMS/BuiltIn/Portal/Admin</Path>
+    </CreatedBy>
+    <CreationDate>2012-07-19T14:12:23.347</CreationDate>
+    <ModifiedBy>
+      <Path>/Root/IMS/BuiltIn/Portal/Admin</Path>
+    </ModifiedBy>
+    <ModificationDate>2012-07-19T15:44:42.113</ModificationDate>
+    <TrashDisabled>false</TrashDisabled>
+    <IsTaggable>false</IsTaggable>
+    <IsRateable>false</IsRateable>
+    <RateAvg>0.0000</RateAvg>
+    <RateCount>0</RateCount>
+  </Fields>
+  <Permissions>
+    <Clear />
+    <Identity path="/Root/IMS/BuiltIn/Portal/IdentifiedUsers">
+      <RunApplication>Allow</RunApplication>
+    </Identity>
+  </Permissions>
+</ContentMetaData>
