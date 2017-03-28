@@ -24,6 +24,8 @@ namespace SenseNet.Core.Tests
         [ClassInitialize]
         public static void Initialize(TestContext context)
         {
+            PackageManager.StorageFactory = new BuiltinPackageStorageProviderFactory();
+
             var sqlProvider = new SqlProvider();
             sqlProvider.DataProcedureFactory = Factory;
             var dataProviderAcc = new PrivateType(typeof(DataProvider));
