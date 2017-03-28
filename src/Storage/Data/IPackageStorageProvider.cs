@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
-    //UNDONE: move to new file
     public interface IDataProcedureFactory
     {
         IDataProcedure CreateProcedure();
