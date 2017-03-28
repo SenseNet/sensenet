@@ -38,7 +38,59 @@ namespace SenseNet.Core.Tests
         [TestMethod]
         public void Packaging_Storage_LoadInstalledApplications()
         {
-            Assert.Inconclusive();
+            Procedures.Clear();
+            ExpectedCommandResult = new TestDataReader(new[] { "Name", "AppId", "AppVersion", "AcceptableVersion", "Description" },
+                new[]
+                {
+                    new object[] { "", "Component1", "0000000002.0000000000", "0000000001.0000000002"           , "description1" },
+                    new object[] { "", "Component2", "0000000003.0000000008", "0000000003.0000000007.0000000042", "description2" },
+                    new object[] { "", "Component3", "0000000006.0000000007", "0000000006.0000000005",            "description3" },
+                });
+
+            // action
+            var result = PackageManager.Storage.LoadInstalledApplications();
+
+            // check
+            Assert.AreEqual(1, Procedures.Count);
+            var proc = Procedures[0];
+            Assert.AreEqual(@"SELECT P2.Name, P2.Edition, P2.Description, P1.AppId, P1.AppVersion, P1a.AppVersion AcceptableVersion
+FROM (SELECT AppId, MAX(AppVersion) AppVersion FROM Packages WHERE APPID IS NOT NULL GROUP BY AppId) P1
+JOIN (SELECT AppId, MAX(AppVersion) AppVersion FROM Packages WHERE APPID IS NOT NULL 
+    AND ExecutionResult != '" + ExecutionResult.Faulty.ToString() + @"'
+    AND ExecutionResult != '" + ExecutionResult.Unfinished.ToString() + @"' GROUP BY AppId, ExecutionResult) P1a
+ON P1.AppId = P1a.AppId
+JOIN (SELECT Name, Edition, Description, AppId FROM Packages WHERE PackageLevel = '" + PackageLevel.Install.ToString() + @"'
+    AND ExecutionResult != '" + ExecutionResult.Faulty.ToString() + @"'
+    AND ExecutionResult != '" + ExecutionResult.Unfinished.ToString() + @"') P2
+ON P1.AppId = P2.AppId", proc.CommandText);
+
+            var parameters = proc.Parameters;
+            Assert.AreEqual(0, parameters.Count);
+
+            Assert.AreEqual("ExecuteReader", proc.ExecutorMethod);
+
+            // check applications
+            var applications = result.ToArray();
+            Assert.AreEqual(3, applications.Length);
+
+            Assert.AreEqual("", applications[0].Name);
+            Assert.AreEqual("Component1", applications[0].AppId);
+            Assert.AreEqual("2.0", applications[0].Version.ToString());
+            Assert.AreEqual("1.2", applications[0].AcceptableVersion.ToString());
+            Assert.AreEqual("description1", applications[0].Description);
+
+            Assert.AreEqual("", applications[1].Name);
+            Assert.AreEqual("Component2", applications[1].AppId);
+            Assert.AreEqual("3.8", applications[1].Version.ToString());
+            Assert.AreEqual("3.7.42", applications[1].AcceptableVersion.ToString());
+            Assert.AreEqual("description2", applications[1].Description);
+
+            Assert.AreEqual("", applications[2].Name);
+            Assert.AreEqual("Component3", applications[2].AppId);
+            Assert.AreEqual("6.7", applications[2].Version.ToString());
+            Assert.AreEqual("6.5", applications[2].AcceptableVersion.ToString());
+            Assert.AreEqual("description3", applications[2].Description);
+
         }
 
         [TestMethod]
