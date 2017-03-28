@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>SenseNet.Services.Install</id>
+    <version>7.0.0-beta1</version>
+    <title>Sense/Net Content Repository and Services install package</title>
+    <authors>kavics,aniko,laci,borsi,lajos,tusmester</authors>
+    <owners>Sense/Net</owners>
+    <licenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/SenseNet/sensenet</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Sense/Net is an Enterprise Content Management platform for .Net. This package contains installation items and should be installed only in a single web project. All other projects should reference the SenseNet.Services dll-only package.</description>
+    <releaseNotes>Initial release.</releaseNotes>
+    <copyright>Copyright © Sense/Net Inc.</copyright>
+    <tags>sensenet ecm ecms</tags>
+    <dependencies>
+      <dependency id="SenseNet.Services" version="7.0.0-beta1" />
+      <dependency id="SenseNet.SnAdmin" version="1.4.0" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="..\nuget\readme.txt" target="" />
+    <file src="..\nuget\content\**" target="content" />
+    <file src="..\Tools\SnAdminRuntime\bin\Release\SnAdminRuntime.*" target="content\Tools" />
+    <file src="..\Storage\Data\SqlClient\Scripts\Create_SenseNet_Database.sql" target="content\Admin\tools\installnuget\scripts" />
+    <file src="..\Storage\Data\SqlClient\Scripts\Install_Security.sql" target="content\Admin\tools\installnuget\scripts" />
+    <file src="..\Storage\Data\SqlClient\Scripts\Install_01_Schema.sql" target="content\Admin\tools\installnuget\scripts" />
+    <file src="..\Storage\Data\SqlClient\Scripts\Install_02_Procs.sql" target="content\Admin\tools\installnuget\scripts" />
+    <file src="..\Storage\Data\SqlClient\Scripts\Install_03_Data_Phase1.sql" target="content\Admin\tools\installnuget\scripts" />
+    <file src="..\Storage\Data\SqlClient\Scripts\Install_04_Data_Phase2.sql" target="content\Admin\tools\installnuget\scripts" />
+  </files>
+</package>

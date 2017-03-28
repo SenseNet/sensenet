@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>SenseNet.Services</id>
-    <version>$version$</version>
+    <version>7.0.0-beta1</version>
     <title>Sense/Net Content Repository and Services</title>
     <authors>kavics,aniko,laci,borsi,lajos,tusmester</authors>
     <owners>Sense/Net</owners>
@@ -16,13 +16,12 @@
     <tags>sensenet ecm ecms</tags>
     <dependencies>
       <dependency id="Newtonsoft.Json" version="9.0.1" />
+      <dependency id="SenseNet.Tools" version="2.1.1" />
       <dependency id="SenseNet.Security.EF6SecurityStore" version="2.3.0" />
-      <dependency id="SenseNet.SnAdmin" version="1.4.0" />
+      <dependency id="SenseNet.TaskManagement.Core" version="1.1.0.0" />
     </dependencies>
   </metadata>
   <files>
-    <file src="..\nuget\readme.txt" target="" />
-    <file src="..\nuget\content\**" target="content" />
     <file src="bin\Release\ICSharpCode.SharpZipLib.*" target="lib\net451" />
     <file src="bin\Release\Ionic.Zip.*" target="lib\net451" />
     <file src="bin\Release\itextsharp.*" target="lib\net451" />
@@ -38,12 +37,5 @@
     <file src="bin\Release\SenseNet.Preview.*" target="lib\net451" />
     <file src="bin\Release\SenseNet.Services.*" target="lib\net451" />
     <file src="bin\Release\SenseNet.Storage.*" target="lib\net451" />
-    <file src="..\Tools\SnAdminRuntime\bin\Release\SnAdminRuntime.*" target="content\Tools" />
-    <file src="..\Storage\Data\SqlClient\Scripts\Create_SenseNet_Database.sql" target="content\Admin\tools\installnuget\scripts" />
-    <file src="..\Storage\Data\SqlClient\Scripts\Install_Security.sql" target="content\Admin\tools\installnuget\scripts" />
-    <file src="..\Storage\Data\SqlClient\Scripts\Install_01_Schema.sql" target="content\Admin\tools\installnuget\scripts" />
-    <file src="..\Storage\Data\SqlClient\Scripts\Install_02_Procs.sql" target="content\Admin\tools\installnuget\scripts" />
-    <file src="..\Storage\Data\SqlClient\Scripts\Install_03_Data_Phase1.sql" target="content\Admin\tools\installnuget\scripts" />
-    <file src="..\Storage\Data\SqlClient\Scripts\Install_04_Data_Phase2.sql" target="content\Admin\tools\installnuget\scripts" />
   </files>
 </package>
