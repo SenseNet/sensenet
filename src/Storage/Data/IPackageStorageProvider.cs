@@ -6,8 +6,16 @@ using System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
+    //UNDONE: move to new file
+    public interface IDataProcedureFactory
+    {
+        IDataProcedure CreateProcedure();
+    }
+
     public interface IPackageStorageProvider
     {
+        IDataProcedureFactory DataProcedureFactory { get; set; }
+
         ApplicationInfo CreateInitialSenseNetVersion(Version version, string description);
         ApplicationInfo LoadOfficialSenseNetVersion();
         IEnumerable<ApplicationInfo> LoadInstalledApplications();

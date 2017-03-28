@@ -53,6 +53,12 @@ namespace SenseNet.Core.Tests
             target.ExecutionError = source.ExecutionError;
         }
 
+        public IDataProcedureFactory DataProcedureFactory
+        {
+            get { throw new NotSupportedException(); }
+            set { /* do nothing */ }
+        }
+
         public ApplicationInfo CreateInitialSenseNetVersion(Version version, string description)
         {
             if (version == null)

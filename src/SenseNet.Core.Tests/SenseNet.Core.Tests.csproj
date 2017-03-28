@@ -36,6 +36,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <Choose>
@@ -58,6 +59,10 @@
     <Compile Include="PackagingStorageTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Common\Common.csproj">
+      <Project>{A453E920-29C0-45CD-984C-0D8E3631B1E3}</Project>
+      <Name>Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ContentRepository\ContentRepository.csproj">
       <Project>{786e6165-ca02-45a9-bf58-207a45d7d6df}</Project>
       <Name>ContentRepository</Name>
