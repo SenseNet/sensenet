@@ -1,11 +1,24 @@
 ﻿using System;
 using System.Collections;
+using System.Linq;
 using System.Data.Common;
 
 namespace SenseNet.Core.Tests.Implementations
 {
     public class TestDataReader : DbDataReader
     {
+        private string[] _columnNames;
+        private object[][] _records;
+        private int _currentRecord = -1;
+
+        public TestDataReader() : base() { }
+
+        public TestDataReader(string[] columnNames, object[][] records) : base()
+        {
+            _columnNames = columnNames;
+            _records = records;
+        }
+
         public override string GetName(int ordinal)
         {
             throw new NotImplementedException();
@@ -18,7 +31,7 @@ namespace SenseNet.Core.Tests.Implementations
 
         public override bool IsDBNull(int ordinal)
         {
-            throw new NotImplementedException();
+            return DBNull.Value == _records[_currentRecord][ordinal];
         }
 
         public override int FieldCount { get; }
@@ -44,14 +57,22 @@ namespace SenseNet.Core.Tests.Implementations
 
         public override bool Read()
         {
-            throw new NotImplementedException();
+            if (_records == null)
+                return false;
+            if (_currentRecord + 1 >= _records.Length)
+                return false;
+            _currentRecord++;
+            return true;
         }
 
         public override int Depth { get; }
 
         public override int GetOrdinal(string name)
         {
-            throw new NotImplementedException();
+            for (int i = 0; i < _columnNames.Length; i++)
+                if (0 == string.Compare(name, _columnNames[i], StringComparison.InvariantCultureIgnoreCase))
+                    return i;
+            return -1;
         }
 
         public override bool GetBoolean(int ordinal)
@@ -91,7 +112,7 @@ namespace SenseNet.Core.Tests.Implementations
 
         public override int GetInt32(int ordinal)
         {
-            throw new NotImplementedException();
+            return Convert.ToInt32(_records[_currentRecord][ordinal]);
         }
 
         public override long GetInt64(int ordinal)
@@ -101,12 +122,12 @@ namespace SenseNet.Core.Tests.Implementations
 
         public override DateTime GetDateTime(int ordinal)
         {
-            throw new NotImplementedException();
+            return Convert.ToDateTime(_records[_currentRecord][ordinal]);
         }
 
         public override string GetString(int ordinal)
         {
-            throw new NotImplementedException();
+            return (string)_records[_currentRecord][ordinal];
         }
 
         public override decimal GetDecimal(int ordinal)

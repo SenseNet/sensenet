@@ -29,14 +29,14 @@ namespace SenseNet.Core.Tests.Implementations
         {
             ExecutorMethod = "ExecuteReader";
             TraceList.Add(this);
-            return new TestDataReader();
+            return (TestDataReader)ExpectedCommandResult;
         }
 
         public DbDataReader ExecuteReader(CommandBehavior behavior)
         {
             ExecutorMethod = $"ExecuteReader(CommandBehavior.{behavior})";
             TraceList.Add(this);
-            return new TestDataReader();
+            return (TestDataReader)ExpectedCommandResult;
         }
 
         public object ExecuteScalar()
