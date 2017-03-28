@@ -1,12 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using SenseNet.ContentRepository.Storage.Data;
 
 namespace SenseNet.Core.Tests.Implementations
 {
-    class TestDataProcedureFactory
+    public class TestDataProcedureFactory : IDataProcedureFactory
     {
+        public List<TestDataProcedure> Procedures { get; }
+        public object ExpectedCommandResult { get; set; }
+
+        public TestDataProcedureFactory(List<TestDataProcedure> procedures)
+        {
+            Procedures = procedures;
+        }
+
+        public IDataProcedure CreateProcedure()
+        {
+            var proc = new TestDataProcedure();
+            proc.TraceList = Procedures;
+            proc.ExpectedCommandResult = ExpectedCommandResult;
+            return proc;
+        }
     }
 }

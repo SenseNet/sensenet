@@ -1,322 +1,17 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Data.SqlClient;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
+using SenseNet.Core.Tests.Implementations;
 using SenseNet.Packaging;
 
 namespace SenseNet.Core.Tests
 {
-    public class TestDataProcedure : IDataProcedure
-    {
-        public List<TestDataProcedure> TraceList { get; set; }
-        public object ExpectedCommandResult { get; set; }
-
-        public string ExecutorMethod { get; private set; }
-        public void Dispose()
-        {
-            // do nothing
-        }
-
-        public CommandType CommandType { get; set; }
-        public string CommandText { get; set; }
-        public DbParameterCollection Parameters { get; } = new TestDbParameterCollection();
-        public void DeriveParameters()
-        {
-            throw new NotImplementedException();
-        }
-
-        public DbDataReader ExecuteReader()
-        {
-            ExecutorMethod = "ExecuteReader";
-            TraceList.Add(this);
-            return new TestDataReader();
-        }
-
-        public DbDataReader ExecuteReader(CommandBehavior behavior)
-        {
-            ExecutorMethod = $"ExecuteReader(CommandBehavior.{behavior})";
-            TraceList.Add(this);
-            return new TestDataReader();
-        }
-
-        public object ExecuteScalar()
-        {
-            ExecutorMethod = "ExecuteScalar";
-            TraceList.Add(this);
-            return ExpectedCommandResult;
-        }
-
-        public int ExecuteNonQuery()
-        {
-            ExecutorMethod = "ExecuteNonQuery";
-            TraceList.Add(this);
-            return 0;
-        }
-    }
-
-    public class TestDbParameterCollection : DbParameterCollection
-    {
-        private List<DbParameter> _parameters = new List<DbParameter>();
-
-        public override int Add(object value)
-        {
-            var p = value as DbParameter;
-            _parameters.Add(p);
-            return _parameters.Count - 1;
-        }
-
-        public override bool Contains(object value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void Clear()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override int IndexOf(object value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void Insert(int index, object value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void Remove(object value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void RemoveAt(int index)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void RemoveAt(string parameterName)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override void SetParameter(int index, DbParameter value)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override void SetParameter(string parameterName, DbParameter value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override int Count { get { return _parameters.Count; } }
-        public override object SyncRoot { get; }
-
-        public override int IndexOf(string parameterName)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IEnumerator GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override DbParameter GetParameter(int index)
-        {
-            return _parameters[index];
-        }
-
-        protected override DbParameter GetParameter(string parameterName)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool Contains(string value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void CopyTo(Array array, int index)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void AddRange(Array values)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class TestDataReader : DbDataReader
-    {
-        public override string GetName(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override int GetValues(object[] values)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool IsDBNull(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override int FieldCount { get; }
-
-        public override object this[int ordinal]
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        public override object this[string name]
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        public override bool HasRows { get; }
-        public override bool IsClosed { get; }
-        public override int RecordsAffected { get; }
-
-        public override bool NextResult()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool Read()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override int Depth { get; }
-
-        public override int GetOrdinal(string name)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool GetBoolean(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override byte GetByte(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override long GetBytes(int ordinal, long dataOffset, byte[] buffer, int bufferOffset, int length)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override char GetChar(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override long GetChars(int ordinal, long dataOffset, char[] buffer, int bufferOffset, int length)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Guid GetGuid(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override short GetInt16(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override int GetInt32(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override long GetInt64(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override DateTime GetDateTime(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override string GetString(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override decimal GetDecimal(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override double GetDouble(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override float GetFloat(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override string GetDataTypeName(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Type GetFieldType(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override object GetValue(int ordinal)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IEnumerator GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class TestDataProcedureFactory : IDataProcedureFactory
-    {
-        public List<TestDataProcedure> Procedures { get; }
-        public object ExpectedCommandResult { get; set; }
-
-        public TestDataProcedureFactory(List<TestDataProcedure> procedures)
-        {
-            Procedures = procedures;
-        }
-
-        public IDataProcedure CreateProcedure()
-        {
-            var proc = new TestDataProcedure();
-            proc.TraceList = Procedures;
-            proc.ExpectedCommandResult = ExpectedCommandResult;
-            return proc;
-        }
-    }
-
     [TestClass]
     public class PackagingStorageTests
     {
@@ -335,6 +30,8 @@ namespace SenseNet.Core.Tests
             var dataProviderAcc = new PrivateType(typeof(DataProvider));
             dataProviderAcc.SetStaticField("_current", sqlProvider);
         }
+
+        // ================================================================================================== Tests
 
         [TestMethod]
         public void Packaging_Storage_SavePackage()
@@ -439,6 +136,7 @@ WHERE Id = @Id
         }
 
         // ================================================================================================== Tools
+
         private void CheckParameter(DbParameter p, string name, DbType dbType, int size, DBNull value)
         {
             Assert.AreEqual(name, p.ParameterName);
