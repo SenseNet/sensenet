@@ -24,4 +24,4 @@ using System.Runtime.InteropServices;
 
 // This attribute is used by NuGet to determine the package file name and version.
 // It may contain a SemVer value.
-[assembly: AssemblyInformationalVersion("7.0.0-beta")]
+[assembly: AssemblyInformationalVersion("7.0.0-beta1")]

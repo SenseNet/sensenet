@@ -1,12 +1,13 @@
 <Package type='Product' level='Tool'>
   <Name>Sense/Net ECM</Name>
+  <Description>Imports content items to the Content Repository from the file system.</Description>
   <ReleaseDate>2016-12-21</ReleaseDate>
   <Parameters>
-    <Parameter name="@source" />
-    <Parameter name="@target">/Root</Parameter>
-    <Parameter name="@resetSecurity">False</Parameter>
-    <Parameter name="@sourceIsRelativeTo">Package</Parameter>
-    <Parameter name="@logLevel">Verbose</Parameter>
+    <Parameter name="@source" description="File system path of the folder or file to import (mandatory)." />
+    <Parameter name="@target" description="Content path of the container where the content items will be imported.">/Root</Parameter>
+    <Parameter name="@resetSecurity" description="Whether to clear and rebuild the security database after importing.">False</Parameter>
+    <Parameter name="@sourceIsRelativeTo" description="If @source is a relative path, where to look for it. Possible values: Package, TargetDirectory.">Package</Parameter>
+    <Parameter name="@logLevel" description="The amount of log information you want to see. Possible values: Info, Progress, Verbose.">Verbose</Parameter>
   </Parameters>
   <Steps>
 	  <Phase>
