@@ -817,7 +817,6 @@ namespace SenseNet.Core.Tests
         [TestMethod]
         public void Packaging_DependencyCheck_MissingDependency()
         {
-            var recordCountBefore = GetDbRecordCount();
             var expectedErrorType = PackagingExceptionType.DependencyNotFound;
             var actualErrorType = PackagingExceptionType.NotDefined;
 
@@ -845,7 +844,6 @@ namespace SenseNet.Core.Tests
 
             // assert
             Assert.AreEqual(actualErrorType, expectedErrorType);
-            Assert.AreEqual(recordCountBefore, GetDbRecordCount());
         }
         [TestMethod]
         public void Packaging_DependencyCheck_CannotInstallExistingComponent()
@@ -1113,6 +1111,10 @@ namespace SenseNet.Core.Tests
         [TestMethod]
         public void Packaging_DependencyCheck_LoggingDependencies()
         {
+            DependencyCheckLoggingDependencies(_log);
+        }
+        internal void DependencyCheckLoggingDependencies(StringBuilder logger)
+        {
             for (var i = 0; i < 9; i++)
             {
                 ExecutePhases($@"<?xml version='1.0' encoding='utf-8'?>
@@ -1122,7 +1124,7 @@ namespace SenseNet.Core.Tests
                             <Version>{i + 1}.0</Version>
                         </Package>");
             }
-            _log.Clear();
+            logger.Clear();
 
             // action
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
@@ -1144,7 +1146,7 @@ namespace SenseNet.Core.Tests
                         </Package>");
 
             // check
-            var log = _log.ToString();
+            var log = logger.ToString();
             var relevantLines = new List<string>();
             using (var reader = new StringReader(log))
             {
@@ -1152,7 +1154,7 @@ namespace SenseNet.Core.Tests
                 while ((line = reader.ReadLine()) != null)
                 {
                     line = line.Trim();
-                    if(line.StartsWith("Component"))
+                    if (line.StartsWith("Component"))
                         relevantLines.Add(line);
                 }
             }
@@ -1633,10 +1635,6 @@ namespace SenseNet.Core.Tests
             var manifest = Manifest.Parse(manifestXml, phase, true);
             var executionContext = ExecutionContext.CreateForTest("packagePath", "targetPath", new string[0], "sandboxPath", manifest, phase, manifest.CountOfPhases, null, console ?? new StringWriter());
             return PackageManager.ExecuteCurrentPhase(manifest, executionContext);
-        }
-        private int GetDbRecordCount()
-        {
-            return ((TestPackageStorageProvider) PackageManager.Storage).GetRecordCount();
         }
     }
 }
