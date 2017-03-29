@@ -61,7 +61,7 @@ export function CreateContent<T>(type: string, options: IContentOptions = {}): C
             var propertyLines = new List<string>();
             foreach (var property in visitedProperties)
             {
-                var required = Context.RequiredProperties.Contains(property.Name) ? "" : (property.Type.Required ? "" : "?");
+                var required = property.Type.Required ? "" : "?";
                 propertyLines.Add($"{property.Name}{required}: {GetPropertyTypeName(property)};");
             }
 

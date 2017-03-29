@@ -9,7 +9,7 @@ namespace SenseNet.Portal.OData.Typescript
 {
     internal class TypescriptGenerationContext
     {
-        public const string ComplexTypesModuleName = "Fields";
+        public const string ComplexTypesModuleName = "ComplexTypes";
         public const string EnumTypesModuleName = "Enums";
         public const string SchemaModuleName = "Schemas";
         public const string FieldSettingsModuleName = "FieldSettings";
@@ -18,8 +18,7 @@ namespace SenseNet.Portal.OData.Typescript
         public List<Enumeration> Enumerations = new List<Enumeration>();
         public List<ComplexType> ComplexTypes = new List<ComplexType>();
 
-        public readonly string[] PropertyBlacklist = { "TypeIs", "InTree", "InFolder", "AllFieldSettingContents" };
-        public readonly string[] RequiredProperties = { "Id", "Type" };
+        public readonly string[] PropertyBlacklist = { "Type", "TypeIs", "InTree", "InFolder", "AllFieldSettingContents" };
 
         public string GetEnumerationFullName(Enumeration enumeration)
         {
