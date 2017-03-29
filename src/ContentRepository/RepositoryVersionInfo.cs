@@ -24,8 +24,25 @@ namespace SenseNet.ContentRepository
         public IEnumerable<ApplicationInfo> Applications { get; private set; }
         public AssemblyDetails Assemblies { get; private set; }
         public IEnumerable<Package> InstalledPackages{ get; private set;}
+        public bool DatabaseAvailable { get; private set; }
 
         // ============================================================== Static part
+
+        private static readonly RepositoryVersionInfo BeforeInstall = new RepositoryVersionInfo
+        {
+            OfficialSenseNetVersion = ApplicationInfo.Empty,
+            Applications = new ApplicationInfo[0],
+            InstalledPackages = new Package[0],
+            Assemblies = new AssemblyDetails
+            {
+                Dynamic = new AssemblyInfo[0],
+                GAC = new AssemblyInfo[0],
+                Other = new AssemblyInfo[0],
+                SenseNet = new AssemblyInfo[0],
+                Plugins = new AssemblyInfo[0]
+            },
+            DatabaseAvailable = false
+        };
 
         private static RepositoryVersionInfo __instance;
         private static object _instanceLock = new object();
@@ -44,13 +61,20 @@ namespace SenseNet.ContentRepository
         private static RepositoryVersionInfo Create()
         {
             var storage = PackageManager.Storage;
-            return Create(
-                storage.LoadOfficialSenseNetVersion(),
-                storage.LoadInstalledApplications(),
-                storage.LoadInstalledPackages());
+            try
+            {
+                return Create(
+                    storage.LoadOfficialSenseNetVersion(),
+                    storage.LoadInstalledApplications(),
+                    storage.LoadInstalledPackages());
+            }
+            catch
+            {
+                return RepositoryVersionInfo.BeforeInstall;
+            }
         }
 
-        private static RepositoryVersionInfo Create(ApplicationInfo productVersion, IEnumerable<ApplicationInfo> applicationVersions, IEnumerable<Package> packages)
+        private static RepositoryVersionInfo Create(ApplicationInfo productVersion, IEnumerable<ApplicationInfo> applicationVersions, IEnumerable<Package> packages, bool databaseAvailable = true)
         {
             var asms = TypeHandler.GetAssemblyInfo();
 
@@ -79,7 +103,8 @@ namespace SenseNet.ContentRepository
                     Other = asms,
                     Dynamic = asmDyn,
                 },
-                InstalledPackages = packages
+                InstalledPackages = packages,
+                DatabaseAvailable = databaseAvailable
             };
         }
 

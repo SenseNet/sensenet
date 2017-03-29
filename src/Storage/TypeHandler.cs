@@ -18,6 +18,15 @@ namespace SenseNet.ContentRepository.Storage
         public Version AcceptableVersion { get; set; }
         public string Description { get; set; }
 
+        public static readonly ApplicationInfo Empty = new ApplicationInfo
+        {
+            Name = string.Empty,
+            AppId = string.Empty,
+            Version = new Version(0, 0),
+            AcceptableVersion = null,
+            Description = string.Empty
+        };
+
         public static ApplicationInfo CreateInitialSenseNetVersion(Version version, string description)
         {
             return Data.DataProvider.Current.CreateInitialSenseNetVersion(version, description);

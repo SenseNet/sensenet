@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Xml;
-using SenseNet.Packaging.Steps;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository;
 
@@ -55,7 +53,7 @@ namespace SenseNet.Packaging
 
             // root element inspection (required element name)
             e = xml.DocumentElement;
-            if(e.Name != "Package")
+            if(e == null || e.Name != "Package")
                 throw new InvalidPackageException(SR.Errors.Manifest.WrongRootName,
                     PackagingExceptionType.WrongRootName);
 
@@ -206,7 +204,6 @@ namespace SenseNet.Packaging
             var versionInfo = RepositoryVersionInfo.Instance;
             var existingComponentInfo = versionInfo.Applications.FirstOrDefault(a => a.AppId == ComponentId && a.AcceptableVersion != null);
 
-            //UNDONE: test the case when database does not exist yet (or will be overwritten anyway).
             if (Level == PackageLevel.Install)
             {
                 if (existingComponentInfo != null)

@@ -7,7 +7,6 @@ using System.Xml;
 using System.Diagnostics;
 using SenseNet.ContentRepository;
 using System.Reflection;
-using System.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Packaging.Steps;
@@ -82,19 +81,14 @@ namespace SenseNet.Packaging
 
         internal static PackagingResult ExecuteCurrentPhase(Manifest manifest, ExecutionContext executionContext)
         {
-            //UNDONE: handle the "first install" problem
-            //if (manifest.Type == PackageType.Product && manifest.Level == PackageLevel.Install)
-            //{
-            //    // In case of product install create initial entry at the beginning of the
-            //    // second phase, after the new db was created in the first phase.
-            //    if (executionContext.CurrentPhase == 1)
-            //        SaveInitialPackage(manifest);
-            //}
-            //else
-            //{
-                if (executionContext.CurrentPhase == 0)
+            var savingInitialPostponed = false;
+            if (executionContext.CurrentPhase == 0)
+            {
+                if (RepositoryVersionInfo.Instance.DatabaseAvailable)
                     SaveInitialPackage(manifest);
-            //}
+                else
+                    savingInitialPostponed = true;
+            }
 
             var stepElements = manifest.GetPhase(executionContext.CurrentPhase);
 
@@ -105,7 +99,7 @@ namespace SenseNet.Packaging
             var successful = false;
             try
             {
-                var maxStepId = stepElements.Count();
+                var maxStepId = stepElements.Count;
                 for (int i = 0; i < maxStepId; i++)
                 {
                     var stepElement = stepElements[i];
@@ -136,6 +130,9 @@ namespace SenseNet.Packaging
             }
 
             var finished = executionContext.Terminated || (executionContext.CurrentPhase == manifest.CountOfPhases - 1);
+
+            if(savingInitialPostponed)
+                SaveInitialPackage(manifest);
 
             if (successful && !finished)
                 return new PackagingResult { NeedRestart = true, Successful = true, Errors = Logger.Errors };
@@ -231,7 +228,7 @@ namespace SenseNet.Packaging
             if (manifest.Level != PackageLevel.Tool)
                 appVer = manifest.Version;
 
-            return new ContentRepository.Storage.Package
+            return new Package
             {
                 Description = manifest.Description,
                 ReleaseDate = manifest.ReleaseDate,
@@ -266,20 +263,20 @@ namespace SenseNet.Packaging
             var sb = new StringBuilder();
             sb.AppendLine("Available step types and parameters");
             sb.AppendLine("-----------------------------------");
-            foreach (var item in SenseNet.Packaging.Steps.Step.StepTypes)
+            foreach (var item in Step.StepTypes)
             {
                 var stepType = item.Value;
                 if (memory.Contains(stepType.FullName))
                     continue;
                 memory.Add(stepType.FullName);
 
-                var step = (SenseNet.Packaging.Steps.Step)Activator.CreateInstance(stepType);
+                var step = (Step)Activator.CreateInstance(stepType);
                 sb.AppendLine(step.ElementName + " (" + stepType.FullName + ")");
                 foreach (var property in stepType.GetProperties())
                 {
                     if (property.Name == "StepId" || property.Name == "ElementName")
                         continue;
-                    var isDefault = property.GetCustomAttributes(true).Any(x => x is SenseNet.Packaging.Steps.DefaultPropertyAttribute);
+                    var isDefault = property.GetCustomAttributes(true).Any(x => x is DefaultPropertyAttribute);
                     sb.AppendFormat("  {0} : {1} {2}", property.Name, property.PropertyType.Name, isDefault ? "(Default)" : "");
                     sb.AppendLine();
                 }
@@ -313,11 +310,12 @@ namespace SenseNet.Packaging
             return propertyName;
         }
     }
+
     internal class PackageSchemaGenerator
     {
         #region xml source
 
-        private const string XSD = @"<?xml version=""1.0"" encoding=""utf-8""?>
+        private const string Xsd = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <xs:schema id=""PackageSchema""
     elementFormDefault=""unqualified""
     xmlns:xs=""http://www.w3.org/2001/XMLSchema"">
@@ -391,9 +389,9 @@ namespace SenseNet.Packaging
 </xs:schema>
 ";
 
-        private const string STEPHEADER = @"      <xs:element name=""{0}"" type=""{1}"" />";
+        private const string StepHeader = @"      <xs:element name=""{0}"" type=""{1}"" />";
 
-        private const string STEPTEMPLATE = @"  <xs:complexType name=""{0}"">
+        private const string StepTemplate = @"  <xs:complexType name=""{0}"">
 {1}    <xs:complexContent mixed=""true"">
       <xs:extension base=""Empty"">
         <xs:choice minOccurs=""0"" maxOccurs=""unbounded"">
@@ -402,34 +400,34 @@ namespace SenseNet.Packaging
     </xs:complexContent>
   </xs:complexType>";
 
-        private const string STEPANNOTATION = @"    <xs:annotation>
+        private const string StepAnnotation = @"    <xs:annotation>
       <xs:documentation>{0}</xs:documentation>
     </xs:annotation>
 ";
 
-        private const string PROPERTYELEMENTTEMPLATE = @"          <xs:element name=""{0}"" type=""{1}"">
+        private const string PropertyElementTemplate = @"          <xs:element name=""{0}"" type=""{1}"">
 {2}          </xs:element>";
 
-        private const string ELEMENTANNOTATION = @"            <xs:annotation>
+        private const string ElementAnnotation = @"            <xs:annotation>
               <xs:documentation>{0}</xs:documentation>
             </xs:annotation>
 ";
 
-        private const string PROPERTYATTRIBUTETEMPLATE = @"        <xs:attribute name=""{0}"" type=""{1}"">
+        private const string PropertyAttribuTetemplate = @"        <xs:attribute name=""{0}"" type=""{1}"">
 {2}        </xs:attribute>";
 
-        private const string ATTRIBUTEANNOTATION = @"          <xs:annotation>
+        private const string AttributeAnnotation = @"          <xs:annotation>
             <xs:documentation>{0}</xs:documentation>
           </xs:annotation>
 ";
 
-        private const string ENUMTEMPLATE = @"  <xs:simpleType name=""{0}"">
+        private const string EnumTemplate = @"  <xs:simpleType name=""{0}"">
     <xs:restriction base=""xs:string"">
 {1}    </xs:restriction>
   </xs:simpleType>
 ";
 
-        private const string ENUMOPTIONTEMPLATE = @"      <xs:enumeration value=""{0}"" />
+        private const string EnumOptionTemplate = @"      <xs:enumeration value=""{0}"" />
 ";
 
         #endregion
@@ -463,14 +461,14 @@ namespace SenseNet.Packaging
         {
             var memory = new List<string>();
             var steps = new List<StepDescriptor>();
-            foreach (var item in SenseNet.Packaging.Steps.Step.StepTypes)
+            foreach (var item in Step.StepTypes)
             {
                 var stepType = item.Value;
                 if (memory.Contains(stepType.FullName))
                     continue;
                 memory.Add(stepType.FullName);
 
-                var step = (SenseNet.Packaging.Steps.Step)Activator.CreateInstance(stepType);
+                //var step = (Step)Activator.CreateInstance(stepType);
 
                 string classDoc = null;
                 var docAttr = (AnnotationAttribute)stepType.GetCustomAttributes(true).FirstOrDefault(x => x is AnnotationAttribute);
@@ -512,28 +510,28 @@ namespace SenseNet.Packaging
 
         private static string GenerateSchema(IEnumerable<StepDescriptor> steps)
         {
-            var stepHeaders = string.Join(Environment.NewLine, steps.Select(s => String.Format(STEPHEADER, s.Name, s.Properties.Count() == 0 ? "Empty" : s.Name)));
-            var stepTypes = string.Join(Environment.NewLine, steps.Select(s=>String.Format(STEPTEMPLATE
+            var stepHeaders = string.Join(Environment.NewLine, steps.Select(s => String.Format(StepHeader, s.Name, !s.Properties.Any() ? "Empty" : s.Name)));
+            var stepTypes = string.Join(Environment.NewLine, steps.Select(s=>String.Format(StepTemplate
                 , s.Name
-                , String.IsNullOrEmpty(s.Documentation)?"":String.Format(STEPANNOTATION, s.Documentation)
+                , String.IsNullOrEmpty(s.Documentation)?"":String.Format(StepAnnotation, s.Documentation)
                 , GetStepElements(s)
                 , GetStepAttributes(s)
                 )));
-            var enumTypes = string.Join(string.Empty, _enumTypes.Select(t => String.Format(ENUMTEMPLATE
+            var enumTypes = string.Join(string.Empty, EnumTypes.Select(t => String.Format(EnumTemplate
                 , t.Name
-                , string.Join(string.Empty, Enum.GetNames(t).Select(o => String.Format(ENUMOPTIONTEMPLATE, o)))
+                , string.Join(string.Empty, Enum.GetNames(t).Select(o => String.Format(EnumOptionTemplate, o)))
                 )));
-            var schema = String.Format(PackageSchemaGenerator.XSD, @"\d+(\.\d+){0,3}", stepHeaders, enumTypes, stepTypes);
+            var schema = String.Format(PackageSchemaGenerator.Xsd, @"\d+(\.\d+){0,3}", stepHeaders, enumTypes, stepTypes);
             return schema;
         }
         private static string GetStepElements(StepDescriptor step)
         {
             var s = String.Join(Environment.NewLine, step.Properties
                 .Where(p => p.CanBeElement)
-                .Select(p => String.Format(PROPERTYELEMENTTEMPLATE
+                .Select(p => String.Format(PropertyElementTemplate
                     , p.Name
                     , GetDataType(p.DataType)
-                    , String.IsNullOrEmpty(p.Documentation) ? "" : String.Format(ELEMENTANNOTATION, p.Documentation)
+                    , String.IsNullOrEmpty(p.Documentation) ? "" : String.Format(ElementAnnotation, p.Documentation)
                 )));
             return s;
         }
@@ -541,14 +539,14 @@ namespace SenseNet.Packaging
         {
             var s = String.Join(Environment.NewLine, step.Properties
                 .Where(p => p.CanBeAttribute)
-                .Select(p => String.Format(PROPERTYATTRIBUTETEMPLATE
+                .Select(p => String.Format(PropertyAttribuTetemplate
                     , PackageManager.ToCamelCase(p.Name)
                     , GetDataType(p.DataType)
-                    , String.IsNullOrEmpty(p.Documentation) ? "" : String.Format(ATTRIBUTEANNOTATION, p.Documentation)
+                    , String.IsNullOrEmpty(p.Documentation) ? "" : String.Format(AttributeAnnotation, p.Documentation)
                 )));
             return s;
         }
-        private static List<Type> _enumTypes = new List<Type>();
+        private static readonly List<Type> EnumTypes = new List<Type>();
         private static string GetDataType(Type type)
         {
             if (type == typeof(Int32))
@@ -561,8 +559,8 @@ namespace SenseNet.Packaging
                 return "AnyXml";
             if (type.IsEnum)
             {
-                if (!_enumTypes.Any(t => t == type))
-                    _enumTypes.Add(type);
+                if (EnumTypes.All(t => t != type))
+                    EnumTypes.Add(type);
                 return type.Name;
             }
             return "xs:string";

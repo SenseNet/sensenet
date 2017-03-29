@@ -32,7 +32,19 @@ namespace SenseNet.Core.Tests
     public class TestPackageStorageProvider : IPackageStorageProvider
     {
         private int _id;
-        private List<Package> _storage = new List<Package>();
+        private List<Package> __storage = new List<Package>();
+
+        private List<Package> Storage
+        {
+            get
+            {
+                if (!DatabaseEnabled)
+                    throw new Exception("Database is not available");
+                return __storage;
+            }
+        }
+
+        public bool DatabaseEnabled { get; set; }
 
         private Package ClonePackage(Package source)
         {
@@ -59,6 +71,8 @@ namespace SenseNet.Core.Tests
             set { /* do nothing */ }
         }
 
+        // ================================================================================================= IPackageStorageProvider
+
         public ApplicationInfo CreateInitialSenseNetVersion(Version version, string description)
         {
             if (version == null)
@@ -84,7 +98,7 @@ namespace SenseNet.Core.Tests
 
         public ApplicationInfo LoadOfficialSenseNetVersion()
         {
-            var package = _storage
+            var package = Storage
                 .Where(p =>
                     (p.ExecutionResult != ExecutionResult.Faulty && p.ExecutionResult != ExecutionResult.Unfinished)
                     && p.AppId == null && p.PackageLevel == PackageLevel.Install)
@@ -106,7 +120,7 @@ namespace SenseNet.Core.Tests
         public IEnumerable<ApplicationInfo> LoadInstalledApplications()
         {
             var appInfos = new Dictionary<string, ApplicationInfo>();
-            foreach (var package in _storage.Where(p => p.PackageLevel == PackageLevel.Install || p.PackageLevel == PackageLevel.Patch))
+            foreach (var package in Storage.Where(p => p.PackageLevel == PackageLevel.Install || p.PackageLevel == PackageLevel.Patch))
             {
                 var appId = package.AppId;
 
@@ -135,7 +149,7 @@ namespace SenseNet.Core.Tests
 
         public IEnumerable<Package> LoadInstalledPackages()
         {
-            return _storage.Select(ClonePackage).ToArray();
+            return Storage.Select(ClonePackage).ToArray();
         }
 
         public void SavePackage(Package package)
@@ -144,14 +158,14 @@ namespace SenseNet.Core.Tests
                 throw new InvalidOperationException("Only new package can be saved.");
 
             package.Id = ++_id;
-            _storage.Add(ClonePackage(package));
+            Storage.Add(ClonePackage(package));
 
             RepositoryVersionInfo.Reset();
         }
 
         public void UpdatePackage(Package package)
         {
-            var existing = _storage.FirstOrDefault(p => p.Id == package.Id);
+            var existing = Storage.FirstOrDefault(p => p.Id == package.Id);
             if(existing == null)
                 throw new InvalidOperationException("Package does not exist. Id: " + package.Id);
             UpdatePackage(package, existing);
@@ -169,16 +183,16 @@ namespace SenseNet.Core.Tests
 
         public void DeletePackagesExceptFirst()
         {
-            if (_storage.Count == 0)
+            if (Storage.Count == 0)
                 return;
             throw new NotImplementedException();
         }
 
-        //================================================== Test tools
+        // ================================================================================================= Test tools
 
         public int GetRecordCount()
         {
-            return _storage.Count;
+            return Storage.Count;
         }
     }
 
@@ -212,6 +226,14 @@ namespace SenseNet.Core.Tests
         }
     }
 
+    public class TestStepThatSimulatesInstallingDatabase : Step
+    {
+        public override void Execute(ExecutionContext context)
+        {
+            ((TestPackageStorageProvider)PackageManager.Storage).DatabaseEnabled = true;
+        }
+    }
+
     #endregion
 
     [TestClass]
@@ -228,7 +250,9 @@ namespace SenseNet.Core.Tests
             var loggerAcc = new PrivateType(typeof(Logger));
             loggerAcc.SetStaticField("_loggers", loggers);
 
-            PackageManager.StorageFactory = new TestPackageStorageProviderFactory(new TestPackageStorageProvider());
+            var storage = new TestPackageStorageProvider();
+            storage.DatabaseEnabled = true;
+            PackageManager.StorageFactory = new TestPackageStorageProviderFactory(storage);
 
             RepositoryVersionInfo.Reset();
         }
@@ -1149,6 +1173,71 @@ namespace SenseNet.Core.Tests
         #region // ========================================= Component lifetime tests
 
         [TestMethod]
+        public void Packaging_Install_SnInitialComponent()
+        {
+            // simulate database before installation
+            ((TestPackageStorageProvider) PackageManager.Storage).DatabaseEnabled = false;
+
+            // accessing versioninfo does not throw any error
+            var verInfo = RepositoryVersionInfo.Instance;
+
+            // there is no any app or package
+            Assert.AreEqual(0, verInfo.Applications.Count());
+            Assert.AreEqual(0, verInfo.InstalledPackages.Count());
+
+            var manifestXml = new XmlDocument();
+            manifestXml.LoadXml(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component42</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>4.42</Version>
+                            <Steps>
+                                <Phase>
+                                    <Trace>Installing database.</Trace>
+                                    <TestStepThatSimulatesInstallingDatabase />
+                                </Phase>
+                                <Phase><Trace>Installing first component.</Trace></Phase>
+                            </Steps>
+                        </Package>");
+            ApplicationInfo app;
+            Package pkg;
+
+            // phase 1 (with step that simulates the installing database)
+            ExecutePhase(manifestXml, 0);
+
+            // validate state after phase 1
+            verInfo = RepositoryVersionInfo.Instance;
+            Assert.AreEqual(1, verInfo.Applications.Count());
+            Assert.AreEqual(1, verInfo.InstalledPackages.Count());
+            app = RepositoryVersionInfo.Instance.Applications.First();
+            Assert.AreEqual("Component42", app.AppId);
+            Assert.AreEqual("4.42", app.Version.ToString());
+            Assert.IsNull(app.AcceptableVersion);
+            pkg = RepositoryVersionInfo.Instance.InstalledPackages.First();
+            Assert.AreEqual("Component42", pkg.AppId);
+            Assert.AreEqual(ExecutionResult.Unfinished, pkg.ExecutionResult);
+            Assert.AreEqual(PackageLevel.Install, pkg.PackageLevel);
+            Assert.AreEqual("4.42", pkg.ApplicationVersion.ToString());
+
+            // phase 2
+            ExecutePhase(manifestXml, 1);
+
+            // validate state after phase 2
+            Assert.AreEqual(1, RepositoryVersionInfo.Instance.Applications.Count());
+            Assert.AreEqual(1, RepositoryVersionInfo.Instance.InstalledPackages.Count());
+            app = RepositoryVersionInfo.Instance.Applications.First();
+            Assert.AreEqual("Component42", app.AppId);
+            Assert.AreEqual("4.42", app.Version.ToString());
+            Assert.IsNotNull(app.AcceptableVersion);
+            Assert.AreEqual("4.42", app.AcceptableVersion.ToString());
+            pkg = RepositoryVersionInfo.Instance.InstalledPackages.First();
+            Assert.AreEqual("Component42", pkg.AppId);
+            Assert.AreEqual(ExecutionResult.Successful, pkg.ExecutionResult);
+            Assert.AreEqual(PackageLevel.Install, pkg.PackageLevel);
+            Assert.AreEqual("4.42", pkg.ApplicationVersion.ToString());
+        }
+
+        [TestMethod]
         public void Packaging_Install_NoSteps()
         {
             var manifestXml = new XmlDocument();
@@ -1361,7 +1450,7 @@ namespace SenseNet.Core.Tests
                         </Package>");
                 Assert.Fail("PackagingException was not thrown.");
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // do not compensate anything
             }
@@ -1408,7 +1497,7 @@ namespace SenseNet.Core.Tests
                         </Package>");
                 Assert.Fail("PackagingException was not thrown.");
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // do not compensate anything
             }
@@ -1468,7 +1557,7 @@ namespace SenseNet.Core.Tests
                         </Package>");
                     Assert.Fail("PackagingException was not thrown.");
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     // do not compensate anything
                 }
