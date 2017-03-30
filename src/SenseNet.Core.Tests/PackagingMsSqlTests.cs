@@ -163,7 +163,7 @@ CREATE TABLE [dbo].[Packages](
                                 <Phase><Trace>Installing first component.</Trace></Phase>
                             </Steps>
                         </Package>");
-            ApplicationInfo app;
+            ComponentInfo component;
             Package pkg;
 
             // phase 1 (with step that simulates the installing database)
@@ -186,11 +186,11 @@ CREATE TABLE [dbo].[Packages](
             verInfo = RepositoryVersionInfo.Instance;
             Assert.AreEqual(1, verInfo.Applications.Count());
             Assert.AreEqual(1, verInfo.InstalledPackages.Count());
-            app = verInfo.Applications.First();
-            Assert.AreEqual("Component42", app.ComponentId);
-            Assert.AreEqual("4.42", app.Version.ToString());
-            Assert.IsNotNull(app.AcceptableVersion);
-            Assert.AreEqual("4.42", app.AcceptableVersion.ToString());
+            component = verInfo.Applications.First();
+            Assert.AreEqual("Component42", component.ComponentId);
+            Assert.AreEqual("4.42", component.Version.ToString());
+            Assert.IsNotNull(component.AcceptableVersion);
+            Assert.AreEqual("4.42", component.AcceptableVersion.ToString());
             pkg = verInfo.InstalledPackages.First();
             Assert.AreEqual("Component42", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Successful, pkg.ExecutionResult);

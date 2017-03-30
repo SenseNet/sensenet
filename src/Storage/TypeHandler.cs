@@ -10,14 +10,14 @@ using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Storage
 {
-    public class ApplicationInfo
+    public class ComponentInfo
     {
         public string ComponentId { get; set; }
         public Version Version { get; set; }
         public Version AcceptableVersion { get; set; }
         public string Description { get; set; }
 
-        public static readonly ApplicationInfo Empty = new ApplicationInfo
+        public static readonly ComponentInfo Empty = new ComponentInfo
         {
             ComponentId = string.Empty,
             Version = new Version(0, 0),
