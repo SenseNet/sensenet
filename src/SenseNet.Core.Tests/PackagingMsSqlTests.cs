@@ -36,7 +36,6 @@ DROP TABLE [dbo].[Packages]
 CREATE TABLE [dbo].[Packages](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[PackageType] [varchar](50) NOT NULL,
-	[PackageLevel] [varchar](50) NOT NULL,
 	[SenseNetVersion] [varchar](50) NOT NULL,
 	[ComponentId] [nvarchar](450) NULL,
 	[AppVersion] [varchar](50) NULL,
