@@ -1650,8 +1650,11 @@ namespace SenseNet.Core.Tests
             SavePackage("C2", "1.0", "02:00", "2016-01-02", PackageLevel.Install, ExecutionResult.Successful);
             SavePackage("C1", "1.1", "03:00", "2016-01-03", PackageLevel.Patch, ExecutionResult.Faulty);
             SavePackage("C1", "1.1", "04:00", "2016-01-03", PackageLevel.Patch, ExecutionResult.Faulty);
-            SavePackage("C1", "1.2", "05:00", "2016-01-03", PackageLevel.Patch, ExecutionResult.Successful);
-            SavePackage("C2", "1.1", "05:00", "2016-01-03", PackageLevel.Patch, ExecutionResult.Unfinished);
+            SavePackage("C1", "1.2", "05:00", "2016-01-06", PackageLevel.Patch, ExecutionResult.Successful);
+            SavePackage("C2", "1.1", "06:00", "2016-01-07", PackageLevel.Patch, ExecutionResult.Unfinished);
+            SavePackage("C2", "1.2", "07:00", "2016-01-08", PackageLevel.Patch, ExecutionResult.Unfinished);
+            SavePackage("C3", "1.0", "08:00", "2016-01-09", PackageLevel.Install, ExecutionResult.Faulty);
+            SavePackage("C3", "2.0", "08:00", "2016-01-09", PackageLevel.Install, ExecutionResult.Faulty);
 
             // action
             var verInfo = RepositoryVersionInfo.Instance;
@@ -1662,9 +1665,9 @@ namespace SenseNet.Core.Tests
                 .Select(a => $"{a.AppId}: {a.AcceptableVersion} ({a.Version})")
                 .ToArray());
             // 
-            var expected = "C1: 1.2 (1.2) | C2: 1.0 (1.1)";
+            var expected = "C1: 1.2 (1.2) | C2: 1.0 (1.2)";
             Assert.AreEqual(expected, actual);
-            Assert.AreEqual(6, verInfo.InstalledPackages.Count());
+            Assert.AreEqual(9, verInfo.InstalledPackages.Count());
         }
 
         #endregion
