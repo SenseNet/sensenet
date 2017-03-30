@@ -12,7 +12,6 @@ namespace SenseNet.ContentRepository.Storage
 {
     public class ApplicationInfo
     {
-        public string Name { get; set; }
         public string AppId { get; set; }
         public Version Version { get; set; }
         public Version AcceptableVersion { get; set; }
@@ -20,7 +19,6 @@ namespace SenseNet.ContentRepository.Storage
 
         public static readonly ApplicationInfo Empty = new ApplicationInfo
         {
-            Name = string.Empty,
             AppId = string.Empty,
             Version = new Version(0, 0),
             AcceptableVersion = null,

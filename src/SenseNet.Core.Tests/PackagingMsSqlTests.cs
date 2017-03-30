@@ -28,7 +28,8 @@ namespace SenseNet.Core.Tests
     public class PackagingMsSqlTests
     {
         private static readonly string ConnectionString =
-            "Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=sensenet;Data Source=(local)";
+            //"Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=sensenet;Data Source=(local)";
+            "Data Source=.;Initial Catalog=sensenet;User ID=sa;Password=sa;Pooling=False";
 
         private static readonly string DropPackagesTableSql = @"
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Packages]') AND type in (N'U'))
@@ -38,7 +39,6 @@ DROP TABLE [dbo].[Packages]
         private static readonly string InstallPackagesTableSql = @"
 CREATE TABLE [dbo].[Packages](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
-	[Name] [nvarchar](450) NOT NULL,
 	[PackageType] [varchar](50) NOT NULL,
 	[PackageLevel] [varchar](50) NOT NULL,
 	[SenseNetVersion] [varchar](50) NOT NULL,
@@ -59,6 +59,12 @@ CREATE TABLE [dbo].[Packages](
 
         private static StringBuilder _log;
 
+        [ClassInitialize]
+        public static void InitializeDatabase(TestContext context)
+        {
+            DropPackagesTable();
+            InstallPackagesTable();
+        }
         [TestInitialize]
         public void InitializeTest()
         {
