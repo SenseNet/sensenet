@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Security.Principal;
 using System.Text;
@@ -45,6 +46,12 @@ namespace SenseNet.Portal.Virtualization
         private const string AccessHeaderName = "X-Access-Data";
         private const string RefreshHeaderName = "X-Refresh-Data";
         private const string AuthenticationTypeHeaderName = "X-Authentication-Type";
+
+        private static class HttpResponseStatusCode
+        {
+            public static int Unauthorized = 401;
+            public static int Ok = 200;
+        }
         private static ISecurityKey _securityKey;
         private static object _keyLock = new object();
 
@@ -66,11 +73,17 @@ namespace SenseNet.Portal.Virtualization
         public Func<object, HttpContextBase> GetContext = (sender) => new HttpContextWrapper(((HttpApplication) sender).Context);
         public Func<object, HttpRequestBase> GetRequest = (sender) => new HttpRequestWrapper(((HttpApplication)sender).Context.Request);
         public Func<object, HttpResponseBase> GetResponse = (sender) => new HttpResponseWrapper(((HttpApplication)sender).Context.Response);
+        public Func<IPrincipal> GetVisitorPrincipal = () => new PortalPrincipal(User.Visitor);
+        public Func<string, IPrincipal> LoadUserPrincipal = (userName) => new PortalPrincipal(User.Load(userName));
+        public Func<string, string, bool> IsUserValid = (userName, password) => Membership.ValidateUser(userName, password);
+        public Func<IDisposable> GetSystemAccount = () => new SystemAccount();
+        public Func<string> GetBasicAuthHeader = () => PortalContext.Current.BasicAuthHeaders;
 
-
-        public virtual bool DispatchBasicAuthentication(HttpApplication application)
+        private bool _anonymAuthenticated;
+        public bool DispatchBasicAuthentication(HttpContextBase context)
         {
-            var authHeader = PortalContext.Current.BasicAuthHeaders;
+            _anonymAuthenticated = false;
+            var authHeader = GetBasicAuthHeader();
             if (authHeader == null || !authHeader.StartsWith("Basic "))
                 return false;
 
@@ -79,7 +92,8 @@ namespace SenseNet.Portal.Virtualization
             string[] userPass = Encoding.UTF8.GetString(buff).Split(":".ToCharArray());
             if (userPass.Length != 2)
             {
-                application.Context.User = new PortalPrincipal(User.Visitor);
+                context.User = GetVisitorPrincipal();
+                _anonymAuthenticated = true;
                 return true;
             }
             try
@@ -88,30 +102,39 @@ namespace SenseNet.Portal.Virtualization
                 var password = userPass[1];
 
                 // Elevation: we need to load the user here, regardless of the current users permissions
-                using (new SystemAccount())
+                using (GetSystemAccount())
                 {
-                    application.Context.User = Membership.ValidateUser(username, password)
-                        ? new PortalPrincipal(User.Load(username))
-                        : new PortalPrincipal(User.Visitor);
+                    if (IsUserValid(username, password))
+                    {
+                        context.User = LoadUserPrincipal(username);
+                    }
+                    else
+                    {
+                        context.User = GetVisitorPrincipal();
+                        _anonymAuthenticated = true;
+                    }
                 }
             }
             catch (Exception e) // logged
             {
                 SnLog.WriteException(e);
-                application.Context.User = new PortalPrincipal(User.Visitor);
+                context.User = GetVisitorPrincipal();
+                _anonymAuthenticated = true;
             }
-
             return true;
         }
 
+        
         public void OnAuthenticateRequest(object sender, EventArgs e)
         {
+            SnLog.WriteInformation("OnAuthenticateRequest begins", EventId.RepositoryLifecycle);
             var application = sender as HttpApplication;
             var context = GetContext(sender); //HttpContext.Current;
             var request = GetRequest(sender);
 
             var authenticationTypeHeader = GetAuthenticationTypeHeader(request);
-            var basicAuthenticated = DispatchBasicAuthentication(application);
+            var basicAuthenticated = DispatchBasicAuthentication(context);
+            SnLog.WriteInformation("basicAuthenticated:" + basicAuthenticated + ", authenticationTypeHeader:"+ authenticationTypeHeader);
             if (request.IsSecureConnection && authenticationTypeHeader == "Token")
             {
                 TokenAuthenticate(basicAuthenticated, context, application);
@@ -157,8 +180,7 @@ namespace SenseNet.Portal.Virtualization
                     break;
                 default:
                     Site site = null;
-                    SenseNet.ContentRepository.Storage.Node problemNode =
-                        SenseNet.ContentRepository.Storage.Node.LoadNode(repositoryPath);
+                    Node problemNode = Node.LoadNode(repositoryPath);
                     if (problemNode != null)
                     {
                         site = Site.GetSiteByNode(problemNode);
@@ -179,14 +201,24 @@ namespace SenseNet.Portal.Virtualization
 
         private string GetAuthenticationTypeHeader(HttpRequestBase request)
         {
-            return request.Headers[AuthenticationTypeHeaderName];
+            return request.Headers[AuthenticationTypeHeaderName] ?? request.Headers[AuthenticationTypeHeaderName.ToLower()];
         }
 
         private void TokenAuthenticate(bool basicAuthenticated, HttpContextBase context, HttpApplication application)
         {
+            if (basicAuthenticated && _anonymAuthenticated)
+            {
+                SnLog.WriteException(new UnauthorizedAccessException("Invalid user."));
+                context.Response.StatusCode = HttpResponseStatusCode.Unauthorized;
+                context.Response.Flush();
+                if (application.Context != null)
+                {
+                    application.CompleteRequest();
+                }
+                return;
+            }
             try
             {
-
                 ISecurityTokenHandler tokenHandler = new JwsSecurityTokenHandler();
                 var validFrom = DateTime.UtcNow;
                 ITokenParameters generateTokenParameter = new TokenParameters
@@ -206,15 +238,26 @@ namespace SenseNet.Portal.Virtualization
                 if (basicAuthenticated)
                 {
                     // user has just authenticated by basic auth, so let's emit a set of tokens and cookies in response 
-                    var userName = context.User.Identity.Name;
-                    var roleName = "";
-                    // emit both access and refresh token and cookie 
-                    EmitTokensAndCookies(context, tokenManager, validFrom, userName, roleName, true);
-                    //InsertCorsHeaders(System.Web.HttpContext.Current);
-                    context.Response.Flush();
-                    if (application.Context != null)
+                    try
                     {
-                        application.CompleteRequest();
+                        var userName = context.User.Identity.Name;
+                        var roleName = "";
+                        // emit both access and refresh token and cookie 
+                        EmitTokensAndCookies(context, tokenManager, validFrom, userName, roleName, true);
+                        context.Response.StatusCode = HttpResponseStatusCode.Ok;
+                    }
+                    catch (Exception ex)
+                    {
+                        SnLog.WriteException(ex);
+                        context.Response.StatusCode = HttpResponseStatusCode.Unauthorized;
+                    }
+                    finally
+                    {
+                        context.Response.Flush();
+                        if (application.Context != null)
+                        {
+                            application.CompleteRequest();
+                        }
                     }
                     return;
                 }
@@ -223,27 +266,34 @@ namespace SenseNet.Portal.Virtualization
                 if (header != null)
                 {
                     // we got a refresh token
-                    var authCookie = CookieHelper.GetCookie(context.Request, RefreshSignatureName);
-                    if (authCookie == null)
+                    try
                     {
-                        throw new UnauthorizedAccessException("Missing refresh cookie.");
+                        var authCookie = CookieHelper.GetCookie(context.Request, RefreshSignatureName);
+                        if (authCookie == null)
+                        {
+                            throw new UnauthorizedAccessException("Missing refresh cookie.");
+                        }
+                        var refreshHeadAndPayload = header;
+                        var refreshSignature = authCookie.Value;
+                        var principal = tokenManager.ValidateToken(refreshHeadAndPayload + "." + refreshSignature);
+                        string userName = principal.Identity.Name;
+                        string roleName = "";
+                        // emit access token and cookie only
+                        EmitTokensAndCookies(context, tokenManager, validFrom, userName, roleName, false);
+                        context.Response.StatusCode = HttpResponseStatusCode.Ok;
                     }
-
-                    var refreshHeadAndPayload = header;
-                    var refreshSignature = authCookie.Value;
-                    var principal = tokenManager.ValidateToken(refreshHeadAndPayload + "." + refreshSignature);
-                    if (principal == null)
+                    catch (Exception ex)
                     {
-                        throw new UnauthorizedAccessException("Invalid refresh token.");
+                        SnLog.WriteException(ex);
+                        context.Response.StatusCode = HttpResponseStatusCode.Unauthorized;
                     }
-                    string userName = principal.Identity.Name;
-                    string roleName = "";
-                    // emit access token and cookie only
-                    EmitTokensAndCookies(context, tokenManager, validFrom, userName, roleName, false);
-                    context.Response.Flush();
-                    if (application.Context != null)
+                    finally
                     {
-                        application.CompleteRequest();
+                        context.Response.Flush();
+                        if (application.Context != null)
+                        {
+                            application.CompleteRequest();
+                        }
                     }
                     return;
                 }
@@ -272,7 +322,7 @@ namespace SenseNet.Portal.Virtualization
                 SnLog.WriteException(ex);
                 if (!basicAuthenticated)
                 {
-                    context.User = new PortalPrincipal(User.Visitor);
+                    context.User = GetVisitorPrincipal();
                 }
             }
         }
@@ -284,7 +334,7 @@ namespace SenseNet.Portal.Virtualization
             var tokenResponse = new TokenResponse();
             var accessSignatureIndex = token.LastIndexOf('.');
             var accessSignature = token.Substring(accessSignatureIndex + 1);
-            var accessHeadAndPayload = token.Substring(0, accessSignatureIndex - 1);
+            var accessHeadAndPayload = token.Substring(0, accessSignatureIndex);
             var accessExpiration = validFrom.AddMinutes(Configuration.TokenAuthentication.AccessLifeTimeInMinutes);
             CookieHelper.InsertSecureCookie(context.Response, accessSignature, AccessSignatureName, accessExpiration);
             tokenResponse.access = accessHeadAndPayload;
@@ -293,7 +343,7 @@ namespace SenseNet.Portal.Virtualization
             { 
                 var refreshSignatureIndex = refreshToken.LastIndexOf('.');
                 var refreshSignature = refreshToken.Substring(refreshSignatureIndex + 1);
-                var refreshHeadAndPayload = refreshToken.Substring(0, refreshSignatureIndex - 1);
+                var refreshHeadAndPayload = refreshToken.Substring(0, refreshSignatureIndex);
                 var refreshExpiration = accessExpiration.AddMinutes(Configuration.TokenAuthentication.RefreshLifeTimeInMinutes);
                 CookieHelper.InsertSecureCookie(context.Response, refreshSignature, RefreshSignatureName, refreshExpiration);
                 tokenResponse.refresh = refreshHeadAndPayload;
