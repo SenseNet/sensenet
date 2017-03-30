@@ -195,14 +195,14 @@ namespace SenseNet.Packaging
         {
             if (log)
             {
-                Logger.LogMessage("AppId: {0}", this.ComponentId);
+                Logger.LogMessage("ComponentId: {0}", this.ComponentId);
                 Logger.LogMessage("Level:   " + this.Level);
                 if (this.Level != PackageLevel.Tool)
                     Logger.LogMessage("Package version: " + this.Version);
             }
 
             var versionInfo = RepositoryVersionInfo.Instance;
-            var existingComponentInfo = versionInfo.Applications.FirstOrDefault(a => a.AppId == ComponentId && a.AcceptableVersion != null);
+            var existingComponentInfo = versionInfo.Applications.FirstOrDefault(a => a.ComponentId == ComponentId && a.AcceptableVersion != null);
 
             if (Level == PackageLevel.Install)
             {
@@ -227,7 +227,7 @@ namespace SenseNet.Packaging
         }
         private void CheckDependency(Dependency dependency, RepositoryVersionInfo versionInfo, bool log)
         {
-            var existingApplication = versionInfo.Applications.FirstOrDefault(a => a.AppId == dependency.Id);
+            var existingApplication = versionInfo.Applications.FirstOrDefault(a => a.ComponentId == dependency.Id);
             if (existingApplication == null)
                 throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.DependencyNotFound1, dependency.Id),
                     PackagingExceptionType.DependencyNotFound);

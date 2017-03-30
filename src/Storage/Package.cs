@@ -8,7 +8,7 @@ namespace SenseNet.ContentRepository.Storage
     public enum ExecutionResult { Successful, Faulty, Unfinished }
 
     [Serializable]
-    [DebuggerDisplay("{Id}, {AppId}: {PackageLevel} {ExecutionResult}, {ApplicationVersion}")]
+    [DebuggerDisplay("{Id}, {ComponentId}: {PackageLevel} {ExecutionResult}, {ApplicationVersion}")]
     public class Package
     {
         //UNDONE: Not used field: [PackageType] [varchar](50) NOT NULL,
@@ -17,7 +17,7 @@ namespace SenseNet.ContentRepository.Storage
 
         public int Id { get; internal set; }                  // [Id] [int] IDENTITY(1,1) NOT NULL,
         public string Description { get; set; }               // [Description] [nvarchar](1000) NULL,
-        public string AppId { get; set; }                     // [AppId] [varchar](50) NULL,
+        public string ComponentId { get; set; }               // [AppId] [varchar](50) NULL,
         public PackageLevel PackageLevel { get; set; }        // [PackageLevel] [varchar](50) NOT NULL,
         public DateTime ReleaseDate { get; set; }             // [ReleaseDate] [datetime] NOT NULL,
         public DateTime ExecutionDate { get; set; }           // [ExecutionDate] [datetime] NOT NULL,

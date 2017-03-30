@@ -72,17 +72,17 @@ ON P1.AppId = P2.AppId", proc.CommandText);
             var applications = result.ToArray();
             Assert.AreEqual(3, applications.Length);
 
-            Assert.AreEqual("Component1", applications[0].AppId);
+            Assert.AreEqual("Component1", applications[0].ComponentId);
             Assert.AreEqual("2.0", applications[0].Version.ToString());
             Assert.AreEqual("1.2", applications[0].AcceptableVersion.ToString());
             Assert.AreEqual("description1", applications[0].Description);
 
-            Assert.AreEqual("Component2", applications[1].AppId);
+            Assert.AreEqual("Component2", applications[1].ComponentId);
             Assert.AreEqual("3.8", applications[1].Version.ToString());
             Assert.AreEqual("3.7.42", applications[1].AcceptableVersion.ToString());
             Assert.AreEqual("description2", applications[1].Description);
 
-            Assert.AreEqual("Component3", applications[2].AppId);
+            Assert.AreEqual("Component3", applications[2].ComponentId);
             Assert.AreEqual("6.7", applications[2].Version.ToString());
             Assert.AreEqual("6.5", applications[2].AcceptableVersion.ToString());
             Assert.AreEqual("description3", applications[2].Description);
@@ -151,7 +151,7 @@ ON P1.AppId = P2.AppId", proc.CommandText);
 
             Assert.AreEqual(1, packages[0].Id);
             Assert.AreEqual(PackageLevel.Install, packages[0].PackageLevel);
-            Assert.AreEqual("Component1", packages[0].AppId);
+            Assert.AreEqual("Component1", packages[0].ComponentId);
             Assert.AreEqual("1.2", packages[0].ApplicationVersion.ToString());
             Assert.AreEqual(releaseDate1, packages[0].ReleaseDate);
             Assert.AreEqual(executionDate1, packages[0].ExecutionDate);
@@ -161,7 +161,7 @@ ON P1.AppId = P2.AppId", proc.CommandText);
 
             Assert.AreEqual(2, packages[1].Id);
             Assert.AreEqual(PackageLevel.Install, packages[1].PackageLevel);
-            Assert.AreEqual("Component2", packages[1].AppId);
+            Assert.AreEqual("Component2", packages[1].ComponentId);
             Assert.AreEqual("3.7.42", packages[1].ApplicationVersion.ToString());
             Assert.AreEqual(releaseDate2, packages[1].ReleaseDate);
             Assert.AreEqual(executionDate2, packages[1].ExecutionDate);
@@ -171,7 +171,7 @@ ON P1.AppId = P2.AppId", proc.CommandText);
 
             Assert.AreEqual(3, packages[2].Id);
             Assert.AreEqual(PackageLevel.Patch, packages[2].PackageLevel);
-            Assert.AreEqual("Component2", packages[2].AppId);
+            Assert.AreEqual("Component2", packages[2].ComponentId);
             Assert.AreEqual("6.5", packages[2].ApplicationVersion.ToString());
             Assert.AreEqual(releaseDate3, packages[2].ReleaseDate);
             Assert.AreEqual(executionDate3, packages[2].ExecutionDate);
@@ -190,7 +190,7 @@ ON P1.AppId = P2.AppId", proc.CommandText);
                 Description = "desctription",
                 ReleaseDate = DateTime.UtcNow.AddTicks(-555000),
                 PackageLevel = PackageLevel.Install,
-                AppId = "MyCompany.MyComponent",
+                ComponentId = "MyCompany.MyComponent",
                 ExecutionDate = DateTime.UtcNow,
                 ExecutionResult = ExecutionResult.Unfinished,
                 ApplicationVersion = new Version(2, 3),
@@ -215,7 +215,7 @@ SELECT @@IDENTITY", proc.CommandText);
             Assert.AreEqual(10, parameters.Count);
 
             CheckParameter(parameters[0], "@Description", DbType.String, 1000, package.Description);
-            CheckParameter(parameters[1], "@AppId", DbType.AnsiString, 50, package.AppId);
+            CheckParameter(parameters[1], "@AppId", DbType.AnsiString, 50, package.ComponentId);
             CheckParameter(parameters[2], "@PackageLevel", DbType.AnsiString, 50, package.PackageLevel.ToString());
             CheckParameter(parameters[3], "@PackageType", DbType.AnsiString, 50, string.Empty);
             CheckParameter(parameters[4], "@ReleaseDate", DbType.DateTime, package.ReleaseDate);
@@ -237,7 +237,7 @@ SELECT @@IDENTITY", proc.CommandText);
                 Description = "desctription",
                 ReleaseDate = DateTime.UtcNow.AddTicks(-555000),
                 PackageLevel = PackageLevel.Install,
-                AppId = "MyCompany.MyComponent",
+                ComponentId = "MyCompany.MyComponent",
                 ExecutionDate = DateTime.UtcNow,
                 ExecutionResult = ExecutionResult.Unfinished,
                 ApplicationVersion = new Version(2, 3),
@@ -270,7 +270,7 @@ WHERE Id = @Id
 
             CheckParameter(parameters[0], "@Id", DbType.Int32, package.Id);
             CheckParameter(parameters[1], "@Description", DbType.String, 1000, package.Description);
-            CheckParameter(parameters[2], "@AppId", DbType.AnsiString, 50, package.AppId);
+            CheckParameter(parameters[2], "@AppId", DbType.AnsiString, 50, package.ComponentId);
             CheckParameter(parameters[3], "@PackageLevel", DbType.AnsiString, 50, package.PackageLevel.ToString());
             CheckParameter(parameters[4], "@PackageType", DbType.AnsiString, 50, string.Empty);
             CheckParameter(parameters[5], "@ReleaseDate", DbType.DateTime, package.ReleaseDate);
@@ -355,7 +355,7 @@ WHERE AppId = @AppId AND PackageLevel = @PackageLevel AND SenseNetVersion = @Ver
                 Description = "desctription",
                 ReleaseDate = DateTime.UtcNow.AddTicks(-555000),
                 PackageLevel = PackageLevel.Install,
-                AppId = "MyCompany.MyComponent",
+                ComponentId = "MyCompany.MyComponent",
                 ExecutionDate = DateTime.UtcNow,
                 ExecutionResult = ExecutionResult.Unfinished,
                 ApplicationVersion = new Version(2, 3),
@@ -387,7 +387,7 @@ WHERE AppId = @AppId AND PackageLevel = @PackageLevel AND SenseNetVersion = @Ver
                 Description = "desctription",
                 ReleaseDate = DateTime.UtcNow.AddTicks(-555000),
                 PackageLevel = PackageLevel.Install,
-                AppId = "MyCompany.MyComponent",
+                ComponentId = "MyCompany.MyComponent",
                 ExecutionDate = DateTime.UtcNow,
                 ExecutionResult = ExecutionResult.Unfinished,
                 ApplicationVersion = new Version(2, 3),

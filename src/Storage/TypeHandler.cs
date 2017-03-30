@@ -12,14 +12,14 @@ namespace SenseNet.ContentRepository.Storage
 {
     public class ApplicationInfo
     {
-        public string AppId { get; set; }
+        public string ComponentId { get; set; }
         public Version Version { get; set; }
         public Version AcceptableVersion { get; set; }
         public string Description { get; set; }
 
         public static readonly ApplicationInfo Empty = new ApplicationInfo
         {
-            AppId = string.Empty,
+            ComponentId = string.Empty,
             Version = new Version(0, 0),
             AcceptableVersion = null,
             Description = string.Empty

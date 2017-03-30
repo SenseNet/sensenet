@@ -176,7 +176,7 @@ CREATE TABLE [dbo].[Packages](
             Assert.AreEqual(0, verInfo.Applications.Count());
             Assert.AreEqual(1, verInfo.InstalledPackages.Count());
             pkg = verInfo.InstalledPackages.First();
-            Assert.AreEqual("Component42", pkg.AppId);
+            Assert.AreEqual("Component42", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Unfinished, pkg.ExecutionResult);
             Assert.AreEqual(PackageLevel.Install, pkg.PackageLevel);
             Assert.AreEqual("4.42", pkg.ApplicationVersion.ToString());
@@ -189,12 +189,12 @@ CREATE TABLE [dbo].[Packages](
             Assert.AreEqual(1, verInfo.Applications.Count());
             Assert.AreEqual(1, verInfo.InstalledPackages.Count());
             app = verInfo.Applications.First();
-            Assert.AreEqual("Component42", app.AppId);
+            Assert.AreEqual("Component42", app.ComponentId);
             Assert.AreEqual("4.42", app.Version.ToString());
             Assert.IsNotNull(app.AcceptableVersion);
             Assert.AreEqual("4.42", app.AcceptableVersion.ToString());
             pkg = verInfo.InstalledPackages.First();
-            Assert.AreEqual("Component42", pkg.AppId);
+            Assert.AreEqual("Component42", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Successful, pkg.ExecutionResult);
             Assert.AreEqual(PackageLevel.Install, pkg.PackageLevel);
             Assert.AreEqual("4.42", pkg.ApplicationVersion.ToString());
