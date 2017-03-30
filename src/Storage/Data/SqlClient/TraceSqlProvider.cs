@@ -354,10 +354,10 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             WriteLog(MethodBase.GetCurrentMethod());
             return base.IsFilestreamEnabled();
         }
-        public override bool IsPackageExist(string componentId, PackageLevel packageLevel, Version version)
+        public override bool IsPackageExist(string componentId, PackageType packageType, Version version)
         {
-            WriteLog(MethodBase.GetCurrentMethod(), componentId, packageLevel, version);
-            return base.IsPackageExist(componentId, packageLevel, version);
+            WriteLog(MethodBase.GetCurrentMethod(), componentId, packageType, version);
+            return base.IsPackageExist(componentId, packageType, version);
         }
         public override IEnumerable<ApplicationInfo> LoadInstalledApplications()
         {

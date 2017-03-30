@@ -57,7 +57,7 @@ namespace SenseNet.Core.Tests
             target.Id = source.Id;
             target.Description = source.Description;
             target.ComponentId = source.ComponentId;
-            target.PackageLevel = source.PackageLevel;
+            target.PackageType = source.PackageType;
             target.ReleaseDate = source.ReleaseDate;
             target.ExecutionDate = source.ExecutionDate;
             target.ExecutionResult = source.ExecutionResult;
@@ -78,7 +78,7 @@ namespace SenseNet.Core.Tests
             var nullVersion = new Version(0, 0);
             var appInfos = new Dictionary<string, ApplicationInfo>();
             foreach (var package in Storage
-                .Where(p => p.PackageLevel == PackageLevel.Install
+                .Where(p => p.PackageType == PackageType.Install
                     && p.ExecutionResult == ExecutionResult.Successful))
             {
                 var componentId = package.ComponentId;
@@ -100,7 +100,7 @@ namespace SenseNet.Core.Tests
             }
 
             foreach (var package in Storage
-                .Where(p => (p.PackageLevel == PackageLevel.Install || p.PackageLevel == PackageLevel.Patch)))
+                .Where(p => (p.PackageType == PackageType.Install || p.PackageType == PackageType.Patch)))
             {
                 var componentId = package.ComponentId;
                 ApplicationInfo appinfo = null;
@@ -143,7 +143,7 @@ namespace SenseNet.Core.Tests
             UpdatePackage(package, existing);
         }
 
-        public bool IsPackageExist(string componentId, PackageLevel packageLevel, Version version)
+        public bool IsPackageExist(string componentId, PackageType packageType, Version version)
         {
             throw new NotImplementedException();
         }
@@ -1186,7 +1186,7 @@ namespace SenseNet.Core.Tests
             pkg = verInfo.InstalledPackages.First();
             Assert.AreEqual("Component42", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Unfinished, pkg.ExecutionResult);
-            Assert.AreEqual(PackageLevel.Install, pkg.PackageLevel);
+            Assert.AreEqual(PackageType.Install, pkg.PackageType);
             Assert.AreEqual("4.42", pkg.ApplicationVersion.ToString());
 
             // phase 2
@@ -1204,7 +1204,7 @@ namespace SenseNet.Core.Tests
             pkg = verInfo.InstalledPackages.First();
             Assert.AreEqual("Component42", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Successful, pkg.ExecutionResult);
-            Assert.AreEqual(PackageLevel.Install, pkg.PackageLevel);
+            Assert.AreEqual(PackageType.Install, pkg.PackageType);
             Assert.AreEqual("4.42", pkg.ApplicationVersion.ToString());
         }
 
@@ -1235,7 +1235,7 @@ namespace SenseNet.Core.Tests
             Assert.IsNotNull(pkg);
             Assert.AreEqual("Component42", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Successful, pkg.ExecutionResult);
-            Assert.AreEqual(PackageLevel.Install, pkg.PackageLevel);
+            Assert.AreEqual(PackageType.Install, pkg.PackageType);
             Assert.AreEqual("4.42", pkg.ApplicationVersion.ToString());
         }
         [TestMethod]
@@ -1267,7 +1267,7 @@ namespace SenseNet.Core.Tests
             Assert.IsNotNull(pkg);
             Assert.AreEqual("Component42", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Unfinished, pkg.ExecutionResult);
-            Assert.AreEqual(PackageLevel.Install, pkg.PackageLevel);
+            Assert.AreEqual(PackageType.Install, pkg.PackageType);
             Assert.AreEqual("4.42", pkg.ApplicationVersion.ToString());
 
             // phase 2
@@ -1281,7 +1281,7 @@ namespace SenseNet.Core.Tests
             Assert.IsNotNull(pkg);
             Assert.AreEqual("Component42", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Unfinished, pkg.ExecutionResult);
-            Assert.AreEqual(PackageLevel.Install, pkg.PackageLevel);
+            Assert.AreEqual(PackageType.Install, pkg.PackageType);
             Assert.AreEqual("4.42", pkg.ApplicationVersion.ToString());
 
             // phase 3
@@ -1298,7 +1298,7 @@ namespace SenseNet.Core.Tests
             Assert.IsNotNull(pkg);
             Assert.AreEqual("Component42", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Successful, pkg.ExecutionResult);
-            Assert.AreEqual(PackageLevel.Install, pkg.PackageLevel);
+            Assert.AreEqual(PackageType.Install, pkg.PackageType);
             Assert.AreEqual("4.42", pkg.ApplicationVersion.ToString());
 
             Assert.AreEqual(1, RepositoryVersionInfo.Instance.Applications.Count());
@@ -1348,7 +1348,7 @@ namespace SenseNet.Core.Tests
             Assert.IsNotNull(pkg);
             Assert.AreEqual("MyCompany.MyComponent", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Unfinished, pkg.ExecutionResult);
-            Assert.AreEqual(PackageLevel.Patch, pkg.PackageLevel);
+            Assert.AreEqual(PackageType.Patch, pkg.PackageType);
             Assert.AreEqual("1.2", pkg.ApplicationVersion.ToString());
 
             // phase 2
@@ -1365,7 +1365,7 @@ namespace SenseNet.Core.Tests
             Assert.IsNotNull(pkg);
             Assert.AreEqual("MyCompany.MyComponent", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Unfinished, pkg.ExecutionResult);
-            Assert.AreEqual(PackageLevel.Patch, pkg.PackageLevel);
+            Assert.AreEqual(PackageType.Patch, pkg.PackageType);
             Assert.AreEqual("1.2", pkg.ApplicationVersion.ToString());
 
             // phase 3
@@ -1382,7 +1382,7 @@ namespace SenseNet.Core.Tests
             Assert.IsNotNull(pkg);
             Assert.AreEqual("MyCompany.MyComponent", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Successful, pkg.ExecutionResult);
-            Assert.AreEqual(PackageLevel.Patch, pkg.PackageLevel);
+            Assert.AreEqual(PackageType.Patch, pkg.PackageType);
             Assert.AreEqual("1.2", pkg.ApplicationVersion.ToString());
 
             Assert.AreEqual(1, RepositoryVersionInfo.Instance.Applications.Count());
@@ -1435,7 +1435,7 @@ namespace SenseNet.Core.Tests
             Assert.IsNotNull(pkg);
             Assert.AreEqual("MyCompany.MyComponent", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Faulty, pkg.ExecutionResult);
-            Assert.AreEqual(PackageLevel.Patch, pkg.PackageLevel);
+            Assert.AreEqual(PackageType.Patch, pkg.PackageType);
             Assert.AreEqual("1.2", pkg.ApplicationVersion.ToString());
         }
         [TestMethod]
@@ -1493,7 +1493,7 @@ namespace SenseNet.Core.Tests
             Assert.IsNotNull(pkg);
             Assert.AreEqual("MyCompany.MyComponent", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Successful, pkg.ExecutionResult);
-            Assert.AreEqual(PackageLevel.Patch, pkg.PackageLevel);
+            Assert.AreEqual(PackageType.Patch, pkg.PackageType);
             Assert.AreEqual("1.2", pkg.ApplicationVersion.ToString());
         }
         [TestMethod]
@@ -1554,7 +1554,7 @@ namespace SenseNet.Core.Tests
             Assert.IsNotNull(pkg);
             Assert.AreEqual("MyCompany.MyComponent", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Successful, pkg.ExecutionResult);
-            Assert.AreEqual(PackageLevel.Patch, pkg.PackageLevel);
+            Assert.AreEqual(PackageType.Patch, pkg.PackageType);
             Assert.AreEqual("1.2", pkg.ApplicationVersion.ToString());
         }
         #endregion
@@ -1573,7 +1573,7 @@ namespace SenseNet.Core.Tests
         [TestMethod]
         public void Packaging_VersionInfo_OnlyUnfinished()
         {
-            SavePackage("C1", "1.0", "01:00", "2016-01-01", PackageLevel.Install, ExecutionResult.Unfinished);
+            SavePackage("C1", "1.0", "01:00", "2016-01-01", PackageType.Install, ExecutionResult.Unfinished);
 
             // action
             var verInfo = RepositoryVersionInfo.Instance;
@@ -1587,7 +1587,7 @@ namespace SenseNet.Core.Tests
         [TestMethod]
         public void Packaging_VersionInfo_OnlyFaulty()
         {
-            SavePackage("C1", "1.0", "01:00", "2016-01-01", PackageLevel.Install, ExecutionResult.Faulty);
+            SavePackage("C1", "1.0", "01:00", "2016-01-01", PackageType.Install, ExecutionResult.Faulty);
 
             // action
             var verInfo = RepositoryVersionInfo.Instance;
@@ -1602,15 +1602,15 @@ namespace SenseNet.Core.Tests
         [TestMethod]
         public void Packaging_VersionInfo_Complex()
         {
-            SavePackage("C1", "1.0", "01:00", "2016-01-01", PackageLevel.Install, ExecutionResult.Successful);
-            SavePackage("C2", "1.0", "02:00", "2016-01-02", PackageLevel.Install, ExecutionResult.Successful);
-            SavePackage("C1", "1.1", "03:00", "2016-01-03", PackageLevel.Patch, ExecutionResult.Faulty);
-            SavePackage("C1", "1.1", "04:00", "2016-01-03", PackageLevel.Patch, ExecutionResult.Faulty);
-            SavePackage("C1", "1.2", "05:00", "2016-01-06", PackageLevel.Patch, ExecutionResult.Successful);
-            SavePackage("C2", "1.1", "06:00", "2016-01-07", PackageLevel.Patch, ExecutionResult.Unfinished);
-            SavePackage("C2", "1.2", "07:00", "2016-01-08", PackageLevel.Patch, ExecutionResult.Unfinished);
-            SavePackage("C3", "1.0", "08:00", "2016-01-09", PackageLevel.Install, ExecutionResult.Faulty);
-            SavePackage("C3", "2.0", "08:00", "2016-01-09", PackageLevel.Install, ExecutionResult.Faulty);
+            SavePackage("C1", "1.0", "01:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
+            SavePackage("C2", "1.0", "02:00", "2016-01-02", PackageType.Install, ExecutionResult.Successful);
+            SavePackage("C1", "1.1", "03:00", "2016-01-03", PackageType.Patch, ExecutionResult.Faulty);
+            SavePackage("C1", "1.1", "04:00", "2016-01-03", PackageType.Patch, ExecutionResult.Faulty);
+            SavePackage("C1", "1.2", "05:00", "2016-01-06", PackageType.Patch, ExecutionResult.Successful);
+            SavePackage("C2", "1.1", "06:00", "2016-01-07", PackageType.Patch, ExecutionResult.Unfinished);
+            SavePackage("C2", "1.2", "07:00", "2016-01-08", PackageType.Patch, ExecutionResult.Unfinished);
+            SavePackage("C3", "1.0", "08:00", "2016-01-09", PackageType.Install, ExecutionResult.Faulty);
+            SavePackage("C3", "2.0", "08:00", "2016-01-09", PackageType.Install, ExecutionResult.Faulty);
 
             // action
             var verInfo = RepositoryVersionInfo.Instance;
@@ -1630,7 +1630,7 @@ namespace SenseNet.Core.Tests
 
         /*================================================= tools */
 
-        private void SavePackage(string id, string version, string execTime, string releaseDate, PackageLevel level, ExecutionResult result)
+        private void SavePackage(string id, string version, string execTime, string releaseDate, PackageType packageType, ExecutionResult result)
         {
             var package = new Package
             {
@@ -1641,7 +1641,7 @@ namespace SenseNet.Core.Tests
                 ReleaseDate = DateTime.Parse(releaseDate),
                 ExecutionError = null,
                 ExecutionResult = result,
-                PackageLevel = level,
+                PackageType = packageType,
             };
             PackageManager.Storage.SavePackage(package);
         }

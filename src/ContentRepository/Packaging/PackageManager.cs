@@ -201,9 +201,9 @@ namespace SenseNet.Packaging
 
             RepositoryVersionInfo.Reset();
             var oldPacks = RepositoryVersionInfo.Instance.InstalledPackages;
-            if (manifest.Level == PackageLevel.Tool)
+            if (manifest.PackageType == PackageType.Tool)
                 oldPacks = oldPacks
-                    .Where(p => p.ComponentId == manifest.ComponentId && p.PackageLevel == PackageLevel.Tool
+                    .Where(p => p.ComponentId == manifest.ComponentId && p.PackageType == PackageType.Tool
                     && p.ExecutionResult == ExecutionResult.Unfinished);
             else
                 oldPacks = oldPacks
@@ -225,14 +225,14 @@ namespace SenseNet.Packaging
         private static Package CreatePackage(Manifest manifest, ExecutionResult result, Exception execError)
         {
             Version appVer = null;
-            if (manifest.Level != PackageLevel.Tool)
+            if (manifest.PackageType != PackageType.Tool)
                 appVer = manifest.Version;
 
             return new Package
             {
                 Description = manifest.Description,
                 ReleaseDate = manifest.ReleaseDate,
-                PackageLevel = manifest.Level,
+                PackageType = manifest.PackageType,
                 ComponentId = manifest.ComponentId,
                 ExecutionDate = DateTime.UtcNow,
                 ExecutionResult = result,
@@ -243,12 +243,12 @@ namespace SenseNet.Packaging
         private static void UpdatePackage(Package package, Manifest manifest, ExecutionResult result, Exception execError)
         {
             Version appVer = null;
-            if (manifest.Level != PackageLevel.Tool)
+            if (manifest.PackageType != PackageType.Tool)
                 appVer = manifest.Version;
 
             package.Description = manifest.Description;
             package.ReleaseDate = manifest.ReleaseDate;
-            package.PackageLevel = manifest.Level;
+            package.PackageType = manifest.PackageType;
             package.ComponentId = manifest.ComponentId;
             package.ExecutionDate = DateTime.UtcNow;
             package.ExecutionResult = result;
@@ -311,6 +311,7 @@ namespace SenseNet.Packaging
         }
     }
 
+    //UNDONE: PackageSchemaGenerator Xsd
     internal class PackageSchemaGenerator
     {
         #region xml source

@@ -19,7 +19,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         IEnumerable<Package> LoadInstalledPackages();
         void SavePackage(Package package);
         void UpdatePackage(Package package);
-        bool IsPackageExist(string componentId, PackageLevel packageLevel, Version version);
+        bool IsPackageExist(string componentId, PackageType packageType, Version version);
         void DeletePackage(Package package);
         void DeletePackagesExceptFirst();
     }

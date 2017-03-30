@@ -178,7 +178,7 @@ CREATE TABLE [dbo].[Packages](
             pkg = verInfo.InstalledPackages.First();
             Assert.AreEqual("Component42", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Unfinished, pkg.ExecutionResult);
-            Assert.AreEqual(PackageLevel.Install, pkg.PackageLevel);
+            Assert.AreEqual(PackageType.Install, pkg.PackageType);
             Assert.AreEqual("4.42", pkg.ApplicationVersion.ToString());
 
             // phase 2
@@ -196,7 +196,7 @@ CREATE TABLE [dbo].[Packages](
             pkg = verInfo.InstalledPackages.First();
             Assert.AreEqual("Component42", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Successful, pkg.ExecutionResult);
-            Assert.AreEqual(PackageLevel.Install, pkg.PackageLevel);
+            Assert.AreEqual(PackageType.Install, pkg.PackageType);
             Assert.AreEqual("4.42", pkg.ApplicationVersion.ToString());
         }
 
