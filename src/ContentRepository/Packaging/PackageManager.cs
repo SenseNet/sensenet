@@ -224,9 +224,9 @@ namespace SenseNet.Packaging
         }
         private static Package CreatePackage(Manifest manifest, ExecutionResult result, Exception execError)
         {
-            Version appVer = null;
+            Version componentVersion = null;
             if (manifest.PackageType != PackageType.Tool)
-                appVer = manifest.Version;
+                componentVersion = manifest.Version;
 
             return new Package
             {
@@ -236,7 +236,7 @@ namespace SenseNet.Packaging
                 ComponentId = manifest.ComponentId,
                 ExecutionDate = DateTime.UtcNow,
                 ExecutionResult = result,
-                ComponentVersion = appVer,
+                ComponentVersion = componentVersion,
                 ExecutionError = execError
             };
         }

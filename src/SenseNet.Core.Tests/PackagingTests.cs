@@ -76,14 +76,14 @@ namespace SenseNet.Core.Tests
         public IEnumerable<ComponentInfo> LoadInstalledComponents()
         {
             var nullVersion = new Version(0, 0);
-            var appInfos = new Dictionary<string, ComponentInfo>();
+            var componentInfos = new Dictionary<string, ComponentInfo>();
             foreach (var package in Storage
                 .Where(p => p.PackageType == PackageType.Install
                     && p.ExecutionResult == ExecutionResult.Successful))
             {
                 var componentId = package.ComponentId;
                 ComponentInfo component = null;
-                if (!appInfos.TryGetValue(componentId, out component))
+                if (!componentInfos.TryGetValue(componentId, out component))
                 {
                     component = new ComponentInfo
                     {
@@ -92,7 +92,7 @@ namespace SenseNet.Core.Tests
                         AcceptableVersion = package.ComponentVersion,
                         Description = package.Description
                     };
-                    appInfos.Add(componentId, component);
+                    componentInfos.Add(componentId, component);
                 }
 
                 if (package.ComponentVersion > (component.AcceptableVersion ?? nullVersion))
@@ -104,7 +104,7 @@ namespace SenseNet.Core.Tests
             {
                 var componentId = package.ComponentId;
                 ComponentInfo component = null;
-                if (appInfos.TryGetValue(componentId, out component))
+                if (componentInfos.TryGetValue(componentId, out component))
                 {
                     if ((package.ComponentVersion > (component.AcceptableVersion ?? nullVersion))
                         && package.ExecutionResult == ExecutionResult.Successful)
@@ -113,7 +113,7 @@ namespace SenseNet.Core.Tests
                         component.Version = package.ComponentVersion;
                 }
             }
-            return appInfos.Values.ToArray();
+            return componentInfos.Values.ToArray();
         }
 
         public IEnumerable<Package> LoadInstalledPackages()
@@ -1565,9 +1565,9 @@ namespace SenseNet.Core.Tests
         public void Packaging_VersionInfo_Empty()
         {
             var verInfo = RepositoryVersionInfo.Instance;
-            var apps = verInfo.Components.ToArray();
+            var components = verInfo.Components.ToArray();
             var packages = verInfo.InstalledPackages.ToArray();
-            Assert.AreEqual(0, apps.Length);
+            Assert.AreEqual(0, components.Length);
             Assert.AreEqual(0, packages.Length);
         }
         [TestMethod]
@@ -1579,9 +1579,9 @@ namespace SenseNet.Core.Tests
             var verInfo = RepositoryVersionInfo.Instance;
 
             // check
-            var apps = verInfo.Components.ToArray();
+            var components = verInfo.Components.ToArray();
             var packages = verInfo.InstalledPackages.ToArray();
-            Assert.AreEqual(0, apps.Length);
+            Assert.AreEqual(0, components.Length);
             Assert.AreEqual(1, packages.Length);
         }
         [TestMethod]
@@ -1593,9 +1593,9 @@ namespace SenseNet.Core.Tests
             var verInfo = RepositoryVersionInfo.Instance;
 
             // check
-            var apps = verInfo.Components.ToArray();
+            var components = verInfo.Components.ToArray();
             var packages = verInfo.InstalledPackages.ToArray();
-            Assert.AreEqual(0, apps.Length);
+            Assert.AreEqual(0, components.Length);
             Assert.AreEqual(1, packages.Length);
         }
 

@@ -68,24 +68,24 @@ ON P1.ComponentId = P2.ComponentId", proc.CommandText);
 
             Assert.AreEqual("ExecuteReader", proc.ExecutorMethod);
 
-            // check applications
-            var applications = result.ToArray();
-            Assert.AreEqual(3, applications.Length);
+            // check components
+            var components = result.ToArray();
+            Assert.AreEqual(3, components.Length);
 
-            Assert.AreEqual("Component1", applications[0].ComponentId);
-            Assert.AreEqual("2.0", applications[0].Version.ToString());
-            Assert.AreEqual("1.2", applications[0].AcceptableVersion.ToString());
-            Assert.AreEqual("description1", applications[0].Description);
+            Assert.AreEqual("Component1", components[0].ComponentId);
+            Assert.AreEqual("2.0", components[0].Version.ToString());
+            Assert.AreEqual("1.2", components[0].AcceptableVersion.ToString());
+            Assert.AreEqual("description1", components[0].Description);
 
-            Assert.AreEqual("Component2", applications[1].ComponentId);
-            Assert.AreEqual("3.8", applications[1].Version.ToString());
-            Assert.AreEqual("3.7.42", applications[1].AcceptableVersion.ToString());
-            Assert.AreEqual("description2", applications[1].Description);
+            Assert.AreEqual("Component2", components[1].ComponentId);
+            Assert.AreEqual("3.8", components[1].Version.ToString());
+            Assert.AreEqual("3.7.42", components[1].AcceptableVersion.ToString());
+            Assert.AreEqual("description2", components[1].Description);
 
-            Assert.AreEqual("Component3", applications[2].ComponentId);
-            Assert.AreEqual("6.7", applications[2].Version.ToString());
-            Assert.AreEqual("6.5", applications[2].AcceptableVersion.ToString());
-            Assert.AreEqual("description3", applications[2].Description);
+            Assert.AreEqual("Component3", components[2].ComponentId);
+            Assert.AreEqual("6.7", components[2].Version.ToString());
+            Assert.AreEqual("6.5", components[2].AcceptableVersion.ToString());
+            Assert.AreEqual("description3", components[2].Description);
 
         }
 

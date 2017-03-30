@@ -227,12 +227,12 @@ namespace SenseNet.Packaging
         }
         private void CheckDependency(Dependency dependency, RepositoryVersionInfo versionInfo, bool log)
         {
-            var existingApplication = versionInfo.Components.FirstOrDefault(a => a.ComponentId == dependency.Id);
-            if (existingApplication == null)
+            var existingComponent = versionInfo.Components.FirstOrDefault(a => a.ComponentId == dependency.Id);
+            if (existingComponent == null)
                 throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.DependencyNotFound1, dependency.Id),
                     PackagingExceptionType.DependencyNotFound);
 
-            var current = existingApplication.AcceptableVersion;
+            var current = existingComponent.AcceptableVersion;
             var min = dependency.MinVersion;
             var max = dependency.MaxVersion;
             var minEx = dependency.MinVersionIsExclusive;

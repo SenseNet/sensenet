@@ -145,7 +145,7 @@ CREATE TABLE [dbo].[Packages](
             // accessing versioninfo does not throw any error
             var verInfo = RepositoryVersionInfo.Instance;
 
-            // there is no any app or package
+            // there is no any component or package
             Assert.AreEqual(0, verInfo.Components.Count());
             Assert.AreEqual(0, verInfo.InstalledPackages.Count());
 
