@@ -19,8 +19,7 @@ namespace SenseNet.ContentRepository
     }
     public class RepositoryVersionInfo
     {
-
-        public IEnumerable<ComponentInfo> Applications { get; private set; } //UNDONE: Rename to Components
+        public IEnumerable<ComponentInfo> Components { get; private set; }
         public AssemblyDetails Assemblies { get; private set; }
         public IEnumerable<Package> InstalledPackages{ get; private set;}
         public bool DatabaseAvailable { get; private set; }
@@ -29,7 +28,7 @@ namespace SenseNet.ContentRepository
 
         private static readonly RepositoryVersionInfo BeforeInstall = new RepositoryVersionInfo
         {
-            Applications = new ComponentInfo[0],
+            Components = new ComponentInfo[0],
             InstalledPackages = new Package[0],
             Assemblies = new AssemblyDetails
             {
@@ -71,7 +70,7 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        private static RepositoryVersionInfo Create(IEnumerable<ComponentInfo> applicationVersions, IEnumerable<Package> packages, bool databaseAvailable = true)
+        private static RepositoryVersionInfo Create(IEnumerable<ComponentInfo> componentVersions, IEnumerable<Package> packages, bool databaseAvailable = true)
         {
             var asms = TypeHandler.GetAssemblyInfo();
 
@@ -90,7 +89,7 @@ namespace SenseNet.ContentRepository
 
             return new RepositoryVersionInfo
             {
-                Applications = applicationVersions,
+                Components = componentVersions,
                 Assemblies = new AssemblyDetails
                 {
                     SenseNet = asmSn,

@@ -146,7 +146,7 @@ CREATE TABLE [dbo].[Packages](
             var verInfo = RepositoryVersionInfo.Instance;
 
             // there is no any app or package
-            Assert.AreEqual(0, verInfo.Applications.Count());
+            Assert.AreEqual(0, verInfo.Components.Count());
             Assert.AreEqual(0, verInfo.InstalledPackages.Count());
 
             var manifestXml = new XmlDocument();
@@ -171,7 +171,7 @@ CREATE TABLE [dbo].[Packages](
 
             // validate state after phase 1
             verInfo = RepositoryVersionInfo.Instance;
-            Assert.AreEqual(0, verInfo.Applications.Count());
+            Assert.AreEqual(0, verInfo.Components.Count());
             Assert.AreEqual(1, verInfo.InstalledPackages.Count());
             pkg = verInfo.InstalledPackages.First();
             Assert.AreEqual("Component42", pkg.ComponentId);
@@ -184,9 +184,9 @@ CREATE TABLE [dbo].[Packages](
 
             // validate state after phase 2
             verInfo = RepositoryVersionInfo.Instance;
-            Assert.AreEqual(1, verInfo.Applications.Count());
+            Assert.AreEqual(1, verInfo.Components.Count());
             Assert.AreEqual(1, verInfo.InstalledPackages.Count());
-            component = verInfo.Applications.First();
+            component = verInfo.Components.First();
             Assert.AreEqual("Component42", component.ComponentId);
             Assert.AreEqual("4.42", component.Version.ToString());
             Assert.IsNotNull(component.AcceptableVersion);

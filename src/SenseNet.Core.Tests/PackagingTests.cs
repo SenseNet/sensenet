@@ -774,7 +774,7 @@ namespace SenseNet.Core.Tests
             ExecutePhase(manifestXml, 1);
             ExecutePhase(manifestXml, 2);
 
-            var component = RepositoryVersionInfo.Instance.Applications.FirstOrDefault();
+            var component = RepositoryVersionInfo.Instance.Components.FirstOrDefault();
             Assert.IsNotNull(component);
             Assert.IsNotNull(component.AcceptableVersion);
             Assert.AreEqual("4.42", component.Version.ToString());
@@ -1156,7 +1156,7 @@ namespace SenseNet.Core.Tests
             var verInfo = RepositoryVersionInfo.Instance;
 
             // there is no any component or package
-            Assert.AreEqual(0, verInfo.Applications.Count());
+            Assert.AreEqual(0, verInfo.Components.Count());
             Assert.AreEqual(0, verInfo.InstalledPackages.Count());
 
             var manifestXml = new XmlDocument();
@@ -1181,7 +1181,7 @@ namespace SenseNet.Core.Tests
 
             // validate state after phase 1
             verInfo = RepositoryVersionInfo.Instance;
-            Assert.AreEqual(0, verInfo.Applications.Count());
+            Assert.AreEqual(0, verInfo.Components.Count());
             Assert.AreEqual(1, verInfo.InstalledPackages.Count());
             pkg = verInfo.InstalledPackages.First();
             Assert.AreEqual("Component42", pkg.ComponentId);
@@ -1194,9 +1194,9 @@ namespace SenseNet.Core.Tests
 
             // validate state after phase 2
             verInfo = RepositoryVersionInfo.Instance;
-            Assert.AreEqual(1, verInfo.Applications.Count());
+            Assert.AreEqual(1, verInfo.Components.Count());
             Assert.AreEqual(1, verInfo.InstalledPackages.Count());
-            component = verInfo.Applications.First();
+            component = verInfo.Components.First();
             Assert.AreEqual("Component42", component.ComponentId);
             Assert.AreEqual("4.42", component.Version.ToString());
             Assert.IsNotNull(component.AcceptableVersion);
@@ -1223,9 +1223,9 @@ namespace SenseNet.Core.Tests
             ExecutePhase(manifestXml, 0);
 
             // check
-            Assert.AreEqual(1, RepositoryVersionInfo.Instance.Applications.Count());
+            Assert.AreEqual(1, RepositoryVersionInfo.Instance.Components.Count());
             Assert.AreEqual(1, RepositoryVersionInfo.Instance.InstalledPackages.Count());
-            var component = RepositoryVersionInfo.Instance.Applications.FirstOrDefault();
+            var component = RepositoryVersionInfo.Instance.Components.FirstOrDefault();
             Assert.IsNotNull(component);
             Assert.AreEqual("Component42", component.ComponentId);
             Assert.AreEqual("4.42", component.Version.ToString());
@@ -1261,7 +1261,7 @@ namespace SenseNet.Core.Tests
 
             // validate state after phase 1
             var verInfo = RepositoryVersionInfo.Instance;
-            Assert.IsFalse(verInfo.Applications.Any());
+            Assert.IsFalse(verInfo.Components.Any());
             Assert.IsTrue(verInfo.InstalledPackages.Any());
             pkg = RepositoryVersionInfo.Instance.InstalledPackages.FirstOrDefault();
             Assert.IsNotNull(pkg);
@@ -1275,7 +1275,7 @@ namespace SenseNet.Core.Tests
 
             // validate state after phase 2
             verInfo = RepositoryVersionInfo.Instance;
-            Assert.IsFalse(verInfo.Applications.Any());
+            Assert.IsFalse(verInfo.Components.Any());
             Assert.IsTrue(verInfo.InstalledPackages.Any());
             pkg = RepositoryVersionInfo.Instance.InstalledPackages.FirstOrDefault();
             Assert.IsNotNull(pkg);
@@ -1288,7 +1288,7 @@ namespace SenseNet.Core.Tests
             ExecutePhase(manifestXml, 2);
 
             // validate state after phase 3
-            component = RepositoryVersionInfo.Instance.Applications.FirstOrDefault();
+            component = RepositoryVersionInfo.Instance.Components.FirstOrDefault();
             Assert.IsNotNull(component);
             Assert.AreEqual("Component42", component.ComponentId);
             Assert.AreEqual("4.42", component.Version.ToString());
@@ -1301,7 +1301,7 @@ namespace SenseNet.Core.Tests
             Assert.AreEqual(PackageType.Install, pkg.PackageType);
             Assert.AreEqual("4.42", pkg.ComponentVersion.ToString());
 
-            Assert.AreEqual(1, RepositoryVersionInfo.Instance.Applications.Count());
+            Assert.AreEqual(1, RepositoryVersionInfo.Instance.Components.Count());
             Assert.AreEqual(1, RepositoryVersionInfo.Instance.InstalledPackages.Count());
         }
 
@@ -1338,7 +1338,7 @@ namespace SenseNet.Core.Tests
             ExecutePhase(manifestXml, 0);
 
             // validate state after phase 1
-            component = RepositoryVersionInfo.Instance.Applications.FirstOrDefault();
+            component = RepositoryVersionInfo.Instance.Components.FirstOrDefault();
             Assert.IsNotNull(component);
             Assert.AreEqual("MyCompany.MyComponent", component.ComponentId);
             Assert.AreEqual("1.2", component.Version.ToString());
@@ -1355,7 +1355,7 @@ namespace SenseNet.Core.Tests
             ExecutePhase(manifestXml, 1);
 
             // validate state after phase 2
-            component = RepositoryVersionInfo.Instance.Applications.FirstOrDefault();
+            component = RepositoryVersionInfo.Instance.Components.FirstOrDefault();
             Assert.IsNotNull(component);
             Assert.AreEqual("MyCompany.MyComponent", component.ComponentId);
             Assert.AreEqual("1.2", component.Version.ToString());
@@ -1372,7 +1372,7 @@ namespace SenseNet.Core.Tests
             ExecutePhase(manifestXml, 2);
 
             // validate state after phase 3
-            component = RepositoryVersionInfo.Instance.Applications.FirstOrDefault();
+            component = RepositoryVersionInfo.Instance.Components.FirstOrDefault();
             Assert.IsNotNull(component);
             Assert.AreEqual("MyCompany.MyComponent", component.ComponentId);
             Assert.AreEqual("1.2", component.Version.ToString());
@@ -1385,7 +1385,7 @@ namespace SenseNet.Core.Tests
             Assert.AreEqual(PackageType.Patch, pkg.PackageType);
             Assert.AreEqual("1.2", pkg.ComponentVersion.ToString());
 
-            Assert.AreEqual(1, RepositoryVersionInfo.Instance.Applications.Count());
+            Assert.AreEqual(1, RepositoryVersionInfo.Instance.Components.Count());
             Assert.AreEqual(2, RepositoryVersionInfo.Instance.InstalledPackages.Count());
         }
 
@@ -1423,9 +1423,9 @@ namespace SenseNet.Core.Tests
             }
 
             // check
-            Assert.AreEqual(1, RepositoryVersionInfo.Instance.Applications.Count());
+            Assert.AreEqual(1, RepositoryVersionInfo.Instance.Components.Count());
             Assert.AreEqual(2, RepositoryVersionInfo.Instance.InstalledPackages.Count());
-            var component = RepositoryVersionInfo.Instance.Applications.FirstOrDefault();
+            var component = RepositoryVersionInfo.Instance.Components.FirstOrDefault();
             Assert.IsNotNull(component);
             Assert.AreEqual("MyCompany.MyComponent", component.ComponentId);
             Assert.AreEqual("1.2", component.Version.ToString());
@@ -1481,9 +1481,9 @@ namespace SenseNet.Core.Tests
                         </Package>");
 
             // check
-            Assert.AreEqual(1, RepositoryVersionInfo.Instance.Applications.Count());
+            Assert.AreEqual(1, RepositoryVersionInfo.Instance.Components.Count());
             Assert.AreEqual(3, RepositoryVersionInfo.Instance.InstalledPackages.Count());
-            var component = RepositoryVersionInfo.Instance.Applications.FirstOrDefault();
+            var component = RepositoryVersionInfo.Instance.Components.FirstOrDefault();
             Assert.IsNotNull(component);
             Assert.AreEqual("MyCompany.MyComponent", component.ComponentId);
             Assert.AreEqual("1.2", component.Version.ToString());
@@ -1542,9 +1542,9 @@ namespace SenseNet.Core.Tests
                         </Package>");
 
             // check
-            Assert.AreEqual(1, RepositoryVersionInfo.Instance.Applications.Count());
+            Assert.AreEqual(1, RepositoryVersionInfo.Instance.Components.Count());
             Assert.AreEqual(4, RepositoryVersionInfo.Instance.InstalledPackages.Count());
-            var component = RepositoryVersionInfo.Instance.Applications.FirstOrDefault();
+            var component = RepositoryVersionInfo.Instance.Components.FirstOrDefault();
             Assert.IsNotNull(component);
             Assert.AreEqual("MyCompany.MyComponent", component.ComponentId);
             Assert.AreEqual("1.2", component.Version.ToString());
@@ -1565,7 +1565,7 @@ namespace SenseNet.Core.Tests
         public void Packaging_VersionInfo_Empty()
         {
             var verInfo = RepositoryVersionInfo.Instance;
-            var apps = verInfo.Applications.ToArray();
+            var apps = verInfo.Components.ToArray();
             var packages = verInfo.InstalledPackages.ToArray();
             Assert.AreEqual(0, apps.Length);
             Assert.AreEqual(0, packages.Length);
@@ -1579,7 +1579,7 @@ namespace SenseNet.Core.Tests
             var verInfo = RepositoryVersionInfo.Instance;
 
             // check
-            var apps = verInfo.Applications.ToArray();
+            var apps = verInfo.Components.ToArray();
             var packages = verInfo.InstalledPackages.ToArray();
             Assert.AreEqual(0, apps.Length);
             Assert.AreEqual(1, packages.Length);
@@ -1593,7 +1593,7 @@ namespace SenseNet.Core.Tests
             var verInfo = RepositoryVersionInfo.Instance;
 
             // check
-            var apps = verInfo.Applications.ToArray();
+            var apps = verInfo.Components.ToArray();
             var packages = verInfo.InstalledPackages.ToArray();
             Assert.AreEqual(0, apps.Length);
             Assert.AreEqual(1, packages.Length);
@@ -1616,7 +1616,7 @@ namespace SenseNet.Core.Tests
             var verInfo = RepositoryVersionInfo.Instance;
 
             // check
-            var actual = string.Join(" | ", verInfo.Applications
+            var actual = string.Join(" | ", verInfo.Components
                 .OrderBy(a => a.ComponentId)
                 .Select(a => $"{a.ComponentId}: {a.AcceptableVersion} ({a.Version})")
                 .ToArray());
