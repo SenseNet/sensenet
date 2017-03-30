@@ -26,11 +26,6 @@ namespace SenseNet.ContentRepository.Storage
             AcceptableVersion = null,
             Description = string.Empty
         };
-
-        public static ApplicationInfo CreateInitialSenseNetVersion(Version version, string description)
-        {
-            return Data.DataProvider.Current.CreateInitialSenseNetVersion(version, description);
-        }
     }
 
     public class AssemblyInfo

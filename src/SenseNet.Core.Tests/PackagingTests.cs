@@ -71,51 +71,7 @@ namespace SenseNet.Core.Tests
             set { /* do nothing */ }
         }
 
-        // ================================================================================================= IPackageStorageProvider
-
-        public ApplicationInfo CreateInitialSenseNetVersion(Version version, string description)
-        {
-            if (version == null)
-                throw new ArgumentNullException(nameof(version));
-
-            var snAppInfo = LoadOfficialSenseNetVersion();
-            if (snAppInfo != null)
-                return snAppInfo;
-
-            SavePackage(new Package
-            {
-                Description = description,
-                ApplicationVersion = version,
-                AppId = null,
-                PackageLevel = PackageLevel.Install,
-                ReleaseDate = DateTime.UtcNow,
-                ExecutionDate = DateTime.UtcNow,
-                ExecutionResult = ExecutionResult.Successful
-            });
-
-            return LoadOfficialSenseNetVersion();
-        }
-
-        public ApplicationInfo LoadOfficialSenseNetVersion()
-        {
-            var package = Storage
-                .Where(p =>
-                    (p.ExecutionResult != ExecutionResult.Faulty && p.ExecutionResult != ExecutionResult.Unfinished)
-                    && p.AppId == null && p.PackageLevel == PackageLevel.Install)
-                .OrderBy(p => p.ApplicationVersion)
-                .LastOrDefault();
-
-            if (package == null)
-                return null;
-
-            return new ApplicationInfo
-            {
-                AppId = package.AppId,
-                Version = package.ApplicationVersion,
-                AcceptableVersion = package.ApplicationVersion,
-                Description = package.Description
-            };
-        }
+        /* ================================================================================================= IPackageStorageProvider */
 
         public IEnumerable<ApplicationInfo> LoadInstalledApplications()
         {

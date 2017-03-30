@@ -20,7 +20,6 @@ namespace SenseNet.ContentRepository
     public class RepositoryVersionInfo
     {
 
-        public ApplicationInfo OfficialSenseNetVersion { get; private set; }
         public IEnumerable<ApplicationInfo> Applications { get; private set; }
         public AssemblyDetails Assemblies { get; private set; }
         public IEnumerable<Package> InstalledPackages{ get; private set;}
@@ -30,7 +29,6 @@ namespace SenseNet.ContentRepository
 
         private static readonly RepositoryVersionInfo BeforeInstall = new RepositoryVersionInfo
         {
-            OfficialSenseNetVersion = ApplicationInfo.Empty,
             Applications = new ApplicationInfo[0],
             InstalledPackages = new Package[0],
             Assemblies = new AssemblyDetails
@@ -64,7 +62,6 @@ namespace SenseNet.ContentRepository
             try
             {
                 return Create(
-                    storage.LoadOfficialSenseNetVersion(),
                     storage.LoadInstalledApplications(),
                     storage.LoadInstalledPackages());
             }
@@ -74,7 +71,7 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        private static RepositoryVersionInfo Create(ApplicationInfo productVersion, IEnumerable<ApplicationInfo> applicationVersions, IEnumerable<Package> packages, bool databaseAvailable = true)
+        private static RepositoryVersionInfo Create(IEnumerable<ApplicationInfo> applicationVersions, IEnumerable<Package> packages, bool databaseAvailable = true)
         {
             var asms = TypeHandler.GetAssemblyInfo();
 
@@ -93,7 +90,6 @@ namespace SenseNet.ContentRepository
 
             return new RepositoryVersionInfo
             {
-                OfficialSenseNetVersion = productVersion,
                 Applications = applicationVersions,
                 Assemblies = new AssemblyDetails
                 {
@@ -106,12 +102,6 @@ namespace SenseNet.ContentRepository
                 InstalledPackages = packages,
                 DatabaseAvailable = databaseAvailable
             };
-        }
-
-        public static void SetInitialVersion(ApplicationInfo productVersion)
-        {
-            // create an in-memory, initial version
-            __instance = Create(productVersion, new List<ApplicationInfo>(), new List<Package>());
         }
 
         public static void Reset()

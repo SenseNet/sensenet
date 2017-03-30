@@ -15,8 +15,6 @@ namespace SenseNet.ContentRepository.Storage.Data
     {
         IDataProcedureFactory DataProcedureFactory { get; set; }
 
-        ApplicationInfo CreateInitialSenseNetVersion(Version version, string description);
-        ApplicationInfo LoadOfficialSenseNetVersion();
         IEnumerable<ApplicationInfo> LoadInstalledApplications();
         IEnumerable<Package> LoadInstalledPackages();
         void SavePackage(Package package);

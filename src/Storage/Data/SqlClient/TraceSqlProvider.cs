@@ -334,11 +334,6 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             WriteLog(MethodBase.GetCurrentMethod(), versionId, propertyTypeId, token, fullSize, source);
             base.CommitChunk(versionId, propertyTypeId, token, fullSize, source);
         }
-        public override ApplicationInfo CreateInitialSenseNetVersion(Version version, string description)
-        {
-            WriteLog(MethodBase.GetCurrentMethod(), version, description);
-            return base.CreateInitialSenseNetVersion(version, description);
-        }
         public override void DeletePackage(Package package)
         {
             WriteLog(MethodBase.GetCurrentMethod(), package);
@@ -373,11 +368,6 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         {
             WriteLog(MethodBase.GetCurrentMethod());
             return base.LoadInstalledPackages();
-        }
-        public override ApplicationInfo LoadOfficialSenseNetVersion()
-        {
-            WriteLog(MethodBase.GetCurrentMethod());
-            return base.LoadOfficialSenseNetVersion();
         }
         public override void SavePackage(Package package)
         {

@@ -34,9 +34,6 @@ namespace SenseNet.Core.Tests
 
         /* ================================================================================================== Tests */
 
-        //?? CreateInitialSenseNetVersion
-        //?? LoadOfficialSenseNetVersion
-
         [TestMethod]
         public void Packaging_Storage_LoadInstalledApplications()
         {
