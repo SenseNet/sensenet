@@ -38,7 +38,7 @@ namespace SenseNet.Core.Tests
         public void Packaging_Storage_LoadInstalledApplications()
         {
             Procedures.Clear();
-            ExpectedCommandResult = new TestDataReader(new[] { "AppId", "AppVersion", "AcceptableVersion", "Description" },
+            ExpectedCommandResult = new TestDataReader(new[] { "ComponentId", "AppVersion", "AcceptableVersion", "Description" },
                 new[]
                 {
                     new object[] { "Component1", "0000000002.0000000000", "0000000001.0000000002"           , "description1" },
@@ -52,16 +52,16 @@ namespace SenseNet.Core.Tests
             // check
             Assert.AreEqual(1, Procedures.Count);
             var proc = Procedures[0];
-            Assert.AreEqual(@"SELECT P2.Description, P1.AppId, P1.AppVersion, P1a.AppVersion AcceptableVersion
-FROM (SELECT AppId, MAX(AppVersion) AppVersion FROM Packages WHERE APPID IS NOT NULL GROUP BY AppId) P1
-JOIN (SELECT AppId, MAX(AppVersion) AppVersion FROM Packages WHERE APPID IS NOT NULL 
+            Assert.AreEqual(@"SELECT P2.Description, P1.ComponentId, P1.AppVersion, P1a.AppVersion AcceptableVersion
+FROM (SELECT ComponentId, MAX(AppVersion) AppVersion FROM Packages WHERE ComponentId IS NOT NULL GROUP BY ComponentId) P1
+JOIN (SELECT ComponentId, MAX(AppVersion) AppVersion FROM Packages WHERE ComponentId IS NOT NULL 
     AND ExecutionResult != '" + ExecutionResult.Faulty.ToString() + @"'
-    AND ExecutionResult != '" + ExecutionResult.Unfinished.ToString() + @"' GROUP BY AppId, ExecutionResult) P1a
-ON P1.AppId = P1a.AppId
-JOIN (SELECT Description, AppId FROM Packages WHERE PackageLevel = '" + PackageLevel.Install.ToString() + @"'
+    AND ExecutionResult != '" + ExecutionResult.Unfinished.ToString() + @"' GROUP BY ComponentId, ExecutionResult) P1a
+ON P1.ComponentId = P1a.ComponentId
+JOIN (SELECT Description, ComponentId FROM Packages WHERE PackageLevel = '" + PackageLevel.Install.ToString() + @"'
     AND ExecutionResult != '" + ExecutionResult.Faulty.ToString() + @"'
     AND ExecutionResult != '" + ExecutionResult.Unfinished.ToString() + @"') P2
-ON P1.AppId = P2.AppId", proc.CommandText);
+ON P1.ComponentId = P2.ComponentId", proc.CommandText);
 
             var parameters = proc.Parameters;
             Assert.AreEqual(0, parameters.Count);
@@ -124,7 +124,7 @@ ON P1.AppId = P2.AppId", proc.CommandText);
             var releaseDate1 = releaseDate2.AddDays(-1);
 
             ExpectedCommandResult = new TestDataReader(new [] { "Id","Name","PackageType","PackageLevel","SenseNetVersion",
-                "AppId","AppVersion","ReleaseDate","ExecutionDate","ExecutionResult","ExecutionError","Description" },
+                "ComponentId","AppVersion","ReleaseDate","ExecutionDate","ExecutionResult","ExecutionError","Description" },
                 new []
                 {
                     new object[] {1, null, "", "Install", "", "Component1", "0000000001.0000000002"           , releaseDate1, executionDate1, "Successful", null, "description1" },
@@ -207,15 +207,15 @@ ON P1.AppId = P2.AppId", proc.CommandText);
             var proc = Procedures[0];
 
             Assert.AreEqual(@"INSERT INTO Packages
-    (  Description,  AppId,  PackageLevel,  PackageType,  ReleaseDate,  ExecutionDate,  ExecutionResult,  ExecutionError,  AppVersion,  SenseNetVersion) VALUES
-    ( @Description, @AppId, @PackageLevel, @PackageType, @ReleaseDate, @ExecutionDate, @ExecutionResult, @ExecutionError, @AppVersion, @SenseNetVersion)
+    (  Description,  ComponentId,  PackageLevel,  PackageType,  ReleaseDate,  ExecutionDate,  ExecutionResult,  ExecutionError,  AppVersion,  SenseNetVersion) VALUES
+    ( @Description, @ComponentId, @PackageLevel, @PackageType, @ReleaseDate, @ExecutionDate, @ExecutionResult, @ExecutionError, @AppVersion, @SenseNetVersion)
 SELECT @@IDENTITY", proc.CommandText);
 
             var parameters = proc.Parameters;
             Assert.AreEqual(10, parameters.Count);
 
             CheckParameter(parameters[0], "@Description", DbType.String, 1000, package.Description);
-            CheckParameter(parameters[1], "@AppId", DbType.AnsiString, 50, package.ComponentId);
+            CheckParameter(parameters[1], "@ComponentId", DbType.AnsiString, 50, package.ComponentId);
             CheckParameter(parameters[2], "@PackageLevel", DbType.AnsiString, 50, package.PackageLevel.ToString());
             CheckParameter(parameters[3], "@PackageType", DbType.AnsiString, 50, string.Empty);
             CheckParameter(parameters[4], "@ReleaseDate", DbType.DateTime, package.ReleaseDate);
@@ -252,7 +252,7 @@ SELECT @@IDENTITY", proc.CommandText);
             var proc = Procedures[0];
 
             Assert.AreEqual(@"UPDATE Packages
-    SET AppId = @AppId,
+    SET ComponentId = @ComponentId,
         Description = @Description,
         PackageLevel = @PackageLevel,
         PackageType = @PackageType,
@@ -270,7 +270,7 @@ WHERE Id = @Id
 
             CheckParameter(parameters[0], "@Id", DbType.Int32, package.Id);
             CheckParameter(parameters[1], "@Description", DbType.String, 1000, package.Description);
-            CheckParameter(parameters[2], "@AppId", DbType.AnsiString, 50, package.ComponentId);
+            CheckParameter(parameters[2], "@ComponentId", DbType.AnsiString, 50, package.ComponentId);
             CheckParameter(parameters[3], "@PackageLevel", DbType.AnsiString, 50, package.PackageLevel.ToString());
             CheckParameter(parameters[4], "@PackageType", DbType.AnsiString, 50, string.Empty);
             CheckParameter(parameters[5], "@ReleaseDate", DbType.DateTime, package.ReleaseDate);
@@ -300,13 +300,13 @@ WHERE Id = @Id
             var proc = Procedures[0];
 
             Assert.AreEqual(@"SELECT COUNT(0) FROM Packages
-WHERE AppId = @AppId AND PackageLevel = @PackageLevel AND SenseNetVersion = @Version
+WHERE ComponentId = @ComponentId AND PackageLevel = @PackageLevel AND SenseNetVersion = @Version
 ", proc.CommandText);
 
             var parameters = proc.Parameters;
             Assert.AreEqual(3, parameters.Count);
 
-            CheckParameter(parameters[0], "@AppId", DbType.AnsiString, 50, "Component1");
+            CheckParameter(parameters[0], "@ComponentId", DbType.AnsiString, 50, "Component1");
             CheckParameter(parameters[1], "@PackageLevel", DbType.AnsiString, 50, "Install");
             CheckParameter(parameters[2], "@Version", DbType.AnsiString, 50, EncodePackageVersion(version));
 
@@ -330,13 +330,13 @@ WHERE AppId = @AppId AND PackageLevel = @PackageLevel AND SenseNetVersion = @Ver
             var proc = Procedures[0];
 
             Assert.AreEqual(@"SELECT COUNT(0) FROM Packages
-WHERE AppId = @AppId AND PackageLevel = @PackageLevel AND SenseNetVersion = @Version
+WHERE ComponentId = @ComponentId AND PackageLevel = @PackageLevel AND SenseNetVersion = @Version
 ", proc.CommandText);
 
             var parameters = proc.Parameters;
             Assert.AreEqual(3, parameters.Count);
 
-            CheckParameter(parameters[0], "@AppId", DbType.AnsiString, 50, "Component1");
+            CheckParameter(parameters[0], "@ComponentId", DbType.AnsiString, 50, "Component1");
             CheckParameter(parameters[1], "@PackageLevel", DbType.AnsiString, 50, "Install");
             CheckParameter(parameters[2], "@Version", DbType.AnsiString, 50, EncodePackageVersion(version));
 

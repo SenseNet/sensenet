@@ -38,7 +38,7 @@ CREATE TABLE [dbo].[Packages](
 	[PackageType] [varchar](50) NOT NULL,
 	[PackageLevel] [varchar](50) NOT NULL,
 	[SenseNetVersion] [varchar](50) NOT NULL,
-	[AppId] [varchar](50) NULL,
+	[ComponentId] [nvarchar](450) NULL,
 	[AppVersion] [varchar](50) NULL,
 	[ReleaseDate] [datetime] NOT NULL,
 	[ExecutionDate] [datetime] NOT NULL,
