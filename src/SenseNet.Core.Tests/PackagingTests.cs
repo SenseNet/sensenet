@@ -119,37 +119,53 @@ namespace SenseNet.Core.Tests
 
         public IEnumerable<ApplicationInfo> LoadInstalledApplications()
         {
+            var nullVersion = new Version(0, 0);
             var appInfos = new Dictionary<string, ApplicationInfo>();
-            foreach (var package in Storage.Where(p => p.PackageLevel == PackageLevel.Install || p.PackageLevel == PackageLevel.Patch))
+            foreach (var package in Storage
+                .Where(p => p.PackageLevel == PackageLevel.Install
+                    && p.ExecutionResult == ExecutionResult.Successful))
             {
                 var appId = package.AppId;
-
-                ApplicationInfo appinfo;
+                ApplicationInfo appinfo = null;
                 if (!appInfos.TryGetValue(appId, out appinfo))
                 {
                     appinfo = new ApplicationInfo
                     {
                         AppId = package.AppId,
                         Version = package.ApplicationVersion,
-                        AcceptableVersion = null,
+                        AcceptableVersion = package.ApplicationVersion,
                         Description = package.Description
                     };
                     appInfos.Add(appId, appinfo);
                 }
 
-                var nullVersion = new Version(0, 0);
-                if (package.ApplicationVersion > (appinfo.Version ?? nullVersion))
-                    appinfo.Version = package.ApplicationVersion;
-                if (package.ExecutionResult == ExecutionResult.Successful)
-                    if (package.ApplicationVersion > (appinfo.AcceptableVersion ?? nullVersion))
+                if (package.ApplicationVersion > (appinfo.AcceptableVersion ?? nullVersion))
+                    appinfo.AcceptableVersion = package.ApplicationVersion;
+            }
+
+            foreach (var package in Storage
+                .Where(p => (p.PackageLevel == PackageLevel.Install || p.PackageLevel == PackageLevel.Patch)))
+            {
+                var appId = package.AppId;
+                ApplicationInfo appinfo = null;
+                if (appInfos.TryGetValue(appId, out appinfo))
+                {
+                    if ((package.ApplicationVersion > (appinfo.AcceptableVersion ?? nullVersion))
+                        && package.ExecutionResult == ExecutionResult.Successful)
                         appinfo.AcceptableVersion = package.ApplicationVersion;
+                    if (package.ApplicationVersion > (appinfo.Version ?? nullVersion))
+                        appinfo.Version = package.ApplicationVersion;
+                }
             }
             return appInfos.Values.ToArray();
         }
 
         public IEnumerable<Package> LoadInstalledPackages()
         {
-            return Storage.Select(ClonePackage).ToArray();
+            return Storage
+                //.Where(p => p.ExecutionResult != ExecutionResult.Unfinished)
+                .Select(ClonePackage)
+                .ToArray();
         }
 
         public void SavePackage(Package package)
@@ -1209,13 +1225,9 @@ namespace SenseNet.Core.Tests
 
             // validate state after phase 1
             verInfo = RepositoryVersionInfo.Instance;
-            Assert.AreEqual(1, verInfo.Applications.Count());
+            Assert.AreEqual(0, verInfo.Applications.Count());
             Assert.AreEqual(1, verInfo.InstalledPackages.Count());
-            app = RepositoryVersionInfo.Instance.Applications.First();
-            Assert.AreEqual("Component42", app.AppId);
-            Assert.AreEqual("4.42", app.Version.ToString());
-            Assert.IsNull(app.AcceptableVersion);
-            pkg = RepositoryVersionInfo.Instance.InstalledPackages.First();
+            pkg = verInfo.InstalledPackages.First();
             Assert.AreEqual("Component42", pkg.AppId);
             Assert.AreEqual(ExecutionResult.Unfinished, pkg.ExecutionResult);
             Assert.AreEqual(PackageLevel.Install, pkg.PackageLevel);
@@ -1225,14 +1237,15 @@ namespace SenseNet.Core.Tests
             ExecutePhase(manifestXml, 1);
 
             // validate state after phase 2
-            Assert.AreEqual(1, RepositoryVersionInfo.Instance.Applications.Count());
-            Assert.AreEqual(1, RepositoryVersionInfo.Instance.InstalledPackages.Count());
-            app = RepositoryVersionInfo.Instance.Applications.First();
+            verInfo = RepositoryVersionInfo.Instance;
+            Assert.AreEqual(1, verInfo.Applications.Count());
+            Assert.AreEqual(1, verInfo.InstalledPackages.Count());
+            app = verInfo.Applications.First();
             Assert.AreEqual("Component42", app.AppId);
             Assert.AreEqual("4.42", app.Version.ToString());
             Assert.IsNotNull(app.AcceptableVersion);
             Assert.AreEqual("4.42", app.AcceptableVersion.ToString());
-            pkg = RepositoryVersionInfo.Instance.InstalledPackages.First();
+            pkg = verInfo.InstalledPackages.First();
             Assert.AreEqual("Component42", pkg.AppId);
             Assert.AreEqual(ExecutionResult.Successful, pkg.ExecutionResult);
             Assert.AreEqual(PackageLevel.Install, pkg.PackageLevel);
@@ -1291,11 +1304,9 @@ namespace SenseNet.Core.Tests
             ExecutePhase(manifestXml, 0);
 
             // validate state after phase 1
-            app = RepositoryVersionInfo.Instance.Applications.FirstOrDefault();
-            Assert.IsNotNull(app);
-            Assert.AreEqual("Component42", app.AppId);
-            Assert.AreEqual("4.42", app.Version.ToString());
-            Assert.IsNull(app.AcceptableVersion);
+            var verInfo = RepositoryVersionInfo.Instance;
+            Assert.IsFalse(verInfo.Applications.Any());
+            Assert.IsTrue(verInfo.InstalledPackages.Any());
             pkg = RepositoryVersionInfo.Instance.InstalledPackages.FirstOrDefault();
             Assert.IsNotNull(pkg);
             Assert.AreEqual("Component42", pkg.AppId);
@@ -1307,11 +1318,9 @@ namespace SenseNet.Core.Tests
             ExecutePhase(manifestXml, 1);
 
             // validate state after phase 2
-            app = RepositoryVersionInfo.Instance.Applications.FirstOrDefault();
-            Assert.IsNotNull(app);
-            Assert.AreEqual("Component42", app.AppId);
-            Assert.AreEqual("4.42", app.Version.ToString());
-            Assert.IsNull(app.AcceptableVersion);
+            verInfo = RepositoryVersionInfo.Instance;
+            Assert.IsFalse(verInfo.Applications.Any());
+            Assert.IsTrue(verInfo.InstalledPackages.Any());
             pkg = RepositoryVersionInfo.Instance.InstalledPackages.FirstOrDefault();
             Assert.IsNotNull(pkg);
             Assert.AreEqual("Component42", pkg.AppId);
@@ -1594,9 +1603,67 @@ namespace SenseNet.Core.Tests
         }
         #endregion
 
+        #region // ========================================= RepositoryVersionInfo tests
+
+        [TestMethod]
+        public void Packaging_VersionInfo_Empty()
+        {
+            var verInfo = RepositoryVersionInfo.Instance;
+            var apps = verInfo.Applications.ToArray();
+            var packages = verInfo.InstalledPackages.ToArray();
+            Assert.AreEqual(0, apps.Length);
+            Assert.AreEqual(0, packages.Length);
+        }
+        [TestMethod]
+        public void Packaging_VersionInfo_OnlyUnfinished()
+        {
+            SavePackage("C1", "1.0", "01:00", "2016-01-01", PackageLevel.Install, ExecutionResult.Unfinished);
+
+            // action
+            var verInfo = RepositoryVersionInfo.Instance;
+
+            // check
+            var apps = verInfo.Applications.ToArray();
+            var packages = verInfo.InstalledPackages.ToArray();
+            Assert.AreEqual(0, apps.Length);
+            Assert.AreEqual(1, packages.Length);
+        }
+        [TestMethod]
+        public void Packaging_VersionInfo_OnlyFaulty()
+        {
+            SavePackage("C1", "1.0", "01:00", "2016-01-01", PackageLevel.Install, ExecutionResult.Faulty);
+
+            // action
+            var verInfo = RepositoryVersionInfo.Instance;
+
+            // check
+            var apps = verInfo.Applications.ToArray();
+            var packages = verInfo.InstalledPackages.ToArray();
+            Assert.AreEqual(0, apps.Length);
+            Assert.AreEqual(1, packages.Length);
+        }
+
+        private void SavePackage(string id, string version, string execTime, string releaseDate, PackageLevel laval, ExecutionResult result)
+        {
+            var package = new Package
+            {
+                AppId = id,
+                ApplicationVersion = new Version(1, 0),
+                Description = $"{id}-Description",
+                ExecutionDate = DateTime.Parse($"2017-03-30 {execTime}"),
+                ReleaseDate = DateTime.Parse(releaseDate),
+                ExecutionError = null,
+                ExecutionResult = ExecutionResult.Faulty,
+                PackageLevel = PackageLevel.Install,
+            };
+            PackageManager.Storage.SavePackage(package);
+        }
+
+        #endregion
+
         /*================================================= tools */
 
-        private Manifest ParseManifestHead(string manifestXml)
+        internal static Manifest ParseManifestHead(string manifestXml)
         {
             var xml = new XmlDocument();
             xml.LoadXml(manifestXml);
@@ -1604,20 +1671,20 @@ namespace SenseNet.Core.Tests
             Manifest.ParseHead(xml, manifest);
             return manifest;
         }
-        private Manifest ParseManifest(string manifestXml, int currentPhase)
+        internal static Manifest ParseManifest(string manifestXml, int currentPhase)
         {
             var xml = new XmlDocument();
             xml.LoadXml(manifestXml);
             return Manifest.Parse(xml, currentPhase, true);
         }
 
-        private PackagingResult ExecutePhases(string manifestXml, TextWriter console = null)
+        internal static PackagingResult ExecutePhases(string manifestXml, TextWriter console = null)
         {
             var xml = new XmlDocument();
             xml.LoadXml(manifestXml);
             return ExecutePhases(xml, console);
         }
-        private PackagingResult ExecutePhases(XmlDocument manifestXml, TextWriter console = null)
+        internal static PackagingResult ExecutePhases(XmlDocument manifestXml, TextWriter console = null)
         {
             var phase = -1;
             var errors = 0;
@@ -1630,11 +1697,13 @@ namespace SenseNet.Core.Tests
             result.Errors = errors;
             return result;
         }
-        private PackagingResult ExecutePhase(XmlDocument manifestXml, int phase, TextWriter console = null)
+        internal static PackagingResult ExecutePhase(XmlDocument manifestXml, int phase, TextWriter console = null)
         {
             var manifest = Manifest.Parse(manifestXml, phase, true);
             var executionContext = ExecutionContext.CreateForTest("packagePath", "targetPath", new string[0], "sandboxPath", manifest, phase, manifest.CountOfPhases, null, console ?? new StringWriter());
-            return PackageManager.ExecuteCurrentPhase(manifest, executionContext);
+            var result = PackageManager.ExecuteCurrentPhase(manifest, executionContext);
+            RepositoryVersionInfo.Reset();
+            return result;
         }
     }
 }
