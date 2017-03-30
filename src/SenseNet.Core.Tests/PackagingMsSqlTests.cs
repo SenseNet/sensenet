@@ -37,7 +37,7 @@ CREATE TABLE [dbo].[Packages](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[PackageType] [varchar](50) NOT NULL,
 	[ComponentId] [nvarchar](450) NULL,
-	[AppVersion] [varchar](50) NULL,
+	[ComponentVersion] [varchar](50) NULL,
 	[ReleaseDate] [datetime] NOT NULL,
 	[ExecutionDate] [datetime] NOT NULL,
 	[ExecutionResult] [varchar](50) NOT NULL,
@@ -177,7 +177,7 @@ CREATE TABLE [dbo].[Packages](
             Assert.AreEqual("Component42", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Unfinished, pkg.ExecutionResult);
             Assert.AreEqual(PackageType.Install, pkg.PackageType);
-            Assert.AreEqual("4.42", pkg.ApplicationVersion.ToString());
+            Assert.AreEqual("4.42", pkg.ComponentVersion.ToString());
 
             // phase 2
             PackagingTests.ExecutePhase(manifestXml, 1);
@@ -195,7 +195,7 @@ CREATE TABLE [dbo].[Packages](
             Assert.AreEqual("Component42", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Successful, pkg.ExecutionResult);
             Assert.AreEqual(PackageType.Install, pkg.PackageType);
-            Assert.AreEqual("4.42", pkg.ApplicationVersion.ToString());
+            Assert.AreEqual("4.42", pkg.ComponentVersion.ToString());
         }
 
         [TestMethod]

@@ -38,7 +38,7 @@ namespace SenseNet.Core.Tests
         public void Packaging_Storage_LoadInstalledApplications()
         {
             Procedures.Clear();
-            ExpectedCommandResult = new TestDataReader(new[] { "ComponentId", "AppVersion", "AcceptableVersion", "Description" },
+            ExpectedCommandResult = new TestDataReader(new[] { "ComponentId", "ComponentVersion", "AcceptableVersion", "Description" },
                 new[]
                 {
                     new object[] { "Component1", "0000000002.0000000000", "0000000001.0000000002"           , "description1" },
@@ -52,9 +52,9 @@ namespace SenseNet.Core.Tests
             // check
             Assert.AreEqual(1, Procedures.Count);
             var proc = Procedures[0];
-            Assert.AreEqual(@"SELECT P2.Description, P1.ComponentId, P1.AppVersion, P1a.AppVersion AcceptableVersion
-FROM (SELECT ComponentId, MAX(AppVersion) AppVersion FROM Packages WHERE ComponentId IS NOT NULL GROUP BY ComponentId) P1
-JOIN (SELECT ComponentId, MAX(AppVersion) AppVersion FROM Packages WHERE ComponentId IS NOT NULL 
+            Assert.AreEqual(@"SELECT P2.Description, P1.ComponentId, P1.ComponentVersion, P1a.ComponentVersion AcceptableVersion
+FROM (SELECT ComponentId, MAX(ComponentVersion) ComponentVersion FROM Packages WHERE ComponentId IS NOT NULL GROUP BY ComponentId) P1
+JOIN (SELECT ComponentId, MAX(ComponentVersion) ComponentVersion FROM Packages WHERE ComponentId IS NOT NULL 
     AND ExecutionResult != '" + ExecutionResult.Faulty.ToString() + @"'
     AND ExecutionResult != '" + ExecutionResult.Unfinished.ToString() + @"' GROUP BY ComponentId, ExecutionResult) P1a
 ON P1.ComponentId = P1a.ComponentId
@@ -123,7 +123,7 @@ ON P1.ComponentId = P2.ComponentId", proc.CommandText);
             var releaseDate2 = releaseDate3.AddDays(-1);
             var releaseDate1 = releaseDate2.AddDays(-1);
 
-            ExpectedCommandResult = new TestDataReader(new[] { "Id","PackageType","ComponentId","AppVersion",
+            ExpectedCommandResult = new TestDataReader(new[] { "Id","PackageType","ComponentId","ComponentVersion",
                                 "ReleaseDate","ExecutionDate","ExecutionResult","ExecutionError","Description" },
                 new[]
                 {
@@ -152,7 +152,7 @@ ON P1.ComponentId = P2.ComponentId", proc.CommandText);
             Assert.AreEqual(1, packages[0].Id);
             Assert.AreEqual(PackageType.Install, packages[0].PackageType);
             Assert.AreEqual("Component1", packages[0].ComponentId);
-            Assert.AreEqual("1.2", packages[0].ApplicationVersion.ToString());
+            Assert.AreEqual("1.2", packages[0].ComponentVersion.ToString());
             Assert.AreEqual(releaseDate1, packages[0].ReleaseDate);
             Assert.AreEqual(executionDate1, packages[0].ExecutionDate);
             Assert.AreEqual(ExecutionResult.Successful, packages[0].ExecutionResult);
@@ -162,7 +162,7 @@ ON P1.ComponentId = P2.ComponentId", proc.CommandText);
             Assert.AreEqual(2, packages[1].Id);
             Assert.AreEqual(PackageType.Install, packages[1].PackageType);
             Assert.AreEqual("Component2", packages[1].ComponentId);
-            Assert.AreEqual("3.7.42", packages[1].ApplicationVersion.ToString());
+            Assert.AreEqual("3.7.42", packages[1].ComponentVersion.ToString());
             Assert.AreEqual(releaseDate2, packages[1].ReleaseDate);
             Assert.AreEqual(executionDate2, packages[1].ExecutionDate);
             Assert.AreEqual(ExecutionResult.Successful, packages[1].ExecutionResult);
@@ -172,7 +172,7 @@ ON P1.ComponentId = P2.ComponentId", proc.CommandText);
             Assert.AreEqual(3, packages[2].Id);
             Assert.AreEqual(PackageType.Patch, packages[2].PackageType);
             Assert.AreEqual("Component2", packages[2].ComponentId);
-            Assert.AreEqual("6.5", packages[2].ApplicationVersion.ToString());
+            Assert.AreEqual("6.5", packages[2].ComponentVersion.ToString());
             Assert.AreEqual(releaseDate3, packages[2].ReleaseDate);
             Assert.AreEqual(executionDate3, packages[2].ExecutionDate);
             Assert.AreEqual(ExecutionResult.Successful, packages[2].ExecutionResult);
@@ -193,7 +193,7 @@ ON P1.ComponentId = P2.ComponentId", proc.CommandText);
                 ComponentId = "MyCompany.MyComponent",
                 ExecutionDate = DateTime.UtcNow,
                 ExecutionResult = ExecutionResult.Unfinished,
-                ApplicationVersion = new Version(2, 3),
+                ComponentVersion = new Version(2, 3),
                 ExecutionError = null
             };
 
@@ -207,8 +207,8 @@ ON P1.ComponentId = P2.ComponentId", proc.CommandText);
             var proc = Procedures[0];
 
             Assert.AreEqual(@"INSERT INTO Packages
-    (  Description,  ComponentId,  PackageType,  ReleaseDate,  ExecutionDate,  ExecutionResult,  ExecutionError,  AppVersion) VALUES
-    ( @Description, @ComponentId, @PackageType, @ReleaseDate, @ExecutionDate, @ExecutionResult, @ExecutionError, @AppVersion)
+    (  Description,  ComponentId,  PackageType,  ReleaseDate,  ExecutionDate,  ExecutionResult,  ExecutionError,  ComponentVersion) VALUES
+    ( @Description, @ComponentId, @PackageType, @ReleaseDate, @ExecutionDate, @ExecutionResult, @ExecutionError, @ComponentVersion)
 SELECT @@IDENTITY", proc.CommandText);
 
             var parameters = proc.Parameters;
@@ -221,7 +221,7 @@ SELECT @@IDENTITY", proc.CommandText);
             CheckParameter(parameters[4], "@ExecutionDate", DbType.DateTime, package.ExecutionDate);
             CheckParameter(parameters[5], "@ExecutionResult", DbType.AnsiString, 50, package.ExecutionResult.ToString());
             CheckParameter(parameters[6], "@ExecutionError", DbType.String, 0, DBNull.Value);
-            CheckParameter(parameters[7], "@AppVersion", DbType.AnsiString, 50, EncodePackageVersion(package.ApplicationVersion));
+            CheckParameter(parameters[7], "@ComponentVersion", DbType.AnsiString, 50, EncodePackageVersion(package.ComponentVersion));
 
             Assert.AreEqual("ExecuteScalar", proc.ExecutorMethod);
         }
@@ -238,7 +238,7 @@ SELECT @@IDENTITY", proc.CommandText);
                 ComponentId = "MyCompany.MyComponent",
                 ExecutionDate = DateTime.UtcNow,
                 ExecutionResult = ExecutionResult.Unfinished,
-                ApplicationVersion = new Version(2, 3),
+                ComponentVersion = new Version(2, 3),
                 ExecutionError = null
             };
 
@@ -257,7 +257,7 @@ SELECT @@IDENTITY", proc.CommandText);
         ExecutionDate = @ExecutionDate,
         ExecutionResult = @ExecutionResult,
         ExecutionError = @ExecutionError,
-        AppVersion = @AppVersion
+        ComponentVersion = @ComponentVersion
 WHERE Id = @Id
 ", proc.CommandText);
 
@@ -272,7 +272,7 @@ WHERE Id = @Id
             CheckParameter(parameters[5], "@ExecutionDate", DbType.DateTime, package.ExecutionDate);
             CheckParameter(parameters[6], "@ExecutionResult", DbType.AnsiString, 50, package.ExecutionResult.ToString());
             CheckParameter(parameters[7], "@ExecutionError", DbType.String, 0, DBNull.Value);
-            CheckParameter(parameters[8], "@AppVersion", DbType.AnsiString, 50, EncodePackageVersion(package.ApplicationVersion));
+            CheckParameter(parameters[8], "@ComponentVersion", DbType.AnsiString, 50, EncodePackageVersion(package.ComponentVersion));
 
             Assert.AreEqual("ExecuteNonQuery", proc.ExecutorMethod);
         }
@@ -294,7 +294,7 @@ WHERE Id = @Id
             var proc = Procedures[0];
 
             Assert.AreEqual(@"SELECT COUNT(0) FROM Packages
-WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND AppVersion = @Version
+WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVersion = @Version
 ", proc.CommandText);
 
             var parameters = proc.Parameters;
@@ -324,7 +324,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND AppVersion =
             var proc = Procedures[0];
 
             Assert.AreEqual(@"SELECT COUNT(0) FROM Packages
-WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND AppVersion = @Version
+WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVersion = @Version
 ", proc.CommandText);
 
             var parameters = proc.Parameters;
@@ -352,7 +352,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND AppVersion =
                 ComponentId = "MyCompany.MyComponent",
                 ExecutionDate = DateTime.UtcNow,
                 ExecutionResult = ExecutionResult.Unfinished,
-                ApplicationVersion = new Version(2, 3),
+                ComponentVersion = new Version(2, 3),
                 ExecutionError = null
             };
 
@@ -384,7 +384,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND AppVersion =
                 ComponentId = "MyCompany.MyComponent",
                 ExecutionDate = DateTime.UtcNow,
                 ExecutionResult = ExecutionResult.Unfinished,
-                ApplicationVersion = new Version(2, 3),
+                ComponentVersion = new Version(2, 3),
                 ExecutionError = null
             };
 

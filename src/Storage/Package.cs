@@ -18,7 +18,7 @@ namespace SenseNet.ContentRepository.Storage
         public DateTime ReleaseDate { get; set; }             // [ReleaseDate] [datetime] NOT NULL,
         public DateTime ExecutionDate { get; set; }           // [ExecutionDate] [datetime] NOT NULL,
         public ExecutionResult ExecutionResult { get; set; }  // [ExecutionResult] [varchar](50) NOT NULL,
-        public Version ApplicationVersion { get; set; }       // [AppVersion] [varchar](50) NULL,
+        public Version ComponentVersion { get; set; }         // [ComponentVersion] [varchar](50) NULL,
         public Exception ExecutionError { get; set; }         // [ExecutionError] [nvarchar](max) NULL
     }
 }

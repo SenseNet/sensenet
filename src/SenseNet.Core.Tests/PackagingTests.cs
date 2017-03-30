@@ -61,7 +61,7 @@ namespace SenseNet.Core.Tests
             target.ReleaseDate = source.ReleaseDate;
             target.ExecutionDate = source.ExecutionDate;
             target.ExecutionResult = source.ExecutionResult;
-            target.ApplicationVersion = source.ApplicationVersion;
+            target.ComponentVersion = source.ComponentVersion;
             target.ExecutionError = source.ExecutionError;
         }
 
@@ -88,15 +88,15 @@ namespace SenseNet.Core.Tests
                     appinfo = new ApplicationInfo
                     {
                         ComponentId = package.ComponentId,
-                        Version = package.ApplicationVersion,
-                        AcceptableVersion = package.ApplicationVersion,
+                        Version = package.ComponentVersion,
+                        AcceptableVersion = package.ComponentVersion,
                         Description = package.Description
                     };
                     appInfos.Add(componentId, appinfo);
                 }
 
-                if (package.ApplicationVersion > (appinfo.AcceptableVersion ?? nullVersion))
-                    appinfo.AcceptableVersion = package.ApplicationVersion;
+                if (package.ComponentVersion > (appinfo.AcceptableVersion ?? nullVersion))
+                    appinfo.AcceptableVersion = package.ComponentVersion;
             }
 
             foreach (var package in Storage
@@ -106,11 +106,11 @@ namespace SenseNet.Core.Tests
                 ApplicationInfo appinfo = null;
                 if (appInfos.TryGetValue(componentId, out appinfo))
                 {
-                    if ((package.ApplicationVersion > (appinfo.AcceptableVersion ?? nullVersion))
+                    if ((package.ComponentVersion > (appinfo.AcceptableVersion ?? nullVersion))
                         && package.ExecutionResult == ExecutionResult.Successful)
-                        appinfo.AcceptableVersion = package.ApplicationVersion;
-                    if (package.ApplicationVersion > (appinfo.Version ?? nullVersion))
-                        appinfo.Version = package.ApplicationVersion;
+                        appinfo.AcceptableVersion = package.ComponentVersion;
+                    if (package.ComponentVersion > (appinfo.Version ?? nullVersion))
+                        appinfo.Version = package.ComponentVersion;
                 }
             }
             return appInfos.Values.ToArray();
@@ -1187,7 +1187,7 @@ namespace SenseNet.Core.Tests
             Assert.AreEqual("Component42", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Unfinished, pkg.ExecutionResult);
             Assert.AreEqual(PackageType.Install, pkg.PackageType);
-            Assert.AreEqual("4.42", pkg.ApplicationVersion.ToString());
+            Assert.AreEqual("4.42", pkg.ComponentVersion.ToString());
 
             // phase 2
             ExecutePhase(manifestXml, 1);
@@ -1205,7 +1205,7 @@ namespace SenseNet.Core.Tests
             Assert.AreEqual("Component42", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Successful, pkg.ExecutionResult);
             Assert.AreEqual(PackageType.Install, pkg.PackageType);
-            Assert.AreEqual("4.42", pkg.ApplicationVersion.ToString());
+            Assert.AreEqual("4.42", pkg.ComponentVersion.ToString());
         }
 
         [TestMethod]
@@ -1236,7 +1236,7 @@ namespace SenseNet.Core.Tests
             Assert.AreEqual("Component42", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Successful, pkg.ExecutionResult);
             Assert.AreEqual(PackageType.Install, pkg.PackageType);
-            Assert.AreEqual("4.42", pkg.ApplicationVersion.ToString());
+            Assert.AreEqual("4.42", pkg.ComponentVersion.ToString());
         }
         [TestMethod]
         public void Packaging_Install_ThreePhases()
@@ -1268,7 +1268,7 @@ namespace SenseNet.Core.Tests
             Assert.AreEqual("Component42", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Unfinished, pkg.ExecutionResult);
             Assert.AreEqual(PackageType.Install, pkg.PackageType);
-            Assert.AreEqual("4.42", pkg.ApplicationVersion.ToString());
+            Assert.AreEqual("4.42", pkg.ComponentVersion.ToString());
 
             // phase 2
             ExecutePhase(manifestXml, 1);
@@ -1282,7 +1282,7 @@ namespace SenseNet.Core.Tests
             Assert.AreEqual("Component42", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Unfinished, pkg.ExecutionResult);
             Assert.AreEqual(PackageType.Install, pkg.PackageType);
-            Assert.AreEqual("4.42", pkg.ApplicationVersion.ToString());
+            Assert.AreEqual("4.42", pkg.ComponentVersion.ToString());
 
             // phase 3
             ExecutePhase(manifestXml, 2);
@@ -1299,7 +1299,7 @@ namespace SenseNet.Core.Tests
             Assert.AreEqual("Component42", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Successful, pkg.ExecutionResult);
             Assert.AreEqual(PackageType.Install, pkg.PackageType);
-            Assert.AreEqual("4.42", pkg.ApplicationVersion.ToString());
+            Assert.AreEqual("4.42", pkg.ComponentVersion.ToString());
 
             Assert.AreEqual(1, RepositoryVersionInfo.Instance.Applications.Count());
             Assert.AreEqual(1, RepositoryVersionInfo.Instance.InstalledPackages.Count());
@@ -1349,7 +1349,7 @@ namespace SenseNet.Core.Tests
             Assert.AreEqual("MyCompany.MyComponent", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Unfinished, pkg.ExecutionResult);
             Assert.AreEqual(PackageType.Patch, pkg.PackageType);
-            Assert.AreEqual("1.2", pkg.ApplicationVersion.ToString());
+            Assert.AreEqual("1.2", pkg.ComponentVersion.ToString());
 
             // phase 2
             ExecutePhase(manifestXml, 1);
@@ -1366,7 +1366,7 @@ namespace SenseNet.Core.Tests
             Assert.AreEqual("MyCompany.MyComponent", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Unfinished, pkg.ExecutionResult);
             Assert.AreEqual(PackageType.Patch, pkg.PackageType);
-            Assert.AreEqual("1.2", pkg.ApplicationVersion.ToString());
+            Assert.AreEqual("1.2", pkg.ComponentVersion.ToString());
 
             // phase 3
             ExecutePhase(manifestXml, 2);
@@ -1383,7 +1383,7 @@ namespace SenseNet.Core.Tests
             Assert.AreEqual("MyCompany.MyComponent", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Successful, pkg.ExecutionResult);
             Assert.AreEqual(PackageType.Patch, pkg.PackageType);
-            Assert.AreEqual("1.2", pkg.ApplicationVersion.ToString());
+            Assert.AreEqual("1.2", pkg.ComponentVersion.ToString());
 
             Assert.AreEqual(1, RepositoryVersionInfo.Instance.Applications.Count());
             Assert.AreEqual(2, RepositoryVersionInfo.Instance.InstalledPackages.Count());
@@ -1436,7 +1436,7 @@ namespace SenseNet.Core.Tests
             Assert.AreEqual("MyCompany.MyComponent", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Faulty, pkg.ExecutionResult);
             Assert.AreEqual(PackageType.Patch, pkg.PackageType);
-            Assert.AreEqual("1.2", pkg.ApplicationVersion.ToString());
+            Assert.AreEqual("1.2", pkg.ComponentVersion.ToString());
         }
         [TestMethod]
         public void Packaging_Patch_FixFaulty()
@@ -1494,7 +1494,7 @@ namespace SenseNet.Core.Tests
             Assert.AreEqual("MyCompany.MyComponent", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Successful, pkg.ExecutionResult);
             Assert.AreEqual(PackageType.Patch, pkg.PackageType);
-            Assert.AreEqual("1.2", pkg.ApplicationVersion.ToString());
+            Assert.AreEqual("1.2", pkg.ComponentVersion.ToString());
         }
         [TestMethod]
         public void Packaging_Patch_FixMoreFaulty()
@@ -1555,7 +1555,7 @@ namespace SenseNet.Core.Tests
             Assert.AreEqual("MyCompany.MyComponent", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Successful, pkg.ExecutionResult);
             Assert.AreEqual(PackageType.Patch, pkg.PackageType);
-            Assert.AreEqual("1.2", pkg.ApplicationVersion.ToString());
+            Assert.AreEqual("1.2", pkg.ComponentVersion.ToString());
         }
         #endregion
 
@@ -1635,7 +1635,7 @@ namespace SenseNet.Core.Tests
             var package = new Package
             {
                 ComponentId = id,
-                ApplicationVersion = Version.Parse(version),
+                ComponentVersion = Version.Parse(version),
                 Description = $"{id}-Description",
                 ExecutionDate = DateTime.Parse($"2017-03-30 {execTime}"),
                 ReleaseDate = DateTime.Parse(releaseDate),

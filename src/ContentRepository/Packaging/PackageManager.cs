@@ -207,7 +207,7 @@ namespace SenseNet.Packaging
                     && p.ExecutionResult == ExecutionResult.Unfinished);
             else
                 oldPacks = oldPacks
-                    .Where(p => p.ComponentId == manifest.ComponentId && p.ApplicationVersion == manifest.Version);
+                    .Where(p => p.ComponentId == manifest.ComponentId && p.ComponentVersion == manifest.Version);
             oldPacks = oldPacks.OrderBy(p => p.ExecutionDate).ToArray();
 
             var oldPack = oldPacks.LastOrDefault();
@@ -236,15 +236,15 @@ namespace SenseNet.Packaging
                 ComponentId = manifest.ComponentId,
                 ExecutionDate = DateTime.UtcNow,
                 ExecutionResult = result,
-                ApplicationVersion = appVer,
+                ComponentVersion = appVer,
                 ExecutionError = execError
             };
         }
         private static void UpdatePackage(Package package, Manifest manifest, ExecutionResult result, Exception execError)
         {
-            Version appVer = null;
+            Version version = null;
             if (manifest.PackageType != PackageType.Tool)
-                appVer = manifest.Version;
+                version = manifest.Version;
 
             package.Description = manifest.Description;
             package.ReleaseDate = manifest.ReleaseDate;
@@ -253,7 +253,7 @@ namespace SenseNet.Packaging
             package.ExecutionDate = DateTime.UtcNow;
             package.ExecutionResult = result;
             package.ExecutionError = execError;
-            package.ApplicationVersion = appVer;
+            package.ComponentVersion = version;
         }
 
         public static string GetHelp()
