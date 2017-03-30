@@ -11,8 +11,6 @@ namespace SenseNet.ContentRepository.Storage
     [DebuggerDisplay("{Id}, {ComponentId}: {PackageType} {ExecutionResult}, {ApplicationVersion}")]
     public class Package
     {
-        //UNDONE: Not used field: [SenseNetVersion] [varchar](50) NOT NULL,
-
         public int Id { get; internal set; }                  // [Id] [int] IDENTITY(1,1) NOT NULL,
         public string Description { get; set; }               // [Description] [nvarchar](1000) NULL,
         public string ComponentId { get; set; }               // [ComponentId] [nvarchar](450) NULL,
