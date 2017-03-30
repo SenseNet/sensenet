@@ -35,7 +35,7 @@ namespace SenseNet.Core.Tests
         /* ================================================================================================== Tests */
 
         [TestMethod]
-        public void Packaging_Storage_LoadInstalledApplications()
+        public void Packaging_Storage_LoadInstalledComponents()
         {
             Procedures.Clear();
             ExpectedCommandResult = new TestDataReader(new[] { "ComponentId", "ComponentVersion", "AcceptableVersion", "Description" },
@@ -47,7 +47,7 @@ namespace SenseNet.Core.Tests
                 });
 
             // action
-            var result = PackageManager.Storage.LoadInstalledApplications();
+            var result = PackageManager.Storage.LoadInstalledComponents();
 
             // check
             Assert.AreEqual(1, Procedures.Count);

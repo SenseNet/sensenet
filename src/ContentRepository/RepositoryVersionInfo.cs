@@ -61,7 +61,7 @@ namespace SenseNet.ContentRepository
             try
             {
                 return Create(
-                    storage.LoadInstalledApplications(),
+                    storage.LoadInstalledComponents(),
                     storage.LoadInstalledPackages());
             }
             catch

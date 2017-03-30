@@ -73,7 +73,7 @@ namespace SenseNet.Core.Tests
 
         /* ================================================================================================= IPackageStorageProvider */
 
-        public IEnumerable<ComponentInfo> LoadInstalledApplications()
+        public IEnumerable<ComponentInfo> LoadInstalledComponents()
         {
             var nullVersion = new Version(0, 0);
             var appInfos = new Dictionary<string, ComponentInfo>();

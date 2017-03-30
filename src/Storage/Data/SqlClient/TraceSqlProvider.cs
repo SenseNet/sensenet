@@ -359,10 +359,10 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             WriteLog(MethodBase.GetCurrentMethod(), componentId, packageType, version);
             return base.IsPackageExist(componentId, packageType, version);
         }
-        public override IEnumerable<ComponentInfo> LoadInstalledApplications()
+        public override IEnumerable<ComponentInfo> LoadInstalledComponents()
         {
             WriteLog(MethodBase.GetCurrentMethod());
-            return base.LoadInstalledApplications();
+            return base.LoadInstalledComponents();
         }
         public override IEnumerable<Package> LoadInstalledPackages()
         {
