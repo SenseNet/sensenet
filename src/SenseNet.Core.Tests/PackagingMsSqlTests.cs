@@ -43,7 +43,6 @@ CREATE TABLE [dbo].[Packages](
 	[PackageLevel] [varchar](50) NOT NULL,
 	[SenseNetVersion] [varchar](50) NOT NULL,
 	[AppId] [varchar](50) NULL,
-	[Edition] [nvarchar](450) NULL,
 	[AppVersion] [varchar](50) NULL,
 	[ReleaseDate] [datetime] NOT NULL,
 	[ExecutionDate] [datetime] NOT NULL,

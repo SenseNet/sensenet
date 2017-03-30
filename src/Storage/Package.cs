@@ -14,7 +14,6 @@ namespace SenseNet.ContentRepository.Storage
     [DebuggerDisplay("{Id}, {AppId}: {PackageLevel} {ExecutionResult}, {ApplicationVersion}")]
     public class Package
     {
-        //UNDONE: Not used field: [Edition] [nvarchar](450) NULL,
         //UNDONE: Not used field: [PackageType] [varchar](50) NOT NULL,
         //UNDONE: Not used field: [SenseNetVersion] [varchar](50) NOT NULL,
         //UNDONE: Rename AppId to ComponentId,

@@ -52,13 +52,13 @@ namespace SenseNet.Core.Tests
             // check
             Assert.AreEqual(1, Procedures.Count);
             var proc = Procedures[0];
-            Assert.AreEqual(@"SELECT P2.Edition, P2.Description, P1.AppId, P1.AppVersion, P1a.AppVersion AcceptableVersion
+            Assert.AreEqual(@"SELECT P2.Description, P1.AppId, P1.AppVersion, P1a.AppVersion AcceptableVersion
 FROM (SELECT AppId, MAX(AppVersion) AppVersion FROM Packages WHERE APPID IS NOT NULL GROUP BY AppId) P1
 JOIN (SELECT AppId, MAX(AppVersion) AppVersion FROM Packages WHERE APPID IS NOT NULL 
     AND ExecutionResult != '" + ExecutionResult.Faulty.ToString() + @"'
     AND ExecutionResult != '" + ExecutionResult.Unfinished.ToString() + @"' GROUP BY AppId, ExecutionResult) P1a
 ON P1.AppId = P1a.AppId
-JOIN (SELECT Edition, Description, AppId FROM Packages WHERE PackageLevel = '" + PackageLevel.Install.ToString() + @"'
+JOIN (SELECT Description, AppId FROM Packages WHERE PackageLevel = '" + PackageLevel.Install.ToString() + @"'
     AND ExecutionResult != '" + ExecutionResult.Faulty.ToString() + @"'
     AND ExecutionResult != '" + ExecutionResult.Unfinished.ToString() + @"') P2
 ON P1.AppId = P2.AppId", proc.CommandText);
@@ -124,12 +124,12 @@ ON P1.AppId = P2.AppId", proc.CommandText);
             var releaseDate1 = releaseDate2.AddDays(-1);
 
             ExpectedCommandResult = new TestDataReader(new [] { "Id","Name","PackageType","PackageLevel","SenseNetVersion",
-                "AppId","Edition","AppVersion","ReleaseDate","ExecutionDate","ExecutionResult","ExecutionError","Description" },
+                "AppId","AppVersion","ReleaseDate","ExecutionDate","ExecutionResult","ExecutionError","Description" },
                 new []
                 {
-                    new object[] {1, null, "", "Install", "", "Component1", "", "0000000001.0000000002"           , releaseDate1, executionDate1, "Successful", null, "description1" },
-                    new object[] {2, null, "", "Install", "", "Component2", "", "0000000003.0000000007.0000000042", releaseDate2, executionDate2, "Successful", null, "description2" },
-                    new object[] {3, null, "", "Patch",   "", "Component2", "", "0000000006.0000000005",            releaseDate3, executionDate3, "Successful", null, "description3" },
+                    new object[] {1, null, "", "Install", "", "Component1", "0000000001.0000000002"           , releaseDate1, executionDate1, "Successful", null, "description1" },
+                    new object[] {2, null, "", "Install", "", "Component2", "0000000003.0000000007.0000000042", releaseDate2, executionDate2, "Successful", null, "description2" },
+                    new object[] {3, null, "", "Patch",   "", "Component2", "0000000006.0000000005",            releaseDate3, executionDate3, "Successful", null, "description3" },
                 });
 
             // action
@@ -207,24 +207,23 @@ ON P1.AppId = P2.AppId", proc.CommandText);
             var proc = Procedures[0];
 
             Assert.AreEqual(@"INSERT INTO Packages
-    (  Edition,  Description,  AppId,  PackageLevel,  PackageType,  ReleaseDate,  ExecutionDate,  ExecutionResult,  ExecutionError,  AppVersion,  SenseNetVersion) VALUES
-    ( @Edition, @Description, @AppId, @PackageLevel, @PackageType, @ReleaseDate, @ExecutionDate, @ExecutionResult, @ExecutionError, @AppVersion, @SenseNetVersion)
+    (  Description,  AppId,  PackageLevel,  PackageType,  ReleaseDate,  ExecutionDate,  ExecutionResult,  ExecutionError,  AppVersion,  SenseNetVersion) VALUES
+    ( @Description, @AppId, @PackageLevel, @PackageType, @ReleaseDate, @ExecutionDate, @ExecutionResult, @ExecutionError, @AppVersion, @SenseNetVersion)
 SELECT @@IDENTITY", proc.CommandText);
 
             var parameters = proc.Parameters;
-            Assert.AreEqual(11, parameters.Count);
+            Assert.AreEqual(10, parameters.Count);
 
-            CheckParameter(parameters[0], "@Edition", DbType.String, 450, DBNull.Value);
-            CheckParameter(parameters[1], "@Description", DbType.String, 1000, package.Description);
-            CheckParameter(parameters[2], "@AppId", DbType.AnsiString, 50, package.AppId);
-            CheckParameter(parameters[3], "@PackageLevel", DbType.AnsiString, 50, package.PackageLevel.ToString());
-            CheckParameter(parameters[4], "@PackageType", DbType.AnsiString, 50, string.Empty);
-            CheckParameter(parameters[5], "@ReleaseDate", DbType.DateTime, package.ReleaseDate);
-            CheckParameter(parameters[6], "@ExecutionDate", DbType.DateTime, package.ExecutionDate);
-            CheckParameter(parameters[7], "@ExecutionResult", DbType.AnsiString, 50, package.ExecutionResult.ToString());
-            CheckParameter(parameters[8], "@ExecutionError", DbType.String, 0, DBNull.Value);
-            CheckParameter(parameters[9], "@AppVersion", DbType.AnsiString, 50, EncodePackageVersion(package.ApplicationVersion));
-            CheckParameter(parameters[10], "@SenseNetVersion", DbType.AnsiString, 50, string.Empty);
+            CheckParameter(parameters[0], "@Description", DbType.String, 1000, package.Description);
+            CheckParameter(parameters[1], "@AppId", DbType.AnsiString, 50, package.AppId);
+            CheckParameter(parameters[2], "@PackageLevel", DbType.AnsiString, 50, package.PackageLevel.ToString());
+            CheckParameter(parameters[3], "@PackageType", DbType.AnsiString, 50, string.Empty);
+            CheckParameter(parameters[4], "@ReleaseDate", DbType.DateTime, package.ReleaseDate);
+            CheckParameter(parameters[5], "@ExecutionDate", DbType.DateTime, package.ExecutionDate);
+            CheckParameter(parameters[6], "@ExecutionResult", DbType.AnsiString, 50, package.ExecutionResult.ToString());
+            CheckParameter(parameters[7], "@ExecutionError", DbType.String, 0, DBNull.Value);
+            CheckParameter(parameters[8], "@AppVersion", DbType.AnsiString, 50, EncodePackageVersion(package.ApplicationVersion));
+            CheckParameter(parameters[9], "@SenseNetVersion", DbType.AnsiString, 50, string.Empty);
 
             Assert.AreEqual("ExecuteScalar", proc.ExecutorMethod);
         }
@@ -254,7 +253,6 @@ SELECT @@IDENTITY", proc.CommandText);
 
             Assert.AreEqual(@"UPDATE Packages
     SET AppId = @AppId,
-        Edition = @Edition,
         Description = @Description,
         PackageLevel = @PackageLevel,
         PackageType = @PackageType,
@@ -268,20 +266,19 @@ WHERE Id = @Id
 ", proc.CommandText);
 
             var parameters = proc.Parameters;
-            Assert.AreEqual(12, parameters.Count);
+            Assert.AreEqual(11, parameters.Count);
 
             CheckParameter(parameters[0], "@Id", DbType.Int32, package.Id);
-            CheckParameter(parameters[1], "@Edition", DbType.String, 450, DBNull.Value);
-            CheckParameter(parameters[2], "@Description", DbType.String, 1000, package.Description);
-            CheckParameter(parameters[3], "@AppId", DbType.AnsiString, 50, package.AppId);
-            CheckParameter(parameters[4], "@PackageLevel", DbType.AnsiString, 50, package.PackageLevel.ToString());
-            CheckParameter(parameters[5], "@PackageType", DbType.AnsiString, 50, string.Empty);
-            CheckParameter(parameters[6], "@ReleaseDate", DbType.DateTime, package.ReleaseDate);
-            CheckParameter(parameters[7], "@ExecutionDate", DbType.DateTime, package.ExecutionDate);
-            CheckParameter(parameters[8], "@ExecutionResult", DbType.AnsiString, 50, package.ExecutionResult.ToString());
-            CheckParameter(parameters[9], "@ExecutionError", DbType.String, 0, DBNull.Value);
-            CheckParameter(parameters[10], "@AppVersion", DbType.AnsiString, 50, EncodePackageVersion(package.ApplicationVersion));
-            CheckParameter(parameters[11], "@SenseNetVersion", DbType.AnsiString, 50, string.Empty);
+            CheckParameter(parameters[1], "@Description", DbType.String, 1000, package.Description);
+            CheckParameter(parameters[2], "@AppId", DbType.AnsiString, 50, package.AppId);
+            CheckParameter(parameters[3], "@PackageLevel", DbType.AnsiString, 50, package.PackageLevel.ToString());
+            CheckParameter(parameters[4], "@PackageType", DbType.AnsiString, 50, string.Empty);
+            CheckParameter(parameters[5], "@ReleaseDate", DbType.DateTime, package.ReleaseDate);
+            CheckParameter(parameters[6], "@ExecutionDate", DbType.DateTime, package.ExecutionDate);
+            CheckParameter(parameters[7], "@ExecutionResult", DbType.AnsiString, 50, package.ExecutionResult.ToString());
+            CheckParameter(parameters[8], "@ExecutionError", DbType.String, 0, DBNull.Value);
+            CheckParameter(parameters[9], "@AppVersion", DbType.AnsiString, 50, EncodePackageVersion(package.ApplicationVersion));
+            CheckParameter(parameters[10], "@SenseNetVersion", DbType.AnsiString, 50, string.Empty);
 
             Assert.AreEqual("ExecuteNonQuery", proc.ExecutorMethod);
         }
