@@ -243,17 +243,20 @@ CREATE TABLE [dbo].[Packages](
         {
             new PackagingTests().Packaging_VersionInfo_Empty();
         }
-
         [TestMethod]
         public void Packaging_SQL_VersionInfo_OnlyUnfinished()
         {
             new PackagingTests().Packaging_VersionInfo_OnlyUnfinished();
         }
-
         [TestMethod]
         public void Packaging_SQL_VersionInfo_OnlyFaulty()
         {
             new PackagingTests().Packaging_VersionInfo_OnlyFaulty();
+        }
+        [TestMethod]
+        public void Packaging_SQL_VersionInfo_Complex()
+        {
+            new PackagingTests().Packaging_VersionInfo_Complex();
         }
 
         /*================================================= tools */

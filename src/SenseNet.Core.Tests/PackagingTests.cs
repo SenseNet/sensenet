@@ -1643,25 +1643,49 @@ namespace SenseNet.Core.Tests
             Assert.AreEqual(1, packages.Length);
         }
 
-        private void SavePackage(string id, string version, string execTime, string releaseDate, PackageLevel laval, ExecutionResult result)
+        [TestMethod]
+        public void Packaging_VersionInfo_Complex()
         {
-            var package = new Package
-            {
-                AppId = id,
-                ApplicationVersion = new Version(1, 0),
-                Description = $"{id}-Description",
-                ExecutionDate = DateTime.Parse($"2017-03-30 {execTime}"),
-                ReleaseDate = DateTime.Parse(releaseDate),
-                ExecutionError = null,
-                ExecutionResult = ExecutionResult.Faulty,
-                PackageLevel = PackageLevel.Install,
-            };
-            PackageManager.Storage.SavePackage(package);
+            SavePackage("C1", "1.0", "01:00", "2016-01-01", PackageLevel.Install, ExecutionResult.Successful);
+            SavePackage("C2", "1.0", "02:00", "2016-01-02", PackageLevel.Install, ExecutionResult.Successful);
+            SavePackage("C1", "1.1", "03:00", "2016-01-03", PackageLevel.Patch, ExecutionResult.Faulty);
+            SavePackage("C1", "1.1", "04:00", "2016-01-03", PackageLevel.Patch, ExecutionResult.Faulty);
+            SavePackage("C1", "1.2", "05:00", "2016-01-03", PackageLevel.Patch, ExecutionResult.Successful);
+            SavePackage("C2", "1.1", "05:00", "2016-01-03", PackageLevel.Patch, ExecutionResult.Unfinished);
+
+            // action
+            var verInfo = RepositoryVersionInfo.Instance;
+
+            // check
+            var actual = string.Join(" | ", verInfo.Applications
+                .OrderBy(a=>a.AppId)
+                .Select(a => $"{a.AppId}: {a.AcceptableVersion} ({a.Version})")
+                .ToArray());
+            // 
+            var expected = "C1: 1.2 (1.2) | C2: 1.0 (1.1)";
+            Assert.AreEqual(expected, actual);
+            Assert.AreEqual(6, verInfo.InstalledPackages.Count());
         }
 
         #endregion
 
         /*================================================= tools */
+
+        private void SavePackage(string id, string version, string execTime, string releaseDate, PackageLevel level, ExecutionResult result)
+        {
+            var package = new Package
+            {
+                AppId = id,
+                ApplicationVersion = Version.Parse(version),
+                Description = $"{id}-Description",
+                ExecutionDate = DateTime.Parse($"2017-03-30 {execTime}"),
+                ReleaseDate = DateTime.Parse(releaseDate),
+                ExecutionError = null,
+                ExecutionResult = result,
+                PackageLevel = level,
+            };
+            PackageManager.Storage.SavePackage(package);
+        }
 
         internal static Manifest ParseManifestHead(string manifestXml)
         {
