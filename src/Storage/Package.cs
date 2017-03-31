@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace SenseNet.ContentRepository.Storage
 {
-    public enum PackageType { Tool, Patch, ServicePack, Upgrade, Install }
+    public enum PackageType { Tool, Patch, Install }
 
     public enum ExecutionResult { Successful, Faulty, Unfinished }
 
