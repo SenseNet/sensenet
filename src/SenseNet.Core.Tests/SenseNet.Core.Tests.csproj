@@ -35,10 +35,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="SenseNet.Tools, Version=2.1.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SenseNet.Tools.2.1.1\lib\net451\SenseNet.Tools.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
@@ -58,16 +54,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="Implementations\PackagingTestLogger.cs" />
-    <Compile Include="Implementations\TestDataProcedure.cs" />
-    <Compile Include="Implementations\TestDataProcedureFactory.cs" />
-    <Compile Include="Implementations\TestDataReader.cs" />
-    <Compile Include="Implementations\TestDbParameterCollection.cs" />
-    <Compile Include="Implementations\TestPackageStorageProvider.cs" />
-    <Compile Include="PackagingMsSqlTests.cs" />
-    <Compile Include="PackagingTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PackagingStorageTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj">
@@ -82,9 +69,6 @@
       <Project>{5db4ddba-81f6-4d81-943a-18f3178b3355}</Project>
       <Name>Storage</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
