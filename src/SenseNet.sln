@@ -31,6 +31,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Core.Tests", "SenseNet.Core.Tests\SenseNet.Core.Tests.csproj", "{F6E78FDA-BDED-45C6-A0E9-DD5DEB347EA3}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{C68D256D-7D40-4E33-8A2B-B1625538B138}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Packaging.Tests", "Tests\SenseNet.Packaging.Tests\SenseNet.Packaging.Tests.csproj", "{224FE019-A978-4390-9F77-EBEB7A384743}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Packaging.IntegrationTests", "Tests\SenseNet.Packaging.IntegrationTests\SenseNet.Packaging.IntegrationTests.csproj", "{CF049086-0872-4F55-AF6D-6177245CC59E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -163,6 +169,38 @@ Global
 		{F6E78FDA-BDED-45C6-A0E9-DD5DEB347EA3}.Release|x64.Build.0 = Release|Any CPU
 		{F6E78FDA-BDED-45C6-A0E9-DD5DEB347EA3}.Release|x86.ActiveCfg = Release|Any CPU
 		{F6E78FDA-BDED-45C6-A0E9-DD5DEB347EA3}.Release|x86.Build.0 = Release|Any CPU
+		{224FE019-A978-4390-9F77-EBEB7A384743}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{224FE019-A978-4390-9F77-EBEB7A384743}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{224FE019-A978-4390-9F77-EBEB7A384743}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{224FE019-A978-4390-9F77-EBEB7A384743}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{224FE019-A978-4390-9F77-EBEB7A384743}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{224FE019-A978-4390-9F77-EBEB7A384743}.Debug|x64.Build.0 = Debug|Any CPU
+		{224FE019-A978-4390-9F77-EBEB7A384743}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{224FE019-A978-4390-9F77-EBEB7A384743}.Debug|x86.Build.0 = Debug|Any CPU
+		{224FE019-A978-4390-9F77-EBEB7A384743}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{224FE019-A978-4390-9F77-EBEB7A384743}.Release|Any CPU.Build.0 = Release|Any CPU
+		{224FE019-A978-4390-9F77-EBEB7A384743}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{224FE019-A978-4390-9F77-EBEB7A384743}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{224FE019-A978-4390-9F77-EBEB7A384743}.Release|x64.ActiveCfg = Release|Any CPU
+		{224FE019-A978-4390-9F77-EBEB7A384743}.Release|x64.Build.0 = Release|Any CPU
+		{224FE019-A978-4390-9F77-EBEB7A384743}.Release|x86.ActiveCfg = Release|Any CPU
+		{224FE019-A978-4390-9F77-EBEB7A384743}.Release|x86.Build.0 = Release|Any CPU
+		{CF049086-0872-4F55-AF6D-6177245CC59E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF049086-0872-4F55-AF6D-6177245CC59E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF049086-0872-4F55-AF6D-6177245CC59E}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{CF049086-0872-4F55-AF6D-6177245CC59E}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{CF049086-0872-4F55-AF6D-6177245CC59E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CF049086-0872-4F55-AF6D-6177245CC59E}.Debug|x64.Build.0 = Debug|Any CPU
+		{CF049086-0872-4F55-AF6D-6177245CC59E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CF049086-0872-4F55-AF6D-6177245CC59E}.Debug|x86.Build.0 = Debug|Any CPU
+		{CF049086-0872-4F55-AF6D-6177245CC59E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF049086-0872-4F55-AF6D-6177245CC59E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF049086-0872-4F55-AF6D-6177245CC59E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{CF049086-0872-4F55-AF6D-6177245CC59E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{CF049086-0872-4F55-AF6D-6177245CC59E}.Release|x64.ActiveCfg = Release|Any CPU
+		{CF049086-0872-4F55-AF6D-6177245CC59E}.Release|x64.Build.0 = Release|Any CPU
+		{CF049086-0872-4F55-AF6D-6177245CC59E}.Release|x86.ActiveCfg = Release|Any CPU
+		{CF049086-0872-4F55-AF6D-6177245CC59E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -176,6 +214,8 @@ Global
 		{01AE54AF-DB4E-431E-A3F9-FBCD2AD73D03} = {2997D17C-A736-43E5-B3DD-11D11AC7DF17}
 		{4E6722B5-AC95-494C-80A5-A4D80CC502B5} = {2997D17C-A736-43E5-B3DD-11D11AC7DF17}
 		{A453E920-29C0-45CD-984C-0D8E3631B1E3} = {2997D17C-A736-43E5-B3DD-11D11AC7DF17}
+		{224FE019-A978-4390-9F77-EBEB7A384743} = {C68D256D-7D40-4E33-8A2B-B1625538B138}
+		{CF049086-0872-4F55-AF6D-6177245CC59E} = {C68D256D-7D40-4E33-8A2B-B1625538B138}
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = sensenet.vsmdi
