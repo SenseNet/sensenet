@@ -8,8 +8,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Packaging;
-using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Packaging.Steps;
+using SenseNet.Core.Tests.Implementations;
 
 namespace SenseNet.Core.Tests
 {

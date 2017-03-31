@@ -9,6 +9,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Packaging;
 using SenseNet.Packaging.Steps;
+using SenseNet.Core.Tests.Implementations;
 
 namespace SenseNet.Core.Tests
 {
