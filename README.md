@@ -57,7 +57,7 @@ Developers may start integrating the Sense/Net platform by installing the **Sens
 1. Create a new ASP.NET web application (using the MVC template, optionally adding Web api or Web Forms), or use an existing one.
 2. Install the following NuGet package (either in the Package Manager console or the Manage NuGet Packages window)
 
-`> Install-Package SenseNet.Services`
+`> Install-Package SenseNet.Services -Pre`
 
 3. To finalize the install process, please follow the steps described in the [readme file](/src/nuget/readme.txt) of the NuGet package (it opens automatically when you install the package). 
     - You will have to make a few modifications to your config files and Global.asax markup and codebehind file.
