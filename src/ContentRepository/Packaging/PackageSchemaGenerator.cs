@@ -7,7 +7,6 @@ using System.Xml;
 
 namespace SenseNet.Packaging
 {
-    //UNDONE: PackageSchemaGenerator Xsd
     internal class PackageSchemaGenerator
     {
         #region xml source
@@ -19,40 +18,38 @@ namespace SenseNet.Packaging
   <xs:element name=""Package"">
     <xs:complexType>
       <xs:all>
-        <xs:element name=""Name"" type=""xs:string"" minOccurs=""1"" maxOccurs=""1""/>
         <xs:element name=""Description"" type=""xs:string"" minOccurs=""0"" maxOccurs=""1""/>
-        <xs:element name=""AppId"" type=""xs:string"" minOccurs=""0"" maxOccurs=""1""/>
+        <xs:element name=""ComponentId"" type=""xs:string"" minOccurs=""1"" maxOccurs=""1""/>
         <xs:element name=""ReleaseDate"" type=""xs:string"" minOccurs=""1"" maxOccurs=""1""/>
-        <xs:element name=""VersionControl"" type=""VersionControl"" minOccurs=""0"" maxOccurs=""1""/>
+        <xs:element name=""Version"" type=""VersionNumber"" minOccurs=""1"" maxOccurs=""1""/>
         <xs:element name=""SuccessMessage"" type=""xs:string"" minOccurs=""0"" maxOccurs=""1""/>
         <xs:element name=""WarningMessage"" type=""xs:string"" minOccurs=""0"" maxOccurs=""1""/>
         <xs:element name=""ErrorMessage"" type=""xs:string"" minOccurs=""0"" maxOccurs=""1""/>
+        <xs:element name=""Dependencies"" type=""Dependencies"" minOccurs=""0"" maxOccurs=""1""/>
         <xs:element name=""Steps"" type=""MainBlock"" minOccurs=""0"" maxOccurs=""1""/>
       </xs:all>
       <xs:attribute name=""type"" type=""PackageType"" use=""required"" />
-      <xs:attribute name=""level"" type=""PackageLevel"" use=""required"" />
     </xs:complexType>
   </xs:element>
   <xs:simpleType name=""PackageType"">
     <xs:restriction base=""xs:string"">
-      <xs:enumeration value=""Product"" />
-      <xs:enumeration value=""Application"" />
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name=""PackageLevel"">
-    <xs:restriction base=""xs:string"">
       <xs:enumeration value=""Tool"" />
       <xs:enumeration value=""Patch"" />
-      <xs:enumeration value=""ServicePack"" />
-      <xs:enumeration value=""Upgrade"" />
       <xs:enumeration value=""Install"" />
     </xs:restriction>
   </xs:simpleType>
-  <xs:complexType name=""VersionControl"">
-    <xs:attribute name=""target"" type=""VersionNumber"" use=""required""/>
-    <xs:attribute name=""expected"" type=""VersionNumber"" use=""optional""/>
-    <xs:attribute name=""expectedMin"" type=""VersionNumber"" use=""optional""/>
-    <xs:attribute name=""expectedMax"" type=""VersionNumber"" use=""optional""/>
+  <xs:complexType name=""Dependencies"">
+    <xs:sequence>
+      <xs:element name=""Dependency"" type=""Dependency"" minOccurs=""0"" maxOccurs=""unbounded"" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name=""Dependency"">
+    <xs:attribute name=""id"" type=""xs:string"" use=""required""/>
+    <xs:attribute name=""version"" type=""VersionNumber"" use=""optional""/>
+    <xs:attribute name=""minVersion"" type=""VersionNumber"" use=""optional""/>
+    <xs:attribute name=""maxVersion"" type=""VersionNumber"" use=""optional""/>
+    <xs:attribute name=""minVersionExclusive"" type=""VersionNumber"" use=""optional""/>
+    <xs:attribute name=""maxVersionExclusive"" type=""VersionNumber"" use=""optional""/>
   </xs:complexType>
   <xs:simpleType name=""VersionNumber"">
     <xs:restriction base=""xs:string"">
