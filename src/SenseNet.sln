@@ -29,8 +29,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		nuget\content\Web.config.transform = nuget\content\Web.config.transform
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Core.Tests", "SenseNet.Core.Tests\SenseNet.Core.Tests.csproj", "{F6E78FDA-BDED-45C6-A0E9-DD5DEB347EA3}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{C68D256D-7D40-4E33-8A2B-B1625538B138}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Packaging.Tests", "Tests\SenseNet.Packaging.Tests\SenseNet.Packaging.Tests.csproj", "{224FE019-A978-4390-9F77-EBEB7A384743}"
@@ -153,22 +151,6 @@ Global
 		{A453E920-29C0-45CD-984C-0D8E3631B1E3}.Release|x64.Build.0 = Release|Any CPU
 		{A453E920-29C0-45CD-984C-0D8E3631B1E3}.Release|x86.ActiveCfg = Release|Any CPU
 		{A453E920-29C0-45CD-984C-0D8E3631B1E3}.Release|x86.Build.0 = Release|Any CPU
-		{F6E78FDA-BDED-45C6-A0E9-DD5DEB347EA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F6E78FDA-BDED-45C6-A0E9-DD5DEB347EA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F6E78FDA-BDED-45C6-A0E9-DD5DEB347EA3}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{F6E78FDA-BDED-45C6-A0E9-DD5DEB347EA3}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{F6E78FDA-BDED-45C6-A0E9-DD5DEB347EA3}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{F6E78FDA-BDED-45C6-A0E9-DD5DEB347EA3}.Debug|x64.Build.0 = Debug|Any CPU
-		{F6E78FDA-BDED-45C6-A0E9-DD5DEB347EA3}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{F6E78FDA-BDED-45C6-A0E9-DD5DEB347EA3}.Debug|x86.Build.0 = Debug|Any CPU
-		{F6E78FDA-BDED-45C6-A0E9-DD5DEB347EA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F6E78FDA-BDED-45C6-A0E9-DD5DEB347EA3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F6E78FDA-BDED-45C6-A0E9-DD5DEB347EA3}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{F6E78FDA-BDED-45C6-A0E9-DD5DEB347EA3}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{F6E78FDA-BDED-45C6-A0E9-DD5DEB347EA3}.Release|x64.ActiveCfg = Release|Any CPU
-		{F6E78FDA-BDED-45C6-A0E9-DD5DEB347EA3}.Release|x64.Build.0 = Release|Any CPU
-		{F6E78FDA-BDED-45C6-A0E9-DD5DEB347EA3}.Release|x86.ActiveCfg = Release|Any CPU
-		{F6E78FDA-BDED-45C6-A0E9-DD5DEB347EA3}.Release|x86.Build.0 = Release|Any CPU
 		{224FE019-A978-4390-9F77-EBEB7A384743}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{224FE019-A978-4390-9F77-EBEB7A384743}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{224FE019-A978-4390-9F77-EBEB7A384743}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
