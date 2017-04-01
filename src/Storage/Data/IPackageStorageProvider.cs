@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
@@ -21,6 +18,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         void UpdatePackage(Package package);
         bool IsPackageExist(string componentId, PackageType packageType, Version version);
         void DeletePackage(Package package);
-        void DeletePackagesExceptFirst();
+        void DeletePackagesExceptFirst(); //UNDONE: DeletePackagesExceptFirst --> DeleteAllPackages
+        void LoadManifest(Package package);
     }
 }

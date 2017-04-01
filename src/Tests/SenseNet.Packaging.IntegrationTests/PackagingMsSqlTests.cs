@@ -36,6 +36,7 @@ IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Packa
 DROP TABLE [dbo].[Packages]
 ";
 
+
         private static readonly string InstallPackagesTableSql = @"
 CREATE TABLE [dbo].[Packages](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
@@ -47,6 +48,7 @@ CREATE TABLE [dbo].[Packages](
 	[ExecutionResult] [varchar](50) NOT NULL,
 	[ExecutionError] [nvarchar](max) NULL,
 	[Description] [nvarchar](1000) NULL,
+	[Manifest] [nvarchar](max) NULL,
  CONSTRAINT [PK_Packages] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
@@ -682,7 +684,6 @@ CREATE TABLE [dbo].[Packages](
             Assert.AreEqual(2, RepositoryVersionInfo.Instance.InstalledPackages.Count());
         }
 
-
         [TestMethod]
         public void Packaging_SQL_Patch_Faulty()
         {
@@ -854,7 +855,7 @@ CREATE TABLE [dbo].[Packages](
         // ========================================= RepositoryVersionInfo queries
 
         [TestMethod]
-        public void Packaging_VersionInfo_Empty()
+        public void Packaging_SQL_VersionInfo_Empty()
         {
             var verInfo = RepositoryVersionInfo.Instance;
             var components = verInfo.Components.ToArray();
@@ -863,7 +864,7 @@ CREATE TABLE [dbo].[Packages](
             Assert.AreEqual(0, packages.Length);
         }
         [TestMethod]
-        public void Packaging_VersionInfo_OnlyUnfinished()
+        public void Packaging_SQL_VersionInfo_OnlyUnfinished()
         {
             SavePackage("C1", "1.0", "01:00", "2016-01-01", PackageType.Install, ExecutionResult.Unfinished);
 
@@ -877,7 +878,7 @@ CREATE TABLE [dbo].[Packages](
             Assert.AreEqual(1, packages.Length);
         }
         [TestMethod]
-        public void Packaging_VersionInfo_OnlyFaulty()
+        public void Packaging_SQL_VersionInfo_OnlyFaulty()
         {
             SavePackage("C1", "1.0", "01:00", "2016-01-01", PackageType.Install, ExecutionResult.Faulty);
 
@@ -890,9 +891,8 @@ CREATE TABLE [dbo].[Packages](
             Assert.AreEqual(0, components.Length);
             Assert.AreEqual(1, packages.Length);
         }
-
         [TestMethod]
-        public void Packaging_VersionInfo_Complex()
+        public void Packaging_SQL_VersionInfo_Complex()
         {
             SavePackage("C1", "1.0", "01:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
             SavePackage("C2", "1.0", "02:00", "2016-01-02", PackageType.Install, ExecutionResult.Successful);
@@ -916,6 +916,37 @@ CREATE TABLE [dbo].[Packages](
             var expected = "C1: 1.2 (1.2) | C2: 1.0 (1.2)";
             Assert.AreEqual(expected, actual);
             Assert.AreEqual(9, verInfo.InstalledPackages.Count());
+        }
+
+        // ========================================= Storing manifest
+
+        [TestMethod]
+        public void Packaging_SQL_Manifest_StoredButNotLoaded()
+        {
+            var manifest = @"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component42</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>4.42</Version>
+                            <Steps>
+                                <Trace>Package is running. Phase-1</Trace>
+                            </Steps>
+                        </Package>";
+            var xml = new XmlDocument();
+            xml.LoadXml(manifest);
+            var expected = xml.OuterXml;
+
+            ExecutePhases(manifest);
+
+            var verInfo = RepositoryVersionInfo.Instance;
+
+            var package = verInfo.InstalledPackages.FirstOrDefault();
+            Assert.IsNull(package.Manifest);
+
+            PackageManager.Storage.LoadManifest(package);
+            var actual = package.Manifest;
+
+            Assert.AreEqual(expected, actual);
         }
 
         /*================================================= tools */
@@ -950,6 +981,7 @@ CREATE TABLE [dbo].[Packages](
                 ExecutionError = null,
                 ExecutionResult = result,
                 PackageType = packageType,
+                Manifest = $"<Package type='{packageType}'/>"
             };
             PackageManager.Storage.SavePackage(package);
         }

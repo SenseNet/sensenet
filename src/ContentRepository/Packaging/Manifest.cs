@@ -16,6 +16,7 @@ namespace SenseNet.Packaging
         public IEnumerable<Dependency> Dependencies { get; private set; }
         public Version Version { get; private set; }
         internal Dictionary<string, string> Parameters { get; private set; }
+        internal XmlDocument ManifestXml {get; private set;}
 
         private List<List<XmlElement>> _phases;
         public int CountOfPhases { get { return _phases.Count; } }
@@ -37,6 +38,7 @@ namespace SenseNet.Packaging
         internal static Manifest Parse(XmlDocument xml, int currentPhase, bool log)
         {
             var manifest = new Manifest();
+            manifest.ManifestXml = xml;
 
             ParseHead(xml, manifest);
             manifest.CheckPrerequisits(log);

@@ -237,7 +237,8 @@ namespace SenseNet.Packaging
                 ExecutionDate = DateTime.UtcNow,
                 ExecutionResult = result,
                 ComponentVersion = componentVersion,
-                ExecutionError = execError
+                ExecutionError = execError,
+                Manifest = manifest.ManifestXml.OuterXml
             };
         }
         private static void UpdatePackage(Package package, Manifest manifest, ExecutionResult result, Exception execError)

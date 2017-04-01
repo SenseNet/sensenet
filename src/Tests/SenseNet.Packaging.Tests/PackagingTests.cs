@@ -1453,6 +1453,39 @@ namespace SenseNet.Core.Tests
 
         #endregion
 
+        #region // ========================================= Storing manifest
+
+        [TestMethod]
+        public void Packaging_Manifest_StoredButNotLoaded()
+        {
+            var manifest = @"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <ComponentId>Component42</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>4.42</Version>
+                            <Steps>
+                                <Trace>Package is running. Phase-1</Trace>
+                            </Steps>
+                        </Package>";
+            var xml = new XmlDocument();
+            xml.LoadXml(manifest);
+            var expected = xml.OuterXml;
+
+            ExecutePhases(manifest);
+
+            var verInfo = RepositoryVersionInfo.Instance;
+
+            var package = verInfo.InstalledPackages.FirstOrDefault();
+            Assert.IsNull(package.Manifest);
+
+            PackageManager.Storage.LoadManifest(package);
+            var actual = package.Manifest;
+
+            Assert.AreEqual(expected, actual);
+        }
+
+        #endregion
+
         /*================================================= tools */
 
         private void SavePackage(string id, string version, string execTime, string releaseDate, PackageType packageType, ExecutionResult result)

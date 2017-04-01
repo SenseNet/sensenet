@@ -194,7 +194,8 @@ ON P1.ComponentId = P2.ComponentId", proc.CommandText);
                 ExecutionDate = DateTime.UtcNow,
                 ExecutionResult = ExecutionResult.Unfinished,
                 ComponentVersion = new Version(2, 3),
-                ExecutionError = null
+                ExecutionError = null,
+                Manifest = "<Package />"
             };
 
             // action
@@ -207,12 +208,12 @@ ON P1.ComponentId = P2.ComponentId", proc.CommandText);
             var proc = Procedures[0];
 
             Assert.AreEqual(@"INSERT INTO Packages
-    (  Description,  ComponentId,  PackageType,  ReleaseDate,  ExecutionDate,  ExecutionResult,  ExecutionError,  ComponentVersion) VALUES
-    ( @Description, @ComponentId, @PackageType, @ReleaseDate, @ExecutionDate, @ExecutionResult, @ExecutionError, @ComponentVersion)
+    (  Description,  ComponentId,  PackageType,  ReleaseDate,  ExecutionDate,  ExecutionResult,  ExecutionError,  ComponentVersion,  Manifest) VALUES
+    ( @Description, @ComponentId, @PackageType, @ReleaseDate, @ExecutionDate, @ExecutionResult, @ExecutionError, @ComponentVersion, @Manifest)
 SELECT @@IDENTITY", proc.CommandText);
 
             var parameters = proc.Parameters;
-            Assert.AreEqual(8, parameters.Count);
+            Assert.AreEqual(9, parameters.Count);
 
             CheckParameter(parameters[0], "@Description", DbType.String, 1000, package.Description);
             CheckParameter(parameters[1], "@ComponentId", DbType.AnsiString, 50, package.ComponentId);
@@ -222,6 +223,7 @@ SELECT @@IDENTITY", proc.CommandText);
             CheckParameter(parameters[5], "@ExecutionResult", DbType.AnsiString, 50, package.ExecutionResult.ToString());
             CheckParameter(parameters[6], "@ExecutionError", DbType.String, 0, DBNull.Value);
             CheckParameter(parameters[7], "@ComponentVersion", DbType.AnsiString, 50, EncodePackageVersion(package.ComponentVersion));
+            CheckParameter(parameters[8], "@Manifest", DbType.String, package.Manifest.Length, package.Manifest);
 
             Assert.AreEqual("ExecuteScalar", proc.ExecutorMethod);
         }

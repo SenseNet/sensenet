@@ -39,13 +39,13 @@ namespace SenseNet.Core.Tests.Implementations
 
         public bool DatabaseEnabled { get; set; }
 
-        private Package ClonePackage(Package source)
+        private Package ClonePackage(Package source, bool withManifest)
         {
             var target = new Package();
-            UpdatePackage(source, target);
+            UpdatePackage(source, target, withManifest);
             return target;
         }
-        private void UpdatePackage(Package source, Package target)
+        private void UpdatePackage(Package source, Package target, bool withManifest)
         {
             target.Id = source.Id;
             target.Description = source.Description;
@@ -56,6 +56,8 @@ namespace SenseNet.Core.Tests.Implementations
             target.ExecutionResult = source.ExecutionResult;
             target.ComponentVersion = source.ComponentVersion;
             target.ExecutionError = source.ExecutionError;
+            if (withManifest)
+                target.Manifest = source.Manifest;
         }
 
         public IDataProcedureFactory DataProcedureFactory
@@ -113,7 +115,7 @@ namespace SenseNet.Core.Tests.Implementations
         {
             return Storage
                 //.Where(p => p.ExecutionResult != ExecutionResult.Unfinished)
-                .Select(ClonePackage)
+                .Select(p => ClonePackage(p, false))
                 .ToArray();
         }
 
@@ -123,7 +125,7 @@ namespace SenseNet.Core.Tests.Implementations
                 throw new InvalidOperationException("Only new package can be saved.");
 
             package.Id = ++_id;
-            Storage.Add(ClonePackage(package));
+            Storage.Add(ClonePackage(package, true));
 
             RepositoryVersionInfo.Reset();
         }
@@ -133,7 +135,7 @@ namespace SenseNet.Core.Tests.Implementations
             var existing = Storage.FirstOrDefault(p => p.Id == package.Id);
             if (existing == null)
                 throw new InvalidOperationException("Package does not exist. Id: " + package.Id);
-            UpdatePackage(package, existing);
+            UpdatePackage(package, existing, false);
         }
 
         public bool IsPackageExist(string componentId, PackageType packageType, Version version)
@@ -151,6 +153,11 @@ namespace SenseNet.Core.Tests.Implementations
             if (Storage.Count == 0)
                 return;
             throw new NotImplementedException();
+        }
+
+        public void LoadManifest(Package package)
+        {
+            package.Manifest = Storage.FirstOrDefault(p => p.Id == package.Id)?.Manifest;
         }
 
         // ================================================================================================= Test tools
