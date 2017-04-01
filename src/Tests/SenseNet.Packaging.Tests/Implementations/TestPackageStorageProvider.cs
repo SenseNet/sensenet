@@ -145,14 +145,16 @@ namespace SenseNet.Core.Tests.Implementations
 
         public void DeletePackage(Package package)
         {
-            throw new NotImplementedException();
+            if (package.Id < 1)
+                throw new ApplicationException("Cannot delete unsaved package");
+            var storedPackage = Storage.FirstOrDefault(p => p.Id == package.Id);
+            if (storedPackage != null)
+                Storage.Remove(storedPackage);
         }
 
-        public void DeletePackagesExceptFirst()
+        public void DeleteAllPackages()
         {
-            if (Storage.Count == 0)
-                return;
-            throw new NotImplementedException();
+            Storage.Clear();
         }
 
         public void LoadManifest(Package package)

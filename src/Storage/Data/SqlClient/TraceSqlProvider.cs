@@ -339,10 +339,10 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             WriteLog(MethodBase.GetCurrentMethod(), package);
             base.DeletePackage(package);
         }
-        public override void DeletePackagesExceptFirst()
+        public override void DeleteAllPackages()
         {
             WriteLog(MethodBase.GetCurrentMethod());
-            base.DeletePackagesExceptFirst();
+            base.DeleteAllPackages();
         }
         protected override void InitializeForTestsPrivate()
         {

@@ -1423,7 +1423,6 @@ namespace SenseNet.Core.Tests
             Assert.AreEqual(0, components.Length);
             Assert.AreEqual(1, packages.Length);
         }
-
         [TestMethod]
         public void Packaging_VersionInfo_Complex()
         {
@@ -1482,6 +1481,54 @@ namespace SenseNet.Core.Tests
             var actual = package.Manifest;
 
             Assert.AreEqual(expected, actual);
+        }
+
+        #endregion
+
+        #region // ========================================= Package deletion
+
+        [TestMethod]
+        public void Packaging_DeleteOne()
+        {
+            SavePackage("C1", "1.0", "00:00", "2016-01-01", PackageType.Install, ExecutionResult.Unfinished);
+            SavePackage("C1", "1.0", "01:00", "2016-01-01", PackageType.Install, ExecutionResult.Faulty);
+            SavePackage("C1", "1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
+            SavePackage("C1", "1.1", "03:00", "2016-01-03", PackageType.Patch, ExecutionResult.Faulty);
+            SavePackage("C1", "1.1", "04:00", "2016-01-03", PackageType.Patch, ExecutionResult.Faulty);
+            SavePackage("C1", "1.1", "05:00", "2016-01-06", PackageType.Patch, ExecutionResult.Successful);
+            SavePackage("C1", "1.2", "06:00", "2016-01-07", PackageType.Patch, ExecutionResult.Unfinished);
+            SavePackage("C1", "1.2", "07:00", "2016-01-08", PackageType.Patch, ExecutionResult.Unfinished);
+            SavePackage("C1", "1.2", "08:00", "2016-01-09", PackageType.Patch, ExecutionResult.Faulty);
+            SavePackage("C1", "1.2", "09:00", "2016-01-09", PackageType.Patch, ExecutionResult.Faulty);
+            SavePackage("C1", "1.2", "10:00", "2016-01-09", PackageType.Patch, ExecutionResult.Successful);
+
+            // action: delete all faulty and unfinished
+            var packs = RepositoryVersionInfo.Instance.InstalledPackages
+                .Where(p => p.ExecutionResult != ExecutionResult.Successful);
+            foreach (var package in packs)
+                PackageManager.Storage.DeletePackage(package);
+            RepositoryVersionInfo.Reset();
+
+            // check
+            var actual = string.Join(" | ", RepositoryVersionInfo.Instance.InstalledPackages
+                .OrderBy(p => p.ComponentVersion)
+                .Select(p => $"{p.PackageType.ToString()[0]}:{p.ComponentVersion}-{p.ExecutionDate.Hour}")
+                .ToArray());
+            var expected = "I:1.0-2 | P:1.1-5 | P:1.2-10";
+            Assert.AreEqual(expected, actual);
+        }
+        [TestMethod]
+        public void Packaging_DeleteAll()
+        {
+            SavePackage("C1", "1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
+            SavePackage("C1", "1.1", "05:00", "2016-01-06", PackageType.Patch, ExecutionResult.Successful);
+            SavePackage("C1", "1.2", "10:00", "2016-01-09", PackageType.Patch, ExecutionResult.Successful);
+
+            // action
+            PackageManager.Storage.DeleteAllPackages();
+
+            // check
+            Assert.IsFalse(RepositoryVersionInfo.Instance.InstalledPackages.Any());
         }
 
         #endregion

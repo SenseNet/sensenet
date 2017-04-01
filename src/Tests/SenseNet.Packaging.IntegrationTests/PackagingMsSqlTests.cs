@@ -78,6 +78,9 @@ CREATE TABLE [dbo].[Packages](
             var proc = DataProvider.CreateDataProcedure("DELETE FROM [Packages]");
             proc.CommandType = CommandType.Text;
             proc.ExecuteNonQuery();
+            proc = DataProvider.CreateDataProcedure("DBCC CHECKIDENT ('[Packages]', RESEED, 1)");
+            proc.CommandType = CommandType.Text;
+            proc.ExecuteNonQuery();
 
             RepositoryVersionInfo.Reset();
         }
@@ -923,6 +926,7 @@ CREATE TABLE [dbo].[Packages](
         [TestMethod]
         public void Packaging_SQL_Manifest_StoredButNotLoaded()
         {
+            // prepare xml source
             var manifest = @"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
                             <ComponentId>Component42</ComponentId>
@@ -936,17 +940,66 @@ CREATE TABLE [dbo].[Packages](
             xml.LoadXml(manifest);
             var expected = xml.OuterXml;
 
+            // store
             ExecutePhases(manifest);
 
+            // load
             var verInfo = RepositoryVersionInfo.Instance;
 
+            // manifest is not explicitly loaded
             var package = verInfo.InstalledPackages.FirstOrDefault();
             Assert.IsNull(package.Manifest);
 
+            // load manifest explicitly
             PackageManager.Storage.LoadManifest(package);
             var actual = package.Manifest;
-
             Assert.AreEqual(expected, actual);
+        }
+
+        // ========================================= Package deletion
+
+        [TestMethod]
+        public void Packaging_SQL_DeleteOne()
+        {
+            SavePackage("C1", "1.0", "00:00", "2016-01-01", PackageType.Install, ExecutionResult.Unfinished);
+            SavePackage("C1", "1.0", "01:00", "2016-01-01", PackageType.Install, ExecutionResult.Faulty);
+            SavePackage("C1", "1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
+            SavePackage("C1", "1.1", "03:00", "2016-01-03", PackageType.Patch, ExecutionResult.Faulty);
+            SavePackage("C1", "1.1", "04:00", "2016-01-03", PackageType.Patch, ExecutionResult.Faulty);
+            SavePackage("C1", "1.1", "05:00", "2016-01-06", PackageType.Patch, ExecutionResult.Successful);
+            SavePackage("C1", "1.2", "06:00", "2016-01-07", PackageType.Patch, ExecutionResult.Unfinished);
+            SavePackage("C1", "1.2", "07:00", "2016-01-08", PackageType.Patch, ExecutionResult.Unfinished);
+            SavePackage("C1", "1.2", "08:00", "2016-01-09", PackageType.Patch, ExecutionResult.Faulty);
+            SavePackage("C1", "1.2", "09:00", "2016-01-09", PackageType.Patch, ExecutionResult.Faulty);
+            SavePackage("C1", "1.2", "10:00", "2016-01-09", PackageType.Patch, ExecutionResult.Successful);
+
+            // action: delete all faulty and unfinished
+            var packs = RepositoryVersionInfo.Instance.InstalledPackages
+                .Where(p => p.ExecutionResult != ExecutionResult.Successful);
+            foreach (var package in packs)
+                PackageManager.Storage.DeletePackage(package);
+            RepositoryVersionInfo.Reset();
+
+            // check
+            var actual = string.Join(" | ", RepositoryVersionInfo.Instance.InstalledPackages
+                .OrderBy(p => p.ComponentVersion)
+                .Select(p => $"{p.PackageType.ToString()[0]}:{p.ComponentVersion}-{p.ExecutionDate.Hour}")
+                .ToArray());
+            var expected = "I:1.0-2 | P:1.1-5 | P:1.2-10";
+            Assert.AreEqual(expected, actual);
+        }
+        [TestMethod]
+        public void Packaging_SQL_DeleteAll()
+        {
+            SavePackage("C1", "1.0", "02:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
+            SavePackage("C1", "1.1", "05:00", "2016-01-06", PackageType.Patch, ExecutionResult.Successful);
+            SavePackage("C1", "1.2", "10:00", "2016-01-09", PackageType.Patch, ExecutionResult.Successful);
+
+            // action
+            PackageManager.Storage.DeleteAllPackages();
+
+            // check
+            Assert.IsFalse(RepositoryVersionInfo.Instance.InstalledPackages.Any());
         }
 
         /*================================================= tools */

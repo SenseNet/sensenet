@@ -412,12 +412,12 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
             Procedures.Clear();
 
             // action
-            PackageManager.Storage.DeletePackagesExceptFirst();
+            PackageManager.Storage.DeleteAllPackages();
 
             // check
             Assert.AreEqual(1, Procedures.Count);
             var proc = Procedures[0];
-            Assert.AreEqual(@"DELETE FROM Packages WHERE Id > 1", proc.CommandText);
+            Assert.AreEqual(@"TRUNCATE TABLE Packages", proc.CommandText);
 
             var parameters = proc.Parameters;
             Assert.AreEqual(0, parameters.Count);
