@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SenseNet.Tools.SnAdmin.testability
+namespace SenseNet.Tools.SnAdmin.Testability
 {
     public interface ITypeResolverWrapper
     {

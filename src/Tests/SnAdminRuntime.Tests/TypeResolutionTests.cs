@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SenseNet.Tools.SnAdmin.testability;
+using SenseNet.Tools.SnAdmin.Testability;
 
 namespace SnAdminRuntime.Tests
 {

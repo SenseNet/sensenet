@@ -11,7 +11,7 @@ using Ionic.Zip;
 using System.Configuration;
 using System.Xml;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.Tools.SnAdmin.testability;
+using SenseNet.Tools.SnAdmin.Testability;
 
 namespace SenseNet.Tools.SnAdmin
 {

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
-using SenseNet.Tools.SnAdmin.testability;
+using SenseNet.Tools.SnAdmin.Testability;
 
 namespace SnAdminRuntime.Tests
 {

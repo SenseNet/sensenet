@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace SenseNet.Tools.SnAdmin.testability
+namespace SenseNet.Tools.SnAdmin.Testability
 {
     internal interface IDisk
     {
