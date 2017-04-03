@@ -37,7 +37,7 @@ namespace SenseNet.Tools.SnAdmin
 
         internal static TextWriter Output { get; set; } = Console.Out;
 
-        private static int Main(string[] args)
+        internal static int Main(string[] args)
         {
             ToolTitle += Assembly.GetExecutingAssembly().GetName().Version;
             if (args.FirstOrDefault(a => a.ToUpper() == "-WAIT") != null)
@@ -67,7 +67,7 @@ namespace SenseNet.Tools.SnAdmin
 
             return ExecutePhase(packagePath, targetDirectory, phase, parameters, logFilePath, help, schema);
         }
-        private static bool ParseParameters(string[] args, out string packagePath, out string targetDirectory, out int phase, out string[] parameters, out string logFilePath, out LogLevel logLevel, out bool help, out bool schema, out bool wait)
+        internal static bool ParseParameters(string[] args, out string packagePath, out string targetDirectory, out int phase, out string[] parameters, out string logFilePath, out LogLevel logLevel, out bool help, out bool schema, out bool wait)
         {
             packagePath = null;
             targetDirectory = null;
@@ -128,7 +128,7 @@ namespace SenseNet.Tools.SnAdmin
             return true;
         }
 
-        private static int ExecutePhase(string packagePath, string targetDirectory, int phase, string[] parameters, string logFilePath, bool help, bool schema)
+        internal static int ExecutePhase(string packagePath, string targetDirectory, int phase, string[] parameters, string logFilePath, bool help, bool schema)
         {
             Logger.LogTitle(ToolTitle);
             var typeResolver = TypeResolverWrapper.Instance;
