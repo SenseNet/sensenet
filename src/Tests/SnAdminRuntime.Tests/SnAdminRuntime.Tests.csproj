@@ -58,6 +58,10 @@
     <Compile Include="TypeResolutionTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\ContentRepository\ContentRepository.csproj">
+      <Project>{786E6165-CA02-45A9-BF58-207A45D7D6DF}</Project>
+      <Name>ContentRepository</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Tools\SnAdminRuntime\SnAdminRuntime.csproj">
       <Project>{891b1fd9-ca73-4129-8d1d-d6663f01866c}</Project>
       <Name>SnAdminRuntime</Name>

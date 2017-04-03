@@ -137,7 +137,7 @@ namespace SenseNet.Tools.SnAdmin
             typeResolver.LoadAssembliesFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
 
             var packageCustomizationPath = Path.Combine(packagePath, "PackageCustomization");
-            if (Directory.Exists(packageCustomizationPath))
+            if (Disk.DirectoryExists(packageCustomizationPath))
             {
                 Output.WriteLine("Loading package customizations:");
                 var loaded = typeResolver.LoadAssembliesFrom(packageCustomizationPath);
@@ -148,8 +148,8 @@ namespace SenseNet.Tools.SnAdmin
                 }
             }
 
-            //var phaseCustomizationPath = PackageManager.GetPhaseCustomizationPath(packagePath, phase);
-            //if (Directory.Exists(phaseCustomizationPath))
+            //var phaseCustomizationPath = PackageManagerWrapper.Instance.GetPhaseCustomizationPath(packagePath, phase);
+            //if (Disk.DirectoryExists(phaseCustomizationPath))
             //{
             //    Output.WriteLine($"Loading phase-{phase} customizations:");
             //    var loaded = typeResolver.LoadAssembliesFrom(phaseCustomizationPath);
@@ -163,13 +163,13 @@ namespace SenseNet.Tools.SnAdmin
             if (help)
             {
                 LogAssemblies();
-                Logger.LogMessage(Environment.NewLine + PackageManager.GetHelp());
+                Logger.LogMessage(Environment.NewLine + PackageManagerWrapper.Instance.GetHelp());
                 var sb = new StringBuilder();
                 return 0;
             }
             if (schema)
             {
-                var xsd = PackageManager.GetXmlSchema();
+                var xsd = PackageManagerWrapper.Instance.GetXmlSchema();
                 Logger.LogMessage(Environment.NewLine + xsd);
                 var xsdPath = Path.GetFullPath(packagePath + @"\..\bin\SenseNetPackage.xsd");
 
@@ -184,7 +184,7 @@ namespace SenseNet.Tools.SnAdmin
             PackagingResult result = null;
             try
             {
-                result = PackageManager.Execute(packagePath, targetDirectory, phase, parameters, Output);
+                result = PackageManagerWrapper.Instance.Execute(packagePath, targetDirectory, phase, parameters, Output);
             }
             catch (Exception e)
             {
