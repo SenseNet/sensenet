@@ -4,7 +4,7 @@
   <Description>$Ctd-PortalRoot,Description</Description>
   <Icon>PortalRoot</Icon>
   <AllowedChildTypes>
-    Folder,TrashBin,DocumentLibrary,CustomList,Sites,KPIDatasources,Domains,Profiles,Portlets,Resources,Skins
+    Folder,SystemFolder,TrashBin,ContentList,CustomList,Sites,Domains,Profiles,Resources,Skins,Workspace
   </AllowedChildTypes>
   <Fields>
     <Field name="DisplayName" type="ShortText">
