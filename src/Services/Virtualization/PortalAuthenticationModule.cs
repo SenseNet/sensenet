@@ -46,7 +46,8 @@ namespace SenseNet.Portal.Virtualization
         private const string AccessHeaderName = "X-Access-Data";
         private const string RefreshHeaderName = "X-Refresh-Data";
         private const string AuthenticationTypeHeaderName = "X-Authentication-Type";
-
+        private const string TokenLoginPath = "/sn-token/login";
+        private const string TokenRefreshPath = "/sn-token/refresh";
         private static class HttpResponseStatusCode
         {
             public static int Unauthorized = 401;
@@ -127,15 +128,12 @@ namespace SenseNet.Portal.Virtualization
         
         public void OnAuthenticateRequest(object sender, EventArgs e)
         {
-            SnLog.WriteInformation("OnAuthenticateRequest begins", EventId.RepositoryLifecycle);
             var application = sender as HttpApplication;
             var context = GetContext(sender); //HttpContext.Current;
             var request = GetRequest(sender);
 
-            var authenticationTypeHeader = GetAuthenticationTypeHeader(request);
             var basicAuthenticated = DispatchBasicAuthentication(context);
-            SnLog.WriteInformation("basicAuthenticated:" + basicAuthenticated + ", authenticationTypeHeader:"+ authenticationTypeHeader);
-            if (request.IsSecureConnection && authenticationTypeHeader == "Token")
+            if (IsTokenAuthenticationRequested(request))
             {
                 TokenAuthenticate(basicAuthenticated, context, application);
                 return;
@@ -204,6 +202,12 @@ namespace SenseNet.Portal.Virtualization
             return request.Headers[AuthenticationTypeHeaderName] ?? request.Headers[AuthenticationTypeHeaderName.ToLower()];
         }
 
+        private bool IsTokenAuthenticationRequested(HttpRequestBase request)
+        {
+            return request.IsSecureConnection && (GetAuthenticationTypeHeader(request) == "Token"
+                || new[] {TokenLoginPath, TokenRefreshPath}.Contains(request.Url.PathAndQuery));
+        }
+
         private void TokenAuthenticate(bool basicAuthenticated, HttpContextBase context, HttpApplication application)
         {
             if (basicAuthenticated && _anonymAuthenticated)
@@ -263,7 +267,7 @@ namespace SenseNet.Portal.Virtualization
                 }
                 // user has not been authenticated yet, so there must be a valid token and cookie in the request
                 var header = context.Request.Headers[RefreshHeaderName];
-                if (header != null)
+                if (header != null || TokenRefreshPath.Equals(context.Request.Url.PathAndQuery, StringComparison.InvariantCultureIgnoreCase) )
                 {
                     // we got a refresh token
                     try
@@ -298,7 +302,7 @@ namespace SenseNet.Portal.Virtualization
                     return;
                 }
                 header = context.Request.Headers[AccessHeaderName];
-                if (header != null)
+                if (header != null || TokenLoginPath.Equals(context.Request.Url.PathAndQuery, StringComparison.InvariantCultureIgnoreCase))
                 {
                     // we got an access token
                     var authCookie = CookieHelper.GetCookie(context.Request, AccessSignatureName);
