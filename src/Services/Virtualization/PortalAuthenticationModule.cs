@@ -202,10 +202,20 @@ namespace SenseNet.Portal.Virtualization
             return request.Headers[AuthenticationTypeHeaderName] ?? request.Headers[AuthenticationTypeHeaderName.ToLower()];
         }
 
+        private string GetRefreshHeader(HttpRequestBase request)
+        {
+            return request.Headers[RefreshHeaderName] ?? request.Headers[RefreshHeaderName.ToLower()];
+        }
+        private string GetAccessHeader(HttpRequestBase request)
+        {
+            return request.Headers[AccessHeaderName] ?? request.Headers[AccessHeaderName.ToLower()];
+        }
+
         private bool IsTokenAuthenticationRequested(HttpRequestBase request)
         {
             return request.IsSecureConnection && (GetAuthenticationTypeHeader(request) == "Token"
-                || new[] {TokenLoginPath, TokenRefreshPath}.Contains(request.Url.PathAndQuery));
+                || new[] {TokenLoginPath, TokenRefreshPath}.Contains(request.Url.PathAndQuery,  StringComparer.InvariantCultureIgnoreCase)
+                || !string.IsNullOrWhiteSpace(GetAccessHeader(request)));
         }
 
         private void TokenAuthenticate(bool basicAuthenticated, HttpContextBase context, HttpApplication application)
@@ -266,8 +276,8 @@ namespace SenseNet.Portal.Virtualization
                     return;
                 }
                 // user has not been authenticated yet, so there must be a valid token and cookie in the request
-                var header = context.Request.Headers[RefreshHeaderName];
-                if (header != null || TokenRefreshPath.Equals(context.Request.Url.PathAndQuery, StringComparison.InvariantCultureIgnoreCase) )
+                var header = GetRefreshHeader(context.Request);
+                if (!string.IsNullOrWhiteSpace(header))
                 {
                     // we got a refresh token
                     try
@@ -301,8 +311,8 @@ namespace SenseNet.Portal.Virtualization
                     }
                     return;
                 }
-                header = context.Request.Headers[AccessHeaderName];
-                if (header != null || TokenLoginPath.Equals(context.Request.Url.PathAndQuery, StringComparison.InvariantCultureIgnoreCase))
+                header = GetAccessHeader(context.Request);
+                if (!string.IsNullOrWhiteSpace(header))
                 {
                     // we got an access token
                     var authCookie = CookieHelper.GetCookie(context.Request, AccessSignatureName);
