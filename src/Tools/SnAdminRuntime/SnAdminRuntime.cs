@@ -10,6 +10,8 @@ using System.Diagnostics;
 using Ionic.Zip;
 using System.Configuration;
 using System.Xml;
+using SenseNet.ContentRepository.Storage;
+using SenseNet.Tools.SnAdmin.testability;
 
 namespace SenseNet.Tools.SnAdmin
 {
@@ -32,6 +34,8 @@ namespace SenseNet.Tools.SnAdmin
         );
 
         #endregion
+
+        internal static TextWriter Output { get; set; } = Console.Out;
 
         private static int Main(string[] args)
         {
@@ -127,21 +131,34 @@ namespace SenseNet.Tools.SnAdmin
         private static int ExecutePhase(string packagePath, string targetDirectory, int phase, string[] parameters, string logFilePath, bool help, bool schema)
         {
             Logger.LogTitle(ToolTitle);
+            var typeResolver = TypeResolverWrapper.Instance;
 
             // preload all assemblies from the sandbox folder so that we have every dll in memory
-            TypeResolver.LoadAssembliesFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+            typeResolver.LoadAssembliesFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
 
             var packageCustomizationPath = Path.Combine(packagePath, "PackageCustomization");
             if (Directory.Exists(packageCustomizationPath))
             {
                 Console.WriteLine("Loading package customizations:");
-                var loaded = TypeResolver.LoadAssembliesFrom(packageCustomizationPath);
+                var loaded = typeResolver.LoadAssembliesFrom(packageCustomizationPath);
                 foreach (var item in loaded)
                 {
                     Console.Write("  ");
                     Console.WriteLine(item);
                 }
             }
+
+            //var phaseCustomizationPath = PackageManager.GetPhaseCustomizationPath(packagePath, phase);
+            //if (Directory.Exists(phaseCustomizationPath))
+            //{
+            //    Console.WriteLine($"Loading phase-{phase} customizations:");
+            //    var loaded = typeResolver.LoadAssembliesFrom(phaseCustomizationPath);
+            //    foreach (var item in loaded)
+            //    {
+            //        Console.Write("  ");
+            //        Console.WriteLine(item);
+            //    }
+            //}
 
             if (help)
             {
