@@ -17,6 +17,11 @@ namespace SenseNet.Tools.SnAdmin.Testability
         string[] GetDirectories(string path);
         bool FileExists(string path);
         string[] GetFiles(string path, string filter = null);
+        void FileCopy(string source, string target);
+        void DeleteAllFrom(string path);
+        string SearchTargetDirectory();
+        string DefaultPackageDirectory();
+        XmlDocument LoadManifest(string manifestPath);
     }
 
     internal abstract class Disk
@@ -43,6 +48,27 @@ namespace SenseNet.Tools.SnAdmin.Testability
         {
             return Instance.GetFiles(path, filter);
         }
+        internal static void FileCopy(string source, string target)
+        {
+            Instance.FileCopy(source, target);
+        }
+        internal static void DeleteAllFrom(string path)
+        {
+            Instance.DeleteAllFrom(path);
+        }
+        internal static string SearchTargetDirectory()
+        {
+            return Instance.SearchTargetDirectory();
+        }
+        public static string DefaultPackageDirectory()
+        {
+            return Instance.DefaultPackageDirectory();
+        }
+
+        public static XmlDocument LoadManifest(string manifestPath)
+        {
+            return Instance.LoadManifest(manifestPath);
+        }
     }
 
     internal class PhysicalDisk : IDisk
@@ -68,6 +94,64 @@ namespace SenseNet.Tools.SnAdmin.Testability
             if (filter == null)
                 return Directory.GetFiles(path);
             return Directory.GetFiles(path, filter);
+        }
+        public void FileCopy(string source, string target)
+        {
+            File.Copy(source, target);
+        }
+        public void DeleteAllFrom(string path)
+        {
+            var dirInfo = new DirectoryInfo(path);
+            foreach (FileInfo file in dirInfo.GetFiles())
+            {
+                if (file.IsReadOnly)
+                    file.IsReadOnly = false;
+                file.Delete();
+            }
+            foreach (DirectoryInfo dir in dirInfo.GetDirectories())
+                dir.Delete(true);
+        }
+        public string SearchTargetDirectory()
+        {
+            var targetDir = ConfigurationManager.AppSettings["TargetDirectory"];
+            if (!string.IsNullOrEmpty(targetDir))
+                return targetDir;
+
+            // default location: ..\webfolder\Admin\bin
+            var workerExe = Assembly.GetExecutingAssembly().Location;
+            var path = workerExe;
+
+            // go up on the parent chain
+            path = Path.GetDirectoryName(path);
+            path = Path.GetDirectoryName(path);
+
+            // get the name of the container directory (should be 'Admin')
+            var adminDirName = Path.GetFileName(path);
+            path = Path.GetDirectoryName(path);
+
+            if (string.Compare(adminDirName, "Admin", StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                // look for the web.config
+                if (Disk.FileExists(Path.Combine(path, "web.config")))
+                    return path;
+            }
+            throw new ApplicationException("Configure the TargetDirectory. This path does not exist or it is not a valid target: " + path);
+        }
+        public string DefaultPackageDirectory()
+        {
+            var pkgDir = ConfigurationManager.AppSettings["PackageDirectory"];
+            if (!string.IsNullOrEmpty(pkgDir))
+                return pkgDir;
+            var workerExe = Assembly.GetExecutingAssembly().Location;
+            pkgDir = Path.GetDirectoryName(Path.GetDirectoryName(workerExe));
+            return pkgDir;
+        }
+        public XmlDocument LoadManifest(string manifestPath)
+        {
+            var xml = new XmlDocument();
+            if (manifestPath != null)
+                xml.Load(manifestPath);
+            return xml;
         }
 
     }

@@ -10,11 +10,12 @@ namespace SnAdminRuntime.Tests
     [TestClass]
     public class TypeResolutionTests
     {
-        protected string[] DefaultDirs { get; private set; }
-        protected string[] DefaultFiles { get; private set; }
-        protected Dictionary<string, XmlDocument> DefaultManifests { get; private set; }
+        private string[] DefaultDirs { get; set; }
+        private string[] DefaultFiles { get; set; }
+        private Dictionary<string, XmlDocument> DefaultManifests { get; set; }
 
-        protected void Initialize()
+        [TestInitialize]
+        public void InitializeTest()
         {
             DefaultDirs = new[]
             {
@@ -45,43 +46,27 @@ namespace SnAdminRuntime.Tests
 
             var xml1 = new XmlDocument();
             DefaultManifests.Add(@"Q:\WebApp1\Admin\Pkg1\manifest.xml", xml1);
-            xml1.LoadXml(@"<Package type='Product' level='Tool'>
-  <Name>Sense/Net ECM</Name>
+            xml1.LoadXml(@"<Package type='Tool'>
+  <ComponentId>Sense/Net ECM</ComponentId>
+  <Version>1.0</Version>
   <ReleaseDate>2016-12-21</ReleaseDate>
-  <Description>|package description|</Description>
-  <Parameters>
-    <Parameter name='@source' description='Source description' />
-    <Parameter name='@target' description='Target description'>/Root</Parameter>
-    <Parameter name='@resetSecurity' description='ResetSecurity description'>False</Parameter>
-    <Parameter name='@sourceIsRelativeTo' description='SourceIsRelativeTo description'>Package</Parameter>
-    <Parameter name='@logLevel' description='LogLevel description'>Verbose</Parameter>
-    <Parameter name='@traceMessage' description='|parameter description|'>|default value|</Parameter>
-  </Parameters>
   <Steps>
-    <Phase>
-      <Trace>@traceMessage</Trace>
-    </Phase>
+    <Phase><Trace>Message1</Trace></Phase>
+    <Phase><Trace>Message2</Trace></Phase>
+    <Phase><Trace>Message3</Trace></Phase>
   </Steps>
 </Package>");
 
             var xml2 = new XmlDocument();
             DefaultManifests.Add(@"Q:\WebApp1\Admin\Pkg2\manifest.xml", xml2);
-            xml2.LoadXml(@"<Package type='Product' level='Tool'>
-  <Name>Sense/Net ECM</Name>
+            xml2.LoadXml(@"<Package type='Tool'>
+  <ComponentId>Sense/Net ECM</ComponentId>
+  <Version>1.0</Version>
   <ReleaseDate>2016-12-21</ReleaseDate>
-  <Description>Another helper package</Description>
-  <Parameters>
-    <Parameter name='@source' />
-    <Parameter name='@target'>/Root</Parameter>
-    <Parameter name='@resetSecurity'>False</Parameter>
-    <Parameter name='@sourceIsRelativeTo'>Package</Parameter>
-    <Parameter name='@logLevel'>Verbose</Parameter>
-  </Parameters>
   <Steps>
-	  <Phase>
-		  <!-- <StartRepository /> -->
-		  <Import Source='@source' Target='@target' ResetSecurity='@resetSecurity' SourceIsRelativeTo='@sourceIsRelativeTo' LogLevel='@logLevel' />
-	  </Phase>
+    <Phase ><Trace>Message1</Trace></Phase>
+    <Phase><Trace>Message2</Trace></Phase>
+    <Phase><Trace>Message3</Trace></Phase>
   </Steps>
 </Package>");
         }
@@ -92,7 +77,7 @@ namespace SnAdminRuntime.Tests
             // ARRANGE
             var disk = new TestDisk(DefaultDirs, DefaultFiles, DefaultManifests);
             Disk.Instance = disk;
-            var args = new[] { "Pkg1", "LOGLEVEL:Console" };
+            var args = new[] { @"Q:\WebApp1\Admin\Pkg1", @"TargetDirectory:""Q:\WebApp1""", "LOG:", "LOGLEVEL:Console" };
             var console = new StringWriter();
             SenseNet.Tools.SnAdmin.SnAdminRuntime.Output = console;
 

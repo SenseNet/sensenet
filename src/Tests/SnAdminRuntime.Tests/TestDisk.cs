@@ -50,5 +50,48 @@ namespace SnAdminRuntime.Tests
                 files = files.Where(p => p.EndsWith(filter.TrimStart('*'), StringComparison.InvariantCultureIgnoreCase));
             return files.ToArray();
         }
+        public void FileCopy(string source, string target)
+        {
+            if (!Files.Contains(target, StringComparer.InvariantCultureIgnoreCase))
+                Files.Add(target);
+        }
+        public void DeleteAllFrom(string path)
+        {
+            var dirs = Directories.Where(p => p.StartsWith(path + "\\", StringComparison.InvariantCultureIgnoreCase));
+            Directories = Directories.Except(dirs).ToList();
+
+            var files = Files.Where(p => p.StartsWith(path + "\\", StringComparison.InvariantCultureIgnoreCase));
+            Files = Files.Except(files).ToList();
+        }
+        public string SearchTargetDirectory()
+        {
+            // default location: ..\webfolder\Admin\bin
+            var workerExe = Files[0];
+            var path = workerExe;
+
+            // go up on the parent chain
+            path = Path.GetDirectoryName(path);
+            path = Path.GetDirectoryName(path);
+
+            // get the name of the container directory (should be 'Admin')
+            var adminDirName = Path.GetFileName(path);
+            path = Path.GetDirectoryName(path);
+
+            if (string.Compare(adminDirName, "Admin", StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                // look for the web.config
+                if (Disk.FileExists(Path.Combine(path, "web.config")))
+                    return path;
+            }
+            throw new ApplicationException("Configure the TargetDirectory. This path does not exist or it is not a valid target: " + path);
+        }
+        public string DefaultPackageDirectory()
+        {
+            return Path.GetDirectoryName(Path.GetDirectoryName(Files[0]));
+        }
+        public XmlDocument LoadManifest(string manifestPath)
+        {
+            return Manifests[manifestPath];
+        }
     }
 }

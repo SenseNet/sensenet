@@ -123,7 +123,7 @@ namespace SenseNet.Tools.SnAdmin
                 }
             }
             if (targetDirectory == null)
-                targetDirectory = SearchTargetDirectory();
+                targetDirectory = Disk.SearchTargetDirectory();
             parameters = prms.ToArray();
             return true;
         }
@@ -139,24 +139,24 @@ namespace SenseNet.Tools.SnAdmin
             var packageCustomizationPath = Path.Combine(packagePath, "PackageCustomization");
             if (Directory.Exists(packageCustomizationPath))
             {
-                Console.WriteLine("Loading package customizations:");
+                Output.WriteLine("Loading package customizations:");
                 var loaded = typeResolver.LoadAssembliesFrom(packageCustomizationPath);
                 foreach (var item in loaded)
                 {
-                    Console.Write("  ");
-                    Console.WriteLine(item);
+                    Output.Write("  ");
+                    Output.WriteLine(item);
                 }
             }
 
             //var phaseCustomizationPath = PackageManager.GetPhaseCustomizationPath(packagePath, phase);
             //if (Directory.Exists(phaseCustomizationPath))
             //{
-            //    Console.WriteLine($"Loading phase-{phase} customizations:");
+            //    Output.WriteLine($"Loading phase-{phase} customizations:");
             //    var loaded = typeResolver.LoadAssembliesFrom(phaseCustomizationPath);
             //    foreach (var item in loaded)
             //    {
-            //        Console.Write("  ");
-            //        Console.WriteLine(item);
+            //        Output.Write("  ");
+            //        Output.WriteLine(item);
             //    }
             //}
 
@@ -184,7 +184,7 @@ namespace SenseNet.Tools.SnAdmin
             PackagingResult result = null;
             try
             {
-                result = PackageManager.Execute(packagePath, targetDirectory, phase, parameters, Console.Out);
+                result = PackageManager.Execute(packagePath, targetDirectory, phase, parameters, Output);
             }
             catch (Exception e)
             {
@@ -213,32 +213,6 @@ namespace SenseNet.Tools.SnAdmin
             Logger.LogMessage("Assemblies:");
             foreach (var asm in SenseNet.ContentRepository.Storage.TypeHandler.GetAssemblyInfo())
                 Logger.LogMessage("  {0} {1}", asm.Name, asm.Version);
-        }
-
-        private static string SearchTargetDirectory()
-        {
-            if (!string.IsNullOrEmpty(Configuration.Packaging.TargetDirectory))
-                return Configuration.Packaging.TargetDirectory;
-
-            // default location: ..\webfolder\Admin\bin
-            var workerExe = Assembly.GetExecutingAssembly().Location;
-            var path = workerExe;
-
-            // go up on the parent chain
-            path = Path.GetDirectoryName(path);
-            path = Path.GetDirectoryName(path);
-
-            // get the name of the container directory (should be 'Admin')
-            var adminDirName = Path.GetFileName(path);
-            path = Path.GetDirectoryName(path);
-
-            if (string.Compare(adminDirName, "Admin", StringComparison.OrdinalIgnoreCase) == 0)
-            {
-                // look for the web.config
-                if (System.IO.File.Exists(Path.Combine(path, "web.config")))
-                    return path;
-            }
-            throw new ApplicationException("Configure the TargetDirectory. This path does not exist or it is not a valid target: " + path);
         }
     }
 }
