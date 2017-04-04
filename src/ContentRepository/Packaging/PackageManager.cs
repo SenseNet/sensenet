@@ -224,10 +224,6 @@ namespace SenseNet.Packaging
         }
         private static Package CreatePackage(Manifest manifest, ExecutionResult result, Exception execError)
         {
-            Version componentVersion = null;
-            if (manifest.PackageType != PackageType.Tool)
-                componentVersion = manifest.Version;
-
             return new Package
             {
                 Description = manifest.Description,
@@ -236,17 +232,13 @@ namespace SenseNet.Packaging
                 ComponentId = manifest.ComponentId,
                 ExecutionDate = DateTime.UtcNow,
                 ExecutionResult = result,
-                ComponentVersion = componentVersion,
+                ComponentVersion = manifest.Version,
                 ExecutionError = execError,
                 Manifest = manifest.ManifestXml.OuterXml
             };
         }
         private static void UpdatePackage(Package package, Manifest manifest, ExecutionResult result, Exception execError)
         {
-            Version version = null;
-            if (manifest.PackageType != PackageType.Tool)
-                version = manifest.Version;
-
             package.Description = manifest.Description;
             package.ReleaseDate = manifest.ReleaseDate;
             package.PackageType = manifest.PackageType;
@@ -254,7 +246,7 @@ namespace SenseNet.Packaging
             package.ExecutionDate = DateTime.UtcNow;
             package.ExecutionResult = result;
             package.ExecutionError = execError;
-            package.ComponentVersion = version;
+            package.ComponentVersion = manifest.Version;
         }
 
         public static string GetHelp()
