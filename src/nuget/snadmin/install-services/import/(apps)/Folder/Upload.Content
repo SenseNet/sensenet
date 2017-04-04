@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>Application</ContentType>
+  <ContentName>Upload</ContentName>
+  <Fields>
+	<DisplayName><![CDATA[$Action,Upload]]></DisplayName>
+    <ActionTypeName><![CDATA[UploadAction]]></ActionTypeName>
+    <Icon><![CDATA[upload]]></Icon>
+    <RequiredPermissions>See;Open;AddNew</RequiredPermissions>
+  </Fields>
+  <Permissions>
+    <Clear />
+    <Identity path="/Root/IMS/BuiltIn/Portal/Everyone">
+      <RunApplication>Allow</RunApplication>
+    </Identity>
+  </Permissions>
+</ContentMetaData>

@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ContentType name="RssApplication" parentType="Application" handler="SenseNet.Services.RssApplication" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
-  <DisplayName>$Ctd-RssApplication,DisplayName</DisplayName>
-  <Description>$Ctd-RssApplication,Description</Description>
-  <Icon>Application</Icon>
-  <Fields />
-</ContentType>

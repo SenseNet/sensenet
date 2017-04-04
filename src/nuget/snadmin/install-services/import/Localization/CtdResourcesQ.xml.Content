@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>Resource</ContentType>
+  <ContentName>CtdResourcesQ.xml</ContentName>
+  <Fields>
+    <Binary attachment="CtdResourcesQ.xml" />
+    <DisplayName><![CDATA[CtdResourcesQ.xml]]></DisplayName>
+  </Fields>
+  <Permissions>
+    <Clear />
+  </Permissions>
+</ContentMetaData>

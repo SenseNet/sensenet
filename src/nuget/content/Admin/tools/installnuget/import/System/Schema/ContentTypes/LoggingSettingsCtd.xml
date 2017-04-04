@@ -1,6 +1,0 @@
-﻿<ContentType name="LoggingSettings" parentType="Settings" handler="SenseNet.ContentRepository.LoggingSettings" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
-  <DisplayName>$Ctd-LoggingSettings,DisplayName</DisplayName>
-  <Description>$Ctd-LoggingSettings,Description</Description>
-  <Icon>Settings</Icon>
-  <Fields></Fields>
-</ContentType>
