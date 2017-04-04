@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>GenericODataApplication</ContentType>
+  <ContentName>CheckIndexIntegrity</ContentName>
+  <Fields>
+    <ClassName><![CDATA[SenseNet.Search.Indexing.IntegrityChecker]]></ClassName>
+    <MethodName><![CDATA[CheckIndexIntegrity]]></MethodName>
+    <Parameters><![CDATA[
+      bool recurse
+    ]]></Parameters>
+    <DisplayName><![CDATA[CheckIndexIntegrity]]></DisplayName>
+    <ActionTypeName><![CDATA[GenericODataOperation]]></ActionTypeName>
+    <IsModal>false</IsModal>
+    <Disabled>false</Disabled>
+    <Clear>false</Clear>
+    <Icon><![CDATA[Application]]></Icon>
+    <RequiredPermissions></RequiredPermissions>
+  </Fields>
+  <Permissions>
+    <Clear />
+  </Permissions>
+</ContentMetaData>
