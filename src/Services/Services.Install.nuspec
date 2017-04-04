@@ -23,11 +23,5 @@
     <file src="..\nuget\readme.txt" target="" />
     <file src="..\nuget\content\**" target="content" />
     <file src="..\Tools\SnAdminRuntime\bin\Release\SnAdminRuntime.*" target="content\Tools" />
-    <file src="..\Storage\Data\SqlClient\Scripts\Create_SenseNet_Database.sql" target="content\Admin\tools\installnuget\scripts" />
-    <file src="..\Storage\Data\SqlClient\Scripts\Install_Security.sql" target="content\Admin\tools\installnuget\scripts" />
-    <file src="..\Storage\Data\SqlClient\Scripts\Install_01_Schema.sql" target="content\Admin\tools\installnuget\scripts" />
-    <file src="..\Storage\Data\SqlClient\Scripts\Install_02_Procs.sql" target="content\Admin\tools\installnuget\scripts" />
-    <file src="..\Storage\Data\SqlClient\Scripts\Install_03_Data_Phase1.sql" target="content\Admin\tools\installnuget\scripts" />
-    <file src="..\Storage\Data\SqlClient\Scripts\Install_04_Data_Phase2.sql" target="content\Admin\tools\installnuget\scripts" />
   </files>
 </package>

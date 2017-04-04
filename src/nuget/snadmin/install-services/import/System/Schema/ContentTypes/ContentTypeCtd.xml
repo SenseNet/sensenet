@@ -1,0 +1,417 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentType name="ContentType" handler="SenseNet.ContentRepository.Schema.ContentType" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+  <DisplayName>$Ctd-ContentType,DisplayName</DisplayName>
+	<Description>$Ctd-ContentType,Description</Description>
+	<Icon>ContentType</Icon>
+	<Fields>
+    <Field name="Id" type="Integer">
+      <DisplayName>$Ctd-ContentType,Id-DisplayName</DisplayName>
+      <Description>$Ctd-ContentType,Id-Description</Description>
+      <Indexing>
+        <Store>Yes</Store>
+      </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
+    <Field name="ParentId" type="Integer">
+      <DisplayName>$Ctd-ContentType,ParentId-DisplayName</DisplayName>
+      <Description>$Ctd-ContentType,ParentId-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
+    <Field name="VersionId" type="Integer">
+      <Indexing>
+        <Store>Yes</Store>
+      </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
+    <Field name="Type" type="NodeType">
+      <DisplayName>$Ctd-ContentType,Type-DisplayName</DisplayName>
+      <Description>$Ctd-ContentType,Type-Description</Description>
+      <Bind property="NodeType" />
+      <Indexing>
+        <IndexHandler>SenseNet.Search.Indexing.ExclusiveTypeIndexHandler</IndexHandler>
+      </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
+    <Field name="TypeIs" type="NodeType">
+      <DisplayName>$Ctd-ContentType,TypeIs-DisplayName</DisplayName>
+      <Description>$Ctd-ContentType,TypeIs-Description</Description>
+      <Bind property="NodeType" />
+      <Indexing>
+        <IndexHandler>SenseNet.Search.Indexing.TypeTreeIndexHandler</IndexHandler>
+      </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
+    <Field name="Name" type="ShortText">
+      <DisplayName>$Ctd-ContentType,Name-DisplayName</DisplayName>
+      <Indexing>
+        <Store>Yes</Store>
+        <Analyzer>Lucene.Net.Analysis.KeywordAnalyzer</Analyzer>
+      </Indexing>
+      <Configuration>
+        <Compulsory>true</Compulsory>
+      </Configuration>
+    </Field>
+    <Field name="CreatedById" type="Integer">
+      <Indexing>
+        <Store>Yes</Store>
+      </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
+    <Field name="ModifiedById" type="Integer">
+      <Indexing>
+        <Store>Yes</Store>
+      </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
+    <Field name="Version" type="Version">
+      <DisplayName>$Ctd-ContentType,Version-DisplayName</DisplayName>
+      <Description>$Ctd-ContentType,Version-Description</Description>
+      <Indexing>
+        <Store>Yes</Store>
+      </Indexing>
+      <Configuration>
+        <VisibleBrowse>Show</VisibleBrowse>
+        <VisibleEdit>Show</VisibleEdit>
+        <VisibleNew>Show</VisibleNew>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
+
+    <Field name="Path" type="ShortText">
+			<DisplayName>$Ctd-ContentType,Path-DisplayName</DisplayName>
+			<Description>$Ctd-ContentType,Path-Description</Description>
+			<Configuration>
+				<ReadOnly>true</ReadOnly>
+			</Configuration>
+		</Field>
+    <Field name="Depth" type="Integer">
+      <Indexing>
+        <Store>Yes</Store>
+      </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
+    <Field name="InTree" type="ShortText">
+      <Bind property="Path"/>
+      <Indexing>
+        <Analyzer>Lucene.Net.Analysis.KeywordAnalyzer</Analyzer>
+        <IndexHandler>SenseNet.Search.Indexing.InTreeIndexHandler</IndexHandler>
+      </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
+    <Field name="InFolder" type="ShortText">
+      <Bind property="Path"/>
+      <Indexing>
+        <Analyzer>Lucene.Net.Analysis.KeywordAnalyzer</Analyzer>
+        <IndexHandler>SenseNet.Search.Indexing.InFolderIndexHandler</IndexHandler>
+      </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
+    <Field name="IsSystemContent" type="Boolean">
+      <DisplayName>$Ctd-ContentType,IsSystemContent-DisplayName</DisplayName>
+      <Description>$Ctd-ContentType,IsSystemContent-Description</Description>
+      <Bind property="IsSystem"></Bind>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
+
+    <Field name="HandlerName" type="ShortText">
+			<DisplayName>$Ctd-ContentType,HandlerName-DisplayName</DisplayName>
+			<Description>$Ctd-ContentType,HandlerName-Description</Description>
+		</Field>
+		<Field name="ParentTypeName" type="ShortText">
+			<DisplayName>$Ctd-ContentType,ParentTypeName-DisplayName</DisplayName>
+			<Description>$Ctd-ContentType,ParentTypeName-Description</Description>
+		</Field>
+		<Field name="DisplayName" type="ShortText">
+			<DisplayName>$Ctd-ContentType,DisplayName-DisplayName</DisplayName>
+			<Description>$Ctd-ContentType,DisplayName-Description</Description>
+		</Field>
+		<Field name="Description" type="LongText">
+			<DisplayName>$Ctd-ContentType,Description-DisplayName</DisplayName>
+			<Description>$Ctd-ContentType,Description-Description</Description>
+      <Indexing>
+        <Analyzer>Lucene.Net.Analysis.Standard.StandardAnalyzer</Analyzer>
+      </Indexing>
+    </Field>
+		<Field name="Icon" type="ShortText">
+			<DisplayName>$Ctd-ContentType,Icon-DisplayName</DisplayName>
+			<Description>$Ctd-ContentType,Icon-Description</Description>
+		</Field>
+		<Field name="Binary" type="Binary">
+			<DisplayName>$Ctd-ContentType,Binary-DisplayName</DisplayName>
+			<Description>$Ctd-ContentType,Binary-Description</Description>
+			<Configuration>
+        <IsText>true</IsText>
+        <DefaultValue>
+          <![CDATA[<?xml version="1.0" encoding="utf-8"?>
+<ContentType name="MyType" parentType="GenericContent" handler="SenseNet.ContentRepository.GenericContent" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+  <DisplayName>MyType</DisplayName>
+  <Description></Description>
+  <Icon>Content</Icon>
+  <AllowIncrementalNaming>true</AllowIncrementalNaming>
+  <AllowedChildTypes>ContentTypeName1,ContentTypeName2</AllowedChildTypes>
+  <Fields>
+    <Field name="ShortTextField" type="ShortText">
+      <DisplayName>ShortTextField</DisplayName>
+      <Description></Description>
+      <Configuration>
+        <MaxLength>100</MaxLength>
+        <MinLength>0</MinLength>
+        <Regex>[a-zA-Z0-9]*$</Regex>
+        <ReadOnly>false</ReadOnly>
+        <Compulsory>false</Compulsory>
+        <DefaultValue></DefaultValue>
+        <VisibleBrowse>Show|Hide|Advanced</VisibleBrowse>
+        <VisibleEdit>Show|Hide|Advanced</VisibleEdit>
+        <VisibleNew>Show|Hide|Advanced</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="LongTextField" type="LongText">
+      <DisplayName>LongTextField</DisplayName>
+      <Description></Description>
+      <Configuration>
+        <MaxLength>100</MaxLength>
+        <MinLength>0</MinLength>
+        <TextType>LongText|RichText|AdvancedRichText</TextType>
+        <ReadOnly>false</ReadOnly>
+        <Compulsory>false</Compulsory>
+        <DefaultValue></DefaultValue>
+        <VisibleBrowse>Show|Hide|Advanced</VisibleBrowse>
+        <VisibleEdit>Show|Hide|Advanced</VisibleEdit>
+        <VisibleNew>Show|Hide|Advanced</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="NumberField" type="Number">
+      <DisplayName>NumberField</DisplayName>
+      <Description></Description>
+      <Configuration>
+        <MinValue>0</MinValue>
+        <MaxValue>100.5</MaxValue>
+        <Digits>2</Digits>
+        <ReadOnly>false</ReadOnly>
+        <Compulsory>false</Compulsory>
+        <DefaultValue></DefaultValue>
+        <VisibleBrowse>Show|Hide|Advanced</VisibleBrowse>
+        <VisibleEdit>Show|Hide|Advanced</VisibleEdit>
+        <VisibleNew>Show|Hide|Advanced</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="IntegerField" type="Integer">
+      <DisplayName>IntegerField</DisplayName>
+      <Description></Description>
+      <Configuration>
+        <MinValue>0</MinValue>
+        <MaxValue>100</MaxValue>
+        <ReadOnly>false</ReadOnly>
+        <Compulsory>false</Compulsory>
+        <DefaultValue></DefaultValue>
+        <VisibleBrowse>Show|Hide|Advanced</VisibleBrowse>
+        <VisibleEdit>Show|Hide|Advanced</VisibleEdit>
+        <VisibleNew>Show|Hide|Advanced</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="BooleanField" type="Boolean">
+      <DisplayName>BooleanField</DisplayName>
+      <Description></Description>
+      <Configuration>
+        <ReadOnly>false</ReadOnly>
+        <Compulsory>false</Compulsory>
+        <DefaultValue></DefaultValue>
+        <VisibleBrowse>Show|Hide|Advanced</VisibleBrowse>
+        <VisibleEdit>Show|Hide|Advanced</VisibleEdit>
+        <VisibleNew>Show|Hide|Advanced</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="ChoiceField" type="Choice">
+      <DisplayName>ChoiceField</DisplayName>
+      <Description></Description>
+      <Configuration>
+        <AllowMultiple>false</AllowMultiple>
+        <AllowExtraValue>false</AllowExtraValue>
+        <Options>
+          <Option selected="true">1</Option>
+          <Option>2</Option>
+        </Options>
+        <ReadOnly>false</ReadOnly>
+        <Compulsory>false</Compulsory>
+        <DefaultValue></DefaultValue>
+        <VisibleBrowse>Show|Hide|Advanced</VisibleBrowse>
+        <VisibleEdit>Show|Hide|Advanced</VisibleEdit>
+        <VisibleNew>Show|Hide|Advanced</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="DateTimeField" type="DateTime">
+      <DisplayName>DateTimeField</DisplayName>
+      <Description></Description>
+      <Configuration>
+        <DateTimeMode>DateAndTime</DateTimeMode>
+        <Precision>Second</Precision>
+        <ReadOnly>false</ReadOnly>
+        <Compulsory>false</Compulsory>
+        <DefaultValue></DefaultValue>
+        <VisibleBrowse>Show|Hide|Advanced</VisibleBrowse>
+        <VisibleEdit>Show|Hide|Advanced</VisibleEdit>
+        <VisibleNew>Show|Hide|Advanced</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="ReferenceField" type="Reference">
+      <DisplayName>ReferenceField</DisplayName>
+      <Description></Description>
+      <Configuration>
+        <AllowMultiple>true</AllowMultiple>
+        <AllowedTypes>
+          <Type>Type1</Type>
+          <Type>Type2</Type>
+        </AllowedTypes>
+        <SelectionRoot>
+          <Path>/Root/Path1</Path>
+          <Path>/Root/Path2</Path>
+        </SelectionRoot>
+        <DefaultValue>/Root/Path1,/Root/Path2</DefaultValue>
+        <ReadOnly>false</ReadOnly>
+        <Compulsory>false</Compulsory>
+        <VisibleBrowse>Show|Hide|Advanced</VisibleBrowse>
+        <VisibleEdit>Show|Hide|Advanced</VisibleEdit>
+        <VisibleNew>Show|Hide|Advanced</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="BinaryField" type="Binary">
+      <DisplayName>BinaryField</DisplayName>
+      <Description></Description>
+      <Configuration>
+        <IsText>true</IsText>
+        <ReadOnly>false</ReadOnly>
+        <Compulsory>false</Compulsory>
+        <DefaultValue></DefaultValue>
+        <VisibleBrowse>Show|Hide|Advanced</VisibleBrowse>
+        <VisibleEdit>Show|Hide|Advanced</VisibleEdit>
+        <VisibleNew>Show|Hide|Advanced</VisibleNew>
+      </Configuration>
+    </Field>
+  </Fields>
+</ContentType>]]>
+        </DefaultValue>
+      </Configuration>
+		</Field>
+    <Field name="CreatedBy" type="Reference">
+      <DisplayName>$Ctd-ContentType,CreatedBy-DisplayName</DisplayName>
+      <Description>$Ctd-ContentType,CreatedBy-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
+    <Field name="CreationDate" type="DateTime">
+      <DisplayName>$Ctd-ContentType,CreationDate-DisplayName</DisplayName>
+      <Description>$Ctd-ContentType,CreationDate-Description</Description>
+      <Configuration>
+        <DateTimeMode>DateAndTime</DateTimeMode>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
+    <Field name="ModifiedBy" type="Reference">
+      <DisplayName>$Ctd-ContentType,ModifiedBy-DisplayName</DisplayName>
+      <Description>$Ctd-ContentType,ModifiedBy-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
+    <Field name="ModificationDate" type="DateTime">
+      <DisplayName>$Ctd-ContentType,ModificationDate-DisplayName</DisplayName>
+      <Description>$Ctd-ContentType,ModificationDate-Description</Description>
+      <Indexing>
+        <Store>Yes</Store>
+      </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
+    <Field name="EnableLifespan" type="Boolean">
+      <DisplayName>$Ctd-ContentType,EnableLifespan-DisplayName</DisplayName>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
+    <Field name="AllFieldSettingContents" type="Reference">
+      <DisplayName>$Ctd-ContentType,AllFieldSettingContents-DisplayName</DisplayName>
+      <Configuration>
+        <ReadOnly>true</ReadOnly>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <AllowMultiple>true</AllowMultiple>
+        <AllowedTypes>
+          <Type>FieldSettingContent</Type>
+        </AllowedTypes>
+      </Configuration>
+    </Field>
+	</Fields>
+</ContentType>

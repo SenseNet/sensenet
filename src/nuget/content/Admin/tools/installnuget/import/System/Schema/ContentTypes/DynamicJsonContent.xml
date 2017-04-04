@@ -1,6 +1,0 @@
-<ContentType name="DynamicJsonContent" parentType="File" handler="SenseNet.Portal.Handlers.DynamicJsonContent" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
-  <DisplayName>Dynamic JSON content</DisplayName>
-  <Description></Description>
-  <Icon>Settings</Icon>
-  <Fields></Fields>
-</ContentType>
