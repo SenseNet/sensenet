@@ -159,12 +159,46 @@ namespace SenseNet.Core.Tests
             }
         }
         [TestMethod]
-        public void Packaging_ParseHead_MissingVersion()
+        public void Packaging_ParseHead_InstallMissingVersion()
         {
             try
             {
                 ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
+                            <ComponentId>Component1</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                        </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.MissingVersion, e.ErrorType);
+            }
+        }
+        [TestMethod]
+        public void Packaging_ParseHead_PatchMissingVersion()
+        {
+            try
+            {
+                ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Patch'>
+                            <ComponentId>Component1</ComponentId>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                        </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.MissingVersion, e.ErrorType);
+            }
+        }
+        [TestMethod]
+        public void Packaging_ParseHead_ToolMissingVersion()
+        {
+            try
+            {
+                ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Tool'>
                             <ComponentId>Component1</ComponentId>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                         </Package>");
