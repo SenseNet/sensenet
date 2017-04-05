@@ -1,8 +1,8 @@
-<Package type='Product' level='Install'>
-  <Name>Sense/Net ECM</Name>
+<Package type='Install'>
+  <ComponentId>Sense/Net ECM Services</ComponentId>
   <Description>Install Sense/Net ECM Platform 7.0 (beta)</Description>
-  <ReleaseDate>2017-03-16</ReleaseDate>
-  <VersionControl target="7.0.0" />
+  <ReleaseDate>2017-04-05</ReleaseDate>
+  <Version>7.0.0</Version>
   <Parameters>
     <Parameter name="@dataSource" description="Name of the database server (. or MACHINENAME\SQL2016). Default: .">.</Parameter>
     <Parameter name="@initialCatalog" description="Database name for the repository. Default: sensenet.">sensenet</Parameter>
@@ -34,13 +34,13 @@
       <!-- Cleanup -->
       <Delete>App_Data\scripts\Create_SenseNet_Database_TEMP.sql</Delete>
     </Phase>
-	  <Phase>
-		  <StartRepository startLuceneManager="false" startWorkflowEngine="false" />
-		  <Import target="/Root" resetSecurity="true" LogLevel="Verbose" source="import" />
+    <Phase>
+      <StartRepository startLuceneManager="false" startWorkflowEngine="false" />
+      <Import target="/Root" resetSecurity="true" LogLevel="Verbose" source="import" />
     </Phase>
     <Phase>
       <StartRepository startLuceneManager="false" startWorkflowEngine="false" />
       <PopulateIndex />
-	  </Phase>
+    </Phase>
   </Steps>
 </Package>
