@@ -1,15 +1,16 @@
-<Package type='Product' level='Tool'>
-  <Name>Sense/Net ECM</Name>
+<Package type='Tool'>
+  <ComponentId>Sense/Net ECM Create EventLog</ComponentId>
   <Description>Creates the provided log and source in Windows Event log.</Description>
-  <ReleaseDate>2016-12-21</ReleaseDate>
+  <ReleaseDate>2017-04-05</ReleaseDate>
+  <Version>7.0.0</Version>
   <Parameters>
     <Parameter name="@logName" description="Name of the log. Default: SenseNet." />
     <Parameter name="@machine" description="On which machine you want to create the log. Default: ." />
     <Parameter name="@sources" description="Comma separated names of the sources that will be created." />
   </Parameters>
   <Steps>
-	  <Phase>
-		  <CreateEventLog LogName="@logName" Machine="@machine" Sources="@sources" />
-	  </Phase>
+    <Phase>
+      <CreateEventLog LogName="@logName" Machine="@machine" Sources="@sources" />
+    </Phase>
   </Steps>
 </Package>

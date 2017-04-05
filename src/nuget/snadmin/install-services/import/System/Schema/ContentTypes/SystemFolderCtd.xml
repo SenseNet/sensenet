@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentType name="SystemFolder" parentType="Folder" handler="SenseNet.ContentRepository.SystemFolder" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+  <DisplayName>$Ctd-SystemFolder,DisplayName</DisplayName>
+  <Description>$Ctd-SystemFolder,Description</Description>
+  <Icon>Folder</Icon>
+  <Fields>
+  <Field name="DisplayName" type="ShortText">
+    <DisplayName>$Ctd-SystemFolder,DisplayName-DisplayName</DisplayName>
+    <Description>$Ctd-SystemFolder,DisplayName-Description</Description>
+  </Field>
+  </Fields>
+</ContentType>

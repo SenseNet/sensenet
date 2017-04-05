@@ -1,5 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<ContentType name="GetMetadataApplication" parentType="HttpHandlerApplication" handler="SenseNet.Portal.Handlers.GetMetadataApplication" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
-  <DisplayName>GetMetadataApplication</DisplayName>
-  <Fields />
-</ContentType>

@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>User</ContentType>
+  <ContentName>Visitor</ContentName>
+  <Fields>
+    <Enabled>true</Enabled>
+    <FullName>Visitor</FullName>
+    <LoginName>Visitor</LoginName>
+  </Fields>
+</ContentMetaData>
