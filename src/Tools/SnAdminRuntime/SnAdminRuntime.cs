@@ -39,7 +39,7 @@ namespace SenseNet.Tools.SnAdmin
 
         internal static int Main(string[] args)
         {
-            ToolTitle += Assembly.GetExecutingAssembly().GetName().Version;
+            ToolTitle += Assembly.GetExecutingAssembly().GetName().Version; //UNDONE: tool title expasion is not acceptable: tests call this method more than once.
             if (args.FirstOrDefault(a => a.ToUpper() == "-WAIT") != null)
             {
                 Console.WriteLine("Running in wait mode - now you can attach to the process with a debugger.");

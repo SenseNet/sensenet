@@ -1,12 +1,33 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Text;
-using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.Packaging;
+using SenseNet.Tools.SnAdmin.Testability;
 
 namespace SnAdminRuntime.Tests.Implementations
 {
-    class TestPackageManagerWrapper
+    public class TestPackageManagerWrapper : IPackageManagerWrapper
     {
+        public StringBuilder Log { get; } = new StringBuilder();
+
+        public PackagingResult Execute(string packagePath, string targetDirectory, int phase, string[] parameters, TextWriter output)
+        {
+            Log.AppendLine($"CALL: PackageManager({packagePath}, {targetDirectory}, {phase}, parameters:string[{parameters.Length}])");
+            var result = new PackagingResult();
+            var resultAcc = new PrivateObject(result);
+            resultAcc.SetProperty("Successful", false);
+            return result;
+        }
+
+        public string GetXmlSchema()
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetHelp()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

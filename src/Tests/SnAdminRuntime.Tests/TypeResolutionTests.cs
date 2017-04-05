@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Text;
 using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SenseNet.Packaging;
 using SenseNet.Tools.SnAdmin.Testability;
+using SnAdminRuntime.Tests.Implementations;
 
 namespace SnAdminRuntime.Tests
 {
@@ -32,6 +31,10 @@ namespace SnAdminRuntime.Tests
                 @"Q:\WebApp1\Admin\Pkg1\schema",
                 @"Q:\WebApp1\Admin\Pkg2",
                 @"Q:\WebApp1\Admin\Pkg2\PackageCustomization",
+                @"Q:\WebApp1\Admin\Pkg3",
+                @"Q:\WebApp1\Admin\Pkg3\plugins",
+                @"Q:\WebApp1\Admin\Pkg3\plugins\phase1",
+                @"Q:\WebApp1\Admin\Pkg3\plugins\phase3",
             };
 
             DefaultFiles = new[]
@@ -41,6 +44,7 @@ namespace SnAdminRuntime.Tests
                 @"Q:\WebApp1\Admin\Pkg1\manifest.xml",
                 @"Q:\WebApp1\Admin\Pkg2\manifest.xml",
                 @"Q:\WebApp1\Admin\Pkg2.zip",
+                @"Q:\WebApp1\Admin\Pkg3\manifest.xml",
                 @"Q:\WebApp1\Admin\Pkg3.zip",
                 @"Q:\WebApp1\web.config",
                 @"Q:\WebApp1\bin\sandboxitem1.exe",
@@ -69,9 +73,22 @@ namespace SnAdminRuntime.Tests
   <Version>1.0</Version>
   <ReleaseDate>2016-12-21</ReleaseDate>
   <Steps>
-    <Phase ><Trace>Message1</Trace></Phase>
+    <Phase><Trace>Message1</Trace></Phase>
     <Phase><Trace>Message2</Trace></Phase>
     <Phase><Trace>Message3</Trace></Phase>
+  </Steps>
+</Package>");
+
+            var xml3 = new XmlDocument();
+            DefaultManifests.Add(@"Q:\WebApp1\Admin\Pkg3\manifest.xml", xml3);
+            xml2.LoadXml(@"<Package type='Tool'>
+  <ComponentId>Sense/Net ECM</ComponentId>
+  <Version>1.0</Version>
+  <ReleaseDate>2016-12-21</ReleaseDate>
+  <Steps>
+    <Phase extensions='plugins\phase1'><Trace>Message1</Trace></Phase>
+    <Phase><Trace>Message2</Trace></Phase>
+    <Phase extensions='plugins\phase3'><Trace>Message3</Trace></Phase>
   </Steps>
 </Package>");
         }
@@ -93,14 +110,11 @@ namespace SnAdminRuntime.Tests
             var args = new[] { @"Q:\WebApp1\Admin\Pkg1", @"TargetDirectory:""Q:\WebApp1""", "PHASE:0", "LOG:", "LOGLEVEL:Console" };
 
             // ACT
-            var result = SenseNet.Tools.SnAdmin.SnAdminRuntime.Main(args);
+            SenseNet.Tools.SnAdmin.SnAdminRuntime.Main(args);
 
             // ASSERT
-            console.Flush();
-            var consoleText = console.GetStringBuilder().ToString();
-
             Assert.AreEqual(
-                "CALL: PackageManager(Q:\\WebApp1\\Admin\\Pkg1, Q:\\WebApp1, 0, parameters:string[0])",
+                "CALL: PackageManager(Q:\\WebApp1\\Admin\\Pkg1, Q:\\WebApp1, 0, parameters:string[0])" + Environment.NewLine,
                 pkgMan.Log.ToString());
             Assert.AreEqual(
                 $"CALL: LoadAssembliesFrom({Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)})" + Environment.NewLine,
@@ -122,101 +136,54 @@ namespace SnAdminRuntime.Tests
             var args = new[] { @"Q:\WebApp1\Admin\Pkg2", @"TargetDirectory:""Q:\WebApp1""", "PHASE:0", "LOG:", "LOGLEVEL:Console" };
 
             // ACT
-            var result = SenseNet.Tools.SnAdmin.SnAdminRuntime.Main(args);
+            SenseNet.Tools.SnAdmin.SnAdminRuntime.Main(args);
 
             // ASSERT
-            console.Flush();
-            var consoleText = console.GetStringBuilder().ToString();
 
             Assert.AreEqual(
-                "CALL: PackageManager(Q:\\WebApp1\\Admin\\Pkg2, Q:\\WebApp1, 0, parameters:string[0])",
+                "CALL: PackageManager(Q:\\WebApp1\\Admin\\Pkg2, Q:\\WebApp1, 0, parameters:string[0])" + Environment.NewLine,
                 pkgMan.Log.ToString());
             Assert.AreEqual(
                 $"CALL: LoadAssembliesFrom({Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)})" + Environment.NewLine +
                 @"CALL: LoadAssembliesFrom(Q:\WebApp1\Admin\Pkg2\PackageCustomization)" + Environment.NewLine,
                 typeResolver.Log.ToString());
         }
-    }
 
-    //UNDONE: move to new file: TestPackageManagerWrapper
-    public class TestPackageManagerWrapper : IPackageManagerWrapper
-    {
-        public StringBuilder Log { get; } = new StringBuilder();
-
-        public PackagingResult Execute(string packagePath, string targetDirectory, int phase, string[] parameters, TextWriter output)
+        [TestMethod]
+        public void SnAdminRuntime_PhaseCustomization()
         {
-            Log.Append($"CALL: PackageManager({packagePath}, {targetDirectory}, {phase}, parameters:string[{parameters.Length}])");
-            var result = new PackagingResult();
-            var resultAcc = new PrivateObject(result);
-            resultAcc.SetProperty("Successful", false);
-            return result;
-        }
+            // ARRANGE
+            var disk = new TestDisk(DefaultDirs, DefaultFiles, DefaultManifests);
+            Disk.Instance = disk;
+            var typeResolver = new TestTypeResolverWrapper();
+            TypeResolverWrapper.Instance = typeResolver;
+            var pkgMan = new TestPackageManagerWrapper();
+            PackageManagerWrapper.Instance = pkgMan;
+            var console = new StringWriter();
+            SenseNet.Tools.SnAdmin.SnAdminRuntime.Output = console;
+            var args1 = new[] { @"Q:\WebApp1\Admin\Pkg3", @"TargetDirectory:""Q:\WebApp1""", "PHASE:0", "LOG:", "LOGLEVEL:Console" };
+            var args2 = new[] { @"Q:\WebApp1\Admin\Pkg3", @"TargetDirectory:""Q:\WebApp1""", "PHASE:1", "LOG:", "LOGLEVEL:Console" };
+            var args3 = new[] { @"Q:\WebApp1\Admin\Pkg3", @"TargetDirectory:""Q:\WebApp1""", "PHASE:2", "LOG:", "LOGLEVEL:Console" };
 
-        public string GetXmlSchema()
-        {
-            throw new NotImplementedException();
-        }
+            // ACT
+            SenseNet.Tools.SnAdmin.SnAdminRuntime.Main(args1);
+            SenseNet.Tools.SnAdmin.SnAdminRuntime.Main(args2);
+            SenseNet.Tools.SnAdmin.SnAdminRuntime.Main(args3);
 
-        public string GetHelp()
-        {
-            throw new NotImplementedException();
-        }
-    }
+            // ASSERT
 
-    //UNDONE: move to new file: TestTypeResolverWrapper
-    public class TestTypeResolverWrapper : ITypeResolverWrapper
-    {
-        public StringBuilder Log { get; } = new StringBuilder();
-
-        public object CreateInstance(string typeName)
-        {
-            throw new NotImplementedException();
-        }
-
-        public object CreateInstance(string typeName, params object[] args)
-        {
-            throw new NotImplementedException();
-        }
-
-        public T CreateInstance<T>(string typeName) where T : new()
-        {
-            throw new NotImplementedException();
-        }
-
-        public T CreateInstance<T>(string typeName, params object[] args)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Type FindTypeInAppDomain(string typeName, bool throwOnError = true)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Assembly[] GetAssemblies()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Type GetType(string typeName, bool throwOnError = true)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Type[] GetTypesByBaseType(Type baseType)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Type[] GetTypesByInterface(Type interfaceType)
-        {
-            throw new NotImplementedException();
-        }
-
-        public string[] LoadAssembliesFrom(string path)
-        {
-            Log.AppendLine($"CALL: LoadAssembliesFrom({path})");
-            return new string[0];
+            Assert.AreEqual(
+                "CALL: PackageManager(Q:\\WebApp1\\Admin\\Pkg3, Q:\\WebApp1, 0, parameters:string[0])" + Environment.NewLine +
+                "CALL: PackageManager(Q:\\WebApp1\\Admin\\Pkg3, Q:\\WebApp1, 1, parameters:string[0])" + Environment.NewLine +
+                "CALL: PackageManager(Q:\\WebApp1\\Admin\\Pkg3, Q:\\WebApp1, 2, parameters:string[0])" + Environment.NewLine,
+                pkgMan.Log.ToString());
+            Assert.AreEqual(
+                $"CALL: LoadAssembliesFrom({Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)})" + Environment.NewLine +
+                @"CALL: LoadAssembliesFrom(Q:\WebApp1\Admin\Pkg3\plugins\phase1)" + Environment.NewLine,
+                $"CALL: LoadAssembliesFrom({Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)})" + Environment.NewLine +
+                $"CALL: LoadAssembliesFrom({Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)})" + Environment.NewLine +
+                @"CALL: LoadAssembliesFrom(Q:\WebApp1\Admin\Pkg3\plugins\phase1)" + Environment.NewLine,
+                typeResolver.Log.ToString());
         }
     }
 }

@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 using SenseNet.Tools.SnAdmin.Testability;
 
-namespace SnAdminRuntime.Tests
+namespace SnAdminRuntime.Tests.Implementations
 {
     internal class TestDisk : IDisk
     {
@@ -75,7 +73,7 @@ namespace SnAdminRuntime.Tests
 
             // get the name of the container directory (should be 'Admin')
             var adminDirName = Path.GetFileName(path);
-            path = Path.GetDirectoryName(path);
+            path = Path.GetDirectoryName(path) ?? "\\";
 
             if (string.Compare(adminDirName, "Admin", StringComparison.OrdinalIgnoreCase) == 0)
             {
