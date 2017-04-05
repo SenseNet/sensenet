@@ -177,7 +177,7 @@ namespace SenseNet.Tools.SnAdmin
             var phaseCustomizationPath = GetPhaseCustomizationPath(packagePath, phase);
             if (Disk.DirectoryExists(phaseCustomizationPath))
             {
-                Output.WriteLine($"Loading phase-{phase} customizations:");
+                Output.WriteLine($"Loading phase-{phase + 1} customizations:");
                 var loaded = typeResolver.LoadAssembliesFrom(phaseCustomizationPath);
                 foreach (var item in loaded)
                 {
