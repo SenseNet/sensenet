@@ -18,8 +18,9 @@ namespace SenseNet.Tools.SnAdmin
     internal class SnAdminRuntime
     {
         #region Constants
+
         private static string CR = Environment.NewLine;
-        private static string ToolTitle = "Sense/Net Admin Runtime ";
+
         private static string UsageScreen = String.Concat(
             //         1         2         3         4         5         6         7         8
             // 2345678901234567890123456789012345678901234567890123456789012345678901234567890123456789
@@ -33,13 +34,24 @@ namespace SenseNet.Tools.SnAdmin
             "<target>: Directory contains web folder of a stopped SenseNet instance.", CR
         );
 
+        private static string __toolTitle;
+
+        private static string ToolTitle
+        {
+            get
+            {
+                if (__toolTitle == null)
+                    __toolTitle = $"Sense/Net Admin Runtime {Assembly.GetExecutingAssembly().GetName().Version}";
+                return __toolTitle;
+            }
+        }
+
         #endregion
 
         internal static TextWriter Output { get; set; } = Console.Out;
 
         internal static int Main(string[] args)
         {
-            ToolTitle += Assembly.GetExecutingAssembly().GetName().Version; //UNDONE: tool title expasion is not acceptable: tests call this method more than once.
             if (args.FirstOrDefault(a => a.ToUpper() == "-WAIT") != null)
             {
                 Console.WriteLine("Running in wait mode - now you can attach to the process with a debugger.");
@@ -57,7 +69,9 @@ namespace SenseNet.Tools.SnAdmin
             bool wait;
             string[] parameters;
 
-            if (!ParseParameters(args, out packagePath, out targetDirectory, out phase, out parameters, out logFilePath, out logLevel, out help, out schema, out wait))
+            if (
+                !ParseParameters(args, out packagePath, out targetDirectory, out phase, out parameters, out logFilePath,
+                    out logLevel, out help, out schema, out wait))
                 return -1;
 
             Logger.PackageName = Path.GetFileName(packagePath);
@@ -67,7 +81,10 @@ namespace SenseNet.Tools.SnAdmin
 
             return ExecutePhase(packagePath, targetDirectory, phase, parameters, logFilePath, help, schema);
         }
-        internal static bool ParseParameters(string[] args, out string packagePath, out string targetDirectory, out int phase, out string[] parameters, out string logFilePath, out LogLevel logLevel, out bool help, out bool schema, out bool wait)
+
+        internal static bool ParseParameters(string[] args, out string packagePath, out string targetDirectory,
+            out int phase, out string[] parameters, out string logFilePath, out LogLevel logLevel, out bool help,
+            out bool schema, out bool wait)
         {
             packagePath = null;
             targetDirectory = null;
@@ -89,10 +106,18 @@ namespace SenseNet.Tools.SnAdmin
                     var verb = arg.Substring(1).ToUpper();
                     switch (verb)
                     {
-                        case "?": help = true; break;
-                        case "HELP": help = true; break;
-                        case "SCHEMA": schema = true; break;
-                        case "WAIT": wait = true; break;
+                        case "?":
+                            help = true;
+                            break;
+                        case "HELP":
+                            help = true;
+                            break;
+                        case "SCHEMA":
+                            schema = true;
+                            break;
+                        case "WAIT":
+                            wait = true;
+                            break;
                     }
                 }
                 else if (arg.StartsWith("PHASE:", StringComparison.OrdinalIgnoreCase))
@@ -105,7 +130,7 @@ namespace SenseNet.Tools.SnAdmin
                 }
                 else if (arg.StartsWith("LOGLEVEL:", StringComparison.OrdinalIgnoreCase))
                 {
-                    logLevel = (LogLevel)Enum.Parse(typeof(LogLevel), arg.Substring(9));
+                    logLevel = (LogLevel) Enum.Parse(typeof(LogLevel), arg.Substring(9));
                 }
                 else if (arg.StartsWith("TARGETDIRECTORY:", StringComparison.OrdinalIgnoreCase))
                 {
@@ -128,7 +153,8 @@ namespace SenseNet.Tools.SnAdmin
             return true;
         }
 
-        internal static int ExecutePhase(string packagePath, string targetDirectory, int phase, string[] parameters, string logFilePath, bool help, bool schema)
+        internal static int ExecutePhase(string packagePath, string targetDirectory, int phase, string[] parameters,
+            string logFilePath, bool help, bool schema)
         {
             Logger.LogTitle(ToolTitle);
             var typeResolver = TypeResolverWrapper.Instance;
@@ -148,17 +174,17 @@ namespace SenseNet.Tools.SnAdmin
                 }
             }
 
-            //var phaseCustomizationPath = PackageManagerWrapper.Instance.GetPhaseCustomizationPath(packagePath, phase);
-            //if (Disk.DirectoryExists(phaseCustomizationPath))
-            //{
-            //    Output.WriteLine($"Loading phase-{phase} customizations:");
-            //    var loaded = typeResolver.LoadAssembliesFrom(phaseCustomizationPath);
-            //    foreach (var item in loaded)
-            //    {
-            //        Output.Write("  ");
-            //        Output.WriteLine(item);
-            //    }
-            //}
+            var phaseCustomizationPath = GetPhaseCustomizationPath(packagePath, phase);
+            if (Disk.DirectoryExists(phaseCustomizationPath))
+            {
+                Output.WriteLine($"Loading phase-{phase} customizations:");
+                var loaded = typeResolver.LoadAssembliesFrom(phaseCustomizationPath);
+                foreach (var item in loaded)
+                {
+                    Output.Write("  ");
+                    Output.WriteLine(item);
+                }
+            }
 
             if (help)
             {
@@ -205,9 +231,33 @@ namespace SenseNet.Tools.SnAdmin
             if (!result.Successful)
                 return result.Terminated ? -1 : -2;
             if (result.NeedRestart)
-                return 1 + Logger.Errors * 2;
-            return Logger.Errors * 2;
+                return 1 + Logger.Errors*2;
+            return Logger.Errors*2;
         }
+
+        private static string GetPhaseCustomizationPath(string packagePath, int phase)
+        {
+            var files = Disk.GetFiles(packagePath);
+            if (files.Length != 1)
+                return null;
+
+            XmlDocument xml;
+            try
+            {
+                xml = Disk.LoadManifest(files[0]);
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
+
+            var phaseElement = (XmlElement) xml?.DocumentElement?.SelectSingleNode($"Steps/Phase[{phase + 1}]");
+
+            var relPath = phaseElement?.Attributes["extensions"]?.Value;
+
+            return relPath == null ? null : Path.Combine(packagePath, relPath);
+        }
+
         private static void LogAssemblies()
         {
             Logger.LogMessage("Assemblies:");

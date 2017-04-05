@@ -41,6 +41,8 @@ namespace SnAdminRuntime.Tests.Implementations
         }
         public string[] GetFiles(string path, string filter = null)
         {
+            if (!path.EndsWith("\\"))
+                path += "\\";
             var files = Files
                 .Where(p => p.StartsWith(path, StringComparison.OrdinalIgnoreCase) && p.Length > path.Length)
                 .Where(p => !p.Substring(path.Length + 1).Contains("\\"));

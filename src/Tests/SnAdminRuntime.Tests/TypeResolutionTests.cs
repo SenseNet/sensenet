@@ -81,7 +81,7 @@ namespace SnAdminRuntime.Tests
 
             var xml3 = new XmlDocument();
             DefaultManifests.Add(@"Q:\WebApp1\Admin\Pkg3\manifest.xml", xml3);
-            xml2.LoadXml(@"<Package type='Tool'>
+            xml3.LoadXml(@"<Package type='Tool'>
   <ComponentId>Sense/Net ECM</ComponentId>
   <Version>1.0</Version>
   <ReleaseDate>2016-12-21</ReleaseDate>
@@ -171,7 +171,6 @@ namespace SnAdminRuntime.Tests
             SenseNet.Tools.SnAdmin.SnAdminRuntime.Main(args3);
 
             // ASSERT
-
             Assert.AreEqual(
                 "CALL: PackageManager(Q:\\WebApp1\\Admin\\Pkg3, Q:\\WebApp1, 0, parameters:string[0])" + Environment.NewLine +
                 "CALL: PackageManager(Q:\\WebApp1\\Admin\\Pkg3, Q:\\WebApp1, 1, parameters:string[0])" + Environment.NewLine +
@@ -179,10 +178,10 @@ namespace SnAdminRuntime.Tests
                 pkgMan.Log.ToString());
             Assert.AreEqual(
                 $"CALL: LoadAssembliesFrom({Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)})" + Environment.NewLine +
-                @"CALL: LoadAssembliesFrom(Q:\WebApp1\Admin\Pkg3\plugins\phase1)" + Environment.NewLine,
+                @"CALL: LoadAssembliesFrom(Q:\WebApp1\Admin\Pkg3\plugins\phase1)" + Environment.NewLine +
                 $"CALL: LoadAssembliesFrom({Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)})" + Environment.NewLine +
                 $"CALL: LoadAssembliesFrom({Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)})" + Environment.NewLine +
-                @"CALL: LoadAssembliesFrom(Q:\WebApp1\Admin\Pkg3\plugins\phase1)" + Environment.NewLine,
+                @"CALL: LoadAssembliesFrom(Q:\WebApp1\Admin\Pkg3\plugins\phase3)" + Environment.NewLine,
                 typeResolver.Log.ToString());
         }
     }
