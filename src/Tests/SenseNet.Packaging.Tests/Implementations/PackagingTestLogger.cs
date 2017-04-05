@@ -1,7 +1,6 @@
-﻿using SenseNet.Packaging;
-using System.Text;
+﻿using System.Text;
 
-namespace SenseNet.Core.Tests.Implementations
+namespace SenseNet.Packaging.Tests.Implementations
 {
     public class PackagingTestLogger : IPackagingLogger
     {

@@ -4,7 +4,7 @@ using System.Data;
 using System.Data.Common;
 using SenseNet.ContentRepository.Storage.Data;
 
-namespace SenseNet.Core.Tests.Implementations
+namespace SenseNet.Packaging.Tests.Implementations
 {
     public class TestDataProcedure : IDataProcedure
     {

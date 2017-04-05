@@ -1,8 +1,11 @@
 <Package type='Tool'>
-  <ComponentId>Sense/Net ECM Import</ComponentId>
-  <Description>Imports content items to the Content Repository from the file system.</Description>
+  <ComponentId>SenseNet.Import</ComponentId>
+  <Description>Sense/Net ECM tool for importing content items to the Content Repository from the file system.</Description>
   <ReleaseDate>2017-04-05</ReleaseDate>
   <Version>7.0.0</Version>
+  <Dependencies>
+    <Dependency id='SenseNet.Services' minVersion='7.0.0' />
+  </Dependencies>
   <Parameters>
     <Parameter name="@source" description="File system path of the folder or file to import (mandatory)." />
     <Parameter name="@target" description="Content path of the container where the content items will be imported.">/Root</Parameter>

@@ -1,8 +1,11 @@
 <Package type='Tool'>
-  <ComponentId>Sense/Net ECM Export</ComponentId>
-  <Description>Exports content items from the Content Repository to the file system.</Description>
+  <ComponentId>SenseNet.Export</ComponentId>
+  <Description>Sense/Net ECM tool for exporting content items from the Content Repository to the file system.</Description>
   <ReleaseDate>2017-04-05</ReleaseDate>
   <Version>7.0.0</Version>
+  <Dependencies>
+    <Dependency id='SenseNet.Services' minVersion='7.0.0' />
+  </Dependencies>
   <Parameters>
     <Parameter name="@source" description="Repository path of the content or container to export. Default: /Root" />
     <Parameter name="@target" description="File system path to save exported items to." />
