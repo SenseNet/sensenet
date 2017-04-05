@@ -1,5 +1,4 @@
-﻿using SenseNet.Packaging;
-using System.Text;
+﻿using System.Text;
 
 namespace SenseNet.Packaging.IntegrationTests.Implementations
 {

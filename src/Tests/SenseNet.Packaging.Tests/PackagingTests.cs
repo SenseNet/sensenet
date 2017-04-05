@@ -7,11 +7,10 @@ using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.Packaging;
 using SenseNet.Packaging.Steps;
-using SenseNet.Core.Tests.Implementations;
+using SenseNet.Packaging.Tests.Implementations;
 
-namespace SenseNet.Core.Tests
+namespace SenseNet.Packaging.Tests
 {
     #region Implementations
 

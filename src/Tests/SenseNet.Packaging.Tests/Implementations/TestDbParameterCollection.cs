@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
 
-namespace SenseNet.Core.Tests.Implementations
+namespace SenseNet.Packaging.Tests.Implementations
 {
     public class TestDbParameterCollection : DbParameterCollection
     {

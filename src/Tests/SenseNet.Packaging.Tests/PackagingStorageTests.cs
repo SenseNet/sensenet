@@ -7,10 +7,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
-using SenseNet.Core.Tests.Implementations;
-using SenseNet.Packaging;
+using SenseNet.Packaging.Tests.Implementations;
 
-namespace SenseNet.Core.Tests
+namespace SenseNet.Packaging.Tests
 {
     [TestClass]
     public class PackagingStorageTests

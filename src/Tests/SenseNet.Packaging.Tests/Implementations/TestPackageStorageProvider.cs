@@ -1,12 +1,11 @@
 ﻿using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.Packaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SenseNet.Core.Tests.Implementations
+namespace SenseNet.Packaging.Tests.Implementations
 {
     internal class TestPackageStorageProviderFactory : IPackageStorageProviderFactory
     {
@@ -77,7 +76,7 @@ namespace SenseNet.Core.Tests.Implementations
                     && p.ExecutionResult == ExecutionResult.Successful))
             {
                 var componentId = package.ComponentId;
-                ComponentInfo component = null;
+                ComponentInfo component;
                 if (!componentInfos.TryGetValue(componentId, out component))
                 {
                     component = new ComponentInfo
@@ -98,7 +97,7 @@ namespace SenseNet.Core.Tests.Implementations
                 .Where(p => (p.PackageType == PackageType.Install || p.PackageType == PackageType.Patch)))
             {
                 var componentId = package.ComponentId;
-                ComponentInfo component = null;
+                ComponentInfo component;
                 if (componentInfos.TryGetValue(componentId, out component))
                 {
                     if ((package.ComponentVersion > (component.AcceptableVersion ?? nullVersion))
