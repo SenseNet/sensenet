@@ -1,5 +1,10 @@
 ﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
+[assembly: InternalsVisibleTo("SenseNet.Tests")]
+[assembly: InternalsVisibleTo("SenseNet.Packaging.Tests")]
+[assembly: InternalsVisibleTo("SenseNet.Packaging.IntegrationTests")]
 
 #if DEBUG
 [assembly: AssemblyTitle("SenseNet.Common (Debug)")]

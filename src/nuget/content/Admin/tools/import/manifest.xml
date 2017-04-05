@@ -1,7 +1,11 @@
-<Package type='Product' level='Tool'>
-  <Name>Sense/Net ECM</Name>
-  <Description>Imports content items to the Content Repository from the file system.</Description>
-  <ReleaseDate>2016-12-21</ReleaseDate>
+<Package type='Tool'>
+  <ComponentId>SenseNet.Import</ComponentId>
+  <Description>Sense/Net ECM tool for importing content items to the Content Repository from the file system.</Description>
+  <ReleaseDate>2017-04-05</ReleaseDate>
+  <Version>7.0.0</Version>
+  <Dependencies>
+    <Dependency id='SenseNet.Services' minVersion='7.0.0' />
+  </Dependencies>
   <Parameters>
     <Parameter name="@source" description="File system path of the folder or file to import (mandatory)." />
     <Parameter name="@target" description="Content path of the container where the content items will be imported.">/Root</Parameter>
@@ -10,9 +14,9 @@
     <Parameter name="@logLevel" description="The amount of log information you want to see. Possible values: Info, Progress, Verbose.">Verbose</Parameter>
   </Parameters>
   <Steps>
-	  <Phase>
-		  <StartRepository />
-		  <Import Source="@source" Target="@target" ResetSecurity="@resetSecurity" SourceIsRelativeTo="@sourceIsRelativeTo" LogLevel="@logLevel" />
-	  </Phase>
+    <Phase>
+      <StartRepository />
+      <Import Source="@source" Target="@target" ResetSecurity="@resetSecurity" SourceIsRelativeTo="@sourceIsRelativeTo" LogLevel="@logLevel" />
+    </Phase>
   </Steps>
 </Package>

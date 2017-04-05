@@ -41,7 +41,7 @@ To finalize the installation and get started with Sense/Net ECM platform, please
         - dataSource: your SQL server instance name (e.g. . or MSSQLSERVER\SQL2016)
         - initialCatalog: database name
 
-    .\snadmin installnuget dataSource:. initialCatalog:sensenet
+    .\snadmin install-services dataSource:. initialCatalog:sensenet
 
 6. Update your Razor views (you can do this later at any time).
    If you use the built-in HtmlHelper.ActionLink method to render actions (as it is the case with the default project templates), 

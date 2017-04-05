@@ -170,11 +170,12 @@
     <Compile Include="ContentNotFoundException.cs" />
     <Compile Include="CounterManager.cs" />
     <Compile Include="Data\BlobStorage.cs" />
+    <Compile Include="Data\IPackageStorageProvider.cs" />
     <Compile Include="Data\SnMaintenance.cs" />
     <Compile Include="Data\IndexBackup.cs" />
     <Compile Include="Data\IndexBackupProgress.cs" />
     <Compile Include="Data\RepositoryPathTooLongException.cs" />
-    <Compile Include="Data\SqlClient\SqlDataReaderExtensions.cs" />
+    <Compile Include="Data\SqlClient\DataReaderExtensions.cs" />
     <Compile Include="Data\SqlClient\TextPropertyWriter.cs" />
     <Compile Include="Data\SqlClient\TraceSqlProvider.cs" />
     <Compile Include="Data\StorageDataReaderExtensions.cs" />
