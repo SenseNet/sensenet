@@ -83,6 +83,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="BlobStorage.nuspec" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>

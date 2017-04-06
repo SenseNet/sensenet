@@ -167,7 +167,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         /// <summary>
         /// Sends the CommandText to the connection and builds a SqlDataReader.
         /// </summary>
-        public SqlDataReader ExecuteReader()
+        public virtual SqlDataReader ExecuteReader()
         {
             using (var op = SnTrace.Database.StartOperation(GetTraceData("ExecuteReader")))
             {
@@ -194,7 +194,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         /// <summary>
         /// Sends the CommandText to the connection and builds a SqlDataReader using the provided command behavior.
         /// </summary>
-        public SqlDataReader ExecuteReader(CommandBehavior behavior)
+        public virtual SqlDataReader ExecuteReader(CommandBehavior behavior)
         {
             using (var op = SnTrace.Database.StartOperation(GetTraceData("ExecuteReader(" + behavior + ")")))
             {
@@ -221,7 +221,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         /// <summary>
         /// Executes the query, and returns the first column of the first row in the result set.
         /// </summary>
-        public object ExecuteScalar()
+        public virtual object ExecuteScalar()
         {
             using (var op = SnTrace.Database.StartOperation(GetTraceData("ExecuteScalar")))
             {
@@ -247,7 +247,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         /// <summary>
         /// Executes a Transact-SQL statement against the connection and returns the number of rows affected.
         /// </summary>
-        public int ExecuteNonQuery()
+        public virtual int ExecuteNonQuery()
         {
             using (var op = SnTrace.Database.StartOperation(GetTraceData("ExecuteNonQuery")))
             {

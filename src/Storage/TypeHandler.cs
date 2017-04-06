@@ -10,19 +10,20 @@ using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Storage
 {
-    public class ApplicationInfo
+    public class ComponentInfo
     {
-        public string Name { get; set; }
-        public string Edition { get; set; }
-        public string AppId { get; set; }
+        public string ComponentId { get; set; }
         public Version Version { get; set; }
         public Version AcceptableVersion { get; set; }
         public string Description { get; set; }
 
-        public static ApplicationInfo CreateInitialSenseNetVersion(string name, string edition, Version version, string description)
+        public static readonly ComponentInfo Empty = new ComponentInfo
         {
-            return Data.DataProvider.Current.CreateInitialSenseNetVersion(name, edition, version, description);
-        }
+            ComponentId = string.Empty,
+            Version = new Version(0, 0),
+            AcceptableVersion = null,
+            Description = string.Empty
+        };
     }
 
     public class AssemblyInfo

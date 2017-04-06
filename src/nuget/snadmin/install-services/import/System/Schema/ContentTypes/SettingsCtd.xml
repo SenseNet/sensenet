@@ -1,0 +1,44 @@
+﻿<ContentType name="Settings" parentType="File" handler="SenseNet.ContentRepository.Settings" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+  <DisplayName>$Ctd-Settings,DisplayName</DisplayName>
+  <Description>$Ctd-Settings,Description</Description>
+  <Icon>Settings</Icon>
+  <Fields>
+    <Field name="Name" type="ShortText">
+      <Configuration>
+        <DefaultValue>.settings</DefaultValue>
+      </Configuration>
+    </Field>
+    <Field name="DisplayName" type="ShortText">
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="Version" type="Version">
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="Index" type="Integer">
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="Watermark" type="ShortText">
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="GlobalOnly" type="Boolean">
+      <DisplayName>$Ctd-Settings,GlobalOnly-DisplayName</DisplayName>
+      <Description>$Ctd-Settings,GlobalOnly-Description</Description>
+    </Field>
+  </Fields>
+</ContentType>

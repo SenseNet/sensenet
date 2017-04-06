@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>GenericODataApplication</ContentType>
+  <ContentName>GetRecentIndexingActivities</ContentName>
+  <Fields>
+    <ClassName><![CDATA[SenseNet.ContentRepository.RepositoryTools]]></ClassName>
+    <MethodName><![CDATA[GetRecentIndexingActivities]]></MethodName>
+    <Parameters><![CDATA[]]></Parameters>
+    <DisplayName><![CDATA[GetRecentIndexingActivities]]></DisplayName>
+    <Description><![CDATA[]]></Description>
+    <ActionTypeName><![CDATA[GenericODataOperation]]></ActionTypeName>
+    <Icon><![CDATA[Application]]></Icon>
+    <EnableLifespan>false</EnableLifespan>
+  </Fields>
+</ContentMetaData>

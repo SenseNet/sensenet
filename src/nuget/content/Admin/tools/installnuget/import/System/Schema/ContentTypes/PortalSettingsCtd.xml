@@ -1,7 +1,0 @@
-﻿<ContentType name="PortalSettings" parentType="Settings" handler="SenseNet.Portal.PortalSettings" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
-  <DisplayName>$Ctd-PortalSettings,DisplayName</DisplayName>
-  <Description>$Ctd-PortalSettings,Description</Description>
-  <Icon>Settings</Icon>
-  <Fields>
-  </Fields>
-</ContentType>

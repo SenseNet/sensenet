@@ -78,24 +78,6 @@ namespace SenseNet.Search
                                 {"rtf", new RtfTextExtractor()}
                             };
 
-            var isCommunity = RepositoryVersionInfo.Instance != null &&
-                RepositoryVersionInfo.Instance.OfficialSenseNetVersion != null &&
-                RepositoryVersionInfo.Instance.OfficialSenseNetVersion.Edition == "Community";
-
-            // add text extractors available only in the Enterprise Edition
-            if (!isCommunity)
-            {
-                try
-                {
-                    // load text extractor types that are available only in the Enterprise edition
-                    //extractors["pdf"] = (ITextExtractor)TypeResolver.CreateInstance(ASPOSE_PDF_TEXTEXTRACTOR_NAME);
-                }
-                catch (Exception ex)
-                {
-                    SnLog.WriteWarning("Text extractor type could not be instatiated (Aspose Pdf extractor). " + ex, EventId.Indexing);
-                }
-            }
-
             // load text extractor settings (they may override the defaults listed above)
             foreach (var field in this.Content.Fields.Values.Where(field => field.Name.StartsWith(TEXTEXTRACTORS_TEXTFIELDNAME + ".")))
             {
@@ -105,14 +87,9 @@ namespace SenseNet.Search
 
                 extractorName = extractorName.Trim('.', ' ');
 
-                // make sure that only Enterprise customers can use the Aspose provider
-                if (isCommunity && string.Compare(extractorName, ASPOSE_PDF_TEXTEXTRACTOR_NAME, StringComparison.InvariantCulture) == 0)
-                    continue;
-
                 try
                 {
                     var extension = field.Name.Substring(field.Name.LastIndexOf('.')).Trim('.', ' ').ToLower();
-
                     extractors[extension] = (ITextExtractor)TypeResolver.CreateInstance(extractorName);
                 }
                 catch (Exception ex)
