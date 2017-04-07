@@ -181,6 +181,7 @@
     <Compile Include="Packaging\Steps\AddField.cs" />
     <Compile Include="Packaging\Steps\AddMembers.cs" />
     <Compile Include="Packaging\Steps\AddResource.cs" />
+    <Compile Include="Packaging\Steps\EditAllowedChildTypes.cs" />
     <Compile Include="Packaging\Steps\Assign.cs" />
     <Compile Include="Packaging\Steps\ChangeContentType.cs" />
     <Compile Include="Packaging\Steps\ChangeFieldType.cs" />
