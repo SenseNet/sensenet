@@ -6,6 +6,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics;
 
 namespace SenseNet.ApplicationModel
 {
@@ -205,7 +206,20 @@ namespace SenseNet.ApplicationModel
             if (app == null)
                 return null;
 
-            var action = app.CreateAction(context, backUri, parameters);
+            ActionBase action = null;
+            try
+            {
+                action = app.CreateAction(context, backUri, parameters);
+            }
+            catch (InvalidContentActionException ex)
+            {
+                if (ex.Reason != InvalidContentActionReason.UnknownAction)
+                {
+                   throw;
+                }
+                SnLog.WriteWarning("Application content refers to an unknown action class.", EventId.ActionFramework
+                    , properties: new Dictionary<string, object>{{ "ActionTypeName", app.ActionTypeName },{ "Path",  app.Path }});
+            }
             if (action == null)
                 return null;
 
