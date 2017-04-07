@@ -10,11 +10,14 @@ using SNCS = SenseNet.ContentRepository.Schema;
 namespace SenseNet.Packaging.Steps
 {
     [Annotation("Checks the index integrity by comparation the index and database.")]
-    public class AllowChildTypes : EditContentType
+    public class EditAllowedChildTypes : EditContentType
     {
         [DefaultProperty]
-        [Annotation("Comma separated content type names to be allowed")]
-        public string ChildTypes { get; set; }
+        [Annotation("Comma separated content type names to be added to allowed list")]
+        public string Add { get; set; }
+
+        [Annotation("Comma separated content type names to be removed to allowed list")]
+        public string Remove { get; set; }
 
         [Annotation("Repository path of the content to be modified")]
         public string Path { get; set; }
@@ -23,27 +26,26 @@ namespace SenseNet.Packaging.Steps
         {
             Path = GetNormalizedStringValue(Path, context);
             ContentType = GetNormalizedStringValue(ContentType, context);
-            ChildTypes = GetNormalizedStringValue(ChildTypes, context);
+            var newTypes = GetNormalizedStringValue(Add, context);
+            var oldTypes = GetNormalizedStringValue(Remove, context);
 
             if (Path != null && ContentType != null)
                 throw new SnNotSupportedException("Path and ContentType is not allowed together.");
             if (Path == null && ContentType == null)
-                throw new SnNotSupportedException("Path and ContentType is not allowed together.");
+                throw new SnNotSupportedException("Path and ContentType cannot be empty together.");
 
-            if (ChildTypes == null)
+            if (newTypes.Length + oldTypes.Length == 0)
             {
-                Logger.LogMessage(@"ChildTypes is not provided.");
+                Logger.LogMessage(@"There is no any modificaton.");
                 return;
             }
 
             context.AssertRepositoryStarted();
 
-            var newChildTypes = ChildTypes.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries).ToArray();
-
             if (Path != null)
-                ExecuteOnContent(Path.Trim(), newChildTypes);
+                ExecuteOnContent(Path.Trim(), newTypes, oldTypes);
             else
-                ExecuteOnContentType(ContentType.Trim(), newChildTypes);
+                ExecuteOnContentType(ContentType.Trim(), newTypes, oldTypes);
         }
 
         private string GetNormalizedStringValue(string value, ExecutionContext context)
@@ -52,7 +54,7 @@ namespace SenseNet.Packaging.Steps
             return value?.Length == 0 ? null : value;
         }
 
-        private void ExecuteOnContent(string path, string[] newContentTypes)
+        private void ExecuteOnContent(string path, string newTypes, string oldTypes)
         {
             var content = Content.Load(path);
             if (content == null)
@@ -68,23 +70,16 @@ namespace SenseNet.Packaging.Steps
                 return;
             }
 
-            var newChiltTypeNames = gc.GetAllowedChildTypeNames()
-                    .Union(newContentTypes)
-                    .Distinct()
-                    .ToArray();
+            var newChiltTypeNames = GetEditedList( gc.GetAllowedChildTypeNames(), newTypes, oldTypes);
 
             gc.AllowChildTypes(newChiltTypeNames);
             gc.Save();
         }
 
-        private void ExecuteOnContentType(string contentTypeName, string[] newContentTypes)
+        private void ExecuteOnContentType(string contentTypeName, string newTypes, string oldTypes)
         {
             var ct = SNCS.ContentType.GetByName(contentTypeName);
-            var newChiltTypeNames = string.Join(",",
-                ct.AllowedChildTypeNames
-                    .Union(newContentTypes)
-                    .Distinct()
-                    .ToArray());
+            var newChiltTypeNames = string.Join(",", GetEditedList(ct.AllowedChildTypeNames, newTypes, oldTypes));
 
             var xDoc = LoadContentTypeXmlDocument();
 
@@ -92,6 +87,23 @@ namespace SenseNet.Packaging.Steps
             propertyElement.InnerXml = newChiltTypeNames;
 
             SNCS.ContentTypeInstaller.InstallContentType(xDoc.OuterXml);
+        }
+
+        internal string[] GetEditedList(IEnumerable<string> origList, string newItems, string retiredItems)
+        {
+            var addArray = newItems?
+                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => s.Trim())
+                .ToArray() ?? new string[0];
+            var removeArray = retiredItems?
+                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => s.Trim())
+                .ToArray() ?? new string[0];
+            return origList
+                .Union(addArray)
+                .Distinct()
+                .Except(removeArray)
+                .ToArray();
         }
     }
 }
