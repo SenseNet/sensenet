@@ -217,7 +217,8 @@ namespace SenseNet.ApplicationModel
                 {
                    throw;
                 }
-                SnLog.WriteWarning("Application content refers to an unknown action class.", EventId.ActionFramework);
+                SnLog.WriteWarning("Application content refers to an unknown action class.", EventId.ActionFramework
+                    , properties: new Dictionary<string, object>{{ "ActionTypeName", app.ActionTypeName },{ "Path",  app.Path }});
             }
             if (action == null)
                 return null;
