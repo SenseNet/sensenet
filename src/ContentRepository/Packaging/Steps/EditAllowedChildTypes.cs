@@ -34,7 +34,7 @@ namespace SenseNet.Packaging.Steps
             if (Path == null && ContentType == null)
                 throw new SnNotSupportedException("Path and ContentType cannot be empty together.");
 
-            if (newTypes.Length + oldTypes.Length == 0)
+            if (string.IsNullOrEmpty(newTypes) && string.IsNullOrEmpty(oldTypes))
             {
                 Logger.LogMessage(@"There is no any modificaton.");
                 return;
@@ -56,6 +56,8 @@ namespace SenseNet.Packaging.Steps
 
         private void ExecuteOnContent(string path, string newTypes, string oldTypes)
         {
+            Logger.LogMessage("Edit Content: {0}", path);
+
             var content = Content.Load(path);
             if (content == null)
             {
@@ -78,6 +80,8 @@ namespace SenseNet.Packaging.Steps
 
         private void ExecuteOnContentType(string contentTypeName, string newTypes, string oldTypes)
         {
+            Logger.LogMessage("Edit ContentType: {0}", contentTypeName);
+
             var ct = SNCS.ContentType.GetByName(contentTypeName);
             var newChiltTypeNames = string.Join(",", GetEditedList(ct.AllowedChildTypeNames, newTypes, oldTypes));
 
@@ -89,8 +93,11 @@ namespace SenseNet.Packaging.Steps
             SNCS.ContentTypeInstaller.InstallContentType(xDoc.OuterXml);
         }
 
-        internal string[] GetEditedList(IEnumerable<string> origList, string newItems, string retiredItems)
+        internal static string[] GetEditedList(IEnumerable<string> origList, string newItems, string retiredItems)
         {
+            if (origList == null)
+                origList = new string[0];
+
             var addArray = newItems?
                 .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(s => s.Trim())
@@ -99,11 +106,16 @@ namespace SenseNet.Packaging.Steps
                 .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(s => s.Trim())
                 .ToArray() ?? new string[0];
-            return origList
+            var result = origList
                 .Union(addArray)
                 .Distinct()
                 .Except(removeArray)
                 .ToArray();
+
+            Logger.LogMessage("Old items: {0}", string.Join(",", origList));
+            Logger.LogMessage("New items: {0}", string.Join(",", result));
+
+            return result;
         }
     }
 }
