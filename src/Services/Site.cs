@@ -98,14 +98,7 @@ namespace SenseNet.Portal
             set { base.SetProperty(DENYCROSSSITEACCESSPROPERTY, value ? 1 : 0); }
         }
 
-        public static Site Current
-        {
-            get
-            {
-                var pc = PortalContext.Current;
-                return pc != null ? pc.Site : null;
-            }
-        }
+        public static Site Current => PortalContext.Current?.Site;
 
         //////////////////////////////////////// Methods //////////////////////////////////////////////
 
