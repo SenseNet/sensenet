@@ -9,14 +9,17 @@ namespace SenseNet.Packaging
 {
     public class Manifest
     {
+        public static readonly string SystemComponentId = "SenseNet.Services";
+
         public PackageType PackageType { get; private set; }
+        public bool SystemInstall { get; private set; }
         public string ComponentId { get; private set; }
         public string Description { get; private set; }
         public DateTime ReleaseDate { get; private set; }
         public IEnumerable<Dependency> Dependencies { get; private set; }
         public Version Version { get; private set; }
         internal Dictionary<string, string> Parameters { get; private set; }
-        internal XmlDocument ManifestXml {get; private set;}
+        internal XmlDocument ManifestXml { get; private set; }
 
         private List<List<XmlElement>> _phases;
         public int CountOfPhases { get { return _phases.Count; } }
@@ -55,7 +58,7 @@ namespace SenseNet.Packaging
 
             // root element inspection (required element name)
             e = xml.DocumentElement;
-            if(e == null || e.Name != "Package")
+            if (e == null || e.Name != "Package")
                 throw new InvalidPackageException(SR.Errors.Manifest.WrongRootName,
                     PackagingExceptionType.WrongRootName);
 
@@ -67,7 +70,7 @@ namespace SenseNet.Packaging
                 throw new InvalidPackageException(SR.Errors.Manifest.MissingType,
                      PackagingExceptionType.MissingPackageType);
             PackageType packageType;
-            if(!Enum.TryParse<PackageType>(attr.Value, true, out packageType))
+            if (!Enum.TryParse<PackageType>(attr.Value, true, out packageType))
                 throw new InvalidPackageException(SR.Errors.Manifest.InvalidType,
                     PackagingExceptionType.InvalidPackageType);
             manifest.PackageType = packageType;
@@ -86,6 +89,10 @@ namespace SenseNet.Packaging
                 throw new InvalidPackageException(SR.Errors.Manifest.MissingComponentId,
                     PackagingExceptionType.MissingComponentId);
             }
+
+            // parsing system install
+            manifest.SystemInstall = manifest.ComponentId == SystemComponentId &&
+                                     manifest.PackageType == PackageType.Install;
 
             // parsing description (optional)
             e = (XmlElement)xml.DocumentElement.SelectSingleNode("Description");
@@ -108,7 +115,7 @@ namespace SenseNet.Packaging
             if (!DateTime.TryParse(e.InnerText, out releaseDate))
                 throw new InvalidPackageException(SR.Errors.Manifest.InvalidReleaseDate,
                     PackagingExceptionType.InvalidReleaseDate);
-            if(releaseDate > DateTime.UtcNow)
+            if (releaseDate > DateTime.UtcNow)
                 throw new InvalidPackageException(SR.Errors.Manifest.TooBigReleaseDate,
                     PackagingExceptionType.TooBigReleaseDate);
             manifest.ReleaseDate = releaseDate;
@@ -127,7 +134,7 @@ namespace SenseNet.Packaging
             foreach (XmlElement parameterElement in xml.SelectNodes("/Package/Parameters/Parameter"))
             {
                 var parameterName = parameterElement.Attributes["name"]?.Value;
-                if(parameterName == null)
+                if (parameterName == null)
                     throw new InvalidParameterException("Missing parameter name.",
                         PackagingExceptionType.MissingParameterName);
                 if (!parameterName.StartsWith("@"))
@@ -135,7 +142,7 @@ namespace SenseNet.Packaging
                         PackagingExceptionType.InvalidParameterName);
 
                 var lowerCaseParameterName = parameterName.ToLowerInvariant();
-                if(parameters.ContainsKey(lowerCaseParameterName))
+                if (parameters.ContainsKey(lowerCaseParameterName))
                     throw new InvalidParameterException($"Duplicated parameter name:{parameterName}",
                         PackagingExceptionType.DuplicatedParameter);
 
@@ -185,7 +192,7 @@ namespace SenseNet.Packaging
             return phaseElement.SelectNodes("*").Cast<XmlElement>().ToList();
         }
 
-        public List<XmlElement > GetPhase(int index)
+        public List<XmlElement> GetPhase(int index)
         {
             if (index < 0 || index > _phases.Count)
                 throw new PackagingException(String.Format(SR.Errors.InvalidPhaseIndex_2, _phases.Count, index),
@@ -208,7 +215,7 @@ namespace SenseNet.Packaging
 
             if (PackageType == PackageType.Install)
             {
-                if (existingComponentInfo != null)
+                if (!SystemInstall && existingComponentInfo != null)
                     throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.CannotInstallExistingComponent1, this.ComponentId),
                         PackagingExceptionType.CannotInstallExistingComponent);
             }
@@ -250,7 +257,7 @@ namespace SenseNet.Packaging
                 {
                     var minStr = "";
                     if (min != null)
-                        minStr = $"{min} <{(minEx ?"":"=")} ";
+                        minStr = $"{min} <{(minEx ? "" : "=")} ";
                     var maxStr = "";
                     if (max != null)
                         maxStr = $" <{(minEx ? "" : "=")} {max}";

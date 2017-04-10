@@ -55,7 +55,7 @@ namespace SenseNet.Packaging
             Logger.LogTitle(String.Format("Executing phase {0}/{1}", currentPhase + 1, phaseCount));
 
             var sandboxDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            var executionContext = new ExecutionContext(packagePath, targetPath, Configuration.Packaging.NetworkTargets, 
+            var executionContext = new ExecutionContext(packagePath, targetPath, Configuration.Packaging.NetworkTargets,
                 sandboxDirectory, manifest, currentPhase, manifest.CountOfPhases, parameters, console);
 
             executionContext.LogVariables();
@@ -66,7 +66,7 @@ namespace SenseNet.Packaging
                 result = ExecuteCurrentPhase(manifest, executionContext);
             }
             finally
-            { 
+            {
                 if (Repository.Started())
                 {
                     console.WriteLine("-------------------------------------------------------------");
@@ -81,14 +81,10 @@ namespace SenseNet.Packaging
 
         internal static PackagingResult ExecuteCurrentPhase(Manifest manifest, ExecutionContext executionContext)
         {
-            var savingInitialPostponed = false;
-            if (executionContext.CurrentPhase == 0)
-            {
-                if (RepositoryVersionInfo.Instance.DatabaseAvailable)
-                    SaveInitialPackage(manifest);
-                else
-                    savingInitialPostponed = true;
-            }
+            var sysInstall = manifest.SystemInstall;
+            var currentPhase = executionContext.CurrentPhase;
+            if (0 == currentPhase - (sysInstall ? 1 : 0))
+                SaveInitialPackage(manifest);
 
             var stepElements = manifest.GetPhase(executionContext.CurrentPhase);
 
@@ -130,9 +126,6 @@ namespace SenseNet.Packaging
             }
 
             var finished = executionContext.Terminated || (executionContext.CurrentPhase == manifest.CountOfPhases - 1);
-
-            if(savingInitialPostponed)
-                SaveInitialPackage(manifest);
 
             if (successful && !finished)
                 return new PackagingResult { NeedRestart = true, Successful = true, Errors = Logger.Errors };
