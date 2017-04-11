@@ -1599,20 +1599,14 @@ namespace SenseNet.Portal.Virtualization
             // loginPageRelativePath:          /Login 
             // loginPageUrl:                   http(s)://localhost:1315/xy/Login
 
-            if (Site == null)
+            if (Site?.LoginPage == null)
                 return null;
 
-            if (Site.LoginPage == null)
-                return null;
+            var loginPageRepositoryPath = Site.LoginPage.Path;
+            var sitePath = Site.Path;
+            var loginPageRelativePath = loginPageRepositoryPath.Substring(sitePath.Length);
 
-            string loginPageRepositoryPath = Site.LoginPage.Path;
-            string sitePath = Site.Path;
-
-            string loginPageRelativePath = loginPageRepositoryPath.Substring(sitePath.Length);
-
-            string loginPageUrl = string.Concat(RequestedUri.Scheme, "://", _siteUrl, loginPageRelativePath);
-
-            return loginPageUrl;
+            return string.Concat(RequestedUri.Scheme, "://", _siteUrl, loginPageRelativePath);
         }
 
         // ------------------------------------------------------------------------

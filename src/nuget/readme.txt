@@ -37,17 +37,17 @@ To finalize the installation and get started with Sense/Net ECM platform, please
 
 5. Install Sense/Net ECM Content Repository database. Please make sure that you have access to a SQL Server.
     - open a command line and go to the \Admin\bin folder (added by this package)
-    - execute the installnuget command with the SnAdmin tool (you can specify optional parameters for SQL server and database name)
+    - execute the install-services command with the SnAdmin tool (you can specify optional parameters for SQL server and database name)
         - dataSource: your SQL server instance name (e.g. . or MSSQLSERVER\SQL2016)
         - initialCatalog: database name
 
     .\snadmin install-services dataSource:. initialCatalog:sensenet
 
 6. Update your Razor views (you can do this later at any time).
-   If you use the built-in HtmlHelper.ActionLink method to render actions (as it is the case with the default project templates), 
+   If you use the built-in @Html.ActionLink method to render actions (as it is the case with the default project templates), 
    you have to replace those calls in your .cshtml files with a new extension method added by this package:
 
-   HtmlHelper.MvcActionLink
+   @Html.MvcActionLink
 
    (the parameters are the same, only the method name changes)
 
