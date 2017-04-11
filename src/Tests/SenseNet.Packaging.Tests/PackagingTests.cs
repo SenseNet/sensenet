@@ -22,14 +22,6 @@ namespace SenseNet.Packaging.Tests
         }
     }
 
-    public class TestStepThatSimulatesInstallingDatabase : Step
-    {
-        public override void Execute(ExecutionContext context)
-        {
-            ((TestPackageStorageProvider)PackageManager.Storage).DatabaseEnabled = true;
-        }
-    }
-
     #endregion
 
     [TestClass]
@@ -47,7 +39,6 @@ namespace SenseNet.Packaging.Tests
             loggerAcc.SetStaticField("_loggers", loggers);
 
             var storage = new TestPackageStorageProvider();
-            storage.DatabaseEnabled = true;
             PackageManager.StorageFactory = new TestPackageStorageProviderFactory(storage);
 
             RepositoryVersionInfo.Reset();
@@ -1003,68 +994,6 @@ namespace SenseNet.Packaging.Tests
         #endregion
 
         #region // ========================================= Component lifetime tests
-
-        [TestMethod]
-        public void Packaging_Install_SnInitialComponent()
-        {
-            // simulate database before installation
-            ((TestPackageStorageProvider) PackageManager.Storage).DatabaseEnabled = false;
-
-            // accessing versioninfo does not throw any error
-            var verInfo = RepositoryVersionInfo.Instance;
-
-            // there is no any component or package
-            Assert.AreEqual(0, verInfo.Components.Count());
-            Assert.AreEqual(0, verInfo.InstalledPackages.Count());
-
-            var manifestXml = new XmlDocument();
-            manifestXml.LoadXml(@"<?xml version='1.0' encoding='utf-8'?>
-                        <Package type='Install'>
-                            <ComponentId>Component42</ComponentId>
-                            <ReleaseDate>2017-01-01</ReleaseDate>
-                            <Version>4.42</Version>
-                            <Steps>
-                                <Phase>
-                                    <Trace>Installing database.</Trace>
-                                    <TestStepThatSimulatesInstallingDatabase />
-                                </Phase>
-                                <Phase><Trace>Installing first component.</Trace></Phase>
-                            </Steps>
-                        </Package>");
-            ComponentInfo component;
-            Package pkg;
-
-            // phase 1 (with step that simulates the installing database)
-            ExecutePhase(manifestXml, 0);
-
-            // validate state after phase 1
-            verInfo = RepositoryVersionInfo.Instance;
-            Assert.AreEqual(0, verInfo.Components.Count());
-            Assert.AreEqual(1, verInfo.InstalledPackages.Count());
-            pkg = verInfo.InstalledPackages.First();
-            Assert.AreEqual("Component42", pkg.ComponentId);
-            Assert.AreEqual(ExecutionResult.Unfinished, pkg.ExecutionResult);
-            Assert.AreEqual(PackageType.Install, pkg.PackageType);
-            Assert.AreEqual("4.42", pkg.ComponentVersion.ToString());
-
-            // phase 2
-            ExecutePhase(manifestXml, 1);
-
-            // validate state after phase 2
-            verInfo = RepositoryVersionInfo.Instance;
-            Assert.AreEqual(1, verInfo.Components.Count());
-            Assert.AreEqual(1, verInfo.InstalledPackages.Count());
-            component = verInfo.Components.First();
-            Assert.AreEqual("Component42", component.ComponentId);
-            Assert.AreEqual("4.42", component.Version.ToString());
-            Assert.IsNotNull(component.AcceptableVersion);
-            Assert.AreEqual("4.42", component.AcceptableVersion.ToString());
-            pkg = verInfo.InstalledPackages.First();
-            Assert.AreEqual("Component42", pkg.ComponentId);
-            Assert.AreEqual(ExecutionResult.Successful, pkg.ExecutionResult);
-            Assert.AreEqual(PackageType.Install, pkg.PackageType);
-            Assert.AreEqual("4.42", pkg.ComponentVersion.ToString());
-        }
 
         [TestMethod]
         public void Packaging_Install_NoSteps()
