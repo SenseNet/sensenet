@@ -15,8 +15,7 @@ namespace SenseNet.Portal.OData.Typescript
         protected override IMetaNode VisitSchema(ContentRepository.Schema.Metadata.Schema schema)
         {
             #region Write filestart
-            _writer.WriteLine(@"//file: " + TypescriptGenerationContext.SchemaModuleName + @".ts
-import { " + TypescriptGenerationContext.FieldSettingsModuleName + @" } from './" + TypescriptGenerationContext.FieldSettingsModuleName + @"';
+            _writer.WriteLine(@"import { " + TypescriptGenerationContext.FieldSettingsModuleName + @" } from './" + TypescriptGenerationContext.FieldSettingsModuleName + @"';
 /**
  * Module for ContentType schemas.
  *
