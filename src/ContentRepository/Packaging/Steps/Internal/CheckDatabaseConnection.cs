@@ -35,7 +35,7 @@ END
         {
             var attempt = 0;
             Exception lastError = null;
-            while (++attempt < 2)
+            while (++attempt < 132)
             {
                 try
                 {
