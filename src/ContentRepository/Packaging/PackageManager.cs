@@ -140,6 +140,12 @@ namespace SenseNet.Packaging
             {
                 SavePackage(manifest, executionContext, successful, phaseException);
             }
+            catch(Exception e)
+            {
+                if (phaseException != null)
+                    Logger.LogException(phaseException);
+                throw new PackagingException("Cannot save the package.", e);
+            }
             finally
             {
                 RepositoryVersionInfo.Reset();
