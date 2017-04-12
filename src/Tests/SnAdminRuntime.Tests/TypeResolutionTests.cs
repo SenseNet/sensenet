@@ -56,7 +56,7 @@ namespace SnAdminRuntime.Tests
             var xml1 = new XmlDocument();
             DefaultManifests.Add(@"Q:\WebApp1\Admin\Pkg1\manifest.xml", xml1);
             xml1.LoadXml(@"<Package type='Tool'>
-  <ComponentId>Sense/Net ECM</ComponentId>
+  <Id>Sense/Net ECM</Id>
   <Version>1.0</Version>
   <ReleaseDate>2016-12-21</ReleaseDate>
   <Steps>
@@ -69,7 +69,7 @@ namespace SnAdminRuntime.Tests
             var xml2 = new XmlDocument();
             DefaultManifests.Add(@"Q:\WebApp1\Admin\Pkg2\manifest.xml", xml2);
             xml2.LoadXml(@"<Package type='Tool'>
-  <ComponentId>Sense/Net ECM</ComponentId>
+  <Id>Sense/Net ECM</Id>
   <Version>1.0</Version>
   <ReleaseDate>2016-12-21</ReleaseDate>
   <Steps>
@@ -82,7 +82,7 @@ namespace SnAdminRuntime.Tests
             var xml3 = new XmlDocument();
             DefaultManifests.Add(@"Q:\WebApp1\Admin\Pkg3\manifest.xml", xml3);
             xml3.LoadXml(@"<Package type='Tool'>
-  <ComponentId>Sense/Net ECM</ComponentId>
+  <Id>Sense/Net ECM</Id>
   <Version>1.0</Version>
   <ReleaseDate>2016-12-21</ReleaseDate>
   <Steps>

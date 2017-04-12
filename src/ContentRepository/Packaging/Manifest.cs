@@ -76,7 +76,7 @@ namespace SenseNet.Packaging
             manifest.PackageType = packageType;
 
             // parsing ComponentId
-            e = (XmlElement)xml.DocumentElement.SelectSingleNode("ComponentId");
+            e = (XmlElement)xml.DocumentElement.SelectSingleNode("Id");
             if (e != null)
             {
                 if (e.InnerText.Length == 0)

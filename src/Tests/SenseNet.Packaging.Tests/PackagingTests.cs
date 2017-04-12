@@ -52,7 +52,7 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual("Description text",
                 (ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component2</ComponentId>
+                            <Id>Component2</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                             <Description>Description text</Description>
@@ -66,7 +66,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
                         <Manifest type='Install'>
-                            <ComponentId>Component2</ComponentId>
+                            <Id>Component2</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                         </Manifest>");
@@ -84,7 +84,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package level='Install'>
-                            <ComponentId>Component2</ComponentId>
+                            <Id>Component2</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                         </Package>");
@@ -102,7 +102,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='asdf'>
-                            <ComponentId>Component2</ComponentId>
+                            <Id>Component2</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                         </Package>");
@@ -137,7 +137,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId />
+                            <Id />
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                         </Package>");
@@ -155,7 +155,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component1</ComponentId>
+                            <Id>Component1</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                         </Package>");
                 Assert.Fail("PackagingException was not thrown.");
@@ -172,7 +172,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Patch'>
-                            <ComponentId>Component1</ComponentId>
+                            <Id>Component1</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                         </Package>");
                 Assert.Fail("PackagingException was not thrown.");
@@ -189,7 +189,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Tool'>
-                            <ComponentId>Component1</ComponentId>
+                            <Id>Component1</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                         </Package>");
                 Assert.Fail("PackagingException was not thrown.");
@@ -206,7 +206,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component1</ComponentId>
+                            <Id>Component1</Id>
                             <Version>asdf</Version>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                         </Package>");
@@ -224,7 +224,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component1</ComponentId>
+                            <Id>Component1</Id>
                             <Version>1.0</Version>
                         </Package>");
                 Assert.Fail("PackagingException was not thrown.");
@@ -241,7 +241,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component1</ComponentId>
+                            <Id>Component1</Id>
                             <Version>1.0</Version>
                             <ReleaseDate>asdf</ReleaseDate>
                         </Package>");
@@ -259,7 +259,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component1</ComponentId>
+                            <Id>Component1</Id>
                             <Version>1.0</Version>
                             <ReleaseDate>9999-01-01</ReleaseDate>
                         </Package>");
@@ -277,7 +277,7 @@ namespace SenseNet.Packaging.Tests
         {
             var manifest = ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component2</ComponentId>
+                            <Id>Component2</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                             <Dependencies>
@@ -326,7 +326,7 @@ namespace SenseNet.Packaging.Tests
         {
             var manifest = ParseManifestHead($@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component1</ComponentId>
+                            <Id>Component1</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                             <Dependencies>
@@ -347,7 +347,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ParseManifestHead($@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component1</ComponentId>
+                            <Id>Component1</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                             <Dependencies>
@@ -369,7 +369,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component2</ComponentId>
+                            <Id>Component2</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                             <Dependencies>
@@ -390,7 +390,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component2</ComponentId>
+                            <Id>Component2</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                             <Dependencies>
@@ -411,7 +411,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component2</ComponentId>
+                            <Id>Component2</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                             <Dependencies>
@@ -432,7 +432,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component2</ComponentId>
+                            <Id>Component2</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                             <Dependencies>
@@ -453,7 +453,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component2</ComponentId>
+                            <Id>Component2</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                             <Dependencies>
@@ -474,7 +474,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ParseManifestHead(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component2</ComponentId>
+                            <Id>Component2</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                             <Dependencies>
@@ -495,7 +495,7 @@ namespace SenseNet.Packaging.Tests
             // action
             var manifest = ParseManifest(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component2</ComponentId>
+                            <Id>Component2</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                             <Parameters>
@@ -516,7 +516,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ParseManifest(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component2</ComponentId>
+                            <Id>Component2</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                             <Parameters>
@@ -539,7 +539,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ParseManifest(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component2</ComponentId>
+                            <Id>Component2</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                             <Parameters>
@@ -562,7 +562,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ParseManifest(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component2</ComponentId>
+                            <Id>Component2</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                             <Parameters>
@@ -586,7 +586,7 @@ namespace SenseNet.Packaging.Tests
             var manifestXml = new XmlDocument();
             manifestXml.LoadXml(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component42</ComponentId>
+                            <Id>Component42</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>4.42</Version>
                             <Steps>
@@ -646,7 +646,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component2</ComponentId>
+                            <Id>Component2</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                             <Dependencies>
@@ -671,7 +671,7 @@ namespace SenseNet.Packaging.Tests
         {
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                     <Package type='Install'>
-                        <ComponentId>MyCompany.MyComponent</ComponentId>
+                        <Id>MyCompany.MyComponent</Id>
                         <ReleaseDate>2017-01-01</ReleaseDate>
                         <Version>1.0</Version>
                         <Steps>
@@ -684,7 +684,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <Id>MyCompany.MyComponent</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.1</Version>
                             <Steps>
@@ -705,7 +705,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                     <Package type='Patch'>
-                        <ComponentId>Component2</ComponentId>
+                        <Id>Component2</Id>
                         <ReleaseDate>2017-01-01</ReleaseDate>
                         <Version>1.1</Version>
                         <Steps>
@@ -724,7 +724,7 @@ namespace SenseNet.Packaging.Tests
         {
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                     <Package type='Install'>
-                        <ComponentId>MyCompany.MyComponent</ComponentId>
+                        <Id>MyCompany.MyComponent</Id>
                         <ReleaseDate>2017-01-01</ReleaseDate>
                         <Version>1.0</Version>
                         <Steps>
@@ -737,7 +737,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Patch'>
-                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <Id>MyCompany.MyComponent</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                             <Steps>
@@ -757,7 +757,7 @@ namespace SenseNet.Packaging.Tests
         {
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                     <Package type='Install'>
-                        <ComponentId>Component1</ComponentId>
+                        <Id>Component1</Id>
                         <ReleaseDate>2017-01-01</ReleaseDate>
                         <Version>1.0</Version>
                         <Steps>
@@ -770,7 +770,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component2</ComponentId>
+                            <Id>Component2</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.1</Version>
                             <Dependencies>
@@ -792,7 +792,7 @@ namespace SenseNet.Packaging.Tests
         {
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                     <Package type='Install'>
-                        <ComponentId>Component1</ComponentId>
+                        <Id>Component1</Id>
                         <ReleaseDate>2017-01-01</ReleaseDate>
                         <Version>1.0</Version>
                         <Steps>
@@ -805,7 +805,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component2</ComponentId>
+                            <Id>Component2</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.1</Version>
                             <Dependencies>
@@ -827,7 +827,7 @@ namespace SenseNet.Packaging.Tests
         {
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                     <Package type='Install'>
-                        <ComponentId>Component1</ComponentId>
+                        <Id>Component1</Id>
                         <ReleaseDate>2017-01-01</ReleaseDate>
                         <Version>3.0</Version>
                         <Steps>
@@ -840,7 +840,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component2</ComponentId>
+                            <Id>Component2</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>2.1</Version>
                             <Dependencies>
@@ -863,7 +863,7 @@ namespace SenseNet.Packaging.Tests
         {
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                     <Package type='Install'>
-                        <ComponentId>Component1</ComponentId>
+                        <Id>Component1</Id>
                         <ReleaseDate>2017-01-01</ReleaseDate>
                         <Version>1.0</Version>
                         <Steps>
@@ -876,7 +876,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component2</ComponentId>
+                            <Id>Component2</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.1</Version>
                             <Dependencies>
@@ -898,7 +898,7 @@ namespace SenseNet.Packaging.Tests
         {
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                     <Package type='Install'>
-                        <ComponentId>Component1</ComponentId>
+                        <Id>Component1</Id>
                         <ReleaseDate>2017-01-01</ReleaseDate>
                         <Version>3.0</Version>
                         <Steps>
@@ -911,7 +911,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component2</ComponentId>
+                            <Id>Component2</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>2.0</Version>
                             <Dependencies>
@@ -940,7 +940,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ExecutePhases($@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component{i + 1}</ComponentId>
+                            <Id>Component{i + 1}</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>{i + 1}.0</Version>
                         </Package>");
@@ -950,7 +950,7 @@ namespace SenseNet.Packaging.Tests
             // action
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <Id>MyCompany.MyComponent</Id>
                             <ReleaseDate>2017-01-02</ReleaseDate>
                             <Version>1.2</Version>
                             <Dependencies>
@@ -1001,7 +1001,7 @@ namespace SenseNet.Packaging.Tests
             var manifestXml = new XmlDocument();
             manifestXml.LoadXml(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component42</ComponentId>
+                            <Id>Component42</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>4.42</Version>
                         </Package>");
@@ -1031,7 +1031,7 @@ namespace SenseNet.Packaging.Tests
             var manifestXml = new XmlDocument();
             manifestXml.LoadXml(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component42</ComponentId>
+                            <Id>Component42</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>4.42</Version>
                             <Steps>
@@ -1097,7 +1097,7 @@ namespace SenseNet.Packaging.Tests
         {
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <Id>MyCompany.MyComponent</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                             <Steps>
@@ -1108,7 +1108,7 @@ namespace SenseNet.Packaging.Tests
             var manifestXml = new XmlDocument();
             manifestXml.LoadXml(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Patch'>
-                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <Id>MyCompany.MyComponent</Id>
                             <ReleaseDate>2017-01-02</ReleaseDate>
                             <Version>1.2</Version>
                             <Steps>
@@ -1182,7 +1182,7 @@ namespace SenseNet.Packaging.Tests
         {
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <Id>MyCompany.MyComponent</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                             <Steps>
@@ -1195,7 +1195,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Patch'>
-                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <Id>MyCompany.MyComponent</Id>
                             <ReleaseDate>2017-01-02</ReleaseDate>
                             <Version>1.2</Version>
                             <Steps>
@@ -1230,7 +1230,7 @@ namespace SenseNet.Packaging.Tests
         {
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <Id>MyCompany.MyComponent</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                             <Steps>
@@ -1242,7 +1242,7 @@ namespace SenseNet.Packaging.Tests
             {
                 ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Patch'>
-                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <Id>MyCompany.MyComponent</Id>
                             <ReleaseDate>2017-01-02</ReleaseDate>
                             <Version>1.2</Version>
                             <Steps>
@@ -1259,7 +1259,7 @@ namespace SenseNet.Packaging.Tests
             // action
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Patch'>
-                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <Id>MyCompany.MyComponent</Id>
                             <ReleaseDate>2017-01-02</ReleaseDate>
                             <Version>1.2</Version>
                             <Steps>
@@ -1288,7 +1288,7 @@ namespace SenseNet.Packaging.Tests
         {
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <Id>MyCompany.MyComponent</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                             <Steps>
@@ -1302,7 +1302,7 @@ namespace SenseNet.Packaging.Tests
                 {
                     ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Patch'>
-                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <Id>MyCompany.MyComponent</Id>
                             <ReleaseDate>2017-01-02</ReleaseDate>
                             <Version>1.2</Version>
                             <Steps>
@@ -1320,7 +1320,7 @@ namespace SenseNet.Packaging.Tests
             // action
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Patch'>
-                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <Id>MyCompany.MyComponent</Id>
                             <ReleaseDate>2017-01-02</ReleaseDate>
                             <Version>1.2</Version>
                             <Steps>
@@ -1421,7 +1421,7 @@ namespace SenseNet.Packaging.Tests
         {
             var manifest = @"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component42</ComponentId>
+                            <Id>Component42</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>4.42</Version>
                             <Steps>
