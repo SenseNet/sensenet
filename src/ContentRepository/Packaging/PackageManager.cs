@@ -24,6 +24,11 @@ namespace SenseNet.Packaging
 
         public static PackagingResult Execute(string packagePath, string targetPath, int currentPhase, string[] parameters, TextWriter console)
         {
+            var packageParameters = parameters?.Select(PackageParameter.Parse).ToArray() ?? new PackageParameter[0];
+            var forcedReinstall = "true" == (packageParameters
+                .FirstOrDefault(p => p.PropertyName.ToLowerInvariant() == "forcedreinstall")?
+                .Value?.ToLowerInvariant() ?? "");
+
             var phaseCount = 1;
 
             var files = Directory.GetFiles(packagePath);
@@ -34,7 +39,7 @@ namespace SenseNet.Packaging
             {
                 try
                 {
-                    manifest = Manifest.Parse(files[0], currentPhase, currentPhase == 0);
+                    manifest = Manifest.Parse(files[0], currentPhase, currentPhase == 0, forcedReinstall);
                     phaseCount = manifest.CountOfPhases;
                 }
                 catch (Exception e)
@@ -56,7 +61,7 @@ namespace SenseNet.Packaging
 
             var sandboxDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             var executionContext = new ExecutionContext(packagePath, targetPath, Configuration.Packaging.NetworkTargets,
-                sandboxDirectory, manifest, currentPhase, manifest.CountOfPhases, parameters, console);
+                sandboxDirectory, manifest, currentPhase, manifest.CountOfPhases, packageParameters, console);
 
             executionContext.LogVariables();
 

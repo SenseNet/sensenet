@@ -24,7 +24,7 @@ namespace SenseNet.Packaging
         private List<List<XmlElement>> _phases;
         public int CountOfPhases { get { return _phases.Count; } }
 
-        internal static Manifest Parse(string path, int phase, bool log)
+        internal static Manifest Parse(string path, int phase, bool log, bool forcedReinstall = false)
         {
             var xml = new XmlDocument();
             try
@@ -35,16 +35,16 @@ namespace SenseNet.Packaging
             {
                 throw new PackagingException("Manifest parse error", e);
             }
-            return Parse(xml, phase, log);
+            return Parse(xml, phase, log, forcedReinstall);
         }
         /// <summary>Test entry</summary>
-        internal static Manifest Parse(XmlDocument xml, int currentPhase, bool log)
+        internal static Manifest Parse(XmlDocument xml, int currentPhase, bool log, bool forcedReinstall = false)
         {
             var manifest = new Manifest();
             manifest.ManifestXml = xml;
 
             ParseHead(xml, manifest);
-            manifest.CheckPrerequisits(log);
+            manifest.CheckPrerequisits(forcedReinstall, log);
             ParseParameters(xml, manifest);
             ParseSteps(xml, manifest, currentPhase);
 
@@ -200,14 +200,15 @@ namespace SenseNet.Packaging
             return _phases[index];
         }
 
-        private void CheckPrerequisits(bool log)
+        private void CheckPrerequisits(bool forcedReinstall, bool log)
         {
             if (log)
             {
                 Logger.LogMessage("ComponentId: {0}", this.ComponentId);
                 Logger.LogMessage("PackageType:   " + this.PackageType);
-                if (this.PackageType != PackageType.Tool)
-                    Logger.LogMessage("Package version: " + this.Version);
+                Logger.LogMessage("Package version: " + this.Version);
+                if (SystemInstall)
+                    Logger.LogMessage(forcedReinstall ? "FORCED REINSTALL" : "SYSTEM INSTALL");
             }
 
             var versionInfo = RepositoryVersionInfo.Instance;
@@ -215,7 +216,7 @@ namespace SenseNet.Packaging
 
             if (PackageType == PackageType.Install)
             {
-                if (!SystemInstall && existingComponentInfo != null)
+                if (!(forcedReinstall && SystemInstall) && existingComponentInfo != null)
                     throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.CannotInstallExistingComponent1, this.ComponentId),
                         PackagingExceptionType.CannotInstallExistingComponent);
             }

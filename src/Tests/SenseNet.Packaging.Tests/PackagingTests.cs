@@ -699,6 +699,69 @@ namespace SenseNet.Packaging.Tests
             }
         }
         [TestMethod]
+        public void Packaging_DependencyCheck_CannotForcedInstallExistingComponent()
+        {
+            ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
+                    <Package type='Install'>
+                        <Id>MyCompany.MyComponent</Id>
+                        <ReleaseDate>2017-01-01</ReleaseDate>
+                        <Version>1.0</Version>
+                        <Steps>
+                            <Trace>Package is running.</Trace>
+                        </Steps>
+                    </Package>");
+
+            // action
+            try
+            {
+                ParseManifest(@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <Id>MyCompany.MyComponent</Id>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.1</Version>
+                            <Steps>
+                                <Trace>Package is running.</Trace>
+                            </Steps>
+                        </Package>", 1);
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.CannotInstallExistingComponent, e.ErrorType);
+            }
+        }
+        [TestMethod]
+        public void Packaging_DependencyCheck_ForcedInstallSystemComponent()
+        {
+            ExecutePhases($@"<?xml version='1.0' encoding='utf-8'?>
+                    <Package type='Install'>
+                        <Id>{Manifest.SystemComponentId}</Id>
+                        <ReleaseDate>2017-01-01</ReleaseDate>
+                        <Version>1.0</Version>
+                        <Steps>
+                            <Trace>Package is running.</Trace>
+                        </Steps>
+                    </Package>");
+
+            // action
+            try
+            {
+                ParseManifest($@"<?xml version='1.0' encoding='utf-8'?>
+                        <Package type='Install'>
+                            <Id>{Manifest.SystemComponentId}</Id>
+                            <ReleaseDate>2017-01-01</ReleaseDate>
+                            <Version>1.1</Version>
+                            <Steps>
+                                <Trace>Package is running.</Trace>
+                            </Steps>
+                        </Package>", 1, true);
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.CannotInstallExistingComponent, e.ErrorType);
+            }
+        }
+        [TestMethod]
         public void Packaging_DependencyCheck_CannotUpdateMissingComponent()
         {
             try
@@ -1521,11 +1584,11 @@ namespace SenseNet.Packaging.Tests
             Manifest.ParseHead(xml, manifest);
             return manifest;
         }
-        internal static Manifest ParseManifest(string manifestXml, int currentPhase)
+        internal static Manifest ParseManifest(string manifestXml, int currentPhase, bool forcedReinstall = false)
         {
             var xml = new XmlDocument();
             xml.LoadXml(manifestXml);
-            return Manifest.Parse(xml, currentPhase, true);
+            return Manifest.Parse(xml, currentPhase, true, forcedReinstall);
         }
 
         internal static PackagingResult ExecutePhases(string manifestXml, TextWriter console = null)
