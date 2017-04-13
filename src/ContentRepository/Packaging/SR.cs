@@ -21,8 +21,8 @@ namespace SenseNet.Packaging
                 internal static readonly string WrongRootName = @"Invalid manifest: root element must be ""Package"".";
                 internal static readonly string MissingType = @"Invalid manifest: missing ""type"" attribute.";
                 internal static readonly string InvalidType = @"Invalid manifest: invalid ""type"" attribute. The value must be ""tool"", ""patch"", or ""install""";
-                internal static readonly string MissingComponentId = @"Invalid manifest: missing ""ComponentId"" element.";
-                internal static readonly string InvalidComponentId = @"Invalid manifest: invalid ""ComponentId"" element. Value cannot be empty.";
+                internal static readonly string MissingComponentId = @"Invalid manifest: missing ""Id"" element.";
+                internal static readonly string InvalidComponentId = @"Invalid manifest: invalid ""Id"" element. Value cannot be empty.";
                 internal static readonly string MissingReleaseDate = @"Invalid manifest: missing ""ReleaseDate"" element.";
                 internal static readonly string InvalidReleaseDate = @"Invalid manifest: invalid ""ReleaseDate"" element.";
                 internal static readonly string TooBigReleaseDate = @"Invalid manifest: invalid ""ReleaseDate"" element: released in the future.";

@@ -24,6 +24,11 @@ namespace SenseNet.Packaging
 
         public static PackagingResult Execute(string packagePath, string targetPath, int currentPhase, string[] parameters, TextWriter console)
         {
+            var packageParameters = parameters?.Select(PackageParameter.Parse).ToArray() ?? new PackageParameter[0];
+            var forcedReinstall = "true" == (packageParameters
+                .FirstOrDefault(p => p.PropertyName.ToLowerInvariant() == "forcedreinstall")?
+                .Value?.ToLowerInvariant() ?? "");
+
             var phaseCount = 1;
 
             var files = Directory.GetFiles(packagePath);
@@ -34,7 +39,7 @@ namespace SenseNet.Packaging
             {
                 try
                 {
-                    manifest = Manifest.Parse(files[0], currentPhase, currentPhase == 0);
+                    manifest = Manifest.Parse(files[0], currentPhase, currentPhase == 0, forcedReinstall);
                     phaseCount = manifest.CountOfPhases;
                 }
                 catch (Exception e)
@@ -55,8 +60,8 @@ namespace SenseNet.Packaging
             Logger.LogTitle(String.Format("Executing phase {0}/{1}", currentPhase + 1, phaseCount));
 
             var sandboxDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            var executionContext = new ExecutionContext(packagePath, targetPath, Configuration.Packaging.NetworkTargets, 
-                sandboxDirectory, manifest, currentPhase, manifest.CountOfPhases, parameters, console);
+            var executionContext = new ExecutionContext(packagePath, targetPath, Configuration.Packaging.NetworkTargets,
+                sandboxDirectory, manifest, currentPhase, manifest.CountOfPhases, packageParameters, console);
 
             executionContext.LogVariables();
 
@@ -66,7 +71,7 @@ namespace SenseNet.Packaging
                 result = ExecuteCurrentPhase(manifest, executionContext);
             }
             finally
-            { 
+            {
                 if (Repository.Started())
                 {
                     console.WriteLine("-------------------------------------------------------------");
@@ -81,14 +86,10 @@ namespace SenseNet.Packaging
 
         internal static PackagingResult ExecuteCurrentPhase(Manifest manifest, ExecutionContext executionContext)
         {
-            var savingInitialPostponed = false;
-            if (executionContext.CurrentPhase == 0)
-            {
-                if (RepositoryVersionInfo.Instance.DatabaseAvailable)
-                    SaveInitialPackage(manifest);
-                else
-                    savingInitialPostponed = true;
-            }
+            var sysInstall = manifest.SystemInstall;
+            var currentPhase = executionContext.CurrentPhase;
+            if (0 == currentPhase - (sysInstall ? 1 : 0))
+                SaveInitialPackage(manifest);
 
             var stepElements = manifest.GetPhase(executionContext.CurrentPhase);
 
@@ -131,9 +132,6 @@ namespace SenseNet.Packaging
 
             var finished = executionContext.Terminated || (executionContext.CurrentPhase == manifest.CountOfPhases - 1);
 
-            if(savingInitialPostponed)
-                SaveInitialPackage(manifest);
-
             if (successful && !finished)
                 return new PackagingResult { NeedRestart = true, Successful = true, Errors = Logger.Errors };
 
@@ -146,6 +144,12 @@ namespace SenseNet.Packaging
             try
             {
                 SavePackage(manifest, executionContext, successful, phaseException);
+            }
+            catch(Exception e)
+            {
+                if (phaseException != null)
+                    Logger.LogException(phaseException);
+                throw new PackagingException("Cannot save the package.", e);
             }
             finally
             {

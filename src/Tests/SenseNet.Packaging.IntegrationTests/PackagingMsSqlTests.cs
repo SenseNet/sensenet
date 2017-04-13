@@ -97,7 +97,7 @@ CREATE TABLE [dbo].[Packages](
             {
                 ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component2</ComponentId>
+                            <Id>Component2</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                             <Dependencies>
@@ -122,7 +122,7 @@ CREATE TABLE [dbo].[Packages](
         {
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                     <Package type='Install'>
-                        <ComponentId>MyCompany.MyComponent</ComponentId>
+                        <Id>MyCompany.MyComponent</Id>
                         <ReleaseDate>2017-01-01</ReleaseDate>
                         <Version>1.0</Version>
                         <Steps>
@@ -135,7 +135,7 @@ CREATE TABLE [dbo].[Packages](
             {
                 ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <Id>MyCompany.MyComponent</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.1</Version>
                             <Steps>
@@ -156,7 +156,7 @@ CREATE TABLE [dbo].[Packages](
             {
                 ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                     <Package type='Patch'>
-                        <ComponentId>Component2</ComponentId>
+                        <Id>Component2</Id>
                         <ReleaseDate>2017-01-01</ReleaseDate>
                         <Version>1.1</Version>
                         <Steps>
@@ -175,7 +175,7 @@ CREATE TABLE [dbo].[Packages](
         {
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                     <Package type='Install'>
-                        <ComponentId>MyCompany.MyComponent</ComponentId>
+                        <Id>MyCompany.MyComponent</Id>
                         <ReleaseDate>2017-01-01</ReleaseDate>
                         <Version>1.0</Version>
                         <Steps>
@@ -188,7 +188,7 @@ CREATE TABLE [dbo].[Packages](
             {
                 ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Patch'>
-                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <Id>MyCompany.MyComponent</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                             <Steps>
@@ -208,7 +208,7 @@ CREATE TABLE [dbo].[Packages](
         {
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                     <Package type='Install'>
-                        <ComponentId>Component1</ComponentId>
+                        <Id>Component1</Id>
                         <ReleaseDate>2017-01-01</ReleaseDate>
                         <Version>1.0</Version>
                         <Steps>
@@ -221,7 +221,7 @@ CREATE TABLE [dbo].[Packages](
             {
                 ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component2</ComponentId>
+                            <Id>Component2</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.1</Version>
                             <Dependencies>
@@ -243,7 +243,7 @@ CREATE TABLE [dbo].[Packages](
         {
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                     <Package type='Install'>
-                        <ComponentId>Component1</ComponentId>
+                        <Id>Component1</Id>
                         <ReleaseDate>2017-01-01</ReleaseDate>
                         <Version>1.0</Version>
                         <Steps>
@@ -256,7 +256,7 @@ CREATE TABLE [dbo].[Packages](
             {
                 ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component2</ComponentId>
+                            <Id>Component2</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.1</Version>
                             <Dependencies>
@@ -278,7 +278,7 @@ CREATE TABLE [dbo].[Packages](
         {
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                     <Package type='Install'>
-                        <ComponentId>Component1</ComponentId>
+                        <Id>Component1</Id>
                         <ReleaseDate>2017-01-01</ReleaseDate>
                         <Version>3.0</Version>
                         <Steps>
@@ -291,7 +291,7 @@ CREATE TABLE [dbo].[Packages](
             {
                 ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component2</ComponentId>
+                            <Id>Component2</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>2.1</Version>
                             <Dependencies>
@@ -313,7 +313,7 @@ CREATE TABLE [dbo].[Packages](
         {
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                     <Package type='Install'>
-                        <ComponentId>Component1</ComponentId>
+                        <Id>Component1</Id>
                         <ReleaseDate>2017-01-01</ReleaseDate>
                         <Version>1.0</Version>
                         <Steps>
@@ -326,7 +326,7 @@ CREATE TABLE [dbo].[Packages](
             {
                 ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component2</ComponentId>
+                            <Id>Component2</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.1</Version>
                             <Dependencies>
@@ -348,7 +348,7 @@ CREATE TABLE [dbo].[Packages](
         {
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                     <Package type='Install'>
-                        <ComponentId>Component1</ComponentId>
+                        <Id>Component1</Id>
                         <ReleaseDate>2017-01-01</ReleaseDate>
                         <Version>3.0</Version>
                         <Steps>
@@ -361,7 +361,7 @@ CREATE TABLE [dbo].[Packages](
             {
                 ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component2</ComponentId>
+                            <Id>Component2</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>2.0</Version>
                             <Dependencies>
@@ -390,7 +390,7 @@ CREATE TABLE [dbo].[Packages](
             {
                 ExecutePhases($@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component{i + 1}</ComponentId>
+                            <Id>Component{i + 1}</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>{i + 1}.0</Version>
                         </Package>");
@@ -400,7 +400,7 @@ CREATE TABLE [dbo].[Packages](
             // action
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <Id>MyCompany.MyComponent</Id>
                             <ReleaseDate>2017-01-02</ReleaseDate>
                             <Version>1.2</Version>
                             <Dependencies>
@@ -444,74 +444,12 @@ CREATE TABLE [dbo].[Packages](
         // ========================================= Component lifetime tests
 
         [TestMethod]
-        public void Packaging_SQL_Install_SnInitialComponent()
-        {
-            // simulate database before installation
-            DropPackagesTable();
-
-            // accessing versioninfo does not throw any error
-            var verInfo = RepositoryVersionInfo.Instance;
-
-            // there is no any component or package
-            Assert.AreEqual(0, verInfo.Components.Count());
-            Assert.AreEqual(0, verInfo.InstalledPackages.Count());
-
-            var manifestXml = new XmlDocument();
-            manifestXml.LoadXml(@"<?xml version='1.0' encoding='utf-8'?>
-                        <Package type='Install'>
-                            <ComponentId>Component42</ComponentId>
-                            <ReleaseDate>2017-01-01</ReleaseDate>
-                            <Version>4.42</Version>
-                            <Steps>
-                                <Phase>
-                                    <Trace>Installing database.</Trace>
-                                    <TestStepThatCreatesThePackagingTable />
-                                </Phase>
-                                <Phase><Trace>Installing first component.</Trace></Phase>
-                            </Steps>
-                        </Package>");
-            ComponentInfo component;
-            Package pkg;
-
-            // phase 1 (with step that simulates the installing database)
-            ExecutePhase(manifestXml, 0);
-
-            // validate state after phase 1
-            verInfo = RepositoryVersionInfo.Instance;
-            Assert.AreEqual(0, verInfo.Components.Count());
-            Assert.AreEqual(1, verInfo.InstalledPackages.Count());
-            pkg = verInfo.InstalledPackages.First();
-            Assert.AreEqual("Component42", pkg.ComponentId);
-            Assert.AreEqual(ExecutionResult.Unfinished, pkg.ExecutionResult);
-            Assert.AreEqual(PackageType.Install, pkg.PackageType);
-            Assert.AreEqual("4.42", pkg.ComponentVersion.ToString());
-
-            // phase 2
-            ExecutePhase(manifestXml, 1);
-
-            // validate state after phase 2
-            verInfo = RepositoryVersionInfo.Instance;
-            Assert.AreEqual(1, verInfo.Components.Count());
-            Assert.AreEqual(1, verInfo.InstalledPackages.Count());
-            component = verInfo.Components.First();
-            Assert.AreEqual("Component42", component.ComponentId);
-            Assert.AreEqual("4.42", component.Version.ToString());
-            Assert.IsNotNull(component.AcceptableVersion);
-            Assert.AreEqual("4.42", component.AcceptableVersion.ToString());
-            pkg = verInfo.InstalledPackages.First();
-            Assert.AreEqual("Component42", pkg.ComponentId);
-            Assert.AreEqual(ExecutionResult.Successful, pkg.ExecutionResult);
-            Assert.AreEqual(PackageType.Install, pkg.PackageType);
-            Assert.AreEqual("4.42", pkg.ComponentVersion.ToString());
-        }
-
-        [TestMethod]
         public void Packaging_SQL_Install_NoSteps()
         {
             var manifestXml = new XmlDocument();
             manifestXml.LoadXml(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component42</ComponentId>
+                            <Id>Component42</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>4.42</Version>
                         </Package>");
@@ -541,7 +479,7 @@ CREATE TABLE [dbo].[Packages](
             var manifestXml = new XmlDocument();
             manifestXml.LoadXml(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component42</ComponentId>
+                            <Id>Component42</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>4.42</Version>
                             <Steps>
@@ -607,7 +545,7 @@ CREATE TABLE [dbo].[Packages](
         {
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <Id>MyCompany.MyComponent</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                             <Steps>
@@ -618,7 +556,7 @@ CREATE TABLE [dbo].[Packages](
             var manifestXml = new XmlDocument();
             manifestXml.LoadXml(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Patch'>
-                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <Id>MyCompany.MyComponent</Id>
                             <ReleaseDate>2017-01-02</ReleaseDate>
                             <Version>1.2</Version>
                             <Steps>
@@ -691,7 +629,7 @@ CREATE TABLE [dbo].[Packages](
         {
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <Id>MyCompany.MyComponent</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                             <Steps>
@@ -704,7 +642,7 @@ CREATE TABLE [dbo].[Packages](
             {
                 ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Patch'>
-                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <Id>MyCompany.MyComponent</Id>
                             <ReleaseDate>2017-01-02</ReleaseDate>
                             <Version>1.2</Version>
                             <Steps>
@@ -739,7 +677,7 @@ CREATE TABLE [dbo].[Packages](
         {
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <Id>MyCompany.MyComponent</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                             <Steps>
@@ -751,7 +689,7 @@ CREATE TABLE [dbo].[Packages](
             {
                 ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Patch'>
-                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <Id>MyCompany.MyComponent</Id>
                             <ReleaseDate>2017-01-02</ReleaseDate>
                             <Version>1.2</Version>
                             <Steps>
@@ -768,7 +706,7 @@ CREATE TABLE [dbo].[Packages](
             // action
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Patch'>
-                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <Id>MyCompany.MyComponent</Id>
                             <ReleaseDate>2017-01-02</ReleaseDate>
                             <Version>1.2</Version>
                             <Steps>
@@ -797,7 +735,7 @@ CREATE TABLE [dbo].[Packages](
         {
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <Id>MyCompany.MyComponent</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>1.0</Version>
                             <Steps>
@@ -811,7 +749,7 @@ CREATE TABLE [dbo].[Packages](
                 {
                     ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Patch'>
-                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <Id>MyCompany.MyComponent</Id>
                             <ReleaseDate>2017-01-02</ReleaseDate>
                             <Version>1.2</Version>
                             <Steps>
@@ -829,7 +767,7 @@ CREATE TABLE [dbo].[Packages](
             // action
             ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Patch'>
-                            <ComponentId>MyCompany.MyComponent</ComponentId>
+                            <Id>MyCompany.MyComponent</Id>
                             <ReleaseDate>2017-01-02</ReleaseDate>
                             <Version>1.2</Version>
                             <Steps>
@@ -928,7 +866,7 @@ CREATE TABLE [dbo].[Packages](
             // prepare xml source
             var manifest = @"<?xml version='1.0' encoding='utf-8'?>
                         <Package type='Install'>
-                            <ComponentId>Component42</ComponentId>
+                            <Id>Component42</Id>
                             <ReleaseDate>2017-01-01</ReleaseDate>
                             <Version>4.42</Version>
                             <Steps>

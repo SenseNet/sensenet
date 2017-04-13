@@ -19,7 +19,7 @@ namespace SenseNet.Packaging
     <xs:complexType>
       <xs:all>
         <xs:element name=""Description"" type=""xs:string"" minOccurs=""0"" maxOccurs=""1""/>
-        <xs:element name=""ComponentId"" type=""xs:string"" minOccurs=""1"" maxOccurs=""1""/>
+        <xs:element name=""Id"" type=""xs:string"" minOccurs=""1"" maxOccurs=""1""/>
         <xs:element name=""ReleaseDate"" type=""xs:string"" minOccurs=""1"" maxOccurs=""1""/>
         <xs:element name=""Version"" type=""VersionNumber"" minOccurs=""1"" maxOccurs=""1""/>
         <xs:element name=""SuccessMessage"" type=""xs:string"" minOccurs=""0"" maxOccurs=""1""/>

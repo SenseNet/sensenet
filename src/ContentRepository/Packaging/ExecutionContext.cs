@@ -52,7 +52,7 @@ namespace SenseNet.Packaging
         /// <summary>
         /// DO NOT USE THIS CONSTRUCTOR FROM TESTS. Use ExecutionContext.CreateForTest method instead.
         /// </summary>
-        internal ExecutionContext(string packagePath, string targetPath, string[] networkTargets, string sandboxPath, Manifest manifest, int currentPhase, int countOfPhases, string[] parameters, TextWriter console)
+        internal ExecutionContext(string packagePath, string targetPath, string[] networkTargets, string sandboxPath, Manifest manifest, int currentPhase, int countOfPhases, PackageParameter[] packageParameters, TextWriter console)
         {
             this.PackagePath = packagePath;
             this.TargetPath = targetPath;
@@ -66,8 +66,6 @@ namespace SenseNet.Packaging
             if (manifest == null)
                 return;
 
-            var packageParameters = parameters?.Select(PackageParameter.Parse).ToArray() ?? new PackageParameter[0];
-            
             foreach (var manifestParameter in manifest.Parameters)
             {
                 var name = manifestParameter.Key;
@@ -80,7 +78,8 @@ namespace SenseNet.Packaging
         }
         internal static ExecutionContext CreateForTest(string packagePath, string targetPath, string[] networkTargets, string sandboxPath, Manifest manifest, int currentPhase, int countOfPhases, string[] parameters, TextWriter console)
         {
-            return new ExecutionContext(packagePath, targetPath, networkTargets, sandboxPath, manifest, currentPhase, countOfPhases, parameters, console) { Test = true };
+            var packageParameters = parameters?.Select(PackageParameter.Parse).ToArray() ?? new PackageParameter[0];
+            return new ExecutionContext(packagePath, targetPath, networkTargets, sandboxPath, manifest, currentPhase, countOfPhases, packageParameters, console) { Test = true };
         }
 
         /// <summary>Verifies that the Repository is running and throws an exception if not.</summary>
