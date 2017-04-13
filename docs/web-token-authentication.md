@@ -55,14 +55,14 @@ All the communication are sent through SSL (https). The used cookies are all Htm
 
 **LoginRequest with header mark:**  
 _uri:_  
-https://```<yourhost>```/```<indifferentpath>```  
+```https://<yourhost>/<indifferentpath>```  
 _headers:_  
 X-Authentication-Type: Token  
 Authorization: Basic ```<base64CodedCredentials>```
 
 **LoginRequest with uri mark:**   
 _uri:_  
-https://<yourhost>/sn-token/login  
+```https://<yourhost>/sn-token/login```  
 _headers:_  
 Authorization: Basic ```<base64CodedCredentials>```
 
@@ -77,7 +77,7 @@ _body:_
 
 **AuthenticatedServiceRequest with header mark:**  
 _uri:_  
-https://<yourhost>/<contentpath>  
+```https://<yourhost>/<contentpath>```  
 headers:  
 ```X-Authentication-Type: Token```  
 ```X-Refresh-Data: <refreshHeadAndPayload>```  
@@ -87,7 +87,7 @@ Cookie: as=```<accessSignature>```
 
 **AuthenticatedServiceRequest without header mark:**  
 _uri:_  
-https://<yourhost>/<contentpath>  
+```https://<yourhost>/<contentpath>```  
 _headers:_  
 ```X-Access-Data: <accessHeadAndPayload>```  
 _cookies:_  
@@ -96,7 +96,7 @@ Cookie: as=```<accessSignature>```
 
 **UnauthenticatedServiceRequest:**  
 _uri:_   
-https://<yourhost>/<contentpath>  
+```https://<yourhost>/<contentpath>```  
 _headers:_  
 X-Access-Data: ```<expiredAccessHeadAndPayload>```
 
@@ -106,7 +106,7 @@ _body:_
 
 **RefreshRequest with header mark:**  
 _uri:_  
-https://<yourhost>/<indifferentpath>  
+```https://<yourhost>/<indifferentpath>```  
 _headers:_  
 X-Authentication-Type: Token  
 X-Refresh-Data: ```<refreshHeadAndPayload>```  
