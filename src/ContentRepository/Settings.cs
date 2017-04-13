@@ -243,10 +243,7 @@ namespace SenseNet.ContentRepository
 
                 // file not found, even in the global folder
                 if (settingsFile == null)
-                {
-                    SnLog.WriteWarning("Settings file not found: " + settingsName + "." + EXTENSION);
                     return defaultValue;
-                }
 
                 // Try to get setting value from cache
                 object settingValue;
