@@ -55,7 +55,7 @@ All the communication are sent through SSL (https). The used cookies are all Htm
 
 **LoginRequest with header mark:**  
 _uri:_  
-https://<yourhost>/<indifferentpath>  
+https://```<yourhost>```/```<indifferentpath>```  
 _headers:_  
 X-Authentication-Type: Token  
 Authorization: Basic ```<base64CodedCredentials>```
