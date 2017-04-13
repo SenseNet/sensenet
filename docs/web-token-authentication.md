@@ -1,7 +1,7 @@
 # Configuration of Web Token Authentication #
 
 In a Sense/Net web application (on all instances) you need to configure the token authentication in the _web.config_ file.
-Find the _SymmetricKeySecret_ parameter in the `tokenAuthentication` section of the sensenet section group. Give it a value of random string in order to make the authentication work.
+Find the _SymmetricKeySecret_ parameter in the `tokenAuthentication` section of the sensenet section group. Give it a value of random string (16 - 64 in length) in order to make the authentication work.
 
 All your instances in the NLB should have the same value as their SymmetricKeySecret. Without this your authentication wouldn't work. Also very important to keep this random string a secret, otherwise someone can exploit it as a security breach. It is a good practice to encrypt the whole tokenAuthentication section in the web.config file.
 
