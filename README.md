@@ -59,7 +59,15 @@ Developers may start integrating the Sense/Net platform by installing the **Sens
 
 `> Install-Package SenseNet.Services -Pre`
 
-3. To finalize the install process, please follow the steps described in the [readme file](/src/nuget/readme.txt) of the NuGet package (it opens automatically when you install the package). 
+3. Modify the connectionString in Web.config, ensuring that it is pointing to your SQL Server (DataSource) and Database Name (Initial Catalog).  If you are using SQL Server logins instead
+of Integrated Security, change Integrated Security to false and the add a 'User Id' and 'Password' that will be used to authenticate to the database. 
+````
+<connectionStrings>
+    <add name="SnCrMsSql" connectionString="Data Source=SQLSERVER;Initial Catalog=sensenet;Integrated Security=false; User Id=test; Password=testpassword" providerName="System.Data.SqlClient" />
+</connectionStrings>
+````
+
+4. To finalize the install process, please follow the steps described in the [readme file](/src/nuget/readme.txt) of the NuGet package (it opens automatically when you install the package). 
     - You will have to make a few modifications to your config files and Global.asax markup and codebehind file.
     - You will have to compile your solution and **execute a command line tool** that will **create the database** and import the necessary initial content.
     - If you are using the built-in _ActionLink_ helper method in your MVC views, you'll have to replace them with a new extension method added by this package: _MvcActionLink_.
