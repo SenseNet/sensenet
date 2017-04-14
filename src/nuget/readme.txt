@@ -19,8 +19,8 @@ To finalize the installation and get started with Sense/Net ECM platform, please
 
 2. Please modify the connectionString in Tools\SnAdminRuntime.exe.config as required" 
      - DataSource is pointing to your SQL Server.
-     
-     - Initial Catalog is defined as the NEW database\
+
+     - Initial Catalog is defined as the NEW database
      
      - If you are using SQL Server logins instead of Integrated Security, change Integrated Security to false 
        and then add a 'User Id' and 'Password' that will be used to authenticate to the database. 
