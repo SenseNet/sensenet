@@ -59,8 +59,7 @@ Developers may start integrating the Sense/Net platform by installing the **Sens
 
 `> Install-Package SenseNet.Services -Pre`
 
-3. Modify the connectionString in Web.config, ensuring that it is pointing to your SQL Server (DataSource) and Database Name (Initial Catalog).  If you are using SQL Server logins instead
-of Integrated Security, change Integrated Security to false and the add a 'User Id' and 'Password' that will be used to authenticate to the database. 
+3. The install process described in _readme.txt_ will modify the **connection string** in _Web.config_ and _Tools\SnAdminRuntime.exe.config_ files, ensuring that it is pointing to your SQL Server (DataSource) and Database Name (Initial Catalog). The connection string is configured to use _Integrated Security_ by default (this means the Windows account you will use to execute the install tool and later the web application). If you are using **SQL Server authentication** instead of Integrated Security, change Integrated Security to _false_ and add a 'User Id' and 'Password' that will be used to authenticate to the database **in both configuration files** mentioned above. 
 ````
 <connectionStrings>
     <add name="SnCrMsSql" connectionString="Data Source=SQLSERVER;Initial Catalog=sensenet;Integrated Security=false; User Id=test; Password=testpassword" providerName="System.Data.SqlClient" />
