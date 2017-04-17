@@ -17,7 +17,7 @@ To finalize the installation and get started with Sense/Net ECM platform, please
     - please copy the contents of the runtime section from your Web.config to the Tools\SnAdminRuntime.exe.config file.
       (see comment at the end of SnAdminRuntime.exe.config)
 
-2. Please modify the connectionString in Tools\SnAdminRuntime.exe.config as required" 
+2. Please modify the connectionString in Tools\SnAdminRuntime.exe.config as required:
      - DataSource is pointing to your SQL Server.
 
      - Initial Catalog is defined as the NEW database
@@ -25,7 +25,8 @@ To finalize the installation and get started with Sense/Net ECM platform, please
      - If you are using SQL Server logins instead of Integrated Security, change Integrated Security to false 
        and then add a 'User Id' and 'Password' that will be used to authenticate to the database. 
 
-    - This connectionString must have permissions to create a database, else the install will fail.
+    - This account defined in the connectionString must have permissions to create a database, else the install 
+      will fail.
 
 <connectionStrings>
     <add name="SnCrMsSql" connectionString="Data Source=SQLSERVER;Initial Catalog=sensenet;Integrated Security=false; User Id=test; Password=testpassword" providerName="System.Data.SqlClient" />
