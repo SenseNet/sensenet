@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Xml;
-using SenseNet.Packaging.Steps;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository;
 
@@ -11,20 +9,22 @@ namespace SenseNet.Packaging
 {
     public class Manifest
     {
-        public PackageLevel Level { get; private set; }
-        public PackageType Type { get; private set; }
-        public string Name { get; private set; }
-        public string Edition { get; private set; }
-        public string AppId { get; private set; }
+        public static readonly string SystemComponentId = "SenseNet.Services";
+
+        public PackageType PackageType { get; private set; }
+        public bool SystemInstall { get; private set; }
+        public string ComponentId { get; private set; }
         public string Description { get; private set; }
         public DateTime ReleaseDate { get; private set; }
-        public VersionControl VersionControl { get; private set; }
+        public IEnumerable<Dependency> Dependencies { get; private set; }
+        public Version Version { get; private set; }
         internal Dictionary<string, string> Parameters { get; private set; }
+        internal XmlDocument ManifestXml { get; private set; }
 
         private List<List<XmlElement>> _phases;
         public int CountOfPhases { get { return _phases.Count; } }
 
-        internal static Manifest Parse(string path, int phase, bool log)
+        internal static Manifest Parse(string path, int phase, bool log, bool forcedReinstall = false)
         {
             var xml = new XmlDocument();
             try
@@ -35,118 +35,116 @@ namespace SenseNet.Packaging
             {
                 throw new PackagingException("Manifest parse error", e);
             }
-            return Parse(xml, phase, log);
+            return Parse(xml, phase, log, forcedReinstall);
         }
         /// <summary>Test entry</summary>
-        private static Manifest Parse(XmlDocument xml, int currentPhase, bool log)
+        internal static Manifest Parse(XmlDocument xml, int currentPhase, bool log, bool forcedReinstall = false)
         {
             var manifest = new Manifest();
+            manifest.ManifestXml = xml;
 
             ParseHead(xml, manifest);
-            manifest.CheckPrerequisits(log);
+            manifest.CheckPrerequisits(forcedReinstall, log);
             ParseParameters(xml, manifest);
             ParseSteps(xml, manifest, currentPhase);
 
             return manifest;
         }
 
-        private static void ParseHead(XmlDocument xml, Manifest manifest)
+        internal static void ParseHead(XmlDocument xml, Manifest manifest)
         {
             XmlElement e;
             XmlAttribute attr;
 
             // root element inspection (required element name)
             e = xml.DocumentElement;
-            if(e.Name != "Package")
-                throw new InvalidPackageException(SR.Errors.Manifest.WrongRootName);
+            if (e == null || e.Name != "Package")
+                throw new InvalidPackageException(SR.Errors.Manifest.WrongRootName,
+                    PackagingExceptionType.WrongRootName);
 
-            // parsing type (required, product or application)
+            // parsing type (required, one of the tool, patch, or install)
             attr = e.Attributes["type"];
             if (attr == null)
                 attr = e.Attributes["Type"];
             if (attr == null)
-                throw new InvalidPackageException(SR.Errors.Manifest.MissingType);
-            PackageType type;
-            if (!Enum.TryParse<PackageType>(attr.Value, true, out type))
-                throw new InvalidPackageException(SR.Errors.Manifest.InvalidType);
-            manifest.Type = type;
+                throw new InvalidPackageException(SR.Errors.Manifest.MissingType,
+                     PackagingExceptionType.MissingPackageType);
+            PackageType packageType;
+            if (!Enum.TryParse<PackageType>(attr.Value, true, out packageType))
+                throw new InvalidPackageException(SR.Errors.Manifest.InvalidType,
+                    PackagingExceptionType.InvalidPackageType);
+            manifest.PackageType = packageType;
 
-            // parsing level (required, one of the tool, patch, servicepack or upgrade)
-            attr = e.Attributes["level"];
-            if (attr == null)
-                attr = e.Attributes["Level"];
-            if (attr == null)
-                throw new InvalidPackageException(SR.Errors.Manifest.MissingLevel);
-            PackageLevel level;
-            if(!Enum.TryParse<PackageLevel>(attr.Value, true, out level))
-                throw new InvalidPackageException(SR.Errors.Manifest.InvalidLevel);
-            manifest.Level = level;
-
-            // parsing application name (required if the "type" is "application")
-            e = (XmlElement)xml.DocumentElement.SelectSingleNode("AppId");
+            // parsing ComponentId
+            e = (XmlElement)xml.DocumentElement.SelectSingleNode("Id");
             if (e != null)
             {
                 if (e.InnerText.Length == 0)
-                    throw new InvalidPackageException(SR.Errors.Manifest.InvalidAppId);
-                else
-                    manifest.AppId = e.InnerText;
+                    throw new InvalidPackageException(SR.Errors.Manifest.InvalidComponentId,
+                    PackagingExceptionType.InvalidComponentId);
+                manifest.ComponentId = e.InnerText;
             }
             else
             {
-                if(type == PackageType.Application)
-                    throw new InvalidPackageException(SR.Errors.Manifest.MissingAppId);
+                throw new InvalidPackageException(SR.Errors.Manifest.MissingComponentId,
+                    PackagingExceptionType.MissingComponentId);
             }
 
-            // parsing name (required)
-            e = (XmlElement)xml.DocumentElement.SelectSingleNode("Name");
-            if (e == null)
-                throw new InvalidPackageException(SR.Errors.Manifest.MissingName);
-            manifest.Name = e.InnerText;
-            if (String.IsNullOrEmpty(manifest.Name))
-                throw new InvalidPackageException(SR.Errors.Manifest.InvalidName);
+            // parsing system install
+            manifest.SystemInstall = manifest.ComponentId == SystemComponentId &&
+                                     manifest.PackageType == PackageType.Install;
 
             // parsing description (optional)
             e = (XmlElement)xml.DocumentElement.SelectSingleNode("Description");
             if (e != null)
                 manifest.Description = e.InnerText;
 
-            // parsing edition (optional)
-            e = (XmlElement)xml.DocumentElement.SelectSingleNode("Edition");
-            if (e != null)
-                manifest.Edition = e.InnerText;
-
-            // parsing version control
-            e = (XmlElement)xml.DocumentElement.SelectSingleNode("VersionControl");
-            if (level != PackageLevel.Tool && e == null)
-                throw new InvalidPackageException(SR.Errors.Manifest.MissingVersionControl);
-            manifest.VersionControl = VersionControl.Initialize(e, level, type);
+            // parsing version
+            e = (XmlElement)xml.DocumentElement.SelectSingleNode("Version");
+            if (e == null)
+                throw new InvalidPackageException(SR.Errors.Manifest.MissingVersion,
+                    PackagingExceptionType.MissingVersion);
+            manifest.Version = Dependency.ParseVersion(e.InnerText);
 
             // parsing release date (required)
             e = (XmlElement)xml.DocumentElement.SelectSingleNode("ReleaseDate");
             if (e == null)
-                throw new InvalidPackageException(SR.Errors.Manifest.MissingReleaseDate);
+                throw new InvalidPackageException(SR.Errors.Manifest.MissingReleaseDate,
+                    PackagingExceptionType.MissingReleaseDate);
             DateTime releaseDate;
             if (!DateTime.TryParse(e.InnerText, out releaseDate))
-                throw new InvalidPackageException(SR.Errors.Manifest.InvalidReleaseDate);
-            if(releaseDate > DateTime.UtcNow)
-                throw new InvalidPackageException(SR.Errors.Manifest.InvalidReleaseDate);
+                throw new InvalidPackageException(SR.Errors.Manifest.InvalidReleaseDate,
+                    PackagingExceptionType.InvalidReleaseDate);
+            if (releaseDate > DateTime.UtcNow)
+                throw new InvalidPackageException(SR.Errors.Manifest.TooBigReleaseDate,
+                    PackagingExceptionType.TooBigReleaseDate);
             manifest.ReleaseDate = releaseDate;
-        }
 
+            // parsing dependencies
+            var dependencies = new List<Dependency>();
+            e = (XmlElement)xml.DocumentElement.SelectSingleNode("Dependencies");
+            if (e != null)
+                foreach (XmlElement dependencyElement in e.SelectNodes("Dependency"))
+                    dependencies.Add(Dependency.Parse(dependencyElement));
+            manifest.Dependencies = dependencies.ToArray();
+        }
         private static void ParseParameters(XmlDocument xml, Manifest manifest)
         {
             var parameters = new Dictionary<string, string>();
             foreach (XmlElement parameterElement in xml.SelectNodes("/Package/Parameters/Parameter"))
             {
                 var parameterName = parameterElement.Attributes["name"]?.Value;
-                if(parameterName == null)
-                    throw new InvalidParameterException("Missing parameter name.");
+                if (parameterName == null)
+                    throw new InvalidParameterException("Missing parameter name.",
+                        PackagingExceptionType.MissingParameterName);
                 if (!parameterName.StartsWith("@"))
-                    throw new InvalidParameterException("Parameter names must start with @.");
+                    throw new InvalidParameterException("Parameter names must start with @.",
+                        PackagingExceptionType.InvalidParameterName);
 
                 var lowerCaseParameterName = parameterName.ToLowerInvariant();
-                if(parameters.ContainsKey(lowerCaseParameterName))
-                    throw new InvalidParameterException($"Duplicated parameter name:{parameterName}");
+                if (parameters.ContainsKey(lowerCaseParameterName))
+                    throw new InvalidParameterException($"Duplicated parameter name:{parameterName}",
+                        PackagingExceptionType.DuplicatedParameter);
 
                 var defaultValue = parameterElement.InnerXml;
 
@@ -194,129 +192,93 @@ namespace SenseNet.Packaging
             return phaseElement.SelectNodes("*").Cast<XmlElement>().ToList();
         }
 
-        public List<XmlElement > GetPhase(int index)
+        public List<XmlElement> GetPhase(int index)
         {
             if (index < 0 || index > _phases.Count)
-                throw new PackagingException(String.Format(SR.Errors.InvalidPhaseIndex_2, _phases.Count, index));
+                throw new PackagingException(String.Format(SR.Errors.InvalidPhaseIndex_2, _phases.Count, index),
+                    PackagingExceptionType.InvalidPhase);
             return _phases[index];
         }
 
-        private void CheckPrerequisits(bool log)
+        private void CheckPrerequisits(bool forcedReinstall, bool log)
         {
             if (log)
             {
-                Logger.LogMessage("Name:    " + this.Name);
-                Logger.LogMessage("Edition: " + this.Edition);
-                Logger.LogMessage("Type:    " + this.Type);
-                Logger.LogMessage("Level:   " + this.Level);
-                if (this.Level != PackageLevel.Tool)
-                    Logger.LogMessage("Package version: " + this.VersionControl.Target);
-                if (this.Type == PackageType.Application)
-                    Logger.LogMessage("AppId: {0}", this.AppId);
+                Logger.LogMessage("ComponentId: {0}", this.ComponentId);
+                Logger.LogMessage("PackageType:   " + this.PackageType);
+                Logger.LogMessage("Package version: " + this.Version);
+                if (SystemInstall)
+                    Logger.LogMessage(forcedReinstall ? "FORCED REINSTALL" : "SYSTEM INSTALL");
             }
 
-            if (Level == PackageLevel.Install)
-            {
-                // Workaround for creating an in-memory version info in case the
-                // database does not exist yet (or will be overwritten anyway).
-                if (Type == PackageType.Product)
-                    RepositoryVersionInfo.SetInitialVersion(new ApplicationInfo
-                    {
-                        Name = this.Name,
-                        Edition = this.Edition, 
-                        Version = this.VersionControl.Target,
-                        Description = this.Description
-                    });
+            var versionInfo = RepositoryVersionInfo.Instance;
+            var existingComponentInfo = versionInfo.Components.FirstOrDefault(a => a.ComponentId == ComponentId && a.AcceptableVersion != null);
 
-                CheckInstall(RepositoryVersionInfo.Instance, log);
-            }
-            else
+            if (PackageType == PackageType.Install)
             {
-                CheckUpdate(RepositoryVersionInfo.Instance, log);
+                if (!(forcedReinstall && SystemInstall) && existingComponentInfo != null)
+                    throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.CannotInstallExistingComponent1, this.ComponentId),
+                        PackagingExceptionType.CannotInstallExistingComponent);
             }
-        }
-        private void CheckInstall(RepositoryVersionInfo versionInfo, bool log)
-        {
-            if (versionInfo.Applications.FirstOrDefault(a => a.AppId == AppId) != null)
-                throw new PackagePreconditionException(SR.Errors.Precondition.CannotInstallExistingApp);
-        }
-        private void CheckUpdate(RepositoryVersionInfo versionInfo, bool log)
-        {
-            Version current = null;
-            Version min = null;
-            Version max = null;
-            switch (this.Type)
+            else if (PackageType != PackageType.Tool)
             {
-                case PackageType.Product:
-                    if (null != this.AppId)
-                        throw new InvalidPackageException(SR.Errors.Manifest.UnexpectedAppId);
-                    CheckEdition(versionInfo.OfficialSenseNetVersion);
-                    current = versionInfo.OfficialSenseNetVersion.AcceptableVersion;
-                    min = VersionControl.ExpectedProductMinimum;
-                    max = VersionControl.ExpectedProductMaximum;
-                    break;
-                case PackageType.Application:
-                    var existingApplication = versionInfo.Applications.FirstOrDefault(a => a.AppId == this.AppId);
-                    if (existingApplication == null)
-                        throw new PackagePreconditionException(SR.Errors.Precondition.AppIdDoesNotMatch);
-                    CheckEdition(existingApplication);
-                    current = existingApplication.AcceptableVersion;
-                    min = VersionControl.ExpectedApplicationMinimum;
-                    max = VersionControl.ExpectedApplicationMaximum;
-                    break;
-                default:
-                    throw new SnNotSupportedException("Unknown PackageType: " + this.Type);
+                if (existingComponentInfo == null)
+                    throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.CannotUpdateMissingComponent1, this.ComponentId),
+                        PackagingExceptionType.CannotUpdateMissingComponent);
+                if (existingComponentInfo.AcceptableVersion >= this.Version)
+                    throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.TargetVersionTooSmall2, this.Version, existingComponentInfo.Version),
+                        PackagingExceptionType.TargetVersionTooSmall);
             }
+
+            if (log && this.Dependencies.Any())
+                Logger.LogMessage("Dependencies:");
+            foreach (var dependency in this.Dependencies)
+                CheckDependency(dependency, versionInfo, log);
+        }
+        private void CheckDependency(Dependency dependency, RepositoryVersionInfo versionInfo, bool log)
+        {
+            var existingComponent = versionInfo.Components.FirstOrDefault(a => a.ComponentId == dependency.Id);
+            if (existingComponent == null)
+                throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.DependencyNotFound1, dependency.Id),
+                    PackagingExceptionType.DependencyNotFound);
+
+            var current = existingComponent.AcceptableVersion;
+            var min = dependency.MinVersion;
+            var max = dependency.MaxVersion;
+            var minEx = dependency.MinVersionIsExclusive;
+            var maxEx = dependency.MaxVersionIsExclusive;
 
             if (log)
             {
-                Logger.LogMessage("Current version: {0}", current);
                 if (min != null && min == max)
                 {
-                    Logger.LogMessage("Expected version: {0}", min);
+                    Logger.LogMessage($"  {dependency.Id}: {min} = {current} (current)");
                 }
                 else
                 {
+                    var minStr = "";
                     if (min != null)
-                        Logger.LogMessage("Expected minimum version: {0}", min);
+                        minStr = $"{min} <{(minEx ? "" : "=")} ";
+                    var maxStr = "";
                     if (max != null)
-                        Logger.LogMessage("Expected maximum version: {0}", max);
+                        maxStr = $" <{(minEx ? "" : "=")} {max}";
+                    Logger.LogMessage($"  {dependency.Id}: {minStr}{current} (current){maxStr}");
                 }
             }
 
-            if (min != null && min > current)
-                throw new PackagePreconditionException(String.Format(SR.Errors.Precondition.MinimumVersion_1, this.Type.ToString().ToLower()));
-            if (max != null && max < current)
-                throw new PackagePreconditionException(String.Format(SR.Errors.Precondition.MaximumVersion_1, this.Type.ToString().ToLower()));
-
-            if(Level != PackageLevel.Tool)
-                if (current >= VersionControl.Target)
-                    throw new PackagePreconditionException(String.Format(SR.Errors.Precondition.TargetVersionTooSmall_3, this.Type.ToString().ToLower(), VersionControl.Target, current));
-        }
-
-        private void CheckEdition(ApplicationInfo appInfo)
-        {
-            if (this.Edition != null && this.Edition.Length == 0)
-                throw new InvalidPackageException(SR.Errors.Manifest.InvalidEdition);
-
-            if (this.Edition == null && this.Type == PackageType.Product && this.Level == PackageLevel.Install)
-                throw new InvalidPackageException(SR.Errors.Manifest.MissingEdition);
-
-            if (this.Level != PackageLevel.Tool)
+            if (min != null)
             {
-                if (appInfo.AppId == null && this.Edition == null)
-                    throw new InvalidPackageException(SR.Errors.Manifest.MissingEdition);
-                if (appInfo.Edition != this.Edition)
-                    throw new PackagePreconditionException(String.Format(SR.Errors.Precondition.EditionMismatch_2, appInfo.Edition ?? "[empty]", this.Edition ?? "[empty]"));
+                if (minEx && min >= current || !minEx && min > current)
+                    throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.MinimumVersion1, dependency.Id),
+                        min == max ? PackagingExceptionType.DependencyVersion : PackagingExceptionType.DependencyMinimumVersion);
             }
-            else
+            if (max != null)
             {
-                if (this.Edition != null)
-                {
-                    if (appInfo.Edition != this.Edition)
-                        throw new PackagePreconditionException(String.Format(SR.Errors.Precondition.EditionMismatch_2, appInfo.Edition ?? "[empty]", this.Edition ?? "[empty]"));
-                }
+                if (maxEx && max <= current || !maxEx && max < current)
+                    throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.MaximumVersion1, dependency.Id),
+                        min == max ? PackagingExceptionType.DependencyVersion : PackagingExceptionType.DependencyMaximumVersion);
             }
+
         }
     }
 }

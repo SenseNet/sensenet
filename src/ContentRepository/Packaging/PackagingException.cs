@@ -1,29 +1,46 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.Packaging
 {
+    public enum PackagingExceptionType
+    {
+        NotDefined,
+        InvalidParameter, InvalidStepParameter,
+        DependencyNotFound, DependencyMismatch,
+        // head parsing
+        WrongRootName, MissingPackageType, InvalidPackageType, MissingComponentId, InvalidComponentId,
+        MissingVersion, MissingReleaseDate, InvalidReleaseDate, TooBigReleaseDate,
+        // dependency parsing
+        MissingDependencyId, EmptyDependencyId,
+        MissingDependencyVersion, InvalidVersion, UnexpectedVersionAttribute, DoubleMinVersionAttribute, DoubleMaxVersionAttribute,
+        CannotInstallExistingComponent, CannotUpdateMissingComponent, TargetVersionTooSmall,
+        DependencyVersion, DependencyMinimumVersion, DependencyMaximumVersion,
+        InvalidPhase,
+        // parameters
+        MissingParameterName, InvalidParameterName, DuplicatedParameter
+    }
+
     [Serializable]
     public class PackagingException : ApplicationException
     {
-        public PackagingException() { Initialize(EventId.Packaging); }
-        public PackagingException(string message) : base(message) { Initialize(EventId.Packaging); }
-        public PackagingException(string message, Exception inner) : base(message, inner) { Initialize(EventId.Packaging); }
-        public PackagingException(int eventId) { Initialize(eventId); }
-        public PackagingException(int eventId, string message) : base(message) { Initialize(eventId); }
-        public PackagingException(int eventId, string message, Exception inner) : base(message, inner) { Initialize(eventId); }
+        public PackagingExceptionType ErrorType { get; private set; }
+
+        public PackagingException(PackagingExceptionType errorType = PackagingExceptionType.NotDefined) { Initialize(EventId.Packaging, errorType); }
+        public PackagingException(string message, PackagingExceptionType errorType = PackagingExceptionType.NotDefined) : base(message) { Initialize(EventId.Packaging, errorType); }
+        public PackagingException(string message, Exception inner, PackagingExceptionType errorType = PackagingExceptionType.NotDefined) : base(message, inner) { Initialize(EventId.Packaging, errorType); }
+        public PackagingException(int eventId, PackagingExceptionType errorType = PackagingExceptionType.NotDefined) { Initialize(eventId, errorType); }
+        public PackagingException(int eventId, string message, PackagingExceptionType errorType = PackagingExceptionType.NotDefined) : base(message) { Initialize(eventId, errorType); }
+        public PackagingException(int eventId, string message, Exception inner, PackagingExceptionType errorType = PackagingExceptionType.NotDefined) : base(message, inner) { Initialize(eventId, errorType); }
         protected PackagingException(
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context)
             : base(info, context) { }
 
-        private void Initialize(int eventId)
+        private void Initialize(int eventId, PackagingExceptionType errorType)
         {
             this.Data.Add("EventId", eventId);
+            this.ErrorType = errorType;
         }
     }
 }

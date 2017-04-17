@@ -173,13 +173,13 @@ namespace SenseNet.Portal.Resources
 
         public static IEnumerable<string> GetCurrentSupportedLanguageNames()
         {
-            var languages = Portal.Site.GetAllLanguages()
+            var languages = Site.GetAllLanguages()
                 .Select(x => x.Value).ToList()
                 .Concat(SenseNetResourceManager.Current.GetCultures().Select(x => x.Name))
                 .Distinct()
                 .ToList();
 
-            if (PortalContext.Current.Site.EnableClientBasedCulture && !languages.Contains(CultureInfo.CurrentUICulture.Name))
+            if ((PortalContext.Current.Site?.EnableClientBasedCulture ?? false) && !languages.Contains(CultureInfo.CurrentUICulture.Name))
             {
                 // If the culture coming from the client is not in the list, but its
                 // parent is already added, skip it. Only add the language if the

@@ -14,11 +14,11 @@ namespace SenseNet.Portal.OData.Typescript
 
         protected override IMetaNode VisitSchema(ContentRepository.Schema.Metadata.Schema schema)
         {
-            _writer.WriteLine(@"//file: ContentTypes.ts
-import { " + TypescriptGenerationContext.EnumTypesModuleName + @" } from './" + TypescriptGenerationContext.EnumTypesModuleName + @"';
+            _writer.WriteLine(@"import { " + TypescriptGenerationContext.EnumTypesModuleName + @" } from './" + TypescriptGenerationContext.EnumTypesModuleName + @"';
 import { FieldSettings } from './FieldSettings';
 import { " + TypescriptGenerationContext.ComplexTypesModuleName + @" } from './" + TypescriptGenerationContext.ComplexTypesModuleName + @"';
 import { Content, IContentOptions } from './Content';
+import { Repository } from './Repository';
 
 /**
  * The Content Repository contains many different types of ```Content```. ```Content``` vary in structure and even in function. Different types of content contain different fields,
@@ -61,7 +61,7 @@ export function CreateContent<T>(type: string, options: IContentOptions = {}): C
             var propertyLines = new List<string>();
             foreach (var property in visitedProperties)
             {
-                var required = Context.RequiredProperties.Contains(property.Name) ? "" : (property.Type.Required ? "" : "?");
+                var required = property.Type.Required ? "" : "?";
                 propertyLines.Add($"{property.Name}{required}: {GetPropertyTypeName(property)};");
             }
 
@@ -82,8 +82,8 @@ export function CreateContent<T>(type: string, options: IContentOptions = {}): C
             WriteLine($" * @constructs {type}");
             WriteLine($" * @param options {{object}} An object implementing {{@link I{type}Options" + "} interface");
             WriteLine($" */");
-            WriteLine($"constructor(options: I{type}Options) {{");
-            WriteLine($"    super(options);");
+            WriteLine($"constructor(options: I{type}Options, repository: Repository<any, any>) {{");
+            WriteLine($"    super(options, repository);");
 
             _indentCount++;
             foreach (var property in visitedProperties)

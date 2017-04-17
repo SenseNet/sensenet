@@ -1,0 +1,160 @@
+﻿<ContentType name="Aspect" parentType="ContentList" handler="SenseNet.ContentRepository.Aspect" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+  <DisplayName>$Ctd-Aspect,DisplayName</DisplayName>
+  <Description>$Ctd-Aspect,Description</Description>
+  <Icon>Aspect</Icon>
+  <Fields>
+    <Field name="DisplayName" type="ShortText">
+      <DisplayName>$Ctd-Aspect,DisplayName-DisplayName</DisplayName>
+    </Field>
+    <Field name="AspectDefinition" type="LongText">
+      <DisplayName>$Ctd-Aspect,AspectDefinition-DisplayName</DisplayName>
+      <Description>$Ctd-Aspect,AspectDefinition-Description</Description>
+      <Indexing>
+        <Mode>No</Mode>
+      </Indexing>
+      <Configuration>
+        <VisibleBrowse>Show</VisibleBrowse>
+        <VisibleEdit>Show</VisibleEdit>
+        <VisibleNew>Show</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="DefaultView" type="ShortText">
+      <DisplayName>$Ctd-ContentList,DefaultView-DisplayName</DisplayName>
+      <Description>$Ctd-ContentList,DefaultView-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="AvailableViews" type="Reference">
+      <DisplayName>$Ctd-ContentList,AvailableViews-DisplayName</DisplayName>
+      <Description>$Ctd-ContentList,AvailableViews-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <AllowMultiple>true</AllowMultiple>
+        <AllowedTypes>
+          <Type>ListView</Type>
+        </AllowedTypes>
+      </Configuration>
+    </Field>
+    <Field name="FieldSettingContents" type="Reference">
+      <DisplayName>$Ctd-ContentList,FieldSettingContents-DisplayName</DisplayName>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <AllowMultiple>true</AllowMultiple>
+        <AllowedTypes>
+          <Type>FieldSettingContent</Type>
+        </AllowedTypes>
+      </Configuration>
+    </Field>
+    <Field name="AvailableContentTypeFields" type="Reference">
+      <DisplayName>$Ctd-ContentList,AvailableContentTypeFields-DisplayName</DisplayName>
+      <Configuration>
+        <ReadOnly>true</ReadOnly>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <AllowMultiple>true</AllowMultiple>
+        <AllowedTypes>
+          <Type>FieldSettingContent</Type>
+        </AllowedTypes>
+      </Configuration>
+    </Field>
+    <!-- Exchange integration -->
+    <Field name="ListEmail" type="ShortText">
+      <DisplayName>$Ctd-ContentList,ListEmail-DisplayName</DisplayName>
+      <Description>$Ctd-ContentList,ListEmail-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="ExchangeSubscriptionId" type="ShortText">
+      <DisplayName>$Ctd-ContentList,ExchangeSubscriptionId-DisplayName</DisplayName>
+      <Description>$Ctd-ContentList,ExchangeSubscriptionId-Descriptione</Description>
+      <Configuration>
+        <ReadOnly>true</ReadOnly>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="OverwriteFiles" type="Boolean">
+      <DisplayName>$Ctd-ContentList,OverwriteFiles-DisplayName</DisplayName>
+      <Description>$Ctd-ContentList,OverwriteFiles-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="GroupAttachments" type="Choice">
+      <DisplayName>$Ctd-ContentList,GroupAttachments-DisplayName</DisplayName>
+      <Description>$Ctd-ContentList,GroupAttachments-Description</Description>
+      <Configuration>
+        <AllowMultiple>false</AllowMultiple>
+        <AllowExtraValue>false</AllowExtraValue>
+        <Options>
+          <Option value="email" selected="true">$Ctd-ContentList,GroupAttachments-email</Option>
+          <Option value="root">$Ctd-ContentList,GroupAttachments-root</Option>
+          <Option value="subject">$Ctd-ContentList,GroupAttachments-subject</Option>
+          <Option value="sender">$Ctd-ContentList,GroupAttachments-sender</Option>
+        </Options>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="SaveOriginalEmail" type="Boolean">
+      <DisplayName>$Ctd-ContentList,SaveOriginalEmail-DisplayName</DisplayName>
+      <Description>$Ctd-ContentList,SaveOriginalEmail-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="IncomingEmailWorkflow" type="Reference">
+      <DisplayName>$Ctd-ContentList,IncomingEmailWorkflow-DisplayName</DisplayName>
+      <Description>$Ctd-ContentList,IncomingEmailWorkflow-Description</Description>
+      <Configuration>
+        <AllowMultiple>false</AllowMultiple>
+        <SelectionRoot>
+          <Path>/Root/System/Schema/ContentTypes/GenericContent/Workflow/MailProcessorWorkflow</Path>
+        </SelectionRoot>
+        <DefaultValue>/Root/System/Schema/ContentTypes/GenericContent/Workflow/MailProcessorWorkflow</DefaultValue>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <!-- Exchange integration end -->
+    <Field name="AllowedChildTypes" type="AllowedChildTypes">
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="InheritableVersioningMode" type="InheritableVersioningMode">
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="InheritableApprovingMode" type="InheritableApprovingMode">
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+  </Fields>
+</ContentType>

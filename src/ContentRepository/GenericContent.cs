@@ -912,14 +912,20 @@ namespace SenseNet.ContentRepository
         }
         private void SetAllowedChildTypes(IEnumerable<ContentType> contentTypes, bool throwOnError = true, bool save = false)
         {
-            var currentTypes = this.AllowedChildTypes;
-            if (currentTypes.Count() == 0)
-                currentTypes = this.ContentType.AllowedChildTypes;
-            var addList = contentTypes.Except(currentTypes);
-            if (addList.Count() == 0)
+            var origTypes = this.AllowedChildTypes.ToArray();
+            if (origTypes.Length == 0)
+                origTypes = this.ContentType.AllowedChildTypes.ToArray();
+
+            var newTypes = contentTypes?.ToArray() ?? new ContentType[0];
+
+            var addList = newTypes.Except(origTypes).ToArray();
+            var removeList = origTypes.Except(newTypes).ToArray();
+            if (addList.Length + removeList.Length == 0)
                 return;
-            var list = currentTypes.Union(contentTypes).Distinct();
+
+            var list = origTypes.Union(newTypes).Distinct().Except(removeList);
             this.AllowedChildTypes = list.ToArray();
+
             if (save)
                 this.Save();
         }
