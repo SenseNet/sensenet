@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Web.Services.Protocols;
-using System.Web.Services;
 using System.Xml.Serialization;
 using System.IO;
 using System.Xml;
 using System.Web;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.Diagnostics;
 using SenseNet.Portal.Virtualization;
 
 namespace SenseNet.Portal.Dws
@@ -20,23 +17,22 @@ namespace SenseNet.Portal.Dws
         /// </summary>
         /// <param name="pObject">Object that is to be serialized to XML</param>
         /// <returns>XML string</returns>
-        public static String SerializeObject(Object pObject)
+        public static string SerializeObject(object pObject)
         {
             try
             {
-                String XmlizedString = null;
-                MemoryStream memoryStream = new MemoryStream();
-                XmlSerializer xs = new XmlSerializer(pObject.GetType());
-                XmlTextWriter xmlTextWriter = new XmlTextWriter(memoryStream, Encoding.UTF8);
+                var memoryStream = new MemoryStream();
+                var xs = new XmlSerializer(pObject.GetType());
+                var xmlTextWriter = new XmlTextWriter(memoryStream, Encoding.UTF8);
 
                 xs.Serialize(xmlTextWriter, pObject);
                 memoryStream = (MemoryStream)xmlTextWriter.BaseStream;
-                XmlizedString = UTF8ByteArrayToString(memoryStream.ToArray());
+                var XmlizedString = UTF8ByteArrayToString(memoryStream.ToArray());
                 return XmlizedString;
             }
             catch (Exception e)
             {
-                System.Console.WriteLine(e);
+                SnLog.WriteException(e);
                 return null;
             }
         }
@@ -46,11 +42,10 @@ namespace SenseNet.Portal.Dws
         /// </summary>
         /// <param name="pXmlizedString"></param>
         /// <returns></returns>
-        public static Object DeserializeObject(String pXmlizedString, Type pObjectType)
+        public static object DeserializeObject(string pXmlizedString, Type pObjectType)
         {
-            XmlSerializer xs = new XmlSerializer(pObjectType);
-            MemoryStream memoryStream = new MemoryStream(StringToUTF8ByteArray(pXmlizedString));
-            XmlTextWriter xmlTextWriter = new XmlTextWriter(memoryStream, Encoding.UTF8);
+            var xs = new XmlSerializer(pObjectType);
+            var memoryStream = new MemoryStream(StringToUTF8ByteArray(pXmlizedString));
 
             return xs.Deserialize(memoryStream);
         }
@@ -60,11 +55,10 @@ namespace SenseNet.Portal.Dws
         /// </summary>
         /// <param name="characters">Unicode Byte Array to be converted to String</param>
         /// <returns>String converted from Unicode Byte Array</returns>
-        private static String UTF8ByteArrayToString(Byte[] characters)
+        private static string UTF8ByteArrayToString(byte[] characters)
         {
-            UTF8Encoding encoding = new UTF8Encoding();
-            String constructedString = encoding.GetString(characters);
-            return (constructedString);
+            var encoding = new UTF8Encoding();
+            return encoding.GetString(characters);
         }
 
         /// <summary>
@@ -72,11 +66,10 @@ namespace SenseNet.Portal.Dws
         /// </summary>
         /// <param name="pXmlString"></param>
         /// <returns></returns>
-        private static Byte[] StringToUTF8ByteArray(String pXmlString)
+        private static byte[] StringToUTF8ByteArray(string pXmlString)
         {
-            UTF8Encoding encoding = new UTF8Encoding();
-            Byte[] byteArray = encoding.GetBytes(pXmlString);
-            return byteArray;
+            var encoding = new UTF8Encoding();
+            return encoding.GetBytes(pXmlString);
         }
 
         /// <summary>
@@ -106,9 +99,19 @@ namespace SenseNet.Portal.Dws
             if (partialPath.StartsWith("/Root/", StringComparison.OrdinalIgnoreCase))
                 return partialPath;
 
-            var absPath1 = RepositoryPath.Combine(PortalContext.Current.Site.Path, partialPath);
-            if (Node.Exists(absPath1))
-                return absPath1;
+            string absPath1;
+
+            if (PortalContext.Current.Site == null)
+            {
+                SnTrace.Web.Write($"WebDav: current site is unknown, cannot convert partial path '{partialPath}' to a site-relative path.");
+                absPath1 = partialPath;
+            }
+            else
+            {
+                absPath1 = RepositoryPath.Combine(PortalContext.Current.Site.Path, partialPath);
+                if (Node.Exists(absPath1))
+                    return absPath1;
+            }
 
             var absPath2 = RepositoryPath.Combine("/Root", partialPath);
             if (Node.Exists(absPath2))

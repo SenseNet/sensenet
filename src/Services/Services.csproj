@@ -63,6 +63,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\References\Lucene.Net.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Exchange.WebServices, Version=15.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\References\Microsoft.Exchange.WebServices.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Practices.EnterpriseLibrary.Common, Version=5.0.414.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\References\Microsoft.Practices.EnterpriseLibrary.Common.dll</HintPath>
@@ -208,6 +212,11 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="EntityReference.cs" />
+    <Compile Include="Exchange\ExchangeSubscriptionService.cs" />
+    <Compile Include="Exchange\Interfaces.cs" />
+    <Compile Include="Exchange\PushNotificationClient.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Fields\UrlListField.cs" />
     <Compile Include="Global.cs" />
     <Compile Include="Handlers\BinaryHandler.cs" />

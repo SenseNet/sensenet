@@ -56,7 +56,7 @@ namespace SenseNet.Services.WebDav
             path = path.TrimEnd('/');
 
             // check if the path is site-relative
-            if (PortalContext.Current != null)
+            if (PortalContext.Current?.Site != null)
             {
                 var absolutePath = RepositoryPath.Combine(PortalContext.Current.Site.Path, path);
                 if (Node.Exists(absolutePath))

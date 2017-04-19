@@ -24,19 +24,8 @@ namespace SenseNet.Packaging.Tests.Implementations
     public class TestPackageStorageProvider : IPackageStorageProvider
     {
         private int _id;
-        private List<Package> __storage = new List<Package>();
 
-        private List<Package> Storage
-        {
-            get
-            {
-                if (!DatabaseEnabled)
-                    throw new Exception("Database is not available");
-                return __storage;
-            }
-        }
-
-        public bool DatabaseEnabled { get; set; }
+        private List<Package> Storage { get; } = new List<Package>();
 
         private Package ClonePackage(Package source, bool withManifest)
         {

@@ -1,5 +1,5 @@
 <Package type='Install'>
-  <ComponentId>SenseNet.Services</ComponentId>
+  <Id>SenseNet.Services</Id>
   <Description>Sense/Net ECM Services 7.0 (beta)</Description>
   <ReleaseDate>2017-04-05</ReleaseDate>
   <Version>7.0.0</Version>
@@ -16,7 +16,8 @@
             NewName="Create_SenseNet_Database_TEMP.sql" />
       <ReplaceText Template="$(INITIALCATALOG)" Path="App_Data\scripts\Create_SenseNet_Database_TEMP.sql">@initialCatalog</ReplaceText>
       
-      <ExecuteDatabaseScript initialCatalog="Master"              DataSource="@dataSource" Query="..\..\..\App_Data\scripts\Create_SenseNet_Database_TEMP.sql" />
+      <ExecuteDatabaseScript initialCatalog="Master" DataSource="@dataSource" Query="..\..\..\App_Data\scripts\Create_SenseNet_Database_TEMP.sql" />
+      <CheckDatabaseConnection InitialCatalogName="@initialCatalog" DataSource="@dataSource"/>
       <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" Query="scripts\Install_Security.sql" />
       <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" Query="scripts\Install_01_Schema.sql" />
       <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" Query="scripts\Install_02_Procs.sql" />
