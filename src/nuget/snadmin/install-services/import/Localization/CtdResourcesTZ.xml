@@ -762,6 +762,38 @@
       </Language>
     </Languages>
   </ResourceClass>
+  <ResourceClass name="Ctd-WebServiceApplication">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>WebService Application</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value></value>
+        </data>
+        <data name="Binary-DisplayName" xml:space="preserve">
+          <value>WebService markup</value>
+        </data>
+        <data name="Binary-Description" xml:space="preserve">
+          <value></value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>WebService alkalmazás</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value></value>
+        </data>
+        <data name="Binary-DisplayName" xml:space="preserve">
+          <value>WebService tartalma</value>
+        </data>
+        <data name="Binary-Description" xml:space="preserve">
+          <value></value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
   <ResourceClass name="Ctd-Workspace">
     <Languages>
       <Language cultureName="en">
