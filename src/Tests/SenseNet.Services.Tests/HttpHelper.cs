@@ -39,14 +39,5 @@ namespace SenseNet.Services.Tests
 
         }
 
-        //public static void Init(this HttpApplication application, HttpContext context)
-        //{
-        //    var stateCtor = typeof(HttpApplicationState).GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic,null, new Type[] { }, new ParameterModifier[] { });
-        //    var state = (HttpApplicationState)stateCtor.Invoke(new Object[] { });
-
-        //    var initMethod = typeof(HttpApplication).GetMethod("InitInternal", BindingFlags.Instance | BindingFlags.NonPublic);
-        //    initMethod.Invoke(application, BindingFlags.InvokeMethod,null, new object[] {context, state, null}, CultureInfo.InvariantCulture);
-
-        //}
     }
 }

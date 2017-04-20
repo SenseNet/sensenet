@@ -60,14 +60,17 @@ namespace SenseNet.Portal.Virtualization
         {
             get
             {
-                lock (_keyLock)
+                if (_securityKey == null)
                 {
-                    if (_securityKey == null)
+                    lock (_keyLock)
                     {
-                        _securityKey = EncryptionHelper.CreateSymmetricKey(Configuration.TokenAuthentication.SymmetricKeySecret);
+                        if (_securityKey == null)
+                        {
+                            _securityKey = EncryptionHelper.CreateSymmetricKey(Configuration.TokenAuthentication.SymmetricKeySecret);
+                        }
                     }
-                    return _securityKey;
                 }
+                return _securityKey;
             }
         }
 
@@ -80,10 +83,9 @@ namespace SenseNet.Portal.Virtualization
         public Func<IDisposable> GetSystemAccount = () => new SystemAccount();
         public Func<string> GetBasicAuthHeader = () => PortalContext.Current.BasicAuthHeaders;
 
-        private bool _anonymAuthenticated;
-        public bool DispatchBasicAuthentication(HttpContextBase context)
+        public bool DispatchBasicAuthentication(HttpContextBase context, out bool anonymAuthenticated)
         {
-            _anonymAuthenticated = false;
+            anonymAuthenticated = false;
             var authHeader = GetBasicAuthHeader();
             if (authHeader == null || !authHeader.StartsWith("Basic "))
                 return false;
@@ -94,7 +96,7 @@ namespace SenseNet.Portal.Virtualization
             if (userPass.Length != 2)
             {
                 context.User = GetVisitorPrincipal();
-                _anonymAuthenticated = true;
+                anonymAuthenticated = true;
                 return true;
             }
             try
@@ -112,7 +114,7 @@ namespace SenseNet.Portal.Virtualization
                     else
                     {
                         context.User = GetVisitorPrincipal();
-                        _anonymAuthenticated = true;
+                        anonymAuthenticated = true;
                     }
                 }
             }
@@ -120,7 +122,7 @@ namespace SenseNet.Portal.Virtualization
             {
                 SnLog.WriteException(e);
                 context.User = GetVisitorPrincipal();
-                _anonymAuthenticated = true;
+                anonymAuthenticated = true;
             }
             return true;
         }
@@ -131,11 +133,25 @@ namespace SenseNet.Portal.Virtualization
             var application = sender as HttpApplication;
             var context = GetContext(sender); //HttpContext.Current;
             var request = GetRequest(sender);
+            bool anonymAuthenticated;
 
-            var basicAuthenticated = DispatchBasicAuthentication(context);
+            var basicAuthenticated = DispatchBasicAuthentication(context, out anonymAuthenticated);
             if (IsTokenAuthenticationRequested(request))
             {
-                TokenAuthenticate(basicAuthenticated, context, application);
+                if (basicAuthenticated && anonymAuthenticated)
+                {
+                    SnLog.WriteException(new UnauthorizedAccessException("Invalid user."));
+                    context.Response.StatusCode = HttpResponseStatusCode.Unauthorized;
+                    context.Response.Flush();
+                    if (application.Context != null)
+                    {
+                        application.CompleteRequest();
+                    }
+                }
+                else
+                {
+                    TokenAuthenticate(basicAuthenticated, context, application);
+                }
                 return;
             }
             // if it is a simple basic authentication case
@@ -214,23 +230,12 @@ namespace SenseNet.Portal.Virtualization
         private bool IsTokenAuthenticationRequested(HttpRequestBase request)
         {
             return request.IsSecureConnection && (GetAuthenticationTypeHeader(request) == "Token"
-                || new[] {TokenLoginPath, TokenRefreshPath}.Contains(request.Url.PathAndQuery,  StringComparer.InvariantCultureIgnoreCase)
+                || new[] {TokenLoginPath, TokenRefreshPath}.Contains(request.Url.AbsolutePath,  StringComparer.InvariantCultureIgnoreCase)
                 || !string.IsNullOrWhiteSpace(GetAccessHeader(request)));
         }
 
         private void TokenAuthenticate(bool basicAuthenticated, HttpContextBase context, HttpApplication application)
         {
-            if (basicAuthenticated && _anonymAuthenticated)
-            {
-                SnLog.WriteException(new UnauthorizedAccessException("Invalid user."));
-                context.Response.StatusCode = HttpResponseStatusCode.Unauthorized;
-                context.Response.Flush();
-                if (application.Context != null)
-                {
-                    application.CompleteRequest();
-                }
-                return;
-            }
             try
             {
                 ISecurityTokenHandler tokenHandler = new JwsSecurityTokenHandler();
