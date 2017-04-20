@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>GenericODataApplication</ContentType>
+  <ContentName>GetPermissionOverview</ContentName>
+  <Fields>
+    <ClassName><![CDATA[SenseNet.Portal.PermissionQuery]]></ClassName>
+    <MethodName><![CDATA[GetPermissionOverview]]></MethodName>
+    <Parameters><![CDATA[
+      string identity
+    ]]></Parameters>
+    <DisplayName><![CDATA[GetPermissionOverview]]></DisplayName>
+    <ActionTypeName><![CDATA[GenericODataOperation]]></ActionTypeName>
+  </Fields>
+  <Permissions>
+    <Clear />
+  </Permissions>
+</ContentMetaData>

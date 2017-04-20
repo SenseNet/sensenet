@@ -9,6 +9,8 @@ namespace SenseNet.Packaging.Steps.Internal
     {
         public string DataSource { get; set; }
         public string InitialCatalogName { get; set; }
+        public string UserName { get; set; }
+        public string Password { get; set; }
 
         #region _sqlScript = @"-- create and drop a table for test
         private static readonly string _sqlScript = @"-- create and drop a table for test
@@ -77,6 +79,8 @@ END
                 DataSource = (string)context.ResolveVariable(DataSource),
                 InitialCatalog = InitialCatalog.Initial,
                 InitialCatalogName = (string)context.ResolveVariable(InitialCatalogName)
+                , UserName = (string)context.ResolveVariable(UserName)
+                , Password = (string)context.ResolveVariable(Password)
             });
         }
 

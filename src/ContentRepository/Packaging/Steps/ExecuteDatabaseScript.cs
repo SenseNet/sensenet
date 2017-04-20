@@ -63,6 +63,8 @@ namespace SenseNet.Packaging.Steps
         public string DataSource { get; set; }
         public string InitialCatalogName { get; set; }
         public InitialCatalog InitialCatalog { get; set; }
+        public string UserName { get; set; }
+        public string Password { get; set; }
 
         public override void Execute(ExecutionContext context)
         {
@@ -150,6 +152,8 @@ namespace SenseNet.Packaging.Steps
                 DataSource = (string)context.ResolveVariable(DataSource),
                 InitialCatalog = InitialCatalog,
                 InitialCatalogName = (string)context.ResolveVariable(InitialCatalogName)
+                , UserName  = (string)context.ResolveVariable(UserName)
+                , Password = (string)context.ResolveVariable(Password)
             });
         }
     }
