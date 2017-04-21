@@ -16,7 +16,7 @@ If you need...
 
 ![Workspaces](http://wiki.sensenet.com/images/5/5e/Ws-main.png "Workspaces")
 
-## Sense/Net can be a lots of things
+## Sense/Net can be a lot of things
 
 - a development platform
 - an internet and intranet portal
