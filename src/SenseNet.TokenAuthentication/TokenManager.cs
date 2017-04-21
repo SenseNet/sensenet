@@ -1,30 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
 using Microsoft.IdentityModel.Tokens;
-using SecurityKey = Microsoft.IdentityModel.Tokens.SecurityKey;
-using SecurityAlgorithms = Microsoft.IdentityModel.Tokens.SecurityAlgorithms;
 using SigningCredentials = Microsoft.IdentityModel.Tokens.SigningCredentials;
-using SymmetricSecurityKey = Microsoft.IdentityModel.Tokens.SymmetricSecurityKey;
-using RsaSecurityKey = Microsoft.IdentityModel.Tokens.RsaSecurityKey;
-using System.Security.Cryptography;
-using System.Text;
-using Newtonsoft.Json;
 
 namespace SenseNet.TokenAuthentication
 {
     public class TokenManager
     {
         private readonly ITokenParameters _tokenParameters;
-
         private readonly string _tokenTypeCode = "JWT";
-
-        private ISecurityKey _securityKey;
-        private ISecurityTokenHandler _handler;
+        private readonly ISecurityKey _securityKey;
+        private readonly ISecurityTokenHandler _handler;
 
         public TokenManager(ISecurityKey securityKey, ISecurityTokenHandler tokenHandler, ITokenParameters tokenParameters)
         {
@@ -44,8 +32,10 @@ namespace SenseNet.TokenAuthentication
             {
                 throw new ArgumentOutOfRangeException(nameof(name));
             }
+
             string tokenString = null;
             refreshTokenString = null;
+
             if (_handler.CanWriteToken)
             {
                 var signingCredentials = new SigningCredentials(_securityKey.SecurityKey, _tokenParameters.EncryptionAlgorithm);
@@ -58,13 +48,13 @@ namespace SenseNet.TokenAuthentication
                 var header = new JwtHeader(signingCredentials);
                 var payload = new JwtPayload
                 {
-                    { "iss", _tokenParameters.Issuer}
-                    , {"sub", _tokenParameters.Subject }
-                    , { "aud", _tokenParameters.Audience}
-                    , { "exp", numericExpiration}
-                    , { "iat", numericNow}
-                    , { "nbf", numericNotBefore}
-                    , { "name", name}
+                    { "iss", _tokenParameters.Issuer},
+                    { "sub", _tokenParameters.Subject },
+                    { "aud", _tokenParameters.Audience},
+                    { "exp", numericExpiration},
+                    { "iat", numericNow},
+                    { "nbf", numericNotBefore},
+                    { "name", name}
                 };
                 if (!string.IsNullOrWhiteSpace(role))
                 {
@@ -82,18 +72,20 @@ namespace SenseNet.TokenAuthentication
                     numericNotBefore = GetNumericDate(notBefore);
                     payload = new JwtPayload
                     {
-                        { "iss", _tokenParameters.Issuer}
-                        , {"sub", _tokenParameters.Subject }
-                        , { "aud", _tokenParameters.Audience}
-                        , { "exp", numericExpiration}
-                        , { "iat", numericNow}
-                        , { "nbf", numericNotBefore }
-                        , { "name", name}
+                        { "iss", _tokenParameters.Issuer},
+                        { "sub", _tokenParameters.Subject },
+                        { "aud", _tokenParameters.Audience},
+                        { "exp", numericExpiration},
+                        { "iat", numericNow},
+                        { "nbf", numericNotBefore },
+                        { "name", name}
                     };
+
                     var refreshToken = new JwtSecurityToken(header, payload);
                     refreshTokenString = _handler.WriteToken(refreshToken);
                 }
             }
+
             return tokenString;
         }
 
@@ -115,9 +107,8 @@ namespace SenseNet.TokenAuthentication
                 , ValidateLifetime = validateLifeTime
             };
 
-                Microsoft.IdentityModel.Tokens.SecurityToken validatedToken;
-                var principal = _handler.ValidateToken(token, validationParameters, out validatedToken);
-                return principal;
+            SecurityToken validatedToken;
+            return _handler.ValidateToken(token, validationParameters, out validatedToken);
         }
     }
 }

@@ -7,12 +7,7 @@ namespace SenseNet.TokenAuthentication.Tests
 {
     public class TokenManagerTests : IDisposable
     {
-
         private TokenManager _manager;
-
-        public TokenManagerTests()
-        {
-        }
 
         private TokenParameters _tokenParameters;
         private string _name = "MyName";
@@ -23,15 +18,15 @@ namespace SenseNet.TokenAuthentication.Tests
             var tokenHandler = new JwsSecurityTokenHandler();
             _tokenParameters = new TokenParameters
             {
-                Audience = "audience"
-                , Issuer = "issuer"
-                , Subject = "subject"
-                , EncryptionAlgorithm = encription
-                , ValidFrom = DateTime.Now.AddMinutes(5)
-                , ValidateLifeTime = true
+                Audience = "audience",
+                Issuer = "issuer",
+                Subject = "subject",
+                EncryptionAlgorithm = encription,
+                ValidFrom = DateTime.Now.AddMinutes(5),
+                ValidateLifeTime = true
             };
-            _manager = new TokenManager(EncryptionHelper.CreateKey(encription), tokenHandler, _tokenParameters);
 
+            _manager = new TokenManager(EncryptionHelper.CreateKey(encription), tokenHandler, _tokenParameters);
         }
 
         private string Base64UrlDecode(string encoded)
@@ -54,14 +49,13 @@ namespace SenseNet.TokenAuthentication.Tests
 
             string refreshToken;
             var token = _manager.GenerateToken(_name, _role, out refreshToken);
-            //Exception validationException;
-            //var principal = _manager.ValidateToken(token, out validationException, false);
 
             Assert.NotNull(token);
             Assert.Null(refreshToken);
+
             var parts = token.Split('.');
             Assert.True(parts.Length == 3);
-            //var claims = Encoding.UTF8.GetString(Convert.FromBase64String(parts[1]));
+
             var claims = Base64UrlDecode(parts[1]);
             Assert.Matches("\"name\":\"" + _name + "\"", claims);
             Assert.Matches("\"role\":\"" + _role + "\"", claims);

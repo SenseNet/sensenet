@@ -1,14 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
 
 namespace SenseNet.TokenAuthentication
 {
     public static class EncryptionHelper
     {
-
         public static EncryptionKey CreateKey(string encription, int length = 64, int keylength = 2048)
         {
             if (Constants.RsaAlgorithms.Keys.Contains(encription) || Constants.RsaAlgorithms.Values.Contains(encription))
@@ -41,6 +38,5 @@ namespace SenseNet.TokenAuthentication
                 return new RsaSecurityKey(parameters);
             }
         }
-
     }
 }

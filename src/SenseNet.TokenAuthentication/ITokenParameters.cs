@@ -13,6 +13,5 @@ namespace SenseNet.TokenAuthentication
         bool ValidateLifeTime { get; set; }
         int ClockSkewInMinutes { get; set; }
         DateTime? ValidFrom { get; set; }
-
     }
 }

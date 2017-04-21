@@ -7,10 +7,13 @@ namespace SenseNet.TokenAuthentication
     {
         public static void InsertSecureCookie(HttpResponseBase response, string token, string cookieName, DateTime expiration)
         {
-            var authCookie = new HttpCookie(cookieName, token);
-            authCookie.HttpOnly = true;
-            authCookie.Secure = true;
-            authCookie.Expires = expiration;
+            var authCookie = new HttpCookie(cookieName, token)
+            {
+                HttpOnly = true,
+                Secure = true,
+                Expires = expiration
+            };
+
             response.Cookies.Add(authCookie);
         }
 
