@@ -153,6 +153,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
                     }
                     connectionBuilder.UserID = _userName;
                     connectionBuilder.Password = _password;
+                    connectionBuilder.IntegratedSecurity = false;
                 }
                 cnstr = connectionBuilder.ToString();
                 _conn = new SqlConnection(cnstr);

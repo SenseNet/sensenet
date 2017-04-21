@@ -13,7 +13,7 @@
   <Steps>
     <Phase>
 
-      <IfDatabaseExists name="@initialCatalog">
+      <IfDatabaseExists Name="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password">
         <Then>
           <If condition="@recreateDbIfExists">
             <Then>
@@ -48,7 +48,7 @@
                 NewName="Create_SenseNet_Database_TEMP.sql" />
           <ReplaceText Template="$(INITIALCATALOG)" Path="App_Data\scripts\Create_SenseNet_Database_TEMP.sql">@initialCatalog</ReplaceText>
 
-          <ExecuteDatabaseScript initialCatalog="Master" DataSource="@dataSource" UserName="@userName" Password="@password" Query="..\..\..\App_Data\scripts\Create_SenseNet_Database_TEMP.sql" />
+          <ExecuteDatabaseScript InitialCatalogName="Master" DataSource="@dataSource" UserName="@userName" Password="@password" Query="..\..\..\App_Data\scripts\Create_SenseNet_Database_TEMP.sql" />
         </Then>
       </If>      
       <CheckDatabaseConnection InitialCatalogName="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password"/>
@@ -59,10 +59,10 @@
       <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password" Query="scripts\Install_04_Data_Phase2.sql" />
 
       <!-- Insert new connection string values into config files. -->
-      <EditConnectionString ConnectionName="SnCrMsSql" InitialCatalogName="@initialCatalog" DataSource="@dataSource" File="Web.config" />
+      <EditConnectionString ConnectionName="SnCrMsSql" InitialCatalogName="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password" File="Web.config" />
       <ForEach item="@configPath" files="Tools\*.config">
         <Block>
-          <EditConnectionString ConnectionName="SnCrMsSql" InitialCatalogName="@initialCatalog" DataSource="@dataSource" File="@configPath" />
+          <EditConnectionString ConnectionName="SnCrMsSql" InitialCatalogName="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password" File="@configPath" />
         </Block>
       </ForEach>
       
