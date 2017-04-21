@@ -88,8 +88,8 @@ namespace SenseNet.Packaging.Steps
         {
             return DataProvider.CreateDataProcedure(script, new ConnectionInfo
             {
-                DataSource = (string)context.ResolveVariable(DataSource),
-                InitialCatalogName = (string)context.ResolveVariable(InitialCatalogName)
+                DataSource = (string)context.ResolveVariable(DataSource)
+                , InitialCatalogName = (string)context.ResolveVariable(InitialCatalogName)
                 , UserName = (string)context.ResolveVariable(UserName)
                 , Password = (string)context.ResolveVariable(Password)
             });

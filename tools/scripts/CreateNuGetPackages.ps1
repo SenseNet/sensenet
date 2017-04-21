@@ -6,6 +6,7 @@ nuget pack ..\..\src\Services\Services.nuspec -properties Configuration=Release
 New-Item ..\..\src\nuget\snadmin\install-services\scripts -ItemType directory -Force
 
 Copy-Item ..\..\src\Storage\Data\SqlClient\Scripts\Create_SenseNet_Database.sql ..\..\src\nuget\snadmin\install-services\scripts -Force
+Copy-Item ..\..\src\Storage\Data\SqlClient\Scripts\Create_SenseNet_Azure_Database.sql ..\..\src\nuget\snadmin\install-services\scripts -Force
 Copy-Item ..\..\src\Storage\Data\SqlClient\Scripts\Install_Security.sql ..\..\src\nuget\snadmin\install-services\scripts -Force
 Copy-Item ..\..\src\Storage\Data\SqlClient\Scripts\Install_01_Schema.sql ..\..\src\nuget\snadmin\install-services\scripts -Force
 Copy-Item ..\..\src\Storage\Data\SqlClient\Scripts\Install_02_Procs.sql ..\..\src\nuget\snadmin\install-services\scripts -Force
