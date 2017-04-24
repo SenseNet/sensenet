@@ -38,6 +38,7 @@ namespace SenseNet.Portal.Virtualization
         private const string AuthenticationTypeHeaderName = "X-Authentication-Type";
         private const string TokenLoginPath = "/sn-token/login";
         private const string TokenRefreshPath = "/sn-token/refresh";
+        private static readonly string[] AcceptedTokenPaths = { TokenLoginPath, TokenRefreshPath };
 
         private static class HttpResponseStatusCode
         {
@@ -77,13 +78,15 @@ namespace SenseNet.Portal.Virtualization
         public bool DispatchBasicAuthentication(HttpContextBase context, out bool anonymAuthenticated)
         {
             anonymAuthenticated = false;
+
             var authHeader = GetBasicAuthHeader();
             if (authHeader == null || !authHeader.StartsWith("Basic "))
                 return false;
 
-            string base64Encoded = authHeader.Substring(6); // 6: length of "Basic "
-            byte[] buff = Convert.FromBase64String(base64Encoded);
-            string[] userPass = Encoding.UTF8.GetString(buff).Split(":".ToCharArray());
+            var base64Encoded = authHeader.Substring(6); // 6: length of "Basic "
+            var bytes = Convert.FromBase64String(base64Encoded);
+            string[] userPass = Encoding.UTF8.GetString(bytes).Split(":".ToCharArray());
+
             if (userPass.Length != 2)
             {
                 context.User = GetVisitorPrincipal();
@@ -115,6 +118,7 @@ namespace SenseNet.Portal.Virtualization
                 context.User = GetVisitorPrincipal();
                 anonymAuthenticated = true;
             }
+
             return true;
         }
         
@@ -126,6 +130,7 @@ namespace SenseNet.Portal.Virtualization
             bool anonymAuthenticated;
 
             var basicAuthenticated = DispatchBasicAuthentication(context, out anonymAuthenticated);
+
             if (IsTokenAuthenticationRequested(request))
             {
                 if (basicAuthenticated && anonymAuthenticated)
@@ -221,7 +226,7 @@ namespace SenseNet.Portal.Virtualization
         private bool IsTokenAuthenticationRequested(HttpRequestBase request)
         {
             return request.IsSecureConnection && (GetAuthenticationTypeHeader(request) == "Token"
-                || new[] {TokenLoginPath, TokenRefreshPath}.Contains(request.Url.AbsolutePath,  StringComparer.InvariantCultureIgnoreCase)
+                || AcceptedTokenPaths.Contains(request.Url.AbsolutePath,  StringComparer.InvariantCultureIgnoreCase)
                 || !string.IsNullOrWhiteSpace(GetAccessHeader(request)));
         }
 

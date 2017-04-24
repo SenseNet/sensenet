@@ -89,25 +89,26 @@ namespace SenseNet.TokenAuthentication
             return tokenString;
         }
 
-        public  IPrincipal ValidateToken(string token, bool validateLifeTime = true)
+        public IPrincipal ValidateToken(string token, bool validateLifeTime = true)
         {
             var validationParameters = new TokenValidationParameters
             {
-                AuthenticationType = _tokenTypeCode
-                , ValidIssuer = _tokenParameters.Issuer
-                , ValidAudience = _tokenParameters.Audience
-                , IssuerSigningKey = _securityKey.SecurityKey
-                , TokenDecryptionKey = _securityKey.SecurityKey
-                , ClockSkew = new TimeSpan(0, _tokenParameters.ClockSkewInMinutes, 0)
-                , ValidateIssuerSigningKey = true
-                , RequireExpirationTime = true
-                , RequireSignedTokens = true
-                , ValidateAudience = true
-                , ValidateIssuer = true
-                , ValidateLifetime = validateLifeTime
+                AuthenticationType = _tokenTypeCode,
+                ValidIssuer = _tokenParameters.Issuer,
+                ValidAudience = _tokenParameters.Audience,
+                IssuerSigningKey = _securityKey.SecurityKey,
+                TokenDecryptionKey = _securityKey.SecurityKey,
+                ClockSkew = new TimeSpan(0, _tokenParameters.ClockSkewInMinutes, 0),
+                ValidateIssuerSigningKey = true,
+                RequireExpirationTime = true,
+                RequireSignedTokens = true,
+                ValidateAudience = true,
+                ValidateIssuer = true,
+                ValidateLifetime = validateLifeTime
             };
 
             SecurityToken validatedToken;
+
             return _handler.ValidateToken(token, validationParameters, out validatedToken);
         }
     }
