@@ -158,7 +158,6 @@ Global
 		{A453E920-29C0-45CD-984C-0D8E3631B1E3}.Release|x64.Build.0 = Release|Any CPU
 		{A453E920-29C0-45CD-984C-0D8E3631B1E3}.Release|x86.ActiveCfg = Release|Any CPU
 		{A453E920-29C0-45CD-984C-0D8E3631B1E3}.Release|x86.Build.0 = Release|Any CPU
-<<<<<<< HEAD
 		{78FEBD73-8BC4-45B9-9B31-D512E1AFAD60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{78FEBD73-8BC4-45B9-9B31-D512E1AFAD60}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{78FEBD73-8BC4-45B9-9B31-D512E1AFAD60}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -207,7 +206,6 @@ Global
 		{AFCB7986-73C5-4DEA-897B-46EC1D124965}.Release|x64.Build.0 = Release|Any CPU
 		{AFCB7986-73C5-4DEA-897B-46EC1D124965}.Release|x86.ActiveCfg = Release|Any CPU
 		{AFCB7986-73C5-4DEA-897B-46EC1D124965}.Release|x86.Build.0 = Release|Any CPU
-=======
 		{224FE019-A978-4390-9F77-EBEB7A384743}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{224FE019-A978-4390-9F77-EBEB7A384743}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{224FE019-A978-4390-9F77-EBEB7A384743}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -256,7 +254,6 @@ Global
 		{ECA9A043-5B86-445C-B70E-843573AAF72E}.Release|x64.Build.0 = Release|Any CPU
 		{ECA9A043-5B86-445C-B70E-843573AAF72E}.Release|x86.ActiveCfg = Release|Any CPU
 		{ECA9A043-5B86-445C-B70E-843573AAF72E}.Release|x86.Build.0 = Release|Any CPU
->>>>>>> develop
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
