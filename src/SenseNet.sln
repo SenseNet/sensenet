@@ -29,7 +29,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		nuget\content\Web.config.transform = nuget\content\Web.config.transform
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.TokenAuthentication", "SenseNet.TokenAuthentication\SenseNet.TokenAuthentication.csproj", "{78FEBD73-8BC4-45B9-9B31-D512E1AFAD60}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.TokenAuthentication", "TokenAuthentication\SenseNet.TokenAuthentication.csproj", "{78FEBD73-8BC4-45B9-9B31-D512E1AFAD60}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{C68D256D-7D40-4E33-8A2B-B1625538B138}"
 EndProject

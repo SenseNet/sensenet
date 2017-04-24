@@ -368,7 +368,7 @@
       <Project>{786E6165-CA02-45A9-BF58-207A45D7D6DF}</Project>
       <Name>ContentRepository</Name>
     </ProjectReference>
-    <ProjectReference Include="..\SenseNet.TokenAuthentication\SenseNet.TokenAuthentication.csproj">
+    <ProjectReference Include="..\TokenAuthentication\SenseNet.TokenAuthentication.csproj">
       <Project>{78febd73-8bc4-45b9-9b31-d512e1afad60}</Project>
       <Name>SenseNet.TokenAuthentication</Name>
     </ProjectReference>
