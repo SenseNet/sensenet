@@ -9,20 +9,21 @@ namespace SenseNet.TokenAuthentication
     {
         private readonly IDictionary<string, string> _claimTypes = new Dictionary<string, string>
         {
-            {"name", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name" }
-            , {"role", "http://schemas.microsoft.com/ws/2008/06/identity/claims/role" }
+            { "name", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name" },
+            { "role", "http://schemas.microsoft.com/ws/2008/06/identity/claims/role" }
         };
 
         private static readonly int _lifeTimeInMinutes = 20;
+        private readonly JwtSecurityTokenHandler _tokenHandler;
 
-        private JwtSecurityTokenHandler _tokenHandler;
         public JwsSecurityTokenHandler()
         {
-            _tokenHandler = new JwtSecurityTokenHandler();
-            _tokenHandler.OutboundClaimTypeMap = _claimTypes;
-            _tokenHandler.InboundClaimTypeMap = _claimTypes;
-            _tokenHandler.TokenLifetimeInMinutes = _lifeTimeInMinutes;
-
+            _tokenHandler = new JwtSecurityTokenHandler
+            {
+                OutboundClaimTypeMap = _claimTypes,
+                InboundClaimTypeMap = _claimTypes,
+                TokenLifetimeInMinutes = _lifeTimeInMinutes
+            };
         }
 
         public IDictionary<string, string> OutboundClaimTypeMap
@@ -42,9 +43,8 @@ namespace SenseNet.TokenAuthentication
             get { return _tokenHandler.TokenLifetimeInMinutes; }
             set { _tokenHandler.TokenLifetimeInMinutes = value; }
         }
-        public bool CanWriteToken {
-            get { return _tokenHandler.CanWriteToken; } 
-        }
+        public bool CanWriteToken => _tokenHandler.CanWriteToken;
+
         public string WriteToken(SecurityToken token)
         {
             return _tokenHandler.WriteToken(token);
