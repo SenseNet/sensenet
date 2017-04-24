@@ -1390,7 +1390,7 @@ namespace SenseNet.Portal.Virtualization
                     if (cws != null) path = cws.Path;
                     break;
                 case BackTargetType.CurrentSite:
-                    path = PortalContext.Current.Site.Path;
+                    path = PortalContext.Current.Site?.Path ?? "/";
                     break;
                 case BackTargetType.CurrentPage:
                     var page = PortalContext.Current.Page;

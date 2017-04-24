@@ -552,6 +552,26 @@
       </Language>
     </Languages>
   </ResourceClass>
+  <ResourceClass name="Ctd-DocumentLibrary">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Document library</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>A special List for storing documents.</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Dokumentumtár</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Speciális lista dokumentumok tárolására.</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
   <ResourceClass name="Ctd-Domain">
     <Languages>
       <Language cultureName="en">
