@@ -12,7 +12,6 @@ namespace SenseNet.Packaging.Steps
         public string InitialCatalogName { get; set; }
         public string UserName { get; set; }
         public string Password { get; set; }
-        public bool IntegratedSecurity { get; set; } = false;
         public override string Xpath
         {
             get { return $"/configuration/connectionStrings/add[@name='{ConnectionName}']/@connectionString"; }
@@ -66,7 +65,7 @@ namespace SenseNet.Packaging.Steps
                 conn.IntegratedSecurity = false;
                 changed = true;
             }
-            else if(IntegratedSecurity)
+            else
             {
                 conn.UserID = null;
                 conn.Password = null;
