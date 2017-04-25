@@ -3,10 +3,6 @@
     public class IfDatabaseExists : IfDatabaseValue
     {
         public string Name { get; set; }
-        public new string UserName { get; set; }
-        public new string Password { get; set; }
-
-        public new string DataSource { get; set; }
 
         public override void Execute(ExecutionContext context)
         {
@@ -15,7 +11,7 @@
                 throw new InvalidParameterException("Database name cannot be empty.");
 
             Query = $"Select [database_id] From [sys].[databases] Where [name] ='{dbName}'";
-            this.InitialCatalogName = "master";
+            InitialCatalogName = "master";
 
             base.Execute(context);
         }

@@ -44,8 +44,8 @@ namespace SenseNet.Packaging
             manifest.ManifestXml = xml;
 
             ParseHead(xml, manifest);
-            manifest.CheckPrerequisits(forcedReinstall, log);
             ParseParameters(xml, manifest);
+            manifest.CheckPrerequisits(forcedReinstall, log);
             ParseSteps(xml, manifest, currentPhase);
 
             return manifest;
