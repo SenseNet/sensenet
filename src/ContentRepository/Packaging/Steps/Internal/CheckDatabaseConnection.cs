@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Data;
-using System.Text;
 using SenseNet.ContentRepository.Storage.Data;
 
 namespace SenseNet.Packaging.Steps.Internal
@@ -57,7 +56,6 @@ END
 
         private void ExecuteSql(string script, ExecutionContext context)
         {
-            var sb = new StringBuilder();
             using (var proc = CreateDataProcedure(script, context))
             {
                 proc.CommandType = CommandType.Text;
@@ -66,7 +64,12 @@ END
                     do
                     {
                         if (reader.HasRows)
-                            while (reader.Read()) ;
+                        {
+                            while (reader.Read())
+                            {
+                                // empty code block, created only for checking the connection
+                            }
+                        }
                     } while (reader.NextResult());
                 }
             }
@@ -78,11 +81,10 @@ END
                 ConnectionName = null,
                 DataSource = (string)context.ResolveVariable(DataSource),
                 InitialCatalog = InitialCatalog.Initial,
-                InitialCatalogName = (string)context.ResolveVariable(InitialCatalogName)
-                , UserName = (string)context.ResolveVariable(UserName)
-                , Password = (string)context.ResolveVariable(Password)
+                InitialCatalogName = (string)context.ResolveVariable(InitialCatalogName),
+                UserName = (string)context.ResolveVariable(UserName),
+                Password = (string)context.ResolveVariable(Password)
             });
         }
-
     }
 }

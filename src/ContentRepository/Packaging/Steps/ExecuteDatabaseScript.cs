@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Data;
 using SenseNet.ContentRepository.Storage.Data;
@@ -12,7 +10,7 @@ namespace SenseNet.Packaging.Steps
     {
         private class SqlScriptReader : IDisposable
         {
-            private TextReader _reader;
+            private readonly TextReader _reader;
             public string Script { get; private set; }
             public SqlScriptReader(TextReader reader)
             {
@@ -151,9 +149,9 @@ namespace SenseNet.Packaging.Steps
                 ConnectionName = (string)context.ResolveVariable(ConnectionName),
                 DataSource = (string)context.ResolveVariable(DataSource),
                 InitialCatalog = InitialCatalog,
-                InitialCatalogName = (string)context.ResolveVariable(InitialCatalogName)
-                , UserName  = (string)context.ResolveVariable(UserName)
-                , Password = (string)context.ResolveVariable(Password)
+                InitialCatalogName = (string)context.ResolveVariable(InitialCatalogName),
+                UserName  = (string)context.ResolveVariable(UserName),
+                Password = (string)context.ResolveVariable(Password)
             });
         }
     }
