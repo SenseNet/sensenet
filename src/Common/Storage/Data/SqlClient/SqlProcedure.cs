@@ -126,7 +126,6 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
                         break;
                     case InitialCatalog.Master:
                         connectionBuilder.InitialCatalog = "master";
-                        //cnstr = new SqlConnectionStringBuilder(cnstr) { InitialCatalog = "master" }.ToString();
                         break;
                     default:
                         throw new NotSupportedException("Unknown InitialCatalog");

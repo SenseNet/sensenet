@@ -2,12 +2,11 @@
 
 namespace SenseNet.Packaging.Steps
 {
-    public class IfMatch:ConditionalStep
+    public class IfMatch : ConditionalStep
     {
-        public override string ElementName => "IfMatch";
-
         public string Value { get; set; }
         public string Pattern { get; set; }
+
         protected override bool EvaluateCondition(ExecutionContext context)
         {
             if (string.IsNullOrEmpty(Value))
@@ -20,6 +19,5 @@ namespace SenseNet.Packaging.Steps
 
             return Regex.IsMatch(Value, Pattern);
         }
-
     }
 }
