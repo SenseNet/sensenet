@@ -10,8 +10,8 @@ namespace SenseNet.Packaging.Steps
         public string ConnectionName { get; set; } = "SnCrMsSql";
         public string DataSource { get; set; }
         public string InitialCatalogName { get; set; }
-        public string UserName { get; set; }
-        public string Password { get; set; }
+        public string DbUserName { get; set; }
+        public string DbPassword { get; set; }
         public override string Xpath
         {
             get { return $"/configuration/connectionStrings/add[@name='{ConnectionName}']/@connectionString"; }
@@ -29,8 +29,8 @@ namespace SenseNet.Packaging.Steps
             ConnectionName = (string)context.ResolveVariable(ConnectionName);
             DataSource = (string)context.ResolveVariable(DataSource);
             InitialCatalogName = (string)context.ResolveVariable(InitialCatalogName);
-            UserName = (string) context.ResolveVariable(UserName);
-            Password = (string) context.ResolveVariable(Password);
+            DbUserName = (string) context.ResolveVariable(DbUserName);
+            DbPassword = (string) context.ResolveVariable(DbPassword);
 
             base.Execute(context);
         }
@@ -58,26 +58,28 @@ namespace SenseNet.Packaging.Steps
                 changed = true;
             }
 
-            if (!string.IsNullOrWhiteSpace(UserName) && !string.IsNullOrWhiteSpace(Password) && string.Compare(conn.UserID, UserName, StringComparison.InvariantCulture) != 0)
+            if (string.Compare(conn.UserID, DbUserName, StringComparison.InvariantCulture) != 0)
             {
-                conn.UserID = UserName;
-                conn.Password = Password;
-                conn.IntegratedSecurity = false;
-                changed = true;
+                if (!string.IsNullOrWhiteSpace(DbUserName) && !string.IsNullOrWhiteSpace(DbPassword))
+                {
+                    conn.UserID = DbUserName;
+                    conn.Password = DbPassword;
+                    conn.IntegratedSecurity = false;
+                    changed = true;
+                }
+                else
+                {
+                    conn.Remove("User ID");
+                    conn.Remove("Password");
+                    conn.IntegratedSecurity = true;
+                    changed = true;
+                }
             }
-            else
-            {
-                conn.UserID = null;
-                conn.Password = null;
-                conn.IntegratedSecurity = true;
-                changed = true;
-            }
-
             if (!changed)
                 return false;
 
             // set the modified connection string as the "source" value that the base method will use
-            Source = conn.ToString();
+            Source = conn.ConnectionString;
 
             return base.EditXml(doc, path);
         }
