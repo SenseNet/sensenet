@@ -1588,7 +1588,7 @@ namespace SenseNet.Packaging.Tests
         {
             var xml = new XmlDocument();
             xml.LoadXml(manifestXml);
-            return Manifest.Parse(xml, currentPhase, true, forcedReinstall);
+            return Manifest.Parse(xml, currentPhase, true, new PackageParameter[0], forcedReinstall);
         }
 
         internal static PackagingResult ExecutePhases(string manifestXml, TextWriter console = null)
@@ -1612,7 +1612,7 @@ namespace SenseNet.Packaging.Tests
         }
         internal static PackagingResult ExecutePhase(XmlDocument manifestXml, int phase, TextWriter console = null)
         {
-            var manifest = Manifest.Parse(manifestXml, phase, true);
+            var manifest = Manifest.Parse(manifestXml, phase, true, new PackageParameter[0]);
             var executionContext = ExecutionContext.CreateForTest("packagePath", "targetPath", new string[0], "sandboxPath", manifest, phase, manifest.CountOfPhases, null, console ?? new StringWriter());
             var result = PackageManager.ExecuteCurrentPhase(manifest, executionContext);
             RepositoryVersionInfo.Reset();
