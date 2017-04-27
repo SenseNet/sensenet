@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Xml;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Storage.Data;
 
 namespace SenseNet.Packaging
 {
@@ -24,7 +26,7 @@ namespace SenseNet.Packaging
         private List<List<XmlElement>> _phases;
         public int CountOfPhases { get { return _phases.Count; } }
 
-        internal static Manifest Parse(string path, int phase, bool log, bool forcedReinstall = false)
+        internal static Manifest Parse(string path, int phase, bool log, PackageParameter[] packageParameters, bool forcedReinstall = false)
         {
             var xml = new XmlDocument();
             try
@@ -35,17 +37,17 @@ namespace SenseNet.Packaging
             {
                 throw new PackagingException("Manifest parse error", e);
             }
-            return Parse(xml, phase, log, forcedReinstall);
+            return Parse(xml, phase, log, packageParameters, forcedReinstall);
         }
         /// <summary>Test entry</summary>
-        internal static Manifest Parse(XmlDocument xml, int currentPhase, bool log, bool forcedReinstall = false)
+        internal static Manifest Parse(XmlDocument xml, int currentPhase, bool log, PackageParameter[] packageParameters, bool forcedReinstall = false)
         {
             var manifest = new Manifest();
             manifest.ManifestXml = xml;
 
             ParseHead(xml, manifest);
             ParseParameters(xml, manifest);
-            manifest.CheckPrerequisits(forcedReinstall, log);
+            manifest.CheckPrerequisits(packageParameters, forcedReinstall, log);
             ParseSteps(xml, manifest, currentPhase);
 
             return manifest;
@@ -200,7 +202,7 @@ namespace SenseNet.Packaging
             return _phases[index];
         }
 
-        private void CheckPrerequisits(bool forcedReinstall, bool log)
+        private void CheckPrerequisits(PackageParameter[] packageParameters, bool forcedReinstall, bool log)
         {
             if (log)
             {
@@ -209,6 +211,12 @@ namespace SenseNet.Packaging
                 Logger.LogMessage("Package version: " + this.Version);
                 if (SystemInstall)
                     Logger.LogMessage(forcedReinstall ? "FORCED REINSTALL" : "SYSTEM INSTALL");
+            }
+
+            if (SystemInstall)
+            {
+                if(ChangeConnectionString(this.Parameters, packageParameters))
+                    RepositoryVersionInfo.Reset();
             }
 
             var versionInfo = RepositoryVersionInfo.Instance;
@@ -235,6 +243,37 @@ namespace SenseNet.Packaging
             foreach (var dependency in this.Dependencies)
                 CheckDependency(dependency, versionInfo, log);
         }
+
+        private bool ChangeConnectionString(Dictionary<string, string> parameters, PackageParameter[] packageParameters)
+        {
+            string datasource;
+            if (!parameters.TryGetValue("@datasource", out datasource))
+                return false;
+
+            string initialcatalog;
+            if (!parameters.TryGetValue("@initialcatalog", out initialcatalog))
+                return false;
+
+            var datasourceMod = packageParameters.FirstOrDefault(x => x.PropertyName.ToLowerInvariant() == "datasource")?.Value;
+            if (datasourceMod != null)
+                datasource = datasourceMod;
+
+            var initialcatalogMod = packageParameters.FirstOrDefault(x => x.PropertyName.ToLowerInvariant() == "initialcatalog")?.Value;
+            if (initialcatalogMod != null)
+                initialcatalog = initialcatalogMod;
+
+            var connection = new SqlConnectionStringBuilder(Configuration.ConnectionStrings.ConnectionString);
+
+            if (connection.DataSource == datasource && connection.InitialCatalog == initialcatalog)
+                return false;
+
+            connection.DataSource = datasource;
+            connection.InitialCatalog = initialcatalog;
+            Configuration.ConnectionStrings.ConnectionString = connection.ConnectionString;
+
+            return true;
+        }
+
         private void CheckDependency(Dependency dependency, RepositoryVersionInfo versionInfo, bool log)
         {
             var existingComponent = versionInfo.Components.FirstOrDefault(a => a.ComponentId == dependency.Id);

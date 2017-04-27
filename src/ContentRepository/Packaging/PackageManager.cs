@@ -39,7 +39,7 @@ namespace SenseNet.Packaging
             {
                 try
                 {
-                    manifest = Manifest.Parse(files[0], currentPhase, currentPhase == 0, forcedReinstall);
+                    manifest = Manifest.Parse(files[0], currentPhase, currentPhase == 0, packageParameters, forcedReinstall);
                     phaseCount = manifest.CountOfPhases;
                 }
                 catch (Exception e)
