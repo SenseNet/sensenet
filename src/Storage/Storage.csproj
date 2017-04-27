@@ -417,6 +417,7 @@
     <Service Include="{3259AA49-8AA1-44D3-9025-A0B520596A8C}" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Data\SqlClient\Scripts\Create_SenseNet_Azure_Database.sql" />
     <Content Include="Data\SqlClient\Scripts\Create_SenseNet_Database_Templated.sql" />
     <Content Include="Data\SqlClient\Scripts\EnableFilestream.sql" />
     <Content Include="Data\SqlClient\Scripts\Install_Security.sql" />
