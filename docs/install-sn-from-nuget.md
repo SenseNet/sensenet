@@ -1,5 +1,5 @@
 # Install sensenet ECM 7.0 from NuGet
-This article is **for developers** about installing the core layer, [sensenet Services](https://github.com/SenseNet), but before getting into that, please take a look at the concept of our install method.
+This article is **for developers** about installing the core layer, [sensenet Services](https://github.com/SenseNet/sensenet), but before getting into that, please take a look at the concept of our install method.
 
 > **TLDR**: jump to the [Install packages](#InstallPackage) section to get started right away!
 
