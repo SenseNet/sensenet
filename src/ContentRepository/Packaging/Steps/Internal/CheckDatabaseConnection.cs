@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Data;
-using System.Text;
 using SenseNet.ContentRepository.Storage.Data;
 
 namespace SenseNet.Packaging.Steps.Internal
@@ -9,6 +8,8 @@ namespace SenseNet.Packaging.Steps.Internal
     {
         public string DataSource { get; set; }
         public string InitialCatalogName { get; set; }
+        public string UserName { get; set; }
+        public string Password { get; set; }
 
         #region _sqlScript = @"-- create and drop a table for test
         private static readonly string _sqlScript = @"-- create and drop a table for test
@@ -55,7 +56,6 @@ END
 
         private void ExecuteSql(string script, ExecutionContext context)
         {
-            var sb = new StringBuilder();
             using (var proc = CreateDataProcedure(script, context))
             {
                 proc.CommandType = CommandType.Text;
@@ -64,7 +64,12 @@ END
                     do
                     {
                         if (reader.HasRows)
-                            while (reader.Read()) ;
+                        {
+                            while (reader.Read())
+                            {
+                                // empty code block, created only for checking the connection
+                            }
+                        }
                     } while (reader.NextResult());
                 }
             }
@@ -76,9 +81,10 @@ END
                 ConnectionName = null,
                 DataSource = (string)context.ResolveVariable(DataSource),
                 InitialCatalog = InitialCatalog.Initial,
-                InitialCatalogName = (string)context.ResolveVariable(InitialCatalogName)
+                InitialCatalogName = (string)context.ResolveVariable(InitialCatalogName),
+                UserName = (string)context.ResolveVariable(UserName),
+                Password = (string)context.ResolveVariable(Password)
             });
         }
-
     }
 }

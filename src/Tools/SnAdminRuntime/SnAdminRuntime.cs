@@ -216,6 +216,13 @@ namespace SenseNet.Tools.SnAdmin
             {
                 Logger.LogException(e);
             }
+            finally
+            {
+                // Stop this background thread so that the app could exit correctly. This is a
+                // workaround for cases when the Repository was not started during execution,
+                // but the clusterchannel started because one of the components needed it.
+                DistributedApplication.ClusterChannel.ShutDown();
+            }
 
             // result:
             // -2: error,

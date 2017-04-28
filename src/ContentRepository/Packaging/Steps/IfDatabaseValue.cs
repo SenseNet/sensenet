@@ -10,6 +10,8 @@ namespace SenseNet.Packaging.Steps
         public string Query { get; set; }
         public string DataSource { get; set; }
         public string InitialCatalogName { get; set; }
+        public string UserName { get; set; }
+        public string Password { get; set; }
 
         protected override bool EvaluateCondition(ExecutionContext context)
         {
@@ -87,7 +89,9 @@ namespace SenseNet.Packaging.Steps
             return DataProvider.CreateDataProcedure(script, new ConnectionInfo
             {
                 DataSource = (string)context.ResolveVariable(DataSource),
-                InitialCatalogName = (string)context.ResolveVariable(InitialCatalogName)
+                InitialCatalogName = (string)context.ResolveVariable(InitialCatalogName),
+                UserName = (string)context.ResolveVariable(UserName),
+                Password = (string)context.ResolveVariable(Password)
             });
         }
     }

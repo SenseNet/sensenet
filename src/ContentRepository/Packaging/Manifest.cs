@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Xml;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Storage.Data;
 
 namespace SenseNet.Packaging
 {
@@ -24,7 +26,7 @@ namespace SenseNet.Packaging
         private List<List<XmlElement>> _phases;
         public int CountOfPhases { get { return _phases.Count; } }
 
-        internal static Manifest Parse(string path, int phase, bool log, bool forcedReinstall = false)
+        internal static Manifest Parse(string path, int phase, bool log, PackageParameter[] packageParameters, bool forcedReinstall = false)
         {
             var xml = new XmlDocument();
             try
@@ -35,17 +37,17 @@ namespace SenseNet.Packaging
             {
                 throw new PackagingException("Manifest parse error", e);
             }
-            return Parse(xml, phase, log, forcedReinstall);
+            return Parse(xml, phase, log, packageParameters, forcedReinstall);
         }
         /// <summary>Test entry</summary>
-        internal static Manifest Parse(XmlDocument xml, int currentPhase, bool log, bool forcedReinstall = false)
+        internal static Manifest Parse(XmlDocument xml, int currentPhase, bool log, PackageParameter[] packageParameters, bool forcedReinstall = false)
         {
             var manifest = new Manifest();
             manifest.ManifestXml = xml;
 
             ParseHead(xml, manifest);
-            manifest.CheckPrerequisits(forcedReinstall, log);
             ParseParameters(xml, manifest);
+            manifest.CheckPrerequisits(packageParameters, forcedReinstall, log);
             ParseSteps(xml, manifest, currentPhase);
 
             return manifest;
@@ -200,7 +202,7 @@ namespace SenseNet.Packaging
             return _phases[index];
         }
 
-        private void CheckPrerequisits(bool forcedReinstall, bool log)
+        private void CheckPrerequisits(PackageParameter[] packageParameters, bool forcedReinstall, bool log)
         {
             if (log)
             {
@@ -209,6 +211,12 @@ namespace SenseNet.Packaging
                 Logger.LogMessage("Package version: " + this.Version);
                 if (SystemInstall)
                     Logger.LogMessage(forcedReinstall ? "FORCED REINSTALL" : "SYSTEM INSTALL");
+            }
+
+            if (SystemInstall)
+            {
+                EditConnectionString(this.Parameters, packageParameters);
+                RepositoryVersionInfo.Reset();
             }
 
             var versionInfo = RepositoryVersionInfo.Instance;
@@ -235,6 +243,89 @@ namespace SenseNet.Packaging
             foreach (var dependency in this.Dependencies)
                 CheckDependency(dependency, versionInfo, log);
         }
+
+        internal static void EditConnectionString(Dictionary<string, string> parameters, PackageParameter[] packageParameters)
+        {
+            string dataSource;
+            if (!parameters.TryGetValue("@datasource", out dataSource))
+                throw new PackagingException("Missing manifest parameter in system install: 'dataSource'");
+
+            string initialCatalog;
+            if (!parameters.TryGetValue("@initialcatalog", out initialCatalog))
+                throw new PackagingException("Missing manifest parameter in system install: 'initialCatalog'");
+
+            string userName;
+            if (!parameters.TryGetValue("@username", out userName))
+                throw new PackagingException("Missing manifest parameter in system install: 'userName'");
+
+            string password ;
+            if (!parameters.TryGetValue("@password", out password))
+                throw new PackagingException("Missing manifest parameter in system install: 'password'");
+
+            var defaultCnInfo = new ConnectionInfo
+            {
+                DataSource = dataSource,
+                InitialCatalogName = initialCatalog,
+                UserName = userName,
+                Password = password
+            };
+            var inputCnInfo = new ConnectionInfo
+            {
+                DataSource = packageParameters.FirstOrDefault(x => string.Compare(x.PropertyName, "datasource", StringComparison.InvariantCulture) == 0)?.Value,
+                InitialCatalogName = packageParameters.FirstOrDefault(x => string.Compare(x.PropertyName, "initialcatalog", StringComparison.InvariantCulture) == 0)?.Value,
+                UserName = packageParameters.FirstOrDefault(x => string.Compare(x.PropertyName, "username", StringComparison.InvariantCulture) == 0)?.Value,
+                Password = packageParameters.FirstOrDefault(x => string.Compare(x.PropertyName, "password", StringComparison.InvariantCulture) == 0)?.Value
+            };
+
+            var origCnStr = Configuration.ConnectionStrings.ConnectionString;
+            var newCnStr = EditConnectionString(origCnStr, inputCnInfo, defaultCnInfo);
+            if (newCnStr != origCnStr)
+                Configuration.ConnectionStrings.ConnectionString = newCnStr;
+        }
+
+        internal static string EditConnectionString(string cnStr, ConnectionInfo inputCnInfo, ConnectionInfo defaultInfo)
+        {
+            var dataSource = inputCnInfo.DataSource ?? defaultInfo.DataSource;
+            var initialCatalog = inputCnInfo.InitialCatalogName ?? defaultInfo.InitialCatalogName;
+            var userName = inputCnInfo.UserName ?? defaultInfo.UserName;
+            var password = inputCnInfo.Password ?? defaultInfo.Password;
+
+            var connection = new SqlConnectionStringBuilder(cnStr);
+
+            var changed = false;
+            if (string.Compare(connection.UserID, userName, StringComparison.InvariantCulture) != 0)
+            {
+                if (!string.IsNullOrWhiteSpace(userName) && !string.IsNullOrWhiteSpace(password))
+                {
+                    connection.UserID = userName;
+                    connection.Password = password;
+                    connection.IntegratedSecurity = false;
+                    changed = true;
+                }
+                else
+                {
+                    connection.Remove("User ID");
+                    connection.Remove("Password");
+                    connection.IntegratedSecurity = true;
+                    changed = true;
+                }
+            }
+
+            if (connection.DataSource != dataSource)
+            {
+                connection.DataSource = dataSource;
+                changed = true;
+            }
+
+            if (connection.InitialCatalog != initialCatalog)
+            {
+                connection.InitialCatalog = initialCatalog;
+                changed = true;
+            }
+
+            return changed ? connection.ConnectionString : cnStr;
+        }
+
         private void CheckDependency(Dependency dependency, RepositoryVersionInfo versionInfo, bool log)
         {
             var existingComponent = versionInfo.Components.FirstOrDefault(a => a.ComponentId == dependency.Id);

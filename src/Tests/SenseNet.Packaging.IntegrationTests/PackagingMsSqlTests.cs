@@ -988,7 +988,7 @@ CREATE TABLE [dbo].[Packages](
         {
             var xml = new XmlDocument();
             xml.LoadXml(manifestXml);
-            return Manifest.Parse(xml, currentPhase, true);
+            return Manifest.Parse(xml, currentPhase, true, new PackageParameter[0]);
         }
 
         internal static PackagingResult ExecutePhases(string manifestXml, TextWriter console = null)
@@ -1012,7 +1012,7 @@ CREATE TABLE [dbo].[Packages](
         }
         internal static PackagingResult ExecutePhase(XmlDocument manifestXml, int phase, TextWriter console = null)
         {
-            var manifest = Manifest.Parse(manifestXml, phase, true);
+            var manifest = Manifest.Parse(manifestXml, phase, true, new PackageParameter[0]);
             var executionContext = ExecutionContext.CreateForTest("packagePath", "targetPath", new string[0], "sandboxPath", manifest, phase, manifest.CountOfPhases, null, console ?? new StringWriter());
             var result = PackageManager.ExecuteCurrentPhase(manifest, executionContext);
             RepositoryVersionInfo.Reset();

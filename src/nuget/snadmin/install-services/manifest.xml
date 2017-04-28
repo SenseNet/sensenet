@@ -1,34 +1,71 @@
-<Package type='Install'>
+<Package type='Install' >
   <Id>SenseNet.Services</Id>
   <Description>Sense/Net ECM Services 7.0 (beta)</Description>
-  <ReleaseDate>2017-04-05</ReleaseDate>
+  <ReleaseDate>2017-04-20</ReleaseDate>
   <Version>7.0.0</Version>
   <Parameters>
     <Parameter name="@dataSource" description="Name of the database server (. or MACHINENAME\SQL2016). Default: .">.</Parameter>
     <Parameter name="@initialCatalog" description="Database name for the repository. Default: sensenet.">sensenet</Parameter>
+    <Parameter name="@userName" description="User name to access the server while installing."></Parameter>
+    <Parameter name="@password" description="Password to access the server while installing."></Parameter>
+    <Parameter name="@dbUserName" description="User name to access the server by the installed software."></Parameter>
+    <Parameter name="@dbPassword" description="Password to access the server by the installed software."></Parameter>
+    <Parameter name="@recreateDbIfExists">false</Parameter>    
   </Parameters>
   <Steps>
     <Phase>
-      <!-- Create a temp copy of the DB creator script and insert the db name to create. -->
-      <Delete>App_Data\scripts\Create_SenseNet_Database_TEMP.sql</Delete>
-      <Copy Source="scripts\Create_SenseNet_Database.sql"
-            TargetDirectory="App_Data\scripts" 
-            NewName="Create_SenseNet_Database_TEMP.sql" />
-      <ReplaceText Template="$(INITIALCATALOG)" Path="App_Data\scripts\Create_SenseNet_Database_TEMP.sql">@initialCatalog</ReplaceText>
+
+      <IfDatabaseExists Name="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password">
+        <Then>
+          <If condition="@recreateDbIfExists">
+            <Then>
+              <Trace>Database exists, re-creating it...</Trace>
+              <Assign Name="@needToCreate">true</Assign>
+            </Then>
+            <Else>
+              <Trace>Database exists, skipping database creation.</Trace>
+              <Assign Name="@needToCreate">false</Assign>
+            </Else>
+          </If>
+        </Then>
+        <Else>
+          <Assign Name="@needToCreate">true</Assign>
+        </Else>
+      </IfDatabaseExists>
+
+      <If condition="@needToCreate">
+        <Then>
+          <IfMatch Value="@dataSource" Pattern="\w+\.database\.windows\.net">
+            <Then>
+              <Assign Name="@createScript">scripts\Create_SenseNet_Azure_Database.sql</Assign>
+            </Then>
+            <Else>
+              <Assign Name="@createScript">scripts\Create_SenseNet_Database.sql</Assign>
+            </Else>
+          </IfMatch>
+          <!-- Create a temp copy of the DB creator script and insert the db name to create. -->
+          <Delete>App_Data\scripts\Create_SenseNet_Database_TEMP.sql</Delete>
+          <Copy Source="@createScript"
+                TargetDirectory="App_Data\scripts"
+                NewName="Create_SenseNet_Database_TEMP.sql" />
+          <ReplaceText Template="$(INITIALCATALOG)" Path="App_Data\scripts\Create_SenseNet_Database_TEMP.sql">@initialCatalog</ReplaceText>
+
+          <ExecuteDatabaseScript InitialCatalogName="Master" DataSource="@dataSource" UserName="@userName" Password="@password" Query="..\..\..\App_Data\scripts\Create_SenseNet_Database_TEMP.sql" />
+        </Then>
+      </If>
       
-      <ExecuteDatabaseScript initialCatalog="Master" DataSource="@dataSource" Query="..\..\..\App_Data\scripts\Create_SenseNet_Database_TEMP.sql" />
-      <CheckDatabaseConnection InitialCatalogName="@initialCatalog" DataSource="@dataSource"/>
-      <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" Query="scripts\Install_Security.sql" />
-      <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" Query="scripts\Install_01_Schema.sql" />
-      <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" Query="scripts\Install_02_Procs.sql" />
-      <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" Query="scripts\Install_03_Data_Phase1.sql" />
-      <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" Query="scripts\Install_04_Data_Phase2.sql" />
+      <CheckDatabaseConnection InitialCatalogName="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password"/>
+      <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password" Query="scripts\Install_Security.sql" />
+      <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password" Query="scripts\Install_01_Schema.sql" />
+      <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password" Query="scripts\Install_02_Procs.sql" />
+      <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password" Query="scripts\Install_03_Data_Phase1.sql" />
+      <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password" Query="scripts\Install_04_Data_Phase2.sql" />
 
       <!-- Insert new connection string values into config files. -->
-      <EditConnectionString ConnectionName="SnCrMsSql" InitialCatalogName="@initialCatalog" DataSource="@dataSource" File="Web.config" />
+      <EditConnectionString ConnectionName="SnCrMsSql" InitialCatalogName="@initialCatalog" DataSource="@dataSource" DbUserName="@dbUserName" DbPassword="@dbPassword" File="Web.config" />
       <ForEach item="@configPath" files="Tools\*.config">
         <Block>
-          <EditConnectionString ConnectionName="SnCrMsSql" InitialCatalogName="@initialCatalog" DataSource="@dataSource" File="@configPath" />
+          <EditConnectionString ConnectionName="SnCrMsSql" InitialCatalogName="@initialCatalog" DataSource="@dataSource" DbUserName="@dbUserName" DbPassword="@dbPassword" File="@configPath" />
         </Block>
       </ForEach>
       
