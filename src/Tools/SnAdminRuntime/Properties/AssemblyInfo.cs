@@ -23,3 +23,5 @@ using System.Runtime.InteropServices;
 
 [assembly: ComVisible(false)]
 [assembly: Guid("1B973251-9AAE-48D2-9FFF-408AA95CA576")]
+
+[assembly: InternalsVisibleTo("SnAdminRuntime.Tests")]

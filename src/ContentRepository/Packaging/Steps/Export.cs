@@ -25,17 +25,21 @@ namespace SenseNet.Packaging.Steps
 
         public override void Execute(ExecutionContext context)
         {
+            var source = (context.ResolveVariable(Source) as string) ?? "/Root";
+            var target = context.ResolveVariable(Target) as string;
+            var filter = context.ResolveVariable(Filter) as string;
+
             context.AssertRepositoryStarted();
             try
             {
                 string contextPath = null, queryString = null;
-                if (string.IsNullOrWhiteSpace(Source) && string.IsNullOrWhiteSpace(Filter))
+                if (string.IsNullOrWhiteSpace(source) && string.IsNullOrWhiteSpace(filter))
                 {
                     throw new InvalidStepParameterException("Missing Source or Filter argument.");
                 }
-                if (!string.IsNullOrWhiteSpace(Source))
+                if (!string.IsNullOrWhiteSpace(source))
                 {
-                    contextPath = ResolveRepositoryPath(Source, context);
+                    contextPath = ResolveRepositoryPath(source, context);
                     if (RepositoryPath.IsValidPath(contextPath) != RepositoryPath.PathResult.Correct)
                     {
                         throw new InvalidStepParameterException("Invalid repository path.");
@@ -45,12 +49,12 @@ namespace SenseNet.Packaging.Steps
                 {
                     contextPath = "/Root";
                 }
-                if (!string.IsNullOrWhiteSpace(Filter))
+                if (!string.IsNullOrWhiteSpace(filter))
                 {
-                    queryString = (string) context.ResolveVariable(Filter);
+                    queryString = (string) context.ResolveVariable(filter);
                 }
 
-                var targetFolder = ResolveTargetPath(Target, context, TargetPathRelativeTo.AppData);
+                var targetFolder = ResolveTargetPath(target, context, TargetPathRelativeTo.AppData);
                 var savedMode = RepositoryEnvironment.WorkingMode.Exporting;
                 RepositoryEnvironment.WorkingMode.SetExporting(true);
 

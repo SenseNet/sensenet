@@ -121,7 +121,10 @@ namespace SenseNet.Portal.AppModel
                     return null;
             }
 
-            var relPath = startPage.Path.Replace(portalContext.Site.Path, "");
+            var relPath = startPage.Path;
+            if (portalContext.Site != null)
+                relPath = relPath.Replace(portalContext.Site.Path, string.Empty);
+
             return factory.CreateRedirectAction(portalContext, contextNode, null, relPath, false, true);
         }
         private static IHttpAction GetSmartUrlAction(IHttpActionFactory factory, PortalContext portalContext, NodeHead contextNode)

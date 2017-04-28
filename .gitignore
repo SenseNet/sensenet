@@ -250,3 +250,13 @@ paket-files/
 # JetBrains Rider
 .idea/
 *.sln.iml
+
+# sensenet
+/src/nuget/content/Admin/tools/install-services.zip
+/src/nuget/snadmin/install-services/scripts/Create_SenseNet_Database.sql
+/src/nuget/snadmin/install-services/scripts/Create_SenseNet_Azure_Database.sql
+/src/nuget/snadmin/install-services/scripts/Install_01_Schema.sql
+/src/nuget/snadmin/install-services/scripts/Install_02_Procs.sql
+/src/nuget/snadmin/install-services/scripts/Install_03_Data_Phase1.sql
+/src/nuget/snadmin/install-services/scripts/Install_04_Data_Phase2.sql
+/src/nuget/snadmin/install-services/scripts/Install_Security.sql

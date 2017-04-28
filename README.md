@@ -16,7 +16,7 @@ If you need...
 
 ![Workspaces](http://wiki.sensenet.com/images/5/5e/Ws-main.png "Workspaces")
 
-## Sense/Net can be a lots of things
+## Sense/Net can be a lot of things
 
 - a development platform
 - an internet and intranet portal
@@ -57,9 +57,16 @@ Developers may start integrating the Sense/Net platform by installing the **Sens
 1. Create a new ASP.NET web application (using the MVC template, optionally adding Web api or Web Forms), or use an existing one.
 2. Install the following NuGet package (either in the Package Manager console or the Manage NuGet Packages window)
 
-`> Install-Package SenseNet.Services`
+`> Install-Package SenseNet.Services -Pre`
 
-3. To finalize the install process, please follow the steps described in the [readme file](/src/nuget/readme.txt) of the NuGet package (it opens automatically when you install the package). 
+3. The install process described in _readme.txt_ will modify the **connection string** in _Web.config_ and _Tools\SnAdminRuntime.exe.config_ files, ensuring that it is pointing to your SQL Server (DataSource) and Database Name (Initial Catalog). The connection string is configured to use _Integrated Security_ by default (this means the Windows account you will use to execute the install tool and later the web application). If you are using **SQL Server authentication** instead of Integrated Security, change Integrated Security to _false_ and add a 'User Id' and 'Password' that will be used to authenticate to the database **in both configuration files** mentioned above. 
+````
+<connectionStrings>
+    <add name="SnCrMsSql" connectionString="Data Source=SQLSERVER;Initial Catalog=sensenet;Integrated Security=false; User Id=test; Password=testpassword" providerName="System.Data.SqlClient" />
+</connectionStrings>
+````
+
+4. To finalize the install process, please follow the steps described in the [readme file](/src/nuget/readme.txt) of the NuGet package (it opens automatically when you install the package). 
     - You will have to make a few modifications to your config files and Global.asax markup and codebehind file.
     - You will have to compile your solution and **execute a command line tool** that will **create the database** and import the necessary initial content.
     - If you are using the built-in _ActionLink_ helper method in your MVC views, you'll have to replace them with a new extension method added by this package: _MvcActionLink_.

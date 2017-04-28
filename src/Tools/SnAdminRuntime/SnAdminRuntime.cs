@@ -10,14 +10,17 @@ using System.Diagnostics;
 using Ionic.Zip;
 using System.Configuration;
 using System.Xml;
+using SenseNet.ContentRepository.Storage;
+using SenseNet.Tools.SnAdmin.Testability;
 
 namespace SenseNet.Tools.SnAdmin
 {
     internal class SnAdminRuntime
     {
         #region Constants
+
         private static string CR = Environment.NewLine;
-        private static string ToolTitle = "Sense/Net Admin Runtime ";
+
         private static string UsageScreen = String.Concat(
             //         1         2         3         4         5         6         7         8
             // 2345678901234567890123456789012345678901234567890123456789012345678901234567890123456789
@@ -31,11 +34,24 @@ namespace SenseNet.Tools.SnAdmin
             "<target>: Directory contains web folder of a stopped SenseNet instance.", CR
         );
 
+        private static string __toolTitle;
+
+        private static string ToolTitle
+        {
+            get
+            {
+                if (__toolTitle == null)
+                    __toolTitle = $"Sense/Net Admin Runtime {Assembly.GetExecutingAssembly().GetName().Version}";
+                return __toolTitle;
+            }
+        }
+
         #endregion
 
-        private static int Main(string[] args)
-        { 
-            ToolTitle += Assembly.GetExecutingAssembly().GetName().Version;
+        internal static TextWriter Output { get; set; } = Console.Out;
+
+        internal static int Main(string[] args)
+        {
             if (args.FirstOrDefault(a => a.ToUpper() == "-WAIT") != null)
             {
                 Console.WriteLine("Running in wait mode - now you can attach to the process with a debugger.");
@@ -53,7 +69,9 @@ namespace SenseNet.Tools.SnAdmin
             bool wait;
             string[] parameters;
 
-            if (!ParseParameters(args, out packagePath, out targetDirectory, out phase, out parameters, out logFilePath, out logLevel, out help, out schema, out wait))
+            if (
+                !ParseParameters(args, out packagePath, out targetDirectory, out phase, out parameters, out logFilePath,
+                    out logLevel, out help, out schema, out wait))
                 return -1;
 
             Logger.PackageName = Path.GetFileName(packagePath);
@@ -79,7 +97,10 @@ namespace SenseNet.Tools.SnAdmin
            
            
         }
-        private static bool ParseParameters(string[] args, out string packagePath, out string targetDirectory, out int phase, out string[] parameters, out string logFilePath, out LogLevel logLevel, out bool help, out bool schema, out bool wait)
+
+        internal static bool ParseParameters(string[] args, out string packagePath, out string targetDirectory,
+            out int phase, out string[] parameters, out string logFilePath, out LogLevel logLevel, out bool help,
+            out bool schema, out bool wait)
         {
             packagePath = null;
             targetDirectory = null;
@@ -101,10 +122,18 @@ namespace SenseNet.Tools.SnAdmin
                     var verb = arg.Substring(1).ToUpper();
                     switch (verb)
                     {
-                        case "?": help = true; break;
-                        case "HELP": help = true; break;
-                        case "SCHEMA": schema = true; break;
-                        case "WAIT": wait = true; break;
+                        case "?":
+                            help = true;
+                            break;
+                        case "HELP":
+                            help = true;
+                            break;
+                        case "SCHEMA":
+                            schema = true;
+                            break;
+                        case "WAIT":
+                            wait = true;
+                            break;
                     }
                 }
                 else if (arg.StartsWith("PHASE:", StringComparison.OrdinalIgnoreCase))
@@ -117,7 +146,7 @@ namespace SenseNet.Tools.SnAdmin
                 }
                 else if (arg.StartsWith("LOGLEVEL:", StringComparison.OrdinalIgnoreCase))
                 {
-                    logLevel = (LogLevel)Enum.Parse(typeof(LogLevel), arg.Substring(9));
+                    logLevel = (LogLevel) Enum.Parse(typeof(LogLevel), arg.Substring(9));
                 }
                 else if (arg.StartsWith("TARGETDIRECTORY:", StringComparison.OrdinalIgnoreCase))
                 {
@@ -135,40 +164,54 @@ namespace SenseNet.Tools.SnAdmin
                 }
             }
             if (targetDirectory == null)
-                targetDirectory = SearchTargetDirectory();
+                targetDirectory = Disk.SearchTargetDirectory();
             parameters = prms.ToArray();
             return true;
         }
 
-        private static int ExecutePhase(string packagePath, string targetDirectory, int phase, string[] parameters, string logFilePath, bool help, bool schema)
+        internal static int ExecutePhase(string packagePath, string targetDirectory, int phase, string[] parameters,
+            string logFilePath, bool help, bool schema)
         {
             Logger.LogTitle(ToolTitle);
+            var typeResolver = TypeResolverWrapper.Instance;
 
             // preload all assemblies from the sandbox folder so that we have every dll in memory
-            TypeResolver.LoadAssembliesFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+            typeResolver.LoadAssembliesFrom(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
 
             var packageCustomizationPath = Path.Combine(packagePath, "PackageCustomization");
-            if (Directory.Exists(packageCustomizationPath))
+            if (Disk.DirectoryExists(packageCustomizationPath))
             {
-                Console.WriteLine("Loading package customizations:");
-                var loaded = TypeResolver.LoadAssembliesFrom(packageCustomizationPath);
+                Output.WriteLine("Loading package customizations:");
+                var loaded = typeResolver.LoadAssembliesFrom(packageCustomizationPath);
                 foreach (var item in loaded)
                 {
-                    Console.Write("  ");
-                    Console.WriteLine(item);
+                    Output.Write("  ");
+                    Output.WriteLine(item);
+                }
+            }
+
+            var phaseCustomizationPath = GetPhaseCustomizationPath(packagePath, phase);
+            if (Disk.DirectoryExists(phaseCustomizationPath))
+            {
+                Output.WriteLine($"Loading phase-{phase + 1} customizations:");
+                var loaded = typeResolver.LoadAssembliesFrom(phaseCustomizationPath);
+                foreach (var item in loaded)
+                {
+                    Output.Write("  ");
+                    Output.WriteLine(item);
                 }
             }
 
             if (help)
             {
                 LogAssemblies();
-                Logger.LogMessage(Environment.NewLine + PackageManager.GetHelp());
+                Logger.LogMessage(Environment.NewLine + PackageManagerWrapper.Instance.GetHelp());
                 var sb = new StringBuilder();
                 return 0;
             }
             if (schema)
             {
-                var xsd = PackageManager.GetXmlSchema();
+                var xsd = PackageManagerWrapper.Instance.GetXmlSchema();
                 Logger.LogMessage(Environment.NewLine + xsd);
                 var xsdPath = Path.GetFullPath(packagePath + @"\..\bin\SenseNetPackage.xsd");
 
@@ -183,11 +226,18 @@ namespace SenseNet.Tools.SnAdmin
             PackagingResult result = null;
             try
             {
-                result = PackageManager.Execute(packagePath, targetDirectory, phase, parameters, Console.Out);
+                result = PackageManagerWrapper.Instance.Execute(packagePath, targetDirectory, phase, parameters, Output);
             }
             catch (Exception e)
             {
                 Logger.LogException(e);
+            }
+            finally
+            {
+                // Stop this background thread so that the app could exit correctly. This is a
+                // workaround for cases when the Repository was not started during execution,
+                // but the clusterchannel started because one of the components needed it.
+                DistributedApplication.ClusterChannel.ShutDown();
             }
 
             // result:
@@ -204,40 +254,38 @@ namespace SenseNet.Tools.SnAdmin
             if (!result.Successful)
                 return result.Terminated ? -1 : -2;
             if (result.NeedRestart)
-                return 1 + Logger.Errors * 2;
-            return Logger.Errors * 2;
+                return 1 + Logger.Errors*2;
+            return Logger.Errors*2;
         }
+
+        private static string GetPhaseCustomizationPath(string packagePath, int phase)
+        {
+            var files = Disk.GetFiles(packagePath);
+            if (files.Length != 1)
+                return null;
+
+            XmlDocument xml;
+            try
+            {
+                xml = Disk.LoadManifest(files[0]);
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
+
+            var phaseElement = (XmlElement) xml?.DocumentElement?.SelectSingleNode($"Steps/Phase[{phase + 1}]");
+
+            var relPath = phaseElement?.Attributes["extensions"]?.Value;
+
+            return relPath == null ? null : Path.Combine(packagePath, relPath);
+        }
+
         private static void LogAssemblies()
         {
             Logger.LogMessage("Assemblies:");
             foreach (var asm in SenseNet.ContentRepository.Storage.TypeHandler.GetAssemblyInfo())
                 Logger.LogMessage("  {0} {1}", asm.Name, asm.Version);
-        }
-
-        private static string SearchTargetDirectory()
-        {
-            if (!string.IsNullOrEmpty(Configuration.Packaging.TargetDirectory))
-                return Configuration.Packaging.TargetDirectory;
-
-            // default location: ..\webfolder\Admin\bin
-            var workerExe = Assembly.GetExecutingAssembly().Location;
-            var path = workerExe;
-
-            // go up on the parent chain
-            path = Path.GetDirectoryName(path);
-            path = Path.GetDirectoryName(path);
-
-            // get the name of the container directory (should be 'Admin')
-            var adminDirName = Path.GetFileName(path);
-            path = Path.GetDirectoryName(path);
-
-            if (string.Compare(adminDirName, "Admin", StringComparison.OrdinalIgnoreCase) == 0)
-            {
-                // look for the web.config
-                if (System.IO.File.Exists(Path.Combine(path, "web.config")))
-                    return path;
-            }
-            throw new ApplicationException("Configure the TargetDirectory. This path does not exist or it is not a valid target: " + path);
         }
     }
 }

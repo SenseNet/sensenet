@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentType name="ApplicationOverride" parentType="Application" handler="SenseNet.ApplicationModel.Application" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+  <DisplayName>$Ctd-ApplicationOverride,DisplayName</DisplayName>
+  <Description>$Ctd-ApplicationOverride,Description</Description>
+  <Icon>Application</Icon>
+</ContentType>

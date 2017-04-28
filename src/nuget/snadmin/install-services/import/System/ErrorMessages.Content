@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>SystemFolder</ContentType>
+  <ContentName>ErrorMessages</ContentName>
+  <Permissions>
+    <Clear />
+  </Permissions>
+</ContentMetaData>

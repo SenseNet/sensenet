@@ -165,6 +165,7 @@
     <Compile Include="Configuration\Services.cs" />
     <Compile Include="Configuration\Versioning.cs" />
     <Compile Include="Linq\CaseInsensitiveFilterVisitor.cs" />
+    <Compile Include="Packaging\Dependency.cs" />
     <Compile Include="Packaging\ExecutionContext.cs" />
     <Compile Include="Packaging\InstallResult.cs" />
     <Compile Include="Packaging\InvalidPackageException.cs" />
@@ -173,11 +174,16 @@
     <Compile Include="Packaging\Manifest.cs" />
     <Compile Include="Packaging\PackageManager.cs" />
     <Compile Include="Packaging\PackageParameter.cs" />
+    <Compile Include="Packaging\IPackageStorageProviderFactory.cs" />
+    <Compile Include="Packaging\PackageSchemaGenerator.cs" />
     <Compile Include="Packaging\PackagingException.cs" />
     <Compile Include="Packaging\SR.cs" />
     <Compile Include="Packaging\Steps\AddField.cs" />
     <Compile Include="Packaging\Steps\AddMembers.cs" />
     <Compile Include="Packaging\Steps\AddResource.cs" />
+    <Compile Include="Packaging\Steps\IfMatch.cs" />
+    <Compile Include="Packaging\Steps\Internal\CheckDatabaseConnection.cs" />
+    <Compile Include="Packaging\Steps\EditAllowedChildTypes.cs" />
     <Compile Include="Packaging\Steps\Assign.cs" />
     <Compile Include="Packaging\Steps\ChangeContentType.cs" />
     <Compile Include="Packaging\Steps\ChangeFieldType.cs" />
@@ -222,7 +228,6 @@
     <Compile Include="Packaging\Steps\Terminate.cs" />
     <Compile Include="Packaging\Steps\Trace.cs" />
     <Compile Include="Packaging\Steps\XmlEditorStep.cs" />
-    <Compile Include="Packaging\VersionControl.cs" />
     <Compile Include="Packaging\ZipUnpacker.cs" />
     <Compile Include="Schema\Metadata\IMetaNode.cs" />
     <Compile Include="Schema\Metadata\MetaCollectionEnumerable.cs" />

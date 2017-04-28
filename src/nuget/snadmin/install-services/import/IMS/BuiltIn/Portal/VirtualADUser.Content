@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+	<ContentName>VirtualADUser</ContentName>
+	<ContentType>User</ContentType>
+	<Fields>
+    <FullName>VirtualADUser</FullName>
+		<Enabled>false</Enabled>
+	</Fields>
+</ContentMetaData>

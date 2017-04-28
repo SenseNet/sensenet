@@ -17,6 +17,8 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         private readonly InitialCatalog _initialCatalog;
         private readonly string _initialCatalogName;
         private readonly string _dataSource;
+        private readonly string _userName;
+        private readonly string _password;
 
         /// <summary>
         /// Gets or sets a value indicating how the CommandText property is to be interpreted.
@@ -87,6 +89,8 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         {
             _dataSource = connectionInfo.DataSource;
             _initialCatalogName = connectionInfo.InitialCatalogName;
+            _userName = connectionInfo.UserName;
+            _password = connectionInfo.Password;
         }
 
         private SqlCommand CreateCommand()
@@ -115,11 +119,13 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
                     cnstr = Configuration.ConnectionStrings.ConnectionString;
                 }
 
+                var connectionBuilder = new SqlConnectionStringBuilder(cnstr);
                 switch (_initialCatalog)
                 {
-                    case InitialCatalog.Initial: break;
+                    case InitialCatalog.Initial:
+                        break;
                     case InitialCatalog.Master:
-                        cnstr = new SqlConnectionStringBuilder(cnstr) { InitialCatalog = "master" }.ToString();
+                        connectionBuilder.InitialCatalog = "master";
                         break;
                     default:
                         throw new NotSupportedException("Unknown InitialCatalog");
@@ -127,12 +133,28 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 
                 // if there is a custom data source (SQL server name)
                 if (!string.IsNullOrEmpty(_dataSource))
-                    cnstr = new SqlConnectionStringBuilder(cnstr) { DataSource = _dataSource }.ToString();
-
+                {
+                    connectionBuilder.DataSource = _dataSource;
+                    //cnstr = new SqlConnectionStringBuilder(cnstr) { DataSource = _dataSource }.ToString();
+                }
                 // if there is a custom initial catalog (database name)
                 if (!string.IsNullOrEmpty(_initialCatalogName))
-                    cnstr = new SqlConnectionStringBuilder(cnstr) { InitialCatalog = _initialCatalogName }.ToString();
-
+                {
+                    connectionBuilder.InitialCatalog = _initialCatalogName;
+                    //cnstr = new SqlConnectionStringBuilder(cnstr) { InitialCatalog = _initialCatalogName }.ToString();
+                }
+                // if it is an SQL authentication
+                if (!string.IsNullOrWhiteSpace(_userName))
+                {
+                    if (string.IsNullOrWhiteSpace(_password))
+                    {
+                        throw new NotSupportedException("Invalid credentials.");
+                    }
+                    connectionBuilder.UserID = _userName;
+                    connectionBuilder.Password = _password;
+                    connectionBuilder.IntegratedSecurity = false;
+                }
+                cnstr = connectionBuilder.ToString();
                 _conn = new SqlConnection(cnstr);
             }
 
@@ -167,7 +189,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         /// <summary>
         /// Sends the CommandText to the connection and builds a SqlDataReader.
         /// </summary>
-        public SqlDataReader ExecuteReader()
+        public virtual SqlDataReader ExecuteReader()
         {
             using (var op = SnTrace.Database.StartOperation(GetTraceData("ExecuteReader")))
             {
@@ -194,7 +216,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         /// <summary>
         /// Sends the CommandText to the connection and builds a SqlDataReader using the provided command behavior.
         /// </summary>
-        public SqlDataReader ExecuteReader(CommandBehavior behavior)
+        public virtual SqlDataReader ExecuteReader(CommandBehavior behavior)
         {
             using (var op = SnTrace.Database.StartOperation(GetTraceData("ExecuteReader(" + behavior + ")")))
             {
@@ -221,7 +243,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         /// <summary>
         /// Executes the query, and returns the first column of the first row in the result set.
         /// </summary>
-        public object ExecuteScalar()
+        public virtual object ExecuteScalar()
         {
             using (var op = SnTrace.Database.StartOperation(GetTraceData("ExecuteScalar")))
             {
@@ -247,7 +269,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         /// <summary>
         /// Executes a Transact-SQL statement against the connection and returns the number of rows affected.
         /// </summary>
-        public int ExecuteNonQuery()
+        public virtual int ExecuteNonQuery()
         {
             using (var op = SnTrace.Database.StartOperation(GetTraceData("ExecuteNonQuery")))
             {
@@ -341,6 +363,8 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         {
             get { return this.Parameters; }
         }
+
+
         void IDataProcedure.DeriveParameters()
         {
             DeriveParameters();

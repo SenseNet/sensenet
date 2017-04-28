@@ -9,8 +9,8 @@ namespace SenseNet.Packaging
     [Serializable]
     public class InvalidPackageException : PackagingException
     {
-        public InvalidPackageException(string message) : base(EventId.Packaging, message) { }
-        public InvalidPackageException(string message, Exception inner) : base(EventId.Packaging, message, inner) { }
+        public InvalidPackageException(string message, PackagingExceptionType errorType = PackagingExceptionType.NotDefined) : base(EventId.Packaging, message, errorType) { }
+        public InvalidPackageException(string message, Exception inner, PackagingExceptionType errorType = PackagingExceptionType.NotDefined) : base(EventId.Packaging, message, inner, errorType) { }
         protected InvalidPackageException(
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context)
@@ -19,8 +19,8 @@ namespace SenseNet.Packaging
     [Serializable]
     public class PackagePreconditionException : PackagingException
     {
-        public PackagePreconditionException(string message) : base(EventId.Packaging, message) { }
-        public PackagePreconditionException(string message, Exception inner) : base(EventId.Packaging, message, inner) { }
+        public PackagePreconditionException(string message, PackagingExceptionType errorType = PackagingExceptionType.NotDefined) : base(EventId.Packaging, message, errorType) { }
+        public PackagePreconditionException(string message, Exception inner, PackagingExceptionType errorType = PackagingExceptionType.NotDefined) : base(EventId.Packaging, message, inner, errorType) { }
         protected PackagePreconditionException(
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context)

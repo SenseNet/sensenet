@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentType name="Profiles" parentType="Folder" handler="SenseNet.ContentRepository.Folder" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+  <DisplayName>$Ctd-Profiles,DisplayName</DisplayName>
+  <Description>$Ctd-Profiles,Description</Description>
+  <Icon>Folder</Icon>
+  <AllowedChildTypes>
+    ProfileDomain
+  </AllowedChildTypes>
+  <Fields></Fields>
+</ContentType>

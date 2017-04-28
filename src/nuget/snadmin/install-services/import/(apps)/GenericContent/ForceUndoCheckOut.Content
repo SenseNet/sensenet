@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>Application</ContentType>
+  <ContentName>ForceUndoCheckOut</ContentName>
+  <Fields>
+	<DisplayName><![CDATA[$Action,ForceUndoCheckOut]]></DisplayName>
+    <ActionTypeName><![CDATA[ForceUndoCheckOutAction]]></ActionTypeName>
+    <Icon><![CDATA[undocheckout]]></Icon>
+    <Scenario><![CDATA[ListItem;ExploreActions]]></Scenario>
+    <RequiredPermissions>See;Open;OpenMinor;Save;ForceCheckin</RequiredPermissions>
+  </Fields>
+  <Permissions>
+    <Clear />
+  </Permissions>
+</ContentMetaData>

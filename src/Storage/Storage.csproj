@@ -170,11 +170,12 @@
     <Compile Include="ContentNotFoundException.cs" />
     <Compile Include="CounterManager.cs" />
     <Compile Include="Data\BlobStorage.cs" />
+    <Compile Include="Data\IPackageStorageProvider.cs" />
     <Compile Include="Data\SnMaintenance.cs" />
     <Compile Include="Data\IndexBackup.cs" />
     <Compile Include="Data\IndexBackupProgress.cs" />
     <Compile Include="Data\RepositoryPathTooLongException.cs" />
-    <Compile Include="Data\SqlClient\SqlDataReaderExtensions.cs" />
+    <Compile Include="Data\SqlClient\DataReaderExtensions.cs" />
     <Compile Include="Data\SqlClient\TextPropertyWriter.cs" />
     <Compile Include="Data\SqlClient\TraceSqlProvider.cs" />
     <Compile Include="Data\StorageDataReaderExtensions.cs" />
@@ -416,6 +417,7 @@
     <Service Include="{3259AA49-8AA1-44D3-9025-A0B520596A8C}" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Data\SqlClient\Scripts\Create_SenseNet_Azure_Database.sql" />
     <Content Include="Data\SqlClient\Scripts\Create_SenseNet_Database_Templated.sql" />
     <Content Include="Data\SqlClient\Scripts\EnableFilestream.sql" />
     <Content Include="Data\SqlClient\Scripts\Install_Security.sql" />
