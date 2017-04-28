@@ -336,6 +336,9 @@ namespace SenseNet.Portal.Virtualization
                     {
                         throw new UnauthorizedAccessException("Invalid access token.");
                     }
+                    var userName = tokenManager.GetPayLoadValue(accessHeadAndPayload.Split(Convert.ToChar("."))[1], "name");
+                    var user = User.Load(userName);
+                    AccessProvider.Current.SetCurrentUser(user);
                     context.User = principal;
                 }
             }
