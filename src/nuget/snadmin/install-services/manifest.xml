@@ -52,7 +52,8 @@
 
           <ExecuteDatabaseScript InitialCatalogName="Master" DataSource="@dataSource" UserName="@userName" Password="@password" Query="..\..\..\App_Data\scripts\Create_SenseNet_Database_TEMP.sql" />
         </Then>
-      </If>      
+      </If>
+      
       <CheckDatabaseConnection InitialCatalogName="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password"/>
       <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password" Query="scripts\Install_Security.sql" />
       <ExecuteDatabaseScript InitialCatalogName="@initialCatalog" DataSource="@dataSource" UserName="@userName" Password="@password" Query="scripts\Install_01_Schema.sql" />
