@@ -215,8 +215,8 @@ namespace SenseNet.Packaging
 
             if (SystemInstall)
             {
-                if(ChangeConnectionString(this.Parameters, packageParameters))
-                    RepositoryVersionInfo.Reset();
+                EditConnectionString(this.Parameters, packageParameters);
+                RepositoryVersionInfo.Reset();
             }
 
             var versionInfo = RepositoryVersionInfo.Instance;
@@ -244,34 +244,86 @@ namespace SenseNet.Packaging
                 CheckDependency(dependency, versionInfo, log);
         }
 
-        private bool ChangeConnectionString(Dictionary<string, string> parameters, PackageParameter[] packageParameters)
+        internal static void EditConnectionString(Dictionary<string, string> parameters, PackageParameter[] packageParameters)
         {
-            string datasource;
-            if (!parameters.TryGetValue("@datasource", out datasource))
-                return false;
+            string dataSource;
+            if (!parameters.TryGetValue("@datasource", out dataSource))
+                throw new PackagingException("Missing manifest parameter in system install: 'dataSource'");
 
-            string initialcatalog;
-            if (!parameters.TryGetValue("@initialcatalog", out initialcatalog))
-                return false;
+            string initialCatalog;
+            if (!parameters.TryGetValue("@initialcatalog", out initialCatalog))
+                throw new PackagingException("Missing manifest parameter in system install: 'initialCatalog'");
 
-            var datasourceMod = packageParameters.FirstOrDefault(x => x.PropertyName.ToLowerInvariant() == "datasource")?.Value;
-            if (datasourceMod != null)
-                datasource = datasourceMod;
+            string userName;
+            if (!parameters.TryGetValue("@username", out userName))
+                throw new PackagingException("Missing manifest parameter in system install: 'userName'");
 
-            var initialcatalogMod = packageParameters.FirstOrDefault(x => x.PropertyName.ToLowerInvariant() == "initialcatalog")?.Value;
-            if (initialcatalogMod != null)
-                initialcatalog = initialcatalogMod;
+            string password ;
+            if (!parameters.TryGetValue("@password", out password))
+                throw new PackagingException("Missing manifest parameter in system install: 'password'");
 
-            var connection = new SqlConnectionStringBuilder(Configuration.ConnectionStrings.ConnectionString);
+            var defaultCnInfo = new ConnectionInfo
+            {
+                DataSource = dataSource,
+                InitialCatalogName = initialCatalog,
+                UserName = userName,
+                Password = password
+            };
+            var inputCnInfo = new ConnectionInfo
+            {
+                DataSource = packageParameters.FirstOrDefault(x => string.Compare(x.PropertyName, "datasource", StringComparison.InvariantCulture) != 0)?.Value,
+                InitialCatalogName = packageParameters.FirstOrDefault(x => string.Compare(x.PropertyName, "initialcatalog", StringComparison.InvariantCulture) != 0)?.Value,
+                UserName = packageParameters.FirstOrDefault(x => string.Compare(x.PropertyName, "username", StringComparison.InvariantCulture) != 0)?.Value,
+                Password = packageParameters.FirstOrDefault(x => string.Compare(x.PropertyName, "password", StringComparison.InvariantCulture) != 0)?.Value
+            };
 
-            if (connection.DataSource == datasource && connection.InitialCatalog == initialcatalog)
-                return false;
+            var origCnStr = Configuration.ConnectionStrings.ConnectionString;
+            var newCnStr = EditConnectionString(origCnStr, inputCnInfo, defaultCnInfo);
+            if (newCnStr != origCnStr)
+                Configuration.ConnectionStrings.ConnectionString = newCnStr;
+        }
 
-            connection.DataSource = datasource;
-            connection.InitialCatalog = initialcatalog;
-            Configuration.ConnectionStrings.ConnectionString = connection.ConnectionString;
+        internal static string EditConnectionString(string cnStr, ConnectionInfo inputCnInfo, ConnectionInfo defaultInfo)
+        {
+            var dataSource = inputCnInfo.DataSource ?? defaultInfo.DataSource;
+            var initialCatalog = inputCnInfo.InitialCatalogName ?? defaultInfo.InitialCatalogName;
+            var userName = inputCnInfo.UserName ?? defaultInfo.UserName;
+            var password = inputCnInfo.Password ?? defaultInfo.Password;
 
-            return true;
+            var connection = new SqlConnectionStringBuilder(cnStr);
+
+            var changed = false;
+            if (string.Compare(connection.UserID, userName, StringComparison.InvariantCulture) != 0)
+            {
+                if (!string.IsNullOrWhiteSpace(userName) && !string.IsNullOrWhiteSpace(password))
+                {
+                    connection.UserID = userName;
+                    connection.Password = password;
+                    connection.IntegratedSecurity = false;
+                    changed = true;
+                }
+                else
+                {
+                    connection.Remove("User ID");
+                    connection.Remove("Password");
+                    connection.IntegratedSecurity = true;
+                    changed = true;
+                }
+            }
+
+            if (connection.DataSource != dataSource)
+            {
+                connection.DataSource = dataSource;
+                changed = true;
+            }
+
+            if (connection.InitialCatalog != initialCatalog)
+            {
+                connection.InitialCatalog = initialCatalog;
+                changed = true;
+            }
+
+            return changed ? connection.ConnectionString : cnStr;
         }
 
         private void CheckDependency(Dependency dependency, RepositoryVersionInfo versionInfo, bool log)
