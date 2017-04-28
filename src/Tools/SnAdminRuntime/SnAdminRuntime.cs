@@ -34,7 +34,7 @@ namespace SenseNet.Tools.SnAdmin
         #endregion
 
         private static int Main(string[] args)
-        {
+        { 
             ToolTitle += Assembly.GetExecutingAssembly().GetName().Version;
             if (args.FirstOrDefault(a => a.ToUpper() == "-WAIT") != null)
             {
@@ -57,11 +57,27 @@ namespace SenseNet.Tools.SnAdmin
                 return -1;
 
             Logger.PackageName = Path.GetFileName(packagePath);
-
-            Logger.Create(logLevel, logFilePath);
-            Debug.WriteLine("##> " + Logger.Level);
-
-            return ExecutePhase(packagePath, targetDirectory, phase, parameters, logFilePath, help, schema);
+            try
+            {
+                Logger.Create(logLevel, logFilePath);
+                Debug.WriteLine("##> " + Logger.Level);
+                return ExecutePhase(packagePath, targetDirectory, phase, parameters, logFilePath, help, schema);
+            }
+            catch (System.Reflection.ReflectionTypeLoadException rtlex)
+            {
+                List<string> types = new List<string>();
+                foreach (var item in rtlex.LoaderExceptions) //LoaderExceptions is null? 
+                {
+                    if(item is System.IO.FileLoadException) //namespace-eket törüljük ki
+                    {
+                        var flo = item as System.IO.FileLoadException;
+                        types.Add(flo.FileName);
+                    }
+                }
+                throw new Exception(string.Format("ReflectionTypeLoadException: Could not load types. Affected types: "+Environment.NewLine+ string.Join(";"+Environment.NewLine, types)+";" +Environment.NewLine));
+            }
+           
+           
         }
         private static bool ParseParameters(string[] args, out string packagePath, out string targetDirectory, out int phase, out string[] parameters, out string logFilePath, out LogLevel logLevel, out bool help, out bool schema, out bool wait)
         {
