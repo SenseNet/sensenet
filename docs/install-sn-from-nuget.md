@@ -1,5 +1,5 @@
 # Install sensenet ECM 7.0 from NuGet
-This article is **for developers** about installing the core layer, **sensenet Services**, but before getting into that, please take a look at the concept of our install method.
+This article is **for developers** about installing the core layer, [sensenet Services](https://github.com/SenseNet), but before getting into that, please take a look at the concept of our install method.
 
 > **TLDR**: jump to the [Install packages](#InstallPackage) section to get started right away!
 
@@ -9,7 +9,7 @@ In the last couple of years [NuGet](https://nuget.org) became the industry stand
 ## Why so many packages?
 Sensenet ECM is a huge product consisting of many smaller components (take a look at this curated collection of built-in and 3rd party [components and plugins](https://github.com/SenseNet/awesome-sensenet)) that are not needed by everybody. It is best if you install only the parts you need, so that you can keep maintenance and upgrade costs at minimum. This is why we publish many small packages containing only the minimal set of libraries and content.
 
-About choosing the components you need, please refer to the plugin list above and the documentation in our [repositories](https://github.com/SenseNet).
+About choosing the components you need, take look at [this article](sensenet-components.md) that describes the main components briefly.
 
 #### Two packages per component
 Some of our components need multiple things to work, for example:

@@ -3,6 +3,9 @@
                           Content Repository and Services
 ************************************************************************************
 
+To read these instructions on the web in a more readable format, follow this link:
+https://github.com/SenseNet/sensenet/blob/master/docs/install-sn-from-nuget.md#InstallPackage
+
 To finalize the installation and get started with sensenet ECM platform, please follow these steps:
 
 1. Please make sure that the assembly bindings are correct in the 'runtime' section in Web.config: 
