@@ -339,8 +339,7 @@ namespace SenseNet.Portal.Virtualization
                     var userName = tokenManager.GetPayLoadValue(accessHeadAndPayload.Split(Convert.ToChar("."))[1], "name");
                     using (new SystemAccount())
                     {
-                        var user = User.Load(userName);
-                        AccessProvider.Current.SetCurrentUser(user);
+                        context.User = LoadUserPrincipal(userName);
                     }
                 }
             }
