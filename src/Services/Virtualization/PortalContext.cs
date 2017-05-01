@@ -1471,8 +1471,17 @@ namespace SenseNet.Portal.Virtualization
             get
             {
                 var result = IsSecureConnection ? PROTOCOL_HTTPS : PROTOCOL_HTTP;
+                var siteUrl = SiteUrl;
 
-                result += SiteUrl;
+                // in case there is no site, or the url is not registered on any of them
+                if (string.IsNullOrEmpty(siteUrl))
+                {
+                    siteUrl = RequestedUri.IsDefaultPort
+                        ? RequestedUri.GetComponents(UriComponents.Host, UriFormat.Unescaped)
+                        : RequestedUri.GetComponents(UriComponents.HostAndPort, UriFormat.Unescaped);                    
+                }
+
+                result += siteUrl;
 
                 return result;
             }

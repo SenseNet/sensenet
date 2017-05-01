@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>Application</ContentType>
+  <ContentName>EditInMicrosoftOffice</ContentName>
+  <Fields>
+    <DisplayName><![CDATA[$Action,Edit-in-Microsoft-Office]]></DisplayName>
+    <Scenario><![CDATA[ListItem]]></Scenario>
+    <ActionTypeName><![CDATA[WebdavOpenAction]]></ActionTypeName>
+    <Icon><![CDATA[application]]></Icon>
+    <RequiredPermissions>See;Open;OpenMinor;Save</RequiredPermissions>
+  </Fields>
+  <Permissions>
+    <Clear />
+    <Identity path="/Root/IMS/BuiltIn/Portal/IdentifiedUsers">
+      <RunApplication>Allow</RunApplication>
+    </Identity>
+  </Permissions>
+</ContentMetaData>
