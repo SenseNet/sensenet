@@ -94,16 +94,20 @@ The process will modify the **connection string** in _Web.config_ and _Tools\SnA
 
 The connection string is configured to use _Integrated Security_ by default (this means sensenet will use the Windows account you are logged in with to execute the install tool and later to run the web application). 
 
-> If you are using **SQL Server authentication** instead of Integrated Security, please provide the **username** and **password** when you execute the install command described below.
+> If you are using **SQL Server authentication** instead of Integrated Security, please provide the **username/dbusername** and **password/dbpassword** when you execute the install command described below.
 
 Open a **command line** and go to the *[web]\Admin\bin* folder.
 
-Execute the **install-services** command with the [SnAdmin](https://github.com/SenseNet/sn-admin) tool (you can specify optional parameters for SQL server, database name and user credentials)
+Execute the **install-services** command with the [SnAdmin](https://github.com/SenseNet/sn-admin) tool (you can specify optional parameters for SQL server, database name and user credentials).
 
 - **dataSource**: your SQL server instance name (e.g. . or *MSSQLSERVER\SQL2016*)
 - **initialCatalog**: database name (this is the new db that will be created by the install command below)
-- **username** (optional): in case of SQL authentication the username to access SQL Server with and to put into the connection string in config files.
+- **username** (optional): in case of SQL authentication the username to access SQL Server with *during the install process*.
 - **password**: password for the user above
+- **dbusername**: (optional): in case of SQL authentication the username to put into the *connection string in config files*. This is for the web application to access the db.
+- **dbpassword**: password for the user above
+
+> Please note that if you want to use SQL auth during both installation and runtime, you have to define both the username and the dbusername properties, there is no fallback.
 
 ````text
 .\snadmin install-services dataSource:. initialCatalog:sensenet

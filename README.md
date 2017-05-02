@@ -1,4 +1,4 @@
-# Welcome to sensenet
+# Welcome to sensenet ECM
 The first Open Source Enterprise Content Management platform for .NET!
 
 [![Join the chat at https://gitter.im/SenseNet/sensenet](https://badges.gitter.im/SenseNet/sensenet.svg)](https://gitter.im/SenseNet/sensenet?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
