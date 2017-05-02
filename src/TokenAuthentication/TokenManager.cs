@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Principal;
@@ -110,6 +111,13 @@ namespace SenseNet.TokenAuthentication
             SecurityToken validatedToken;
 
             return _handler.ValidateToken(token, validationParameters, out validatedToken);
+        }
+        public string GetPayLoadValue(string payLoadString, string key)
+        {
+            var payLoad = JwtPayload.Base64UrlDeserialize(payLoadString);
+            object valueObject;
+            payLoad.TryGetValue(key, out valueObject);
+            return valueObject?.ToString();
         }
     }
 }
