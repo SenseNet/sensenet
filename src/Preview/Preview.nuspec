@@ -3,14 +3,14 @@
   <metadata>
     <id>SenseNet.Preview</id>
     <version>7.0.0-beta2</version>
-    <title>Sense/Net Preview library</title>
+    <title>sensenet ECM Preview library</title>
     <authors>kavics,aniko,laci,borsi,lajos,tusmester</authors>
     <owners>Sense/Net</owners>
     <licenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/SenseNet/sensenet</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>General preview library for the Sense/Net ECM platform containing common interfaces.</description>
+    <description>General document preview library for the sensenet ECM platform containing common interfaces.</description>
     <releaseNotes>Initial release.</releaseNotes>
     <copyright>Copyright © Sense/Net Inc.</copyright>
     <tags>sensenet ecm ecms</tags>
