@@ -15,9 +15,10 @@ namespace SenseNet.Portal.OData.Typescript
         protected override IMetaNode VisitSchema(ContentRepository.Schema.Metadata.Schema schema)
         {
             #region Write filestart
-            _writer.WriteLine(@"import { " + TypescriptGenerationContext.FieldSettingsModuleName + @" } from './" + TypescriptGenerationContext.FieldSettingsModuleName + @"';
-/**
- * Module for ContentType schemas.
+            _writer.WriteLine(@"/**
+ * @module Schemas
+ * @preferred
+ * @description Module for ContentType schemas.
  *
  * A Content Type Definition in Sense/Net is an xml-format configuration file for defining Content Types. The xml configuration (CTD) holds information about the types name and description
  * properties that control how content of this type look and behave (icon, preview generation, indexing), set of fields, etc. This information about the type and its Fields helps us for example
@@ -26,9 +27,10 @@ namespace SenseNet.Portal.OData.Typescript
  * This module provides us description of this Content schemas in Typesript.
  *
  * The ```Schema``` class represents an object that holds the basic information about the Content Type (name, icon, ect.) and an array of its ```FieldSettings``` and their full configuration.
- */
+ */ /** */
 
-export module " + TypescriptGenerationContext.SchemaModuleName + @" {
+import { FieldSettings } from './SN';
+
     /**
      * Class that represents a Schema.
      *
@@ -78,11 +80,6 @@ export module " + TypescriptGenerationContext.SchemaModuleName + @" {
             _indentCount++;
             Visit(schema.Classes);
             _indentCount--;
-
-            #region Write fileend
-            _writer.WriteLine(@"}
-");
-            #endregion
             return schema;
         }
 

@@ -14,14 +14,13 @@ namespace SenseNet.Portal.OData.Typescript
 
         protected override IMetaNode VisitSchema(ContentRepository.Schema.Metadata.Schema schema)
         {
-            _writer.WriteLine(@"import { " + TypescriptGenerationContext.EnumTypesModuleName + @" } from './" + TypescriptGenerationContext.EnumTypesModuleName + @"';
-import { FieldSettings } from './FieldSettings';
-import { " + TypescriptGenerationContext.ComplexTypesModuleName + @" } from './" + TypescriptGenerationContext.ComplexTypesModuleName + @"';
-import { Content, IContentOptions } from './Content';
-import { Repository } from './Repository';
-
-/**
- * The Content Repository contains many different types of ```Content```. ```Content``` vary in structure and even in function. Different types of content contain different fields,
+            _writer.WriteLine(@"/**
+ * 
+ * @module ContentTypes
+ * @preferred
+ * 
+ * 
+ * @description The Content Repository contains many different types of ```Content```. ```Content``` vary in structure and even in function. Different types of content contain different fields,
  * are displayed with different views, and may also implement different business logic. The fields, views and business logic of a content is defined by its type - the Content Type.
  *
  * Content Types are defined in a type hierarchy: a Content Type may be inherited from another Content Type - thus automatically inheriting its fields.
@@ -29,30 +28,19 @@ import { Repository } from './Repository';
  * This module represents the above mentioned type hierarchy by Typescript classes with the Content Types' Fields as properties. With Typescript classes we can derive types from another
  * inheriting its properties just like Content Types in the Content Repository. This module provides us to create an objects with a type so that we can validate on its properties by their
  * types or check the required ones.
- */
+ * 
+ *//** */
+import { Content, IContentOptions } from './Content';
+import { Enums, FieldSettings, ComplexTypes } from './SN';
+import { IRepository } from './Repository/IRepository';
 
-export module ContentTypes {");
+");
 
             // Do not call base because only classes will be read.
             _indentCount++;
             Visit(schema.Classes);
             _indentCount--;
 
-            _writer.WriteLine(@"}
-
-/**
- * Creates a Content object by the given type and options Object that hold the field values.
- * @param type {string} The Content will be a copy of the given type.
- * @param options {SenseNet.IContentOptions} Optional list of fields and values.
- * @returns {SenseNet.Content}
- * ```ts
- * var content = SenseNet.Content.Create('Folder', { DisplayName: 'My folder' }); // content is an instance of the Folder with the DisplayName 'My folder'
- * ```
- */
-export function CreateContent<T>(type: string, options: IContentOptions = {}): Content {
-    let content = new ContentTypes[type](options);
-    return content;
-}");
             return schema;
         }
         protected override IMetaNode VisitClass(Class @class)
@@ -82,7 +70,7 @@ export function CreateContent<T>(type: string, options: IContentOptions = {}): C
             WriteLine($" * @constructs {type}");
             WriteLine($" * @param options {{object}} An object implementing {{@link I{type}Options" + "} interface");
             WriteLine($" */");
-            WriteLine($"constructor(options: I{type}Options, repository: Repository<any, any>) {{");
+            WriteLine($"constructor(options: I{type}Options, repository: IRepository<any, any>) {{");
             WriteLine($"    super(options, repository);");
 
             _indentCount++;
