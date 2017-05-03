@@ -185,6 +185,7 @@
     <Compile Include="ApplicationModel\SetPermissionsAction.cs" />
     <Compile Include="ApplicationModel\UploadAction.cs" />
     <Compile Include="ApplicationModel\UrlAction.cs" />
+    <Compile Include="ApplicationModel\WebdavOpenAction.cs" />
     <Compile Include="Configuration\TokenAuthentication.cs" />
     <Compile Include="Configuration\ErrorStatusCode.cs" />
     <Compile Include="Configuration\WebApplication.cs" />

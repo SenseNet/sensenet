@@ -572,20 +572,25 @@ namespace SenseNet.Portal.Virtualization
         {
             using (new SystemAccount())
             {
+                var smartUrls = new Dictionary<string, string>();
+                var pageType = ActiveSchema.NodeTypes["Page"];
+
+                // in case only the Services layer is installed, there is no Page type there
+                if (pageType == null)
+                    return smartUrls;
+
                 NodeQueryResult pageResult;
                 if (RepositoryInstance.ContentQueryIsAllowed)
                 {
                     var pageQuery = new NodeQuery();
-                    pageQuery.Add(new TypeExpression(ActiveSchema.NodeTypes["Page"], false));
+                    pageQuery.Add(new TypeExpression(pageType, false));
                     pageResult = pageQuery.Execute();
                 }
                 else
                 {
-                    pageResult = NodeQuery.QueryNodesByType(ActiveSchema.NodeTypes["Page"], false);
+                    pageResult = NodeQuery.QueryNodesByType(pageType, false);
                 }
-
-                var smartUrls = new Dictionary<string, string>();
-
+                
                 if (pageResult == null)
                     throw new ApplicationException("SmartURL: Query returned null.");
 
@@ -1471,8 +1476,17 @@ namespace SenseNet.Portal.Virtualization
             get
             {
                 var result = IsSecureConnection ? PROTOCOL_HTTPS : PROTOCOL_HTTP;
+                var siteUrl = SiteUrl;
 
-                result += SiteUrl;
+                // in case there is no site, or the url is not registered on any of them
+                if (string.IsNullOrEmpty(siteUrl))
+                {
+                    siteUrl = RequestedUri.IsDefaultPort
+                        ? RequestedUri.GetComponents(UriComponents.Host, UriFormat.Unescaped)
+                        : RequestedUri.GetComponents(UriComponents.HostAndPort, UriFormat.Unescaped);                    
+                }
+
+                result += siteUrl;
 
                 return result;
             }
