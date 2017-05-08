@@ -271,10 +271,10 @@ namespace SenseNet.Packaging
             };
             var inputCnInfo = new ConnectionInfo
             {
-                DataSource = packageParameters.FirstOrDefault(x => string.Compare(x.PropertyName, "datasource", StringComparison.InvariantCulture) == 0)?.Value,
-                InitialCatalogName = packageParameters.FirstOrDefault(x => string.Compare(x.PropertyName, "initialcatalog", StringComparison.InvariantCulture) == 0)?.Value,
-                UserName = packageParameters.FirstOrDefault(x => string.Compare(x.PropertyName, "username", StringComparison.InvariantCulture) == 0)?.Value,
-                Password = packageParameters.FirstOrDefault(x => string.Compare(x.PropertyName, "password", StringComparison.InvariantCulture) == 0)?.Value
+                DataSource = packageParameters.FirstOrDefault(x => string.Compare(x.PropertyName, "datasource", StringComparison.InvariantCultureIgnoreCase) == 0)?.Value,
+                InitialCatalogName = packageParameters.FirstOrDefault(x => string.Compare(x.PropertyName, "initialcatalog", StringComparison.InvariantCultureIgnoreCase) == 0)?.Value,
+                UserName = packageParameters.FirstOrDefault(x => string.Compare(x.PropertyName, "username", StringComparison.InvariantCultureIgnoreCase) == 0)?.Value,
+                Password = packageParameters.FirstOrDefault(x => string.Compare(x.PropertyName, "password", StringComparison.InvariantCultureIgnoreCase) == 0)?.Value
             };
 
             var origCnStr = Configuration.ConnectionStrings.ConnectionString;
