@@ -1,7 +1,5 @@
 # Smart Application Model
 
-## Overview
-
 The `Smart Application Model` is a feature of **sensenet ECM** for defining frontend templates to display and manipulate data in the `Content Repository`. It enables portal builders to create a unique look and feel across content items while also saving time.
 
 ## Basic philosophy

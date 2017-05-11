@@ -1,10 +1,6 @@
 # Webdav
 
-## Overview
-
 sensenet ECM provides a way to access your content via webdav, allowing Microsoft Office, Windows Explorer, Total Commander, Visual Studio, etc to open and edit content residing in a sensenet [Content Repository](content-repository.md). The [Content Repository](content-repository.md) can be even mapped as a drive. Office documents can be opened directly from the portal surface with webdav. When a document opened via webdav is saved, it is automatically versioned, permissions are automatically checked, etc. Drag and drop move and copy also works.
-
-## Details
 
 ### Installation
 

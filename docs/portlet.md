@@ -1,10 +1,6 @@
 # Portlet
 
-## Overview
-
 A Portlet is an ASP.NET web control that appear as a box on pages. Portlets can display custom layouts and implement custom application logic. The most simple portlets are used to present [Content](content.md) and Content Collections. Sense/Net Pages are mostly built up of Portlets - they are the basic building blocks of Pages.
-
-## Details
 
 Building custom pages is done by placing various types of portlets in the page layout. A portlet can be a custom web application (for example the Login Portlet that accepts credentials of users and logs them into the portal) or portlets that rely much on the CMS features of Sense/Net to present Content or Content Collections.
 

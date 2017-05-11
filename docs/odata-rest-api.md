@@ -235,7 +235,7 @@ Part of the response:
 
 It is possible to manage the fields of a Content List through our OData REST API. For details and examples please visit this article:
 
-- [Field editor actions](built-in-OData-actions-and-functions#Field Editor Actions,md)
+- [Field editor actions](built-in-odata-actions-and-functions.md#Field Editor Actions)
 
 ## System Query Options
 
@@ -656,7 +656,7 @@ OData operations (see on [OData.org](http://www.odata.org/media/30002/OData.html
 
 For the list of built-in OData operations see the following article:
 
-- [Built-in OData actions and functions](built-in-OData-actions-and-functions)
+- [Built-in OData actions and functions](built-in-odata-actions-and-functions.md)
 
 About developing custom OData see the following article:
 
