@@ -107,7 +107,8 @@ Execute the **install-services** command with the [SnAdmin](https://github.com/S
 - **dbusername**: (optional): in case of SQL authentication the username to put into the *connection string in config files*. This is for the web application to access the db.
 - **dbpassword**: password for the user above
 
-> Please note that if you want to use SQL auth during both installation and runtime, you have to define both the username and the dbusername properties, there is no fallback.
+> Please note that if you want to use SQL auth during both installation and runtime, you have to define both the username, password and the dbusername, dbpassword pairs of properties, there is no fallback.
+> The database also can be installed on Azure SQL. In this case you have no choice, you have to use SQL authentication due to the fact that Azure SQL does not support Windows authentication.
 
 ````text
 .\snadmin install-services dataSource:. initialCatalog:sensenet
