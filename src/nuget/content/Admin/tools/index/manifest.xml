@@ -1,6 +1,6 @@
 <Package type='Tool'>
   <Id>SenseNet.Index</Id>
-  <Description>Sense/Net ECM tool for rebuilding the index for a subtree or the whole Content Repository.</Description>
+  <Description>sensenet ECM tool for rebuilding the index for a subtree or the whole Content Repository.</Description>
   <ReleaseDate>2017-04-05</ReleaseDate>
   <Version>7.0.0</Version>
   <Dependencies>

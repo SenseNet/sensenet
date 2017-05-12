@@ -1,6 +1,6 @@
 <Package type='Install' >
   <Id>SenseNet.Services</Id>
-  <Description>Sense/Net ECM Services 7.0 (beta)</Description>
+  <Description>sensenet ECM Services 7.0 (beta)</Description>
   <ReleaseDate>2017-04-20</ReleaseDate>
   <Version>7.0.0</Version>
   <Parameters>
