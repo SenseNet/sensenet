@@ -108,7 +108,8 @@ Execute the **install-services** command with the [SnAdmin](https://github.com/S
 - **dbpassword**: password for the user above
 
 > Please note that if you want to use SQL auth during both installation and runtime, you have to define both the username, password and the dbusername, dbpassword pairs of properties, there is no fallback.
-> The database also can be installed on Azure SQL. In this case you have no choice, you have to use SQL authentication due to the fact that Azure SQL does not support Windows authentication.
+>
+> The database also can be installed on **Azure SQL**. In this case you have to use *SQL authentication* due to the fact that the installer does not support *Azure Active Directory* authentication yet (but after installation you can change the configuration to connect to Azure SQL using AAD of course).
 
 ````text
 .\snadmin install-services dataSource:. initialCatalog:sensenet

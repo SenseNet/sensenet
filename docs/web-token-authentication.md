@@ -80,7 +80,7 @@ _uri:_
 ```https://<yourhost>/<contentpath>```  
 headers:  
 ```X-Authentication-Type: Token```  
-```X-Refresh-Data: <refreshHeadAndPayload>```  
+```X-Access-Data: <accessHeadAndPayload>```  
 _cookies:_  
 Cookie: rs=```<refreshSignature>```
 Cookie: as=```<accessSignature>```
