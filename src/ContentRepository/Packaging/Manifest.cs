@@ -326,7 +326,7 @@ namespace SenseNet.Packaging
             return changed ? connection.ConnectionString : cnStr;
         }
 
-        private void CheckDependency(Dependency dependency, RepositoryVersionInfo versionInfo, bool log)
+        internal void CheckDependency(Dependency dependency, RepositoryVersionInfo versionInfo, bool log)
         {
             var existingComponent = versionInfo.Components.FirstOrDefault(a => a.ComponentId == dependency.Id);
             if (existingComponent == null)
