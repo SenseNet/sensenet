@@ -5,11 +5,11 @@ namespace SenseNet.Packaging
 {
     public class Dependency
     {
-        public string Id { get; internal set; }
-        public Version MinVersion { get; internal set; }
-        public Version MaxVersion { get; internal set; }
-        public bool MinVersionIsExclusive { get; internal set; }
-        public bool MaxVersionIsExclusive { get; internal set; }
+        public string Id { get; private set; }
+        public Version MinVersion { get; private set; }
+        public Version MaxVersion { get; private set; }
+        public bool MinVersionIsExclusive { get; private set; }
+        public bool MaxVersionIsExclusive { get; private set; }
 
         public static Dependency Parse(XmlElement element)
         {
