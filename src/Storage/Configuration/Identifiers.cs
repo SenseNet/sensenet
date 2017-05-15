@@ -14,6 +14,8 @@
         public const string OperatorsGroupPath = "/Root/IMS/BuiltIn/Portal/Operators";
         public static readonly int SomebodyUserId = 10;
 
+        public const string RootPath = "/Root";
+
         public const int MaximumPathLength = 450;
 
         public static string[] SpecialGroupPaths { get; internal set; } = {

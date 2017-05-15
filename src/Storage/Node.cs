@@ -2499,7 +2499,7 @@ namespace SenseNet.ContentRepository.Storage
             RepositoryPath.CheckValidName(this.Name);
 
             // Validate
-            if (this.ParentId == 0)
+            if (this.ParentId == 0 && this.Id != Identifiers.PortalRootId)
                 throw new InvalidPathException(SR.Exceptions.General.Msg_ParentNodeDoesNotExists);
             if (this.Name.Trim().Length == 0)
                 throw new InvalidPathException(SR.Exceptions.General.Msg_NameCannotBeEmpty);
