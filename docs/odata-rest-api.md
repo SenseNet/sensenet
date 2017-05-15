@@ -475,8 +475,7 @@ Filter the workspaces' and the Manager's properties at the same time:
 
 ```js
 $.ajax({
- url: "/OData.svc/workspaces/document?$expand=Manager
-&$select=DisplayName,Path,Manager/Domain,Manager/Name,Manager/FullName,Manager/Path",	      
+ url: "/OData.svc/workspaces/document?$expand=Manager&$select=DisplayName,Path,Manager/Domain,Manager/Name,Manager/FullName,Manager/Path",	      
     dataType: "json",
     async: false,
     success: function (d) {
@@ -491,8 +490,7 @@ Expand more levels with a couple of selected fields:
 
 ```js
 $.ajax({
- url: "/OData.svc/workspaces/document?$expand=Manager/Manager
-&$select=DisplayName,Path,Manager/Name,Manager/FullName,Manager/Manager/FullName",	      
+ url: "/OData.svc/workspaces/document?$expand=Manager/Manager&$select=DisplayName,Path,Manager/Name,Manager/FullName,Manager/Manager/FullName",	      
     dataType: "json",
     async: false,
     success: function (d) {
