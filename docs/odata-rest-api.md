@@ -52,7 +52,7 @@ The following HTTP methods can be used in requests to specify the expected opera
 - **POST**: creating an entity. The URL defines the entity and the request body contains a JSON object. The URL determines the place and name of the new entity. The JSON object describes the properties and initial values of the new entity.
 - **DELETE**: deleting an entity. The URL determines the entity that will be deleted. Always only one entity (and its children) will be deleted.
 
-[Check out the examples below.](#Examples_2)
+[Check out the examples below.](#Examples)
 
 # OData specific responses
 
@@ -439,13 +439,13 @@ It is possible to specify the list of fields the response should contain (see $s
 
 If you do not provide a $select option in the request, all the field values will be returned of the requested and the expanded content as well. You do not have to select the property that you want to expand.
 
-#### Examples
+#### <a id="Examples"></a>Examples
 
 Expand the Manager user of all document workspaces:
 
 ```js
 $.ajax({
- url:/OData.svc/workspaces/document?$expand=Manager",	      
+ url: "/OData.svc/workspaces/document?$expand=Manager",	      
     dataType: "json",
     async: false,
     success: function (d) {
@@ -460,7 +460,7 @@ Expand the Manager of Managers of all document workspaces (expand two levels):
 
 ```js
 $.ajax({
- url:/OData.svc/workspaces/document?$expand=Manager/Manager",	      
+ url: "/OData.svc/workspaces/document?$expand=Manager/Manager",	      
     dataType: "json",
     async: false,
     success: function (d) {
@@ -475,7 +475,7 @@ Filter the workspaces' and the Manager's properties at the same time:
 
 ```js
 $.ajax({
- url:/OData.svc/workspaces/document?$expand=Manager
+ url: "/OData.svc/workspaces/document?$expand=Manager
 &$select=DisplayName,Path,Manager/Domain,Manager/Name,Manager/FullName,Manager/Path",	      
     dataType: "json",
     async: false,
@@ -491,7 +491,7 @@ Expand more levels with a couple of selected fields:
 
 ```js
 $.ajax({
- url:/OData.svc/workspaces/document?$expand=Manager/Manager
+ url: "/OData.svc/workspaces/document?$expand=Manager/Manager
 &$select=DisplayName,Path,Manager/Name,Manager/FullName,Manager/Manager/FullName",	      
     dataType: "json",
     async: false,
@@ -507,7 +507,7 @@ Request for listing workspaces containing the managers' full name:
 
 ```js
 $.ajax({
- url:/OData.svc/workspaces/Project?$select=Manager/FullName&$expand=Manager",	      
+ url: "/OData.svc/workspaces/Project?$select=Manager/FullName&$expand=Manager",	      
     dataType: "json",
     async: false,
     success: function (d) {

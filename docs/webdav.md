@@ -102,4 +102,4 @@ The following options can be set:
 
 It is possible to customize the behavior of the WebDav feature by developing a custom provider. Developers can restrict what users see in Windows Explorer and what they can do with files and folders.
 
-- [How to create a custom WebDav provider](http://community.sensenet.com/tutorials/how-to-create-a-custom-webdav-provider)
+- [How to create a custom WebDav provider](http://community.sensenet.com/docs/tutorials/how-to-create-a-custom-webdav-provider/)
