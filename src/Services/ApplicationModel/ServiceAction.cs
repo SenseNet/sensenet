@@ -16,7 +16,7 @@ namespace SenseNet.ApplicationModel
                     return string.Empty;
 
                 var s = SerializeParameters(GetParameteres());
-                var uri = $"/{ServiceName}/{MethodName}";
+                var uri = $"/{ServiceName?.TrimStart('/')}/{MethodName}";
 
                 if (!string.IsNullOrEmpty(s))
                 {
