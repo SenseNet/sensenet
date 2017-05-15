@@ -920,7 +920,7 @@ AS
 IF (@NodeId = 2)
 	BEGIN
 
--- Root node, no need to deal with parent
+-- Root node: no need to deal with parent
 UPDATE Node SET
 	Node.NodeTypeId = @NodeTypeId,
 	Node.ContentListTypeId = @ContentListTypeId,
