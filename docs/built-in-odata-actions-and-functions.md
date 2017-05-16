@@ -1,17 +1,17 @@
 # Built-in OData actions and functions
 
-sensenet ECM has a powerful feature for defining and accessing content operations called the [Smart Application Model](smart-application-model.md). The basic building blocks of this model are [Actions](action.md) and [Applications](application.md). The previous articles contain information for portal builders on how to create actions and applications using the built-in method. There are a couple of special actions in sensenet ECM that can be invoked through our OData REST API. Developers can create custom OData actions and functions to publish custom operations too. This article lists the built-in actions and functions that are accessible through OData.
+sensenet ECM has a powerful feature for defining and accessing content operations called the [Smart Application Model](smart-application-model.md). The basic building blocks of this model are [Actions](action.md) and [Applications](application.md). 
 
-In this article you can see a list of the sensenet ECM actions that are currently available as OData operations. These can be of the following type:
+The articles above contain an overview of the ideas behind the application model and how [Content](content.md) are displayed using application pages. In this article we are discussing actions in sensenet ECM that can be invoked through our [OData REST API](odata-rest-api.md), the most important service in sensenet ECM. 
 
-- OData action (causes state change in the [Content Repository](content-repository.md))
-- OData function (must not cause any changes, only provides data)
+This article lists the **built-in actions and functions** that are accessible through OData.
 
-> For more about OData operations see the [OData documentation](http://www.odata.org/media/30002/OData.html#operations).
+- **OData action**: causes state change in the [Content Repository](content-repository.md)
+- **OData function**:  does not cause changes, only provides data
 
-If you want to build your own custom OData action or function, please visit this [tutorial](http://community.sensenet.com/tutorials/how-to-create-a-custom-odata-action). The following sections contain descriptions of our built-in operations with their parameters listed, and a couple of examples.
+If you want to build your own custom OData action or function, please visit [this tutorial](http://community.sensenet.com/tutorials/how-to-create-a-custom-odata-action). The following sections contain descriptions of our built-in operations with their parameters listed, and a couple of examples.
 
-> Please note that in sensenet there is a restriction in the OData implementation: actions and functions can be invoked **only on entities** and not collections.
+> Please note that in sensenet ECM there is a restriction in the OData implementation: actions and functions can be invoked **only on entities** and not collections.
 
 ## OData actions
 
@@ -248,7 +248,7 @@ Uploads a stream or text to a content binary field (e.g. a file).
 }
 ```
 
-**Response**: 5062*3196*True (or similar). This value must be passed to subsequent requests as the _ChunkToken_.
+**Response**: 5062\*3196\*True (or similar). This value **must be passed to subsequent requests** as the _ChunkToken_.
 - URL (subsequent requests): _/OData.svc/workspaces/Project/budapestprojectworkspace('Document_Library')/Upload_
 - request (properties in the Content-Disposition header):
 
@@ -266,7 +266,8 @@ In addition, subsequent request bodies should contain the uploaded file in chunk
 
 > For more information about how uploading works see the [Upload action](upload-action.md) article. You can find a C# source code example there that demonstrates the usage of the [Upload action](upload-action.md) from a **console application**.
 
-### Restore action - from version 6.3
+### Restore action
+*(from version 6.3)*
 
 Restores a deleted content from the Trash. You can call this action only on a TrashBag content that contains the deleted content itself.
 
@@ -297,7 +298,8 @@ $.ajax({
 });
 ```
 
-### SaveQuery action - from version 6.3
+### SaveQuery action
+*(from version 6.3)*
 
 Creates or modifies a Query content. Use this action instead of creating query content directly using the basic OData create method, because query content can be saved under a workspace or to the user's profile as a private query.
 
@@ -326,7 +328,8 @@ $.ajax({
 });
 ```
 
-### Approve action - from version 6.3
+### Approve action
+*(from version 6.3)*
 
 Performs an approve operation on a content, the equivalent of calling `Approve()` on the Content instance in .NET. Also checks whether the content handler of the subject content inherits GenericContent (otherwise it does not support this operation). This action has no parameters.
 
@@ -343,7 +346,8 @@ $.ajax({
 });
 ```
 
-### Reject action - from version 6.3
+### Reject action
+*(from version 6.3)*
 
 Performs a reject operation on a content, the equivalent of calling `Reject()` on the Content instance in .NET. Also checks whether the content handler of the subject content inherits `GenericContent` (otherwise it does not support this operation). The reject reason can be supplied in an optional parameter called `rejectReason`.
 
@@ -363,7 +367,8 @@ $.ajax({
 });
 ```
 
-### Publish action - from version 6.3
+### Publish action
+*(from version 6.3)*
 
 Performs a publish operation on a content, the equivalent of calling `Publish()` on the Content instance in .NET. Also checks whether the content handler of the subject content inherits GenericContent (otherwise it does not support this operation). This action has no parameters.
 
@@ -380,7 +385,8 @@ $.ajax({
 });
 ```
 
-### Check in action - from version 6.3
+### Check in action
+*(from version 6.3)*
 
 Performs a check in operation on a content, the equivalent of calling `CheckIn()` on the Content instance in .NET. This action enforces the check in comments mode of the content. Also checks whether the content handler of the subject content inherits GenericContent (otherwise it does not support this operation). The check-in comments can be supplied in an optional parameter called checkInComments.
 
@@ -400,7 +406,8 @@ $.ajax({
 });
 ```
 
-### Check out action - from version 6.3
+### Check out action
+*(from version 6.3)*
 
 Performs a check out operation on a content, the equivalent of calling `CheckOut()` on the Content instance in .NET. Also checks whether the content handler of the subject content inherits GenericContent (otherwise it does not support this operation). This action has no parameters.
 
@@ -417,7 +424,8 @@ $.ajax({
 });
 ```
 
-### Undo check out action - from version 6.3
+### Undo check out action
+*(from version 6.3)*
 
 Performs an undo check out operation on a content, the equivalent of calling `UndoCheckOut()` on the Content instance in .NET. Also checks whether the content handler of the subject content inherits GenericContent (otherwise it does not support this operation). This action has no parameters.
 
@@ -434,7 +442,8 @@ $.ajax({
 });
 ```
 
-### Force undo check out action - from version 6.3
+### Force undo check out action
+*(from version 6.3)*
 
 Performs a force undo check out operation on a content, the equivalent of calling `ForceUndoCheckOut()` on the Content instance in .NET. Also checks whether the content handler of the subject content inherits GenericContent (otherwise it does not support this operation). This action has no parameters.
 
@@ -451,7 +460,8 @@ $.ajax({
 });
 ```
 
-### Restore version action - from version 6.3
+### Restore version action
+*(from version 6.3)*
 
 Restores an old version of the content. Also checks whether the content handler of the subject content inherits GenericContent (otherwise it does not support this operation). This action has a single parameter called version where the caller can specify which old version to restore.
 
@@ -471,7 +481,8 @@ $.ajax({
 });
 ```
 
-### Finalize content action - from version 6.3
+### Finalize content action
+*(from version 6.3)*
 
 Closes a [Multistep saving](multistep-saving.md) operation and sets the saving state of a content to Finalized. Can be invoked only on content that are not already finalized.
 
@@ -488,7 +499,8 @@ $.ajax({
 });
 ```
 
-### Take lock over action - from version 6.3.2
+### Take lock over action
+*(from version 6.3.2)*
 
 Lets administrators take over the lock of a checked out document from another user. A new locker user can be provided using the 'user' parameter (user path or id as string). If left empty, the current user will take the lock.
 
@@ -508,7 +520,8 @@ $.ajax({
 });
 ```
 
-### Indexing actions - from version 6.4 Patch 1
+### Indexing actions
+*(from version 6.4 Patch 1)*
 
 These actions perform an [indexing operation](http://community.sensenet.com/tutorials/how-to-reindex-content) on a single content or a whole subtree.
 
@@ -558,7 +571,8 @@ $.ajax({
 });
 ```
 
-### Add members action - from version 6.5
+### Add members action
+*(from version 6.5)*
 
 Administrators can add new members to a group using this action. The list of new members can be provided using the 'contentIds' parameter (list of user or group ids).
 
@@ -576,7 +590,8 @@ $.ajax({
 });
 ```
 
-### Remove members action - from version 6.5
+### Remove members action
+*(from version 6.5)*
 
 Administrators can remove members from a group using this action. The list of removable members can be provided using the 'contentIds' parameter (list of user or group ids).
 
@@ -594,7 +609,8 @@ $.ajax({
 });
 ```
 
-### Take ownership action - from version 6.5
+### Take ownership action
+*(from version 6.5)*
 
 Users who have _TakeOwnership_ permission for the current content can modify the Owner of this content. The new owner is provided using the 'userOrGroup' parameter that accepts the path or the id of the new owner (that can be a Group or a User). The input parameter also supports empty or null string, in this case the new owner will be the current user.
 
@@ -612,17 +628,18 @@ $.ajax({
 });
 ```
 
-### Login action - from version 6.5.3
+### Login action
+*(from version 6.5.3)*
 
 It is possible to send authentication requests using this action. You provide the username and password and will get the User object as the response if the login operation was successful or HTTP 403 Forbidden message if it wasn’t. If the username does not contain a domain prefix, the configured default domain will be used. After you logged in the user successfully, you will receive a standard ASP.NET auth cookie which will make sure that your subsequent requests will be authorized correctly.
 
 ```diff
-- Before Sense/Net Version 6.5.4.9375 after you provide the username and password, you will get a response 
+- Before sensenet ECM version 6.5.4.9375 after you provide the username and password, you will get a response 
 - of a boolean value depending on whether the login operation was successful or not.
 ```
 
 ```diff
-- As the username and password is sent in clear text, always send these kinds of requests throuigh _HTTPS_.
+- As the username and password is sent in clear text, always send these kinds of requests throuigh HTTPS.
 ```
 
 ```js
@@ -640,7 +657,8 @@ $.ajax({
 });
 ```
 
-### Logout action - from version 6.5.3
+### Logout action
+*(from version 6.5.3)*
 
 Similarly to the Login action above, you can send a logout action to the portal.
 
@@ -809,7 +827,8 @@ $.ajax({
 
 > Please note that OData functions can be called with POST or GET request.
 
-### GetQueries - from version 6.3
+### GetQueries
+*(from version 6.3)*
 
 Gets Query content that are relevant in the current context. The result set will contain two types of content:
 
@@ -846,7 +865,8 @@ Permissions for the library for the current user:
 "http://example.com/OData.svc/workspaces/Project/budapestprojectworkspace('Document_Library')/HasPermission?permissions=AddNew,Save"
 ```
 
-### Permission queries - from version 6.3
+### Permission queries
+*(from version 6.3)*
 
 There are a couple of OData functions that can be used for getting aggregated security information about a content subtree. These are the following:
 
@@ -859,7 +879,8 @@ There are a couple of OData functions that can be used for getting aggregated se
 
 > For more details, please visit the [Permission queries](permission-queries.md) article.
 
-### Get metadata - from version 6.3
+### Get metadata
+*(from version 6.3)*
 
 OData function for collecting all fields of all types in the system. The content parameter (the resource you call it on, in this example the library) is ignored.
 
@@ -872,7 +893,8 @@ OData function for collecting all fields of all types in the system. The content
 "http://example.com/OData.svc/workspaces/Project/budapestprojectworkspace('Document_Library')/GetMetadata"
 ```
 
-### Check allowed child types - from version 6.3
+### Check allowed child types
+*(from version 6.3)*
 
 Checks all IFolder objects in the Content Repository and returns all paths where AllowedChildTypes is empty. Paths are categorized by content type names. This is a helper function that can be used to get an overview of your system.
 
@@ -887,7 +909,8 @@ Permissions for the library for the current user:
 "http://example.com/OData.svc/workspaces/Project/budapestprojectworkspace('Document_Library')/CheckAllowedChildTypesOfFolders"
 ```
 
-### Get VersionInfo - from version 6.3.1
+### Get VersionInfo
+*(from version 6.3.1)*
 
 Gets the complete version information about the core product and the installed applications. This function is accessible only for administrators by default. You can learn more about the subject in the [SnAdmin](snadmin.md) article. You can read detailed description of the [function result](snadmin.md#Getting_package_information).
 
