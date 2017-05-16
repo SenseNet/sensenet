@@ -1,12 +1,20 @@
 # OData REST API
 
-## Overview of Sense/Net REST API
+## Overview of sensenet ECM REST API
 
-The Open Data Protocol (OData) is a Web protocol for querying and updating data that provides a way to unlock your data and free it from silos that exist in applications today. OData is being used to expose and access information from a variety of sources including, but not limited to, relational databases, file systems, content management systems and traditional Web sites. Beginning from version 6.2 sensenet Content Repository is an OData producer. Your applications can consume our OData service to create web apps on PCs and mobile devices (e.g. with KendoUI), mobile apps (OData is supported on all major smartphone platforms) or any other type of content based applications. We support CRUD operations on the repository, properties, binary streams, paging options and custom queries. You can expect an even wider coverage of the OData specification in future releases. For more information about OData check the OData website.In this article we explain how we implemented OData V3 and how you can access the sensenet ECM OData producer from OData clients.
+The Open Data Protocol (OData) is a Web protocol for querying and updating data that provides a way to unlock your data and free it from silos that exist in applications today. OData is being used to expose and access information from a variety of sources including, but not limited to, relational databases, file systems, content management systems and traditional Web sites. Beginning from version 6.2 sensenet ECM Content Repository is an OData producer. Your applications can consume our OData service to create web apps on PCs and mobile devices (e.g. with KendoUI), mobile apps (OData is supported on all major smartphone platforms) or any other type of content based applications. We support CRUD operations on the repository, properties, binary streams, paging options and custom queries. You can expect an even wider coverage of the OData specification in future releases. For more information about OData check the OData website.In this article we explain how we implemented OData V3 and how you can access the sensenet ECM OData producer from OData clients.
+
+> Please note that the structure and philosophy of the sensenet ECM [Content Repository](content-repository.md) prevents publishing an automatically discoverable OData metadata service, which means generic OData client tools will likely not work with sensenet ECM.
+
+## Clients accessing the repository
+There are two built-in tools for accessing content in the Content Repository through the REST api, so that you do not have to construct OData requests manually. Please check the following projects, they offer an easy-to-learn client API to access sensenet ECM:
+
+- [JavaScript client SDK](https://github.com/SenseNet/sn-client-js)
+- [.Net client library](https://github.com/SenseNet/sn-client-dotnet)
 
 ## OData specific requests
 
-An OData HTTP request sent to the sensenet [Content Repository](content-repository.md) contains the following parts:
+An OData HTTP request sent to the Content Repository contains the following parts:
 
 - protocol (http or https)
 - host (site URL)
@@ -57,7 +65,7 @@ The following HTTP methods can be used in requests to specify the expected opera
 # OData specific responses
 
 ``` diff
-- Please note that Sense/Net ECMS currently supports only the OData Verbose JSON response format.
+- Please note that sensenet ECM currently supports only the OData Verbose JSON response format.
 ```
 
 # Addressing children (collections)
@@ -524,7 +532,7 @@ Our service always returns with verbose json format. Atom and xml formats are no
 
 Specifies the displayed properties in a comma separated list of the property names. Property names are case sensitive. See on [OData.org](http://www.odata.org/documentation/uri-conventions#SelectSystemQueryOption).
 
-> Limitation: a select clause can be only a property name. Expressions in select clauses are not supported yet in Sense/Net.
+> Limitation: a select clause can be only a property name. Expressions in select clauses are not supported yet in sensenet ECM.
 
 Without this option the result will contain all available properties. If the request refers only one entity, the available property set is the entity's all properties. In case of collection it is all properties of the available content types in the collection. For example: request only DisplayName, Path and Index properties for a quick list: http://www.example.com/OData.svc/workspaces?$select=DisplayName,Path,Index. Part of the result:
 
@@ -675,7 +683,7 @@ Instance specific metadata is available on a collection or simple entity: the re
 - Collection: http://www.example.com/OData.svc/workspaces/$metadata
 - Entity: http://www.example.com/OData.svc/workspaces('project')/$metadata
 
-The main difference between service and instance metadata is the list of expando fields: instance metadata contains these but service metadata does not. The main difference between instance metadata types can be the contained entity types. Entity metadata contains only one entity definition and collection metadata contains entity types originated from the available content types that are defined on the parent content.
+The main difference between service and instance metadata is the list of **expando fields**: instance metadata contains these but service metadata does not. The main difference between instance metadata types can be the contained entity types. Entity metadata contains only one entity definition and collection metadata contains entity types originated from the available content types that are defined on the parent content.
 
 ## Examples
 

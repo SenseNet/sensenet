@@ -1,10 +1,10 @@
 # Content Repository
 
-A content repository is a store of digital content with an associated set of data management, search and access methods allowing application-independent access to the content rather like a digital library, but with the ability to store and modify content in addition to searching and retrieving. sensenet Content Repository (SNCR) forms the technical underpinning of sensenet ECM. It gives structure to unstructured content as the logical storage facility. It is the container of content (individual blocks of information) that also provides the service layer to manipulate (add, copy, move, delete, etc.) it.
+A content repository is a store of digital content with an associated set of data management, search and access methods allowing application-independent access to the content rather like a digital library, but with the ability to store and modify content in addition to searching and retrieving. The sensenet Content Repository (SNCR) forms the technical underpinning of sensenet ECM. It gives structure to unstructured content as the logical storage facility. It is the container of content (individual blocks of information) that also provides the service layer to manipulate (add, copy, move, delete, etc.) it.
 
 ### Managing Content
 
-sensenet Content Repository provides services to end users for managing content. It has the following features:
+The Content Repository provides services to end users for managing content. It has the following features:
 
 - Content storage in one hierarchical tree structure with content types
 - Built-in and custom meta data for content
@@ -19,10 +19,10 @@ sensenet Content Repository provides services to end users for managing content.
 
 ### Structured storage of Content
 
-sensenet Content Repository is basically a tree structure of the various stored content. A specific content is identified by a unique number (id) and also by its path in SNCR. The root of SNCR is at /Root path, all other content is placed somewhere under this root content - for example the login page for the default site is placed at /Root/Sites/Default_Site/login. The default structure is organized as follows (only the main folder structure is listed here):
+The Content Repository is basically a tree structure of the various stored content. A specific content is identified by a **unique id** and also by its **path** in SNCR. The root of SNCR is at the /Root path, all other content is placed somewhere under this root content - for example the login page for the default site is placed at /Root/Sites/Default_Site/login. The default structure is organized as follows (only the main folder structure is listed here):
 
 <div style="display: inline-block;vertical-align: top; padding-right: 20px; width: 260px;">
-<img src="images/content-repository1.png" /> 
+<img src="https://raw.githubusercontent.com/SenseNet/sensenet/master/docs/images/content-repository1.png" /> 
 </div>
 
 <div style="display: inline-block;width: 500px;">
@@ -42,7 +42,7 @@ sensenet Content Repository is basically a tree structure of the various stored 
     - **styles** - Css files
   - **IMS** - folder containing Domains, Organizational units, Groups and [Users](user-content-type.md) in a hierarchical tree structrure
   - **Localization** - resource files with multi-language text content for [Localization](localization.md)
-  - **Portlets** - folder of installed Portlet
+  - **Portlets** - folder of installed Portlets
   - **Sites** - container of defined sites
     - **Default_Site** - demo site
   - **Skins** - container folder for [Skins](skin-system.md)
@@ -65,7 +65,7 @@ sensenet Content Repository is basically a tree structure of the various stored 
 
 ### Content Repository and the type system
 
-sensenet Content Repository is built upon a metadata system with pre-defined base types and type inheritance support. Content stored in SNCR can have different types, but content can be one type at any one time. A content type defines the properties (fields) and behavior of content. [Content type definitions](ctd.md) are also stored as content in the repository. They are located in the _/Root/System/Schema/ContentTypes_ folder. To sum it up, the SNCR relies on the type system that - from the storage perspective - defines the reusable set of fields for each content type. You can also add extra fields to a certain content (apart from the fields in its type) through [aspects](aspect.md).
+The sensenet Content Repository is built upon a metadata system with pre-defined base types and type inheritance support. Content stored in SNCR can have different types, but content can be one type at any one time. A content type defines the properties (fields) and behavior of content. [Content type definitions](ctd.md) are also stored as content in the repository. They are located in the _/Root/System/Schema/ContentTypes_ folder. To sum it up, the SNCR relies on the type system that - from the storage perspective - defines the reusable set of fields for each content type. You can also add extra fields to a certain content (apart from the fields in its type) through [aspects](aspect.md).
 
  ### Metadata indexing for fast search and filtering
 
@@ -73,8 +73,8 @@ sensenet Content Repository is built upon a metadata system with pre-defined bas
 
  ### Content access and url resolution
 
- Every content in SNCR is identified by its unique Id and its path. You cannot change a content ID, but you can move a content to another folder and thus change its path. The tree structure of the SNCR makes it possible to use the path as a link to the content, and thus the individual content can be addressed by their root-relative or site-relative paths as URL links. For example a root-relative /Root/Sites/DefaultSite/My-folder/My-file.docx content can be addressed as My-folder/My-file.docx if your browser is on the Default_Site.
+ Every content in SNCR is identified by its unique Id and its Path. You cannot change a content id, but you can move a content to another folder and thus change its path. The tree structure of the SNCR makes it possible to use the path as a link to the content, and thus the individual content can be addressed by their root-relative or site-relative paths as URL links. For example a root-relative /Root/Sites/DefaultSite/My-folder/My-file.docx content can be addressed as My-folder/My-file.docx if your browser points to a url that is registered on the Default_Site.
 
  ### Managing sensenet Content Repository
 
-In an ECM system, just as in our case in sensenet ECM most of the operation of end users consists of searching, reading and writing content in the content repository. Document libraries in workspaces, custom forms, pictures in image libraries are all stored and managed in the one and only big tree of sensenet Content Repository. If you want to have an overview of the whole tree structure (similarly to Windows Explorer or OSX Finder) you can use the administrative GUI of sensenet ECM, the [Content Explorer](content-explorer.md).
+In an ECM system the most frequently used operations are searching, reading and writing content in the content repository. Document libraries in workspaces, custom forms, pictures in image libraries are all stored and managed in the one and only big tree of sensenet Content Repository. If you want to have an overview of the whole tree structure (similarly to Windows Explorer or OSX Finder) you can use the administrative GUI of sensenet ECM, the [Content Explorer](content-explorer.md) (this is available only if you have the [WebPages](https://github.com/SenseNet/sn-webpages) component or the full sensenet ECM 6.5 product installed).

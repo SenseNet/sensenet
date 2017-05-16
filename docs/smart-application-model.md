@@ -1,6 +1,8 @@
 # Smart Application Model
 
-The `Smart Application Model` is a feature of **sensenet ECM** for defining frontend templates to display and manipulate data in the `Content Repository`. It enables portal builders to create a unique look and feel across content items while also saving time.
+The `Smart Application Model` is a feature of **sensenet ECM** for defining both REST API endpoints and frontend templates to display and manipulate data in the `Content Repository`. It enables portal builders to create a unique look and feel across content items while also saving time.
+
+> Some of the features described in this article (about displaying content with application Pages) are available only if you have the sensenet ECM [WebPages](https://github.com/SenseNet/sn-webpages) component installed, but the underlying philosophy of arranging applications, security and url generation applies even if you only have the core [Services layer](https://github.com/SenseNet/sensenet).
 
 ## Basic philosophy
 
@@ -10,7 +12,7 @@ Users are usually interested in content items (blogposts, videos, images, etc.),
 
 - http://www.example.com/Engine.aspx?board=52&item=4329&mode=show
 
-Such URLs are not friendly to either users or search engines. The most prominent place in the URL - basically, the URL itself - is taken by the web application, which should be a quiet servant to the content.
+Such URLs are not friendly to either users or search engines. The most prominent place in the URL - basically, the URL itself - is taken by the application, which should be a quiet servant to the content.
 
 This approach is similar to starting a word processor from the Start Menu, and then opening a document from inside the software. A more intuitive way to work is to find the document you wish to edit, and double-click it. The operating system will automatically load the word processor, and open the document in it. And that is exactly what the **Smart Application Model** does in sensenet ECM.
 
@@ -18,17 +20,15 @@ Here, you have URLs like the following:
 
 - http://www.example.com/MyBlog/2010/08/Great-day
 
-Where "Great-day" is an actual content item (a blog post) located under the path "MyBlog/2010/08/Great-day". Now, somewhere in the system there exists a `Portlet Page`, an ASP.NET application, that will display this blog post. We have simply hidden it from the eyes of the user, and put the content item itself into the lead role.
+Where "Great-day" is an actual content item (a blog post) located under the path "MyBlog/2010/08/Great-day". Now, somewhere in the system there exists a *Portlet Page*, an ASP.NET application, that will display this blog post. We have simply hidden it from the eyes of the user, and put the content item itself into the lead role.
 
 ## Addressing a piece of content
 
-Data in the sensenet Content Repository is stored in a tree model, similar to a file system. Each item has a unique content path through which it can be accessed. However, as a single instance of sensenet ECM can serve several sites with different content, we provide two URL schemes for addressing content items from the web.
-
-> The following schemes only apply to direct URL addresses. Content items addressed through a `POST` or `GET` parameter must always be designated with its fully qualified internal path.
+Data in the sensenet ECM Content Repository is stored in a tree model, similar to a file system. Each item has a unique content path through which it can be accessed. However, as a single instance of sensenet ECM can serve several sites with different content, we provide two URL schemes for addressing content items from the web.
 
 ### Site relative paths
 
-The most common URLs used in a sensenet ECM installation are site relative, sometimes referred to as friendly URLs. This means exactly what it says. Sites are content items themselves in the sensenet Content Repository, and a relative path points to content that is located inside the site it is accessed from.
+The most common URLs used in a sensenet ECM installation are site relative, sometimes referred to as friendly URLs. This means exactly what it says. Sites are content items themselves in the sensenet ECM Content Repository, and a relative path points to content that is located inside the site it is accessed from.
 
 For example, let's say we have the following setup:
 
@@ -49,20 +49,20 @@ For example, let's say we have the following setup:
 
 Usually, people will access this repository through one of the sites defined, the **Cars** or the **Bikes** site. Normally whatever follows the domain name in the URL will be the relative path of a content item under the site accessed.
 
-- http://cars.example.com/Buy points to /Root/Sites/Exemplar_Cars/Buy
-- http://bikes.example.com/Buy points to /Root/Sites/Exemplar_Bikes/Buy
+- *http://cars.example.com/Buy* points to */Root/Sites/Exemplar_Cars/Buy*
+- *http://bikes.example.com/Buy* points to */Root/Sites/Exemplar_Bikes/Buy*
 
 ### Absolute paths
 
 Absolute paths, sometimes also referred to as _"root relative paths"_ are fully qualified paths in the local part of the URL. With absolute paths, you can access content that is not physically located under the site you are logged in to. For a local part to be interpreted as an absolute path, it must start with **/Root**. Usually this is used for administration work, as eg. users and groups, or global resources such as icons and JavaScript frameworks are located outside any of the sites.
 
-> Note that with absolute URLs, one can access a site through the domain name of another site in the sensenet Content Repository.
+> Note that with absolute URLs, one can access a site through the domain name of another site in the sensenet ECM Content Repository.
 
 Examples:
 
-- http://cars.example.com/Root/Data/Prices/pricesheet_2009 points to /Root/Data/Prices/pricesheet_2009
-- http://bikes.example.com/Root/Data/Prices/pricesheet_2009 points to /Root/Data/Prices/pricesheet_2009
-- http://cars.example.com/Root/Sites/Exemplar_Bikes/Buy points to /Root/Sites/Exemplar_Bikes/Buy
+- *http://cars.example.com/Root/Data/Prices/pricesheet_2009* points to */Root/Data/Prices/pricesheet_2009*
+- *http://bikes.example.com/Root/Data/Prices/pricesheet_2009* points to */Root/Data/Prices/pricesheet_2009*
+- *http://cars.example.com/Root/Sites/Exemplar_Bikes/Buy* points to */Root/Sites/Exemplar_Bikes/Buy*
 
 ## Actions
 
@@ -83,13 +83,20 @@ Possible actions may, as an example, include:
 - http://www.example.com/StrategyGame/Cloud_Kingdom?action=Attack
 - http://www.example.com/Software/Sales?action=Executive-BI-Dashboard
 
+### OData actions
+Similarly to Pages (that require the [WebPages](https://github.com/SenseNet/sn-webpages) component to be present), OData actions can also be created to extend the REST API of sensenet ECM. They can be defined in the same hierarchy and Content Type structure as old-fashioned Page applications. Follow the links below to learn more about them:
+
+- [OData REST api](odata-rest-api.md)
+- [Built-in OData actions and functions](built-in-odata-actions-and-functions.md)
+- [How to create a custom OData action](how-to-create-a-custom-odata-action.md)
+
 ## Application binding
 
 The **Smart Applicaton Model** goes further than just providing a friendly URL scheme. The real power lies in the complex logic that binds applications to content.
 
-In sensenet ECM everything is content and this includes the applications themselves. This means that the applications are either located in the [Content Repository](content-repository.md) as physical `Portlet Pages` or ASP.NET webforms, or are placeholder content items for logic (like HTTP Handlers) located in a DLL file.
+In sensenet ECM everything is content and this includes the applications themselves. This means that the applications are located in the [Content Repository](content-repository.md) either as `Portlet Pages` or placeholder content items for logic (like HTTP Handlers) located in a DLL file.
 
-Registering an application consists of placing it at the right place in the [Content Repository](content-repository.md), and naming it appropriately.
+Registering an application means placing it at the right place in the Content Repository, and naming it appropriately.
 
 ### Binding by action
 
@@ -99,19 +106,19 @@ The way applications are resolved from the `Action` specified in the URL is as s
 
 Applications are located in a special `System Folder` called _(apps)_.
 
-There can be an _(apps)_ folder anywhere in the system, and when a content item is requested, the system finds the _(apps)_ folder that is the closest, and looks at the applications that have been placed there.
+There can be an _(apps)_ folder anywhere in the system, and when a content item is requested, the system finds the **closest** _(apps)_ folder and looks at the applications that have been placed there.
 
-If an appropriate application isn't found, the system checks the second closest _(apps)_ folder, and so on, until an application is found.
+If an appropriate application isn't found, the system checks the second closest _(apps)_ folder up in the tree and so on, until an application is found.
 
 ### Binding by type
 
 Like an operating system, sensenet ECM also has types. The first layer of the binding logic does the same thing that your favorite OS would do to open the word processor for a document. It finds an application registered for the `Content Type` of the requested item.
 
-In fact, it goes one step further, as sensenet ECM types have inheritance. Therefore, if an application isn't found for the type in question, the system will check each of its ancestors, until a registered app is found.
+In fact, it goes one step further, as sensenet ECM types have *inheritance*. Therefore, if an application isn't found for the type in question, the system will check each of its ancestor types, until a registered app is found.
 
 To registed an application for a specific `Content Type`, you need to place it into a folder named after the type under an _(apps)_ folder. Therefore, the path of a **Browse** application registered for the `HtmlContent` type may look something like this:
 
-- _{ something }_/(apps)/**HtmlContent/Browse**
+- _{ parent path }_/(apps)/**HtmlContent/Browse**
 
 
 ### "This" binding
@@ -119,8 +126,6 @@ To registed an application for a specific `Content Type`, you need to place it i
 Similar to binding by type, a set of `Smart Applications` can be defined for a single content item, and that single content item only, by placing the `Smart Applications` into a folder named **This** in the _(apps)_ folder under the content item in question:
 
 - _{ my content item }_/(apps)/**This/Browse**
-
-> Obviously, a "This" binding cannot be specified for leaf content.
 
 The `Smart Applications` defined with a **This** binding have absolute priority in the resolution process.
 
@@ -130,7 +135,7 @@ Above we have looked at the three components of application binding. However, to
 
 The simplest part of the process is the action binding. The system will look for an application that is named exactly as the `Action` specified. There are no fallbacks on this, if no application is found, an error message will be returned.
 
-When a request arrives, the system will sequentially probe the _(apps)_ system folders starting from the closest to the content item requested. In each _(apps)_ folder, it will look for a folder that matches the type of the requested content item most closely, while containing an application with the same name as the `Action specified`. If not found, it advances on to the next _(apps)_ folder, until a matching application is found, or it becomes apparent that such an application is not present.
+When a request arrives, the system will sequentially probe the _(apps)_ system folders starting from the closest to the content item requested. In each _(apps)_ folder, it will look for a folder that matches the type of the requested content item most closely (so parent content types are also in play!), while containing an application with the same name as the `Action specified`. If not found, it advances on to the next _(apps)_ folder, until a matching application is found, or it becomes apparent that such an application is not present.
 
 **Examples**
 
@@ -158,7 +163,7 @@ See the following, simple content tree:
           - Browse
     - Post3 (type: BlogPost)
 
-> Note that all content types in sensenet ECM are derived from `GenericContent`
+> Note that all content types in sensenet ECM are derived from `GenericContent`.
 
 Let's have a look at some requests that may arrive, and how the system handles them:
 
@@ -231,7 +236,7 @@ There is, however, a golden middle. By creating a **Browse** Smart Application w
 - The presentations of specific content items aren't readily customizable
 - On production systems it may not always be clear which **Smart Application** is used and why
 - When making changes to a **Smart Application**, the scope of affected content is not always obvious
-- Sometimes the **Smart Application** philosophy does not fit the goal (eg. as with a calculator or on-line tool of some sort)
+- Sometimes the **Smart Application** philosophy does not fit the goal (eg. as with a calculator or online tool of some sort)
 
 ### When to use Portlet Pages as primary content
 
