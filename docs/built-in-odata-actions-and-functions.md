@@ -9,7 +9,7 @@ This article lists the **built-in actions and functions** that are accessible th
 - **OData action**: causes state change in the [Content Repository](content-repository.md)
 - **OData function**:  does not cause changes, only provides data
 
-If you want to build your own custom OData action or function, please visit [this tutorial](http://community.sensenet.com/tutorials/how-to-create-a-custom-odata-action). The following sections contain descriptions of our built-in operations with their parameters listed, and a couple of examples.
+If you want to build your own custom OData action or function, please visit [this tutorial](how-to-create-a-custom-odata-action.md). The following sections contain descriptions of our built-in operations with their parameters listed, and a couple of examples.
 
 > Please note that in sensenet ECM there is a restriction in the OData implementation: actions and functions can be invoked **only on entities** and not collections.
 
