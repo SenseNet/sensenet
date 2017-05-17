@@ -308,9 +308,6 @@
         <AllowMultiple>true</AllowMultiple>
         <AllowedTypes>
           <Type>Workspace</Type>
-          <Type>DocumentWorkspace</Type>
-          <Type>ProjectWorkspace</Type>
-          <Type>SalesWorkspace</Type>
         </AllowedTypes>
       </Configuration>
     </Field>
