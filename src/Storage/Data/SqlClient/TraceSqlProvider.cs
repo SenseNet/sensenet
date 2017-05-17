@@ -334,20 +334,15 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             WriteLog(MethodBase.GetCurrentMethod(), versionId, propertyTypeId, token, fullSize, source);
             base.CommitChunk(versionId, propertyTypeId, token, fullSize, source);
         }
-        public override ApplicationInfo CreateInitialSenseNetVersion(string name, string edition, Version version, string description)
-        {
-            WriteLog(MethodBase.GetCurrentMethod(), name, edition, version, description);
-            return base.CreateInitialSenseNetVersion(name, edition, version, description);
-        }
         public override void DeletePackage(Package package)
         {
             WriteLog(MethodBase.GetCurrentMethod(), package);
             base.DeletePackage(package);
         }
-        internal override void DeletePackagesExceptFirst()
+        public override void DeleteAllPackages()
         {
             WriteLog(MethodBase.GetCurrentMethod());
-            base.DeletePackagesExceptFirst();
+            base.DeleteAllPackages();
         }
         protected override void InitializeForTestsPrivate()
         {
@@ -359,25 +354,20 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             WriteLog(MethodBase.GetCurrentMethod());
             return base.IsFilestreamEnabled();
         }
-        public override bool IsPackageExist(string appId, PackageType packageType, PackageLevel packageLevel, Version version)
+        public override bool IsPackageExist(string componentId, PackageType packageType, Version version)
         {
-            WriteLog(MethodBase.GetCurrentMethod(), appId, packageType, packageLevel, version);
-            return base.IsPackageExist(appId, packageType, packageLevel, version);
+            WriteLog(MethodBase.GetCurrentMethod(), componentId, packageType, version);
+            return base.IsPackageExist(componentId, packageType, version);
         }
-        public override IEnumerable<ApplicationInfo> LoadInstalledApplications()
+        public override IEnumerable<ComponentInfo> LoadInstalledComponents()
         {
             WriteLog(MethodBase.GetCurrentMethod());
-            return base.LoadInstalledApplications();
+            return base.LoadInstalledComponents();
         }
         public override IEnumerable<Package> LoadInstalledPackages()
         {
             WriteLog(MethodBase.GetCurrentMethod());
             return base.LoadInstalledPackages();
-        }
-        public override ApplicationInfo LoadOfficialSenseNetVersion()
-        {
-            WriteLog(MethodBase.GetCurrentMethod());
-            return base.LoadOfficialSenseNetVersion();
         }
         public override void SavePackage(Package package)
         {

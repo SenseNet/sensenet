@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>GenericODataApplication</ContentType>
+  <ContentName>Encrypt</ContentName>
+  <Fields>
+    <ClassName><![CDATA[SenseNet.ContentRepository.Security.Cryptography.CryptoServiceProvider]]></ClassName>
+    <MethodName><![CDATA[Encrypt]]></MethodName>
+    <DisplayName><![CDATA[Encrypt]]></DisplayName>
+    <ActionTypeName><![CDATA[GenericODataOperation]]></ActionTypeName>
+    <Parameters><![CDATA[string text]]></Parameters>
+  </Fields>
+  <Permissions>
+    <Clear />
+  </Permissions>
+</ContentMetaData>

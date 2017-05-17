@@ -1,177 +1,96 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Security.Principal;
 using System.Text;
 using System.Web;
-using System.Web.Configuration;
 using System.Web.Security;
 using SenseNet.ContentRepository;
-using SenseNet.Preview;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Security.ADSync;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
-using SenseNet.Portal.Handlers;
-using System.Threading;
+using Newtonsoft.Json;
 using SenseNet.Configuration;
-using SenseNet.Security;
+using SenseNet.TokenAuthentication;
 
 namespace SenseNet.Portal.Virtualization
 {
-    internal class PortalAuthenticationModule : IHttpModule
+    public class PortalAuthenticationModule : IHttpModule
     {
         public void Dispose()
         {
-            // Nothing to dispose yet...
         }
 
-        public void Init(HttpApplication context)
+        public void Init(HttpApplication application)
         {
             FormsAuthentication.Initialize();
-            context.AuthenticateRequest += new EventHandler(OnAuthenticateRequest);
-            context.EndRequest += new EventHandler(OnEndRequest); // Forms
-            context.AuthorizeRequest += new EventHandler(OnAuthorizeRequest);
+            application.AuthenticateRequest += OnAuthenticateRequest;
+            application.EndRequest += OnEndRequest; // Forms
         }
 
-        private void OnAuthorizeRequest(object sender, EventArgs e)
+        private const string AccessSignatureName = "as";
+        private const string RefreshSignatureName = "rs";
+        private const string AccessHeaderName = "X-Access-Data";
+        private const string RefreshHeaderName = "X-Refresh-Data";
+        private const string AuthenticationTypeHeaderName = "X-Authentication-Type";
+        private const string TokenLoginPath = "/sn-token/login";
+        private const string TokenRefreshPath = "/sn-token/refresh";
+        private static readonly string[] AcceptedTokenPaths = { TokenLoginPath, TokenRefreshPath };
+
+        private static class HttpResponseStatusCode
         {
-            OnAuthorizeRequest((sender as HttpApplication)?.Context);
+            public static int Unauthorized = 401;
+            public static int Ok = 200;
         }
-        internal void OnAuthorizeRequest(HttpContext context)
+        private static ISecurityKey _securityKey;
+        private static readonly object _keyLock = new object();
+
+        private ISecurityKey SecurityKey
         {
-            PortalContext currentPortalContext = PortalContext.Current;
-            if (currentPortalContext == null)
-                return;
-            var currentUser = context?.User.Identity as User;
-
-            // deny access for visitors in case of webdav or office protocol requests, if they have no See access to the content
-            if (currentUser != null && currentUser.Id == Identifiers.VisitorUserId && (currentPortalContext.IsOfficeProtocolRequest || currentPortalContext.IsWebdavRequest))
+            get
             {
-                if (!currentPortalContext.IsRequestedResourceExistInRepository ||
-                    currentPortalContext.ContextNodeHead == null ||
-                    !SecurityHandler.HasPermission(currentPortalContext.ContextNodeHead, PermissionType.See))
+                if (_securityKey == null)
                 {
-                    AuthenticationHelper.ForceBasicAuthentication(HttpContext.Current);
-                }
-            }
-
-            if (context == null)
-                return;
-
-            if (currentPortalContext.IsRequestedResourceExistInRepository)
-            {
-                var authMode = currentPortalContext.AuthenticationMode;
-                if (string.IsNullOrEmpty(authMode))
-                    authMode = WebApplication.DefaultAuthenticationMode;
-
-                bool appPerm;
-                if (authMode == "Forms")
-                {
-                    appPerm = currentPortalContext.CurrentAction.CheckPermission();
-                }
-                else if (authMode == "Windows")
-                {
-                    currentPortalContext.CurrentAction.AssertPermissions();
-                    appPerm = true;
-                }
-                else
-                {
-                    throw new NotSupportedException("None authentication is not supported");
-                }
-
-                var path = currentPortalContext.RepositoryPath;
-                var nodeHead = NodeHead.Get(path);
-                var permissionValue = SecurityHandler.GetPermission(nodeHead, PermissionType.Open);
-
-                if (permissionValue == PermissionValue.Allowed && DocumentPreviewProvider.Current.IsPreviewOrThumbnailImage(nodeHead))
-                {
-                    // In case of preview images we need to make sure that they belong to a content version that
-                    // is accessible by the user (e.g. must not serve images for minor versions if the user has
-                    // access only to major versions of the content).
-                    if (!DocumentPreviewProvider.Current.IsPreviewAccessible(nodeHead))
-                        permissionValue = PermissionValue.Denied;
-                }
-                else if (permissionValue != PermissionValue.Allowed && appPerm && DocumentPreviewProvider.Current.HasPreviewPermission(nodeHead))
-                {
-                    // In case Open permission is missing: check for Preview permissions. If the current Document
-                    // Preview Provider allows access to a preview, we should allow the user to access the content.
-                    permissionValue = PermissionValue.Allowed;
-                }
-
-                if (permissionValue != PermissionValue.Allowed)
-                    if (nodeHead.Id == Repository.Root.Id)
-                        if (currentPortalContext.IsOdataRequest)
-                            if (currentPortalContext.ODataRequest.IsMemberRequest)
-                                permissionValue = PermissionValue.Allowed;
-
-                if (permissionValue != PermissionValue.Allowed || !appPerm)
-                {
-                    if (currentPortalContext.IsOdataRequest)
+                    lock (_keyLock)
                     {
-                        AuthenticationHelper.ThrowForbidden();
-                    }
-                    switch (authMode)
-                    {
-                        case "Forms":
-                            if (User.Current.IsAuthenticated)
-                            {
-                                // user is authenticated, but has no permissions: return 403
-                                context.Response.StatusCode = 403;
-                                context.Response.Flush();
-                                context.Response.Close();
-                            }
-                            else
-                            {
-                                // let webdav and office protocol handle authentication - in these cases redirecting to a login page makes no sense
-                                if (PortalContext.Current.IsWebdavRequest || PortalContext.Current.IsOfficeProtocolRequest)
-                                    return;
-
-                                // user is not authenticated and visitor has no permissions: redirect to login page
-                                // Get the login page Url (eg. http://localhost:1315/home/login)
-                                string loginPageUrl = currentPortalContext.GetLoginPageUrl();
-                                // Append trailing slash
-                                if (loginPageUrl != null && !loginPageUrl.EndsWith("/"))
-                                    loginPageUrl = loginPageUrl + "/";
-
-                                // Cut down the querystring (eg. drop ?Param1=value1@Param2=value2)
-                                string currentRequestUrlWithoutQueryString = currentPortalContext.RequestedUri.GetComponents(UriComponents.Scheme | UriComponents.Host | UriComponents.Port | UriComponents.Path, UriFormat.Unescaped);
-
-                                // Append trailing slash
-                                if (!currentRequestUrlWithoutQueryString.EndsWith("/"))
-                                    currentRequestUrlWithoutQueryString = currentRequestUrlWithoutQueryString + "/";
-
-                                // Redirect to the login page, if neccessary.
-                                if (currentRequestUrlWithoutQueryString != loginPageUrl)
-                                    context.Response.Redirect(loginPageUrl + "?OriginalUrl=" + System.Web.HttpUtility.UrlEncode(currentPortalContext.RequestedUri.ToString()), true);
-                            }
-                            break;
-                        default:
-                            AuthenticationHelper.DenyAccess(context);
-                            break;
+                        if (_securityKey == null)
+                        {
+                            _securityKey = EncryptionHelper.CreateSymmetricKey(Configuration.TokenAuthentication.SymmetricKeySecret);
+                        }
                     }
                 }
+                return _securityKey;
             }
         }
 
-        private bool DispatchBasicAuthentication(HttpApplication application, HttpRequest request)
+        public Func<object, HttpContextBase> GetContext = sender => new HttpContextWrapper(((HttpApplication) sender).Context);
+        public Func<object, HttpRequestBase> GetRequest = sender => new HttpRequestWrapper(((HttpApplication)sender).Context.Request);
+        public Func<object, HttpResponseBase> GetResponse = sender => new HttpResponseWrapper(((HttpApplication)sender).Context.Response);
+        public Func<IPrincipal> GetVisitorPrincipal = () => new PortalPrincipal(User.Visitor);
+        public Func<string, IPrincipal> LoadUserPrincipal = userName => new PortalPrincipal(User.Load(userName));
+        public Func<string, string, bool> IsUserValid = (userName, password) => Membership.ValidateUser(userName, password);
+        public Func<IDisposable> GetSystemAccount = () => new SystemAccount();
+        public Func<string> GetBasicAuthHeader = () => PortalContext.Current.BasicAuthHeaders;
+
+        public bool DispatchBasicAuthentication(HttpContextBase context, out bool anonymAuthenticated)
         {
-            var authHeader = PortalContext.Current.BasicAuthHeaders;
+            anonymAuthenticated = false;
+
+            var authHeader = GetBasicAuthHeader();
             if (authHeader == null || !authHeader.StartsWith("Basic "))
                 return false;
 
-            string base64Encoded = authHeader.Substring(6);  // 6: length of "Basic "
-            byte[] buff = Convert.FromBase64String(base64Encoded);
-            string[] userPass = System.Text.Encoding.UTF8.GetString(buff).Split(":".ToCharArray());
+            var base64Encoded = authHeader.Substring(6); // 6: length of "Basic "
+            var bytes = Convert.FromBase64String(base64Encoded);
+            string[] userPass = Encoding.UTF8.GetString(bytes).Split(":".ToCharArray());
+
             if (userPass.Length != 2)
             {
-                application.Context.User = new PortalPrincipal(User.Visitor);
+                context.User = GetVisitorPrincipal();
+                anonymAuthenticated = true;
                 return true;
             }
             try
@@ -180,34 +99,59 @@ namespace SenseNet.Portal.Virtualization
                 var password = userPass[1];
 
                 // Elevation: we need to load the user here, regardless of the current users permissions
-                using (new SystemAccount())
+                using (GetSystemAccount())
                 {
-                    application.Context.User = Membership.ValidateUser(username, password)
-                        ? new PortalPrincipal(User.Load(username))
-                        : new PortalPrincipal(User.Visitor);
+                    if (IsUserValid(username, password))
+                    {
+                        context.User = LoadUserPrincipal(username);
+                    }
+                    else
+                    {
+                        context.User = GetVisitorPrincipal();
+                        anonymAuthenticated = true;
+                    }
                 }
             }
             catch (Exception e) // logged
             {
                 SnLog.WriteException(e);
-                application.Context.User = new PortalPrincipal(User.Visitor);
+                context.User = GetVisitorPrincipal();
+                anonymAuthenticated = true;
             }
 
             return true;
         }
-
-        private void OnAuthenticateRequest(object sender, EventArgs e)
+        
+        public void OnAuthenticateRequest(object sender, EventArgs e)
         {
-            HttpApplication application = sender as HttpApplication;
-            HttpContext context = HttpContext.Current;
-            HttpRequest request = context.Request;
+            var application = sender as HttpApplication;
+            var context = GetContext(sender); //HttpContext.Current;
+            var request = GetRequest(sender);
+            bool anonymAuthenticated;
 
-            if ( DispatchBasicAuthentication(application, request) )
-                return;
+            var basicAuthenticated = DispatchBasicAuthentication(context, out anonymAuthenticated);
 
-            if (request.Headers["CharlesCrawler"] == "true")
+            if (IsTokenAuthenticationRequested(request))
             {
-                application.Context.User = new PortalPrincipal(User.Visitor);
+                if (basicAuthenticated && anonymAuthenticated)
+                {
+                    SnLog.WriteException(new UnauthorizedAccessException("Invalid user."));
+                    context.Response.StatusCode = HttpResponseStatusCode.Unauthorized;
+                    context.Response.Flush();
+                    if (application?.Context != null)
+                    {
+                        application.CompleteRequest();
+                    }
+                }
+                else
+                {
+                    TokenAuthenticate(basicAuthenticated, context, application);
+                }
+                return;
+            }
+            // if it is a simple basic authentication case
+            if (basicAuthenticated)
+            {
                 return;
             }
 
@@ -225,7 +169,8 @@ namespace SenseNet.Portal.Virtualization
 
             // if no site auth mode, no web.config default, then exception...
             if (string.IsNullOrEmpty(authenticationType))
-                throw new ApplicationException("The engine could not determine the authentication mode for this request. This request does not belong to a site, and there was no default authentication mode set in the web.config.");
+                throw new ApplicationException(
+                    "The engine could not determine the authentication mode for this request. This request does not belong to a site, and there was no default authentication mode set in the web.config.");
 
             switch (authenticationType)
             {
@@ -244,20 +189,203 @@ namespace SenseNet.Portal.Virtualization
                     break;
                 default:
                     Site site = null;
-                    SenseNet.ContentRepository.Storage.Node problemNode = SenseNet.ContentRepository.Storage.Node.LoadNode(repositoryPath);
+                    var problemNode = Node.LoadNode(repositoryPath);
                     if (problemNode != null)
                     {
                         site = Site.GetSiteByNode(problemNode);
                         if (site != null)
                             authenticationType = site.GetAuthenticationType(application.Context.Request.Url);
                     }
-                    string message = null;
-                    if (site == null)
-                        message = string.Format(HttpContext.GetGlobalResourceObject("Portal", "DefaultAuthenticationNotSupported") as string, authenticationType);
-                    else
-                        message = string.Format("AuthenticationNotSupportedOnSite", site.Name, authenticationType);
+
+                    var message = site == null
+                        ? string.Format(
+                            HttpContext.GetGlobalResourceObject("Portal", "DefaultAuthenticationNotSupported") as string,
+                            authenticationType)
+                        : string.Format(
+                            HttpContext.GetGlobalResourceObject("Portal", "AuthenticationNotSupportedOnSite") as string,
+                            site.Name, authenticationType);
+
                     throw new NotSupportedException(message);
             }
+        }
+
+        private string GetAuthenticationTypeHeader(HttpRequestBase request)
+        {
+            return request.Headers[AuthenticationTypeHeaderName] ?? request.Headers[AuthenticationTypeHeaderName.ToLower()];
+        }
+
+        private string GetRefreshHeader(HttpRequestBase request)
+        {
+            return request.Headers[RefreshHeaderName] ?? request.Headers[RefreshHeaderName.ToLower()];
+        }
+        private string GetAccessHeader(HttpRequestBase request)
+        {
+            return request.Headers[AccessHeaderName] ?? request.Headers[AccessHeaderName.ToLower()];
+        }
+
+        private bool IsTokenAuthenticationRequested(HttpRequestBase request)
+        {
+            return request.IsSecureConnection && (GetAuthenticationTypeHeader(request) == "Token"
+                || AcceptedTokenPaths.Contains(request.Url.AbsolutePath,  StringComparer.InvariantCultureIgnoreCase)
+                || !string.IsNullOrWhiteSpace(GetAccessHeader(request)));
+        }
+
+        private void TokenAuthenticate(bool basicAuthenticated, HttpContextBase context, HttpApplication application)
+        {
+            try
+            {
+                var tokenHandler = new JwsSecurityTokenHandler();
+                var validFrom = DateTime.UtcNow;
+
+                ITokenParameters generateTokenParameter = new TokenParameters
+                {
+                    Audience = Configuration.TokenAuthentication.Audience,
+                    Issuer = Configuration.TokenAuthentication.Issuer,
+                    Subject = Configuration.TokenAuthentication.Subject,
+                    EncryptionAlgorithm = Configuration.TokenAuthentication.EncriptionAlgorithm,
+                    AccessLifeTimeInMinutes = Configuration.TokenAuthentication.AccessLifeTimeInMinutes,
+                    RefreshLifeTimeInMinutes = Configuration.TokenAuthentication.RefreshLifeTimeInMinutes,
+                    ClockSkewInMinutes = Configuration.TokenAuthentication.ClockSkewInMinutes,
+                    ValidFrom = validFrom,
+                    ValidateLifeTime = true
+                };
+
+                var tokenManager = new TokenManager(SecurityKey, tokenHandler, generateTokenParameter);
+
+                if (basicAuthenticated)
+                {
+                    // user has just authenticated by basic auth, so let's emit a set of tokens and cookies in response 
+                    try
+                    {
+                        var userName = context.User.Identity.Name;
+                        var roleName = string.Empty;
+
+                        // emit both access and refresh token and cookie 
+                        EmitTokensAndCookies(context, tokenManager, validFrom, userName, roleName, true);
+                        context.Response.StatusCode = HttpResponseStatusCode.Ok;
+                    }
+                    catch (Exception ex)
+                    {
+                        SnLog.WriteException(ex);
+                        context.Response.StatusCode = HttpResponseStatusCode.Unauthorized;
+                    }
+                    finally
+                    {
+                        context.Response.Flush();
+                        if (application.Context != null)
+                        {
+                            application.CompleteRequest();
+                        }
+                    }
+                    return;
+                }
+
+                // user has not been authenticated yet, so there must be a valid token and cookie in the request
+                var header = GetRefreshHeader(context.Request);
+                if (!string.IsNullOrWhiteSpace(header))
+                {
+                    // we got a refresh token
+                    try
+                    {
+                        var authCookie = CookieHelper.GetCookie(context.Request, RefreshSignatureName);
+                        if (authCookie == null)
+                        {
+                            throw new UnauthorizedAccessException("Missing refresh cookie.");
+                        }
+
+                        var refreshHeadAndPayload = header;
+                        var refreshSignature = authCookie.Value;
+                        var principal = tokenManager.ValidateToken(refreshHeadAndPayload + "." + refreshSignature);
+                        var userName = principal.Identity.Name;
+                        var roleName = string.Empty;
+
+                        // emit access token and cookie only
+                        EmitTokensAndCookies(context, tokenManager, validFrom, userName, roleName, false);
+                        context.Response.StatusCode = HttpResponseStatusCode.Ok;
+                    }
+                    catch (Exception ex)
+                    {
+                        SnLog.WriteException(ex);
+                        context.Response.StatusCode = HttpResponseStatusCode.Unauthorized;
+                    }
+                    finally
+                    {
+                        context.Response.Flush();
+                        if (application.Context != null)
+                        {
+                            application.CompleteRequest();
+                        }
+                    }
+                    return;
+                }
+
+                header = GetAccessHeader(context.Request);
+                if (!string.IsNullOrWhiteSpace(header))
+                {
+                    // we got an access token
+                    var authCookie = CookieHelper.GetCookie(context.Request, AccessSignatureName);
+                    if (authCookie == null)
+                    {
+                        throw new UnauthorizedAccessException("Missing access cookie.");
+                    }
+
+                    var accessHeadAndPayload = header;
+                    var accessSignature = authCookie.Value;
+                    var principal = tokenManager.ValidateToken(accessHeadAndPayload + "." + accessSignature);
+                    if (principal == null)
+                    {
+                        throw new UnauthorizedAccessException("Invalid access token.");
+                    }
+                    var userName = tokenManager.GetPayLoadValue(accessHeadAndPayload.Split(Convert.ToChar("."))[1], "name");
+                    using (new SystemAccount())
+                    {
+                        context.User = LoadUserPrincipal(userName);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SnLog.WriteException(ex);
+                if (!basicAuthenticated)
+                {
+                    context.User = GetVisitorPrincipal();
+                }
+            }
+        }
+
+        private void EmitTokensAndCookies(HttpContextBase context, TokenManager tokenManager, DateTime validFrom, string userName, string roleName, bool refreshTokenAsWell)
+        {
+            string refreshToken;
+            var token = tokenManager.GenerateToken(userName, roleName, out refreshToken, refreshTokenAsWell);
+            var tokenResponse = new TokenResponse();
+            var accessSignatureIndex = token.LastIndexOf('.');
+            var accessSignature = token.Substring(accessSignatureIndex + 1);
+            var accessHeadAndPayload = token.Substring(0, accessSignatureIndex);
+            var accessExpiration = validFrom.AddMinutes(Configuration.TokenAuthentication.AccessLifeTimeInMinutes);
+
+            CookieHelper.InsertSecureCookie(context.Response, accessSignature, AccessSignatureName, accessExpiration);
+
+            tokenResponse.access = accessHeadAndPayload;
+
+            if (refreshTokenAsWell)
+            { 
+                var refreshSignatureIndex = refreshToken.LastIndexOf('.');
+                var refreshSignature = refreshToken.Substring(refreshSignatureIndex + 1);
+                var refreshHeadAndPayload = refreshToken.Substring(0, refreshSignatureIndex);
+                var refreshExpiration = accessExpiration.AddMinutes(Configuration.TokenAuthentication.RefreshLifeTimeInMinutes);
+
+                CookieHelper.InsertSecureCookie(context.Response, refreshSignature, RefreshSignatureName, refreshExpiration);
+
+                tokenResponse.refresh = refreshHeadAndPayload;
+            }
+
+            context.Response.Write(JsonConvert.SerializeObject(tokenResponse, new JsonSerializerSettings {DefaultValueHandling = DefaultValueHandling.Ignore}));
+        }
+
+        private class TokenResponse
+        {
+            public string access;
+            public string refresh;
         }
 
         private static void CallInternalOnEnter(object sender, EventArgs e)
@@ -296,7 +424,8 @@ namespace SenseNet.Portal.Virtualization
                     username = fullUsername.Substring(slashIndex + 1);
                 }
 
-                User user = null;
+                User user;
+
                 if (authenticationType == "Windows")
                 {
                     var widentity = application.User.Identity as WindowsIdentity;   // get windowsidentity object before elevation
@@ -376,16 +505,18 @@ namespace SenseNet.Portal.Virtualization
 
         private void OnEndRequest(object sender, EventArgs e)
         {
-            HttpApplication application = sender as HttpApplication;
-            string authType = application.Context.Items["AuthType"] as string;
+            var application = sender as HttpApplication;
+            var authType = application.Context.Items["AuthType"] as string;
+
             if (authType == "Forms")
             {
-                FormsAuthenticationModule formsAuthenticationModule = new FormsAuthenticationModule();
-                MethodInfo formsAuthenticationModuleOnEnterMethodInfo =
+                var formsAuthenticationModule = new FormsAuthenticationModule();
+                var formsAuthenticationModuleOnEnterMethodInfo =
                     formsAuthenticationModule.GetType().GetMethod("OnLeave", BindingFlags.Instance | BindingFlags.NonPublic);
+
                 formsAuthenticationModuleOnEnterMethodInfo.Invoke(
                     formsAuthenticationModule,
-                    new object[] { sender, e });
+                    new[] { sender, e });
             }
 
             SnTrace.Web.Write("PortalAuthenticationModule.OnEndRequest. Url:{0}, StatusCode:{1}",
@@ -401,9 +532,15 @@ namespace SenseNet.Portal.Virtualization
                 WindowsPrincipal user = null;
                 if (HttpRuntime.IsOnUNCShare && application.Request.IsAuthenticated)
                 {
-                    IntPtr applicationIdentityToken = (IntPtr)typeof(System.Web.Hosting.HostingEnvironment).GetProperty("ApplicationIdentityToken", BindingFlags.NonPublic | BindingFlags.Static).GetGetMethod().Invoke(null, null);
+                    var applicationIdentityToken = (IntPtr)typeof (System.Web.Hosting.HostingEnvironment)
+                        .GetProperty("ApplicationIdentityToken", BindingFlags.NonPublic | BindingFlags.Static)
+                        .GetGetMethod().Invoke(null, null);
 
-                    WindowsIdentity wi = new WindowsIdentity(applicationIdentityToken, application.User.Identity.AuthenticationType, WindowsAccountType.Normal, true);
+                    var wi = new WindowsIdentity(
+                        applicationIdentityToken, 
+                        application.User.Identity.AuthenticationType,
+                        WindowsAccountType.Normal, 
+                        true);
 
                     user = new WindowsPrincipal(wi);
                 }
@@ -416,9 +553,10 @@ namespace SenseNet.Portal.Virtualization
                 {
                     identity = user.Identity as WindowsIdentity;
 
-                    object[] setPrincipalNoDemandParameters = new object[] { null, false };
-                    Type[] setPrincipalNoDemandParameterTypes = new Type[] { typeof(IPrincipal), typeof(bool) };
-                    MethodInfo setPrincipalNoDemandMethodInfo = application.Context.GetType().GetMethod("SetPrincipalNoDemand", BindingFlags.Instance | BindingFlags.NonPublic, null, setPrincipalNoDemandParameterTypes, null);
+                    object[] setPrincipalNoDemandParameters = { null, false };
+                    var setPrincipalNoDemandParameterTypes = new[] { typeof(IPrincipal), typeof(bool) };
+                    var setPrincipalNoDemandMethodInfo = application.Context.GetType().GetMethod("SetPrincipalNoDemand", BindingFlags.Instance | BindingFlags.NonPublic, null, setPrincipalNoDemandParameterTypes, null);
+
                     setPrincipalNoDemandMethodInfo.Invoke(application.Context, setPrincipalNoDemandParameters);
                 }
             }
@@ -467,7 +605,6 @@ namespace SenseNet.Portal.Virtualization
             {
                 if (!IsLocalAxdRequest())
                     AuthenticationHelper.DenyAccess(application);
-                return;
             }
 
         }

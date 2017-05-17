@@ -96,7 +96,7 @@ namespace SenseNet.Portal.Dws
             path = path.Substring(0, path.Length - suffixPath.Length);
 
             // site relative?
-            if (!path.ToLower().StartsWith("/root"))
+            if (!path.ToLower().StartsWith("/root") && PortalContext.Current.Site != null)
             {
                 path = string.IsNullOrEmpty(path)
                            ? PortalContext.Current.Site.Path

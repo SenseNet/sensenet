@@ -28,19 +28,19 @@ namespace SenseNet.Portal.Dws
             // result: http://localhost/Root/Sites/Default_Site/workspaces/Document/mydocumentws
 
             // get root-relative url
-            var hostIdx = pageUrl.IndexOf(HttpContext.Current.Request.Url.Host);
+            var hostIdx = pageUrl.IndexOf(HttpContext.Current.Request.Url.Host, StringComparison.InvariantCultureIgnoreCase);
             var prefixLength = hostIdx + HttpContext.Current.Request.Url.Host.Length;
             var path = HttpUtility.UrlDecode(pageUrl.Substring(prefixLength));
 
-            var rootIdx = pageUrl.ToLower().IndexOf("/root");
+            var rootIdx = pageUrl.IndexOf("/root", StringComparison.InvariantCultureIgnoreCase);
             if (rootIdx == -1)
             {
                 // host selected in open dialog of office and navigated to doclibrary folder -> /Root is missing
                 // ie: path:  /Sites/Default_Site/workspaces/Document/mydocumentws/Document_Library/my.doc
-                if (path.ToLower().StartsWith("/sites"))
-                    path = RepositoryPath.Combine("/Root", path);
-                else
-                    path = RepositoryPath.Combine(PortalContext.Current.Site.Path, path);
+                var addOnlyRootPrefix = path.StartsWith("/sites", StringComparison.InvariantCultureIgnoreCase) ||
+                                        PortalContext.Current.Site == null;
+
+                path = RepositoryPath.Combine(addOnlyRootPrefix ? "/Root" : PortalContext.Current.Site.Path, path);
             }
 
             // searching starts from parentpath

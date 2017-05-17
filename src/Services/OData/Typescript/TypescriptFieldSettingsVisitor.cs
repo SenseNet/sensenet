@@ -17,10 +17,11 @@ namespace SenseNet.Portal.OData.Typescript
         protected override IMetaNode VisitSchema(ContentRepository.Schema.Metadata.Schema schema)
         {
             #region Write filestart
-            _writer.WriteLine(@"//file: " + TypescriptGenerationContext.FieldSettingsModuleName + @".ts
-import { " + TypescriptGenerationContext.ComplexTypesModuleName + @" } from './" + TypescriptGenerationContext.ComplexTypesModuleName + @"';
-/**
- * Module for FieldSettings.
+            _writer.WriteLine(@"/**
+ * @module FieldSettings
+ * @preferred
+ * 
+ * @description Module for FieldSettings.
  *
  * FieldSetting object is the implementation of the configuration element in a Sense/Net Content Type Definition.
  * The FieldSetting of a Field contains properties that define the behavior of the Field - for example a Field can be configured as read only or compulsory to fill.
@@ -28,8 +29,10 @@ import { " + TypescriptGenerationContext.ComplexTypesModuleName + @" } from './"
  * client-side e.g. for validation.
  *
  * This module also contains some FieldSetting related enums to use them as types in properties e.g. visibitily or datetime mode options.
- */
-export module " + TypescriptGenerationContext.FieldSettingsModuleName + @" {
+ */ /** */
+
+import { ComplexTypes } from './SN';
+
     /**
      * Enum for Field visibility values.
      */
@@ -117,10 +120,6 @@ export module " + TypescriptGenerationContext.FieldSettingsModuleName + @" {
             Visit(schema.Classes);
             _indentCount--;
 
-            #region Write fileend
-            _writer.WriteLine(@"}
-");
-            #endregion
             return schema;
         }
 

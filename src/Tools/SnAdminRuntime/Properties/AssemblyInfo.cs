@@ -14,12 +14,14 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Sense/Net Inc.")]
 [assembly: AssemblyCopyright("Copyright © Sense/Net Inc.")]
-[assembly: AssemblyProduct("Sense/Net ECM")]
+[assembly: AssemblyProduct("sensenet ECM")]
 [assembly: AssemblyTrademark("Sense/Net Inc.")]
 [assembly: AssemblyCulture("")]
 [assembly: AssemblyVersion("7.0.0.0")]
 [assembly: AssemblyFileVersion("7.0.0.0")]
-[assembly: AssemblyInformationalVersion("7.0.0-beta")]
+[assembly: AssemblyInformationalVersion("7.0.0-beta2")]
 
 [assembly: ComVisible(false)]
 [assembly: Guid("1B973251-9AAE-48D2-9FFF-408AA95CA576")]
+
+[assembly: InternalsVisibleTo("SnAdminRuntime.Tests")]

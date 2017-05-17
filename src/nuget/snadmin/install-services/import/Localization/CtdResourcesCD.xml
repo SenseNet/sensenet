@@ -1,0 +1,645 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Resources>
+  <ResourceClass name="Ctd-ContentLink">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Content link</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>A content that propagates most of the Fields of another content.</value>
+        </data>
+        <data name="Link-DisplayName" xml:space="preserve">
+          <value>Linked content</value>
+        </data>
+        <data name="Link-Description" xml:space="preserve">
+          <value>Set this reference to the Content to link.</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Tartalom-hivatkozás</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Tartalom, ami egy másik tartalomra mutat, annak több tulajdonságát hordozza.</value>
+        </data>
+        <data name="Link-DisplayName" xml:space="preserve">
+          <value>Hivatkozott tartalom</value>
+        </data>
+        <data name="Link-Description" xml:space="preserve">
+          <value>Hivatkozott tartalom beállítása.</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+  <ResourceClass name="Ctd-ContentList">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Content List</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Generic Content List type.</value>
+        </data>
+        <data name="DisplayName-DisplayName" xml:space="preserve">
+          <value>Display name</value>
+        </data>
+        <data name="ContentListDefinition-DisplayName" xml:space="preserve">
+          <value>List Definition</value>
+        </data>
+        <data name="ContentListDefinition-Description" xml:space="preserve">
+          <value>XML definition for additional fields.</value>
+        </data>
+        <data name="DefaultView-DisplayName" xml:space="preserve">
+          <value>Default view</value>
+        </data>
+        <data name="DefaultView-Description" xml:space="preserve">
+          <value>The default View to use.</value>
+        </data>
+        <data name="AvailableViews-DisplayName" xml:space="preserve">
+          <value>Available views</value>
+        </data>
+        <data name="AvailableViews-Description" xml:space="preserve">
+          <value>Select global content list views here that you want to offer users to choose from.</value>
+        </data>
+        <data name="FieldSettingContents-DisplayName" xml:space="preserve">
+          <value>FieldSetting content</value>
+        </data>
+        <data name="AvailableContentTypeFields-DisplayName" xml:space="preserve">
+          <value>Available ContentType Field content.</value>
+        </data>
+        <data name="ListEmail-DisplayName" xml:space="preserve">
+          <value>Email address of Content List</value>
+        </data>
+        <data name="ListEmail-Description" xml:space="preserve">
+          <value>Emails sent to this address will be imported as Email content into the Document Library.</value>
+        </data>
+        <data name="ExchangeSubscriptionId-DisplayName" xml:space="preserve">
+          <value>Exchange Subscription Id</value>
+        </data>
+        <data name="ExchangeSubscriptionId-Description" xml:space="preserve">
+          <value>The id of the most recent Exchange push notification subscription of the Document Library. Multiple subscriptions are eliminated by accepting subscription notification events with this Id only. Filled when subscribing to Exchange push notifications.</value>
+        </data>
+        <data name="OverwriteFiles-DisplayName" xml:space="preserve">
+          <value>Overwrite files with same name</value>
+        </data>
+        <data name="OverwriteFiles-Description" xml:space="preserve">
+          <value>If checked new emails and attachments with the same name will overwrite existing items in list. Otherwise increment suffix is used in the name of new mail items.</value>
+        </data>
+        <data name="GroupAttachments-DisplayName" xml:space="preserve">
+          <value>Group attachments</value>
+        </data>
+        <data name="GroupAttachments-Description" xml:space="preserve">
+          <value>Select the appropriate option to group attachment files under folders or email content or not.</value>
+        </data>
+        <data name="GroupAttachments-email" xml:space="preserve">
+          <value>Save all attachments as children of separate Email content</value>
+        </data>
+        <data name="GroupAttachments-root" xml:space="preserve">
+          <value>Save all attachments in root</value>
+        </data>
+        <data name="GroupAttachments-subject" xml:space="preserve">
+          <value>Save all attachments in folders grouped by subject</value>
+        </data>
+        <data name="GroupAttachments-sender" xml:space="preserve">
+          <value>Save all attachments in folders grouped by sender</value>
+        </data>
+        <data name="SaveOriginalEmail-DisplayName" xml:space="preserve">
+          <value>Save original email</value>
+        </data>
+        <data name="SaveOriginalEmail-Description" xml:space="preserve">
+          <value>A separate .eml file will be created for every incoming email.</value>
+        </data>
+        <data name="IncomingEmailWorkflow-DisplayName" xml:space="preserve">
+          <value>Incoming email workflow</value>
+        </data>
+        <data name="IncomingEmailWorkflow-Description" xml:space="preserve">
+          <value>Select the workflow to be executed on every incoming email.</value>
+        </data>
+        <data name="OnlyFromLocalGroups-DisplayName" xml:space="preserve">
+          <value>Accept e-mails only from users in local groups</value>
+        </data>
+        <data name="OnlyFromLocalGroups-Description" xml:space="preserve">
+          <value>If set, only users that are members of any local group are able to send e-mails to this library.</value>
+        </data>
+        <data name="InboxFolder-DisplayName" xml:space="preserve">
+          <value>Inbox folder</value>
+        </data>
+        <data name="InboxFolder-Description" xml:space="preserve">
+          <value>A relative path of a folder to store incoming e-mails.</value>
+        </data>
+        <data name="OwnerWhenVisitor-DisplayName" xml:space="preserve">
+          <value>Owner of items created by visitor</value>
+        </data>
+        <data name="OwnerWhenVisitor-Description" xml:space="preserve">
+          <value>If a Visitor adds content to this list, this user will be set as the creator instead of the Visitor. This prevents visitors see each others' content.</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Lista</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Lista alaptípus.</value>
+        </data>
+        <data name="DisplayName-DisplayName" xml:space="preserve">
+          <value>Olvasható név</value>
+        </data>
+        <data name="ContentListDefinition-DisplayName" xml:space="preserve">
+          <value>Lista definíció</value>
+        </data>
+        <data name="ContentListDefinition-Description" xml:space="preserve">
+          <value>Lista definíció XML-ben.</value>
+        </data>
+        <data name="DefaultView-DisplayName" xml:space="preserve">
+          <value>Alapértelmezett listanézet</value>
+        </data>
+        <data name="DefaultView-Description" xml:space="preserve">
+          <value>Alapértelmezetten ebben a nézetben jelenik meg a lista.</value>
+        </data>
+        <data name="AvailableViews-DisplayName" xml:space="preserve">
+          <value>Listanézetek</value>
+        </data>
+        <data name="AvailableViews-Description" xml:space="preserve">
+          <value>Választható listanézetek.</value>
+        </data>
+        <data name="FieldSettingContents-DisplayName" xml:space="preserve">
+          <value>Lista mezők</value>
+        </data>
+        <data name="AvailableContentTypeFields-DisplayName" xml:space="preserve">
+          <value>A listán elérhető mezők, tartalom formában. Csak belső használatra, a lista mezők szerkesztéséhez készült típus.</value>
+        </data>
+        <data name="ListEmail-DisplayName" xml:space="preserve">
+          <value>A lista email címe</value>
+        </data>
+        <data name="ListEmail-Description" xml:space="preserve">
+          <value>Az erre a címre küldött levelek tartalma importálva lesz a Document Library-ba.</value>
+        </data>
+        <data name="ExchangeSubscriptionId-DisplayName" xml:space="preserve">
+          <value>Exchange szerver feliratkozás azonosító</value>
+        </data>
+        <data name="ExchangeSubscriptionId-Description" xml:space="preserve">
+          <value>A listához tartozó legutolsó Exchange 'push' értesítés feliratkozás azonosítója. Csak ezzel az azonosítóval érkező értesítéseket fogad el a lista. Akkor töltődik ki, amikor feliratkoznak egy Exchange értesítésre.</value>
+        </data>
+        <data name="OverwriteFiles-DisplayName" xml:space="preserve">
+          <value>Azonos nevű file-ok felülírása</value>
+        </data>
+        <data name="OverwriteFiles-Description" xml:space="preserve">
+          <value>Ha be van kapcsolva, akkor a csatolmányok névegyezés esetén felül fogják írni a már meglévő fájlokat. Egyébként az új elemek neve megfelelő sorszámmal lesz kiegészítve.</value>
+        </data>
+        <data name="GroupAttachments-DisplayName" xml:space="preserve">
+          <value>Csatolmányok/levelek mappákba rendezése</value>
+        </data>
+        <data name="GroupAttachments-Description" xml:space="preserve">
+          <value>Ha beállítja, az érkező leveleket és csatolmányokat mappákba rendezzük.</value>
+        </data>
+        <data name="GroupAttachments-email" xml:space="preserve">
+          <value>A csatolmányok a levelek alá kerüljenek gyermek tartalomként.</value>
+        </data>
+        <data name="GroupAttachments-root" xml:space="preserve">
+          <value>Minden csatolmány kerüljön a gyökérbe.</value>
+        </data>
+        <data name="GroupAttachments-subject" xml:space="preserve">
+          <value>A csatolmányok külön mappákba kerüljenek tárgy (subject) szerint.</value>
+        </data>
+        <data name="GroupAttachments-sender" xml:space="preserve">
+          <value>A csatolmányok külön mappákba kerüljenek feladó szerint.</value>
+        </data>
+        <data name="SaveOriginalEmail-DisplayName" xml:space="preserve">
+          <value>Eredeti levél tárolása</value>
+        </data>
+        <data name="SaveOriginalEmail-Description" xml:space="preserve">
+          <value>Minden egyes bejövő levelet elmentünk .eml kiterjesztésű fájlként.</value>
+        </data>
+        <data name="IncomingEmailWorkflow-DisplayName" xml:space="preserve">
+          <value>Bejövő e-mail munkafolyamat</value>
+        </data>
+        <data name="IncomingEmailWorkflow-Description" xml:space="preserve">
+          <value>Válassza ki a munkafolyamatot, amelynek el kell indulnia egy levél érkezésekor.</value>
+        </data>
+        <data name="OnlyFromLocalGroups-DisplayName" xml:space="preserve">
+          <value>E-mail fogadása csak helyi csoportoktól</value>
+        </data>
+        <data name="OnlyFromLocalGroups-Description" xml:space="preserve">
+          <value>Ha be van kapcsolva, csak olyan felhasználók küldhetnek dokumentumokat a listába, akik tagjai valamelyik helyi csoportnak.</value>
+        </data>
+        <data name="InboxFolder-DisplayName" xml:space="preserve">
+          <value>Beérkező levelek mappája</value>
+        </data>
+        <data name="InboxFolder-Description" xml:space="preserve">
+          <value>Almappa relatív útvonala, ahová a beérkező levelek kerüljenek.</value>
+        </data>
+        <data name="OwnerWhenVisitor-DisplayName" xml:space="preserve">
+          <value>Látogató által felvett tartalmak létrehozója</value>
+        </data>
+        <data name="OwnerWhenVisitor-Description" xml:space="preserve">
+          <value>Ha a látogató tartalmat hoz létre ebben a listában, akkor ez a felhasználót állítjuk be létrehozónak. Ez megakadályozza, hogy a látogatók lássák egymás tartalmait.</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+  <ResourceClass name="Ctd-ContentType">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Content Type</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>A content type is a reusable set of fields you want to apply to certain content.</value>
+        </data>
+        <data name="Id-DisplayName" xml:space="preserve">
+          <value>Id</value>
+        </data>
+        <data name="Id-Description" xml:space="preserve">
+          <value>A unique ID for the Content.</value>
+        </data>
+        <data name="ParentId-DisplayName" xml:space="preserve">
+          <value>Id</value>
+        </data>
+        <data name="ParentId-Description" xml:space="preserve">
+          <value>A unique ID for the Content.</value>
+        </data>
+        <data name="Type-DisplayName" xml:space="preserve">
+          <value>NodeType</value>
+        </data>
+        <data name="Type-Description" xml:space="preserve">
+          <value>The type of the Node in the Repository.</value>
+        </data>
+        <data name="TypeIs-DisplayName" xml:space="preserve">
+          <value>NodeType</value>
+        </data>
+        <data name="TypeIs-Description" xml:space="preserve">
+          <value>The type tree of the Node in the Repository.</value>
+        </data>
+        <data name="IsSystemContent-DisplayName" xml:space="preserve">
+          <value>System Content</value>
+        </data>
+        <data name="IsSystemContent-Description" xml:space="preserve">
+          <value>This field is true if content is in a system folder/trash or the content is a system folder/file.</value>
+        </data>
+        <data name="Name-DisplayName" xml:space="preserve">
+          <value>Uri name</value>
+        </data>
+        <data name="Version-DisplayName" xml:space="preserve">
+          <value>Version</value>
+        </data>
+        <data name="Version-Description" xml:space="preserve">
+          <value>Latest version number.</value>
+        </data>
+        <data name="Path-DisplayName" xml:space="preserve">
+          <value>Path</value>
+        </data>
+        <data name="Path-Description" xml:space="preserve">
+          <value>Content type path.</value>
+        </data>
+        <data name="HandlerName-DisplayName" xml:space="preserve">
+          <value>Handler Name</value>
+        </data>
+        <data name="HandlerName-Description" xml:space="preserve">
+          <value>Fully Qualified Name.</value>
+        </data>
+        <data name="ParentTypeName-DisplayName" xml:space="preserve">
+          <value>Parent Type Name</value>
+        </data>
+        <data name="ParentTypeName-Description" xml:space="preserve">
+          <value>Name of the parent content type.</value>
+        </data>
+        <data name="DisplayName-DisplayName" xml:space="preserve">
+          <value>Name</value>
+        </data>
+        <data name="DisplayName-Description" xml:space="preserve">
+          <value>User friendly name of the content type.</value>
+        </data>
+        <data name="Description-DisplayName" xml:space="preserve">
+          <value>Description</value>
+        </data>
+        <data name="Description-Description" xml:space="preserve">
+          <value>Longer description of the content type.</value>
+        </data>
+        <data name="Icon-DisplayName" xml:space="preserve">
+          <value>Icon</value>
+        </data>
+        <data name="Icon-Description" xml:space="preserve">
+          <value>Content type icon.</value>
+        </data>
+        <data name="Binary-DisplayName" xml:space="preserve">
+          <value>Binary</value>
+        </data>
+        <data name="Binary-Description" xml:space="preserve">
+          <value>The content type definition in XML format.</value>
+        </data>
+        <data name="CreatedBy-DisplayName" xml:space="preserve">
+          <value>Created by</value>
+        </data>
+        <data name="CreatedBy-Description" xml:space="preserve">
+          <value>Content creator.</value>
+        </data>
+        <data name="CreationDate-DisplayName" xml:space="preserve">
+          <value>Creation date</value>
+        </data>
+        <data name="CreationDate-Description" xml:space="preserve">
+          <value>Content creation date.</value>
+        </data>
+        <data name="ModifiedBy-DisplayName" xml:space="preserve">
+          <value>Modified by</value>
+        </data>
+        <data name="ModifiedBy-Description" xml:space="preserve">
+          <value>Content was last modified by the given user.</value>
+        </data>
+        <data name="ModificationDate-DisplayName" xml:space="preserve">
+          <value>Modification date</value>
+        </data>
+        <data name="ModificationDate-Description" xml:space="preserve">
+          <value>Content was last modified on the given date.</value>
+        </data>
+        <data name="EnableLifespan-DisplayName" xml:space="preserve">
+          <value>Enable Lifespan handling</value>
+        </data>
+        <data name="AllFieldSettingContents-DisplayName" xml:space="preserve">
+          <value>All field content</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Tartalom típus</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Mezők segítségével leírja egymáshoz hasonló típusú tartalmak felépítését.</value>
+        </data>
+        <data name="Id-DisplayName" xml:space="preserve">
+          <value>Id</value>
+        </data>
+        <data name="Id-Description" xml:space="preserve">
+          <value>A tartalom típus mint tartalom egyedi azonosítója.</value>
+        </data>
+        <data name="ParentId-DisplayName" xml:space="preserve">
+          <value>Szülő ID</value>
+        </data>
+        <data name="ParentId-Description" xml:space="preserve">
+          <value>A tartalom típus felmenőjének egyedi azonosítója.</value>
+        </data>
+        <data name="Type-DisplayName" xml:space="preserve">
+          <value>Tartalomtípus</value>
+        </data>
+        <data name="Type-Description" xml:space="preserve">
+          <value>Csak belső használatra.</value>
+        </data>
+        <data name="TypeIs-DisplayName" xml:space="preserve">
+          <value>Tartalomtípus és szülő típusok</value>
+        </data>
+        <data name="TypeIs-Description" xml:space="preserve">
+          <value>Csak belső használatra.</value>
+        </data>
+        <data name="IsSystemContent-DisplayName" xml:space="preserve">
+          <value>Rendszer elem</value>
+        </data>
+        <data name="IsSystemContent-Description" xml:space="preserve">
+          <value>Akkor igaz, ha ez a tartalom egy rendszerelem (pl: kuka). Az összes rendszermappában lévő tartalom ilyen. Ezeket a tartalmakat alapértelmezetten kiszűrik a lekérdezések.</value>
+        </data>
+        <data name="Name-DisplayName" xml:space="preserve">
+          <value>Név</value>
+        </data>
+        <data name="Version-DisplayName" xml:space="preserve">
+          <value>Verzió</value>
+        </data>
+        <data name="Version-Description" xml:space="preserve">
+          <value></value>
+        </data>
+        <data name="Path-DisplayName" xml:space="preserve">
+          <value>Útvonal</value>
+        </data>
+        <data name="Path-Description" xml:space="preserve">
+          <value></value>
+        </data>
+        <data name="HandlerName-DisplayName" xml:space="preserve">
+          <value>Handler név</value>
+        </data>
+        <data name="HandlerName-Description" xml:space="preserve">
+          <value>A hozzá tartozó osztály teljes neve.</value>
+        </data>
+        <data name="ParentTypeName-DisplayName" xml:space="preserve">
+          <value>Felmenő (szülő) típus neve.</value>
+        </data>
+        <data name="ParentTypeName-Description" xml:space="preserve">
+          <value></value>
+        </data>
+        <data name="DisplayName-DisplayName" xml:space="preserve">
+          <value>Olvasható név</value>
+        </data>
+        <data name="DisplayName-Description" xml:space="preserve">
+          <value></value>
+        </data>
+        <data name="Description-DisplayName" xml:space="preserve">
+          <value>Leírás</value>
+        </data>
+        <data name="Description-Description" xml:space="preserve">
+          <value></value>
+        </data>
+        <data name="Icon-DisplayName" xml:space="preserve">
+          <value>Ikon</value>
+        </data>
+        <data name="Icon-Description" xml:space="preserve">
+          <value>Tartalom típus ikonjának neve.</value>
+        </data>
+        <data name="Binary-DisplayName" xml:space="preserve">
+          <value>Bináris</value>
+        </data>
+        <data name="Binary-Description" xml:space="preserve">
+          <value>A tartalom definíció XML-jét tárolja (CTD).</value>
+        </data>
+        <data name="CreatedBy-DisplayName" xml:space="preserve">
+          <value>Létrehozó</value>
+        </data>
+        <data name="CreatedBy-Description" xml:space="preserve">
+          <value></value>
+        </data>
+        <data name="CreationDate-DisplayName" xml:space="preserve">
+          <value>Létrehozás dátuma</value>
+        </data>
+        <data name="CreationDate-Description" xml:space="preserve">
+          <value></value>
+        </data>
+        <data name="ModifiedBy-DisplayName" xml:space="preserve">
+          <value>Módosító</value>
+        </data>
+        <data name="ModifiedBy-Description" xml:space="preserve">
+          <value>Utoljára módosította.</value>
+        </data>
+        <data name="ModificationDate-DisplayName" xml:space="preserve">
+          <value>Módosítás dátuma</value>
+        </data>
+        <data name="ModificationDate-Description" xml:space="preserve">
+          <value>Utolsó módosítás dátuma.</value>
+        </data>
+        <data name="EnableLifespan-DisplayName" xml:space="preserve">
+          <value>Enable Lifespan handling</value>
+        </data>
+        <data name="AllFieldSettingContents-DisplayName" xml:space="preserve">
+          <value>All field content</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+  <ResourceClass name="Ctd-CustomList">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Custom List</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Use this type to create custom Lists of content with user-defined columns.</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Egyéni lista</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Tartalomtípus olyan listák készítésére, amelyben felhasználók által létrehozott oszlopok vannak.</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+  <ResourceClass name="Ctd-CustomListItem">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Custom Listitem</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Content type for custom listitems.</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Testreszabható listaelem</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Tartalomtípus testreszabható listaelemek felvételéhez.</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+  <ResourceClass name="Ctd-Device">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Device</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>This content type is for defining different devices to browse the portal from - e.g. tablet or different phone types.</value>
+        </data>
+        <data name="UserAgentPattern-DisplayName" xml:space="preserve">
+          <value>User agent string</value>
+        </data>
+        <data name="UserAgentPattern-Description" xml:space="preserve">
+          <value>A regular expression to match the user agent string of the browser.</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Eszköz</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Olyan eszközök beregisztrálására szolgál, amelyek számára egyedi megjelenítést szeretnék szolgáltatni a portálon - például tablet, vagy különböző telefon típusok.</value>
+        </data>
+        <data name="UserAgentPattern-DisplayName" xml:space="preserve">
+          <value>User agent szöveg</value>
+        </data>
+        <data name="UserAgentPattern-Description" xml:space="preserve">
+          <value>Reguláris kifejezés, amely illeszkedik a böngészőből érkező user agent szövegre.</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+  <ResourceClass name="Ctd-DocumentLibrary">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Document library</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>A special List for storing documents.</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Dokumentumtár</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Speciális lista dokumentumok tárolására.</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+  <ResourceClass name="Ctd-Domain">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Domain</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>A centrally-managed group of users and/or computers. Sense/Net ECMS has a built-in domain (BuiltIn), but you can syncronyze external LDAP directories as well.</value>
+        </data>
+        <data name="DisplayName-DisplayName" xml:space="preserve">
+          <value>Display Name</value>
+        </data>
+        <data name="SyncGuid-DisplayName" xml:space="preserve">
+          <value>SyncGuid</value>
+        </data>
+        <data name="SyncGuid-Description" xml:space="preserve">
+          <value>GUID of corresponding AD object.</value>
+        </data>
+        <data name="LastSync-DisplayName" xml:space="preserve">
+          <value>LastSync</value>
+        </data>
+        <data name="LastSync-Description" xml:space="preserve">
+          <value>Date of last synchronization.</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Domain</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Együtt menedzselt csoportok és felhasználók csoportja. A Sense/Net ECMS tartalmaz beépített tartományokat (pl: BuiltIn), de be lehet szinkronizálni külső LDAP tartományokat is.</value>
+        </data>
+        <data name="DisplayName-DisplayName" xml:space="preserve">
+          <value>Olvasható név</value>
+        </data>
+        <data name="SyncGuid-DisplayName" xml:space="preserve">
+          <value>Szinkronizációs azonosító</value>
+        </data>
+        <data name="SyncGuid-Description" xml:space="preserve">
+          <value>A kapcsolódó Active Directory tartomány azonosítója (GUID).</value>
+        </data>
+        <data name="LastSync-DisplayName" xml:space="preserve">
+          <value>Utolsó szinkronizáció</value>
+        </data>
+        <data name="LastSync-Description" xml:space="preserve">
+          <value>Utolsó szinkronizáció dátuma.</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+  <ResourceClass name="Ctd-Domains">
+    <Languages>
+      <Language cultureName="en">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Domains</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>This is the container type for Domains. Only a single instance is allowed at /Root/IMS.</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="DisplayName" xml:space="preserve">
+          <value>Domainek</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Domaineket tartalmazó típus. Egyetlen példány lehet belőle a /Root/IMS mappában.</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+</Resources>

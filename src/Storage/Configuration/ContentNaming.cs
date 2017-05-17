@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 
 namespace SenseNet.Configuration
 {
@@ -13,7 +14,7 @@ namespace SenseNet.Configuration
         /// Invalid name chars pattern formatted for client side JS code (some special characters escaped)
         /// </summary>
         public static string InvalidNameCharsPatternForClient { get; internal set; } =
-            InvalidNameCharsPattern.Replace("\\", "\\\\").Replace("'", "\\'");
+            InvalidNameCharsPattern.Replace("\\", "\\\\").Replace("'", "\\'").Replace(Environment.NewLine, string.Empty);
 
         public static char ReplacementChar { get; internal set; } = GetString(SECTIONNAME,
             "ReplacementChar", "-").FirstOrDefault();

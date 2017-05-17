@@ -1,19 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Portal.Virtualization;
 using System.Web;
-using System.IO;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Schema;
-using System.Configuration;
-using SenseNet.ContentRepository.Storage.AppModel;
-using System.Diagnostics;
 using SenseNet.ApplicationModel;
-using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.Tools;
 
@@ -121,7 +111,10 @@ namespace SenseNet.Portal.AppModel
                     return null;
             }
 
-            var relPath = startPage.Path.Replace(portalContext.Site.Path, "");
+            var relPath = startPage.Path;
+            if (portalContext.Site != null)
+                relPath = relPath.Replace(portalContext.Site.Path, string.Empty);
+
             return factory.CreateRedirectAction(portalContext, contextNode, null, relPath, false, true);
         }
         private static IHttpAction GetSmartUrlAction(IHttpActionFactory factory, PortalContext portalContext, NodeHead contextNode)
@@ -242,15 +235,15 @@ namespace SenseNet.Portal.AppModel
 
         private static string GetRewritePath(NodeHead appNodeHead, PortalContext portalContext)
         {
-            if (!String.IsNullOrEmpty(portalContext.QueryStringNodePropertyName))
+            if (!string.IsNullOrEmpty(portalContext.QueryStringNodePropertyName))
                 return appNodeHead.Path;
             
-            NodeType contextNodeType = appNodeHead.GetNodeType();
+            var contextNodeType = appNodeHead.GetNodeType();
 
             if (contextNodeType.IsInstaceOfOrDerivedFrom("Page"))
                 return appNodeHead.Path + PortalContext.InRepositoryPageSuffix;
             if (contextNodeType.IsInstaceOfOrDerivedFrom("Site"))
-                throw new NotSupportedException("/*!!!*/");
+                throw new NotSupportedException("This site does not have a main page.");
 
             return appNodeHead.Path;
         }

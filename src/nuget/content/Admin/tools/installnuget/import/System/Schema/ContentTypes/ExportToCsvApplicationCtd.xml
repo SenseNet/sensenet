@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ContentType name="ExportToCsvApplication" parentType="Application" handler="SenseNet.Services.ExportToCsvApplication" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
-  <DisplayName>$Ctd-ExportToCsvApplication,DisplayName</DisplayName>
-  <Description>$Ctd-ExportToCsvApplication,Description</Description>
-  <Icon>Application</Icon>
-  <Fields />
-</ContentType>

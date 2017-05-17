@@ -11,7 +11,7 @@ namespace SenseNet.Configuration
         /// <summary>
         /// Gets the configured SenseNet connection string (or the default one if there is no config).
         /// </summary>
-        public static string ConnectionString { get; internal set; } = GetConnectionString("SnCrMsSql", DefaultConnectionString);
+        public static string ConnectionString { get; set; } = GetConnectionString("SnCrMsSql", DefaultConnectionString);
         /// <summary>
         /// Connection string for the permission storage. By default this is the same as the main Content Repository connection string.
         /// </summary>

@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>GenericODataApplication</ContentType>
+  <ContentName>RebuildIndexSubtree</ContentName>
+  <Fields>
+    <ClassName><![CDATA[SenseNet.ContentRepository.Content+Operations]]></ClassName>
+    <MethodName><![CDATA[RebuildIndexSubtree]]></MethodName>
+    <DisplayName><![CDATA[RebuildIndexSubtree]]></DisplayName>
+    <ActionTypeName><![CDATA[GenericODataOperation]]></ActionTypeName>
+    <RequiredPermissions>Save</RequiredPermissions>
+  </Fields>
+  <Permissions>
+    <Clear />
+  </Permissions>
+</ContentMetaData>

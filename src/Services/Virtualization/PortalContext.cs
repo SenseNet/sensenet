@@ -487,7 +487,7 @@ namespace SenseNet.Portal.Virtualization
             };
         }
 
-        internal static PortalContext Create(HttpContext context)
+        public static PortalContext Create(HttpContext context)
         {
             var initInfo = CreateInitInfo(context);
             return Create(context, initInfo);
@@ -572,20 +572,25 @@ namespace SenseNet.Portal.Virtualization
         {
             using (new SystemAccount())
             {
+                var smartUrls = new Dictionary<string, string>();
+                var pageType = ActiveSchema.NodeTypes["Page"];
+
+                // in case only the Services layer is installed, there is no Page type there
+                if (pageType == null)
+                    return smartUrls;
+
                 NodeQueryResult pageResult;
                 if (RepositoryInstance.ContentQueryIsAllowed)
                 {
                     var pageQuery = new NodeQuery();
-                    pageQuery.Add(new TypeExpression(ActiveSchema.NodeTypes["Page"], false));
+                    pageQuery.Add(new TypeExpression(pageType, false));
                     pageResult = pageQuery.Execute();
                 }
                 else
                 {
-                    pageResult = NodeQuery.QueryNodesByType(ActiveSchema.NodeTypes["Page"], false);
+                    pageResult = NodeQuery.QueryNodesByType(pageType, false);
                 }
-
-                var smartUrls = new Dictionary<string, string>();
-
+                
                 if (pageResult == null)
                     throw new ApplicationException("SmartURL: Query returned null.");
 
@@ -824,11 +829,12 @@ namespace SenseNet.Portal.Virtualization
 
             var urlPrefix = string.Concat(Current.RequestedUri.Scheme, Uri.SchemeDelimiter, Current.RequestedUri.Host);
             var site = GetSiteByNodePath(path);
-            var absolute = site == null || site.Id != Current.Site.Id;
+            var currentSite = Current.Site;
+            var absolute = site == null || currentSite == null || site.Id != currentSite.Id;
 
             return absolute
-                       ? string.Concat(urlPrefix, path).TrimEnd(new[] { '/' })
-                       : string.Concat(urlPrefix, GetSiteRelativePath(path)).TrimEnd(new[] { '/' });
+                       ? string.Concat(urlPrefix, path).TrimEnd('/')
+                       : string.Concat(urlPrefix, GetSiteRelativePath(path)).TrimEnd('/');
         }
 
         public static Site GetSiteByNodePath(string path)
@@ -840,7 +846,7 @@ namespace SenseNet.Portal.Virtualization
 
         public static string GetSiteRelativePath(string fullpath)
         {
-            return GetSiteRelativePath(fullpath, Current != null ? Current.Site : null);
+            return GetSiteRelativePath(fullpath, Current?.Site);
         }
 
         public static string GetSiteRelativePath(string fullpath, Site site)
@@ -862,15 +868,18 @@ namespace SenseNet.Portal.Virtualization
             if (c == null)
                 return string.Empty;
 
-            var path = c.Path;
-            var sitePath = Site.Path;
+            var path = c.Path ?? string.Empty;
+            var sitePath = Site?.Path;
 
-            if (path.CompareTo(sitePath) == 0)
-                path = string.Empty;
-            else if (path.StartsWith(sitePath + "/"))
-                path = path.Remove(0, sitePath.Length);
+            if (!string.IsNullOrEmpty(sitePath))
+            {
+                if (string.Compare(path, sitePath, StringComparison.InvariantCultureIgnoreCase) == 0)
+                    path = string.Empty;
+                else if (path.StartsWith(sitePath + "/"))
+                    path = path.Remove(0, sitePath.Length);
+            }
 
-            return string.Format("{0}?{1}={2}", path, BackUrlParamName, HttpUtility.UrlEncode(HttpContext.Current.Request.RawUrl));
+            return $"{path}?{BackUrlParamName}={HttpUtility.UrlEncode(HttpContext.Current.Request.RawUrl)}";
         }
 
         public static bool IsWebSiteRoot
@@ -1386,7 +1395,7 @@ namespace SenseNet.Portal.Virtualization
                     if (cws != null) path = cws.Path;
                     break;
                 case BackTargetType.CurrentSite:
-                    path = PortalContext.Current.Site.Path;
+                    path = PortalContext.Current.Site?.Path ?? "/";
                     break;
                 case BackTargetType.CurrentPage:
                     var page = PortalContext.Current.Page;
@@ -1467,8 +1476,17 @@ namespace SenseNet.Portal.Virtualization
             get
             {
                 var result = IsSecureConnection ? PROTOCOL_HTTPS : PROTOCOL_HTTP;
+                var siteUrl = SiteUrl;
 
-                result += SiteUrl;
+                // in case there is no site, or the url is not registered on any of them
+                if (string.IsNullOrEmpty(siteUrl))
+                {
+                    siteUrl = RequestedUri.IsDefaultPort
+                        ? RequestedUri.GetComponents(UriComponents.Host, UriFormat.Unescaped)
+                        : RequestedUri.GetComponents(UriComponents.HostAndPort, UriFormat.Unescaped);                    
+                }
+
+                result += siteUrl;
 
                 return result;
             }
@@ -1599,20 +1617,14 @@ namespace SenseNet.Portal.Virtualization
             // loginPageRelativePath:          /Login 
             // loginPageUrl:                   http(s)://localhost:1315/xy/Login
 
-            if (Site == null)
+            if (Site?.LoginPage == null)
                 return null;
 
-            if (Site.LoginPage == null)
-                return null;
+            var loginPageRepositoryPath = Site.LoginPage.Path;
+            var sitePath = Site.Path;
+            var loginPageRelativePath = loginPageRepositoryPath.Substring(sitePath.Length);
 
-            string loginPageRepositoryPath = Site.LoginPage.Path;
-            string sitePath = Site.Path;
-
-            string loginPageRelativePath = loginPageRepositoryPath.Substring(sitePath.Length);
-
-            string loginPageUrl = string.Concat(RequestedUri.Scheme, "://", _siteUrl, loginPageRelativePath);
-
-            return loginPageUrl;
+            return string.Concat(RequestedUri.Scheme, "://", _siteUrl, loginPageRelativePath);
         }
 
         // ------------------------------------------------------------------------

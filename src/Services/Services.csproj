@@ -63,6 +63,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\References\Lucene.Net.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Exchange.WebServices, Version=15.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\References\Microsoft.Exchange.WebServices.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Practices.EnterpriseLibrary.Common, Version=5.0.414.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\References\Microsoft.Practices.EnterpriseLibrary.Common.dll</HintPath>
@@ -181,6 +185,8 @@
     <Compile Include="ApplicationModel\SetPermissionsAction.cs" />
     <Compile Include="ApplicationModel\UploadAction.cs" />
     <Compile Include="ApplicationModel\UrlAction.cs" />
+    <Compile Include="ApplicationModel\WebdavOpenAction.cs" />
+    <Compile Include="Configuration\TokenAuthentication.cs" />
     <Compile Include="Configuration\ErrorStatusCode.cs" />
     <Compile Include="Configuration\WebApplication.cs" />
     <Compile Include="Configuration\Webdav.cs" />
@@ -207,6 +213,11 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="EntityReference.cs" />
+    <Compile Include="Exchange\ExchangeSubscriptionService.cs" />
+    <Compile Include="Exchange\Interfaces.cs" />
+    <Compile Include="Exchange\PushNotificationClient.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Fields\UrlListField.cs" />
     <Compile Include="Global.cs" />
     <Compile Include="Handlers\BinaryHandler.cs" />
@@ -308,6 +319,7 @@
     <Compile Include="SR.cs" />
     <Compile Include="UITools.cs" />
     <Compile Include="Virtualization\AuthenticationHelper.cs" />
+    <Compile Include="Virtualization\AuthorizationModule.cs" />
     <Compile Include="Virtualization\DiskFSSupportMode.cs" />
     <Compile Include="Virtualization\DocumentBinaryProvider.cs" />
     <Compile Include="Virtualization\EmbeddedFile.cs" />
@@ -357,6 +369,10 @@
       <Project>{786E6165-CA02-45A9-BF58-207A45D7D6DF}</Project>
       <Name>ContentRepository</Name>
     </ProjectReference>
+    <ProjectReference Include="..\TokenAuthentication\SenseNet.TokenAuthentication.csproj">
+      <Project>{78febd73-8bc4-45b9-9b31-d512e1afad60}</Project>
+      <Name>SenseNet.TokenAuthentication</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Storage\Storage.csproj">
       <Project>{5DB4DDBA-81F6-4D81-943A-18F3178B3355}</Project>
       <Name>Storage</Name>
@@ -384,6 +400,7 @@
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="Services.Install.nuspec" />
     <None Include="Services.nuspec" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

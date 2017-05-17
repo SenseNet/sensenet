@@ -60,7 +60,7 @@ namespace SenseNet.Services
         private static SyndicationItem GetItem(Node node)
         {
             var authority = PortalContext.Current.RequestedUri.GetLeftPart(UriPartial.Authority);
-            var sitePath = PortalContext.Current.Site.Path + "/";
+            var sitePath = PortalContext.Current.Site?.Path ?? string.Empty + "/";
             var siteRelativePath = node.Path;
             if (node.Path.StartsWith(sitePath))
                 siteRelativePath = siteRelativePath.Substring(sitePath.Length - 1);

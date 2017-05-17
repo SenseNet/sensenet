@@ -24,9 +24,11 @@ namespace SenseNet.Packaging.Steps
         {
             context.AssertRepositoryStarted();
 
+            var path = context.ResolveVariable(Path) as string;
+
             _context = context;
-            _versionCount = DataProvider.GetVersionCount(Path);
-            _factor = Math.Max(_versionCount/60, 1);
+            _versionCount = DataProvider.GetVersionCount(path);
+            _factor = Math.Max(_versionCount / 60, 1);
 
             var savedMode = RepositoryEnvironment.WorkingMode.Populating;
             RepositoryEnvironment.WorkingMode.Populating = true;
@@ -36,7 +38,7 @@ namespace SenseNet.Packaging.Steps
 
             try
             {
-                if (string.IsNullOrEmpty(Path))
+                if (string.IsNullOrEmpty(path))
                 {
                     var withOrWithout = Backup ? "WITH" : "without";
 
@@ -45,8 +47,8 @@ namespace SenseNet.Packaging.Steps
                 }
                 else
                 {
-                    Logger.LogMessage($"Populating index for {Path}...");
-                    populator.RepopulateTree(Path);
+                    Logger.LogMessage($"Populating index for {path}...");
+                    populator.RepopulateTree(path);
                 }
             }
             finally

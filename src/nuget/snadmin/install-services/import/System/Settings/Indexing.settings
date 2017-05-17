@@ -1,0 +1,5 @@
+{
+    ForceReopenFrequencyInSeconds: 30,
+    TextExtractors: {
+    }
+}

@@ -20,33 +20,31 @@ namespace SenseNet.Packaging
             {
                 internal static readonly string WrongRootName = @"Invalid manifest: root element must be ""Package"".";
                 internal static readonly string MissingType = @"Invalid manifest: missing ""type"" attribute.";
-                internal static readonly string InvalidType = @"Invalid manifest: invalid ""type"" attribute. The value must be ""product"" or ""application""";
-                internal static readonly string MissingLevel = @"Invalid manifest: missing ""level"" attribute.";
-                internal static readonly string InvalidLevel = @"Invalid manifest: invalid ""level"" attribute. The value must be ""tool"", ""patch"", ""servicepack"" or ""upgrade""";
-                internal static readonly string MissingName = @"Invalid manifest: missing ""Name"" element.";
-                internal static readonly string InvalidName = @"Invalid manifest: invalid ""Name"" element. Value cannot be empty.";
-                internal static readonly string MissingEdition = @"Invalid manifest: missing ""Edition"" element.";
-                internal static readonly string InvalidEdition = @"Invalid manifest: invalid ""Edition"" element. Value cannot be empty.";
-                internal static readonly string MissingAppId = @"Invalid manifest: missing ""AppId"" element.";
-                internal static readonly string InvalidAppId = @"Invalid manifest: invalid ""AppId"" element. Value cannot be empty.";
+                internal static readonly string InvalidType = @"Invalid manifest: invalid ""type"" attribute. The value must be ""tool"", ""patch"", or ""install""";
+                internal static readonly string MissingComponentId = @"Invalid manifest: missing ""Id"" element.";
+                internal static readonly string InvalidComponentId = @"Invalid manifest: invalid ""Id"" element. Value cannot be empty.";
                 internal static readonly string MissingReleaseDate = @"Invalid manifest: missing ""ReleaseDate"" element.";
                 internal static readonly string InvalidReleaseDate = @"Invalid manifest: invalid ""ReleaseDate"" element.";
-                internal static readonly string MissingVersionControl = @"Invaid manifest: missing ""VersionControl"" element.";
-                internal static readonly string MissingVersionAttribute_1 = @"Invalid manifest: missing ""{0}"" VersionControl attribute.";
-                internal static readonly string InvalidVersionAttribute_1 = @"Invalid manifest: invalid ""{0}"" VersionControl attribute.";
-                internal static readonly string UnexpectedAppId = @"Invalid manifest: ""ApplicationIdentifier"" cannot be defined if the package type is ""product"".";
-                internal static readonly string UnexpectedTarget = @"Invalid manifest: the ""target"" VersionControl attribute cannot be defined if the package level is ""tool"".";
-                internal static readonly string UnexpectedExpectedVersion = @"Invalid manifest: the ""expected"" VersionControl attribute cannot be defined if the ""expectedMin"" or ""expectedMax"" exist.";
+                internal static readonly string TooBigReleaseDate = @"Invalid manifest: invalid ""ReleaseDate"" element: released in the future.";
+                internal static readonly string MissingVersion = @"Invaid manifest: missing ""Version"" element.";
+                internal static readonly string MissingVersionAttribute1 = @"Invalid manifest: missing ""{0}"" VersionControl attribute.";
+                internal static readonly string InvalidVersion1 = @"Invalid manifest: invalid version: ""{0}""";
+                internal static readonly string UnexpectedVersionAttribute = @"Invalid manifest: the ""version"" attribute cannot be defined if the ""minVersion"", ""maxVersion"", ""minVersionExclusive"" or ""maxVersionExclusive"" exist.";
+                internal static readonly string DoubleMinVersionAttribute = @"Invalid manifest: cannot use the ""minVersion"" and ""minVersionExclusive"" attributes together.";
+                internal static readonly string DoubleMaxVersionAttribute = @"Invalid manifest: cannot use the ""maxVersion"" and ""maxVersionExclusive"" attributes together.";
+                internal static readonly string MissingDependencyId = @"Invalid manifest: missing ""id"" attribute in a Dependency element.";
+                internal static readonly string EmptyDependencyId = @"Invalid manifest: empty ""id"" attribute in a Dependency element.";
+                internal static readonly string MissingDependencyVersion = @"Invaid manifest: missing dependency version.";
             }
 
             internal static class Precondition
             {
-                internal static readonly string AppIdDoesNotMatch = "Package cannot be executed: Application identifier mismatch.";
-                internal static readonly string MinimumVersion_1 = "Package cannot be executed: the {0} version is smaller than permitted.";
-                internal static readonly string MaximumVersion_1 = "Package cannot be executed: the {0} version is greater than permitted.";
-                internal static readonly string TargetVersionTooSmall_3 = @"Invalid manifest: the target version ({1}) must be greater than the current {0} version ({2}).";
-                internal static readonly string EditionMismatch_2 = "Package cannot be executed: Edition mismatch. Installed: {0}, in package: {1}.";
-                internal static readonly string CannotInstallExistingApp = "Cannot install existing application.";
+                internal static readonly string DependencyNotFound1 = "Package cannot be executed: Dependency not found: {0}";
+                internal static readonly string MinimumVersion1 = "Package cannot be executed: the version is smaller than permitted: {0}";
+                internal static readonly string MaximumVersion1 = "Package cannot be executed: the version is greater than permitted: {0}";
+                internal static readonly string TargetVersionTooSmall2 = @"Invalid manifest: the target version ({0}) must be greater than the current version ({1}).";
+                internal static readonly string CannotInstallExistingComponent1 = "Cannot install existing component: {0}";
+                internal static readonly string CannotUpdateMissingComponent1 = "Cannot update missing component: {0}";
             }
 
             internal static class StepParsing

@@ -7,6 +7,7 @@
       <section name="webApplication" type="System.Configuration.NameValueFileSectionHandler" />
       <section name="identityManagement" type="System.Configuration.NameValueSectionHandler" />
       <section name="repositoryEnvironment" type="System.Configuration.NameValueSectionHandler" />
+      <section name="tokenAuthentication" type="System.Configuration.NameValueSectionHandler" />
     </sectionGroup>
     <section name="uri" type="System.Configuration.UriSection, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   </configSections>
@@ -60,6 +61,7 @@
       <typeAlias alias="ISearchEngineImpl" type="SenseNet.Search.LuceneSearchEngine, SenseNet.ContentRepository" />
       <typeAlias alias="MembershipExtenderBase" type="SenseNet.ContentRepository.Storage.Security.MembershipExtenderBase, SenseNet.Storage" />
       <typeAlias alias="MembershipExtender" type="SenseNet.ContentRepository.Storage.Security.DefaultMembershipExtender, SenseNet.Storage" />
+      <typeAlias alias="PurgeUrlCollector" type="SenseNet.Portal.Virtualization.PurgeUrlCollector, SenseNet.Services" />
       <typeAlias alias="singleton" type="Microsoft.Practices.Unity.ContainerControlledLifetimeManager, Microsoft.Practices.Unity" />
     </typeAliases>
     <containers>
@@ -70,7 +72,7 @@
           <type type="MembershipExtenderBase" mapTo="MembershipExtender">
             <lifetime type="singleton" />
           </type>
-        </types>
+       </types>
       </container>
     </containers>
   </unity>
@@ -84,6 +86,9 @@
     <repositoryEnvironment>
       <add key="DisabledNodeObservers" value="SenseNet.ContentRepository.Storage.AppModel.AppCacheInvalidator;SenseNet.ContentRepository.Storage.AppModel.RepositoryEventRouter" />
     </repositoryEnvironment>
+    <tokenAuthentication>
+      <add key="SymmetricKeySecret" value="" />
+    </tokenAuthentication>
   </sensenet>
   <uri>
     <idn enabled="All" />
@@ -102,6 +107,7 @@
   <system.webServer>
     <modules runAllManagedModulesForAllRequests="true">
       <add name="PortalAuthentication" preCondition="integratedMode" type="SenseNet.Portal.Virtualization.PortalAuthenticationModule, SenseNet.Services" />
+      <add name="Authorization" preCondition="integratedMode" type="SenseNet.Portal.Virtualization.AuthorizationModule, SenseNet.Services" />
       <add name="PortalContext" preCondition="integratedMode" type="SenseNet.Portal.Virtualization.PortalContextModule, SenseNet.Services" />
     </modules>
     <handlers>

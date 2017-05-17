@@ -306,8 +306,10 @@ namespace SenseNet.Services
 
             if (PortalContext.Current.IsOfficeProtocolRequest || PortalContext.Current.IsWebdavRequest)
             {
+                var redirectLocation = HttpContext.Current?.Response?.RedirectLocation?.ToLower() ?? string.Empty;
+
                 // force 401, if formsauthentication module converted a 401 response to a 302 redirect to login page. we turn it back to 401
-                var redirectingToLogin = HttpContext.Current.Response.StatusCode == 302 && HttpContext.Current.Response.RedirectLocation.ToLower().StartsWith(System.Web.Security.FormsAuthentication.LoginUrl);
+                var redirectingToLogin = HttpContext.Current.Response.StatusCode == 302 && redirectLocation.StartsWith(System.Web.Security.FormsAuthentication.LoginUrl);
                 if (redirectingToLogin)
                 {
                     HttpContext.Current.Response.RedirectLocation = null; // this is not any more a redirect

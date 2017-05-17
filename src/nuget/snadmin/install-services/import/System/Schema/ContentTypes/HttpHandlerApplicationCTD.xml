@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentType name="HttpHandlerApplication" parentType="Application" handler="SenseNet.Portal.Handlers.HttpHandlerApplication" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+  <DisplayName>$Ctd-HttpHandlerApplication,DisplayName</DisplayName>
+  <Description>$Ctd-HttpHandlerApplication,Description</Description>
+  <Icon>Application</Icon>
+  <Fields />
+</ContentType>

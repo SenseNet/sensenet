@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentType name="HttpStatusApplication" parentType="Application" handler="SenseNet.Portal.AppModel.HttpStatusApplication" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+  <DisplayName>$Ctd-HttpStatusApplication,DisplayName</DisplayName>
+  <Description>$Ctd-HttpStatusApplication,Description</Description>
+  <Icon>Application</Icon>
+  <Fields>
+    <Field name="StatusCode" type="Choice">
+      <DisplayName>$Ctd-HttpStatusApplication,StatusCode-DisplayName</DisplayName>
+      <Description>$Ctd-HttpStatusApplication,StatusCode-Description</Description>
+      <Configuration>
+        <AllowMultiple>false</AllowMultiple>
+        <Compulsory>true</Compulsory>
+        <Options>
+          <Option value="301">$Ctd-HttpStatusApplication,StatusCode-301</Option>
+          <Option value="303">$Ctd-HttpStatusApplication,StatusCode-303</Option>
+          <Option value="307">$Ctd-HttpStatusApplication,StatusCode-307</Option>
+          <Option value="403">$Ctd-HttpStatusApplication,StatusCode-403</Option>
+          <Option value="404">$Ctd-HttpStatusApplication,StatusCode-404</Option>
+          <Option value="410">$Ctd-HttpStatusApplication,StatusCode-410</Option>
+        </Options>
+      </Configuration>
+    </Field>
+    <Field name="RedirectUrl" type="ShortText">
+      <DisplayName>$Ctd-HttpStatusApplication,RedirectUrl-DisplayName</DisplayName>
+      <Description>$Ctd-HttpStatusApplication,RedirectUrl-Description</Description>
+    </Field>
+  </Fields>
+</ContentType>

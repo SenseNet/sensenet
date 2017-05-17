@@ -42,7 +42,7 @@ namespace SenseNet.Portal.Handlers
             extension = extension.ToLower();
 
             // look for the extension in portal settings
-            var ctName = Settings.GetValue("PortalSettings", "UploadFileExtensions" + extension, contextPath, string.Empty);
+            var ctName = Settings.GetValue("Portal", "UploadFileExtensions" + extension, contextPath, string.Empty);
             if (!string.IsNullOrEmpty(ctName))
                 return ctName;
 
@@ -55,7 +55,7 @@ namespace SenseNet.Portal.Handlers
             if (!execExt)
             {
                 // look for the default setting
-                ctName = Settings.GetValue("PortalSettings", "UploadFileExtensions.DefaultContentType", contextPath, string.Empty);
+                ctName = Settings.GetValue("Portal", "UploadFileExtensions.DefaultContentType", contextPath, string.Empty);
                 if (!string.IsNullOrEmpty(ctName))
                     return ctName;
             }

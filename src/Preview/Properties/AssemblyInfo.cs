@@ -13,7 +13,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Sense/Net Inc.")]
-[assembly: AssemblyProduct("Sense/Net ECM")]
+[assembly: AssemblyProduct("sensenet ECM")]
 [assembly: AssemblyCopyright("Copyright © Sense/Net Inc.")]
 [assembly: AssemblyTrademark("Sense/Net Inc.")]
 [assembly: AssemblyCulture("")]
@@ -23,4 +23,4 @@ using System.Runtime.InteropServices;
 
 [assembly: AssemblyVersion("7.0.0.0")]
 [assembly: AssemblyFileVersion("7.0.0.0")]
-[assembly: AssemblyInformationalVersion("7.0.0-beta")]
+[assembly: AssemblyInformationalVersion("7.0.0-beta2")]
