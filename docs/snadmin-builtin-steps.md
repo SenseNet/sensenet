@@ -1,8 +1,8 @@
 # Built-in SnAdmin steps
 **sensenet ECM** evolves constantly and we release new versions of the product from time to time. To make the upgrade easier we offer **upgrade packages** for *Enterprise* customers. *Community* customers can take advantage of this packaging framework also, to create their own upgrade packages or aid their **build processes**. This article lists all the available built-in steps that are shipped with the product and can be used to build a package.
 
-# Basic steps
-## Assign
+## Basic steps
+### Assign
 - Full name: *SenseNet.Packaging.Steps.Assign*
 - Default property: *Value*
 - Additional properties: *Name*
@@ -18,10 +18,10 @@ Example:
 <Rename Source="@path" SourceIsRelativeTo="TargetDirectory">@newName</Rename>
 ```
 
-## Copy
-- Full name: *SenseNet.Packaging.Steps.Copy*
-- Default property: *Source*
-- Additional properties: *NewName, SourceIsRelativeTo, TargetDirectory*
+### Copy
+- Full name: `SenseNet.Packaging.Steps.Copy`
+- Default property: `Source`
+- Additional properties: `NewName, SourceIsRelativeTo, TargetDirectory`
 
 >This step can be placed in ForEach steps' Block sections.
 
@@ -31,9 +31,9 @@ The valid values for SourceIsRelativeTo are the following:
 -   *Package*: the source path is relative to the package root folder (*default*)
 -   *TargetDirectory*: the source path is relative to the web site root folder (this is the mandatory value if the step is put into a ForEach step)
 
-## Delete
-- Full name: *SenseNet.Packaging.Steps.Delete*
-- Default property: *Path*
+### Delete
+- Full name: `SenseNet.Packaging.Steps.Delete`
+- Default property: `Path`
 - Additional properties: -
 
 >This step can be placed in ForEach steps' Block sections.
@@ -46,10 +46,10 @@ Deletes a file/directory from the file system or the Content Repository, dependi
 ```
 >If the given path is a Content Repository path, please make sure that a **StartRepository** step (see below) is placed into the manifest before this one to make sure that the Content Repository is started and accessible.
 
-## ExecuteDatabaseScript
-- Full name: *SenseNet.Packaging.Steps.ExecuteDatabaseScript*
-- Default property: *Query*
-- Additional properties: *ConnectionName, InitialCatalog*
+### ExecuteDatabaseScript
+- Full name: `SenseNet.Packaging.Steps.ExecuteDatabaseScript`
+- Default property: `Query`
+- Additional properties: `ConnectionName, InitialCatalog`
 
 Executes a database script on the Content Repository database. The Query property is two-faced:
 - Can be a path of the file in the package that contains a valid database script.
@@ -106,10 +106,10 @@ In any other cases (e.g. update / delete / mode change) the step does not write 
 
 >If the script contains XML characters ( '<', '>', '&' etc.), do not escape the individual characters but place the whole query into a **CDATA** section.
 
-## Export
-- Full name: *SenseNet.Packaging.Steps.Export*
-- Default property: *Source*
-- Additional properties: *Target, Filter*
+### Export
+- Full name: `SenseNet.Packaging.Steps.Export`
+- Default property: `Source`
+- Additional properties: `Target, Filter`
 
 >This step can be placed in ForEach steps' Block sections.
 
@@ -137,8 +137,8 @@ Examples:
 ```
 
 ## ForEach
-- Full name: *SenseNet.Packaging.Steps.ForEach*
-- Properties: *Item, ContentQuery, Files*
+- Full name: `SenseNet.Packaging.Steps.ForEach`
+- Properties: `Item, ContentQuery, Files`
 
 >This step can be placed in ForEach steps' Block sections.
 
@@ -178,20 +178,20 @@ Examples:
 </Steps>
 ```
 
-## StartRepository
-- Full name: *SenseNet.Packaging.Steps.StartRepository*
+### StartRepository
+- Full name: `SenseNet.Packaging.Steps.StartRepository`
 - Default property: -
-- Additional properties: *StartLuceneManager, StartWorkflowEngine, PluginsPath, IndexPath, RestoreIndex, BackupIndexAtTheEnd*
+- Additional properties: `StartLuceneManager, StartWorkflowEngine, PluginsPath, IndexPath, RestoreIndex, BackupIndexAtTheEnd`
 
 Starts the Content Repository in the SnAdmin tool. Use this step before accessing content in the Content Repository from any step.
 ``` xml
 <StartRepository startLuceneManager="false" />
 ```
 
-## Import
-- Full name: *SenseNet.Packaging.Steps.Import*
-- Default property: *Source*
-- Additional properties: *AbortOnError, LogLevel, SourceIsRelativeTo, Target, ResetSecurity*
+### Import
+- Full name: `SenseNet.Packaging.Steps.Import`
+- Default property: `Source`
+- Additional properties: `AbortOnError, LogLevel, SourceIsRelativeTo, Target, ResetSecurity`
 
 >This step can be placed in ForEach steps' Block sections.
 
@@ -225,13 +225,13 @@ The source is always a file system structure in the package or in the target web
 ```
 If the “import” directory contains a content “MyContent”, after the execution this content could be accessed on the “/Root/YourContents/MyFolder/MyContent” path.
 
-## ImportSchema
+### ImportSchema
 >This step is deprecated, use the more generic **Import** step to import all kinds of content, even content types to the repository.
 
-## Rename
--   Full name: *SenseNet.Packaging.Steps.Rename*
--   Default property: *NewName*
--   Additional properties: *Source, SourceIsRelativeTo*
+### Rename
+-   Full name: `SenseNet.Packaging.Steps.Rename`
+-   Default property: `NewName`
+-   Additional properties: `Source, SourceIsRelativeTo`
 
 Renames a repository content or a file. NewName property holds the value of the object's new name. Source can be either a repository path or a file system path.
 
@@ -254,10 +254,10 @@ Examples:
 <Rename Source="@path" SourceIsRelativeTo="TargetDirectory">@newName</Rename>
 ```
 
-## ReplaceText
-- Full name: *SenseNet.Packaging.Steps.ReplaceText*
-- Default property: *Value*
-- Additional properties: *Path, Field, Template, Regex, PathIsRelativeTo* 
+### ReplaceText
+- Full name: `SenseNet.Packaging.Steps.ReplaceText`
+- Default property: `Value`
+- Additional properties: `Path, Field, Template, Regex, PathIsRelativeTo` 
 
 Loads a content or a text file defined by the Path property (on all configured web servers) and replaces a pattern defined by the Template property with the Value.
 
@@ -265,11 +265,11 @@ If the Path is a Content Repository path, than you can define a Field (optionall
 
 You can define either the *Template* or the *Regex* property for searching replaceable text, but **not both of them**.
 
-# JSON text
-## EditJson
-- Full name: *SenseNet.Packaging.Steps.EditJson*
-- Default property: *Value*
-- Additional properties: *Path, Field*
+## JSON text
+### EditJson
+- Full name: `SenseNet.Packaging.Steps.EditJson`
+- Default property: `Value`
+- Additional properties: `Path, Field`
 
 This step allows you to modify an existing file or content that contains JSON-formatted data (for example [Settings] files). The Value default property is a JSON fragment that may contain simple properties or a whole json object tree. It will be merged into the target JSON defined by the usual Path and (the optional) Field properties.
 ``` xml
@@ -282,9 +282,9 @@ This step allows you to modify an existing file or content that contains JSON-fo
 </EditJson>
 ```
 
-# Xml manipulation
+## Xml manipulation
 The following steps help you create, remove or edit xml fragments either in the file system (e.g. config files) or in the Content Repository.
-### Handling namespaces
+#### Handling namespaces
 It is important to take care of namespaces when editing xml files. You can provide namespace definitions for the xml steps below by defining an attribute that has the following form: *namespace-\[prefixname\]*. You can use this prefix in your XPath expressions defined for the step. For example:
 ``` xml
 <DeleteXmlNodes Content="/Root/MyFolder/MyCustom.xml"
@@ -292,10 +292,10 @@ It is important to take care of namespaces when editing xml files. You can provi
    namespace-x="http://schemas.example.com/a/b/c" />
 ```
 
-## AppendXmlFragment
-- Full name: *SenseNet.Packaging.Steps.AppendXmlFragment*
+### AppendXmlFragment
+- Full name: `SenseNet.Packaging.Steps.AppendXmlFragment`
 - Default property: -
-- Additional properties: *Source, Xpath, File, Content, Field*
+- Additional properties: `Source, Xpath, File, Content, Field`
 
 Appends the given xml fragment (from the *Source* property) as a child (or children) under the xml elements determined by the Xpath property. The target xml can be in the file system (usually a .config file) or in the Content Repository (a field value of a content).
 
@@ -343,10 +343,10 @@ Target XML after execution:
 </testxml>
 ```
 
-## AppendXmlAttributes
-- Full name: *SenseNet.Packaging.Steps.AppendXmlAttributes*
+### AppendXmlAttributes
+- Full name: `SenseNet.Packaging.Steps.AppendXmlAttributes`
 - Default property: Source
-- Additional properties: *Xpath, File, Content, Field*
+- Additional properties: `Xpath, File, Content, Field`
 
 Appends or overwrites the given attributes (from the *Source* property) to the xml elements determined by the Xpath property. The target xml can be in the file system (usually a .config file) or in the Content Repository (a field value of a content).
 
@@ -375,10 +375,10 @@ Target XML after execution:
 </testxml>
 ```
 
-## EditXmlNodes
-- Full name: *SenseNet.Packaging.Steps.EditXmlNodes*
+### EditXmlNodes
+- Full name: `SenseNet.Packaging.Steps.EditXmlNodes`
 - Default property: -
-- Additional properties: *Source, Xpath, File, Content, Field*
+- Additional properties: `Source, Xpath, File, Content, Field`
 
 Overwrites the content of the selected element or value of the selected attributes. The selector is the Xpath property. If the selection is attributes, their value will be overwritten. In case of elements the full inner xml will be overwritten. The Source property contains the new value or fragment. This step does not have default property similarly for AppendXmlFragment step.
 
@@ -407,10 +407,10 @@ Target XML after execution:
 </testxml>
 ```
 
-## DeleteXmlNodes
-- Full name: *SenseNet.Packaging.Steps.DeleteXmlNodes*
+### DeleteXmlNodes
+- Full name: `SenseNet.Packaging.Steps.DeleteXmlNodes`
 - Default property: -
-- Additional properties: *Xpath, File, Content, Field*
+- Additional properties: `Xpath, File, Content, Field`
 
 Deletes the xml nodes determined by the Xpath property.
 
@@ -449,10 +449,10 @@ Target XML after execution:
 </testxml>
 ```
 
-## EditConnectionString
-- Full name: *SenseNet.Packaging.Steps.EditConnectionString*
+### EditConnectionString
+- Full name: `SenseNet.Packaging.Steps.EditConnectionString`
 - Default property: -
-- Additional properties: *File, ConnectionName, DataSource, InitialCatalogName, DbUserName, DbPassword*
+- Additional properties: `File, ConnectionName, DataSource, InitialCatalogName, DbUserName, DbPassword`
 
 Modifies the connection string (selected by the *ConnectionName* property) in the provided config *File*. At least a database name (InitialCatalogName) *or* datasource should be provided.
 
@@ -460,12 +460,12 @@ Modifies the connection string (selected by the *ConnectionName* property) in th
 <EditConnectionString ConnectionName="SnCrMsSql" InitialCatalogName="@initialCatalog" DataSource="@dataSource" DbUserName="@dbUserName" DbPassword="@dbPassword" File="Web.config" />
 ```
 
-# Content type manipulation
+## Content type manipulation
 The following steps are designed specifically to modify content types. You can choose to use the generic *xml manipulation steps* instead (see above), if you do not find the particular CTD step that you need here.
-## AddField
-- Full name: *SenseNet.Packaging.Steps.AddField*
-- Default property: *FieldXml*
-- Additional properties: *ContentType*
+### AddField
+- Full name: `SenseNet.Packaging.Steps.AddField`
+- Default property: `FieldXml`
+- Additional properties: `ContentType`
 
 Adds a non-existing field to a content type. The ContentType property must refer to an existing content type name. FieldXml is the xml fragment that will be inserted. One step is able to add only one field. Because of the manifest parsing and XML processing specialities there are two ways to use this step:
 
@@ -499,10 +499,10 @@ Adds a non-existing field to a content type. The ContentType property must refer
 ```
 >Please make sure that a **StartRepository** step precedes this one to make sure that the repository is started.
 
-## EditField
-- Full name: *SenseNet.Packaging.Steps.EditField*
-- Default property: *FieldXml*
-- Additional properties: *ContentType*, *InsertBefore*, *InsertAfter*, *FieldName*, *PropertyName*
+### EditField
+- Full name: `SenseNet.Packaging.Steps.EditField`
+- Default property: `FieldXml`
+- Additional properties: `ContentType, InsertBefore, InsertAfter, FieldName, PropertyName`
 
 Adds or modifies a field property in a CTD. This step is able to add new xml fragments to the root of the field only. For changes in the *Configuration* section please use the *EditFieldConfiguration* step below.
 
@@ -516,10 +516,10 @@ The following sample will add or override an existing display name value for the
 ```
 >Please make sure that a **StartRepository** step precedes this one to make sure that the repository is started.
 
-## EditFieldConfiguration
-- Full name: *SenseNet.Packaging.Steps.EditFieldConfiguration*
-- Default property: *FieldXml*
-- Additional properties: *ContentType*, *InsertBefore*, *InsertAfter*, *FieldName*, *PropertyName*
+### EditFieldConfiguration
+- Full name: `SenseNet.Packaging.Steps.EditFieldConfiguration`
+- Default property: `FieldXml`
+- Additional properties: `ContentType, InsertBefore, InsertAfter, FieldName, PropertyName`
 
 Adds or modifies a field configuration value in a CTD. This step is able to add new xml fragments to the *Configuration* xml node of the field. For main field property changes please use the *EditField* step above.
 
@@ -533,10 +533,10 @@ The following sample will add or override an existing configuration value for th
 ```
 >Please make sure that a **StartRepository** step precedes this one to make sure that the repository is started.
 
-## ChangeFieldType
-- Full name: *SenseNet.Packaging.Steps.ChangeFieldType*
-- Default property: *FieldXml*
-- Additional properties: *ContentType*, *FieldName*, *FieldType*, *ArchiveFieldName*
+### ChangeFieldType
+- Full name: `SenseNet.Packaging.Steps.ChangeFieldType`
+- Default property: `FieldXml`
+- Additional properties: `ContentType, FieldName, FieldType, ArchiveFieldName`
 
 This step is able to change the type of a metadata field defined on a content type. The old field will be removed first than the new one will be added. Old field values will be migrated only if it is possible (e.g. from a *Number* field to a *Currency* field or from a *ShortText* field to a *LongText* field). If the conversion does not make sense (e.g. changing a short text field to a reference field), you may provide an archive field for storing old values (that archive field must be created first of course, with the add field step above).
 
@@ -582,10 +582,10 @@ Migrating a field to a new one with an incompatible type and preserving the old 
 ```
 >Please make sure that a **StartRepository** step precedes this one to make sure that the repository is started.
 
-## ChangeFieldTypeInCTD
-- Full name: *SenseNet.Packaging.Steps.ChangeFieldTypeInCTD*
-- Default property: *FieldXml*
-- Additional properties: *ContentType*, *FieldName*, *FieldType*, *ArchiveFieldName*
+### ChangeFieldTypeInCTD
+- Full name: `SenseNet.Packaging.Steps.ChangeFieldTypeInCTD`
+- Default property: `FieldXml`
+- Additional properties: `ContentType, FieldName, FieldType, ArchiveFieldName`
 
 Simple step for changing a field type in a ContentType definition xml. It is able to handle only compatible field types as it replaces the field type *without* making any migration or field remove/add operations (as the more complex *ChangeFieldType* step above does).
 
@@ -597,7 +597,7 @@ For details about the properties, see the **ChangeFieldType** step above.
 <ChangeFieldTypeInCTD ContentType="Application" FieldName="RequiredPermissions" FieldType="PermissionChoice" />
 ```
 
-## EditContentTypeHeader
+### EditContentTypeHeader
 - Full name: *SenseNet.Packaging.Steps.EditContentTypeHeader*
 - Default property: *InnerXml*
 - Additional properties: *PropertyName*
@@ -616,13 +616,13 @@ If you want to modify the **content handler** of the content type, use this step
 ```
 >Please make sure that a **StartRepository** step precedes this one to make sure that the repository is started.
 
-# Permissions and security
+## Permissions and security
 Although it is possible to modify content permissions by importing .Content files containing security entries, sometimes it is easier to define permission changes using these specialized steps.
 
-## SetPermissions
-- Full name: *SenseNet.Packaging.Steps.SetPermissions*
-- Default property: *Path*
-- Additional properties: *Identity, Allow, Deny, LocalOnly*
+### SetPermissions
+- Full name: `SenseNet.Packaging.Steps.SetPermissions`
+- Default property: `Path`
+- Additional properties: `Identity, Allow, Deny, LocalOnly`
 
 Sets permissions on a content, defined by the Path property for the user, group or org unit defined by the Identity property. Permission type names are provided as a comma separated list. Not enumerated permissions will be cleared.
 
@@ -637,10 +637,10 @@ For example the following step adds the read permission to the user but clears a
     />
 ```
 
-## EditPermissions
-- Full name: *SenseNet.Packaging.Steps.EditPermissions*
-- Default property: *Path*
-- Additional properties: *Identity, Allow, Deny, Clear, LocalOnly*
+### EditPermissions
+- Full name: `SenseNet.Packaging.Steps.EditPermissions`
+- Default property: `Path`
+- Additional properties: `Identity, Allow, Deny, Clear, LocalOnly`
 
 Sets or clears permissions on a content, defined by the Path property for the user, group or org unit defined by the Identity property. Permission type names are provided as a comma separated list. Only the enumerated permissions will be changed.
 
@@ -656,10 +656,10 @@ For example the following step extends the user permissions with Publish and App
     />
 ```
 
-## RemovePermissionEntries
-- Full name: *SenseNet.Packaging.Steps.RemovePermissionEntries*
-- Default property: *Path*
-- Additional properties: *Identity*
+### RemovePermissionEntries
+- Full name: `SenseNet.Packaging.Steps.RemovePermissionEntries`
+- Default property: `Path`
+- Additional properties: `Identity`
 
 Removes all permissions from a content defined by the Path property, for the user, group or org unit defined by the Identity property. If the Identity property is missing, all explicit entries will be removed.
 
@@ -674,28 +674,28 @@ For example the first step removes all explicit permissions from the content, wh
   />
 ```
 
-## BreakPermissionInheritance
-- Full name: *SenseNet.Packaging.Steps.BreakPermissionInheritance*
-- Default property: *Path*
-- Additional properties: *-*
+### BreakPermissionInheritance
+- Full name: `SenseNet.Packaging.Steps.BreakPermissionInheritance`
+- Default property: `Path`
+- Additional properties: -
 
 Breaks permission inheritance on a content. If the content does not inherit permissions, this step does nothing.
 
 >Please make sure that a **StartRepository** step precedes this one to make sure that the repository is started.
 
-## RemoveBreakPermissionInheritance
-- Full name: *SenseNet.Packaging.Steps.RemoveBreakPermissionInheritance*
-- Default property: *Path*
-- Additional properties: *-*
+### RemoveBreakPermissionInheritance
+- Full name: `SenseNet.Packaging.Steps.RemoveBreakPermissionInheritance`
+- Default property: `Path`
+- Additional properties: -
 
 Removes break permission inheritance from a content. If the content already inherits permissions, this step does nothing.
 
 >Please make sure that a **StartRepository** step precedes this one to make sure that the repository is started.
 
-## AddMembers
-- Full name: *SenseNet.Packaging.Steps.AddMembers*
-- Default property: *Members*
-- Additional properties: *Group*
+### AddMembers
+- Full name: `SenseNet.Packaging.Steps.AddMembers`
+- Default property: `Members`
+- Additional properties: `Group`
 
 Adds one or more members to the selected Group. The group can be selected by a path or a content query. In case of query only the first content will be used. If the selected group does not exist, the step execution *terminates silently, without throwing an error*. The *Members* property is a comma or semicolon separated list of selectors. Every selector can be one of the following:
 - path
@@ -714,11 +714,11 @@ The result of selectors are aggregated into a single distinct list. Every elemen
 </AddMembers>
 ```
 
-# Resources
-## AddResource
-- Full name: *SenseNet.Packaging.Steps.AddResource*
-- Default property: *-*
-- Additional properties: *ContentName*, *ClassName*, *Resources*
+## Resources
+### AddResource
+- Full name: `SenseNet.Packaging.Steps.AddResource`
+- Default property: -
+- Additional properties: `ContentName, ClassName, Resources`
 
 Adds or edits string resources. It is able to create the necessary string resource content if it does not exist.
 
@@ -734,11 +734,11 @@ Adds or edits string resources. It is able to create the necessary string resour
 </AddResource>
 ```
 
-# Conditional steps
+## Conditional steps
 One of the most powerful features of the packaging framework is the ability to **execute steps based on a condition**. These are the built-in conditional steps, but developers may create their own conditional steps if necessary (see details on the previous link).
 
-## IfCondition
-- Full name: *SenseNet.Packaging.Steps.IfCondition*
+### IfCondition
+- Full name: `SenseNet.Packaging.Steps.IfCondition`
 - Default property: -
 - Additional properties: *Condition*
 
@@ -752,10 +752,10 @@ General conditional step. It executes steps in its *Then* block in case the prov
 </If>
 ```
 
-## IfFileExists
-- Full name: *SenseNet.Packaging.Steps.IfFileExists*
+### IfFileExists
+- Full name: `SenseNet.Packaging.Steps.IfFileExists`
 - Default property: -
-- Additional properties: *Path*
+- Additional properties: `Path`
 
 Checks if the file on the provided path exists in the file system. The path is relative to the target directory.
 ``` xml
@@ -771,10 +771,10 @@ Checks if the file on the provided path exists in the file system. The path is r
 
 >Please note that in the current version this step checks only the **local file system**, where the package is executed; it does not check other (configured) web folders. We assume that all the web folders are synchronized.
 
-## IfDirectoryExists
-- Full name: *SenseNet.Packaging.Steps.IfDirectoryExists*
+### IfDirectoryExists
+- Full name: `SenseNet.Packaging.Steps.IfDirectoryExists`
 - Default property: -
-- Additional properties: *Path*
+- Additional properties: `Path`
 
 Checks if the directory on the provided path exists in the file system. The path is relative to the target directory.
 ``` xml
@@ -789,10 +789,10 @@ Checks if the directory on the provided path exists in the file system. The path
 ```
 >Please note that in the current version this step checks only the local file system, where the package is executed; it does not check other (configured) web folders. We assume that all the web folders are synchronized.
 
-## IfContentExists
-- Full name: *SenseNet.Packaging.Steps.IfContentExists*
+### IfContentExists
+- Full name: `SenseNet.Packaging.Steps.IfContentExists`
 - Default property: -
-- Additional properties: *Path*
+- Additional properties: `Path`
 
 Checks if the content with the provided path exists in the Content Repository. Path is an absolute repository path.
 ``` xml
@@ -807,10 +807,10 @@ Checks if the content with the provided path exists in the Content Repository. P
 ```
 >Please make sure that a **StartRepository** step precedes this one to make sure that the repository is started.
 
-## IfFieldExists
-- Full name: *SenseNet.Packaging.Steps.IfFieldExists*
+### IfFieldExists
+- Full name: `SenseNet.Packaging.Steps.IfFieldExists`
 - Default property: -
-- Additional properties: *ContentType*, *Field*, *LocalOnly*
+- Additional properties: `ContentType, Field, LocalOnly`
 
 Checks if the given field already exists on the provided content type in the Content Repository. If the *LocalOnly* boolean property is set to *True* (the default is *False*), we check only the given CTD xml and do not care about a field defined in a parent type.
 ``` xml
@@ -825,10 +825,10 @@ Checks if the given field already exists on the provided content type in the Con
 ```
 >Please make sure that a **StartRepository** step precedes this one to make sure that the repository is started.
 
-## IfXmlNodeExists
-- Full name: *SenseNet.Packaging.Steps.IfXmlNodeExists*
+### IfXmlNodeExists
+- Full name: `SenseNet.Packaging.Steps.IfXmlNodeExists`
 - Default property: -
-- Additional properties: *File*, *Content*, *Field*, *Xpath*
+- Additional properties: `File, Content, Field, Xpath`
 
 Checks if the given xpath already exists in the provided xml file in the files system or in a content in the Content Repository.
 ``` xml
@@ -842,10 +842,10 @@ Checks if the given xpath already exists in the provided xml file in the files s
 </IfXmlNodeExists>
 ```
 
-## IfDatabaseValue
-- Full name: *SenseNet.Packaging.Steps.IfDatabaseValue*
+### IfDatabaseValue
+- Full name: `SenseNet.Packaging.Steps.IfDatabaseValue`
 - Default property: -
-- Additional properties: *Query*
+- Additional properties: `Query`
 
 Executes the given SQL script (with *ExecuteScalar*) and checks the result. If it is null, 0 or empty string, the conditional result will be FALSE and the steps defined in the *Else* branch will be executed. If the result is 'positive' (a number greater than 0 or a non-empty string), the *Then* branch will get executed.
 ``` xml
@@ -860,10 +860,10 @@ Executes the given SQL script (with *ExecuteScalar*) and checks the result. If i
 ```
 The query argument can also point to a SQL script file in the package (e.g. ```scripts\MyPatchScript.sql```).
 
-## IfDatabaseExists
-- Full name: *SenseNet.Packaging.Steps.IfDatabaseExists*
+### IfDatabaseExists
+- Full name: `SenseNet.Packaging.Steps.IfDatabaseExists`
 - Default property: -
-- Additional properties: *DataSource, Name, UserName, Password*
+- Additional properties: `DataSource, Name, UserName, Password`
 
 Checks if the database with the provided *Name* exists.
 
@@ -881,10 +881,10 @@ If the current user (who executes SnAdmin) does not have enough permissions to a
 </IfDatabaseExists>
 ```
 
-## IfEquals
-- Full name: *SenseNet.Packaging.Steps.IfEquals*
+### IfEquals
+- Full name: `SenseNet.Packaging.Steps.IfEquals`
 - Default property: -
-- Additional properties: *LeftOperand, RightOperand*
+- Additional properties: `LeftOperand, RightOperand`
 
 Executes the steps defined the *Then* section if the two provided values (one of them is usually a *variable*) are equal.
 
@@ -897,10 +897,10 @@ Executes the steps defined the *Then* section if the two provided values (one of
 </IfEquals>	
 ```
 
-## IfMatch
-- Full name: *SenseNet.Packaging.Steps.IfMatch*
+### IfMatch
+- Full name: `SenseNet.Packaging.Steps.IfMatch`
 - Default property: -
-- Additional properties: *Value, Pattern*
+- Additional properties: `Value, Pattern`
 
 Evaluates a Regex expression (the *Pattern* property) on the provided *Value* (usually a string *variable*). If the result matches, it executes the steps in the *Then* section.
 
@@ -915,31 +915,31 @@ Evaluates a Regex expression (the *Pattern* property) on the provided *Value* (u
 </IfMatch>
 ```
 
-# Advanced steps
-## DisableIndexing
-- Full name: *SenseNet.Packaging.Steps.DisableIndexing*
+## Advanced steps
+### DisableIndexing
+- Full name: `SenseNet.Packaging.Steps.DisableIndexing`
 - Default property: -
 - Additional properties: -
 
 Switches off the indexing. This step is experimental, we use it only in internal scenarios.
 
-## EnableIndexing
-- Full name: *SenseNet.Packaging.Steps.EnableIndexing*
+### EnableIndexing
+- Full name: `SenseNet.Packaging.Steps.EnableIndexing`
 - Default property: -
 - Additional properties: -
 
 Switches on the indexing. This step is experimental, we use it only in internal scenarios.
 
-## PopulateIndex
-- Full name: *SenseNet.Packaging.Steps.PopulateIndex*
-- Default property: *Path*
+### PopulateIndex
+- Full name: `SenseNet.Packaging.Steps.PopulateIndex`
+- Default property: `Path`
 - Additional properties: -
 
 Populates the index of the whole content tree, or a subtree, provided by the Path property.
 
-## CheckIndexIntegrity
-- Full name: *SenseNet.Packaging.Steps.CheckIndexIntegrity*
-- Default property: *Path*
+### CheckIndexIntegrity
+- Full name: `SenseNet.Packaging.Steps.CheckIndexIntegrity`
+- Default property: `Path`
 - Additional properties: Recursive, OutputLimit
 
 Checks the index integrity by comparation the index and database. This step needs running repository. All parameters are optional and their meanings are the following:
@@ -967,10 +967,10 @@ Integrity check finished. Count of differences: 5
 Time: 00:00:00.2456550
 ```
 
-## ChangeContentType
-- Full name: *SenseNet.Packaging.Steps.ChangeContentType*
-- Default property: *-*
-- Additional properties: *ContentQuery, ContentTypeName*
+### ChangeContentType
+- Full name: `SenseNet.Packaging.Steps.ChangeContentType`
+- Default property: -
+- Additional properties: `ContentQuery, ContentTypeName`
 
 Changes the content type of one or more content, collected by the ContentQuery property. The new type is defined by the ContentTypeName property. Limitations:
 - only *leaf* content (that have no children) can be changed (this is because the step actually creates a new content based on the source content)
@@ -978,10 +978,10 @@ Changes the content type of one or more content, collected by the ContentQuery p
 
 >Please make sure that a **StartRepository** step precedes this one to make sure that the repository is started.
 
-## EditAllowedChildTypes
-- Full name: *SenseNet.Packaging.Steps.EditAllowedChildTypes*
-- Default property: *Add*
-- Additional properties: *Remove, Path, ContentType*
+### EditAllowedChildTypes
+- Full name: `SenseNet.Packaging.Steps.EditAllowedChildTypes`
+- Default property: `Add`
+- Additional properties: `Remove, Path, ContentType`
 
 Changes the *AllowedContentTypes* list of the defined content type or content by the provided new and retirement list. Step parameters:
 - **Add**: Comma separated content type names that *extend* the original AllowedChildTypes list.
@@ -998,9 +998,9 @@ Examples:
 ```
 >Please make sure that a **StartRepository** step precedes this one to make sure that the repository is started.
 
-## Trace
-- Full name: *SenseNet.Packaging.Steps.Trace*
-- Default property: *Text*
+### Trace
+- Full name: `SenseNet.Packaging.Steps.Trace`
+- Default property: `Text`
 - Additional properties: -
 
 Writes the given text to the console and to the package log. You can annotate the execution with this step. For example:
@@ -1008,10 +1008,10 @@ Writes the given text to the console and to the package log. You can annotate th
 <Trace>The main structure is installed.</Trace>
 ```
 
-## StopSite
-- Full name: *SenseNet.Packaging.Steps.StopSite*
-- Default property: *Site*
-- Additional properties: *MachineName*
+### StopSite
+- Full name: `SenseNet.Packaging.Steps.StopSite`
+- Default property: `Site`
+- Additional properties: `MachineName`
 
 Stops an IIS site on a local or a remote machine. Useful in automatic build scenarios, when you need to update files in a web folder (e.g. NLB test sites).
 ``` xml
@@ -1019,10 +1019,10 @@ Stops an IIS site on a local or a remote machine. Useful in automatic build scen
 ```
 >This step uses the **PsExec** tool to execute appcmd.exe on remote machines. Please download [PsTools](https://technet.microsoft.com/en-us/sysinternals/bb897553.aspx) and copy PsExec.exe to one of the well-known Windows folders (System32 or SysWOW64, depending on the environment) to let the system access the tool.
 
-## StartSite
-- Full name: *SenseNet.Packaging.Steps.StartSite*
-- Default property: *Site*
-- Additional properties: *MachineName*
+### StartSite
+- Full name: `SenseNet.Packaging.Steps.StartSite`
+- Default property: `Site`
+- Additional properties: `MachineName`
 
 Starts an IIS site on a local or a remote machine. Useful in automatic build scenarios, when you need to update files in a web folder (e.g. NLB test sites).
 ``` xml
@@ -1030,12 +1030,12 @@ Starts an IIS site on a local or a remote machine. Useful in automatic build sce
 ```
 >This step uses the **PsExec** tool to execute appcmd.exe on remote machines. Please download [PsTools](https://technet.microsoft.com/en-us/sysinternals/bb897553.aspx) and copy PsExec.exe to one of the well-known Windows folders (System32 or SysWOW64, depending on the environment) to let the system access the tool.
 
-## Terminate
-- Full name: *SenseNet.Packaging.Steps.Terminate*
-- Default property: *Message*
-- Additional properties: *Reason*. The type is *SenseNet.Packaging.TerminationReason* enumeration that has two options:
-    - *Successful*: the package will terminate with success
-    - *Warning*: the package execution result will be Faulty
+### Terminate
+- Full name: `SenseNet.Packaging.Steps.Terminate`
+- Default property: `Message`
+- Additional properties: `Reason`. The type is *SenseNet.Packaging.TerminationReason* enumeration that has two options:
+    - `Successful`: the package will terminate with success
+    - `Warning`: the package execution result will be Faulty
 
 Writes the given message to the console and to the package log. If the Reason is Warning, the package result will be faulty.
 
@@ -1062,10 +1062,10 @@ In the opposite case, when an error is detected in the environment and any furth
 ... other relevant steps ...
 ```
 
-## CreateEventLog
-- Full name: *SenseNet.Packaging.Steps.CreateEventLog*
+### CreateEventLog
+- Full name: `vSenseNet.Packaging.Steps.CreateEventLog`
 - Default property: -
-- Additional properties: *LogName, Machine, Sources*
+- Additional properties: `LogName, Machine, Sources`
 
 System step for creating the provided log and source in Windows Event log.
 
@@ -1074,10 +1074,10 @@ System step for creating the provided log and source in Windows Event log.
 ```xml
 <CreateEventLog LogName="@logName" Machine="@machine" Sources="@sources" />
 ```
-## DeleteEventLog
-- Full name: *SenseNet.Packaging.Steps.CreateEventLog*
+##x DeleteEventLog
+- Full name: `SenseNet.Packaging.Steps.CreateEventLog`
 - Default property: -
-- Additional properties: *LogName, Machine, Sources*
+- Additional properties: `LogName, Machine, Sources`
 
 System step for deleting the provided log and source from the Windows Event log.
 
