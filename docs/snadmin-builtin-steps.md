@@ -1,6 +1,10 @@
 # Built-in SnAdmin steps
 **sensenet ECM** evolves constantly and we release new versions of the product from time to time. To make the upgrade easier we offer **upgrade packages** for *Enterprise* customers. *Community* customers can take advantage of this packaging framework also, to create their own upgrade packages or aid their **build processes**. This article lists all the available built-in steps that are shipped with the product and can be used to build a package.
 
+>To learn more about the tool we use to execute these packages, please check out the main [SnAdmin](https://github.com/SenseNet/sn-admin/blob/master/docs/snadmin.md) article.
+> 
+>Developers may create their own [custom steps](http://community.sensenet.com/docs/tutorials/snadmin-create-custom-step) to extend the built-in API.
+
 ## Basic steps
 ### Assign
 - Full name: *SenseNet.Packaging.Steps.Assign*
