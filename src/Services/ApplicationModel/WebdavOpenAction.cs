@@ -88,7 +88,7 @@ namespace SenseNet.ApplicationModel
                     this.Forbidden = true;
             }
 
-            if (!Webdav.WebdavEditExtensions.Any(extension => context.Name.EndsWith(extension)))
+            if (!Webdav.WebdavEditExtensions.Any(extension => context.Name.EndsWith(extension, StringComparison.InvariantCultureIgnoreCase)))
                 this.Visible = false;
         }
     }
