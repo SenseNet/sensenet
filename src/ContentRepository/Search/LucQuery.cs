@@ -63,6 +63,7 @@ namespace SenseNet.Search
         public int PageSize { get; set; }
         public int Top { get; set; }
         public bool CountOnly { get; set; }
+        public bool AllPages { get; set; }
         public QueryExecutionMode QueryExecutionMode { get; set; }
         public FilterStatus EnableAutofilters { get; set; }
         public FilterStatus EnableLifespanFilter { get; set; }

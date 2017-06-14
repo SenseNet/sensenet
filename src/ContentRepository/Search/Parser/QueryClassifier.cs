@@ -16,6 +16,7 @@ namespace SenseNet.Search.Parser
         public List<string> SortFieldNames { get; set; }
         public int Top { get; set; }
         public int Skip { get; set; }
+        public bool AllPages{get;set;}
         public bool CountOnly { get; set; }
         public bool AllVersions { get; set; }
 
@@ -102,6 +103,7 @@ namespace SenseNet.Search.Parser
                 Top = top,
                 Skip = skip,
                 SortFieldNames = sortfieldNames,
+                AllPages = query.AllPages,
                 CountOnly = countOnly,
                 AllVersions = allVersions
             };

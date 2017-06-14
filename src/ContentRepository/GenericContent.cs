@@ -35,6 +35,7 @@ namespace SenseNet.ContentRepository
         public int Top { get; set; }
         public int Skip { get; set; }
         public IEnumerable<SortInfo> Sort { get; set; }
+        public bool AllPages { get; set; }
         public FilterStatus EnableAutofilters { get; set; }
         public FilterStatus EnableLifespanFilter { get; set; }
         public QueryExecutionMode QueryExecutionMode { get; set; }
@@ -83,6 +84,7 @@ namespace SenseNet.ContentRepository
                 Top = this.Top,
                 Skip = this.Skip,
                 Sort = this.Sort,
+                AllPages = this.AllPages,
                 EnableAutofilters = this.EnableAutofilters,
                 EnableLifespanFilter = this.EnableLifespanFilter,
                 QueryExecutionMode = this.QueryExecutionMode
