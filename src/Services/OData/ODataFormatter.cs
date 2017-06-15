@@ -525,17 +525,26 @@ new StackInfo
                 lucQuery.QueryExecutionMode = cdef.QueryExecutionMode;
 
             var result = lucQuery.Execute();
-            var idResult = result.Select(x => x.NodeId).ToArray();
-            count = req.InlineCount == InlineCount.AllPages ? lucQuery.TotalCount : idResult.Count();
-            
-            if (req.CountOnly)
+            var idResult = result.Select(x => x.NodeId);
+            // for optimization purposes this combined condition is examined separately
+            if (req.InlineCount == InlineCount.AllPages && req.CountOnly)
+            {
+                count = lucQuery.TotalCount;
                 return null;
+            }
+
+            var ids = idResult.ToArray();
+            count = req.InlineCount == InlineCount.AllPages ? lucQuery.TotalCount : ids.Length;
+            if (req.CountOnly)
+            {
+                return null;
+            }
 
             var contents = new List<Dictionary<string, object>>();
             var projector = Projector.Create(req, true);
             var missingIds = new List<int>();
 
-            foreach (var id in idResult)
+            foreach (var id in ids)
             {
                 var content = Content.Load(id);
                 if (content == null)
