@@ -100,7 +100,7 @@ namespace SenseNet.ContentRepository.Linq
                     query.Top = childrenDef.Top;
                 if (childrenDef.Sort != null)
                     query.SetSort(childrenDef.Sort);
-                query.AllPages = childrenDef.AllPages;
+                query.AllPages = childrenDef.AllPagesInlineCount;
                 if(childrenDef.EnableAutofilters != FilterStatus.Default)
                     query.EnableAutofilters = childrenDef.EnableAutofilters;
                 if (childrenDef.EnableLifespanFilter != FilterStatus.Default)
