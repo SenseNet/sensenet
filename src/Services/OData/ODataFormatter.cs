@@ -510,6 +510,7 @@ new StackInfo
                 Top = req.Top > 0 ? req.Top : qdef.Top,
                 Skip = req.Skip > 0 ? req.Skip : qdef.Skip,
                 Sort = req.Sort != null && req.Sort.Count() > 0 ? req.Sort : qdef.Sort,
+                CountAllPages = req.HasInlineCount ? req.InlineCount == InlineCount.AllPages : qdef.CountAllPages,
                 EnableAutofilters = req.AutofiltersEnabled != FilterStatus.Default ? req.AutofiltersEnabled : qdef.EnableAutofilters,
                 EnableLifespanFilter = req.LifespanFilterEnabled != FilterStatus.Default ? req.AutofiltersEnabled : qdef.EnableLifespanFilter,
                 QueryExecutionMode = req.QueryExecutionMode != QueryExecutionMode.Default ? req.QueryExecutionMode : qdef.QueryExecutionMode,
@@ -525,16 +526,25 @@ new StackInfo
 
             var result = lucQuery.Execute();
             var idResult = result.Select(x => x.NodeId);
-            count = req.InlineCount == InlineCount.AllPages ? lucQuery.TotalCount : idResult.Count();
-            
-            if (req.CountOnly)
+            // for optimization purposes this combined condition is examined separately
+            if (req.InlineCount == InlineCount.AllPages && req.CountOnly)
+            {
+                count = lucQuery.TotalCount;
                 return null;
+            }
+
+            var ids = idResult.ToArray();
+            count = req.InlineCount == InlineCount.AllPages ? lucQuery.TotalCount : ids.Length;
+            if (req.CountOnly)
+            {
+                return null;
+            }
 
             var contents = new List<Dictionary<string, object>>();
             var projector = Projector.Create(req, true);
             var missingIds = new List<int>();
 
-            foreach (var id in idResult)
+            foreach (var id in ids)
             {
                 var content = Content.Load(id);
                 if (content == null)
