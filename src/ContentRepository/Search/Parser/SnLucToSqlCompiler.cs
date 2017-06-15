@@ -136,7 +136,7 @@ namespace SenseNet.Search.Parser
                     msg = "Cannot compile to SQL: Skip:" + queryInfo.Skip;
                 return msg;
             }
-            if (queryInfo.AllPages)
+            if (queryInfo.CountAllPages)
             {
                 return withMessages ? "Cannot compile to SQL: InlineCount: AllPages": msg;
             }
