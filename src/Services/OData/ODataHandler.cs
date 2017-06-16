@@ -221,9 +221,8 @@ namespace SenseNet.Portal.OData
                         }
                         break;
                     case "OPTIONS":
-                        // Prepare preflight response.
-                        // The header: Access-Control-Allow-Methods: GET, POST, PATCH, MERGE, PUT
-                        HttpHeaderTools.SetPreflightResponse("GET", "POST", "PATCH", "MERGE", "PUT");
+                        // set allowed methods and headers
+                        HttpHeaderTools.SetPreflightResponse();
                         break;
                 }
             }

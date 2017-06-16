@@ -28,6 +28,8 @@ namespace SenseNet.Portal
         public const string SETTINGS_UPLOADFILEEXTENSIONS = "UploadFileExtensions";
         public const string SETTINGS_UPLOADFILEEXTENSIONS_DEFAULT = "UploadFileExtensions.DefaultContentType";
         public const string SETTINGS_ALLOWEDORIGINDOMAINS = "AllowedOriginDomains";
+        public const string SETTINGS_ALLOWEDMETHODS = "AllowedMethods";
+        public const string SETTINGS_ALLOWEDHEADERS = "AllowedHeaders";
 
         public PortalSettings(Node parent) : this(parent, null) { }
         public PortalSettings(Node parent, string nodeTypeName) : base(parent, nodeTypeName) {}
