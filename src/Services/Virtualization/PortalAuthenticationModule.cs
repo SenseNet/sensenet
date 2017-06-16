@@ -139,11 +139,8 @@ namespace SenseNet.Portal.Virtualization
 
                 if (request?.HttpMethod == "OPTIONS")
                 {
-                    // Prepare preflight response.
-                    // The header: Access-Control-Allow-Methods: GET, POST, PATCH, MERGE, PUT
-                    HttpHeaderTools.SetPreflightResponse(
-                            httpVerbs: new [] {"GET", "POST", "PATCH", "MERGE", "PUT"}, 
-                            httpHeaders: new [] { "X-Authentication-Type", "X-Refresh-Data", "X-Access-Data", "X-Requested-With", "Authorization", "Content-Type" });
+                    // set allowed methods and headers
+                    HttpHeaderTools.SetPreflightResponse();
 
                     application?.CompleteRequest();
                 }
