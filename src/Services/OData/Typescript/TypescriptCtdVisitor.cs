@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SenseNet.ContentRepository.Schema.Metadata;
 
 namespace SenseNet.Portal.OData.Typescript
@@ -29,14 +26,15 @@ namespace SenseNet.Portal.OData.Typescript
  * The ```Schema``` class represents an object that holds the basic information about the Content Type (name, icon, ect.) and an array of its ```FieldSettings``` and their full configuration.
  */ /** */
 
-import { FieldSettings } from './SN';
+import { FieldSettings, Content, ContentTypes } from './SN';
 
     /**
      * Class that represents a Schema.
      *
      * It represents an object that holds the basic information about the Content Type (name, icon, ect.) and an array of its ```FieldSettings``` and their full configuration.
      */
-    export class Schema {
+    export class Schema<TContentType extends Content> {
+        ContentType: {new(...args): TContentType}
         Icon: string;
         DisplayName: string;
         Description: string;
@@ -44,35 +42,13 @@ import { FieldSettings } from './SN';
         AllowIncrementalNaming: boolean;
         AllowedChildTypes: string[];
         FieldSettings: FieldSettings.FieldSetting[];
-        /**
-         * @constructs Schema
-         * @param options {Object} An object implementing ISchemaOptions interface;
-         */
-        constructor(options: ISchemaOptions) {
-            this.Icon = options.Icon;
-            this.DisplayName = options.DisplayName;
-            this.Description = options.Description;
-            this.FieldSettings = options.FieldSettings;
-            this.AllowIndexing = options.AllowIndexing;
-            this.AllowIncrementalNaming = options.AllowIncrementalNaming;
-            this.AllowedChildTypes = options.AllowedChildTypes;
+
+        constructor(schema: Partial<Schema<TContentType>>){
+            Object.assign(this, schema);
         }
     }
 
-    /**
-    * Interface for classes that represent a Schema.
-    *
-    * @interface ISchemaOptions
-    */
-    export interface ISchemaOptions {
-        Icon?: string;
-        DisplayName?: string;
-        Description?: string;
-        AllowIndexing?: boolean;
-        AllowIncrementalNaming?: boolean;
-        AllowedChildTypes?: string[];
-        FieldSettings?: FieldSettings.FieldSetting[];
-    }
+    export const SchemaStore: Schema<Content>[] = [
 ");
             #endregion
 
@@ -80,6 +56,8 @@ import { FieldSettings } from './SN';
             _indentCount++;
             Visit(schema.Classes);
             _indentCount--;
+
+            _writer.WriteLine(@"]");
             return schema;
         }
 
@@ -94,27 +72,25 @@ import { FieldSettings } from './SN';
             WriteLine($" * Method that returns the Content Type Definition of the {contentType.Name}");
             WriteLine(" * @returns {Schema}");
             WriteLine(" */");
-            WriteLine($"export function {contentType.Name}CTD(): Schema {{");
+            WriteLine($"new Schema({{");
             _indentCount++;
 
-            WriteLine($"let options: ISchemaOptions = {{");
+            WriteLine($"    ContentType: ContentTypes.{contentType.Name},");
             WriteLine($"    DisplayName: '{contentType.DisplayName}',");
             WriteLine($"    Description: '{contentType.Description}',");
             WriteLine($"    Icon: '{contentType.Icon}',");
             WriteLine($"    AllowIndexing: {contentType.IndexingEnabled.ToString().ToLowerInvariant()},");
             WriteLine($"    AllowIncrementalNaming: {contentType.AllowIncrementalNaming.ToString().ToLowerInvariant()},");
             WriteLine($"    AllowedChildTypes: [{allowedChildTypes}],");
-            WriteLine($"    FieldSettings: []");
-            WriteLine($"}};");
-            WriteLine();
-            WriteLine($"let schema = new Schema(options);");
-            WriteLine();
+            WriteLine($"    FieldSettings: [");
 
             var visitedClass = base.VisitClass(@class);
 
-            WriteLine($"return schema;");
+            WriteLine($"]");
+            WriteLine($"}}),");
+            WriteLine();
+
             _indentCount--;
-            WriteLine("}");
 
             return visitedClass;
         }
@@ -136,9 +112,6 @@ import { FieldSettings } from './SN';
                 if (value != null)
                     propertyLines.Add(name.ToCamelCase() + ": " + value);
             }
-
-
-            WriteLine("schema.FieldSettings.push(");
             _indentCount++;
             WriteLine($"new FieldSettings.{property.FieldSetting.GetType().Name}({{");
             _indentCount++;
@@ -148,7 +121,7 @@ import { FieldSettings } from './SN';
                 WriteLine($"{propertyLines[i]}{comma}");
             }
             _indentCount--;
-            WriteLine("}));");
+            WriteLine("}),");
             _indentCount--;
             return base.VisitProperty(property);
         }
