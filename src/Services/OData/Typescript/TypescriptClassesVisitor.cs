@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SenseNet.ContentRepository.Schema.Metadata;
 
 namespace SenseNet.Portal.OData.Typescript
@@ -49,8 +46,7 @@ import { IRepository } from './Repository/IRepository';
             var propertyLines = new List<string>();
             foreach (var property in visitedProperties)
             {
-                var required = property.Type.Required ? "" : "?";
-                propertyLines.Add($"{property.Name}{required}: {GetPropertyTypeName(property)};");
+                propertyLines.Add($"{property.Name}?: {GetPropertyTypeName(property)};");
             }
 
             var type = @class.Name;
@@ -70,12 +66,10 @@ import { IRepository } from './Repository/IRepository';
             WriteLine($" * @constructs {type}");
             WriteLine($" * @param options {{object}} An object implementing {{@link I{type}Options" + "} interface");
             WriteLine($" */");
-            WriteLine($"constructor(options: I{type}Options, repository: IRepository<any, any>) {{");
+            WriteLine($"constructor(public readonly options: I{type}Options, repository: IRepository<any, any>) {{");
             WriteLine($"    super(options, repository);");
 
             _indentCount++;
-            foreach (var property in visitedProperties)
-                WriteLine($"this.{property.Name} = options.{property.Name};");
             _indentCount--;
             WriteLine("}");
             WriteLine();
@@ -87,7 +81,7 @@ import { IRepository } from './Repository/IRepository';
             WriteLine($" * @interface I{type}Options");
             WriteLine($" * @extends {{@link I{parentName}Options" + "}");
             WriteLine($" */");
-            WriteLine($"interface I{type}Options extends I{parentName}Options {{");
+            WriteLine($"export interface I{type}Options extends I{parentName}Options {{");
             _indentCount++;
             foreach (var propertyLine in propertyLines)
                 WriteLine(propertyLine);
