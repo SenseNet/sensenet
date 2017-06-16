@@ -18,6 +18,7 @@ namespace SenseNet.Portal.Virtualization
         private static readonly string HEADER_ACESSCONTROL_ALLOWORIGIN_NAME = "Access-Control-Allow-Origin";
         private static readonly string HEADER_ACESSCONTROL_ALLOWCREDENTIALS_NAME = "Access-Control-Allow-Credentials";
         private static readonly string ACCESS_CONTROL_ALLOW_METHODS_NAME = "Access-Control-Allow-Methods";
+        private static readonly string ACCESS_CONTROL_ALLOW_HEADERS_NAME = "Access-Control-Allow-Headers";
         private static readonly string HEADER_ACESSCONTROL_ALLOWCREDENTIALS_ALL = "*";
         private static readonly string HEADER_ACESSCONTROL_ORIGIN_NAME = "Origin";
 
@@ -243,11 +244,14 @@ namespace SenseNet.Portal.Virtualization
         /// Sets the Access-Control-Allow-Methods header that is a response to the OData OPTIONS request.
         /// </summary>
         /// <param name="httpVerbs">List of the allowed HTTP verbs. For example: "GET", "POST". Cannot be null.</param>
-        public static void SetPreflightResponse(params string[] httpVerbs)
+        /// <param name="httpHeaders">List of the allowed HTTP headers. For example: "Content-Type", "Authentication". Cannot be null.</param>
+        public static void SetPreflightResponse(string[] httpVerbs, string[] httpHeaders)
         {
             if(httpVerbs == null)
                 throw new ArgumentNullException(nameof(httpVerbs));
             HttpContext.Current.Response.Headers.Set(ACCESS_CONTROL_ALLOW_METHODS_NAME, string.Join(", ", httpVerbs));
+
+            HttpContext.Current.Response.Headers.Set(ACCESS_CONTROL_ALLOW_HEADERS_NAME, string.Join(", ", httpHeaders));
         }
 
         /// <summary>

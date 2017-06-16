@@ -141,7 +141,11 @@ namespace SenseNet.Portal.Virtualization
                 {
                     // Prepare preflight response.
                     // The header: Access-Control-Allow-Methods: GET, POST, PATCH, MERGE, PUT
-                    HttpHeaderTools.SetPreflightResponse("GET", "POST", "PATCH", "MERGE", "PUT");
+                    HttpHeaderTools.SetPreflightResponse(
+                            httpVerbs: new [] {"GET", "POST", "PATCH", "MERGE", "PUT"}, 
+                            httpHeaders: new [] { "X-Authentication-Type", "X-Refresh-Data", "X-Access-Data", "X-Requested-With", "Authorization", "Content-Type" });
+
+                    application?.CompleteRequest();
                 }
 
                 if (basicAuthenticated && anonymAuthenticated)
