@@ -720,6 +720,30 @@ namespace SenseNet.Packaging.Tests
             ExecutePhases(manifest);
         }
         [TestMethod]
+        public void Packaging_DependencyCheck_CanInstall_SameVersion_AfterFailures()
+        {
+            const string packageId = "MyCompany.MyComponent";
+            const string manifest = @"<?xml version='1.0' encoding='utf-8'?>
+                    <Package type='Install'>
+                        <Id>" + packageId +  @"</Id>
+                        <ReleaseDate>2017-01-01</ReleaseDate>
+                        <Version>1.0</Version>
+                        <Steps>
+                            <Trace>Package is running.</Trace>
+                        </Steps>
+                    </Package>";
+
+            ExecutePhases(manifest);
+
+            // add a few failure lines
+            SavePackage(packageId, "1.1", "01:00", "2016-01-01", PackageType.Install, ExecutionResult.Faulty);
+            SavePackage(packageId, "1.1", "02:00", "2016-01-02", PackageType.Patch, ExecutionResult.Faulty);
+            SavePackage(packageId, "1.1", "03:00", "2016-01-03", PackageType.Patch, ExecutionResult.Unfinished);
+
+            // execute the original package to 'repair' the component
+            ExecutePhases(manifest);
+        }
+        [TestMethod]
         public void Packaging_DependencyCheck_CannotInstall_DisabledMultiple()
         {
             const string manifest = @"<?xml version='1.0' encoding='utf-8'?>
