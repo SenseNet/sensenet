@@ -1,3 +1,4 @@
+# Cross-origin resource sharing
 [Cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) (CORS) is a technique that allows client-side web developers to access resources from a *different domain*. Shared JavaScript files or images are good examples for this. However cross-origin requests can also be used by hackers and malicious sites to access confidential information if a site is not protected against [Cross Site Request Forgery](http://hu.wikipedia.org/wiki/Cross-site_request_forgery) (CSRF) attacks. This is why browsers apply strict rules for these operations to prevent hackers from accessing the portal from external sites.
 
 > **sensenet ECM** supports CORS OData requests from **version 6.4** and CORS file download requests from **version 6.5.3**. In this article operators and developers may learn about CORS settings and how we prevent cross-domain attacks.}}
@@ -33,7 +34,7 @@ Access-Control-Allow-Origin: http://example.com
 
 When a browser receives the response above, it will allow the JavaScript runtime to *access the results* only if it was sent from an html page that came from the *same domain*. E.g. if this AJAX request was made on an html page that was downloaded from a different, malicious website, the request would fail.
 
-> Please note that in this case the request was already executed successfully on the server, it is just the client-side Javascript code that is not allowed to access the results. See the next section about how we use origin check to protect our portals against requests that would cause harm even if the client-side code does not receive the result.
+> Please note that in this case the request was already executed successfully on the server, it is just the client-side JavaScript code that is not allowed to access the results. See the next section about how we use origin check to protect our portals against requests that would cause harm even if the client-side code does not receive the result.
 
 ### Origin check 
 In case of cross-domain requests all modern browsers send the *Origin* header to the server, containing the domain of the original page. Sensenet ECM always checks for the Origin header and if it is different than the requested domain and it is not included in a **whitelist**, the request will fail on the server without being able to do any harm. 
