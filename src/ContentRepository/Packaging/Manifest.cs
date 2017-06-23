@@ -15,6 +15,7 @@ namespace SenseNet.Packaging
 
         public PackageType PackageType { get; private set; }
         public bool SystemInstall { get; private set; }
+        public bool MultipleExecutionAllowed { get; private set; } = true;
         public string ComponentId { get; private set; }
         public string Description { get; private set; }
         public DateTime ReleaseDate { get; private set; }
@@ -76,6 +77,15 @@ namespace SenseNet.Packaging
                 throw new InvalidPackageException(SR.Errors.Manifest.InvalidType,
                     PackagingExceptionType.InvalidPackageType);
             manifest.PackageType = packageType;
+
+            // parsing multiple execution switch
+            var multipleAttr = e.Attributes.Cast<XmlAttribute>()
+                .SingleOrDefault(a => 
+                string.Compare(a.Name, "multipleexecution", StringComparison.InvariantCultureIgnoreCase) == 0);
+            var multipleText = multipleAttr?.Value;
+            bool multipleValue;
+            if (!string.IsNullOrWhiteSpace(multipleText) && bool.TryParse(multipleText, out multipleValue))
+                manifest.MultipleExecutionAllowed = multipleValue;
 
             // parsing ComponentId
             e = (XmlElement)xml.DocumentElement.SelectSingleNode("Id");
@@ -225,8 +235,15 @@ namespace SenseNet.Packaging
             if (PackageType == PackageType.Install)
             {
                 if (!(forcedReinstall && SystemInstall) && existingComponentInfo != null)
-                    throw new PackagePreconditionException(string.Format(SR.Errors.Precondition.CannotInstallExistingComponent1, this.ComponentId),
-                        PackagingExceptionType.CannotInstallExistingComponent);
+                {
+                    // Install packages can be executed multiple times only if it is 
+                    // allowed in the package AND the version in the manifest is the
+                    // same as in the db.
+                    if (!this.MultipleExecutionAllowed || existingComponentInfo.Version != this.Version)
+                        throw new PackagePreconditionException(
+                            string.Format(SR.Errors.Precondition.CannotInstallExistingComponent1, this.ComponentId),
+                            PackagingExceptionType.CannotInstallExistingComponent);
+                }
             }
             else if (PackageType != PackageType.Tool)
             {

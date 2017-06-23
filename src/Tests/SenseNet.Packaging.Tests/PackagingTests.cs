@@ -680,7 +680,8 @@ namespace SenseNet.Packaging.Tests
                         </Steps>
                     </Package>");
 
-            // action
+            // This package will fail, because it tries to Install a newer version.
+            // Use Patch packages for upgrading existing components.
             try
             {
                 ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
@@ -692,6 +693,52 @@ namespace SenseNet.Packaging.Tests
                                 <Trace>Package is running.</Trace>
                             </Steps>
                         </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.CannotInstallExistingComponent, e.ErrorType);
+            }
+        }
+        [TestMethod]
+        public void Packaging_DependencyCheck_CanInstall_SameVersion()
+        {
+            const string manifest = @"<?xml version='1.0' encoding='utf-8'?>
+                    <Package type='Install'>
+                        <Id>MyCompany.MyComponent</Id>
+                        <ReleaseDate>2017-01-01</ReleaseDate>
+                        <Version>1.0</Version>
+                        <Steps>
+                            <Trace>Package is running.</Trace>
+                        </Steps>
+                    </Package>";
+
+            ExecutePhases(manifest);
+
+            // It is possible to execute the same install package multiple times,
+            // if the multipleexecution flag is switched on (the default is true).
+            ExecutePhases(manifest);
+        }
+        [TestMethod]
+        public void Packaging_DependencyCheck_CannotInstall_DisabledMultiple()
+        {
+            const string manifest = @"<?xml version='1.0' encoding='utf-8'?>
+                    <Package type='Install' multipleexecution='false'>
+                        <Id>MyCompany.MyComponent</Id>
+                        <ReleaseDate>2017-01-01</ReleaseDate>
+                        <Version>1.0</Version>
+                        <Steps>
+                            <Trace>Package is running.</Trace>
+                        </Steps>
+                    </Package>";
+
+            ExecutePhases(manifest);
+
+            // It is not possible to Install a package multiple times if the
+            // multipleexecution attribute is set to false.
+            try
+            {
+                ExecutePhases(manifest);
                 Assert.Fail("PackagingException was not thrown.");
             }
             catch (PackagingException e)
@@ -723,7 +770,7 @@ namespace SenseNet.Packaging.Tests
                             <Steps>
                                 <Trace>Package is running.</Trace>
                             </Steps>
-                        </Package>", 1);
+                        </Package>", 1, true);
                 Assert.Fail("PackagingException was not thrown.");
             }
             catch (PackagingException e)
@@ -750,29 +797,22 @@ namespace SenseNet.Packaging.Tests
                         </Steps>
                     </Package>");
 
-            // action
-            try
-            {
-                ParseManifest($@"<?xml version='1.0' encoding='utf-8'?>
-                        <Package type='Install'>
-                            <Id>{Manifest.SystemComponentId}</Id>
-                            <ReleaseDate>2017-01-01</ReleaseDate>
-                            <Version>1.1</Version>
-                            <Parameters>
-                                <Parameter name='@dataSource'>.</Parameter>
-                                <Parameter name='@initialCatalog'>sensenet</Parameter>
-                                <Parameter name='@userName'></Parameter>
-                                <Parameter name='@password'></Parameter>
-                            </Parameters>
-                            <Steps>
-                                <Trace>Package is running.</Trace>
-                            </Steps>
-                        </Package>", 1, true);
-            }
-            catch (PackagingException e)
-            {
-                Assert.AreEqual(PackagingExceptionType.CannotInstallExistingComponent, e.ErrorType);
-            }
+            // it is possible to force reinstall the system component, even with a different version
+            ParseManifest($@"<?xml version='1.0' encoding='utf-8'?>
+                    <Package type='Install'>
+                        <Id>{Manifest.SystemComponentId}</Id>
+                        <ReleaseDate>2017-01-01</ReleaseDate>
+                        <Version>1.1</Version>
+                        <Parameters>
+                            <Parameter name='@dataSource'>.</Parameter>
+                            <Parameter name='@initialCatalog'>sensenet</Parameter>
+                            <Parameter name='@userName'></Parameter>
+                            <Parameter name='@password'></Parameter>
+                        </Parameters>
+                        <Steps>
+                            <Trace>Package is running.</Trace>
+                        </Steps>
+                    </Package>", 1, true);
         }
         [TestMethod]
         public void Packaging_DependencyCheck_CannotUpdateMissingComponent()
