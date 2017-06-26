@@ -1551,6 +1551,32 @@ namespace SenseNet.Packaging.Tests
             Assert.AreEqual(expected, actual);
             Assert.AreEqual(9, verInfo.InstalledPackages.Count());
         }
+        [TestMethod]
+        public void Packaging_VersionInfo_MultipleInstall()
+        {
+            const string packageId = "C1";
+            SavePackage(packageId, "1.0", "01:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
+            SavePackage(packageId, "1.0", "02:00", "2016-01-02", PackageType.Install, ExecutionResult.Successful);
+            SavePackage(packageId, "1.1", "03:00", "2016-01-03", PackageType.Install, ExecutionResult.Faulty);
+            SavePackage(packageId, "1.2", "04:00", "2016-01-04", PackageType.Install, ExecutionResult.Faulty);
+            SavePackage("C2", "1.0", "05:00", "2016-01-05", PackageType.Install, ExecutionResult.Successful);
+            SavePackage(packageId, "1.0", "06:00", "2016-01-06", PackageType.Install, ExecutionResult.Successful);
+
+            var verInfo = RepositoryVersionInfo.Instance;
+
+            // check
+            var actual = string.Join(" | ", verInfo.Components
+                .OrderBy(a => a.ComponentId)
+                .Select(a => $"{a.ComponentId}: {a.AcceptableVersion} ({a.Version})")
+                .ToArray());
+
+            // In the current test implementation (TestPackageStorageProvider) the installed components
+            // are loaded into a distinct list, there is only one line for every component. This is
+            // DIFFERENT from the real SQL provider that loads all lines.
+            var expected = "C1: 1.0 (1.2) | C2: 1.0 (1.0)";
+            Assert.AreEqual(expected, actual);
+            Assert.AreEqual(6, verInfo.InstalledPackages.Count());
+        }
 
         #endregion
 

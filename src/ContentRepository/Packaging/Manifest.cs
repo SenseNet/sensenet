@@ -81,7 +81,7 @@ namespace SenseNet.Packaging
             // parsing multiple execution switch
             var multipleAttr = e.Attributes.Cast<XmlAttribute>()
                 .SingleOrDefault(a => 
-                string.Compare(a.Name, "multipleexecution", StringComparison.InvariantCultureIgnoreCase) == 0);
+                string.Compare(a.Name, "multipleExecution", StringComparison.InvariantCultureIgnoreCase) == 0);
             var multipleText = multipleAttr?.Value;
             bool multipleValue;
             if (!string.IsNullOrWhiteSpace(multipleText) && bool.TryParse(multipleText, out multipleValue))
