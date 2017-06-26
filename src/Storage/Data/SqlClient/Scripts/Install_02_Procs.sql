@@ -1534,7 +1534,7 @@ BEGIN
 
 	SELECT VersionId, @NodeTimestamp as NodeTimestamp, [Timestamp] as Versiontimestamp, @LastMajorVersionId as LastMajorVersionId, @LastMinorVersionId as LastMinorVersionId FROM Versions WHERE VersionId = @NewVersionId
 
-	SELECT B.BinaryPropertyId, B.PropertyTypeId FROM BinaryProperties B JOIN Files F ON b.FileId = F.FileId
+	SELECT B.BinaryPropertyId, B.PropertyTypeId FROM BinaryProperties B JOIN Files F ON B.FileId = F.FileId
 		WHERE B.VersionId = @NewVersionId AND Staging IS NULL
 END' 
 END
