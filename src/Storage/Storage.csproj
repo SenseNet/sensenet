@@ -153,6 +153,7 @@
     <Compile Include="BackgroundOperations\TaskManager.cs" />
     <Compile Include="Caching\Dependency\EventServer.cs" />
     <Compile Include="CannotDeleteReferredContentException.cs" />
+    <Compile Include="ComponentInfo.cs" />
     <Compile Include="Configuration\Cache.cs" />
     <Compile Include="Configuration\ContentNaming.cs" />
     <Compile Include="Configuration\Identifiers.cs" />

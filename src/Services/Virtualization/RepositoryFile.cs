@@ -148,8 +148,8 @@ namespace SenseNet.Portal.Virtualization
                     // at the end of the request (PortalContextModule.EndRequest method).
                     if (HttpContext.Current != null &&
                         PortalContext.Current != null &&
-                        PortalContext.Current.RepositoryPath == _repositoryPath &&
-                        (string.IsNullOrEmpty(PortalContext.Current.ActionName) || PortalContext.Current.ActionName == "Browse") &&
+                        string.Equals(PortalContext.Current.RepositoryPath, _repositoryPath, StringComparison.InvariantCultureIgnoreCase) &&
+                        (string.IsNullOrEmpty(PortalContext.Current.ActionName) || string.Equals(PortalContext.Current.ActionName, "Browse", StringComparison.InvariantCultureIgnoreCase)) &&
                         !string.IsNullOrEmpty(contentType) &&
                         contentType != "text/asp")
                     {

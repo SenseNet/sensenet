@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentType name='ChoiceFieldSetting' parentType='ShortTextFieldSetting' handler='SenseNet.ContentRepository.Schema.FieldSettingContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+  <DisplayName>$Ctd-ChoiceFieldSetting,DisplayName</DisplayName>
+  <Icon>addchoicefield</Icon>
+  <Fields />
+</ContentType>

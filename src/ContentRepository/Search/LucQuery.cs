@@ -63,6 +63,7 @@ namespace SenseNet.Search
         public int PageSize { get; set; }
         public int Top { get; set; }
         public bool CountOnly { get; set; }
+        public bool CountAllPages { get; set; }
         public QueryExecutionMode QueryExecutionMode { get; set; }
         public FilterStatus EnableAutofilters { get; set; }
         public FilterStatus EnableLifespanFilter { get; set; }
@@ -287,7 +288,7 @@ namespace SenseNet.Search
                     FieldLevel = GetFieldLevel();
                 var permissionChecker = new PermissionChecker(this.User ?? AccessProvider.Current.GetCurrentUser(), FieldLevel, allVersions);
 
-                this.QueryInfo = QueryClassifier.Classify(this, this.Top, this.Skip, this.SortFields, this.CountOnly, allVersions);
+                this.QueryInfo = QueryClassifier.Classify(this, allVersions);
 
                 IEnumerable<LucObject> result = null;
                 IQueryExecutor executor = null;
