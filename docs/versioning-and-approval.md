@@ -16,7 +16,7 @@ The versioning system of **sensenet ECM** also provides mechanisms for keeping t
 
 ### Versioning in sensenet ECM
 
-In sensenet ECM, versioning is disabled by default. It can be enabled for folders or content lists, by setting the value of the Versioning Mode field. Subfolders inherit versioning settings by default.
+In sensenet ECM, versioning is disabled by default. It can be enabled for content lists or other containers, by setting the value of the Versioning Mode field. Subfolders inherit versioning settings from their parents by default.
 
 **Versioning Mode** settings for folders:
 
@@ -41,11 +41,11 @@ This method provides an extra line of defense for keeping mission critical conte
 
 ### Public visibility
 
-Vistors in general are only allowed to view last public versions of a content. This is controlled by the *Open minor* permissions: a user that does not possess the open minor permission for a content will only see the last public version of a content, and will never see any changes that correspond to a draft version or that are not yet approved.
+Vistors in general are only allowed to view last public versions of a content. This is controlled by the *Open minor* permission: a user who does not possess the open minor permission for a content will only see the last public version of a content, and will never see any changes that correspond to a draft version or that are not yet approved.
 The other important thing here to bear in mind is that if a document gets rejected it does not mean that the document is not visible for the public. It only means that the last version that was rejected will not be visible to the public. So for example:
 1. Set approval on a document library to true.
 2. Upload a document - it's state will be pending for approval (you can check it out on versions tab): only users with open minor permissions will be able to see it.
-3. Send it to approval using the approval workflow. If the approver rejects it, it still not be visible for the public - or users that have no open minor permissions. If the approver approves it, it will be visible for the public.
+3. Send it to approval using the approval workflow. If the approver rejects it, it still won't be visible for the public (or to be precise: users that have no open minor permissions). If the approver approves it, it will be visible for the public.
 4. Edit the document and make some modifications. It's state will be pending for approval once again. Users with no open minor permissions are able to see the document but not the latest modifications: that is they see the last public version, and not the one that is pending for approval.
 5. Send the document for approval. If the approver rejects it: users without open minor permission will still not be able to view the modifications that have been rejected: only the last public version. If the approver approves the document: users without open minor permissions will finally be able to see the modifications as well, because at the moment of approval the last (yet pending) version became the last public version.
 
@@ -92,7 +92,8 @@ Administrators can have a *Force undo changes* permission. This means they can d
 
 <img src="https://raw.githubusercontent.com/SenseNet/sensenet/master/docs/images/approval/versioning-checkin.png" style="margin: 20px auto" />
 
-#### Taking over the lock - from version 6.3.1 patch1
+#### Taking over the lock 
+*from version 6.3.1 patch1*
 
 There are cases when somebody checked out a document, but the user is no longer available (or does not have enough permissions anymore). If force undo changes is not sufficient (e.g. because you want to preserve the content modifications) then administrators are allowed to *take over the lock* on the content. The admin still needs to have *Force undo changes* permission on the content. It is also possible to *pass on the lock to another user*. That user does not have to have force undo changes permission though, only *Save*.
 
@@ -125,12 +126,12 @@ The following tables summarizes the actions you can perform in a particular stat
 
 ### Changing Versioning or Approving mode
 
-You can change versioning or approving mode on any folder or other container type. If you visit the edit page of the folder you'll find the versioning and approving settings among the advanced fields.
+You can change versioning or approving mode on any container type (like a list or a library). If you visit the edit page of the container, you'll find the versioning and approving settings among the advanced fields. Changing these values on simple folders is also possible through the API, or on the UI if you make these fields visible on the Folder CTD.
 
 <img src="https://raw.githubusercontent.com/SenseNet/sensenet/master/docs/images/approval/versioning-change.png" style="margin: 20px auto" />
 
 ### Example/Tutorials
 
-In this section you can see examples of how content version numbers changing if you work with the content. If you want to see the actions you can perform in particular state of a content, check [Enabled versioning actions](#enable).
+In this section you can see examples of how content version numbers change if you work with the content. If you want to see the actions you can perform in particular state of a content, check [Enabled versioning actions](#enable).
 
 <img src="https://raw.githubusercontent.com/SenseNet/sensenet/master/docs/images/approval/versioning-tutorial.png" style="margin: 20px auto" />
