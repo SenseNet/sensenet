@@ -16,6 +16,7 @@ namespace SenseNet.Search.Parser
         public List<string> SortFieldNames { get; set; }
         public int Top { get; set; }
         public int Skip { get; set; }
+        public bool CountAllPages{get;set;}
         public bool CountOnly { get; set; }
         public bool AllVersions { get; set; }
 
@@ -92,17 +93,18 @@ namespace SenseNet.Search.Parser
 
     internal class QueryClassifier : LucQueryVisitor
     {
-        public static QueryInfo Classify(LucQuery query, int top, int skip, SortField[] orders, bool countOnly, bool allVersions)
+        public static QueryInfo Classify(LucQuery query, bool allVersions)
         {
-            var sortfieldNames = orders == null ? new List<string>() : orders.Select(x => x.GetField()).ToList();
+            var sortfieldNames = query.SortFields == null ? new List<string>() : query.SortFields.Select(x => x.GetField()).ToList();
             var queryInfo = new QueryInfo
             {
                 Query = query,
-                SortFields = orders,
-                Top = top,
-                Skip = skip,
+                SortFields = query.SortFields,
+                Top = query.Top,
+                Skip = query.Skip,
                 SortFieldNames = sortfieldNames,
-                CountOnly = countOnly,
+                CountAllPages = query.CountAllPages,
+                CountOnly = query.CountOnly,
                 AllVersions = allVersions
             };
 

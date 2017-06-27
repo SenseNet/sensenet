@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentType name="YesNoFieldSetting" parentType="ChoiceFieldSetting" handler="SenseNet.ContentRepository.Schema.FieldSettingContent" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+  <DisplayName>$Ctd-YesNoFieldSetting,DisplayName</DisplayName>
+  <Icon>addyesnofield</Icon>
+  <Fields />
+</ContentType>

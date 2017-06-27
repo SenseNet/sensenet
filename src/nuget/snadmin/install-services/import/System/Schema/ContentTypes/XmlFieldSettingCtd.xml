@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentType name="XmlFieldSetting" parentType="FieldSettingContent" handler="SenseNet.ContentRepository.Schema.FieldSettingContent" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+  <DisplayName>$Ctd-XmlFieldSetting,DisplayName</DisplayName>
+  <Icon>addxmlfield</Icon>
+  <Fields />
+</ContentType>

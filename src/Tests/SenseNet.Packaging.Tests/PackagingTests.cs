@@ -680,7 +680,8 @@ namespace SenseNet.Packaging.Tests
                         </Steps>
                     </Package>");
 
-            // action
+            // This package will fail, because it tries to Install a newer version.
+            // Use Patch packages for upgrading existing components.
             try
             {
                 ExecutePhases(@"<?xml version='1.0' encoding='utf-8'?>
@@ -692,6 +693,76 @@ namespace SenseNet.Packaging.Tests
                                 <Trace>Package is running.</Trace>
                             </Steps>
                         </Package>");
+                Assert.Fail("PackagingException was not thrown.");
+            }
+            catch (PackagingException e)
+            {
+                Assert.AreEqual(PackagingExceptionType.CannotInstallExistingComponent, e.ErrorType);
+            }
+        }
+        [TestMethod]
+        public void Packaging_DependencyCheck_CanInstall_SameVersion()
+        {
+            const string manifest = @"<?xml version='1.0' encoding='utf-8'?>
+                    <Package type='Install'>
+                        <Id>MyCompany.MyComponent</Id>
+                        <ReleaseDate>2017-01-01</ReleaseDate>
+                        <Version>1.0</Version>
+                        <Steps>
+                            <Trace>Package is running.</Trace>
+                        </Steps>
+                    </Package>";
+
+            ExecutePhases(manifest);
+
+            // It is possible to execute the same install package multiple times,
+            // if the multipleexecution flag is switched on (the default is true).
+            ExecutePhases(manifest);
+        }
+        [TestMethod]
+        public void Packaging_DependencyCheck_CanInstall_SameVersion_AfterFailures()
+        {
+            const string packageId = "MyCompany.MyComponent";
+            const string manifest = @"<?xml version='1.0' encoding='utf-8'?>
+                    <Package type='Install'>
+                        <Id>" + packageId +  @"</Id>
+                        <ReleaseDate>2017-01-01</ReleaseDate>
+                        <Version>1.0</Version>
+                        <Steps>
+                            <Trace>Package is running.</Trace>
+                        </Steps>
+                    </Package>";
+
+            ExecutePhases(manifest);
+
+            // add a few failure lines
+            SavePackage(packageId, "1.1", "01:00", "2016-01-01", PackageType.Install, ExecutionResult.Faulty);
+            SavePackage(packageId, "1.1", "02:00", "2016-01-02", PackageType.Patch, ExecutionResult.Faulty);
+            SavePackage(packageId, "1.1", "03:00", "2016-01-03", PackageType.Patch, ExecutionResult.Unfinished);
+
+            // execute the original package to 'repair' the component
+            ExecutePhases(manifest);
+        }
+        [TestMethod]
+        public void Packaging_DependencyCheck_CannotInstall_DisabledMultiple()
+        {
+            const string manifest = @"<?xml version='1.0' encoding='utf-8'?>
+                    <Package type='Install' multipleexecution='false'>
+                        <Id>MyCompany.MyComponent</Id>
+                        <ReleaseDate>2017-01-01</ReleaseDate>
+                        <Version>1.0</Version>
+                        <Steps>
+                            <Trace>Package is running.</Trace>
+                        </Steps>
+                    </Package>";
+
+            ExecutePhases(manifest);
+
+            // It is not possible to Install a package multiple times if the
+            // multipleexecution attribute is set to false.
+            try
+            {
+                ExecutePhases(manifest);
                 Assert.Fail("PackagingException was not thrown.");
             }
             catch (PackagingException e)
@@ -723,7 +794,7 @@ namespace SenseNet.Packaging.Tests
                             <Steps>
                                 <Trace>Package is running.</Trace>
                             </Steps>
-                        </Package>", 1);
+                        </Package>", 1, true);
                 Assert.Fail("PackagingException was not thrown.");
             }
             catch (PackagingException e)
@@ -750,29 +821,22 @@ namespace SenseNet.Packaging.Tests
                         </Steps>
                     </Package>");
 
-            // action
-            try
-            {
-                ParseManifest($@"<?xml version='1.0' encoding='utf-8'?>
-                        <Package type='Install'>
-                            <Id>{Manifest.SystemComponentId}</Id>
-                            <ReleaseDate>2017-01-01</ReleaseDate>
-                            <Version>1.1</Version>
-                            <Parameters>
-                                <Parameter name='@dataSource'>.</Parameter>
-                                <Parameter name='@initialCatalog'>sensenet</Parameter>
-                                <Parameter name='@userName'></Parameter>
-                                <Parameter name='@password'></Parameter>
-                            </Parameters>
-                            <Steps>
-                                <Trace>Package is running.</Trace>
-                            </Steps>
-                        </Package>", 1, true);
-            }
-            catch (PackagingException e)
-            {
-                Assert.AreEqual(PackagingExceptionType.CannotInstallExistingComponent, e.ErrorType);
-            }
+            // it is possible to force reinstall the system component, even with a different version
+            ParseManifest($@"<?xml version='1.0' encoding='utf-8'?>
+                    <Package type='Install'>
+                        <Id>{Manifest.SystemComponentId}</Id>
+                        <ReleaseDate>2017-01-01</ReleaseDate>
+                        <Version>1.1</Version>
+                        <Parameters>
+                            <Parameter name='@dataSource'>.</Parameter>
+                            <Parameter name='@initialCatalog'>sensenet</Parameter>
+                            <Parameter name='@userName'></Parameter>
+                            <Parameter name='@password'></Parameter>
+                        </Parameters>
+                        <Steps>
+                            <Trace>Package is running.</Trace>
+                        </Steps>
+                    </Package>", 1, true);
         }
         [TestMethod]
         public void Packaging_DependencyCheck_CannotUpdateMissingComponent()
@@ -1486,6 +1550,32 @@ namespace SenseNet.Packaging.Tests
             var expected = "C1: 1.2 (1.2) | C2: 1.0 (1.2)";
             Assert.AreEqual(expected, actual);
             Assert.AreEqual(9, verInfo.InstalledPackages.Count());
+        }
+        [TestMethod]
+        public void Packaging_VersionInfo_MultipleInstall()
+        {
+            const string packageId = "C1";
+            SavePackage(packageId, "1.0", "01:00", "2016-01-01", PackageType.Install, ExecutionResult.Successful);
+            SavePackage(packageId, "1.0", "02:00", "2016-01-02", PackageType.Install, ExecutionResult.Successful);
+            SavePackage(packageId, "1.1", "03:00", "2016-01-03", PackageType.Install, ExecutionResult.Faulty);
+            SavePackage(packageId, "1.2", "04:00", "2016-01-04", PackageType.Install, ExecutionResult.Faulty);
+            SavePackage("C2", "1.0", "05:00", "2016-01-05", PackageType.Install, ExecutionResult.Successful);
+            SavePackage(packageId, "1.0", "06:00", "2016-01-06", PackageType.Install, ExecutionResult.Successful);
+
+            var verInfo = RepositoryVersionInfo.Instance;
+
+            // check
+            var actual = string.Join(" | ", verInfo.Components
+                .OrderBy(a => a.ComponentId)
+                .Select(a => $"{a.ComponentId}: {a.AcceptableVersion} ({a.Version})")
+                .ToArray());
+
+            // In the current test implementation (TestPackageStorageProvider) the installed components
+            // are loaded into a distinct list, there is only one line for every component. This is
+            // DIFFERENT from the real SQL provider that loads all lines.
+            var expected = "C1: 1.0 (1.2) | C2: 1.0 (1.0)";
+            Assert.AreEqual(expected, actual);
+            Assert.AreEqual(6, verInfo.InstalledPackages.Count());
         }
 
         #endregion

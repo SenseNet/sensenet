@@ -4,8 +4,8 @@ namespace SenseNet.Packaging
 {
     public class PackageParameter
     {
-        internal static readonly string ParameterRegex = @"^([\w_]+):";
-        
+        internal static readonly string ParameterRegex = @"^(([\w_]+[\-]{0,1})+):";
+
         public string PropertyName { get; private set; }
         public string Value { get; private set; }
 

@@ -13,6 +13,7 @@ using LucField = Lucene.Net.Documents.Field;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.Diagnostics;
 using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Schema
@@ -881,9 +882,16 @@ namespace SenseNet.ContentRepository.Schema
             var typeName = names.Length == 2 ? names[0] : string.Empty;
             fieldName = names.Length == 1 ? names[0] : names[1];
 
-            return (!string.IsNullOrEmpty(typeName) && !fieldName.StartsWith("#")) ?
-                ContentType.GetByName(typeName).GetFieldSettingByName(fieldName) :
-                null;
+            if (!string.IsNullOrEmpty(typeName) && !fieldName.StartsWith("#"))
+            {
+                var ct = ContentType.GetByName(typeName);
+                if (ct != null)
+                    return ct.GetFieldSettingByName(fieldName);
+
+                SnLog.WriteWarning($"Content type {typeName} not found when converting fullname {fullName} to a fieldsetting.");
+            }
+
+            return null;
         }
 
         public static FieldSetting GetRoot(FieldSetting fieldSetting)

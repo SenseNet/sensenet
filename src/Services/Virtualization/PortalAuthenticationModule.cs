@@ -133,6 +133,18 @@ namespace SenseNet.Portal.Virtualization
 
             if (IsTokenAuthenticationRequested(request))
             {
+                // Cross-Origin Resource Sharing (CORS)
+                if (!HttpHeaderTools.IsOriginHeaderAllowed())
+                    AuthenticationHelper.ThrowForbidden("token auth");
+
+                if (request?.HttpMethod == "OPTIONS")
+                {
+                    // set allowed methods and headers
+                    HttpHeaderTools.SetPreflightResponse();
+
+                    application?.CompleteRequest();
+                }
+
                 if (basicAuthenticated && anonymAuthenticated)
                 {
                     SnLog.WriteException(new UnauthorizedAccessException("Invalid user."));

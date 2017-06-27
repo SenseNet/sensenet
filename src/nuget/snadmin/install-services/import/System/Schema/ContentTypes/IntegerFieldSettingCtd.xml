@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentType name="IntegerFieldSetting" parentType="FieldSettingContent" handler="SenseNet.ContentRepository.Schema.FieldSettingContent" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
+  <DisplayName>$Ctd-IntegerFieldSetting,DisplayName</DisplayName>
+  <Icon>addnumberfield</Icon>
+  <Fields />
+</ContentType>
