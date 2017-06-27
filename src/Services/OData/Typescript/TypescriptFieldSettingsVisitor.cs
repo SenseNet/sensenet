@@ -63,7 +63,7 @@ import { ComplexTypes } from './SN';
     export enum UrlFormat { Hyperlink, Picture }
 
     export class FieldSetting {
-        Name: string = 'Content';
+        Name: string;
         DisplayName?: string;
         Description?: string;
         Icon?: string;
@@ -79,7 +79,7 @@ import { ComplexTypes } from './SN';
         ControlHint?: string;
 
         constructor(options: IFieldSettingOptions) {
-            this.Name = options.name;
+            this.Name = options.name || 'Content';
             this.DisplayName = options.displayName;
             this.Icon = options.icon;
             this.ReadOnly = options.readOnly;
@@ -152,7 +152,7 @@ import { ComplexTypes } from './SN';
             WriteLine($"export class {type.Name} extends {parentTypeName} {{");
             _indentCount++;
             foreach (var item in propertyInfos)
-                WriteLine($"{item.Key}: {item.Value};");
+                WriteLine($"{item.Key}?: {item.Value};");
             WriteLine();
 
             WriteLine($"constructor(options: I{type.Name}Options) {{");

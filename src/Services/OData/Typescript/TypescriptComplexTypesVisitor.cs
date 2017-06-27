@@ -54,9 +54,9 @@ namespace SenseNet.Portal.OData.Typescript
             #region Write fileend
             _writer.WriteLine(@"export class ChoiceOption {
     Value: string;
-    Text: string;
-    Enabled: boolean;
-    Selected: boolean;
+    Text?: string;
+    Enabled?: boolean;
+    Selected?: boolean;
 
     constructor(value: string, text?: string, enabled?: boolean, selected?: boolean) {
         this.Value = value;
