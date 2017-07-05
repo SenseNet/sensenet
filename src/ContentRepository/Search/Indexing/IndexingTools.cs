@@ -46,7 +46,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             var info = (IndexDocumentInfo)formatter.Deserialize(docStream);
 
             // 2: original and new text extract concatenation.
-            var allTextField = info.Fields.FirstOrDefault(f => f.Name == LucObject.FieldName.AllText);
+            var allTextField = info.Fields.FirstOrDefault(f => f.Name == IndexFieldName.AllText);
             if (allTextField != null)
             {
                 textExtract = allTextField.Value + " " + textExtract;
@@ -54,7 +54,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             }
             info.Fields.Add(
                 new IndexFieldInfo(
-                    LucObject.FieldName.AllText,
+                    IndexFieldName.AllText,
                     textExtract,
                     FieldInfoType.StringField,
                     Lucene.Net.Documents.Field.Store.NO,

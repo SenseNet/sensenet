@@ -43,7 +43,7 @@ namespace SenseNet.Packaging.Steps
                     var withOrWithout = Backup ? "WITH" : "without";
 
                     Logger.LogMessage($"Populating index of the whole Content Repository {withOrWithout} backup...");
-                    populator.ClearAndPopulateAll(Backup);
+                    populator.ClearAndPopulateAll(Backup, context.Console);
                 }
                 else
                 {

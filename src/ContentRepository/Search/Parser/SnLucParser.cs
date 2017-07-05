@@ -95,7 +95,7 @@ namespace SenseNet.Search.Parser
         [DebuggerDisplay("{Name}[{DataType}]")]
         private class FieldInfo
         {
-            public static readonly FieldInfo Default = new FieldInfo { Name = LucObject.FieldName.AllText, OperatorToken = SnLucLexer.Token.Colon, IsBinary = false };
+            public static readonly FieldInfo Default = new FieldInfo { Name = IndexFieldName.AllText, OperatorToken = SnLucLexer.Token.Colon, IsBinary = false };
             public string Name { get; set; }
             public SnLucLexer.Token OperatorToken { get; set; }
             public bool IsBinary { get; set; }
@@ -629,7 +629,7 @@ namespace SenseNet.Search.Parser
             var field = _currentField.Peek();
             var fieldName = field.Name;
             var val = new QueryFieldValue(_lexer.StringValue, _lexer.CurrentToken, _lexer.IsPhrase);
-            if (fieldName != LucObject.FieldName.AllText && _lexer.StringValue != ContentQuery.EmptyInnerQueryText)
+            if (fieldName != IndexFieldName.AllText && _lexer.StringValue != ContentQuery.EmptyInnerQueryText)
             {
                 var info = SenseNet.ContentRepository.Schema.ContentTypeManager.GetPerFieldIndexingInfo(fieldName);
                 if (info != null)
@@ -1054,14 +1054,14 @@ namespace SenseNet.Search.Parser
             var indexingInfo = field.IndexingInfo;
             QueryFieldLevel level;
 
-            if (fieldName == LucObject.FieldName.AllText)
+            if (fieldName == IndexFieldName.AllText)
                 level = QueryFieldLevel.BinaryOrFullText;
             else if(indexingInfo == null)
                 level = QueryFieldLevel.BinaryOrFullText;
             else if (indexingInfo.FieldDataType == typeof(SenseNet.ContentRepository.Storage.BinaryData))
                 level = QueryFieldLevel.BinaryOrFullText;
-            else if (fieldName == LucObject.FieldName.InFolder || fieldName == LucObject.FieldName.InTree
-                || fieldName == LucObject.FieldName.Type || fieldName == LucObject.FieldName.TypeIs
+            else if (fieldName == IndexFieldName.InFolder || fieldName == IndexFieldName.InTree
+                || fieldName == IndexFieldName.Type || fieldName == IndexFieldName.TypeIs
                 || _headOnlyFields.Contains(fieldName))
                 level = QueryFieldLevel.HeadOnly;
             else

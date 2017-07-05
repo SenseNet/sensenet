@@ -18,9 +18,9 @@ namespace SenseNet.Search
         internal static string[] SplitText(string fieldName, string text, IDictionary<string, Type> analyzers)
         {
             if (String.IsNullOrEmpty(fieldName))
-                fieldName = LucObject.FieldName.AllText;
+                fieldName = IndexFieldName.AllText;
             Type analyzerType;
-            if (!analyzers.TryGetValue(fieldName, out analyzerType) && fieldName != LucObject.FieldName.AllText)
+            if (!analyzers.TryGetValue(fieldName, out analyzerType) && fieldName != IndexFieldName.AllText)
                 analyzerType = typeof(KeywordAnalyzer);
             var needToSplit = analyzerType != typeof(KeywordAnalyzer);
 

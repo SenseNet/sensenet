@@ -76,9 +76,9 @@ namespace SenseNet.Search
 
         protected internal bool IsPermitted(Document doc)
         {
-            var nodeId = Convert.ToInt32(doc.Get(LucObject.FieldName.NodeId));
-            var isLastPublic = BooleanIndexHandler.ConvertBack(doc.Get(LucObject.FieldName.IsLastPublic));
-            var isLastDraft = BooleanIndexHandler.ConvertBack(doc.Get(LucObject.FieldName.IsLastDraft));
+            var nodeId = Convert.ToInt32(doc.Get(IndexFieldName.NodeId));
+            var isLastPublic = BooleanIndexHandler.ConvertBack(doc.Get(IndexFieldName.IsLastPublic));
+            var isLastDraft = BooleanIndexHandler.ConvertBack(doc.Get(IndexFieldName.IsLastDraft));
 
             return PermissionChecker.IsPermitted(nodeId, isLastPublic, isLastDraft);
         }

@@ -180,12 +180,12 @@ namespace SenseNet.ContentRepository.Linq
             if (inTree)
             {
                 converter = new SenseNet.Search.Indexing.InTreeIndexHandler();
-                fieldName = LucObject.FieldName.InTree;
+                fieldName = IndexFieldName.InTree;
             }
             else
             {
                 converter = new SenseNet.Search.Indexing.InFolderIndexHandler();
-                fieldName = LucObject.FieldName.InFolder;
+                fieldName = IndexFieldName.InFolder;
             }
 
             var qvalue = new SenseNet.Search.Parser.QueryFieldValue(path);

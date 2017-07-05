@@ -137,19 +137,19 @@ namespace SenseNet.Search
                 var validPhrases = phrases.Except(Lucene.Net.Analysis.Standard.StandardAnalyzer.STOP_WORDS_SET);
 
                 foreach (var phrase in validPhrases)
-                    phq.Add(new Term(LucObject.FieldName.AllText, phrase));
+                    phq.Add(new Term(IndexFieldName.AllText, phrase));
                 return phq;
             }
             // _Text:text
-            var term = new Term(LucObject.FieldName.AllText, text);
+            var term = new Term(IndexFieldName.AllText, text);
             var result = new TermQuery(term);
             return result;
         }
         private Query CompileTypeExpressionNode(TypeExpression expression)
         {
             if (expression.ExactMatch)
-                return new TermQuery(new Term(LucObject.FieldName.Type, expression.NodeType.Name));
-            return new TermQuery(new Term(LucObject.FieldName.TypeIs, expression.NodeType.Name));
+                return new TermQuery(new Term(IndexFieldName.Type, expression.NodeType.Name));
+            return new TermQuery(new Term(IndexFieldName.TypeIs, expression.NodeType.Name));
         }
         private Query CompileReferenceExpressionNode(ReferenceExpression expression)
         {
@@ -210,12 +210,12 @@ namespace SenseNet.Search
         private Query CompileInTreeQuery(string path)
         {
             if (!path.EndsWith("/"))
-                return new TermQuery(new Term(LucObject.FieldName.InTree, "\"" + path.ToLowerInvariant() + "\""));
+                return new TermQuery(new Term(IndexFieldName.InTree, "\"" + path.ToLowerInvariant() + "\""));
 
             var trimmedWrapped = "\"" + path.ToLowerInvariant().TrimEnd('/') + "\"";
             var q = new BooleanQuery();
-            q.Add(new BooleanClause(new TermQuery(new Term(LucObject.FieldName.Path, trimmedWrapped)), BooleanClause.Occur.MUST_NOT));
-            q.Add(new BooleanClause(new TermQuery(new Term(LucObject.FieldName.InTree, trimmedWrapped)), BooleanClause.Occur.MUST));
+            q.Add(new BooleanClause(new TermQuery(new Term(IndexFieldName.Path, trimmedWrapped)), BooleanClause.Occur.MUST_NOT));
+            q.Add(new BooleanClause(new TermQuery(new Term(IndexFieldName.InTree, trimmedWrapped)), BooleanClause.Occur.MUST));
             return q;
         }
 
@@ -247,34 +247,34 @@ namespace SenseNet.Search
         {
             switch (attr)
             {
-                case NodeAttribute.Id: return LucObject.FieldName.NodeId;
-                case NodeAttribute.IsDeleted: return LucObject.FieldName.IsDeleted;
-                case NodeAttribute.IsInherited: return LucObject.FieldName.IsInherited;
-                case NodeAttribute.ParentId: return LucObject.FieldName.ParentId;
-                case NodeAttribute.Parent: return LucObject.FieldName.ParentId;
-                case NodeAttribute.Name: return LucObject.FieldName.Name;
-                case NodeAttribute.Path: return LucObject.FieldName.Path;
-                case NodeAttribute.Index: return LucObject.FieldName.Index;
-                case NodeAttribute.Locked: return LucObject.FieldName.Locked;
-                case NodeAttribute.LockedById: return LucObject.FieldName.LockedById;
-                case NodeAttribute.LockedBy: return LucObject.FieldName.LockedById;
-                case NodeAttribute.ETag: return LucObject.FieldName.ETag;
-                case NodeAttribute.LockType: return LucObject.FieldName.LockType;
-                case NodeAttribute.LockTimeout: return LucObject.FieldName.LockTimeout;
-                case NodeAttribute.LockDate: return LucObject.FieldName.LockDate;
-                case NodeAttribute.LockToken: return LucObject.FieldName.LockToken;
-                case NodeAttribute.LastLockUpdate: return LucObject.FieldName.LastLockUpdate;
-                case NodeAttribute.MajorVersion: return LucObject.FieldName.MajorNumber;
-                case NodeAttribute.MinorVersion: return LucObject.FieldName.MinorNumber;
-                case NodeAttribute.CreationDate: return LucObject.FieldName.CreationDate;
-                case NodeAttribute.CreatedById: return LucObject.FieldName.CreatedById;
-                case NodeAttribute.CreatedBy: return LucObject.FieldName.CreatedById;
-                case NodeAttribute.ModificationDate: return LucObject.FieldName.ModificationDate;
-                case NodeAttribute.ModifiedById: return LucObject.FieldName.ModifiedById;
-                case NodeAttribute.ModifiedBy: return LucObject.FieldName.ModifiedById;
-                case NodeAttribute.IsSystem: return LucObject.FieldName.IsSystem;
-                case NodeAttribute.OwnerId: return LucObject.FieldName.OwnerId;
-                case NodeAttribute.SavingState: return LucObject.FieldName.SavingState;
+                case NodeAttribute.Id: return IndexFieldName.NodeId;
+                case NodeAttribute.IsDeleted: return IndexFieldName.IsDeleted;
+                case NodeAttribute.IsInherited: return IndexFieldName.IsInherited;
+                case NodeAttribute.ParentId: return IndexFieldName.ParentId;
+                case NodeAttribute.Parent: return IndexFieldName.ParentId;
+                case NodeAttribute.Name: return IndexFieldName.Name;
+                case NodeAttribute.Path: return IndexFieldName.Path;
+                case NodeAttribute.Index: return IndexFieldName.Index;
+                case NodeAttribute.Locked: return IndexFieldName.Locked;
+                case NodeAttribute.LockedById: return IndexFieldName.LockedById;
+                case NodeAttribute.LockedBy: return IndexFieldName.LockedById;
+                case NodeAttribute.ETag: return IndexFieldName.ETag;
+                case NodeAttribute.LockType: return IndexFieldName.LockType;
+                case NodeAttribute.LockTimeout: return IndexFieldName.LockTimeout;
+                case NodeAttribute.LockDate: return IndexFieldName.LockDate;
+                case NodeAttribute.LockToken: return IndexFieldName.LockToken;
+                case NodeAttribute.LastLockUpdate: return IndexFieldName.LastLockUpdate;
+                case NodeAttribute.MajorVersion: return IndexFieldName.MajorNumber;
+                case NodeAttribute.MinorVersion: return IndexFieldName.MinorNumber;
+                case NodeAttribute.CreationDate: return IndexFieldName.CreationDate;
+                case NodeAttribute.CreatedById: return IndexFieldName.CreatedById;
+                case NodeAttribute.CreatedBy: return IndexFieldName.CreatedById;
+                case NodeAttribute.ModificationDate: return IndexFieldName.ModificationDate;
+                case NodeAttribute.ModifiedById: return IndexFieldName.ModifiedById;
+                case NodeAttribute.ModifiedBy: return IndexFieldName.ModifiedById;
+                case NodeAttribute.IsSystem: return IndexFieldName.IsSystem;
+                case NodeAttribute.OwnerId: return IndexFieldName.OwnerId;
+                case NodeAttribute.SavingState: return IndexFieldName.SavingState;
                 default:
                     throw new NotSupportedException(String.Concat("NodeAttribute attr = ", attr, ")"));
             }

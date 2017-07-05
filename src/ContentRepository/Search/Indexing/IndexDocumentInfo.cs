@@ -80,7 +80,7 @@ namespace SenseNet.Search.Indexing
                 if (__nameFieldIndexingInfo == null)
                 {
                     var start = SenseNet.ContentRepository.Schema.ContentTypeManager.Current;
-                    __nameFieldIndexingInfo = SenseNet.ContentRepository.Schema.ContentTypeManager.GetPerFieldIndexingInfo(LucObject.FieldName.Name);
+                    __nameFieldIndexingInfo = SenseNet.ContentRepository.Schema.ContentTypeManager.GetPerFieldIndexingInfo(IndexFieldName.Name);
                 }
                 return __nameFieldIndexingInfo;
             }
@@ -92,7 +92,7 @@ namespace SenseNet.Search.Indexing
                 if (__pathFieldIndexingInfo == null)
                 {
                     var start = SenseNet.ContentRepository.Schema.ContentTypeManager.Current;
-                    __pathFieldIndexingInfo = SenseNet.ContentRepository.Schema.ContentTypeManager.GetPerFieldIndexingInfo(LucObject.FieldName.Path);
+                    __pathFieldIndexingInfo = SenseNet.ContentRepository.Schema.ContentTypeManager.GetPerFieldIndexingInfo(IndexFieldName.Path);
                 }
                 return __pathFieldIndexingInfo;
             }
@@ -104,7 +104,7 @@ namespace SenseNet.Search.Indexing
                 if (__inTreeFieldIndexingInfo == null)
                 {
                     var start = SenseNet.ContentRepository.Schema.ContentTypeManager.Current;
-                    __inTreeFieldIndexingInfo = SenseNet.ContentRepository.Schema.ContentTypeManager.GetPerFieldIndexingInfo(LucObject.FieldName.InTree);
+                    __inTreeFieldIndexingInfo = SenseNet.ContentRepository.Schema.ContentTypeManager.GetPerFieldIndexingInfo(IndexFieldName.InTree);
                 }
                 return __inTreeFieldIndexingInfo;
             }
@@ -116,7 +116,7 @@ namespace SenseNet.Search.Indexing
                 if (__inFolderFieldIndexingInfo == null)
                 {
                     var start = SenseNet.ContentRepository.Schema.ContentTypeManager.Current;
-                    __inFolderFieldIndexingInfo = SenseNet.ContentRepository.Schema.ContentTypeManager.GetPerFieldIndexingInfo(LucObject.FieldName.InFolder);
+                    __inFolderFieldIndexingInfo = SenseNet.ContentRepository.Schema.ContentTypeManager.GetPerFieldIndexingInfo(IndexFieldName.InFolder);
                 }
                 return __inFolderFieldIndexingInfo;
             }
@@ -168,8 +168,8 @@ namespace SenseNet.Search.Indexing
 
         [NonSerialized]
         private static List<string> PostponedFields = new List<string>(new string[] {
-            LucObject.FieldName.Name, LucObject.FieldName.Path, LucObject.FieldName.InTree, LucObject.FieldName.InFolder, LucObject.FieldName.Depth, LucObject.FieldName.ParentId,
-            LucObject.FieldName.IsSystem
+            IndexFieldName.Name, IndexFieldName.Path, IndexFieldName.InTree, IndexFieldName.InFolder, IndexFieldName.Depth, IndexFieldName.ParentId,
+            IndexFieldName.IsSystem
         });
         [NonSerialized]
         private static List<string> ForbiddenFields = new List<string>(new string[] { "Password", "PasswordHash" });
@@ -201,12 +201,12 @@ namespace SenseNet.Search.Indexing
 
             if (ixnode == null)
             {
-                doc.AddField(LucObject.FieldName.NodeId, node.Id, Field.Store.YES, true);
-                doc.AddField(LucObject.FieldName.VersionId, node.VersionId, Field.Store.YES, true);
-                doc.AddField(LucObject.FieldName.Version, node.Version.ToString().ToLowerInvariant(), Field.Store.YES, Field.Index.ANALYZED);
-                doc.AddField(LucObject.FieldName.OwnerId, node.OwnerId, Field.Store.YES, true);
-                doc.AddField(LucObject.FieldName.CreatedById, node.CreatedById, Field.Store.YES, true);
-                doc.AddField(LucObject.FieldName.ModifiedById, node.ModifiedById, Field.Store.YES, true);
+                doc.AddField(IndexFieldName.NodeId, node.Id, Field.Store.YES, true);
+                doc.AddField(IndexFieldName.VersionId, node.VersionId, Field.Store.YES, true);
+                doc.AddField(IndexFieldName.Version, node.Version.ToString().ToLowerInvariant(), Field.Store.YES, Field.Index.ANALYZED);
+                doc.AddField(IndexFieldName.OwnerId, node.OwnerId, Field.Store.YES, true);
+                doc.AddField(IndexFieldName.CreatedById, node.CreatedById, Field.Store.YES, true);
+                doc.AddField(IndexFieldName.ModifiedById, node.ModifiedById, Field.Store.YES, true);
             }
             else
             {
@@ -271,16 +271,16 @@ namespace SenseNet.Search.Indexing
             var isInherited = true;
             if (!isNew)
                 isInherited = node.IsInherited;
-            doc.AddField(LucObject.FieldName.IsInherited, isInherited ? BooleanIndexHandler.YES : BooleanIndexHandler.NO, Field.Store.YES, Field.Index.NOT_ANALYZED);
-            doc.AddField(LucObject.FieldName.IsMajor, node.Version.IsMajor ? BooleanIndexHandler.YES : BooleanIndexHandler.NO, Field.Store.YES, Field.Index.NOT_ANALYZED);
-            doc.AddField(LucObject.FieldName.IsPublic, node.Version.Status == VersionStatus.Approved ? BooleanIndexHandler.YES : BooleanIndexHandler.NO, Field.Store.YES, Field.Index.NOT_ANALYZED);
-            doc.AddField(LucObject.FieldName.AllText, textEtract.ToString(), Field.Store.NO, Field.Index.ANALYZED);
+            doc.AddField(IndexFieldName.IsInherited, isInherited ? BooleanIndexHandler.YES : BooleanIndexHandler.NO, Field.Store.YES, Field.Index.NOT_ANALYZED);
+            doc.AddField(IndexFieldName.IsMajor, node.Version.IsMajor ? BooleanIndexHandler.YES : BooleanIndexHandler.NO, Field.Store.YES, Field.Index.NOT_ANALYZED);
+            doc.AddField(IndexFieldName.IsPublic, node.Version.Status == VersionStatus.Approved ? BooleanIndexHandler.YES : BooleanIndexHandler.NO, Field.Store.YES, Field.Index.NOT_ANALYZED);
+            doc.AddField(IndexFieldName.AllText, textEtract.ToString(), Field.Store.NO, Field.Index.ANALYZED);
 
             if (faultedFieldNames.Any())
             {
-                doc.AddField(LucObject.FieldName.IsFaulted, BooleanIndexHandler.YES , Field.Store.YES, Field.Index.NOT_ANALYZED);
+                doc.AddField(IndexFieldName.IsFaulted, BooleanIndexHandler.YES , Field.Store.YES, Field.Index.NOT_ANALYZED);
                 foreach (var faultedFieldName in faultedFieldNames)
-                    doc.AddField(LucObject.FieldName.FaultedFieldName, faultedFieldName, Field.Store.YES, Field.Index.NOT_ANALYZED);
+                    doc.AddField(IndexFieldName.FaultedFieldName, faultedFieldName, Field.Store.YES, Field.Index.NOT_ANALYZED);
             }
 
             ValidateDocumentInfo(doc);
@@ -295,7 +295,7 @@ namespace SenseNet.Search.Indexing
             var allTextFieldIndex = -1;
             for (int i = 0; i < fields.Count; i++)
             {
-                if (fields[i].Name == LucObject.FieldName.AllText)
+                if (fields[i].Name == IndexFieldName.AllText)
                 {
                     allTextFieldIndex = i;
                     break;
@@ -363,14 +363,14 @@ namespace SenseNet.Search.Indexing
                 }
             }
 
-            fields[allTextFieldIndex] = new IndexFieldInfo(LucObject.FieldName.AllText, textEtract.ToString(), FieldInfoType.StringField, Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.NO);
+            fields[allTextFieldIndex] = new IndexFieldInfo(IndexFieldName.AllText, textEtract.ToString(), FieldInfoType.StringField, Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.NO);
 
             if (faultedFieldNames.Any())
             {
-                if (!this.fields.Any(f => f.Name == LucObject.FieldName.IsFaulted))
-                    this.AddField(LucObject.FieldName.IsFaulted, BooleanIndexHandler.YES, Field.Store.YES, Field.Index.NOT_ANALYZED);
+                if (!this.fields.Any(f => f.Name == IndexFieldName.IsFaulted))
+                    this.AddField(IndexFieldName.IsFaulted, BooleanIndexHandler.YES, Field.Store.YES, Field.Index.NOT_ANALYZED);
                 foreach (var faultedFieldName in faultedFieldNames)
-                    this.AddField(LucObject.FieldName.FaultedFieldName, faultedFieldName, Field.Store.YES, Field.Index.ANALYZED);
+                    this.AddField(IndexFieldName.FaultedFieldName, faultedFieldName, Field.Store.YES, Field.Index.ANALYZED);
             }
 
             return this;
@@ -438,35 +438,35 @@ namespace SenseNet.Search.Indexing
 
             var path = docData.Path.ToLowerInvariant();
 
-            doc.Add(CreateStringField(LucObject.FieldName.Name, RepositoryPath.GetFileName(path), NameFieldIndexingInfo));
-            doc.Add(CreateStringField(LucObject.FieldName.Path, path, PathFieldIndexingInfo));
+            doc.Add(CreateStringField(IndexFieldName.Name, RepositoryPath.GetFileName(path), NameFieldIndexingInfo));
+            doc.Add(CreateStringField(IndexFieldName.Path, path, PathFieldIndexingInfo));
 
-            var nf = new NumericField(LucObject.FieldName.Depth, Field.Store.YES, true);
+            var nf = new NumericField(IndexFieldName.Depth, Field.Store.YES, true);
             nf.SetIntValue(Node.GetDepth(docData.Path));
             doc.Add(nf);
 
 
-            var fields = CreateInTreeFields(LucObject.FieldName.InTree, docData.Path);
+            var fields = CreateInTreeFields(IndexFieldName.InTree, docData.Path);
             foreach (var field in fields)
                 doc.Add(field);
 
-            doc.Add(CreateInFolderField(LucObject.FieldName.InFolder, path));
+            doc.Add(CreateInFolderField(IndexFieldName.InFolder, path));
 
-            nf = new NumericField(LucObject.FieldName.ParentId, Field.Store.NO, true);
+            nf = new NumericField(IndexFieldName.ParentId, Field.Store.NO, true);
             nf.SetIntValue(docData.ParentId);
             doc.Add(nf);
 
-            doc.Add(new Field(LucObject.FieldName.IsSystem, docData.IsSystem ? BooleanIndexHandler.YES : BooleanIndexHandler.NO, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
+            doc.Add(new Field(IndexFieldName.IsSystem, docData.IsSystem ? BooleanIndexHandler.YES : BooleanIndexHandler.NO, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
 
             // flags
-            doc.Add(new Field(LucObject.FieldName.IsLastPublic, docData.IsLastPublic ? BooleanIndexHandler.YES : BooleanIndexHandler.NO, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
-            doc.Add(new Field(LucObject.FieldName.IsLastDraft, docData.IsLastDraft ? BooleanIndexHandler.YES : BooleanIndexHandler.NO, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
+            doc.Add(new Field(IndexFieldName.IsLastPublic, docData.IsLastPublic ? BooleanIndexHandler.YES : BooleanIndexHandler.NO, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
+            doc.Add(new Field(IndexFieldName.IsLastDraft, docData.IsLastDraft ? BooleanIndexHandler.YES : BooleanIndexHandler.NO, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
 
             // timestamps
-            nf = new NumericField(LucObject.FieldName.NodeTimestamp, Field.Store.YES, true);
+            nf = new NumericField(IndexFieldName.NodeTimestamp, Field.Store.YES, true);
             nf.SetLongValue(docData.NodeTimestamp);
             doc.Add(nf);
-            nf = new NumericField(LucObject.FieldName.VersionTimestamp, Field.Store.YES, true);
+            nf = new NumericField(IndexFieldName.VersionTimestamp, Field.Store.YES, true);
             nf.SetLongValue(docData.VersionTimestamp);
             doc.Add(nf);
 
@@ -533,8 +533,8 @@ namespace SenseNet.Search.Indexing
 
         private static void ValidateDocumentInfo(IndexDocumentInfo doc)
         {
-            ValidateField(doc, LucObject.FieldName.NodeId);
-            ValidateField(doc, LucObject.FieldName.VersionId);
+            ValidateField(doc, IndexFieldName.NodeId);
+            ValidateField(doc, IndexFieldName.VersionId);
         }
 
         private static void ValidateField(IndexDocumentInfo doc, string fieldName)

@@ -181,12 +181,12 @@ namespace SenseNet.Search.Indexing
                         result.Add(new Difference(IndexDifferenceKind.NotInDatabase)
                         {
                             DocId = scoredoc.Doc,
-                            VersionId = ParseInt(doc.Get(LucObject.FieldName.VersionId)),
-                            NodeId = ParseInt(doc.Get(LucObject.FieldName.NodeId)),
+                            VersionId = ParseInt(doc.Get(IndexFieldName.VersionId)),
+                            NodeId = ParseInt(doc.Get(IndexFieldName.NodeId)),
                             Path = path,
-                            Version = doc.Get(LucObject.FieldName.Version),
-                            IxNodeTimestamp = ParseLong(doc.Get(LucObject.FieldName.NodeTimestamp)),
-                            IxVersionTimestamp = ParseLong(doc.Get(LucObject.FieldName.VersionTimestamp))
+                            Version = doc.Get(IndexFieldName.Version),
+                            IxNodeTimestamp = ParseLong(doc.Get(IndexFieldName.NodeTimestamp)),
+                            IxVersionTimestamp = ParseLong(doc.Get(IndexFieldName.VersionTimestamp))
                         });
                     }
                 }
@@ -264,12 +264,12 @@ namespace SenseNet.Search.Indexing
                                         result.Add(new Difference(IndexDifferenceKind.NotInDatabase)
                                         {
                                             DocId = docid,
-                                            VersionId = ParseInt(doc.Get(LucObject.FieldName.VersionId)),
-                                            NodeId = ParseInt(doc.Get(LucObject.FieldName.NodeId)),
-                                            Path = doc.Get(LucObject.FieldName.Path),
-                                            Version = doc.Get(LucObject.FieldName.Version),
-                                            IxNodeTimestamp = ParseLong(doc.Get(LucObject.FieldName.NodeTimestamp)),
-                                            IxVersionTimestamp = ParseLong(doc.Get(LucObject.FieldName.VersionTimestamp))
+                                            VersionId = ParseInt(doc.Get(IndexFieldName.VersionId)),
+                                            NodeId = ParseInt(doc.Get(IndexFieldName.NodeId)),
+                                            Path = doc.Get(IndexFieldName.Path),
+                                            Version = doc.Get(IndexFieldName.Version),
+                                            IxNodeTimestamp = ParseLong(doc.Get(IndexFieldName.NodeTimestamp)),
+                                            IxVersionTimestamp = ParseLong(doc.Get(IndexFieldName.VersionTimestamp))
                                         });
                                     }
                                 }
@@ -290,18 +290,18 @@ namespace SenseNet.Search.Indexing
             var lastMajorVersionId = dbreader.IsDBNull(4) ? 0 : dbreader.GetInt32(4);
             var lastMinorVersionId = dbreader.IsDBNull(5) ? 0 : dbreader.GetInt32(5);
 
-            var termDocs = ixreader.TermDocs(new Lucene.Net.Index.Term(LucObject.FieldName.VersionId, Lucene.Net.Util.NumericUtils.IntToPrefixCoded(versionId)));
+            var termDocs = ixreader.TermDocs(new Lucene.Net.Index.Term(IndexFieldName.VersionId, Lucene.Net.Util.NumericUtils.IntToPrefixCoded(versionId)));
             Lucene.Net.Documents.Document doc = null;
             int docid = -1;
             if (termDocs.Next())
             {
                 docid = termDocs.Doc();
                 doc = ixreader.Document(docid);
-                var indexNodeTimestamp = ParseLong(doc.Get(LucObject.FieldName.NodeTimestamp));
-                var indexVersionTimestamp = ParseLong(doc.Get(LucObject.FieldName.VersionTimestamp));
-                var nodeId = ParseInt(doc.Get(LucObject.FieldName.NodeId));
-                var version = doc.Get(LucObject.FieldName.Version);
-                var p = doc.Get(LucObject.FieldName.Path);
+                var indexNodeTimestamp = ParseLong(doc.Get(IndexFieldName.NodeTimestamp));
+                var indexVersionTimestamp = ParseLong(doc.Get(IndexFieldName.VersionTimestamp));
+                var nodeId = ParseInt(doc.Get(IndexFieldName.NodeId));
+                var version = doc.Get(IndexFieldName.Version);
+                var p = doc.Get(IndexFieldName.Path);
                 if (termDocs.Next())
                 {
                     result.Add(new Difference(IndexDifferenceKind.MoreDocument)
@@ -335,8 +335,8 @@ namespace SenseNet.Search.Indexing
 
                 // Check version flags by comparing them to the db: we assume that the last
                 // major and minor version ids in the Nodes table is the correct one.
-                var isLastPublic = doc.Get(LucObject.FieldName.IsLastPublic);
-                var isLastDraft = doc.Get(LucObject.FieldName.IsLastDraft);
+                var isLastPublic = doc.Get(IndexFieldName.IsLastPublic);
+                var isLastDraft = doc.Get(IndexFieldName.IsLastDraft);
                 var isLastPublicInDb = versionId == lastMajorVersionId;
                 var isLastDraftInDb = versionId == lastMinorVersionId;
                 var isLastPublicInIndex = isLastPublic == BooleanIndexHandler.YES;
@@ -382,18 +382,18 @@ namespace SenseNet.Search.Indexing
                     var ok = false;
                     if (isLastDraft != BooleanIndexHandler.YES)
                     {
-                        var latestDocs = ixreader.TermDocs(new Lucene.Net.Index.Term(LucObject.FieldName.NodeId, Lucene.Net.Util.NumericUtils.IntToPrefixCoded(nodeId)));
+                        var latestDocs = ixreader.TermDocs(new Lucene.Net.Index.Term(IndexFieldName.NodeId, Lucene.Net.Util.NumericUtils.IntToPrefixCoded(nodeId)));
                         Lucene.Net.Documents.Document latestDoc = null;
                         while (latestDocs.Next())
                         {
                             var latestdocid = latestDocs.Doc();
                             var d = ixreader.Document(latestdocid);
-                            if (d.Get(LucObject.FieldName.IsLastDraft) != BooleanIndexHandler.YES)
+                            if (d.Get(IndexFieldName.IsLastDraft) != BooleanIndexHandler.YES)
                                 continue;
                             latestDoc = d;
                             break;
                         }
-                        var latestPath = latestDoc.Get(LucObject.FieldName.Path);
+                        var latestPath = latestDoc.Get(IndexFieldName.Path);
                         if (latestPath == p)
                             ok = true;
                     }

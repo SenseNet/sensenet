@@ -379,14 +379,14 @@ namespace SenseNet.Search
         {
             QueryFieldLevel level;
 
-            if (fieldName == LucObject.FieldName.AllText)
+            if (fieldName == IndexFieldName.AllText)
                 level = QueryFieldLevel.BinaryOrFullText;
             else if (indexingInfo == null)
                 level = QueryFieldLevel.BinaryOrFullText;
             else if (indexingInfo.FieldDataType == typeof(SenseNet.ContentRepository.Storage.BinaryData))
                 level = QueryFieldLevel.BinaryOrFullText;
-            else if (fieldName == LucObject.FieldName.InFolder || fieldName == LucObject.FieldName.InTree
-                || fieldName == LucObject.FieldName.Type || fieldName == LucObject.FieldName.TypeIs
+            else if (fieldName == IndexFieldName.InFolder || fieldName == IndexFieldName.InTree
+                || fieldName == IndexFieldName.Type || fieldName == IndexFieldName.TypeIs
                 || _headOnlyFields.Contains(fieldName))
                 level = QueryFieldLevel.HeadOnly;
             else

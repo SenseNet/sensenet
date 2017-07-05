@@ -233,6 +233,7 @@
     <Compile Include="Schema\Metadata\IMetaNode.cs" />
     <Compile Include="Schema\Metadata\MetaCollectionEnumerable.cs" />
     <Compile Include="Schema\Metadata\SchemaVisitor.cs" />
+    <Compile Include="Search\Indexing\IndexDocumentInfo.cs" />
     <Compile Include="Setting\UserProfileSettings.cs" />
     <Compile Include="ContentNamingHelper.cs" />
     <Compile Include="ContentNamingProvider.cs" />
@@ -241,7 +242,6 @@
     <Compile Include="JsonTreeCache.cs" />
     <Compile Include="LoggingSettings.cs" />
     <Compile Include="Schema\ISupportsVirtualChildren.cs" />
-    <Compile Include="Search\Indexing\Activities\RebuildActivity.cs" />
     <Compile Include="Security\ADSync\ADSettings.cs" />
     <Compile Include="Security\Cryptography\CryptoServiceProvider.cs" />
     <Compile Include="Search\Parser\QueryClassifier.cs" />
@@ -319,33 +319,13 @@
     <Compile Include="Schema\FieldMetadata.cs" />
     <Compile Include="Schema\ISupportsDynamicFields.cs" />
     <Compile Include="Search\IndexingSettings.cs" />
-    <Compile Include="Search\Indexing\Activities\AddDocumentActivity.cs" />
-    <Compile Include="Search\Indexing\Activities\AddTreeActivity.cs" />
-    <Compile Include="Search\Indexing\Activities\BackupActivity.cs" />
-    <Compile Include="Search\Indexing\Activities\LuceneDocumentActivity.cs" />
-    <Compile Include="Search\Indexing\Activities\LuceneIndexingActivity.cs" />
-    <Compile Include="Search\Indexing\Activities\LuceneTreeActivity.cs" />
-    <Compile Include="Search\Indexing\Activities\RemoveDocumentActivity.cs" />
-    <Compile Include="Search\Indexing\Activities\RemoveTreeActivity.cs" />
-    <Compile Include="Search\Indexing\Activities\UpdateDocumentActivity.cs" />
-    <Compile Include="Search\Indexing\IndexingActivityFactory.cs" />
-    <Compile Include="Search\Indexing\IndexingActivityQueue.cs" />
-    <Compile Include="Search\Indexing\BackupTools.cs" />
     <Compile Include="Search\Indexing\Configuration\RepositoryIndexBehaviorSection.cs" />
-    <Compile Include="Search\Indexing\DocumentPopulator.cs" />
     <Compile Include="Search\Indexing\FieldIndexHandler.cs" />
-    <Compile Include="Search\Indexing\IndexDocumentInfo.cs" />
     <Compile Include="Search\Indexing\IndexFilePathHandler.cs" />
     <Compile Include="Search\Indexing\IndexHealthMonitor.cs" />
     <Compile Include="Search\Indexing\IndexingTools.cs" />
-    <Compile Include="Search\Indexing\IndexReaderFrame.cs" />
-    <Compile Include="Search\Indexing\IndexWriterFrame.cs" />
     <Compile Include="Search\Indexing\IntegrityChecker.cs" />
-    <Compile Include="Search\Indexing\SnPerFieldAnalyzerWrapper.cs" />
-    <Compile Include="Search\IndexManager.cs" />
-    <Compile Include="Search\Indexing\Activities\DistributedLuceneActivity.cs" />
     <Compile Include="Search\InvalidContentQueryException.cs" />
-    <Compile Include="Search\LuceneSearchEngine.cs" />
     <Compile Include="Search\LucObject.cs" />
     <Compile Include="Search\LucQuery.cs" />
     <Compile Include="Search\Parser\ContentQueryTemplateReplacer.cs" />
@@ -355,7 +335,6 @@
     <Compile Include="Search\SnLucCompiler.cs" />
     <Compile Include="Search\SnIFilter.cs" />
     <Compile Include="Search\TextExtractor.cs" />
-    <Compile Include="Search\Indexing\LuceneManager.cs" />
     <Compile Include="Search\Parser\DumpVisitor.cs" />
     <Compile Include="Search\Parser\LucQueryTemplateReplacer.cs" />
     <Compile Include="Search\Parser\LineInfo.cs" />
@@ -516,7 +495,6 @@
     <None Include="Schema\ContentListDefinition.xsx">
       <DependentUpon>ContentListDefinition.xsd</DependentUpon>
     </None>
-    <None Include="Search\Indexing\Activities\IndexingActivities.cd" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Schema\ContentListDefinitionSample.xml" />

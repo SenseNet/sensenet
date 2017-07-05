@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using SenseNet.Communication.Messaging;
@@ -11,7 +12,7 @@ namespace SenseNet.ContentRepository.Storage.Search
     public enum IndexRebuildLevel { IndexOnly, DatabaseAndIndex };
     public interface IIndexPopulator
     {
-        void ClearAndPopulateAll(bool backup = true);
+        void ClearAndPopulateAll(bool backup = true, TextWriter consoleWriter = null);
         void RepopulateTree(string newPath);
         void PopulateTree(string newPath, int nodeId);
         object BeginPopulateNode(Node node, NodeSaveSettings settings, string originalPath, string newPath);
@@ -46,7 +47,7 @@ namespace SenseNet.ContentRepository.Storage.Search
 
         private static readonly object PopulatorData = new object();
 
-        public void ClearAndPopulateAll(bool backup = true) { }
+        public void ClearAndPopulateAll(bool backup = true, TextWriter consoleWriter = null) { }
         public void RepopulateTree(string newPath) { }
         public void PopulateTree(string newPath, int nodeId) { }
         public object BeginPopulateNode(Node node, NodeSaveSettings settings, string originalPath, string newPath) { return PopulatorData; }

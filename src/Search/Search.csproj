@@ -31,6 +31,20 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Ionic.Zip">
+      <HintPath>..\References\Ionic.Zip.dll</HintPath>
+    </Reference>
+    <Reference Include="Lucene.Net">
+      <HintPath>..\References\Lucene.Net.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="SenseNet.Tools, Version=2.1.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SenseNet.Tools.2.1.1\lib\net451\SenseNet.Tools.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -41,13 +55,43 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IndexFieldName.cs" />
+    <Compile Include="Indexing\Activities\AddDocumentActivity.cs" />
+    <Compile Include="Indexing\Activities\AddTreeActivity.cs" />
+    <Compile Include="Indexing\Activities\BackupActivity.cs" />
+    <Compile Include="Indexing\Activities\DistributedLuceneActivity.cs" />
+    <Compile Include="Indexing\Activities\LuceneDocumentActivity.cs" />
+    <Compile Include="Indexing\Activities\LuceneIndexingActivity.cs" />
+    <Compile Include="Indexing\Activities\LuceneTreeActivity.cs" />
+    <Compile Include="Indexing\Activities\RebuildActivity.cs" />
+    <Compile Include="Indexing\Activities\RemoveDocumentActivity.cs" />
+    <Compile Include="Indexing\Activities\RemoveTreeActivity.cs" />
+    <Compile Include="Indexing\Activities\UpdateDocumentActivity.cs" />
+    <Compile Include="Indexing\BackupTools.cs" />
+    <Compile Include="Indexing\DocumentPopulator.cs" />
+    <Compile Include="Indexing\IndexingActivityFactory.cs" />
+    <Compile Include="Indexing\IndexingActivityQueue.cs" />
+    <Compile Include="Indexing\IndexReaderFrame.cs" />
+    <Compile Include="Indexing\IndexWriterFrame.cs" />
+    <Compile Include="Indexing\LuceneManager.cs" />
+    <Compile Include="Indexing\SnPerFieldAnalyzerWrapper.cs" />
+    <Compile Include="IndexManager.cs" />
+    <Compile Include="LuceneSearchEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Common\Common.csproj">
+      <Project>{a453e920-29c0-45cd-984c-0d8e3631b1e3}</Project>
+      <Name>Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Storage\Storage.csproj">
       <Project>{5db4ddba-81f6-4d81-943a-18f3178b3355}</Project>
       <Name>Storage</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Indexing\Activities\IndexingActivities.cd" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -73,7 +73,7 @@ namespace SenseNet.Search
                         if (PermissionChecker.IsPermitted(nodeId, isLastPublic, true))
                         {
                             var lucObj = new LucObject();
-                            lucObj[LucObject.FieldName.NodeId] = nodeId.ToString();
+                            lucObj[IndexFieldName.NodeId] = nodeId.ToString();
                             sqlResult.Add(lucObj);
                             totalCount++;
                         }
