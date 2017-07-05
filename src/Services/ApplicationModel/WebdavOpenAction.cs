@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using Lucene.Net.Support;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.Portal.Virtualization;

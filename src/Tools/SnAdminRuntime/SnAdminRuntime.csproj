@@ -62,9 +62,6 @@
     <Reference Include="Ionic.Zip">
       <HintPath>..\..\References\Ionic.Zip.dll</HintPath>
     </Reference>
-    <Reference Include="Lucene.Net">
-      <HintPath>..\..\References\Lucene.Net.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.Practices.EnterpriseLibrary.Common">
       <HintPath>..\..\References\Microsoft.Practices.EnterpriseLibrary.Common.dll</HintPath>
     </Reference>

@@ -557,6 +557,10 @@
       <Project>{01ae54af-db4e-431e-a3f9-fbcd2ad73d03}</Project>
       <Name>Preview</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Search\Search.csproj">
+      <Project>{0279705b-779d-485d-86b9-f7ab3dd1f2c3}</Project>
+      <Name>Search</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Storage\Storage.csproj">
       <Project>{5DB4DDBA-81F6-4D81-943A-18F3178B3355}</Project>
       <Name>Storage</Name>
