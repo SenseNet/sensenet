@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Lucene.Net.Documents;
+using Lucene.Net.Search;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Search;
 
@@ -94,6 +95,11 @@ namespace SenseNet.Search
         {
             public string Name;
             public bool IndexingEnabled;
+
+            public static IEnumerable<ContentType> GetContentTypes()
+            {
+                throw new NotImplementedException();
+            }
         }
 
         public class AllContentTypes : IEnumerable<ContentType>
@@ -153,6 +159,8 @@ namespace SenseNet.Search
             {
                 throw new NotImplementedException();
             }
+
+            public Query Query { get; set; }
         }
 
         internal class LucObject

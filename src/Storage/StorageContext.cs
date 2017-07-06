@@ -190,9 +190,9 @@ Debug.WriteLine(String.Format("@> {0} -------- IndexDirectory reset", AppDomain.
             {
                 get
                 {
-                    return StorageContext.Search.IsOuterEngineEnabled &&
-                           StorageContext.Search.SearchEngine != InternalSearchEngine.Instance &&
-                           StorageContext.Search.SearchEngine.Running; //RepositoryInstance.LuceneManagerIsRunning;
+                    return IsOuterEngineEnabled &&
+                           SearchEngine != InternalSearchEngine.Instance &&
+                           !SearchEngine.IndexingPaused;
                 }
             }
 

@@ -20,6 +20,7 @@ using SenseNet.Search;
 using System.Diagnostics;
 using SenseNet.BackgroundOperations;
 using SenseNet.Configuration;
+using SenseNet.Search.Indexing;
 using SenseNet.TaskManagement.Core;
 
 namespace SenseNet.ContentRepository
@@ -561,6 +562,12 @@ namespace SenseNet.ContentRepository
             return SenseNet.Search.Indexing.IndexingActivityHistory.Reset();
         }
 
+
+        [ODataFunction]
+        public static object CheckIndexIntegrity(Content content, bool recurse)
+        {
+            return IntegrityChecker.CheckIndexIntegrity(content?.Path, recurse);
+        }
         [ODataFunction]
         public static SecurityConsistencyResult CheckSecurityConsistency(Content content)
         {

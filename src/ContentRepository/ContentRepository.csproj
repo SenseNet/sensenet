@@ -323,7 +323,6 @@
     <Compile Include="Search\Indexing\Configuration\RepositoryIndexBehaviorSection.cs" />
     <Compile Include="Search\Indexing\FieldIndexHandler.cs" />
     <Compile Include="Search\Indexing\IndexingTools.cs" />
-    <Compile Include="Search\Indexing\IntegrityChecker.cs" />
     <Compile Include="Search\InvalidContentQueryException.cs" />
     <Compile Include="Search\LucObject.cs" />
     <Compile Include="Search\LucQuery.cs" />

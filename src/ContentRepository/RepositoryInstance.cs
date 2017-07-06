@@ -275,7 +275,7 @@ namespace SenseNet.ContentRepository
                 // switch on message processing after LuceneManager was started
                 channel.AllowMessageProcessing = true;
 
-                SenseNet.Search.Indexing.IndexHealthMonitor.Start(_settings.Console);
+                //SenseNet.Search.Indexing.IndexHealthMonitor.Start(_settings.Console);
 
                 if (_settings.StartWorkflowEngine)
                     StartWorkflowEngine();
@@ -319,7 +319,7 @@ namespace SenseNet.ContentRepository
                 SnLog.Instance = new DebugWriteLoggerAdapter();
         }
 
-        private void RemoveIndexWriterLockFile()
+        private void RemoveIndexWriterLockFile() //UNDONE: Move to SenseNet.Search
         {
             // delete write.lock if necessary
             var lockFilePath = StorageContext.Search.IndexLockFilePath;
@@ -483,6 +483,7 @@ namespace SenseNet.ContentRepository
             return _started;
         }
 
+        //UNDONE: Move this section to SenseNet.Search
         // ======================================== Wait for write.lock
         private const string WAITINGFORLOCKSTR = "write.lock exists, waiting for removal...";
         private const string WRITELOCKREMOVEERRORSUBJECTSTR = "Error at application start";

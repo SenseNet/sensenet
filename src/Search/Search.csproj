@@ -76,6 +76,7 @@
     <Compile Include="Indexing\IndexingTools.cs" />
     <Compile Include="Indexing\IndexReaderFrame.cs" />
     <Compile Include="Indexing\IndexWriterFrame.cs" />
+    <Compile Include="Indexing\IntegrityChecker.cs" />
     <Compile Include="Indexing\LuceneManager.cs" />
     <Compile Include="Indexing\SnPerFieldAnalyzerWrapper.cs" />
     <Compile Include="IndexManager.cs" />

@@ -189,6 +189,8 @@ namespace SenseNet.Search.Indexing
             t.Start();
 
             SnTrace.Index.Write("LM: 'CommitWorker' thread started. ManagedThreadId: {0}", t.ManagedThreadId);
+
+            IndexHealthMonitor.Start(consoleOut);
         }
 
         private static void CreateWriterAndReader()
