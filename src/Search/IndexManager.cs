@@ -8,7 +8,7 @@ using Lucene.Net.Store;
 
 namespace SenseNet.Search
 {
-    internal class IndexManager
+    public class IndexManager
     {
         static IndexManager()
         {
@@ -21,7 +21,7 @@ namespace SenseNet.Search
             return new IndexWriter(dir, GetAnalyzer(), createNew, IndexWriter.MaxFieldLength.UNLIMITED);
         }
 
-        internal static Analyzer GetAnalyzer()
+        public static Analyzer GetAnalyzer()
         {
             var defaultAnalyzer = new KeywordAnalyzer();
             var analyzer = new Indexing.SnPerFieldAnalyzerWrapper(defaultAnalyzer);

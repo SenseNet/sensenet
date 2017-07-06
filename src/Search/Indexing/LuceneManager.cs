@@ -70,7 +70,7 @@ namespace SenseNet.Search.Indexing
 
         public static int[] GetNotIndexedNodeTypes()
         {
-            return new AllContentTypes()
+            return new __supportClass.AllContentTypes()
                 .Where(c => !c.IndexingEnabled)
                 .Select(c => ContentRepository.Storage.Schema.NodeType.GetByName(c.Name).Id)
                 .ToArray();
@@ -175,7 +175,7 @@ namespace SenseNet.Search.Indexing
             int dummy = SenseNet.ContentRepository.DistributedApplication.Cache.Count;
             var dummy2 = SenseNet.ContentRepository.DistributedApplication.ClusterChannel;
 
-            if (SenseNet.ContentRepository.RepositoryInstance.RestoreIndexOnStartup())
+            if (__supportClass.RepositoryInstance.RestoreIndexOnStartup())
                 BackupTools.RestoreIndex(false, consoleOut);
 
             CreateWriterAndReader();
@@ -673,7 +673,7 @@ namespace SenseNet.Search.Indexing
         {
             var result = new List<DocumentUpdate>(versioning.Reindex.Length);
 
-            var updates = IndexDocumentInfo.GetDocuments(versioning.Reindex);
+            var updates = __supportClass.IndexDocumentInfo.GetDocuments(versioning.Reindex);
             foreach (var doc in updates)
             {
                 var verId = GetVersionIdFromDocument(doc);
@@ -704,7 +704,7 @@ namespace SenseNet.Search.Indexing
         }
         internal static void SetDocumentFlag(Document doc, string fieldName, bool value)
         {
-            doc.Add(new Field(fieldName, value ? BooleanIndexHandler.YES : BooleanIndexHandler.NO, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
+            doc.Add(new Field(fieldName, value ? __supportClass.BooleanIndexHandler.YES : __supportClass.BooleanIndexHandler.NO, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
         }
 
 
@@ -731,7 +731,7 @@ namespace SenseNet.Search.Indexing
                     int versionId;
                     try
                     {
-                        document = IndexDocumentInfo.GetDocument(docData);
+                        document = __supportClass.IndexDocumentInfo.GetDocument(docData);
                         if (document == null) // indexing disabled
                             continue;
                         versionId = GetVersionIdFromDocument(document);

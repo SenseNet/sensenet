@@ -75,8 +75,8 @@ namespace SenseNet.Search.Indexing.Activities
                 if (IndexDocumentData != null)
                 {
                     // create document from indexdocumentdata if it has been supplied (eg via MSMQ if it was small enough to send it over)
-                    var docInfo = IndexDocumentData.IndexDocumentInfo as IndexDocumentInfo;
-                    doc = IndexDocumentInfo.CreateDocument(docInfo, IndexDocumentData);
+                    var docInfo = IndexDocumentData.IndexDocumentInfo as __supportClass.IndexDocumentInfo;
+                    doc = __supportClass.IndexDocumentInfo.CreateDocument(docInfo, IndexDocumentData);
 
                     if (doc == null)
                         SnTrace.Index.Write("LM: LuceneDocumentActivity.CreateDocument (VersionId:{0}): Document is NULL from QUEUE", VersionId);
@@ -85,7 +85,7 @@ namespace SenseNet.Search.Indexing.Activities
                 else
                 {
                     // create document via loading it from db (eg when indexdocumentdata was too large to send over MSMQ)
-                    doc = IndexDocumentInfo.GetDocument(this.VersionId);
+                    doc = __supportClass.IndexDocumentInfo.GetDocument(this.VersionId);
 
                     if (doc == null)
                         SnTrace.Index.Write("LM: LuceneDocumentActivity.CreateDocument (VersionId:{0}): Document is NULL from DB.", VersionId);

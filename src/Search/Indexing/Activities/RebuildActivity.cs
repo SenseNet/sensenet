@@ -27,7 +27,7 @@ namespace SenseNet.Search.Indexing.Activities
             LuceneManager.DeleteDocuments(new[] { LuceneManager.GetNodeIdTerm(this.NodeId) }, false, this.Id, false, versioningInfo);
 
             // add documents of all versions
-            var documents = IndexDocumentInfo.GetDocuments(head.Versions.Select(v => v.VersionId));
+            var documents = __supportClass.IndexDocumentInfo.GetDocuments(head.Versions.Select(v => v.VersionId));
             foreach (var document in documents)
                 LuceneManager.AddDocument(document, this.Id, this.IsUnprocessedActivity, versioningInfo);
 

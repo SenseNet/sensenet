@@ -186,6 +186,16 @@ Debug.WriteLine(String.Format("@> {0} -------- IndexDirectory reset", AppDomain.
                 get { return Instance.GetSearchEnginePrivate(); }
             }
 
+            public static bool ContentQueryIsAllowed
+            {
+                get
+                {
+                    return StorageContext.Search.IsOuterEngineEnabled &&
+                           StorageContext.Search.SearchEngine != InternalSearchEngine.Instance &&
+                           StorageContext.Search.SearchEngine.Running; //RepositoryInstance.LuceneManagerIsRunning;
+                }
+            }
+
             public static bool IsOuterEngineEnabled
             {
                 get { return Instance.IsOuterEngineEnabled; }

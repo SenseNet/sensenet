@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Tools;
@@ -37,13 +38,13 @@ namespace SenseNet.Search
         }
         public IEnumerable<int> Execute(NodeQuery nodeQuery)
         {
-            var query = LucQuery.Create(nodeQuery);
+            var query = __supportClass.LucQuery.Create(nodeQuery);
             var lucObjects = query.Execute();
             return from lucObject in lucObjects select lucObject.NodeId;
         }
         public IEnumerable<int> Execute(string lucQuery)
         {
-            var query = LucQuery.Parse(lucQuery);
+            var query = __supportClass.LucQuery.Parse(lucQuery);
             var lucObjects = query.Execute();
             return from lucObject in lucObjects select lucObject.NodeId;
         }
@@ -54,17 +55,17 @@ namespace SenseNet.Search
             return _analyzers;
         }
 
-        public static IEnumerable<LucObject> GetAllDocumentVersionsByNodeId(int nodeId)
+        internal static IEnumerable<__supportClass.LucObject> GetAllDocumentVersionsByNodeId(int nodeId)
         {
             var queryText = String.Concat(IndexFieldName.NodeId, ":", nodeId, " .AUTOFILTERS:OFF");
-            var query = LucQuery.Parse(queryText);
+            var query = __supportClass.LucQuery.Parse(queryText);
             var result = query.Execute(true);
             return result;
         }
 
         public void SetIndexingInfo(object indexingInfo)
         {
-            var allInfo = (Dictionary<string, PerFieldIndexingInfo>)indexingInfo;
+            var allInfo = (Dictionary<string, __supportClass.PerFieldIndexingInfo>)indexingInfo;
             var analyzerTypes = new Dictionary<string, Type>();
 
             foreach (var item in allInfo)
@@ -91,7 +92,7 @@ namespace SenseNet.Search
 
             var docStream = new System.IO.MemoryStream(indexDocumentInfoBytes);
             var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-            var info = (IndexDocumentInfo)formatter.Deserialize(docStream);
+            var info = (__supportClass.IndexDocumentInfo)formatter.Deserialize(docStream);
             return info;
         }
     }

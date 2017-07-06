@@ -233,6 +233,8 @@
     <Compile Include="Schema\Metadata\IMetaNode.cs" />
     <Compile Include="Schema\Metadata\MetaCollectionEnumerable.cs" />
     <Compile Include="Schema\Metadata\SchemaVisitor.cs" />
+    <Compile Include="Search\Indexing\IndexDocumentInfo.cs" />
+    <Compile Include="Search\Indexing\PerFieldIndexingInfo.cs" />
     <Compile Include="Setting\UserProfileSettings.cs" />
     <Compile Include="ContentNamingHelper.cs" />
     <Compile Include="ContentNamingProvider.cs" />
@@ -320,7 +322,6 @@
     <Compile Include="Search\IndexingSettings.cs" />
     <Compile Include="Search\Indexing\Configuration\RepositoryIndexBehaviorSection.cs" />
     <Compile Include="Search\Indexing\FieldIndexHandler.cs" />
-    <Compile Include="Search\Indexing\IndexHealthMonitor.cs" />
     <Compile Include="Search\Indexing\IndexingTools.cs" />
     <Compile Include="Search\Indexing\IntegrityChecker.cs" />
     <Compile Include="Search\InvalidContentQueryException.cs" />

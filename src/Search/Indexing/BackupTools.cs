@@ -294,7 +294,7 @@ Debug.WriteLine(String.Format("@> {0} =========== BackupIndex END. id: {1}", App
                 var writer = new Lucene.Net.Index.IndexWriter(dir, IndexManager.GetAnalyzer(), false, Lucene.Net.Index.IndexWriter.MaxFieldLength.UNLIMITED);
                 writer.Optimize();
                 writer.Close();
-                if (!SenseNet.ContentRepository.RepositoryInstance.WaitForWriterLockFileIsReleased(StorageContext.Search.IndexDirectoryBackupPath))
+                if (!__supportClass.RepositoryInstance.WaitForWriterLockFileIsReleased(StorageContext.Search.IndexDirectoryBackupPath))
                     throw new ApplicationException("Writer lock releasing time out.");
                 Progress.FinishOptimizeBeforeBackup();
                 op.Successful = true;

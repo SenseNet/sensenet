@@ -614,7 +614,7 @@ namespace SenseNet.ContentRepository
             {
                 if (_instance == null)
                     throw new NotSupportedException("Querying pausing state of LuceneManager is not supported when RepositoryInstance is not created.");
-                return SenseNet.Search.Indexing.LuceneManager.Paused;
+                return StorageContext.Search.SearchEngine.IndexingPaused;
             }
         }
 
@@ -627,14 +627,10 @@ namespace SenseNet.ContentRepository
 
         // ======================================== Outer search engine
 
+        [Obsolete("Use StorageContext.Search.ContentQueryIsAllowed")] //UNDONE: reviev magic string
         public static bool ContentQueryIsAllowed
         {
-            get
-            {
-                return StorageContext.Search.IsOuterEngineEnabled &&
-                       StorageContext.Search.SearchEngine != InternalSearchEngine.Instance &&
-                       RepositoryInstance.LuceneManagerIsRunning;
-            }
+            get { return StorageContext.Search.ContentQueryIsAllowed; }
         }
 
         // ======================================== IDisposable
