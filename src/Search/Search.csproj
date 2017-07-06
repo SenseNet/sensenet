@@ -69,11 +69,15 @@
     <Compile Include="Indexing\Activities\UpdateDocumentActivity.cs" />
     <Compile Include="Indexing\BackupTools.cs" />
     <Compile Include="Indexing\DocumentPopulator.cs" />
+    <Compile Include="Indexing\ExplicitPerFieldIndexingInfo.cs" />
+    <Compile Include="Indexing\IndexDocumentInfo.cs" />
     <Compile Include="Indexing\IndexingActivityFactory.cs" />
     <Compile Include="Indexing\IndexingActivityQueue.cs" />
+    <Compile Include="Indexing\IndexingTools.cs" />
     <Compile Include="Indexing\IndexReaderFrame.cs" />
     <Compile Include="Indexing\IndexWriterFrame.cs" />
     <Compile Include="Indexing\LuceneManager.cs" />
+    <Compile Include="Indexing\PerFieldIndexingInfo.cs" />
     <Compile Include="Indexing\SnPerFieldAnalyzerWrapper.cs" />
     <Compile Include="IndexManager.cs" />
     <Compile Include="LuceneSearchEngine.cs" />
