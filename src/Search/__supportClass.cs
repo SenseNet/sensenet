@@ -12,19 +12,6 @@ namespace SenseNet.Search
 {
     internal class __supportClass
     {
-        internal class RepositoryInstance
-        {
-            public static bool RestoreIndexOnStartup()
-            {
-                throw new NotImplementedException();
-            }
-
-            public static bool WaitForWriterLockFileIsReleased(string indexDirectoryBackupPath)
-            {
-                throw new NotImplementedException();
-            }
-        }
-
         internal class ContentTypeManager
         {
             internal static PerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
@@ -44,7 +31,6 @@ namespace SenseNet.Search
                 throw new NotImplementedException();
             }
         }
-
 
         public enum FieldInfoType
         {
@@ -95,8 +81,6 @@ namespace SenseNet.Search
             }
         }
 
-
-
         internal class LucQuery
         {
             public static LucQuery Create(NodeQuery nodeQuery)
@@ -121,7 +105,6 @@ namespace SenseNet.Search
 
             public Query Query { get; set; }
         }
-
         internal class LucObject
         {
             public int NodeId { get; set; }

@@ -161,7 +161,7 @@ namespace SenseNet.Search.Indexing
             int dummy = SenseNet.ContentRepository.DistributedApplication.Cache.Count;
             var dummy2 = SenseNet.ContentRepository.DistributedApplication.ClusterChannel;
 
-            if (__supportClass.RepositoryInstance.RestoreIndexOnStartup())
+            if (StorageContext.Search.ContentRepository.RestoreIndexOnstartup())
                 BackupTools.RestoreIndex(false, consoleOut);
 
             CreateWriterAndReader();

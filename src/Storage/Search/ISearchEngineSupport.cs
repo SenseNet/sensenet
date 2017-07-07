@@ -8,6 +8,7 @@ namespace SenseNet.ContentRepository.Storage.Search
 {
     public interface ISearchEngineSupport //UNDONE:! Set an instance at system start
     {
+        bool RestoreIndexOnstartup();
         int[] GetNotIndexedNodeTypeIds();
     }
 }
