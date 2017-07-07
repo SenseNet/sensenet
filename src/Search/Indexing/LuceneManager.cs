@@ -76,19 +76,8 @@ namespace SenseNet.Search.Indexing
                 .ToArray();
         }
 
-        private static TimeSpan _forceReopenFrequency;
-        public static TimeSpan ForceReopenFrequency
-        {
-            get
-            {
-                if (_forceReopenFrequency == default(TimeSpan))
-                {
-                    var settings = Settings.GetValue<int>(IndexingSettings.SETTINGSNAME, "ForceReopenFrequencyInSeconds", null, 0);
-                    _forceReopenFrequency = TimeSpan.FromSeconds(settings == 0 ? 30.0 : settings);
-                }
-                return _forceReopenFrequency;
-            }
-        }
+        public static TimeSpan ForceReopenFrequency => SearchEngineSettings.Instance.ForceReopenFrequency;
+
         public static DateTime IndexReopenedAt { get; private set; }
         private static volatile int _recentlyUsedReaderFrames;
 

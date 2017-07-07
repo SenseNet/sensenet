@@ -14,6 +14,11 @@ namespace SenseNet.Search
             Lucene.Net.Search.BooleanQuery.SetMaxClauseCount(100000);
         }
 
+        public void SetConfiguration(IDictionary<string, object> configuration)
+        {
+            SearchEngineSettings.SetConfiguration(configuration);
+        }
+
         public bool IndexingPaused
         {
             get { return LuceneManager.Paused; }}
