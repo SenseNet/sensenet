@@ -181,10 +181,14 @@ Debug.WriteLine(String.Format("@> {0} -------- IndexDirectory reset", AppDomain.
 
         public static class Search
         {
+            public static readonly string YES = "yes"; //UNDONE:! Approve and finalize
+            public static readonly string NO = "no";   //UNDONE:! Approve and finalize
+
             public static ISearchEngine SearchEngine
             {
                 get { return Instance.GetSearchEnginePrivate(); }
             }
+            public static ISearchEngineSupport ContentRepository { get; set; }  //UNDONE:! Set an instance at system start
 
             public static bool ContentQueryIsAllowed
             {

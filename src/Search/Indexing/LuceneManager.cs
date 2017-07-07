@@ -70,10 +70,7 @@ namespace SenseNet.Search.Indexing
 
         public static int[] GetNotIndexedNodeTypes()
         {
-            return new __supportClass.AllContentTypes()
-                .Where(c => !c.IndexingEnabled)
-                .Select(c => ContentRepository.Storage.Schema.NodeType.GetByName(c.Name).Id)
-                .ToArray();
+            return StorageContext.Search.ContentRepository.GetNotIndexedNodeTypeIds();
         }
 
         public static TimeSpan ForceReopenFrequency => SearchEngineSettings.Instance.ForceReopenFrequency;
@@ -695,7 +692,7 @@ namespace SenseNet.Search.Indexing
         }
         internal static void SetDocumentFlag(Document doc, string fieldName, bool value)
         {
-            doc.Add(new Field(fieldName, value ? __supportClass.BooleanIndexHandler.YES : __supportClass.BooleanIndexHandler.NO, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
+            doc.Add(new Field(fieldName, value ? StorageContext.Search.YES : StorageContext.Search.NO, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
         }
 
 

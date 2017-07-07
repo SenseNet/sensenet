@@ -501,8 +501,9 @@ namespace SenseNet.Search.Indexing
     }
     public class BooleanIndexHandler : FieldIndexHandler, IIndexValueConverter<bool>, IIndexValueConverter
     {
-        public static readonly string YES = "yes";
-        public static readonly string NO = "no";
+        public static string YES => StorageContext.Search.YES;
+        public static string NO => StorageContext.Search.NO;
+
         public static readonly List<string> YesList = new List<string>(new string[] { "1", "true", "y", YES });
         public static readonly List<string> NoList = new List<string>(new string[] { "0", "false", "n", NO });
 

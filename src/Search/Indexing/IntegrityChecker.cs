@@ -335,8 +335,8 @@ namespace SenseNet.Search.Indexing
                 var isLastDraft = doc.Get(IndexFieldName.IsLastDraft);
                 var isLastPublicInDb = versionId == lastMajorVersionId;
                 var isLastDraftInDb = versionId == lastMinorVersionId;
-                var isLastPublicInIndex = isLastPublic == __supportClass.BooleanIndexHandler.YES;
-                var isLastDraftInIndex = isLastDraft == __supportClass.BooleanIndexHandler.YES;
+                var isLastPublicInIndex = isLastPublic == StorageContext.Search.YES;
+                var isLastDraftInIndex = isLastDraft == StorageContext.Search.YES;
 
                 if (isLastPublicInDb != isLastPublicInIndex)
                 {
@@ -376,7 +376,7 @@ namespace SenseNet.Search.Indexing
                 if (dbNodeTimestamp != indexNodeTimestamp)
                 {
                     var ok = false;
-                    if (isLastDraft != __supportClass.BooleanIndexHandler.YES)
+                    if (isLastDraft != StorageContext.Search.YES)
                     {
                         var latestDocs = ixreader.TermDocs(new Lucene.Net.Index.Term(IndexFieldName.NodeId, Lucene.Net.Util.NumericUtils.IntToPrefixCoded(nodeId)));
                         Lucene.Net.Documents.Document latestDoc = null;
@@ -384,7 +384,7 @@ namespace SenseNet.Search.Indexing
                         {
                             var latestdocid = latestDocs.Doc();
                             var d = ixreader.Document(latestdocid);
-                            if (d.Get(IndexFieldName.IsLastDraft) != __supportClass.BooleanIndexHandler.YES)
+                            if (d.Get(IndexFieldName.IsLastDraft) != StorageContext.Search.YES)
                                 continue;
                             latestDoc = d;
                             break;
@@ -454,8 +454,7 @@ namespace SenseNet.Search.Indexing
             // We must exclude those content types from the integrity check
             // where indexing is completely switched OFF, because otherwise
             // these kinds of content would appear as missing items.
-            return __supportClass.ContentType.GetContentTypes().Where(ct => !ct.IndexingEnabled)
-                    .Select(ct => ActiveSchema.NodeTypes[ct.Name].Id).ToArray();
+            return StorageContext.Search.ContentRepository.GetNotIndexedNodeTypeIds();
         }
 
         private static int ParseInt(string data)

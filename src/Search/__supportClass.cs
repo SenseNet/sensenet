@@ -12,6 +12,19 @@ namespace SenseNet.Search
 {
     internal class __supportClass
     {
+        internal class RepositoryInstance
+        {
+            public static bool RestoreIndexOnStartup()
+            {
+                throw new NotImplementedException();
+            }
+
+            public static bool WaitForWriterLockFileIsReleased(string indexDirectoryBackupPath)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         internal class ContentTypeManager
         {
             internal static PerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
@@ -19,14 +32,11 @@ namespace SenseNet.Search
                 throw new NotImplementedException();
             }
         }
-
         internal class PerFieldIndexingInfo
         {
             public string Analyzer { get; set; }
             public FieldIndexHandler IndexFieldHandler { get; set; }
-
         }
-
         internal class FieldIndexHandler
         {
             public virtual string GetDefaultAnalyzerName()
@@ -85,58 +95,7 @@ namespace SenseNet.Search
             }
         }
 
-        public class BooleanIndexHandler : FieldIndexHandler //, IIndexValueConverter<bool>, IIndexValueConverter
-        {
-            public static readonly string YES = "yes";
-            public static readonly string NO = "no";
-        }
 
-        public class ContentType
-        {
-            public string Name;
-            public bool IndexingEnabled;
-
-            public static IEnumerable<ContentType> GetContentTypes()
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public class AllContentTypes : IEnumerable<ContentType>
-        {
-            public int Count()
-            {
-                throw new NotImplementedException();
-            }
-
-            public bool Contains(ContentType item)
-            {
-                return true;
-            }
-
-            public IEnumerator<ContentType> GetEnumerator()
-            {
-                throw new NotImplementedException();
-            }
-
-            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-        }
-
-        internal class RepositoryInstance
-        {
-            public static bool RestoreIndexOnStartup()
-            {
-                throw new NotImplementedException();
-            }
-
-            public static bool WaitForWriterLockFileIsReleased(string indexDirectoryBackupPath)
-            {
-                throw new NotImplementedException();
-            }
-        }
 
         internal class LucQuery
         {

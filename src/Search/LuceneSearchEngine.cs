@@ -14,6 +14,7 @@ namespace SenseNet.Search
             Lucene.Net.Search.BooleanQuery.SetMaxClauseCount(100000);
         }
 
+        //UNDONE:! Call this when settings API are available and outer engine is resolved
         public void SetConfiguration(IDictionary<string, object> configuration)
         {
             SearchEngineSettings.SetConfiguration(configuration);

@@ -319,7 +319,7 @@ namespace SenseNet.ContentRepository
                 SnLog.Instance = new DebugWriteLoggerAdapter();
         }
 
-        private void RemoveIndexWriterLockFile() //UNDONE: Move to SenseNet.Search
+        private void RemoveIndexWriterLockFile() //UNDONE:! Move to SenseNet.Search
         {
             // delete write.lock if necessary
             var lockFilePath = StorageContext.Search.IndexLockFilePath;
@@ -483,8 +483,8 @@ namespace SenseNet.ContentRepository
             return _started;
         }
 
-        //UNDONE: Move this section to SenseNet.Search
-        // ======================================== Wait for write.lock
+        //UNDONE:! Move this section to SenseNet.Search
+        /* ======================================== Wait for write.lock */
         private const string WAITINGFORLOCKSTR = "write.lock exists, waiting for removal...";
         private const string WRITELOCKREMOVEERRORSUBJECTSTR = "Error at application start";
         private const string WRITELOCKREMOVEERRORTEMPLATESTR = "Write.lock was present at application start and was not removed within set timeout interval ({0} seconds) - a previous appdomain may use the index. Write.lock deletion and application start is forced. AppDomain friendlyname: {1}, base directory: {2}";
