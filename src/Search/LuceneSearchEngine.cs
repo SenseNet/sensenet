@@ -71,7 +71,7 @@ namespace SenseNet.Search
 
         public void SetIndexingInfo(object indexingInfo)
         {
-            var allInfo = (Dictionary<string, __supportClass.PerFieldIndexingInfo>)indexingInfo;
+            var allInfo = (Dictionary<string, PerFieldIndexingInfo>)indexingInfo;
             var analyzerTypes = new Dictionary<string, Type>();
 
             foreach (var item in allInfo)
