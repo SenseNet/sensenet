@@ -1143,54 +1143,6 @@ namespace SenseNet.ContentRepository.Schema
             return product;
         }
 
-        private static IndexStoringMode ToIndexStoringMode(LucField.Store s)
-        {
-            if (s == null)
-                return IndexStoringMode.No;
-            else if (s == LucField.Store.YES)
-                return IndexStoringMode.Yes;
-            else if (s == LucField.Store.NO)
-                return IndexStoringMode.No;
-
-            throw new NotSupportedException();
-        }
-
-        private static IndexingMode ToIndexingMode(LucField.Index m)
-        {
-            if (m == null)
-                return IndexingMode.Analyzed;
-            else if (m == LucField.Index.ANALYZED)
-                return IndexingMode.Analyzed;
-            else if (m == LucField.Index.ANALYZED_NO_NORMS)
-                return IndexingMode.AnalyzedNoNorms;
-            else if (m == LucField.Index.NO)
-                return IndexingMode.No;
-            else if (m == LucField.Index.NOT_ANALYZED)
-                return IndexingMode.NotAnalyzed;
-            else if (m == LucField.Index.NOT_ANALYZED_NO_NORMS)
-                return IndexingMode.NotAnalyzedNoNorms;
-
-            throw new NotSupportedException();
-        }
-
-        private static IndexTermVector ToIndexTermVector(LucField.TermVector v)
-        {
-            if (v == null)
-                return IndexTermVector.No;
-            else if (v == LucField.TermVector.NO)
-                return IndexTermVector.No;
-            else if (v == LucField.TermVector.WITH_OFFSETS)
-                return IndexTermVector.WithOffsets;
-            else if (v == LucField.TermVector.WITH_POSITIONS)
-                return IndexTermVector.WithPositions;
-            else if (v == LucField.TermVector.WITH_POSITIONS_OFFSETS)
-                return IndexTermVector.WithPositionsOffsets;
-            else if (v == LucField.TermVector.YES)
-                return IndexTermVector.Yes;
-
-            throw new NotSupportedException();
-        }
-
         /// <summary>
         /// Creates a FieldInfo object from this FieldSetting object.
         /// A FieldInfo object is useful for serializing and interacting with the field through OData.
