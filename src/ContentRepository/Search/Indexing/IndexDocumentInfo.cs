@@ -15,6 +15,8 @@ using System.Diagnostics;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Tools;
 using Field = Lucene.Net.Documents.Field;
 
@@ -525,9 +527,10 @@ namespace SenseNet.Search.Indexing
         }
         private static AbstractField CreateStringField(string name, string value, PerFieldIndexingInfo indexingInfo)
         {
-            var index = indexingInfo.IndexingMode ?? PerFieldIndexingInfo.DefaultIndexingMode;
-            var store = indexingInfo.IndexStoringMode ?? PerFieldIndexingInfo.DefaultIndexStoringMode;
-            var termVector = indexingInfo.TermVectorStoringMode ?? PerFieldIndexingInfo.DefaultTermVectorStoringMode;
+            var index = EnumConverter.ToLuceneIndexingMode(indexingInfo.IndexingMode);
+            var store = EnumConverter.ToLuceneIndexStoringMode(indexingInfo.IndexStoringMode);
+            var termVector = EnumConverter.ToLuceneIndexTermVector(indexingInfo.TermVectorStoringMode);
+
             return new Lucene.Net.Documents.Field(name, value, store, index, termVector);
         }
 

@@ -5,12 +5,13 @@ using System.Text;
 using SenseNet.ContentRepository.Schema;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.ContentRepository.Schema
 {
-    public enum IndexingMode { Analyzed, AnalyzedNoNorms, No, NotAnalyzed, NotAnalyzedNoNorms }
-    public enum IndexStoringMode { No, Yes }
-    public enum IndexTermVector { No, WithOffsets, WithPositions, WithPositionsOffsets, Yes }
+    //public enum IndexingMode { Analyzed, AnalyzedNoNorms, No, NotAnalyzed, NotAnalyzedNoNorms }
+    //public enum IndexStoringMode { No, Yes }
+    //public enum IndexTermVector { No, WithOffsets, WithPositions, WithPositionsOffsets, Yes }
 
     /// <summary>
     /// Carries field indexing information in a FieldInfo

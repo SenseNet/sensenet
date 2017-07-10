@@ -1,30 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Lucene.Net.Documents;
+using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.Search.Indexing
 {
     public class PerFieldIndexingInfo
     {
-        public static readonly Field.Index DefaultIndexingMode = Field.Index.ANALYZED;
-        public static readonly Field.Store DefaultIndexStoringMode = Field.Store.NO;
-        public static readonly Field.TermVector DefaultTermVectorStoringMode = Field.TermVector.NO;
+        public static readonly IndexingMode DefaultIndexingMode = IndexingMode.Analyzed;
+        public static readonly IndexStoringMode DefaultIndexStoringMode = IndexStoringMode.No;
+        public static readonly IndexTermVector DefaultTermVectorStoringMode = IndexTermVector.No;
 
         public string Analyzer { get; set; }
         public FieldIndexHandler IndexFieldHandler { get; set; }
 
-        public Field.Index IndexingMode { get; set; }
-        public Field.Store IndexStoringMode { get; set; }
-        public Field.TermVector TermVectorStoringMode { get; set; }
+        public IndexingMode IndexingMode { get; set; }
+        public IndexStoringMode IndexStoringMode { get; set; }
+        public IndexTermVector TermVectorStoringMode { get; set; }
 
         public bool IsInIndex
         {
             get
             {
-                if (IndexingMode == Lucene.Net.Documents.Field.Index.NO &&
-                    (IndexStoringMode == null || IndexStoringMode == Lucene.Net.Documents.Field.Store.NO))
+                if (IndexingMode == IndexingMode.No &&
+                    (IndexStoringMode == IndexStoringMode.Default || IndexStoringMode == IndexStoringMode.No))
                     return false;
                 return true;
             }

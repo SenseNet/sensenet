@@ -12,6 +12,8 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.i18n;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
+using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.Search.Indexing
 {
@@ -60,8 +62,8 @@ namespace SenseNet.Search.Indexing
         private static NumericField GetNumericField(string fieldName, PerFieldIndexingInfo indexingInfo)
         {
             // Do not reusing any fields.
-            var index = indexingInfo.IndexingMode ?? PerFieldIndexingInfo.DefaultIndexingMode;
-            var store = indexingInfo.IndexStoringMode ?? PerFieldIndexingInfo.DefaultIndexStoringMode;
+            var index = EnumConverter.ToLuceneIndexingMode(indexingInfo.IndexingMode);
+            var store = EnumConverter.ToLuceneIndexStoringMode(indexingInfo.IndexStoringMode);
             var lucField = new Lucene.Net.Documents.NumericField(fieldName, store, index != Lucene.Net.Documents.Field.Index.NO);
             return lucField;
         }
@@ -93,26 +95,26 @@ namespace SenseNet.Search.Indexing
         protected IEnumerable<IndexFieldInfo> CreateFieldInfo(string name, IEnumerable<string> value, string sortTerm)
         {
             var indexingInfo = this.OwnerIndexingInfo;
-            var index = indexingInfo.IndexingMode ?? PerFieldIndexingInfo.DefaultIndexingMode;
-            var store = indexingInfo.IndexStoringMode ?? PerFieldIndexingInfo.DefaultIndexStoringMode;
-            var termVector = indexingInfo.TermVectorStoringMode ?? PerFieldIndexingInfo.DefaultTermVectorStoringMode;
+            var index = EnumConverter.ToLuceneIndexingMode(indexingInfo.IndexingMode);
+            var store = EnumConverter.ToLuceneIndexStoringMode(indexingInfo.IndexStoringMode);
+            var termVector = EnumConverter.ToLuceneIndexTermVector(indexingInfo.TermVectorStoringMode);
             var fields = value.Select(v => new IndexFieldInfo(name, v, FieldInfoType.StringField, store, index, termVector)).ToList();
             if (!String.IsNullOrEmpty(sortTerm))
                 fields.Add(new IndexFieldInfo(
                     GetSortFieldName(name),
                     sortTerm, FieldInfoType.StringField,
-                    PerFieldIndexingInfo.DefaultIndexStoringMode,
-                    PerFieldIndexingInfo.DefaultIndexingMode,
-                    PerFieldIndexingInfo.DefaultTermVectorStoringMode));
+                    EnumConverter.ToLuceneIndexStoringMode(PerFieldIndexingInfo.DefaultIndexStoringMode),
+                    EnumConverter.ToLuceneIndexingMode(PerFieldIndexingInfo.DefaultIndexingMode),
+                    EnumConverter.ToLuceneIndexTermVector(PerFieldIndexingInfo.DefaultTermVectorStoringMode)));
             return fields;
         }
 
         protected IEnumerable<IndexFieldInfo> CreateFieldInfo(string name, IEnumerable<Int32> value)
         {
             var indexingInfo = this.OwnerIndexingInfo;
-            var index = indexingInfo.IndexingMode ?? PerFieldIndexingInfo.DefaultIndexingMode;
-            var store = indexingInfo.IndexStoringMode ?? PerFieldIndexingInfo.DefaultIndexStoringMode;
-            var termVector = indexingInfo.TermVectorStoringMode ?? PerFieldIndexingInfo.DefaultTermVectorStoringMode;
+            var index = EnumConverter.ToLuceneIndexingMode(indexingInfo.IndexingMode);
+            var store = EnumConverter.ToLuceneIndexStoringMode(indexingInfo.IndexStoringMode);
+            var termVector = EnumConverter.ToLuceneIndexTermVector(indexingInfo.TermVectorStoringMode);
             var x = value.Select(v =>  new IndexFieldInfo(name, v.ToString(CultureInfo.InvariantCulture), FieldInfoType.IntField, store, index, termVector)).ToArray();
             return x;
         }
@@ -120,9 +122,9 @@ namespace SenseNet.Search.Indexing
         private IEnumerable<IndexFieldInfo> CreateFieldInfo(string name, FieldInfoType type, string value)
         {
             var indexingInfo = this.OwnerIndexingInfo;
-            var index = indexingInfo.IndexingMode ?? PerFieldIndexingInfo.DefaultIndexingMode;
-            var store = indexingInfo.IndexStoringMode ?? PerFieldIndexingInfo.DefaultIndexStoringMode;
-            var termVector = indexingInfo.TermVectorStoringMode ?? PerFieldIndexingInfo.DefaultTermVectorStoringMode;
+            var index = EnumConverter.ToLuceneIndexingMode(indexingInfo.IndexingMode);
+            var store = EnumConverter.ToLuceneIndexStoringMode(indexingInfo.IndexStoringMode);
+            var termVector = EnumConverter.ToLuceneIndexTermVector(indexingInfo.TermVectorStoringMode);
             return new[] { new IndexFieldInfo(name, value, type, store, index, termVector) };
         }
 

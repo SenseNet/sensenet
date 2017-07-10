@@ -13,6 +13,7 @@ using LucField = Lucene.Net.Documents.Field;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Diagnostics;
 using SenseNet.Tools;
 
@@ -1228,9 +1229,9 @@ namespace SenseNet.ContentRepository.Schema
             fieldInfo.Indexing = new IndexingInfo();
             fieldInfo.Indexing.Analyzer = this.IndexingInfo.Analyzer;
             fieldInfo.Indexing.IndexHandler = this.IndexingInfo.IndexFieldHandler.GetType().FullName;
-            fieldInfo.Indexing.Mode = ToIndexingMode(this.IndexingInfo.IndexingMode);
-            fieldInfo.Indexing.Store = ToIndexStoringMode(this.IndexingInfo.IndexStoringMode);
-            fieldInfo.Indexing.TermVector = ToIndexTermVector(this.IndexingInfo.TermVectorStoringMode);
+            fieldInfo.Indexing.Mode = this.IndexingInfo.IndexingMode;
+            fieldInfo.Indexing.Store = this.IndexingInfo.IndexStoringMode;
+            fieldInfo.Indexing.TermVector = this.IndexingInfo.TermVectorStoringMode;
 
             return fieldInfo;
         }
@@ -1319,38 +1320,53 @@ namespace SenseNet.ContentRepository.Schema
 
             var indexingInfo = new PerFieldIndexingInfo();
 
-            if (!String.IsNullOrEmpty(descriptor.IndexingMode))
+            if (!string.IsNullOrEmpty(descriptor.IndexingMode))
             {
-                switch (descriptor.IndexingMode)
-                {
-                    case "Analyzed": indexingInfo.IndexingMode = LucField.Index.ANALYZED; break;
-                    case "AnalyzedNoNorms": indexingInfo.IndexingMode = LucField.Index.ANALYZED_NO_NORMS; break;
-                    case "No": indexingInfo.IndexingMode = LucField.Index.NO; break;
-                    case "NotAnalyzed": indexingInfo.IndexingMode = LucField.Index.NOT_ANALYZED; break;
-                    case "NotAnalyzedNoNorms": indexingInfo.IndexingMode = LucField.Index.NOT_ANALYZED_NO_NORMS; break;
-                    default: throw new ContentRegistrationException("Invalid IndexingMode: " + descriptor.IndexingMode, descriptor.Owner.Name, descriptor.FieldName);
-                }
+                //switch (descriptor.IndexingMode)
+                //{
+                //    case "Analyzed": indexingInfo.IndexingMode = LucField.Index.ANALYZED; break;
+                //    case "AnalyzedNoNorms": indexingInfo.IndexingMode = LucField.Index.ANALYZED_NO_NORMS; break;
+                //    case "No": indexingInfo.IndexingMode = LucField.Index.NO; break;
+                //    case "NotAnalyzed": indexingInfo.IndexingMode = LucField.Index.NOT_ANALYZED; break;
+                //    case "NotAnalyzedNoNorms": indexingInfo.IndexingMode = LucField.Index.NOT_ANALYZED_NO_NORMS; break;
+                //    default: throw new ContentRegistrationException("Invalid IndexingMode: " + descriptor.IndexingMode, descriptor.Owner.Name, descriptor.FieldName);
+                //}
+                IndexingMode mode;
+                if (Enum.TryParse(descriptor.IndexingMode, true, out mode))
+                    indexingInfo.IndexingMode = mode;
+                else
+                    throw new ContentRegistrationException("Invalid IndexingMode: " + descriptor.IndexingMode, descriptor.Owner.Name, descriptor.FieldName);
             }
-            if (!String.IsNullOrEmpty(descriptor.IndexStoringMode))
+            if (!string.IsNullOrEmpty(descriptor.IndexStoringMode))
             {
-                switch (descriptor.IndexStoringMode)
-                {
-                    case "No": indexingInfo.IndexStoringMode = LucField.Store.NO; break;
-                    case "Yes": indexingInfo.IndexStoringMode = LucField.Store.YES; break;
-                    default: throw new ContentRegistrationException("Invalid IndexStoringMode: " + descriptor.IndexStoringMode, descriptor.Owner.Name, descriptor.FieldName);
-                }
+                //switch (descriptor.IndexStoringMode)
+                //{
+                //    case "No": indexingInfo.IndexStoringMode = LucField.Store.NO; break;
+                //    case "Yes": indexingInfo.IndexStoringMode = LucField.Store.YES; break;
+                //    default: throw new ContentRegistrationException("Invalid IndexStoringMode: " + descriptor.IndexStoringMode, descriptor.Owner.Name, descriptor.FieldName);
+                //}
+                IndexStoringMode mode;
+                if (Enum.TryParse(descriptor.IndexStoringMode, true, out mode))
+                    indexingInfo.IndexStoringMode = mode;
+                else
+                    throw new ContentRegistrationException("Invalid IndexStoringMode: " + descriptor.IndexStoringMode, descriptor.Owner.Name, descriptor.FieldName);
             }
             if (!String.IsNullOrEmpty(descriptor.IndexingTermVector))
             {
-                switch (descriptor.IndexingTermVector)
-                {
-                    case "No": indexingInfo.TermVectorStoringMode = LucField.TermVector.NO; break;
-                    case "WithOffsets": indexingInfo.TermVectorStoringMode = LucField.TermVector.WITH_OFFSETS; break;
-                    case "WithPositions": indexingInfo.TermVectorStoringMode = LucField.TermVector.WITH_POSITIONS; break;
-                    case "WithPositionsOffsets": indexingInfo.TermVectorStoringMode = LucField.TermVector.WITH_POSITIONS_OFFSETS; break;
-                    case "Yes": indexingInfo.TermVectorStoringMode = LucField.TermVector.YES; break;
-                    default: throw new ContentRegistrationException("Invalid IndexingTermVector: " + descriptor.IndexingTermVector, descriptor.Owner.Name, descriptor.FieldName);
-                }
+                //switch (descriptor.IndexingTermVector)
+                //{
+                //    case "No": indexingInfo.TermVectorStoringMode = LucField.TermVector.NO; break;
+                //    case "WithOffsets": indexingInfo.TermVectorStoringMode = LucField.TermVector.WITH_OFFSETS; break;
+                //    case "WithPositions": indexingInfo.TermVectorStoringMode = LucField.TermVector.WITH_POSITIONS; break;
+                //    case "WithPositionsOffsets": indexingInfo.TermVectorStoringMode = LucField.TermVector.WITH_POSITIONS_OFFSETS; break;
+                //    case "Yes": indexingInfo.TermVectorStoringMode = LucField.TermVector.YES; break;
+                //    default: throw new ContentRegistrationException("Invalid IndexingTermVector: " + descriptor.IndexingTermVector, descriptor.Owner.Name, descriptor.FieldName);
+                //}
+                IndexTermVector mode;
+                if (Enum.TryParse(descriptor.IndexingTermVector, true, out mode))
+                    indexingInfo.TermVectorStoringMode = mode;
+                else
+                    throw new ContentRegistrationException("Invalid IndexingTermVector: " + descriptor.IndexingTermVector, descriptor.Owner.Name, descriptor.FieldName);
             }
 
             indexingInfo.Analyzer = descriptor.Analyzer;
@@ -1423,31 +1439,35 @@ namespace SenseNet.ContentRepository.Schema
 
             var indexingInfo = new PerFieldIndexingInfo();
 
-            switch (info.Indexing.Mode)
-            {
-                case IndexingMode.Analyzed: indexingInfo.IndexingMode = LucField.Index.ANALYZED; break;
-                case IndexingMode.AnalyzedNoNorms: indexingInfo.IndexingMode = LucField.Index.ANALYZED_NO_NORMS; break;
-                case IndexingMode.No: indexingInfo.IndexingMode = LucField.Index.NO; break;
-                case IndexingMode.NotAnalyzed: indexingInfo.IndexingMode = LucField.Index.NOT_ANALYZED; break;
-                case IndexingMode.NotAnalyzedNoNorms: indexingInfo.IndexingMode = LucField.Index.NOT_ANALYZED_NO_NORMS; break;
-                default: throw new ContentRegistrationException("Invalid IndexingMode: " + info.Indexing.Mode, (string)null, info.Name);
-            }
-            switch (info.Indexing.Store)
-            {
-                case IndexStoringMode.No: indexingInfo.IndexStoringMode = LucField.Store.NO; break;
-                case IndexStoringMode.Yes: indexingInfo.IndexStoringMode = LucField.Store.YES; break;
-                default: throw new ContentRegistrationException("Invalid IndexStoringMode: " + info.Indexing.Store, (string)null, info.Name);
-            }
+            //switch (info.Indexing.Mode)
+            //{
+            //    case IndexingMode.Analyzed: indexingInfo.IndexingMode = LucField.Index.ANALYZED; break;
+            //    case IndexingMode.AnalyzedNoNorms: indexingInfo.IndexingMode = LucField.Index.ANALYZED_NO_NORMS; break;
+            //    case IndexingMode.No: indexingInfo.IndexingMode = LucField.Index.NO; break;
+            //    case IndexingMode.NotAnalyzed: indexingInfo.IndexingMode = LucField.Index.NOT_ANALYZED; break;
+            //    case IndexingMode.NotAnalyzedNoNorms: indexingInfo.IndexingMode = LucField.Index.NOT_ANALYZED_NO_NORMS; break;
+            //    default: throw new ContentRegistrationException("Invalid IndexingMode: " + info.Indexing.Mode, (string)null, info.Name);
+            //}
+            indexingInfo.IndexingMode = info.Indexing.Mode;
 
-            switch (info.Indexing.TermVector)
-            {
-                case IndexTermVector.No: indexingInfo.TermVectorStoringMode = LucField.TermVector.NO; break;
-                case IndexTermVector.WithOffsets: indexingInfo.TermVectorStoringMode = LucField.TermVector.WITH_OFFSETS; break;
-                case IndexTermVector.WithPositions: indexingInfo.TermVectorStoringMode = LucField.TermVector.WITH_POSITIONS; break;
-                case IndexTermVector.WithPositionsOffsets: indexingInfo.TermVectorStoringMode = LucField.TermVector.WITH_POSITIONS_OFFSETS; break;
-                case IndexTermVector.Yes: indexingInfo.TermVectorStoringMode = LucField.TermVector.YES; break;
-                default: throw new ContentRegistrationException("Invalid IndexingTermVector: " + info.Indexing.TermVector, (string)null, info.Name);
-            }
+            //switch (info.Indexing.Store)
+            //{
+            //    case IndexStoringMode.No: indexingInfo.IndexStoringMode = LucField.Store.NO; break;
+            //    case IndexStoringMode.Yes: indexingInfo.IndexStoringMode = LucField.Store.YES; break;
+            //    default: throw new ContentRegistrationException("Invalid IndexStoringMode: " + info.Indexing.Store, (string)null, info.Name);
+            //}
+            indexingInfo.IndexStoringMode = info.Indexing.Store;
+
+            //switch (info.Indexing.TermVector)
+            //{
+            //    case IndexTermVector.No: indexingInfo.TermVectorStoringMode = LucField.TermVector.NO; break;
+            //    case IndexTermVector.WithOffsets: indexingInfo.TermVectorStoringMode = LucField.TermVector.WITH_OFFSETS; break;
+            //    case IndexTermVector.WithPositions: indexingInfo.TermVectorStoringMode = LucField.TermVector.WITH_POSITIONS; break;
+            //    case IndexTermVector.WithPositionsOffsets: indexingInfo.TermVectorStoringMode = LucField.TermVector.WITH_POSITIONS_OFFSETS; break;
+            //    case IndexTermVector.Yes: indexingInfo.TermVectorStoringMode = LucField.TermVector.YES; break;
+            //    default: throw new ContentRegistrationException("Invalid IndexingTermVector: " + info.Indexing.TermVector, (string)null, info.Name);
+            //}
+            indexingInfo.TermVectorStoringMode = info.Indexing.TermVector;
 
             indexingInfo.Analyzer = info.Indexing.Analyzer;
             indexingInfo.IndexFieldHandler = GetIndexFieldHandler(info.Indexing.IndexHandler, this);
@@ -1540,12 +1560,12 @@ namespace SenseNet.ContentRepository.Schema
             // <Indexing>
             writer.WriteStartElement("Indexing");
 
-            if (indexingInfo.IndexingMode != null)
-                WriteElement(writer, ToIndexingMode(indexingInfo.IndexingMode).ToString(), "Mode");
-            if (indexingInfo.IndexStoringMode != null)
-                WriteElement(writer, ToIndexStoringMode(indexingInfo.IndexStoringMode).ToString(), "Store");
-            if (indexingInfo.TermVectorStoringMode != null)
-                WriteElement(writer, ToIndexTermVector(indexingInfo.TermVectorStoringMode).ToString(), "TermVector");
+            if (indexingInfo.IndexingMode != IndexingMode.Default && indexingInfo.IndexingMode != PerFieldIndexingInfo.DefaultIndexingMode)
+                WriteElement(writer, indexingInfo.IndexingMode.ToString(), "Mode");
+            if (indexingInfo.IndexStoringMode != IndexStoringMode.Default && indexingInfo.IndexStoringMode != PerFieldIndexingInfo.DefaultIndexStoringMode)
+                WriteElement(writer, indexingInfo.IndexStoringMode.ToString(), "Store");
+            if (indexingInfo.TermVectorStoringMode != IndexTermVector.Default && indexingInfo.TermVectorStoringMode != PerFieldIndexingInfo.DefaultTermVectorStoringMode)
+                WriteElement(writer, indexingInfo.TermVectorStoringMode.ToString(), "TermVector");
             if (!string.IsNullOrEmpty(indexingInfo.Analyzer))
                 WriteElement(writer, indexingInfo.Analyzer, "Analyzer");
             if (indexingInfo.IndexFieldHandler != null)
