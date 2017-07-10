@@ -7,6 +7,7 @@ using Lucene.Net.Documents;
 using Lucene.Net.Search;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Search;
+using SenseNet.Search.Indexing;
 
 namespace SenseNet.Search
 {
@@ -15,18 +16,6 @@ namespace SenseNet.Search
         internal class ContentTypeManager
         {
             internal static PerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
-            {
-                throw new NotImplementedException();
-            }
-        }
-        internal class PerFieldIndexingInfo
-        {
-            public string Analyzer { get; set; }
-            public FieldIndexHandler IndexFieldHandler { get; set; }
-        }
-        internal class FieldIndexHandler
-        {
-            public virtual string GetDefaultAnalyzerName()
             {
                 throw new NotImplementedException();
             }
