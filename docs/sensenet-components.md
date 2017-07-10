@@ -11,9 +11,9 @@ This is a list of the main components we published so far. To see an expanded, c
 - [Services](#Services): core layer, mother of all components, all other packages are optional.
 - [WebPages](#WebPages): admin UI and built-in building blocks for WebForms enthusiasts.
 
-###### Feature packages (coming soon)
-- Workspaces
-- Workflows
+###### Feature packages
+- [Workspaces](#Workspaces): Workspace-related items (content types and templates, workspace dashboards and views) for sensenet ECM.
+- [Workflow](#Workflow): Windows Workflow Foundation (WWF 4.5) integration into sensenet ECM.
 - Content templates
 - Notification
 - ...and more!
@@ -70,3 +70,11 @@ This library connects to the sensenet ECM REST API (it is compatible with SN 6.5
 Speed up your development process and focus on your business logic (either in a custom import or migration tool, or a rich WPF desktop client)!
 
 ![sensenet .Net client](https://github.com/SenseNet/sn-resources/raw/master/images/sn-components/sn-components_netclient.png "sensenet .Net client")
+
+<a name="Workspaces"></a>
+## Workspaces
+The [Workspaces component](https://github.com/SenseNet/sn-workspaces) is useful for document management or project-oriented scenarios. It gives you predefined workspace structures and dashboards to help organizing different types of content that are related to a project or a client in a unified environment.
+
+<a name="Workflow"></a>
+## Workflow
+Integrating **Windows Workflow Foundation (WWF 4.5)** into sensenet ECM provides many possibilities for creating content-driven workflows. The [Workflow component](https://github.com/SenseNet/sn-workflow) adds a robust and customizable workflow engine to sensenet ECM. 

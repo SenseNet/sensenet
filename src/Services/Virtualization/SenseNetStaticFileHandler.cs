@@ -25,10 +25,6 @@ namespace SenseNet.Portal.Virtualization
             VirtualFile vf = null;
             var filePath = request.FilePath;
 
-            // Cross-Origin Resource Sharing (CORS)
-            if (!HttpHeaderTools.IsOriginHeaderAllowed())
-                AuthenticationHelper.ThrowForbidden(filePath);
-
             if (HostingEnvironment.VirtualPathProvider.FileExists(filePath))
                 vf = HostingEnvironment.VirtualPathProvider.GetFile(filePath);
 

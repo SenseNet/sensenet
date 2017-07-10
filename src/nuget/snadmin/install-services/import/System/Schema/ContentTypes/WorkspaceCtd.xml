@@ -67,6 +67,11 @@
     <Field name="IsWallContainer" type="Boolean">
       <DisplayName>$Ctd-Workspace,IsWallContainer-DisplayName</DisplayName>
       <Description>$Ctd-Workspace,IsWallContainer-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
     </Field>
     <Field name="AllowedChildTypes" type="AllowedChildTypes">
       <Configuration>

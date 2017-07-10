@@ -15,3 +15,6 @@ Copy-Item ..\..\src\Storage\Data\SqlClient\Scripts\Install_04_Data_Phase2.sql ..
 
 Compress-Archive -Path "..\..\src\nuget\snadmin\install-services\*" -Force -CompressionLevel Optimal -DestinationPath "..\..\src\nuget\content\Admin\tools\install-services.zip"
 nuget pack ..\..\src\Services\Services.Install.nuspec -properties Configuration=Release
+
+# nuget.exe push -Source "SenseNet" -ApiKey VSTS SenseNet.Services.7.0.0-beta2.4.nupkg
+# nuget.exe push -Source "SenseNet" -ApiKey VSTS SenseNet.Services.Install.7.0.0-beta2.4.nupkg
