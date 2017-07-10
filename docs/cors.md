@@ -1,3 +1,11 @@
+---
+title: "Cross-origin resource sharing"
+source_url: 'https://github.com/SenseNet/sensenet/docs/cors.md'
+category: Development
+version: v7.0
+tags: [CORS, authentication, jwt, login, origin, http headers, preflight, OData, REST]
+---
+
 # Cross-origin resource sharing
 [Cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) (CORS) is a technique that allows client-side web developers to access resources from a *different domain*. Shared JavaScript files or images are good examples for this. However cross-origin requests can also be used by hackers and malicious sites to access confidential information if a site is not protected against [Cross Site Request Forgery](http://hu.wikipedia.org/wiki/Cross-site_request_forgery) (CSRF) attacks. This is why browsers apply strict rules for these operations to prevent hackers from accessing the portal from external sites.
 

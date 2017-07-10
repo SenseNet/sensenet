@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using Lucene.Net.Support;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.Portal.Virtualization;
@@ -88,7 +88,7 @@ namespace SenseNet.ApplicationModel
                     this.Forbidden = true;
             }
 
-            if (!Webdav.WebdavEditExtensions.Any(extension => context.Name.EndsWith(extension)))
+            if (!Webdav.WebdavEditExtensions.Any(extension => context.Name.EndsWith(extension, StringComparison.InvariantCultureIgnoreCase)))
                 this.Visible = false;
         }
     }

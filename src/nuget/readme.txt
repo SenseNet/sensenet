@@ -8,14 +8,11 @@ https://github.com/SenseNet/sensenet/blob/master/docs/install-sn-from-nuget.md#I
 
 To finalize the installation and get started with sensenet ECM platform, please follow these steps:
 
-1. Please copy the contents of the runtime section from your Web.config to the [web]\Tools\SnAdminRuntime.exe.config file.
-   (see comment at the end of SnAdminRuntime.exe.config)
-
-2. Change the Global.asax markup file's (not the cs file's) first line to contain a new parent type:
+1. Change the Global.asax markup file's (not the cs file's) first line to contain a new parent type:
    
    Inherits="SenseNet.Portal.Global"
 
-3. Change the Global.asax.cs codebehind (the c# class):
+2. Change the Global.asax.cs codebehind (the c# class):
 
    - the application class should inherit from SenseNet.Services.SenseNetGlobal
    - change the Application_Start method header and call the base method before all generated and custom method calls:
@@ -29,7 +26,7 @@ To finalize the installation and get started with sensenet ECM platform, please 
     
    Please do not override the whole method, just the header, and add the base method call.
 
-4. Optional: update your Razor views (you can do this later at any time).
+3. Optional: update your Razor views (you can do this later at any time).
 
    If you use the built-in @Html.ActionLink method to render actions (as it is the case with the default project templates), 
    you have to replace those calls in your .cshtml files with a new extension method added by this package:
@@ -38,9 +35,9 @@ To finalize the installation and get started with sensenet ECM platform, please 
 
    (the parameters are the same, only the method name changes)
 
-5. Build your solution, make sure that there are no build errors.
+4. Build your solution, make sure that there are no build errors.
 
-6. Install sensenet ECM Content Repository database. Please make sure that you have access to a SQL Server.
+5. Install sensenet ECM Content Repository database. Please make sure that you have access to a SQL Server.
 
    The process will modify the connection string in Web.config and Tools\SnAdminRuntime.exe.config files automatically, 
    ensuring that it is pointing to your SQL Server (DataSource) and Database Name (Initial Catalog).

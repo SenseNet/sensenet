@@ -277,7 +277,7 @@ namespace SenseNet.Portal.Virtualization
         /// same that the request was sent to, OR it has to be among the whitelisted external
         /// domains that are allowed to access the Content Repository.
         /// </summary>
-        public static bool IsOriginHeaderAllowed()
+        public static bool TrySetAllowedOriginHeader()
         {
             if (HttpContext.Current == null)
                 return true;

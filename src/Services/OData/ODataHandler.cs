@@ -108,11 +108,6 @@ namespace SenseNet.Portal.OData
                 odataReq.Format = formatter.FormatName;
                 formatter.Initialize(odataReq);
 
-                // Cross-Origin Resource Sharing (CORS)
-                // Do this after the formatter was initialized to be able to provide a proper error message.
-                if (!HttpHeaderTools.IsOriginHeaderAllowed())
-                    throw new ODataException(ODataExceptionCode.Forbidden);
-
                 var exists = Node.Exists(odataReq.RepositoryPath);
                 if (!exists && !odataReq.IsServiceDocumentRequest && !odataReq.IsMetadataRequest && !AllowedMethodNamesWithoutContent.Contains(httpMethod))
                 {
@@ -219,10 +214,6 @@ namespace SenseNet.Portal.OData
                             if (content != null)
                                 content.Delete();
                         }
-                        break;
-                    case "OPTIONS":
-                        // set allowed methods and headers
-                        HttpHeaderTools.SetPreflightResponse();
                         break;
                 }
             }

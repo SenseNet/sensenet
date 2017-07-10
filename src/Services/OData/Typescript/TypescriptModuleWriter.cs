@@ -147,7 +147,7 @@ namespace SenseNet.Portal.OData.Typescript
                 case "String": return STRING;
                 case "Guid": return STRING;
                 case "Boolean": return "boolean";
-                case "DateTime": return "Date";
+                case "DateTime": return STRING;
                 case "Currency": return NUMBER;
                 case "Byte": return NUMBER;
                 case "SByte": return NUMBER;
