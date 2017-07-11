@@ -12,7 +12,6 @@ using SnSS = SenseNet.ContentRepository.Storage.Schema;
 using System.Diagnostics;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Tools;
 using Field = Lucene.Net.Documents.Field;

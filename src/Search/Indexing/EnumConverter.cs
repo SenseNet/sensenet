@@ -4,7 +4,7 @@ using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search.Indexing;
 using LucField = Lucene.Net.Documents.Field;
 
-namespace SenseNet.ContentRepository.Search
+namespace SenseNet.Search.Indexing
 {
     public class EnumConverter
     {

@@ -55,7 +55,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EnumConverter.cs" />
+    <Compile Include="Indexing\EnumConverter.cs" />
     <Compile Include="IndexFieldName.cs" />
     <Compile Include="Indexing\Activities\AddDocumentActivity.cs" />
     <Compile Include="Indexing\Activities\AddTreeActivity.cs" />
