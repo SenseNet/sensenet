@@ -18,16 +18,16 @@ using SenseNet.ContentRepository.Storage.Search;
 //UNDONE: Refactor after Lucene "usings" removed (Lucene and SN fields are conflicted)
 namespace SenseNet.Search.Indexing
 {
-    public interface IIndexableDocument
-    {
-        IEnumerable<IIndexableField> GetIndexableFields();
-    }
-    public interface IIndexableField
-    {
-        bool IsInIndex { get; }
-        string Name { get; }
-        IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(out string textExtract);
-    }
+    //public interface IIndexableDocument
+    //{
+    //    IEnumerable<IIndexableField> GetIndexableFields();
+    //}
+    //public interface IIndexableField
+    //{
+    //    bool IsInIndex { get; }
+    //    string Name { get; }
+    //    IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(out string textExtract);
+    //}
     public interface IIndexValueConverter<T>
     {
         T GetBack(string lucFieldValue);

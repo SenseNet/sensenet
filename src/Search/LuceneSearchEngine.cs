@@ -98,7 +98,7 @@ namespace SenseNet.Search
 
             var docStream = new System.IO.MemoryStream(indexDocumentInfoBytes);
             var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-            var info = (__supportClass.IndexDocumentInfo)formatter.Deserialize(docStream);
+            var info = (IndexDocumentInfo)formatter.Deserialize(docStream);
             return info;
         }
     }

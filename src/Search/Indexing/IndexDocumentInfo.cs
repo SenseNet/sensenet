@@ -4,17 +4,14 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using Lucene.Net.Documents;
-using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
 using SnD = SenseNet.Diagnostics;
-using SnField = SenseNet.ContentRepository.Field;
 using SnS = SenseNet.ContentRepository.Storage;
 using SnSS = SenseNet.ContentRepository.Storage.Schema;
 using System.Diagnostics;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Tools;
@@ -42,59 +39,47 @@ namespace SenseNet.Search.Indexing
     public class IndexDocumentInfo
     {
         [NonSerialized]
-        private static PerFieldIndexingInfo __nameFieldIndexingInfo;
+        private static IPerFieldIndexingInfo __nameFieldIndexingInfo;
         [NonSerialized]
-        private static PerFieldIndexingInfo __pathFieldIndexingInfo;
+        private static IPerFieldIndexingInfo __pathFieldIndexingInfo;
         [NonSerialized]
-        private static PerFieldIndexingInfo __inTreeFieldIndexingInfo;
+        private static IPerFieldIndexingInfo __inTreeFieldIndexingInfo;
         [NonSerialized]
-        private static PerFieldIndexingInfo __inFolderFieldIndexingInfo;
+        private static IPerFieldIndexingInfo __inFolderFieldIndexingInfo;
 
-        internal static PerFieldIndexingInfo NameFieldIndexingInfo
+        internal static IPerFieldIndexingInfo NameFieldIndexingInfo
         {
             get
             {
                 if (__nameFieldIndexingInfo == null)
-                {
-                    var start = SenseNet.ContentRepository.Schema.ContentTypeManager.Current;
-                    __nameFieldIndexingInfo = SenseNet.ContentRepository.Schema.ContentTypeManager.GetPerFieldIndexingInfo(IndexFieldName.Name);
-                }
+                    __nameFieldIndexingInfo = StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(IndexFieldName.Name);
                 return __nameFieldIndexingInfo;
             }
         }
-        internal static PerFieldIndexingInfo PathFieldIndexingInfo
+        internal static IPerFieldIndexingInfo PathFieldIndexingInfo
         {
             get
             {
                 if (__pathFieldIndexingInfo == null)
-                {
-                    var start = SenseNet.ContentRepository.Schema.ContentTypeManager.Current;
-                    __pathFieldIndexingInfo = SenseNet.ContentRepository.Schema.ContentTypeManager.GetPerFieldIndexingInfo(IndexFieldName.Path);
-                }
+                    __pathFieldIndexingInfo = StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(IndexFieldName.Path);
                 return __pathFieldIndexingInfo;
             }
         }
-        internal static PerFieldIndexingInfo InTreeFieldIndexingInfo
+        internal static IPerFieldIndexingInfo InTreeFieldIndexingInfo
         {
             get
             {
                 if (__inTreeFieldIndexingInfo == null)
-                {
-                    var start = SenseNet.ContentRepository.Schema.ContentTypeManager.Current;
-                    __inTreeFieldIndexingInfo = SenseNet.ContentRepository.Schema.ContentTypeManager.GetPerFieldIndexingInfo(IndexFieldName.InTree);
-                }
+                    __inTreeFieldIndexingInfo = StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(IndexFieldName.InTree);
                 return __inTreeFieldIndexingInfo;
             }
         }
-        internal static PerFieldIndexingInfo InFolderFieldIndexingInfo
+        internal static IPerFieldIndexingInfo InFolderFieldIndexingInfo
         {
             get
             {
                 if (__inFolderFieldIndexingInfo == null)
-                {
-                    var start = SenseNet.ContentRepository.Schema.ContentTypeManager.Current;
-                    __inFolderFieldIndexingInfo = SenseNet.ContentRepository.Schema.ContentTypeManager.GetPerFieldIndexingInfo(IndexFieldName.InFolder);
-                }
+                    __inFolderFieldIndexingInfo = StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(IndexFieldName.InFolder);
                 return __inFolderFieldIndexingInfo;
             }
         }
@@ -154,10 +139,7 @@ namespace SenseNet.Search.Indexing
 
         private static bool Indexable(Node node)
         {
-            var ct = ContentType.GetByName(node.NodeType.Name);
-            if (ct == null)
-                return true;
-            return ct.IndexingEnabled;
+            return StorageContext.Search.ContentRepository.IsContentTypeIndexed(node.NodeType.Name);
         }
 
         public static IndexDocumentInfo Create(Node node, bool skipBinaries, bool isNew)
@@ -194,11 +176,11 @@ namespace SenseNet.Search.Indexing
                         continue;
                     if (PostponedFields.Contains(field.Name))
                         continue;
-                    if (node.SavingState != ContentSavingState.Finalized && (field is BinaryField || SkippedMultistepFields.Contains(field.Name)))
+                    if (node.SavingState != ContentSavingState.Finalized && (field.IsBinaryField || SkippedMultistepFields.Contains(field.Name)))
                         continue;
-                    if (skipBinaries && (field is BinaryField))
+                    if (skipBinaries && (field.IsBinaryField))
                     {
-                        if (TextExtractor.TextExtractingWillBePotentiallySlow((BinaryData)((BinaryField)field).GetData()))
+                        if (!StorageContext.Search.ContentRepository.TextExtractingWillBePotentiallySlow(field))
                         {
                             doc.HasBinaryField = true;
                             continue;
@@ -248,14 +230,14 @@ namespace SenseNet.Search.Indexing
             var isInherited = true;
             if (!isNew)
                 isInherited = node.IsInherited;
-            doc.AddField(IndexFieldName.IsInherited, isInherited ? BooleanIndexHandler.YES : BooleanIndexHandler.NO, IndexStoringMode.Yes, IndexingMode.NotAnalyzed);
-            doc.AddField(IndexFieldName.IsMajor, node.Version.IsMajor ? BooleanIndexHandler.YES : BooleanIndexHandler.NO, IndexStoringMode.Yes, IndexingMode.NotAnalyzed);
-            doc.AddField(IndexFieldName.IsPublic, node.Version.Status == VersionStatus.Approved ? BooleanIndexHandler.YES : BooleanIndexHandler.NO, IndexStoringMode.Yes, IndexingMode.NotAnalyzed);
+            doc.AddField(IndexFieldName.IsInherited, isInherited ? StorageContext.Search.YES : StorageContext.Search.NO, IndexStoringMode.Yes, IndexingMode.NotAnalyzed);
+            doc.AddField(IndexFieldName.IsMajor, node.Version.IsMajor ? StorageContext.Search.YES : StorageContext.Search.NO, IndexStoringMode.Yes, IndexingMode.NotAnalyzed);
+            doc.AddField(IndexFieldName.IsPublic, node.Version.Status == VersionStatus.Approved ? StorageContext.Search.YES : StorageContext.Search.NO, IndexStoringMode.Yes, IndexingMode.NotAnalyzed);
             doc.AddField(IndexFieldName.AllText, textEtract.ToString(), IndexStoringMode.No, IndexingMode.Analyzed);
 
             if (faultedFieldNames.Any())
             {
-                doc.AddField(IndexFieldName.IsFaulted, BooleanIndexHandler.YES , IndexStoringMode.Yes, IndexingMode.NotAnalyzed);
+                doc.AddField(IndexFieldName.IsFaulted, StorageContext.Search.YES , IndexStoringMode.Yes, IndexingMode.NotAnalyzed);
                 foreach (var faultedFieldName in faultedFieldNames)
                     doc.AddField(IndexFieldName.FaultedFieldName, faultedFieldName, IndexStoringMode.Yes, IndexingMode.NotAnalyzed);
             }
@@ -293,11 +275,11 @@ namespace SenseNet.Search.Indexing
                         continue;
                     if (PostponedFields.Contains(field.Name))
                         continue;
-                    if (node.SavingState != ContentSavingState.Finalized && (field is BinaryField || SkippedMultistepFields.Contains(field.Name)))
+                    if (node.SavingState != ContentSavingState.Finalized && (field.IsBinaryField || SkippedMultistepFields.Contains(field.Name)))
                         continue;
-                    if (!(field is BinaryField))
+                    if (!field.IsBinaryField)
                         continue;
-                    if (!TextExtractor.TextExtractingWillBePotentiallySlow((BinaryData)((BinaryField)field).GetData()))
+                    if(!StorageContext.Search.ContentRepository.TextExtractingWillBePotentiallySlow(field))
                         continue;
 
                     IEnumerable<IIndexFieldInfo> lucFields = null;
@@ -345,7 +327,7 @@ namespace SenseNet.Search.Indexing
             if (faultedFieldNames.Any())
             {
                 if (!this.fields.Any(f => f.Name == IndexFieldName.IsFaulted))
-                    this.AddField(IndexFieldName.IsFaulted, BooleanIndexHandler.YES, IndexStoringMode.Yes, IndexingMode.NotAnalyzed);
+                    this.AddField(IndexFieldName.IsFaulted, StorageContext.Search.YES, IndexStoringMode.Yes, IndexingMode.NotAnalyzed);
                 foreach (var faultedFieldName in faultedFieldNames)
                     this.AddField(IndexFieldName.FaultedFieldName, faultedFieldName, IndexStoringMode.Yes, IndexingMode.Analyzed);
             }
@@ -433,11 +415,11 @@ namespace SenseNet.Search.Indexing
             nf.SetIntValue(docData.ParentId);
             doc.Add(nf);
 
-            doc.Add(new Field(IndexFieldName.IsSystem, docData.IsSystem ? BooleanIndexHandler.YES : BooleanIndexHandler.NO, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
+            doc.Add(new Field(IndexFieldName.IsSystem, docData.IsSystem ? StorageContext.Search.YES : StorageContext.Search.NO, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
 
             // flags
-            doc.Add(new Field(IndexFieldName.IsLastPublic, docData.IsLastPublic ? BooleanIndexHandler.YES : BooleanIndexHandler.NO, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
-            doc.Add(new Field(IndexFieldName.IsLastDraft, docData.IsLastDraft ? BooleanIndexHandler.YES : BooleanIndexHandler.NO, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
+            doc.Add(new Field(IndexFieldName.IsLastPublic, docData.IsLastPublic ? StorageContext.Search.YES : StorageContext.Search.NO, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
+            doc.Add(new Field(IndexFieldName.IsLastDraft, docData.IsLastDraft ? StorageContext.Search.YES : StorageContext.Search.NO, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
 
             // timestamps
             nf = new NumericField(IndexFieldName.NodeTimestamp, Field.Store.YES, true);
@@ -501,7 +483,7 @@ namespace SenseNet.Search.Indexing
                 pathSteps[i] = string.Join(separator, fragments, 0, i + 1);
             return pathSteps.Select(p => CreateStringField(fieldName, p, InTreeFieldIndexingInfo)).ToArray();
         }
-        private static AbstractField CreateStringField(string name, string value, PerFieldIndexingInfo indexingInfo)
+        private static AbstractField CreateStringField(string name, string value, IPerFieldIndexingInfo indexingInfo)
         {
             var index = EnumConverter.ToLuceneIndexingMode(indexingInfo.IndexingMode);
             var store = EnumConverter.ToLuceneIndexStoringMode(indexingInfo.IndexStoringMode);

@@ -9,5 +9,7 @@
         bool RestoreIndexOnstartup();
         int[] GetNotIndexedNodeTypeIds();
         IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName);
+        bool IsContentTypeIndexed(string contentTypeName);
+        bool TextExtractingWillBePotentiallySlow(IIndexableField field);
     }
 }

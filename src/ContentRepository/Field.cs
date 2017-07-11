@@ -13,6 +13,7 @@ using System.Globalization;
 using SenseNet.ContentRepository.i18n;
 using SenseNet.Diagnostics;
 using System.Linq;
+using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.ContentRepository
@@ -401,6 +402,9 @@ namespace SenseNet.ContentRepository
                 return this.FieldSetting.IndexingInfo.IsInIndex;
             }
         }
+
+        public bool IsBinaryField => this is BinaryField;
+
         public string GetIndexFieldInfoErrorLog(string message, FieldSetting fieldSetting, PerFieldIndexingInfo indexingInfo)
         {
             return message +

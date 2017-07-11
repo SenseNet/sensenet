@@ -55,6 +55,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EnumConverter.cs" />
     <Compile Include="IndexFieldName.cs" />
     <Compile Include="Indexing\Activities\AddDocumentActivity.cs" />
     <Compile Include="Indexing\Activities\AddTreeActivity.cs" />
@@ -70,6 +71,7 @@
     <Compile Include="Indexing\BackupTools.cs" />
     <Compile Include="Indexing\DocumentPopulator.cs" />
     <Compile Include="Indexing\ExplicitPerFieldIndexingInfo.cs" />
+    <Compile Include="Indexing\IndexDocumentInfo.cs" />
     <Compile Include="Indexing\IndexFieldInfo.cs" />
     <Compile Include="Indexing\IndexHealthMonitor.cs" />
     <Compile Include="Indexing\IndexingActivityFactory.cs" />

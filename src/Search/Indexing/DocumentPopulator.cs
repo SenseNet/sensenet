@@ -55,7 +55,7 @@ namespace SenseNet.Search.Indexing
                     var excludedNodeTypes = LuceneManager.GetNotIndexedNodeTypes();
                     foreach (var docData in StorageContext.Search.LoadIndexDocumentsByPath("/Root", excludedNodeTypes))
                     {
-                        var doc = __supportClass.IndexDocumentInfo.GetDocument(docData);
+                        var doc = IndexDocumentInfo.GetDocument(docData);
                         if (doc == null) // indexing disabled
                             continue;
                         writer.AddDocument(doc);
@@ -97,7 +97,7 @@ namespace SenseNet.Search.Indexing
                     var excludedNodeTypes = LuceneManager.GetNotIndexedNodeTypes();
                     foreach (var docData in StorageContext.Search.LoadIndexDocumentsByPath(path, excludedNodeTypes))
                     {
-                        var doc = __supportClass.IndexDocumentInfo.GetDocument(docData);
+                        var doc = IndexDocumentInfo.GetDocument(docData);
                         if (doc == null) // indexing disabled
                             continue;
                         writer.AddDocument(doc);

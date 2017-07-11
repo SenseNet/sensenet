@@ -24,7 +24,7 @@ namespace SenseNet.Search.Indexing
             var buffer = docData.IndexDocumentInfoBytes;
             var docStream = new System.IO.MemoryStream(buffer);
             var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-            var info = (__supportClass.IndexDocumentInfo)formatter.Deserialize(docStream);
+            var info = (IndexDocumentInfo)formatter.Deserialize(docStream);
 
             // 2: original and new text extract concatenation.
             var allTextField = info.Fields.FirstOrDefault(f => f.Name == IndexFieldName.AllText);

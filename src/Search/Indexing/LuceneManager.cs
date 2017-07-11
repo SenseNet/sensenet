@@ -661,7 +661,7 @@ namespace SenseNet.Search.Indexing
         {
             var result = new List<DocumentUpdate>(versioning.Reindex.Length);
 
-            var updates = __supportClass.IndexDocumentInfo.GetDocuments(versioning.Reindex);
+            var updates = IndexDocumentInfo.GetDocuments(versioning.Reindex);
             foreach (var doc in updates)
             {
                 var verId = GetVersionIdFromDocument(doc);
@@ -719,7 +719,7 @@ namespace SenseNet.Search.Indexing
                     int versionId;
                     try
                     {
-                        document = __supportClass.IndexDocumentInfo.GetDocument(docData);
+                        document = IndexDocumentInfo.GetDocument(docData);
                         if (document == null) // indexing disabled
                             continue;
                         versionId = GetVersionIdFromDocument(document);

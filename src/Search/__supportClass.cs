@@ -13,34 +13,6 @@ namespace SenseNet.Search
 {
     internal class __supportClass
     {
-        internal class IndexDocumentInfo
-        {
-            public List<IIndexFieldInfo> Fields
-            {
-                get { throw new NotImplementedException(); }
-            }
-
-            public static Document CreateDocument(IndexDocumentInfo info, IndexDocumentData docData)
-            {
-                throw new NotImplementedException();
-            }
-
-            public static Document GetDocument(IndexDocumentData docData)
-            {
-                throw new NotImplementedException();
-            }
-
-            public static Document GetDocument(int versionId)
-            {
-                throw new NotImplementedException();
-            }
-
-            public static IEnumerable<Document> GetDocuments(IEnumerable<int> versionIdSet)
-            {
-                throw new NotImplementedException();
-            }
-        }
-
         internal class LucQuery
         {
             public static LucQuery Create(NodeQuery nodeQuery)

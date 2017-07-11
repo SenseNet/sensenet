@@ -6,6 +6,18 @@ using SenseNet.ContentRepository.Storage.Data;
 
 namespace SenseNet.ContentRepository.Storage.Search
 {
+    public interface IIndexableDocument
+    {
+        IEnumerable<IIndexableField> GetIndexableFields();
+    }
+    public interface IIndexableField
+    {
+        string Name { get; }
+        bool IsInIndex { get; }
+        bool IsBinaryField { get; }
+        IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(out string textExtract);
+    }
+
     public enum IndexFieldType
     {
         String, Int, Long, Float, Double, DateTime

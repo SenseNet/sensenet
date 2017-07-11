@@ -6,7 +6,7 @@ using LucField = Lucene.Net.Documents.Field;
 
 namespace SenseNet.ContentRepository.Search
 {
-    internal class EnumConverter
+    public class EnumConverter
     {
         public static LucField.Index ToLuceneIndexingMode(IndexingMode mode)
         {
