@@ -14,14 +14,11 @@ using SenseNet.Search.Indexing;
 using System.IO;
 using Lucene.Net.Analysis.Tokenattributes;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.Search.Parser
 {
-    public enum IndexableDataType
-    {
-        String, Int, Long, Float, Double
-    }
-    public class QueryFieldValue
+    public class QueryFieldValue : IQueryFieldValue
     {
         internal bool IsPhrase { get; private set; }
         internal SnLucLexer.Token Token { get; private set; }

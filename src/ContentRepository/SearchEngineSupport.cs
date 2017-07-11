@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.ContentRepository
@@ -18,5 +19,9 @@ namespace SenseNet.ContentRepository
                 .ToArray();
         }
 
+        public IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
+        {
+            return ContentTypeManager.GetPerFieldIndexingInfo(fieldName);
+        }
     }
 }

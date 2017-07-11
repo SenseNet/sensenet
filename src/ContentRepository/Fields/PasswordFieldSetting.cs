@@ -7,6 +7,7 @@ using SenseNet.ContentRepository.Schema;
 using System.Xml.XPath;
 using System.Web;
 using System.Linq;
+using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.ContentRepository.Fields
 {
@@ -267,7 +268,7 @@ namespace SenseNet.ContentRepository.Fields
             return fmd;
         }
 
-        protected override SenseNet.Search.Indexing.FieldIndexHandler CreateDefaultIndexFieldHandler()
+        protected override IFieldIndexHandler CreateDefaultIndexFieldHandler()
         {
             return new SenseNet.Search.Indexing.NotIndexedIndexFieldHandler();
         }

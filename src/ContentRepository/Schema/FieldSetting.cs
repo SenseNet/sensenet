@@ -386,7 +386,7 @@ namespace SenseNet.ContentRepository.Schema
                 return null;
             }
         }
-        protected virtual FieldIndexHandler CreateDefaultIndexFieldHandler()
+        protected virtual IFieldIndexHandler CreateDefaultIndexFieldHandler()
         {
             return new LowerStringIndexHandler();
         }
@@ -1332,7 +1332,7 @@ namespace SenseNet.ContentRepository.Schema
             else
                 setting.Aspect.SetPerFieldIndexingInfo(setting.Name, indexingInfo);
         }
-        private static FieldIndexHandler GetIndexFieldHandler(string typeName, FieldSetting fieldSetting)
+        private static IFieldIndexHandler GetIndexFieldHandler(string typeName, FieldSetting fieldSetting)
         {
             if (string.IsNullOrEmpty(typeName))
                 return fieldSetting.CreateDefaultIndexFieldHandler();

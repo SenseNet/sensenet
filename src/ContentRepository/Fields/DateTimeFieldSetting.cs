@@ -5,6 +5,7 @@ using System.Text;
 using SenseNet.ContentRepository.Schema;
 using System.Xml.XPath;
 using System.Xml;
+using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.ContentRepository.Fields
 {
@@ -185,7 +186,7 @@ namespace SenseNet.ContentRepository.Fields
             return found;
         }
 
-        protected override SenseNet.Search.Indexing.FieldIndexHandler CreateDefaultIndexFieldHandler()
+        protected override IFieldIndexHandler CreateDefaultIndexFieldHandler()
         {
             return new SenseNet.Search.Indexing.DateTimeIndexHandler();
         }

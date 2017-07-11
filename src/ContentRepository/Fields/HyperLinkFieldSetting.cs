@@ -5,6 +5,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.XPath;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.ContentRepository.Fields
 {
@@ -153,7 +154,7 @@ namespace SenseNet.ContentRepository.Fields
             return found;
         }
 
-        protected override SenseNet.Search.Indexing.FieldIndexHandler CreateDefaultIndexFieldHandler()
+        protected override IFieldIndexHandler CreateDefaultIndexFieldHandler()
         {
             return new SenseNet.Search.Indexing.HyperLinkIndexHandler();
         }

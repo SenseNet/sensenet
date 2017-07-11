@@ -235,7 +235,6 @@
     <Compile Include="Schema\Metadata\SchemaVisitor.cs" />
     <Compile Include="Search\EnumConverter.cs" />
     <Compile Include="Search\Indexing\IndexDocumentInfo.cs" />
-    <Compile Include="Search\Indexing\PerFieldIndexingInfo.cs" />
     <Compile Include="SearchEngineSupport.cs" />
     <Compile Include="Setting\UserProfileSettings.cs" />
     <Compile Include="ContentNamingHelper.cs" />

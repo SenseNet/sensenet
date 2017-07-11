@@ -35,31 +35,6 @@ namespace SenseNet.Search.Indexing
             return ((IndexDocumentInfo)baseDocumentInfo).Complete(node);
         }
     }
-    public enum FieldInfoType
-    {
-        StringField, IntField, LongField, SingleField, DoubleField
-    }
-    [Serializable]
-    [DebuggerDisplay("{Name}:{Type}={Value} | Store:{Store} Index:{Index} TermVector:{TermVector}")]
-    public class IndexFieldInfo
-    {
-        public string Name { get; private set; }
-        public string Value { get; private set; }
-        public FieldInfoType Type { get; private set; }
-        public Field.Store Store { get; private set; }
-        public Field.Index Index { get; private set; }
-        public Field.TermVector TermVector { get; private set; }
-
-        public IndexFieldInfo(string name, string value, FieldInfoType type, Field.Store store, Field.Index index, Field.TermVector termVector)
-        {
-            Name = name;
-            Value = value;
-            Type = type;
-            Store = store;
-            Index = index;
-            TermVector = termVector;
-        }
-    }
 
     [Serializable]
     public class NotIndexedIndexDocumentInfo : IndexDocumentInfo { }
@@ -127,8 +102,8 @@ namespace SenseNet.Search.Indexing
         [NonSerialized]
         private static readonly IEnumerable<Document> EmptyDocuments = new Document[0];
 
-        private List<IndexFieldInfo> fields = new List<IndexFieldInfo>();
-        public List<IndexFieldInfo> Fields
+        private List<IIndexFieldInfo> fields = new List<IIndexFieldInfo>();
+        public List<IIndexFieldInfo> Fields
         {
             get { return fields; }
         }
@@ -143,27 +118,27 @@ namespace SenseNet.Search.Indexing
         [NonSerialized]
         internal static readonly IndexDocumentInfo NotIndexedDocument = new NotIndexedIndexDocumentInfo();
 
-        public void AddField(string name, string value, Field.Store store, Field.Index index)
+        public void AddField(string name, string value, IndexStoringMode store, IndexingMode index)
         {
-            AddField(name, value, store, index, Field.TermVector.NO);
+            AddField(name, value, store, index, IndexTermVector.No);
         }
-        public void AddField(string name, string value, Field.Store store, Field.Index index, Field.TermVector termVector)
+        public void AddField(string name, string value, IndexStoringMode store, IndexingMode index, IndexTermVector termVector)
         {
             fields.Add(new IndexFieldInfo(name, value, FieldInfoType.StringField, store, index, termVector));
         }
-        public void AddField(string name, int value, Field.Store store, bool isIndexed)
+        public void AddField(string name, int value, IndexStoringMode store, bool isIndexed)
         {
-            fields.Add(new IndexFieldInfo(name, value.ToString(CultureInfo.InvariantCulture), FieldInfoType.IntField, store, isIndexed ? Field.Index.ANALYZED_NO_NORMS : Field.Index.NO, Field.TermVector.NO));
+            fields.Add(new IndexFieldInfo(name, value.ToString(CultureInfo.InvariantCulture), FieldInfoType.IntField, store, isIndexed ? IndexingMode.AnalyzedNoNorms : IndexingMode.No, IndexTermVector.No));
         }
-        public void AddField(string name, long value, Field.Store store, bool isIndexed)
+        public void AddField(string name, long value, IndexStoringMode store, bool isIndexed)
         {
-            fields.Add(new IndexFieldInfo(name, value.ToString(CultureInfo.InvariantCulture), FieldInfoType.LongField, store, isIndexed ? Field.Index.ANALYZED_NO_NORMS : Field.Index.NO, Field.TermVector.NO));
+            fields.Add(new IndexFieldInfo(name, value.ToString(CultureInfo.InvariantCulture), FieldInfoType.LongField, store, isIndexed ? IndexingMode.AnalyzedNoNorms : IndexingMode.No, IndexTermVector.No));
         }
-        public void AddField(string name, double value, Field.Store store, bool isIndexed)
+        public void AddField(string name, double value, IndexStoringMode store, bool isIndexed)
         {
-            fields.Add(new IndexFieldInfo(name, value.ToString(CultureInfo.InvariantCulture), FieldInfoType.DoubleField, store, isIndexed ? Field.Index.ANALYZED_NO_NORMS : Field.Index.NO, Field.TermVector.NO));
+            fields.Add(new IndexFieldInfo(name, value.ToString(CultureInfo.InvariantCulture), FieldInfoType.DoubleField, store, isIndexed ? IndexingMode.AnalyzedNoNorms : IndexingMode.No, IndexTermVector.No));
         }
-        public void AddField(IndexFieldInfo fieldInfo)
+        public void AddField(IIndexFieldInfo fieldInfo)
         {
             fields.Add(fieldInfo);
         }
@@ -203,12 +178,12 @@ namespace SenseNet.Search.Indexing
 
             if (ixnode == null)
             {
-                doc.AddField(IndexFieldName.NodeId, node.Id, Field.Store.YES, true);
-                doc.AddField(IndexFieldName.VersionId, node.VersionId, Field.Store.YES, true);
-                doc.AddField(IndexFieldName.Version, node.Version.ToString().ToLowerInvariant(), Field.Store.YES, Field.Index.ANALYZED);
-                doc.AddField(IndexFieldName.OwnerId, node.OwnerId, Field.Store.YES, true);
-                doc.AddField(IndexFieldName.CreatedById, node.CreatedById, Field.Store.YES, true);
-                doc.AddField(IndexFieldName.ModifiedById, node.ModifiedById, Field.Store.YES, true);
+                doc.AddField(IndexFieldName.NodeId, node.Id, IndexStoringMode.Yes, true);
+                doc.AddField(IndexFieldName.VersionId, node.VersionId, IndexStoringMode.Yes, true);
+                doc.AddField(IndexFieldName.Version, node.Version.ToString().ToLowerInvariant(), IndexStoringMode.Yes, IndexingMode.Analyzed);
+                doc.AddField(IndexFieldName.OwnerId, node.OwnerId, IndexStoringMode.Yes, true);
+                doc.AddField(IndexFieldName.CreatedById, node.CreatedById, IndexStoringMode.Yes, true);
+                doc.AddField(IndexFieldName.ModifiedById, node.ModifiedById, IndexStoringMode.Yes, true);
             }
             else
             {
@@ -230,7 +205,7 @@ namespace SenseNet.Search.Indexing
                         }
                     }
 
-                    IEnumerable<IndexFieldInfo> lucFields = null;
+                    IEnumerable<IIndexFieldInfo> lucFields = null;
                     string extract = null;
                     try
                     {
@@ -273,16 +248,16 @@ namespace SenseNet.Search.Indexing
             var isInherited = true;
             if (!isNew)
                 isInherited = node.IsInherited;
-            doc.AddField(IndexFieldName.IsInherited, isInherited ? BooleanIndexHandler.YES : BooleanIndexHandler.NO, Field.Store.YES, Field.Index.NOT_ANALYZED);
-            doc.AddField(IndexFieldName.IsMajor, node.Version.IsMajor ? BooleanIndexHandler.YES : BooleanIndexHandler.NO, Field.Store.YES, Field.Index.NOT_ANALYZED);
-            doc.AddField(IndexFieldName.IsPublic, node.Version.Status == VersionStatus.Approved ? BooleanIndexHandler.YES : BooleanIndexHandler.NO, Field.Store.YES, Field.Index.NOT_ANALYZED);
-            doc.AddField(IndexFieldName.AllText, textEtract.ToString(), Field.Store.NO, Field.Index.ANALYZED);
+            doc.AddField(IndexFieldName.IsInherited, isInherited ? BooleanIndexHandler.YES : BooleanIndexHandler.NO, IndexStoringMode.Yes, IndexingMode.NotAnalyzed);
+            doc.AddField(IndexFieldName.IsMajor, node.Version.IsMajor ? BooleanIndexHandler.YES : BooleanIndexHandler.NO, IndexStoringMode.Yes, IndexingMode.NotAnalyzed);
+            doc.AddField(IndexFieldName.IsPublic, node.Version.Status == VersionStatus.Approved ? BooleanIndexHandler.YES : BooleanIndexHandler.NO, IndexStoringMode.Yes, IndexingMode.NotAnalyzed);
+            doc.AddField(IndexFieldName.AllText, textEtract.ToString(), IndexStoringMode.No, IndexingMode.Analyzed);
 
             if (faultedFieldNames.Any())
             {
-                doc.AddField(IndexFieldName.IsFaulted, BooleanIndexHandler.YES , Field.Store.YES, Field.Index.NOT_ANALYZED);
+                doc.AddField(IndexFieldName.IsFaulted, BooleanIndexHandler.YES , IndexStoringMode.Yes, IndexingMode.NotAnalyzed);
                 foreach (var faultedFieldName in faultedFieldNames)
-                    doc.AddField(IndexFieldName.FaultedFieldName, faultedFieldName, Field.Store.YES, Field.Index.NOT_ANALYZED);
+                    doc.AddField(IndexFieldName.FaultedFieldName, faultedFieldName, IndexStoringMode.Yes, IndexingMode.NotAnalyzed);
             }
 
             ValidateDocumentInfo(doc);
@@ -325,7 +300,7 @@ namespace SenseNet.Search.Indexing
                     if (!TextExtractor.TextExtractingWillBePotentiallySlow((BinaryData)((BinaryField)field).GetData()))
                         continue;
 
-                    IEnumerable<IndexFieldInfo> lucFields = null;
+                    IEnumerable<IIndexFieldInfo> lucFields = null;
                     string extract = null;
                     try
                     {
@@ -365,14 +340,14 @@ namespace SenseNet.Search.Indexing
                 }
             }
 
-            fields[allTextFieldIndex] = new IndexFieldInfo(IndexFieldName.AllText, textEtract.ToString(), FieldInfoType.StringField, Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.NO);
+            fields[allTextFieldIndex] = new IndexFieldInfo(IndexFieldName.AllText, textEtract.ToString(), FieldInfoType.StringField, IndexStoringMode.No, IndexingMode.Analyzed, IndexTermVector.No);
 
             if (faultedFieldNames.Any())
             {
                 if (!this.fields.Any(f => f.Name == IndexFieldName.IsFaulted))
-                    this.AddField(IndexFieldName.IsFaulted, BooleanIndexHandler.YES, Field.Store.YES, Field.Index.NOT_ANALYZED);
+                    this.AddField(IndexFieldName.IsFaulted, BooleanIndexHandler.YES, IndexStoringMode.Yes, IndexingMode.NotAnalyzed);
                 foreach (var faultedFieldName in faultedFieldNames)
-                    this.AddField(IndexFieldName.FaultedFieldName, faultedFieldName, Field.Store.YES, Field.Index.ANALYZED);
+                    this.AddField(IndexFieldName.FaultedFieldName, faultedFieldName, IndexStoringMode.Yes, IndexingMode.Analyzed);
             }
 
             return this;
@@ -483,27 +458,28 @@ namespace SenseNet.Search.Indexing
 
             return doc;
         }
-        private static AbstractField CreateField(IndexFieldInfo fieldInfo)
+        private static AbstractField CreateField(IIndexFieldInfo fieldInfo)
         {
+            var store = EnumConverter.ToLuceneIndexStoringMode(fieldInfo.Store);
             NumericField nf;
             switch (fieldInfo.Type)
             {
                 case FieldInfoType.StringField:
-                    return new Field(fieldInfo.Name, fieldInfo.Value, fieldInfo.Store, fieldInfo.Index, fieldInfo.TermVector);
+                    return new Field(fieldInfo.Name, fieldInfo.Value, store, EnumConverter.ToLuceneIndexingMode(fieldInfo.Index), EnumConverter.ToLuceneIndexTermVector(fieldInfo.TermVector));
                 case FieldInfoType.IntField:
-                    nf = new NumericField(fieldInfo.Name, fieldInfo.Store, fieldInfo.Index != Field.Index.NO);
+                    nf = new NumericField(fieldInfo.Name, store, fieldInfo.Index != IndexingMode.No);
                     nf.SetIntValue(Int32.Parse(fieldInfo.Value, CultureInfo.InvariantCulture));
                     return nf;
                 case FieldInfoType.LongField:
-                    nf = new NumericField(fieldInfo.Name, 8, fieldInfo.Store, fieldInfo.Index != Field.Index.NO);
+                    nf = new NumericField(fieldInfo.Name, 8, store, fieldInfo.Index != IndexingMode.No);
                     nf.SetLongValue(Int64.Parse(fieldInfo.Value, CultureInfo.InvariantCulture));
                     return nf;
                 case FieldInfoType.SingleField:
-                    nf = new NumericField(fieldInfo.Name, fieldInfo.Store, fieldInfo.Index != Field.Index.NO);
+                    nf = new NumericField(fieldInfo.Name, store, fieldInfo.Index != IndexingMode.No);
                     nf.SetFloatValue(Single.Parse(fieldInfo.Value, CultureInfo.InvariantCulture));
                     return nf;
                 case FieldInfoType.DoubleField:
-                    nf = new NumericField(fieldInfo.Name, 8, fieldInfo.Store, fieldInfo.Index != Field.Index.NO);
+                    nf = new NumericField(fieldInfo.Name, 8, store, fieldInfo.Index != IndexingMode.No);
                     nf.SetDoubleValue(Double.Parse(fieldInfo.Value, CultureInfo.InvariantCulture));
                     return nf;
                 default:

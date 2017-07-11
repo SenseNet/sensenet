@@ -6,6 +6,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
 using System.Xml.XPath;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.ContentRepository.Fields
@@ -77,7 +78,7 @@ namespace SenseNet.ContentRepository.Fields
             return FieldValidationResult.Successful;
         }
 
-        protected override SenseNet.Search.Indexing.FieldIndexHandler CreateDefaultIndexFieldHandler()
+        protected override IFieldIndexHandler CreateDefaultIndexFieldHandler()
         {
             return new SenseNet.Search.Indexing.PermissionChoiceIndexHandler();
         }

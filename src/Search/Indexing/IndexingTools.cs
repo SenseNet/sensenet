@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.Search.Indexing
 {
@@ -33,13 +34,13 @@ namespace SenseNet.Search.Indexing
                 info.Fields.Remove(allTextField);
             }
             info.Fields.Add(
-                new __supportClass.IndexFieldInfo(
+                new IndexFieldInfo(
                     IndexFieldName.AllText,
                     textExtract,
-                    __supportClass.FieldInfoType.StringField,
-                    Lucene.Net.Documents.Field.Store.NO,
-                    Lucene.Net.Documents.Field.Index.ANALYZED,
-                    Lucene.Net.Documents.Field.TermVector.NO));
+                    FieldInfoType.StringField,
+                    IndexStoringMode.No,
+                    IndexingMode.Analyzed,
+                    IndexTermVector.No));
 
             // 3: save indexDocumentInfo.
             using (var docStream2 = new MemoryStream())

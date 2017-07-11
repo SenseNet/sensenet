@@ -13,6 +13,7 @@ using System.Globalization;
 using SenseNet.ContentRepository.i18n;
 using SenseNet.Diagnostics;
 using System.Linq;
+using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.ContentRepository
 {
@@ -39,7 +40,7 @@ namespace SenseNet.ContentRepository
     /// By defining a new <c>Field</c> class a system-wide usable atomic data type is defined.
     /// This kind of extension is usually done when having a need of a more complex or different type than ones already defined in the system.
     /// </remarks>
-	public abstract partial class Field : IIndexableField
+	public abstract partial class Field : IIndexableField, ISnField //UNDONE: Racionalize these interfaces
     {
         private object __value;
         private bool _changed;
@@ -411,7 +412,7 @@ namespace SenseNet.ContentRepository
                 (indexingInfo == null ? string.Empty : ", IndexingInfo IsInIndex: " + indexingInfo.IsInIndex.ToString()) +
                 ")";
         }
-        public virtual IEnumerable<IndexFieldInfo> GetIndexFieldInfos(out string textExtract)
+        public virtual IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(out string textExtract)
         {
             var fieldSetting = this.FieldSetting;
             if (fieldSetting == null)

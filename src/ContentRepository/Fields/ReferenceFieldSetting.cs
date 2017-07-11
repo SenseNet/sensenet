@@ -606,7 +606,7 @@ namespace SenseNet.ContentRepository.Fields
             return found;
         }
 
-        protected override SenseNet.Search.Indexing.FieldIndexHandler CreateDefaultIndexFieldHandler()
+        protected override IFieldIndexHandler CreateDefaultIndexFieldHandler()
         {
             return new SenseNet.Search.Indexing.ReferenceIndexHandler();
         }

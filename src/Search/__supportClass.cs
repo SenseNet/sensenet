@@ -13,26 +13,9 @@ namespace SenseNet.Search
 {
     internal class __supportClass
     {
-        internal class ContentTypeManager
-        {
-            internal static PerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public enum FieldInfoType
-        {
-            StringField,
-            IntField,
-            LongField,
-            SingleField,
-            DoubleField
-        }
-
         internal class IndexDocumentInfo
         {
-            public List<IndexFieldInfo> Fields
+            public List<IIndexFieldInfo> Fields
             {
                 get { throw new NotImplementedException(); }
             }
@@ -53,18 +36,6 @@ namespace SenseNet.Search
             }
 
             public static IEnumerable<Document> GetDocuments(IEnumerable<int> versionIdSet)
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        internal class IndexFieldInfo
-        {
-            public string Name;
-            public string Value;
-
-            public IndexFieldInfo(string allText, string textExtract, FieldInfoType stringField, Field.Store nO1,
-                Field.Index aNALYZED, Field.TermVector nO2)
             {
                 throw new NotImplementedException();
             }

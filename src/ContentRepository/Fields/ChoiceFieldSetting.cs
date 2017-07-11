@@ -10,6 +10,7 @@ using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using System.IO;
+using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Fields
@@ -542,7 +543,7 @@ namespace SenseNet.ContentRepository.Fields
             }
         }
 
-        protected override SenseNet.Search.Indexing.FieldIndexHandler CreateDefaultIndexFieldHandler()
+        protected override IFieldIndexHandler CreateDefaultIndexFieldHandler()
         {
             return new SenseNet.Search.Indexing.ChoiceIndexHandler();
         }

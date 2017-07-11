@@ -9,6 +9,7 @@ using Lucene.Net.Index;
 using System.Globalization;
 using Lucene.Net.Util;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.Search.Parser
 {
@@ -454,17 +455,17 @@ namespace SenseNet.Search.Parser
             var fieldHandler = info.IndexFieldHandler;
             switch (fieldHandler.IndexFieldType)
             {
-                case SenseNet.Search.Indexing.IndexFieldType.String:
+                case IndexFieldType.String:
                     return GetTermText(fieldText);
-                case SenseNet.Search.Indexing.IndexFieldType.Int:
+                case IndexFieldType.Int:
                     return Convert.ToString(NumericUtils.PrefixCodedToInt(fieldText), CultureInfo.InvariantCulture);
-                case SenseNet.Search.Indexing.IndexFieldType.Long:
+                case IndexFieldType.Long:
                     return Convert.ToString(NumericUtils.PrefixCodedToLong(fieldText), CultureInfo.InvariantCulture);
-                case SenseNet.Search.Indexing.IndexFieldType.Float:
+                case IndexFieldType.Float:
                     return Convert.ToString(NumericUtils.PrefixCodedToFloat(fieldText), CultureInfo.InvariantCulture);
-                case SenseNet.Search.Indexing.IndexFieldType.Double:
+                case IndexFieldType.Double:
                     return Convert.ToString(NumericUtils.PrefixCodedToDouble(fieldText), CultureInfo.InvariantCulture);
-                case SenseNet.Search.Indexing.IndexFieldType.DateTime:
+                case IndexFieldType.DateTime:
                     var d = new DateTime(NumericUtils.PrefixCodedToLong(fieldText));
                     if (d.Hour == 0 && d.Minute == 0 && d.Second == 0)
                         return GetTermText(d.ToString("yyyy-MM-dd"));

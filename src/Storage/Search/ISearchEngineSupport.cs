@@ -8,5 +8,6 @@
     {
         bool RestoreIndexOnstartup();
         int[] GetNotIndexedNodeTypeIds();
+        IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName);
     }
 }
