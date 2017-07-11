@@ -322,7 +322,6 @@
     <Compile Include="Search\Indexing\Configuration\RepositoryIndexBehaviorSection.cs" />
     <Compile Include="Search\Indexing\FieldIndexHandler.cs" />
     <Compile Include="Search\InvalidContentQueryException.cs" />
-    <Compile Include="Search\LucObject.cs" />
     <Compile Include="Search\LucQuery.cs" />
     <Compile Include="Search\Parser\ContentQueryTemplateReplacer.cs" />
     <Compile Include="Search\Parser\FieldNameVisitor.cs" />

@@ -37,9 +37,5 @@ namespace SenseNet.Search
 
             public Query Query { get; set; }
         }
-        internal class LucObject
-        {
-            public int NodeId { get; set; }
-        }
     }
 }

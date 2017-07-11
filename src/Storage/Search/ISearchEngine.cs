@@ -17,6 +17,14 @@ namespace SenseNet.ContentRepository.Storage.Search
         bool IsBinaryField { get; }
         IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(out string textExtract);
     }
+    public interface IIndexValueConverter<T>
+    {
+        T GetBack(string fieldValue);
+    }
+    public interface IIndexValueConverter
+    {
+        object GetBack(string fieldValue);
+    }
 
     public enum IndexFieldType
     {

@@ -61,7 +61,7 @@ namespace SenseNet.Search
             return _analyzers;
         }
 
-        internal static IEnumerable<__supportClass.LucObject> GetAllDocumentVersionsByNodeId(int nodeId)
+        internal static IEnumerable<LucObject> GetAllDocumentVersionsByNodeId(int nodeId)
         {
             var queryText = String.Concat(IndexFieldName.NodeId, ":", nodeId, " .AUTOFILTERS:OFF");
             var query = __supportClass.LucQuery.Parse(queryText);
