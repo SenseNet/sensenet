@@ -73,8 +73,19 @@ namespace SenseNet.Search.Indexing
             return StorageContext.Search.ContentRepository.GetNotIndexedNodeTypeIds();
         }
 
-        public static TimeSpan ForceReopenFrequency => SearchEngineSettings.Instance.ForceReopenFrequency;
-
+        private static TimeSpan _forceReopenFrequency;
+        public static TimeSpan ForceReopenFrequency
+        {
+            get
+            {
+                if (_forceReopenFrequency == default(TimeSpan))
+                {
+                    var settings = StorageContext.Search.ContentRepository.GetSettingsValue<int>("ForceReopenFrequencyInSeconds", 0);
+                    _forceReopenFrequency = TimeSpan.FromSeconds(settings == 0 ? 30.0 : settings);
+                }
+                return _forceReopenFrequency;
+            }
+        }
         public static DateTime IndexReopenedAt { get; private set; }
         private static volatile int _recentlyUsedReaderFrames;
 

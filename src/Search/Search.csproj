@@ -113,7 +113,6 @@
     <Compile Include="QueryExecutors\SqlQueryExecutor.cs" />
     <Compile Include="RichTextStripper.cs" />
     <Compile Include="SearchProvider.cs" />
-    <Compile Include="SearchSettings.cs" />
     <Compile Include="SnCollector.cs" />
     <Compile Include="SnIFilter.cs" />
     <Compile Include="SnLucCompiler.cs" />

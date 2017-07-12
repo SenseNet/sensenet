@@ -46,5 +46,10 @@ namespace SenseNet.ContentRepository
         {
             return TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), queryText);
         }
+
+        public T GetSettingsValue<T>(string key, T defaultValue)
+        {
+            return Settings.GetValue<T>(IndexingSettings.SETTINGSNAME, "ForceReopenFrequencyInSeconds", null, defaultValue);
+        }
     }
 }

@@ -113,8 +113,6 @@ namespace SenseNet.ContentRepository.Storage.Search
     }
     public interface ISearchEngine
     {
-        void SetConfiguration(IDictionary<string, object> configuration);
-
         bool IndexingPaused { get; }
         void PauseIndexing();
         void ContinueIndexing();
@@ -132,11 +130,6 @@ namespace SenseNet.ContentRepository.Storage.Search
     public class InternalSearchEngine : ISearchEngine
     {
         public static InternalSearchEngine Instance = new InternalSearchEngine();
-
-        public void SetConfiguration(IDictionary<string, object> configuration)
-        {
-            // do nothing;
-        }
 
         public bool IndexingPaused { get { return false; } }
         public void PauseIndexing()
