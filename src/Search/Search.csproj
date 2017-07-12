@@ -41,6 +41,10 @@
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="SenseNet.Security, Version=2.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SenseNet.Security.2.3.0.0\lib\net45\SenseNet.Security.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="SenseNet.Tools, Version=2.1.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\SenseNet.Tools.2.1.1\lib\net451\SenseNet.Tools.dll</HintPath>
       <Private>True</Private>
@@ -55,6 +59,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\Querying.cs" />
+    <Compile Include="ContentQuery.cs" />
     <Compile Include="Indexing\EnumConverter.cs" />
     <Compile Include="IndexFieldName.cs" />
     <Compile Include="Indexing\Activities\AddDocumentActivity.cs" />
@@ -84,11 +90,34 @@
     <Compile Include="Indexing\PerFieldIndexingInfo.cs" />
     <Compile Include="Indexing\SnPerFieldAnalyzerWrapper.cs" />
     <Compile Include="IndexManager.cs" />
+    <Compile Include="InvalidContentQueryException.cs" />
     <Compile Include="LuceneSearchEngine.cs" />
     <Compile Include="LucObject.cs" />
+    <Compile Include="LucQuery.cs" />
+    <Compile Include="Parser\DumpVisitor.cs" />
+    <Compile Include="Parser\FieldNameVisitor.cs" />
+    <Compile Include="Parser\LineInfo.cs" />
+    <Compile Include="Parser\LucQueryVisitor.cs" />
+    <Compile Include="Parser\ParserException.cs" />
+    <Compile Include="Parser\QueryClassifier.cs" />
+    <Compile Include="Parser\SnLucLexer.cs" />
+    <Compile Include="Parser\SnLucParser.cs" />
+    <Compile Include="Parser\SnLucToSqlCompiler.cs" />
+    <Compile Include="Parser\SqlQueryFieldInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QueryExecutors\IQueryExecutor.cs" />
+    <Compile Include="QueryExecutors\LuceneQueryExecutor.cs" />
+    <Compile Include="QueryExecutors\PermissionChecker.cs" />
+    <Compile Include="QueryExecutors\QueryExecutor20131012.cs" />
+    <Compile Include="QueryExecutors\QueryExecutor20131012CountOnly.cs" />
+    <Compile Include="QueryExecutors\SqlQueryExecutor.cs" />
+    <Compile Include="RichTextStripper.cs" />
+    <Compile Include="SearchProvider.cs" />
     <Compile Include="SearchSettings.cs" />
-    <Compile Include="__supportClass.cs" />
+    <Compile Include="SnCollector.cs" />
+    <Compile Include="SnIFilter.cs" />
+    <Compile Include="SnLucCompiler.cs" />
+    <Compile Include="TextSplitter.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj">

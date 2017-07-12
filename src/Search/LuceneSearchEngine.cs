@@ -44,13 +44,13 @@ namespace SenseNet.Search
         }
         public IEnumerable<int> Execute(NodeQuery nodeQuery)
         {
-            var query = __supportClass.LucQuery.Create(nodeQuery);
+            var query = LucQuery.Create(nodeQuery);
             var lucObjects = query.Execute();
             return from lucObject in lucObjects select lucObject.NodeId;
         }
         public IEnumerable<int> Execute(string lucQuery)
         {
-            var query = __supportClass.LucQuery.Parse(lucQuery);
+            var query = LucQuery.Parse(lucQuery);
             var lucObjects = query.Execute();
             return from lucObject in lucObjects select lucObject.NodeId;
         }
@@ -64,7 +64,7 @@ namespace SenseNet.Search
         internal static IEnumerable<LucObject> GetAllDocumentVersionsByNodeId(int nodeId)
         {
             var queryText = String.Concat(IndexFieldName.NodeId, ":", nodeId, " .AUTOFILTERS:OFF");
-            var query = __supportClass.LucQuery.Parse(queryText);
+            var query = LucQuery.Parse(queryText);
             var result = query.Execute(true);
             return result;
         }

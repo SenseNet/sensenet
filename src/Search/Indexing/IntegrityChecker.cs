@@ -426,7 +426,7 @@ namespace SenseNet.Search.Indexing
         private ScoreDoc[] GetDocsUnderTree(string path, bool recurse)
         {
             var field = recurse ? "InTree" : "Path";
-            var lq = __supportClass.LucQuery.Parse(String.Format("{0}:'{1}'", field, path.ToLower()));
+            var lq = LucQuery.Parse(String.Format("{0}:'{1}'", field, path.ToLower()));
 
             using (var readerFrame = LuceneManager.GetIndexReaderFrame())
             {
