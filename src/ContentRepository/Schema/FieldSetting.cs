@@ -1389,43 +1389,16 @@ namespace SenseNet.ContentRepository.Schema
             if (info.Indexing == null)
                 return;
 
-            var indexingInfo = new PerFieldIndexingInfo();
-
-            //switch (info.Indexing.Mode)
-            //{
-            //    case IndexingMode.Analyzed: indexingInfo.IndexingMode = LucField.Index.ANALYZED; break;
-            //    case IndexingMode.AnalyzedNoNorms: indexingInfo.IndexingMode = LucField.Index.ANALYZED_NO_NORMS; break;
-            //    case IndexingMode.No: indexingInfo.IndexingMode = LucField.Index.NO; break;
-            //    case IndexingMode.NotAnalyzed: indexingInfo.IndexingMode = LucField.Index.NOT_ANALYZED; break;
-            //    case IndexingMode.NotAnalyzedNoNorms: indexingInfo.IndexingMode = LucField.Index.NOT_ANALYZED_NO_NORMS; break;
-            //    default: throw new ContentRegistrationException("Invalid IndexingMode: " + info.Indexing.Mode, (string)null, info.Name);
-            //}
-            indexingInfo.IndexingMode = info.Indexing.Mode;
-
-            //switch (info.Indexing.Store)
-            //{
-            //    case IndexStoringMode.No: indexingInfo.IndexStoringMode = LucField.Store.NO; break;
-            //    case IndexStoringMode.Yes: indexingInfo.IndexStoringMode = LucField.Store.YES; break;
-            //    default: throw new ContentRegistrationException("Invalid IndexStoringMode: " + info.Indexing.Store, (string)null, info.Name);
-            //}
-            indexingInfo.IndexStoringMode = info.Indexing.Store;
-
-            //switch (info.Indexing.TermVector)
-            //{
-            //    case IndexTermVector.No: indexingInfo.TermVectorStoringMode = LucField.TermVector.NO; break;
-            //    case IndexTermVector.WithOffsets: indexingInfo.TermVectorStoringMode = LucField.TermVector.WITH_OFFSETS; break;
-            //    case IndexTermVector.WithPositions: indexingInfo.TermVectorStoringMode = LucField.TermVector.WITH_POSITIONS; break;
-            //    case IndexTermVector.WithPositionsOffsets: indexingInfo.TermVectorStoringMode = LucField.TermVector.WITH_POSITIONS_OFFSETS; break;
-            //    case IndexTermVector.Yes: indexingInfo.TermVectorStoringMode = LucField.TermVector.YES; break;
-            //    default: throw new ContentRegistrationException("Invalid IndexingTermVector: " + info.Indexing.TermVector, (string)null, info.Name);
-            //}
-            indexingInfo.TermVectorStoringMode = info.Indexing.TermVector;
-
-            indexingInfo.Analyzer = info.Indexing.Analyzer;
-            indexingInfo.IndexFieldHandler = GetIndexFieldHandler(info.Indexing.IndexHandler, this);
+            var indexingInfo = new PerFieldIndexingInfo
+            {
+                IndexingMode = info.Indexing.Mode,
+                IndexStoringMode = info.Indexing.Store,
+                TermVectorStoringMode = info.Indexing.TermVector,
+                Analyzer = info.Indexing.Analyzer,
+                IndexFieldHandler = GetIndexFieldHandler(info.Indexing.IndexHandler, this),
+                FieldDataType = FieldManager.GetFieldDataType(info.GetHandlerName())
+            };
             indexingInfo.IndexFieldHandler.OwnerIndexingInfo = indexingInfo;
-
-            indexingInfo.FieldDataType = FieldManager.GetFieldDataType(info.GetHandlerName());
 
             if (this.Aspect == null)
                 ContentTypeManager.SetPerFieldIndexingInfo(this.Name, this.Owner.Name, indexingInfo);

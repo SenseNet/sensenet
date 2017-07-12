@@ -672,19 +672,19 @@ namespace SenseNet.ContentRepository.Schema
                 }
             }
 
-            if (origInfo.IndexingMode == null)
+            if (origInfo.IndexingMode == IndexingMode.Default)
                 origInfo.IndexingMode = indexingInfo.IndexingMode;
-            else if (indexingInfo.IndexingMode != null && indexingInfo.IndexingMode != origInfo.IndexingMode)
+            else if (indexingInfo.IndexingMode != IndexingMode.Default && indexingInfo.IndexingMode != origInfo.IndexingMode)
                 throw new ContentRegistrationException("Cannot override IndexingMode", contentTypeName, fieldName);
 
-            if (origInfo.IndexStoringMode == null)
+            if (origInfo.IndexStoringMode == IndexStoringMode.Default)
                 origInfo.IndexStoringMode = indexingInfo.IndexStoringMode;
-            else if (indexingInfo.IndexStoringMode != null && indexingInfo.IndexStoringMode != origInfo.IndexStoringMode)
+            else if (indexingInfo.IndexStoringMode != IndexStoringMode.Default && indexingInfo.IndexStoringMode != origInfo.IndexStoringMode)
                 throw new ContentRegistrationException("Cannot override IndexStoringMode", contentTypeName, fieldName);
 
-            if (origInfo.TermVectorStoringMode == null)
+            if (origInfo.TermVectorStoringMode == IndexTermVector.Default)
                 origInfo.TermVectorStoringMode = indexingInfo.TermVectorStoringMode;
-            else if (indexingInfo.TermVectorStoringMode != null && indexingInfo.TermVectorStoringMode != origInfo.TermVectorStoringMode)
+            else if (indexingInfo.TermVectorStoringMode != IndexTermVector.Default && indexingInfo.TermVectorStoringMode != origInfo.TermVectorStoringMode)
                 throw new ContentRegistrationException("Cannot override TermVectorStoringMode", contentTypeName, fieldName);
 
             if (String.IsNullOrEmpty(origInfo.Analyzer))
