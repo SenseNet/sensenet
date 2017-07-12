@@ -52,7 +52,7 @@ namespace SenseNet.Search
         /// <returns>Returns true if the lock was released. Returns false if the time has expired.</returns>
         public static bool WaitForWriterLockFileIsReleased(string indexDirectory)
         {
-            return WaitForWriterLockFileIsReleased(indexDirectory, Configuration.Indexing.IndexLockFileWaitForRemovedTimeout);//UNDONE: Configuration item is out of component.
+            return WaitForWriterLockFileIsReleased(indexDirectory, Configuration.Indexing.IndexLockFileWaitForRemovedTimeout);
         }
         /// <summary>
         /// Waits for releasing index writer lock file in the specified directory and timeout.

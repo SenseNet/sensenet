@@ -587,7 +587,7 @@ namespace SenseNet.ContentRepository
 
         // ======================================== Outer search engine
 
-        [Obsolete("Use StorageContext.Search.ContentQueryIsAllowed")] //UNDONE: reviev magic string
+        [Obsolete("Use StorageContext.Search.ContentQueryIsAllowed")] //UNDONE: review magic string
         public static bool ContentQueryIsAllowed
         {
             get { return StorageContext.Search.ContentQueryIsAllowed; }

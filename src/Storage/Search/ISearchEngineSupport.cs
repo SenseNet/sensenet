@@ -4,7 +4,7 @@
     public enum IndexStoringMode { Default, No, Yes }
     public enum IndexTermVector { Default, No, WithOffsets, WithPositions, WithPositionsOffsets, Yes }
 
-    public interface ISearchEngineSupport //UNDONE:! Set an instance at system start
+    public interface ISearchEngineSupport
     {
         bool RestoreIndexOnstartup();
         int[] GetNotIndexedNodeTypeIds();
