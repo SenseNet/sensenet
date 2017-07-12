@@ -99,7 +99,7 @@ namespace SenseNet.Search
                 if (_lifespanQuery == null)
                 {
                     var parser = new SnLucParser();
-                    var lfspText = TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), LifespanQueryText);
+                    var lfspText = StorageContext.Search.ContentRepository.ReplaceQueryTemplates(LifespanQueryText);
                     _lifespanQuery = parser.Parse(lfspText);
                 }
                 return _lifespanQuery;
@@ -166,7 +166,7 @@ namespace SenseNet.Search
             var parser = new SnLucParser();
             Query query;
 
-            var replacedText = TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), luceneQueryText);
+            var replacedText = StorageContext.Search.ContentRepository.ReplaceQueryTemplates(luceneQueryText); 
             query = parser.Parse(replacedText);
 
             // Run EmptyTermVisitor if the parser created empty query term.

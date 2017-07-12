@@ -692,7 +692,7 @@ namespace SenseNet.Search.Indexing
         }
         internal static void SetDocumentFlag(Document doc, string fieldName, bool value)
         {
-            doc.Add(new Field(fieldName, value ? StorageContext.Search.YES : StorageContext.Search.NO, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
+            doc.Add(new Field(fieldName, value ? StorageContext.Search.Yes : StorageContext.Search.No, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
         }
 
 

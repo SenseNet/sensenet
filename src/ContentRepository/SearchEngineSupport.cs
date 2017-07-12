@@ -4,6 +4,7 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search;
+using SenseNet.Search.Parser;
 
 namespace SenseNet.ContentRepository
 {
@@ -39,6 +40,11 @@ namespace SenseNet.ContentRepository
         public bool TextExtractingWillBePotentiallySlow(IIndexableField field)
         {
             return TextExtractor.TextExtractingWillBePotentiallySlow((BinaryData) ((BinaryField) field).GetData());
+        }
+
+        public string ReplaceQueryTemplates(string queryText)
+        {
+            return TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), queryText);
         }
     }
 }

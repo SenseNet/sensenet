@@ -77,7 +77,7 @@ namespace SenseNet.Search.Parser
         }
         public override string GetSqlTextValue(string termValue)
         {
-            return BooleanIndexHandler.YesList.Contains(termValue.ToLowerInvariant()) ? " IS NOT NULL" : " IS NULL";
+            return StorageContext.Search.YesList.Contains(termValue.ToLowerInvariant()) ? " IS NOT NULL" : " IS NULL";
         }
     }
 
@@ -130,7 +130,7 @@ namespace SenseNet.Search.Parser
     {
         public override object GetParameterValue(string termValue)
         {
-            return BooleanIndexHandler.YesList.Contains(termValue.ToLowerInvariant()) ? "1" : "0";
+            return StorageContext.Search.YesList.Contains(termValue.ToLowerInvariant()) ? "1" : "0";
         }
         public override string GetSqlTextValue(string termValue)
         {

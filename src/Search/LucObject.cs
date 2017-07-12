@@ -93,7 +93,7 @@ namespace SenseNet.Search
         }
         private bool ValueToBool(string name)
         {
-            return data[name] == StorageContext.Search.YES;
+            return data[name] == StorageContext.Search.Yes;
         }
     }
 }

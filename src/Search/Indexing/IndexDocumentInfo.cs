@@ -229,14 +229,14 @@ namespace SenseNet.Search.Indexing
             var isInherited = true;
             if (!isNew)
                 isInherited = node.IsInherited;
-            doc.AddField(IndexFieldName.IsInherited, isInherited ? StorageContext.Search.YES : StorageContext.Search.NO, IndexStoringMode.Yes, IndexingMode.NotAnalyzed);
-            doc.AddField(IndexFieldName.IsMajor, node.Version.IsMajor ? StorageContext.Search.YES : StorageContext.Search.NO, IndexStoringMode.Yes, IndexingMode.NotAnalyzed);
-            doc.AddField(IndexFieldName.IsPublic, node.Version.Status == VersionStatus.Approved ? StorageContext.Search.YES : StorageContext.Search.NO, IndexStoringMode.Yes, IndexingMode.NotAnalyzed);
+            doc.AddField(IndexFieldName.IsInherited, isInherited ? StorageContext.Search.Yes : StorageContext.Search.No, IndexStoringMode.Yes, IndexingMode.NotAnalyzed);
+            doc.AddField(IndexFieldName.IsMajor, node.Version.IsMajor ? StorageContext.Search.Yes : StorageContext.Search.No, IndexStoringMode.Yes, IndexingMode.NotAnalyzed);
+            doc.AddField(IndexFieldName.IsPublic, node.Version.Status == VersionStatus.Approved ? StorageContext.Search.Yes : StorageContext.Search.No, IndexStoringMode.Yes, IndexingMode.NotAnalyzed);
             doc.AddField(IndexFieldName.AllText, textEtract.ToString(), IndexStoringMode.No, IndexingMode.Analyzed);
 
             if (faultedFieldNames.Any())
             {
-                doc.AddField(IndexFieldName.IsFaulted, StorageContext.Search.YES , IndexStoringMode.Yes, IndexingMode.NotAnalyzed);
+                doc.AddField(IndexFieldName.IsFaulted, StorageContext.Search.Yes , IndexStoringMode.Yes, IndexingMode.NotAnalyzed);
                 foreach (var faultedFieldName in faultedFieldNames)
                     doc.AddField(IndexFieldName.FaultedFieldName, faultedFieldName, IndexStoringMode.Yes, IndexingMode.NotAnalyzed);
             }
@@ -326,7 +326,7 @@ namespace SenseNet.Search.Indexing
             if (faultedFieldNames.Any())
             {
                 if (!this.fields.Any(f => f.Name == IndexFieldName.IsFaulted))
-                    this.AddField(IndexFieldName.IsFaulted, StorageContext.Search.YES, IndexStoringMode.Yes, IndexingMode.NotAnalyzed);
+                    this.AddField(IndexFieldName.IsFaulted, StorageContext.Search.Yes, IndexStoringMode.Yes, IndexingMode.NotAnalyzed);
                 foreach (var faultedFieldName in faultedFieldNames)
                     this.AddField(IndexFieldName.FaultedFieldName, faultedFieldName, IndexStoringMode.Yes, IndexingMode.Analyzed);
             }
@@ -414,11 +414,11 @@ namespace SenseNet.Search.Indexing
             nf.SetIntValue(docData.ParentId);
             doc.Add(nf);
 
-            doc.Add(new Field(IndexFieldName.IsSystem, docData.IsSystem ? StorageContext.Search.YES : StorageContext.Search.NO, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
+            doc.Add(new Field(IndexFieldName.IsSystem, docData.IsSystem ? StorageContext.Search.Yes : StorageContext.Search.No, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
 
             // flags
-            doc.Add(new Field(IndexFieldName.IsLastPublic, docData.IsLastPublic ? StorageContext.Search.YES : StorageContext.Search.NO, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
-            doc.Add(new Field(IndexFieldName.IsLastDraft, docData.IsLastDraft ? StorageContext.Search.YES : StorageContext.Search.NO, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
+            doc.Add(new Field(IndexFieldName.IsLastPublic, docData.IsLastPublic ? StorageContext.Search.Yes : StorageContext.Search.No, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
+            doc.Add(new Field(IndexFieldName.IsLastDraft, docData.IsLastDraft ? StorageContext.Search.Yes : StorageContext.Search.No, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
 
             // timestamps
             nf = new NumericField(IndexFieldName.NodeTimestamp, Field.Store.YES, true);

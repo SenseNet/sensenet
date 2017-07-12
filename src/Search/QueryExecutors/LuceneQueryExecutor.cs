@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.Search
 {
@@ -77,8 +78,8 @@ namespace SenseNet.Search
         protected internal bool IsPermitted(Document doc)
         {
             var nodeId = Convert.ToInt32(doc.Get(IndexFieldName.NodeId));
-            var isLastPublic = BooleanIndexHandler.ConvertBack(doc.Get(IndexFieldName.IsLastPublic));
-            var isLastDraft = BooleanIndexHandler.ConvertBack(doc.Get(IndexFieldName.IsLastDraft));
+            var isLastPublic = doc.Get(IndexFieldName.IsLastPublic) == StorageContext.Search.Yes;
+            var isLastDraft = doc.Get(IndexFieldName.IsLastDraft) == StorageContext.Search.Yes;
 
             return PermissionChecker.IsPermitted(nodeId, isLastPublic, isLastDraft);
         }
