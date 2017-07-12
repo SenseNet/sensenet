@@ -133,6 +133,8 @@ namespace SenseNet.ContentRepository
             
             TypeHandler.Initialize(_settings.Providers);
 
+            StorageContext.Search.ContentRepository = new SearchEngineSupport(); //UNDONE:! Test this instance
+
             InitializeLogger();
 
             // Lucene subsystem behaves strangely if the enums are not initialized.
