@@ -14,7 +14,6 @@ using System.Reflection;
 using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Search;
-using Lucene.Net.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;

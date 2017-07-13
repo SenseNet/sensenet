@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using SenseNet.Search;
-using Lucene.Net.Search;
-using Lucene.Net.Index;
-using SenseNet.Search.Indexing;
 
 namespace SenseNet.ContentRepository.Linq
 {

@@ -9,7 +9,6 @@ using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Scripting;
 using System.IO;
 using System.Web;
-using LucField = Lucene.Net.Documents.Field;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
