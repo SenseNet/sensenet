@@ -104,8 +104,21 @@ namespace SenseNet.Portal.Virtualization
 
             PortalContext portalContext = PortalContext.Create(httpContext, initInfo);
 
+            // Cross-Origin Resource Sharing (CORS)
+            if (!HttpHeaderTools.TrySetAllowedOriginHeader())
+                AuthenticationHelper.ThrowForbidden("token auth");
+
+            if (request.HttpMethod == "OPTIONS")
+            {
+                // set allowed methods and headers
+                HttpHeaderTools.SetPreflightResponse();
+                (sender as HttpApplication)?.CompleteRequest();
+                return;
+            }
+
             var action = HttpActionManager.CreateAction(portalContext);
             SnTrace.Web.Write("HTTP Action." + GetLoggedProperties(portalContext));
+
 
             action.Execute();
         }

@@ -1,5 +1,7 @@
 # Welcome to sensenet ECM
-The first Open Source Enterprise Content Management platform for .NET!
+The first Open Source Enterprise Content Management platform for .NET! 
+
+> [Try it online](http://www.sensenet.com/try-it) without installation!
 
 [![Join the chat at https://gitter.im/SenseNet/sensenet](https://badges.gitter.im/SenseNet/sensenet.svg)](https://gitter.im/SenseNet/sensenet?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
@@ -45,13 +47,13 @@ Whether you're a community member or enterprise customer, feel free to visit our
 Currently we offer two different versions of sensenet ECM. We recommend version 7.0 for new projects as it is more lightweight and flexible.
 
 ### sensenet ECM 7.0 (beta)
-A modern ECM platform that can be integrated into existing or new web applications. We modularized sensenet ECM so that you can install only the parts you need. Take a look at the currently published [core components](/doc/sensenet-components.md)!
+A modern ECM platform that can be integrated into existing or new web applications. We modularized sensenet ECM so that you can install only the parts you need. Take a look at the currently published [core components](/docs/sensenet-components.md)!
 
 There is also a number of other built-in and 3rd party [components and plugins](https://github.com/SenseNet/awesome-sensenet) that are built on this platform either by us or the community.
 
 ![sensenet components](https://github.com/SenseNet/sn-resources/raw/master/images/sn-components/sn-components.png "sensenet components")
 
-- [Core components of sensenet ECM](/doc/sensenet-components.md)
+- [Core components of sensenet ECM](/docs/sensenet-components.md)
 - [Awesome list of components and plugins](https://github.com/SenseNet/awesome-sensenet)
 - [Install sensenet ECM from NuGet](/docs/install-sn-from-nuget.md)
 
