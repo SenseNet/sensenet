@@ -54,11 +54,11 @@ namespace SenseNet.ContentRepository
             /// <summary>
             /// Absolute path of the index directory.
             /// </summary>
-            public string IndexDirectory { get; internal set; }
+            public string IndexDirectory { get; internal set; } //UNDONE:! Provider specific info
             /// <summary>
             /// True if the index was read only before startup. Means: there was writer.lock file in the configured index directory.
             /// </summary>
-            public bool IndexWasReadOnly { get; internal set; }
+            public bool IndexWasReadOnly { get; internal set; } //UNDONE:! Provider specific info
             /// <summary>
             /// Moment of the start before executing the startup sequence.
             /// </summary>
@@ -133,10 +133,11 @@ namespace SenseNet.ContentRepository
             
             TypeHandler.Initialize(_settings.Providers);
 
-            StorageContext.Search.ContentRepository = new SearchEngineSupport(); //UNDONE:! Test this instance
+            StorageContext.Search.ContentRepository = new SearchEngineSupport();
 
             InitializeLogger();
 
+            //UNDONE:!!! Move to SnSearch
             // Lucene subsystem behaves strangely if the enums are not initialized.
             var x = Lucene.Net.Documents.Field.Index.NO;
             var y = Lucene.Net.Documents.Field.Store.NO;
@@ -148,8 +149,8 @@ namespace SenseNet.ContentRepository
 
             if (_settings.IndexPath != null)
                 StorageContext.Search.SetIndexDirectoryPath(_settings.IndexPath);
-            RemoveIndexWriterLockFile();
-            _startupInfo.IndexDirectory = Path.GetDirectoryName(StorageContext.Search.IndexLockFilePath);
+            RemoveIndexWriterLockFile(); //UNDONE:!!! Move to SnSearch
+            _startupInfo.IndexDirectory = Path.GetDirectoryName(StorageContext.Search.IndexLockFilePath); //UNDONE:!!! Provider specific info
 
             LoadAssemblies();
 
@@ -329,7 +330,7 @@ namespace SenseNet.ContentRepository
                 SnLog.Instance = new DebugWriteLoggerAdapter();
         }
 
-        private void RemoveIndexWriterLockFile() //UNDONE:! Move to SenseNet.Search
+        private void RemoveIndexWriterLockFile() //UNDONE:!!! Move to SnSearch
         {
             // delete write.lock if necessary
             var lockFilePath = StorageContext.Search.IndexLockFilePath;
