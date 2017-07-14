@@ -2,10 +2,10 @@ using System;
 using System.Web.Security;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Security.ADSync;
+using SenseNet.Search;
 
 namespace SenseNet.ContentRepository.Security
 {
@@ -16,11 +16,11 @@ namespace SenseNet.ContentRepository.Security
             SnLog.WriteInformation("MembershipProvider instantiated: " + typeof(SenseNetMembershipProvider).FullName, EventId.RepositoryLifecycle);
         }
 
-        private string _path = null;
+        private string _path;
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
             if (config == null)
-                throw new ArgumentNullException("config");
+                throw new ArgumentNullException(nameof(config));
             if (string.IsNullOrEmpty(name))
                 name = "SenseNetMembershipProvider";
             if (!String.IsNullOrEmpty(config["path"]))
@@ -93,31 +93,23 @@ namespace SenseNet.ContentRepository.Security
         /// <param name="pageIndex">Index of the page. (currently ignored)</param>
         /// <param name="pageSize">Size of the page. (currently ignored)</param>
         /// <param name="totalRecords">The total records.</param>
-        /// NOTE: paging is not yet implemented
         /// <returns></returns>
         public override MembershipUserCollection GetAllUsers(int pageIndex, int pageSize, out int totalRecords)
         {
             MembershipUserCollection users = new MembershipUserCollection();
 
-            // create NodeQuery
-            NodeQuery query = new NodeQuery();
-            query.Add(new TypeExpression(ActiveSchema.NodeTypes[typeof(User).Name], false));
+            var cq = $"+TypeIs:{typeof(User).Name}";
             if (_path != null)
-                query.Add(new StringExpression(StringAttribute.Path, StringOperator.StartsWith, _path));
-            query.Orders.Add(new SearchOrder(StringAttribute.Name));
-            query.PageSize = pageSize;
-            query.Skip = pageIndex * pageSize;
+                cq += " +InTree:{_path}";
+            cq += $".TOP:{pageSize} .SKIP:{pageIndex*pageSize}";
+            var result = ContentQuery.Query(cq, QuerySettings.AdminSettings);
 
             // get paged resultlist
-            var resultList = query.Execute();
-            foreach (Node node in resultList.Nodes)
-            {
-                User user = (User)node;
-                users.Add(GetMembershipUser(user));
-            }
+            foreach (Node node in result.Nodes)
+                users.Add(GetMembershipUser((User)node));
 
             // get total number of users
-            totalRecords = resultList.Count;
+            totalRecords = result.Count;
 
             return users;
         }
@@ -155,7 +147,7 @@ namespace SenseNet.ContentRepository.Security
                 throw new ArgumentException("Cannot convert the user primary key.", "providerUserKey", ex);
             }
 
-            User user = (User)User.LoadNode(nodeId);
+            User user = Node.Load<User>(nodeId);
 
             return new MembershipUser(
                 this.Name, // providerName
@@ -248,12 +240,12 @@ namespace SenseNet.ContentRepository.Security
                 return false;
 
             // if forms AD auth is configured, authenticate user with AD
-            var ADProvider = DirectoryProvider.Current;
-            if (ADProvider != null)
+            var adProvider = DirectoryProvider.Current;
+            if (adProvider != null)
             {
-                if (ADProvider.IsADAuthEnabled(domain))
+                if (adProvider.IsADAuthEnabled(domain))
                 {
-                    return ADProvider.IsADAuthenticated(domain, username, password);
+                    return adProvider.IsADAuthenticated(domain, username, password);
                 }
             }
 

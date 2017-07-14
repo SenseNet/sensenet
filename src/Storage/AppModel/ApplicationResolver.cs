@@ -5,6 +5,7 @@ using System.Text;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Search;
+using SenseNet.Search;
 
 namespace SenseNet.ContentRepository.Storage.AppModel
 {
@@ -164,9 +165,7 @@ namespace SenseNet.ContentRepository.Storage.AppModel
         {
             foreach (var path in paths)
             {
-                //TODO: Increase parformance with parameterized direct indexed engine query
-                var q = new NodeQuery(new StringExpression(StringAttribute.Path, StringOperator.Equal, path));
-                var r = q.Execute();
+                var r = StorageContext.Search.ContentRepository.ExecuteContentQuery($"Path:{path}", QuerySettings.AdminSettings);
                 if (r.Count > 0)
                     return NodeHead.Get(r.Identifiers.First());
             }
@@ -216,13 +215,20 @@ namespace SenseNet.ContentRepository.Storage.AppModel
             NodeQuery q;
             foreach (var path in paths)
             {
-                //TODO: Increase parformance with parameterized direct indexed engine query
                 if (resolveChildren)
-                    q = new NodeQuery(new StringExpression(StringAttribute.Path, StringOperator.StartsWith, path + "/"));
+                {
+                    var r = StorageContext.Search.ContentRepository.ExecuteContentQuery("InTree:@0.SORT:Path",
+                        QuerySettings.AdminSettings, path);
+                    if (r.Count > 0)
+                        // skip first because it is the root of subtree
+                        heads.AddRange(r.Identifiers.Skip(1).Select(NodeHead.Get));
+                }
                 else
-                    q = new NodeQuery(new StringExpression(StringAttribute.Path, StringOperator.Equal, path));
-                var r = q.Execute();
-                heads.AddRange(r.Identifiers.Select(i => NodeHead.Get(i)));
+                {
+                    var head = NodeHead.Get(path);
+                    if (head != null)
+                        heads.Add(head);
+                }
             }
             return heads;
         }
@@ -232,91 +238,5 @@ namespace SenseNet.ContentRepository.Storage.AppModel
             return x.Path.CompareTo(y.Path);
         }
 
-        // ====================================================================================== Cache
-
-        private static object _appCacheSync = new object();
-        private static Dictionary<string, List<string>> _appCache;
-        private static Dictionary<string, List<string>> AppCache
-        {
-            get
-            {
-                if (_appCache == null)
-                {
-                    lock (_appCacheSync)
-                    {
-                        if (_appCache == null)
-                        {
-                            _appCache = new Dictionary<string, List<string>>();
-                        }
-                    }
-                }
-                return _appCache;
-            }
-        }
-        private static List<string> GetCache(string appFolderName)
-        {
-            List<string> data = null;
-            if (!AppCache.ContainsKey(appFolderName))
-            {
-                lock (_appCacheSync)
-                {
-                    if (!AppCache.ContainsKey(appFolderName))
-                    {
-                        data = new List<string>();
-                        LoadCache(appFolderName, data);
-                        AppCache.Add(appFolderName, data);
-                    }
-                }
-            }
-            return AppCache[appFolderName];
-        }
-        private static void LoadCache(string appFolderName, List<string> data)
-        {
-            var q = new NodeQuery(new TypeExpression(ActiveSchema.NodeTypes["Folder"]),
-                new StringExpression(StringAttribute.Name, StringOperator.Equal, appFolderName));
-            var result = q.Execute();
-            foreach (var node in result.Nodes)
-            {
-                var q1 = new NodeQuery(new StringExpression(StringAttribute.Path, StringOperator.StartsWith, node.Path + "/"));
-                var result1 = q1.Execute();
-                foreach (var node1 in result1.Nodes)
-                    data.Add(node1.Path);
-            }
-        }
-        internal static void Invalidate()
-        {
-            _appCache = null;
-        }
-
-        private static IEnumerable<NodeHead> ResolveAllByPathsFromCache(IEnumerable<string> paths, bool resolveChildren, string appFolderName)
-        {
-            var cache = GetCache(appFolderName);
-            var heads = new List<NodeHead>();
-            foreach (var path in paths)
-            {
-                foreach (var x in cache)
-                {
-                    if (resolveChildren)
-                    {
-                        if(String.Compare(RepositoryPath.GetParentPath(x), path, true) == 0)
-                        {
-                            var head = NodeHead.Get(x);
-                            if (head != null)
-                                heads.Add(head);
-                        }
-                    }
-                    else
-                    {
-                        if(String.Compare(x, path, true) == 0)
-                        {
-                            var head = NodeHead.Get(path);
-                            if(head != null)
-                                heads.Add(head);
-                        }
-                    }
-                }
-            }
-            return heads;
-        }
     }
 }

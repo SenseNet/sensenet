@@ -207,15 +207,6 @@ namespace SenseNet.Search
             set { _settings = value; }
         }
 
-        public bool IsNodeQuery
-        {
-            get { return !string.IsNullOrEmpty(Text) && Text.StartsWith("<"); }
-        }
-        public bool IsContentQuery
-        {
-            get { return !string.IsNullOrEmpty(Text) && !Text.StartsWith("<"); }
-        }
-
         public void AddClause(string text)
         {
             AddClause(text, ChainOperator.And);
@@ -314,7 +305,7 @@ namespace SenseNet.Search
         }
         public QueryResult Execute(ExecutionHint hint)
         {
-            return new QueryResult(GetIdResults(hint), TotalCount);
+            return new QueryResult(GetIdResults(), TotalCount);
         }
         public IEnumerable<int> ExecuteToIds()
         {
@@ -325,17 +316,17 @@ namespace SenseNet.Search
             // We need to get the pure id list for one single query.
             // If you run Execute, it returns a NodeList that loads
             // all result ids, not only the page you specified.
-            return GetIdResults(hint);
+            return GetIdResults();
         }
 
         // ================================================================== Get result ids
 
-        private IEnumerable<int> GetIdResults(ExecutionHint hint)
+        private IEnumerable<int> GetIdResults()
         {
-            return GetIdResults(hint, Settings.Top, Settings.Skip, Settings.Sort,
+            return GetIdResults(Settings.Top, Settings.Skip, Settings.Sort,
                 Settings.EnableAutofilters, Settings.EnableLifespanFilter, Settings.QueryExecutionMode);
         }
-        private IEnumerable<int> GetIdResults(ExecutionHint hint, int top, int skip, IEnumerable<SortInfo> sort, FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode)
+        private IEnumerable<int> GetIdResults(int top, int skip, IEnumerable<SortInfo> sort, FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode)
         {
             if (AccessProvider.Current.GetCurrentUser().Id == Configuration.Identifiers.SystemUserId && !this.IsSafe)
             {
@@ -346,26 +337,15 @@ namespace SenseNet.Search
                 throw ex;
             }
 
-            if (IsNodeQuery)
-            {
-                using (var op = SnTrace.Query.StartOperation("NodeQuery: {0} | Top:{1} Skip:{2} Sort:{3} Mode:{4}", _text, _settings.Top, _settings.Skip, _settings.Sort, _settings.QueryExecutionMode))
-                {
-                    var result = GetIdResultsWithNodeQuery(hint, top, skip, sort, enableAutofilters, enableLifespanFilter, executionMode);
-                    op.Successful = true;
-                    return result;
-                }
-            }
-            if (IsContentQuery)
-            {
-                using (var op = SnTrace.Query.StartOperation("ContentQuery: {0} | Top:{1} Skip:{2} Sort:{3} Mode:{4}", this._text, _settings.Top, _settings.Skip, _settings.Sort, _settings.QueryExecutionMode))
-                {
-                    var result = GetIdResultsWithLucQuery(top, skip, sort, enableAutofilters, enableLifespanFilter, executionMode);
-                    op.Successful = true;
-                    return result;
-                }
-            }
+            if (string.IsNullOrEmpty(Text))
+                throw new InvalidOperationException("Cannot execute query with null or empty Text");
 
-            throw new InvalidOperationException("Cannot execute query with null or empty Text");
+            using (var op = SnTrace.Query.StartOperation("ContentQuery: {0} | Top:{1} Skip:{2} Sort:{3} Mode:{4}", this._text, _settings.Top, _settings.Skip, _settings.Sort, _settings.QueryExecutionMode))
+            {
+                var result = GetIdResultsWithLucQuery(top, skip, sort, enableAutofilters, enableLifespanFilter, executionMode);
+                op.Successful = true;
+                return result;
+            }
         }
         private IEnumerable<int> GetIdResultsWithLucQuery(int top, int skip, IEnumerable<SortInfo> sort,
             FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode)
@@ -427,48 +407,6 @@ namespace SenseNet.Search
 
                 return result;
             }
-        }
-        private IEnumerable<int> GetIdResultsWithNodeQuery(ExecutionHint hint, int top, int skip, IEnumerable<SortInfo> sort,
-            FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode)
-        {
-            //TODO: QUICK: Process executionMode in GetIdResultsWithNodeQuery
-            var queryText = LucQuery.IsAutofilterEnabled(enableAutofilters) ? AddAutofilterToNodeQuery(Text) : Text;
-            if (LucQuery.IsLifespanFilterEnabled(enableLifespanFilter))
-                queryText = AddLifespanFilterToNodeQuery(queryText, GetLifespanFilterForNodeQuery());
-
-            NodeQuery query;
-
-            try
-            {
-                query = NodeQuery.Parse(queryText);
-            }
-            catch (XmlException ex)
-            {
-                throw new InvalidContentQueryException(queryText, innerException: ex);
-            }
-            catch (InvalidOperationException ex)
-            {
-                throw new InvalidContentQueryException(queryText, innerException: ex);
-            }
-
-            if (skip != 0)
-                query.Skip = skip;
-
-            if (top != 0)
-                query.Top = top;
-            else
-                if (query.Top == 0)
-                    query.Top = GetDefaultMaxResults();
-
-            query.PageSize = query.Top;
-
-            if (sort != null && sort.Count() > 0)
-                throw new NotSupportedException("Sorting override is not allowed on NodeQuery");
-
-            var result = query.Execute(hint);
-            TotalCount = result.Count;
-
-            return result.Identifiers.ToList();
         }
 
         // ================================================================== Filter methods

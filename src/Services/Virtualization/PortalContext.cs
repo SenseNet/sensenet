@@ -580,16 +580,7 @@ namespace SenseNet.Portal.Virtualization
                     return smartUrls;
 
                 NodeQueryResult pageResult;
-                if (RepositoryInstance.ContentQueryIsAllowed)
-                {
-                    var pageQuery = new NodeQuery();
-                    pageQuery.Add(new TypeExpression(pageType, false));
-                    pageResult = pageQuery.Execute();
-                }
-                else
-                {
-                    pageResult = NodeQuery.QueryNodesByType(pageType, false);
-                }
+                pageResult = NodeQuery.QueryNodesByType(pageType, false);
                 
                 if (pageResult == null)
                     throw new ApplicationException("SmartURL: Query returned null.");
@@ -674,20 +665,9 @@ namespace SenseNet.Portal.Virtualization
                     if (ContentRepository.Schema.ContentType.GetByName("Site") == null)
                         throw new ApplicationException("Unknown ContentType: Site");
 
-                    // CONDITIONAL EXECUTE
                     using (new SystemAccount())
                     {
-                        if (RepositoryInstance.ContentQueryIsAllowed)
-                        {
-                            var query = new NodeQuery();
-                            var nt = ActiveSchema.NodeTypes[typeof(Site).Name];
-                            query.Add(new TypeExpression(nt, false));
-                            result = query.Execute();//.Nodes.ToList<Node>();
-                        }
-                        else
-                        {
-                            result = NodeQuery.QueryNodesByType(ActiveSchema.NodeTypes[typeof(Site).Name], false);//.Nodes.ToList<Node>();
-                        }
+                        result = NodeQuery.QueryNodesByType(ActiveSchema.NodeTypes[typeof(Site).Name], false);//.Nodes.ToList<Node>();
                     }
 
                     _urlPaths = new NameValueCollection(result.Count);

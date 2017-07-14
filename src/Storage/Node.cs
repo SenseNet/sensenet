@@ -14,6 +14,7 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.Diagnostics;
+using SenseNet.Search;
 using SenseNet.Security;
 
 namespace SenseNet.ContentRepository.Storage
@@ -149,31 +150,14 @@ namespace SenseNet.ContentRepository.Storage
             if (this.Id == 0)
                 return new NodeQueryResult(new NodeList<Node>());
 
-            if (StorageContext.Search.IsOuterEngineEnabled && StorageContext.Search.SearchEngine != InternalSearchEngine.Instance)
-            {
-                var query = new NodeQuery();
-                query.Add(new IntExpression(IntAttribute.ParentId, ValueOperator.Equal, this.Id));
-                return query.Execute();
-            }
-            else
-            {
-                // fallback to the direct db query
-                return NodeQuery.QueryChildren(this.Id);
-            }
+            return NodeQuery.QueryChildren(this.Id);
         }
 
-        public virtual int NodesInTree
-        {
-            get
-            {
-                var childQuery = new NodeQuery();
-                childQuery.Add(new StringExpression(StringAttribute.Path, StringOperator.StartsWith, this.Path));
-                var childResult = childQuery.Execute();
-                var childNum = childResult.Count;
-
-                return childNum;
-            }
-        }
+        public virtual int NodesInTree => StorageContext.Search.ContentRepository.ExecuteContentQuery(
+                "+InTree:@0",
+                QuerySettings.AdminSettings,
+                this.Path)
+            .Count;
 
         internal void MakePrivateData()
         {

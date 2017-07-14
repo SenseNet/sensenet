@@ -145,18 +145,11 @@ namespace SenseNet.ContentRepository.i18n
                 {
                     IEnumerable<Node> nodes;
 
-                    if (RepositoryInstance.ContentQueryIsAllowed)
-                    {
-                        nodes = query.Execute().Nodes.OrderBy(i => i.Index);
-                    }
-                    else
-                    {
-                        var r = NodeQuery.QueryNodesByTypeAndPath(ActiveSchema.NodeTypes["Resource"]
-                            , false
-                            , String.Concat(RepositoryStructure.ResourceFolderPath, RepositoryPath.PathSeparator)
-                            , true);
-                        nodes = r.Nodes.OrderBy(i => i.Index);
-                    }
+                    var r = NodeQuery.QueryNodesByTypeAndPath(ActiveSchema.NodeTypes["Resource"]
+                        , false
+                        , String.Concat(RepositoryStructure.ResourceFolderPath, RepositoryPath.PathSeparator)
+                        , true);
+                    nodes = r.Nodes.OrderBy(i => i.Index);
 
                     LastResourceModificationDate = nodes.Any()
                         ? nodes.Max(x => x.ModificationDate)

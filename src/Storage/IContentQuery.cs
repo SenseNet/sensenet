@@ -9,8 +9,6 @@ namespace SenseNet.Search
         int TotalCount { get; }
 
         QuerySettings Settings { get; set; }
-        bool IsNodeQuery { get; }
-        bool IsContentQuery { get; }
 
         void AddClause(string text);
 

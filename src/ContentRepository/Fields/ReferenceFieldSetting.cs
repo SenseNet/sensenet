@@ -18,7 +18,7 @@ namespace SenseNet.ContentRepository.Fields
         public const string AllowMultipleName = "AllowMultiple";
         public const string AllowedTypesName = "AllowedTypes";
         public const string SelectionRootName = "SelectionRoot";
-        public const string QueryName = "Query";
+        public const string QueryName = "Query"; //UNDONE:!!!! NODEQUERY
         public const string TypeName = "Type";
         public const string PathName = "Path";
         public const string FieldNameName = "FieldName";
@@ -26,7 +26,6 @@ namespace SenseNet.ContentRepository.Fields
         private bool? _allowMultiple;
         private List<string> _allowedTypes;
         private List<string> _selectionRoots;
-        private NodeQuery _query;
         private string _fieldName;
 
         public bool? AllowMultiple
@@ -80,20 +79,6 @@ namespace SenseNet.ContentRepository.Fields
                 _selectionRoots = value;
             }
         }
-        public NodeQuery Query
-        {
-            get
-            {
-                return _query ?? (this.ParentFieldSetting == null ? null :
-                    ((ReferenceFieldSetting)this.ParentFieldSetting).Query);
-            }
-            set
-            {
-                if (!_mutable)
-                    throw new InvalidOperationException("Setting SelectionRoots is not allowed within readonly instance.");
-                _query = value;
-            }
-        }
         public string FieldName
         {
             get
@@ -123,12 +108,6 @@ namespace SenseNet.ContentRepository.Fields
             //        <Path>/Root/.../1</Path>
             //        <Path>/Root/.../2</Path>
             //    <SelectionRoot>
-            //    <Query>
-            //        <q:And>
-            //          <q:String op="StartsWith" property="Path">.</q:String>
-            //          <q:String op="NotEqual" property="Name">Restricted</q:String>
-            //        </q:And>
-            //    </Query>
             // </Configuration>
             foreach (XPathNavigator element in configurationElement.SelectChildren(XPathNodeType.Element))
             {
@@ -165,13 +144,6 @@ namespace SenseNet.ContentRepository.Fields
                             _selectionRoots.Add(path);
                         }
                         break;
-                    case QueryName:
-                        var sb = new StringBuilder();
-                        sb.Append("<SearchExpression xmlns=\"").Append(NodeQuery.XmlNamespace).Append("\">");
-                        sb.Append(element.InnerXml);
-                        sb.Append("</SearchExpression>");
-                        _query = NodeQuery.Parse(sb.ToString());
-                        break;
                     case FieldNameName:
                         _fieldName = element.InnerXml;
                         break;
@@ -188,8 +160,6 @@ namespace SenseNet.ContentRepository.Fields
                 _allowedTypes = new List<string>((string[])temp);
             if (info.TryGetValue(SelectionRootName, out temp))
                 _selectionRoots = new List<string>((string[])temp);
-            if (info.TryGetValue(QueryName, out temp))
-                _query = NodeQuery.Parse((string)temp);
             if (_selectionRoots != null)
             {
                 foreach (var path in _selectionRoots)
@@ -215,7 +185,6 @@ namespace SenseNet.ContentRepository.Fields
             result.Add(FieldNameName, _fieldName);
             result.Add(AllowedTypesName, _allowedTypes);
             result.Add(SelectionRootName, _selectionRoots);
-            result.Add(QueryName, _query);
             return result;
         }
         protected override void SetDefaults()
@@ -223,7 +192,6 @@ namespace SenseNet.ContentRepository.Fields
             _allowMultiple = null;
             _allowedTypes = null;
             _selectionRoots = null;
-            _query = null;
         }
 
         public override FieldValidationResult ValidateData(object value, Field field)
@@ -236,9 +204,6 @@ namespace SenseNet.ContentRepository.Fields
             if ((this.Compulsory ?? false) && (list.Count == 0))
                 return new FieldValidationResult(CompulsoryName);
 
-            if (this.Query != null)
-                if ((result = ValidateWithQuery(list, this.Query)) != FieldValidationResult.Successful)
-                    return result;
             if ((result = ValidateCount(list)) != FieldValidationResult.Successful)
                 return result;
             if (this.AllowedTypes != null)
@@ -258,7 +223,6 @@ namespace SenseNet.ContentRepository.Fields
             var refFieldSetting = (ReferenceFieldSetting)source;
 
             AllowMultiple = refFieldSetting.AllowMultiple;
-            Query = refFieldSetting.Query;
 
             if (refFieldSetting.AllowedTypes != null)
                 AllowedTypes = new List<string>(refFieldSetting.AllowedTypes);
@@ -384,22 +348,6 @@ namespace SenseNet.ContentRepository.Fields
             }
             return FieldValidationResult.Successful;
         }
-        private FieldValidationResult ValidateWithQuery(List<Node> list, NodeQuery query)
-        {
-            var x = query.Execute();
-            List<int> idList = x.Identifiers.ToList();
-            idList.Sort();
-            foreach (Node node in list)
-            {
-                if (!idList.Contains(node.Id))
-                {
-                    var result = new FieldValidationResult(QueryName);
-                    result.AddParameter("Path", node.Path);
-                    return result;
-                }
-            }
-            return FieldValidationResult.Successful;
-        }
 
         private List<string> CollectExactTypeNames(List<string> rootTypeNames)
         {
@@ -448,11 +396,6 @@ namespace SenseNet.ContentRepository.Fields
                 }
 
                 writer.WriteEndElement();
-            }
-
-            if (_query != null)
-            {
-                WriteElement(writer, _query.ToXml(), QueryName);
             }
 
             if (_fieldName != null)
@@ -545,10 +488,6 @@ namespace SenseNet.ContentRepository.Fields
             {
                 switch (name)
                 {
-                    case QueryName:
-                        val = _query == null ? null : _query.ToXml();
-                        found = true;
-                        break;
                     case AllowedTypesName:
                         if (_allowedTypes != null)
                         {
@@ -579,11 +518,6 @@ namespace SenseNet.ContentRepository.Fields
 
             switch (name)
             {
-                case QueryName:
-                    if (!string.IsNullOrEmpty(sv))
-                        _query = NodeQuery.Parse(sv);
-                    found = true;
-                    break;
                 case AllowedTypesName:
                     var types = value as IEnumerable<Node>;
                     if (types != null && types.Count() > 0)

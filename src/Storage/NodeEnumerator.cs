@@ -4,6 +4,7 @@ using System.Linq;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.Search;
 
 namespace SenseNet.ContentRepository.Storage
 {
@@ -140,18 +141,15 @@ namespace SenseNet.ContentRepository.Storage
         }
         protected virtual NodeQueryResult QueryChildrenFromLucene(int thisId)
         {
-            var query = new NodeQuery();
-            query.Add(new IntExpression(IntAttribute.ParentId, ValueOperator.Equal, thisId));
-            if (this._filter != null)
-                query.Add(_filter);
-            return query.Execute(ExecutionHint.ForceIndexedEngine);
+            var r = StorageContext.Search.ContentRepository.ExecuteContentQuery($"+ParentId:{thisId}", QuerySettings.AdminSettings);
+            return new NodeQueryResult(r.Identifiers);
         }
         private NodeQueryResult QueryChildrenFromDatabase(int thisId)
         {
             if (_filter != null)
                 throw new NotSupportedException("Cannot query the children from database with filter.");
             var idArray = DataProvider.Current.GetChildrenIdentfiers(thisId);
-            return new NodeQueryResult(new NodeList<Node>(idArray));
+            return new NodeQueryResult(idArray);
         }
 
         private Node LoadCurrentNode()

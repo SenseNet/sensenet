@@ -695,33 +695,6 @@ namespace SenseNet.ContentRepository
             return node != null ? Content.Create(node) : null;
         }
 
-        /// <summary>
-        /// Executes the given <see cref="SenseNet.ContentRepository.Storage.Search.NodeQuery">NodeQuery</see> and wraps each <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> to a <c>Content</c>.
-        /// </summary>
-        /// <returns>A Content list that is contain the result <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see>s wrapped by a <c>Content</c>.</returns>
-        public static IEnumerable<Content> Query(NodeQuery query)
-        {
-            List<Content> result = new List<Content>();
-            foreach (Node node in query.Execute().Nodes)
-                result.Add(Create(node));
-            return result;
-        }
-
-        public static IEnumerable<Content> Query(NodeQuery query, IEnumerable<string> fieldNames)
-        {
-            var result = Query(query);
-            var propDescColl = GetPropertyDescriptors(fieldNames);
-
-            if (propDescColl != null && propDescColl.Count > 0)
-            {
-                foreach (var content in result)
-                {
-                    content.PropertyDescriptors = propDescColl;
-                }
-            }
-
-            return result;
-        }
         [Obsolete("Use Content.Create instead")]
         public Content()
         {

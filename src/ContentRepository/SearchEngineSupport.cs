@@ -49,7 +49,12 @@ namespace SenseNet.ContentRepository
 
         public T GetSettingsValue<T>(string key, T defaultValue)
         {
-            return Settings.GetValue<T>(IndexingSettings.SETTINGSNAME, "ForceReopenFrequencyInSeconds", null, defaultValue);
+            return Settings.GetValue<T>(IndexingSettings.SETTINGSNAME, key, null, defaultValue);
+        }
+
+        public QueryResult ExecuteContentQuery(string text, QuerySettings settings, params object[] parameters)
+        {
+            return ContentQuery.Query(text, settings, parameters);
         }
     }
 }

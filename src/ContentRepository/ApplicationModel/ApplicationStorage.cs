@@ -12,6 +12,7 @@ using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Communication.Messaging;
 using System.Diagnostics;
+using SenseNet.Search;
 
 namespace SenseNet.ApplicationModel
 {
@@ -300,13 +301,10 @@ namespace SenseNet.ApplicationModel
 
         private static AppNode LoadApps(out List<string> appNames, out List<Application> appList, out List<string> scenarioNames)
         {
-            var nt = ActiveSchema.NodeTypes["Application"];
-            var nq = new NodeQuery();
-            nq.Add(new TypeExpression(nt));
-
             using (new SystemAccount())
             {
-                var result = nq.Execute();
+                //var result = nq.Execute();
+                var result = ContentQuery.Query(SafeQueries.TypeIs, QuerySettings.AdminSettings, typeof(Application).Name);
                 appList = result.Nodes.Cast<Application>().ToList();
                 appList.Sort((xa, ya) => xa.Path.CompareTo(ya.Path));
             }
