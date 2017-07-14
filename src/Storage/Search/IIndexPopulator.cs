@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using SenseNet.Communication.Messaging;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Storage.Search
 {
-    public enum IndexRebuildLevel { IndexOnly, DatabaseAndIndex };
     public interface IIndexPopulator
     {
         void ClearAndPopulateAll(bool backup = true, TextWriter consoleWriter = null);

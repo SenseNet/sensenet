@@ -6,6 +6,16 @@ using SenseNet.ContentRepository.Storage.Data;
 
 namespace SenseNet.ContentRepository.Storage.Search
 {
+    public enum IndexFieldType { String, Int, Long, Float, Double, DateTime }
+    public enum IndexableDataType { String, Int, Long, Float, Double }
+    public enum FieldInfoType { StringField, IntField, LongField, SingleField, DoubleField }
+
+    public enum IndexingMode { Default, Analyzed, AnalyzedNoNorms, No, NotAnalyzed, NotAnalyzedNoNorms }
+    public enum IndexStoringMode { Default, No, Yes }
+    public enum IndexTermVector { Default, No, WithOffsets, WithPositions, WithPositionsOffsets, Yes }
+
+    public enum IndexRebuildLevel { IndexOnly, DatabaseAndIndex };
+
     public interface IIndexableDocument
     {
         IEnumerable<IIndexableField> GetIndexableFields();
@@ -26,10 +36,6 @@ namespace SenseNet.ContentRepository.Storage.Search
         object GetBack(string fieldValue);
     }
 
-    public enum IndexFieldType
-    {
-        String, Int, Long, Float, Double, DateTime
-    }
 
     public interface ISnField
     {
@@ -37,10 +43,6 @@ namespace SenseNet.ContentRepository.Storage.Search
         object GetData(bool localized = true);
     }
 
-    public enum IndexableDataType
-    {
-        String, Int, Long, Float, Double
-    }
 
     public interface IQueryFieldValue
     {
@@ -77,7 +79,6 @@ namespace SenseNet.ContentRepository.Storage.Search
         Type FieldDataType { get; set; }
     }
 
-    public enum FieldInfoType { StringField, IntField, LongField, SingleField, DoubleField }
 
     public interface IIndexFieldInfo //UNDONE: Racionalize interface names: IPerFieldIndexingInfo and IIndexFieldInfo
     {
