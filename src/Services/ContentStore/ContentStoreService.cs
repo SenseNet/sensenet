@@ -43,10 +43,9 @@ namespace SenseNet.Services.ContentStore
             }
         }
 
-        [Obsolete("Not supported anymore", true)]
         public Content[] GetFeed(string feedPath)
         {
-            throw new SnNotSupportedException();
+            return GetFeed2(feedPath, false, false, 0, 0);
         }
 
         public Node GetNodeById(string itemId)
@@ -71,12 +70,76 @@ namespace SenseNet.Services.ContentStore
             return enabledTypes.Select(node => new Content(node, false, false, false, true, 0, 0)).ToArray();
         }
 
-        [Obsolete("Not supported anymore", true)]
         public Content[] GetFeed2(string feedPath, bool onlyFiles, bool onlyFolders, int start, int limit)
         {
-            throw new SnNotSupportedException();
+            var exceptions = new List<Exception>();
+            while (exceptions.Count < 3)
+            {
+                try
+                {
+                    var contents = GetFeed2Private(feedPath, onlyFiles, onlyFolders, start, limit);
+                    return contents;
+                }
+                catch (Exception e)
+                {
+                    exceptions.Add(e);
+                }
+            }
+            throw exceptions.Last();
         }
 
+        private Content[] GetFeed2Private(string feedPath, bool onlyFiles, bool onlyFolders, int start, int limit)
+        {
+            Node container = GetNodeById(feedPath);
+
+            if (container == null) throw new NodeLoadException("Error loading path");
+            IFolder folder = container as IFolder;
+            if (folder == null) return new Content[] { };
+
+            IEnumerable<Node> nodeList;
+            NodeQuery query;
+
+            if (onlyFiles || onlyFolders)
+            {
+                nodeList = onlyFiles ?
+                    from child in folder.Children where child is IFile select child :
+                    from child in folder.Children where child is IFolder select child;
+            }
+            else
+            {
+                if (start == 0 && limit == 0)
+                {
+                    nodeList = folder.Children;
+                }
+                else
+                {
+                    SmartFolder smartFolder = folder as SmartFolder;
+                    if (folder is SmartFolder)
+                    {
+                        query = new NodeQuery();
+                        string queryString = ((SmartFolder)folder).Query;
+
+                        ExpressionList orExp = new ExpressionList(ChainOperator.Or);
+
+                        if (!string.IsNullOrEmpty(queryString))
+                            orExp.Add(NodeQuery.Parse(queryString));
+
+                        orExp.Add(new IntExpression(IntAttribute.ParentId, ValueOperator.Equal, container.Id));
+                        query.Add(orExp);
+                    }
+                    else
+                    {
+                        query = new NodeQuery();
+                        query.Add(new IntExpression(IntAttribute.ParentId, ValueOperator.Equal, container.Id));
+                    }
+                    query.PageSize = limit;
+                    query.Skip = start == 0 ? 0 : start - 1;
+                    nodeList = query.Execute().Nodes;
+                }
+            }
+
+            return nodeList.Select(node => new Content(node, false, false, false, false, start, limit)).ToArray();
+        }
 
         public Content Search(string searchExpression)
         {
@@ -91,10 +154,12 @@ namespace SenseNet.Services.ContentStore
             return CreateFakeRootForFeed(feed);
         }
 
-        [Obsolete("Not supported anymore", true)]
         public Content Query(string queryXml, bool withProperties)
         {
-            throw new SnNotSupportedException();
+            var resultset = ContentRepository.Content.Query(NodeQuery.Parse(queryXml));
+            var feed = resultset.Select<ContentRepository.Content, Content>(res => new Content(res.ContentHandler, withProperties, false, false, false, 0, 0)).ToArray();
+
+            return CreateFakeRootForFeed(feed);
         }
 
         public object UniversalDispatcher()
@@ -257,6 +322,7 @@ namespace SenseNet.Services.ContentStore
         protected NodeLoadException(
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context)
-            : base(info, context) { }
+            : base(info, context)
+        { }
     }
 }
