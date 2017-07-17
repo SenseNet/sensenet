@@ -699,7 +699,7 @@ namespace SenseNet.ContentRepository
         /// Executes the given <see cref="SenseNet.ContentRepository.Storage.Search.NodeQuery">NodeQuery</see> and wraps each <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> to a <c>Content</c>.
         /// </summary>
         /// <returns>A Content list that is contain the result <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see>s wrapped by a <c>Content</c>.</returns>
-        [Obsolete("Use ContentQuery.Query instead.", true)]
+        [Obsolete("Use ContentQuery.Query instead.", true)] //UNDONE:!!!! NodeQuery is OBSOLETE
         public static IEnumerable<Content> Query(NodeQuery query)
         {
             List<Content> result = new List<Content>();
@@ -708,7 +708,7 @@ namespace SenseNet.ContentRepository
             return result;
         }
 
-        [Obsolete("Use ContentQuery.Query instead.", true)]
+        [Obsolete("Use ContentQuery.Query instead.", true)] //UNDONE:!!!! NodeQuery is OBSOLETE
         public static IEnumerable<Content> Query(NodeQuery query, IEnumerable<string> fieldNames)
         {
             throw new NotSupportedException();
