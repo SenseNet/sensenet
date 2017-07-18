@@ -192,7 +192,6 @@ namespace SenseNet.ContentRepository.Fields
                 _selectionRoots = new List<string>((string[])temp);
             if (info.TryGetValue(QueryName, out temp))
             {
-                //UNDONE: átírni CQL-re, ha nodequery('<'), akkor warningot írni a logba
                 var queryText = (string)temp;
                 if (queryText != null)
                     _query = ParseQuery(queryText);
