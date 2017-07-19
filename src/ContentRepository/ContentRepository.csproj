@@ -180,6 +180,8 @@
     <Compile Include="Packaging\SR.cs" />
     <Compile Include="Packaging\Steps\AddField.cs" />
     <Compile Include="Packaging\Steps\AddMembers.cs" />
+    <Compile Include="Packaging\Steps\RemoveReference.cs" />
+    <Compile Include="Packaging\Steps\AddReference.cs" />
     <Compile Include="Packaging\Steps\AddResource.cs" />
     <Compile Include="Packaging\Steps\IfComponentExists.cs" />
     <Compile Include="Packaging\Steps\IfMatch.cs" />
