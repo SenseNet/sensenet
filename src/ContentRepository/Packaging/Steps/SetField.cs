@@ -123,10 +123,10 @@ namespace SenseNet.Packaging.Steps
                 }
             }
 
-            overwrite = ParseOverWrite(context);
+            overwrite = ParseOverwrite(context);
         }
 
-        protected bool ParseOverWrite(ExecutionContext context)
+        protected bool ParseOverwrite(ExecutionContext context)
         {
             var overwrite = true;
             var overwriteValue = context.ResolveVariable(Overwrite);
