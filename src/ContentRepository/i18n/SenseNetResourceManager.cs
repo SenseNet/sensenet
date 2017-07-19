@@ -134,11 +134,6 @@ namespace SenseNet.ContentRepository.i18n
             if (resNodeType != null)
             {
                 // search for all Resource content
-                NodeQuery query = new NodeQuery();
-                query.Add(new StringExpression(StringAttribute.Path, StringOperator.StartsWith,
-                        String.Concat(RepositoryStructure.ResourceFolderPath, RepositoryPath.PathSeparator)));
-                query.Add(new TypeExpression(resNodeType));
-
                 // Elevation: caching all string resource files 
                 // is independent from the current user.
                 using (new SystemAccount())
