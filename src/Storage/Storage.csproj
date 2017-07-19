@@ -316,7 +316,6 @@
     <Compile Include="Scripting\Evaluator.cs" />
     <Compile Include="Scripting\IEvaluator.cs" />
     <Compile Include="Scripting\ScriptTagNameAttribute.cs" />
-    <Compile Include="Search\Internal\Literal.cs" />
     <Compile Include="Search\Internal\PropertyLiteral.cs" />
     <Compile Include="Security\LockedNodeException.cs" />
     <Compile Include="Security\SystemUser.cs" />
@@ -332,27 +331,14 @@
     <Compile Include="Schema\SchemaItem.cs" />
     <Compile Include="Schema\SchemaRoot.cs" />
     <Compile Include="Schema\TypeCollection.cs" />
-    <Compile Include="Search\Internal\BinaryExpression.cs" />
-    <Compile Include="Search\Internal\ExpressionEnumerator.cs" />
-    <Compile Include="Search\Internal\IBinaryExpression.cs" />
-    <Compile Include="Search\NotExpression.cs" />
     <Compile Include="Search\SearchOrder.cs" />
-    <Compile Include="Search\TypeExpression.cs" />
     <Compile Include="Security\AccessProvider.cs" />
     <Compile Include="Security\IGroup.cs" />
     <Compile Include="Security\LockHandler.cs" />
     <Compile Include="NodeList.cs" />
     <Compile Include="Schema\NodeTypeManager.cs" />
     <Compile Include="Schema\PropertyType.cs" />
-    <Compile Include="Search\CurrencyExpression.cs" />
-    <Compile Include="Search\DateTimeExpression.cs" />
-    <Compile Include="Search\Expression.cs" />
-    <Compile Include="Search\ExpressionList.cs" />
-    <Compile Include="Search\IntExpression.cs" />
     <Compile Include="Search\NodeQuery.cs" />
-    <Compile Include="Search\ReferenceExpression.cs" />
-    <Compile Include="Search\SearchExpression.cs" />
-    <Compile Include="Search\StringExpression.cs" />
     <Compile Include="Search\Enums.cs" />
     <Compile Include="Security\SenseNetSecurityException.cs" />
     <Compile Include="Security\IUser.cs" />
@@ -368,7 +354,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Data\StorageSchemaSample.xml" />
-    <EmbeddedResource Include="Search\QuerySample.xml" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Data\SqlClient\Scripts\Create_SenseNet_Database.sql" />
@@ -380,10 +365,6 @@
     <None Include="Data\SqlClient\Scripts\Install_03_Data_Phase1.sql" />
     <None Include="Data\SqlClient\Scripts\Install_04_Data_Phase2.sql" />
     <None Include="Data\SqlClient\Scripts\Rebuild_SenseNet_FullTextCatalog.sql" />
-    <EmbeddedResource Include="Search\QuerySchema.xsd">
-      <SubType>
-      </SubType>
-    </EmbeddedResource>
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>

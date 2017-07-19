@@ -121,7 +121,6 @@ namespace SenseNet.ContentRepository.Storage.Search
 
         IIndexPopulator GetPopulator();
 
-        IEnumerable<int> Execute(NodeQuery nodeQuery);
         IDictionary<string, Type> GetAnalyzers();
 
         void SetIndexingInfo(object indexingInfo);
@@ -149,10 +148,6 @@ namespace SenseNet.ContentRepository.Storage.Search
         public IIndexPopulator GetPopulator()
         {
             return NullPopulator.Instance;
-        }
-        public IEnumerable<int> Execute(NodeQuery nodeQuery)
-        {
-            throw new NotSupportedException();
         }
         public IDictionary<string, Type> GetAnalyzers()
         {

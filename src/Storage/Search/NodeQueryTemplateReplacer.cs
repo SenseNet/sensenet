@@ -7,6 +7,7 @@ using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Storage.Search
 {
+    [Obsolete("", true)]//UNDONE:! Delete unused class
     public class NodeQueryTemplateReplacer
     {
         private static string[] objectNames = new string[0];

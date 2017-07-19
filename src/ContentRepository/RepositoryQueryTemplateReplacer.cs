@@ -8,6 +8,7 @@ using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.ContentRepository
 {
+    [Obsolete("", true)]//UNDONE:! Delete unused class
     public class RepositoryQueryTemplateReplacer : NodeQueryTemplateReplacer
     {
         private static string[] objectNames = new string[] { "currentuser" };

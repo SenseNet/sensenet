@@ -99,13 +99,5 @@ namespace SenseNet.ContentRepository.Storage.Search.Internal
             _isSlot = true;
             _propertySlot = propertySlot;
         }
-
-        internal virtual void WriteXml(System.Xml.XmlWriter writer)
-        {
-            if (_isSlot)
-                writer.WriteAttributeString("property", _propertySlot.Name);
-            else
-                writer.WriteAttributeString("property", _nodeAttribute.ToString());
-        }
     }
 }

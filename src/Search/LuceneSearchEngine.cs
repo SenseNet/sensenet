@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Tools;
@@ -35,12 +36,6 @@ namespace SenseNet.Search
         public IIndexPopulator GetPopulator()
         {
             return new DocumentPopulator();
-        }
-        public IEnumerable<int> Execute(NodeQuery nodeQuery)
-        {
-            var query = LucQuery.Create(nodeQuery);
-            var lucObjects = query.Execute();
-            return from lucObject in lucObjects select lucObject.NodeId;
         }
         public IEnumerable<int> Execute(string lucQuery)
         {

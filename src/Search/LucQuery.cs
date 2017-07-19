@@ -108,41 +108,6 @@ namespace SenseNet.Search
 
         private LucQuery() { }
 
-        public static LucQuery Create(NodeQuery nodeQuery)
-        {
-            NodeQueryParameter[] parameters;
-            var result = new LucQuery();
-
-            SortField[] sortFields;
-            string oldQueryText;
-
-            var compiler = new SnLucCompiler();
-            var compiledQueryText = compiler.Compile(nodeQuery, out parameters);
-
-            sortFields = (from order in nodeQuery.Orders
-                          select new SortField(
-                                GetFieldNameByPropertyName(order.PropertyName),
-                                GetSortType(order.PropertyName),
-                                order.Direction == OrderDirection.Desc)).ToArray();
-
-            oldQueryText = compiler.CompiledQuery.ToString();
-            oldQueryText = oldQueryText.Replace("[*", "[ ").Replace("*]", " ]").Replace("{*", "{ ").Replace("*}", " }");
-
-            var newQuery = new SnLucParser().Parse(oldQueryText);
-
-            result.Query = newQuery; // compiler.CompiledQuery,
-            result.User = nodeQuery.User;
-            result.SortFields = sortFields;
-            result.StartIndex = nodeQuery.Skip;
-            result.PageSize = nodeQuery.PageSize;
-            result.Top = nodeQuery.Top;
-            result.EnableAutofilters = FilterStatus.Disabled;
-            result.EnableLifespanFilter = FilterStatus.Disabled;
-            //TODO: QUICK: route through NodeQuery
-            result.QueryExecutionMode = QueryExecutionMode.Default;
-
-            return result;
-        }
         private static string GetFieldNameByPropertyName(string propertyName)
         {
             if (propertyName == "NodeId") return "Id";
