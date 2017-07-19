@@ -37,11 +37,6 @@ namespace SenseNet.ContentRepository.Storage
         private int? _depth;
         private bool _skip;
 
-        [Obsolete("Use another constructor without NodeQuery filter", false)] //UNDONE:!!!! NodeQuery is OBSOLETE
-        protected NodeEnumerator(string path, ExecutionHint executionHint, NodeQuery filter, int? depth)
-        {
-        }
-
         protected NodeEnumerator(string path, ExecutionHint executionHint, string filter, int? depth)
         {
             RootPath = path;
