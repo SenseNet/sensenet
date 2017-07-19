@@ -229,8 +229,7 @@ namespace SenseNet.Portal
         }
         private static SortedDictionary<string, string> MapSkin(Node skin)
         {
-            NodeQueryResult result;
-            result = NodeQuery.QueryNodesByPath(skin.Path, false);
+            var result = NodeQuery.QueryNodesByPath(skin.Path, false);
 
             var dict = new SortedDictionary<string, string>();
             foreach (Node n in result.Nodes)

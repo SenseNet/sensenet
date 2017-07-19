@@ -5,6 +5,7 @@ using System.Text;
 
 namespace SenseNet.ContentRepository.Storage.Search
 {
+    [Obsolete("Use SenseNet.Search.QueryResult instead.", true)]
     public class NodeQueryResult
     {
         private NodeList<Node> _result;

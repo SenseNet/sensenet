@@ -19,6 +19,7 @@ using SenseNet.ContentRepository.Workspaces;
 using SenseNet.Diagnostics;
 using SenseNet.Portal.AppModel;
 using SenseNet.Portal.OData;
+using SenseNet.Search;
 using SenseNet.Tools;
 
 namespace SenseNet.Portal.Virtualization
@@ -579,9 +580,7 @@ namespace SenseNet.Portal.Virtualization
                 if (pageType == null)
                     return smartUrls;
 
-                NodeQueryResult pageResult;
-                pageResult = NodeQuery.QueryNodesByType(pageType, false);
-                
+                var pageResult = NodeQuery.QueryNodesByType(pageType, false);
                 if (pageResult == null)
                     throw new ApplicationException("SmartURL: Query returned null.");
 
@@ -658,7 +657,7 @@ namespace SenseNet.Portal.Virtualization
             lock (_sitesLock)
             {
                 _sites = null;
-                NodeQueryResult result = null;
+                QueryResult result = null;
 
                 try
                 {

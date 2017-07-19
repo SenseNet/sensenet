@@ -145,10 +145,10 @@ namespace SenseNet.ContentRepository.Storage
         {
             return QueryChildren().Count;
         }
-        private NodeQueryResult QueryChildren()
+        private QueryResult QueryChildren()
         {
             if (this.Id == 0)
-                return new NodeQueryResult(new NodeList<Node>());
+                return new QueryResult(new NodeList<Node>());
 
             return NodeQuery.QueryChildren(this.Id);
         }
