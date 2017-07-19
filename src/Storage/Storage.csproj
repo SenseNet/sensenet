@@ -189,7 +189,6 @@
     <Compile Include="Events\PermissionChangedEventArgs.cs" />
     <Compile Include="Events\CancellablePermissionChangingEventArgs.cs" />
     <Compile Include="IFolder.cs" />
-    <Compile Include="IIndexingActivity.cs" />
     <Compile Include="InvalidContentException.cs" />
     <Compile Include="IResourceManager.cs" />
     <Compile Include="ISnService.cs" />
@@ -217,7 +216,6 @@
     <Compile Include="Caching\ICache.cs" />
     <Compile Include="Diagnostics\TimeboxedActivity.cs" />
     <Compile Include="DistributedApplication\Messaging\MsmqChannel.cs" />
-    <Compile Include="IContentQuery.cs" />
     <Compile Include="DataBackingStore.cs" />
     <Compile Include="Data\ConfigurationException.cs" />
     <Compile Include="Data\INodeWriter.cs" />
@@ -238,9 +236,7 @@
     <Compile Include="Package.cs" />
     <Compile Include="PreviewProvider.cs" />
     <Compile Include="QueryResult.cs" />
-    <Compile Include="QuerySettings.cs" />
     <Compile Include="Retrier.cs" />
-    <Compile Include="Search\IIndexPopulator.cs" />
     <Compile Include="Instrumentation\TraceFrame.cs" />
     <Compile Include="Instrumentation\TraceFrameEventType.cs" />
     <Compile Include="Instrumentation\TraceHelper.cs" />
@@ -280,9 +276,7 @@
     <Compile Include="Events\NodeOperationEventArgs.cs" />
     <Compile Include="IContentList.cs" />
     <Compile Include="Search\DateTimeParser.cs" />
-    <Compile Include="Search\ISearchEngine.cs" />
     <Compile Include="Search\Internal\Operator.cs" />
-    <Compile Include="Search\ISearchEngineSupport.cs" />
     <Compile Include="Search\NodeQueryResult.cs" />
     <Compile Include="Security\BCrypt.cs" />
     <Compile Include="Security\Extensions.cs" />
@@ -300,14 +294,12 @@
     <Compile Include="Security\SnAclEditor.cs" />
     <Compile Include="SenseNetPerformanceCounter.cs" />
     <Compile Include="Settings.cs" />
-    <Compile Include="SnNotSupportedException.cs" />
     <Compile Include="StorageContext.cs" />
     <Compile Include="TransactionParticipant.cs" />
     <Compile Include="TreeLock.cs" />
     <Compile Include="TypeHandler.cs" />
     <Compile Include="MimeTable.cs" />
     <Compile Include="NodeComparer.cs" />
-    <Compile Include="RepositoryException.cs" />
     <Compile Include="Schema\ContentListType.cs" />
     <Compile Include="Schema\SchemaWriter.cs" />
     <Compile Include="Schema\TypeConverter.cs" />
@@ -413,6 +405,10 @@
     <ProjectReference Include="..\Common\Common.csproj">
       <Project>{A453E920-29C0-45CD-984C-0D8E3631B1E3}</Project>
       <Name>Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Search\Search.csproj">
+      <Project>{0279705b-779d-485d-86b9-f7ab3dd1f2c3}</Project>
+      <Name>Search</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
