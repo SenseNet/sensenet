@@ -187,14 +187,8 @@
     <Compile Include="Configuration\WebApplication.cs" />
     <Compile Include="Configuration\Webdav.cs" />
     <Compile Include="ContentStore\ContentProperty.cs" />
-    <Compile Include="ContentStore\FieldSetting.cs" />
-    <Compile Include="ContentStore\SearchIdentitiesArgument.cs" />
     <Compile Include="ContentStore\SimpleServiceContent.cs" />
     <Compile Include="ContentStore\Content.cs" />
-    <Compile Include="ContentStore\ContentStoreService.cs" />
-    <Compile Include="ContentStore\IContentStoreService.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="CustomErrorWebHttpBinding.cs" />
     <Compile Include="Dws\DwsHandler.cs">
       <SubType>Component</SubType>

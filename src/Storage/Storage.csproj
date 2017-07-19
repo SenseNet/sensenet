@@ -221,7 +221,6 @@
     <Compile Include="DataBackingStore.cs" />
     <Compile Include="Data\ConfigurationException.cs" />
     <Compile Include="Data\INodeWriter.cs" />
-    <Compile Include="Data\INodeQueryCompiler.cs" />
     <Compile Include="Data\NodeBuilder.cs" />
     <Compile Include="Caching\DistributedActions\CleanupNodeCacheAction.cs" />
     <Compile Include="Data\PropertyMapping.cs" />
