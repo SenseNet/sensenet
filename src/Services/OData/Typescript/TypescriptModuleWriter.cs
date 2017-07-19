@@ -130,8 +130,6 @@ namespace SenseNet.Portal.OData.Typescript
         {
             if (typeof(IEnumerable<string>).IsAssignableFrom(type))
                 return "string[]";
-            if (typeof(NodeQuery).IsAssignableFrom(type))
-                return "string";
 
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
                 type = type.GetGenericArguments()[0];
