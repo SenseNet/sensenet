@@ -168,10 +168,6 @@ namespace SenseNet.ContentRepository.Fields
                         }
                         break;
                     case QueryName:
-                        var sb = new StringBuilder();
-                        sb.Append("<SearchExpression xmlns=\"").Append(NodeQuery.XmlNamespace).Append("\">");
-                        sb.Append(element.InnerXml);
-                        sb.Append("</SearchExpression>");
                         _query = ContentQuery.CreateQuery(element.InnerXml);
                         break;
                     case FieldNameName:
