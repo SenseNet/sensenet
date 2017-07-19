@@ -212,7 +212,6 @@ namespace SenseNet.ContentRepository.Storage.AppModel
         private static IEnumerable<NodeHead> ResolveAllByPathsFromIndexedEngine(IEnumerable<string> paths, bool resolveChildren)
         {
             var heads = new List<NodeHead>();
-            NodeQuery q;
             foreach (var path in paths)
             {
                 if (resolveChildren)
