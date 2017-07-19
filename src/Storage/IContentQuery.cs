@@ -12,9 +12,6 @@ namespace SenseNet.Search
 
         void AddClause(string text);
 
-        //UNDONE:!! Remove method with NodeQuery parameter
-        //void AddClause(Expression expression);
-
         QueryResult Execute();
         QueryResult Execute(ExecutionHint hint);
 

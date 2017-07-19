@@ -285,7 +285,6 @@
     <Compile Include="Search\Internal\Operator.cs" />
     <Compile Include="Search\ISearchEngineSupport.cs" />
     <Compile Include="Search\NodeQueryResult.cs" />
-    <Compile Include="Search\NodeQueryTemplateReplacer.cs" />
     <Compile Include="Security\BCrypt.cs" />
     <Compile Include="Security\Extensions.cs" />
     <Compile Include="Security\PermissionType.cs" />

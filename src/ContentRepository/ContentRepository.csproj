@@ -328,7 +328,6 @@
     <Compile Include="Fields\YesNoFieldSetting.cs" />
     <Compile Include="Security\ADSync\IADSyncable.cs" />
     <Compile Include="IAction.cs" />
-    <Compile Include="RepositoryQueryTemplateReplacer.cs" />
     <Compile Include="Schema\DynamicContentTools.cs" />
     <Compile Include="Schema\FieldDataType.cs" />
     <Compile Include="Schema\FieldSettingContent.cs" />

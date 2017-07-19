@@ -274,33 +274,6 @@ namespace SenseNet.Search
             return queryText;
         }
 
-        //UNDONE:!! Remove method with NodeQuery parameter
-        //public void AddClause(Expression expression)
-        //{
-        //    AddClause(expression, ChainOperator.And);
-        //}
-        //UNDONE:!! Remove method with NodeQuery parameter
-        //public void AddClause(Expression expression, ChainOperator chainOp)
-        //{
-        //    if (expression == null)
-        //        throw new ArgumentNullException("expression");
-
-        //    ExpressionList finalExpList;
-        //    var origExpList = expression as ExpressionList;
-
-        //    if (origExpList != null)
-        //    {
-        //        finalExpList = origExpList;
-        //    }
-        //    else
-        //    {
-        //        finalExpList = new ExpressionList(chainOp);
-        //        finalExpList.Add(expression);
-        //    }
-
-        //    this.Text = AddFilterToNodeQuery(Text, finalExpList.ToXml());
-        //}
-
         public QueryResult Execute()
         {
             return Execute(ExecutionHint.None);
