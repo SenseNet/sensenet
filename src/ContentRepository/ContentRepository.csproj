@@ -223,6 +223,7 @@
     <Compile Include="Packaging\Steps\PopulateIndex.cs" />
     <Compile Include="Packaging\Steps\Rename.cs" />
     <Compile Include="Packaging\Steps\ReplaceText.cs" />
+    <Compile Include="Packaging\Steps\SetField.cs" />
     <Compile Include="Packaging\Steps\SetPermissions.cs" />
     <Compile Include="Packaging\Steps\StartRepository.cs" />
     <Compile Include="Packaging\Steps\Step.cs" />
