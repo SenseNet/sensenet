@@ -36,13 +36,12 @@ namespace SenseNet.Packaging.Steps
             bool overwrite;
 
             ParseParameters(context, out content, out fieldValues, out overwrite);
-
-            Logger.LogMessage($"Updating: {content.Path}");
-
+            
             var xDoc = GetFieldXmlDocument(fieldValues);
             
             // ReSharper disable once PossibleNullReferenceException
             var importContext = new ImportContext(xDoc.DocumentElement.ChildNodes, null, false, true, true);
+            var changed = false;
 
             foreach (var fieldName in fieldValues.Keys)
             {
@@ -51,9 +50,19 @@ namespace SenseNet.Packaging.Steps
 
                 var fieldNode = xDoc.DocumentElement.SelectSingleNode($"//{fieldName}");
                 content.Fields[fieldName].Import(fieldNode, importContext);
+
+                changed = true;
             }
-            
-            content.SaveSameVersion();
+
+            if (changed)
+            {
+                Logger.LogMessage($"Updating: {content.Path}");
+                content.SaveSameVersion();
+            }
+            else
+            {
+                Logger.LogMessage($"SKIPPED: {content.Path}");
+            }
         }
 
         protected void ParseParameters(ExecutionContext context, 
