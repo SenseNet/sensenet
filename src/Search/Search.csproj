@@ -61,9 +61,6 @@
   <ItemGroup>
     <Compile Include="Configuration\Querying.cs" />
     <Compile Include="ContentQuery.cs" />
-    <Compile Include="IContentQuery.cs" />
-    <Compile Include="IIndexingActivity.cs" />
-    <Compile Include="IIndexPopulator.cs" />
     <Compile Include="Indexing\EnumConverter.cs" />
     <Compile Include="IndexFieldName.cs" />
     <Compile Include="Indexing\Activities\AddDocumentActivity.cs" />
@@ -94,8 +91,6 @@
     <Compile Include="Indexing\SnPerFieldAnalyzerWrapper.cs" />
     <Compile Include="IndexManager.cs" />
     <Compile Include="InvalidContentQueryException.cs" />
-    <Compile Include="ISearchEngine.cs" />
-    <Compile Include="ISearchEngineSupport.cs" />
     <Compile Include="LuceneSearchEngine.cs" />
     <Compile Include="LucObject.cs" />
     <Compile Include="LucQuery.cs" />
@@ -116,19 +111,20 @@
     <Compile Include="QueryExecutors\QueryExecutor20131012.cs" />
     <Compile Include="QueryExecutors\QueryExecutor20131012CountOnly.cs" />
     <Compile Include="QueryExecutors\SqlQueryExecutor.cs" />
-    <Compile Include="QuerySettings.cs" />
-    <Compile Include="RepositoryException.cs" />
     <Compile Include="RichTextStripper.cs" />
     <Compile Include="SearchProvider.cs" />
     <Compile Include="SnCollector.cs" />
     <Compile Include="SnIFilter.cs" />
-    <Compile Include="SnNotSupportedException.cs" />
     <Compile Include="TextSplitter.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj">
       <Project>{a453e920-29c0-45cd-984c-0d8e3631b1e3}</Project>
       <Name>Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Storage\Storage.csproj">
+      <Project>{5db4ddba-81f6-4d81-943a-18f3178b3355}</Project>
+      <Name>Storage</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

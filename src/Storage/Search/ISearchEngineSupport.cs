@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using SenseNet.Search;
 
-namespace SenseNet.ContentRepository.Storage.Search //UNDONE: namespace
+namespace SenseNet.ContentRepository.Storage.Search
 {
-    public interface ISearchEngineSupport //UNDONE: namespace
+    public interface ISearchEngineSupport
     {
         bool RestoreIndexOnstartup();
         int[] GetNotIndexedNodeTypeIds();

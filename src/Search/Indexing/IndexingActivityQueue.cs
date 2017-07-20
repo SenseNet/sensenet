@@ -13,7 +13,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using SenseNet.ContentRepository;
-using SenseNet.Tools;
 using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Search.Indexing

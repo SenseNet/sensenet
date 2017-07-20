@@ -11,6 +11,7 @@ using SenseNet.Search.Parser;
 using System.Reflection;
 using SenseNet.ContentRepository;
 using SenseNet.Diagnostics;
+using SenseNet.ContentRepository.Storage.Diagnostics;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Tools;
 
