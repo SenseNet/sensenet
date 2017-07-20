@@ -34,7 +34,7 @@ namespace SenseNet.Search
     /// </example>
     public interface ISafeQueryHolder { }
 
-    public class ContentQuery : IContentQuery
+    public class ContentQuery //: IContentQuery
     {
         public static readonly string EmptyText = "$##$EMPTY$##$";
         internal static readonly string EmptyInnerQueryText = "$##$EMPTYINNERQUERY$##$";
