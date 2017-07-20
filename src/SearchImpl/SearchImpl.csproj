@@ -7,7 +7,7 @@
     <ProjectGuid>{FF0B1AF9-753B-4660-8BD0-B84492321808}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SearchImpl</RootNamespace>
+    <RootNamespace>SenseNet.Search</RootNamespace>
     <AssemblyName>SearchImpl</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -61,7 +61,6 @@
   <ItemGroup>
     <Compile Include="Configuration\Querying.cs" />
     <Compile Include="ContentQuery.cs" />
-    <Compile Include="IndexFieldName.cs" />
     <Compile Include="Indexing\Activities\AddDocumentActivity.cs" />
     <Compile Include="Indexing\Activities\AddTreeActivity.cs" />
     <Compile Include="Indexing\Activities\BackupActivity.cs" />
