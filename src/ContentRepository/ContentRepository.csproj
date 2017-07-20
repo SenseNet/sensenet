@@ -502,6 +502,10 @@
       <Project>{01ae54af-db4e-431e-a3f9-fbcd2ad73d03}</Project>
       <Name>Preview</Name>
     </ProjectReference>
+    <ProjectReference Include="..\SearchImpl\SearchImpl.csproj">
+      <Project>{ff0b1af9-753b-4660-8bd0-b84492321808}</Project>
+      <Name>SearchImpl</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Search\Search.csproj">
       <Project>{0279705b-779d-485d-86b9-f7ab3dd1f2c3}</Project>
       <Name>Search</Name>

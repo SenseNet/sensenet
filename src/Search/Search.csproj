@@ -59,63 +59,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Configuration\Querying.cs" />
-    <Compile Include="ContentQuery.cs" />
-    <Compile Include="Indexing\EnumConverter.cs" />
-    <Compile Include="IndexFieldName.cs" />
-    <Compile Include="Indexing\Activities\AddDocumentActivity.cs" />
-    <Compile Include="Indexing\Activities\AddTreeActivity.cs" />
-    <Compile Include="Indexing\Activities\BackupActivity.cs" />
-    <Compile Include="Indexing\Activities\DistributedLuceneActivity.cs" />
-    <Compile Include="Indexing\Activities\LuceneDocumentActivity.cs" />
-    <Compile Include="Indexing\Activities\LuceneIndexingActivity.cs" />
-    <Compile Include="Indexing\Activities\LuceneTreeActivity.cs" />
-    <Compile Include="Indexing\Activities\RebuildActivity.cs" />
-    <Compile Include="Indexing\Activities\RemoveDocumentActivity.cs" />
-    <Compile Include="Indexing\Activities\RemoveTreeActivity.cs" />
-    <Compile Include="Indexing\Activities\UpdateDocumentActivity.cs" />
-    <Compile Include="Indexing\BackupTools.cs" />
-    <Compile Include="Indexing\DocumentPopulator.cs" />
-    <Compile Include="Indexing\ExplicitPerFieldIndexingInfo.cs" />
-    <Compile Include="Indexing\IndexDocumentInfo.cs" />
-    <Compile Include="Indexing\IndexFieldInfo.cs" />
-    <Compile Include="Indexing\IndexHealthMonitor.cs" />
-    <Compile Include="Indexing\IndexingActivityFactory.cs" />
-    <Compile Include="Indexing\IndexingActivityQueue.cs" />
-    <Compile Include="Indexing\IndexingTools.cs" />
-    <Compile Include="Indexing\IndexReaderFrame.cs" />
-    <Compile Include="Indexing\IndexWriterFrame.cs" />
-    <Compile Include="Indexing\IntegrityChecker.cs" />
-    <Compile Include="Indexing\LuceneManager.cs" />
-    <Compile Include="Indexing\PerFieldIndexingInfo.cs" />
-    <Compile Include="Indexing\SnPerFieldAnalyzerWrapper.cs" />
-    <Compile Include="IndexManager.cs" />
-    <Compile Include="InvalidContentQueryException.cs" />
-    <Compile Include="LuceneSearchEngine.cs" />
-    <Compile Include="LucObject.cs" />
-    <Compile Include="LucQuery.cs" />
-    <Compile Include="Parser\DumpVisitor.cs" />
-    <Compile Include="Parser\FieldNameVisitor.cs" />
-    <Compile Include="Parser\LineInfo.cs" />
-    <Compile Include="Parser\LucQueryVisitor.cs" />
-    <Compile Include="Parser\ParserException.cs" />
-    <Compile Include="Parser\QueryClassifier.cs" />
-    <Compile Include="Parser\SnLucLexer.cs" />
-    <Compile Include="Parser\SnLucParser.cs" />
-    <Compile Include="Parser\SnLucToSqlCompiler.cs" />
-    <Compile Include="Parser\SqlQueryFieldInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="QueryExecutors\IQueryExecutor.cs" />
-    <Compile Include="QueryExecutors\LuceneQueryExecutor.cs" />
-    <Compile Include="QueryExecutors\PermissionChecker.cs" />
-    <Compile Include="QueryExecutors\QueryExecutor20131012.cs" />
-    <Compile Include="QueryExecutors\QueryExecutor20131012CountOnly.cs" />
-    <Compile Include="QueryExecutors\SqlQueryExecutor.cs" />
-    <Compile Include="RichTextStripper.cs" />
-    <Compile Include="SearchProvider.cs" />
-    <Compile Include="SnCollector.cs" />
-    <Compile Include="SnIFilter.cs" />
-    <Compile Include="TextSplitter.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj">
@@ -128,7 +72,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Indexing\Activities\IndexingActivities.cd" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
