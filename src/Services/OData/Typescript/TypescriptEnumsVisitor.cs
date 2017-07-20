@@ -39,11 +39,8 @@ namespace SenseNet.Portal.OData.Typescript
 ");
             #endregion
 
-            _indentCount++;
             foreach (var enumeration in Context.Enumerations)
                 Visit(enumeration);
-            _indentCount--;
-
 
             return schema;
         }
@@ -52,14 +49,24 @@ namespace SenseNet.Portal.OData.Typescript
         {
             // do not call base functionality in this method
 
-            var options = string.Join(", ", enumeration.Options.Select(o => o.Name).ToArray());
+            var options = enumeration.Options.Select(o => $" {o.Name} = '{o.Value}'").ToArray();
 
             var names = Context.EmittedEnumerationNames
                 .Where(x => x.Value == enumeration.Key)
                 .Select(x => x.Key)
                 .ToArray();
+
             foreach (var name in names)
-                WriteLine($"export enum {name} {{ {options} }}");
+            {
+                WriteLine($"export enum {name} {{");
+                _indentCount++;
+                foreach (var option in options)
+                {
+                    WriteLine($"{option},");
+                }
+                _indentCount--;
+                WriteLine($"}}");
+            }
 
             return enumeration;
         }

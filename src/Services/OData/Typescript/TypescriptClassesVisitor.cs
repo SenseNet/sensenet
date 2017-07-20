@@ -29,7 +29,7 @@ namespace SenseNet.Portal.OData.Typescript
  *//** */
 import { Content, IContentOptions } from './Content';
 import { Enums, FieldSettings, ComplexTypes } from './SN';
-import { IRepository } from './Repository/IRepository';
+import { BaseRepository } from './Repository';
 
 ");
 
@@ -66,7 +66,7 @@ import { IRepository } from './Repository/IRepository';
             WriteLine($" * @constructs {type}");
             WriteLine($" * @param options {{object}} An object implementing {{@link I{type}Options" + "} interface");
             WriteLine($" */");
-            WriteLine($"constructor(public readonly options: I{type}Options, repository: IRepository<any, any>) {{");
+            WriteLine($"constructor(public readonly options: I{type}Options, repository: BaseRepository) {{");
             WriteLine($"    super(options, repository);");
 
             _indentCount++;
