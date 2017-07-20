@@ -217,7 +217,6 @@
     <Compile Include="Caching\ICache.cs" />
     <Compile Include="Diagnostics\TimeboxedActivity.cs" />
     <Compile Include="DistributedApplication\Messaging\MsmqChannel.cs" />
-    <Compile Include="IContentQuery.cs" />
     <Compile Include="DataBackingStore.cs" />
     <Compile Include="Data\ConfigurationException.cs" />
     <Compile Include="Data\INodeWriter.cs" />
@@ -238,7 +237,6 @@
     <Compile Include="Package.cs" />
     <Compile Include="PreviewProvider.cs" />
     <Compile Include="QueryResult.cs" />
-    <Compile Include="QuerySettings.cs" />
     <Compile Include="Retrier.cs" />
     <Compile Include="Search\IIndexPopulator.cs" />
     <Compile Include="Instrumentation\TraceFrame.cs" />
@@ -413,6 +411,10 @@
     <ProjectReference Include="..\Common\Common.csproj">
       <Project>{A453E920-29C0-45CD-984C-0D8E3631B1E3}</Project>
       <Name>Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Search\Search.csproj">
+      <Project>{0279705b-779d-485d-86b9-f7ab3dd1f2c3}</Project>
+      <Name>Search</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
