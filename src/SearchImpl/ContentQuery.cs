@@ -30,27 +30,27 @@ namespace SenseNet.Search
         private static readonly string MultilineCommentStart = "/*";
         private static readonly string MultilineCommentEnd = "*/";
 
-        public static ContentQuery CreateQuery(string text)
-        {
-            return CreateQuery(text, null);
-        }
-        public static ContentQuery CreateQuery(string text, QuerySettings settings)
-        {
-            return CreateQuery(text, settings, null);
-        }
-        public static ContentQuery CreateQuery(string text, QuerySettings settings, params object[] parameters)
-        {
-            var isSafe = IsSafeQuery(text);
-            if (parameters != null && parameters.Length > 0)
-                text = SubstituteParameters(text, parameters);
-            var query = new ContentQuery
-            {
-                Text = text,
-                IsSafe = isSafe,
-                Settings = settings,
-            };
-            return query;
-        }
+        //public static ContentQuery CreateQuery(string text)
+        //{
+        //    return CreateQuery(text, null);
+        //}
+        //public static ContentQuery CreateQuery(string text, QuerySettings settings)
+        //{
+        //    return CreateQuery(text, settings, null);
+        //}
+        //public static ContentQuery CreateQuery(string text, QuerySettings settings, params object[] parameters)
+        //{
+        //    var isSafe = IsSafeQuery(text);
+        //    if (parameters != null && parameters.Length > 0)
+        //        text = SubstituteParameters(text, parameters);
+        //    var query = new ContentQuery
+        //    {
+        //        Text = text,
+        //        IsSafe = isSafe,
+        //        Settings = settings,
+        //    };
+        //    return query;
+        //}
 
         //public static QueryResult Query(string text)
         //{
@@ -76,80 +76,80 @@ namespace SenseNet.Search
         //{
         //    return CreateQuery(text, settings, parameters).Execute(ExecutionHint.None);
         //}
-        private static string SubstituteParameters(string text, object[] parameters)
-        {
-            var stringValues = new string[parameters.Length];
-            for (int i = 0; i < parameters.Length; i++)
-                stringValues[i] = EscapeParameter(parameters[i]);
+        //private static string SubstituteParameters(string text, object[] parameters)
+        //{
+        //    var stringValues = new string[parameters.Length];
+        //    for (int i = 0; i < parameters.Length; i++)
+        //        stringValues[i] = EscapeParameter(parameters[i]);
 
-            var sb = new StringBuilder();
-            var p = -1;
-            while (++p < text.Length)
-            {
-                if (text[p] == '@')
-                {
-                    var q = p;
-                    while (++q < text.Length && Char.IsDigit(text[q]))
-                        ;
-                    var nr = text.Substring(p + 1, q - p - 1);
-                    if (nr.Length > 0)
-                    {
-                        var index = int.Parse(nr);
-                        if (index >= parameters.Length)
-                            throw new InvalidOperationException("Invalid format string.");
-                        sb.Append(stringValues[index]);
-                        p = q - 1;
-                    }
-                    else
-                    {
-                        sb.Append(text[p]);
-                    }
-                }
-                else
-                {
-                    sb.Append(text[p]);
-                }
-            }
-            return sb.ToString();
-        }
-        private static string EscapeParameter(object value)
-        {
-            var enumerableValue = value as System.Collections.IEnumerable;
-            if (!(value is string) && enumerableValue != null)
-            {
-                var escaped = new List<string>();
-                foreach (var x in enumerableValue)
-                    if (x != null)
-                        escaped.Add(EscapeParameter(x.ToString()));
-                var joined = String.Join(" ", escaped);
-                if (escaped.Count < 2)
-                    return joined;
-                return "(" + joined + ")";
-            }
-            else
-            {
-                var stringValue = value.ToString();
-                var neeqQuot = false;
-                foreach (var c in stringValue)
-                {
-                    if (char.IsWhiteSpace(c))
-                    {
-                        neeqQuot = true;
-                        break;
-                    }
-                    if (c == '\'' || c == '"' || c == '\\' || c == '+' || c == '-' || c == '&' || c == '|' || c == '!' || c == '(' || c == ')'
-                         || c == '{' || c == '}' || c == '[' || c == ']' || c == '^' || c == '~' || c == '*' || c == '?' || c == ':' || c == '/' || c == '.')
-                    {
-                        neeqQuot = true;
-                        break;
-                    }
-                }
-                if (neeqQuot)
-                    stringValue = "\"" + stringValue.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"";
+        //    var sb = new StringBuilder();
+        //    var p = -1;
+        //    while (++p < text.Length)
+        //    {
+        //        if (text[p] == '@')
+        //        {
+        //            var q = p;
+        //            while (++q < text.Length && Char.IsDigit(text[q]))
+        //                ;
+        //            var nr = text.Substring(p + 1, q - p - 1);
+        //            if (nr.Length > 0)
+        //            {
+        //                var index = int.Parse(nr);
+        //                if (index >= parameters.Length)
+        //                    throw new InvalidOperationException("Invalid format string.");
+        //                sb.Append(stringValues[index]);
+        //                p = q - 1;
+        //            }
+        //            else
+        //            {
+        //                sb.Append(text[p]);
+        //            }
+        //        }
+        //        else
+        //        {
+        //            sb.Append(text[p]);
+        //        }
+        //    }
+        //    return sb.ToString();
+        //}
+        //private static string EscapeParameter(object value)
+        //{
+        //    var enumerableValue = value as System.Collections.IEnumerable;
+        //    if (!(value is string) && enumerableValue != null)
+        //    {
+        //        var escaped = new List<string>();
+        //        foreach (var x in enumerableValue)
+        //            if (x != null)
+        //                escaped.Add(EscapeParameter(x.ToString()));
+        //        var joined = String.Join(" ", escaped);
+        //        if (escaped.Count < 2)
+        //            return joined;
+        //        return "(" + joined + ")";
+        //    }
+        //    else
+        //    {
+        //        var stringValue = value.ToString();
+        //        var neeqQuot = false;
+        //        foreach (var c in stringValue)
+        //        {
+        //            if (char.IsWhiteSpace(c))
+        //            {
+        //                neeqQuot = true;
+        //                break;
+        //            }
+        //            if (c == '\'' || c == '"' || c == '\\' || c == '+' || c == '-' || c == '&' || c == '|' || c == '!' || c == '(' || c == ')'
+        //                 || c == '{' || c == '}' || c == '[' || c == ']' || c == '^' || c == '~' || c == '*' || c == '?' || c == ':' || c == '/' || c == '.')
+        //            {
+        //                neeqQuot = true;
+        //                break;
+        //            }
+        //        }
+        //        if (neeqQuot)
+        //            stringValue = "\"" + stringValue.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"";
 
-                return stringValue;
-            }
-        }
+        //        return stringValue;
+        //    }
+        //}
 
         /* ================================================================== Genuine query checking */
 
@@ -167,10 +167,10 @@ namespace SenseNet.Search
         //    }
         //    _safeQueries = genuineQueries.ToArray();
         //}
-        private static bool IsSafeQuery(string queryText)
-        {
-            return SafeQueries.IsSafe(queryText);
-        }
+        //private static bool IsSafeQuery(string queryText)
+        //{
+        //    return SafeQueries.IsSafe(queryText);
+        //}
         public bool IsSafe { get; private set; }
 
         // ================================================================== IContentQuery Members
@@ -191,47 +191,47 @@ namespace SenseNet.Search
             set { _settings = value; }
         }
 
-        public void AddClause(string text)
-        {
-            AddClause(text, ChainOperator.And);
-        }
-        public void AddClause(string text, ChainOperator chainOp)
-        {
-            AddClause(text, chainOp, null);
-        }
-        public void AddClause(string text, ChainOperator chainOp, params object[] parameters)
-        {
-            var isSafe = this.IsSafe && IsSafeQuery(text);
-            if (parameters != null && parameters.Length > 0)
-                text = SubstituteParameters(text, parameters);
-            this.IsSafe = isSafe;
-            AddClausePrivate(text, chainOp);
-        }
-        private void AddClausePrivate(string text, ChainOperator chainOp)
-        {
-            if (text == null)
-                throw new ArgumentNullException("text");
-            if (text.Length == 0)
-                throw new ArgumentException("Clause cannot be empty", "text");
+        //public void AddClause(string text)
+        //{
+        //    AddClause(text, ChainOperator.And);
+        //}
+        //public void AddClause(string text, ChainOperator chainOp)
+        //{
+        //    AddClause(text, chainOp, null);
+        //}
+        //public void AddClause(string text, ChainOperator chainOp, params object[] parameters)
+        //{
+        //    var isSafe = this.IsSafe && IsSafeQuery(text);
+        //    if (parameters != null && parameters.Length > 0)
+        //        text = SubstituteParameters(text, parameters);
+        //    this.IsSafe = isSafe;
+        //    AddClausePrivate(text, chainOp);
+        //}
+        //private void AddClausePrivate(string text, ChainOperator chainOp)
+        //{
+        //    if (text == null)
+        //        throw new ArgumentNullException("text");
+        //    if (text.Length == 0)
+        //        throw new ArgumentException("Clause cannot be empty", "text");
 
-            if (string.IsNullOrEmpty(this.Text))
-            {
-                this.Text = text;
-            }
-            else
-            {
-                // we can modify the _text variable here directly because it was already fixed at init time
-                switch (chainOp)
-                {
-                    case ChainOperator.And:
-                        this._text = MoveSettingsToTheEnd(string.Format("+({0}) +({1})", Text, text)).Trim();
-                        break;
-                    case ChainOperator.Or:
-                        this._text = MoveSettingsToTheEnd(string.Format("({0}) {1}", Text, text));
-                        break;
-                }
-            }
-        }
+        //    if (string.IsNullOrEmpty(this.Text))
+        //    {
+        //        this.Text = text;
+        //    }
+        //    else
+        //    {
+        //        // we can modify the _text variable here directly because it was already fixed at init time
+        //        switch (chainOp)
+        //        {
+        //            case ChainOperator.And:
+        //                this._text = MoveSettingsToTheEnd(string.Format("+({0}) +({1})", Text, text)).Trim();
+        //                break;
+        //            case ChainOperator.Or:
+        //                this._text = MoveSettingsToTheEnd(string.Format("({0}) {1}", Text, text));
+        //                break;
+        //        }
+        //    }
+        //}
 
         public static string AddClause(string originalText, string addition, ChainOperator chainOp)
         {

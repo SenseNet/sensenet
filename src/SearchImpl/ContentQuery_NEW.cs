@@ -19,6 +19,8 @@ namespace SenseNet.Search
     {
         internal static readonly string EmptyInnerQueryText = "$##$EMPTYINNERQUERY$##$";
 
+        private static readonly string[] QuerySettingParts = new[] { "SKIP", "TOP", "SORT", "REVERSESORT", "AUTOFILTERS", "LIFESPAN", "COUNTONLY" };
+        private static readonly string RegexKeywordsAndComments = "//|/\\*|(\\.(?<keyword>[A-Z]+)(([ ]*:[ ]*[#]?\\w+(\\.\\w+)?)|([\\) $\\r\\n]+)))";
         private static readonly string RegexCommentEndSingle = "$";
         private static readonly string RegexCommentEndMulti = "\\*/|\\z";
         private static readonly string MultilineCommentStart = "/*";
@@ -32,7 +34,7 @@ namespace SenseNet.Search
         }
 
         private QuerySettings _settings = new QuerySettings();
-        private QuerySettings Settings
+        public QuerySettings Settings
         {
             get { return _settings; }
             set { _settings = value ?? new QuerySettings(); }
@@ -49,7 +51,11 @@ namespace SenseNet.Search
             return CreateQuery(text, settings, parameters).Execute();
         }
 
-        private static ContentQuery_NEW CreateQuery(string text, QuerySettings settings, params object[] parameters)
+        public static ContentQuery_NEW CreateQuery(string text)
+        {
+            return CreateQuery(text, null, null);
+        }
+        public static ContentQuery_NEW CreateQuery(string text, QuerySettings settings, params object[] parameters)
         {
             var isSafe = IsSafeQuery(text);
             if (parameters != null && parameters.Length > 0)
@@ -140,6 +146,121 @@ namespace SenseNet.Search
                 return stringValue;
             }
         }
+
+        public void AddClause(string text)
+        {
+            AddClause(text, ChainOperator.And);
+        }
+        public void AddClause(string text, ChainOperator chainOp)
+        {
+            AddClause(text, chainOp, null);
+        }
+        public void AddClause(string text, ChainOperator chainOp, params object[] parameters)
+        {
+            var isSafe = this.IsSafe && IsSafeQuery(text);
+            if (parameters != null && parameters.Length > 0)
+                text = SubstituteParameters(text, parameters);
+            this.IsSafe = isSafe;
+            AddClausePrivate(text, chainOp);
+        }
+        private void AddClausePrivate(string text, ChainOperator chainOp)
+        {
+            if (text == null)
+                throw new ArgumentNullException("text");
+            if (text.Length == 0)
+                throw new ArgumentException("Clause cannot be empty", "text");
+
+            if (string.IsNullOrEmpty(this.Text))
+            {
+                this.Text = text;
+            }
+            else
+            {
+                // we can modify the _text variable here directly because it was already fixed at init time
+                switch (chainOp)
+                {
+                    case ChainOperator.And:
+                        this._text = MoveSettingsToTheEnd(string.Format("+({0}) +({1})", Text, text)).Trim();
+                        break;
+                    case ChainOperator.Or:
+                        this._text = MoveSettingsToTheEnd(string.Format("({0}) {1}", Text, text));
+                        break;
+                }
+            }
+        }
+        /// <summary>
+        /// This method moves all the settings keywords (e.g. SKIP, TOP, etc.) to the end of the text, skipping comments.
+        /// </summary>
+        /// <param name="queryText">Original query text</param>
+        /// <returns>Updated query text</returns>
+        private static string MoveSettingsToTheEnd(string queryText)
+        {
+            if (string.IsNullOrEmpty(queryText))
+                return queryText;
+
+            var backParts = string.Empty;
+            var index = 0;
+            var regex = new Regex(RegexKeywordsAndComments, RegexOptions.Multiline);
+
+            while (true)
+            {
+                if (index >= queryText.Length)
+                    break;
+
+                // find the next setting keyword or comment start
+                var match = regex.Match(queryText, index);
+                if (!match.Success)
+                    break;
+
+                // if it is not a keyword than it is a comment --> skip it
+                if (!match.Value.StartsWith("."))
+                {
+                    index = GetCommentEndIndex(queryText, match.Index);
+                    continue;
+                }
+
+                // if we do not recognise the keyword, skip it (it may be in the middle of a text between quotation marks)
+                if (!QuerySettingParts.Contains(match.Groups["keyword"].Value))
+                {
+                    index = match.Index + match.Length;
+                    continue;
+                }
+
+                // remove the setting from the original position and store it
+                queryText = queryText.Remove(match.Index, match.Length);
+                index = match.Index;
+                backParts += " " + match.Value;
+            }
+
+            // add the stored settings to the end of the query
+            return string.Concat(queryText, backParts);
+        }
+
+        public static string AddClause(string originalText, string addition, ChainOperator chainOp)
+        {
+            if (addition == null)
+                throw new ArgumentNullException("addition");
+            if (addition.Length == 0)
+                throw new ArgumentException("Clause cannot be empty", "addition");
+
+            if (string.IsNullOrEmpty(originalText))
+                return addition;
+
+            var queryText = string.Empty;
+
+            switch (chainOp)
+            {
+                case ChainOperator.And:
+                    queryText = MoveSettingsToTheEnd(string.Format("+({0}) +({1})", originalText, addition)).Trim();
+                    break;
+                case ChainOperator.Or:
+                    queryText = MoveSettingsToTheEnd(string.Format("({0}) {1}", originalText, addition));
+                    break;
+            }
+
+            return queryText;
+        }
+
 
         private static string FixMultilineComment(string queryText)
         {

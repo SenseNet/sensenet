@@ -28,7 +28,7 @@ namespace SenseNet.ContentRepository.Fields
         private bool? _allowMultiple;
         private List<string> _allowedTypes;
         private List<string> _selectionRoots;
-        private ContentQuery _query;
+        private ContentQuery_NEW _query;
         private string _fieldName;
 
         public bool? AllowMultiple
@@ -82,7 +82,7 @@ namespace SenseNet.ContentRepository.Fields
                 _selectionRoots = value;
             }
         }
-        public ContentQuery Query
+        public ContentQuery_NEW Query
         {
             get
             {
@@ -168,7 +168,7 @@ namespace SenseNet.ContentRepository.Fields
                         }
                         break;
                     case QueryName:
-                        _query = ContentQuery.CreateQuery(element.InnerXml);
+                        _query = ContentQuery_NEW.CreateQuery(element.InnerXml);
                         break;
                     case FieldNameName:
                         _fieldName = element.InnerXml;
@@ -386,7 +386,7 @@ namespace SenseNet.ContentRepository.Fields
             }
             return FieldValidationResult.Successful;
         }
-        private FieldValidationResult ValidateWithQuery(List<Node> list, ContentQuery query)
+        private FieldValidationResult ValidateWithQuery(List<Node> list, ContentQuery_NEW query)
         {
             var x = query.Execute();
             List<int> idList = x.Identifiers.ToList();
@@ -613,7 +613,7 @@ namespace SenseNet.ContentRepository.Fields
             return new SenseNet.Search.Indexing.ReferenceIndexHandler();
         }
 
-        private ContentQuery ParseQuery(string queryText)
+        private ContentQuery_NEW ParseQuery(string queryText)
         {
             if (queryText.StartsWith("<"))
             {
@@ -622,7 +622,7 @@ namespace SenseNet.ContentRepository.Fields
                     properties: new Dictionary<string, object> { { "InvalidFilter", queryText } });
                 return null;
             }
-            return ContentQuery.CreateQuery(queryText);
+            return ContentQuery_NEW.CreateQuery(queryText);
         }
 
     }
