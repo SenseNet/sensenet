@@ -185,7 +185,7 @@ namespace SenseNet.Search
         public int TotalCount { get; private set; }
 
         private QuerySettings _settings;
-        private QuerySettings Settings
+        public QuerySettings Settings
         {
             get { return _settings ?? (_settings = new QuerySettings()); }
             set { _settings = value; }
