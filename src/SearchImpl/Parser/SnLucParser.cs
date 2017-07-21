@@ -609,7 +609,7 @@ namespace SenseNet.Search.Parser
         private QueryFieldValue ParseExactValue(bool throwEx)
         {
             // ExactValue   ==>  STRING | NUMBER | EMPTY
-            if (_lexer.StringValue == ContentQuery.EmptyText)
+            if (_lexer.StringValue == ContentQuery_NEW.EmptyText)
             {
                 ParseEmptyQuery = true;
                 var fieldVal = new QueryFieldValue(_lexer.StringValue, _lexer.CurrentToken, _lexer.IsPhrase);
@@ -626,7 +626,7 @@ namespace SenseNet.Search.Parser
             var field = _currentField.Peek();
             var fieldName = field.Name;
             var val = new QueryFieldValue(_lexer.StringValue, _lexer.CurrentToken, _lexer.IsPhrase);
-            if (fieldName != IndexFieldName.AllText && _lexer.StringValue != ContentQuery.EmptyInnerQueryText)
+            if (fieldName != IndexFieldName.AllText && _lexer.StringValue != ContentQuery_NEW.EmptyInnerQueryText)
             {
                 var info = StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(fieldName);
                 if (info != null)
@@ -962,9 +962,9 @@ namespace SenseNet.Search.Parser
             {
                 case SnLucLexer.Token.Number:
                 case SnLucLexer.Token.String:
-                    if(value.StringValue == ContentQuery.EmptyText)
+                    if(value.StringValue == ContentQuery_NEW.EmptyText)
                         return new TermQuery(new Term(currentField.Name, value.StringValue));
-                    if (value.StringValue == ContentQuery.EmptyInnerQueryText)
+                    if (value.StringValue == ContentQuery_NEW.EmptyInnerQueryText)
                         return new TermQuery(new Term("Id", NumericUtils.IntToPrefixCoded(0)));
 
                     var words = GetAnalyzedText(currentField.Name, value.StringValue);
@@ -1002,19 +1002,19 @@ namespace SenseNet.Search.Parser
         }
         private Query CreateRangeQuery(string fieldName, QueryFieldValue minValue, QueryFieldValue maxValue, bool includeLower, bool includeUpper)
         {
-            if (minValue != null && minValue.StringValue == ContentQuery.EmptyText && maxValue == null)
+            if (minValue != null && minValue.StringValue == ContentQuery_NEW.EmptyText && maxValue == null)
             {
                 ParseEmptyQuery = true;
                 return new TermQuery(new Term(fieldName, minValue.StringValue));
             }
-            if (maxValue != null && maxValue.StringValue == ContentQuery.EmptyText && minValue == null)
+            if (maxValue != null && maxValue.StringValue == ContentQuery_NEW.EmptyText && minValue == null)
             {
                 ParseEmptyQuery = true;
                 return new TermQuery(new Term(fieldName, maxValue.StringValue));
             }
-            if (minValue != null && minValue.StringValue == ContentQuery.EmptyText)
+            if (minValue != null && minValue.StringValue == ContentQuery_NEW.EmptyText)
                 minValue = null;
-            if (maxValue != null && maxValue.StringValue == ContentQuery.EmptyText)
+            if (maxValue != null && maxValue.StringValue == ContentQuery_NEW.EmptyText)
                 maxValue = null;
 
             switch (minValue != null ? minValue.Datatype : maxValue.Datatype)

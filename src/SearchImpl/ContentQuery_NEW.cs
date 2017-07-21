@@ -17,6 +17,7 @@ namespace SenseNet.Search
 {
     public class ContentQuery_NEW
     {
+        public static readonly string EmptyText = "$##$EMPTY$##$";
         internal static readonly string EmptyInnerQueryText = "$##$EMPTYINNERQUERY$##$";
 
         private static readonly string[] QuerySettingParts = new[] { "SKIP", "TOP", "SORT", "REVERSESORT", "AUTOFILTERS", "LIFESPAN", "COUNTONLY" };

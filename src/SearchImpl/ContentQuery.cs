@@ -20,15 +20,15 @@ namespace SenseNet.Search
 
     public class ContentQuery
     {
-        public static readonly string EmptyText = "$##$EMPTY$##$";
-        internal static readonly string EmptyInnerQueryText = "$##$EMPTYINNERQUERY$##$";
+        //public static readonly string EmptyText = "$##$EMPTY$##$";
+        //internal static readonly string EmptyInnerQueryText = "$##$EMPTYINNERQUERY$##$";
 
-        private static readonly string[] QuerySettingParts = new[] { "SKIP", "TOP", "SORT", "REVERSESORT", "AUTOFILTERS", "LIFESPAN", "COUNTONLY" };
-        private static readonly string RegexKeywordsAndComments = "//|/\\*|(\\.(?<keyword>[A-Z]+)(([ ]*:[ ]*[#]?\\w+(\\.\\w+)?)|([\\) $\\r\\n]+)))";
-        private static readonly string RegexCommentEndSingle = "$";
-        private static readonly string RegexCommentEndMulti = "\\*/|\\z";
-        private static readonly string MultilineCommentStart = "/*";
-        private static readonly string MultilineCommentEnd = "*/";
+        //private static readonly string[] QuerySettingParts = new[] { "SKIP", "TOP", "SORT", "REVERSESORT", "AUTOFILTERS", "LIFESPAN", "COUNTONLY" };
+        //private static readonly string RegexKeywordsAndComments = "//|/\\*|(\\.(?<keyword>[A-Z]+)(([ ]*:[ ]*[#]?\\w+(\\.\\w+)?)|([\\) $\\r\\n]+)))";
+        //private static readonly string RegexCommentEndSingle = "$";
+        //private static readonly string RegexCommentEndMulti = "\\*/|\\z";
+        //private static readonly string MultilineCommentStart = "/*";
+        //private static readonly string MultilineCommentEnd = "*/";
 
         //public static ContentQuery CreateQuery(string text)
         //{
@@ -171,25 +171,25 @@ namespace SenseNet.Search
         //{
         //    return SafeQueries.IsSafe(queryText);
         //}
-        public bool IsSafe { get; private set; }
+        //public bool IsSafe { get; private set; }
 
-        // ================================================================== IContentQuery Members
+        /* ================================================================== IContentQuery Members */
 
-        private string _text;
-        public string Text
-        {
-            get { return _text; }
-            set { _text = FixMultilineComment(value); }
-        }
+        //private string _text;
+        //public string Text
+        //{
+        //    get { return _text; }
+        //    set { _text = FixMultilineComment(value); }
+        //}
 
-        public int TotalCount { get; private set; }
+        //public int TotalCount { get; private set; }
 
-        private QuerySettings _settings;
-        public QuerySettings Settings
-        {
-            get { return _settings ?? (_settings = new QuerySettings()); }
-            set { _settings = value; }
-        }
+        //private QuerySettings _settings;
+        //public QuerySettings Settings
+        //{
+        //    get { return _settings ?? (_settings = new QuerySettings()); }
+        //    set { _settings = value; }
+        //}
 
         //public void AddClause(string text)
         //{
@@ -233,35 +233,35 @@ namespace SenseNet.Search
         //    }
         //}
 
-        public static string AddClause(string originalText, string addition, ChainOperator chainOp)
-        {
-            if (addition == null)
-                throw new ArgumentNullException("addition");
-            if (addition.Length == 0)
-                throw new ArgumentException("Clause cannot be empty", "addition");
+        //public static string AddClause(string originalText, string addition, ChainOperator chainOp)
+        //{
+        //    if (addition == null)
+        //        throw new ArgumentNullException("addition");
+        //    if (addition.Length == 0)
+        //        throw new ArgumentException("Clause cannot be empty", "addition");
 
-            if (string.IsNullOrEmpty(originalText))
-                return addition;
+        //    if (string.IsNullOrEmpty(originalText))
+        //        return addition;
 
-            var queryText = string.Empty;
+        //    var queryText = string.Empty;
 
-            switch (chainOp)
-            {
-                case ChainOperator.And:
-                    queryText = MoveSettingsToTheEnd(string.Format("+({0}) +({1})", originalText, addition)).Trim();
-                    break;
-                case ChainOperator.Or:
-                    queryText = MoveSettingsToTheEnd(string.Format("({0}) {1}", originalText, addition));
-                    break;
-            }
+        //    switch (chainOp)
+        //    {
+        //        case ChainOperator.And:
+        //            queryText = MoveSettingsToTheEnd(string.Format("+({0}) +({1})", originalText, addition)).Trim();
+        //            break;
+        //        case ChainOperator.Or:
+        //            queryText = MoveSettingsToTheEnd(string.Format("({0}) {1}", originalText, addition));
+        //            break;
+        //    }
 
-            return queryText;
-        }
+        //    return queryText;
+        //}
 
-        public QueryResult Execute()
-        {
-            return new QueryResult(GetIdResults(), TotalCount);
-        }
+        //public QueryResult Execute()
+        //{
+        //    return new QueryResult(GetIdResults(), TotalCount);
+        //}
         //public QueryResult Execute(ExecutionHint hint)
         //{
         //    return new QueryResult(GetIdResults(), TotalCount);
@@ -280,93 +280,93 @@ namespace SenseNet.Search
 
         /* ================================================================== Get result ids */
 
-        private IEnumerable<int> GetIdResults()
-        {
-            return GetIdResults(Settings.Top, Settings.Skip, Settings.Sort,
-                Settings.EnableAutofilters, Settings.EnableLifespanFilter, Settings.QueryExecutionMode);
-        }
-        private IEnumerable<int> GetIdResults(int top, int skip, IEnumerable<SortInfo> sort, FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode)
-        {
-            if (AccessProvider.Current.GetCurrentUser().Id == Configuration.Identifiers.SystemUserId && !this.IsSafe)
-            {
-                var ex = new InvalidOperationException("Cannot execute this query, please convert it to a safe query.");
-                ex.Data.Add("EventId", EventId.Querying);
-                ex.Data.Add("Query", this._text);
+        //private IEnumerable<int> GetIdResults()
+        //{
+        //    return GetIdResults(Settings.Top, Settings.Skip, Settings.Sort,
+        //        Settings.EnableAutofilters, Settings.EnableLifespanFilter, Settings.QueryExecutionMode);
+        //}
+        //private IEnumerable<int> GetIdResults(int top, int skip, IEnumerable<SortInfo> sort, FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode)
+        //{
+        //    if (AccessProvider.Current.GetCurrentUser().Id == Configuration.Identifiers.SystemUserId && !this.IsSafe)
+        //    {
+        //        var ex = new InvalidOperationException("Cannot execute this query, please convert it to a safe query.");
+        //        ex.Data.Add("EventId", EventId.Querying);
+        //        ex.Data.Add("Query", this._text);
 
-                throw ex;
-            }
+        //        throw ex;
+        //    }
 
-            if (string.IsNullOrEmpty(Text))
-                throw new InvalidOperationException("Cannot execute query with null or empty Text");
+        //    if (string.IsNullOrEmpty(Text))
+        //        throw new InvalidOperationException("Cannot execute query with null or empty Text");
 
-            using (var op = SnTrace.Query.StartOperation("ContentQuery: {0} | Top:{1} Skip:{2} Sort:{3} Mode:{4}", this._text, _settings.Top, _settings.Skip, _settings.Sort, _settings.QueryExecutionMode))
-            {
-                var result = GetIdResultsWithLucQuery(top, skip, sort, enableAutofilters, enableLifespanFilter, executionMode);
-                op.Successful = true;
-                return result;
-            }
-        }
-        private IEnumerable<int> GetIdResultsWithLucQuery(int top, int skip, IEnumerable<SortInfo> sort,
-            FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode)
-        {
-            var queryText = Text;
+        //    using (var op = SnTrace.Query.StartOperation("ContentQuery: {0} | Top:{1} Skip:{2} Sort:{3} Mode:{4}", this._text, _settings.Top, _settings.Skip, _settings.Sort, _settings.QueryExecutionMode))
+        //    {
+        //        var result = GetIdResultsWithLucQuery(top, skip, sort, enableAutofilters, enableLifespanFilter, executionMode);
+        //        op.Successful = true;
+        //        return result;
+        //    }
+        //}
+        //private IEnumerable<int> GetIdResultsWithLucQuery(int top, int skip, IEnumerable<SortInfo> sort,
+        //    FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode)
+        //{
+        //    var queryText = Text;
 
-            if (!queryText.Contains("}}"))
-            {
-                LucQuery query;
+        //    if (!queryText.Contains("}}"))
+        //    {
+        //        LucQuery query;
 
-                try
-                {
-                    query = LucQuery.Parse(queryText);
-                }
-                catch (ParserException ex)
-                {
-                    throw new InvalidContentQueryException(queryText, innerException: ex);
-                }
+        //        try
+        //        {
+        //            query = LucQuery.Parse(queryText);
+        //        }
+        //        catch (ParserException ex)
+        //        {
+        //            throw new InvalidContentQueryException(queryText, innerException: ex);
+        //        }
 
-                if (skip != 0)
-                    query.Skip = skip;
+        //        if (skip != 0)
+        //            query.Skip = skip;
 
-                query.Top = System.Math.Min(top == 0 ? int.MaxValue : top, query.Top == 0 ? int.MaxValue : query.Top);
-                if (query.Top == 0)
-                    query.Top = GetDefaultMaxResults();
+        //        query.Top = System.Math.Min(top == 0 ? int.MaxValue : top, query.Top == 0 ? int.MaxValue : query.Top);
+        //        if (query.Top == 0)
+        //            query.Top = GetDefaultMaxResults();
 
-                query.PageSize = query.Top;
+        //        query.PageSize = query.Top;
 
-                if (sort != null && sort.Count() > 0)
-                    query.SetSort(sort);
+        //        if (sort != null && sort.Count() > 0)
+        //            query.SetSort(sort);
 
-                if (enableAutofilters != FilterStatus.Default)
-                    query.EnableAutofilters = enableAutofilters;
-                if (enableLifespanFilter != FilterStatus.Default)
-                    query.EnableLifespanFilter = enableLifespanFilter;
-                if (executionMode != QueryExecutionMode.Default)
-                    query.QueryExecutionMode = executionMode;
+        //        if (enableAutofilters != FilterStatus.Default)
+        //            query.EnableAutofilters = enableAutofilters;
+        //        if (enableLifespanFilter != FilterStatus.Default)
+        //            query.EnableLifespanFilter = enableLifespanFilter;
+        //        if (executionMode != QueryExecutionMode.Default)
+        //            query.QueryExecutionMode = executionMode;
 
-                // Re-set settings values. This is important for NodeList that
-                // uses the paging info written into the query text.
-                this.Settings.Top = query.PageSize;
-                this.Settings.Skip = query.Skip;
+        //        // Re-set settings values. This is important for NodeList that
+        //        // uses the paging info written into the query text.
+        //        this.Settings.Top = query.PageSize;
+        //        this.Settings.Skip = query.Skip;
 
-                var lucObjects = query.Execute().ToList();
+        //        var lucObjects = query.Execute().ToList();
 
-                TotalCount = query.TotalCount;
+        //        TotalCount = query.TotalCount;
 
-                return (from luco in lucObjects
-                        select luco.NodeId).ToList();
-            }
-            else
-            {
-                List<string> log;
-                int count;
-                var result = RecursiveExecutor.ExecuteRecursive(queryText, top, skip,
-                            sort, enableAutofilters, enableLifespanFilter, executionMode, this.Settings, out count, out log);
+        //        return (from luco in lucObjects
+        //                select luco.NodeId).ToList();
+        //    }
+        //    else
+        //    {
+        //        List<string> log;
+        //        int count;
+        //        var result = RecursiveExecutor.ExecuteRecursive(queryText, top, skip,
+        //                    sort, enableAutofilters, enableLifespanFilter, executionMode, this.Settings, out count, out log);
 
-                TotalCount = count;
+        //        TotalCount = count;
 
-                return result;
-            }
-        }
+        //        return result;
+        //    }
+        //}
 
         /* ================================================================== Filter methods */
 
@@ -427,95 +427,95 @@ namespace SenseNet.Search
         //    return originalText;
         //}
 
-        /// <summary>
-        /// This method moves all the settings keywords (e.g. SKIP, TOP, etc.) to the end of the text, skipping comments.
-        /// </summary>
-        /// <param name="queryText">Original query text</param>
-        /// <returns>Updated query text</returns>
-        private static string MoveSettingsToTheEnd(string queryText)
-        {
-            if (string.IsNullOrEmpty(queryText))
-                return queryText;
+        ///// <summary>
+        ///// This method moves all the settings keywords (e.g. SKIP, TOP, etc.) to the end of the text, skipping comments.
+        ///// </summary>
+        ///// <param name="queryText">Original query text</param>
+        ///// <returns>Updated query text</returns>
+        //private static string MoveSettingsToTheEnd(string queryText)
+        //{
+        //    if (string.IsNullOrEmpty(queryText))
+        //        return queryText;
 
-            var backParts = string.Empty;
-            var index = 0;
-            var regex = new Regex(RegexKeywordsAndComments, RegexOptions.Multiline);
+        //    var backParts = string.Empty;
+        //    var index = 0;
+        //    var regex = new Regex(RegexKeywordsAndComments, RegexOptions.Multiline);
 
-            while (true)
-            {
-                if (index >= queryText.Length)
-                    break;
+        //    while (true)
+        //    {
+        //        if (index >= queryText.Length)
+        //            break;
 
-                // find the next setting keyword or comment start
-                var match = regex.Match(queryText, index);
-                if (!match.Success)
-                    break;
+        //        // find the next setting keyword or comment start
+        //        var match = regex.Match(queryText, index);
+        //        if (!match.Success)
+        //            break;
 
-                // if it is not a keyword than it is a comment --> skip it
-                if (!match.Value.StartsWith("."))
-                {
-                    index = GetCommentEndIndex(queryText, match.Index);
-                    continue;
-                }
+        //        // if it is not a keyword than it is a comment --> skip it
+        //        if (!match.Value.StartsWith("."))
+        //        {
+        //            index = GetCommentEndIndex(queryText, match.Index);
+        //            continue;
+        //        }
 
-                // if we do not recognise the keyword, skip it (it may be in the middle of a text between quotation marks)
-                if (!QuerySettingParts.Contains(match.Groups["keyword"].Value))
-                {
-                    index = match.Index + match.Length;
-                    continue;
-                }
+        //        // if we do not recognise the keyword, skip it (it may be in the middle of a text between quotation marks)
+        //        if (!QuerySettingParts.Contains(match.Groups["keyword"].Value))
+        //        {
+        //            index = match.Index + match.Length;
+        //            continue;
+        //        }
 
-                // remove the setting from the original position and store it
-                queryText = queryText.Remove(match.Index, match.Length);
-                index = match.Index;
-                backParts += " " + match.Value;
-            }
+        //        // remove the setting from the original position and store it
+        //        queryText = queryText.Remove(match.Index, match.Length);
+        //        index = match.Index;
+        //        backParts += " " + match.Value;
+        //    }
 
-            // add the stored settings to the end of the query
-            return string.Concat(queryText, backParts);
-        }
+        //    // add the stored settings to the end of the query
+        //    return string.Concat(queryText, backParts);
+        //}
 
-        private static int GetCommentEndIndex(string queryText, int commentStartIndex)
-        {
-            // construct a single- or multiline end-commend regex
-            var regexEndComment = new Regex(queryText.Substring(commentStartIndex, 2) == "//"
-                ? RegexCommentEndSingle
-                : RegexCommentEndMulti, RegexOptions.Multiline);
+        //private static int GetCommentEndIndex(string queryText, int commentStartIndex)
+        //{
+        //    // construct a single- or multiline end-commend regex
+        //    var regexEndComment = new Regex(queryText.Substring(commentStartIndex, 2) == "//"
+        //        ? RegexCommentEndSingle
+        //        : RegexCommentEndMulti, RegexOptions.Multiline);
 
-            var matchEndComment = regexEndComment.Match(queryText, commentStartIndex);
+        //    var matchEndComment = regexEndComment.Match(queryText, commentStartIndex);
 
-            // this will always be true, as both regexes contain the end-of-string character
-            if (matchEndComment.Success)
-            {
-                return matchEndComment.Index + matchEndComment.Length;
-            }
+        //    // this will always be true, as both regexes contain the end-of-string character
+        //    if (matchEndComment.Success)
+        //    {
+        //        return matchEndComment.Index + matchEndComment.Length;
+        //    }
 
-            return queryText.Length;
-        }
+        //    return queryText.Length;
+        //}
 
-        private static string FixMultilineComment(string queryText)
-        {
-            if (string.IsNullOrEmpty(queryText))
-                return queryText;
+        //private static string FixMultilineComment(string queryText)
+        //{
+        //    if (string.IsNullOrEmpty(queryText))
+        //        return queryText;
 
-            // find the last multiline comment
-            var commentStartIndex = queryText.LastIndexOf(MultilineCommentStart);
-            if (commentStartIndex < 0)
-                return queryText;
+        //    // find the last multiline comment
+        //    var commentStartIndex = queryText.LastIndexOf(MultilineCommentStart);
+        //    if (commentStartIndex < 0)
+        //        return queryText;
 
-            // find the end of the multiline comment: /* ... */
-            var commentEndIndex = GetCommentEndIndex(queryText, commentStartIndex);
-            if (commentEndIndex < queryText.Length - 1)
-                return queryText;
+        //    // find the end of the multiline comment: /* ... */
+        //    var commentEndIndex = GetCommentEndIndex(queryText, commentStartIndex);
+        //    if (commentEndIndex < queryText.Length - 1)
+        //        return queryText;
 
-            // comment is not closed --> close it manually
-            return queryText + MultilineCommentEnd;
-        }
+        //    // comment is not closed --> close it manually
+        //    return queryText + MultilineCommentEnd;
+        //}
 
-        private static int GetDefaultMaxResults()
-        {
-            return int.MaxValue;
-        }
+        //private static int GetDefaultMaxResults()
+        //{
+        //    return int.MaxValue;
+        //}
         //private static string GetAutofilterForNodeQuery()
         //{
         //    return "";
@@ -523,236 +523,236 @@ namespace SenseNet.Search
 
         // ================================================================== Recursive executor class
 
-        private static class RecursiveExecutor
-        {
-            private class InnerQueryResult
-            {
-                internal bool IsIntArray;
-                internal string[] StringArray;
-                internal int[] IntArray;
-            }
+        //private static class RecursiveExecutor
+        //{
+        //    private class InnerQueryResult
+        //    {
+        //        internal bool IsIntArray;
+        //        internal string[] StringArray;
+        //        internal int[] IntArray;
+        //    }
 
-            public static IEnumerable<int> ExecuteRecursive(string queryText, int top, int skip,
-                IEnumerable<SortInfo> sort, FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode,
-                QuerySettings settings, out int count, out List<string> log)
-            {
-                log = new List<string>();
-                IEnumerable<int> result = new int[0];
-                var src = queryText;
-                log.Add(src);
-                var control = GetControlString(src);
+        //    public static IEnumerable<int> ExecuteRecursive(string queryText, int top, int skip,
+        //        IEnumerable<SortInfo> sort, FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode,
+        //        QuerySettings settings, out int count, out List<string> log)
+        //    {
+        //        log = new List<string>();
+        //        IEnumerable<int> result = new int[0];
+        //        var src = queryText;
+        //        log.Add(src);
+        //        var control = GetControlString(src);
 
-                while (true)
-                {
-                    int start;
-                    var sss = GetInnerScript(src, control, out start);
-                    var end = sss == String.Empty;
+        //        while (true)
+        //        {
+        //            int start;
+        //            var sss = GetInnerScript(src, control, out start);
+        //            var end = sss == String.Empty;
 
-                    if (!end)
-                    {
-                        src = src.Remove(start, sss.Length);
-                        control = control.Remove(start, sss.Length);
+        //            if (!end)
+        //            {
+        //                src = src.Remove(start, sss.Length);
+        //                control = control.Remove(start, sss.Length);
 
-                        int innerCount;
-                        var innerResult = ExecuteInnerScript(sss.Substring(2, sss.Length - 4), 0, 0,
-                            sort, enableAutofilters, enableLifespanFilter, executionMode, null, true, out innerCount).StringArray;
+        //                int innerCount;
+        //                var innerResult = ExecuteInnerScript(sss.Substring(2, sss.Length - 4), 0, 0,
+        //                    sort, enableAutofilters, enableLifespanFilter, executionMode, null, true, out innerCount).StringArray;
 
-                        switch (innerResult.Length)
-                        {
-                            case 0:
-                                sss = EmptyInnerQueryText;
-                                break;
-                            case 1:
-                                sss = innerResult[0];
-                                break;
-                            default:
-                                sss = String.Join(" ", innerResult);
-                                sss = "(" + sss + ")";
-                                break;
-                        }
-                        src = src.Insert(start, sss);
-                        control = control.Insert(start, sss);
-                        log.Add(src);
-                    }
-                    else
-                    {
-                        result = ExecuteInnerScript(src, top, skip, sort, enableAutofilters, enableLifespanFilter, executionMode,
-                            settings, false, out count).IntArray;
+        //                switch (innerResult.Length)
+        //                {
+        //                    case 0:
+        //                        sss = EmptyInnerQueryText;
+        //                        break;
+        //                    case 1:
+        //                        sss = innerResult[0];
+        //                        break;
+        //                    default:
+        //                        sss = String.Join(" ", innerResult);
+        //                        sss = "(" + sss + ")";
+        //                        break;
+        //                }
+        //                src = src.Insert(start, sss);
+        //                control = control.Insert(start, sss);
+        //                log.Add(src);
+        //            }
+        //            else
+        //            {
+        //                result = ExecuteInnerScript(src, top, skip, sort, enableAutofilters, enableLifespanFilter, executionMode,
+        //                    settings, false, out count).IntArray;
                         
-                        log.Add(String.Join(" ", result.Select(i => i.ToString()).ToArray()));
-                        break;
-                    }
-                }
-                return result;
-            }
-            private static string GetControlString(string src)
-            {
-                var s = src.Replace("\\'", "__").Replace("\\\"", "__");
-                var @out = new StringBuilder(s.Length);
-                var instr = false;
-                var strlimit = '\0';
-                var esc = false;
-                foreach (var c in s)
-                {
-                    if (c == '\\')
-                    {
-                        esc = true;
-                        @out.Append('_');
-                    }
-                    else
-                    {
-                        if (esc)
-                        {
-                            esc = false;
-                            @out.Append('_');
-                        }
-                        else
-                        {
-                            if (instr)
-                            {
-                                if (c == strlimit)
-                                    instr = !instr;
-                                @out.Append('_');
-                            }
-                            else
-                            {
-                                if (c == '\'' || c == '"')
-                                {
-                                    instr = !instr;
-                                    strlimit = c;
-                                    @out.Append('_');
-                                }
-                                else
-                                {
-                                    @out.Append(c);
-                                }
-                            }
-                        }
-                    }
-                }
+        //                log.Add(String.Join(" ", result.Select(i => i.ToString()).ToArray()));
+        //                break;
+        //            }
+        //        }
+        //        return result;
+        //    }
+        //    private static string GetControlString(string src)
+        //    {
+        //        var s = src.Replace("\\'", "__").Replace("\\\"", "__");
+        //        var @out = new StringBuilder(s.Length);
+        //        var instr = false;
+        //        var strlimit = '\0';
+        //        var esc = false;
+        //        foreach (var c in s)
+        //        {
+        //            if (c == '\\')
+        //            {
+        //                esc = true;
+        //                @out.Append('_');
+        //            }
+        //            else
+        //            {
+        //                if (esc)
+        //                {
+        //                    esc = false;
+        //                    @out.Append('_');
+        //                }
+        //                else
+        //                {
+        //                    if (instr)
+        //                    {
+        //                        if (c == strlimit)
+        //                            instr = !instr;
+        //                        @out.Append('_');
+        //                    }
+        //                    else
+        //                    {
+        //                        if (c == '\'' || c == '"')
+        //                        {
+        //                            instr = !instr;
+        //                            strlimit = c;
+        //                            @out.Append('_');
+        //                        }
+        //                        else
+        //                        {
+        //                            @out.Append(c);
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //        }
 
-                var l0 = src.Length;
-                var l1 = @out.Length;
+        //        var l0 = src.Length;
+        //        var l1 = @out.Length;
 
-                return @out.ToString();
-            }
-            private static string GetInnerScript(string src, string control, out int start)
-            {
-                start = 0;
-                var p1 = control.IndexOf("}}");
-                if (p1 < 0)
-                    return String.Empty;
-                var p0 = control.LastIndexOf("{{", p1);
-                if (p0 < 0)
-                    return String.Empty;
-                start = p0;
-                var ss = src.Substring(p0, p1 - p0 + 2);
-                return ss;
-            }
+        //        return @out.ToString();
+        //    }
+        //    private static string GetInnerScript(string src, string control, out int start)
+        //    {
+        //        start = 0;
+        //        var p1 = control.IndexOf("}}");
+        //        if (p1 < 0)
+        //            return String.Empty;
+        //        var p0 = control.LastIndexOf("{{", p1);
+        //        if (p0 < 0)
+        //            return String.Empty;
+        //        start = p0;
+        //        var ss = src.Substring(p0, p1 - p0 + 2);
+        //        return ss;
+        //    }
 
-            private static InnerQueryResult ExecuteInnerScript(string src, int top, int skip,
-                IEnumerable<SortInfo> sort, FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode,
-                QuerySettings settings, bool enableProjection, out int count)
-            {
-                LucQuery query;
+        //    private static InnerQueryResult ExecuteInnerScript(string src, int top, int skip,
+        //        IEnumerable<SortInfo> sort, FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode,
+        //        QuerySettings settings, bool enableProjection, out int count)
+        //    {
+        //        LucQuery query;
 
-                try
-                {
-                    query = LucQuery.Parse(src);
-                }
-                catch (ParserException ex)
-                {
-                    throw new InvalidContentQueryException(src, innerException: ex);
-                }
+        //        try
+        //        {
+        //            query = LucQuery.Parse(src);
+        //        }
+        //        catch (ParserException ex)
+        //        {
+        //            throw new InvalidContentQueryException(src, innerException: ex);
+        //        }
 
-                var projection = query.Projection;
-                if (projection != null)
-                {
-                    if (!enableProjection)
-                        throw new ApplicationException(String.Format("Projection in top level query is not allowed ({0}:{1})", Parser.SnLucLexer.Keywords.Select, projection));
-                    query.ForceLuceneExecution = true;
-                }
+        //        var projection = query.Projection;
+        //        if (projection != null)
+        //        {
+        //            if (!enableProjection)
+        //                throw new ApplicationException(String.Format("Projection in top level query is not allowed ({0}:{1})", Parser.SnLucLexer.Keywords.Select, projection));
+        //            query.ForceLuceneExecution = true;
+        //        }
 
-                if (skip != 0)
-                    query.Skip = skip;
+        //        if (skip != 0)
+        //            query.Skip = skip;
 
-                if (top != 0)
-                    query.PageSize = top;
-                else
-                    if (query.PageSize == 0)
-                        query.PageSize = GetDefaultMaxResults();
+        //        if (top != 0)
+        //            query.PageSize = top;
+        //        else
+        //            if (query.PageSize == 0)
+        //                query.PageSize = GetDefaultMaxResults();
 
-                if (sort != null && sort.Count() > 0)
-                    query.SetSort(sort);
+        //        if (sort != null && sort.Count() > 0)
+        //            query.SetSort(sort);
 
-                if (enableAutofilters != FilterStatus.Default)
-                    query.EnableAutofilters = enableAutofilters;
-                if (enableLifespanFilter != FilterStatus.Default)
-                    query.EnableLifespanFilter = enableLifespanFilter;
-                if (executionMode != QueryExecutionMode.Default)
-                    query.QueryExecutionMode = executionMode;
+        //        if (enableAutofilters != FilterStatus.Default)
+        //            query.EnableAutofilters = enableAutofilters;
+        //        if (enableLifespanFilter != FilterStatus.Default)
+        //            query.EnableLifespanFilter = enableLifespanFilter;
+        //        if (executionMode != QueryExecutionMode.Default)
+        //            query.QueryExecutionMode = executionMode;
 
-                // Re-set settings values. This is important for NodeList that
-                // uses the paging info written into the query text.
-                if (settings != null)
-                {
-                    settings.Top = query.PageSize;
-                    settings.Skip = query.Skip;
-                }
+        //        // Re-set settings values. This is important for NodeList that
+        //        // uses the paging info written into the query text.
+        //        if (settings != null)
+        //        {
+        //            settings.Top = query.PageSize;
+        //            settings.Skip = query.Skip;
+        //        }
 
-                InnerQueryResult result;
+        //        InnerQueryResult result;
 
-                var qresult = query.Execute().ToList();
-                if (projection == null || !enableProjection)
-                {
-                    var idResult = qresult.Select(o => o.NodeId).ToArray();
-                    result = new InnerQueryResult { IsIntArray = true, IntArray = idResult, StringArray = idResult.Select(i => i.ToString()).ToArray() };
-                }
-                else
-                {
-                    var stringResult = qresult.Select(o => o[projection, false]).Where(r => !String.IsNullOrEmpty(r));
-                    var escaped = new List<string>();
-                    foreach (var s in stringResult)
-                        escaped.Add(EscapeForQuery(s));
-                    result = new InnerQueryResult { IsIntArray = false, StringArray = escaped.ToArray() };
-                }
+        //        var qresult = query.Execute().ToList();
+        //        if (projection == null || !enableProjection)
+        //        {
+        //            var idResult = qresult.Select(o => o.NodeId).ToArray();
+        //            result = new InnerQueryResult { IsIntArray = true, IntArray = idResult, StringArray = idResult.Select(i => i.ToString()).ToArray() };
+        //        }
+        //        else
+        //        {
+        //            var stringResult = qresult.Select(o => o[projection, false]).Where(r => !String.IsNullOrEmpty(r));
+        //            var escaped = new List<string>();
+        //            foreach (var s in stringResult)
+        //                escaped.Add(EscapeForQuery(s));
+        //            result = new InnerQueryResult { IsIntArray = false, StringArray = escaped.ToArray() };
+        //        }
 
-                count = query.TotalCount;
+        //        count = query.TotalCount;
 
-                return result;
-            }
+        //        return result;
+        //    }
 
-            private static object __escaperRegexSync = new object();
-            private static Regex __escaperRegex;
-            private static Regex EscaperRegex
-            {
-                get
-                {
-                    if (__escaperRegex == null)
-                    {
-                        lock (__escaperRegexSync)
-                        {
-                            if (__escaperRegex == null)
-                            {
-                                var pattern = new StringBuilder("[");
-                                foreach (var c in SenseNet.Search.Parser.SnLucLexer.STRINGTERMINATORCHARS.ToCharArray())
-                                    pattern.Append("\\" + c);
-                                pattern.Append("]");
-                                __escaperRegex = new Regex(pattern.ToString());
-                            }
-                        }
-                    }
-                    return __escaperRegex;
-                }
-            }
+        //    private static object __escaperRegexSync = new object();
+        //    private static Regex __escaperRegex;
+        //    private static Regex EscaperRegex
+        //    {
+        //        get
+        //        {
+        //            if (__escaperRegex == null)
+        //            {
+        //                lock (__escaperRegexSync)
+        //                {
+        //                    if (__escaperRegex == null)
+        //                    {
+        //                        var pattern = new StringBuilder("[");
+        //                        foreach (var c in SenseNet.Search.Parser.SnLucLexer.STRINGTERMINATORCHARS.ToCharArray())
+        //                            pattern.Append("\\" + c);
+        //                        pattern.Append("]");
+        //                        __escaperRegex = new Regex(pattern.ToString());
+        //                    }
+        //                }
+        //            }
+        //            return __escaperRegex;
+        //        }
+        //    }
 
-            public static string EscapeForQuery(string value)
-            {
-                if (EscaperRegex.IsMatch(value))
-                    return String.Concat("'", value, "'");
-                return value;
-            }
-        }
+        //    public static string EscapeForQuery(string value)
+        //    {
+        //        if (EscaperRegex.IsMatch(value))
+        //            return String.Concat("'", value, "'");
+        //        return value;
+        //    }
+        //}
 
     }
 }
