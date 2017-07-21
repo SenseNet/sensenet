@@ -34,7 +34,7 @@ namespace SenseNet.Search
     /// </example>
     public interface ISafeQueryHolder { }
 
-    public class ContentQuery //: IContentQuery
+    public class ContentQuery
     {
         public static readonly string EmptyText = "$##$EMPTY$##$";
         internal static readonly string EmptyInnerQueryText = "$##$EMPTYINNERQUERY$##$";
@@ -533,10 +533,6 @@ namespace SenseNet.Search
             return int.MaxValue;
         }
         private static string GetAutofilterForNodeQuery()
-        {
-            return "";
-        }
-        private static string GetLifespanFilterForNodeQuery()
         {
             return "";
         }
