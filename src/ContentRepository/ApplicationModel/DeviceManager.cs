@@ -95,7 +95,7 @@ namespace SenseNet.ApplicationModel
 
             if (RepositoryInstance.ContentQueryIsAllowed)
             {
-                var result = ContentQuery.Query(SafeQueries.AllDevices);
+                var result = ContentQuery_NEW.Query(SafeQueries.AllDevices);
                 devices = result.Nodes.Cast<Device>().ToList();
             }
             else

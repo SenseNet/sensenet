@@ -63,10 +63,15 @@ namespace SenseNet.Search
 
         public bool IsSafe { get; private set; }
 
+        public static QueryResult Query(string text)
+        {
+            return Query(text, null, null);
+        }
         public static QueryResult Query(string text, QuerySettings settings, params object[] parameters)
         {
             return CreateQuery(text, settings, parameters).Execute();
         }
+
         private static ContentQuery_NEW CreateQuery(string text, QuerySettings settings, params object[] parameters)
         {
             var isSafe = IsSafeQuery(text);
@@ -80,7 +85,7 @@ namespace SenseNet.Search
             };
             return query;
         }
-        internal static bool IsSafeQuery(string queryText)
+        private static bool IsSafeQuery(string queryText)
         {
             return SafeQueries_NEW.IsSafe(queryText);
         }

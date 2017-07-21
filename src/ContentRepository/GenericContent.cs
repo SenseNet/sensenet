@@ -645,7 +645,7 @@ namespace SenseNet.ContentRepository
 
         protected override IEnumerable<Node> GetReferrers(int top, out int totalCount)
         {
-            var result = ContentQuery.Query("-Id:@0 +(CreatedById:@0 ModifiedById:@0 VersionCreatedById:@0 VersionModifiedById:@0 LockedById:@0)",
+            var result = ContentQuery_NEW.Query("-Id:@0 +(CreatedById:@0 ModifiedById:@0 VersionCreatedById:@0 VersionModifiedById:@0 LockedById:@0)",
                 new QuerySettings { Top = top, EnableAutofilters = FilterStatus.Disabled },
                 this.Id);
             totalCount = result.Count;
@@ -1142,7 +1142,7 @@ namespace SenseNet.ContentRepository
             get
             {
                 //TODO: it would be better to use GetChildren here, but QuerySettings should be extended with CountOnly handling, before we can do that.
-                return ContentQuery.Query(SafeQueries.InTreeCountOnly,
+                return ContentQuery_NEW.Query(SafeQueries.InTreeCountOnly,
                     new QuerySettings { EnableAutofilters = FilterStatus.Disabled, EnableLifespanFilter = FilterStatus.Disabled },
                     this.Path).Count;
             }
@@ -1326,7 +1326,7 @@ namespace SenseNet.ContentRepository
 
                 // query all workflows in the system that have this content as their related content
                 var nodes = RepositoryInstance.ContentQueryIsAllowed
-                    ? ContentQuery.Query(SafeQueries.WorkflowsByRelatedContent, null, this.Id).Nodes
+                    ? ContentQuery_NEW.Query(SafeQueries.WorkflowsByRelatedContent, null, this.Id).Nodes
                     : NodeQuery.QueryNodesByReferenceAndType("RelatedContent", this.Id,
                         ActiveSchema.NodeTypes["Workflow"], false).Nodes;
 

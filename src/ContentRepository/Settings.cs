@@ -501,7 +501,7 @@ namespace SenseNet.ContentRepository
 
                 using (new SystemAccount())
                 {
-                    var q = ContentQuery.Query(SafeQueries.InTreeAndTypeIsAndName,
+                    var q = ContentQuery_NEW.Query(SafeQueries.InTreeAndTypeIsAndName,
                          new QuerySettings { EnableAutofilters = FilterStatus.Disabled },
                          contextPath, typeof(Settings).Name, this.Name);
                     foreach (var id in q.Identifiers)
@@ -564,13 +564,13 @@ namespace SenseNet.ContentRepository
             var globalSettingError = false;
             if (RepositoryInstance.ContentQueryIsAllowed)
             {
-                if (ContentQuery.Query(SafeQueries.SettingsByNameAndSubtree, null, name, id, rootpath).Count > 0)
+                if (ContentQuery_NEW.Query(SafeQueries.SettingsByNameAndSubtree, null, name, id, rootpath).Count > 0)
                     nameError = true;
 
                 // check global settings only if this is a local setting
                 if (!nameError &&
                     !path.StartsWith(SETTINGSCONTAINERPATH + RepositoryPath.PathSeparator, StringComparison.InvariantCulture) &&
-                    ContentQuery.Query(SafeQueries.SettingsGlobalOnly, null, name, SETTINGSCONTAINERPATH).Count > 0)
+                    ContentQuery_NEW.Query(SafeQueries.SettingsGlobalOnly, null, name, SETTINGSCONTAINERPATH).Count > 0)
                     globalSettingError = true;
             }
             else
