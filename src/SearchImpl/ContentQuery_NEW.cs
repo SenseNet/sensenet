@@ -15,29 +15,6 @@ using SenseNet.Tools;
 
 namespace SenseNet.Search
 {
-    public class SafeQueries_NEW
-    {
-        private static readonly string[] _safeQueries;
-        static SafeQueries_NEW()
-        {
-            var genuineQueries = new List<string>();
-            foreach (Type t in TypeResolver.GetTypesByInterface(typeof(ISafeQueryHolder)))
-            {
-                genuineQueries.AddRange(
-                    t.GetProperties(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
-                    .Where(x => x.GetSetMethod() == null)
-                    .Select(x => x.GetGetMethod(true).Invoke(null, null) as string)
-                    .Where(y => y != null).Distinct().ToArray());
-            }
-            _safeQueries = genuineQueries.ToArray();
-        }
-
-        public static bool IsSafe(string queryText)
-        {
-            return _safeQueries.Contains(queryText);
-        }
-    }
-
     public class ContentQuery_NEW
     {
         internal static readonly string EmptyInnerQueryText = "$##$EMPTYINNERQUERY$##$";
@@ -87,7 +64,7 @@ namespace SenseNet.Search
         }
         private static bool IsSafeQuery(string queryText)
         {
-            return SafeQueries_NEW.IsSafe(queryText);
+            return SafeQueries.IsSafe(queryText);
         }
         private static string SubstituteParameters(string text, object[] parameters)
         {

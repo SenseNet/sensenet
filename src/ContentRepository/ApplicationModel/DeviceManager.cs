@@ -8,6 +8,7 @@ using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search;
 using SenseNet.Communication.Messaging;
+using SafeQueries = SenseNet.ContentRepository.SafeQueries;
 
 namespace SenseNet.ApplicationModel
 {

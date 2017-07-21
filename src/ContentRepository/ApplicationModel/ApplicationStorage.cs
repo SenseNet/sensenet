@@ -13,6 +13,7 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Communication.Messaging;
 using System.Diagnostics;
 using SenseNet.Search;
+using SafeQueries = SenseNet.ContentRepository.SafeQueries;
 
 namespace SenseNet.ApplicationModel
 {
