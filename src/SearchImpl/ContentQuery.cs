@@ -17,22 +17,6 @@ using SenseNet.Tools;
 
 namespace SenseNet.Search
 {
-    /// <summary>
-    /// A marker interface for classes that hold safe queries in static readonly string properties. The visibility of these properties are irrelevant.
-    /// In a solution can be more ISafeQueryHolder implementations. The property values from these classes will be collected
-    ///   in order to build the white list of queries that can be accepted in elevated mode.
-    /// Implementation classes can be anywhere in the solution. Property name can be anything because only the values will be collected.
-    /// </summary>
-    /// <example>Here is an example that explains a full implementation of some safe queries
-    /// <code>
-    /// public class SafeQueries : ISafeQueryHolder
-    /// {
-    ///     public static string AllDevices { get { return "+InTree:/Root/System/Devices +TypeIs:Device .AUTOFILTERS:OFF"; } }
-    ///     public static string InFolderAndSomeType { get { return "+InFolder:@0 +TypeIs:(@1)"; } }
-    /// }
-    /// </code>
-    /// </example>
-    public interface ISafeQueryHolder { }
 
     public class ContentQuery
     {
@@ -68,30 +52,30 @@ namespace SenseNet.Search
             return query;
         }
 
-        public static QueryResult Query(string text)
-        {
-            return Query(text, null);
-        }
-        public static QueryResult Query(string text, QuerySettings settings)
-        {
-            return Query(text, settings, null);
-        }
-        /// <summary>
-        /// Executes a prepared query. Before execution substitutes the parameters into the placeholders.
-        /// Placeholder is a '@' character followed by a number that means the (zero based) index in the paramter array.
-        /// Example: +TypeIs:@0 +Name:@1
-        /// Parameter values will be escaped and quotation marks will be used in the appropriate places.
-        /// Do not surround the placeholders with quotation mark (") or apsthrophe (').
-        /// In case of inconsistence beetween parameter count and placeholder indexes InvalidOperationException will be thrown.
-        /// </summary>
-        /// <param name="text">Query text containing placeholders</param>
-        /// <param name="settings">Additional control parameters (top, skip, sort, automations). It can be null.</param>
-        /// <param name="parameters">Value list that will be substituted into the placeholders of the query text.</param>
-        /// <returns>Contains result set and its metadata.</returns>
-        public static QueryResult Query(string text, QuerySettings settings, params object[] parameters)
-        {
-            return CreateQuery(text, settings, parameters).Execute(ExecutionHint.None);
-        }
+        //public static QueryResult Query(string text)
+        //{
+        //    return Query(text, null);
+        //}
+        //public static QueryResult Query(string text, QuerySettings settings)
+        //{
+        //    return Query(text, settings, null);
+        //}
+        ///// <summary>
+        ///// Executes a prepared query. Before execution substitutes the parameters into the placeholders.
+        ///// Placeholder is a '@' character followed by a number that means the (zero based) index in the paramter array.
+        ///// Example: +TypeIs:@0 +Name:@1
+        ///// Parameter values will be escaped and quotation marks will be used in the appropriate places.
+        ///// Do not surround the placeholders with quotation mark (") or apsthrophe (').
+        ///// In case of inconsistence beetween parameter count and placeholder indexes InvalidOperationException will be thrown.
+        ///// </summary>
+        ///// <param name="text">Query text containing placeholders</param>
+        ///// <param name="settings">Additional control parameters (top, skip, sort, automations). It can be null.</param>
+        ///// <param name="parameters">Value list that will be substituted into the placeholders of the query text.</param>
+        ///// <returns>Contains result set and its metadata.</returns>
+        //public static QueryResult Query(string text, QuerySettings settings, params object[] parameters)
+        //{
+        //    return CreateQuery(text, settings, parameters).Execute(ExecutionHint.None);
+        //}
         private static string SubstituteParameters(string text, object[] parameters)
         {
             var stringValues = new string[parameters.Length];
@@ -167,25 +151,25 @@ namespace SenseNet.Search
             }
         }
 
-        // ================================================================== Genuine query checking
+        /* ================================================================== Genuine query checking */
 
-        private static string[] _safeQueries;
-        static ContentQuery()
+        //private static string[] _safeQueries;
+        //static ContentQuery()
+        //{
+        //    var genuineQueries = new List<string>();
+        //    foreach (Type t in TypeResolver.GetTypesByInterface(typeof(ISafeQueryHolder)))
+        //    {
+        //        genuineQueries.AddRange(
+        //            t.GetProperties(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+        //            .Where(x => x.GetSetMethod() == null)
+        //            .Select(x => x.GetGetMethod(true).Invoke(null, null) as string)
+        //            .Where(y => y != null).Distinct().ToArray());
+        //    }
+        //    _safeQueries = genuineQueries.ToArray();
+        //}
+        private static bool IsSafeQuery(string queryText)
         {
-            var genuineQueries = new List<string>();
-            foreach (Type t in TypeResolver.GetTypesByInterface(typeof(ISafeQueryHolder)))
-            {
-                genuineQueries.AddRange(
-                    t.GetProperties(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
-                    .Where(x => x.GetSetMethod() == null)
-                    .Select(x => x.GetGetMethod(true).Invoke(null, null) as string)
-                    .Where(y => y != null).Distinct().ToArray());
-            }
-            _safeQueries = genuineQueries.ToArray();
-        }
-        internal static bool IsSafeQuery(string queryText)
-        {
-            return _safeQueries.Contains(queryText);
+            return SafeQueries.IsSafe(queryText);
         }
         public bool IsSafe { get; private set; }
 
@@ -201,7 +185,7 @@ namespace SenseNet.Search
         public int TotalCount { get; private set; }
 
         private QuerySettings _settings;
-        public QuerySettings Settings
+        private QuerySettings Settings
         {
             get { return _settings ?? (_settings = new QuerySettings()); }
             set { _settings = value; }
@@ -276,25 +260,25 @@ namespace SenseNet.Search
 
         public QueryResult Execute()
         {
-            return Execute(ExecutionHint.None);
-        }
-        public QueryResult Execute(ExecutionHint hint)
-        {
             return new QueryResult(GetIdResults(), TotalCount);
         }
-        public IEnumerable<int> ExecuteToIds()
-        {
-            return ExecuteToIds(ExecutionHint.None);
-        }
-        public IEnumerable<int> ExecuteToIds(ExecutionHint hint)
-        {
-            // We need to get the pure id list for one single query.
-            // If you run Execute, it returns a NodeList that loads
-            // all result ids, not only the page you specified.
-            return GetIdResults();
-        }
+        //public QueryResult Execute(ExecutionHint hint)
+        //{
+        //    return new QueryResult(GetIdResults(), TotalCount);
+        //}
+        //public IEnumerable<int> ExecuteToIds()
+        //{
+        //    return ExecuteToIds(ExecutionHint.None);
+        //}
+        //public IEnumerable<int> ExecuteToIds(ExecutionHint hint)
+        //{
+        //    // We need to get the pure id list for one single query.
+        //    // If you run Execute, it returns a NodeList that loads
+        //    // all result ids, not only the page you specified.
+        //    return GetIdResults();
+        //}
 
-        // ================================================================== Get result ids
+        /* ================================================================== Get result ids */
 
         private IEnumerable<int> GetIdResults()
         {
@@ -384,64 +368,64 @@ namespace SenseNet.Search
             }
         }
 
-        // ================================================================== Filter methods
+        /* ================================================================== Filter methods */
 
-        public static string AddAutofilterToNodeQuery(string originalText)
-        {
-            return AddFilterToNodeQuery(originalText, GetAutofilterForNodeQuery());
-        }
+        //public static string AddAutofilterToNodeQuery(string originalText)
+        //{
+        //    return AddFilterToNodeQuery(originalText, GetAutofilterForNodeQuery());
+        //}
 
-        public static string AddFilterToNodeQuery(string originalText, string filterText)
-        {
-            if (string.IsNullOrEmpty(filterText))
-                return originalText;
+        //public static string AddFilterToNodeQuery(string originalText, string filterText)
+        //{
+        //    if (string.IsNullOrEmpty(filterText))
+        //        return originalText;
 
-            var filterXml = new XmlDocument();
-            try
-            {
-                filterXml.LoadXml(filterText);
-            }
-            catch (XmlException ex)
-            {
-                throw new InvalidContentQueryException(filterText, "Invalid content query filter", ex);
-            }
+        //    var filterXml = new XmlDocument();
+        //    try
+        //    {
+        //        filterXml.LoadXml(filterText);
+        //    }
+        //    catch (XmlException ex)
+        //    {
+        //        throw new InvalidContentQueryException(filterText, "Invalid content query filter", ex);
+        //    }
 
-            var filterTopLogicalElement = (XmlElement)filterXml.SelectSingleNode("/*/*[1]");
-            if (filterTopLogicalElement == null)
-                return originalText;
-            var filterInnerXml = filterTopLogicalElement.InnerXml;
-            if (string.IsNullOrEmpty(filterInnerXml))
-                return originalText;
+        //    var filterTopLogicalElement = (XmlElement)filterXml.SelectSingleNode("/*/*[1]");
+        //    if (filterTopLogicalElement == null)
+        //        return originalText;
+        //    var filterInnerXml = filterTopLogicalElement.InnerXml;
+        //    if (string.IsNullOrEmpty(filterInnerXml))
+        //        return originalText;
 
-            var originalXml = new XmlDocument();
-            try
-            {
-                originalXml.LoadXml(originalText);
-            }
-            catch (XmlException ex)
-            {
-                throw new InvalidContentQueryException(originalText ?? string.Empty, innerException: ex);
-            }
+        //    var originalXml = new XmlDocument();
+        //    try
+        //    {
+        //        originalXml.LoadXml(originalText);
+        //    }
+        //    catch (XmlException ex)
+        //    {
+        //        throw new InvalidContentQueryException(originalText ?? string.Empty, innerException: ex);
+        //    }
 
-            var originalTopLogicalElement = (XmlElement)originalXml.SelectSingleNode("/*/*[1]");
-            if (originalTopLogicalElement == null)
-                return originalText;
-            var originalOuterXml = originalTopLogicalElement.OuterXml;
-            if (string.IsNullOrEmpty(originalOuterXml))
-                return originalText;
+        //    var originalTopLogicalElement = (XmlElement)originalXml.SelectSingleNode("/*/*[1]");
+        //    if (originalTopLogicalElement == null)
+        //        return originalText;
+        //    var originalOuterXml = originalTopLogicalElement.OuterXml;
+        //    if (string.IsNullOrEmpty(originalOuterXml))
+        //        return originalText;
 
-            filterTopLogicalElement.InnerXml = String.Concat(filterInnerXml, originalOuterXml);
+        //    filterTopLogicalElement.InnerXml = String.Concat(filterInnerXml, originalOuterXml);
 
-            return filterXml.OuterXml;
-        }
+        //    return filterXml.OuterXml;
+        //}
 
-        public static string AddLifespanFilterToNodeQuery(string originalText, string filterText)
-        {
-            if (string.IsNullOrEmpty(filterText))
-                return originalText;
+        //public static string AddLifespanFilterToNodeQuery(string originalText, string filterText)
+        //{
+        //    if (string.IsNullOrEmpty(filterText))
+        //        return originalText;
 
-            return originalText;
-        }
+        //    return originalText;
+        //}
 
         /// <summary>
         /// This method moves all the settings keywords (e.g. SKIP, TOP, etc.) to the end of the text, skipping comments.
@@ -532,10 +516,10 @@ namespace SenseNet.Search
         {
             return int.MaxValue;
         }
-        private static string GetAutofilterForNodeQuery()
-        {
-            return "";
-        }
+        //private static string GetAutofilterForNodeQuery()
+        //{
+        //    return "";
+        //}
 
         // ================================================================== Recursive executor class
 

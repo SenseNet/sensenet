@@ -32,7 +32,7 @@ namespace SenseNet.Search
         }
 
         private QuerySettings _settings = new QuerySettings();
-        public QuerySettings Settings
+        private QuerySettings Settings
         {
             get { return _settings; }
             set { _settings = value ?? new QuerySettings(); }
