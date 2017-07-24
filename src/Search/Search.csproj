@@ -64,12 +64,13 @@
     <Compile Include="FilterStatus.cs" />
     <Compile Include="IContentQuery.cs" />
     <Compile Include="IndexFieldName.cs" />
+    <Compile Include="Interfaces.cs" />
     <Compile Include="OrderDirection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueryExecutionMode.cs" />
     <Compile Include="QuerySettings.cs" />
     <Compile Include="SnQuery.cs" />
-    <Compile Include="SnQueryResult.cs" />
+    <Compile Include="QueryResult.cs" />
     <Compile Include="SortInfo.cs" />
   </ItemGroup>
   <ItemGroup>

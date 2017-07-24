@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace SenseNet.Search
 {
-    public class SnQueryResult
+    public class QueryResult<T> : IQueryResult<T>
     {
-        public IEnumerable<int> Identifiers { get; }
+        public IEnumerable<T> Hits { get; }
         public int TotalCount { get; }
 
-        public SnQueryResult(IEnumerable<int> identifiers, int totalCount)
+        public QueryResult(IEnumerable<T> identifiers, int totalCount)
         {
-            Identifiers = identifiers;
+            Hits = identifiers;
             TotalCount = totalCount;
         }
     }

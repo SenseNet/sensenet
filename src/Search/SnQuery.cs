@@ -2,29 +2,30 @@
 
 namespace SenseNet.Search
 {
-    public interface IQueryEngine
-    {
-        bool CanCheckPermission { get; }
-        SnQueryResult Execute(SnQuery query, QuerySettings settings, int userId);
-    }
 
     public class SnQuery
     {
-        public static SnQueryResult Query(string queryText, QuerySettings settings, int userId)
+        private static IPermissionFilterFactory PermissionFilterFactory = new DefaultPermissionFilterFactory();
+        private static IQueryEngineSelector QueryEngineSelector = new DefaultQueryEngineSelector();
+
+        private static IQueryResult<int> Query(string queryText, QuerySettings settings, int userId)
         {
             var query = Create(queryText, settings);
-            var executor = ChooseQueryExecutor(query, settings);
-            return executor.Execute(query, settings, userId);
+            var engine = QueryEngineSelector.Select(query, settings);
+            var permissionFilter = PermissionFilterFactory.Create(userId);
+            return engine.ExecuteQuery(query, permissionFilter);
+        }
+        private static IQueryResult<string> Query(string queryText, QuerySettings settings, int userId, string projection)
+        {
+            var query = Create(queryText, settings);
+            var engine = QueryEngineSelector.Select(query, settings);
+            var permissionFilter = PermissionFilterFactory.Create(userId);
+            return engine.ExecuteQuery(query, permissionFilter, projection);
         }
 
         public static SnQuery Create(string queryText, QuerySettings settings)
         {
             throw new NotImplementedException(); //UNDONE: implement SnQuery.Create(string queryText, QuerySettings settings)
-        }
-
-        internal static IQueryEngine ChooseQueryExecutor(SnQuery query, QuerySettings settings)
-        {
-            throw new NotImplementedException(); //UNDONE: implement SnQuery.ChooseQueryExecutor(string queryText, QuerySettings settings)
         }
     }
 }
