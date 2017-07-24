@@ -66,13 +66,17 @@
     <Compile Include="IndexFieldName.cs" />
     <Compile Include="Interfaces.cs" />
     <Compile Include="OrderDirection.cs" />
+    <Compile Include="Parser\DefaultQueryParserFactory.cs" />
+    <Compile Include="Parser\IQueryParserFactory.cs" />
+    <Compile Include="Parser\ISnQueryNode.cs" />
+    <Compile Include="Parser\ISnQueryParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueryExecutionMode.cs" />
     <Compile Include="QuerySettings.cs" />
     <Compile Include="SnQuery.cs" />
     <Compile Include="QueryResult.cs" />
     <Compile Include="SnQueryController.cs" />
-    <Compile Include="SnQueryParser.cs" />
+    <Compile Include="Parser\SnQueryParser.cs" />
     <Compile Include="SortInfo.cs" />
   </ItemGroup>
   <ItemGroup>

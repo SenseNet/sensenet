@@ -31,16 +31,6 @@ namespace SenseNet.Search
         int TotalCount { get; }
     }
 
-    public interface ISnQueryParser
-    {
-        SnQuery Parse(string queryText, QuerySettings settings);
-    }
-    public interface IQueryParserFactory
-    {
-        ISnQueryParser Create();
-    }
-
-
 
     public class DefaultPermissionFilter : IPermissionFilter //UNDONE: Delete DefaultPermissionFilter if the final version is done.
     {
@@ -85,11 +75,4 @@ namespace SenseNet.Search
         }
     }
 
-    public class DefaultQueryParserFactory : IQueryParserFactory
-    {
-        public ISnQueryParser Create()
-        {
-            return new SnQueryParser();
-        }
-    }
 }
