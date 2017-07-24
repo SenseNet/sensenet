@@ -8,6 +8,7 @@ namespace SenseNet.Search
 {
     public class QueryResult<T> : IQueryResult<T>
     {
+        public static QueryResult<T> Empty = new QueryResult<T>(new T[0], 0);
         public IEnumerable<T> Hits { get; }
         public int TotalCount { get; }
 
