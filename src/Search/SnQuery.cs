@@ -7,6 +7,7 @@ namespace SenseNet.Search
     {
         private static IPermissionFilterFactory PermissionFilterFactory = new DefaultPermissionFilterFactory();
         private static IQueryEngineSelector QueryEngineSelector = new DefaultQueryEngineSelector();
+        public string Projection { get; set; }
 
         private static IQueryResult<int> Query(string queryText, QuerySettings settings, int userId)
         {
@@ -15,12 +16,12 @@ namespace SenseNet.Search
             var permissionFilter = PermissionFilterFactory.Create(userId);
             return engine.ExecuteQuery(query, permissionFilter);
         }
-        private static IQueryResult<string> Query(string queryText, QuerySettings settings, int userId, string projection)
+        private static IQueryResult<string> QueryAndProject(string queryText, QuerySettings settings, int userId)
         {
             var query = Create(queryText, settings);
             var engine = QueryEngineSelector.Select(query, settings);
             var permissionFilter = PermissionFilterFactory.Create(userId);
-            return engine.ExecuteQuery(query, permissionFilter, projection);
+            return engine.ExecuteQueryAndProject(query, permissionFilter);
         }
 
         public static SnQuery Create(string queryText, QuerySettings settings)

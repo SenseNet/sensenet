@@ -9,7 +9,7 @@ namespace SenseNet.Search
     public interface IQueryEngine
     {
         IQueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter);
-        IQueryResult<string> ExecuteQuery(SnQuery query, IPermissionFilter filter, string projection);
+        IQueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter permissionFilter);
     }
 
     public interface IQueryResult<out T>
@@ -71,8 +71,9 @@ namespace SenseNet.Search
         {
             throw new NotImplementedException();
         }
-        public IQueryResult<string> ExecuteQuery(SnQuery query, IPermissionFilter filter, string projection)
+        public IQueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter permissionFilter)
         {
+            var projection = query.Projection;
             throw new NotImplementedException();
         }
     }
