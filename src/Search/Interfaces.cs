@@ -11,11 +11,9 @@ namespace SenseNet.Search
         IQueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter);
         IQueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter permissionFilter);
     }
-
-    public interface IQueryResult<out T>
+    public interface IQueryEngineSelector
     {
-        IEnumerable<T> Hits { get; }
-        int TotalCount { get; }
+        IQueryEngine Select(SnQuery query, QuerySettings settings);
     }
 
     public interface IPermissionFilter
@@ -27,11 +25,20 @@ namespace SenseNet.Search
         IPermissionFilter Create(int userId);
     }
 
-    public interface IQueryEngineSelector
+    public interface IQueryResult<out T>
     {
-        IQueryEngine Select(SnQuery query, QuerySettings settings);
+        IEnumerable<T> Hits { get; }
+        int TotalCount { get; }
     }
 
+    public interface ISnQueryParser
+    {
+        SnQuery Parse(string queryText, QuerySettings settings);
+    }
+    public interface IQueryParserFactory
+    {
+        ISnQueryParser Create();
+    }
 
 
 
@@ -75,6 +82,14 @@ namespace SenseNet.Search
         {
             var projection = query.Projection;
             throw new NotImplementedException();
+        }
+    }
+
+    public class DefaultQueryParserFactory : IQueryParserFactory
+    {
+        public ISnQueryParser Create()
+        {
+            return new SnQueryParser();
         }
     }
 }

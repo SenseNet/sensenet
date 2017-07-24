@@ -71,6 +71,8 @@
     <Compile Include="QuerySettings.cs" />
     <Compile Include="SnQuery.cs" />
     <Compile Include="QueryResult.cs" />
+    <Compile Include="SnQueryController.cs" />
+    <Compile Include="SnQueryParser.cs" />
     <Compile Include="SortInfo.cs" />
   </ItemGroup>
   <ItemGroup>
