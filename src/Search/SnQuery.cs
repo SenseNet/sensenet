@@ -2,7 +2,7 @@
 
 namespace SenseNet.Search
 {
-    public interface ISnQueryExecutor
+    public interface IQueryEngine
     {
         bool CanCheckPermission { get; }
         SnQueryResult Execute(SnQuery query, QuerySettings settings, int userId);
@@ -22,7 +22,7 @@ namespace SenseNet.Search
             throw new NotImplementedException(); //UNDONE: implement SnQuery.Create(string queryText, QuerySettings settings)
         }
 
-        internal static ISnQueryExecutor ChooseQueryExecutor(SnQuery query, QuerySettings settings)
+        internal static IQueryEngine ChooseQueryExecutor(SnQuery query, QuerySettings settings)
         {
             throw new NotImplementedException(); //UNDONE: implement SnQuery.ChooseQueryExecutor(string queryText, QuerySettings settings)
         }
