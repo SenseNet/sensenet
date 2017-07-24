@@ -72,7 +72,7 @@ namespace SenseNet.Search
         }
     }
 
-    public class DefaultQueryEngine : IQueryEngine
+    public class DefaultQueryEngine : IQueryEngine //UNDONE: Delete DefaultQueryEngine if the final version is done.
     {
         public IQueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter)
         {
