@@ -16,8 +16,16 @@ namespace SenseNet.Search.Tests
         {
             var queryContext = new TestQueryContext(QuerySettings.AdminSettings, 0, null);
             var parser = new CqlParser();
-            var snQuery = parser.Parse("asdf", queryContext);
-            Assert.Inconclusive();
+            var queryText = "asdf";
+            var expectedResult = "_Text:asdf";
+
+            var snQuery = parser.Parse(queryText, queryContext);
+
+            var visitor = new SnQueryToStringVisitor();
+            visitor.Visit(snQuery.QueryTree);
+            var actualResult = visitor.Output;
+
+            Assert.AreEqual(expectedResult, actualResult);
         }
     }
 }

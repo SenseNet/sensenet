@@ -960,12 +960,12 @@ namespace SenseNet.Search.Parser
                     var upperLong = maxValue?.LongValue ?? long.MaxValue;
                     return new LongRange(fieldName, lowerLong, upperLong, includeLower, includeUpper);
                 case IndexableDataType.Float:
-                    var lowerFloat = minValue?.SingleValue ?? float.MinValue;
-                    var upperFloat = maxValue?.SingleValue ?? float.MaxValue;
+                    var lowerFloat = minValue?.SingleValue ?? float.NaN;
+                    var upperFloat = maxValue?.SingleValue ?? float.NaN;
                     return new SingleRange(fieldName, lowerFloat, upperFloat, includeLower, includeUpper);
                 case IndexableDataType.Double:
-                    var lowerDouble = minValue?.DoubleValue ?? double.MinValue;
-                    var upperDouble = maxValue?.DoubleValue ?? double.MaxValue;
+                    var lowerDouble = minValue?.DoubleValue ?? double.NaN;
+                    var upperDouble = maxValue?.DoubleValue ?? double.NaN;
                     return new DoubleRange(fieldName, lowerDouble, upperDouble, includeLower, includeUpper);
                 default:
                     throw ParserError("Unknown IndexableDataType: " + (minValue ?? maxValue).Datatype);
