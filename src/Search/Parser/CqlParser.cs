@@ -86,7 +86,7 @@ namespace SenseNet.Search.Parser
             result.Sort = sortFields.ToArray();
             return result;
         }
-        private SnQueryNode Parse(string queryText, DefaultOperator @operator)
+        private SnQueryPredicate Parse(string queryText, DefaultOperator @operator)
         {
             _lexer = new CqlLexer(queryText);
             _controls.Clear();
@@ -97,11 +97,11 @@ namespace SenseNet.Search.Parser
 
         /* ============================================================================ Recursive descent methods */
 
-        private SnQueryNode ParseTopLevelQueryExpList()
+        private SnQueryPredicate ParseTopLevelQueryExpList()
         {
             // QueryExpList    ==>  QueryExp | QueryExpList QueryExp
 
-            var queries = new List<SnQueryNode>();
+            var queries = new List<SnQueryPredicate>();
             while (!IsEof())
             {
                 var q = ParseQueryExp();
@@ -121,11 +121,11 @@ namespace SenseNet.Search.Parser
             return boolQuery;
 
         }
-        private SnQueryNode ParseQueryExpList()
+        private SnQueryPredicate ParseQueryExpList()
         {
             // QueryExpList    ==>  QueryExp | QueryExpList QueryExp
 
-            var queries = new List<SnQueryNode>();
+            var queries = new List<SnQueryPredicate>();
             while (!IsEof() && _lexer.CurrentToken != CqlLexer.Token.RParen)
             {
                 var q = ParseQueryExp();
@@ -145,7 +145,7 @@ namespace SenseNet.Search.Parser
             return boolQuery;
 
         }
-        private SnQueryNode ParseQueryExp()
+        private SnQueryPredicate ParseQueryExp()
         {
             // BinaryOr | ControlExp*
             while (_lexer.CurrentToken == CqlLexer.Token.ControlKeyword)
@@ -154,10 +154,10 @@ namespace SenseNet.Search.Parser
                 return null;
             return ParseBinaryOr();
         }
-        private SnQueryNode ParseBinaryOr()
+        private SnQueryPredicate ParseBinaryOr()
         {
             // BinaryOr        ==>  BinaryAnd | BinaryOr OR BinaryAnd
-            var queries = new List<SnQueryNode>();
+            var queries = new List<SnQueryPredicate>();
             queries.Add(ParseBinaryAnd());
             while (_lexer.CurrentToken == CqlLexer.Token.Or)
             {
@@ -171,10 +171,10 @@ namespace SenseNet.Search.Parser
                 AddBooleanClause(boolq, query, Occurence.Should);
             return boolq;
         }
-        private SnQueryNode ParseBinaryAnd()
+        private SnQueryPredicate ParseBinaryAnd()
         {
             // BinaryAnd       ==>  UnaryNot | BinaryAnd AND UnaryNot
-            var queries = new List<SnQueryNode>();
+            var queries = new List<SnQueryPredicate>();
             queries.Add(ParseUnaryNot());
             while (_lexer.CurrentToken == CqlLexer.Token.And)
             {
@@ -188,7 +188,7 @@ namespace SenseNet.Search.Parser
                 AddBooleanClause(boolq, query, Occurence.Must);
             return boolq;
         }
-        private SnQueryNode ParseUnaryNot()
+        private SnQueryPredicate ParseUnaryNot()
         {
             var not = false;
             if (_lexer.CurrentToken == CqlLexer.Token.Not)
@@ -203,7 +203,7 @@ namespace SenseNet.Search.Parser
             AddBooleanClause(boolq, query, Occurence.MustNot);
             return boolq;
         }
-        private SnQueryNode ParseClause()
+        private SnQueryPredicate ParseClause()
         {
             var occur = ParseOccur();
             var query = ParseQueryExpGroup();
@@ -232,7 +232,7 @@ namespace SenseNet.Search.Parser
                 return Occurence.Must;
             return Occurence.Default;
         }
-        private SnQueryNode ParseQueryExpGroup()
+        private SnQueryPredicate ParseQueryExpGroup()
         {
             // QueryExpGroup   ==>  LPAREN ClauseList RPAREN | TermExp
             if (_lexer.CurrentToken != CqlLexer.Token.LParen)
@@ -246,7 +246,7 @@ namespace SenseNet.Search.Parser
             return clauses;
         }
 
-        private SnQueryNode ParseTermExp()
+        private SnQueryPredicate ParseTermExp()
         {
             // TermExp           ==>  UnaryTermExp | BinaryTermExp | QueryExpGroup | DefaultFieldExp
 
@@ -288,7 +288,7 @@ namespace SenseNet.Search.Parser
 
             throw ParserError("Expected field expression, expression group or simple term.");
         }
-        private SnQueryNode ParseUnaryTermExp()
+        private SnQueryPredicate ParseUnaryTermExp()
         {
             // UnaryTermExp      ==>  UnaryFieldHead UnaryFieldValue | ControlExp
             // UnaryFieldHead    ==>  STRING COLON | STRING NEQ
@@ -318,7 +318,7 @@ namespace SenseNet.Search.Parser
 
             throw ParserError(String.Concat("Unexpected '", _lexer.StringValue, "'"));
         }
-        private SnQueryNode ParseBinaryTermExp()
+        private SnQueryPredicate ParseBinaryTermExp()
         {
             // BinaryTermExp     ==>  BinaryFieldHead Value
             // BinaryFieldHead   ==>  STRING LT | STRING GT | STRING LTE | STRING GTE
@@ -344,13 +344,13 @@ namespace SenseNet.Search.Parser
 
             throw ParserError("Unexpected OperatorToken: " + fieldInfo.OperatorToken);
         }
-        private SnQueryNode ParseDefaultFieldExp()
+        private SnQueryPredicate ParseDefaultFieldExp()
         {
             // DefaultFieldExp   ==>  ValueGroup
             return ParseValueGroup();
         }
 
-        private SnQueryNode ParseValueGroup()
+        private SnQueryPredicate ParseValueGroup()
         {
             // ValueGroup        ==>  LPAREN ValueExpList RPAREN | FuzzyValue
 
@@ -371,7 +371,7 @@ namespace SenseNet.Search.Parser
 
             return result;
         }
-        private SnQueryNode ParseValueExpList()
+        private SnQueryPredicate ParseValueExpList()
         {
             // ValueExpList      ==>  ValueExp | ValueExpList ValueExp
 
@@ -392,15 +392,15 @@ namespace SenseNet.Search.Parser
 
             return boolQuery;
         }
-        private SnQueryNode ParseValueExp()
+        private SnQueryPredicate ParseValueExp()
         {
             // ValueExp          ==>  ValueBinaryOr
             return ParseValueBinaryOr();
         }
-        private SnQueryNode ParseValueBinaryOr()
+        private SnQueryPredicate ParseValueBinaryOr()
         {
             // ValueBinaryOr     ==>  ValueBinaryAnd | ValueBinaryOr OR ValueBinaryAnd
-            var queries = new List<SnQueryNode>();
+            var queries = new List<SnQueryPredicate>();
             queries.Add(ParseValueBinaryAnd());
             while (_lexer.CurrentToken == CqlLexer.Token.Or)
             {
@@ -414,10 +414,10 @@ namespace SenseNet.Search.Parser
                 AddBooleanClause(boolq, query, Occurence.Should);
             return boolq;
         }
-        private SnQueryNode ParseValueBinaryAnd()
+        private SnQueryPredicate ParseValueBinaryAnd()
         {
             // ValueBinaryAnd    ==>  ValueUnaryNot | ValueBinaryAnd AND ValueUnaryNot
-            var queries = new List<SnQueryNode>();
+            var queries = new List<SnQueryPredicate>();
             queries.Add(ParseValueUnaryNot());
             while (_lexer.CurrentToken == CqlLexer.Token.And)
             {
@@ -431,7 +431,7 @@ namespace SenseNet.Search.Parser
                 AddBooleanClause(boolq, query, Occurence.Must);
             return boolq;
         }
-        private SnQueryNode ParseValueUnaryNot()
+        private SnQueryPredicate ParseValueUnaryNot()
         {
             // ValueUnaryNot     ==>  ValueClause | NOT ValueClause
             // ValueClause       ==>  [Occur] ValueGroup
@@ -448,7 +448,7 @@ namespace SenseNet.Search.Parser
             AddBooleanClause(boolq, query, Occurence.MustNot);
             return boolq;
         }
-        private SnQueryNode ParseValueClause()
+        private SnQueryPredicate ParseValueClause()
         {
             // ValueClause       ==>  [Occur] ValueGroup
             var occur = ParseOccur();
@@ -506,7 +506,7 @@ namespace SenseNet.Search.Parser
 
             return fieldInfo;
         }
-        private SnQueryNode ParseRange()
+        private SnQueryPredicate ParseRange()
         {
             // Range        ==>  RangeStart ExactValue TO ExactValue RangeEnd
             var start = ParseRangeStart();
@@ -817,7 +817,7 @@ namespace SenseNet.Search.Parser
 
         /* ============================================================================ */
 
-        private void AddBooleanClause(BooleanClauseList boolNode, SnQueryNode query, Occurence occur)
+        private void AddBooleanClause(BooleanClauseList boolNode, SnQueryPredicate query, Occurence occur)
         {
             var boolQ = query as BooleanClauseList;
             if (boolQ == null)
@@ -892,7 +892,7 @@ namespace SenseNet.Search.Parser
             boolNode.Clauses.Add(clause);
         }
 
-        private SnQueryNode CreateValueQuery(QueryFieldValue value)
+        private SnQueryPredicate CreateValueQuery(QueryFieldValue value)
         {
             var currentField = _currentField.Peek();
             var fieldName = currentField.Name;
@@ -908,7 +908,7 @@ namespace SenseNet.Search.Parser
                     throw ParserError("Unknown IndexableDataType enum value: " + value.Datatype);
             }
         }
-        private SnQueryNode CreateStringValueQuery(QueryFieldValue value, FieldInfo currentField)
+        private SnQueryPredicate CreateStringValueQuery(QueryFieldValue value, FieldInfo currentField)
         {
             switch (value.Token)
             {
@@ -925,7 +925,7 @@ namespace SenseNet.Search.Parser
                     throw ParserError("CreateValueQuery with Token: " + value.Token);
             }
         }
-        private SnQueryNode CreateRangeQuery(string fieldName, QueryFieldValue minValue, QueryFieldValue maxValue, bool includeLower, bool includeUpper)
+        private SnQueryPredicate CreateRangeQuery(string fieldName, QueryFieldValue minValue, QueryFieldValue maxValue, bool includeLower, bool includeUpper)
         {
             if (minValue != null && minValue.StringValue == SnQuery.EmptyText && maxValue == null)
             {

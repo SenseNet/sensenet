@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SenseNet.Search.Parser.Predicates
 {
-    public class BooleanClauseList : SnQueryNode
+    public class BooleanClauseList : SnQueryPredicate
     {
         public List<BooleanClause> Clauses { get; } = new List<BooleanClause>();
     }

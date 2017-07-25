@@ -8,12 +8,12 @@ namespace SenseNet.Search.Parser.Predicates
 {
     public enum Occurence { Default, Should, Must, MustNot }
 
-    public class BooleanClause : SnQueryNode
+    public class BooleanClause : SnQueryPredicate
     {
-        public SnQueryNode Node { get; }
+        public SnQueryPredicate Node { get; }
         public Occurence Occur { get; set; }
 
-        public BooleanClause(SnQueryNode node, Occurence occur)
+        public BooleanClause(SnQueryPredicate node, Occurence occur)
         {
             Node = node;
             Occur = occur;

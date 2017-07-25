@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SenseNet.Search.Parser.Predicates
 {
-    public abstract class Range : SnQueryNode
+    public abstract class Range : SnQueryPredicate
     {
         public string FieldName { get; }
         public bool MinExclusive { get; }

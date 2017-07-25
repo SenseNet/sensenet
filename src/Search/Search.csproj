@@ -70,7 +70,7 @@
     <Compile Include="Parser\IQueryParserFactory.cs" />
     <Compile Include="Parser\Predicates\Numeric.cs" />
     <Compile Include="Parser\Predicates\Range.cs" />
-    <Compile Include="Parser\SnQueryNode.cs" />
+    <Compile Include="Parser\SnQueryPredicate.cs" />
     <Compile Include="Parser\ISnQueryParser.cs" />
     <Compile Include="Parser\CqlLexer.cs" />
     <Compile Include="Parser\LineInfo.cs" />

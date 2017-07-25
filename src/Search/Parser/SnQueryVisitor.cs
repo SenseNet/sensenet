@@ -6,7 +6,7 @@ namespace SenseNet.Search.Parser
 {
     public abstract class SnQueryVisitor
     {
-        public virtual SnQueryNode Visit(SnQueryNode node)
+        public virtual SnQueryPredicate Visit(SnQueryPredicate node)
         {
             if (node == null)
                 return null;
@@ -26,49 +26,49 @@ namespace SenseNet.Search.Parser
             throw new NotSupportedException("Unknown query type: " + node.GetType().FullName);
         }
 
-        public virtual SnQueryNode VisitText(Text predicate)
+        public virtual SnQueryPredicate VisitText(Text predicate)
         {
             return predicate;
         }
 
-        public virtual SnQueryNode VisitIntegerNumber(IntegerNumber predicate)
+        public virtual SnQueryPredicate VisitIntegerNumber(IntegerNumber predicate)
         {
             return predicate;
         }
-        public virtual SnQueryNode VisitLongNumber(LongNumber predicate)
+        public virtual SnQueryPredicate VisitLongNumber(LongNumber predicate)
         {
             return predicate;
         }
-        public virtual SnQueryNode VisitSingleNumber(SingleNumber predicate)
+        public virtual SnQueryPredicate VisitSingleNumber(SingleNumber predicate)
         {
             return predicate;
         }
-        public virtual SnQueryNode VisitDoubleNumber(DoubleNumber predicate)
+        public virtual SnQueryPredicate VisitDoubleNumber(DoubleNumber predicate)
         {
             return predicate;
         }
-        public virtual SnQueryNode VisitTextRange(TextRange range)
+        public virtual SnQueryPredicate VisitTextRange(TextRange range)
         {
             return range;
         }
-        public virtual SnQueryNode VisitIntegerRange(IntegerRange range)
+        public virtual SnQueryPredicate VisitIntegerRange(IntegerRange range)
         {
             return range;
         }
-        public virtual SnQueryNode VisitLongRange(LongRange range)
+        public virtual SnQueryPredicate VisitLongRange(LongRange range)
         {
             return range;
         }
-        public virtual SnQueryNode VisitSingleRange(SingleRange range)
+        public virtual SnQueryPredicate VisitSingleRange(SingleRange range)
         {
             return range;
         }
-        public virtual SnQueryNode VisitDoubleRange(DoubleRange range)
+        public virtual SnQueryPredicate VisitDoubleRange(DoubleRange range)
         {
             return range;
         }
 
-        public virtual SnQueryNode VisitBooleanClauseList(BooleanClauseList boolClauseList)
+        public virtual SnQueryPredicate VisitBooleanClauseList(BooleanClauseList boolClauseList)
         {
             var clauses = boolClauseList.Clauses;
             var visitedClauses = VisitBooleanClauses(clauses);

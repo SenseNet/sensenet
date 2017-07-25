@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SenseNet.Search.Parser.Predicates
 {
-    public abstract class Numeric : SnQueryNode
+    public abstract class Numeric : SnQueryPredicate
     {
         public string FieldName { get; }
 

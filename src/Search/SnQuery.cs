@@ -11,7 +11,7 @@ namespace SenseNet.Search
         public int Skip { get; internal set; }
         public SortInfo[] Sort { get; internal set; }
 
-        internal SnQueryNode QueryTree { get; set; }
+        internal SnQueryPredicate QueryTree { get; set; }
         public FilterStatus EnableAutofilters { get; set; }
         public FilterStatus EnableLifespanFilter { get; set; }
         public bool CountOnly { get; set; }

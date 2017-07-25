@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SenseNet.Search.Parser
 {
-    public abstract class SnQueryNode
+    public abstract class SnQueryPredicate
     {
         public double? Boost { get; set; }
     }

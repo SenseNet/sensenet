@@ -14,28 +14,28 @@ namespace SenseNet.Search.Tests
         private StringBuilder _output = new StringBuilder();
         public string Output => _output.ToString();
 
-        public override SnQueryNode VisitText(Text text)
+        public override SnQueryPredicate VisitText(Text text)
         {
             PredicateToString(text.FieldName, text.Value, text.Boost, text.FuzzyValue);
             return base.VisitText(text);
         }
 
-        public override SnQueryNode VisitIntegerNumber(IntegerNumber predicate)
+        public override SnQueryPredicate VisitIntegerNumber(IntegerNumber predicate)
         {
             PredicateToString(predicate.FieldName, predicate.Value, predicate.Boost, null);
             return base.VisitIntegerNumber(predicate);
         }
-        public override SnQueryNode VisitLongNumber(LongNumber predicate)
+        public override SnQueryPredicate VisitLongNumber(LongNumber predicate)
         {
             PredicateToString(predicate.FieldName, predicate.Value, predicate.Boost, null);
             return base.VisitLongNumber(predicate);
         }
-        public override SnQueryNode VisitSingleNumber(SingleNumber predicate)
+        public override SnQueryPredicate VisitSingleNumber(SingleNumber predicate)
         {
             PredicateToString(predicate.FieldName, predicate.Value, predicate.Boost, null);
             return base.VisitSingleNumber(predicate);
         }
-        public override SnQueryNode VisitDoubleNumber(DoubleNumber predicate)
+        public override SnQueryPredicate VisitDoubleNumber(DoubleNumber predicate)
         {
             PredicateToString(predicate.FieldName, predicate.Value, predicate.Boost, null);
             return base.VisitDoubleNumber(predicate);
@@ -53,12 +53,12 @@ namespace SenseNet.Search.Tests
                 _output.Append("^").Append(boost.Value.ToString(CultureInfo.InvariantCulture));
         }
 
-        public override SnQueryNode VisitTextRange(TextRange range)
+        public override SnQueryPredicate VisitTextRange(TextRange range)
         {
             RangeToString(range.FieldName, range.Min, range.Max, range.MinExclusive, range.MaxExclusive, range.Boost);
             return base.VisitTextRange(range);
         }
-        public override SnQueryNode VisitIntegerRange(IntegerRange range)
+        public override SnQueryPredicate VisitIntegerRange(IntegerRange range)
         {
             RangeToString(range.FieldName,
                 range.Min == int.MinValue ? null : range.Min.ToString(CultureInfo.InvariantCulture),
@@ -66,7 +66,7 @@ namespace SenseNet.Search.Tests
                 range.MinExclusive, range.MaxExclusive, range.Boost);
             return base.VisitIntegerRange(range);
         }
-        public override SnQueryNode VisitLongRange(LongRange range)
+        public override SnQueryPredicate VisitLongRange(LongRange range)
         {
             RangeToString(range.FieldName,
                 range.Min == long.MinValue ? null : range.Min.ToString(CultureInfo.InvariantCulture),
@@ -74,7 +74,7 @@ namespace SenseNet.Search.Tests
                 range.MinExclusive, range.MaxExclusive, range.Boost);
             return base.VisitLongRange(range);
         }
-        public override SnQueryNode VisitSingleRange(SingleRange range)
+        public override SnQueryPredicate VisitSingleRange(SingleRange range)
         {
             RangeToString(range.FieldName,
                 float.IsNaN(range.Min) ? null : range.Min.ToString(CultureInfo.InvariantCulture),
@@ -82,7 +82,7 @@ namespace SenseNet.Search.Tests
                 range.MinExclusive, range.MaxExclusive, range.Boost);
             return base.VisitSingleRange(range);
         }
-        public override SnQueryNode VisitDoubleRange(DoubleRange range)
+        public override SnQueryPredicate VisitDoubleRange(DoubleRange range)
         {
             RangeToString(range.FieldName,
                 double.IsNaN(range.Min) ? null : range.Min.ToString(CultureInfo.InvariantCulture),
@@ -125,7 +125,7 @@ namespace SenseNet.Search.Tests
         }
 
         private int _booleanCount;
-        public override SnQueryNode VisitBooleanClauseList(BooleanClauseList boolClauseList)
+        public override SnQueryPredicate VisitBooleanClauseList(BooleanClauseList boolClauseList)
         {
             if (_booleanCount++ > 0)
                 _output.Append("(");
