@@ -254,14 +254,9 @@ namespace SenseNet.Search.Parser
             if (fieldInfo != null)
                 _currentField.Push(fieldInfo);
             else if (_currentField.Count != 0)
-            {
                 _currentField.Push(_currentField.Peek());
-            }
             else
-            {
                 _currentField.Push(FieldInfo.Default);
-                FieldLevel = QueryFieldLevel.BinaryOrFullText;
-            }
 
             var result = ParseUnaryTermExp();
             if (result != null)
