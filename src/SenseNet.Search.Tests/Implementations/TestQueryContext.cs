@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SenseNet.Search.Parser;
 
-namespace SenseNet.Search.Tests
+namespace SenseNet.Search.Tests.Implementations
 {
     internal class TestQueryContext : IQueryContext
     {

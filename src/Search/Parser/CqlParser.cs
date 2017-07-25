@@ -478,7 +478,8 @@ namespace SenseNet.Search.Parser
 
                 fieldInfo = new FieldInfo { Name = name };
                 fieldInfo.OperatorToken = _lexer.CurrentToken;
-                SetFieldLevel(fieldInfo);
+
+                //UNDONE:!!! FieldLevel support: aggregate field names here.
 
                 _lexer.NextToken();
                 if (_lexer.CurrentToken != CqlLexer.Token.Colon)
@@ -950,50 +951,26 @@ namespace SenseNet.Search.Parser
                 case IndexableDataType.String:
                     var lowerTerm = minValue?.StringValue.ToLower();
                     var upperTerm = maxValue?.StringValue.ToLower();
-                    return new TextRange(fieldName, lowerTerm, upperTerm, includeLower, includeUpper);
+                    return new TextRange(fieldName, lowerTerm, upperTerm, !includeLower, !includeUpper);
                 case IndexableDataType.Int:
                     var lowerInt = minValue?.IntValue ?? int.MinValue;
                     var upperInt = maxValue?.IntValue ?? int.MaxValue;
-                    return new IntegerRange(fieldName, lowerInt, upperInt, includeLower, includeUpper);
+                    return new IntegerRange(fieldName, lowerInt, upperInt, !includeLower, !includeUpper);
                 case IndexableDataType.Long:
                     var lowerLong = minValue?.LongValue ?? long.MinValue;
                     var upperLong = maxValue?.LongValue ?? long.MaxValue;
-                    return new LongRange(fieldName, lowerLong, upperLong, includeLower, includeUpper);
+                    return new LongRange(fieldName, lowerLong, upperLong, !includeLower, !includeUpper);
                 case IndexableDataType.Float:
                     var lowerFloat = minValue?.SingleValue ?? float.NaN;
                     var upperFloat = maxValue?.SingleValue ?? float.NaN;
-                    return new SingleRange(fieldName, lowerFloat, upperFloat, includeLower, includeUpper);
+                    return new SingleRange(fieldName, lowerFloat, upperFloat, !includeLower, !includeUpper);
                 case IndexableDataType.Double:
                     var lowerDouble = minValue?.DoubleValue ?? double.NaN;
                     var upperDouble = maxValue?.DoubleValue ?? double.NaN;
-                    return new DoubleRange(fieldName, lowerDouble, upperDouble, includeLower, includeUpper);
+                    return new DoubleRange(fieldName, lowerDouble, upperDouble, !includeLower, !includeUpper);
                 default:
                     throw ParserError("Unknown IndexableDataType: " + (minValue ?? maxValue).Datatype);
             }
-        }
-
-        private void SetFieldLevel(FieldInfo field)
-        {
-            //UNDONE:!!!! implement SetFieldLevel in a Visitor
-            throw new NotImplementedException();
-
-            //var fieldName = field.Name;
-            //QueryFieldLevel level;
-
-            //if (fieldName == IndexFieldName.AllText)
-            //    level = QueryFieldLevel.BinaryOrFullText;
-            //else if (indexingInfo == null)
-            //    level = QueryFieldLevel.BinaryOrFullText;
-            //else if (indexingInfo.FieldDataType == typeof(SenseNet.ContentRepository.Storage.BinaryData))
-            //    level = QueryFieldLevel.BinaryOrFullText;
-            //else if (fieldName == IndexFieldName.InFolder || fieldName == IndexFieldName.InTree
-            //    || fieldName == IndexFieldName.Type || fieldName == IndexFieldName.TypeIs
-            //    || _headOnlyFields.Contains(fieldName))
-            //    level = QueryFieldLevel.HeadOnly;
-            //else
-            //    level = QueryFieldLevel.NoBinaryOrFullText;
-
-            //FieldLevel = (QueryFieldLevel)(Math.Max((int)level, (int)FieldLevel));
         }
 
         private bool IsEof()

@@ -3,81 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Search.Parser;
+using SenseNet.Search.Tests.Implementations;
 
 namespace SenseNet.Search.Tests
 {
     [TestClass]
     public class SnQueryTests
     {
-        #region INFRASTRUCTURE
-
-        private class TestQueryEngineSelector : IQueryEngineSelector
-        {
-            public TestQueryEngine QueryEngine { get; set; }
-            public IQueryEngine Select(SnQuery query, QuerySettings settings)
-            {
-                return QueryEngine;
-            }
-        }
-
-        private class TestQueryEngine : IQueryEngine
-        {
-            private readonly IDictionary<string, IQueryResult<int>> _intResults;
-            private readonly IDictionary<string, IQueryResult<string>> _stringResults;
-
-            public TestQueryEngine(IDictionary<string, IQueryResult<int>> intResults, IDictionary<string, IQueryResult<string>> stringResults)
-            {
-                _intResults = intResults;
-                _stringResults = stringResults;
-            }
-
-            public IQueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter)
-            {
-                IQueryResult<int> result;
-                if (_intResults.TryGetValue(query.Querytext, out result))
-                    return result;
-                return QueryResult<int>.Empty;
-            }
-
-            public IQueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter permissionFilter)
-            {
-                return _stringResults[query.Querytext];
-            }
-        }
-
-        private class SnQueryLegoBricks
-        {
-            public IPermissionFilterFactory PermissionFilterFactory;
-            public IQueryEngineSelector QueryEngineSelector;
-            public IQueryParserFactory QueryParserFactory;
-        }
-
-        private SnQueryLegoBricks SetupSnQuery(SnQueryLegoBricks bricks)
-        {
-            var backup = new SnQueryLegoBricks();
-            var snQueryAcc = new PrivateType(typeof(SnQuery));
-
-            if (bricks.QueryEngineSelector != null)
-            {
-                backup.QueryEngineSelector = (IQueryEngineSelector)snQueryAcc.GetStaticFieldOrProperty("QueryEngineSelector");
-                snQueryAcc.SetStaticFieldOrProperty("QueryEngineSelector", bricks.QueryEngineSelector);
-            }
-            if (bricks.PermissionFilterFactory != null)
-            {
-                backup.PermissionFilterFactory = (IPermissionFilterFactory)snQueryAcc.GetStaticFieldOrProperty("PermissionFilterFactory");
-                snQueryAcc.SetStaticFieldOrProperty("PermissionFilterFactory", bricks.PermissionFilterFactory);
-            }
-            if (bricks.QueryParserFactory != null)
-            {
-                backup.QueryParserFactory = (IQueryParserFactory)snQueryAcc.GetStaticFieldOrProperty("QueryParserFactory");
-                snQueryAcc.SetStaticFieldOrProperty("QueryParserFactory", bricks.QueryParserFactory);
-            }
-
-            return backup;
-        }
-
-        #endregion
-
         [TestMethod]
         public void SnQuery_IntResult()
         {
@@ -123,6 +55,32 @@ namespace SenseNet.Search.Tests
             {
                 SetupSnQuery(backup);
             }
+        }
+
+        /* ====================================================================================== */
+
+        private SnQueryLegoBricks SetupSnQuery(SnQueryLegoBricks bricks)
+        {
+            var backup = new SnQueryLegoBricks();
+            var snQueryAcc = new PrivateType(typeof(SnQuery));
+
+            if (bricks.QueryEngineSelector != null)
+            {
+                backup.QueryEngineSelector = (IQueryEngineSelector)snQueryAcc.GetStaticFieldOrProperty("QueryEngineSelector");
+                snQueryAcc.SetStaticFieldOrProperty("QueryEngineSelector", bricks.QueryEngineSelector);
+            }
+            if (bricks.PermissionFilterFactory != null)
+            {
+                backup.PermissionFilterFactory = (IPermissionFilterFactory)snQueryAcc.GetStaticFieldOrProperty("PermissionFilterFactory");
+                snQueryAcc.SetStaticFieldOrProperty("PermissionFilterFactory", bricks.PermissionFilterFactory);
+            }
+            if (bricks.QueryParserFactory != null)
+            {
+                backup.QueryParserFactory = (IQueryParserFactory)snQueryAcc.GetStaticFieldOrProperty("QueryParserFactory");
+                snQueryAcc.SetStaticFieldOrProperty("QueryParserFactory", bricks.QueryParserFactory);
+            }
+
+            return backup;
         }
 
     }

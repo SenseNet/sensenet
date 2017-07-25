@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Search.Parser;
+using SenseNet.Search.Tests.Implementations;
 
 namespace SenseNet.Search.Tests
 {
@@ -18,6 +19,27 @@ namespace SenseNet.Search.Tests
             var parser = new CqlParser();
             var queryText = "asdf";
             var expectedResult = "_Text:asdf";
+
+            var snQuery = parser.Parse(queryText, queryContext);
+
+            var visitor = new SnQueryToStringVisitor();
+            visitor.Visit(snQuery.QueryTree);
+            var actualResult = visitor.Output;
+
+            Assert.AreEqual(expectedResult, actualResult);
+        }
+        [TestMethod]
+        public void CqlParser_2()
+        {
+            var indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
+            {
+                {"Id", new TestPerfieldIndexingInfo_int() },
+                {"Name", new TestPerfieldIndexingInfo_string() }
+            };
+            var queryContext = new TestQueryContext(QuerySettings.AdminSettings, 0, indexingInfo);
+            var parser = new CqlParser();
+            var queryText = "+Id:<1000 +Name:Admin*";
+            var expectedResult = "+Id:<1000 +Name:admin*";
 
             var snQuery = parser.Parse(queryText, queryContext);
 

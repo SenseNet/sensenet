@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using SenseNet.Search.Parser;
 using SenseNet.Search.Parser.Predicates;
 
-namespace SenseNet.Search.Tests
+namespace SenseNet.Search.Tests.Implementations
 {
     internal class SnQueryToStringVisitor : SnQueryVisitor
     {
