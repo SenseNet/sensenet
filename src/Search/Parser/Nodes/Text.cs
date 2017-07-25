@@ -8,7 +8,7 @@ namespace SenseNet.Search.Parser.Nodes
 {
     //UNDONE: Can be term, fuzzy, prefix, wildcard, phrase query
     //UNDONE: Fuzzy is converted to Slope if the result is PhraseQuery
-    internal class Text : SnQueryNode
+    public class Text : SnQueryNode
     {
         public string FieldName { get; }
         public string Value { get; }

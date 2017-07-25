@@ -11,25 +11,6 @@ namespace SenseNet.Search.Tests
     {
         #region INFRASTRUCTURE
 
-        private class TestQueryContext : IQueryContext
-        {
-            private IDictionary<string, IPerFieldIndexingInfo> _indexingInfo;
-
-            public QuerySettings Settings { get; }
-            public int UserId { get; }
-            public IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
-            {
-                return _indexingInfo[fieldName];
-            }
-
-            public TestQueryContext(QuerySettings settings, int userId, IDictionary<string, IPerFieldIndexingInfo> indexingInfo)
-            {
-                Settings = settings;
-                UserId = userId;
-                _indexingInfo = indexingInfo;
-            }
-        }
-
         private class TestQueryEngineSelector : IQueryEngineSelector
         {
             public TestQueryEngine QueryEngine { get; set; }

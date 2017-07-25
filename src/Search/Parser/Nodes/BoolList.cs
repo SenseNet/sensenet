@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SenseNet.Search.Parser.Nodes
 {
-    internal class BoolList : SnQueryNode
+    public class BoolList : SnQueryNode
     {
         public List<Bool> Clauses { get; } = new List<Bool>();
     }

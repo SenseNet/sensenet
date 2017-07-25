@@ -50,8 +50,11 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="CqlParserTests.cs" />
     <Compile Include="SnQueryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SnQueryToStringVisitor.cs" />
+    <Compile Include="TestQueryContext.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Search\Search.csproj">

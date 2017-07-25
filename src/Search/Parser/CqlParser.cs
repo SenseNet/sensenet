@@ -900,10 +900,10 @@ namespace SenseNet.Search.Parser
             {
                 case IndexableDataType.String:
                     return CreateStringValueQuery(value, currentField);
-                case IndexableDataType.Int: return new Numeric<int>(fieldName, value.IntValue); //UNDONE: Use NumericUtils.IntToPrefixCoded(value) in the compiler
-                case IndexableDataType.Long: return new Numeric<long>(fieldName, value.LongValue); //UNDONE: Use NumericUtils.LongToPrefixCoded(value) in the compiler
-                case IndexableDataType.Float: return new Numeric<float>(fieldName, value.SingleValue); //UNDONE: Use NumericUtils.FloatToPrefixCoded(value) in the compiler
-                case IndexableDataType.Double: return new Numeric<double>(fieldName, value.DoubleValue); //UNDONE: Use NumericUtils.DoubleToPrefixCoded(value) in the compiler
+                case IndexableDataType.Int: return new IntegerNumber(fieldName, value.IntValue); //UNDONE: Use NumericUtils.IntToPrefixCoded(value) in the compiler
+                case IndexableDataType.Long: return new LongNumber(fieldName, value.LongValue); //UNDONE: Use NumericUtils.LongToPrefixCoded(value) in the compiler
+                case IndexableDataType.Float: return new SingleNumber(fieldName, value.SingleValue); //UNDONE: Use NumericUtils.FloatToPrefixCoded(value) in the compiler
+                case IndexableDataType.Double: return new DoubleNumber(fieldName, value.DoubleValue); //UNDONE: Use NumericUtils.DoubleToPrefixCoded(value) in the compiler
                 default:
                     throw ParserError("Unknown IndexableDataType enum value: " + value.Datatype);
             }
@@ -917,7 +917,7 @@ namespace SenseNet.Search.Parser
                     if (value.StringValue == SnQuery.EmptyText)
                         return new Text(currentField.Name, value.StringValue);
                     if (value.StringValue == SnQuery.EmptyInnerQueryText)
-                        return new Numeric<int>(IndexFieldName.NodeId, 0);
+                        return new IntegerNumber(IndexFieldName.NodeId, 0);
                     return new Text(currentField.Name, value.StringValue, value.FuzzyValue);
                 case CqlLexer.Token.WildcardString:
                     return new Text(currentField.Name, value.StringValue, value.FuzzyValue);
@@ -950,23 +950,23 @@ namespace SenseNet.Search.Parser
                 case IndexableDataType.String:
                     var lowerTerm = minValue?.StringValue.ToLower();
                     var upperTerm = maxValue?.StringValue.ToLower();
-                    return new Range<string>(fieldName, lowerTerm, upperTerm, includeLower, includeUpper);
+                    return new TextRange(fieldName, lowerTerm, upperTerm, includeLower, includeUpper);
                 case IndexableDataType.Int:
-                    var lowerInt = minValue?.IntValue ?? 0;
-                    var upperInt = maxValue?.IntValue ?? 0;
-                    return new Range<int>(fieldName, lowerInt, upperInt, includeLower, includeUpper);
+                    var lowerInt = minValue?.IntValue ?? int.MinValue;
+                    var upperInt = maxValue?.IntValue ?? int.MaxValue;
+                    return new IntegerRange(fieldName, lowerInt, upperInt, includeLower, includeUpper);
                 case IndexableDataType.Long:
-                    var lowerLong = minValue?.LongValue ?? 0;
-                    var upperLong = maxValue?.LongValue ?? 0;
-                    return new Range<long>(fieldName, lowerLong, upperLong, includeLower, includeUpper);
+                    var lowerLong = minValue?.LongValue ?? long.MinValue;
+                    var upperLong = maxValue?.LongValue ?? long.MaxValue;
+                    return new LongRange(fieldName, lowerLong, upperLong, includeLower, includeUpper);
                 case IndexableDataType.Float:
                     var lowerFloat = minValue?.SingleValue ?? float.MinValue;
                     var upperFloat = maxValue?.SingleValue ?? float.MaxValue;
-                    return new Range<float>(fieldName, lowerFloat, upperFloat, includeLower, includeUpper);
+                    return new SingleRange(fieldName, lowerFloat, upperFloat, includeLower, includeUpper);
                 case IndexableDataType.Double:
                     var lowerDouble = minValue?.DoubleValue ?? double.MinValue;
                     var upperDouble = maxValue?.DoubleValue ?? double.MaxValue;
-                    return new Range<double>(fieldName, lowerDouble, upperDouble, includeLower, includeUpper);
+                    return new DoubleRange(fieldName, lowerDouble, upperDouble, includeLower, includeUpper);
                 default:
                     throw ParserError("Unknown IndexableDataType: " + (minValue ?? maxValue).Datatype);
             }

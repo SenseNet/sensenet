@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace SenseNet.Search.Parser.Nodes
 {
-    internal enum Occurence { Default, Should, Must, MustNot }
+    public enum Occurence { Default, Should, Must, MustNot }
 
-    internal class Bool : SnQueryNode
+    public class Bool : SnQueryNode
     {
         public SnQueryNode Node { get; }
         public Occurence Occur { get; set; }
