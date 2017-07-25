@@ -10,7 +10,7 @@ namespace SenseNet.Search.Parser
     {
         public ISnQueryParser Create()
         {
-            return new SnQueryParser();
+            return new CqlParser();
         }
     }
 }

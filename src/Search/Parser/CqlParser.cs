@@ -1,152 +1,107 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Lucene.Net.Search;
-using Lucene.Net.Index;
-using System.Diagnostics;
-using Lucene.Net.Analysis;
-using SenseNet.ContentRepository;
-using Lucene.Net.Util;
-using System.Text.RegularExpressions;
-using System.Globalization;
-using SenseNet.Search.Indexing;
-using System.IO;
-using Lucene.Net.Analysis.Tokenattributes;
-using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Search;
+using SenseNet.Search.Parser.Nodes;
 
 namespace SenseNet.Search.Parser
 {
-    public class QueryFieldValue_OLD : IQueryFieldValue
-    {
-        internal bool IsPhrase { get; private set; }
-        internal SnLucLexer.Token Token { get; private set; }
-        internal double? FuzzyValue { get; set; }
-        public string StringValue { get; private set; }
-        public object InputObject { get; private set; }
-
-        public IndexableDataType Datatype { get; private set; }
-        public Int32 IntValue { get; private set; }
-        public Int64 LongValue { get; private set; }
-        public Single SingleValue { get; private set; }
-        public Double DoubleValue { get; private set; }
-
-        public QueryFieldValue_OLD(object value)
-        {
-            InputObject = value;
-        }
-
-        internal QueryFieldValue_OLD(string stringValue, SnLucLexer.Token token, bool isPhrase)
-        {
-            Datatype = IndexableDataType.String;
-            StringValue = stringValue;
-            Token = token;
-            IsPhrase = isPhrase;
-        }
-
-        public void Set(Int32 value)
-        {
-            Datatype = IndexableDataType.Int;
-            IntValue = value;
-        }
-        public void Set(Int64 value)
-        {
-            Datatype = IndexableDataType.Long;
-            LongValue = value;
-        }
-        public void Set(Single value)
-        {
-            Datatype = IndexableDataType.Float;
-            SingleValue = value;
-        }
-        public void Set(Double value)
-        {
-            Datatype = IndexableDataType.Double;
-            DoubleValue = value;
-        }
-        public void Set(String value)
-        {
-            Datatype = IndexableDataType.String;
-            StringValue = value;
-        }
-
-        public override string ToString()
-        {
-            return String.Concat(Token, ":", StringValue, FuzzyValue == null ? "" : ":" + FuzzyValue);
-        }
-    }
-
-    internal class SnLucParser
+    internal class CqlParser : ISnQueryParser
     {
         public enum DefaultOperator { Or, And }
 
-        public bool ParseEmptyQuery = false;
+        public bool ParseEmptyQuery;
 
         internal class QueryControlParam
         {
             public string Name { get; set; }
             public string Value { get; set; }
         }
-
-        [DebuggerDisplay("{Name}[{DataType}]")]
         private class FieldInfo
         {
-            public static readonly FieldInfo Default = new FieldInfo { Name = IndexFieldName.AllText, OperatorToken = SnLucLexer.Token.Colon, IsBinary = false };
+            public static readonly FieldInfo Default = new FieldInfo { Name = IndexFieldName.AllText, OperatorToken = CqlLexer.Token.Colon, IsBinary = false };
             public string Name { get; set; }
-            public SnLucLexer.Token OperatorToken { get; set; }
+            public CqlLexer.Token OperatorToken { get; set; }
             public bool IsBinary { get; set; }
-
-            private bool _indexingInfoResolved;
-            private IPerFieldIndexingInfo _indexingInfo;
-            public IPerFieldIndexingInfo IndexingInfo
-            {
-                get
-                {
-                    if (!_indexingInfoResolved)
-                    {
-                        _indexingInfo = StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(this.Name);
-                        _indexingInfoResolved = true;
-                    }
-                    return _indexingInfo;
-                }
-            }
         }
-
-        private SnLucLexer _lexer;
-        private Stack<FieldInfo> _currentField = new Stack<FieldInfo>();
-        private double _defaultSimilarity = 0.5;
-        private TermAttribute _termAtt;
-        private Analyzer _masterAnalyzer;
-
-        private List<QueryControlParam> _controls = new List<QueryControlParam>();
-        public List<QueryControlParam> Controls { get { return _controls; } }
 
         public DefaultOperator Operator { get; private set; }
-        public QueryFieldLevel FieldLevel { get; private set; }
 
-        public SnLucParser()
-        {
-            _masterAnalyzer = IndexManager.GetAnalyzer();
-        }
+        private CqlLexer _lexer;
+        private Stack<FieldInfo> _currentField = new Stack<FieldInfo>();
+        private double _defaultSimilarity = 0.5;
 
-        public Query Parse(string queryText)
+        private List<QueryControlParam> _controls = new List<QueryControlParam>();
+
+        private IQueryContext _context;
+
+        public SnQuery Parse(string queryText, IQueryContext context)
         {
-            return Parse(queryText, DefaultOperator.Or);
+            _context = context;
+
+            var rootNode = Parse(queryText, DefaultOperator.Or);
+
+            //UNDONE:!!!! Use EmptyTermVisitor
+            //if (ParseEmptyQuery)
+            //{
+            //    var visitor = new EmptyTermVisitor();
+            //    rootNode = visitor.Visit(rootNode);
+            //}
+
+            var result = new SnQuery { Querytext = queryText, QueryTree = rootNode };
+
+            var sortFields = new List<SortInfo>();
+            foreach (var control in _controls)
+            {
+                //UNDONE:!!!! context.Settings is not used
+                switch (control.Name)
+                {
+                    case CqlLexer.Keywords.Select:
+                        result.Projection = control.Value;
+                        break;
+                    case CqlLexer.Keywords.Top:
+                        result.Top = Convert.ToInt32(control.Value);
+                        break;
+                    case CqlLexer.Keywords.Skip:
+                        result.Skip = Convert.ToInt32(control.Value);
+                        break;
+                    case CqlLexer.Keywords.Sort:
+                        sortFields.Add(new SortInfo {FieldName = control.Value, Reverse = false});
+                        break;
+                    case CqlLexer.Keywords.ReverseSort:
+                        sortFields.Add(new SortInfo { FieldName = control.Value, Reverse = true });
+                        break;
+                    case CqlLexer.Keywords.Autofilters:
+                        result.EnableAutofilters = control.Value == CqlLexer.Keywords.On ? FilterStatus.Enabled : FilterStatus.Disabled;
+                        break;
+                    case CqlLexer.Keywords.Lifespan:
+                        result.EnableLifespanFilter = control.Value == CqlLexer.Keywords.On ? FilterStatus.Enabled : FilterStatus.Disabled;
+                        break;
+                    case CqlLexer.Keywords.CountOnly:
+                        result.CountOnly = true;
+                        break;
+                    case CqlLexer.Keywords.Quick:
+                        result.QueryExecutionMode = QueryExecutionMode.Quick;
+                        break;
+                }
+            }
+            result.Sort = sortFields.ToArray();
+            return result;
         }
-        public Query Parse(string queryText, DefaultOperator @operator)
+        private SnQueryNode Parse(string queryText, DefaultOperator @operator)
         {
-            _lexer = new SnLucLexer(queryText);
+            _lexer = new CqlLexer(queryText);
             _controls.Clear();
             Operator = @operator;
             return ParseTopLevelQueryExpList();
         }
 
-        private Query ParseTopLevelQueryExpList()
+
+        /* ============================================================================ Recursive descent methods */
+
+        private SnQueryNode ParseTopLevelQueryExpList()
         {
             // QueryExpList    ==>  QueryExp | QueryExpList QueryExp
 
-            var queries = new List<Query>();
+            var queries = new List<SnQueryNode>();
             while (!IsEof())
             {
                 var q = ParseQueryExp();
@@ -160,83 +115,83 @@ namespace SenseNet.Search.Parser
             if (queries.Count == 1)
                 return queries[0];
 
-            var boolQuery = new BooleanQuery();
+            var boolQuery = new BoolList();
             foreach (var q in queries)
-                AddBooleanClause(boolQuery, q, null);
+                AddBooleanClause(boolQuery, q, Occurence.Default);
             return boolQuery;
 
         }
-        private Query ParseQueryExpList()
+        private SnQueryNode ParseQueryExpList()
         {
             // QueryExpList    ==>  QueryExp | QueryExpList QueryExp
 
-            var queries = new List<Query>();
-            while (!IsEof() && _lexer.CurrentToken != SnLucLexer.Token.RParen)
+            var queries = new List<SnQueryNode>();
+            while (!IsEof() && _lexer.CurrentToken != CqlLexer.Token.RParen)
             {
                 var q = ParseQueryExp();
-                if(q != null)
+                if (q != null)
                     queries.Add(q);
             }
 
             if (queries.Count == 0)
                 return null;
 
-            if(queries.Count == 1)
+            if (queries.Count == 1)
                 return queries[0];
 
-            var boolQuery = new BooleanQuery();
-            foreach(var q in queries)
-                AddBooleanClause(boolQuery, q, null);
+            var boolQuery = new BoolList();
+            foreach (var q in queries)
+                AddBooleanClause(boolQuery, q, Occurence.Default);
             return boolQuery;
 
         }
-        private Query ParseQueryExp()
+        private SnQueryNode ParseQueryExp()
         {
             // BinaryOr | ControlExp*
-            while (_lexer.CurrentToken == SnLucLexer.Token.ControlKeyword)
+            while (_lexer.CurrentToken == CqlLexer.Token.ControlKeyword)
                 ParseControlExp();
             if (IsEof())
                 return null;
             return ParseBinaryOr();
         }
-        private Query ParseBinaryOr()
+        private SnQueryNode ParseBinaryOr()
         {
             // BinaryOr        ==>  BinaryAnd | BinaryOr OR BinaryAnd
-            var queries = new List<Query>();
+            var queries = new List<SnQueryNode>();
             queries.Add(ParseBinaryAnd());
-            while (_lexer.CurrentToken == SnLucLexer.Token.Or)
+            while (_lexer.CurrentToken == CqlLexer.Token.Or)
             {
                 _lexer.NextToken();
                 queries.Add(ParseBinaryAnd());
             }
             if (queries.Count == 1)
                 return queries[0];
-            var boolq = new BooleanQuery();
+            var boolq = new BoolList();
             foreach (var query in queries)
-                AddBooleanClause(boolq, query, BooleanClause.Occur.SHOULD);
+                AddBooleanClause(boolq, query, Occurence.Should);
             return boolq;
         }
-        private Query ParseBinaryAnd()
+        private SnQueryNode ParseBinaryAnd()
         {
             // BinaryAnd       ==>  UnaryNot | BinaryAnd AND UnaryNot
-            var queries = new List<Query>();
+            var queries = new List<SnQueryNode>();
             queries.Add(ParseUnaryNot());
-            while (_lexer.CurrentToken == SnLucLexer.Token.And)
+            while (_lexer.CurrentToken == CqlLexer.Token.And)
             {
                 _lexer.NextToken();
                 queries.Add(ParseUnaryNot());
             }
             if (queries.Count == 1)
                 return queries[0];
-            var boolq = new BooleanQuery();
+            var boolq = new BoolList();
             foreach (var query in queries)
-                AddBooleanClause(boolq, query, BooleanClause.Occur.MUST);
+                AddBooleanClause(boolq, query, Occurence.Must);
             return boolq;
         }
-        private Query ParseUnaryNot()
+        private SnQueryNode ParseUnaryNot()
         {
             var not = false;
-            if (_lexer.CurrentToken == SnLucLexer.Token.Not)
+            if (_lexer.CurrentToken == CqlLexer.Token.Not)
             {
                 _lexer.NextToken();
                 not = true;
@@ -244,59 +199,56 @@ namespace SenseNet.Search.Parser
             var query = ParseClause();
             if (!not)
                 return query;
-            var boolq = new BooleanQuery();
-            AddBooleanClause(boolq, query, BooleanClause.Occur.MUST_NOT);
+            var boolq = new BoolList();
+            AddBooleanClause(boolq, query, Occurence.MustNot);
             return boolq;
-
         }
-        private Query ParseClause()
+        private SnQueryNode ParseClause()
         {
             var occur = ParseOccur();
             var query = ParseQueryExpGroup();
             var boost = ParseBoost();
             if (boost != null)
-                query.SetBoost(Convert.ToSingle(boost.Value));
-            if (occur == null || occur == BooleanClause.Occur.SHOULD)
+                query.Boost = Convert.ToSingle(boost.Value);
+            if (occur == Occurence.Default || occur == Occurence.Should)
                 return query;
-            var boolq = new BooleanQuery();
+            var boolq = new BoolList();
             AddBooleanClause(boolq, query, occur);
             return boolq;
         }
-        private BooleanClause.Occur ParseOccur()
+        private Occurence ParseOccur()
         {
-            if (_lexer.CurrentToken == SnLucLexer.Token.Minus)
+            if (_lexer.CurrentToken == CqlLexer.Token.Minus)
             {
                 _lexer.NextToken();
-                return BooleanClause.Occur.MUST_NOT;
+                return Occurence.MustNot;
             }
-            if (_lexer.CurrentToken == SnLucLexer.Token.Plus)
+            if (_lexer.CurrentToken == CqlLexer.Token.Plus)
             {
                 _lexer.NextToken();
-                return BooleanClause.Occur.MUST;
+                return Occurence.Must;
             }
-            if(Operator == DefaultOperator.And)
-                return BooleanClause.Occur.MUST;
-            return null;
+            if (Operator == DefaultOperator.And)
+                return Occurence.Must;
+            return Occurence.Default;
         }
-        private Query ParseQueryExpGroup()
+        private SnQueryNode ParseQueryExpGroup()
         {
             // QueryExpGroup   ==>  LPAREN ClauseList RPAREN | TermExp
-            if (_lexer.CurrentToken != SnLucLexer.Token.LParen)
+            if (_lexer.CurrentToken != CqlLexer.Token.LParen)
                 return ParseTermExp();
             _lexer.NextToken();
 
             var clauses = ParseQueryExpList();
-            if (_lexer.CurrentToken != SnLucLexer.Token.RParen)
+            if (_lexer.CurrentToken != CqlLexer.Token.RParen)
                 throw ParserError("Missing ')'");
             _lexer.NextToken();
             return clauses;
         }
 
-        private Query ParseTermExp()
+        private SnQueryNode ParseTermExp()
         {
             // TermExp           ==>  UnaryTermExp | BinaryTermExp | QueryExpGroup | DefaultFieldExp
-
-            Query result = null;
 
             var fieldInfo = ParseFieldHead();
             if (fieldInfo != null)
@@ -310,39 +262,42 @@ namespace SenseNet.Search.Parser
                 _currentField.Push(FieldInfo.Default);
                 FieldLevel = QueryFieldLevel.BinaryOrFullText;
             }
-            result = ParseUnaryTermExp();
+
+            var result = ParseUnaryTermExp();
             if (result != null)
             {
                 _currentField.Pop();
                 return result;
             }
+
             result = ParseBinaryTermExp();
             if (result != null)
             {
                 _currentField.Pop();
                 return result;
             }
+
             result = ParseQueryExpGroup();
             if (result != null)
             {
                 _currentField.Pop();
                 return result;
             }
+
             result = ParseDefaultFieldExp();
             if (result != null)
             {
                 _currentField.Pop();
                 return result;
             }
+
             throw ParserError("Expected field expression, expression group or simple term.");
         }
-        private Query ParseUnaryTermExp()
+        private SnQueryNode ParseUnaryTermExp()
         {
             // UnaryTermExp      ==>  UnaryFieldHead UnaryFieldValue | ControlExp
             // UnaryFieldHead    ==>  STRING COLON | STRING NEQ
             // UnaryFieldValue   ==>  ValueGroup | Range
-
-            Query result = null;
 
             var fieldInfo = _currentField.Peek();
             if (fieldInfo == null)
@@ -350,15 +305,15 @@ namespace SenseNet.Search.Parser
             if (fieldInfo.IsBinary)
                 return null;
 
-            if (fieldInfo.OperatorToken == SnLucLexer.Token.NEQ)
+            if (fieldInfo.OperatorToken == CqlLexer.Token.NEQ)
             {
                 var value = ParseExactValue(true);
-                var bq = new BooleanQuery();
-                bq.Add(new BooleanClause(CreateValueQuery(value), BooleanClause.Occur.MUST_NOT));
+                var bq = new BoolList();
+                bq.Clauses.Add(new Bool(CreateValueQuery(value), Occurence.MustNot));
                 return bq;
             }
 
-            result = ParseValueGroup();
+            var result = ParseValueGroup();
             if (result != null)
                 return result;
 
@@ -368,7 +323,7 @@ namespace SenseNet.Search.Parser
 
             throw ParserError(String.Concat("Unexpected '", _lexer.StringValue, "'"));
         }
-        private Query ParseBinaryTermExp()
+        private SnQueryNode ParseBinaryTermExp()
         {
             // BinaryTermExp     ==>  BinaryFieldHead Value
             // BinaryFieldHead   ==>  STRING LT | STRING GT | STRING LTE | STRING GTE
@@ -382,29 +337,29 @@ namespace SenseNet.Search.Parser
             var value = ParseExactValue(true);
             switch (fieldInfo.OperatorToken)
             {
-                case SnLucLexer.Token.LT:
+                case CqlLexer.Token.LT:
                     return CreateRangeQuery(fieldInfo.Name, null, value, true, false);
-                case SnLucLexer.Token.LTE:
+                case CqlLexer.Token.LTE:
                     return CreateRangeQuery(fieldInfo.Name, null, value, true, true);
-                case SnLucLexer.Token.GT:
+                case CqlLexer.Token.GT:
                     return CreateRangeQuery(fieldInfo.Name, value, null, false, true);
-                case SnLucLexer.Token.GTE:
+                case CqlLexer.Token.GTE:
                     return CreateRangeQuery(fieldInfo.Name, value, null, true, true);
             }
 
-            throw new SnNotSupportedException("Unexpected OperatorToken: " + fieldInfo.OperatorToken);
+            throw ParserError("Unexpected OperatorToken: " + fieldInfo.OperatorToken);
         }
-        private Query ParseDefaultFieldExp()
+        private SnQueryNode ParseDefaultFieldExp()
         {
             // DefaultFieldExp   ==>  ValueGroup
             return ParseValueGroup();
         }
 
-        private Query ParseValueGroup()
+        private SnQueryNode ParseValueGroup()
         {
             // ValueGroup        ==>  LPAREN ValueExpList RPAREN | FuzzyValue
 
-            if (_lexer.CurrentToken != SnLucLexer.Token.LParen)
+            if (_lexer.CurrentToken != CqlLexer.Token.LParen)
             {
                 var value = ParseFuzzyValue();
                 if (value != null)
@@ -415,78 +370,78 @@ namespace SenseNet.Search.Parser
 
             var result = ParseValueExpList();
 
-            if (_lexer.CurrentToken != SnLucLexer.Token.RParen)
+            if (_lexer.CurrentToken != CqlLexer.Token.RParen)
                 throw ParserError("Expcted: ')'");
             _lexer.NextToken();
 
             return result;
         }
-        private Query ParseValueExpList()
+        private SnQueryNode ParseValueExpList()
         {
             // ValueExpList      ==>  ValueExp | ValueExpList ValueExp
 
-            BooleanQuery boolQuery;
+            BoolList boolQuery;
             var first = ParseValueExp();
 
-            if (_lexer.CurrentToken == SnLucLexer.Token.RParen)
+            if (_lexer.CurrentToken == CqlLexer.Token.RParen)
                 return first;
 
-            boolQuery = new BooleanQuery();
-            AddBooleanClause(boolQuery, first, null);
+            boolQuery = new BoolList();
+            AddBooleanClause(boolQuery, first, Occurence.Default);
 
-            while (!IsEof() && _lexer.CurrentToken != SnLucLexer.Token.RParen)
+            while (!IsEof() && _lexer.CurrentToken != CqlLexer.Token.RParen)
             {
                 var q = ParseValueExp();
-                AddBooleanClause(boolQuery, q, null);
+                AddBooleanClause(boolQuery, q, Occurence.Default);
             }
 
             return boolQuery;
         }
-        private Query ParseValueExp()
+        private SnQueryNode ParseValueExp()
         {
             // ValueExp          ==>  ValueBinaryOr
             return ParseValueBinaryOr();
         }
-        private Query ParseValueBinaryOr()
+        private SnQueryNode ParseValueBinaryOr()
         {
             // ValueBinaryOr     ==>  ValueBinaryAnd | ValueBinaryOr OR ValueBinaryAnd
-            var queries = new List<Query>();
+            var queries = new List<SnQueryNode>();
             queries.Add(ParseValueBinaryAnd());
-            while (_lexer.CurrentToken == SnLucLexer.Token.Or)
+            while (_lexer.CurrentToken == CqlLexer.Token.Or)
             {
                 _lexer.NextToken();
                 queries.Add(ParseValueBinaryAnd());
             }
             if (queries.Count == 1)
                 return queries[0];
-            var boolq = new BooleanQuery();
+            var boolq = new BoolList();
             foreach (var query in queries)
-                AddBooleanClause(boolq, query, BooleanClause.Occur.SHOULD);
+                AddBooleanClause(boolq, query, Occurence.Should);
             return boolq;
         }
-        private Query ParseValueBinaryAnd()
+        private SnQueryNode ParseValueBinaryAnd()
         {
             // ValueBinaryAnd    ==>  ValueUnaryNot | ValueBinaryAnd AND ValueUnaryNot
-            var queries = new List<Query>();
+            var queries = new List<SnQueryNode>();
             queries.Add(ParseValueUnaryNot());
-            while (_lexer.CurrentToken == SnLucLexer.Token.And)
+            while (_lexer.CurrentToken == CqlLexer.Token.And)
             {
                 _lexer.NextToken();
                 queries.Add(ParseValueUnaryNot());
             }
             if (queries.Count == 1)
                 return queries[0];
-            var boolq = new BooleanQuery();
+            var boolq = new BoolList();
             foreach (var query in queries)
-                AddBooleanClause(boolq, query, BooleanClause.Occur.MUST);
+                AddBooleanClause(boolq, query, Occurence.Must);
             return boolq;
         }
-        private Query ParseValueUnaryNot()
+        private SnQueryNode ParseValueUnaryNot()
         {
             // ValueUnaryNot     ==>  ValueClause | NOT ValueClause
             // ValueClause       ==>  [Occur] ValueGroup
             var not = false;
-            if (_lexer.CurrentToken == SnLucLexer.Token.Not)
+            if (_lexer.CurrentToken == CqlLexer.Token.Not)
             {
                 _lexer.NextToken();
                 not = true;
@@ -494,24 +449,24 @@ namespace SenseNet.Search.Parser
             var query = ParseValueClause();
             if (!not)
                 return query;
-            var boolq = new BooleanQuery();
-            AddBooleanClause(boolq, query, BooleanClause.Occur.MUST_NOT);
+            var boolq = new BoolList();
+            AddBooleanClause(boolq, query, Occurence.MustNot);
             return boolq;
         }
-        private Query ParseValueClause()
+        private SnQueryNode ParseValueClause()
         {
             // ValueClause       ==>  [Occur] ValueGroup
             var occur = ParseOccur();
             var query = ParseValueGroup();
-            var boost = ParseBoost();
-            if (occur == null || occur == BooleanClause.Occur.SHOULD)
+            query.Boost = ParseBoost();
+            if (occur == Occurence.Default || occur == Occurence.Should)
                 return query;
-            var boolq = new BooleanQuery();
+            var boolq = new BoolList();
             AddBooleanClause(boolq, query, occur);
             return boolq;
         }
 
-        // =====================================================
+        /* ===================================================== */
 
         private FieldInfo ParseFieldHead()
         {
@@ -519,7 +474,7 @@ namespace SenseNet.Search.Parser
             // BinaryFieldHead   ==>  STRING COLON LT | STRING COLON GT | STRING COLON LTE | STRING COLON GTE
 
             FieldInfo fieldInfo = null;
-            if (_lexer.CurrentToken == SnLucLexer.Token.Field)
+            if (_lexer.CurrentToken == CqlLexer.Token.Field)
             {
                 var name = _lexer.StringValue;
                 if (name == "Password" || name == "PasswordHash")
@@ -531,22 +486,22 @@ namespace SenseNet.Search.Parser
                 SetFieldLevel(fieldInfo);
 
                 _lexer.NextToken();
-                if (_lexer.CurrentToken != SnLucLexer.Token.Colon)
+                if (_lexer.CurrentToken != CqlLexer.Token.Colon)
                     throw new InvalidOperationException("#### ParseFieldHead ####");
 
 
                 _lexer.NextToken();
                 switch (_lexer.CurrentToken)
                 {
-                    case SnLucLexer.Token.NEQ:
+                    case CqlLexer.Token.NEQ:
                         fieldInfo.IsBinary = false;
                         fieldInfo.OperatorToken = _lexer.CurrentToken;
                         _lexer.NextToken();
                         break;
-                    case SnLucLexer.Token.LT:
-                    case SnLucLexer.Token.LTE:
-                    case SnLucLexer.Token.GT:
-                    case SnLucLexer.Token.GTE:
+                    case CqlLexer.Token.LT:
+                    case CqlLexer.Token.LTE:
+                    case CqlLexer.Token.GT:
+                    case CqlLexer.Token.GTE:
                         fieldInfo.IsBinary = true;
                         fieldInfo.OperatorToken = _lexer.CurrentToken;
                         _lexer.NextToken();
@@ -556,14 +511,14 @@ namespace SenseNet.Search.Parser
 
             return fieldInfo;
         }
-        private Query ParseRange()
+        private SnQueryNode ParseRange()
         {
             // Range        ==>  RangeStart ExactValue TO ExactValue RangeEnd
             var start = ParseRangeStart();
             if (start == null)
                 return null;
             var minValue = ParseExactValue(false);
-            if (_lexer.CurrentToken != SnLucLexer.Token.To)
+            if (_lexer.CurrentToken != CqlLexer.Token.To)
                 throw SyntaxError();
             _lexer.NextToken();
             var maxValue = ParseExactValue(false);
@@ -573,15 +528,15 @@ namespace SenseNet.Search.Parser
 
             var fieldInfo = _currentField.Peek();
             var fieldName = fieldInfo.Name;
-            var includeLower = start.Value == true;
-            var includeUpper = end.Value == true;
+            var includeLower = start.Value;
+            var includeUpper = end.Value;
 
             if (minValue == null && maxValue == null)
                 throw ParserError("Invalid range.");
 
             return CreateRangeQuery(fieldName, minValue, maxValue, includeLower, includeUpper);
         }
-        private QueryFieldValue_OLD ParseFuzzyValue()
+        private QueryFieldValue ParseFuzzyValue()
         {
             // FuzzyValue   ==>  Value [Fuzzy]
             var val = ParseValue(false);
@@ -590,33 +545,33 @@ namespace SenseNet.Search.Parser
             val.FuzzyValue = ParseFuzzy(val.IsPhrase);
             return val;
         }
-        private QueryFieldValue_OLD ParseValue(bool throwEx)
+        private QueryFieldValue ParseValue(bool throwEx)
         {
             // Value        ==>  ExactValue | WILDCARDSTRING
             var val = ParseExactValue(false);
             if (val != null)
                 return val;
-            if (_lexer.CurrentToken == SnLucLexer.Token.WildcardString)
+            if (_lexer.CurrentToken == CqlLexer.Token.WildcardString)
             {
-                val = new QueryFieldValue_OLD(_lexer.StringValue.ToLower(), _lexer.CurrentToken, _lexer.IsPhrase );
+                val = new QueryFieldValue(_lexer.StringValue.ToLower(), _lexer.CurrentToken, _lexer.IsPhrase);
                 _lexer.NextToken();
                 return val;
             }
             if (!throwEx)
                 return null;
-            throw ParserError(String.Concat("Unexpected ", _lexer.CurrentToken, ". Expected: STRING | NUMBER | WILDCARDSTRING"));
+            throw ParserError($"Unexpected {_lexer.CurrentToken}. Expected: STRING | NUMBER | WILDCARDSTRING");
         }
-        private QueryFieldValue_OLD ParseExactValue(bool throwEx)
+        private QueryFieldValue ParseExactValue(bool throwEx)
         {
             // ExactValue   ==>  STRING | NUMBER | EMPTY
             if (_lexer.StringValue == SnQuery.EmptyText)
             {
                 ParseEmptyQuery = true;
-                var fieldVal = new QueryFieldValue_OLD(_lexer.StringValue, _lexer.CurrentToken, _lexer.IsPhrase);
+                var fieldVal = new QueryFieldValue(_lexer.StringValue, _lexer.CurrentToken, _lexer.IsPhrase);
                 _lexer.NextToken();
                 return fieldVal;
             }
-            if (_lexer.CurrentToken != SnLucLexer.Token.String && _lexer.CurrentToken != SnLucLexer.Token.Number)
+            if (_lexer.CurrentToken != CqlLexer.Token.String && _lexer.CurrentToken != CqlLexer.Token.Number)
             {
                 if (throwEx)
                     throw ParserError(String.Concat("Unexpected ", _lexer.CurrentToken, ". Expected: STRING | NUMBER"));
@@ -625,10 +580,10 @@ namespace SenseNet.Search.Parser
 
             var field = _currentField.Peek();
             var fieldName = field.Name;
-            var val = new QueryFieldValue_OLD(_lexer.StringValue, _lexer.CurrentToken, _lexer.IsPhrase);
+            var val = new QueryFieldValue(_lexer.StringValue, _lexer.CurrentToken, _lexer.IsPhrase);
             if (fieldName != IndexFieldName.AllText && _lexer.StringValue != SnQuery.EmptyInnerQueryText)
             {
-                var info = StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(fieldName);
+                var info = _context.GetPerFieldIndexingInfo(fieldName);
                 if (info != null)
                 {
                     var fieldHandler = info.IndexFieldHandler;
@@ -649,19 +604,19 @@ namespace SenseNet.Search.Parser
         private double? ParseFuzzy(bool isPhrase)
         {
             // Fuzzy        ==>  TILDE [NUMBER]
-            if (_lexer.CurrentToken != SnLucLexer.Token.Tilde)
+            if (_lexer.CurrentToken != CqlLexer.Token.Tilde)
                 return null;
             _lexer.NextToken();
             if (isPhrase)
             {
-                if (_lexer.CurrentToken != SnLucLexer.Token.Number)
+                if (_lexer.CurrentToken != CqlLexer.Token.Number)
                     throw ParserError("Missing proximity value");
                 _lexer.NextToken();
                 return _lexer.NumberValue;
             }
             else
             {
-                if (_lexer.CurrentToken != SnLucLexer.Token.Number)
+                if (_lexer.CurrentToken != CqlLexer.Token.Number)
                     return _defaultSimilarity;
                 if (_lexer.NumberValue < 0.0 || _lexer.NumberValue > 1.0)
                     throw ParserError(String.Concat("Invalid fuzzy value (0.0-1.0): ", _lexer.NumberValue));
@@ -672,10 +627,10 @@ namespace SenseNet.Search.Parser
         private double? ParseBoost()
         {
             // Boost        ==>  CIRC NUMBER
-            if (_lexer.CurrentToken != SnLucLexer.Token.Circ)
+            if (_lexer.CurrentToken != CqlLexer.Token.Circ)
                 return null;
             _lexer.NextToken();
-            if (_lexer.CurrentToken != SnLucLexer.Token.Number)
+            if (_lexer.CurrentToken != CqlLexer.Token.Number)
                 throw SyntaxError();
             _lexer.NextToken();
             return _lexer.NumberValue;
@@ -683,12 +638,12 @@ namespace SenseNet.Search.Parser
         private bool? ParseRangeStart()
         {
             // RangeStart   ==>  LBRACKET | LBRACE
-            if (_lexer.CurrentToken == SnLucLexer.Token.LBracket)//excl
+            if (_lexer.CurrentToken == CqlLexer.Token.LBracket)//excl
             {
                 _lexer.NextToken();
                 return true;
             }
-            if (_lexer.CurrentToken == SnLucLexer.Token.LBrace)//incl
+            if (_lexer.CurrentToken == CqlLexer.Token.LBrace)//incl
             {
                 _lexer.NextToken();
                 return false;
@@ -698,12 +653,12 @@ namespace SenseNet.Search.Parser
         private bool? ParseRangeEnd()
         {
             // RangeEnd     ==>  RBRACKET | RBRACE
-            if (_lexer.CurrentToken == SnLucLexer.Token.RBracket)//excl
+            if (_lexer.CurrentToken == CqlLexer.Token.RBracket)//excl
             {
                 _lexer.NextToken();
                 return true;
             }
-            if (_lexer.CurrentToken == SnLucLexer.Token.RBrace)//incl
+            if (_lexer.CurrentToken == CqlLexer.Token.RBrace)//incl
             {
                 _lexer.NextToken();
                 return false;
@@ -711,7 +666,8 @@ namespace SenseNet.Search.Parser
             return null;
         }
 
-        // -----------------------------------------------------
+
+        /* ============================================================================ Parse control */
 
         private void ParseControlExp()
         {
@@ -723,6 +679,7 @@ namespace SenseNet.Search.Parser
                 return;
             throw ParserError("Unknown control keyword: " + startString);
         }
+
         private bool ParseControlExpWithParam()
         {
             // ControlExpWithParam     ==>  ControlByNumberParam | ControlByStringParam | ControlBySwitchParam
@@ -742,10 +699,10 @@ namespace SenseNet.Search.Parser
             var name = ParseControlByNumberName();
             if (name == null)
                 return false;
-            if (_lexer.CurrentToken != SnLucLexer.Token.Colon)
+            if (_lexer.CurrentToken != CqlLexer.Token.Colon)
                 throw ParserError("Expected: Colon (':')");
             _lexer.NextToken();
-            if (_lexer.CurrentToken != SnLucLexer.Token.Number)
+            if (_lexer.CurrentToken != CqlLexer.Token.Number)
                 throw ParserError("Expected: Number");
             InterpretControl(name, _lexer.StringValue);
             _lexer.NextToken();
@@ -757,8 +714,8 @@ namespace SenseNet.Search.Parser
             string name = null;
             switch (_lexer.StringValue)
             {
-                case SnLucLexer.Keywords.Top: name = SnLucLexer.Keywords.Top; break;
-                case SnLucLexer.Keywords.Skip: name = SnLucLexer.Keywords.Skip; break;
+                case CqlLexer.Keywords.Top: name = CqlLexer.Keywords.Top; break;
+                case CqlLexer.Keywords.Skip: name = CqlLexer.Keywords.Skip; break;
             }
             if (name != null)
                 _lexer.NextToken();
@@ -770,10 +727,10 @@ namespace SenseNet.Search.Parser
             var name = ParseControlByStringName();
             if (name == null)
                 return false;
-            if (_lexer.CurrentToken != SnLucLexer.Token.Colon)
+            if (_lexer.CurrentToken != CqlLexer.Token.Colon)
                 throw ParserError("Expected: Colon (':')");
             _lexer.NextToken();
-            if (_lexer.CurrentToken != SnLucLexer.Token.String)
+            if (_lexer.CurrentToken != CqlLexer.Token.String)
                 throw ParserError("Expected: String");
             InterpretControl(name, _lexer.StringValue);
             _lexer.NextToken();
@@ -785,9 +742,9 @@ namespace SenseNet.Search.Parser
             string name = null;
             switch (_lexer.StringValue)
             {
-                case SnLucLexer.Keywords.Select: name = SnLucLexer.Keywords.Select; break;
-                case SnLucLexer.Keywords.Sort: name = SnLucLexer.Keywords.Sort; break;
-                case SnLucLexer.Keywords.ReverseSort: name = SnLucLexer.Keywords.ReverseSort; break;
+                case CqlLexer.Keywords.Select: name = CqlLexer.Keywords.Select; break;
+                case CqlLexer.Keywords.Sort: name = CqlLexer.Keywords.Sort; break;
+                case CqlLexer.Keywords.ReverseSort: name = CqlLexer.Keywords.ReverseSort; break;
             }
             if (name != null)
                 _lexer.NextToken();
@@ -799,7 +756,7 @@ namespace SenseNet.Search.Parser
             var name = ParseControlBySwitchName();
             if (name == null)
                 return false;
-            if (_lexer.CurrentToken != SnLucLexer.Token.Colon)
+            if (_lexer.CurrentToken != CqlLexer.Token.Colon)
                 throw ParserError("Expected: Colon (':')");
             _lexer.NextToken();
             var param = ParseSwitchParam();
@@ -812,8 +769,8 @@ namespace SenseNet.Search.Parser
             string name = null;
             switch (_lexer.StringValue)
             {
-                case SnLucLexer.Keywords.Autofilters: name = SnLucLexer.Keywords.Autofilters; break;
-                case SnLucLexer.Keywords.Lifespan: name = SnLucLexer.Keywords.Lifespan; break;
+                case CqlLexer.Keywords.Autofilters: name = CqlLexer.Keywords.Autofilters; break;
+                case CqlLexer.Keywords.Lifespan: name = CqlLexer.Keywords.Lifespan; break;
             }
             if (name != null)
                 _lexer.NextToken();
@@ -823,14 +780,15 @@ namespace SenseNet.Search.Parser
         private string ParseSwitchParam()
         {
             // SwitchParam             ==>  ON | OFF
-            if ((_lexer.CurrentToken != SnLucLexer.Token.String)
-                || (_lexer.StringValue != SnLucLexer.Keywords.On && _lexer.StringValue != SnLucLexer.Keywords.Off))
-                throw ParserError(String.Concat("Invalid parameter: ", _lexer.StringValue, 
-                    ". Expected: '", SnLucLexer.Keywords.On, "' or '", SnLucLexer.Keywords.Off, "'"));
+            if ((_lexer.CurrentToken != CqlLexer.Token.String)
+                || (_lexer.StringValue != CqlLexer.Keywords.On && _lexer.StringValue != CqlLexer.Keywords.Off))
+                throw ParserError(String.Concat("Invalid parameter: ", _lexer.StringValue,
+                    ". Expected: '", CqlLexer.Keywords.On, "' or '", CqlLexer.Keywords.Off, "'"));
             var value = _lexer.StringValue;
             _lexer.NextToken();
             return value;
         }
+
 
         private bool ParseControlExpWithoutParam()
         {
@@ -849,50 +807,50 @@ namespace SenseNet.Search.Parser
             string name = null;
             switch (_lexer.StringValue)
             {
-                case SnLucLexer.Keywords.CountOnly: name = SnLucLexer.Keywords.CountOnly; break;
-                case SnLucLexer.Keywords.Quick: name = SnLucLexer.Keywords.Quick; break;
+                case CqlLexer.Keywords.CountOnly: name = CqlLexer.Keywords.CountOnly; break;
+                case CqlLexer.Keywords.Quick: name = CqlLexer.Keywords.Quick; break;
             }
             if (name != null)
                 _lexer.NextToken();
             return name;
         }
 
-        // -----------------------------------------------------
-
         private void InterpretControl(string name, string param)
         {
             _controls.Add(new QueryControlParam { Name = name, Value = param });
         }
 
-        private void AddBooleanClause(BooleanQuery boolQuery, Query query, BooleanClause.Occur occur)
+        /* ============================================================================ */
+
+        private void AddBooleanClause(BoolList boolNode, SnQueryNode query, Occurence occur)
         {
-            var boolQ = query as BooleanQuery;
+            var boolQ = query as BoolList;
             if (boolQ == null)
             {
-                boolQuery.Add(new BooleanClause(query, occur));
+                boolNode.Clauses.Add(new Bool(query, occur));
                 return;
             }
-            var clauses = boolQ.GetClauses();
-            if (clauses.Length == 0)
+            var clauses = boolQ.Clauses;
+            if (clauses.Count == 0)
             {
-                throw ParserError("Empty BooleanQuery");
+                throw ParserError("Empty BooleanNode");
             }
-            if (clauses.Length > 1)
+            if (clauses.Count > 1)
             {
-                boolQuery.Add(new BooleanClause(query, occur));
+                boolNode.Clauses.Add(new Bool(query, occur));
                 return;
             }
 
             // boolQ has one clause: combine occurs
-            var clause = (BooleanClause)clauses[0];
-            var clauseOccur = clause.GetOccur();
-            BooleanClause.Occur effectiveOccur;
+            var clause = clauses[0];
+            var clauseOccur = clause.Occur;
+            Occurence effectiveOccur;
             if (Operator == DefaultOperator.Or)
             {
-                // in    cl      eff
-                // null  _  ==>  _
-                // null  +  ==>  +
-                // null  -  ==>  -
+                //   in  cl      eff
+                //    ?  _  ==>  _
+                //    ?  +  ==>  +
+                //    ?  -  ==>  -
                 //    _  _  ==>  _
                 //    _  +  ==>  +
                 //    _  -  ==>  -
@@ -902,21 +860,21 @@ namespace SenseNet.Search.Parser
                 //    -  _  ==>  -
                 //    -  +  ==>  -
                 //    -  -  ==>  -
-                if (occur == null || occur == BooleanClause.Occur.SHOULD)
+                if (occur == Occurence.Default || occur == Occurence.Should)
                     effectiveOccur = clauseOccur;
-                else if (occur == BooleanClause.Occur.MUST_NOT)
+                else if (occur == Occurence.MustNot)
                     effectiveOccur = occur;
-                else if (clauseOccur == BooleanClause.Occur.MUST_NOT)
+                else if (clauseOccur == Occurence.MustNot)
                     effectiveOccur = clauseOccur;
                 else
                     effectiveOccur = occur;
             }
             else
             {
-                // in    cl      eff
-                // null  _  ==>  _
-                // null  +  ==>  +
-                // null  -  ==>  -
+                //   in  cl      eff
+                //    ?  _  ==>  _
+                //    ?  +  ==>  +
+                //    ?  -  ==>  -
                 //    _  _  ==>  _
                 //    _  +  ==>  _
                 //    _  -  ==>  -
@@ -926,166 +884,126 @@ namespace SenseNet.Search.Parser
                 //    -  _  ==>  -
                 //    -  +  ==>  -
                 //    -  -  ==>  -
-                if (occur == null)
+                if (occur == Occurence.Default)
                     effectiveOccur = clauseOccur;
-                else if (occur == BooleanClause.Occur.MUST_NOT)
+                else if (occur == Occurence.MustNot)
                     effectiveOccur = occur;
-                else if (clauseOccur == BooleanClause.Occur.MUST_NOT)
+                else if (clauseOccur == Occurence.MustNot)
                     effectiveOccur = clauseOccur;
                 else
                     effectiveOccur = occur;
             }
-            clause.SetOccur(effectiveOccur);
-            boolQuery.Add(clause);
+            clause.Occur = effectiveOccur;
+            boolNode.Clauses.Add(clause);
         }
-        private Query CreateValueQuery(QueryFieldValue_OLD value)
+
+        private SnQueryNode CreateValueQuery(QueryFieldValue value)
         {
             var currentField = _currentField.Peek();
-            string numval;
+            var fieldName = currentField.Name;
             switch (value.Datatype)
             {
                 case IndexableDataType.String:
                     return CreateStringValueQuery(value, currentField);
-                case IndexableDataType.Int: numval = NumericUtils.IntToPrefixCoded(value.IntValue); break;
-                case IndexableDataType.Long: numval = NumericUtils.LongToPrefixCoded(value.LongValue); break;
-                case IndexableDataType.Float: numval = NumericUtils.FloatToPrefixCoded(value.SingleValue); break;
-                case IndexableDataType.Double: numval = NumericUtils.DoubleToPrefixCoded(value.DoubleValue); break;
+                case IndexableDataType.Int: return new Numeric<int>(fieldName, value.IntValue); //UNDONE: Use NumericUtils.IntToPrefixCoded(value) in the compiler
+                case IndexableDataType.Long: return new Numeric<long>(fieldName, value.LongValue); //UNDONE: Use NumericUtils.LongToPrefixCoded(value) in the compiler
+                case IndexableDataType.Float: return new Numeric<float>(fieldName, value.SingleValue); //UNDONE: Use NumericUtils.FloatToPrefixCoded(value) in the compiler
+                case IndexableDataType.Double: return new Numeric<double>(fieldName, value.DoubleValue); //UNDONE: Use NumericUtils.DoubleToPrefixCoded(value) in the compiler
                 default:
-                    throw new SnNotSupportedException("Unknown IndexableDataType enum value: " + value.Datatype);
+                    throw ParserError("Unknown IndexableDataType enum value: " + value.Datatype);
             }
-            var numterm = new Term(currentField.Name, numval);
-            return new TermQuery(numterm);
         }
-        private Query CreateStringValueQuery(QueryFieldValue_OLD value, FieldInfo currentField)
+        private SnQueryNode CreateStringValueQuery(QueryFieldValue value, FieldInfo currentField)
         {
             switch (value.Token)
             {
-                case SnLucLexer.Token.Number:
-                case SnLucLexer.Token.String:
-                    if(value.StringValue == SnQuery.EmptyText)
-                        return new TermQuery(new Term(currentField.Name, value.StringValue));
+                case CqlLexer.Token.Number:
+                case CqlLexer.Token.String:
+                    if (value.StringValue == SnQuery.EmptyText)
+                        return new Text(currentField.Name, value.StringValue);
                     if (value.StringValue == SnQuery.EmptyInnerQueryText)
-                        return new TermQuery(new Term("Id", NumericUtils.IntToPrefixCoded(0)));
-
-                    var words = GetAnalyzedText(currentField.Name, value.StringValue);
-
-                    if (words.Length == 0)
-                        words = new String[] { String.Empty };
-                    if (words.Length == 1)
-                    {
-                        var term = new Term(currentField.Name, words[0]);
-                        if(value.FuzzyValue == null)
-                            return new TermQuery(term);
-                        return new FuzzyQuery(term, Convert.ToSingle(value.FuzzyValue));
-                    }
-
-                    var phraseQuery = new PhraseQuery();
-                    foreach(var word in words)
-                        phraseQuery.Add(new Term(currentField.Name, word));
-
-                    if (value.FuzzyValue != null)
-                    {
-                        var slop = Convert.ToInt32(value.FuzzyValue.Value);
-                        phraseQuery.SetSlop(slop);
-                    }
-                    return phraseQuery;
-                case SnLucLexer.Token.WildcardString:
-                    if (!value.StringValue.EndsWith("*"))
-                        return new WildcardQuery(new Term(currentField.Name, value.StringValue));
-                    var s = value.StringValue.TrimEnd('*');
-                    if (s.Contains('?') || s.Contains('*'))
-                        return new WildcardQuery(new Term(currentField.Name, value.StringValue));
-                    return new PrefixQuery(new Term(currentField.Name, s));
+                        return new Numeric<int>(IndexFieldName.NodeId, 0);
+                    return new Text(currentField.Name, value.StringValue, value.FuzzyValue);
+                case CqlLexer.Token.WildcardString:
+                    return new Text(currentField.Name, value.StringValue, value.FuzzyValue);
                 default:
-                    throw new SnNotSupportedException("CreateValueQuery with Token: " + value.Token);
+                    throw ParserError("CreateValueQuery with Token: " + value.Token);
             }
         }
-        private Query CreateRangeQuery(string fieldName, QueryFieldValue_OLD minValue, QueryFieldValue_OLD maxValue, bool includeLower, bool includeUpper)
+        private SnQueryNode CreateRangeQuery(string fieldName, QueryFieldValue minValue, QueryFieldValue maxValue, bool includeLower, bool includeUpper)
         {
             if (minValue != null && minValue.StringValue == SnQuery.EmptyText && maxValue == null)
             {
                 ParseEmptyQuery = true;
-                return new TermQuery(new Term(fieldName, minValue.StringValue));
+                return new Text(fieldName, minValue.StringValue);
             }
             if (maxValue != null && maxValue.StringValue == SnQuery.EmptyText && minValue == null)
             {
                 ParseEmptyQuery = true;
-                return new TermQuery(new Term(fieldName, maxValue.StringValue));
+                return new Text(fieldName, maxValue.StringValue);
             }
             if (minValue != null && minValue.StringValue == SnQuery.EmptyText)
                 minValue = null;
             if (maxValue != null && maxValue.StringValue == SnQuery.EmptyText)
                 maxValue = null;
 
-            switch (minValue != null ? minValue.Datatype : maxValue.Datatype)
+            if (minValue == null && maxValue == null)
+                throw ParserError("Invalid range: the minimum and the maximum value are cannot be null/empty together.");
+
+            switch (minValue?.Datatype ?? maxValue.Datatype)
             {
                 case IndexableDataType.String:
-                    var lowerTerm = minValue == null ? null : minValue.StringValue.ToLower();
-                    var upperTerm = maxValue == null ? null : maxValue.StringValue.ToLower();
-                    return new TermRangeQuery(fieldName, lowerTerm, upperTerm, includeLower, includeUpper);
+                    var lowerTerm = minValue?.StringValue.ToLower();
+                    var upperTerm = maxValue?.StringValue.ToLower();
+                    return new Range<string>(fieldName, lowerTerm, upperTerm, includeLower, includeUpper);
                 case IndexableDataType.Int:
-                    var lowerInt = minValue == null ? null : (Int32?)minValue.IntValue;
-                    var upperInt = maxValue == null ? null : (Int32?)maxValue.IntValue;
-                    return NumericRangeQuery.NewIntRange(fieldName, lowerInt, upperInt, includeLower, includeUpper);
+                    var lowerInt = minValue?.IntValue ?? 0;
+                    var upperInt = maxValue?.IntValue ?? 0;
+                    return new Range<int>(fieldName, lowerInt, upperInt, includeLower, includeUpper);
                 case IndexableDataType.Long:
-                    var lowerLong = minValue == null ? null : (Int64?)minValue.LongValue;
-                    var upperLong = maxValue == null ? null : (Int64?)maxValue.LongValue;
-                    return NumericRangeQuery.NewLongRange(fieldName, 8, lowerLong, upperLong, includeLower, includeUpper);
+                    var lowerLong = minValue?.LongValue ?? 0;
+                    var upperLong = maxValue?.LongValue ?? 0;
+                    return new Range<long>(fieldName, lowerLong, upperLong, includeLower, includeUpper);
                 case IndexableDataType.Float:
-                    var lowerFloat = minValue == null ? Single.MinValue : minValue.SingleValue;
-                    var upperFloat = maxValue == null ? Single.MaxValue : maxValue.SingleValue;
-                    return NumericRangeQuery.NewFloatRange(fieldName, lowerFloat, upperFloat, includeLower, includeUpper);
+                    var lowerFloat = minValue?.SingleValue ?? float.MinValue;
+                    var upperFloat = maxValue?.SingleValue ?? float.MaxValue;
+                    return new Range<float>(fieldName, lowerFloat, upperFloat, includeLower, includeUpper);
                 case IndexableDataType.Double:
-                    var lowerDouble = minValue == null ? Double.MinValue : minValue.DoubleValue;
-                    var upperDouble = maxValue == null ? Double.MaxValue : maxValue.DoubleValue;
-                    return NumericRangeQuery.NewDoubleRange(fieldName, 8, lowerDouble, upperDouble, includeLower, includeUpper);
+                    var lowerDouble = minValue?.DoubleValue ?? double.MinValue;
+                    var upperDouble = maxValue?.DoubleValue ?? double.MaxValue;
+                    return new Range<double>(fieldName, lowerDouble, upperDouble, includeLower, includeUpper);
                 default:
-                    throw new SnNotSupportedException("Unknown IndexableDataType: " + minValue.Datatype);
+                    throw ParserError("Unknown IndexableDataType: " + (minValue ?? maxValue).Datatype);
             }
         }
 
-        private static string[] _headOnlyFields = SenseNet.ContentRepository.Storage.Node.GetHeadOnlyProperties();
         private void SetFieldLevel(FieldInfo field)
         {
-            var fieldName = field.Name;
-            var indexingInfo = field.IndexingInfo;
-            QueryFieldLevel level;
+            //UNDONE:!!!! implement SetFieldLevel in a Visitor
+            throw new NotImplementedException();
 
-            if (fieldName == IndexFieldName.AllText)
-                level = QueryFieldLevel.BinaryOrFullText;
-            else if(indexingInfo == null)
-                level = QueryFieldLevel.BinaryOrFullText;
-            else if (indexingInfo.FieldDataType == typeof(SenseNet.ContentRepository.Storage.BinaryData))
-                level = QueryFieldLevel.BinaryOrFullText;
-            else if (fieldName == IndexFieldName.InFolder || fieldName == IndexFieldName.InTree
-                || fieldName == IndexFieldName.Type || fieldName == IndexFieldName.TypeIs
-                || _headOnlyFields.Contains(fieldName))
-                level = QueryFieldLevel.HeadOnly;
-            else
-                level = QueryFieldLevel.NoBinaryOrFullText;
+            //var fieldName = field.Name;
+            //QueryFieldLevel level;
 
-            FieldLevel = (QueryFieldLevel)(Math.Max((int)level, (int)FieldLevel));
-        }
+            //if (fieldName == IndexFieldName.AllText)
+            //    level = QueryFieldLevel.BinaryOrFullText;
+            //else if (indexingInfo == null)
+            //    level = QueryFieldLevel.BinaryOrFullText;
+            //else if (indexingInfo.FieldDataType == typeof(SenseNet.ContentRepository.Storage.BinaryData))
+            //    level = QueryFieldLevel.BinaryOrFullText;
+            //else if (fieldName == IndexFieldName.InFolder || fieldName == IndexFieldName.InTree
+            //    || fieldName == IndexFieldName.Type || fieldName == IndexFieldName.TypeIs
+            //    || _headOnlyFields.Contains(fieldName))
+            //    level = QueryFieldLevel.HeadOnly;
+            //else
+            //    level = QueryFieldLevel.NoBinaryOrFullText;
 
-        private string[] GetAnalyzedText(string field, string text)
-        {
-            var reader = new StringReader(text);
-            var tokenStream = _masterAnalyzer.TokenStream(field, reader);
-            _termAtt = (TermAttribute)tokenStream.AddAttribute(typeof(TermAttribute));
-
-            var tokens = new List<string>();
-            var words = new List<string>();
-            while (tokenStream.IncrementToken())
-            {
-                tokens.Add(_termAtt.ToString());
-                words.Add(_termAtt.Term());
-            }
-            return words.ToArray();
+            //FieldLevel = (QueryFieldLevel)(Math.Max((int)level, (int)FieldLevel));
         }
 
         private bool IsEof()
         {
-            return _lexer.CurrentToken == SnLucLexer.Token.Eof;
+            return _lexer.CurrentToken == CqlLexer.Token.Eof;
         }
         private Exception SyntaxError()
         {
@@ -1093,7 +1011,8 @@ namespace SenseNet.Search.Parser
         }
         private Exception ParserError(string msg)
         {
-            return new ParserException_OLD(String.Concat(msg, " (query: \"", _lexer.Source, "\")"), _lexer.CreateLastLineInfo());
+            return new ParserException($"{msg}, (query: \"{_lexer.Source}\")", _lexer.CreateLastLineInfo());
         }
+
     }
 }

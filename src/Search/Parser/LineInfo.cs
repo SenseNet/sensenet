@@ -7,13 +7,13 @@ using System.Diagnostics;
 namespace SenseNet.Search.Parser
 {
 	[DebuggerDisplay("[Line: {Line}, Col: {Column}]")]
-	public class LineInfo_OLD
+	public class LineInfo
 	{
-		internal static LineInfo_OLD NullValue = new LineInfo_OLD(0, 0);
+		internal static LineInfo NullValue = new LineInfo(0, 0);
 		public int Line { get; private set; }
 		public int Column { get; private set; }
 
-		internal LineInfo_OLD(int line, int column)
+		internal LineInfo(int line, int column)
 		{
 			Line = line;
 			Column = column;

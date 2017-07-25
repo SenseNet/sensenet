@@ -188,7 +188,7 @@ namespace SenseNet.ContentRepository.Linq
                 fieldName = IndexFieldName.InFolder;
             }
 
-            var qvalue = new SenseNet.Search.Parser.QueryFieldValue(path);
+            var qvalue = new QueryFieldValue(path);
             converter.ConvertToTermValue(qvalue);
             return new TermQuery(new Term(fieldName, qvalue.StringValue));
         }

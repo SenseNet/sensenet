@@ -9,22 +9,25 @@ namespace SenseNet.Search
 {
     public partial class SnQuery
     {
+        public static readonly string EmptyText = "$##$EMPTY$##$";
+        public static readonly string EmptyInnerQueryText = "$##$EMPTYINNERQUERY$##$";
+
         private static IPermissionFilterFactory PermissionFilterFactory = new DefaultPermissionFilterFactory();
         private static IQueryEngineSelector QueryEngineSelector = new DefaultQueryEngineSelector();
         private static IQueryParserFactory QueryParserFactory = new DefaultQueryParserFactory();
 
-        public static IQueryResult<int> Query(string queryText, QuerySettings settings, int userId)
+        public static IQueryResult<int> Query(string queryText, IQueryContext context)
         {
-            var query = QueryParserFactory.Create().Parse(queryText, settings);
-            var permissionFilter = PermissionFilterFactory.Create(userId);
-            var engine = QueryEngineSelector.Select(query, settings);
+            var query = QueryParserFactory.Create().Parse(queryText, context);
+            var permissionFilter = PermissionFilterFactory.Create(context.UserId);
+            var engine = QueryEngineSelector.Select(query, context.Settings);
             return engine.ExecuteQuery(query, permissionFilter);
         }
-        public static IQueryResult<string> QueryAndProject(string queryText, QuerySettings settings, int userId)
+        public static IQueryResult<string> QueryAndProject(string queryText, IQueryContext context)
         {
-            var query = QueryParserFactory.Create().Parse(queryText, settings);
-            var permissionFilter = PermissionFilterFactory.Create(userId);
-            var engine = QueryEngineSelector.Select(query, settings);
+            var query = QueryParserFactory.Create().Parse(queryText, context);
+            var permissionFilter = PermissionFilterFactory.Create(context.UserId);
+            var engine = QueryEngineSelector.Select(query, context.Settings);
             return engine.ExecuteQueryAndProject(query, permissionFilter);
         }
     }

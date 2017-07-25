@@ -8,6 +8,7 @@ using System.Xml.XPath;
 using System.Web;
 using System.Linq;
 using SenseNet.ContentRepository.Storage.Search;
+using SenseNet.Search;
 
 namespace SenseNet.ContentRepository.Fields
 {

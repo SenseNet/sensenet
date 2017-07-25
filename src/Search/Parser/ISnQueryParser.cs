@@ -8,6 +8,6 @@ namespace SenseNet.Search.Parser
 {
     internal interface ISnQueryParser
     {
-        SnQuery Parse(string queryText, QuerySettings settings);
+        SnQuery Parse(string queryText, IQueryContext context);
     }
 }

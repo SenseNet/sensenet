@@ -8,5 +8,6 @@ namespace SenseNet.Search.Parser
 {
     internal abstract class SnQueryNode
     {
+        public double? Boost { get; set; }
     }
 }

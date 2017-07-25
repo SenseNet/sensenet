@@ -17,9 +17,6 @@ namespace SenseNet.Search
 {
     public class ContentQuery_NEW
     {
-        public static readonly string EmptyText = "$##$EMPTY$##$";
-        internal static readonly string EmptyInnerQueryText = "$##$EMPTYINNERQUERY$##$";
-
         private static readonly string[] QuerySettingParts = new[] { "SKIP", "TOP", "SORT", "REVERSESORT", "AUTOFILTERS", "LIFESPAN", "COUNTONLY" };
         private static readonly string RegexKeywordsAndComments = "//|/\\*|(\\.(?<keyword>[A-Z]+)(([ ]*:[ ]*[#]?\\w+(\\.\\w+)?)|([\\) $\\r\\n]+)))";
         private static readonly string RegexCommentEndSingle = "$";
@@ -439,7 +436,7 @@ namespace SenseNet.Search
                         switch (innerResult.Length)
                         {
                             case 0:
-                                sss = EmptyInnerQueryText;
+                                sss = SnQuery.EmptyInnerQueryText;
                                 break;
                             case 1:
                                 sss = innerResult[0];

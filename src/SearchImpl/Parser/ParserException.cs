@@ -6,30 +6,30 @@ using System.Text;
 namespace SenseNet.Search.Parser
 {
 	[global::System.Serializable]
-	public class ParserException : Exception
+	public class ParserException_OLD : Exception
 	{
-		public LineInfo LineInfo { get; private set; }
+		public LineInfo_OLD LineInfo { get; private set; }
 
-		public ParserException(LineInfo lineInfo) : base(MessageHelper(null, lineInfo))
+		public ParserException_OLD(LineInfo_OLD lineInfo) : base(MessageHelper(null, lineInfo))
 		{
 			LineInfo = lineInfo;
 		}
-		public ParserException(string message, LineInfo lineInfo) : base(MessageHelper(message, lineInfo))
+		public ParserException_OLD(string message, LineInfo_OLD lineInfo) : base(MessageHelper(message, lineInfo))
 		{
 			LineInfo = lineInfo;
 		}
-		public ParserException(string message, Exception inner, LineInfo lineInfo) : base(MessageHelper(message, lineInfo), inner)
+		public ParserException_OLD(string message, Exception inner, LineInfo_OLD lineInfo) : base(MessageHelper(message, lineInfo), inner)
 		{
 			LineInfo = lineInfo;
 		}
-		protected ParserException(
+		protected ParserException_OLD(
 		  System.Runtime.Serialization.SerializationInfo info,
 		  System.Runtime.Serialization.StreamingContext context)
 			: base(info, context) { }
 
-        private static string MessageHelper(string message, LineInfo lineInfo)
+        private static string MessageHelper(string message, LineInfo_OLD lineInfo)
         {
-            return String.Concat(message ?? "Unknown parser error.", " ", lineInfo ?? LineInfo.NullValue);
+            return String.Concat(message ?? "Unknown parser error.", " ", lineInfo ?? LineInfo_OLD.NullValue);
         }
 	}
 }

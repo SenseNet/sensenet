@@ -647,7 +647,7 @@ namespace SenseNet.Search.Parser
         }
         public override Term VisitTerm(Term term)
         {
-            if (term.Text().Equals(ContentQuery_NEW.EmptyText))
+            if (term.Text().Equals(SnQuery.EmptyText))
                 return null;
             return base.VisitTerm(term);
         }

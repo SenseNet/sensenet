@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Web;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Search;
+using SenseNet.Search;
 
 namespace SenseNet.ContentRepository.Fields
 {

@@ -14,6 +14,7 @@ using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Search;
+using SenseNet.Search.Parser;
 
 //UNDONE: Refactor after Lucene "usings" removed (Lucene and SN fields are conflicted)
 namespace SenseNet.Search.Indexing

@@ -9,8 +9,13 @@ namespace SenseNet.Search
         public string Projection { get; internal set; }
         public int Top { get; internal set; }
         public int Skip { get; internal set; }
-        public SortInfo Order { get; internal set; }
+        public SortInfo[] Sort { get; internal set; }
 
         internal SnQueryNode QueryTree { get; set; }
+        public FilterStatus EnableAutofilters { get; set; }
+        public FilterStatus EnableLifespanFilter { get; set; }
+        public bool CountOnly { get; set; }
+        public QueryExecutionMode QueryExecutionMode { get; set; }
+        public QueryFieldLevel FieldLevel { get; set; } //UNDONE: Set value in the query analysis project by a visitor
     }
 }

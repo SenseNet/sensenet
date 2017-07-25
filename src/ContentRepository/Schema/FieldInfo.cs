@@ -6,6 +6,7 @@ using SenseNet.ContentRepository.Schema;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using SenseNet.ContentRepository.Storage.Search;
+using SenseNet.Search;
 
 namespace SenseNet.ContentRepository.Schema
 {

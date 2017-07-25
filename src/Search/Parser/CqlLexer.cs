@@ -6,7 +6,7 @@ using System.Globalization;
 
 namespace SenseNet.Search.Parser
 {
-    internal class SnLucLexer
+    internal class CqlLexer
     {
         internal const string STRINGTERMINATORCHARS = "\":+-&|!(){}[]^~";
 
@@ -39,12 +39,12 @@ namespace SenseNet.Search.Parser
             public const string CountOnly = ".COUNTONLY";
             public const string Quick = ".QUICK";
 
-            public static Token ScanControl(string text, LineInfo_OLD line)
+            public static Token ScanControl(string text, LineInfo line)
             {
                 if (text == Select || text == Skip || text == Top || text == Sort || text == ReverseSort ||
                     text == Autofilters || text == Lifespan || text == CountOnly || text == Quick)
                     return Token.ControlKeyword;
-                throw new ParserException_OLD("Unknown control keyword: " + text, line);
+                throw new ParserException("Unknown control keyword: " + text, line);
             }
 
             public const string On = "ON";
@@ -115,7 +115,7 @@ namespace SenseNet.Search.Parser
         public string StringValue { get; private set; }
         public bool IsPhrase { get; private set; }
 
-        public SnLucLexer(string source)
+        public CqlLexer(string source)
         {
             this.Source = source;
             this.CurrentColumn = -1;
@@ -216,7 +216,7 @@ namespace SenseNet.Search.Parser
                 case '&':
                     this.NextChar();
                     if (this.CurrentChar != '&')
-                        throw new ParserException_OLD("Invalid operator: &", CreateLastLineInfo());
+                        throw new ParserException("Invalid operator: &", CreateLastLineInfo());
                     this.CurrentToken = Token.And;
                     this.StringValue = "&&";
                     this.NextChar();
@@ -225,7 +225,7 @@ namespace SenseNet.Search.Parser
                 case '|':
                     this.NextChar();
                     if (this.CurrentChar != '|')
-                        throw new ParserException_OLD("Invalid operator: |", CreateLastLineInfo());
+                        throw new ParserException("Invalid operator: |", CreateLastLineInfo());
                     this.CurrentToken = Token.Or;
                     this.StringValue = "||";
                     this.NextChar();
@@ -405,16 +405,16 @@ namespace SenseNet.Search.Parser
                 if (CurrentCharType == CharType.Escape)
                 {
                     if (!NextChar())
-                        throw new ParserException_OLD("Unclosed string", CreateLastLineInfo());
+                        throw new ParserException("Unclosed string", CreateLastLineInfo());
                     outstr.Append(CurrentChar);
                     if (!NextChar())
-                        throw new ParserException_OLD("Unclosed string", CreateLastLineInfo());
+                        throw new ParserException("Unclosed string", CreateLastLineInfo());
                 }
                 else
                 {
                     outstr.Append(CurrentChar);
                     if (!NextChar())
-                        throw new ParserException_OLD("Unclosed string", CreateLastLineInfo());
+                        throw new ParserException("Unclosed string", CreateLastLineInfo());
                 }
             }
             NextChar();
@@ -510,13 +510,13 @@ namespace SenseNet.Search.Parser
             CurrentLine = LastLine;
             CurrentColumn = LastColumn;
         }
-        internal LineInfo_OLD CreateCurrentLineInfo()
+        internal LineInfo CreateCurrentLineInfo()
         {
-            return new LineInfo_OLD(CurrentLine, CurrentColumn);
+            return new LineInfo(CurrentLine, CurrentColumn);
         }
-        internal LineInfo_OLD CreateLastLineInfo()
+        internal LineInfo CreateLastLineInfo()
         {
-            return new LineInfo_OLD(LastLine, LastColumn);
+            return new LineInfo(LastLine, LastColumn);
         }
     }
 }

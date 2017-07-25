@@ -22,7 +22,6 @@ using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.Search
 {
-    public enum QueryFieldLevel { NotDefined = 0, HeadOnly = 1, NoBinaryOrFullText = 2, BinaryOrFullText = 3 }
     public class LucQuery
     {
         private static string[] _headOnlyFields = SenseNet.ContentRepository.Storage.Node.GetHeadOnlyProperties();
