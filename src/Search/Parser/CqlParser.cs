@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using SenseNet.Search.Parser.Nodes;
+using SenseNet.Search.Parser.Predicates;
 
 namespace SenseNet.Search.Parser
 {
@@ -115,7 +115,7 @@ namespace SenseNet.Search.Parser
             if (queries.Count == 1)
                 return queries[0];
 
-            var boolQuery = new BoolList();
+            var boolQuery = new BooleanClauseList();
             foreach (var q in queries)
                 AddBooleanClause(boolQuery, q, Occurence.Default);
             return boolQuery;
@@ -139,7 +139,7 @@ namespace SenseNet.Search.Parser
             if (queries.Count == 1)
                 return queries[0];
 
-            var boolQuery = new BoolList();
+            var boolQuery = new BooleanClauseList();
             foreach (var q in queries)
                 AddBooleanClause(boolQuery, q, Occurence.Default);
             return boolQuery;
@@ -166,7 +166,7 @@ namespace SenseNet.Search.Parser
             }
             if (queries.Count == 1)
                 return queries[0];
-            var boolq = new BoolList();
+            var boolq = new BooleanClauseList();
             foreach (var query in queries)
                 AddBooleanClause(boolq, query, Occurence.Should);
             return boolq;
@@ -183,7 +183,7 @@ namespace SenseNet.Search.Parser
             }
             if (queries.Count == 1)
                 return queries[0];
-            var boolq = new BoolList();
+            var boolq = new BooleanClauseList();
             foreach (var query in queries)
                 AddBooleanClause(boolq, query, Occurence.Must);
             return boolq;
@@ -199,7 +199,7 @@ namespace SenseNet.Search.Parser
             var query = ParseClause();
             if (!not)
                 return query;
-            var boolq = new BoolList();
+            var boolq = new BooleanClauseList();
             AddBooleanClause(boolq, query, Occurence.MustNot);
             return boolq;
         }
@@ -212,7 +212,7 @@ namespace SenseNet.Search.Parser
                 query.Boost = Convert.ToSingle(boost.Value);
             if (occur == Occurence.Default || occur == Occurence.Should)
                 return query;
-            var boolq = new BoolList();
+            var boolq = new BooleanClauseList();
             AddBooleanClause(boolq, query, occur);
             return boolq;
         }
@@ -303,8 +303,8 @@ namespace SenseNet.Search.Parser
             if (fieldInfo.OperatorToken == CqlLexer.Token.NEQ)
             {
                 var value = ParseExactValue(true);
-                var bq = new BoolList();
-                bq.Clauses.Add(new Bool(CreateValueQuery(value), Occurence.MustNot));
+                var bq = new BooleanClauseList();
+                bq.Clauses.Add(new BooleanClause(CreateValueQuery(value), Occurence.MustNot));
                 return bq;
             }
 
@@ -375,13 +375,13 @@ namespace SenseNet.Search.Parser
         {
             // ValueExpList      ==>  ValueExp | ValueExpList ValueExp
 
-            BoolList boolQuery;
+            BooleanClauseList boolQuery;
             var first = ParseValueExp();
 
             if (_lexer.CurrentToken == CqlLexer.Token.RParen)
                 return first;
 
-            boolQuery = new BoolList();
+            boolQuery = new BooleanClauseList();
             AddBooleanClause(boolQuery, first, Occurence.Default);
 
             while (!IsEof() && _lexer.CurrentToken != CqlLexer.Token.RParen)
@@ -409,7 +409,7 @@ namespace SenseNet.Search.Parser
             }
             if (queries.Count == 1)
                 return queries[0];
-            var boolq = new BoolList();
+            var boolq = new BooleanClauseList();
             foreach (var query in queries)
                 AddBooleanClause(boolq, query, Occurence.Should);
             return boolq;
@@ -426,7 +426,7 @@ namespace SenseNet.Search.Parser
             }
             if (queries.Count == 1)
                 return queries[0];
-            var boolq = new BoolList();
+            var boolq = new BooleanClauseList();
             foreach (var query in queries)
                 AddBooleanClause(boolq, query, Occurence.Must);
             return boolq;
@@ -444,7 +444,7 @@ namespace SenseNet.Search.Parser
             var query = ParseValueClause();
             if (!not)
                 return query;
-            var boolq = new BoolList();
+            var boolq = new BooleanClauseList();
             AddBooleanClause(boolq, query, Occurence.MustNot);
             return boolq;
         }
@@ -456,7 +456,7 @@ namespace SenseNet.Search.Parser
             query.Boost = ParseBoost();
             if (occur == Occurence.Default || occur == Occurence.Should)
                 return query;
-            var boolq = new BoolList();
+            var boolq = new BooleanClauseList();
             AddBooleanClause(boolq, query, occur);
             return boolq;
         }
@@ -817,12 +817,12 @@ namespace SenseNet.Search.Parser
 
         /* ============================================================================ */
 
-        private void AddBooleanClause(BoolList boolNode, SnQueryNode query, Occurence occur)
+        private void AddBooleanClause(BooleanClauseList boolNode, SnQueryNode query, Occurence occur)
         {
-            var boolQ = query as BoolList;
+            var boolQ = query as BooleanClauseList;
             if (boolQ == null)
             {
-                boolNode.Clauses.Add(new Bool(query, occur));
+                boolNode.Clauses.Add(new BooleanClause(query, occur));
                 return;
             }
             var clauses = boolQ.Clauses;
@@ -832,7 +832,7 @@ namespace SenseNet.Search.Parser
             }
             if (clauses.Count > 1)
             {
-                boolNode.Clauses.Add(new Bool(query, occur));
+                boolNode.Clauses.Add(new BooleanClause(query, occur));
                 return;
             }
 

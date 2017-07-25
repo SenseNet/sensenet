@@ -63,8 +63,8 @@
     <Compile Include="IndexFieldName.cs" />
     <Compile Include="Interfaces.cs" />
     <Compile Include="OrderDirection.cs" />
-    <Compile Include="Parser\Predicates\Bool.cs" />
-    <Compile Include="Parser\Predicates\BoolList.cs" />
+    <Compile Include="Parser\Predicates\BooleanClause.cs" />
+    <Compile Include="Parser\Predicates\BooleanClauseList.cs" />
     <Compile Include="Parser\DefaultQueryParserFactory.cs" />
     <Compile Include="Parser\IQueryContext.cs" />
     <Compile Include="Parser\IQueryParserFactory.cs" />

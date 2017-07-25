@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SenseNet.Search.Parser.Nodes
+namespace SenseNet.Search.Parser.Predicates
 {
     //UNDONE: Can be term, fuzzy, prefix, wildcard, phrase query
     //UNDONE: Fuzzy is converted to Slope if the result is PhraseQuery

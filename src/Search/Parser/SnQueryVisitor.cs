@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using SenseNet.Search.Parser.Nodes;
+using SenseNet.Search.Parser.Predicates;
 
 namespace SenseNet.Search.Parser
 {
@@ -11,17 +11,17 @@ namespace SenseNet.Search.Parser
             if (node == null)
                 return null;
 
-            var text         = node as Text;          if (text != null)         return VisitText          (text);
-            var intNumber    = node as IntegerNumber; if (intNumber != null)    return VisitIntegerNumber (intNumber);
-            var longNumber   = node as LongNumber;    if (longNumber != null)   return VisitLongNumber    (longNumber);
-            var singleNumber = node as SingleNumber;  if (singleNumber != null) return VisitSingleNumber  (singleNumber);
-            var doubleNumber = node as DoubleNumber;  if (doubleNumber != null) return VisitDoubleNumber  (doubleNumber);
-            var textRange    = node as TextRange;     if (textRange != null)    return VisitTextRange     (textRange);
-            var intRrange    = node as IntegerRange;  if (intRrange != null)    return VisitIntegerRange  (intRrange);
-            var longRange    = node as LongRange;     if (longRange != null)    return VisitLongRange     (longRange);
-            var singleRange  = node as SingleRange;   if (singleRange != null)  return VisitSingleRange   (singleRange);
-            var doubleRange  = node as DoubleRange;   if (doubleRange != null)  return VisitDoubleRange   (doubleRange);
-            var boolList     = node as BoolList;      if (boolList != null)     return VisitBoolList      (boolList);
+            var text         = node as Text;                   if (text != null)         return VisitText          (text);
+            var intNumber    = node as IntegerNumber;          if (intNumber != null)    return VisitIntegerNumber (intNumber);
+            var longNumber   = node as LongNumber;             if (longNumber != null)   return VisitLongNumber    (longNumber);
+            var singleNumber = node as SingleNumber;           if (singleNumber != null) return VisitSingleNumber  (singleNumber);
+            var doubleNumber = node as DoubleNumber;           if (doubleNumber != null) return VisitDoubleNumber  (doubleNumber);
+            var textRange    = node as TextRange;              if (textRange != null)    return VisitTextRange     (textRange);
+            var intRrange    = node as IntegerRange;           if (intRrange != null)    return VisitIntegerRange  (intRrange);
+            var longRange    = node as LongRange;              if (longRange != null)    return VisitLongRange     (longRange);
+            var singleRange  = node as SingleRange;            if (singleRange != null)  return VisitSingleRange   (singleRange);
+            var doubleRange  = node as DoubleRange;            if (doubleRange != null)  return VisitDoubleRange   (doubleRange);
+            var boolList     = node as BooleanClauseList;   if (boolList != null)     return VisitBoolList      (boolList);
 
             throw new NotSupportedException("Unknown query type: " + node.GetType().FullName);
         }
@@ -68,22 +68,22 @@ namespace SenseNet.Search.Parser
             return predicate;
         }
 
-        public virtual SnQueryNode VisitBoolList(BoolList boolList)
+        public virtual SnQueryNode VisitBoolList(BooleanClauseList boolList)
         {
             var clauses = boolList.Clauses;
             var visitedClauses = VisitBoolClauses(clauses);
-            BoolList newQuery = null;
+            BooleanClauseList newQuery = null;
             if (visitedClauses != clauses)
             {
-                newQuery = new BoolList();
+                newQuery = new BooleanClauseList();
                 newQuery.Clauses.AddRange(visitedClauses);
             }
             return newQuery ?? boolList;
 
         }
-        public virtual List<Bool> VisitBoolClauses(List<Bool> clauses)
+        public virtual List<BooleanClause> VisitBoolClauses(List<BooleanClause> clauses)
         {
-            List<Bool> newList = null;
+            List<BooleanClause> newList = null;
             var index = 0;
             var count = clauses.Count;
             while (index < count)
@@ -95,7 +95,7 @@ namespace SenseNet.Search.Parser
                 }
                 else if (visitedClause != clauses[index])
                 {
-                    newList = new List<Bool>();
+                    newList = new List<BooleanClause>();
                     for (int i = 0; i < index; i++)
                         newList.Add(clauses[i]);
                     newList.Add(visitedClause);
@@ -104,14 +104,14 @@ namespace SenseNet.Search.Parser
             }
             return newList ?? clauses;
         }
-        public virtual Bool VisitBool(Bool clause)
+        public virtual BooleanClause VisitBool(BooleanClause clause)
         {
             var occur = clause.Occur;
             var query = clause.Node;
             var visited = Visit(query);
             if (query == visited)
                 return clause;
-            return new Bool(visited, occur);
+            return new BooleanClause(visited, occur);
         }
     }
 

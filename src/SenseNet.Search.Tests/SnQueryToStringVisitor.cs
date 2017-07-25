@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SenseNet.Search.Parser;
-using SenseNet.Search.Parser.Nodes;
+using SenseNet.Search.Parser.Predicates;
 
 namespace SenseNet.Search.Tests
 {

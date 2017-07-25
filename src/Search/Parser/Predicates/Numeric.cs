@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SenseNet.Search.Parser.Nodes
+namespace SenseNet.Search.Parser.Predicates
 {
     public abstract class Numeric : SnQueryNode
     {
