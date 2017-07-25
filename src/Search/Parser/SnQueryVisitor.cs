@@ -11,11 +11,11 @@ namespace SenseNet.Search.Parser
             if (node == null)
                 return null;
 
-            var text           = node as Text;                   if (text != null)            return VisitText              (text);
-            var intNumber      = node as IntegerNumber;          if (intNumber != null)       return VisitIntegerNumber     (intNumber);
-            var longNumber     = node as LongNumber;             if (longNumber != null)      return VisitLongNumber        (longNumber);
-            var singleNumber   = node as SingleNumber;           if (singleNumber != null)    return VisitSingleNumber      (singleNumber);
-            var doubleNumber   = node as DoubleNumber;           if (doubleNumber != null)    return VisitDoubleNumber      (doubleNumber);
+            var text           = node as TextPredicate;                   if (text != null)            return VisitText              (text);
+            var intNumber      = node as IntegerNumberPredicate;          if (intNumber != null)       return VisitIntegerNumber     (intNumber);
+            var longNumber     = node as LongNumberPredicate;             if (longNumber != null)      return VisitLongNumber        (longNumber);
+            var singleNumber   = node as SingleNumberPredicate;           if (singleNumber != null)    return VisitSingleNumber      (singleNumber);
+            var doubleNumber   = node as DoubleNumberPredicate;           if (doubleNumber != null)    return VisitDoubleNumber      (doubleNumber);
             var textRange      = node as TextRange;              if (textRange != null)       return VisitTextRange         (textRange);
             var intRrange      = node as IntegerRange;           if (intRrange != null)       return VisitIntegerRange      (intRrange);
             var longRange      = node as LongRange;              if (longRange != null)       return VisitLongRange         (longRange);
@@ -26,24 +26,24 @@ namespace SenseNet.Search.Parser
             throw new NotSupportedException("Unknown query type: " + node.GetType().FullName);
         }
 
-        public virtual SnQueryPredicate VisitText(Text predicate)
+        public virtual SnQueryPredicate VisitText(TextPredicate predicate)
         {
             return predicate;
         }
 
-        public virtual SnQueryPredicate VisitIntegerNumber(IntegerNumber predicate)
+        public virtual SnQueryPredicate VisitIntegerNumber(IntegerNumberPredicate predicate)
         {
             return predicate;
         }
-        public virtual SnQueryPredicate VisitLongNumber(LongNumber predicate)
+        public virtual SnQueryPredicate VisitLongNumber(LongNumberPredicate predicate)
         {
             return predicate;
         }
-        public virtual SnQueryPredicate VisitSingleNumber(SingleNumber predicate)
+        public virtual SnQueryPredicate VisitSingleNumber(SingleNumberPredicate predicate)
         {
             return predicate;
         }
-        public virtual SnQueryPredicate VisitDoubleNumber(DoubleNumber predicate)
+        public virtual SnQueryPredicate VisitDoubleNumber(DoubleNumberPredicate predicate)
         {
             return predicate;
         }

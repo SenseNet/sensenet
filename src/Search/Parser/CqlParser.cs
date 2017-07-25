@@ -900,10 +900,10 @@ namespace SenseNet.Search.Parser
             {
                 case IndexableDataType.String:
                     return CreateStringValueQuery(value, currentField);
-                case IndexableDataType.Int: return new IntegerNumber(fieldName, value.IntValue); //UNDONE: Use NumericUtils.IntToPrefixCoded(value) in the compiler
-                case IndexableDataType.Long: return new LongNumber(fieldName, value.LongValue); //UNDONE: Use NumericUtils.LongToPrefixCoded(value) in the compiler
-                case IndexableDataType.Float: return new SingleNumber(fieldName, value.SingleValue); //UNDONE: Use NumericUtils.FloatToPrefixCoded(value) in the compiler
-                case IndexableDataType.Double: return new DoubleNumber(fieldName, value.DoubleValue); //UNDONE: Use NumericUtils.DoubleToPrefixCoded(value) in the compiler
+                case IndexableDataType.Int: return new IntegerNumberPredicate(fieldName, value.IntValue); //UNDONE: Use NumericUtils.IntToPrefixCoded(value) in the compiler
+                case IndexableDataType.Long: return new LongNumberPredicate(fieldName, value.LongValue); //UNDONE: Use NumericUtils.LongToPrefixCoded(value) in the compiler
+                case IndexableDataType.Float: return new SingleNumberPredicate(fieldName, value.SingleValue); //UNDONE: Use NumericUtils.FloatToPrefixCoded(value) in the compiler
+                case IndexableDataType.Double: return new DoubleNumberPredicate(fieldName, value.DoubleValue); //UNDONE: Use NumericUtils.DoubleToPrefixCoded(value) in the compiler
                 default:
                     throw ParserError("Unknown IndexableDataType enum value: " + value.Datatype);
             }
@@ -915,12 +915,12 @@ namespace SenseNet.Search.Parser
                 case CqlLexer.Token.Number:
                 case CqlLexer.Token.String:
                     if (value.StringValue == SnQuery.EmptyText)
-                        return new Text(currentField.Name, value.StringValue);
+                        return new TextPredicate(currentField.Name, value.StringValue);
                     if (value.StringValue == SnQuery.EmptyInnerQueryText)
-                        return new IntegerNumber(IndexFieldName.NodeId, 0);
-                    return new Text(currentField.Name, value.StringValue, value.FuzzyValue);
+                        return new IntegerNumberPredicate(IndexFieldName.NodeId, 0);
+                    return new TextPredicate(currentField.Name, value.StringValue, value.FuzzyValue);
                 case CqlLexer.Token.WildcardString:
-                    return new Text(currentField.Name, value.StringValue, value.FuzzyValue);
+                    return new TextPredicate(currentField.Name, value.StringValue, value.FuzzyValue);
                 default:
                     throw ParserError("CreateValueQuery with Token: " + value.Token);
             }
@@ -930,12 +930,12 @@ namespace SenseNet.Search.Parser
             if (minValue != null && minValue.StringValue == SnQuery.EmptyText && maxValue == null)
             {
                 ParseEmptyQuery = true;
-                return new Text(fieldName, minValue.StringValue);
+                return new TextPredicate(fieldName, minValue.StringValue);
             }
             if (maxValue != null && maxValue.StringValue == SnQuery.EmptyText && minValue == null)
             {
                 ParseEmptyQuery = true;
-                return new Text(fieldName, maxValue.StringValue);
+                return new TextPredicate(fieldName, maxValue.StringValue);
             }
             if (minValue != null && minValue.StringValue == SnQuery.EmptyText)
                 minValue = null;

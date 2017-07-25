@@ -14,28 +14,28 @@ namespace SenseNet.Search.Tests
         private StringBuilder _output = new StringBuilder();
         public string Output => _output.ToString();
 
-        public override SnQueryPredicate VisitText(Text text)
+        public override SnQueryPredicate VisitText(TextPredicate text)
         {
             PredicateToString(text.FieldName, text.Value, text.Boost, text.FuzzyValue);
             return base.VisitText(text);
         }
 
-        public override SnQueryPredicate VisitIntegerNumber(IntegerNumber predicate)
+        public override SnQueryPredicate VisitIntegerNumber(IntegerNumberPredicate predicate)
         {
             PredicateToString(predicate.FieldName, predicate.Value, predicate.Boost, null);
             return base.VisitIntegerNumber(predicate);
         }
-        public override SnQueryPredicate VisitLongNumber(LongNumber predicate)
+        public override SnQueryPredicate VisitLongNumber(LongNumberPredicate predicate)
         {
             PredicateToString(predicate.FieldName, predicate.Value, predicate.Boost, null);
             return base.VisitLongNumber(predicate);
         }
-        public override SnQueryPredicate VisitSingleNumber(SingleNumber predicate)
+        public override SnQueryPredicate VisitSingleNumber(SingleNumberPredicate predicate)
         {
             PredicateToString(predicate.FieldName, predicate.Value, predicate.Boost, null);
             return base.VisitSingleNumber(predicate);
         }
-        public override SnQueryPredicate VisitDoubleNumber(DoubleNumber predicate)
+        public override SnQueryPredicate VisitDoubleNumber(DoubleNumberPredicate predicate)
         {
             PredicateToString(predicate.FieldName, predicate.Value, predicate.Boost, null);
             return base.VisitDoubleNumber(predicate);

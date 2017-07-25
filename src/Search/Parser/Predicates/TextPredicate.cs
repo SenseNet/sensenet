@@ -8,13 +8,13 @@ namespace SenseNet.Search.Parser.Predicates
 {
     //UNDONE: Can be term, fuzzy, prefix, wildcard, phrase query
     //UNDONE: Fuzzy is converted to Slope if the result is PhraseQuery
-    public class Text : SnQueryPredicate
+    public class TextPredicate : SnQueryPredicate
     {
         public string FieldName { get; }
         public string Value { get; }
         public double? FuzzyValue { get; }
 
-        public Text(string fieldName, string value, double? fuzzyValue = null)
+        public TextPredicate(string fieldName, string value, double? fuzzyValue = null)
         {
             FieldName = fieldName;
             Value = value;
