@@ -10,6 +10,8 @@ namespace SenseNet.Search.Tests.Implementations
     {
         public bool TryParseAndSet(IQueryFieldValue value)
         {
+            throw new NotImplementedException();
+
             value.Set(value.StringValue.ToLowerInvariant());
             return true;
         }
@@ -46,6 +48,8 @@ namespace SenseNet.Search.Tests.Implementations
     {
         public bool TryParseAndSet(IQueryFieldValue value)
         {
+            throw new NotImplementedException();
+
             value.Set(int.Parse(value.StringValue));
             return true;
         }
