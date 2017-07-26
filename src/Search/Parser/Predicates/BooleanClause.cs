@@ -10,12 +10,12 @@ namespace SenseNet.Search.Parser.Predicates
 
     public class BooleanClause : SnQueryPredicate
     {
-        public SnQueryPredicate Node { get; }
+        public SnQueryPredicate Predicate { get; }
         public Occurence Occur { get; set; }
 
-        public BooleanClause(SnQueryPredicate node, Occurence occur)
+        public BooleanClause(SnQueryPredicate predicate, Occurence occur)
         {
-            Node = node;
+            Predicate = predicate;
             Occur = occur;
         }
     }

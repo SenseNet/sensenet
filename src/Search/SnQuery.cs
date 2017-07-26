@@ -1,4 +1,5 @@
-﻿using SenseNet.Search.Parser;
+﻿using System.Collections.Generic;
+using SenseNet.Search.Parser;
 
 namespace SenseNet.Search
 {
@@ -15,6 +16,11 @@ namespace SenseNet.Search
         public FilterStatus EnableLifespanFilter { get; internal set; }
         public bool CountOnly { get; internal set; }
         public QueryExecutionMode QueryExecutionMode { get; internal set; }
-        public QueryFieldLevel FieldLevel { get; internal set; } //UNDONE: Set value in the query analysis project by a visitor
+
+        //UNDONE: Set FieldLevel value in the query analysis project by UsedFieldNames
+        public QueryFieldLevel FieldLevel { get; internal set; }
+        public List<string> UsedFieldNames { get; internal set; }
+
+
     }
 }

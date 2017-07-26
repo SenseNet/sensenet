@@ -6,24 +6,24 @@ namespace SenseNet.Search.Parser
 {
     public abstract class SnQueryVisitor
     {
-        public virtual SnQueryPredicate Visit(SnQueryPredicate node)
+        public virtual SnQueryPredicate Visit(SnQueryPredicate predicate)
         {
-            if (node == null)
+            if (predicate == null)
                 return null;
 
-            var text           = node as TextPredicate;                   if (text != null)            return VisitText              (text);
-            var intNumber      = node as IntegerNumberPredicate;          if (intNumber != null)       return VisitIntegerNumber     (intNumber);
-            var longNumber     = node as LongNumberPredicate;             if (longNumber != null)      return VisitLongNumber        (longNumber);
-            var singleNumber   = node as SingleNumberPredicate;           if (singleNumber != null)    return VisitSingleNumber      (singleNumber);
-            var doubleNumber   = node as DoubleNumberPredicate;           if (doubleNumber != null)    return VisitDoubleNumber      (doubleNumber);
-            var textRange      = node as TextRange;              if (textRange != null)       return VisitTextRange         (textRange);
-            var intRrange      = node as IntegerRange;           if (intRrange != null)       return VisitIntegerRange      (intRrange);
-            var longRange      = node as LongRange;              if (longRange != null)       return VisitLongRange         (longRange);
-            var singleRange    = node as SingleRange;            if (singleRange != null)     return VisitSingleRange       (singleRange);
-            var doubleRange    = node as DoubleRange;            if (doubleRange != null)     return VisitDoubleRange       (doubleRange);
-            var boolClauseList = node as BooleanClauseList;      if (boolClauseList != null)  return VisitBooleanClauseList (boolClauseList);
+            var text           = predicate as TextPredicate;                   if (text != null)            return VisitText              (text);
+            var intNumber      = predicate as IntegerNumberPredicate;          if (intNumber != null)       return VisitIntegerNumber     (intNumber);
+            var longNumber     = predicate as LongNumberPredicate;             if (longNumber != null)      return VisitLongNumber        (longNumber);
+            var singleNumber   = predicate as SingleNumberPredicate;           if (singleNumber != null)    return VisitSingleNumber      (singleNumber);
+            var doubleNumber   = predicate as DoubleNumberPredicate;           if (doubleNumber != null)    return VisitDoubleNumber      (doubleNumber);
+            var textRange      = predicate as TextRange;              if (textRange != null)       return VisitTextRange         (textRange);
+            var intRrange      = predicate as IntegerRange;           if (intRrange != null)       return VisitIntegerRange      (intRrange);
+            var longRange      = predicate as LongRange;              if (longRange != null)       return VisitLongRange         (longRange);
+            var singleRange    = predicate as SingleRange;            if (singleRange != null)     return VisitSingleRange       (singleRange);
+            var doubleRange    = predicate as DoubleRange;            if (doubleRange != null)     return VisitDoubleRange       (doubleRange);
+            var boolClauseList = predicate as BooleanClauseList;      if (boolClauseList != null)  return VisitBooleanClauseList (boolClauseList);
 
-            throw new NotSupportedException("Unknown query type: " + node.GetType().FullName);
+            throw new NotSupportedException("Unknown query type: " + predicate.GetType().FullName);
         }
 
         public virtual SnQueryPredicate VisitText(TextPredicate predicate)
@@ -107,7 +107,7 @@ namespace SenseNet.Search.Parser
         public virtual BooleanClause VisitBooleanClause(BooleanClause clause)
         {
             var occur = clause.Occur;
-            var query = clause.Node;
+            var query = clause.Predicate;
             var visited = Visit(query);
             if (query == visited)
                 return clause;

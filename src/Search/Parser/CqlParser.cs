@@ -28,6 +28,7 @@ namespace SenseNet.Search.Parser
         private CqlLexer _lexer;
         private readonly Stack<FieldInfo> _currentField = new Stack<FieldInfo>();
         private readonly List<QueryControlParam> _controls = new List<QueryControlParam>();
+        private readonly List<string> _usedFieldNames = new List<string>();
         private IQueryContext _context;
         private bool _hasEmptyQuery;
 
@@ -80,6 +81,7 @@ namespace SenseNet.Search.Parser
             }
             result.Sort = sortFields.ToArray();
             AggregateSettings(result, context.Settings);
+            result.UsedFieldNames = _usedFieldNames;
             return result;
         }
         private SnQueryPredicate Parse(string queryText)
@@ -593,7 +595,6 @@ namespace SenseNet.Search.Parser
             return value;
         }
 
-
         private bool ParseControlExpWithoutParam()
         {
             // ControlExpWithoutParam  ==>  SimpleControlName
@@ -642,7 +643,8 @@ namespace SenseNet.Search.Parser
                 fieldInfo = new FieldInfo { Name = name };
                 fieldInfo.OperatorToken = _lexer.CurrentToken;
 
-                //UNDONE:!!! FieldLevel support: aggregate field names here.
+                if (!_usedFieldNames.Contains(name))
+                    _usedFieldNames.Add(name);
 
                 _lexer.NextToken();
                 if (_lexer.CurrentToken != CqlLexer.Token.Colon)

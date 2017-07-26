@@ -29,7 +29,7 @@ namespace SenseNet.Search.Parser
         }
         public override BooleanClause VisitBooleanClause(BooleanClause clause)
         {
-            var predicate = clause.Node;
+            var predicate = clause.Predicate;
             var visited = base.Visit(predicate);
             if (visited == null)
                 return null;
