@@ -9,8 +9,6 @@ namespace SenseNet.Search.Parser
     {
         public enum DefaultOperator { Or, And }
 
-        public bool HasEmptyQuery { get; private set; }
-
         internal class QueryControlParam
         {
             public string Name { get; set; }
@@ -24,23 +22,22 @@ namespace SenseNet.Search.Parser
             public bool IsBinary { get; set; }
         }
 
-        public DefaultOperator Operator { get; private set; }
+        private DefaultOperator _defaultOperator = DefaultOperator.Or;
+        private const double DefaultSimilarity = 0.5;
 
         private CqlLexer _lexer;
         private readonly Stack<FieldInfo> _currentField = new Stack<FieldInfo>();
-        private double _defaultSimilarity = 0.5;
-
         private readonly List<QueryControlParam> _controls = new List<QueryControlParam>();
-
         private IQueryContext _context;
+        private bool _hasEmptyQuery;
 
         public SnQuery Parse(string queryText, IQueryContext context)
         {
             _context = context;
 
-            var rootNode = Parse(queryText, DefaultOperator.Or);
+            var rootNode = Parse(queryText);
 
-            if (HasEmptyQuery)
+            if (_hasEmptyQuery)
                 rootNode = new EmptyPredicateVisitor().Visit(rootNode);
             //UNDONE: what if the rootNode is null?
 
@@ -85,11 +82,10 @@ namespace SenseNet.Search.Parser
             AggregateSettings(result, context.Settings);
             return result;
         }
-        private SnQueryPredicate Parse(string queryText, DefaultOperator @operator)
+        private SnQueryPredicate Parse(string queryText)
         {
             _lexer = new CqlLexer(queryText);
             _controls.Clear();
-            Operator = @operator;
             return ParseTopLevelQueryExpList();
         }
         private static void AggregateSettings(SnQuery query, QuerySettings settings)
@@ -242,7 +238,7 @@ namespace SenseNet.Search.Parser
                 _lexer.NextToken();
                 return Occurence.Must;
             }
-            if (Operator == DefaultOperator.And)
+            if (_defaultOperator == DefaultOperator.And)
                 return Occurence.Must;
             return Occurence.Default;
         }
@@ -729,7 +725,7 @@ namespace SenseNet.Search.Parser
             // ExactValue   ==>  STRING | NUMBER | EMPTY
             if (_lexer.StringValue == SnQuery.EmptyText)
             {
-                HasEmptyQuery = true;
+                _hasEmptyQuery = true;
                 var fieldVal = new QueryFieldValue(_lexer.StringValue, _lexer.CurrentToken, _lexer.IsPhrase);
                 _lexer.NextToken();
                 return fieldVal;
@@ -780,7 +776,7 @@ namespace SenseNet.Search.Parser
             else
             {
                 if (_lexer.CurrentToken != CqlLexer.Token.Number)
-                    return _defaultSimilarity;
+                    return DefaultSimilarity;
                 if (_lexer.NumberValue < 0.0 || _lexer.NumberValue > 1.0)
                     throw ParserError(String.Concat("Invalid fuzzy value (0.0-1.0): ", _lexer.NumberValue));
                 _lexer.NextToken();
@@ -854,7 +850,7 @@ namespace SenseNet.Search.Parser
             var clause = clauses[0];
             var clauseOccur = clause.Occur;
             Occurence effectiveOccur;
-            if (Operator == DefaultOperator.Or)
+            if (_defaultOperator == DefaultOperator.Or)
             {
                 //   in  cl      eff
                 //    ?  _  ==>  _
@@ -943,12 +939,12 @@ namespace SenseNet.Search.Parser
         {
             if (minValue != null && minValue.StringValue == SnQuery.EmptyText && maxValue == null)
             {
-                HasEmptyQuery = true;
+                _hasEmptyQuery = true;
                 return new TextPredicate(fieldName, minValue.StringValue);
             }
             if (maxValue != null && maxValue.StringValue == SnQuery.EmptyText && minValue == null)
             {
-                HasEmptyQuery = true;
+                _hasEmptyQuery = true;
                 return new TextPredicate(fieldName, maxValue.StringValue);
             }
             if (minValue != null && minValue.StringValue == SnQuery.EmptyText)

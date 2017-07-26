@@ -402,7 +402,6 @@ namespace SenseNet.Search
         {
             private class InnerQueryResult
             {
-                internal bool IsIntArray;
                 internal string[] StringArray;
                 internal int[] IntArray;
             }
@@ -535,7 +534,9 @@ namespace SenseNet.Search
                 if (projection == null || !enableProjection)
                 {
                     var idResult = lucObjects.Select(o => o.NodeId).ToArray();
-                    result = new InnerQueryResult { IsIntArray = true, IntArray = idResult, StringArray = idResult.Select(i => i.ToString()).ToArray() };
+                    result = new InnerQueryResult { IntArray = idResult };
+                    if (enableProjection)
+                        result.StringArray = idResult.Select(i => i.ToString()).ToArray();
                 }
                 else
                 {
@@ -543,34 +544,21 @@ namespace SenseNet.Search
                     var escaped = new List<string>();
                     foreach (var s in stringResult)
                         escaped.Add(EscapeForQuery(s));
-                    result = new InnerQueryResult { IsIntArray = false, StringArray = escaped.ToArray() };
+                    result = new InnerQueryResult { StringArray = escaped.ToArray() };
                 }
 
                 return result;
             }
 
-            private static object __escaperRegexSync = new object();
-            private static Regex __escaperRegex;
-            private static Regex EscaperRegex
+            private static readonly Regex EscaperRegex;
+
+            static RecursiveExecutor()
             {
-                get
-                {
-                    if (__escaperRegex == null)
-                    {
-                        lock (__escaperRegexSync)
-                        {
-                            if (__escaperRegex == null)
-                            {
-                                var pattern = new StringBuilder("[");
-                                foreach (var c in SnLucLexer.STRINGTERMINATORCHARS.ToCharArray())
-                                    pattern.Append("\\" + c);
-                                pattern.Append("]");
-                                __escaperRegex = new Regex(pattern.ToString());
-                            }
-                        }
-                    }
-                    return __escaperRegex;
-                }
+                var pattern = new StringBuilder("[");
+                foreach (var c in SnLucLexer.STRINGTERMINATORCHARS.ToCharArray())
+                    pattern.Append("\\" + c);
+                pattern.Append("]");
+                EscaperRegex = new Regex(pattern.ToString());
             }
 
             private static string EscapeForQuery(string value)
