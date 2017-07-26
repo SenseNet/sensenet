@@ -714,7 +714,7 @@ namespace SenseNet.Search.Parser
                 return val;
             if (_lexer.CurrentToken == CqlLexer.Token.WildcardString)
             {
-                val = new QueryFieldValue(_lexer.StringValue.ToLower(), _lexer.CurrentToken, _lexer.IsPhrase);
+                val = new QueryFieldValue(_lexer.StringValue, _lexer.CurrentToken, _lexer.IsPhrase);
                 _lexer.NextToken();
                 return val;
             }
@@ -960,8 +960,8 @@ namespace SenseNet.Search.Parser
             switch (minValue?.Datatype ?? maxValue.Datatype)
             {
                 case IndexableDataType.String:
-                    var lowerTerm = minValue?.StringValue.ToLower();
-                    var upperTerm = maxValue?.StringValue.ToLower();
+                    var lowerTerm = minValue?.StringValue;
+                    var upperTerm = maxValue?.StringValue;
                     return new TextRange(fieldName, lowerTerm, upperTerm, !includeLower, !includeUpper);
                 case IndexableDataType.Int:
                     var lowerInt = minValue?.IntValue ?? int.MinValue;

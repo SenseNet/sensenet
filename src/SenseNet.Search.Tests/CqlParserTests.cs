@@ -19,8 +19,8 @@ namespace SenseNet.Search.Tests
         {
             var queryContext = new TestQueryContext(QuerySettings.AdminSettings, 0, null);
             var parser = new CqlParser();
-            var queryText = "asdf";
-            var expectedResult = "_Text:asdf";
+            var queryText = "ASDF";
+            var expectedResult = "_Text:ASDF";
 
             var snQuery = parser.Parse(queryText, queryContext);
 
@@ -41,7 +41,6 @@ namespace SenseNet.Search.Tests
             var queryContext = new TestQueryContext(QuerySettings.AdminSettings, 0, indexingInfo);
             var parser = new CqlParser();
             var queryText = "+Id:<1000 +Name:Admin*";
-            var expectedResult = "+Id:<1000 +Name:admin*";
 
             var snQuery = parser.Parse(queryText, queryContext);
 
@@ -49,7 +48,7 @@ namespace SenseNet.Search.Tests
             visitor.Visit(snQuery.QueryTree);
             var actualResult = visitor.Output;
 
-            Assert.AreEqual(expectedResult, actualResult);
+            Assert.AreEqual(queryText, actualResult);
         }
 
         [TestMethod]
