@@ -1,10 +1,12 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Search.Parser;
+using SenseNet.Search.Parser.Predicates;
 using SenseNet.Search.Tests.Implementations;
 
 namespace SenseNet.Search.Tests
@@ -49,6 +51,7 @@ namespace SenseNet.Search.Tests
 
             Assert.AreEqual(expectedResult, actualResult);
         }
+
         [TestMethod]
         public void CqlParser_UsedFieldNames()
         {
@@ -61,7 +64,7 @@ namespace SenseNet.Search.Tests
             };
             var queryContext = new TestQueryContext(QuerySettings.AdminSettings, 0, indexingInfo);
             var parser = new CqlParser();
-            var queryText = "+Id:<1000 +Name:Admin* +(Field1:value1 Field2:value2)";
+            var queryText = "+Id:<1000 +Name:Admin* +(Field1:value1 Field2:value2) +(Field1:asdf)";
             var expected = "Field1, Field2, Id, Name";
 
             var snQuery = parser.Parse(queryText, queryContext);
