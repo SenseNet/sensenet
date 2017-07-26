@@ -49,5 +49,26 @@ namespace SenseNet.Search.Tests
 
             Assert.AreEqual(expectedResult, actualResult);
         }
+        [TestMethod]
+        public void CqlParser_UsedFieldNames()
+        {
+            var indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
+            {
+                {"Id", new TestPerfieldIndexingInfo_int() },
+                {"Name", new TestPerfieldIndexingInfo_string() },
+                {"Field1", new TestPerfieldIndexingInfo_string() },
+                {"Field2", new TestPerfieldIndexingInfo_string() }
+            };
+            var queryContext = new TestQueryContext(QuerySettings.AdminSettings, 0, indexingInfo);
+            var parser = new CqlParser();
+            var queryText = "+Id:<1000 +Name:Admin* +(Field1:value1 Field2:value2)";
+            var expected = "Field1, Field2, Id, Name";
+
+            var snQuery = parser.Parse(queryText, queryContext);
+
+            var actual = string.Join(", ", snQuery.UsedFieldNames.OrderBy(x => x).ToArray());
+            Assert.AreEqual(expected, actual);
+        }
+
     }
 }
