@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using SenseNet.Search.Parser.Predicates;
 
 namespace SenseNet.Search.Parser
@@ -8,7 +9,7 @@ namespace SenseNet.Search.Parser
     {
         public enum DefaultOperator { Or, And }
 
-        public bool ParseEmptyQuery;
+        public bool HasEmptyQuery { get; private set; }
 
         internal class QueryControlParam
         {
@@ -26,10 +27,10 @@ namespace SenseNet.Search.Parser
         public DefaultOperator Operator { get; private set; }
 
         private CqlLexer _lexer;
-        private Stack<FieldInfo> _currentField = new Stack<FieldInfo>();
+        private readonly Stack<FieldInfo> _currentField = new Stack<FieldInfo>();
         private double _defaultSimilarity = 0.5;
 
-        private List<QueryControlParam> _controls = new List<QueryControlParam>();
+        private readonly List<QueryControlParam> _controls = new List<QueryControlParam>();
 
         private IQueryContext _context;
 
@@ -39,19 +40,16 @@ namespace SenseNet.Search.Parser
 
             var rootNode = Parse(queryText, DefaultOperator.Or);
 
-            //UNDONE:!!!! Use EmptyTermVisitor
-            //if (ParseEmptyQuery)
-            //{
-            //    var visitor = new EmptyTermVisitor();
-            //    rootNode = visitor.Visit(rootNode);
-            //}
+            if (HasEmptyQuery)
+                rootNode = new EmptyPredicateVisitor().Visit(rootNode);
+            //UNDONE: what if the rootNode is null?
 
             var result = new SnQuery { Querytext = queryText, QueryTree = rootNode };
 
             var sortFields = new List<SortInfo>();
             foreach (var control in _controls)
             {
-                //UNDONE:!!!! context.Settings is not used
+                // ReSharper disable once SwitchStatementMissingSomeCases
                 switch (control.Name)
                 {
                     case CqlLexer.Keywords.Select:
@@ -84,6 +82,7 @@ namespace SenseNet.Search.Parser
                 }
             }
             result.Sort = sortFields.ToArray();
+            AggregateSettings(result, context.Settings);
             return result;
         }
         private SnQueryPredicate Parse(string queryText, DefaultOperator @operator)
@@ -93,7 +92,22 @@ namespace SenseNet.Search.Parser
             Operator = @operator;
             return ParseTopLevelQueryExpList();
         }
-
+        private static void AggregateSettings(SnQuery query, QuerySettings settings)
+        {
+            query.Top = Math.Min(
+                settings.Top == 0 ? int.MaxValue : settings.Top,
+                query.Top == 0 ? int.MaxValue : query.Top);
+            if (settings.Skip > 0)
+                query.Skip = settings.Skip;
+            if (settings.Sort != null && settings.Sort.Any())
+                query.Sort = settings.Sort.ToArray();
+            if (settings.EnableAutofilters != FilterStatus.Default)
+                query.EnableAutofilters = settings.EnableAutofilters;
+            if (settings.EnableLifespanFilter != FilterStatus.Default)
+                query.EnableLifespanFilter = settings.EnableLifespanFilter;
+            if (settings.QueryExecutionMode != QueryExecutionMode.Default)
+                query.QueryExecutionMode = settings.QueryExecutionMode;
+        }
 
         /* ============================================================================ Recursive descent methods */
 
@@ -461,208 +475,6 @@ namespace SenseNet.Search.Parser
             return boolq;
         }
 
-        /* ===================================================== */
-
-        private FieldInfo ParseFieldHead()
-        {
-            // UnaryFieldHead    ==>  STRING COLON | STRING COLON NEQ
-            // BinaryFieldHead   ==>  STRING COLON LT | STRING COLON GT | STRING COLON LTE | STRING COLON GTE
-
-            FieldInfo fieldInfo = null;
-            if (_lexer.CurrentToken == CqlLexer.Token.Field)
-            {
-                var name = _lexer.StringValue;
-                if (name == "Password" || name == "PasswordHash")
-                    throw new InvalidOperationException("Cannot search by '" + name + "' field name");
-
-
-                fieldInfo = new FieldInfo { Name = name };
-                fieldInfo.OperatorToken = _lexer.CurrentToken;
-
-                //UNDONE:!!! FieldLevel support: aggregate field names here.
-
-                _lexer.NextToken();
-                if (_lexer.CurrentToken != CqlLexer.Token.Colon)
-                    throw new InvalidOperationException("#### ParseFieldHead ####");
-
-
-                _lexer.NextToken();
-                switch (_lexer.CurrentToken)
-                {
-                    case CqlLexer.Token.NEQ:
-                        fieldInfo.IsBinary = false;
-                        fieldInfo.OperatorToken = _lexer.CurrentToken;
-                        _lexer.NextToken();
-                        break;
-                    case CqlLexer.Token.LT:
-                    case CqlLexer.Token.LTE:
-                    case CqlLexer.Token.GT:
-                    case CqlLexer.Token.GTE:
-                        fieldInfo.IsBinary = true;
-                        fieldInfo.OperatorToken = _lexer.CurrentToken;
-                        _lexer.NextToken();
-                        break;
-                }
-            }
-
-            return fieldInfo;
-        }
-        private SnQueryPredicate ParseRange()
-        {
-            // Range        ==>  RangeStart ExactValue TO ExactValue RangeEnd
-            var start = ParseRangeStart();
-            if (start == null)
-                return null;
-            var minValue = ParseExactValue(false);
-            if (_lexer.CurrentToken != CqlLexer.Token.To)
-                throw SyntaxError();
-            _lexer.NextToken();
-            var maxValue = ParseExactValue(false);
-            var end = ParseRangeEnd();
-            if (end == null)
-                throw ParserError("Unterminated Range expression");
-
-            var fieldInfo = _currentField.Peek();
-            var fieldName = fieldInfo.Name;
-            var includeLower = start.Value;
-            var includeUpper = end.Value;
-
-            if (minValue == null && maxValue == null)
-                throw ParserError("Invalid range.");
-
-            return CreateRangeQuery(fieldName, minValue, maxValue, includeLower, includeUpper);
-        }
-        private QueryFieldValue ParseFuzzyValue()
-        {
-            // FuzzyValue   ==>  Value [Fuzzy]
-            var val = ParseValue(false);
-            if (val == null)
-                return null;
-            val.FuzzyValue = ParseFuzzy(val.IsPhrase);
-            return val;
-        }
-        private QueryFieldValue ParseValue(bool throwEx)
-        {
-            // Value        ==>  ExactValue | WILDCARDSTRING
-            var val = ParseExactValue(false);
-            if (val != null)
-                return val;
-            if (_lexer.CurrentToken == CqlLexer.Token.WildcardString)
-            {
-                val = new QueryFieldValue(_lexer.StringValue.ToLower(), _lexer.CurrentToken, _lexer.IsPhrase);
-                _lexer.NextToken();
-                return val;
-            }
-            if (!throwEx)
-                return null;
-            throw ParserError($"Unexpected {_lexer.CurrentToken}. Expected: STRING | NUMBER | WILDCARDSTRING");
-        }
-        private QueryFieldValue ParseExactValue(bool throwEx)
-        {
-            // ExactValue   ==>  STRING | NUMBER | EMPTY
-            if (_lexer.StringValue == SnQuery.EmptyText)
-            {
-                ParseEmptyQuery = true;
-                var fieldVal = new QueryFieldValue(_lexer.StringValue, _lexer.CurrentToken, _lexer.IsPhrase);
-                _lexer.NextToken();
-                return fieldVal;
-            }
-            if (_lexer.CurrentToken != CqlLexer.Token.String && _lexer.CurrentToken != CqlLexer.Token.Number)
-            {
-                if (throwEx)
-                    throw ParserError(String.Concat("Unexpected ", _lexer.CurrentToken, ". Expected: STRING | NUMBER"));
-                return null;
-            }
-
-            var field = _currentField.Peek();
-            var fieldName = field.Name;
-            var val = new QueryFieldValue(_lexer.StringValue, _lexer.CurrentToken, _lexer.IsPhrase);
-            if (fieldName != IndexFieldName.AllText && _lexer.StringValue != SnQuery.EmptyInnerQueryText)
-            {
-                var info = _context.GetPerFieldIndexingInfo(fieldName);
-                if (info != null)
-                {
-                    var fieldHandler = info.IndexFieldHandler;
-                    if (fieldHandler != null)
-                    {
-                        if (!fieldHandler.TryParseAndSet(val))
-                        {
-                            if (throwEx)
-                                throw ParserError(String.Concat("Cannot parse the '", fieldName, "' field value: ", _lexer.StringValue));
-                            return null;
-                        }
-                    }
-                }
-            }
-            _lexer.NextToken();
-            return val;
-        }
-        private double? ParseFuzzy(bool isPhrase)
-        {
-            // Fuzzy        ==>  TILDE [NUMBER]
-            if (_lexer.CurrentToken != CqlLexer.Token.Tilde)
-                return null;
-            _lexer.NextToken();
-            if (isPhrase)
-            {
-                if (_lexer.CurrentToken != CqlLexer.Token.Number)
-                    throw ParserError("Missing proximity value");
-                _lexer.NextToken();
-                return _lexer.NumberValue;
-            }
-            else
-            {
-                if (_lexer.CurrentToken != CqlLexer.Token.Number)
-                    return _defaultSimilarity;
-                if (_lexer.NumberValue < 0.0 || _lexer.NumberValue > 1.0)
-                    throw ParserError(String.Concat("Invalid fuzzy value (0.0-1.0): ", _lexer.NumberValue));
-                _lexer.NextToken();
-                return _lexer.NumberValue;
-            }
-        }
-        private double? ParseBoost()
-        {
-            // Boost        ==>  CIRC NUMBER
-            if (_lexer.CurrentToken != CqlLexer.Token.Circ)
-                return null;
-            _lexer.NextToken();
-            if (_lexer.CurrentToken != CqlLexer.Token.Number)
-                throw SyntaxError();
-            _lexer.NextToken();
-            return _lexer.NumberValue;
-        }
-        private bool? ParseRangeStart()
-        {
-            // RangeStart   ==>  LBRACKET | LBRACE
-            if (_lexer.CurrentToken == CqlLexer.Token.LBracket)//excl
-            {
-                _lexer.NextToken();
-                return true;
-            }
-            if (_lexer.CurrentToken == CqlLexer.Token.LBrace)//incl
-            {
-                _lexer.NextToken();
-                return false;
-            }
-            return null;
-        }
-        private bool? ParseRangeEnd()
-        {
-            // RangeEnd     ==>  RBRACKET | RBRACE
-            if (_lexer.CurrentToken == CqlLexer.Token.RBracket)//excl
-            {
-                _lexer.NextToken();
-                return true;
-            }
-            if (_lexer.CurrentToken == CqlLexer.Token.RBrace)//incl
-            {
-                _lexer.NextToken();
-                return false;
-            }
-            return null;
-        }
-
-
         /* ============================================================================ Parse control */
 
         private void ParseControlExp()
@@ -816,6 +628,207 @@ namespace SenseNet.Search.Parser
             _controls.Add(new QueryControlParam { Name = name, Value = param });
         }
 
+        /* ============================================================================ helpers */
+
+        private FieldInfo ParseFieldHead()
+        {
+            // UnaryFieldHead    ==>  STRING COLON | STRING COLON NEQ
+            // BinaryFieldHead   ==>  STRING COLON LT | STRING COLON GT | STRING COLON LTE | STRING COLON GTE
+
+            FieldInfo fieldInfo = null;
+            if (_lexer.CurrentToken == CqlLexer.Token.Field)
+            {
+                var name = _lexer.StringValue;
+                if (name == "Password" || name == "PasswordHash")
+                    throw new InvalidOperationException("Cannot search by '" + name + "' field name");
+
+
+                fieldInfo = new FieldInfo { Name = name };
+                fieldInfo.OperatorToken = _lexer.CurrentToken;
+
+                //UNDONE:!!! FieldLevel support: aggregate field names here.
+
+                _lexer.NextToken();
+                if (_lexer.CurrentToken != CqlLexer.Token.Colon)
+                    throw new InvalidOperationException("#### ParseFieldHead ####");
+
+
+                _lexer.NextToken();
+                switch (_lexer.CurrentToken)
+                {
+                    case CqlLexer.Token.NEQ:
+                        fieldInfo.IsBinary = false;
+                        fieldInfo.OperatorToken = _lexer.CurrentToken;
+                        _lexer.NextToken();
+                        break;
+                    case CqlLexer.Token.LT:
+                    case CqlLexer.Token.LTE:
+                    case CqlLexer.Token.GT:
+                    case CqlLexer.Token.GTE:
+                        fieldInfo.IsBinary = true;
+                        fieldInfo.OperatorToken = _lexer.CurrentToken;
+                        _lexer.NextToken();
+                        break;
+                }
+            }
+
+            return fieldInfo;
+        }
+        private SnQueryPredicate ParseRange()
+        {
+            // Range        ==>  RangeStart ExactValue TO ExactValue RangeEnd
+            var start = ParseRangeStart();
+            if (start == null)
+                return null;
+            var minValue = ParseExactValue(false);
+            if (_lexer.CurrentToken != CqlLexer.Token.To)
+                throw SyntaxError();
+            _lexer.NextToken();
+            var maxValue = ParseExactValue(false);
+            var end = ParseRangeEnd();
+            if (end == null)
+                throw ParserError("Unterminated Range expression");
+
+            var fieldInfo = _currentField.Peek();
+            var fieldName = fieldInfo.Name;
+            var includeLower = start.Value;
+            var includeUpper = end.Value;
+
+            if (minValue == null && maxValue == null)
+                throw ParserError("Invalid range.");
+
+            return CreateRangeQuery(fieldName, minValue, maxValue, includeLower, includeUpper);
+        }
+        private QueryFieldValue ParseFuzzyValue()
+        {
+            // FuzzyValue   ==>  Value [Fuzzy]
+            var val = ParseValue(false);
+            if (val == null)
+                return null;
+            val.FuzzyValue = ParseFuzzy(val.IsPhrase);
+            return val;
+        }
+        private QueryFieldValue ParseValue(bool throwEx)
+        {
+            // Value        ==>  ExactValue | WILDCARDSTRING
+            var val = ParseExactValue(false);
+            if (val != null)
+                return val;
+            if (_lexer.CurrentToken == CqlLexer.Token.WildcardString)
+            {
+                val = new QueryFieldValue(_lexer.StringValue.ToLower(), _lexer.CurrentToken, _lexer.IsPhrase);
+                _lexer.NextToken();
+                return val;
+            }
+            if (!throwEx)
+                return null;
+            throw ParserError($"Unexpected {_lexer.CurrentToken}. Expected: STRING | NUMBER | WILDCARDSTRING");
+        }
+        private QueryFieldValue ParseExactValue(bool throwEx)
+        {
+            // ExactValue   ==>  STRING | NUMBER | EMPTY
+            if (_lexer.StringValue == SnQuery.EmptyText)
+            {
+                HasEmptyQuery = true;
+                var fieldVal = new QueryFieldValue(_lexer.StringValue, _lexer.CurrentToken, _lexer.IsPhrase);
+                _lexer.NextToken();
+                return fieldVal;
+            }
+            if (_lexer.CurrentToken != CqlLexer.Token.String && _lexer.CurrentToken != CqlLexer.Token.Number)
+            {
+                if (throwEx)
+                    throw ParserError(String.Concat("Unexpected ", _lexer.CurrentToken, ". Expected: STRING | NUMBER"));
+                return null;
+            }
+
+            var field = _currentField.Peek();
+            var fieldName = field.Name;
+            var val = new QueryFieldValue(_lexer.StringValue, _lexer.CurrentToken, _lexer.IsPhrase);
+            if (fieldName != IndexFieldName.AllText && _lexer.StringValue != SnQuery.EmptyInnerQueryText)
+            {
+                var info = _context.GetPerFieldIndexingInfo(fieldName);
+                if (info != null)
+                {
+                    var fieldHandler = info.IndexFieldHandler;
+                    if (fieldHandler != null)
+                    {
+                        if (!fieldHandler.TryParseAndSet(val))
+                        {
+                            if (throwEx)
+                                throw ParserError(String.Concat("Cannot parse the '", fieldName, "' field value: ", _lexer.StringValue));
+                            return null;
+                        }
+                    }
+                }
+            }
+            _lexer.NextToken();
+            return val;
+        }
+        private double? ParseFuzzy(bool isPhrase)
+        {
+            // Fuzzy        ==>  TILDE [NUMBER]
+            if (_lexer.CurrentToken != CqlLexer.Token.Tilde)
+                return null;
+            _lexer.NextToken();
+            if (isPhrase)
+            {
+                if (_lexer.CurrentToken != CqlLexer.Token.Number)
+                    throw ParserError("Missing proximity value");
+                _lexer.NextToken();
+                return _lexer.NumberValue;
+            }
+            else
+            {
+                if (_lexer.CurrentToken != CqlLexer.Token.Number)
+                    return _defaultSimilarity;
+                if (_lexer.NumberValue < 0.0 || _lexer.NumberValue > 1.0)
+                    throw ParserError(String.Concat("Invalid fuzzy value (0.0-1.0): ", _lexer.NumberValue));
+                _lexer.NextToken();
+                return _lexer.NumberValue;
+            }
+        }
+        private double? ParseBoost()
+        {
+            // Boost        ==>  CIRC NUMBER
+            if (_lexer.CurrentToken != CqlLexer.Token.Circ)
+                return null;
+            _lexer.NextToken();
+            if (_lexer.CurrentToken != CqlLexer.Token.Number)
+                throw SyntaxError();
+            _lexer.NextToken();
+            return _lexer.NumberValue;
+        }
+        private bool? ParseRangeStart()
+        {
+            // RangeStart   ==>  LBRACKET | LBRACE
+            if (_lexer.CurrentToken == CqlLexer.Token.LBracket)//excl
+            {
+                _lexer.NextToken();
+                return true;
+            }
+            if (_lexer.CurrentToken == CqlLexer.Token.LBrace)//incl
+            {
+                _lexer.NextToken();
+                return false;
+            }
+            return null;
+        }
+        private bool? ParseRangeEnd()
+        {
+            // RangeEnd     ==>  RBRACKET | RBRACE
+            if (_lexer.CurrentToken == CqlLexer.Token.RBracket)//excl
+            {
+                _lexer.NextToken();
+                return true;
+            }
+            if (_lexer.CurrentToken == CqlLexer.Token.RBrace)//incl
+            {
+                _lexer.NextToken();
+                return false;
+            }
+            return null;
+        }
+
         /* ============================================================================ */
 
         private void AddBooleanClause(BooleanClauseList boolNode, SnQueryPredicate query, Occurence occur)
@@ -930,12 +943,12 @@ namespace SenseNet.Search.Parser
         {
             if (minValue != null && minValue.StringValue == SnQuery.EmptyText && maxValue == null)
             {
-                ParseEmptyQuery = true;
+                HasEmptyQuery = true;
                 return new TextPredicate(fieldName, minValue.StringValue);
             }
             if (maxValue != null && maxValue.StringValue == SnQuery.EmptyText && minValue == null)
             {
-                ParseEmptyQuery = true;
+                HasEmptyQuery = true;
                 return new TextPredicate(fieldName, maxValue.StringValue);
             }
             if (minValue != null && minValue.StringValue == SnQuery.EmptyText)

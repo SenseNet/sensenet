@@ -83,8 +83,7 @@ namespace SenseNet.Search
                 if (text[p] == '@')
                 {
                     var q = p;
-                    while (++q < text.Length && Char.IsDigit(text[q]))
-                        ;
+                    while (++q < text.Length && char.IsDigit(text[q])) { /* do nothing */ }
                     var nr = text.Substring(p + 1, q - p - 1);
                     if (nr.Length > 0)
                     {
@@ -266,7 +265,7 @@ namespace SenseNet.Search
                 return queryText;
 
             // find the last multiline comment
-            var commentStartIndex = queryText.LastIndexOf(MultilineCommentStart);
+            var commentStartIndex = queryText.LastIndexOf(MultilineCommentStart, StringComparison.Ordinal);
             if (commentStartIndex < 0)
                 return queryText;
 
@@ -372,9 +371,9 @@ namespace SenseNet.Search
             if (top == 0)
                 top = GetDefaultMaxResults();
             query.Top = Math.Min(top, query.Top);
-
             query.PageSize = query.Top;
-            if (sort != null && sort.Count() > 0)
+
+            if (sort != null && sort.Any())
                 query.SetSort(sort);
 
             if (enableAutofilters != FilterStatus.Default)

@@ -1,5 +1,4 @@
-﻿using System;
-using SenseNet.Search.Parser;
+﻿using SenseNet.Search.Parser;
 
 namespace SenseNet.Search
 {
@@ -11,11 +10,11 @@ namespace SenseNet.Search
         public int Skip { get; internal set; }
         public SortInfo[] Sort { get; internal set; }
 
-        internal SnQueryPredicate QueryTree { get; set; }
-        public FilterStatus EnableAutofilters { get; set; }
-        public FilterStatus EnableLifespanFilter { get; set; }
-        public bool CountOnly { get; set; }
-        public QueryExecutionMode QueryExecutionMode { get; set; }
-        public QueryFieldLevel FieldLevel { get; set; } //UNDONE: Set value in the query analysis project by a visitor
+        public SnQueryPredicate QueryTree { get; internal set; }
+        public FilterStatus EnableAutofilters { get; internal set; }
+        public FilterStatus EnableLifespanFilter { get; internal set; }
+        public bool CountOnly { get; internal set; }
+        public QueryExecutionMode QueryExecutionMode { get; internal set; }
+        public QueryFieldLevel FieldLevel { get; internal set; } //UNDONE: Set value in the query analysis project by a visitor
     }
 }
