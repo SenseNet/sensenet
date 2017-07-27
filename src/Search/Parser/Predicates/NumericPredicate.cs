@@ -16,14 +16,14 @@ namespace SenseNet.Search.Parser.Predicates
         }
     }
 
-    public class IntegerNumberPredicate : NumericPredicate
-    {
-        public int Value { get; }
-        public IntegerNumberPredicate(string fieldName, int value) : base(fieldName)
-        {
-            Value = value;
-        }
-    }
+    //public class IntegerNumberPredicate : NumericPredicate
+    //{
+    //    public int Value { get; }
+    //    public IntegerNumberPredicate(string fieldName, int value) : base(fieldName)
+    //    {
+    //        Value = value;
+    //    }
+    //}
     public class LongNumberPredicate : NumericPredicate
     {
         public long Value { get; }
@@ -32,14 +32,14 @@ namespace SenseNet.Search.Parser.Predicates
             Value = value;
         }
     }
-    public class SingleNumberPredicate : NumericPredicate
-    {
-        public float Value { get; }
-        public SingleNumberPredicate(string fieldName, float value) : base(fieldName)
-        {
-            Value = value;
-        }
-    }
+    //public class SingleNumberPredicate : NumericPredicate
+    //{
+    //    public float Value { get; }
+    //    public SingleNumberPredicate(string fieldName, float value) : base(fieldName)
+    //    {
+    //        Value = value;
+    //    }
+    //}
     public class DoubleNumberPredicate : NumericPredicate
     {
         public double Value { get; }

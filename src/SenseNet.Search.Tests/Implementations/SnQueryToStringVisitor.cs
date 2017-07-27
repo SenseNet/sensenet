@@ -33,24 +33,15 @@ namespace SenseNet.Search.Tests.Implementations
             return base.VisitText(text);
         }
 
-        public override SnQueryPredicate VisitIntegerNumber(IntegerNumberPredicate predicate)
-        {
-            PredicateToString(predicate.FieldName, predicate.Value, predicate.Boost, null);
-            return base.VisitIntegerNumber(predicate);
-        }
         public override SnQueryPredicate VisitLongNumber(LongNumberPredicate predicate)
         {
             PredicateToString(predicate.FieldName, predicate.Value, predicate.Boost, null);
             return base.VisitLongNumber(predicate);
         }
-        public override SnQueryPredicate VisitSingleNumber(SingleNumberPredicate predicate)
-        {
-            PredicateToString(predicate.FieldName, predicate.Value, predicate.Boost, null);
-            return base.VisitSingleNumber(predicate);
-        }
+
         public override SnQueryPredicate VisitDoubleNumber(DoubleNumberPredicate predicate)
         {
-            PredicateToString(predicate.FieldName, predicate.Value, predicate.Boost, null);
+            PredicateToString(predicate.FieldName, predicate.Value.ToString(CultureInfo.InvariantCulture), predicate.Boost, null);
             return base.VisitDoubleNumber(predicate);
         }
         private void PredicateToString(string fieldName, object value, double? boost, double? fuzzy)
@@ -85,14 +76,6 @@ namespace SenseNet.Search.Tests.Implementations
             RangeToString(range.FieldName, range.Min, range.Max, range.MinExclusive, range.MaxExclusive, range.Boost);
             return base.VisitTextRange(range);
         }
-        public override SnQueryPredicate VisitIntegerRange(IntegerRange range)
-        {
-            RangeToString(range.FieldName,
-                range.Min == int.MinValue ? null : range.Min.ToString(CultureInfo.InvariantCulture),
-                range.Max == int.MaxValue ? null : range.Max.ToString(CultureInfo.InvariantCulture),
-                range.MinExclusive, range.MaxExclusive, range.Boost);
-            return base.VisitIntegerRange(range);
-        }
         public override SnQueryPredicate VisitLongRange(LongRange range)
         {
             RangeToString(range.FieldName,
@@ -100,14 +83,6 @@ namespace SenseNet.Search.Tests.Implementations
                 range.Max == long.MaxValue ? null : range.Max.ToString(CultureInfo.InvariantCulture),
                 range.MinExclusive, range.MaxExclusive, range.Boost);
             return base.VisitLongRange(range);
-        }
-        public override SnQueryPredicate VisitSingleRange(SingleRange range)
-        {
-            RangeToString(range.FieldName,
-                float.IsNaN(range.Min) ? null : range.Min.ToString(CultureInfo.InvariantCulture),
-                float.IsNaN(range.Max) ? null : range.Max.ToString(CultureInfo.InvariantCulture),
-                range.MinExclusive, range.MaxExclusive, range.Boost);
-            return base.VisitSingleRange(range);
         }
         public override SnQueryPredicate VisitDoubleRange(DoubleRange range)
         {

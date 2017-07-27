@@ -58,16 +58,30 @@ namespace SenseNet.Search.Tests
             Test("title:(+return +\"pink panther\")", "+title:return +title:'pink panther'");
         }
         [TestMethod]
+        public void CqlParser_AstToString_PredicateTypes()
+        {
+            SnQuery q;
+            q = Test("Name:aaa"); Assert.AreEqual(typeof(TextPredicate), q.QueryTree.GetType());
+            q = Test("Id:1000"); Assert.AreEqual(typeof(LongNumberPredicate), q.QueryTree.GetType());
+            q = Test("Value:3.14"); Assert.AreEqual(typeof(DoubleNumberPredicate), q.QueryTree.GetType());
+        }
+
+        [TestMethod]
         public void CqlParser_AstToString_CqlExtension_Ranges()
         {
-            Test("Id:<1000");
-            Test("Id:>1000");
-            Test("Id:<=1000");
-            Test("Id:>=1000");
-            Test("Value:<3.14");
-            Test("Value:>3.14");
-            Test("Value:<=3.14");
-            Test("Value:>=3.14");
+            SnQuery q;
+            q = Test("Name:<aaa"); Assert.AreEqual(typeof(TextRange), q.QueryTree.GetType());
+            q = Test("Name:>aaa"); Assert.AreEqual(typeof(TextRange), q.QueryTree.GetType());
+            q = Test("Name:<=aaa"); Assert.AreEqual(typeof(TextRange), q.QueryTree.GetType());
+            q = Test("Name:>=aaa"); Assert.AreEqual(typeof(TextRange), q.QueryTree.GetType());
+            q = Test("Id:<1000"); Assert.AreEqual(typeof(LongRange), q.QueryTree.GetType());
+            q = Test("Id:>1000"); Assert.AreEqual(typeof(LongRange), q.QueryTree.GetType());
+            q = Test("Id:<=1000"); Assert.AreEqual(typeof(LongRange), q.QueryTree.GetType());
+            q = Test("Id:>=1000"); Assert.AreEqual(typeof(LongRange), q.QueryTree.GetType());
+            q = Test("Value:<3.14");  Assert.AreEqual(typeof(DoubleRange), q.QueryTree.GetType());
+            q = Test("Value:>3.14");  Assert.AreEqual(typeof(DoubleRange), q.QueryTree.GetType());
+            q = Test("Value:<=3.14"); Assert.AreEqual(typeof(DoubleRange), q.QueryTree.GetType());
+            q = Test("Value:>=3.14"); Assert.AreEqual(typeof(DoubleRange), q.QueryTree.GetType());
         }
         [TestMethod]
         public void CqlParser_AstToString_CqlExtension_SpecialChars()

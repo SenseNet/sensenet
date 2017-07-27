@@ -11,15 +11,11 @@ namespace SenseNet.Search.Parser
             if (predicate == null)
                 return null;
 
-            var text           = predicate as TextPredicate;                   if (text != null)            return VisitText              (text);
-            var intNumber      = predicate as IntegerNumberPredicate;          if (intNumber != null)       return VisitIntegerNumber     (intNumber);
-            var longNumber     = predicate as LongNumberPredicate;             if (longNumber != null)      return VisitLongNumber        (longNumber);
-            var singleNumber   = predicate as SingleNumberPredicate;           if (singleNumber != null)    return VisitSingleNumber      (singleNumber);
-            var doubleNumber   = predicate as DoubleNumberPredicate;           if (doubleNumber != null)    return VisitDoubleNumber      (doubleNumber);
+            var text           = predicate as TextPredicate;          if (text != null)            return VisitText              (text);
+            var longNumber     = predicate as LongNumberPredicate;    if (longNumber != null)      return VisitLongNumber        (longNumber);
+            var doubleNumber   = predicate as DoubleNumberPredicate;  if (doubleNumber != null)    return VisitDoubleNumber      (doubleNumber);
             var textRange      = predicate as TextRange;              if (textRange != null)       return VisitTextRange         (textRange);
-            var intRrange      = predicate as IntegerRange;           if (intRrange != null)       return VisitIntegerRange      (intRrange);
             var longRange      = predicate as LongRange;              if (longRange != null)       return VisitLongRange         (longRange);
-            var singleRange    = predicate as SingleRange;            if (singleRange != null)     return VisitSingleRange       (singleRange);
             var doubleRange    = predicate as DoubleRange;            if (doubleRange != null)     return VisitDoubleRange       (doubleRange);
             var boolClauseList = predicate as BooleanClauseList;      if (boolClauseList != null)  return VisitBooleanClauseList (boolClauseList);
 
@@ -31,15 +27,7 @@ namespace SenseNet.Search.Parser
             return predicate;
         }
 
-        public virtual SnQueryPredicate VisitIntegerNumber(IntegerNumberPredicate predicate)
-        {
-            return predicate;
-        }
         public virtual SnQueryPredicate VisitLongNumber(LongNumberPredicate predicate)
-        {
-            return predicate;
-        }
-        public virtual SnQueryPredicate VisitSingleNumber(SingleNumberPredicate predicate)
         {
             return predicate;
         }
@@ -51,15 +39,7 @@ namespace SenseNet.Search.Parser
         {
             return range;
         }
-        public virtual SnQueryPredicate VisitIntegerRange(IntegerRange range)
-        {
-            return range;
-        }
         public virtual SnQueryPredicate VisitLongRange(LongRange range)
-        {
-            return range;
-        }
-        public virtual SnQueryPredicate VisitSingleRange(SingleRange range)
         {
             return range;
         }

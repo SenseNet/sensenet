@@ -32,17 +32,17 @@ namespace SenseNet.Search.Parser.Predicates
         }
     }
 
-    public class IntegerRange : Range
-    {
-        public int Min { get; }
-        public int Max { get; }
+    //public class IntegerRange : Range
+    //{
+    //    public int Min { get; }
+    //    public int Max { get; }
 
-        public IntegerRange(string fieldName, int min, int max, bool minExclusive, bool maxExclusive) : base(fieldName, minExclusive, maxExclusive)
-        {
-            Min = min;
-            Max = max;
-        }
-    }
+    //    public IntegerRange(string fieldName, int min, int max, bool minExclusive, bool maxExclusive) : base(fieldName, minExclusive, maxExclusive)
+    //    {
+    //        Min = min;
+    //        Max = max;
+    //    }
+    //}
     public class LongRange : Range
     {
         public long Min { get; }
@@ -54,17 +54,17 @@ namespace SenseNet.Search.Parser.Predicates
             Max = max;
         }
     }
-    public class SingleRange : Range
-    {
-        public float Min { get; }
-        public float Max { get; }
+    //public class SingleRange : Range
+    //{
+    //    public float Min { get; }
+    //    public float Max { get; }
 
-        public SingleRange(string fieldName, float min, float max, bool minExclusive, bool maxExclusive) : base(fieldName, minExclusive, maxExclusive)
-        {
-            Min = min;
-            Max = max;
-        }
-    }
+    //    public SingleRange(string fieldName, float min, float max, bool minExclusive, bool maxExclusive) : base(fieldName, minExclusive, maxExclusive)
+    //    {
+    //        Min = min;
+    //        Max = max;
+    //    }
+    //}
     public class DoubleRange : Range
     {
         public double Min { get; }

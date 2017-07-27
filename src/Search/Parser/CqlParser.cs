@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Security.Principal;
 using SenseNet.Search.Parser.Predicates;
 
 namespace SenseNet.Search.Parser
@@ -94,7 +96,7 @@ namespace SenseNet.Search.Parser
             query.Top = Math.Min(
                 settings.Top == 0 ? int.MaxValue : settings.Top,
                 query.Top == 0 ? int.MaxValue : query.Top);
-            if (settings.Skip > 0)
+            if (settings.Skip > 0) //UNDONE: Known issue: if the query contains skip, the setting cannot override with 0 value (first page problem).
                 query.Skip = settings.Skip;
             if (settings.Sort != null && settings.Sort.Any())
                 query.Sort = settings.Sort.ToArray();
@@ -743,23 +745,25 @@ namespace SenseNet.Search.Parser
             var val = new QueryFieldValue(_lexer.StringValue, _lexer.CurrentToken, _lexer.IsPhrase);
             if (fieldName != IndexFieldName.AllText && _lexer.StringValue != SnQuery.EmptyInnerQueryText)
             {
-                val.Set(val.StringValue);
-
-                //UNDONE: !!! Do not use fieldIndexHandler here
-                //var info = _context.GetPerFieldIndexingInfo(fieldName);
-                //if (info != null)
-                //{
-                //    var fieldHandler = info.IndexFieldHandler;
-                //    if (fieldHandler != null)
-                //    {
-                //        if (!fieldHandler.TryParseAndSet(val))
-                //        {
-                //            if (throwEx)
-                //                throw ParserError(String.Concat("Cannot parse the '", fieldName, "' field value: ", _lexer.StringValue));
-                //            return null;
-                //        }
-                //    }
-                //}
+                if (_lexer.CurrentToken == CqlLexer.Token.Number)
+                {
+                    if (_lexer.IsInteger)
+                    {
+                        long longValue;
+                        if (long.TryParse(val.StringValue, out longValue))
+                            val.Set(longValue);
+                        else
+                            throw ParserError("Invalid value: " + val.StringValue);
+                    }
+                    else
+                    {
+                        double doubleValue;
+                        if (double.TryParse(val.StringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out doubleValue))
+                            val.Set(doubleValue);
+                        else
+                            throw ParserError("Invalid value: " + val.StringValue);
+                    }
+                }
             }
             _lexer.NextToken();
             return val;
@@ -914,9 +918,7 @@ namespace SenseNet.Search.Parser
             {
                 case IndexableDataType.String:
                     return CreateStringValueQuery(value, currentField);
-                case IndexableDataType.Int: return new IntegerNumberPredicate(fieldName, value.IntValue); //UNDONE: Use NumericUtils.IntToPrefixCoded(value) in the compiler
                 case IndexableDataType.Long: return new LongNumberPredicate(fieldName, value.LongValue); //UNDONE: Use NumericUtils.LongToPrefixCoded(value) in the compiler
-                case IndexableDataType.Float: return new SingleNumberPredicate(fieldName, value.SingleValue); //UNDONE: Use NumericUtils.FloatToPrefixCoded(value) in the compiler
                 case IndexableDataType.Double: return new DoubleNumberPredicate(fieldName, value.DoubleValue); //UNDONE: Use NumericUtils.DoubleToPrefixCoded(value) in the compiler
                 default:
                     throw ParserError("Unknown IndexableDataType enum value: " + value.Datatype);
@@ -931,7 +933,7 @@ namespace SenseNet.Search.Parser
                     if (value.StringValue == SnQuery.EmptyText)
                         return new TextPredicate(currentField.Name, value.StringValue);
                     if (value.StringValue == SnQuery.EmptyInnerQueryText)
-                        return new IntegerNumberPredicate(IndexFieldName.NodeId, 0);
+                        return new LongNumberPredicate(IndexFieldName.NodeId, 0);
                     return new TextPredicate(currentField.Name, value.StringValue, value.FuzzyValue);
                 case CqlLexer.Token.WildcardString:
                     return new TextPredicate(currentField.Name, value.StringValue, value.FuzzyValue);
@@ -965,18 +967,10 @@ namespace SenseNet.Search.Parser
                     var lowerTerm = minValue?.StringValue;
                     var upperTerm = maxValue?.StringValue;
                     return new TextRange(fieldName, lowerTerm, upperTerm, !includeLower, !includeUpper);
-                case IndexableDataType.Int:
-                    var lowerInt = minValue?.IntValue ?? int.MinValue;
-                    var upperInt = maxValue?.IntValue ?? int.MaxValue;
-                    return new IntegerRange(fieldName, lowerInt, upperInt, !includeLower, !includeUpper);
                 case IndexableDataType.Long:
                     var lowerLong = minValue?.LongValue ?? long.MinValue;
                     var upperLong = maxValue?.LongValue ?? long.MaxValue;
                     return new LongRange(fieldName, lowerLong, upperLong, !includeLower, !includeUpper);
-                case IndexableDataType.Float:
-                    var lowerFloat = minValue?.SingleValue ?? float.NaN;
-                    var upperFloat = maxValue?.SingleValue ?? float.NaN;
-                    return new SingleRange(fieldName, lowerFloat, upperFloat, !includeLower, !includeUpper);
                 case IndexableDataType.Double:
                     var lowerDouble = minValue?.DoubleValue ?? double.NaN;
                     var upperDouble = maxValue?.DoubleValue ?? double.NaN;
