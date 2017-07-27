@@ -21,7 +21,7 @@ namespace SenseNet.Search.Tests.Implementations
             return QueryResult<int>.Empty;
         }
 
-        public IQueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter permissionFilter)
+        public IQueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter)
         {
             return _stringResults[query.Querytext];
         }

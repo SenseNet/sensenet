@@ -91,6 +91,8 @@
     <Compile Include="Indexing\SnPerFieldAnalyzerWrapper.cs" />
     <Compile Include="IndexManager.cs" />
     <Compile Include="InvalidContentQueryException.cs" />
+    <Compile Include="Lucene29\Lucene29Compiler.cs" />
+    <Compile Include="Lucene29\Lucene29QueryEngine.cs" />
     <Compile Include="LuceneSearchEngine.cs" />
     <Compile Include="LucObject.cs" />
     <Compile Include="LucQuery.cs" />

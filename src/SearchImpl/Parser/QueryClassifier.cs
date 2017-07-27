@@ -7,7 +7,7 @@ using Lucene.Net.Search;
 
 namespace SenseNet.Search.Parser
 {
-    internal class QueryInfo
+    public class QueryInfo
     {
         public LucQuery Query { get; set; }
         public SortField[] SortFields { get; set; }
