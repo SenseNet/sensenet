@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using SenseNet.Search.Parser;
 
 namespace SenseNet.Search
@@ -17,8 +18,10 @@ namespace SenseNet.Search
         public bool CountOnly { get; internal set; }
         public QueryExecutionMode QueryExecutionMode { get; internal set; }
 
-        //UNDONE: Set FieldLevel value in the query analysis project by UsedFieldNames
-        public QueryFieldLevel FieldLevel { get; internal set; }
-        public List<string> UsedFieldNames { get; internal set; }
+        //public List<string> QueryFieldNames { get; internal set; }
+        //public string[] SortFieldNames
+        //{
+        //    get { return Sort?.Select(s => s.FieldName).Distinct().ToArray() ?? new string[0]; }
+        //}
     }
 }
