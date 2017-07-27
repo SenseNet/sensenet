@@ -184,21 +184,12 @@ namespace SenseNet.Search.Tests
         }
 
         [TestMethod]
-        public void AggregateSettingsTest()
+        public void CqlParser_AggregateSettingsTest()
         {
             var indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
             {
                 {"Id", new TestPerfieldIndexingInfo_int() }
             };
-            var expectedSortInfo = new List<IEnumerable<SortInfo>>();
-            for (int i = 0; i < 28; i++)
-            {
-                expectedSortInfo.Add(null);
-            }
-            expectedSortInfo.Add(new List<SortInfo> { new SortInfo { FieldName = "Id", Reverse = false } });
-            expectedSortInfo.Add(new List<SortInfo> { new SortInfo { FieldName = "Id", Reverse = false } });
-            expectedSortInfo.Add(new List<SortInfo> { new SortInfo { FieldName = "Id", Reverse = false } });
-            expectedSortInfo.Add(new List<SortInfo> { new SortInfo { FieldName = "Name", Reverse = false }, new SortInfo { FieldName = "DisplayName", Reverse = false } });
             // tuple values:
             // Item1: QuerySettings
             // Item2: query text postfix
@@ -240,6 +231,15 @@ namespace SenseNet.Search.Tests
                 Tuple.Create(new QuerySettings {Sort = new List<SortInfo> {new SortInfo {FieldName = "Id",Reverse = false} } }, " .SORT:Name", int.MaxValue, 0, FilterStatus.Default, FilterStatus.Default, QueryExecutionMode.Default),
                 Tuple.Create(new QuerySettings(), " .SORT:Name .TOP:0 .SORT:DisplayName", int.MaxValue, 0, FilterStatus.Default, FilterStatus.Default, QueryExecutionMode.Default)
             };
+            var expectedSortInfo = new List<IEnumerable<SortInfo>>();
+            for (int i = 0; i < settings.Count - 4; i++)
+            {
+                expectedSortInfo.Add(null);
+            }
+            expectedSortInfo.Add(new List<SortInfo> { new SortInfo { FieldName = "Id", Reverse = false } });
+            expectedSortInfo.Add(new List<SortInfo> { new SortInfo { FieldName = "Id", Reverse = false } });
+            expectedSortInfo.Add(new List<SortInfo> { new SortInfo { FieldName = "Id", Reverse = false } });
+            expectedSortInfo.Add(new List<SortInfo> { new SortInfo { FieldName = "Name", Reverse = false }, new SortInfo { FieldName = "DisplayName", Reverse = false } });
 
             var parser = new CqlParser();
             var queryText = "+Id:<1000";
