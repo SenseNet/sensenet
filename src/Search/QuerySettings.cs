@@ -28,5 +28,10 @@ namespace SenseNet.Search
                 };
             }
         }
+
+        public static QuerySettings Default
+        {
+            get { return new QuerySettings(); }
+        }
     }
 }

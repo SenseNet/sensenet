@@ -57,9 +57,78 @@ namespace SenseNet.Search.Tests
             Test("(jakarta OR apache) AND website", "+(_Text:jakarta _Text:apache) +_Text:website");
             Test("title:(+return +\"pink panther\")", "+title:return +title:'pink panther'");
         }
-        private void Test(string queryText, string expected = null)
+        [TestMethod]
+        public void CqlParser_AstToString_CqlExtension_Ranges()
         {
-            var queryContext = new TestQueryContext(QuerySettings.AdminSettings, 0, null);
+            Test("Id:<1000");
+            Test("Id:>1000");
+            Test("Id:<=1000");
+            Test("Id:>=1000");
+            Test("Value:<3.14");
+            Test("Value:>3.14");
+            Test("Value:<=3.14");
+            Test("Value:>=3.14");
+        }
+        [TestMethod]
+        public void CqlParser_AstToString_CqlExtension_SpecialChars()
+        {
+            Test("F1:V1 && F2:V2", "+F1:V1 +F2:V2");
+            Test("F1:V1 || F2:V2", "F1:V1 F2:V2");
+            Test("F1:V1 && F2:<>V2", "+F1:V1 -F2:V2");
+            Test("F1:V1 && !F2:V2", "+F1:V1 -F2:V2");
+        }
+        [TestMethod]
+        public void CqlParser_AstToString_CqlExtension_Comments()
+        {
+            Test("F1:V1 //asdf", "F1:V1");
+            Test("+F1:V1 /*asdf*/ +F2:V2 /*qwer*/", "+F1:V1 +F2:V2");
+        }
+        [TestMethod]
+        public void CqlParser_AstToString_CqlExtension_Controls()
+        {
+            // ".SELECT";
+            // ".SKIP";
+            // ".TOP";
+            // ".SORT";
+            // ".REVERSESORT";
+            // ".AUTOFILTERS";
+            // ".LIFESPAN";
+            // ".COUNTONLY";
+            // ".QUICK";
+
+            var q = Test("F1:V1");
+            Assert.AreEqual(int.MaxValue, q.Top);
+            Assert.AreEqual(0, q.Skip);
+            Assert.AreEqual(false, q.CountOnly);
+            Assert.AreEqual(FilterStatus.Default, q.EnableAutofilters);
+            Assert.AreEqual(FilterStatus.Default, q.EnableLifespanFilter);
+            Assert.AreEqual(QueryExecutionMode.Default, q.QueryExecutionMode);
+            Assert.AreEqual(0, q.Sort.Length);
+
+            q = Test("F1:V1 .TOP:42", "F1:V1"); Assert.AreEqual(42, q.Top);
+            q = Test("F1:V1 .SKIP:42", "F1:V1"); Assert.AreEqual(42, q.Skip);
+            q = Test("F1:V1 .COUNTONLY", "F1:V1"); Assert.AreEqual(true, q.CountOnly);
+            q = Test("F1:V1 .AUTOFILTERS:ON", "F1:V1"); Assert.AreEqual(FilterStatus.Enabled, q.EnableAutofilters);
+            q = Test("F1:V1 .AUTOFILTERS:OFF", "F1:V1"); Assert.AreEqual(FilterStatus.Disabled, q.EnableAutofilters);
+            q = Test("F1:V1 .LIFESPAN:ON", "F1:V1"); Assert.AreEqual(FilterStatus.Enabled, q.EnableLifespanFilter);
+            q = Test("F1:V1 .LIFESPAN:OFF", "F1:V1"); Assert.AreEqual(FilterStatus.Disabled, q.EnableLifespanFilter);
+            q = Test("F1:V1 .QUICK", "F1:V1"); Assert.AreEqual(QueryExecutionMode.Quick, q.QueryExecutionMode);
+
+            q = Test("F1:V1 .SORT:F1", "F1:V1"); Assert.AreEqual("F1 ASC", SortToString(q.Sort));
+            q = Test("F1:V1 .REVERSESORT:F1", "F1:V1"); Assert.AreEqual("F1 DESC", SortToString(q.Sort));
+            q = Test("F1:V1 .SORT:F1 .SORT:F2", "F1:V1"); Assert.AreEqual("F1 ASC, F2 ASC", SortToString(q.Sort));
+            q = Test("F1:V1 .SORT:F1 .REVERSESORT:F3 .SORT:F2", "F1:V1"); Assert.AreEqual("F1 ASC, F3 DESC, F2 ASC", SortToString(q.Sort));
+
+            TestError("F1:V1 .unknownkeyword", typeof(ParserException));
+        }
+        [TestMethod]
+        public void CqlParser_Errors()
+        {
+        }
+
+        private SnQuery Test(string queryText, string expected = null)
+        {
+            var queryContext = new TestQueryContext(QuerySettings.Default, 0, null);
             var parser = new CqlParser();
 
             var snQuery = parser.Parse(queryText, queryContext);
@@ -69,8 +138,31 @@ namespace SenseNet.Search.Tests
             var actualResult = visitor.Output;
 
             Assert.AreEqual(expected ?? queryText, actualResult);
+            return snQuery;
+        }
+        private void TestError(string queryText, Type expectedExceptionType)
+        {
+            var queryContext = new TestQueryContext(QuerySettings.Default, 0, null);
+            var parser = new CqlParser();
+            Exception  thrownException = null;
+            try
+            {
+                parser.Parse(queryText, queryContext);
+            }
+            catch (Exception e)
+            {
+                thrownException = e;
+            }
+            if (thrownException == null)
+                Assert.Fail("Any exception wasn't thrown");
+            if (thrownException.GetType() != expectedExceptionType)
+                Assert.Fail($"{thrownException.GetType().Name} was thrown but {expectedExceptionType.Name} was expected.");
         }
 
+        private string SortToString(SortInfo[] sortInfo)
+        {
+            return string.Join(", ", sortInfo.Select(s => $"{s.FieldName} {(s.Reverse ? "DESC" : "ASC")}").ToArray());
+        }
 
 
 
