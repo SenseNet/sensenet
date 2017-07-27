@@ -49,6 +49,50 @@ namespace SenseNet.Search.Tests
 
             Assert.AreEqual(expectedResult, actualResult);
         }
+
+        [TestMethod]
+        public void AggregateSettingsTest()
+        {
+            var indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
+            {
+                {"Id", new TestPerfieldIndexingInfo_int() }
+            };
+            var settings = new List<Tuple<QuerySettings, string, int, int>>
+            {
+                Tuple.Create(new QuerySettings {Top = 10}, "", 10, 0),
+                Tuple.Create(new QuerySettings {Top = 10}, " .TOP:0", 10, 0),
+                Tuple.Create(new QuerySettings {Top = 0}, " .TOP:10", 10, 0),
+                Tuple.Create(new QuerySettings {Top = 5}, " .TOP:10", 5, 0),
+                Tuple.Create(new QuerySettings {Top = 10}, " .TOP:5", 5, 0),
+                Tuple.Create(new QuerySettings {Skip = 0}, "", int.MaxValue, 1),
+                Tuple.Create(new QuerySettings {Skip = 0}, " .SKIP:1", int.MaxValue, 1),
+                Tuple.Create(new QuerySettings {Skip = 1}, " .SKIP:0", int.MaxValue, 1),
+                Tuple.Create(new QuerySettings {Skip = 10}, " .SKIP:5", int.MaxValue, 10),
+                Tuple.Create(new QuerySettings {Skip = 5}, " .SKIP:10", int.MaxValue, 10),
+                Tuple.Create(new QuerySettings {EnableAutofilters = FilterStatus.Default}, "", int.MaxValue, 0),
+                Tuple.Create(new QuerySettings {EnableAutofilters = FilterStatus.Enabled}, "", int.MaxValue, 0)
+            };
+
+            var parser = new CqlParser();
+            var queryText = "+Id:<1000";
+            foreach (var setting in settings)
+            {
+                var queryContext = new TestQueryContext(setting.Item1, 0, indexingInfo);
+                var inputQueryText = queryText + setting.Item2;    
+                var expectedResultText = queryText;
+
+                var snQuery = parser.Parse(inputQueryText, queryContext);
+
+                var visitor = new SnQueryToStringVisitor();
+                visitor.Visit(snQuery.QueryTree);
+                var actualResultText = visitor.Output;
+
+                Assert.AreEqual(expectedResultText, actualResultText);
+                Assert.AreEqual(setting.Item3, snQuery.Top);
+                Assert.AreEqual(setting.Item4, snQuery.Skip);
+            }
+        }
+
         [TestMethod]
         public void CqlParser_UsedFieldNames()
         {
