@@ -171,20 +171,55 @@ namespace SenseNet.Search.Tests
             {
                 {"Id", new TestPerfieldIndexingInfo_int() }
             };
-            var settings = new List<Tuple<QuerySettings, string, int, int>>
+            var expectedSortInfo = new List<IEnumerable<SortInfo>>();
+            for (int i = 0; i < 28; i++)
             {
-                Tuple.Create(new QuerySettings {Top = 10}, "", 10, 0),
-                Tuple.Create(new QuerySettings {Top = 10}, " .TOP:0", 10, 0),
-                Tuple.Create(new QuerySettings {Top = 0}, " .TOP:10", 10, 0),
-                Tuple.Create(new QuerySettings {Top = 5}, " .TOP:10", 5, 0),
-                Tuple.Create(new QuerySettings {Top = 10}, " .TOP:5", 5, 0),
-                Tuple.Create(new QuerySettings {Skip = 0}, "", int.MaxValue, 1),
-                Tuple.Create(new QuerySettings {Skip = 0}, " .SKIP:1", int.MaxValue, 1),
-                Tuple.Create(new QuerySettings {Skip = 1}, " .SKIP:0", int.MaxValue, 1),
-                Tuple.Create(new QuerySettings {Skip = 10}, " .SKIP:5", int.MaxValue, 10),
-                Tuple.Create(new QuerySettings {Skip = 5}, " .SKIP:10", int.MaxValue, 10),
-                Tuple.Create(new QuerySettings {EnableAutofilters = FilterStatus.Default}, "", int.MaxValue, 0),
-                Tuple.Create(new QuerySettings {EnableAutofilters = FilterStatus.Enabled}, "", int.MaxValue, 0)
+                expectedSortInfo.Add(null);
+            }
+            expectedSortInfo.Add(new List<SortInfo> { new SortInfo { FieldName = "Id", Reverse = false } });
+            expectedSortInfo.Add(new List<SortInfo> { new SortInfo { FieldName = "Id", Reverse = false } });
+            expectedSortInfo.Add(new List<SortInfo> { new SortInfo { FieldName = "Id", Reverse = false } });
+            expectedSortInfo.Add(new List<SortInfo> { new SortInfo { FieldName = "Name", Reverse = false }, new SortInfo { FieldName = "DisplayName", Reverse = false } });
+            // tuple values:
+            // Item1: QuerySettings
+            // Item2: query text postfix
+            // Item3: expected Top
+            // Item4: expected Skip
+            // Item5: expected EnableAutofilters
+            // Item6: expected EnableLifespanFilter
+            // Item7: expected QueryExecutionMode
+            var settings = new List<Tuple<QuerySettings, string, int, int, FilterStatus, FilterStatus, QueryExecutionMode>>
+            {
+                Tuple.Create(new QuerySettings(), " .TOP:0", int.MaxValue, 0, FilterStatus.Default, FilterStatus.Default, QueryExecutionMode.Default),
+                Tuple.Create(new QuerySettings(), " .TOP:5", 5, 0, FilterStatus.Default, FilterStatus.Default, QueryExecutionMode.Default),
+                Tuple.Create(new QuerySettings {Top = 10}, "", 10, 0, FilterStatus.Default, FilterStatus.Default, QueryExecutionMode.Default),
+                Tuple.Create(new QuerySettings {Top = 10}, " .TOP:0", 10, 0, FilterStatus.Default, FilterStatus.Default, QueryExecutionMode.Default),
+                Tuple.Create(new QuerySettings {Top = 0}, " .TOP:10", 10, 0, FilterStatus.Default, FilterStatus.Default, QueryExecutionMode.Default),
+                Tuple.Create(new QuerySettings {Top = 5}, " .TOP:10", 5, 0, FilterStatus.Default, FilterStatus.Default, QueryExecutionMode.Default),
+                Tuple.Create(new QuerySettings {Top = 10}, " .TOP:5", 5, 0, FilterStatus.Default, FilterStatus.Default, QueryExecutionMode.Default),
+                Tuple.Create(new QuerySettings(), " .SKIP:0", int.MaxValue, 0, FilterStatus.Default, FilterStatus.Default, QueryExecutionMode.Default),
+                Tuple.Create(new QuerySettings(), " .SKIP:1", int.MaxValue, 1, FilterStatus.Default, FilterStatus.Default, QueryExecutionMode.Default),
+                Tuple.Create(new QuerySettings {Skip = 0}, "", int.MaxValue, 0, FilterStatus.Default, FilterStatus.Default, QueryExecutionMode.Default),
+                Tuple.Create(new QuerySettings {Skip = 0}, " .SKIP:1", int.MaxValue, 1, FilterStatus.Default, FilterStatus.Default, QueryExecutionMode.Default),
+                Tuple.Create(new QuerySettings {Skip = 1}, " .SKIP:0", int.MaxValue, 1, FilterStatus.Default, FilterStatus.Default, QueryExecutionMode.Default),
+                Tuple.Create(new QuerySettings {Skip = 10}, " .SKIP:5", int.MaxValue, 10, FilterStatus.Default, FilterStatus.Default, QueryExecutionMode.Default),
+                Tuple.Create(new QuerySettings {Skip = 5}, " .SKIP:10", int.MaxValue, 5, FilterStatus.Default, FilterStatus.Default, QueryExecutionMode.Default),
+                Tuple.Create(new QuerySettings(), " .AUTOFILTERS:ON", int.MaxValue, 0, FilterStatus.Enabled, FilterStatus.Default, QueryExecutionMode.Default),
+                Tuple.Create(new QuerySettings {EnableAutofilters = FilterStatus.Default}, "", int.MaxValue, 0, FilterStatus.Default, FilterStatus.Default, QueryExecutionMode.Default),
+                Tuple.Create(new QuerySettings {EnableAutofilters = FilterStatus.Enabled}, "", int.MaxValue, 0, FilterStatus.Enabled, FilterStatus.Default, QueryExecutionMode.Default),
+                Tuple.Create(new QuerySettings {EnableAutofilters = FilterStatus.Disabled}, " .AUTOFILTERS:ON", int.MaxValue, 0, FilterStatus.Disabled, FilterStatus.Default, QueryExecutionMode.Default),
+                Tuple.Create(new QuerySettings(), " .LIFESPAN:ON", int.MaxValue, 0, FilterStatus.Default, FilterStatus.Enabled, QueryExecutionMode.Default),
+                Tuple.Create(new QuerySettings {EnableLifespanFilter = FilterStatus.Default}, "", int.MaxValue, 0, FilterStatus.Default, FilterStatus.Default, QueryExecutionMode.Default),
+                Tuple.Create(new QuerySettings {EnableLifespanFilter = FilterStatus.Enabled}, "", int.MaxValue, 0, FilterStatus.Default, FilterStatus.Enabled, QueryExecutionMode.Default),
+                Tuple.Create(new QuerySettings {EnableLifespanFilter = FilterStatus.Disabled}, " .LIFESPAN:ON", int.MaxValue, 0, FilterStatus.Default, FilterStatus.Disabled, QueryExecutionMode.Default),
+                Tuple.Create(new QuerySettings() , " .QUICK", int.MaxValue, 0, FilterStatus.Default, FilterStatus.Default, QueryExecutionMode.Quick),
+                Tuple.Create(new QuerySettings {QueryExecutionMode = QueryExecutionMode.Default}, "", int.MaxValue, 0, FilterStatus.Default, FilterStatus.Default, QueryExecutionMode.Default),
+                Tuple.Create(new QuerySettings {QueryExecutionMode = QueryExecutionMode.Quick}, "", int.MaxValue, 0, FilterStatus.Default, FilterStatus.Default, QueryExecutionMode.Quick),
+                Tuple.Create(new QuerySettings {QueryExecutionMode = QueryExecutionMode.Strict}, " .QUICK", int.MaxValue, 0, FilterStatus.Default, FilterStatus.Default, QueryExecutionMode.Strict),
+                Tuple.Create(new QuerySettings {Sort = new List<SortInfo> {new SortInfo {FieldName = "Id",Reverse = false} } }, "", int.MaxValue, 0, FilterStatus.Default, FilterStatus.Default, QueryExecutionMode.Default),
+                Tuple.Create(new QuerySettings (), " .SORT:Id", int.MaxValue, 0, FilterStatus.Default, FilterStatus.Default, QueryExecutionMode.Default),
+                Tuple.Create(new QuerySettings {Sort = new List<SortInfo> {new SortInfo {FieldName = "Id",Reverse = false} } }, " .SORT:Name", int.MaxValue, 0, FilterStatus.Default, FilterStatus.Default, QueryExecutionMode.Default),
+                Tuple.Create(new QuerySettings(), " .SORT:Name .TOP:0 .SORT:DisplayName", int.MaxValue, 0, FilterStatus.Default, FilterStatus.Default, QueryExecutionMode.Default)
             };
 
             var parser = new CqlParser();
@@ -204,6 +239,11 @@ namespace SenseNet.Search.Tests
                 Assert.AreEqual(expectedResultText, actualResultText);
                 Assert.AreEqual(setting.Item3, snQuery.Top);
                 Assert.AreEqual(setting.Item4, snQuery.Skip);
+                Assert.AreEqual(setting.Item5, snQuery.EnableAutofilters);
+                Assert.AreEqual(setting.Item6, snQuery.EnableLifespanFilter);
+                Assert.AreEqual(setting.Item7, snQuery.QueryExecutionMode);
+                var sortIndex =  settings.IndexOf(setting);
+                Assert.IsTrue((!snQuery.Sort.Any() && expectedSortInfo[sortIndex] == null) || expectedSortInfo[sortIndex].Count() == snQuery.Sort.Length);
             }
         }
 
