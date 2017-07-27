@@ -20,7 +20,5 @@ namespace SenseNet.Search
         //UNDONE: Set FieldLevel value in the query analysis project by UsedFieldNames
         public QueryFieldLevel FieldLevel { get; internal set; }
         public List<string> UsedFieldNames { get; internal set; }
-
-
     }
 }

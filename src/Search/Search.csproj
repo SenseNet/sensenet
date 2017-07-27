@@ -59,7 +59,6 @@
     <Compile Include="ChainOperator.cs" />
     <Compile Include="ExecutionHint.cs" />
     <Compile Include="FilterStatus.cs" />
-    <Compile Include="IContentQuery.cs" />
     <Compile Include="IndexFieldName.cs" />
     <Compile Include="Interfaces.cs" />
     <Compile Include="OrderDirection.cs" />

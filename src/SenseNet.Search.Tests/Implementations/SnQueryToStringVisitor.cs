@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using SenseNet.Search.Parser;
 using SenseNet.Search.Parser.Predicates;
@@ -13,6 +14,18 @@ namespace SenseNet.Search.Tests.Implementations
     {
         private StringBuilder _output = new StringBuilder();
         public string Output => _output.ToString();
+
+        private Regex _escaperRegex;
+
+        public SnQueryToStringVisitor()
+        {
+            var pattern = new StringBuilder("[");
+            pattern.Append("\\s");
+            foreach (var c in CqlLexer.STRINGTERMINATORCHARS.ToCharArray())
+                pattern.Append("\\" + c);
+            pattern.Append("]");
+            _escaperRegex = new Regex(pattern.ToString());
+        }
 
         public override SnQueryPredicate VisitText(TextPredicate text)
         {
@@ -42,15 +55,29 @@ namespace SenseNet.Search.Tests.Implementations
         }
         private void PredicateToString(string fieldName, object value, double? boost, double? fuzzy)
         {
+            value = Escape(value);
             _output.Append($"{fieldName}:{value}");
             BoostTostring(boost);
-            if (fuzzy.HasValue)
-                _output.Append("~").Append(fuzzy.Value.ToString(CultureInfo.InvariantCulture));
+            FuzzyToString(fuzzy);
+        }
+        private object Escape(object value)
+        {
+            var stringValue = value as string;
+            if (stringValue == null)
+                return value;
+            if (_escaperRegex.IsMatch(stringValue))
+                return $"'{stringValue}'";
+            return stringValue;
         }
         private void BoostTostring(double? boost)
         {
-            if (boost.HasValue && boost != 1.0d)
+            if (boost.HasValue && boost != SnQuery.DefaultSimilarity)
                 _output.Append("^").Append(boost.Value.ToString(CultureInfo.InvariantCulture));
+        }
+        private void FuzzyToString(double? fuzzy)
+        {
+            if (fuzzy.HasValue && fuzzy != SnQuery.DefaultFuzzyValue)
+                _output.Append("~").Append(fuzzy.Value.ToString(CultureInfo.InvariantCulture));
         }
 
         public override SnQueryPredicate VisitTextRange(TextRange range)

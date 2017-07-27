@@ -23,7 +23,6 @@ namespace SenseNet.Search.Parser
         }
 
         private DefaultOperator _defaultOperator = DefaultOperator.Or;
-        private const double DefaultSimilarity = 0.5;
 
         private CqlLexer _lexer;
         private readonly Stack<FieldInfo> _currentField = new Stack<FieldInfo>();
@@ -714,7 +713,7 @@ namespace SenseNet.Search.Parser
                 return val;
             if (_lexer.CurrentToken == CqlLexer.Token.WildcardString)
             {
-                val = new QueryFieldValue(_lexer.StringValue.ToLower(), _lexer.CurrentToken, _lexer.IsPhrase);
+                val = new QueryFieldValue(_lexer.StringValue, _lexer.CurrentToken, _lexer.IsPhrase);
                 _lexer.NextToken();
                 return val;
             }
@@ -744,20 +743,23 @@ namespace SenseNet.Search.Parser
             var val = new QueryFieldValue(_lexer.StringValue, _lexer.CurrentToken, _lexer.IsPhrase);
             if (fieldName != IndexFieldName.AllText && _lexer.StringValue != SnQuery.EmptyInnerQueryText)
             {
-                var info = _context.GetPerFieldIndexingInfo(fieldName);
-                if (info != null)
-                {
-                    var fieldHandler = info.IndexFieldHandler;
-                    if (fieldHandler != null)
-                    {
-                        if (!fieldHandler.TryParseAndSet(val))
-                        {
-                            if (throwEx)
-                                throw ParserError(String.Concat("Cannot parse the '", fieldName, "' field value: ", _lexer.StringValue));
-                            return null;
-                        }
-                    }
-                }
+                val.Set(val.StringValue);
+
+                //UNDONE: !!! Do not use fieldIndexHandler here
+                //var info = _context.GetPerFieldIndexingInfo(fieldName);
+                //if (info != null)
+                //{
+                //    var fieldHandler = info.IndexFieldHandler;
+                //    if (fieldHandler != null)
+                //    {
+                //        if (!fieldHandler.TryParseAndSet(val))
+                //        {
+                //            if (throwEx)
+                //                throw ParserError(String.Concat("Cannot parse the '", fieldName, "' field value: ", _lexer.StringValue));
+                //            return null;
+                //        }
+                //    }
+                //}
             }
             _lexer.NextToken();
             return val;
@@ -778,7 +780,7 @@ namespace SenseNet.Search.Parser
             else
             {
                 if (_lexer.CurrentToken != CqlLexer.Token.Number)
-                    return DefaultSimilarity;
+                    return SnQuery.DefaultSimilarity;
                 if (_lexer.NumberValue < 0.0 || _lexer.NumberValue > 1.0)
                     throw ParserError(String.Concat("Invalid fuzzy value (0.0-1.0): ", _lexer.NumberValue));
                 _lexer.NextToken();
@@ -960,8 +962,8 @@ namespace SenseNet.Search.Parser
             switch (minValue?.Datatype ?? maxValue.Datatype)
             {
                 case IndexableDataType.String:
-                    var lowerTerm = minValue?.StringValue.ToLower();
-                    var upperTerm = maxValue?.StringValue.ToLower();
+                    var lowerTerm = minValue?.StringValue;
+                    var upperTerm = maxValue?.StringValue;
                     return new TextRange(fieldName, lowerTerm, upperTerm, !includeLower, !includeUpper);
                 case IndexableDataType.Int:
                     var lowerInt = minValue?.IntValue ?? int.MinValue;

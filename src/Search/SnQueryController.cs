@@ -11,6 +11,8 @@ namespace SenseNet.Search
     {
         public static readonly string EmptyText = "$##$EMPTY$##$";
         public static readonly string EmptyInnerQueryText = "$##$EMPTYINNERQUERY$##$";
+        public static readonly double DefaultSimilarity = 0.5d;
+        public static readonly double DefaultFuzzyValue = 0.5d;
 
         private static IPermissionFilterFactory PermissionFilterFactory = new DefaultPermissionFilterFactory();
         private static IQueryEngineSelector QueryEngineSelector = new DefaultQueryEngineSelector();
