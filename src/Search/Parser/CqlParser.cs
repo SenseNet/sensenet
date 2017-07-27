@@ -61,10 +61,10 @@ namespace SenseNet.Search.Parser
                         result.Skip = Convert.ToInt32(control.Value);
                         break;
                     case CqlLexer.Keywords.Sort:
-                        sortFields.Add(new SortInfo {FieldName = control.Value, Reverse = false});
+                        sortFields.Add(new SortInfo(control.Value));
                         break;
                     case CqlLexer.Keywords.ReverseSort:
-                        sortFields.Add(new SortInfo { FieldName = control.Value, Reverse = true });
+                        sortFields.Add(new SortInfo(control.Value, true));
                         break;
                     case CqlLexer.Keywords.Autofilters:
                         result.EnableAutofilters = control.Value == CqlLexer.Keywords.On ? FilterStatus.Enabled : FilterStatus.Disabled;
