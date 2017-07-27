@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Odbc;
 using System.Linq;
 using System.Text;
 using System.Globalization;
@@ -112,6 +113,7 @@ namespace SenseNet.Search.Parser
         public int LastColumn { get; private set; }
 
         public double NumberValue { get; private set; }
+        public bool IsInteger { get; private set; }
         public string StringValue { get; private set; }
         public bool IsPhrase { get; private set; }
 
@@ -276,11 +278,13 @@ namespace SenseNet.Search.Parser
                     {
                         double numberValue;
                         string stringValue;
-                        if (this.ScanNumber(out numberValue, out stringValue, out hasWildcard, out field))
+                        bool isInteger;
+                        if (this.ScanNumber(out numberValue, out isInteger, out stringValue, out hasWildcard, out field))
                         {
                             this.CurrentToken = Token.Number;
                             this.StringValue = stringValue;
                             this.NumberValue = numberValue;
+                            this.IsInteger = isInteger;
                         }
                         else
                         {
@@ -345,12 +349,13 @@ namespace SenseNet.Search.Parser
                 }
             }
         }
-        private bool ScanNumber(out double numberValue, out string stringValue, out bool hasWildcard, out bool field)
+        private bool ScanNumber(out double numberValue, out bool isInteger, out string stringValue, out bool hasWildcard, out bool field)
         {
             SaveLineInfo();
-            int startIndex = this.SourceIndex - 1;
-            int length = 0;
+            var startIndex = this.SourceIndex - 1;
+            var length = 0;
             hasWildcard = false;
+            isInteger = true;
             while (this.CurrentCharType == CharType.Digit)
             {
                 NextChar();
@@ -358,6 +363,7 @@ namespace SenseNet.Search.Parser
             }
             if (this.CurrentChar == '.')
             {
+                isInteger = false;
                 NextChar();
                 length++;
                 while (this.CurrentCharType == CharType.Digit)
