@@ -133,11 +133,16 @@ namespace SenseNet.Search.Tests
             q = Test("F1:V1 .SORT:F1 .SORT:F2", "F1:V1"); Assert.AreEqual("F1 ASC, F2 ASC", SortToString(q.Sort));
             q = Test("F1:V1 .SORT:F1 .REVERSESORT:F3 .SORT:F2", "F1:V1"); Assert.AreEqual("F1 ASC, F3 DESC, F2 ASC", SortToString(q.Sort));
 
-            TestError("F1:V1 .unknownkeyword", typeof(ParserException));
-        }
-        [TestMethod]
-        public void CqlParser_Errors()
-        {
+            TestError("F1:V1 .UNKNOWNKEYWORD", typeof(ParserException));
+            TestError("F1:V1 .SORT", typeof(ParserException));
+            TestError("F1:V1 .SORT:", typeof(ParserException));
+            TestError("F1:V1 .SORT:42", typeof(ParserException));
+            TestError("F1:V1 .AUTOFILTERS", typeof(ParserException));
+            TestError("F1:V1 .AUTOFILTERS:", typeof(ParserException));
+            TestError("F1:V1 .AUTOFILTERS:42", typeof(ParserException));
+            TestError("F1:V1 .TOP", typeof(ParserException));
+            TestError("F1:V1 .TOP:", typeof(ParserException));
+            TestError("F1:V1 .TOP:x", typeof(ParserException));
         }
 
         private SnQuery Test(string queryText, string expected = null)

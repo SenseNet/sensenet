@@ -1,21 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using SenseNet.Search.Parser;
 using SenseNet.Search.Parser.Predicates;
 
 namespace SenseNet.Search.Tests.Implementations
 {
-    internal class SnQueryToStringVisitor : SnQueryVisitor
+    internal sealed class SnQueryToStringVisitor : SnQueryVisitor
     {
         private StringBuilder _output = new StringBuilder();
         public string Output => _output.ToString();
 
-        private Regex _escaperRegex;
+        private readonly Regex _escaperRegex;
 
         public SnQueryToStringVisitor()
         {
@@ -136,31 +133,22 @@ namespace SenseNet.Search.Tests.Implementations
                 _output.Append(")");
             return list;
         }
+
         public override List<BooleanClause> VisitBooleanClauses(List<BooleanClause> clauses)
         {
-            List<BooleanClause> newList = null;
-            var index = 0;
-            var count = clauses.Count;
-            while (index < count)
+            // The list item cannot be rewritten because this class is sealed.
+            if (clauses.Count > 0)
             {
-                if (index > 0)
+                VisitBooleanClause(clauses[0]);
+                for (var i = 1; i < clauses.Count; i++)
+                {
                     _output.Append(" ");
-                var visitedClause = VisitBooleanClause(clauses[index]);
-                if (newList != null)
-                {
-                    newList.Add(visitedClause);
+                    VisitBooleanClause(clauses[i]);
                 }
-                else if (visitedClause != clauses[index])
-                {
-                    newList = new List<BooleanClause>();
-                    for (int i = 0; i < index; i++)
-                        newList.Add(clauses[i]);
-                    newList.Add(visitedClause);
-                }
-                index++;
             }
-            return newList ?? clauses;
-        }
+            return clauses;
+        }               
+
         public override BooleanClause VisitBooleanClause(BooleanClause clause)
         {
             switch (clause.Occur)

@@ -496,9 +496,7 @@ namespace SenseNet.Search.Parser
                 return true;
             if (ParseControlBySwitchParam())
                 return true;
-            if (ParseControlExpWithoutParam())
-                return true;
-            throw ParserError(String.Concat("Cannot parse '", _lexer.StringValue, "' (ParseControlExpWithParam)"));
+            return false;
         }
         private bool ParseControlByNumberParam()
         {
