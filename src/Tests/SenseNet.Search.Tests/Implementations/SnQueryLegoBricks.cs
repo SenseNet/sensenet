@@ -2,7 +2,7 @@
 
 namespace SenseNet.Search.Tests.Implementations
 {
-    internal class SnQueryLegoBricks
+    public class SnQueryLegoBricks
     {
         public IPermissionFilterFactory PermissionFilterFactory;
         public IQueryEngineSelector QueryEngineSelector;

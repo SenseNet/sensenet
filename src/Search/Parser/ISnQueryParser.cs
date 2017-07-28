@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SenseNet.Search.Parser
 {
-    internal interface ISnQueryParser
+    public interface ISnQueryParser
     {
         SnQuery Parse(string queryText, IQueryContext context);
     }

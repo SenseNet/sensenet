@@ -388,7 +388,7 @@ namespace SenseNet.Search
         {
             try
             {
-                var visitor = new ToStringVisitor();
+                var visitor = new LucQueryToStringVisitor();
                 visitor.Visit(query);
                 return visitor.ToString();
             }

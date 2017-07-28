@@ -222,7 +222,7 @@ namespace SenseNet.Search.Parser
 
     }
 
-    internal class ToStringVisitor : LucQueryVisitor
+    internal class LucQueryToStringVisitor : LucQueryVisitor
     {
         private StringBuilder _text = new StringBuilder();
         public override string ToString()

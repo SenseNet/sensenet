@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SenseNet.Search.Tests.Implementations
 {
-    internal class TestIndexFieldHandler_string : IFieldIndexHandler
+    public class TestIndexFieldHandler_string : IFieldIndexHandler
     {
         public bool TryParseAndSet(IQueryFieldValue value)
         {
@@ -44,7 +44,7 @@ namespace SenseNet.Search.Tests.Implementations
             throw new NotImplementedException();
         }
     }
-    internal class TestIndexFieldHandler_int : IFieldIndexHandler
+    public class TestIndexFieldHandler_int : IFieldIndexHandler
     {
         public bool TryParseAndSet(IQueryFieldValue value)
         {

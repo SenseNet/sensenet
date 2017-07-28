@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SenseNet.Search.Tests.Implementations
 {
-    internal class TestPerfieldIndexingInfo_string : IPerFieldIndexingInfo
+    public class TestPerfieldIndexingInfo_string : IPerFieldIndexingInfo
     {
         public string Analyzer { get; set; }
         public IFieldIndexHandler IndexFieldHandler { get; set; } = new TestIndexFieldHandler_string();
@@ -16,7 +16,7 @@ namespace SenseNet.Search.Tests.Implementations
         public bool IsInIndex { get; } = true;
         public Type FieldDataType { get; set; } = typeof(string);
     }
-    internal class TestPerfieldIndexingInfo_int: IPerFieldIndexingInfo
+    public class TestPerfieldIndexingInfo_int: IPerFieldIndexingInfo
     {
         public string Analyzer { get; set; }
         public IFieldIndexHandler IndexFieldHandler { get; set; } = new TestIndexFieldHandler_int();

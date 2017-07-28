@@ -2,17 +2,14 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-[assembly: InternalsVisibleTo("SenseNet.Search.Tests")]
-[assembly: InternalsVisibleTo("SenseNet.SearchImpl.Tests")]
-
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Search")]
+[assembly: AssemblyTitle("SenseNet.SearchImpl.Tests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Search")]
+[assembly: AssemblyProduct("SenseNet.SearchImpl.Tests")]
 [assembly: AssemblyCopyright("Copyright ©  2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -23,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("0279705b-779d-485d-86b9-f7ab3dd1f2c3")]
+[assembly: Guid("948ce434-4b01-4b5e-8e01-e7661891d159")]
 
 // Version information for an assembly consists of the following four values:
 //

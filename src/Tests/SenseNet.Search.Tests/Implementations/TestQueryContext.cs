@@ -7,7 +7,7 @@ using SenseNet.Search.Parser;
 
 namespace SenseNet.Search.Tests.Implementations
 {
-    internal class TestQueryContext : IQueryContext
+    public class TestQueryContext : IQueryContext
     {
         private IDictionary<string, IPerFieldIndexingInfo> _indexingInfo;
 

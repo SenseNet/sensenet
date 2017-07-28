@@ -2,7 +2,7 @@
 
 namespace SenseNet.Search.Tests.Implementations
 {
-    internal class TestQueryEngine : IQueryEngine
+    public class TestQueryEngine : IQueryEngine
     {
         private readonly IDictionary<string, IQueryResult<int>> _intResults;
         private readonly IDictionary<string, IQueryResult<string>> _stringResults;
