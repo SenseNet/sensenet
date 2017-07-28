@@ -17,14 +17,4 @@ namespace SenseNet.Search.Lucene29
             return LucQuery.Create(visitor.Result);
         }
     }
-
-    internal class SnQueryToLucQueryVisitor : SnQueryVisitor
-    {
-        public Query Result { get; private set; }
-
-        public override SnQueryPredicate Visit(SnQueryPredicate predicate)
-        {
-            throw new NotImplementedException(); //UNDONE:!!!!! implement visitor and delete this override
-        }
-    }
 }
