@@ -526,8 +526,8 @@ namespace SenseNet.ContentRepository
 
                     content.ContentHandler.NodeOperation = NodeOperation.TemplateCreation;
                     content.ContentHandler.DisableObserver(typeof(DocumentPreviewObserver));
-                    content.ContentHandler.DisableObserver(TypeResolver.GetType(WFOBSERVERNAME));
-                    content.ContentHandler.DisableObserver(TypeResolver.GetType(NOTIFOBSERVERNAME));
+                    content.ContentHandler.DisableObserver(TypeResolver.GetType(WFOBSERVERNAME, false));
+                    content.ContentHandler.DisableObserver(TypeResolver.GetType(NOTIFOBSERVERNAME, false));
 
                     content.SaveSameVersion();
                 }

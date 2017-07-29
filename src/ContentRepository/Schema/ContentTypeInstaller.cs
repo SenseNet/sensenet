@@ -1,14 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Schema;
 using System.IO;
 using System.Xml.XPath;
-using System.Diagnostics;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Schema
@@ -116,12 +112,10 @@ namespace SenseNet.ContentRepository.Schema
 
         private void Install(CTD ctd)
         {
-            ContentType contentType = ContentTypeManager.LoadOrCreateNew(ctd.Document);
+            var contentType = ContentTypeManager.LoadOrCreateNew(ctd.Document);
 
             // skip notification during content type install to avoid missing field errors
-            var notificationObserver = TypeResolver.GetType(NodeObserverNames.NOTIFICATION, false);
-            if (notificationObserver != null)
-                contentType.DisableObserver(notificationObserver);
+            contentType.DisableObserver(TypeResolver.GetType(NodeObserverNames.NOTIFICATION, false));
 
             ContentTypeManager.ApplyChangesInEditor(contentType, _editor);
             contentType.Save(false);
