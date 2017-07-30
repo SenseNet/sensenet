@@ -824,9 +824,9 @@ namespace  SenseNet.ContentRepository.Schema
         {
             if (fieldDesc.Analyzer != null)
             {
-                var analyzerType = TypeResolver.GetType(fieldDesc.Analyzer);
+                var analyzerType = TypeResolver.GetType(fieldDesc.Analyzer, false);
                 if (analyzerType == null)
-                    throw new RegistrationException(String.Concat("Unknown analyzer: ", fieldDesc.Analyzer, ". Field: ", fieldDesc.FieldName, ", ContentType: ", contentTypeName));
+                    throw new RegistrationException(string.Concat("Unknown analyzer: ", fieldDesc.Analyzer, ". Field: ", fieldDesc.FieldName, ", ContentType: ", contentTypeName));
             }
         }
         // ==================================================== IFolder 

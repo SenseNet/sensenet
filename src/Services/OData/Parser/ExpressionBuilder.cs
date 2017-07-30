@@ -91,8 +91,8 @@ namespace SenseNet.Portal.OData.Parser
             int k;
             if (steps[0].Contains('.'))
             {
-                type = TypeResolver.GetType(steps[0]);
-                if(type == null)
+                type = TypeResolver.GetType(steps[0], false);
+                if (type == null)
                     throw ODataParser.SyntaxError(this.Parser.Lexer, "Unknown type: " + steps[0]);
                 k = 1;
             }
