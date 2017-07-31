@@ -52,7 +52,7 @@ namespace SenseNet.SearchImpl.Tests
         [TestMethod]
         public void Search_Compiler_Luc29_OriginalTest_08()
         {
-            Test("Field1:Value1");
+            Test("Field1:Value1", "Field1:value1");
         }
         [TestMethod]
         public void Search_Compiler_Luc29_OriginalTest_09()
@@ -117,12 +117,12 @@ namespace SenseNet.SearchImpl.Tests
         [TestMethod]
         public void Search_Compiler_Luc29_OriginalTest_21()
         {
-            Test("roam~", "_Text:roam");
+            Test("roam~", "_Text:roam~0.5");
         }
         [TestMethod]
         public void Search_Compiler_Luc29_OriginalTest_22()
         {
-            Test("roam~" + SnQuery.DefaultFuzzyValue.ToString(CultureInfo.InvariantCulture), "_Text:roam");
+            Test("roam~" + SnQuery.DefaultFuzzyValue.ToString(CultureInfo.InvariantCulture), "_Text:roam~0.5");
         }
         [TestMethod]
         public void Search_Compiler_Luc29_OriginalTest_23()
@@ -132,7 +132,7 @@ namespace SenseNet.SearchImpl.Tests
         [TestMethod]
         public void Search_Compiler_Luc29_OriginalTest_24()
         {
-            Test("\"jakarta apache\"~10", "_Text:'jakarta apache'~10");
+            Test("\"jakarta apache\"~10", "_Text:\"jakarta apache\"~10");
         }
         [TestMethod]
         public void Search_Compiler_Luc29_OriginalTest_25()
@@ -157,22 +157,22 @@ namespace SenseNet.SearchImpl.Tests
         [TestMethod]
         public void Search_Compiler_Luc29_OriginalTest_29()
         {
-            Test("\"jakarta apache\"^4 \"Apache Lucene\"", "_Text:'jakarta apache'^4 _Text:'apache lucene'");
+            Test("\"jakarta apache\"^4 \"Apache Lucene\"", "_Text:\"jakarta apache\"^4 _Text:\"apache lucene\"");
         }
         [TestMethod]
         public void Search_Compiler_Luc29_OriginalTest_30()
         {
-            Test("\"jakarta apache\" jakarta", "_Text:'jakarta apache' _Text:jakarta");
+            Test("\"jakarta apache\" jakarta", "_Text:\"jakarta apache\" _Text:jakarta");
         }
         [TestMethod]
         public void Search_Compiler_Luc29_OriginalTest_31()
         {
-            Test("\"jakarta apache\" OR jakarta", "_Text:'jakarta apache' _Text:jakarta");
+            Test("\"jakarta apache\" OR jakarta", "_Text:\"jakarta apache\" _Text:jakarta");
         }
         [TestMethod]
         public void Search_Compiler_Luc29_OriginalTest_32()
         {
-            Test("\"jakarta apache\" AND \"Apache Lucene\"", "+_Text:'jakarta apache' +_Text:'apache lucene'");
+            Test("\"jakarta apache\" AND \"Apache Lucene\"", "+_Text:\"jakarta apache\" +_Text:\"apache lucene\"");
         }
         [TestMethod]
         public void Search_Compiler_Luc29_OriginalTest_33()
@@ -182,17 +182,17 @@ namespace SenseNet.SearchImpl.Tests
         [TestMethod]
         public void Search_Compiler_Luc29_OriginalTest_34()
         {
-            Test("\"jakarta apache\" NOT \"Apache Lucene\"", "_Text:'jakarta apache' -_Text:'apache lucene'");
+            Test("\"jakarta apache\" NOT \"Apache Lucene\"", "_Text:\"jakarta apache\" -_Text:\"apache lucene\"");
         }
         [TestMethod]
         public void Search_Compiler_Luc29_OriginalTest_35()
         {
-            Test("NOT \"jakarta apache\"", "-_Text:'jakarta apache'");
+            Test("NOT \"jakarta apache\"", "-_Text:\"jakarta apache\"");
         }
         [TestMethod]
         public void Search_Compiler_Luc29_OriginalTest_36()
         {
-            Test("\"jakarta apache\" -\"Apache Lucene\"", "_Text:'jakarta apache' -_Text:'apache lucene'");
+            Test("\"jakarta apache\" -\"Apache Lucene\"", "_Text:\"jakarta apache\" -_Text:\"apache lucene\"");
         }
         [TestMethod]
         public void Search_Compiler_Luc29_OriginalTest_37()
@@ -202,7 +202,7 @@ namespace SenseNet.SearchImpl.Tests
         [TestMethod]
         public void Search_Compiler_Luc29_OriginalTest_38()
         {
-            Test("title:(+return +\"pink panther\")", "+title:return +title:'pink panther'");
+            Test("title:(+return +\"pink panther\")", "+title:return +title:\"pink panther\"");
         }
 
         [TestMethod]

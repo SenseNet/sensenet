@@ -11,16 +11,27 @@ using Lucene.Net.Search;
 using Lucene.Net.Util;
 using SenseNet.Search.Parser;
 using SenseNet.Search.Parser.Predicates;
+using BooleanClause = SenseNet.Search.Parser.Predicates.BooleanClause;
 
 namespace SenseNet.Search.Lucene29
 {
     internal class SnQueryToLucQueryVisitor : SnQueryVisitor
     {
-        public Query Result { get; private set; }
+        public Query Result
+        {
+            get
+            {
+                if(_queryTree.Count != 1)
+                    throw new CompilerException($"Result contains {_queryTree.Count} items. Expected: 1.");
+                return _queryTree.Peek();
+            }
+        }
+
+        private readonly Stack<Query> _queryTree = new Stack<Query>();
 
         private TermAttribute _termAtt;
-        private IQueryContext _context;
-        private Analyzer _masterAnalyzer;
+        private readonly IQueryContext _context;
+        private readonly Analyzer _masterAnalyzer;
 
         public SnQueryToLucQueryVisitor(Analyzer masterAnalyzer, IQueryContext context)
         {
@@ -28,22 +39,14 @@ namespace SenseNet.Search.Lucene29
             _context = context;
         }
 
-        //public override SnQueryPredicate Visit(SnQueryPredicate predicate)
-        //{
-        //    var textPred = predicate as TextPredicate;
-        //    if (textPred != null && textPred.Value == "asdf")
-        //    {
-        //        // only a mock
-        //        Result = new TermQuery(new Term("_Text", "asdf"));
-        //        return predicate;
-        //    }
-        //    throw new NotImplementedException(); //UNDONE:!!!!! implement visitor and delete this override
-        //}
 
         public override SnQueryPredicate VisitText(TextPredicate predicate)
         {
-            Result = CreateStringValueQuery(predicate);
-            return base.VisitText(predicate);
+            var query = CreateStringValueQuery(predicate);
+            if(predicate.Boost.HasValue)
+                query.SetBoost(Convert.ToSingle(predicate.Boost.Value));
+            _queryTree.Push(query);
+            return predicate;
         }
         private Query CreateStringValueQuery(TextPredicate predicate)
         {
@@ -131,6 +134,60 @@ namespace SenseNet.Search.Lucene29
                 words.Add(_termAtt.Term());
             }
             return words.ToArray();
+        }
+
+        public override SnQueryPredicate VisitLongNumber(LongNumberPredicate predicate)
+        {
+            return base.VisitLongNumber(predicate);
+        }
+
+        public override SnQueryPredicate VisitDoubleNumber(DoubleNumberPredicate predicate)
+        {
+            return base.VisitDoubleNumber(predicate);
+        }
+
+        public override SnQueryPredicate VisitTextRange(TextRange range)
+        {
+            return base.VisitTextRange(range);
+        }
+
+        public override SnQueryPredicate VisitLongRange(LongRange range)
+        {
+            return base.VisitLongRange(range);
+        }
+
+        public override SnQueryPredicate VisitDoubleRange(DoubleRange range)
+        {
+            return base.VisitDoubleRange(range);
+        }
+
+        public override SnQueryPredicate VisitBooleanClauseList(BooleanClauseList boolClauseList)
+        {
+            _queryTree.Push(new BooleanQuery());
+            var visited = base.VisitBooleanClauseList(boolClauseList);
+            return visited;
+        }
+
+        public override BooleanClause VisitBooleanClause(BooleanClause clause)
+        {
+            Visit(clause.Predicate);
+            var compiledClause = new Lucene.Net.Search.BooleanClause(_queryTree.Pop(), CompileOccur(clause.Occur));
+            var booleanQuery = (BooleanQuery)_queryTree.Peek();
+            booleanQuery.Add(compiledClause);
+            return clause;
+        }
+
+        private Lucene.Net.Search.BooleanClause.Occur CompileOccur(Occurence occur)
+        {
+            switch (occur)
+            {
+                case Occurence.Default:
+                case Occurence.Should: return Lucene.Net.Search.BooleanClause.Occur.SHOULD;
+                case Occurence.Must: return Lucene.Net.Search.BooleanClause.Occur.MUST;
+                case Occurence.MustNot: return Lucene.Net.Search.BooleanClause.Occur.MUST_NOT;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(occur), occur, null);
+            }
         }
     }
 }

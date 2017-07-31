@@ -59,7 +59,6 @@ namespace SenseNet.Search.Parser
                 newList.Clauses.AddRange(visitedClauses);
             }
             return newList ?? boolClauseList;
-
         }
         public virtual List<BooleanClause> VisitBooleanClauses(List<BooleanClause> clauses)
         {
