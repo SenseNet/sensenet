@@ -281,7 +281,6 @@
     <Compile Include="Search\ISearchEngine.cs" />
     <Compile Include="Search\Internal\Operator.cs" />
     <Compile Include="Search\ISearchEngineSupport.cs" />
-    <Compile Include="Search\NodeQueryResult.cs" />
     <Compile Include="Security\BCrypt.cs" />
     <Compile Include="Security\Extensions.cs" />
     <Compile Include="Security\PermissionType.cs" />
@@ -327,7 +326,6 @@
     <Compile Include="Schema\SchemaItem.cs" />
     <Compile Include="Schema\SchemaRoot.cs" />
     <Compile Include="Schema\TypeCollection.cs" />
-    <Compile Include="Search\SearchOrder.cs" />
     <Compile Include="Security\AccessProvider.cs" />
     <Compile Include="Security\IGroup.cs" />
     <Compile Include="Security\LockHandler.cs" />

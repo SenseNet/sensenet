@@ -69,7 +69,6 @@
     <Compile Include="Parser\DefaultQueryParserFactory.cs" />
     <Compile Include="Parser\IQueryContext.cs" />
     <Compile Include="Parser\IQueryParserFactory.cs" />
-    <Compile Include="Parser\Predicates\NumericPredicate.cs" />
     <Compile Include="Parser\Predicates\Range.cs" />
     <Compile Include="Parser\SnQueryPredicate.cs" />
     <Compile Include="Parser\ISnQueryParser.cs" />
