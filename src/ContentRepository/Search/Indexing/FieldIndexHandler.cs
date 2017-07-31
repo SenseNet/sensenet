@@ -25,11 +25,17 @@ namespace SenseNet.Search.Indexing
         public IPerFieldIndexingInfo OwnerIndexingInfo { get; set; }
         public virtual int SortingType { get { return Lucene.Net.Search.SortField.STRING; } }
         public virtual IndexFieldType IndexFieldType { get { return IndexFieldType.String; } }
+
+        /// <summary>
+        /// For SnQuery compilers
+        /// </summary>
+        public abstract bool Compile(IQueryCompilerValue value);
         /// <summary>
         /// For SnLucParser
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
+        [Obsolete("", false)]//UNDONE:!!!! do not use in parser
         public abstract bool TryParseAndSet(IQueryFieldValue value);
         /// <summary>
         /// For LINQ
@@ -120,6 +126,10 @@ namespace SenseNet.Search.Indexing
             textExtract = string.Empty;
             return new IndexFieldInfo[0];
         }
+        public override bool Compile(IQueryCompilerValue value)
+        {
+            return false;
+        }
         public override bool TryParseAndSet(IQueryFieldValue value)
         {
             return false;
@@ -141,6 +151,11 @@ namespace SenseNet.Search.Indexing
             var data = snField.GetData() as SenseNet.ContentRepository.Storage.BinaryData;
             textExtract = data == null ? String.Empty : SenseNet.Search.TextExtractor.GetExtract(data, ((SnCR.Field)snField).Content.ContentHandler);
             return CreateFieldInfo(snField.Name, textExtract);
+        }
+        public override bool Compile(IQueryCompilerValue value)
+        {
+            value.Set(value.StringValue.ToLowerInvariant());
+            return true;
         }
         public override bool TryParseAndSet(IQueryFieldValue value)
         {
@@ -167,6 +182,11 @@ namespace SenseNet.Search.Indexing
             var nodeType = ((SnCR.Field)snField).Content.ContentHandler.NodeType;
             var types = nodeType.NodeTypePath.Split('/').Select(p => p.ToLowerInvariant());
             return CreateFieldInfo(snField.Name, types);
+        }
+        public override bool Compile(IQueryCompilerValue value)
+        {
+            value.Set(value.StringValue.ToLowerInvariant());
+            return true;
         }
         public override bool TryParseAndSet(IQueryFieldValue value)
         {
@@ -209,6 +229,11 @@ namespace SenseNet.Search.Indexing
             textExtract = String.Join(" ", strings.ToArray());
             return CreateFieldInfo(snField.Name, strings);
 
+        }
+        public override bool Compile(IQueryCompilerValue value)
+        {
+            value.Set(value.StringValue.ToLowerInvariant());
+            return true;
         }
         public override bool TryParseAndSet(IQueryFieldValue value)
         {
@@ -348,6 +373,11 @@ namespace SenseNet.Search.Indexing
             throw new NotSupportedException(String.Concat("Cannot create index from this type: ", data.GetType().FullName,
                 ". Indexable data can be string, IEnumerable<string> or IEnumerable."));
         }
+        public override bool Compile(IQueryCompilerValue value)
+        {
+            value.Set(value.StringValue.ToLowerInvariant());
+            return true;
+        }
         public override bool TryParseAndSet(IQueryFieldValue value)
         {
             value.Set(value.StringValue.ToLowerInvariant());
@@ -397,6 +427,11 @@ namespace SenseNet.Search.Indexing
             var terms = snFieldValue.Select(x => x.ToLowerInvariant()).ToArray();
 
             return CreateFieldInfo(snField.Name, terms); 
+        }
+        public override bool Compile(IQueryCompilerValue value)
+        {
+            value.Set(value.StringValue.ToLowerInvariant());
+            return true;
         }
         public override bool TryParseAndSet(IQueryFieldValue value)
         {
@@ -456,6 +491,11 @@ namespace SenseNet.Search.Indexing
 
             return CreateFieldInfo(field.Name, stringValue);
         }
+        public override bool Compile(IQueryCompilerValue value)
+        {
+            value.Set(value.StringValue.ToLowerInvariant());
+            return true;
+        }
         public override bool TryParseAndSet(IQueryFieldValue value)
         {
             value.Set(value.StringValue.ToLowerInvariant());
@@ -496,6 +536,27 @@ namespace SenseNet.Search.Indexing
             var boolValue = value == null ? false : (bool)value;
             textExtract = String.Empty;
             return CreateFieldInfo(snField.Name, boolValue ? YES : NO);
+        }
+        public override bool Compile(IQueryCompilerValue value)
+        {
+            var v = value.StringValue.ToLowerInvariant();
+            if (YesList.Contains(v))
+            {
+                value.Set(YES);
+                return true;
+            }
+            if (NoList.Contains(v))
+            {
+                value.Set(NO);
+                return true;
+            }
+            bool b;
+            if (Boolean.TryParse(v, out b))
+            {
+                value.Set(b ? YES : NO);
+                return true;
+            }
+            return false;
         }
         public override bool TryParseAndSet(IQueryFieldValue value)
         {
@@ -563,6 +624,14 @@ namespace SenseNet.Search.Indexing
             textExtract = intValue.ToString();
             return CreateFieldInfo(snField.Name, intValue);
         }
+        public override bool Compile(IQueryCompilerValue value)
+        {
+            Int32 intValue;
+            if (!Int32.TryParse(value.StringValue, out intValue))
+                return false;
+            value.Set(intValue);
+            return true;
+        }
         public override bool TryParseAndSet(IQueryFieldValue value)
         {
             Int32 intValue;
@@ -611,6 +680,14 @@ namespace SenseNet.Search.Indexing
             textExtract = decimalValue.ToString(System.Globalization.CultureInfo.InvariantCulture);
             return CreateFieldInfo(snField.Name, doubleValue);
         }
+        public override bool Compile(IQueryCompilerValue value)
+        {
+            Double doubleValue;
+            if (!Double.TryParse(value.StringValue, System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.CultureInfo.InvariantCulture, out doubleValue))
+                return false;
+            value.Set(doubleValue);
+            return true;
+        }
         public override bool TryParseAndSet(IQueryFieldValue value)
         {
             Double doubleValue;
@@ -651,6 +728,14 @@ namespace SenseNet.Search.Indexing
             var data = snField.GetData();
             var ticks = data == null ? 0 : ((DateTime)data).Ticks;
             return CreateFieldInfo(snField.Name, SetPrecision((SnCR.Field)snField, ticks));
+        }
+        public override bool Compile(IQueryCompilerValue value)
+        {
+            DateTime dateTimeValue;
+            if (!DateTime.TryParse(value.StringValue, CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTimeValue))
+                return false;
+            value.Set(dateTimeValue.Ticks);
+            return true;
         }
         public override bool TryParseAndSet(IQueryFieldValue value)
         {
@@ -723,6 +808,11 @@ namespace SenseNet.Search.Indexing
             textExtract = data == null ? String.Empty : data.ToLowerInvariant();
             return CreateFieldInfo(snField.Name, textExtract);
         }
+        public override bool Compile(IQueryCompilerValue value)
+        {
+            value.Set(value.StringValue.ToLowerInvariant());
+            return true;
+        }
         public override bool TryParseAndSet(IQueryFieldValue value)
         {
             value.Set(value.StringValue.ToLowerInvariant());
@@ -764,6 +854,15 @@ namespace SenseNet.Search.Indexing
             if (nodes != null)
                 return CreateFieldInfo(snField.Name, nodes.Cast<Node>().Select(n => n.Id.ToString()));
             return CreateFieldInfo(snField.Name, LucQuery.NullReferenceValue);
+        }
+        public override bool Compile(IQueryCompilerValue value)
+        {
+            int intValue;
+            if (Int32.TryParse(value.StringValue, out intValue))
+                value.Set(intValue.ToString());
+            else
+                value.Set(LucQuery.NullReferenceValue);
+            return true;
         }
         public override bool TryParseAndSet(IQueryFieldValue value)
         {
@@ -819,6 +918,11 @@ namespace SenseNet.Search.Indexing
     }
     public class ExclusiveTypeIndexHandler : FieldIndexHandler, IIndexValueConverter<ContentType>, IIndexValueConverter
     {
+        public override bool Compile(IQueryCompilerValue value)
+        {
+            value.Set(value.StringValue.ToLowerInvariant());
+            return true;
+        }
         public override bool TryParseAndSet(IQueryFieldValue value)
         {
             value.Set(value.StringValue.ToLowerInvariant());
@@ -861,6 +965,13 @@ namespace SenseNet.Search.Indexing
             var parentPath = RepositoryPath.GetParentPath(textExtract) ?? "/";
             return CreateFieldInfo(snField.Name, parentPath);
         }
+        public override bool Compile(IQueryCompilerValue value)
+        {
+            value.Set(value.StringValue.ToLowerInvariant());
+            if (value.StringValue.StartsWith("/root"))
+                return true;
+            return false;
+        }
         public override bool TryParseAndSet(IQueryFieldValue value)
         {
             value.Set(value.StringValue.ToLowerInvariant());
@@ -897,6 +1008,11 @@ namespace SenseNet.Search.Indexing
             textExtract = String.Empty;
             var value = (string)snField.GetData() ?? String.Empty;
             return CreateFieldInfo(snField.Name, value.ToLowerInvariant());
+        }
+        public override bool Compile(IQueryCompilerValue value)
+        {
+            value.Set(value.StringValue.ToLowerInvariant());
+            return true;
         }
         public override bool TryParseAndSet(IQueryFieldValue value)
         {
@@ -951,6 +1067,13 @@ namespace SenseNet.Search.Indexing
             textExtract = String.Join(" ", terms);
             // Produce the lucene multiterm field with a base's tool and return with it.
             return CreateFieldInfo(snField.Name, terms);
+        }
+        public override bool Compile(IQueryCompilerValue value)
+        {
+            // Set the parsed value.
+            value.Set(value.StringValue.ToLowerInvariant());
+            // Successful.
+            return true;
         }
         public override bool TryParseAndSet(IQueryFieldValue value)
         {

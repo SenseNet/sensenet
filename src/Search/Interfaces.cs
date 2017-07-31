@@ -22,6 +22,9 @@ namespace SenseNet.Search
 
     public interface IFieldIndexHandler
     {
+        /// <summary>For SnQuery compilers</summary>
+        bool Compile(IQueryCompilerValue value);
+
         /// <summary>For SnLucParser</summary>
         bool TryParseAndSet(IQueryFieldValue value);
         /// <summary>For LINQ</summary>
@@ -60,7 +63,7 @@ namespace SenseNet.Search
 
     public enum QueryFieldLevel { NotDefined = 0, HeadOnly = 1, NoBinaryOrFullText = 2, BinaryOrFullText = 3 }
 
-    public interface IQueryFieldValue
+    public interface IQueryFieldValue //UNDONE:!!! do not use in parser / compiler
     {
         //internal bool IsPhrase { get; }
         //internal SnLucLexer.Token Token { get; }
@@ -83,7 +86,7 @@ namespace SenseNet.Search
 
     public enum IndexableDataType { String, Int, Long, Float, Double }
 
-    public class QueryFieldValue : IQueryFieldValue
+    public class QueryFieldValue : IQueryFieldValue  //UNDONE:!!! do not use in parser / compiler
     {
         internal bool IsPhrase { get; private set; }
         internal CqlLexer.Token Token { get; private set; }
@@ -141,7 +144,70 @@ namespace SenseNet.Search
             return String.Concat(Token, ":", StringValue, FuzzyValue == null ? "" : ":" + FuzzyValue);
         }
     }
+    public class QueryCompilerValue : IQueryCompilerValue
+    {
+        public string StringValue { get; private set; }
 
+        public IndexableDataType Datatype { get; private set; }
+        public int IntValue { get; private set; }
+        public long LongValue { get; private set; }
+        public float SingleValue { get; private set; }
+        public double DoubleValue { get; private set; }
+
+        public QueryCompilerValue(string text)
+        {
+            Datatype = IndexableDataType.String;
+            StringValue = text;
+        }
+
+        public void Set(int value)
+        {
+            Datatype = IndexableDataType.Int;
+            IntValue = value;
+        }
+        public void Set(long value)
+        {
+            Datatype = IndexableDataType.Long;
+            LongValue = value;
+        }
+        public void Set(float value)
+        {
+            Datatype = IndexableDataType.Float;
+            SingleValue = value;
+        }
+        public void Set(double value)
+        {
+            Datatype = IndexableDataType.Double;
+            DoubleValue = value;
+        }
+        public void Set(string value)
+        {
+            Datatype = IndexableDataType.String;
+            StringValue = value;
+        }
+
+        public override string ToString()
+        {
+            return $"{StringValue} ({Datatype})";
+        }
+    }
+
+    public interface IQueryCompilerValue
+    {
+        string StringValue { get; }
+
+        IndexableDataType Datatype { get; }
+        int IntValue { get; }
+        long LongValue { get; }
+        float SingleValue { get; }
+        double DoubleValue { get; }
+
+        void Set(int value);
+        void Set(long value);
+        void Set(float value);
+        void Set(double value);
+        void Set(string value);
+    }
 
 
     public interface IQueryEngine

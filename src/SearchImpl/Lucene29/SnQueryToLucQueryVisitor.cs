@@ -103,8 +103,8 @@ namespace SenseNet.Search.Lucene29
             if (converter == null)
                 return text; //UNDONE:!!!!! Use LowerStringIndexHandler instead
 
-            var val = new QueryFieldValue(text, CqlLexer);
-            if (!converter.TryParseAndSet(val))
+            var val = new QueryCompilerValue(text);
+            if (!converter.Compile(val))
             {
                 if (throwEx)
                     throw new CompilerException($"Cannot parse the '{fieldName}' field value: {text}");
