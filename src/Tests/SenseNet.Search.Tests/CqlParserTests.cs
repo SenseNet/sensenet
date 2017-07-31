@@ -16,7 +16,7 @@ namespace SenseNet.Search.Tests
     public class CqlParserTests
     {
         [TestMethod]
-        public void CqlParser_AstToString_FromOriginalLuceneQueryParserSyntax()
+        public void Search_Parser_AstToString_FromOriginalLuceneQueryParserSyntax()
         {
             Test("value", "_Text:value");
             Test("VALUE", "_Text:VALUE");
@@ -58,7 +58,7 @@ namespace SenseNet.Search.Tests
             Test("title:(+return +\"pink panther\")", "+title:return +title:'pink panther'");
         }
         [TestMethod]
-        public void CqlParser_AstToString_PredicateTypes()
+        public void Search_Parser_AstToString_PredicateTypes()
         {
             SnQuery q;
             q = Test("Name:aaa"); Assert.AreEqual(typeof(TextPredicate), q.QueryTree.GetType());
@@ -67,7 +67,7 @@ namespace SenseNet.Search.Tests
         }
 
         [TestMethod]
-        public void CqlParser_AstToString_CqlExtension_Ranges()
+        public void Search_Parser_AstToString_CqlExtension_Ranges()
         {
             SnQuery q;
             q = Test("Name:<aaa"); Assert.AreEqual(typeof(TextRange), q.QueryTree.GetType());
@@ -84,7 +84,7 @@ namespace SenseNet.Search.Tests
             q = Test("Value:>=3.14"); Assert.AreEqual(typeof(DoubleRange), q.QueryTree.GetType());
         }
         [TestMethod]
-        public void CqlParser_AstToString_CqlExtension_SpecialChars()
+        public void Search_Parser_AstToString_CqlExtension_SpecialChars()
         {
             Test("F1:V1 && F2:V2", "+F1:V1 +F2:V2");
             Test("F1:V1 || F2:V2", "F1:V1 F2:V2");
@@ -92,13 +92,13 @@ namespace SenseNet.Search.Tests
             Test("F1:V1 && !F2:V2", "+F1:V1 -F2:V2");
         }
         [TestMethod]
-        public void CqlParser_AstToString_CqlExtension_Comments()
+        public void Search_Parser_AstToString_CqlExtension_Comments()
         {
             Test("F1:V1 //asdf", "F1:V1");
             Test("+F1:V1 /*asdf*/ +F2:V2 /*qwer*/", "+F1:V1 +F2:V2");
         }
         [TestMethod]
-        public void CqlParser_AstToString_CqlExtension_Controls()
+        public void Search_Parser_AstToString_CqlExtension_Controls()
         {
             // ".SELECT";
             // ".SKIP";
@@ -184,7 +184,7 @@ namespace SenseNet.Search.Tests
         }
 
         [TestMethod]
-        public void CqlParser_AggregateSettingsTest()
+        public void Search_Parser_AggregateSettingsTest()
         {
             var indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
             {
@@ -268,7 +268,7 @@ namespace SenseNet.Search.Tests
 
         //UNDONE: Move this test to QueryClassifier tests
         //[TestMethod]
-        //public void CqlParser_UsedFieldNames()
+        //public void Search_Parser_UsedFieldNames()
         //{
         //    var indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
         //    {

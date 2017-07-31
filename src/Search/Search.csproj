@@ -62,6 +62,7 @@
     <Compile Include="IndexFieldName.cs" />
     <Compile Include="Interfaces.cs" />
     <Compile Include="OrderDirection.cs" />
+    <Compile Include="Parser\CompilerException.cs" />
     <Compile Include="Parser\EmptyPredicateVisitor.cs" />
     <Compile Include="Parser\Predicates\BooleanClause.cs" />
     <Compile Include="Parser\Predicates\BooleanClauseList.cs" />

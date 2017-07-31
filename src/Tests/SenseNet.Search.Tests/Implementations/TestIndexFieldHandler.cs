@@ -10,8 +10,6 @@ namespace SenseNet.Search.Tests.Implementations
     {
         public bool TryParseAndSet(IQueryFieldValue value)
         {
-            throw new NotImplementedException();
-
             value.Set(value.StringValue.ToLowerInvariant());
             return true;
         }
@@ -44,13 +42,51 @@ namespace SenseNet.Search.Tests.Implementations
             throw new NotImplementedException();
         }
     }
-    public class TestIndexFieldHandler_int : IFieldIndexHandler
+    public class TestIndexFieldHandler_long : IFieldIndexHandler
     {
         public bool TryParseAndSet(IQueryFieldValue value)
         {
             throw new NotImplementedException();
 
-            value.Set(int.Parse(value.StringValue));
+            value.Set(long.Parse(value.StringValue));
+            return true;
+        }
+
+        public void ConvertToTermValue(IQueryFieldValue value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetDefaultAnalyzerName()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<string> GetParsableValues(ISnField field)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int SortingType { get; }
+        public IndexFieldType IndexFieldType { get; } = IndexFieldType.String;
+        public IPerFieldIndexingInfo OwnerIndexingInfo { get; set; }
+        public string GetSortFieldName(string fieldName)
+        {
+            return fieldName;
+        }
+
+        public IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(ISnField field, out string textExtract)
+        {
+            throw new NotImplementedException();
+        }
+    }
+    public class TestIndexFieldHandler_double : IFieldIndexHandler
+    {
+        public bool TryParseAndSet(IQueryFieldValue value)
+        {
+            throw new NotImplementedException();
+
+            value.Set(double.Parse(value.StringValue));
             return true;
         }
 
