@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Tokenattributes;
 using Lucene.Net.Index;
@@ -76,7 +74,7 @@ namespace SenseNet.Search.Lucene29
                 var fuzzyValue = predicate.FuzzyValue;
 
                 if (words.Length == 0)
-                    words = new string[] { string.Empty }; //return null;
+                    words = new[] { string.Empty }; //return null;
                 if (words.Length == 1)
                 {
                     var term = new Term(fieldName, words[0]);
@@ -126,11 +124,11 @@ namespace SenseNet.Search.Lucene29
             var tokenStream = _masterAnalyzer.TokenStream(fieldName, reader);
             _termAtt = (TermAttribute)tokenStream.AddAttribute(typeof(TermAttribute));
 
-            var tokens = new List<string>();
+            //var tokens = new List<string>();
             var words = new List<string>();
             while (tokenStream.IncrementToken())
             {
-                tokens.Add(_termAtt.ToString());
+                //tokens.Add(_termAtt.ToString());
                 words.Add(_termAtt.Term());
             }
             return words.ToArray();
@@ -148,7 +146,9 @@ namespace SenseNet.Search.Lucene29
 
         public override SnQueryPredicate VisitTextRange(TextRange range)
         {
-            return base.VisitTextRange(range);
+            _queryTree.Push(new TermRangeQuery(range.FieldName,
+                range.Min, range.Max, !range.MinExclusive, !range.MaxExclusive));
+            return range;
         }
 
         public override SnQueryPredicate VisitLongRange(LongRange range)
