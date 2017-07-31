@@ -37,9 +37,9 @@ namespace SenseNet.Search.Parser
                 return clause;
             return new BooleanClause(visited, clause.Occur);
         }
-        public override SnQueryPredicate VisitText(TextPredicate predicate)
+        public override SnQueryPredicate VisitTextPredicate(TextPredicate textPredicate)
         {
-            return predicate.Value.Equals(SnQuery.EmptyText) ? null : base.VisitText(predicate);
+            return textPredicate.Value.Equals(SnQuery.EmptyText) ? null : base.VisitTextPredicate(textPredicate);
         }
 
     }

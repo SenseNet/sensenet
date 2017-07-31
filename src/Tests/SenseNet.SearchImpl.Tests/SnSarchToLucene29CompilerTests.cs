@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using Lucene.Net.Search;
 using Lucene.Net.Support;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
@@ -206,74 +207,54 @@ namespace SenseNet.SearchImpl.Tests
         }
 
         [TestMethod]
-        public void Search_Compiler_Luc29__CqlExtension_Ranges_01()
+        public void Search_Compiler_Luc29__CqlExtension_Ranges_Text()
         {
-            Test("Name:<aaa");
+            Query q;
+            q = Test("Name:<aaa"); Assert.IsInstanceOfType(q, typeof(TermRangeQuery));
+            q = Test("Name:>aaa"); Assert.IsInstanceOfType(q, typeof(TermRangeQuery));
+            q = Test("Name:<=aaa"); Assert.IsInstanceOfType(q, typeof(TermRangeQuery));
+            q = Test("Name:>=aaa"); Assert.IsInstanceOfType(q, typeof(TermRangeQuery));
         }
         [TestMethod]
-        public void Search_Compiler_Luc29__CqlExtension_Ranges_02()
+        public void Search_Compiler_Luc29__CqlExtension_Ranges_Int()
         {
-            Test("Name:>aaa");
+            CheckNumericRange(Test("Id:<1000"), typeof(int));
+            CheckNumericRange(Test("Id:>1000"), typeof(int));
+            CheckNumericRange(Test("Id:<=1000"), typeof(int));
+            CheckNumericRange(Test("Id:>=1000"), typeof(int));
         }
         [TestMethod]
-        public void Search_Compiler_Luc29__CqlExtension_Ranges_03()
+        public void Search_Compiler_Luc29__CqlExtension_Ranges_Long()
         {
-            Test("Name:<=aaa");
+            CheckNumericRange(Test("LongField1:<1000000"), typeof(long));
+            CheckNumericRange(Test("LongField1:>1000000"), typeof(long));
+            CheckNumericRange(Test("LongField1:<=1000000"), typeof(long));
+            CheckNumericRange(Test("LongField1:>=1000000"), typeof(long));
         }
         [TestMethod]
-        public void Search_Compiler_Luc29__CqlExtension_Ranges_04()
+        public void Search_Compiler_Luc29__CqlExtension_Ranges_15()
         {
-            Test("Name:>=aaa");
+            CheckNumericRange(Test("SingleField1:<3.14"), typeof(float));
+            CheckNumericRange(Test("SingleField1:>3.14"), typeof(float));
+            CheckNumericRange(Test("SingleField1:<=3.14"), typeof(float));
+            CheckNumericRange(Test("SingleField1:>=3.14"), typeof(float));
         }
         [TestMethod]
-        public void Search_Compiler_Luc29__CqlExtension_Ranges_05()
+        public void Search_Compiler_Luc29__CqlExtension_Ranges_17()
         {
-            Test("Id:<1000");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29__CqlExtension_Ranges_06()
-        {
-            Test("Id:>1000");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29__CqlExtension_Ranges_07()
-        {
-            Test("Id:<=1000");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29__CqlExtension_Ranges_08()
-        {
-            Test("Id:>=1000");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29__CqlExtension_Ranges_09()
-        {
-            Test("Value:<3.14");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29__CqlExtension_Ranges_00()
-        {
-            Test("Value:>3.14");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29__CqlExtension_Ranges_11()
-        {
-            Test("Value:<=3.14");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29__CqlExtension_Ranges_12()
-        {
-            Test("Value:>=3.14");
+            CheckNumericRange(Test("DoubleField1:<3.1415"), typeof(double));
+            CheckNumericRange(Test("DoubleField1:>3.1415"), typeof(double));
+            CheckNumericRange(Test("DoubleField1:<=3.1415"), typeof(double));
+            CheckNumericRange(Test("DoubleField1:>=3.1415"), typeof(double));
         }
 
-        public void Test(string queryText, string expected = null)
+        public Query Test(string queryText, string expected = null)
         {
             expected = expected ?? queryText;
 
             var indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
             {
                 {"_Text", new TestPerfieldIndexingInfo_string()},
-                {"value", new TestPerfieldIndexingInfo_string()},
                 {"#Field1", new TestPerfieldIndexingInfo_string()},
                 {"Field1", new TestPerfieldIndexingInfo_string()},
                 {"Field2", new TestPerfieldIndexingInfo_string()},
@@ -292,7 +273,7 @@ namespace SenseNet.SearchImpl.Tests
                 {"title", new TestPerfieldIndexingInfo_string()},
                 {"Name", new TestPerfieldIndexingInfo_string()},
                 {"Id", new TestPerfieldIndexingInfo_int()},
-                {"Value", new TestPerfieldIndexingInfo_double()},
+                {"DoubleField1", new TestPerfieldIndexingInfo_double()},
             };
 
             StorageContext.Search.ContentRepository =
@@ -310,6 +291,15 @@ namespace SenseNet.SearchImpl.Tests
             var actual = lqVisitor.ToString();
 
             Assert.AreEqual(expected, actual);
+
+            return lucQuery.Query;
+        }
+        private void CheckNumericRange(Query q, Type type)
+        {
+            var nq = q as NumericRangeQuery;
+            Assert.IsNotNull(nq);
+            var val = (nq.GetMin() ?? nq.GetMax()).GetType();
+            Assert.AreEqual(type, (nq.GetMin() ?? nq.GetMax()).GetType());
         }
     }
 }

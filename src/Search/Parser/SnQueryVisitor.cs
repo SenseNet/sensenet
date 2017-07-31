@@ -11,41 +11,21 @@ namespace SenseNet.Search.Parser
             if (predicate == null)
                 return null;
 
-            var text           = predicate as TextPredicate;          if (text != null)            return VisitText              (text);
-            var longNumber     = predicate as LongNumberPredicate;    if (longNumber != null)      return VisitLongNumber        (longNumber);
-            var doubleNumber   = predicate as DoubleNumberPredicate;  if (doubleNumber != null)    return VisitDoubleNumber      (doubleNumber);
-            var textRange      = predicate as TextRange;              if (textRange != null)       return VisitTextRange         (textRange);
-            var longRange      = predicate as LongRange;              if (longRange != null)       return VisitLongRange         (longRange);
-            var doubleRange    = predicate as DoubleRange;            if (doubleRange != null)     return VisitDoubleRange       (doubleRange);
+            var text           = predicate as TextPredicate;          if (text != null)            return VisitTextPredicate              (text);
+            var textRange      = predicate as RangePredicate;              if (textRange != null)       return VisitRangePredicate         (textRange);
             var boolClauseList = predicate as BooleanClauseList;      if (boolClauseList != null)  return VisitBooleanClauseList (boolClauseList);
 
             throw new NotSupportedException("Unknown query type: " + predicate.GetType().FullName);
         }
 
-        public virtual SnQueryPredicate VisitText(TextPredicate predicate)
+        public virtual SnQueryPredicate VisitTextPredicate(TextPredicate textPredicate)
         {
-            return predicate;
+            return textPredicate;
         }
 
-        public virtual SnQueryPredicate VisitLongNumber(LongNumberPredicate predicate)
+        public virtual SnQueryPredicate VisitRangePredicate(RangePredicate rangePredicate)
         {
-            return predicate;
-        }
-        public virtual SnQueryPredicate VisitDoubleNumber(DoubleNumberPredicate predicate)
-        {
-            return predicate;
-        }
-        public virtual SnQueryPredicate VisitTextRange(TextRange range)
-        {
-            return range;
-        }
-        public virtual SnQueryPredicate VisitLongRange(LongRange range)
-        {
-            return range;
-        }
-        public virtual SnQueryPredicate VisitDoubleRange(DoubleRange range)
-        {
-            return range;
+            return rangePredicate;
         }
 
         public virtual SnQueryPredicate VisitBooleanClauseList(BooleanClauseList boolClauseList)

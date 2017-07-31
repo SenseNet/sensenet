@@ -37,14 +37,13 @@ namespace SenseNet.Search.Lucene29
             _context = context;
         }
 
-
-        public override SnQueryPredicate VisitText(TextPredicate predicate)
+        public override SnQueryPredicate VisitTextPredicate(TextPredicate textPredicate)
         {
-            var query = CreateStringValueQuery(predicate);
-            if(predicate.Boost.HasValue)
-                query.SetBoost(Convert.ToSingle(predicate.Boost.Value));
+            var query = CreateStringValueQuery(textPredicate);
+            if(textPredicate.Boost.HasValue)
+                query.SetBoost(Convert.ToSingle(textPredicate.Boost.Value));
             _queryTree.Push(query);
-            return predicate;
+            return textPredicate;
         }
         private Query CreateStringValueQuery(TextPredicate predicate)
         {
@@ -134,31 +133,11 @@ namespace SenseNet.Search.Lucene29
             return words.ToArray();
         }
 
-        public override SnQueryPredicate VisitLongNumber(LongNumberPredicate predicate)
+        public override SnQueryPredicate VisitRangePredicate(RangePredicate rangePredicate)
         {
-            return base.VisitLongNumber(predicate);
-        }
-
-        public override SnQueryPredicate VisitDoubleNumber(DoubleNumberPredicate predicate)
-        {
-            return base.VisitDoubleNumber(predicate);
-        }
-
-        public override SnQueryPredicate VisitTextRange(TextRange range)
-        {
-            _queryTree.Push(new TermRangeQuery(range.FieldName,
-                range.Min, range.Max, !range.MinExclusive, !range.MaxExclusive));
-            return range;
-        }
-
-        public override SnQueryPredicate VisitLongRange(LongRange range)
-        {
-            return base.VisitLongRange(range);
-        }
-
-        public override SnQueryPredicate VisitDoubleRange(DoubleRange range)
-        {
-            return base.VisitDoubleRange(range);
+            _queryTree.Push(new TermRangeQuery(rangePredicate.FieldName,
+                rangePredicate.Min, rangePredicate.Max, !rangePredicate.MinExclusive, !rangePredicate.MaxExclusive));
+            return rangePredicate;
         }
 
         public override SnQueryPredicate VisitBooleanClauseList(BooleanClauseList boolClauseList)
@@ -167,7 +146,6 @@ namespace SenseNet.Search.Lucene29
             var visited = base.VisitBooleanClauseList(boolClauseList);
             return visited;
         }
-
         public override BooleanClause VisitBooleanClause(BooleanClause clause)
         {
             Visit(clause.Predicate);
@@ -176,7 +154,6 @@ namespace SenseNet.Search.Lucene29
             booleanQuery.Add(compiledClause);
             return clause;
         }
-
         private Lucene.Net.Search.BooleanClause.Occur CompileOccur(Occurence occur)
         {
             switch (occur)

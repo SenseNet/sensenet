@@ -912,33 +912,15 @@ namespace SenseNet.Search.Parser
         {
             var currentField = _currentField.Peek();
             var fieldName = currentField.Name;
-            switch (value.Datatype)
-            {
-                case IndexableDataType.String:
-                    return CreateStringValueQuery(value, currentField);
-                case IndexableDataType.Long: return new LongNumberPredicate(fieldName, value.LongValue); //UNDONE: Use NumericUtils.LongToPrefixCoded(value) in the compiler
-                case IndexableDataType.Double: return new DoubleNumberPredicate(fieldName, value.DoubleValue); //UNDONE: Use NumericUtils.DoubleToPrefixCoded(value) in the compiler
-                default:
-                    throw ParserError("Unknown IndexableDataType enum value: " + value.Datatype);
-            }
+
+            if (value.StringValue == SnQuery.EmptyText)
+                return new TextPredicate(currentField.Name, value.StringValue);
+            if (value.StringValue == SnQuery.EmptyInnerQueryText)
+                return new TextPredicate(IndexFieldName.NodeId, "0");
+
+            return new TextPredicate(currentField.Name, value.StringValue, value.FuzzyValue);
         }
-        private SnQueryPredicate CreateStringValueQuery(QueryFieldValue value, FieldInfo currentField)
-        {
-            switch (value.Token)
-            {
-                case CqlLexer.Token.Number:
-                case CqlLexer.Token.String:
-                    if (value.StringValue == SnQuery.EmptyText)
-                        return new TextPredicate(currentField.Name, value.StringValue);
-                    if (value.StringValue == SnQuery.EmptyInnerQueryText)
-                        return new LongNumberPredicate(IndexFieldName.NodeId, 0);
-                    return new TextPredicate(currentField.Name, value.StringValue, value.FuzzyValue);
-                case CqlLexer.Token.WildcardString:
-                    return new TextPredicate(currentField.Name, value.StringValue, value.FuzzyValue);
-                default:
-                    throw ParserError("CreateValueQuery with Token: " + value.Token);
-            }
-        }
+
         private SnQueryPredicate CreateRangeQuery(string fieldName, QueryFieldValue minValue, QueryFieldValue maxValue, bool includeLower, bool includeUpper)
         {
             if (minValue != null && minValue.StringValue == SnQuery.EmptyText && maxValue == null)
@@ -959,23 +941,9 @@ namespace SenseNet.Search.Parser
             if (minValue == null && maxValue == null)
                 throw ParserError("Invalid range: the minimum and the maximum value are cannot be null/empty together.");
 
-            switch (minValue?.Datatype ?? maxValue.Datatype)
-            {
-                case IndexableDataType.String:
-                    var lowerTerm = minValue?.StringValue;
-                    var upperTerm = maxValue?.StringValue;
-                    return new TextRange(fieldName, lowerTerm, upperTerm, !includeLower, !includeUpper);
-                case IndexableDataType.Long:
-                    var lowerLong = minValue?.LongValue ?? long.MinValue;
-                    var upperLong = maxValue?.LongValue ?? long.MaxValue;
-                    return new LongRange(fieldName, lowerLong, upperLong, !includeLower, !includeUpper);
-                case IndexableDataType.Double:
-                    var lowerDouble = minValue?.DoubleValue ?? double.NaN;
-                    var upperDouble = maxValue?.DoubleValue ?? double.NaN;
-                    return new DoubleRange(fieldName, lowerDouble, upperDouble, !includeLower, !includeUpper);
-                default:
-                    throw ParserError("Unknown IndexableDataType: " + (minValue ?? maxValue).Datatype);
-            }
+            var lowerTerm = minValue?.StringValue;
+            var upperTerm = maxValue?.StringValue;
+            return new RangePredicate(fieldName, lowerTerm, upperTerm, !includeLower, !includeUpper);
         }
 
         private bool IsEof()

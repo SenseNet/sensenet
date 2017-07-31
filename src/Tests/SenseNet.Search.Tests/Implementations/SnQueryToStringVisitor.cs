@@ -24,29 +24,14 @@ namespace SenseNet.Search.Tests.Implementations
             _escaperRegex = new Regex(pattern.ToString());
         }
 
-        public override SnQueryPredicate VisitText(TextPredicate text)
+        public override SnQueryPredicate VisitTextPredicate(TextPredicate textPredicate)
         {
-            PredicateToString(text.FieldName, text.Value, text.Boost, text.FuzzyValue);
-            return base.VisitText(text);
-        }
+            var value = Escape(textPredicate.Value);
+            _output.Append($"{textPredicate.FieldName}:{value}");
+            BoostTostring(textPredicate.Boost);
+            FuzzyToString(textPredicate.FuzzyValue);
 
-        public override SnQueryPredicate VisitLongNumber(LongNumberPredicate predicate)
-        {
-            PredicateToString(predicate.FieldName, predicate.Value, predicate.Boost, null);
-            return base.VisitLongNumber(predicate);
-        }
-
-        public override SnQueryPredicate VisitDoubleNumber(DoubleNumberPredicate predicate)
-        {
-            PredicateToString(predicate.FieldName, predicate.Value.ToString(CultureInfo.InvariantCulture), predicate.Boost, null);
-            return base.VisitDoubleNumber(predicate);
-        }
-        private void PredicateToString(string fieldName, object value, double? boost, double? fuzzy)
-        {
-            value = Escape(value);
-            _output.Append($"{fieldName}:{value}");
-            BoostTostring(boost);
-            FuzzyToString(fuzzy);
+            return base.VisitTextPredicate(textPredicate);
         }
         private object Escape(object value)
         {
@@ -68,32 +53,16 @@ namespace SenseNet.Search.Tests.Implementations
                 _output.Append("~").Append(fuzzy.Value.ToString(CultureInfo.InvariantCulture));
         }
 
-        public override SnQueryPredicate VisitTextRange(TextRange range)
+        public override SnQueryPredicate VisitRangePredicate(RangePredicate rangePredicate)
         {
-            RangeToString(range.FieldName, range.Min, range.Max, range.MinExclusive, range.MaxExclusive, range.Boost);
-            return base.VisitTextRange(range);
-        }
-        public override SnQueryPredicate VisitLongRange(LongRange range)
-        {
-            RangeToString(range.FieldName,
-                range.Min == long.MinValue ? null : range.Min.ToString(CultureInfo.InvariantCulture),
-                range.Max == long.MaxValue ? null : range.Max.ToString(CultureInfo.InvariantCulture),
-                range.MinExclusive, range.MaxExclusive, range.Boost);
-            return base.VisitLongRange(range);
-        }
-        public override SnQueryPredicate VisitDoubleRange(DoubleRange range)
-        {
-            RangeToString(range.FieldName,
-                double.IsNaN(range.Min) ? null : range.Min.ToString(CultureInfo.InvariantCulture),
-                double.IsNaN(range.Max) ? null : range.Max.ToString(CultureInfo.InvariantCulture),
-                range.MinExclusive, range.MaxExclusive, range.Boost);
-            return base.VisitDoubleRange(range);
-        }
-        private void RangeToString(string fieldName, string min, string max, bool minExclusive, bool maxExclusive, double? boost)
-        {
+            var min = rangePredicate.Min;
+            var max = rangePredicate.Max;
+            var minExclusive = rangePredicate.MinExclusive;
+            var maxExclusive = rangePredicate.MaxExclusive;
+
             string oneTerm = null;
 
-            _output.Append(fieldName);
+            _output.Append(rangePredicate.FieldName);
             _output.Append(":");
 
             string op = null;
@@ -120,7 +89,9 @@ namespace SenseNet.Search.Tests.Implementations
             {
                 _output.Append(op).Append(oneTerm);
             }
-            BoostTostring(boost);
+            BoostTostring(rangePredicate.Boost);
+
+            return base.VisitRangePredicate(rangePredicate);
         }
 
         private int _booleanCount;

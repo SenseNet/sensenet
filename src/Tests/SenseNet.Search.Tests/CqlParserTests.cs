@@ -62,26 +62,26 @@ namespace SenseNet.Search.Tests
         {
             SnQuery q;
             q = Test("Name:aaa"); Assert.AreEqual(typeof(TextPredicate), q.QueryTree.GetType());
-            q = Test("Id:1000"); Assert.AreEqual(typeof(LongNumberPredicate), q.QueryTree.GetType());
-            q = Test("Value:3.14"); Assert.AreEqual(typeof(DoubleNumberPredicate), q.QueryTree.GetType());
+            q = Test("Id:1000"); Assert.AreEqual(typeof(TextPredicate), q.QueryTree.GetType());
+            q = Test("Value:3.14"); Assert.AreEqual(typeof(TextPredicate), q.QueryTree.GetType());
         }
 
         [TestMethod]
         public void Search_Parser_AstToString_CqlExtension_Ranges()
         {
             SnQuery q;
-            q = Test("Name:<aaa"); Assert.AreEqual(typeof(TextRange), q.QueryTree.GetType());
-            q = Test("Name:>aaa"); Assert.AreEqual(typeof(TextRange), q.QueryTree.GetType());
-            q = Test("Name:<=aaa"); Assert.AreEqual(typeof(TextRange), q.QueryTree.GetType());
-            q = Test("Name:>=aaa"); Assert.AreEqual(typeof(TextRange), q.QueryTree.GetType());
-            q = Test("Id:<1000"); Assert.AreEqual(typeof(LongRange), q.QueryTree.GetType());
-            q = Test("Id:>1000"); Assert.AreEqual(typeof(LongRange), q.QueryTree.GetType());
-            q = Test("Id:<=1000"); Assert.AreEqual(typeof(LongRange), q.QueryTree.GetType());
-            q = Test("Id:>=1000"); Assert.AreEqual(typeof(LongRange), q.QueryTree.GetType());
-            q = Test("Value:<3.14");  Assert.AreEqual(typeof(DoubleRange), q.QueryTree.GetType());
-            q = Test("Value:>3.14");  Assert.AreEqual(typeof(DoubleRange), q.QueryTree.GetType());
-            q = Test("Value:<=3.14"); Assert.AreEqual(typeof(DoubleRange), q.QueryTree.GetType());
-            q = Test("Value:>=3.14"); Assert.AreEqual(typeof(DoubleRange), q.QueryTree.GetType());
+            q = Test("Name:<aaa"); Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());
+            q = Test("Name:>aaa"); Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());
+            q = Test("Name:<=aaa"); Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());
+            q = Test("Name:>=aaa"); Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());
+            q = Test("Id:<1000"); Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());
+            q = Test("Id:>1000"); Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());
+            q = Test("Id:<=1000"); Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());
+            q = Test("Id:>=1000"); Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());
+            q = Test("Value:<3.14");  Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());
+            q = Test("Value:>3.14");  Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());
+            q = Test("Value:<=3.14"); Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());
+            q = Test("Value:>=3.14"); Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());
         }
         [TestMethod]
         public void Search_Parser_AstToString_CqlExtension_SpecialChars()
