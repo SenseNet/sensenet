@@ -333,6 +333,15 @@ If the Path is a Content Repository path, than you can define a Field (optionall
 
 You can define either the *Template* or the *Regex* property for searching replaceable text, but **not both of them**.
 
+### SetUrl
+- Full name: `SenseNet.Packaging.Steps.SetUrl`
+- Default property: `Url`
+- Additional properties: `Site, AuthenticationType` 
+
+Sets a url on a site content in the Content Repository. If the url is already assigned to another site, this step will fail.
+
+>Please make sure that a **StartRepository** step precedes this one to make sure that the repository is started.
+
 ## JSON text
 ### EditJson
 - Full name: `SenseNet.Packaging.Steps.EditJson`
@@ -1142,7 +1151,7 @@ System step for creating the provided log and source in Windows Event log.
 ```xml
 <CreateEventLog LogName="@logName" Machine="@machine" Sources="@sources" />
 ```
-##x DeleteEventLog
+### DeleteEventLog
 - Full name: `SenseNet.Packaging.Steps.CreateEventLog`
 - Default property: -
 - Additional properties: `LogName, Machine, Sources`
