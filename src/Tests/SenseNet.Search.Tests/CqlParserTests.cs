@@ -117,6 +117,7 @@ namespace SenseNet.Search.Tests
             Assert.AreEqual(FilterStatus.Default, q.EnableAutofilters);
             Assert.AreEqual(FilterStatus.Default, q.EnableLifespanFilter);
             Assert.AreEqual(QueryExecutionMode.Default, q.QueryExecutionMode);
+            Assert.AreEqual(null, q.Projection);
             Assert.AreEqual(0, q.Sort.Length);
 
             q = Test("F1:V1 .TOP:42", "F1:V1"); Assert.AreEqual(42, q.Top);
@@ -127,6 +128,7 @@ namespace SenseNet.Search.Tests
             q = Test("F1:V1 .LIFESPAN:ON", "F1:V1"); Assert.AreEqual(FilterStatus.Enabled, q.EnableLifespanFilter);
             q = Test("F1:V1 .LIFESPAN:OFF", "F1:V1"); Assert.AreEqual(FilterStatus.Disabled, q.EnableLifespanFilter);
             q = Test("F1:V1 .QUICK", "F1:V1"); Assert.AreEqual(QueryExecutionMode.Quick, q.QueryExecutionMode);
+            q = Test("F1:V1 .SELECT:Name", "F1:V1"); Assert.AreEqual("Name", q.Projection);
 
             q = Test("F1:V1 .SORT:F1", "F1:V1"); Assert.AreEqual("F1 ASC", SortToString(q.Sort));
             q = Test("F1:V1 .REVERSESORT:F1", "F1:V1"); Assert.AreEqual("F1 DESC", SortToString(q.Sort));
@@ -134,15 +136,49 @@ namespace SenseNet.Search.Tests
             q = Test("F1:V1 .SORT:F1 .REVERSESORT:F3 .SORT:F2", "F1:V1"); Assert.AreEqual("F1 ASC, F3 DESC, F2 ASC", SortToString(q.Sort));
 
             TestError("F1:V1 .UNKNOWNKEYWORD", typeof(ParserException));
-            TestError("F1:V1 .SORT", typeof(ParserException));
-            TestError("F1:V1 .SORT:", typeof(ParserException));
-            TestError("F1:V1 .SORT:42", typeof(ParserException));
+            TestError("F1:V1 .TOP", typeof(ParserException));
+            TestError("F1:V1 .TOP:", typeof(ParserException));
+            TestError("F1:V1 .TOP:aaa", typeof(ParserException));
+            TestError("F1:V1 .SKIP", typeof(ParserException));
+            TestError("F1:V1 .SKIP:", typeof(ParserException));
+            TestError("F1:V1 .SKIP:aaa", typeof(ParserException));
+            TestError("F1:V1 .COUNTONLY:", typeof(ParserException));
+            TestError("F1:V1 .COUNTONLY:aaa", typeof(ParserException));
+            TestError("F1:V1 .COUNTONLY:42", typeof(ParserException));
+            TestError("F1:V1 .COUNTONLY:ON", typeof(ParserException));
             TestError("F1:V1 .AUTOFILTERS", typeof(ParserException));
             TestError("F1:V1 .AUTOFILTERS:", typeof(ParserException));
             TestError("F1:V1 .AUTOFILTERS:42", typeof(ParserException));
-            TestError("F1:V1 .TOP", typeof(ParserException));
-            TestError("F1:V1 .TOP:", typeof(ParserException));
-            TestError("F1:V1 .TOP:x", typeof(ParserException));
+            TestError("F1:V1 .LIFESPAN", typeof(ParserException));
+            TestError("F1:V1 .LIFESPAN:", typeof(ParserException));
+            TestError("F1:V1 .LIFESPAN:42", typeof(ParserException));
+            TestError("F1:V1 .QUICK:", typeof(ParserException));
+            TestError("F1:V1 .QUICK:aaa", typeof(ParserException));
+            TestError("F1:V1 .QUICK:42", typeof(ParserException));
+            TestError("F1:V1 .QUICK:ON", typeof(ParserException));
+            TestError("F1:V1 .SORT", typeof(ParserException));
+            TestError("F1:V1 .SORT:", typeof(ParserException));
+            TestError("F1:V1 .SORT:42", typeof(ParserException));
+            TestError("F1:V1 .SELECT", typeof(ParserException));
+            TestError("F1:V1 .SELECT:", typeof(ParserException));
+            TestError("F1:V1 .SELECT:123", typeof(ParserException));
+        }
+        [TestMethod]
+        public void Search_Parser_AstToString_CqlErrors()
+        {
+            TestError("", typeof(ParserException));
+            TestError("()", typeof(ParserException));
+            TestError("+(+(Id:1 Id:2) +Name:<b", typeof(ParserException));
+            TestError("Id:(1 2 3", typeof(ParserException));
+            TestError("Password:asdf", typeof(InvalidOperationException));
+            TestError("PasswordHash:asdf", typeof(InvalidOperationException));
+            TestError("Id::1", typeof(ParserException));
+            TestError("Id:[10 to 15]", typeof(ParserException));
+            TestError("Id:[10 TO 15", typeof(ParserException));
+            TestError("Id:[ TO ]", typeof(ParserException));
+            TestError("_Text:\"aaa bbb\"~", typeof(ParserException));
+            TestError("Name:aaa~1.5", typeof(ParserException));
+            TestError("Name:aaa^x", typeof(ParserException));
         }
 
         private SnQuery Test(string queryText, string expected = null)

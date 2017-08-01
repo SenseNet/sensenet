@@ -647,7 +647,7 @@ namespace SenseNet.Search.Parser
 
                 _lexer.NextToken();
                 if (_lexer.CurrentToken != CqlLexer.Token.Colon)
-                    throw new InvalidOperationException("#### ParseFieldHead ####");
+                    throw ParserError("#### ParseFieldHead ####");
 
 
                 _lexer.NextToken();
@@ -738,31 +738,7 @@ namespace SenseNet.Search.Parser
                 return null;
             }
 
-            var field = _currentField.Peek();
-            var fieldName = field.Name;
             var val = new QueryFieldValue(_lexer.StringValue, _lexer.CurrentToken, _lexer.IsPhrase);
-            if (fieldName != IndexFieldName.AllText && _lexer.StringValue != SnQuery.EmptyInnerQueryText)
-            {
-                if (_lexer.CurrentToken == CqlLexer.Token.Number)
-                {
-                    if (_lexer.IsInteger)
-                    {
-                        long longValue;
-                        if (long.TryParse(val.StringValue, out longValue))
-                            val.Set(longValue);
-                        else
-                            throw ParserError("Invalid value: " + val.StringValue);
-                    }
-                    else
-                    {
-                        double doubleValue;
-                        if (double.TryParse(val.StringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out doubleValue))
-                            val.Set(doubleValue);
-                        else
-                            throw ParserError("Invalid value: " + val.StringValue);
-                    }
-                }
-            }
             _lexer.NextToken();
             return val;
         }

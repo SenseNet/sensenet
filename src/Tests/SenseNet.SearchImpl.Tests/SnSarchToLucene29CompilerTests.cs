@@ -71,6 +71,7 @@ namespace SenseNet.SearchImpl.Tests
             q = Test("Name:aaaa?"); Assert.AreEqual(q.GetType(), typeof(WildcardQuery));
             q = Test("Name:*aaaa"); Assert.AreEqual(q.GetType(), typeof(WildcardQuery));
             q = Test("Name:aa*aa"); Assert.AreEqual(q.GetType(), typeof(WildcardQuery));
+            q = Test("Name:aa?a*"); Assert.AreEqual(q.GetType(), typeof(WildcardQuery));
             q = Test("Name:aaaa*"); Assert.AreEqual(q.GetType(), typeof(PrefixQuery));
             q = Test("Name:\"aaa bbb\""); Assert.AreEqual(q.GetType(), typeof(TermQuery)); // because Name uses KeywordAnalyzer
             q = Test("_Text:\"aa bbb\""); Assert.AreEqual(q.GetType(), typeof(PhraseQuery));
