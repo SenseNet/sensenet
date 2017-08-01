@@ -15,262 +15,103 @@ namespace SenseNet.SearchImpl.Tests
     [TestClass]
     public class SnSarchToLucene29CompilerTests
     {
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_01()
+        [TestMethod] // 38 tests
+        public void Search_Compiler_Luc29_OriginalTests()
         {
             Test("value", "_Text:value");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_02()
-        {
             Test("VALUE", "_Text:value");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_03()
-        {
             Test("Value", "_Text:value");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_04()
-        {
             Test("Value1", "_Text:value1");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_05()
-        {
             Test("-Value1", "-_Text:value1");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_06()
-        {
             Test("+Value1", "+_Text:value1");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_07()
-        {
             Test("Value1 -Value2 +Value3 Value4", "_Text:value1 -_Text:value2 +_Text:value3 _Text:value4");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_08()
-        {
             Test("Field1:Value1", "Field1:value1");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_09()
-        {
             Test("#Field1:value1");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_10()
-        {
             Test("-Field1:value1");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_11()
-        {
             Test("+Field1:value1");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_12()
-        {
             Test("Field1:value1 Field2:value2 Field3:value3");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_13()
-        {
             Test("F1:v1 -F2:v2 +F3:v3 F4:v4");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_14()
-        {
             Test("f1:v1 f2:v2");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_15()
-        {
             Test("f1:v1 f2:v2 (f3:v3 f4:v4 (f5:v5 f6:v6))");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_16()
-        {
             Test("f1:v1 (f2:v2 (f3:v3 f4:v4))");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_17()
-        {
             Test("aaa AND +bbb", "+_Text:aaa +_Text:bbb");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_18()
-        {
             Test("te?t", "_Text:te?t");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_19()
-        {
             Test("test*", "_Text:test*");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_20()
-        {
             Test("te*t", "_Text:te*t");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_21()
-        {
             Test("roam~", "_Text:roam~0.5");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_22()
-        {
             Test("roam~" + SnQuery.DefaultFuzzyValue.ToString(CultureInfo.InvariantCulture), "_Text:roam~0.5");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_23()
-        {
             Test("roam~0.8", "_Text:roam~0.8");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_24()
-        {
             Test("\"jakarta apache\"~10", "_Text:\"jakarta apache\"~10");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_25()
-        {
             Test("mod_date:[20020101 TO 20030101]");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_26()
-        {
             Test("title:{Aida TO Carmen}", "title:{aida TO carmen}");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_27()
-        {
             Test("jakarta apache", "_Text:jakarta _Text:apache");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_28()
-        {
             Test("jakarta^4 apache", "_Text:jakarta^4 _Text:apache");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_29()
-        {
             Test("\"jakarta apache\"^4 \"Apache Lucene\"", "_Text:\"jakarta apache\"^4 _Text:\"apache lucene\"");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_30()
-        {
             Test("\"jakarta apache\" jakarta", "_Text:\"jakarta apache\" _Text:jakarta");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_31()
-        {
             Test("\"jakarta apache\" OR jakarta", "_Text:\"jakarta apache\" _Text:jakarta");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_32()
-        {
             Test("\"jakarta apache\" AND \"Apache Lucene\"", "+_Text:\"jakarta apache\" +_Text:\"apache lucene\"");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_33()
-        {
             Test("+jakarta lucene", "+_Text:jakarta _Text:lucene");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_34()
-        {
             Test("\"jakarta apache\" NOT \"Apache Lucene\"", "_Text:\"jakarta apache\" -_Text:\"apache lucene\"");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_35()
-        {
             Test("NOT \"jakarta apache\"", "-_Text:\"jakarta apache\"");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_36()
-        {
             Test("\"jakarta apache\" -\"Apache Lucene\"", "_Text:\"jakarta apache\" -_Text:\"apache lucene\"");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_37()
-        {
             Test("(jakarta OR apache) AND website", "+(_Text:jakarta _Text:apache) +_Text:website");
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29_OriginalTest_38()
-        {
             Test("title:(+return +\"pink panther\")", "+title:return +title:\"pink panther\"");
         }
 
-        [TestMethod]
-        public void Search_Compiler_Luc29__QueryType_Term()
+        [TestMethod] // 11 tests
+        public void Search_Compiler_Luc29__QueryTypes()
         {
-            var q = Test("Name:Aaa", "Name:aaa"); Assert.AreEqual(q.GetType(), typeof(TermQuery));
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29__QueryType_NumericInt()
-        {
-            var q = Test("Id:42"); Assert.AreEqual(q.GetType(), typeof(TermQuery));
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29__QueryType_NumericLong()
-        {
-            var q = Test($"LongField1:{long.MaxValue}"); Assert.AreEqual(q.GetType(), typeof(TermQuery));
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29__QueryType_NumericSingle()
-        {
-            var q = Test("SingleField1:1.000001"); Assert.AreEqual(q.GetType(), typeof(TermQuery));
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29__QueryType_NumericDouble()
-        {
-            var q = Test("DoubleField1:1.0000001"); Assert.AreEqual(q.GetType(), typeof(TermQuery));
+            Query q;
+            q = Test("Name:aaaaa"); Assert.AreEqual(q.GetType(), typeof(TermQuery));
+            q = Test("Id:1 Id:22"); Assert.AreEqual(q.GetType(), typeof(BooleanQuery));
+            q = Test("Name:<aaaa"); Assert.AreEqual(q.GetType(), typeof(TermRangeQuery));
+            q = Test("Name:a~0.8"); Assert.AreEqual(q.GetType(), typeof(FuzzyQuery));
+            q = Test("Name:?aaaa"); Assert.AreEqual(q.GetType(), typeof(WildcardQuery));
+            q = Test("Name:aa?aa"); Assert.AreEqual(q.GetType(), typeof(WildcardQuery));
+            q = Test("Name:aaaa?"); Assert.AreEqual(q.GetType(), typeof(WildcardQuery));
+            q = Test("Name:*aaaa"); Assert.AreEqual(q.GetType(), typeof(WildcardQuery));
+            q = Test("Name:aa*aa"); Assert.AreEqual(q.GetType(), typeof(WildcardQuery));
+            q = Test("Name:aaaa*"); Assert.AreEqual(q.GetType(), typeof(PrefixQuery));
+            q = Test("Name:\"aaa bbb\""); Assert.AreEqual(q.GetType(), typeof(TermQuery)); // because Name uses KeywordAnalyzer
+            q = Test("_Text:\"aa bbb\""); Assert.AreEqual(q.GetType(), typeof(PhraseQuery));
         }
 
+        [TestMethod] // 4 tests
+        public void Search_Compiler_Luc29__QueryType_Numeric()
+        {
+            Query q;
+            q = Test("Id:42"); Assert.AreEqual(q.GetType(), typeof(TermQuery));
+            q = Test($"LongField1:{long.MaxValue}"); Assert.AreEqual(q.GetType(), typeof(TermQuery));
+            q = Test("SingleField1:1.000001"); Assert.AreEqual(q.GetType(), typeof(TermQuery));
+            q = Test("DoubleField1:1.0000001"); Assert.AreEqual(q.GetType(), typeof(TermQuery));
+        }
 
-        [TestMethod]
-        public void Search_Compiler_Luc29__CqlExtension_Ranges_Text()
+        [TestMethod] // 20 tests
+        public void Search_Compiler_Luc29__CqlExtension_Ranges()
         {
             Query q;
             q = Test("Name:<aaa"); Assert.IsInstanceOfType(q, typeof(TermRangeQuery));
             q = Test("Name:>aaa"); Assert.IsInstanceOfType(q, typeof(TermRangeQuery));
             q = Test("Name:<=aaa"); Assert.IsInstanceOfType(q, typeof(TermRangeQuery));
             q = Test("Name:>=aaa"); Assert.IsInstanceOfType(q, typeof(TermRangeQuery));
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29__CqlExtension_Ranges_Int()
-        {
+
             CheckNumericRange(Test("Id:<1000"), typeof(int));
             CheckNumericRange(Test("Id:>1000"), typeof(int));
             CheckNumericRange(Test("Id:<=1000"), typeof(int));
             CheckNumericRange(Test("Id:>=1000"), typeof(int));
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29__CqlExtension_Ranges_Long()
-        {
+
             CheckNumericRange(Test("LongField1:<1000000"), typeof(long));
             CheckNumericRange(Test("LongField1:>1000000"), typeof(long));
             CheckNumericRange(Test("LongField1:<=1000000"), typeof(long));
             CheckNumericRange(Test("LongField1:>=1000000"), typeof(long));
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29__CqlExtension_Ranges_Single()
-        {
+
             var value = 3.14.ToString(CultureInfo.InvariantCulture);
             CheckNumericRange(Test($"SingleField1:<{value}"), typeof(float));
             CheckNumericRange(Test($"SingleField1:>{value}"), typeof(float));
             CheckNumericRange(Test($"SingleField1:<={value}"), typeof(float));
             CheckNumericRange(Test($"SingleField1:>={value}"), typeof(float));
-        }
-        [TestMethod]
-        public void Search_Compiler_Luc29__CqlExtension_Ranges_Double()
-        {
-            var value = 3.1415.ToString(CultureInfo.InvariantCulture);
+
+            value = 3.1415.ToString(CultureInfo.InvariantCulture);
             CheckNumericRange(Test($"DoubleField1:<{value}"), typeof(double));
             CheckNumericRange(Test($"DoubleField1:>{value}"), typeof(double));
             CheckNumericRange(Test($"DoubleField1:<={value}"), typeof(double));
