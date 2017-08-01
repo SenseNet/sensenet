@@ -428,7 +428,7 @@ namespace SenseNet.Search.Parser
             }
             else
             {
-                _text.Append(op).Append(oneValue);
+                _text.Append(op).Append(Convert.ToString(oneValue, CultureInfo.InvariantCulture));
             }
 
             _text.Append(BoostToString(numericRangeq.GetBoost()));

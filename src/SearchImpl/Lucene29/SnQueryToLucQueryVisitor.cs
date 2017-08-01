@@ -55,9 +55,9 @@ namespace SenseNet.Search.Lucene29
             if (value == SnQuery.EmptyInnerQueryText)
                 return new TermQuery(new Term("Id", NumericUtils.IntToPrefixCoded(0)));
 
+            var hasWildcard = value.Contains('*') || value.Contains('?');
             var text = fieldName == "_Text" ? value : ConvertTermValue(fieldName, value, false);
 
-            var hasWildcard = text.Contains('*') || text.Contains('?');
             if (hasWildcard)
             {
                 if (!text.EndsWith("*"))
@@ -67,54 +67,54 @@ namespace SenseNet.Search.Lucene29
                     return new WildcardQuery(new Term(fieldName, text));
                 return new PrefixQuery(new Term(fieldName, s));
             }
-            else
+
+            var words = GetAnalyzedText(fieldName, text);
+            var fuzzyValue = predicate.FuzzyValue;
+
+            if (words.Length == 0)
+                words = new[] { string.Empty }; //return null;
+            if (words.Length == 1)
             {
-                var words = GetAnalyzedText(fieldName, text);
-                var fuzzyValue = predicate.FuzzyValue;
-
-                if (words.Length == 0)
-                    words = new[] { string.Empty }; //return null;
-                if (words.Length == 1)
-                {
-                    var term = new Term(fieldName, words[0]);
-                    if (fuzzyValue == null)
-                        return new TermQuery(term);
-                    return new FuzzyQuery(term, Convert.ToSingle(fuzzyValue));
-                }
-
-                var phraseQuery = new PhraseQuery();
-                foreach (var word in words)
-                    phraseQuery.Add(new Term(fieldName, word));
-
-                if (fuzzyValue != null)
-                {
-                    var slop = Convert.ToInt32(fuzzyValue.Value);
-                    phraseQuery.SetSlop(slop);
-                }
-                return phraseQuery;
+                var term = new Term(fieldName, words[0]);
+                if (fuzzyValue == null)
+                    return new TermQuery(term);
+                return new FuzzyQuery(term, Convert.ToSingle(fuzzyValue));
             }
+
+            var phraseQuery = new PhraseQuery();
+            foreach (var word in words)
+                phraseQuery.Add(new Term(fieldName, word));
+
+            if (fuzzyValue != null)
+            {
+                var slop = Convert.ToInt32(fuzzyValue.Value);
+                phraseQuery.SetSlop(slop);
+            }
+            return phraseQuery;
         }
         private string ConvertTermValue(string fieldName, string text, bool throwEx)
         {
-            var indexingInfo = _context.GetPerFieldIndexingInfo(fieldName);
-            if (indexingInfo == null)
-                return text; //UNDONE:!!!!! Use LowerStringIndexHandler instead
-            var converter = indexingInfo.IndexFieldHandler;
+            var converter = _context.GetPerFieldIndexingInfo(fieldName)?.IndexFieldHandler;
             if (converter == null)
-                return text; //UNDONE:!!!!! Use LowerStringIndexHandler instead
+                return text;
 
             var val = new QueryCompilerValue(text);
             if (!converter.Compile(val))
             {
                 if (throwEx)
                     throw new CompilerException($"Cannot parse the '{fieldName}' field value: {text}");
-                return null; //UNDONE:!!!!! Use LowerStringIndexHandler instead
+                return null;
             }
 
-            if (val.Datatype == IndexableDataType.String)
-                return val.StringValue;
-
-            throw new NotImplementedException(); //UNDONE:!!!!! ConvertTermValue: data type is a kind of number.
+            switch (val.Datatype)
+            {
+                case IndexableDataType.String: return val.StringValue;
+                case IndexableDataType.Int:    return NumericUtils.IntToPrefixCoded(val.IntValue);
+                case IndexableDataType.Long:   return NumericUtils.LongToPrefixCoded(val.LongValue);
+                case IndexableDataType.Float:  return NumericUtils.FloatToPrefixCoded(val.SingleValue);
+                case IndexableDataType.Double: return NumericUtils.DoubleToPrefixCoded(val.DoubleValue);
+                default: throw new ArgumentOutOfRangeException();
+            }
         }
         private string[] GetAnalyzedText(string fieldName, string text)
         {
@@ -135,9 +135,72 @@ namespace SenseNet.Search.Lucene29
 
         public override SnQueryPredicate VisitRangePredicate(RangePredicate rangePredicate)
         {
-            _queryTree.Push(new TermRangeQuery(rangePredicate.FieldName,
-                rangePredicate.Min, rangePredicate.Max, !rangePredicate.MinExclusive, !rangePredicate.MaxExclusive));
+            var fieldName = rangePredicate.FieldName;
+            var minIncl = !rangePredicate.MinExclusive;
+            var maxIncl = !rangePredicate.MaxExclusive;
+
+            QueryCompilerValue min, max;
+            var fieldType = ConvertRangeValue(rangePredicate.FieldName, rangePredicate.Min, rangePredicate.Max, out min, out max);
+
+            Query query;
+            switch (fieldType)
+            {
+                case IndexableDataType.String:
+                    query = new TermRangeQuery(fieldName, min?.StringValue, max?.StringValue, minIncl, maxIncl);
+                    break;
+                case IndexableDataType.Int:
+                    query = NumericRangeQuery.NewIntRange(fieldName, min?.IntValue, max?.IntValue, minIncl, maxIncl);
+                    break;
+                case IndexableDataType.Long:
+                    query = NumericRangeQuery.NewIntRange(fieldName, min?.LongValue, max?.LongValue, minIncl, maxIncl);
+                    break;
+                case IndexableDataType.Float:
+                    query = NumericRangeQuery.NewIntRange(fieldName, min?.SingleValue, max?.SingleValue, minIncl, maxIncl);
+                    break;
+                case IndexableDataType.Double:
+                    query = NumericRangeQuery.NewIntRange(fieldName, min?.DoubleValue, max?.DoubleValue, minIncl, maxIncl);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+            _queryTree.Push(query);
+
             return rangePredicate;
+        }
+        private IndexableDataType ConvertRangeValue(string fieldName, string min, string max, out QueryCompilerValue convertedMin, out QueryCompilerValue convertedMax)
+        {
+            var converter = _context.GetPerFieldIndexingInfo(fieldName)?.IndexFieldHandler;
+            if (converter == null)
+            {
+                convertedMin = min == null ? null : new QueryCompilerValue(min);
+                convertedMax = min == null ? null : new QueryCompilerValue(max);
+                return IndexableDataType.String;
+            }
+
+            if (min != null)
+            {
+                convertedMin = new QueryCompilerValue(min);
+                if (!converter.Compile(convertedMin))
+                    throw new CompilerException(
+                        $"Cannot parse the '{fieldName}' as {converter.IndexFieldType} field value: {min}");
+            }
+            else
+            {
+                convertedMin = null;
+            }
+            if (max != null)
+            {
+                convertedMax = new QueryCompilerValue(max);
+                if (!converter.Compile(convertedMax))
+                    throw new CompilerException(
+                        $"Cannot parse the '{fieldName}' as {converter.IndexFieldType} field value: {max}");
+            }
+            else
+            {
+                convertedMax = null;
+            }
+
+            return (convertedMin ?? convertedMax).Datatype;
         }
 
         public override SnQueryPredicate VisitBooleanClauseList(BooleanClauseList boolClauseList)
@@ -154,6 +217,10 @@ namespace SenseNet.Search.Lucene29
             booleanQuery.Add(compiledClause);
             return clause;
         }
+
+        // ======================================================================
+
+
         private Lucene.Net.Search.BooleanClause.Occur CompileOccur(Occurence occur)
         {
             switch (occur)

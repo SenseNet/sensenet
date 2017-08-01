@@ -11,6 +11,7 @@ namespace SenseNet.Search
     public enum IndexStoringMode { Default, No, Yes }
     public enum IndexTermVector { Default, No, WithOffsets, WithPositions, WithPositionsOffsets, Yes }
 
+    public enum IndexableDataType { String, Int, Long, Float, Double }
     public enum IndexFieldType { String, Int, Long, Float, Double, DateTime }
     public enum FieldInfoType { StringField, IntField, LongField, SingleField, DoubleField }
 
@@ -84,7 +85,6 @@ namespace SenseNet.Search
         void Set(String value);
     }
 
-    public enum IndexableDataType { String, Int, Long, Float, Double }
 
     public class QueryFieldValue : IQueryFieldValue  //UNDONE:!!! do not use in parser / compiler
     {

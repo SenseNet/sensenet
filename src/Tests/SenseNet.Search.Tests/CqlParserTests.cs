@@ -188,7 +188,7 @@ namespace SenseNet.Search.Tests
         {
             var indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
             {
-                {"Id", new TestPerfieldIndexingInfo_int() }
+                {"Id", new TestPerfieldIndexingInfoInt() }
             };
             // tuple values:
             // Item1: QuerySettings

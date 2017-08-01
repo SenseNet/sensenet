@@ -207,6 +207,33 @@ namespace SenseNet.SearchImpl.Tests
         }
 
         [TestMethod]
+        public void Search_Compiler_Luc29__QueryType_Term()
+        {
+            var q = Test("Name:Aaa", "Name:aaa"); Assert.AreEqual(q.GetType(), typeof(TermQuery));
+        }
+        [TestMethod]
+        public void Search_Compiler_Luc29__QueryType_NumericInt()
+        {
+            var q = Test("Id:42"); Assert.AreEqual(q.GetType(), typeof(TermQuery));
+        }
+        [TestMethod]
+        public void Search_Compiler_Luc29__QueryType_NumericLong()
+        {
+            var q = Test($"LongField1:{long.MaxValue}"); Assert.AreEqual(q.GetType(), typeof(TermQuery));
+        }
+        [TestMethod]
+        public void Search_Compiler_Luc29__QueryType_NumericSingle()
+        {
+            var q = Test("SingleField1:1.000001"); Assert.AreEqual(q.GetType(), typeof(TermQuery));
+        }
+        [TestMethod]
+        public void Search_Compiler_Luc29__QueryType_NumericDouble()
+        {
+            var q = Test("DoubleField1:1.0000001"); Assert.AreEqual(q.GetType(), typeof(TermQuery));
+        }
+
+
+        [TestMethod]
         public void Search_Compiler_Luc29__CqlExtension_Ranges_Text()
         {
             Query q;
@@ -232,20 +259,22 @@ namespace SenseNet.SearchImpl.Tests
             CheckNumericRange(Test("LongField1:>=1000000"), typeof(long));
         }
         [TestMethod]
-        public void Search_Compiler_Luc29__CqlExtension_Ranges_15()
+        public void Search_Compiler_Luc29__CqlExtension_Ranges_Single()
         {
-            CheckNumericRange(Test("SingleField1:<3.14"), typeof(float));
-            CheckNumericRange(Test("SingleField1:>3.14"), typeof(float));
-            CheckNumericRange(Test("SingleField1:<=3.14"), typeof(float));
-            CheckNumericRange(Test("SingleField1:>=3.14"), typeof(float));
+            var value = 3.14.ToString(CultureInfo.InvariantCulture);
+            CheckNumericRange(Test($"SingleField1:<{value}"), typeof(float));
+            CheckNumericRange(Test($"SingleField1:>{value}"), typeof(float));
+            CheckNumericRange(Test($"SingleField1:<={value}"), typeof(float));
+            CheckNumericRange(Test($"SingleField1:>={value}"), typeof(float));
         }
         [TestMethod]
-        public void Search_Compiler_Luc29__CqlExtension_Ranges_17()
+        public void Search_Compiler_Luc29__CqlExtension_Ranges_Double()
         {
-            CheckNumericRange(Test("DoubleField1:<3.1415"), typeof(double));
-            CheckNumericRange(Test("DoubleField1:>3.1415"), typeof(double));
-            CheckNumericRange(Test("DoubleField1:<=3.1415"), typeof(double));
-            CheckNumericRange(Test("DoubleField1:>=3.1415"), typeof(double));
+            var value = 3.1415.ToString(CultureInfo.InvariantCulture);
+            CheckNumericRange(Test($"DoubleField1:<{value}"), typeof(double));
+            CheckNumericRange(Test($"DoubleField1:>{value}"), typeof(double));
+            CheckNumericRange(Test($"DoubleField1:<={value}"), typeof(double));
+            CheckNumericRange(Test($"DoubleField1:>={value}"), typeof(double));
         }
 
         public Query Test(string queryText, string expected = null)
@@ -254,30 +283,31 @@ namespace SenseNet.SearchImpl.Tests
 
             var indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
             {
-                {"_Text", new TestPerfieldIndexingInfo_string()},
-                {"#Field1", new TestPerfieldIndexingInfo_string()},
-                {"Field1", new TestPerfieldIndexingInfo_string()},
-                {"Field2", new TestPerfieldIndexingInfo_string()},
-                {"Field3", new TestPerfieldIndexingInfo_string()},
-                {"F1", new TestPerfieldIndexingInfo_string()},
-                {"F2", new TestPerfieldIndexingInfo_string()},
-                {"F3", new TestPerfieldIndexingInfo_string()},
-                {"F4", new TestPerfieldIndexingInfo_string()},
-                {"f1", new TestPerfieldIndexingInfo_string()},
-                {"f2", new TestPerfieldIndexingInfo_string()},
-                {"f3", new TestPerfieldIndexingInfo_string()},
-                {"f4", new TestPerfieldIndexingInfo_string()},
-                {"f5", new TestPerfieldIndexingInfo_string()},
-                {"f6", new TestPerfieldIndexingInfo_string()},
-                {"mod_date", new TestPerfieldIndexingInfo_int()},
-                {"title", new TestPerfieldIndexingInfo_string()},
-                {"Name", new TestPerfieldIndexingInfo_string()},
-                {"Id", new TestPerfieldIndexingInfo_int()},
-                {"DoubleField1", new TestPerfieldIndexingInfo_double()},
+                {"_Text", new TestPerfieldIndexingInfoString()},
+                {"#Field1", new TestPerfieldIndexingInfoString()},
+                {"Field1", new TestPerfieldIndexingInfoString()},
+                {"Field2", new TestPerfieldIndexingInfoString()},
+                {"Field3", new TestPerfieldIndexingInfoString()},
+                {"F1", new TestPerfieldIndexingInfoString()},
+                {"F2", new TestPerfieldIndexingInfoString()},
+                {"F3", new TestPerfieldIndexingInfoString()},
+                {"F4", new TestPerfieldIndexingInfoString()},
+                {"f1", new TestPerfieldIndexingInfoString()},
+                {"f2", new TestPerfieldIndexingInfoString()},
+                {"f3", new TestPerfieldIndexingInfoString()},
+                {"f4", new TestPerfieldIndexingInfoString()},
+                {"f5", new TestPerfieldIndexingInfoString()},
+                {"f6", new TestPerfieldIndexingInfoString()},
+                {"mod_date", new TestPerfieldIndexingInfoInt()},
+                {"title", new TestPerfieldIndexingInfoString()},
+                {"Name", new TestPerfieldIndexingInfoString()},
+                {"Id", new TestPerfieldIndexingInfoInt()},
+                {"LongField1", new TestPerfieldIndexingInfoLong()},
+                {"SingleField1", new TestPerfieldIndexingInfoSingle()},
+                {"DoubleField1", new TestPerfieldIndexingInfoDouble()},
             };
 
-            StorageContext.Search.ContentRepository =
-                new TestSearchEngineSupport(indexingInfo);
+            StorageContext.Search.ContentRepository = new TestSearchEngineSupport(indexingInfo);
 
             var queryContext = new TestQueryContext(QuerySettings.Default, 0, indexingInfo);
             var parser = new CqlParser();
@@ -297,7 +327,7 @@ namespace SenseNet.SearchImpl.Tests
         private void CheckNumericRange(Query q, Type type)
         {
             var nq = q as NumericRangeQuery;
-            Assert.IsNotNull(nq);
+            Assert.IsNotNull(nq, $"The query is {q.GetType().Name} but {type.Name} expected.");
             var val = (nq.GetMin() ?? nq.GetMax()).GetType();
             Assert.AreEqual(type, (nq.GetMin() ?? nq.GetMax()).GetType());
         }

@@ -14,7 +14,6 @@ namespace SenseNet.Search.Lucene29
     {
         public LucQuery Compile(SnQuery snQuery, IQueryContext context)
         {
-            //var visitor = new SnQueryToLucQueryVisitor(new KeywordAnalyzer(), context); //UNDONE:!!! this is not the MasterAnalyzer
             var masterAnalyzer = new SnPerFieldAnalyzerWrapper(new KeywordAnalyzer());
             var visitor = new SnQueryToLucQueryVisitor(masterAnalyzer, context);
             visitor.Visit(snQuery.QueryTree);
