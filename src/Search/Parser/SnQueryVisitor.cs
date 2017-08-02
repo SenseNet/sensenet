@@ -34,10 +34,7 @@ namespace SenseNet.Search.Parser
             var visitedClauses = VisitLogicalClauses(clauses);
             LogicalPredicate rewritten = null;
             if (visitedClauses != clauses)
-            {
-                rewritten = new LogicalPredicate();
-                rewritten.Clauses.AddRange(visitedClauses);
-            }
+                rewritten = new LogicalPredicate(visitedClauses);
             return rewritten ?? logic;
         }
         public virtual List<LogicalClause> VisitLogicalClauses(List<LogicalClause> clauses)
