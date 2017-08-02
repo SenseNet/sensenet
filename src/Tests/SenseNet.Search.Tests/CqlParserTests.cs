@@ -66,7 +66,7 @@ namespace SenseNet.Search.Tests
             Test("Name:42aAa", "Name:42aAa");
             Test("Name:42a?a");
             Test("Name:42aa*");
-
+            Test("(Name:aaa Id:2)", "Name:aaa Id:2"); // unnecessary parenthesis
             TestError("Name:\"aaa", typeof(ParserException));
         }
 
@@ -109,6 +109,8 @@ namespace SenseNet.Search.Tests
             Test("F1:V1 || F2:V2", "F1:V1 F2:V2");
             Test("F1:V1 && F2:<>V2", "+F1:V1 -F2:V2");
             Test("F1:V1 && !F2:V2", "+F1:V1 -F2:V2");
+            Test("F1:V1 && !(F2:V2 || F3:V3)", "+F1:V1 -(F2:V2 F3:V3)");
+
             Test("+Id:<1000\n+Name:a*", "+Id:<1000 +Name:a*");
             Test("Name:\\*", "Name:*");
             Test("Name:a<a");
