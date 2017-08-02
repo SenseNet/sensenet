@@ -69,6 +69,14 @@ namespace SenseNet.Search.Tests
             Test("(Name:aaa Id:2)", "Name:aaa Id:2"); // unnecessary parenthesis
             TestError("Name:\"aaa", typeof(ParserException));
         }
+        [TestMethod]
+        public void Search_Parser_AstToString_EmptyQueries()
+        {
+            var empty = SnQuery.EmptyText;
+            Test($"+(+F1:{empty} +F2:aaa*) +F3:bbb", "+(+F2:aaa*) +F3:bbb");
+            Test($"+(+F1:{empty} +(F2:V2 F3:V3)) +F3:bbb", "+(+(F2:V2 F3:V3)) +F3:bbb");
+            Test($"+(+F1:{empty} +F2:{empty}) +F3:bbb", "+F3:bbb");
+        }
 
         [TestMethod]
         public void Search_Parser_AstToString_PredicateTypes()
