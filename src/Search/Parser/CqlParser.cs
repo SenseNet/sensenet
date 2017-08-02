@@ -699,13 +699,13 @@ namespace SenseNet.Search.Parser
         private QueryFieldValue ParseFuzzyValue()
         {
             // FuzzyValue   ==>  Value [Fuzzy]
-            var val = ParseValue(false);
+            var val = ParseValue();
             if (val == null)
                 return null;
             val.FuzzyValue = ParseFuzzy(val.IsPhrase);
             return val;
         }
-        private QueryFieldValue ParseValue(bool throwEx)
+        private QueryFieldValue ParseValue()
         {
             // Value        ==>  ExactValue | WILDCARDSTRING
             var val = ParseExactValue(false);
@@ -717,9 +717,7 @@ namespace SenseNet.Search.Parser
                 _lexer.NextToken();
                 return val;
             }
-            if (!throwEx)
-                return null;
-            throw ParserError($"Unexpected {_lexer.CurrentToken}. Expected: STRING | NUMBER | WILDCARDSTRING");
+            return null;
         }
         private QueryFieldValue ParseExactValue(bool throwEx)
         {

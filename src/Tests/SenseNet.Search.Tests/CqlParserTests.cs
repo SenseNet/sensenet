@@ -67,7 +67,7 @@ namespace SenseNet.Search.Tests
             Test("Name:42a?a");
             Test("Name:42aa*");
             Test("(Name:aaa Id:2)", "Name:aaa Id:2"); // unnecessary parenthesis
-            TestError("Name:\"aaa", typeof(ParserException));
+            TestError("Name:\"aaa");
         }
         [TestMethod]
         public void Search_Parser_AstToString_EmptyQueries()
@@ -76,6 +76,15 @@ namespace SenseNet.Search.Tests
             Test($"+(+F1:{empty} +F2:aaa*) +F3:bbb", "+(+F2:aaa*) +F3:bbb");
             Test($"+(+F1:{empty} +(F2:V2 F3:V3)) +F3:bbb", "+(+(F2:V2 F3:V3)) +F3:bbb");
             Test($"+(+F1:{empty} +F2:{empty}) +F3:bbb", "+F3:bbb");
+
+            Test($"F1:[{empty} TO max]", "F1:<=max");
+            Test($"F1:[min TO {empty}]", "F1:>=min");
+            Test($"F1:[{empty} TO ]", "");
+            Test($"F1:[ TO {empty}]", "");
+            Test($"F1:[\"{empty}\" TO max]", "F1:<=max");
+            Test($"F1:[min TO \"{empty}\"]", "F1:>=min");
+
+            TestError($"F1:[{empty} TO {empty}]");
         }
 
         [TestMethod]
@@ -131,13 +140,14 @@ namespace SenseNet.Search.Tests
             Test("Aspect.Field1:aaa");
             Test("Aspect1.Field1:aaa");
 
-            TestError("42.Field1:aaa", typeof(ParserException));
-            TestError("Name:a* |? Id:<1000", typeof(ParserException));
-            TestError("Name:a* &? Id:<1000", typeof(ParserException));
-            TestError("\"Name\":aaa", typeof(ParserException));
-            TestError("'Name':aaa", typeof(ParserException));
-            TestError("Name:\"aaa\\", typeof(ParserException));
-            TestError("Name:\"aaa\\\"", typeof(ParserException));
+            TestError("42.Field1:aaa");
+            TestError("Name:a* |? Id:<1000");
+            TestError("Name:a* &? Id:<1000");
+            TestError("\"Name\":aaa");
+            TestError("'Name':aaa");
+            TestError("Name:\"aaa\\");
+            TestError("Name:\"aaa\\\"");
+            TestError("Name:<>:");
         }
         [TestMethod]
         public void Search_Parser_AstToString_CqlExtension_Comments()
@@ -189,50 +199,50 @@ namespace SenseNet.Search.Tests
             q = Test("F1:V1 .SORT:F1 .SORT:F2", "F1:V1"); Assert.AreEqual("F1 ASC, F2 ASC", SortToString(q.Sort));
             q = Test("F1:V1 .SORT:F1 .REVERSESORT:F3 .SORT:F2", "F1:V1"); Assert.AreEqual("F1 ASC, F3 DESC, F2 ASC", SortToString(q.Sort));
 
-            TestError("F1:V1 .UNKNOWNKEYWORD", typeof(ParserException));
-            TestError("F1:V1 .TOP", typeof(ParserException));
-            TestError("F1:V1 .TOP:", typeof(ParserException));
-            TestError("F1:V1 .TOP:aaa", typeof(ParserException));
-            TestError("F1:V1 .SKIP", typeof(ParserException));
-            TestError("F1:V1 .SKIP:", typeof(ParserException));
-            TestError("F1:V1 .SKIP:aaa", typeof(ParserException));
-            TestError("F1:V1 .COUNTONLY:", typeof(ParserException));
-            TestError("F1:V1 .COUNTONLY:aaa", typeof(ParserException));
-            TestError("F1:V1 .COUNTONLY:42", typeof(ParserException));
-            TestError("F1:V1 .COUNTONLY:ON", typeof(ParserException));
-            TestError("F1:V1 .AUTOFILTERS", typeof(ParserException));
-            TestError("F1:V1 .AUTOFILTERS:", typeof(ParserException));
-            TestError("F1:V1 .AUTOFILTERS:42", typeof(ParserException));
-            TestError("F1:V1 .LIFESPAN", typeof(ParserException));
-            TestError("F1:V1 .LIFESPAN:", typeof(ParserException));
-            TestError("F1:V1 .LIFESPAN:42", typeof(ParserException));
-            TestError("F1:V1 .QUICK:", typeof(ParserException));
-            TestError("F1:V1 .QUICK:aaa", typeof(ParserException));
-            TestError("F1:V1 .QUICK:42", typeof(ParserException));
-            TestError("F1:V1 .QUICK:ON", typeof(ParserException));
-            TestError("F1:V1 .SORT", typeof(ParserException));
-            TestError("F1:V1 .SORT:", typeof(ParserException));
-            TestError("F1:V1 .SORT:42", typeof(ParserException));
-            TestError("F1:V1 .SELECT", typeof(ParserException));
-            TestError("F1:V1 .SELECT:", typeof(ParserException));
-            TestError("F1:V1 .SELECT:123", typeof(ParserException));
+            TestError("F1:V1 .UNKNOWNKEYWORD");
+            TestError("F1:V1 .TOP");
+            TestError("F1:V1 .TOP:");
+            TestError("F1:V1 .TOP:aaa");
+            TestError("F1:V1 .SKIP");
+            TestError("F1:V1 .SKIP:");
+            TestError("F1:V1 .SKIP:aaa");
+            TestError("F1:V1 .COUNTONLY:");
+            TestError("F1:V1 .COUNTONLY:aaa");
+            TestError("F1:V1 .COUNTONLY:42");
+            TestError("F1:V1 .COUNTONLY:ON");
+            TestError("F1:V1 .AUTOFILTERS");
+            TestError("F1:V1 .AUTOFILTERS:");
+            TestError("F1:V1 .AUTOFILTERS:42");
+            TestError("F1:V1 .LIFESPAN");
+            TestError("F1:V1 .LIFESPAN:");
+            TestError("F1:V1 .LIFESPAN:42");
+            TestError("F1:V1 .QUICK:");
+            TestError("F1:V1 .QUICK:aaa");
+            TestError("F1:V1 .QUICK:42");
+            TestError("F1:V1 .QUICK:ON");
+            TestError("F1:V1 .SORT");
+            TestError("F1:V1 .SORT:");
+            TestError("F1:V1 .SORT:42");
+            TestError("F1:V1 .SELECT");
+            TestError("F1:V1 .SELECT:");
+            TestError("F1:V1 .SELECT:123");
         }
         [TestMethod]
         public void Search_Parser_AstToString_CqlErrors()
         {
-            TestError("", typeof(ParserException));
-            TestError("()", typeof(ParserException));
-            TestError("+(+(Id:1 Id:2) +Name:<b", typeof(ParserException));
-            TestError("Id:(1 2 3", typeof(ParserException));
-            TestError("Password:asdf", typeof(InvalidOperationException));
-            TestError("PasswordHash:asdf", typeof(InvalidOperationException));
-            TestError("Id::1", typeof(ParserException));
-            TestError("Id:[10 to 15]", typeof(ParserException));
-            TestError("Id:[10 TO 15", typeof(ParserException));
-            TestError("Id:[ TO ]", typeof(ParserException));
-            TestError("_Text:\"aaa bbb\"~", typeof(ParserException));
-            TestError("Name:aaa~1.5", typeof(ParserException));
-            TestError("Name:aaa^x", typeof(ParserException));
+            TestError("");
+            TestError("()");
+            TestError("+(+(Id:1 Id:2) +Name:<b");
+            TestError("Id:(1 2 3");
+            TestError("Password:asdf");
+            TestError("PasswordHash:asdf");
+            TestError("Id::1");
+            TestError("Id:[10 to 15]");
+            TestError("Id:[10 TO 15");
+            TestError("Id:[ TO ]");
+            TestError("_Text:\"aaa bbb\"~");
+            TestError("Name:aaa~1.5");
+            TestError("Name:aaa^x");
             //UNDONE: Nullref exception in this test: Test("Name:()");
         }
 
@@ -250,7 +260,7 @@ namespace SenseNet.Search.Tests
             Assert.AreEqual(expected ?? queryText, actualResult);
             return snQuery;
         }
-        private void TestError(string queryText, Type expectedExceptionType)
+        private void TestError(string queryText)
         {
             var queryContext = new TestQueryContext(QuerySettings.Default, 0, null);
             var parser = new CqlParser();
@@ -265,8 +275,6 @@ namespace SenseNet.Search.Tests
             }
             if (thrownException == null)
                 Assert.Fail("Any exception wasn't thrown");
-            if (thrownException.GetType().Name != expectedExceptionType.Name)
-                Assert.Fail($"{thrownException.GetType().Name} was thrown but {expectedExceptionType.Name} was expected.");
         }
 
         private string SortToString(SortInfo[] sortInfo)
