@@ -516,10 +516,6 @@ namespace SenseNet.Search.Parser
             CurrentLine = LastLine;
             CurrentColumn = LastColumn;
         }
-        internal LineInfo CreateCurrentLineInfo()
-        {
-            return new LineInfo(CurrentLine, CurrentColumn);
-        }
         internal LineInfo CreateLastLineInfo()
         {
             return new LineInfo(LastLine, LastColumn);

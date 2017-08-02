@@ -647,7 +647,7 @@ namespace SenseNet.Search.Parser
 
                 _lexer.NextToken();
                 if (_lexer.CurrentToken != CqlLexer.Token.Colon)
-                    throw ParserError("#### ParseFieldHead ####");
+                    throw ParserError("Missing field name.");
 
 
                 _lexer.NextToken();

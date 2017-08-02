@@ -58,6 +58,19 @@ namespace SenseNet.Search.Tests
             Test("title:(+return +\"pink panther\")", "+title:return +title:'pink panther'");
         }
         [TestMethod]
+        public void Search_Parser_AstToString_AdditionalTests()
+        {
+            Test("42value", "_Text:42value");
+            Test("42v?lue", "_Text:42v?lue");
+            Test("42valu*", "_Text:42valu*");
+            Test("Name:42aAa", "Name:42aAa");
+            Test("Name:42a?a");
+            Test("Name:42aa*");
+
+            TestError("Name:\"aaa", typeof(ParserException));
+        }
+
+        [TestMethod]
         public void Search_Parser_AstToString_PredicateTypes()
         {
             SnQuery q;
@@ -86,16 +99,47 @@ namespace SenseNet.Search.Tests
         [TestMethod]
         public void Search_Parser_AstToString_CqlExtension_SpecialChars()
         {
+            Test("F1:(V1 OR V2)", "F1:V1 F1:V2");
+            Test("F1:(V1 AND V2)", "+F1:V1 +F1:V2");
+            Test("F1:(+V1 +V2 -V3)", "+F1:V1 +F1:V2 -F1:V3");
+            Test("F1:(+V1 -(V2 V3))", "+F1:V1 -(F1:V2 F1:V3)");
+            Test("F1:(+V1 !V2)", "+F1:V1 -F1:V2");
+
             Test("F1:V1 && F2:V2", "+F1:V1 +F2:V2");
             Test("F1:V1 || F2:V2", "F1:V1 F2:V2");
             Test("F1:V1 && F2:<>V2", "+F1:V1 -F2:V2");
             Test("F1:V1 && !F2:V2", "+F1:V1 -F2:V2");
+            Test("+Id:<1000\n+Name:a*", "+Id:<1000 +Name:a*");
+            Test("Name:\\*", "Name:*");
+            Test("Name:a<a");
+            Test("Name:a>a");
+            Test("Name<aaa", "_Text:Name<aaa");
+            Test("Name>aaa", "_Text:Name>aaa");
+            Test("Name:/root");
+            Test("Number:42.15.78", "Number:42.15. _Text:78");
+
+            Test("Aspect.Field1:aaa");
+            Test("Aspect1.Field1:aaa");
+
+            TestError("42.Field1:aaa", typeof(ParserException));
+            TestError("Name:a* |? Id:<1000", typeof(ParserException));
+            TestError("Name:a* &? Id:<1000", typeof(ParserException));
+            TestError("\"Name\":aaa", typeof(ParserException));
+            TestError("'Name':aaa", typeof(ParserException));
+            TestError("Name:\"aaa\\", typeof(ParserException));
+            TestError("Name:\"aaa\\\"", typeof(ParserException));
         }
         [TestMethod]
         public void Search_Parser_AstToString_CqlExtension_Comments()
         {
             Test("F1:V1 //asdf", "F1:V1");
             Test("+F1:V1 /*asdf*/ +F2:V2 /*qwer*/", "+F1:V1 +F2:V2");
+
+            Test("Name:/* \n */aaa", "Name:aaa");
+            Test("+Name:aaa //comment\n+Id:<42", "+Name:aaa +Id:<42");
+            Test("+Name:aaa//comment\n+Id:<42", "+Name:aaa//comment +Id:<42");
+            Test("+Name:\"aaa\"//comment\n+Id:<42", "+Name:aaa +Id:<42");
+            Test("Name:aaa /*unterminatedblockcomment", "Name:aaa");
         }
         [TestMethod]
         public void Search_Parser_AstToString_CqlExtension_Controls()
@@ -179,6 +223,7 @@ namespace SenseNet.Search.Tests
             TestError("_Text:\"aaa bbb\"~", typeof(ParserException));
             TestError("Name:aaa~1.5", typeof(ParserException));
             TestError("Name:aaa^x", typeof(ParserException));
+            //UNDONE: Nullref exception in this test: Test("Name:()");
         }
 
         private SnQuery Test(string queryText, string expected = null)
@@ -199,7 +244,7 @@ namespace SenseNet.Search.Tests
         {
             var queryContext = new TestQueryContext(QuerySettings.Default, 0, null);
             var parser = new CqlParser();
-            Exception  thrownException = null;
+            Exception thrownException = null;
             try
             {
                 parser.Parse(queryText, queryContext);
@@ -210,7 +255,7 @@ namespace SenseNet.Search.Tests
             }
             if (thrownException == null)
                 Assert.Fail("Any exception wasn't thrown");
-            if (thrownException.GetType() != expectedExceptionType)
+            if (thrownException.GetType().Name != expectedExceptionType.Name)
                 Assert.Fail($"{thrownException.GetType().Name} was thrown but {expectedExceptionType.Name} was expected.");
         }
 
