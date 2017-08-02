@@ -9,5 +9,11 @@ namespace SenseNet.Search.Parser.Predicates
     public class BooleanClauseList : SnQueryPredicate
     {
         public List<BooleanClause> Clauses { get; } = new List<BooleanClause>();
+
+        public BooleanClauseList() { }
+        public BooleanClauseList(IEnumerable<BooleanClause> clauses)
+        {
+            Clauses.AddRange(clauses);
+        }
     }
 }

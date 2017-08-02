@@ -11,11 +11,11 @@ namespace SenseNet.Search.Parser
             if (predicate == null)
                 return null;
 
-            var text           = predicate as TextPredicate;          if (text != null)            return VisitTextPredicate              (text);
-            var textRange      = predicate as RangePredicate;              if (textRange != null)       return VisitRangePredicate         (textRange);
-            var boolClauseList = predicate as BooleanClauseList;      if (boolClauseList != null)  return VisitBooleanClauseList (boolClauseList);
+            var text           = predicate as TextPredicate;     if (text != null)           return VisitTextPredicate     (text);
+            var textRange      = predicate as RangePredicate;    if (textRange != null)      return VisitRangePredicate    (textRange);
+            var boolClauseList = predicate as BooleanClauseList; if (boolClauseList != null) return VisitBooleanClauseList (boolClauseList);
 
-            throw new NotSupportedException("Unknown query type: " + predicate.GetType().FullName);
+            throw new NotSupportedException("Unknown predicate type: " + predicate.GetType().FullName);
         }
 
         public virtual SnQueryPredicate VisitTextPredicate(TextPredicate textPredicate)
@@ -66,9 +66,9 @@ namespace SenseNet.Search.Parser
         public virtual BooleanClause VisitBooleanClause(BooleanClause clause)
         {
             var occur = clause.Occur;
-            var query = clause.Predicate;
-            var visited = Visit(query);
-            if (query == visited)
+            var predicate = clause.Predicate;
+            var visited = Visit(predicate);
+            if (predicate == visited)
                 return clause;
             return new BooleanClause(visited, occur);
         }
