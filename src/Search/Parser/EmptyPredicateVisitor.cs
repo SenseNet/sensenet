@@ -6,28 +6,28 @@ namespace SenseNet.Search.Parser
 {
     internal class EmptyPredicateVisitor : SnQueryVisitor
     {
-        public override SnQueryPredicate VisitBooleanClauseList(BooleanClauseList boolClauseList)
+        public override SnQueryPredicate VisitLogicalPredicate(LogicalPredicate logic)
         {
-            var clauses = boolClauseList.Clauses;
-            var visitedClauses = VisitBooleanClauses(clauses);
+            var clauses = logic.Clauses;
+            var visitedClauses = VisitLogicalClauses(clauses);
             if (visitedClauses == clauses)
-                return boolClauseList;
+                return logic;
             if (visitedClauses == null)
                 return null;
-            var newList = new BooleanClauseList();
+            var newList = new LogicalPredicate();
             newList.Clauses.AddRange(visitedClauses);
             return newList;
         }
-        public override List<BooleanClause> VisitBooleanClauses(List<BooleanClause> clauses)
+        public override List<LogicalClause> VisitLogicalClauses(List<LogicalClause> clauses)
         {
-            var visitedClauses = clauses.Select(VisitBooleanClause).Where(c => c != null).ToList();
+            var visitedClauses = clauses.Select(VisitLogicalClause).Where(c => c != null).ToList();
             if (visitedClauses.Count == 0)
                 return null;
             if (clauses.Count == visitedClauses.Count && clauses.Intersect(visitedClauses).Count() == clauses.Count)
                 return clauses;
             return visitedClauses;
         }
-        public override BooleanClause VisitBooleanClause(BooleanClause clause)
+        public override LogicalClause VisitLogicalClause(LogicalClause clause)
         {
             var predicate = clause.Predicate;
             var visited = base.Visit(predicate);
@@ -35,11 +35,11 @@ namespace SenseNet.Search.Parser
                 return null;
             if (predicate == visited)
                 return clause;
-            return new BooleanClause(visited, clause.Occur);
+            return new LogicalClause(visited, clause.Occur);
         }
-        public override SnQueryPredicate VisitTextPredicate(TextPredicate textPredicate)
+        public override SnQueryPredicate VisitTextPredicate(TextPredicate text)
         {
-            return textPredicate.Value.Equals(SnQuery.EmptyText) ? null : base.VisitTextPredicate(textPredicate);
+            return text.Value.Equals(SnQuery.EmptyText) ? null : base.VisitTextPredicate(text);
         }
 
     }

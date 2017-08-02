@@ -27,18 +27,18 @@ namespace SenseNet.Search.Tests
         [TestMethod]
         public void Search_Visitor_Rewrite()
         {
-            var tree = new BooleanClauseList(
+            var tree = new LogicalPredicate(
                 new []
                 {
-                    new BooleanClause(new BooleanClauseList(
+                    new LogicalClause(new LogicalPredicate(
                         new [] {
-                            new BooleanClause(new TextPredicate("F1", "V1"), Occurence.Should),
-                            new BooleanClause(new TextPredicate("F2", "V2"), Occurence.Should)
+                            new LogicalClause(new TextPredicate("F1", "V1"), Occurence.Should),
+                            new LogicalClause(new TextPredicate("F2", "V2"), Occurence.Should)
                         }), Occurence.Must),
-                    new BooleanClause(new BooleanClauseList(
+                    new LogicalClause(new LogicalPredicate(
                         new [] {
-                            new BooleanClause(new TextPredicate("F3", "V3"), Occurence.Should),
-                            new BooleanClause(new RangePredicate("F4", null, "10", true, true), Occurence.Should), 
+                            new LogicalClause(new TextPredicate("F3", "V3"), Occurence.Should),
+                            new LogicalClause(new RangePredicate("F4", null, "10", true, true), Occurence.Should), 
                         }), Occurence.Must),
                 });
 

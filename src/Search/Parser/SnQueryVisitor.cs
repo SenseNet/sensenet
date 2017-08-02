@@ -11,66 +11,66 @@ namespace SenseNet.Search.Parser
             if (predicate == null)
                 return null;
 
-            var text           = predicate as TextPredicate;     if (text != null)           return VisitTextPredicate     (text);
-            var textRange      = predicate as RangePredicate;    if (textRange != null)      return VisitRangePredicate    (textRange);
-            var boolClauseList = predicate as BooleanClauseList; if (boolClauseList != null) return VisitBooleanClauseList (boolClauseList);
+            var text  = predicate as TextPredicate;    if (text != null)  return VisitTextPredicate    (text);
+            var range = predicate as RangePredicate;   if (range != null) return VisitRangePredicate   (range);
+            var logic = predicate as LogicalPredicate; if (logic != null) return VisitLogicalPredicate (logic);
 
             throw new NotSupportedException("Unknown predicate type: " + predicate.GetType().FullName);
         }
 
-        public virtual SnQueryPredicate VisitTextPredicate(TextPredicate textPredicate)
+        public virtual SnQueryPredicate VisitTextPredicate(TextPredicate text)
         {
-            return textPredicate;
+            return text;
         }
 
-        public virtual SnQueryPredicate VisitRangePredicate(RangePredicate rangePredicate)
+        public virtual SnQueryPredicate VisitRangePredicate(RangePredicate range)
         {
-            return rangePredicate;
+            return range;
         }
 
-        public virtual SnQueryPredicate VisitBooleanClauseList(BooleanClauseList boolClauseList)
+        public virtual SnQueryPredicate VisitLogicalPredicate(LogicalPredicate logic)
         {
-            var clauses = boolClauseList.Clauses;
-            var visitedClauses = VisitBooleanClauses(clauses);
-            BooleanClauseList newList = null;
+            var clauses = logic.Clauses;
+            var visitedClauses = VisitLogicalClauses(clauses);
+            LogicalPredicate rewritten = null;
             if (visitedClauses != clauses)
             {
-                newList = new BooleanClauseList();
-                newList.Clauses.AddRange(visitedClauses);
+                rewritten = new LogicalPredicate();
+                rewritten.Clauses.AddRange(visitedClauses);
             }
-            return newList ?? boolClauseList;
+            return rewritten ?? logic;
         }
-        public virtual List<BooleanClause> VisitBooleanClauses(List<BooleanClause> clauses)
+        public virtual List<LogicalClause> VisitLogicalClauses(List<LogicalClause> clauses)
         {
-            List<BooleanClause> newList = null;
+            List<LogicalClause> rewritten = null;
             var index = 0;
             var count = clauses.Count;
             while (index < count)
             {
-                var visitedClause = VisitBooleanClause(clauses[index]);
-                if (newList != null)
+                var visitedClause = VisitLogicalClause(clauses[index]);
+                if (rewritten != null)
                 {
-                    newList.Add(visitedClause);
+                    rewritten.Add(visitedClause);
                 }
                 else if (visitedClause != clauses[index])
                 {
-                    newList = new List<BooleanClause>();
+                    rewritten = new List<LogicalClause>();
                     for (int i = 0; i < index; i++)
-                        newList.Add(clauses[i]);
-                    newList.Add(visitedClause);
+                        rewritten.Add(clauses[i]);
+                    rewritten.Add(visitedClause);
                 }
                 index++;
             }
-            return newList ?? clauses;
+            return rewritten ?? clauses;
         }
-        public virtual BooleanClause VisitBooleanClause(BooleanClause clause)
+        public virtual LogicalClause VisitLogicalClause(LogicalClause clause)
         {
             var occur = clause.Occur;
             var predicate = clause.Predicate;
             var visited = Visit(predicate);
             if (predicate == visited)
                 return clause;
-            return new BooleanClause(visited, occur);
+            return new LogicalClause(visited, occur);
         }
     }
 

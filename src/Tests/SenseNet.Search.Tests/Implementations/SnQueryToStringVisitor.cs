@@ -24,14 +24,14 @@ namespace SenseNet.Search.Tests.Implementations
             _escaperRegex = new Regex(pattern.ToString());
         }
 
-        public override SnQueryPredicate VisitTextPredicate(TextPredicate textPredicate)
+        public override SnQueryPredicate VisitTextPredicate(TextPredicate text)
         {
-            var value = Escape(textPredicate.Value);
-            _output.Append($"{textPredicate.FieldName}:{value}");
-            BoostTostring(textPredicate.Boost);
-            FuzzyToString(textPredicate.FuzzyValue);
+            var value = Escape(text.Value);
+            _output.Append($"{text.FieldName}:{value}");
+            BoostTostring(text.Boost);
+            FuzzyToString(text.FuzzyValue);
 
-            return base.VisitTextPredicate(textPredicate);
+            return base.VisitTextPredicate(text);
         }
         private object Escape(object value)
         {
@@ -53,16 +53,16 @@ namespace SenseNet.Search.Tests.Implementations
                 _output.Append("~").Append(fuzzy.Value.ToString(CultureInfo.InvariantCulture));
         }
 
-        public override SnQueryPredicate VisitRangePredicate(RangePredicate rangePredicate)
+        public override SnQueryPredicate VisitRangePredicate(RangePredicate range)
         {
-            var min = rangePredicate.Min;
-            var max = rangePredicate.Max;
-            var minExclusive = rangePredicate.MinExclusive;
-            var maxExclusive = rangePredicate.MaxExclusive;
+            var min = range.Min;
+            var max = range.Max;
+            var minExclusive = range.MinExclusive;
+            var maxExclusive = range.MaxExclusive;
 
             string oneTerm = null;
 
-            _output.Append(rangePredicate.FieldName);
+            _output.Append(range.FieldName);
             _output.Append(":");
 
             string op = null;
@@ -89,38 +89,38 @@ namespace SenseNet.Search.Tests.Implementations
             {
                 _output.Append(op).Append(oneTerm);
             }
-            BoostTostring(rangePredicate.Boost);
+            BoostTostring(range.Boost);
 
-            return base.VisitRangePredicate(rangePredicate);
+            return base.VisitRangePredicate(range);
         }
 
         private int _booleanCount;
-        public override SnQueryPredicate VisitBooleanClauseList(BooleanClauseList boolClauseList)
+        public override SnQueryPredicate VisitLogicalPredicate(LogicalPredicate logic)
         {
             if (_booleanCount++ > 0)
                 _output.Append("(");
-            var list = base.VisitBooleanClauseList(boolClauseList);
+            var list = base.VisitLogicalPredicate(logic);
             if (--_booleanCount > 0)
                 _output.Append(")");
             return list;
         }
 
-        public override List<BooleanClause> VisitBooleanClauses(List<BooleanClause> clauses)
+        public override List<LogicalClause> VisitLogicalClauses(List<LogicalClause> clauses)
         {
             // The list item cannot be rewritten because this class is sealed.
             if (clauses.Count > 0)
             {
-                VisitBooleanClause(clauses[0]);
+                VisitLogicalClause(clauses[0]);
                 for (var i = 1; i < clauses.Count; i++)
                 {
                     _output.Append(" ");
-                    VisitBooleanClause(clauses[i]);
+                    VisitLogicalClause(clauses[i]);
                 }
             }
             return clauses;
         }               
 
-        public override BooleanClause VisitBooleanClause(BooleanClause clause)
+        public override LogicalClause VisitLogicalClause(LogicalClause clause)
         {
             switch (clause.Occur)
             {
@@ -128,7 +128,7 @@ namespace SenseNet.Search.Tests.Implementations
                 case Occurence.MustNot:_output.Append('-');break;
             }
 
-            return base.VisitBooleanClause(clause);
+            return base.VisitLogicalClause(clause);
         }
     }
 }

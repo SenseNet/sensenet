@@ -9,7 +9,7 @@ using Lucene.Net.Search;
 using Lucene.Net.Util;
 using SenseNet.Search.Parser;
 using SenseNet.Search.Parser.Predicates;
-using BooleanClause = SenseNet.Search.Parser.Predicates.BooleanClause;
+using LogicalClause = SenseNet.Search.Parser.Predicates.LogicalClause;
 
 namespace SenseNet.Search.Lucene29
 {
@@ -37,13 +37,13 @@ namespace SenseNet.Search.Lucene29
             _context = context;
         }
 
-        public override SnQueryPredicate VisitTextPredicate(TextPredicate textPredicate)
+        public override SnQueryPredicate VisitTextPredicate(TextPredicate text)
         {
-            var query = CreateStringValueQuery(textPredicate);
-            if(textPredicate.Boost.HasValue)
-                query.SetBoost(Convert.ToSingle(textPredicate.Boost.Value));
+            var query = CreateStringValueQuery(text);
+            if(text.Boost.HasValue)
+                query.SetBoost(Convert.ToSingle(text.Boost.Value));
             _queryTree.Push(query);
-            return textPredicate;
+            return text;
         }
         private Query CreateStringValueQuery(TextPredicate predicate)
         {
@@ -133,14 +133,14 @@ namespace SenseNet.Search.Lucene29
             return words.ToArray();
         }
 
-        public override SnQueryPredicate VisitRangePredicate(RangePredicate rangePredicate)
+        public override SnQueryPredicate VisitRangePredicate(RangePredicate range)
         {
-            var fieldName = rangePredicate.FieldName;
-            var minIncl = !rangePredicate.MinExclusive;
-            var maxIncl = !rangePredicate.MaxExclusive;
+            var fieldName = range.FieldName;
+            var minIncl = !range.MinExclusive;
+            var maxIncl = !range.MaxExclusive;
 
             QueryCompilerValue min, max;
-            var fieldType = ConvertRangeValue(rangePredicate.FieldName, rangePredicate.Min, rangePredicate.Max, out min, out max);
+            var fieldType = ConvertRangeValue(range.FieldName, range.Min, range.Max, out min, out max);
 
             Query query;
             switch (fieldType)
@@ -165,7 +165,7 @@ namespace SenseNet.Search.Lucene29
             }
             _queryTree.Push(query);
 
-            return rangePredicate;
+            return range;
         }
         private IndexableDataType ConvertRangeValue(string fieldName, string min, string max, out QueryCompilerValue convertedMin, out QueryCompilerValue convertedMax)
         {
@@ -203,13 +203,13 @@ namespace SenseNet.Search.Lucene29
             return (convertedMin ?? convertedMax).Datatype;
         }
 
-        public override SnQueryPredicate VisitBooleanClauseList(BooleanClauseList boolClauseList)
+        public override SnQueryPredicate VisitLogicalPredicate(LogicalPredicate logic)
         {
             _queryTree.Push(new BooleanQuery());
-            var visited = base.VisitBooleanClauseList(boolClauseList);
+            var visited = base.VisitLogicalPredicate(logic);
             return visited;
         }
-        public override BooleanClause VisitBooleanClause(BooleanClause clause)
+        public override LogicalClause VisitLogicalClause(LogicalClause clause)
         {
             Visit(clause.Predicate);
             var compiledClause = new Lucene.Net.Search.BooleanClause(_queryTree.Pop(), CompileOccur(clause.Occur));
