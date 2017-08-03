@@ -272,24 +272,12 @@ Debug.WriteLine(String.Format("@> {0} -------- IndexDirectory reset", AppDomain.
                     if (instance != null)
                         return instance;
                     instance = new StorageContext();
-                    instance.Initialize();
                     return instance;
                 }
             }
         }
 
         private StorageContext() { }
-
-        // ========================================================================== Thread safe initialization block
-
-        private void Initialize()
-        {
-            _searchEngine = CreateSearchEnginePrivate();
-        }
-        private ISearchEngine CreateSearchEnginePrivate()
-        {
-            return TypeHandler.ResolveProvider<ISearchEngine>() ?? InternalSearchEngine.Instance;
-        }
 
         // ========================================================================== Private interface
 
@@ -338,12 +326,20 @@ Debug.WriteLine(String.Format("@> {0} -------- IndexDirectory reset", AppDomain.
             }
         }
 
+        private readonly object _searchEngineLock = new object();
         private ISearchEngine _searchEngine;
+
         private ISearchEngine GetSearchEnginePrivate()
         {
-            if (IsOuterEngineEnabled)
-                return _searchEngine;
-            return InternalSearchEngine.Instance;
+            if (!IsOuterEngineEnabled)
+                return InternalSearchEngine.Instance;
+
+            if (_searchEngine == null)
+                lock (_searchEngineLock)
+                    if (_searchEngine == null)
+                        _searchEngine = TypeHandler.ResolveProvider<ISearchEngine>() ?? InternalSearchEngine.Instance;
+
+            return _searchEngine;
         }
     }
 }

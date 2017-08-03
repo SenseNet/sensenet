@@ -57,6 +57,7 @@
   <ItemGroup>
     <Compile Include="Implementations\InMemoryDataProvider.cs" />
     <Compile Include="Implementations\TestNode.cs" />
+    <Compile Include="Implementations\TestSearchEngine.cs" />
     <Compile Include="Implementations\TestSearchEngineSupport.cs" />
     <Compile Include="IndexingTests.cs" />
     <Compile Include="SnSarchToLucene29CompilerTests.cs" />
