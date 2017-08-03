@@ -36,6 +36,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Services.Tests", "Tests\SenseNet.Services.Tests\SenseNet.Services.Tests.csproj", "{CF157DCB-B973-42B4-948A-F6643EB6216D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.TokenAuthentication.Tests", "Tests\SenseNet.TokenAuthentication.Tests\SenseNet.TokenAuthentication.Tests.csproj", "{AFCB7986-73C5-4DEA-897B-46EC1D124965}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Packaging.Tests", "Tests\SenseNet.Packaging.Tests\SenseNet.Packaging.Tests.csproj", "{224FE019-A978-4390-9F77-EBEB7A384743}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Packaging.IntegrationTests", "Tests\SenseNet.Packaging.IntegrationTests\SenseNet.Packaging.IntegrationTests.csproj", "{CF049086-0872-4F55-AF6D-6177245CC59E}"
