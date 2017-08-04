@@ -18,15 +18,6 @@ namespace SenseNet.ContentRepository.Storage.Search
         void DeleteForest(IEnumerable<int> idSet, bool moveOrRename);
         void DeleteForest(IEnumerable<string> pathSet, bool moveOrRename);
 
-        [Obsolete("This API is prohibited due to the poor performance. Use RebuildIndex method instead.", true)]
-        void RefreshIndexDocumentInfo(IEnumerable<Node> nodes);
-        [Obsolete("This API is prohibited due to the poor performance. Use RebuildIndex method instead.", true)]
-        void RefreshIndexDocumentInfo(Node node, bool recursive);
-        [Obsolete("This API is prohibited due to the poor performance. Use RebuildIndex method instead.", true)]
-        void RefreshIndex(IEnumerable<Node> nodes);
-        [Obsolete("This API is prohibited due to the poor performance. Use RebuildIndex method instead.", true)]
-        void RefreshIndex(Node node, bool recursive);
-
         void RebuildIndex(Node node, bool recursive = false, IndexRebuildLevel rebuildLevel = IndexRebuildLevel.IndexOnly);
 
         event EventHandler<NodeIndexedEvenArgs> NodeIndexed;
@@ -56,17 +47,6 @@ namespace SenseNet.ContentRepository.Storage.Search
 #pragma warning restore 0067
         public void DeleteForest(IEnumerable<int> idSet, bool moveOrRename) { }
         public void DeleteForest(IEnumerable<string> pathSet, bool moveOrRename) { }
-
-        #region Obsolete API
-        [Obsolete("This API is prohibited due to the poor performance. Use RebuildIndex method instead.", true)]
-        public void RefreshIndexDocumentInfo(IEnumerable<Node> nodes) { }
-        [Obsolete("This API is prohibited due to the poor performance. Use RebuildIndex method instead.", true)]
-        public void RefreshIndexDocumentInfo(Node node, bool recursive) { }
-        [Obsolete("This API is prohibited due to the poor performance. Use RebuildIndex method instead.", true)]
-        public void RefreshIndex(IEnumerable<Node> nodes) { }
-        [Obsolete("This API is prohibited due to the poor performance. Use RebuildIndex method instead.", true)]
-        public void RefreshIndex(Node node, bool recursive) { }
-        #endregion
 
         public void RebuildIndex(Node node, bool recursive = false, IndexRebuildLevel rebuildLevel = IndexRebuildLevel.IndexOnly)
         {

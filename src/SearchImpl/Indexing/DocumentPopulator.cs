@@ -218,25 +218,6 @@ namespace SenseNet.Search.Indexing
                 DeleteTree(head.Path, head.Id, moveOrRename);
         }
 
-        #region Obsolete API
-        [Obsolete("This API is prohibited due to the poor performance. Use RebuildIndex method instead.", true)]
-        public void RefreshIndexDocumentInfo(IEnumerable<Node> nodes)
-        {
-        }
-        [Obsolete("This API is prohibited due to the poor performance. Use RebuildIndex method instead.", true)]
-        public void RefreshIndexDocumentInfo(Node node, bool recursive)
-        {
-        }
-        [Obsolete("This API is prohibited due to the poor performance. Use RebuildIndex method instead.", true)]
-        public void RefreshIndex(IEnumerable<Node> nodes)
-        {
-        }
-        [Obsolete("This API is prohibited due to the poor performance. Use RebuildIndex method instead.", true)]
-        public void RefreshIndex(Node node, bool recursive)
-        {
-        }
-        #endregion
-
         public void RebuildIndex(Node node, bool recursive = false, IndexRebuildLevel rebuildLevel = IndexRebuildLevel.IndexOnly)
         {
             using (var op = SnTrace.Index.StartOperation("DocumentPopulator.RefreshIndex. Version: {0}, VersionId: {1}, recursive: {2}, level: {3}", node.Version, node.VersionId, recursive, rebuildLevel))
