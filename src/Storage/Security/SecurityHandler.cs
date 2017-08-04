@@ -716,6 +716,9 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <returns></returns>
         public static PermittedLevel GetPermittedLevel(NodeHead nodeHead)
         {
+            // shortcut for system user
+            if (AccessProvider.Current.GetCurrentUser().Id == Identifiers.SystemUserId)
+                return PermittedLevel.All;
             return GetPermittedLevel(nodeHead.Id, GetIdentitiesByMembership(nodeHead));
         }
         /// <summary>
@@ -724,6 +727,9 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="node">The content.</param>
         public static PermittedLevel GetPermittedLevel(Node node)
         {
+            // shortcut for system user
+            if (AccessProvider.Current.GetCurrentUser().Id == Identifiers.SystemUserId)
+                return PermittedLevel.All;
             return GetPermittedLevel(node.Id, GetIdentitiesByMembership(node));
         }
         /// <summary>
@@ -732,6 +738,9 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="nodeId">The id of the content.</param>
         public static PermittedLevel GetPermittedLevel(int nodeId)
         {
+            // shortcut for system user
+            if (AccessProvider.Current.GetCurrentUser().Id == Identifiers.SystemUserId)
+                return PermittedLevel.All;
             return GetPermittedLevel(nodeId, GetIdentitiesByMembership(nodeId));
         }
         /// <summary>
@@ -741,6 +750,9 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="user">The user.</param>
         public static PermittedLevel GetPermittedLevel(int nodeId, IUser user)
         {
+            // shortcut for system user
+            if (user.Id == Identifiers.SystemUserId)
+                return PermittedLevel.All;
             return GetPermittedLevel(nodeId, GetIdentitiesByMembership(user, nodeId));
         }
         internal static PermittedLevel GetPermittedLevel(int nodeId, IEnumerable<int> identities)
