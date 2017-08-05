@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Search;
+using SenseNet.Search.Indexing;
 
 namespace SenseNet.SearchImpl.Tests.Implementations
 {
@@ -26,7 +27,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         public IIndexPopulator GetPopulator()
         {
-            throw new NotImplementedException();
+            return new DocumentPopulator();
         }
         public IDictionary<string, Type> GetAnalyzers()
         {
@@ -37,7 +38,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        public object DeserializeIndexDocumentInfo(byte[] IndexDocumentInfoBytes)
+        public object DeserializeIndexDocumentInfo(byte[] indexDocumentInfoBytes)
         {
             throw new NotImplementedException();
         }

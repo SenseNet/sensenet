@@ -147,12 +147,13 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             throw new NotImplementedException();
         }
 
+        #endregion
+
         public override void RegisterIndexingActivity(IIndexingActivity activity)
         {
-            throw new NotImplementedException();
+            //UNDONE:!!!!! RegisterIndexingActivity or not
+            // do nothing
         }
-
-        #endregion
 
         public override DateTime RoundDateTime(DateTime d)
         {
@@ -208,7 +209,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         protected internal override INodeWriter CreateNodeWriter()
         {
-            throw new NotImplementedException();
+            return new InMemoryNodeWriter();
         }
 
         protected override System.Data.IDbDataParameter CreateParameterInternal()
@@ -561,11 +562,17 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+        #endregion
 
         protected internal override void UpdateIndexDocument(NodeData nodeData, byte[] indexDocumentBytes)
         {
-            throw new NotImplementedException();
+            var versionRow = _versions.FirstOrDefault(r => r.VersionId == nodeData.VersionId);
+            if (versionRow == null)
+                return;
+            versionRow.IndexDocument = indexDocumentBytes;
         }
+
+        #region NOT IMPLEMENTED
 
         protected override int VersionCount(string path)
         {
@@ -581,10 +588,142 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+
         #endregion
 
         /* ====================================================================================== */
 
+        #region implementation classes
+
+        private class InMemoryNodeWriter : INodeWriter
+        {
+            public void Open()
+            {
+                // do nothing
+            }
+            public void Close()
+            {
+                // do nothing
+            }
+            public void InsertNodeAndVersionRows(NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId)
+            {
+                var newNodeId = _nodes.Max(r => r.NodeId) + 1;
+                var newVersionId = _versions.Max(r => r.NodeId) + 1;
+                lastMinorVersionId = newVersionId;
+                lastMajorVersionId = nodeData.Version.IsMajor ? newVersionId : 0;
+                var nodeTimeStamp = 0L; //TODO:! InMemoryDataProvider: timestamp not supported
+                var versionTimestamp = 0L; //TODO:! InMemoryDataProvider: timestamp not supported
+                _nodes.Add(new NodeRecord
+                {
+                    NodeId = newNodeId,
+                    NodeTypeId = nodeData.NodeTypeId,
+                    ContentListTypeId = nodeData.ContentListTypeId,
+                    ContentListId = nodeData.ContentListId,
+                    CreatingInProgress = nodeData.CreatingInProgress,
+                    IsDeleted = nodeData.IsDeleted,
+                    ParentNodeId = nodeData.ParentId,
+                    Name = nodeData.Name,
+                    DisplayName = nodeData.DisplayName,
+                    Path = nodeData.Path,
+                    Index = nodeData.Index,
+                    Locked = nodeData.Locked,
+                    LockedById = nodeData.LockedById,
+                    ETag = nodeData.ETag,
+                    LockType = nodeData.LockType,
+                    LockTimeout = nodeData.LockTimeout,
+                    LockDate = nodeData.LockDate,
+                    LockToken = nodeData.LockToken,
+                    LastLockUpdate = nodeData.LastLockUpdate,
+                    LastMinorVersionId = lastMinorVersionId,
+                    LastMajorVersionId = lastMajorVersionId,
+                    NodeCreationDate = nodeData.CreationDate,
+                    NodeCreatedById = nodeData.CreatedById,
+                    NodeModificationDate = nodeData.ModificationDate,
+                    NodeModifiedById = nodeData.ModifiedById,
+                    IsSystem = nodeData.IsSystem,
+                    OwnerId = nodeData.OwnerId,
+                    SavingState = nodeData.SavingState,
+                    NodeTimestamp = nodeTimeStamp
+                });
+                _versions.Add(new VersionRecord
+                {
+                    VersionId = newVersionId,
+                    NodeId = newNodeId,
+                    Version = nodeData.Version,
+                    CreationDate = nodeData.VersionCreationDate,
+                    CreatedById = nodeData.VersionCreatedById,
+                    ModificationDate = nodeData.VersionModificationDate,
+                    ModifiedById = nodeData.VersionModifiedById,
+                    ChangedData = nodeData.ChangedData,
+                    VersionTimestamp = versionTimestamp
+                });
+                nodeData.Id = newNodeId;
+                nodeData.VersionId = newVersionId;
+                nodeData.NodeTimestamp = nodeTimeStamp;
+                nodeData.VersionTimestamp = versionTimestamp;
+            }
+            public void UpdateSubTreePath(string oldPath, string newPath)
+            {
+                throw new NotImplementedException();
+            }
+            public void UpdateNodeRow(NodeData nodeData)
+            {
+                throw new NotImplementedException();
+            }
+            public void UpdateVersionRow(NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId)
+            {
+                throw new NotImplementedException();
+            }
+            public void CopyAndUpdateVersion(NodeData nodeData, int previousVersionId, out int lastMajorVersionId,
+                out int lastMinorVersionId)
+            {
+                throw new NotImplementedException();
+            }
+            public void CopyAndUpdateVersion(NodeData nodeData, int previousVersionId, int destinationVersionId, out int lastMajorVersionId,
+                out int lastMinorVersionId)
+            {
+                throw new NotImplementedException();
+            }
+            public void SaveStringProperty(int versionId, PropertyType propertyType, string value)
+            {
+                //TODO:! InMemoryDataProvider: dynamic property not supported
+            }
+            public void SaveDateTimeProperty(int versionId, PropertyType propertyType, DateTime value)
+            {
+                //TODO:! InMemoryDataProvider: dynamic property not supported
+            }
+            public void SaveIntProperty(int versionId, PropertyType propertyType, int value)
+            {
+                //TODO:! InMemoryDataProvider: dynamic property not supported
+            }
+            public void SaveCurrencyProperty(int versionId, PropertyType propertyType, decimal value)
+            {
+                //TODO:! InMemoryDataProvider: dynamic property not supported
+            }
+
+            public void SaveTextProperty(int versionId, PropertyType propertyType, bool isLoaded, string value)
+            {
+                //TODO:! InMemoryDataProvider: dynamic property not supported
+            }
+            public void SaveReferenceProperty(int versionId, PropertyType propertyType, IEnumerable<int> value)
+            {
+                //TODO:! InMemoryDataProvider: dynamic property not supported
+            }
+            public void InsertBinaryProperty(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
+            {
+                //TODO:! InMemoryDataProvider: dynamic property not supported
+            }
+            public void UpdateBinaryProperty(BinaryDataValue value)
+            {
+                //TODO:! InMemoryDataProvider: dynamic property not supported
+            }
+            public void DeleteBinaryProperty(int versionId, PropertyType propertyType)
+            {
+                //TODO:! InMemoryDataProvider: dynamic property not supported
+            }
+        }
+
+        #endregion
         #region Data classes
         private class NodeRecord
         {
@@ -628,6 +767,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             public int CreatedById;
             public DateTime ModificationDate;
             public int ModifiedById;
+            public byte[] IndexDocument;
             public IEnumerable<ChangedData> ChangedData;
             public long VersionTimestamp;
         }

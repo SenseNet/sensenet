@@ -50,7 +50,7 @@ namespace SenseNet.ContentRepository.Storage.Search
 
         void SetIndexingInfo(object indexingInfo);
 
-        object DeserializeIndexDocumentInfo(byte[] IndexDocumentInfoBytes);
+        object DeserializeIndexDocumentInfo(byte[] indexDocumentInfoBytes);
     }
     public class InternalSearchEngine : ISearchEngine
     {

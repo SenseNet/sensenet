@@ -38,7 +38,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         public bool IsContentTypeIndexed(string contentTypeName)
         {
-            throw new NotSupportedException();
+            return true; //UNDONE: Partial solution
         }
 
         public bool TextExtractingWillBePotentiallySlow(IIndexableField field)
