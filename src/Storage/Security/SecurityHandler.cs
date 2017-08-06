@@ -1643,14 +1643,17 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Initializes the security system. Called during system startup.
         /// WARNING! Do not use this method in your code!
         /// </summary>
-        public static void StartSecurity(bool isWebContext)
+        public static void StartSecurity(bool isWebContext,
+            ISecurityDataProvider securityDataProvider = null,
+            IMessageProvider messageProvider = null)
         {
             var dummy = PermissionType.Open;
-            var securityDataProvider = new EF6SecurityDataProvider(
+
+            securityDataProvider = securityDataProvider ?? new EF6SecurityDataProvider(
                 Configuration.Security.SecurityDatabaseCommandTimeoutInSeconds,
                 ConnectionStrings.SecurityDatabaseConnectionString);
-            var messageProvider = (IMessageProvider)Activator.CreateInstance(GetMessageProviderType());
 
+            messageProvider = messageProvider ?? (IMessageProvider)Activator.CreateInstance(GetMessageProviderType());
             messageProvider.Initialize();
 
             var startingThesystem = DateTime.UtcNow;

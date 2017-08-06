@@ -38,6 +38,14 @@
     <Reference Include="Lucene.Net">
       <HintPath>..\..\References\Lucene.Net.dll</HintPath>
     </Reference>
+    <Reference Include="SenseNet.Security, Version=2.3.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\SenseNet.Security.2.3.1\lib\net45\SenseNet.Security.dll</HintPath>
+    </Reference>
+    <Reference Include="SenseNet.Tools, Version=2.1.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\SenseNet.Tools.2.1.1\lib\net451\SenseNet.Tools.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
@@ -56,6 +64,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Implementations\InMemoryDataProvider.cs" />
+    <Compile Include="Implementations\InMemoryDataProviderData.cs" />
     <Compile Include="Implementations\TestNode.cs" />
     <Compile Include="Implementations\TestSearchEngine.cs" />
     <Compile Include="Implementations\TestSearchEngineSupport.cs" />
