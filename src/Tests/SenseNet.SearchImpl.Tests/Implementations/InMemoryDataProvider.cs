@@ -153,7 +153,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         public override void RegisterIndexingActivity(IIndexingActivity activity)
         {
-            var newId = IndexingActivity.Count==0 ? 1 : IndexingActivity.Max(r => r.NodeId) + 1;
+            var newId = IndexingActivity.Count == 0 ? 1 : IndexingActivity.Max(r => r.NodeId) + 1;
 
             IndexingActivity.Add(new IndexingActivityRecord
             {
@@ -444,21 +444,25 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         protected internal override NodeHead LoadNodeHead(int nodeId)
         {
-            return Nodes
-                .Where(r => r.NodeId == nodeId)
-                .Select(r => new NodeHead(r.NodeId, r.Name, r.DisplayName, r.Path, r.ParentNodeId,
+            return CreateNodeHead(Nodes.FirstOrDefault(r => r.NodeId == nodeId));
+        }
+        protected internal override NodeHead LoadNodeHead(string path)
+        {
+            return
+                CreateNodeHead(
+                    Nodes.FirstOrDefault(r => string.Equals(r.Path, path, StringComparison.InvariantCultureIgnoreCase)));
+        }
+        private NodeHead CreateNodeHead(NodeRecord r)
+        {
+            return r == null
+                ? null
+                : new NodeHead(r.NodeId, r.Name, r.DisplayName, r.Path, r.ParentNodeId,
                     r.NodeTypeId, r.ContentListTypeId, r.ContentListId, r.NodeCreationDate,
                     r.NodeModificationDate, r.LastMinorVersionId, r.LastMajorVersionId, r.OwnerId,
-                    r.NodeCreatedById, r.NodeModifiedById, r.Index, r.LockedById, r.NodeTimestamp))
-                .FirstOrDefault();
+                    r.NodeCreatedById, r.NodeModifiedById, r.Index, r.LockedById, r.NodeTimestamp);
         }
 
         #region NOT IMPLEMENTED
-
-        protected internal override NodeHead LoadNodeHead(string path)
-        {
-            throw new NotImplementedException();
-        }
 
         protected internal override NodeHead LoadNodeHeadByVersionId(int versionId)
         {
@@ -646,6 +650,11 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                 nullableOwnerId = n.OwnerId,
                 nullableParentId = n.ParentNodeId
             }).ToArray();
+        }
+
+        internal static int LastNodeId
+        {
+            get { return Nodes.Max(n => n.NodeId); }
         }
 
         /* ====================================================================================== Database */

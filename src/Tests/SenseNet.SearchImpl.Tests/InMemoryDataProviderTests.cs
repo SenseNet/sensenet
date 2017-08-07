@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -10,9 +8,7 @@ using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Events;
-using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Search.Tests.Implementations;
 using SenseNet.SearchImpl.Tests.Implementations;
@@ -23,14 +19,33 @@ using SenseNet.Security.Messaging;
 namespace SenseNet.SearchImpl.Tests
 {
     [TestClass]
-    public class IndexingTests
+    public class InMemoryDataProviderTests
     {
         [TestMethod]
-        public void Indexing_0()
+        public void InMemDb_LoadRootById()
         {
-            var node = InMemoryDataProviderTests.Test<Node>(() =>
+            var node = Test(() => Node.LoadNode(Identifiers.PortalRootId));
+
+            Assert.AreEqual(Identifiers.PortalRootId, node.Id);
+            Assert.AreEqual(Identifiers.RootPath, node.Path);
+        }
+        [TestMethod]
+        public void InMemDb_LoadRootByPath()
+        {
+            var node = Test(() => Node.LoadNode(Identifiers.RootPath));
+
+            Assert.AreEqual(Identifiers.PortalRootId, node.Id);
+            Assert.AreEqual(Identifiers.RootPath, node.Path);
+        }
+        [TestMethod]
+        public void InMemDb_Create()
+        {
+            var lastNodeId = InMemoryDataProvider.LastNodeId;
+
+            var node = Test<Node>(() =>
             {
-                var n = new TestNode(Node.LoadNode(Identifiers.PortalRootId))
+                var root = Node.LoadNode(Identifiers.RootPath);
+                var n = new TestNode(root)
                 {
                     Name = "Node1",
                     DisplayName = "Node 1"
@@ -38,30 +53,49 @@ namespace SenseNet.SearchImpl.Tests
                 foreach (var observer in NodeObserver.GetObserverTypes())
                     n.DisableObserver(observer);
                 n.Save();
-
-                return Node.Load<TestNode>(n.Id);
+                n = Node.Load<TestNode>(n.Id);
+                return n;
             });
 
-            var indexDoc = DataProvider.Current.LoadIndexDocumentByVersionId(node.VersionId);
-            Assert.IsNotNull(indexDoc);
-            Assert.AreEqual(indexDoc.Path, node.Path);
-            Assert.AreEqual(indexDoc.NodeId, node.Id);
-            Assert.AreEqual(indexDoc.NodeTypeId, node.NodeTypeId);
-            Assert.AreEqual(indexDoc.ParentId, node.ParentId);
-            Assert.AreEqual(indexDoc.VersionId, node.VersionId);
+            Assert.AreEqual(lastNodeId+1, node.Id);
+            Assert.AreEqual("/Root/Node1", node.Path);
         }
+
+
 
         /* ============================================================================ */
 
-        private readonly Dictionary<string, IPerFieldIndexingInfo> 
-            _defaultIndexingInfo = new Dictionary <string, IPerFieldIndexingInfo>
+        public static T Test<T>(Func<T> callback)
+        {
+            TypeHandler.Initialize(new Dictionary<Type, Type[]>
+            {
+                {typeof(ElevatedModificationVisibilityRule), new[] {typeof(SnElevatedModificationVisibilityRule)}}
+            });
+
+            var dataProvider = new InMemoryDataProvider();
+            StartSecurity(dataProvider);
+
+            DistributedApplication.Cache.Reset();
+
+            using (new Tools.SearchEngineSwindler(new TestSearchEngine()))
+            using (Tools.Swindle(typeof(StorageContext.Search), "ContentRepository", new TestSearchEngineSupport(DefaultIndexingInfo)))
+            using (Tools.Swindle(typeof(AccessProvider), "_current", new DesktopAccessProvider()))
+            using (Tools.Swindle(typeof(DataProvider), "_current", dataProvider))
+            using (new SystemAccount())
+            {
+                return callback();
+            }
+        }
+
+        private static readonly Dictionary<string, IPerFieldIndexingInfo>
+            DefaultIndexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
             {
                 {"_Text", new TestPerfieldIndexingInfoString()},
                 {"Id", new TestPerfieldIndexingInfoInt()},
                 {"Name", new TestPerfieldIndexingInfoString()},
             };
 
-        private void StartSecurity(InMemoryDataProvider repo)
+        private static void StartSecurity(InMemoryDataProvider repo)
         {
             var securityDataProvider = new MemoryDataProvider(new DatabaseStorage
             {

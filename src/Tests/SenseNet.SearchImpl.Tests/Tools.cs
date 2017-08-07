@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.SearchImpl.Tests
 {
@@ -32,5 +34,26 @@ namespace SenseNet.SearchImpl.Tests
                 _accessor.SetStaticFieldOrProperty(_memberName, _originalValue);
             }
         }
+
+        internal class SearchEngineSwindler : IDisposable
+        {
+            private readonly PrivateObject _accessor;
+            private string _memberName = "_searchEngine";
+            private readonly object _originalSearchEngine;
+
+            public SearchEngineSwindler(ISearchEngine searchEngine)
+            {
+                var storageContextAcc = new PrivateType(typeof(StorageContext));
+                var storageContextInstance = storageContextAcc.GetStaticFieldOrProperty("Instance");
+                _accessor = new PrivateObject(storageContextInstance);
+                _originalSearchEngine = _accessor.GetField(_memberName);
+                _accessor.SetField(_memberName, searchEngine);
+            }
+            public void Dispose()
+            {
+                _accessor.SetField(_memberName, _originalSearchEngine);
+            }
+        }
+
     }
 }
