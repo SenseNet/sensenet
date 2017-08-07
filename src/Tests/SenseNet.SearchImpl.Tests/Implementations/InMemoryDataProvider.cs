@@ -94,10 +94,14 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             throw new NotImplementedException();
         }
 
+        #endregion
+
         public override int GetLastActivityId()
         {
-            throw new NotImplementedException();
+            return IndexingActivity.Max(r => r.IndexingActivityId);
         }
+
+        #region NOT IMPLEMENTED
 
         public override string GetNameOfLastNodeWithNameBase(int parentId, string namebase, string extension)
         {
@@ -129,10 +133,53 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             throw new NotImplementedException();
         }
 
+        #endregion
+
         public override IIndexingActivity[] LoadIndexingActivities(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
         {
-            throw new NotImplementedException();
+            var result = new List<IIndexingActivity>();
+
+            var activities = IndexingActivity.Where(r => r.IndexingActivityId >= fromId && r.IndexingActivityId <= toId).Take(count).ToArray();
+            foreach (var activityRecord in activities)
+            {
+                var nodeRecord = Nodes.FirstOrDefault(r => r.NodeId == activityRecord.NodeId);
+                var versionRecord = Versions.FirstOrDefault(r => r.VersionId == activityRecord.VersionId);
+                var activity = activityFactory.CreateActivity(activityRecord.ActivityType);
+
+                activity.Id = activityRecord.IndexingActivityId;
+                activity.ActivityType = activityRecord.ActivityType;
+                activity.NodeId = activityRecord.NodeId;
+                activity.VersionId = activityRecord.VersionId;
+                activity.SingleVersion = activityRecord.SingleVersion;
+                activity.MoveOrRename = activityRecord.MoveOrRename;
+                activity.Path = activityRecord.Path;
+                activity.FromDatabase = true;
+                activity.IsUnprocessedActivity = executingUnprocessedActivities;
+                activity.Extension = activityRecord.Extension;
+
+                if (versionRecord?.IndexDocument != null)
+                {
+                    activity.IndexDocumentData = new IndexDocumentData(null, versionRecord.IndexDocument)
+                    {
+                        NodeTypeId = nodeRecord.NodeTypeId,
+                        VersionId = activity.VersionId,
+                        NodeId = activity.NodeId,
+                        ParentId = nodeRecord.ParentNodeId,
+                        Path = activity.Path,
+                        IsSystem = nodeRecord.IsSystem,
+                        IsLastDraft = nodeRecord.LastMinorVersionId == activity.VersionId,
+                        IsLastPublic = versionRecord.Version.Status == VersionStatus.Approved && nodeRecord.LastMajorVersionId == activity.VersionId,
+                        //NodeTimestamp = nodeTimeStamp,
+                        //VersionTimestamp = versionTimestamp,
+                    };
+                }
+
+                result.Add(activity);
+            }
+            return result.ToArray();
         }
+
+        #region NOT IMPLEMENTED
 
         public override IEnumerable<ComponentInfo> LoadInstalledComponents()
         {
@@ -158,7 +205,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             IndexingActivity.Add(new IndexingActivityRecord
             {
                 IndexingActivityId = newId,
-                ActivityType = activity.ActivityType.ToString(),
+                ActivityType = activity.ActivityType,
                 CreationDate=DateTime.UtcNow,
                 NodeId = activity.NodeId,
                 VersionId = activity.VersionId,
@@ -881,7 +928,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         private class IndexingActivityRecord
         {
             public int IndexingActivityId;
-            public string ActivityType;
+            public IndexingActivityType ActivityType;
             public DateTime CreationDate;
             public int NodeId;
             public int VersionId;
