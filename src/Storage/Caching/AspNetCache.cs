@@ -16,7 +16,6 @@ namespace SenseNet.ContentRepository.Storage.Caching
     /// main features: populator (create/load/whatever the cached item)
     /// Distributed environment wireup
     /// </summary>
-    /// 
     public class AspNetCache : CacheBase
     {
         private static object _lockObject = new object();
@@ -60,7 +59,7 @@ namespace SenseNet.ContentRepository.Storage.Caching
             lock (_lockObject)
             {
                 foreach (DictionaryEntry entry in _cache)
-                    keys.Add(entry.ToString());
+                    keys.Add(entry.Key.ToString());
             }
 
             foreach (var key in keys)
