@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Lucene.Net.Support;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Events;
+using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
@@ -27,25 +28,7 @@ namespace SenseNet.SearchImpl.Tests
         [TestMethod]
         public void Indexing_0()
         {
-            var indexingInfo = new Lucene.Net.Support.Dictionary<string, IPerFieldIndexingInfo>
-            {
-                {"_Text", new TestPerfieldIndexingInfoString()},
-                {"Id", new TestPerfieldIndexingInfoInt()},
-                {"Name", new TestPerfieldIndexingInfoString()},
-            };
-
-            StorageContext.Search.ContentRepository = new TestSearchEngineSupport(indexingInfo);
-
-            var storageContextAcc = new PrivateType(typeof(StorageContext));
-            var storageContextInstance = storageContextAcc.GetStaticFieldOrProperty("Instance");
-            var storageContextInstanceAcc = new PrivateObject(storageContextInstance);
-            storageContextInstanceAcc.SetField("_searchEngine", new TestSearchEngine());
-
-            var securityHandlerAcc = new PrivateType(typeof(SecurityHandler));
-            securityHandlerAcc.SetStaticField("_securityContextFactory", new DynamicSecurityContextFactory());
-
-
-            TypeHandler.Initialize(new Lucene.Net.Support.Dictionary<Type, Type[]>
+            TypeHandler.Initialize(new Dictionary<Type, Type[]>
             {
                 {typeof(ElevatedModificationVisibilityRule), new [] {typeof(SnElevatedModificationVisibilityRule) }}
             });
@@ -53,6 +36,8 @@ namespace SenseNet.SearchImpl.Tests
             var dataProvider = new InMemoryDataProvider();
             StartSecurity(dataProvider);
 
+            using (new SearchEngineSwindler(new TestSearchEngine()))
+            using (Tools.Swindle(typeof(StorageContext.Search), "ContentRepository", new TestSearchEngineSupport(_defaultIndexingInfo)))
             using (Tools.Swindle(typeof(AccessProvider), "_current", new DesktopAccessProvider()))
             using (Tools.Swindle(typeof(DataProvider), "_current", dataProvider))
             using (new SystemAccount())
@@ -63,18 +48,24 @@ namespace SenseNet.SearchImpl.Tests
                     Name = "Node1",
                     DisplayName = "Node 1"
                 };
-                node.DisableObserver(typeof(SenseNet.ContentRepository.Storage.AppModel.AppCacheInvalidator));
-                node.DisableObserver(typeof(SenseNet.ContentRepository.Storage.AppModel.RepositoryEventRouter));
-                node.DisableObserver(typeof(SenseNet.Preview.DocumentPreviewObserver));
-                node.DisableObserver(typeof(SenseNet.ApplicationModel.AppStorageInvalidator));
-                node.DisableObserver(typeof(SenseNet.ContentRepository.SettingsCache));
-                node.DisableObserver(typeof(SenseNet.ContentRepository.Storage.Security.GroupMembershipObserver));
+                foreach (var observer in NodeObserver.GetObserverTypes())
+                    node.DisableObserver(observer);
                 node.Save();
 
                 var indexDoc = DataProvider.Current.LoadIndexDocumentByVersionId(node.VersionId);
                 Assert.IsNotNull(indexDoc);
             }
         }
+
+        /* ============================================================================ */
+
+        private readonly Dictionary<string, IPerFieldIndexingInfo> 
+            _defaultIndexingInfo = new Dictionary <string, IPerFieldIndexingInfo>
+            {
+                {"_Text", new TestPerfieldIndexingInfoString()},
+                {"Id", new TestPerfieldIndexingInfoInt()},
+                {"Name", new TestPerfieldIndexingInfoString()},
+            };
 
         private void StartSecurity(InMemoryDataProvider repo)
         {
@@ -99,5 +90,26 @@ namespace SenseNet.SearchImpl.Tests
 
             SecurityHandler.StartSecurity(false, securityDataProvider, new DefaultMessageProvider());
         }
+
+        private class SearchEngineSwindler : IDisposable
+        {
+            private readonly PrivateObject _accessor;
+            private string _memberName = "_searchEngine";
+            private readonly object _originalSearchEngine;
+
+            public SearchEngineSwindler(ISearchEngine searchEngine)
+            {
+                var storageContextAcc = new PrivateType(typeof(StorageContext));
+                var storageContextInstance = storageContextAcc.GetStaticFieldOrProperty("Instance");
+                _accessor = new PrivateObject(storageContextInstance);
+                _originalSearchEngine = _accessor.GetField(_memberName);
+                _accessor.SetField(_memberName, searchEngine);
+            }
+            public void Dispose()
+            {
+                _accessor.SetField(_memberName, _originalSearchEngine);
+            }
+        }
+
     }
 }

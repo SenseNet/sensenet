@@ -21,6 +21,10 @@ namespace SenseNet.ContentRepository.Storage.Events
         {
             return NodeTypeManager.Current.NodeObservers.FirstOrDefault(x => x.GetType().IsSubclassOf(baseType));
         }
+        public static Type[] GetObserverTypes()
+        {
+            return NodeTypeManager.Current.NodeObservers.Select(o => o.GetType()).ToArray();
+        }
 
         // ================================================================================================ Safe caller methods
 
