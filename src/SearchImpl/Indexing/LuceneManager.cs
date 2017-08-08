@@ -12,6 +12,7 @@ using Lucene.Net.Documents;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing.Activities;
 using Lucene.Net.Util;
+using SenseNet.Search.Lucene29;
 using Field = Lucene.Net.Documents.Field;
 
 namespace SenseNet.Search.Indexing
@@ -49,6 +50,8 @@ namespace SenseNet.Search.Indexing
                 return vxa[2].CompareTo(vya[2]);
             }
         }
+
+        private static IIndexingEngine _indexingEngine = new Lucene29IndexingEngine(); //UNDONE:!!! This should be a little bit better :)
 
         public static readonly Lucene.Net.Util.Version LuceneVersion = Lucene.Net.Util.Version.LUCENE_29;
 
