@@ -18,7 +18,7 @@ namespace SenseNet.ContentRepository
 {
     public sealed class ContentTemplate
     {
-        public static readonly string NOTIFOBSERVERNAME = "SenseNet.Messaging.NotificationObserver";
+        public static readonly string NOTIFOBSERVERNAME = "SenseNet.Notification.NotificationObserver";
         public static readonly string WFOBSERVERNAME = "SenseNet.Workflow.WorkflowNotificationObserver";
 
         /// <summary>
