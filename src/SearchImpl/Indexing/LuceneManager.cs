@@ -492,8 +492,9 @@ namespace SenseNet.Search.Indexing
             }
         }
 
-        /*==================================================================== Document operations */
+        /* ==================================================================== Document operations */
 
+        // AddDocumentActivity
         internal static bool AddCompleteDocument(Document document, int activityId, bool executingUnprocessedActivities, VersioningInfo versioning)
         {
             if (!IsActivityExecutable(executingUnprocessedActivities))
@@ -521,6 +522,7 @@ namespace SenseNet.Search.Indexing
 
             return true;
         }
+        // AddDocumentActivity, RebuildActivity
         internal static bool AddDocument(Document document, int activityId, bool executingUnprocessedActivities, VersioningInfo versioning)
         {
             if (!IsActivityExecutable(executingUnprocessedActivities))
@@ -548,6 +550,7 @@ namespace SenseNet.Search.Indexing
 
             return true;
         }
+        // AddDocumentActivity
         internal static bool AddDocument(int activityId, bool executingUnprocessedActivities, VersioningInfo versioning)
         {
             if (!IsActivityExecutable(executingUnprocessedActivities))
@@ -568,6 +571,7 @@ namespace SenseNet.Search.Indexing
 
             return true;
         }
+        // UpdateDocumentActivity
         internal static bool UpdateDocument(Document document, int activityId, bool executingUnprocessedActivities, VersioningInfo versioning)
         {
             if (!IsActivityExecutable(executingUnprocessedActivities))
@@ -593,6 +597,7 @@ namespace SenseNet.Search.Indexing
 
             return true;
         }
+        // UpdateDocumentActivity
         internal static bool UpdateDocument(int activityId, bool executingUnprocessedActivities, VersioningInfo versioning)
         {
             if (!IsActivityExecutable(executingUnprocessedActivities))
@@ -613,6 +618,7 @@ namespace SenseNet.Search.Indexing
 
             return true;
         }
+        // RemoveDocumentActivity
         internal static bool DeleteDocument(int nodeId, int versionId, bool moveOrRename, int activityId, bool executingUnprocessedActivities, VersioningInfo versioning)
         {
             if (!IsActivityExecutable(executingUnprocessedActivities))
@@ -636,6 +642,7 @@ namespace SenseNet.Search.Indexing
 
             return true;
         }
+        // RemoveTreeActivity, RebuildActivity
         internal static bool DeleteDocuments(Term[] deleteTerms, bool moveOrRename, int activityId, bool executingUnprocessedActivities, VersioningInfo versioning)
         {
             if (!IsActivityExecutable(executingUnprocessedActivities))
@@ -707,7 +714,7 @@ namespace SenseNet.Search.Indexing
         }
 
 
-
+        // AddTreeActivity
         internal static bool AddTree(string treeRoot, bool moveOrRename, int activityId, bool executingUnprocessedActivities)
         {
             if (!IsActivityExecutable(executingUnprocessedActivities))
@@ -718,7 +725,7 @@ namespace SenseNet.Search.Indexing
 
             SnTrace.Index.Write("LM: AddTree. ActivityId:{0}, ExecutingUnprocessedActivities:{1}, TreeRoot:{2}", activityId, executingUnprocessedActivities, treeRoot);
 
-            using (var wrFrame = IndexWriterFrame.Get(false))
+            using (var wrFrame = IndexWriterFrame.Get(false)) // // AddTree
             {
                 if (executingUnprocessedActivities) // pessimistic compensation
                     wrFrame.IndexWriter.DeleteDocuments(new Term("InTree", treeRoot), new Term("Path", treeRoot));

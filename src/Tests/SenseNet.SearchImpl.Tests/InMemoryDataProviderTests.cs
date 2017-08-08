@@ -93,6 +93,9 @@ namespace SenseNet.SearchImpl.Tests
                 {"_Text", new TestPerfieldIndexingInfoString()},
                 {"Id", new TestPerfieldIndexingInfoInt()},
                 {"Name", new TestPerfieldIndexingInfoString()},
+                {"Path", new TestPerfieldIndexingInfoString()},
+                {"InTree", new TestPerfieldIndexingInfoString()},
+                {"InFolder", new TestPerfieldIndexingInfoString()},
             };
 
         private static void StartSecurity(InMemoryDataProvider repo)

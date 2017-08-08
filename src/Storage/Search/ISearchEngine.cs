@@ -44,13 +44,13 @@ namespace SenseNet.ContentRepository.Storage.Search
         void ContinueIndexing();
         void WaitIfIndexingPaused();
 
-        IIndexPopulator GetPopulator();
+        IIndexPopulator GetPopulator(); //UNDONE: not SearchEngine responsibility: GetPopulator()
 
         IDictionary<string, Type> GetAnalyzers();
 
         void SetIndexingInfo(object indexingInfo);
 
-        object DeserializeIndexDocumentInfo(byte[] indexDocumentInfoBytes);
+        object DeserializeIndexDocumentInfo(byte[] indexDocumentInfoBytes); //UNDONE: not SearchEngine responsibility: GetPopulator()
     }
     public class InternalSearchEngine : ISearchEngine
     {

@@ -59,6 +59,12 @@ namespace SenseNet.SearchImpl.Tests
             // check the activity
             Assert.IsNotNull(lastActivity);
             Assert.AreEqual(IndexingActivityType.AddDocument, lastActivity.ActivityType);
+
+            var history = IndexingActivityHistory.GetHistory();
+            Assert.AreEqual(1, history.RecentLength);
+            var item = history.Recent[0];
+            Assert.AreEqual(IndexingActivityType.AddDocument.ToString(), item.TypeName);
+            Assert.AreEqual(null, item.Error);
         }
 
     }
