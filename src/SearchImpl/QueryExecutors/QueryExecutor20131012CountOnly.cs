@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SenseNet.Search
 {
-    internal class QueryExecutor20131012CountOnly : LuceneQueryExecutor
+    internal class QueryExecutor20131012CountOnly : LuceneQueryExecutor //UNDONE: move to Luc29 implementation
     {
         protected override SearchResult DoExecute(SearchParams p)
         {

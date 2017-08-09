@@ -2,6 +2,12 @@
 
 namespace SenseNet.Search
 {
+    public interface IIndexingActivityStatus
+    {
+        int LastActivityId { get; set; }
+        int[] Gaps { get; set; }
+    }
+
     public interface IIndexingEngine
     {
         bool Running { get; }
@@ -15,5 +21,7 @@ namespace SenseNet.Search
 
         void ActivityFinished();
         void Commit();
+
+        IIndexingActivityStatus ReadActivityStatusFromIndex();
     }
 }

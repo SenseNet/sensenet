@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Lucene.Net.Index;
+using SenseNet.Search.Indexing;
 
-namespace SenseNet.Search.Indexing
+namespace SenseNet.Search.Lucene29
 {
     public class IndexReaderFrame : IDisposable
     {
@@ -20,6 +21,11 @@ namespace SenseNet.Search.Indexing
         public void Dispose()
         {
             _reader.DecRef();
+        }
+
+        internal static IndexReaderFrame GetReaderFrame(bool dirty = false)
+        {
+            return ((Lucene29IndexingEngine)LuceneManager._indexingEngine).GetIndexReaderFrame(dirty); //UNDONE: refactor: do not use member of another class
         }
     }
 }

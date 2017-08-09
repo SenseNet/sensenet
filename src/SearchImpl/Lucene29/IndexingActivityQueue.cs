@@ -104,13 +104,14 @@ namespace SenseNet.Search.Lucene29
         public static void Startup(System.IO.TextWriter consoleOut)
         {
             // initalize from index
-            CompletionState cud;
-            using (var readerFrame = LuceneManager.GetIndexReaderFrame())
-                cud = CompletionState.ParseFromReader(readerFrame.IndexReader);
+            var cud = LuceneManager._indexingEngine.ReadActivityStatusFromIndex() as CompletionState;
+
+            var gapsLength = cud.Gaps?.Length ?? 0;
+
             var lastDatabaseId = LuceneManager.GetLastStoredIndexingActivityId();
 
             using (var op = SnTrace.Index.StartOperation("IAQ: InitializeFromIndex. LastIndexedActivityId: {0}, LastDatabaseId: {1}, TotalUnprocessed: {2}"
-                , cud.LastActivityId, lastDatabaseId, lastDatabaseId - cud.LastActivityId + cud.GapsLength))
+                , cud.LastActivityId, lastDatabaseId, lastDatabaseId - cud.LastActivityId + gapsLength))
             {
                 Startup(lastDatabaseId, cud.LastActivityId, cud.Gaps, consoleOut);
 
@@ -795,13 +796,12 @@ namespace SenseNet.Search.Lucene29
         public int WaitingSetLength { get { return WaitingSet == null ? 0 : WaitingSet.Length; } }
         public int[] WaitingSet { get; set; }
     }
-    public class CompletionState
+    public class CompletionState : IIndexingActivityStatus
     {
         internal static readonly string LastActivityIdKey = "LastActivityId";
         internal static readonly string GapsKey = "Gaps";
 
         public int LastActivityId { get; set; }
-        public int GapsLength { get { return Gaps == null ? 0 : Gaps.Length; } }
         public int[] Gaps { get; set; }
 
         public CompletionState()

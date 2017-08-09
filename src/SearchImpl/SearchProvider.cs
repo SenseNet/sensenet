@@ -9,8 +9,7 @@ using System.Threading.Tasks;
 
 namespace SenseNet.Search
 {
-
-    internal abstract class SearchProvider
+    internal abstract class SearchProvider //UNDONE: move to Luc29 implementation
     {
         private static SearchProvider[] _providers = new[] { new SqlSearchProvider() };
         private static SearchProvider _fallbackProvider = new LuceneSearchProvider();

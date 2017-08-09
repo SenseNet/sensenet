@@ -6,7 +6,7 @@ using SenseNet.Configuration;
 
 namespace SenseNet.Search
 {
-    internal class QueryExecutor20131012 : LuceneQueryExecutor
+    internal class QueryExecutor20131012 : LuceneQueryExecutor //UNDONE: move to Luc29 implementation
     {
         protected override SearchResult DoExecute(SearchParams p)
         {

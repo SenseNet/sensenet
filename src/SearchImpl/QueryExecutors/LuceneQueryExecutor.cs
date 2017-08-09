@@ -8,10 +8,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.Search.Lucene29;
 
 namespace SenseNet.Search
 {
-    internal abstract class LuceneQueryExecutor : IQueryExecutor
+    internal abstract class LuceneQueryExecutor : IQueryExecutor //UNDONE: move to Luc29 implementation
     {
         public PermissionChecker PermissionChecker { get; private set; }
         public LucQuery LucQuery { get; private set; }
@@ -40,7 +41,7 @@ namespace SenseNet.Search
                 if (top == 0)
                     top = int.MaxValue;
 
-                using (var readerFrame = LuceneManager.GetIndexReaderFrame(this.LucQuery.QueryExecutionMode == QueryExecutionMode.Quick))
+                using (var readerFrame = IndexReaderFrame.GetReaderFrame(this.LucQuery.QueryExecutionMode == QueryExecutionMode.Quick))
                 {
                     var idxReader = readerFrame.IndexReader;
                     var searcher = new IndexSearcher(idxReader);

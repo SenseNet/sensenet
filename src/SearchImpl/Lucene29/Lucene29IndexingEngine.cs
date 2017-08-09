@@ -140,6 +140,13 @@ namespace SenseNet.Search.Lucene29
         {
             Commit(false);
         }
+
+        public IIndexingActivityStatus ReadActivityStatusFromIndex()
+        {
+            using (var readerFrame = GetIndexReaderFrame())
+                return CompletionState.ParseFromReader(readerFrame.IndexReader);
+        }
+
         private void Commit(bool reopenReader)
         {
             CompletionState commitState;

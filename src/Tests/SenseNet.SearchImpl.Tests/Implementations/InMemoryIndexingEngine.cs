@@ -51,5 +51,10 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+
+        public IIndexingActivityStatus ReadActivityStatusFromIndex()
+        {
+            return null;
+        }
     }
 }
