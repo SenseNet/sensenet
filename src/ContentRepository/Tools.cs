@@ -21,6 +21,7 @@ using System.Diagnostics;
 using SenseNet.BackgroundOperations;
 using SenseNet.Configuration;
 using SenseNet.Search.Indexing;
+using SenseNet.Search.Lucene29;
 using SenseNet.TaskManagement.Core;
 
 namespace SenseNet.ContentRepository
@@ -552,14 +553,14 @@ namespace SenseNet.ContentRepository
             return SecurityHandler.SecurityContext.GetRecentActivities();
         }
         [ODataFunction]
-        public static SenseNet.Search.Indexing.IndexingActivityHistory GetRecentIndexingActivities(Content content)
+        public static IndexingActivityHistory GetRecentIndexingActivities(Content content)
         {
-            return SenseNet.Search.Indexing.IndexingActivityHistory.GetHistory();
+            return IndexingActivityHistory.GetHistory();
         }
         [ODataAction]
-        public static SenseNet.Search.Indexing.IndexingActivityHistory ResetRecentIndexingActivities(Content content)
+        public static IndexingActivityHistory ResetRecentIndexingActivities(Content content)
         {
-            return SenseNet.Search.Indexing.IndexingActivityHistory.Reset();
+            return IndexingActivityHistory.Reset();
         }
 
 

@@ -62,6 +62,7 @@
     <Compile Include="Configuration\Querying.cs" />
     <Compile Include="ContentQuery.cs" />
     <Compile Include="ContentQuery_NEW.cs" />
+    <Compile Include="Lucene29\IndexingActivityQueue.cs" />
     <Compile Include="Indexing\Activities\AddDocumentActivity.cs" />
     <Compile Include="Indexing\Activities\AddTreeActivity.cs" />
     <Compile Include="Indexing\Activities\BackupActivity.cs" />
@@ -79,13 +80,12 @@
     <Compile Include="Indexing\ExplicitPerFieldIndexingInfo.cs" />
     <Compile Include="Indexing\IndexDocumentInfo.cs" />
     <Compile Include="Indexing\IndexFieldInfo.cs" />
-    <Compile Include="Indexing\IndexHealthMonitor.cs" />
+    <Compile Include="Lucene29\IndexHealthMonitor.cs" />
     <Compile Include="Indexing\IndexingActivityFactory.cs" />
-    <Compile Include="Indexing\IndexingActivityQueue.cs" />
     <Compile Include="Indexing\IndexingTools.cs" />
     <Compile Include="Indexing\IndexReaderFrame.cs" />
-    <Compile Include="Indexing\IndexWriterFrame.cs" />
-    <Compile Include="Indexing\IntegrityChecker.cs" />
+    <Compile Include="Lucene29\IndexWriterFrame.cs" />
+    <Compile Include="Lucene29\IntegrityChecker.cs" />
     <Compile Include="Indexing\LuceneManager.cs" />
     <Compile Include="Indexing\PerFieldIndexingInfo.cs" />
     <Compile Include="Indexing\SnPerFieldAnalyzerWrapper.cs" />

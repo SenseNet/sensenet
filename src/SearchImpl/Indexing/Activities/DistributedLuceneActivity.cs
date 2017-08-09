@@ -9,6 +9,7 @@ using System.IO;
 using System.Threading;
 using SenseNet.Diagnostics;
 using SenseNet.ContentRepository;
+using SenseNet.Search.Lucene29;
 
 namespace SenseNet.Search.Indexing.Activities
 {
@@ -28,7 +29,7 @@ namespace SenseNet.Search.Indexing.Activities
                 {
                     // We can drop activities here because the queue will load these from the database
                     // anyway when it processed all the previous activities.
-                    if (IndexingActivityQueue.IsOverloaded())
+                    if (IndexingActivityQueue.IsOverloaded()) //UNDONE:!!!!!!!!! Decision: execution without queue
                     {
                         SnTrace.Index.Write("IAQ OVERLOAD drop activity FromReceiver A:" + luceneIndexingActivity.Id);
                         return;
@@ -36,7 +37,7 @@ namespace SenseNet.Search.Indexing.Activities
 
                     luceneIndexingActivity.FromReceiver = true;
 
-                    IndexingActivityQueue.ExecuteActivity(luceneIndexingActivity);
+                    IndexingActivityQueue.ExecuteActivity(luceneIndexingActivity); //UNDONE:!!!!!!!!! Decision: execution without queue
                 }
                 else
                 {
@@ -47,6 +48,7 @@ namespace SenseNet.Search.Indexing.Activities
 
         public override void Distribute()
         {
+            //UNDONE:!!!!!!!!! Decision: skip distribution
             base.Distribute();
         }
 

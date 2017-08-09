@@ -4,10 +4,12 @@ using System.Linq;
 using System.Text;
 using Lucene.Net.Index;
 using System.Threading;
+using SenseNet.Search.Indexing;
+using SenseNet.Search.Lucene29;
 
-namespace SenseNet.Search.Indexing
+namespace SenseNet.Search.Lucene29
 {
-    public class IndexWriterFrame : IDisposable
+    internal class IndexWriterFrame : IDisposable
     {
         // ============================================================================== public static part
 
@@ -79,6 +81,16 @@ namespace SenseNet.Search.Indexing
             }
             Waiting = false;
         }
+
+        protected IndexWriter GetWriter()
+        {
+            return ((Lucene29IndexingEngine)LuceneManager._indexingEngine)._writer; //UNDONE: refactor: do not use member of another class
+        }
+
+        protected ReaderWriterLockSlim GetWriterRestartLock()
+        {
+            return ((Lucene29IndexingEngine)LuceneManager._indexingEngine)._writerRestartLock; //UNDONE: refactor: do not use member of another class
+        }
     }
     internal class FastIndexWriterUsage : IndexWriterUsage
     {
@@ -87,7 +99,7 @@ namespace SenseNet.Search.Indexing
 #pragma warning disable 420
             Interlocked.Increment(ref _refCount);
 #pragma warning restore 420
-            return new IndexWriterFrame(LuceneManager._writer, this, safe);
+            return new IndexWriterFrame(GetWriter(), this, safe); //UNDONE: do not use member of amother class
         }
         internal override void FinalizeFrame(bool safe)
         {
@@ -101,12 +113,12 @@ namespace SenseNet.Search.Indexing
     {
         internal override IndexWriterFrame CreateWriterFrame(bool safe)
         {
-            LuceneManager._writerRestartLock.EnterReadLock();
-            return new IndexWriterFrame(LuceneManager._writer, this, safe);
+            GetWriterRestartLock().EnterReadLock();
+            return new IndexWriterFrame(GetWriter(), this, safe);
         }
         internal override void FinalizeFrame(bool safe)
         {
-            LuceneManager._writerRestartLock.ExitReadLock();
+            GetWriterRestartLock().ExitReadLock();
             if(safe)
                 ChangeToFast();
         }

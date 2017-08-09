@@ -6,6 +6,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Search.Indexing;
+using SenseNet.Search.Lucene29;
 using SenseNet.SearchImpl.Tests.Implementations;
 
 namespace SenseNet.SearchImpl.Tests

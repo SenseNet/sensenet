@@ -12,7 +12,7 @@ using Lucene.Net.Documents;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing.Activities;
 using Lucene.Net.Util;
-using SenseNet.Search.Lucene29;
+//using SenseNet.Search.Lucene29;
 using Field = Lucene.Net.Documents.Field;
 
 namespace SenseNet.Search.Indexing
@@ -51,193 +51,41 @@ namespace SenseNet.Search.Indexing
             }
         }
 
-        private static IIndexingEngine _indexingEngine = new Lucene29IndexingEngine(); //UNDONE:!!! This should be a little bit better :)
+        internal static IIndexingEngine _indexingEngine = new Lucene29IndexingEngine(); //UNDONE:!!! This should be a little bit better :)
 
-        public static readonly Lucene.Net.Util.Version LuceneVersion = Lucene.Net.Util.Version.LUCENE_29;
-
-        internal static IndexWriter _writer;
-        internal static IndexReader _reader;
-
-        public static int IndexCount { get { return 1; } }
-        public static int IndexedDocumentCount
-        {
-            get
-            {
-                using (var readerFrame = LuceneManager.GetIndexReaderFrame())
-                {
-                    var idxReader = readerFrame.IndexReader;
-                    return idxReader.NumDocs();
-                }
-            }
-        }
 
         public static int[] GetNotIndexedNodeTypes()
         {
             return StorageContext.Search.ContentRepository.GetNotIndexedNodeTypeIds();
         }
 
-        private static TimeSpan _forceReopenFrequency;
-        public static TimeSpan ForceReopenFrequency
-        {
-            get
-            {
-                if (_forceReopenFrequency == default(TimeSpan))
-                {
-                    var settings = StorageContext.Search.ContentRepository.GetSettingsValue<int>("ForceReopenFrequencyInSeconds", 0);
-                    _forceReopenFrequency = TimeSpan.FromSeconds(settings == 0 ? 30.0 : settings);
-                }
-                return _forceReopenFrequency;
-            }
-        }
-        public static DateTime IndexReopenedAt { get; private set; }
-        private static volatile int _recentlyUsedReaderFrames;
+        /**/public static bool Running => _indexingEngine.Running;
+        /**/internal static bool Paused => _indexingEngine.Paused;
 
-        internal static ReaderWriterLockSlim _writerRestartLock = new ReaderWriterLockSlim();
-        private const int REOPENRETRYMAX = 2;
-        public static IndexReaderFrame GetIndexReaderFrame(bool dirty = false)
+        /**/internal static void PauseIndexing()
         {
-            var needReopen = (DateTime.UtcNow - IndexReopenedAt) > ForceReopenFrequency;
-            if (!dirty || needReopen)
-                if (!_reader.IsCurrent())
-                    using (var wrFrame = IndexWriterFrame.Get(false)) // // IndexReader getter
-                        ReopenReader();
-            Interlocked.Increment(ref _recentlyUsedReaderFrames);
-            return new IndexReaderFrame(_reader);
+            _indexingEngine.Pause();
         }
-
-        private static object _startSync = new object();
-        private static bool _running;
-        public static bool Running
+        /**/internal static void ContinueIndexing()
         {
-            get { return _running; }
-        }
-
-        private static bool _paused;
-        internal static bool Paused
-        {
-            get { return _paused; }
-        }
-
-        internal static void PauseIndexing()
-        {
-            _indexingSemaphore.Reset();
-
-            Commit();
-            IndexWriterUsage.WaitForRunOutAllWriters();
-            _paused = true;
-        }
-        internal static void ContinueIndexing()
-        {
+            _indexingEngine.Continue();
             throw new NotSupportedException("Continue indexing is not supported in this version.");
         }
-        internal static Exception GetPausedException(string msg = null)
+
+        /**/internal static void WaitIfIndexingPaused()
         {
-            if (msg == null)
-                msg = "Cannot use the IndexReader if the indexing is paused (i.e. LuceneManager.Paused = true)";
-            return new InvalidOperationException(msg);
+            _indexingEngine.WaitIfIndexingPaused();
         }
 
-        internal static ManualResetEventSlim _indexingSemaphore = new ManualResetEventSlim(true);
-
-        internal static void WaitIfIndexingPaused()
+        /**/public static void Start(TextWriter consoleOut)
         {
-            if (!_indexingSemaphore.Wait(SenseNet.Configuration.Indexing.IndexingPausedTimeout * 1000))
-                throw new TimeoutException("Operation timed out, indexing is paused.");
+            _indexingEngine.Start(consoleOut);
         }
 
-        [Obsolete("Use Start(System.IO.TextWriter) instead.")]
-        public static void Start()
-        {
-            Start(null);
-        }
 
-        internal static bool StartingUp { get; private set; }
+        /* ========================================================================================== Register Activity */
 
-        public static void Start(System.IO.TextWriter consoleOut)
-        {
-            if (!_running)
-            {
-                lock (_startSync)
-                {
-                    if (!_running)
-                    {
-                        StartingUp = true;
-                        Startup(consoleOut);
-                        StartingUp = false;
-                        _running = true;
-                    }
-                }
-            }
-        }
-        private static void Startup(System.IO.TextWriter consoleOut)
-        {
-            // we positively start the message cluster
-            int dummy = SenseNet.ContentRepository.DistributedApplication.Cache.Count;
-            var dummy2 = SenseNet.ContentRepository.DistributedApplication.ClusterChannel;
-
-            if (StorageContext.Search.ContentRepository.RestoreIndexOnstartup())
-                BackupTools.RestoreIndex(false, consoleOut);
-
-            CreateWriterAndReader();
-
-            IndexingActivityQueue.Startup(consoleOut);
-
-            Warmup();
-
-            var commitStart = new ThreadStart(CommitWorker);
-            var t = new Thread(commitStart);
-            t.Start();
-
-            SnTrace.Index.Write("LM: 'CommitWorker' thread started. ManagedThreadId: {0}", t.ManagedThreadId);
-
-            IndexHealthMonitor.Start(consoleOut);
-        }
-
-        private static void CreateWriterAndReader()
-        {
-            var directory = FSDirectory.Open(new System.IO.DirectoryInfo(IndexDirectory.CurrentDirectory));
-
-            _writer = new IndexWriter(directory, IndexManager.GetAnalyzer(), false, IndexWriter.MaxFieldLength.LIMITED);
-
-            _writer.SetMaxMergeDocs(SenseNet.Configuration.Indexing.LuceneMaxMergeDocs);
-            _writer.SetMergeFactor(SenseNet.Configuration.Indexing.LuceneMergeFactor);
-            _writer.SetRAMBufferSizeMB(SenseNet.Configuration.Indexing.LuceneRAMBufferSizeMB);
-            _reader = _writer.GetReader();
-        }
-
-        internal static string[] PauseIndexingAndGetIndexFilePaths()
-        {
-            PauseIndexing();
-
-            return GetIndexFilePathsInternal();
-        }
-
-        private static string[] GetIndexFilePathsInternal()
-        {
-            var filePaths = new List<string>();
-
-            // in case of the index does not exist
-            if (!IndexDirectory.Exists)
-                return filePaths.ToArray();
-
-            try
-            {
-                var di = new DirectoryInfo(IndexDirectory.CurrentDirectory);
-                var files = di.GetFiles();
-
-                filePaths.AddRange(files.Where(f => f.Name != IndexWriter.WRITE_LOCK_NAME).Select(f => f.FullName));
-            }
-            catch (Exception ex)
-            {
-                SnLog.WriteException(ex);
-            }
-
-            return filePaths.ToArray();
-        }
-
-        // ========================================================================================== Register Activity
-
-        public static void RegisterActivity(LuceneIndexingActivity activity)
+        /**/public static void RegisterActivity(LuceneIndexingActivity activity)
         {
             DataProvider.Current.RegisterIndexingActivity(activity);
         }
@@ -251,14 +99,14 @@ namespace SenseNet.Search.Indexing
             // data of the activity to prevent memory overflow. We still have to wait for the 
             // activity to finish, but the inner data can (and will) be loaded from the db when 
             // the time comes for this activity to be executed.
-            if (IndexingActivityQueue.IsOverloaded())
+            if (IndexingActivityQueue.IsOverloaded()) //UNDONE:!!!!!!!!! Decision: execution without queue
             {
                 SnTrace.Index.Write("IAQ OVERLOAD drop activity FromPopulator A:" + activity.Id);
                 activity.IndexDocumentData = null;
             }
 
             // all activities must be executed through the activity queue's API
-            IndexingActivityQueue.ExecuteActivity(activity);
+            IndexingActivityQueue.ExecuteActivity(activity); //UNDONE:!!!!!!!!! Decision: execution without queue
 
             if (waitForComplete)
                 activity.WaitForComplete();
@@ -266,62 +114,16 @@ namespace SenseNet.Search.Indexing
 
         // ========================================================================================== Start, Restart, Shutdown, Warmup
 
-        internal static void Restart()
+        /**/internal static void Restart()
         {
-            if (Paused)
-            {
-                SnTrace.Index.Write("LM: LUCENEMANAGER RESTART called but it is not executed because indexing is paused.");
-                return;
-            }
-            SnTrace.Index.Write("LM: LUCENEMANAGER RESTART");
-
-            using (var wrFrame = IndexWriterFrame.Get(true)) // // Restart
-            {
-                wrFrame.IndexWriter.Close();
-                CreateWriterAndReader();
-            }
+            _indexingEngine.Restart();
         }
-        public static void ShutDown()
+        /**/public static void ShutDown()
         {
-            ShutDown(true);
+            _indexingEngine.ShutDown();
+            SnLog.WriteInformation("Indexing engine has stopped. Max task id and exceptions: " + IndexingActivityQueue.GetCurrentCompletionState());
         }
-        private static void ShutDown(bool log)
-        {
-            if (!_running)
-                return;
-            if (Paused)
-                throw GetPausedException();
 
-            using (var op = SnTrace.Index.StartOperation("LUCENEMANAGER SHUTDOWN"))
-            {
-
-                if (_writer != null)
-                {
-                    _stopCommitWorker = true;
-
-                    lock (_commitLock)
-                        Commit(false);
-
-                    using (var op2 = SnTrace.Index.StartOperation("LM.CloseReaders"))
-                    {
-                        using (var wrFrame = IndexWriterFrame.Get(true)) // // ShutDown
-                        {
-                            if (_reader != null)
-                                _reader.Close();
-                            if (_writer != null)
-                                _writer.Close();
-                            _running = false;
-                        }
-                        op2.Successful = true;
-                    }
-                    op.Successful = true;
-                }
-            }
-
-
-            if (log)
-                SnLog.WriteInformation("LuceneManager has stopped. Max task id and exceptions: " + IndexingActivityQueue.GetCurrentCompletionState());
-        }
         public static void Backup()
         {
             BackupTools.SynchronousBackupIndex();
@@ -332,170 +134,32 @@ namespace SenseNet.Search.Indexing
             BackupTools.BackupIndexImmediatelly();
         }
 
-        private const string COMMITFIELDNAME = "$#COMMIT";
-        private const string COMMITDATAFIELDNAME = "$#DATA";
-
-        private static Document GetFakeDocument()
-        {
-            var value = Guid.NewGuid().ToString();
-            var doc = new Document();
-            doc.Add(new Field(COMMITFIELDNAME, COMMITFIELDNAME, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
-            doc.Add(new Field(COMMITDATAFIELDNAME, value, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
-
-            return doc;
-        }
-
-        internal static void Warmup()
-        {
-            var idList = ((LuceneSearchEngine)StorageContext.Search.SearchEngine).Execute("+Id:1");
-        }
-
-        public static int GetLastStoredIndexingActivityId()
+        /**/public static int GetLastStoredIndexingActivityId()
         {
             return DataProvider.Current.GetLastActivityId();
         }
 
-        internal static void DeleteAllIndexingActivities()
+        /**/internal static void DeleteAllIndexingActivities()
         {
             DataProvider.Current.DeleteAllIndexingActivities();
         }
 
         /*========================================================================================== Commit */
 
-        internal static void ActivityFinished(int activityId, bool executingUnprocessedActivities)
+        /**/internal static void ActivityFinished(int activityId, bool executingUnprocessedActivities)
         {
             if (!IsActivityExecutable(executingUnprocessedActivities))
                 return;
 
-            // compiler warning here is not a problem, Interlocked 
-            // class can work with a volatile variable
-#pragma warning disable 420
-            Interlocked.Increment(ref _activities);
-#pragma warning restore 420
+            _indexingEngine.ActivityFinished();
         }
-
-        internal static void CommitOrDelay()
+        /**/internal static void Commit()
         {
-            if (Paused)
-                return;
-
-            var act = _activities;
-            if (act == 0 && _delayCycle == 0)
-                return;
-
-            if (act < 2)
-            {
-                Commit();
-            }
-            else
-            {
-                _delayCycle++;
-                if (_delayCycle > SenseNet.Configuration.Indexing.DelayedCommitCycleMaxCount)
-                {
-                    Commit();
-                }
-            }
-
-#pragma warning disable 420
-            Interlocked.Exchange(ref _activities, 0);
-#pragma warning restore 420
+            _indexingEngine.Commit();
         }
 
-        internal static void Commit(bool reopenReader = true)
-        {
-            CompletionState commitState;
-            using (var op = SnTrace.Index.StartOperation("LM: Commit. reopenReader:{0}", reopenReader))
-            {
-                using (var wrFrame = IndexWriterFrame.Get(!reopenReader)) // // Commit
-                {
-                    commitState = CompletionState.GetCurrent();
-                    var commitStateMessage = commitState.ToString();
 
-                    SnTrace.Index.Write("LM: Committing_writer. commitState: " + commitStateMessage);
-
-                    // Write a fake document to make sure that the index changes are written to the file system.
-                    wrFrame.IndexWriter.UpdateDocument(new Term(COMMITFIELDNAME, COMMITFIELDNAME), GetFakeDocument());
-
-                    wrFrame.IndexWriter.Commit(CompletionState.GetCommitUserData(commitState));
-
-                    if (reopenReader)
-                        ReopenReader();
-                }
-
-#pragma warning disable 420
-                Interlocked.Exchange(ref _activities, 0);
-#pragma warning restore 420
-                _delayCycle = 0;
-
-                op.Successful = true;
-            }
-        }
-        internal static void ReopenReader()
-        {
-            using (var op = SnTrace.Index.StartOperation("LM: ReopenReader"))
-            {
-                var retry = 0;
-                Exception e = null;
-                while (retry++ < REOPENRETRYMAX)
-                {
-                    try
-                    {
-                        if (retry > 1)
-                            SnTrace.Index.Write("LM: REOPEN READER {0}. ATTEMPT", retry);
-
-                        _reader = _writer.GetReader();
-
-                        var recentlyUsedReaderFrames = Interlocked.Exchange(ref _recentlyUsedReaderFrames, 0);
-
-                        op.Successful = true;
-                        IndexReopenedAt = DateTime.UtcNow;
-                        SnTrace.Index.Write("Recently used reader frames from last reopening reader: {0}", recentlyUsedReaderFrames);
-                        return;
-                    }
-                    catch (AlreadyClosedException ace)
-                    {
-                        e = ace;
-                        Thread.Sleep(100);
-                    }
-                }
-                if (e != null)
-                    throw new ApplicationException(String.Concat("Indexwriter is closed after ", retry, " attempt."), e);
-            }
-        }
-
-        private static volatile int _activities;          // committer thread sets 0 other threads increment
-        private static volatile int _delayCycle;          // committer thread uses
-
-        private static bool _stopCommitWorker;
-        private static object _commitLock = new object();
-        private static void CommitWorker()
-        {
-            int wait = (int)(SenseNet.Configuration.Indexing.CommitDelayInSeconds * 1000.0);
-            for (; ; )
-            {
-                // check if commit worker instructed to stop
-                if (_stopCommitWorker)
-                {
-                    _stopCommitWorker = false;
-                    return;
-                }
-
-                try
-                {
-                    lock (_commitLock)
-                    {
-                        CommitOrDelay();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    SnLog.WriteException(ex);
-                }
-                Thread.Sleep(wait);
-            }
-        }
-
-        /* ==================================================================== Document operations */
+        #region /* ==================================================================== Document operations */
 
         // AddDocumentActivity
         internal static bool AddCompleteDocument(Document document, int activityId, bool executingUnprocessedActivities, VersioningInfo versioning)
@@ -829,5 +493,7 @@ namespace SenseNet.Search.Indexing
 
             return -1;
         }
+
+        #endregion
     }
 }

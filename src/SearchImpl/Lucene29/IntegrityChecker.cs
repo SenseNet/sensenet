@@ -14,8 +14,9 @@ using SenseNet.ContentRepository.Storage;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using SenseNet.Diagnostics;
+using SenseNet.Search.Lucene29;
 
-namespace SenseNet.Search.Indexing
+namespace SenseNet.Search.Lucene29
 {
     public enum IndexDifferenceKind { NotInIndex, NotInDatabase, MoreDocument, DifferentNodeTimestamp, DifferentVersionTimestamp, DifferentLastPublicFlag, DifferentLastDraftFlag }
 

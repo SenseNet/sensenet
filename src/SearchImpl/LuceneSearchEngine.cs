@@ -10,6 +10,9 @@ namespace SenseNet.Search
 {
     public class LuceneSearchEngine : ISearchEngine
     {
+        public static readonly Lucene.Net.Util.Version LuceneVersion = Lucene.Net.Util.Version.LUCENE_29;
+
+
         static LuceneSearchEngine()
         {
             Lucene.Net.Search.BooleanQuery.SetMaxClauseCount(100000);

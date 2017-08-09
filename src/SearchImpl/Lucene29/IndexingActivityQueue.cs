@@ -13,9 +13,10 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using SenseNet.ContentRepository;
+using SenseNet.Search.Indexing;
 using Task = System.Threading.Tasks.Task;
 
-namespace SenseNet.Search.Indexing
+namespace SenseNet.Search.Lucene29
 {
     internal static class IndexingActivityQueue
     {

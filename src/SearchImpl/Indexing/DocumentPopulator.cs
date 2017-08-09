@@ -18,6 +18,7 @@ using SenseNet.Communication.Messaging;
 using System.Diagnostics;
 using System.IO;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.Search.Lucene29;
 
 namespace SenseNet.Search.Indexing
 {
