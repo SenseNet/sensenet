@@ -24,6 +24,7 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
+using SenseNet.Search.Lucene29;
 using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository
@@ -512,7 +513,7 @@ namespace SenseNet.ContentRepository
             // check if writer.lock is still there -> if yes, wait for other appdomain to quit or lock to disappear - until a given timeout.
             // after timeout is passed, Repository.Start will deliberately attempt to remove lock file on following startup
 
-            if (!IndexManager.WaitForWriterLockFileIsReleased())
+            if (!Lucene29IndexManager.WaitForWriterLockFileIsReleased())
             {
                 // lock file was not removed by other or current appdomain for the given time interval (onstart: other appdomain might use it, onend: current appdomain did not release it yet)
                 // onstart -> notify operator and start repository anyway

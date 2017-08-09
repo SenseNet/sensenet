@@ -257,7 +257,7 @@ namespace SenseNet.Search.Lucene29
         {
             var directory = FSDirectory.Open(new System.IO.DirectoryInfo(IndexDirectory.CurrentDirectory));
 
-            _writer = new IndexWriter(directory, IndexManager.GetAnalyzer(), false, IndexWriter.MaxFieldLength.LIMITED);
+            _writer = new IndexWriter(directory, Lucene29IndexManager.GetAnalyzer(), false, IndexWriter.MaxFieldLength.LIMITED);
 
             _writer.SetMaxMergeDocs(SenseNet.Configuration.Indexing.LuceneMaxMergeDocs);
             _writer.SetMergeFactor(SenseNet.Configuration.Indexing.LuceneMergeFactor);

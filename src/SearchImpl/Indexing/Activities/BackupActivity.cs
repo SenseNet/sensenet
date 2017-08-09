@@ -5,6 +5,7 @@ using System.Text;
 using System.Diagnostics;
 using System.Threading;
 using SenseNet.Diagnostics;
+using SenseNet.Search.Lucene29;
 
 namespace SenseNet.Search.Indexing.Activities
 {

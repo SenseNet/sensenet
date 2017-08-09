@@ -12,8 +12,10 @@ using System.Threading;
 using SenseNet.Communication.Messaging;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository;
+using SenseNet.Search.Indexing;
+using SenseNet.Search.Lucene29;
 
-namespace SenseNet.Search.Indexing
+namespace SenseNet.Search.Lucene29
 {
     [Serializable]
     public sealed class RequestBackupIndexMessage : DistributedAction
@@ -291,10 +293,10 @@ Debug.WriteLine(String.Format("@> {0} =========== BackupIndex END. id: {1}", App
             {
                 Progress.StartOptimizeBeforeBackup();
                 var dir = Lucene.Net.Store.FSDirectory.Open(new System.IO.DirectoryInfo(indexDirectoryPath));
-                var writer = new Lucene.Net.Index.IndexWriter(dir, IndexManager.GetAnalyzer(), false, Lucene.Net.Index.IndexWriter.MaxFieldLength.UNLIMITED);
+                var writer = new Lucene.Net.Index.IndexWriter(dir, Lucene29IndexManager.GetAnalyzer(), false, Lucene.Net.Index.IndexWriter.MaxFieldLength.UNLIMITED);
                 writer.Optimize();
                 writer.Close();
-                if (!IndexManager.WaitForWriterLockFileIsReleased(StorageContext.Search.IndexDirectoryBackupPath))
+                if (!Lucene29IndexManager.WaitForWriterLockFileIsReleased(StorageContext.Search.IndexDirectoryBackupPath))
                     throw new ApplicationException("Writer lock releasing time out.");
                 Progress.FinishOptimizeBeforeBackup();
                 op.Successful = true;

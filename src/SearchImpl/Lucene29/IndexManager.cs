@@ -10,11 +10,11 @@ using Lucene.Net.Store;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
 
-namespace SenseNet.Search
+namespace SenseNet.Search.Lucene29
 {
-    public static class IndexManager
+    public static class Lucene29IndexManager
     {
-        static IndexManager()
+        static Lucene29IndexManager()
         {
             IndexWriter.SetDefaultWriteLockTimeout(20 * 60 * 1000); // 20 minutes
         }

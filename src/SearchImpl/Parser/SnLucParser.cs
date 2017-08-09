@@ -15,6 +15,7 @@ using System.IO;
 using Lucene.Net.Analysis.Tokenattributes;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Search;
+using SenseNet.Search.Lucene29;
 
 namespace SenseNet.Search.Parser
 {
@@ -127,7 +128,7 @@ namespace SenseNet.Search.Parser
 
         public SnLucParser()
         {
-            _masterAnalyzer = IndexManager.GetAnalyzer();
+            _masterAnalyzer = Lucene29IndexManager.GetAnalyzer();
         }
 
         public Query Parse(string queryText)

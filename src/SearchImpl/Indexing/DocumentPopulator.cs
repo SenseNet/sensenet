@@ -50,7 +50,7 @@ namespace SenseNet.Search.Indexing
             using (var op = SnTrace.Index.StartOperation("IndexPopulator ClearAndPopulateAll"))
             {
                 // recreate
-                var writer = IndexManager.GetIndexWriter(true);
+                var writer = Lucene29IndexManager.GetIndexWriter(true);
                 try
                 {
                     var excludedNodeTypes = LuceneManager.GetNotIndexedNodeTypes();
@@ -91,7 +91,7 @@ namespace SenseNet.Search.Indexing
         {
             using (var op = SnTrace.Index.StartOperation("IndexPopulator RepopulateTree"))
             {
-                var writer = IndexManager.GetIndexWriter(false);
+                var writer = Lucene29IndexManager.GetIndexWriter(false);
                 writer.DeleteDocuments(new Term(IndexFieldName.InTree, path.ToLowerInvariant()));
                 try
                 {
