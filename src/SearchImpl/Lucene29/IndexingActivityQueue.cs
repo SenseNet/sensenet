@@ -51,7 +51,7 @@ namespace SenseNet.Search.Lucene29
             }
 
             var lastId = TerminationHistory.GetLastTerminatedId();
-            var lastDbId = LuceneManager.GetLastStoredIndexingActivityId();
+            var lastDbId = IndexManager.GetLastStoredIndexingActivityId();
             var newerCount = lastDbId - lastId;
             if (lastId < lastDbId)
             {
@@ -104,11 +104,11 @@ namespace SenseNet.Search.Lucene29
         public static void Startup(System.IO.TextWriter consoleOut)
         {
             // initalize from index
-            var cud = LuceneManager._indexingEngine.ReadActivityStatusFromIndex() as CompletionState;
+            var cud = IndexManager._indexingEngine.ReadActivityStatusFromIndex() as CompletionState;
 
             var gapsLength = cud.Gaps?.Length ?? 0;
 
-            var lastDatabaseId = LuceneManager.GetLastStoredIndexingActivityId();
+            var lastDatabaseId = IndexManager.GetLastStoredIndexingActivityId();
 
             using (var op = SnTrace.Index.StartOperation("IAQ: InitializeFromIndex. LastIndexedActivityId: {0}, LastDatabaseId: {1}, TotalUnprocessed: {2}"
                 , cud.LastActivityId, lastDatabaseId, lastDatabaseId - cud.LastActivityId + gapsLength))
@@ -243,7 +243,7 @@ namespace SenseNet.Search.Lucene29
 
                     // Commit is necessary because otherwise the gap is removed only in memory, but
                     // the index is not updated in the file system.
-                    LuceneManager.Commit();
+                    IndexManager.Commit();
                 }
 
                 SnLog.WriteInformation($"Executing unprocessed activities ({count}) finished.", EventId.RepositoryLifecycle);

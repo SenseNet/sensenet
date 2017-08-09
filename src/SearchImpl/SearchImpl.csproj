@@ -86,10 +86,10 @@
     <Compile Include="Lucene29\IndexReaderFrame.cs" />
     <Compile Include="Lucene29\IndexWriterFrame.cs" />
     <Compile Include="Lucene29\IntegrityChecker.cs" />
-    <Compile Include="Indexing\LuceneManager.cs" />
+    <Compile Include="Indexing\IndexManager.cs" />
     <Compile Include="Indexing\PerFieldIndexingInfo.cs" />
     <Compile Include="Indexing\SnPerFieldAnalyzerWrapper.cs" />
-    <Compile Include="Lucene29\IndexManager.cs" />
+    <Compile Include="Lucene29\Lucene29IndexManager.cs" />
     <Compile Include="InvalidContentQueryException.cs" />
     <Compile Include="Lucene29\Lucene29Compiler.cs" />
     <Compile Include="Lucene29\Lucene29IndexingEngine.cs" />

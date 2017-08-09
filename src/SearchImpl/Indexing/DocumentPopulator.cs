@@ -44,7 +44,7 @@ namespace SenseNet.Search.Indexing
         // caller: IndexPopulator.Populator, Import.Importer, Tests.Initializer, RunOnce
         public void ClearAndPopulateAll(bool backup = true, TextWriter consoleWriter = null)
         {
-            var lastActivityId = LuceneManager.GetLastStoredIndexingActivityId();
+            var lastActivityId = IndexManager.GetLastStoredIndexingActivityId();
             var commitData = CompletionState.GetCommitUserData(lastActivityId);
 
             using (var op = SnTrace.Index.StartOperation("IndexPopulator ClearAndPopulateAll"))
@@ -53,7 +53,7 @@ namespace SenseNet.Search.Indexing
                 var writer = Lucene29IndexManager.GetIndexWriter(true);
                 try
                 {
-                    var excludedNodeTypes = LuceneManager.GetNotIndexedNodeTypes();
+                    var excludedNodeTypes = IndexManager.GetNotIndexedNodeTypes();
                     foreach (var docData in StorageContext.Search.LoadIndexDocumentsByPath("/Root", excludedNodeTypes))
                     {
                         var doc = IndexDocumentInfo.GetDocument(docData);
@@ -74,7 +74,7 @@ namespace SenseNet.Search.Indexing
                     writer.Close();
                 }
                 consoleWriter?.Write("  Deleting indexing activities ... ");
-                LuceneManager.DeleteAllIndexingActivities();
+                IndexManager.DeleteAllIndexingActivities();
                 consoleWriter?.WriteLine("ok");
                 if (backup)
                 {
@@ -95,7 +95,7 @@ namespace SenseNet.Search.Indexing
                 writer.DeleteDocuments(new Term(IndexFieldName.InTree, path.ToLowerInvariant()));
                 try
                 {
-                    var excludedNodeTypes = LuceneManager.GetNotIndexedNodeTypes();
+                    var excludedNodeTypes = IndexManager.GetNotIndexedNodeTypes();
                     foreach (var docData in StorageContext.Search.LoadIndexDocumentsByPath(path, excludedNodeTypes))
                     {
                         var doc = IndexDocumentInfo.GetDocument(docData);
@@ -353,8 +353,8 @@ namespace SenseNet.Search.Indexing
         }
         private static void ExecuteActivity(LuceneIndexingActivity activity)
         {
-            LuceneManager.RegisterActivity(activity);
-            LuceneManager.ExecuteActivity(activity, true, true);
+            IndexManager.RegisterActivity(activity);
+            IndexManager.ExecuteActivity(activity, true, true);
         }
     }
 }

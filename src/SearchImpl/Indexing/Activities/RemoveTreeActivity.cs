@@ -10,7 +10,7 @@ namespace SenseNet.Search.Indexing.Activities
         protected override bool ProtectedExecute()
         {
             var terms = new[] { new Term("InTree", TreeRoot), new Term("Path", TreeRoot) };
-            return LuceneManager.DeleteDocuments(terms, MoveOrRename ?? false, this.Id, this.IsUnprocessedActivity, null);
+            return IndexManager.DeleteDocuments(terms, MoveOrRename ?? false, this.Id, this.IsUnprocessedActivity, null);
         }
     }
 }

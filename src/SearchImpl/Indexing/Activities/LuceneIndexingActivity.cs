@@ -80,7 +80,7 @@ namespace SenseNet.Search.Indexing.Activities
                 _executed = true;
 
             // ActivityFinished must be called after executing an activity, even if index is not changed
-            LuceneManager.ActivityFinished(this.Id, this.IsUnprocessedActivity);
+            IndexManager.ActivityFinished(this.Id, this.IsUnprocessedActivity);
         }
 
         protected abstract bool ProtectedExecute();

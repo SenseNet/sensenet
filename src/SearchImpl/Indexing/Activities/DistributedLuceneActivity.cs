@@ -18,7 +18,7 @@ namespace SenseNet.Search.Indexing.Activities
     {
         public override void DoAction(bool onRemote, bool isFromMe)
         {
-            if (!LuceneManager.Running)
+            if (!IndexManager.Running)
                 return;
 
             if (onRemote && !isFromMe)

@@ -180,7 +180,7 @@ namespace SenseNet.ContentRepository
             }
             ConsoleWriteLine("Starting LuceneManager:");
 
-            LuceneManager.Start(_settings.Console);
+            IndexManager.Start(_settings.Console);
 
             ConsoleWriteLine("LuceneManager has started.");
         }
@@ -455,7 +455,7 @@ namespace SenseNet.ContentRepository
                 if (LuceneManagerIsRunning)
                 {
                     SnTrace.Repository.Write("Shutting down LuceneManager.");
-                    LuceneManager.ShutDown();
+                    IndexManager.ShutDown();
                 }
 
                 SnTrace.Repository.Write("Waiting for writer lock file is released.");
@@ -567,7 +567,7 @@ namespace SenseNet.ContentRepository
             {
                 if (_instance == null)
                     throw new NotSupportedException("Querying running state of LuceneManager is not supported when RepositoryInstance is not created.");
-                return LuceneManager.Running;
+                return IndexManager.Running;
             }
         }
         public static bool IndexingPaused

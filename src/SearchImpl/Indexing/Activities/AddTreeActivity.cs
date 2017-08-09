@@ -29,7 +29,7 @@ namespace SenseNet.Search.Indexing.Activities
 
         protected override bool ProtectedExecute()
         {
-            return LuceneManager.AddTree(TreeRoot, this.MoveOrRename ?? false, this.Id, this.IsUnprocessedActivity);
+            return IndexManager.AddTree(TreeRoot, this.MoveOrRename ?? false, this.Id, this.IsUnprocessedActivity);
         }
     }
 }

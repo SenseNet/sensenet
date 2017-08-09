@@ -20,19 +20,19 @@ namespace SenseNet.Search
 
         public bool IndexingPaused
         {
-            get { return LuceneManager.Paused; }}
+            get { return IndexManager.Paused; }}
 
         public void PauseIndexing()
         {
-            LuceneManager.PauseIndexing();
+            IndexManager.PauseIndexing();
         }
         public void ContinueIndexing()
         {
-            LuceneManager.ContinueIndexing();
+            IndexManager.ContinueIndexing();
         }
         public void WaitIfIndexingPaused()
         {
-            LuceneManager.WaitIfIndexingPaused();
+            IndexManager.WaitIfIndexingPaused();
         }
 
 

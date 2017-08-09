@@ -114,11 +114,11 @@ namespace SenseNet.Search.Lucene29
     {
         public static object CheckIndexIntegrity(string contentPath, bool recurse)
         {
-            var completionState = LuceneManager._indexingEngine.ReadActivityStatusFromIndex();
+            var completionState = IndexManager._indexingEngine.ReadActivityStatusFromIndex();
             if(completionState == null)
                 throw new NotSupportedException("Index Integrity Checker cannot read activity status from index.");
 
-            var lastDatabaseId = LuceneManager.GetLastStoredIndexingActivityId();
+            var lastDatabaseId = IndexManager.GetLastStoredIndexingActivityId();
 
             var channel = SenseNet.ContentRepository.DistributedApplication.ClusterChannel;
             var appDomainName = channel == null ? null : channel.ReceiverName;

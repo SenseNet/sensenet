@@ -12,7 +12,7 @@ using SenseNet.Diagnostics;
 
 namespace SenseNet.Search.Lucene29
 {
-    public static class Lucene29IndexManager
+    public static class Lucene29IndexManager //UNDONE:!!!! Merge functionality into the indexing engine (even as static)
     {
         static Lucene29IndexManager()
         {

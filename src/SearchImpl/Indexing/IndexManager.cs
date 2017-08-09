@@ -19,7 +19,7 @@ namespace SenseNet.Search.Indexing
 {
     public enum CommitHint { AddNew, AddNewVersion, Update, Rename, Move, Delete } ;
 
-    public static class LuceneManager
+    public static class IndexManager // alias LuceneManager
     {
         private class DocumentUpdate
         {
@@ -462,7 +462,7 @@ namespace SenseNet.Search.Indexing
 
         public static List<Document> GetDocumentsByNodeId(int nodeId)
         {
-            using (var readerFrame = LuceneManager.GetIndexReaderFrame())
+            using (var readerFrame = IndexManager.GetIndexReaderFrame())
             {
                 var termDocs = readerFrame.IndexReader.TermDocs(new Term(IndexFieldName.NodeId, Lucene.Net.Util.NumericUtils.IntToPrefixCoded(nodeId)));
                 return GetDocumentsFromTermDocs(termDocs, readerFrame);

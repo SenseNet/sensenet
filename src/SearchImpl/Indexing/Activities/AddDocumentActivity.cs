@@ -21,10 +21,10 @@ namespace SenseNet.Search.Indexing.Activities
             if (Document != null)
             {
                 if (true == this.SingleVersion)
-                    return LuceneManager.AddCompleteDocument(Document, Id, IsUnprocessedActivity, Versioning);
-                return LuceneManager.AddDocument(Document, Id, IsUnprocessedActivity, Versioning);
+                    return IndexManager.AddCompleteDocument(Document, Id, IsUnprocessedActivity, Versioning);
+                return IndexManager.AddDocument(Document, Id, IsUnprocessedActivity, Versioning);
             }
-            return LuceneManager.AddDocument(Id, IsUnprocessedActivity, Versioning);
+            return IndexManager.AddDocument(Id, IsUnprocessedActivity, Versioning);
         }
     }
 }

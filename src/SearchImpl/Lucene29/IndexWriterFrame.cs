@@ -84,12 +84,12 @@ namespace SenseNet.Search.Lucene29
 
         protected IndexWriter GetWriter()
         {
-            return ((Lucene29IndexingEngine)LuceneManager._indexingEngine)._writer; //UNDONE: refactor: do not use member of another class
+            return ((Lucene29IndexingEngine)IndexManager._indexingEngine)._writer; //UNDONE: refactor: do not use member of another class
         }
 
         protected ReaderWriterLockSlim GetWriterRestartLock()
         {
-            return ((Lucene29IndexingEngine)LuceneManager._indexingEngine)._writerRestartLock; //UNDONE: refactor: do not use member of another class
+            return ((Lucene29IndexingEngine)IndexManager._indexingEngine)._writerRestartLock; //UNDONE: refactor: do not use member of another class
         }
     }
     internal class FastIndexWriterUsage : IndexWriterUsage

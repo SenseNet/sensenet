@@ -152,9 +152,9 @@ Debug.WriteLine(String.Format("@> {0} =========== BackupIndex END. id: {1}", App
             using (var op = SnTrace.Repository.StartOperation("Backup index immediatelly."))
             {
                 EnsureEmptyDirctory(_backupDirectoryPath);
-                LuceneManager.PauseIndexing();
+                IndexManager.PauseIndexing();
 
-                while (!LuceneManager.Paused)
+                while (!IndexManager.Paused)
                 {
                     Thread.Sleep(100);
                 }
@@ -165,7 +165,7 @@ Debug.WriteLine(String.Format("@> {0} =========== BackupIndex END. id: {1}", App
                 }
                 finally
                 {
-                    LuceneManager.ContinueIndexing();
+                    IndexManager.ContinueIndexing();
                 }
 
                 OptimizeCompressAndStore();
