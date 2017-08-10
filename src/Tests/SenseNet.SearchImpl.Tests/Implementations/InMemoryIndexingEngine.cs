@@ -56,5 +56,10 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             return null;
         }
+
+        public IEnumerable<IIndexDocument> GetDocumentsByNodeId(int nodeId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

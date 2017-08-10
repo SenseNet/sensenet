@@ -27,30 +27,6 @@ namespace SenseNet.Search.Indexing
             public Document Document;
         }
 
-        private class DocumentVersionComparer : IComparer<Document>
-        {
-            public int Compare(Document x, Document y)
-            {
-                var vx = x.Get("Version").Substring(1);
-                var vxa = vx.Split('.');
-                var vy = y.Get("Version").Substring(1);
-                var vya = vy.Split('.');
-
-                var vxma = Int32.Parse(vxa[0]);
-                var vyma = Int32.Parse(vya[0]);
-                var dxma = vxma.CompareTo(vyma);
-                if (dxma != 0)
-                    return dxma;
-
-                var vxmi = Int32.Parse(vxa[1]);
-                var vymi = Int32.Parse(vya[1]);
-                var dxmi = vxmi.CompareTo(vymi);
-                if (dxmi != 0)
-                    return dxmi;
-                return vxa[2].CompareTo(vya[2]);
-            }
-        }
-
         internal static IIndexingEngine _indexingEngine = new Lucene29IndexingEngine(); //UNDONE:!!! This should be a little bit better :)
 
 
@@ -460,21 +436,9 @@ namespace SenseNet.Search.Indexing
             return Int32.Parse(doc.Get(IndexFieldName.NodeId));
         }
 
-        public static List<Document> GetDocumentsByNodeId(int nodeId)
+        /**/public static List<IIndexDocument> GetDocumentsByNodeId(int nodeId)
         {
-            using (var readerFrame = IndexManager.GetIndexReaderFrame())
-            {
-                var termDocs = readerFrame.IndexReader.TermDocs(new Term(IndexFieldName.NodeId, Lucene.Net.Util.NumericUtils.IntToPrefixCoded(nodeId)));
-                return GetDocumentsFromTermDocs(termDocs, readerFrame);
-            }
-        }
-        private static List<Document> GetDocumentsFromTermDocs(TermDocs termDocs, IndexReaderFrame readerFrame)
-        {
-            var docs = new List<Document>();
-            while (termDocs.Next())
-                docs.Add(readerFrame.IndexReader.Document(termDocs.Doc()));
-            docs.Sort(new DocumentVersionComparer());
-            return docs;
+            return _indexingEngine.GetDocumentsByNodeId(nodeId).ToList();
         }
 
         private static int GetIntFromPrefixCode(string text)

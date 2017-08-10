@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 
 namespace SenseNet.Search
 {
@@ -23,5 +24,8 @@ namespace SenseNet.Search
         void Commit();
 
         IIndexingActivityStatus ReadActivityStatusFromIndex();
+
+        /// <summary>Only for tests.</summary>
+        IEnumerable<IIndexDocument> GetDocumentsByNodeId(int nodeId);
     }
 }

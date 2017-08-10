@@ -15,6 +15,31 @@ namespace SenseNet.Search.Lucene29
 {
     internal class Lucene29IndexingEngine : IIndexingEngine
     {
+        private class DocumentVersionComparer : IComparer<IIndexDocument>
+        {
+            public int Compare(IIndexDocument x, IIndexDocument y)
+            {
+                var vx = x?.Get("Version").Substring(1) ?? "0.0.A";
+                var vxa = vx.Split('.');
+                var vy = y?.Get("Version").Substring(1) ?? "0.0.A";
+                var vya = vy.Split('.');
+
+                var vxma = int.Parse(vxa[0]);
+                var vyma = int.Parse(vya[0]);
+                var dxma = vxma.CompareTo(vyma);
+                if (dxma != 0)
+                    return dxma;
+
+                var vxmi = int.Parse(vxa[1]);
+                var vymi = int.Parse(vya[1]);
+                var dxmi = vxmi.CompareTo(vymi);
+                if (dxmi != 0)
+                    return dxmi;
+
+                return string.Compare(vxa[2], vya[2], StringComparison.Ordinal);
+            }
+        }
+
         public bool Running { get; private set; }
         public bool Paused { get; private set; }
 
@@ -145,6 +170,23 @@ namespace SenseNet.Search.Lucene29
         {
             using (var readerFrame = GetIndexReaderFrame())
                 return CompletionState.ParseFromReader(readerFrame.IndexReader);
+        }
+
+        public IEnumerable<IIndexDocument> GetDocumentsByNodeId(int nodeId)
+        {
+            using (var readerFrame = GetIndexReaderFrame())
+            {
+                var termDocs = readerFrame.IndexReader.TermDocs(new Term(IndexFieldName.NodeId, Lucene.Net.Util.NumericUtils.IntToPrefixCoded(nodeId)));
+                return GetDocumentsFromTermDocs(termDocs, readerFrame);
+            }
+        }
+        private IEnumerable<IIndexDocument> GetDocumentsFromTermDocs(TermDocs termDocs, IndexReaderFrame readerFrame)
+        {
+            var docs = new List<IIndexDocument>();
+            while (termDocs.Next())
+                docs.Add(new Lucene29IndexDocument(readerFrame.IndexReader.Document(termDocs.Doc())));
+            docs.Sort(new DocumentVersionComparer());
+            return docs;
         }
 
         private void Commit(bool reopenReader)
