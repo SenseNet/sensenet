@@ -16,7 +16,7 @@ using SenseNet.ContentRepository;
 using SenseNet.Search.Indexing;
 using Task = System.Threading.Tasks.Task;
 
-namespace SenseNet.Search.Lucene29
+namespace SenseNet.Search.Indexing
 {
     internal static class IndexingActivityQueue
     {

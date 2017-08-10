@@ -100,16 +100,6 @@ namespace SenseNet.Search.Indexing
             SnLog.WriteInformation("Indexing engine has stopped. Max task id and exceptions: " + IndexingActivityQueue.GetCurrentCompletionState());
         }
 
-        public static void Backup()
-        {
-            BackupTools.SynchronousBackupIndex();
-        }
-        public static void BackupAndShutDown()
-        {
-            ShutDown();
-            BackupTools.BackupIndexImmediatelly();
-        }
-
         /**/public static int GetLastStoredIndexingActivityId()
         {
             return DataProvider.Current.GetLastActivityId();

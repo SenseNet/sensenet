@@ -3,7 +3,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Lucene29;
 
-namespace SenseNet.Search.Lucene29
+namespace SenseNet.Search.Indexing
 {
     internal static class IndexHealthMonitor
     {
