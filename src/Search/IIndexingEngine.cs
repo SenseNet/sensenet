@@ -9,7 +9,7 @@ namespace SenseNet.Search
         int[] Gaps { get; set; }
     }
 
-    public interface IIndexingEngine
+    public interface IIndexingEngine // IIndexActualizator, IIndexingEngine
     {
         bool Running { get; }
         bool Paused { get; }
@@ -27,5 +27,13 @@ namespace SenseNet.Search
 
         /// <summary>Only for tests.</summary>
         IEnumerable<IIndexDocument> GetDocumentsByNodeId(int nodeId);
+
+        void Actualize(IEnumerable<SnTerm> deletions, IndexDocument addition, IEnumerable<DocumentUpdate> updates);
+        void Actualize(IEnumerable<SnTerm> deletions, IEnumerable<IndexDocument> addition);
+    }
+
+    public interface IIndexingEngineFactory
+    {
+        IIndexingEngine CreateIndexingEngine();
     }
 }

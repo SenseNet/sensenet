@@ -25,7 +25,7 @@ namespace SenseNet.Search.Lucene29
 
         internal static IndexReaderFrame GetReaderFrame(bool dirty = false)
         {
-            return ((Lucene29IndexingEngine)IndexManager._indexingEngine).GetIndexReaderFrame(dirty); //UNDONE: refactor: do not use member of another class
+            return ((Lucene29IndexingEngine)IndexManager.IndexingEngine).GetIndexReaderFrame(dirty); //UNDONE: refactor: do not use member of another class
         }
     }
 }

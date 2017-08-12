@@ -1,19 +1,18 @@
-﻿using Lucene.Net.Documents;
+﻿using System;
+using Lucene.Net.Documents;
+using SenseNet.Tools;
 
 namespace SenseNet.Search.Lucene29
 {
-    public class Lucene29IndexDocument : IIndexDocument
-    {
-        private readonly Document _document;
+    //UNDONE:!!!!! implement Lucene29IndexDocument
+    //public class Lucene29IndexDocument : IIndexDocument
+    //{
+    //    private readonly Document _document;
 
-        public Lucene29IndexDocument(Document document)
-        {
-            _document = document;
-        }
+    //    public Lucene29IndexDocument(Document document)
+    //    {
+    //        _document = document;
+    //    }
 
-        public string Get(string fieldName)
-        {
-            return _document.Get(fieldName);
-        }
-    }
+    //}
 }

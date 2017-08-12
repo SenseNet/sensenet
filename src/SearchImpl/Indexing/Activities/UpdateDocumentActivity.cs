@@ -17,9 +17,7 @@ namespace SenseNet.Search.Indexing.Activities
     {
         protected override bool ProtectedExecute()
         {
-            if (Document != null)
-                return IndexManager.UpdateDocument(Document, Id, IsUnprocessedActivity, Versioning);
-            return IndexManager.UpdateDocument(Id, IsUnprocessedActivity, Versioning);
+            return IndexManager.UpdateDocument(Document, Versioning);
         }
     }
 }

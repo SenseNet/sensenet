@@ -9,8 +9,11 @@ namespace SenseNet.Search.Indexing.Activities
     {
         protected override bool ProtectedExecute()
         {
-            var terms = new[] { new Term("InTree", TreeRoot), new Term("Path", TreeRoot) };
-            return IndexManager.DeleteDocuments(terms, MoveOrRename ?? false, this.Id, this.IsUnprocessedActivity, null);
+            return IndexManager.DeleteDocuments(new[]
+            {
+                new SnTerm(IndexFieldName.InTree, TreeRoot),
+                new SnTerm(IndexFieldName.Path, TreeRoot)
+            }, null);
         }
     }
 }

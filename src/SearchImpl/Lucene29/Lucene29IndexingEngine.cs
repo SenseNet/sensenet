@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
+using Lucene.Net.Util;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
@@ -19,9 +20,9 @@ namespace SenseNet.Search.Lucene29
         {
             public int Compare(IIndexDocument x, IIndexDocument y)
             {
-                var vx = x?.Get("Version").Substring(1) ?? "0.0.A";
+                var vx = x?.Version.Substring(1) ?? "0.0.A";
                 var vxa = vx.Split('.');
-                var vy = y?.Get("Version").Substring(1) ?? "0.0.A";
+                var vy = y?.Version.Substring(1) ?? "0.0.A";
                 var vya = vy.Split('.');
 
                 var vxma = int.Parse(vxa[0]);
@@ -172,22 +173,110 @@ namespace SenseNet.Search.Lucene29
                 return CompletionState.ParseFromReader(readerFrame.IndexReader);
         }
 
-        public IEnumerable<IIndexDocument> GetDocumentsByNodeId(int nodeId)
+        /* ============================================================================================= Document Operations */
+
+        public void Actualize(IEnumerable<SnTerm> deletions, IndexDocument addition, IEnumerable<DocumentUpdate> updates)
         {
-            using (var readerFrame = GetIndexReaderFrame())
+            using (var wrFrame = IndexWriterFrame.Get(false)) // // AddDocument
             {
-                var termDocs = readerFrame.IndexReader.TermDocs(new Term(IndexFieldName.NodeId, Lucene.Net.Util.NumericUtils.IntToPrefixCoded(nodeId)));
-                return GetDocumentsFromTermDocs(termDocs, readerFrame);
+                if (deletions != null)
+                    wrFrame.IndexWriter.DeleteDocuments(GetTerms(deletions));
+
+                if(updates != null)
+                    foreach (var update in updates)
+                        wrFrame.IndexWriter.UpdateDocument(GetTerm(update.UpdateTerm), GetDocument(update.Document));
+
+                if (addition != null)
+                {
+                    // pessimistic approach: delete document before adding it to avoid duplicate index documents
+                    wrFrame.IndexWriter.DeleteDocuments(GetVersionIdTerm(addition.VersionId));
+                    wrFrame.IndexWriter.AddDocument(GetDocument(addition));
+                }
             }
         }
-        private IEnumerable<IIndexDocument> GetDocumentsFromTermDocs(TermDocs termDocs, IndexReaderFrame readerFrame)
+
+        public void Actualize(IEnumerable<SnTerm> deletions, IEnumerable<IndexDocument> addition)
         {
-            var docs = new List<IIndexDocument>();
-            while (termDocs.Next())
-                docs.Add(new Lucene29IndexDocument(readerFrame.IndexReader.Document(termDocs.Doc())));
-            docs.Sort(new DocumentVersionComparer());
-            return docs;
+            using (var wrFrame = IndexWriterFrame.Get(false)) // // AddTree
+            {
+                if (deletions != null)
+                    wrFrame.IndexWriter.DeleteDocuments(GetTerms(deletions));
+
+                foreach (var snDoc in addition)
+                {
+                    Document document;
+                    int versionId;
+                    try
+                    {
+                        document = GetDocument(snDoc);
+                        if (document == null) // indexing disabled
+                            continue;
+                        versionId = snDoc.VersionId;
+                    }
+                    catch (Exception e)
+                    {
+                        var path = snDoc?.GetStringValue(IndexFieldName.Path) ?? string.Empty;
+                        SnLog.WriteException(e, "Error during indexing: the document data loaded from the database or the generated Lucene Document is invalid. Please save the content to regenerate the index for it. Path: " + path);
+
+                        SnTrace.Index.WriteError("LM: Error during indexing: the document data loaded from the database or the generated Lucene Document is invalid. Please save the content to regenerate the index for it. Path: " + path);
+                        SnTrace.Index.WriteError("LM: Error during indexing: " + e);
+
+                        throw;
+                    }
+
+                    // pessimistic approach: delete document before adding it to avoid duplicate index documents
+                    wrFrame.IndexWriter.DeleteDocuments(GetVersionIdTerm(versionId));
+                    wrFrame.IndexWriter.AddDocument(document);
+                }
+            }
         }
+
+        private Term GetTerm(SnTerm snTerm)
+        {
+            return GetTerms(snTerm).First();
+        }
+        private Term[] GetTerms(IEnumerable<SnTerm> snTerms)
+        {
+            List<Term> terms = new List<Term>();
+            foreach(var snTerm in snTerms)
+                terms.AddRange(GetTerms(snTerm));
+            return terms.ToArray();
+        }
+        private Term[] GetTerms(SnTerm snTerm)
+        {
+            switch (snTerm.Type)
+            {
+                case SnTermType.String:
+                    return new[] {new Term(snTerm.Name, snTerm.StringValue)};
+                case SnTermType.StringArray:
+                    return snTerm.StringArrayValue.Select(s=> new Term(snTerm.Name, s) ).ToArray();
+                case SnTermType.Bool:
+                    return new[] { new Term(snTerm.Name, snTerm.BooleanValue ? StorageContext.Search.Yes : StorageContext.Search.No) };
+                case SnTermType.Int:
+                    return new[] { new Term(snTerm.Name, NumericUtils.IntToPrefixCoded(snTerm.IntegerValue)) };
+                case SnTermType.Long:
+                    return new[] { new Term(snTerm.Name, NumericUtils.LongToPrefixCoded(snTerm.LongValue)) };
+                case SnTermType.Float:
+                    return new[] { new Term(snTerm.Name, NumericUtils.FloatToPrefixCoded(snTerm.SingleValue)) };
+                case SnTermType.Double:
+                    return new[] { new Term(snTerm.Name, NumericUtils.DoubleToPrefixCoded(snTerm.DoubleValue)) };
+                case SnTermType.DateTime:
+                    return new[] { new Term(snTerm.Name, NumericUtils.LongToPrefixCoded(snTerm.DateTimeValue.Ticks)) };
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+        private Term GetVersionIdTerm(int versionId)
+        {
+            return new Term(IndexFieldName.VersionId, Lucene.Net.Util.NumericUtils.IntToPrefixCoded(versionId));
+        }
+
+        private Document GetDocument(IIndexDocument snDoc)
+        {
+            throw new NotImplementedException(); //UNDONE:!!!! implement GetDocument(IndexDocument snDoc):Document
+        }
+
+        /* ============================================================================================= */
 
         private void Commit(bool reopenReader)
         {
@@ -370,6 +459,27 @@ namespace SenseNet.Search.Lucene29
                 }
                 Thread.Sleep(wait);
             }
+        }
+
+        /* ================================================================== Tools */
+
+        /// <summary> For test purposes. </summary>
+        public IEnumerable<IIndexDocument> GetDocumentsByNodeId(int nodeId)
+        {
+            using (var readerFrame = GetIndexReaderFrame())
+            {
+                var termDocs = readerFrame.IndexReader.TermDocs(new Term(IndexFieldName.NodeId, Lucene.Net.Util.NumericUtils.IntToPrefixCoded(nodeId)));
+                return GetDocumentsFromTermDocs(termDocs, readerFrame);
+            }
+        }
+        private IEnumerable<IIndexDocument> GetDocumentsFromTermDocs(TermDocs termDocs, IndexReaderFrame readerFrame)
+        {
+            throw new NotImplementedException();
+            //var docs = new List<IIndexDocument>();
+            //while (termDocs.Next())
+            //    docs.Add(new Lucene29IndexDocument(readerFrame.IndexReader.Document(termDocs.Doc())));
+            //docs.Sort(new DocumentVersionComparer());
+            //return docs;
         }
 
     }

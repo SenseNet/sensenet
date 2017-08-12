@@ -2,18 +2,18 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Lucene.Net.Index;
-using Lucene.Net.Store;
+//using Lucene.Net.Index;
+//using Lucene.Net.Store;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage;
 using System.Threading;
-using Lucene.Net.Documents;
+//using Lucene.Net.Documents;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing.Activities;
-using Lucene.Net.Util;
+//using Lucene.Net.Util;
 //using SenseNet.Search.Lucene29;
-using Field = Lucene.Net.Documents.Field;
+//using Field = Lucene.Net.Documents.Field;
 
 namespace SenseNet.Search.Indexing
 {
@@ -21,41 +21,38 @@ namespace SenseNet.Search.Indexing
 
     public static class IndexManager // alias LuceneManager
     {
-        private class DocumentUpdate
-        {
-            public Term UpdateTerm;
-            public Document Document;
-        }
+        #region /* ==================================================================== Managing index */
 
-        internal static IIndexingEngine _indexingEngine = new Lucene29IndexingEngine(); //UNDONE:!!! This should be a little bit better :)
+        private static IIndexingEngineFactory _indexingEngineFactory; //UNDONE:!!!!! Inject _indexingEngineFactory
+        internal static IIndexingEngine IndexingEngine => _indexingEngineFactory.CreateIndexingEngine();
 
-
-        public static int[] GetNotIndexedNodeTypes()
+        /**/public static int[] GetNotIndexedNodeTypes()
         {
             return StorageContext.Search.ContentRepository.GetNotIndexedNodeTypeIds();
         }
 
-        /**/public static bool Running => _indexingEngine.Running;
-        /**/internal static bool Paused => _indexingEngine.Paused;
+        /**/public static bool Running => IndexingEngine.Running;
+        /**/internal static bool Paused => IndexingEngine.Paused;
 
         /**/internal static void PauseIndexing()
         {
-            _indexingEngine.Pause();
+            IndexingEngine.Pause();
         }
         /**/internal static void ContinueIndexing()
         {
-            _indexingEngine.Continue();
+            IndexingEngine.Continue();
             throw new NotSupportedException("Continue indexing is not supported in this version.");
         }
 
         /**/internal static void WaitIfIndexingPaused()
         {
-            _indexingEngine.WaitIfIndexingPaused();
+            IndexingEngine.WaitIfIndexingPaused();
         }
 
-        /**/public static void Start(TextWriter consoleOut)
+        /**/public static void Start(IIndexingEngineFactory indexingEngineFactory, TextWriter consoleOut)
         {
-            _indexingEngine.Start(consoleOut);
+            _indexingEngineFactory = indexingEngineFactory;
+            IndexingEngine.Start(consoleOut);
         }
 
 
@@ -75,14 +72,14 @@ namespace SenseNet.Search.Indexing
             // data of the activity to prevent memory overflow. We still have to wait for the 
             // activity to finish, but the inner data can (and will) be loaded from the db when 
             // the time comes for this activity to be executed.
-            if (IndexingActivityQueue.IsOverloaded()) //UNDONE:!!!!!!!!! Decision: execution without queue
+            if (IndexingActivityQueue.IsOverloaded()) //UNDONE:!!!! Decision: execution without queue
             {
                 SnTrace.Index.Write("IAQ OVERLOAD drop activity FromPopulator A:" + activity.Id);
                 activity.IndexDocumentData = null;
             }
 
             // all activities must be executed through the activity queue's API
-            IndexingActivityQueue.ExecuteActivity(activity); //UNDONE:!!!!!!!!! Decision: execution without queue
+            IndexingActivityQueue.ExecuteActivity(activity); //UNDONE:!!!! Decision: execution without queue
 
             if (waitForComplete)
                 activity.WaitForComplete();
@@ -92,11 +89,11 @@ namespace SenseNet.Search.Indexing
 
         /**/internal static void Restart()
         {
-            _indexingEngine.Restart();
+            IndexingEngine.Restart();
         }
         /**/public static void ShutDown()
         {
-            _indexingEngine.ShutDown();
+            IndexingEngine.ShutDown();
             SnLog.WriteInformation("Indexing engine has stopped. Max task id and exceptions: " + IndexingActivityQueue.GetCurrentCompletionState());
         }
 
@@ -114,193 +111,64 @@ namespace SenseNet.Search.Indexing
 
         /**/internal static void ActivityFinished(int activityId, bool executingUnprocessedActivities)
         {
-            if (!IsActivityExecutable(executingUnprocessedActivities))
-                return;
-
-            _indexingEngine.ActivityFinished();
+            IndexingEngine.ActivityFinished();
         }
         /**/internal static void Commit()
         {
-            _indexingEngine.Commit();
+            IndexingEngine.Commit();
         }
 
+        #endregion
 
         #region /* ==================================================================== Document operations */
 
-        // AddDocumentActivity
-        internal static bool AddCompleteDocument(Document document, int activityId, bool executingUnprocessedActivities, VersioningInfo versioning)
+        /* AddDocumentActivity, RebuildActivity */
+        /**/internal static bool AddDocument(IndexDocument document, VersioningInfo versioning)
         {
-            if (!IsActivityExecutable(executingUnprocessedActivities))
-            {
-                SnTrace.Index.Write("LM: AddCompleteDocument skipped #1. ActivityId:{0}, ExecutingUnprocessedActivities:{1}", activityId, executingUnprocessedActivities);
-                return false;
-            }
-
-            var nodeId = GetNodeIdFromDocument(document);
-            var versionId = GetVersionIdFromDocument(document);
-            SnTrace.Index.Write("LM: AddCompleteDocument. ActivityId:{0}, ExecutingUnprocessedActivities:{1}, NodeId:{2}, VersionId:{3}", activityId, executingUnprocessedActivities, nodeId, versionId);
-
+            var delTerms = versioning.Delete.Select(i => new SnTerm(IndexFieldName.VersionId, i)).ToArray();
             var updates = GetUpdates(versioning);
-            SetDocumentFlags(document, versionId, versioning);
-            using (var wrFrame = IndexWriterFrame.Get(false)) // // AddCompleteDocument
-            {
-                wrFrame.IndexWriter.DeleteDocuments(versioning.Delete.Select(i => GetVersionIdTerm(i)).ToArray());
-                foreach (var update in updates)
-                    wrFrame.IndexWriter.UpdateDocument(update.UpdateTerm, update.Document);
+            if(document != null)
+                SetDocumentFlags(document, versioning);
 
-                // pessimistic approach: delete document before adding it to avoid duplicate index documents
-                wrFrame.IndexWriter.DeleteDocuments(GetVersionIdTerm(versionId));
-                wrFrame.IndexWriter.AddDocument(document);
-            }
+            IndexingEngine.Actualize(delTerms, document, updates);
 
             return true;
         }
-        // AddDocumentActivity, RebuildActivity
-        internal static bool AddDocument(Document document, int activityId, bool executingUnprocessedActivities, VersioningInfo versioning)
-        {
-            if (!IsActivityExecutable(executingUnprocessedActivities))
-            {
-                SnTrace.Index.Write("LM: AddDocument skipped #1. ActivityId:{0}, ExecutingUnprocessedActivities:{1}", activityId, executingUnprocessedActivities);
-                return false;
-            }
 
-            var nodeId = GetNodeIdFromDocument(document);
-            var versionId = GetVersionIdFromDocument(document);
-            SnTrace.Index.Write("LM: AddDocument. ActivityId:{0}, ExecutingUnprocessedActivities:{1}, NodeId:{2}, VersionId:{3}", activityId, executingUnprocessedActivities, nodeId, versionId);
-
-            var updates = GetUpdates(versioning);
-            SetDocumentFlags(document, versionId, versioning);
-            using (var wrFrame = IndexWriterFrame.Get(false)) // // AddDocument
-            {
-                wrFrame.IndexWriter.DeleteDocuments(versioning.Delete.Select(i => GetVersionIdTerm(i)).ToArray());
-                foreach (var update in updates)
-                    wrFrame.IndexWriter.UpdateDocument(update.UpdateTerm, update.Document);
-
-                // pessimistic approach: delete document before adding it to avoid duplicate index documents
-                wrFrame.IndexWriter.DeleteDocuments(GetVersionIdTerm(versionId));
-                wrFrame.IndexWriter.AddDocument(document);
-            }
-
-            return true;
-        }
-        // AddDocumentActivity
-        internal static bool AddDocument(int activityId, bool executingUnprocessedActivities, VersioningInfo versioning)
-        {
-            if (!IsActivityExecutable(executingUnprocessedActivities))
-            {
-                SnTrace.Index.Write("LM: AddDocument skipped #1. ActivityId:{0}, ExecutingUnprocessedActivities:{1}", activityId, executingUnprocessedActivities);
-                return false;
-            }
-
-            SnTrace.Index.Write("LM: AddDocument without document. ActivityId:{0}, ExecutingUnprocessedActivities:{1}", activityId, executingUnprocessedActivities);
-
-            var updates = GetUpdates(versioning);
-            using (var wrFrame = IndexWriterFrame.Get(false)) // // AddDocument
-            {
-                wrFrame.IndexWriter.DeleteDocuments(versioning.Delete.Select(i => GetVersionIdTerm(i)).ToArray());
-                foreach (var update in updates)
-                    wrFrame.IndexWriter.UpdateDocument(update.UpdateTerm, update.Document);
-            }
-
-            return true;
-        }
         // UpdateDocumentActivity
-        internal static bool UpdateDocument(Document document, int activityId, bool executingUnprocessedActivities, VersioningInfo versioning)
+        /**/internal static bool UpdateDocument(IndexDocument document, VersioningInfo versioning)
         {
-            if (!IsActivityExecutable(executingUnprocessedActivities))
+            var delTerms = versioning.Delete.Select(i => new SnTerm(IndexFieldName.VersionId, i)).ToArray();
+            var updates = GetUpdates(versioning).ToList();
+            if (document != null)
             {
-                SnTrace.Index.Write("LM: UpdateDocument skipped #1. ActivityId:{0}, ExecutingUnprocessedActivities:{1}", activityId, executingUnprocessedActivities);
-                return false;
+                SetDocumentFlags(document, versioning);
+                updates.Add(new DocumentUpdate
+                {
+                    UpdateTerm = new SnTerm(IndexFieldName.VersionId, document.VersionId),
+                    Document = document
+                });
             }
 
-            var nodeId = GetNodeIdFromDocument(document);
-            var versionId = GetVersionIdFromDocument(document);
-            SnTrace.Index.Write("LM: UpdateDocument. ActivityId:{0}, ExecutingUnprocessedActivities:{1}, NodeId:{2}, VersionId:{3}", activityId, executingUnprocessedActivities, nodeId, versionId);
-
-            var updates = GetUpdates(versioning);
-            SetDocumentFlags(document, versionId, versioning);
-            using (var wrFrame = IndexWriterFrame.Get(false)) // // UpdateDocument
-            {
-                wrFrame.IndexWriter.DeleteDocuments(versioning.Delete.Select(i => GetVersionIdTerm(i)).ToArray());
-                foreach (var update in updates)
-                    wrFrame.IndexWriter.UpdateDocument(update.UpdateTerm, update.Document);
-
-                wrFrame.IndexWriter.UpdateDocument(GetVersionIdTerm(versionId), document);
-            }
-
-            return true;
-        }
-        // UpdateDocumentActivity
-        internal static bool UpdateDocument(int activityId, bool executingUnprocessedActivities, VersioningInfo versioning)
-        {
-            if (!IsActivityExecutable(executingUnprocessedActivities))
-            {
-                SnTrace.Index.Write("LM: UpdateDocument skipped #1. ActivityId:{0}, ExecutingUnprocessedActivities:{1}", activityId, executingUnprocessedActivities);
-                return false;
-            }
-
-            SnTrace.Index.Write("LM: AddDocument without document. ActivityId:{0}, ExecutingUnprocessedActivities:{1}", activityId, executingUnprocessedActivities);
-
-            var updates = GetUpdates(versioning);
-            using (var wrFrame = IndexWriterFrame.Get(false)) // // UpdateDocument
-            {
-                wrFrame.IndexWriter.DeleteDocuments(versioning.Delete.Select(i => GetVersionIdTerm(i)).ToArray());
-                foreach (var update in updates)
-                    wrFrame.IndexWriter.UpdateDocument(update.UpdateTerm, update.Document);
-            }
+            IndexingEngine.Actualize(delTerms, null, updates);
 
             return true;
         }
         // RemoveDocumentActivity
-        internal static bool DeleteDocument(int nodeId, int versionId, bool moveOrRename, int activityId, bool executingUnprocessedActivities, VersioningInfo versioning)
+        internal static bool DeleteDocument(int versionId, VersioningInfo versioning)
         {
-            if (!IsActivityExecutable(executingUnprocessedActivities))
-            {
-                SnTrace.Index.Write("LM: DeleteDocument skipped #1. ActivityId:{0}, ExecutingUnprocessedActivities:{1}, MoveOrRename:{2}", activityId, executingUnprocessedActivities, moveOrRename);
-                return false;
-            }
+            var delTerms = versioning.Delete.Select(i => new SnTerm(IndexFieldName.VersionId, i)).ToList();
+            delTerms.Add(new SnTerm(IndexFieldName.VersionId, versionId));
+            var updates = GetUpdates(versioning).ToList();
 
-            SnTrace.Index.Write("LM: DeleteDocument. ActivityId:{0}, ExecutingUnprocessedActivities:{1}, NodeId:{2}, VersionId:{3}", activityId, executingUnprocessedActivities, nodeId, versionId);
-
-            var deleteTerm = GetVersionIdTerm(versionId);
-
-            var updates = GetUpdates(versioning);
-            using (var wrFrame = IndexWriterFrame.Get(false)) // // DeleteDocuments
-            {
-                wrFrame.IndexWriter.DeleteDocuments(versioning.Delete.Select(i => GetVersionIdTerm(i)).ToArray());
-                foreach (var update in updates)
-                    wrFrame.IndexWriter.UpdateDocument(update.UpdateTerm, update.Document);
-                wrFrame.IndexWriter.DeleteDocuments(deleteTerm);
-            }
+            IndexingEngine.Actualize(delTerms, null, updates);
 
             return true;
         }
         // RemoveTreeActivity, RebuildActivity
-        internal static bool DeleteDocuments(Term[] deleteTerms, bool moveOrRename, int activityId, bool executingUnprocessedActivities, VersioningInfo versioning)
+        internal static bool DeleteDocuments(IEnumerable<SnTerm> deleteTerms, VersioningInfo versioning)
         {
-            if (!IsActivityExecutable(executingUnprocessedActivities))
-            {
-                SnTrace.Index.Write("LM: DeleteDocuments skipped #1. ActivityId:{0}, ExecutingUnprocessedActivities:{1}, MoveOrRename:{2}", activityId, executingUnprocessedActivities, moveOrRename);
-                return false;
-            }
-
-            if (SnTrace.Index.Enabled)
-                SnTrace.Index.Write("LM: DeleteDocuments. ActivityId:{0}, ExecutingUnprocessedActivities:{1}, terms:{2}", activityId,
-                    executingUnprocessedActivities,
-                    string.Join(", ", deleteTerms.Select(t =>
-                    {
-                        var name = t.Field();
-                        var value = t.Text();
-                        if (name == "VersionId")
-                            value = GetIntFromPrefixCode(value).ToString();
-                        return name + ":" + value;
-                    }))
-                    );
-
-            using (var wrFrame = IndexWriterFrame.Get(false)) // // DeleteDocuments
-            {
-                wrFrame.IndexWriter.DeleteDocuments(deleteTerms);
-            }
+            IndexingEngine.Actualize(deleteTerms, null, null);
 
             // don't need to check if indexing interfered here. If it did, change is detected in overlapped adddocument/updatedocument, and refresh (re-delete) is called there.
             // deletedocuments will never detect change in index, since it sets timestamp in indexhistory to maxvalue.
@@ -308,23 +176,23 @@ namespace SenseNet.Search.Indexing
             return true;
         }
 
-        private static IEnumerable<DocumentUpdate> GetUpdates(VersioningInfo versioning)
+        /**/private static IEnumerable<DocumentUpdate> GetUpdates(VersioningInfo versioning)
         {
             var result = new List<DocumentUpdate>(versioning.Reindex.Length);
 
-            var updates = IndexDocumentInfo.GetDocuments(versioning.Reindex);
+            var updates = LoadIndexDocumentsByVersionId(versioning.Reindex);
             foreach (var doc in updates)
             {
-                var verId = GetVersionIdFromDocument(doc);
-                SetDocumentFlags(doc, verId, versioning);
-                result.Add(new DocumentUpdate { UpdateTerm = GetVersionIdTerm(verId), Document = doc });
+                SetDocumentFlags(doc, versioning);
+                result.Add(new DocumentUpdate { UpdateTerm = new SnTerm(IndexFieldName.VersionId, doc.VersionId), Document = doc });
             }
 
             return result;
         }
-        private static void SetDocumentFlags(Document doc, int versionId, VersioningInfo versioning)
+        /**/private static void SetDocumentFlags(IndexDocument doc, VersioningInfo versioning)
         {
-            var version = GetVersionFromDocument(doc);
+            var versionId = doc.VersionId;
+            var version = VersionNumber.Parse(doc.Version);
 
             var isMajor = version.IsMajor;
             var isPublic = version.Status == VersionStatus.Approved;
@@ -332,120 +200,143 @@ namespace SenseNet.Search.Indexing
             var isLastDraft = versionId == versioning.LastDraftVersionId;
 
             // set flags
-            doc.RemoveField(IndexFieldName.IsMajor);
-            doc.RemoveField(IndexFieldName.IsPublic);
-            doc.RemoveField(IndexFieldName.IsLastPublic);
-            doc.RemoveField(IndexFieldName.IsLastDraft);
             SetDocumentFlag(doc, IndexFieldName.IsMajor, isMajor);
             SetDocumentFlag(doc, IndexFieldName.IsPublic, isPublic);
             SetDocumentFlag(doc, IndexFieldName.IsLastPublic, isLastPublic);
             SetDocumentFlag(doc, IndexFieldName.IsLastDraft, isLastDraft);
         }
-        internal static void SetDocumentFlag(Document doc, string fieldName, bool value)
+        /**/private static void SetDocumentFlag(IndexDocument doc, string fieldName, bool value)
         {
-            doc.Add(new Field(fieldName, value ? StorageContext.Search.Yes : StorageContext.Search.No, Field.Store.YES, Field.Index.NOT_ANALYZED, Field.TermVector.NO));
+            doc.Add(new IndexField(fieldName, value, IndexingMode.NotAnalyzed, IndexStoringMode.Yes, IndexTermVector.No));
         }
 
 
         // AddTreeActivity
-        internal static bool AddTree(string treeRoot, bool moveOrRename, int activityId, bool executingUnprocessedActivities)
+        /**/internal static bool AddTree(string treeRoot, bool moveOrRename, int activityId, bool executingUnprocessedActivities)
         {
-            if (!IsActivityExecutable(executingUnprocessedActivities))
-            {
-                SnTrace.Index.Write("LM: AddTree skipped #1. ActivityId:{0}, ExecutingUnprocessedActivities:{1}, TreeRoot:{2}", activityId, executingUnprocessedActivities, treeRoot);
-                return false;
-            }
+            var delTerm = executingUnprocessedActivities ? new [] { new SnTerm(IndexFieldName.InTree, treeRoot) } : null;
+            var excludedNodeTypes = GetNotIndexedNodeTypes();
+            var docs =
+                StorageContext.Search.LoadIndexDocumentsByPath(treeRoot, excludedNodeTypes)
+                    .Select(d => CreateIndexDocument(d));
+            IndexingEngine.Actualize(delTerm, docs);
 
-            SnTrace.Index.Write("LM: AddTree. ActivityId:{0}, ExecutingUnprocessedActivities:{1}, TreeRoot:{2}", activityId, executingUnprocessedActivities, treeRoot);
-
-            using (var wrFrame = IndexWriterFrame.Get(false)) // // AddTree
-            {
-                if (executingUnprocessedActivities) // pessimistic compensation
-                    wrFrame.IndexWriter.DeleteDocuments(new Term("InTree", treeRoot), new Term("Path", treeRoot));
-
-                var excludedNodeTypes = GetNotIndexedNodeTypes();
-                foreach (var docData in StorageContext.Search.LoadIndexDocumentsByPath(treeRoot, excludedNodeTypes))
-                {
-                    Document document;
-                    int versionId;
-                    try
-                    {
-                        document = IndexDocumentInfo.GetDocument(docData);
-                        if (document == null) // indexing disabled
-                            continue;
-                        versionId = GetVersionIdFromDocument(document);
-                    }
-                    catch (Exception e)
-                    {
-                        var path = docData == null ? string.Empty : docData.Path ?? string.Empty;
-                        SnLog.WriteException(e, "Error during indexing: the document data loaded from the database or the generated Lucene Document is invalid. Please save the content to regenerate the index for it. Path: " + path);
-
-                        SnTrace.Index.WriteError("LM: Error during indexing: the document data loaded from the database or the generated Lucene Document is invalid. Please save the content to regenerate the index for it. Path: " + path);
-                        SnTrace.Index.WriteError("LM: Error during indexing: " + e);
-
-                        throw;
-                    }
-
-                    // pessimistic approach: delete document before adding it to avoid duplicate index documents
-                    wrFrame.IndexWriter.DeleteDocuments(GetVersionIdTerm(versionId));
-                    wrFrame.IndexWriter.AddDocument(document);
-                }
-            }
             return true;
         }
 
-        internal static Term GetVersionIdTerm(int versionId)
-        {
-            return new Term(IndexFieldName.VersionId, Lucene.Net.Util.NumericUtils.IntToPrefixCoded(versionId));
-        }
-        internal static Term GetNodeIdTerm(int nodeId)
-        {
-            return new Term(IndexFieldName.NodeId, Lucene.Net.Util.NumericUtils.IntToPrefixCoded(nodeId));
-        }
+        #endregion
 
-        private static bool IsActivityExecutable(bool executingUnprocessedActivities)
-        {
-            // if not running or paused, skip execution except executing unprocessed activities
-            if (executingUnprocessedActivities)
-                return true;
-            if (Running && !Paused)
-                return true;
-            return false;
-        }
+        #region /* ==================================================================== IndexDocument management */
 
-        private static VersionNumber GetVersionFromDocument(Document doc)
-        {
-            return VersionNumber.Parse(doc.Get(IndexFieldName.Version));
-        }
-        private static int GetVersionIdFromDocument(Document doc)
-        {
-            return Int32.Parse(doc.Get(IndexFieldName.VersionId));
-        }
-        private static int GetNodeIdFromDocument(Document doc)
-        {
-            return Int32.Parse(doc.Get(IndexFieldName.NodeId));
-        }
+        private static IPerFieldIndexingInfo __nameFieldIndexingInfo;
+        private static IPerFieldIndexingInfo __pathFieldIndexingInfo;
+        private static IPerFieldIndexingInfo __inTreeFieldIndexingInfo;
+        private static IPerFieldIndexingInfo __inFolderFieldIndexingInfo;
 
-        /**/public static List<IIndexDocument> GetDocumentsByNodeId(int nodeId)
+        internal static IPerFieldIndexingInfo NameFieldIndexingInfo
         {
-            return _indexingEngine.GetDocumentsByNodeId(nodeId).ToList();
-        }
-
-        private static int GetIntFromPrefixCode(string text)
-        {
-            if (string.IsNullOrEmpty(text))
-                return 0;
-
-            try
+            get
             {
-                return NumericUtils.PrefixCodedToInt(text);
+                if (__nameFieldIndexingInfo == null)
+                    __nameFieldIndexingInfo = StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(IndexFieldName.Name);
+                return __nameFieldIndexingInfo;
             }
-            catch
+        }
+        internal static IPerFieldIndexingInfo PathFieldIndexingInfo
+        {
+            get
             {
-                // we cannot do much here
+                if (__pathFieldIndexingInfo == null)
+                    __pathFieldIndexingInfo = StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(IndexFieldName.Path);
+                return __pathFieldIndexingInfo;
+            }
+        }
+        internal static IPerFieldIndexingInfo InTreeFieldIndexingInfo
+        {
+            get
+            {
+                if (__inTreeFieldIndexingInfo == null)
+                    __inTreeFieldIndexingInfo = StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(IndexFieldName.InTree);
+                return __inTreeFieldIndexingInfo;
+            }
+        }
+        internal static IPerFieldIndexingInfo InFolderFieldIndexingInfo
+        {
+            get
+            {
+                if (__inFolderFieldIndexingInfo == null)
+                    __inFolderFieldIndexingInfo = StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(IndexFieldName.InFolder);
+                return __inFolderFieldIndexingInfo;
+            }
+        }
+
+        private static IEnumerable<IndexDocument> LoadIndexDocumentsByVersionId(IEnumerable<int> versionIds)
+        {
+            return StorageContext.Search.LoadIndexDocumentByVersionId(versionIds).Select(CreateIndexDocument).ToArray();
+        }
+        private static IndexDocument CreateIndexDocument(IndexDocumentData data)
+        {
+            var buffer = data.IndexDocumentInfoBytes;
+
+            var docStream = new MemoryStream(data.IndexDocumentInfoBytes);
+            var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+            var info = (IndexDocument)formatter.Deserialize(docStream);
+
+            return CreateIndexDocument(info, data);
+        }
+        internal static IndexDocument CreateIndexDocument(IndexDocument doc, IndexDocumentData docData)
+        {
+            if (doc == null)
+                return null;
+            if (doc is NotIndexedIndexDocument)
+                return null;
+
+            //var doc = new Document();
+            //foreach (var fieldInfo in info.fields)
+            //    if (fieldInfo.Name != "Password" && fieldInfo.Name != "PasswordHash")
+            //        doc.Add(CreateField(fieldInfo));
+
+            var path = docData.Path.ToLowerInvariant();
+
+            doc.Add(new IndexField(IndexFieldName.Name, RepositoryPath.GetFileName(path), NameFieldIndexingInfo.IndexingMode, NameFieldIndexingInfo.IndexStoringMode, NameFieldIndexingInfo.TermVectorStoringMode));
+            doc.Add(new IndexField(IndexFieldName.Path, path, PathFieldIndexingInfo.IndexingMode, PathFieldIndexingInfo.IndexStoringMode, PathFieldIndexingInfo.TermVectorStoringMode));
+
+            doc.Add(new IndexField(IndexFieldName.Depth, Node.GetDepth(path), IndexingMode.AnalyzedNoNorms, IndexStoringMode.Yes, IndexTermVector.No));
+
+            doc.Add(new IndexField(IndexFieldName.InTree, GetParentPaths(path), InTreeFieldIndexingInfo.IndexingMode, InTreeFieldIndexingInfo.IndexStoringMode, InTreeFieldIndexingInfo.TermVectorStoringMode));
+            doc.Add(new IndexField(IndexFieldName.InFolder, path, InFolderFieldIndexingInfo.IndexingMode, InFolderFieldIndexingInfo.IndexStoringMode, InFolderFieldIndexingInfo.TermVectorStoringMode));
+
+            doc.Add(new IndexField(IndexFieldName.ParentId, docData.ParentId, IndexingMode.AnalyzedNoNorms, IndexStoringMode.No, IndexTermVector.No));
+
+            doc.Add(new IndexField(IndexFieldName.IsSystem, docData.IsSystem, IndexingMode.NotAnalyzed, IndexStoringMode.Yes, IndexTermVector.No));
+
+            // flags
+            doc.Add(new IndexField(IndexFieldName.IsLastPublic, docData.IsLastPublic, IndexingMode.NotAnalyzed, IndexStoringMode.Yes, IndexTermVector.No));
+            doc.Add(new IndexField(IndexFieldName.IsLastDraft, docData.IsLastDraft, IndexingMode.NotAnalyzed, IndexStoringMode.Yes, IndexTermVector.No));
+
+            // timestamps
+            doc.Add(new IndexField(IndexFieldName.NodeTimestamp, docData.NodeTimestamp, IndexingMode.AnalyzedNoNorms, IndexStoringMode.Yes, IndexTermVector.No));
+            doc.Add(new IndexField(IndexFieldName.VersionTimestamp, docData.VersionTimestamp, IndexingMode.AnalyzedNoNorms, IndexStoringMode.Yes, IndexTermVector.No));
+
+            // custom fields
+            if (document.HasCustomField)
+            {
+                var customFields = CustomIndexFieldManager.GetFields(document, docData);
+                if (customFields != null)
+                    foreach (var field in customFields)
+                        doc.Add(field);
             }
 
-            return -1;
+            return doc;
+        }
+        private static string[] GetParentPaths(string lowerCasePath)
+        {
+            var separator = "/";
+            string[] fragments = lowerCasePath.Split(separator.ToCharArray(), StringSplitOptions.None);
+            string[] pathSteps = new string[fragments.Length];
+            for (int i = 0; i < fragments.Length; i++)
+                pathSteps[i] = string.Join(separator, fragments, 0, i + 1);
+            return pathSteps;
         }
 
         #endregion

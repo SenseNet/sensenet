@@ -76,12 +76,27 @@ namespace SenseNet.Search.Indexing.Activities
 
         internal override void ExecuteIndexingActivity()
         {
+            // if not running or paused, skip execution except executing unprocessed activities
+            if (!IsExecutable())
+            {
+                SnTrace.Index.Write($"LM: {this} skipped. ActivityId:{Id}, ExecutingUnprocessedActivities:{IsUnprocessedActivity}");
+                return;
+            }
+            SnTrace.Index.Write($"LM: {this}. ActivityId:{Id}, ExecutingUnprocessedActivities:{IsUnprocessedActivity}");
+
             if (ProtectedExecute())
                 _executed = true;
 
             // ActivityFinished must be called after executing an activity, even if index is not changed
-            IndexManager.ActivityFinished(this.Id, this.IsUnprocessedActivity);
+            if (IsExecutable())
+                IndexManager.ActivityFinished(this.Id, this.IsUnprocessedActivity);
         }
+        private bool IsExecutable()
+        {
+            // if not running or paused, skip execution except executing unprocessed activities
+            return IsUnprocessedActivity || (IndexManager.Running && !IndexManager.Paused);
+        }
+
 
         protected abstract bool ProtectedExecute();
 

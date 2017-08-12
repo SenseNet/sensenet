@@ -24,12 +24,12 @@ namespace SenseNet.Search.Indexing.Activities
             };
 
             // delete documents by NodeId
-            IndexManager.DeleteDocuments(new[] { IndexManager.GetNodeIdTerm(this.NodeId) }, false, this.Id, false, versioningInfo);
+            IndexManager.DeleteDocuments(new[] { new SnTerm(IndexFieldName.NodeId, this.NodeId)}, versioningInfo);
 
             // add documents of all versions
             var documents = IndexDocumentInfo.GetDocuments(head.Versions.Select(v => v.VersionId));
             foreach (var document in documents)
-                IndexManager.AddDocument(document, this.Id, this.IsUnprocessedActivity, versioningInfo);
+                IndexManager.AddDocument(document, versioningInfo);
 
             return true;
         }

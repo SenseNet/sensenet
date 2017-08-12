@@ -10,7 +10,7 @@ namespace SenseNet.Search.Indexing.Activities
     {
         protected override bool ProtectedExecute()
         {
-            return IndexManager.DeleteDocument(NodeId, VersionId, MoveOrRename ?? false, Id, IsUnprocessedActivity, Versioning);
+            return IndexManager.DeleteDocument(VersionId, Versioning);
         }
 
         public override Lucene.Net.Documents.Document CreateDocument()

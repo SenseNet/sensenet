@@ -104,7 +104,7 @@ namespace SenseNet.Search.Indexing
         public static void Startup(System.IO.TextWriter consoleOut)
         {
             // initalize from index
-            var cud = IndexManager._indexingEngine.ReadActivityStatusFromIndex() as CompletionState;
+            var cud = IndexManager.IndexingEngine.ReadActivityStatusFromIndex() as CompletionState;
 
             var gapsLength = cud.Gaps?.Length ?? 0;
 

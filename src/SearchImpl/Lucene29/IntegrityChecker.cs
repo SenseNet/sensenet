@@ -114,7 +114,7 @@ namespace SenseNet.Search.Lucene29
     {
         public static object CheckIndexIntegrity(string contentPath, bool recurse)
         {
-            var completionState = IndexManager._indexingEngine.ReadActivityStatusFromIndex();
+            var completionState = IndexManager.IndexingEngine.ReadActivityStatusFromIndex();
             if(completionState == null)
                 throw new NotSupportedException("Index Integrity Checker cannot read activity status from index.");
 

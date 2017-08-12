@@ -61,5 +61,15 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+
+        public void Actualize(IEnumerable<SnTerm> deletions, IndexDocument addition, IEnumerable<DocumentUpdate> updates)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Actualize(IEnumerable<SnTerm> deletions, IEnumerable<IndexDocument> addition)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
