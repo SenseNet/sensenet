@@ -291,11 +291,8 @@ namespace SenseNet.Search.Indexing
             if (doc is NotIndexedIndexDocument)
                 return null;
 
-            //var doc = new Document();
-            //foreach (var fieldInfo in info.fields)
-            //    if (fieldInfo.Name != "Password" && fieldInfo.Name != "PasswordHash")
-            //        doc.Add(CreateField(fieldInfo));
-
+            //UNDONE:!! Ensure that all fields (except postponed fields) are available in this point.
+            //UNDONE:!! Ensure that the "Password" and "PasswordHash" are not in the document.
             var path = docData.Path.ToLowerInvariant();
 
             doc.Add(new IndexField(IndexFieldName.Name, RepositoryPath.GetFileName(path), NameFieldIndexingInfo.IndexingMode, NameFieldIndexingInfo.IndexStoringMode, NameFieldIndexingInfo.TermVectorStoringMode));
@@ -319,13 +316,14 @@ namespace SenseNet.Search.Indexing
             doc.Add(new IndexField(IndexFieldName.VersionTimestamp, docData.VersionTimestamp, IndexingMode.AnalyzedNoNorms, IndexStoringMode.Yes, IndexTermVector.No));
 
             // custom fields
-            if (document.HasCustomField)
-            {
-                var customFields = CustomIndexFieldManager.GetFields(document, docData);
-                if (customFields != null)
-                    foreach (var field in customFields)
-                        doc.Add(field);
-            }
+            //UNDONE:!!!!! Reconcept, rewrite and implement ICustomIndexFieldProvider, CustomIndexFieldManager, IHasCustomIndexField
+            //if (document.HasCustomField)
+            //{
+            //    var customFields = CustomIndexFieldManager.GetFields(document, docData);
+            //    if (customFields != null)
+            //        foreach (var field in customFields)
+            //            doc.Add(field);
+            //}
 
             return doc;
         }
