@@ -621,7 +621,7 @@ namespace SenseNet.ContentRepository.Storage.Data
     public class IndexDocumentData
     {
         [NonSerialized] private object _indexDocumentInfo;
-        public object IndexDocumentInfo
+        public object IndexDocumentInfo //UNDONE:!!!!!!!!! Rename to IndexDocument
         {
             get
             {
@@ -632,7 +632,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
 
         private byte[] _indexDocumentInfoBytes;
-        public byte[] IndexDocumentInfoBytes
+        public byte[] IndexDocumentInfoBytes //UNDONE:!!!!!!!!! Rename to SerializedIndexDocument
         {
             get
             {

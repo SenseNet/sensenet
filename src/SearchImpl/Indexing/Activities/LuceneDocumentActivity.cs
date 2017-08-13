@@ -51,8 +51,8 @@ namespace SenseNet.Search.Indexing.Activities
     {
         private bool _documentIsCreated;
 
-        private Document _document;
-        public Document Document
+        private IndexDocument _document;
+        public IndexDocument Document
         {
             get
             {
@@ -67,36 +67,34 @@ namespace SenseNet.Search.Indexing.Activities
 
         public VersioningInfo Versioning { get; set; }
 
-        public virtual Document CreateDocument()
+        public virtual IndexDocument CreateDocument()
         {
-            Document doc;
             using (var op = SnTrace.Index.StartOperation("LM: LuceneDocumentActivity.CreateDocument (VersionId:{0})", VersionId))
             {
+                IndexDocument doc;
                 if (IndexDocumentData != null)
                 {
                     // create document from indexdocumentdata if it has been supplied (eg via MSMQ if it was small enough to send it over)
-                    var docInfo = IndexDocumentData.IndexDocumentInfo as IndexDocumentInfo;
-                    doc = IndexDocumentInfo.CreateDocument(docInfo, IndexDocumentData);
+                    doc = IndexDocumentData.IndexDocumentInfo as IndexDocument;
+                    doc = IndexManager.CreateIndexDocument(doc, IndexDocumentData);
 
                     if (doc == null)
                         SnTrace.Index.Write("LM: LuceneDocumentActivity.CreateDocument (VersionId:{0}): Document is NULL from QUEUE", VersionId);
-
                 }
                 else
                 {
                     // create document via loading it from db (eg when indexdocumentdata was too large to send over MSMQ)
-                    doc = IndexDocumentInfo.GetDocument(this.VersionId);
+                    doc = IndexManager.LoadIndexDocumentByVersionId(this.VersionId);
 
                     if (doc == null)
                         SnTrace.Index.Write("LM: LuceneDocumentActivity.CreateDocument (VersionId:{0}): Document is NULL from DB.", VersionId);
-
                 }
                 op.Successful = true;
                 return doc;
             }
         }
 
-        public void SetDocument(Document document)
+        public void SetDocument(IndexDocument document)
         {
             _document = document;
             _documentIsCreated = true;

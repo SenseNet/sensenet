@@ -13,7 +13,7 @@ namespace SenseNet.Search.Indexing.Activities
             return IndexManager.DeleteDocument(VersionId, Versioning);
         }
 
-        public override Lucene.Net.Documents.Document CreateDocument()
+        public override IndexDocument CreateDocument()
         {
             throw new InvalidOperationException();
         }

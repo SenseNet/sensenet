@@ -10,6 +10,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search;
+using SenseNet.Search.Indexing;
 using SenseNet.Search.Tests.Implementations;
 using SenseNet.SearchImpl.Tests.Implementations;
 using SenseNet.Security;
@@ -78,6 +79,7 @@ namespace SenseNet.SearchImpl.Tests
             DistributedApplication.Cache.Reset();
 
             using (new Tools.SearchEngineSwindler(new TestSearchEngine()))
+            using (Tools.Swindle(typeof(IndexManager), "_indexingEngineFactory", new TestIndexingEngineFactory()))
             using (Tools.Swindle(typeof(StorageContext.Search), "ContentRepository", new TestSearchEngineSupport(DefaultIndexingInfo)))
             using (Tools.Swindle(typeof(AccessProvider), "_current", new DesktopAccessProvider()))
             using (Tools.Swindle(typeof(DataProvider), "_current", dataProvider))

@@ -270,7 +270,11 @@ namespace SenseNet.Search.Indexing
             }
         }
 
-        private static IEnumerable<IndexDocument> LoadIndexDocumentsByVersionId(IEnumerable<int> versionIds)
+        internal static IndexDocument LoadIndexDocumentByVersionId(int versionId)
+        {
+            return CreateIndexDocument(StorageContext.Search.LoadIndexDocumentByVersionId(versionId));
+        }
+        internal static IEnumerable<IndexDocument> LoadIndexDocumentsByVersionId(IEnumerable<int> versionIds)
         {
             return StorageContext.Search.LoadIndexDocumentByVersionId(versionIds).Select(CreateIndexDocument).ToArray();
         }
