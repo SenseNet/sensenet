@@ -27,7 +27,7 @@ namespace SenseNet.Search.Indexing.Activities
             IndexManager.DeleteDocuments(new[] { new SnTerm(IndexFieldName.NodeId, this.NodeId)}, versioningInfo);
 
             // add documents of all versions
-            var docs = IndexManager.LoadIndexDocumentsByVersionId(head.Versions.Select(v => v.VersionId));
+            var docs = IndexManager.LoadIndexDocumentsByVersionId(head.Versions.Select(v => v.VersionId).ToArray());
             foreach (var doc in docs)
                 IndexManager.AddDocument(doc, versioningInfo);
 

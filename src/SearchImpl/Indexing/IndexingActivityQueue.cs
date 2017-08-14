@@ -1053,7 +1053,7 @@ namespace SenseNet.Search.Indexing
                 {
                     if (item != null && item.Id == activityId)
                     {
-                        item.Error = e.GetType().Name + ": " + e.Message;
+                        item.Error = e.GetType().Name + ": " + e;
                         return;
                     }
                 }

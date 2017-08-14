@@ -228,5 +228,14 @@ namespace SenseNet.Search
             return new ApplicationException($"Cannot return with string value because Indexfield '{fieldName}' is {fieldType}");
         }
 
+        /* =========================================================================================== */
+
+        public static IndexDocument Deserialize(byte[] indexDocumentBytes)
+        {
+            var docStream = new System.IO.MemoryStream(indexDocumentBytes);
+            var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+            var indxDoc = (IndexDocument)formatter.Deserialize(docStream);
+            return indxDoc;
+        }
     }
 }

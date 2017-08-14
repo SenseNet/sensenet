@@ -9,6 +9,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Search.Internal;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
+using SenseNet.Search;
 using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Storage.Data
@@ -628,6 +629,17 @@ namespace SenseNet.ContentRepository.Storage.Data
                 if (_indexDocumentInfo == null)
                     _indexDocumentInfo = StorageContext.Search.SearchEngine.DeserializeIndexDocumentInfo(IndexDocumentInfoBytes);
                 return _indexDocumentInfo;
+            }
+        }
+
+        [NonSerialized] private IndexDocument _indexDocument;
+        public IndexDocument IndexDocument
+        {
+            get
+            {
+                if (_indexDocument == null)
+                    _indexDocument = SenseNet.Search.IndexDocument.Deserialize(_indexDocumentInfoBytes);
+                return _indexDocument;
             }
         }
 

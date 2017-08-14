@@ -30,6 +30,17 @@ namespace SenseNet.Search.Indexing
         {
             return ((IndexDocumentInfo)baseDocumentInfo).Complete(node);
         }
+
+
+        public IndexDocument GetIndexDocument(Node node, bool skipBinaries, bool isNew, out bool hasBinary)
+        {
+            var indxDoc = new IndexDocument();
+            hasBinary = false;
+
+            throw new NotImplementedException();
+
+            return indxDoc;
+        }
     }
 
     [Serializable]

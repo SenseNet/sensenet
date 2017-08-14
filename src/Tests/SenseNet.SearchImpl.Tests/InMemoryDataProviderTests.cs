@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
@@ -85,6 +86,7 @@ namespace SenseNet.SearchImpl.Tests
             using (Tools.Swindle(typeof(DataProvider), "_current", dataProvider))
             using (new SystemAccount())
             {
+                IndexManager.Start(new TestIndexingEngineFactory(), TextWriter.Null);
                 return callback();
             }
         }

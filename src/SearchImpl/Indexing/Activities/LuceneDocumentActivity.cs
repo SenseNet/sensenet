@@ -75,7 +75,7 @@ namespace SenseNet.Search.Indexing.Activities
                 if (IndexDocumentData != null)
                 {
                     // create document from indexdocumentdata if it has been supplied (eg via MSMQ if it was small enough to send it over)
-                    doc = IndexDocumentData.IndexDocumentInfo as IndexDocument;
+                    doc = IndexDocumentData.IndexDocument;
                     doc = IndexManager.CreateIndexDocument(doc, IndexDocumentData);
 
                     if (doc == null)

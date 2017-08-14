@@ -274,9 +274,13 @@ namespace SenseNet.Search.Indexing
         {
             return CreateIndexDocument(StorageContext.Search.LoadIndexDocumentByVersionId(versionId));
         }
-        internal static IEnumerable<IndexDocument> LoadIndexDocumentsByVersionId(IEnumerable<int> versionIds)
+        internal static IEnumerable<IndexDocument> LoadIndexDocumentsByVersionId(int[] versionIds)
         {
-            return StorageContext.Search.LoadIndexDocumentByVersionId(versionIds).Select(CreateIndexDocument).ToArray();
+            return versionIds.Length == 0
+                ? new IndexDocument[0]
+                : StorageContext.Search.LoadIndexDocumentByVersionId(versionIds)
+                    .Select(CreateIndexDocument)
+                    .ToArray();
         }
         private static IndexDocument CreateIndexDocument(IndexDocumentData data)
         {
