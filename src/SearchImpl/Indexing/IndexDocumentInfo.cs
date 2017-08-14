@@ -18,36 +18,12 @@ using Field = Lucene.Net.Documents.Field;
 
 namespace SenseNet.Search.Indexing
 {
-    public class IndexDocumentProvider : SenseNet.ContentRepository.Storage.Search.IIndexDocumentProvider
-    {
-        public object GetIndexDocumentInfo(Node node, bool skipBinaries, bool isNew, out bool hasBinary)
-        {
-            var x = IndexDocumentInfo.Create(node, skipBinaries, isNew);
-            hasBinary = x.HasBinaryField;
-            return x;
-        }
-        public object CompleteIndexDocumentInfo(Node node, object baseDocumentInfo)
-        {
-            return ((IndexDocumentInfo)baseDocumentInfo).Complete(node);
-        }
-
-
-        public IndexDocument GetIndexDocument(Node node, bool skipBinaries, bool isNew, out bool hasBinary)
-        {
-            var indxDoc = new IndexDocument();
-            hasBinary = false;
-
-            throw new NotImplementedException();
-
-            return indxDoc;
-        }
-    }
-
-    [Serializable]
-    public class NotIndexedIndexDocumentInfo : IndexDocumentInfo { }
     [Serializable]
     public class IndexDocumentInfo
     {
+        [Serializable]
+        public class NotIndexedIndexDocumentInfo : IndexDocumentInfo { }
+
         [NonSerialized]
         private static IPerFieldIndexingInfo __nameFieldIndexingInfo;
         [NonSerialized]
@@ -514,65 +490,5 @@ namespace SenseNet.Search.Indexing
             if (field == null || string.IsNullOrEmpty(field.Value))
                 throw new InvalidOperationException("Invalid empty field value for field: " + fieldName);
         }
-    }
-
-
-
-    public interface IHasCustomIndexField { }
-    public interface ICustomIndexFieldProvider
-    {
-        IEnumerable<Fieldable> GetFields(SenseNet.ContentRepository.Storage.Data.IndexDocumentData docData);
-    }
-    internal class CustomIndexFieldManager
-    {
-        internal static IEnumerable<Fieldable> GetFields(IndexDocumentInfo info, SenseNet.ContentRepository.Storage.Data.IndexDocumentData docData)
-        {
-            Debug.WriteLine("%> adding custom fields for " + docData.Path);
-            return Instance.GetFieldsPrivate(info, docData);
-        }
-
-        // -------------------------------------------------------------
-
-        private static object _instanceSync = new object();
-        private static CustomIndexFieldManager __instance;
-        private static CustomIndexFieldManager Instance
-        {
-            get
-            {
-                if (__instance == null)
-                {
-                    lock (_instanceSync)
-                    {
-                        if (__instance == null)
-                        {
-                            var instance = new CustomIndexFieldManager();
-                            instance._providers = TypeResolver.GetTypesByInterface(typeof(ICustomIndexFieldProvider))
-                                .Select(t => (ICustomIndexFieldProvider)Activator.CreateInstance(t)).ToArray();
-                            __instance = instance;
-                        }
-                    }
-                }
-                return __instance;
-            }
-        }
-
-        // ---------------------------------------------------------------------
-        
-        private IEnumerable<ICustomIndexFieldProvider> _providers;
-
-        private CustomIndexFieldManager() { }
-
-        private IEnumerable<Fieldable> GetFieldsPrivate(IndexDocumentInfo info, IndexDocumentData docData)
-        {
-            var fields = new List<Fieldable>();
-            foreach (var provider in _providers)
-            {
-                var f = provider.GetFields(docData);
-                if (f != null)
-                    fields.AddRange(f);
-            }
-            return fields.Count == 0 ? null : fields;
-        }
-
     }
 }
