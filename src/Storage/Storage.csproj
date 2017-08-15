@@ -171,7 +171,9 @@
     <Compile Include="ContentNotFoundException.cs" />
     <Compile Include="CounterManager.cs" />
     <Compile Include="Data\BlobStorage.cs" />
+    <Compile Include="Data\IndexDocumentData.cs" />
     <Compile Include="Data\IPackageStorageProvider.cs" />
+    <Compile Include="Data\QueryPropertyData.cs" />
     <Compile Include="Data\SnMaintenance.cs" />
     <Compile Include="Data\IndexBackup.cs" />
     <Compile Include="Data\IndexBackupProgress.cs" />
