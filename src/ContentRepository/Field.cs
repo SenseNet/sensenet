@@ -416,6 +416,7 @@ namespace SenseNet.ContentRepository
                 (indexingInfo == null ? string.Empty : ", IndexingInfo IsInIndex: " + indexingInfo.IsInIndex.ToString()) +
                 ")";
         }
+        [Obsolete("", true)]
         public virtual IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(out string textExtract)
         {
             var fieldSetting = this.FieldSetting;
@@ -431,6 +432,22 @@ namespace SenseNet.ContentRepository
                 throw new InvalidOperationException(GetIndexFieldInfoErrorLog("IndexFieldHandler cannot be null.", fieldSetting, indexingInfo));
 
             return indexFieldHandler.GetIndexFieldInfos(this, out textExtract);
+        }
+        public virtual IEnumerable<IndexField> GetIndexFields(out string textExtract)
+        {
+            var fieldSetting = this.FieldSetting;
+            if (fieldSetting == null)
+                throw new InvalidOperationException(GetIndexFieldInfoErrorLog("FieldSetting cannot be null.", null, null));
+
+            var indexingInfo = fieldSetting.IndexingInfo;
+            if (indexingInfo == null)
+                throw new InvalidOperationException(GetIndexFieldInfoErrorLog("IndexingInfo cannot be null.", fieldSetting, null));
+
+            var indexFieldHandler = indexingInfo.IndexFieldHandler;
+            if (indexFieldHandler == null)
+                throw new InvalidOperationException(GetIndexFieldInfoErrorLog("IndexFieldHandler cannot be null.", fieldSetting, indexingInfo));
+
+            return indexFieldHandler.GetIndexFields(this, out textExtract);
         }
 
         // ========================================================================= Conversions

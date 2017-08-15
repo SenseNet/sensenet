@@ -27,7 +27,7 @@ namespace SenseNet.Search
         private static string[] _headOnlyFields = SenseNet.ContentRepository.Storage.Node.GetHeadOnlyProperties();
 
         public static Query FullSetQuery = NumericRangeQuery.NewIntRange("Id", 0, null, false, false); // MachAllDocsQuery in 3.0.3
-        public static readonly string NullReferenceValue = "null";
+        //public static readonly string NullReferenceValue = "null";
 
         private Query __query;
         public Query Query

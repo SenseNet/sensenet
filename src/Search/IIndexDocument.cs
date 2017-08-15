@@ -88,7 +88,12 @@ namespace SenseNet.Search
     [Serializable]
     public class IndexDocument : IIndexDocument
     {
+        [NonSerialized]
+        public static readonly IndexDocument NotIndexedDocument = new NotIndexedIndexDocument();
+
         private readonly Dictionary<string, IndexField> _fields = new Dictionary<string, IndexField>();
+
+        public bool HasCustomField { get; set; }
 
         /// <summary>
         /// Returns with VersionId. Shortcut of the following call: GetIntegerValue(IndexFieldName.VersionId);
@@ -212,6 +217,11 @@ namespace SenseNet.Search
         {
             if (_fields.ContainsKey(fieldName))
                 _fields.Remove(fieldName);
+        }
+
+        public bool HasField(string fieldName)
+        {
+            return _fields.ContainsKey(fieldName);
         }
 
         IEnumerator IEnumerable.GetEnumerator()

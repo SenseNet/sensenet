@@ -689,7 +689,7 @@ namespace SenseNet.ContentRepository.Storage
 
             node.MakePrivateData(); // this is important because version timestamp will be changed.
 
-            var doc = IndexDocumentProvider.GetIndexDocumentInfo(node, skipBinaries, isNew, out hasBinary);
+            var doc = IndexDocumentProvider.GetIndexDocument(node, skipBinaries, isNew, out hasBinary);
             long? docSize = null;
             byte[] bytes;
             if (doc != null)
@@ -718,16 +718,16 @@ namespace SenseNet.ContentRepository.Storage
 
             node.MakePrivateData(); // this is important because version timestamp will be changed.
 
-            var doc = IndexDocumentProvider.CompleteIndexDocumentInfo(node, indexDocumentData.IndexDocumentInfo);
+            var completedDocument = IndexDocumentProvider.CompleteIndexDocument(node, indexDocumentData.IndexDocument);
 
             long? docSize = null;
             byte[] bytes;
-            if (doc != null)
+            if (completedDocument != null)
             {
                 using (var docStream = new MemoryStream())
                 {
                     var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-                    formatter.Serialize(docStream, doc);
+                    formatter.Serialize(docStream, completedDocument);
                     docStream.Flush();
                     docStream.Position = 0;
                     docSize = docStream.Length;
@@ -739,7 +739,7 @@ namespace SenseNet.ContentRepository.Storage
             {
                 bytes = new byte[0];
             }
-            return CreateIndexDocumentData(node, doc, bytes, docSize);
+            return CreateIndexDocumentData(node, completedDocument, bytes, docSize);
         }
 
         internal static IndexDocumentData CreateIndexDocumentData(Node node, object indexDocumentInfo, byte[] indexDocumentInfoBytes, long? indexDocumentInfoSize)

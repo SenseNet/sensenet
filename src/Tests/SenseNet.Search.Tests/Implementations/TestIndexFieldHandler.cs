@@ -46,6 +46,10 @@ namespace SenseNet.Search.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+        public IEnumerable<IndexField> GetIndexFields(ISnField field, out string textExtract)
+        {
+            throw new NotImplementedException();
+        }
     }
     public class TestIndexFieldHandlerInt : IFieldIndexHandler
     {
@@ -86,6 +90,10 @@ namespace SenseNet.Search.Tests.Implementations
         }
 
         public IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(ISnField field, out string textExtract)
+        {
+            throw new NotImplementedException();
+        }
+        public IEnumerable<IndexField> GetIndexFields(ISnField field, out string textExtract)
         {
             throw new NotImplementedException();
         }
@@ -132,6 +140,10 @@ namespace SenseNet.Search.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+        public IEnumerable<IndexField> GetIndexFields(ISnField field, out string textExtract)
+        {
+            throw new NotImplementedException();
+        }
     }
     public class TestIndexFieldHandlerSingle : IFieldIndexHandler
     {
@@ -175,6 +187,10 @@ namespace SenseNet.Search.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+        public IEnumerable<IndexField> GetIndexFields(ISnField field, out string textExtract)
+        {
+            throw new NotImplementedException();
+        }
     }
     public class TestIndexFieldHandlerDouble : IFieldIndexHandler
     {
@@ -215,6 +231,10 @@ namespace SenseNet.Search.Tests.Implementations
         }
 
         public IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(ISnField field, out string textExtract)
+        {
+            throw new NotImplementedException();
+        }
+        public IEnumerable<IndexField> GetIndexFields(ISnField field, out string textExtract)
         {
             throw new NotImplementedException();
         }
