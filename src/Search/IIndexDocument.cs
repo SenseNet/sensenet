@@ -15,6 +15,7 @@ namespace SenseNet.Search
         public IIndexDocument Document;
     }
 
+    [Serializable]
     public class SnTerm
     {
         public SnTerm(string name, string value)   { Name = name; Type = SnTermType.String;      StringValue = value;}
@@ -39,6 +40,7 @@ namespace SenseNet.Search
         public virtual DateTime DateTimeValue { get; }
     }
 
+    [Serializable]
     public class IndexField : SnTerm
     {
         public IndexingMode Mode { get; }

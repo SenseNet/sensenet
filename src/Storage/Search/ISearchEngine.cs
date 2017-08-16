@@ -50,7 +50,7 @@ namespace SenseNet.ContentRepository.Storage.Search
 
         void SetIndexingInfo(object indexingInfo);
 
-        object DeserializeIndexDocumentInfo(byte[] indexDocumentInfoBytes); //UNDONE: not SearchEngine responsibility: GetPopulator()
+        object DeserializeIndexDocumentInfo(byte[] indexDocumentInfoBytes); //UNDONE: not SearchEngine responsibility: DeserializeIndexDocumentInfo()
     }
     public class InternalSearchEngine : ISearchEngine
     {

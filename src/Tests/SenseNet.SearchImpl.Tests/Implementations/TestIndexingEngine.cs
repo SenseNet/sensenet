@@ -11,16 +11,18 @@ namespace SenseNet.SearchImpl.Tests.Implementations
     internal class TestIndexingEngineFactory : IIndexingEngineFactory
     {
         //TODO: thread affinity to enable multithreaded ubit testing
-        IIndexingEngine _instance = new TestIndexingEngine();
+        public TestIndexingEngine Instance { get;} = new TestIndexingEngine();
 
         public IIndexingEngine CreateIndexingEngine()
         {
-            return _instance;
+            return Instance;
         }
     }
 
     internal class TestIndexingEngine : IIndexingEngine
     {
+        internal TestIndex Index { get; } = new TestIndex();
+
         public bool Running { get; private set; }
         public bool Paused { get; private set; }
 
@@ -75,7 +77,13 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         public void Actualize(IEnumerable<SnTerm> deletions, IndexDocument addition, IEnumerable<DocumentUpdate> updates)
         {
-            throw new NotImplementedException();
+            foreach (var term in deletions)
+                Index.Delete(term);
+
+            foreach (var update in updates)
+                Index.Update(update.UpdateTerm, (IndexDocument)update.Document);
+
+            Index.AddDocument(addition);
         }
 
         public void Actualize(IEnumerable<SnTerm> deletions, IEnumerable<IndexDocument> addition)

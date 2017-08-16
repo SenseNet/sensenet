@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search.Indexing;
+using SenseNet.Tools;
 
 namespace SenseNet.SearchImpl.Tests.Implementations
 {
@@ -29,13 +30,32 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             return new DocumentPopulator();
         }
+
+        private IDictionary<string, Type> _analyzers = new Dictionary<string, Type>();
         public IDictionary<string, Type> GetAnalyzers()
         {
-            throw new NotImplementedException();
+            return _analyzers;
         }
         public void SetIndexingInfo(object indexingInfo)
         {
-            throw new NotImplementedException();
+            //UNDONE: GetPerFieldIndexingInfo: store indexing info in current search engine
+
+            var allInfo = (Dictionary<string, PerFieldIndexingInfo>)indexingInfo;
+            var analyzerTypes = new Dictionary<string, Type>();
+
+            foreach (var item in allInfo)
+            {
+                var fieldName = item.Key;
+                var fieldInfo = item.Value;
+                if (fieldInfo.Analyzer != null)
+                {
+                    var analyzerType = TypeResolver.GetType(fieldInfo.Analyzer);
+                    if (analyzerType == null)
+                        throw new InvalidOperationException(String.Concat("Unknown analyzer: ", fieldInfo.Analyzer, ". Field: ", fieldName));
+                    analyzerTypes.Add(fieldName, analyzerType);
+                }
+                _analyzers = analyzerTypes;
+            }
         }
 
         public object DeserializeIndexDocumentInfo(byte[] indexDocumentInfoBytes)

@@ -12,6 +12,7 @@ using System.Globalization;
 using SenseNet.Configuration;
 using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Storage.Search;
+using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Tools;
 
@@ -742,9 +743,9 @@ namespace SenseNet.ContentRepository.Storage
             return CreateIndexDocumentData(node, completedDocument, bytes, docSize);
         }
 
-        internal static IndexDocumentData CreateIndexDocumentData(Node node, object indexDocumentInfo, byte[] indexDocumentInfoBytes, long? indexDocumentInfoSize)
+        internal static IndexDocumentData CreateIndexDocumentData(Node node, IndexDocument indexDocument, byte[] indexDocumentInfoBytes, long? indexDocumentInfoSize)
         {
-            return new IndexDocumentData(indexDocumentInfo, indexDocumentInfoBytes)
+            return new IndexDocumentData(indexDocument, indexDocumentInfoBytes)
             {
                 NodeTypeId = node.NodeTypeId,
                 VersionId = node.VersionId,

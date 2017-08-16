@@ -81,7 +81,8 @@ namespace SenseNet.SearchImpl.Tests
 
             using (new Tools.SearchEngineSwindler(new TestSearchEngine()))
             using (Tools.Swindle(typeof(IndexManager), "_indexingEngineFactory", new TestIndexingEngineFactory()))
-            using (Tools.Swindle(typeof(StorageContext.Search), "ContentRepository", new TestSearchEngineSupport(DefaultIndexingInfo)))
+            //using (Tools.Swindle(typeof(StorageContext.Search), "ContentRepository", new TestSearchEngineSupport(DefaultIndexingInfo)))
+            using (Tools.Swindle(typeof(StorageContext.Search), "ContentRepository", new SearchEngineSupport()))
             using (Tools.Swindle(typeof(AccessProvider), "_current", new DesktopAccessProvider()))
             using (Tools.Swindle(typeof(DataProvider), "_current", dataProvider))
             using (new SystemAccount())

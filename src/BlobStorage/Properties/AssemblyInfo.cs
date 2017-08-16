@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: InternalsVisibleTo("SenseNet.Tests")]
+[assembly: InternalsVisibleTo("SenseNet.SearchImpl.Tests")]
 
 #if DEBUG
 [assembly: AssemblyTitle("SenseNet.BlobStorage (Debug)")]

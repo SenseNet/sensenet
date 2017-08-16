@@ -12,46 +12,34 @@ namespace SenseNet.ContentRepository.Storage.Data
     public class IndexDocumentData
     {
         [NonSerialized]
-        private object _indexDocumentInfo;
-        public object IndexDocumentInfo //UNDONE:!!!!!!!!! Rename to IndexDocument
-        {
-            get
-            {
-                if (_indexDocumentInfo == null)
-                    _indexDocumentInfo = StorageContext.Search.SearchEngine.DeserializeIndexDocumentInfo(IndexDocumentInfoBytes);
-                return _indexDocumentInfo;
-            }
-        }
-
-        [NonSerialized]
         private IndexDocument _indexDocument;
         public IndexDocument IndexDocument
         {
             get
             {
                 if (_indexDocument == null)
-                    _indexDocument = SenseNet.Search.IndexDocument.Deserialize(_indexDocumentInfoBytes);
+                    _indexDocument = IndexDocument.Deserialize(_indexDocumentBytes);
                 return _indexDocument;
             }
         }
 
-        private byte[] _indexDocumentInfoBytes;
+        private byte[] _indexDocumentBytes;
         public byte[] IndexDocumentInfoBytes //UNDONE:!!!!!!!!! Rename to SerializedIndexDocument
         {
             get
             {
-                if (_indexDocumentInfoBytes == null)
+                if (_indexDocumentBytes == null)
                 {
                     using (var docStream = new MemoryStream())
                     {
                         var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-                        formatter.Serialize(docStream, _indexDocumentInfo);
+                        formatter.Serialize(docStream, _indexDocument);
                         docStream.Flush();
                         IndexDocumentInfoSize = docStream.Length;
-                        _indexDocumentInfoBytes = docStream.GetBuffer();
+                        _indexDocumentBytes = docStream.GetBuffer();
                     }
                 }
-                return _indexDocumentInfoBytes;
+                return _indexDocumentBytes;
             }
 
         }
@@ -68,10 +56,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         public long NodeTimestamp { get; set; }
         public long VersionTimestamp { get; set; }
 
-        public IndexDocumentData(object indexDocumentInfo, byte[] indexDocumentInfoBytes)
+        public IndexDocumentData(IndexDocument indexDocument, byte[] indexDocumentBytes)
         {
-            _indexDocumentInfo = indexDocumentInfo;
-            _indexDocumentInfoBytes = indexDocumentInfoBytes;
+            _indexDocument = indexDocument;
+            _indexDocumentBytes = indexDocumentBytes;
         }
     }
 }

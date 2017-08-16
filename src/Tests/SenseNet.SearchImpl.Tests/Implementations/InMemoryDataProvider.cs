@@ -6,8 +6,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using Lucene.Net.Support;
+using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
 using SenseNet.Security;
@@ -414,22 +416,93 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+        #endregion
 
         protected internal override ContentRepository.Storage.Data.BinaryCacheEntity LoadBinaryCacheEntity(int nodeVersionId, int propertyTypeId)
         {
-            throw new NotImplementedException();
+
+            // SELECT F.Size, B.BinaryPropertyId, F.FileId, F.BlobProvider, F.BlobProviderData,
+            //        CASE WHEN F.Size < 1048576 THEN F.Stream ELSE null END AS Stream
+            // FROM dbo.BinaryProperties B
+            //     JOIN Files F ON B.FileId = F.FileId
+            // WHERE B.VersionId = @VersionId AND B.PropertyTypeId = @PropertyTypeId AND F.Staging IS NULL";
+
+            var binRec = BinaryProperties
+                .FirstOrDefault(r => r.VersionId == nodeVersionId && r.PropertyTypeId == propertyTypeId);
+            if (binRec == null)
+                return null;
+            var fileRec = Files.FirstOrDefault(f => f.FileId == binRec.FileId);
+            if (fileRec == null)
+                return null;
+
+            var length = fileRec.Size;
+            var binaryPropertyId = binRec.BinaryPropertyId;
+            var fileId = binRec.FileId;
+
+            // To avoid accessing to blob provider, read data here, else set rawData to null
+            byte[] rawData = fileRec.Stream;
+
+            var provider = BlobStorageBase.GetProvider(null);
+            var context = new BlobStorageContext(provider) { VersionId = nodeVersionId, PropertyTypeId = propertyTypeId, FileId = fileId, Length = length, UseFileStream = false };
+            if (provider == BlobStorageBase.BuiltInProvider)
+                context.BlobProviderData = new BuiltinBlobProviderData { FileStreamData = null };
+
+            return new BinaryCacheEntity
+            {
+                Length = length,
+                RawData = rawData,
+                BinaryPropertyId = binaryPropertyId,
+                FileId = fileId,
+                Context = context
+            };
         }
 
+        #region NOT IMPLEMENTED
+
         protected internal override byte[] LoadBinaryFragment(int fileId, long position, int count)
-        {
-            throw new NotImplementedException();
-        }
+            {
+                throw new NotImplementedException();
+            }
 
         #endregion
 
         protected internal override ContentRepository.Storage.BinaryDataValue LoadBinaryPropertyValue(int versionId, int propertyTypeId)
         {
-            return null; //UNDONE:!!! LoadBinaryPropertyValue is not supported
+            //ALTER PROCEDURE [dbo].[proc_BinaryProperty_LoadValue]
+            //	@VersionId int,
+            //	@PropertyTypeId int
+            //AS
+            //BEGIN
+            //	SELECT B.BinaryPropertyId, B.VersionId, B.PropertyTypeId, F.FileId, F.ContentType, F.FileNameWithoutExtension,
+            //		F.Extension, F.[Size], F.[Checksum], NULL AS Stream, 0 AS Loaded, F.[Timestamp], F.[BlobProvider], F.[BlobProviderData] 
+            //	FROM dbo.BinaryProperties B
+            //		JOIN dbo.Files F ON B.FileId = F.FileId
+            //	WHERE VersionId = @VersionId AND PropertyTypeId = @PropertyTypeId AND Staging IS NULL
+            //END
+
+            var binRec = BinaryProperties
+                .FirstOrDefault(r => r.VersionId == versionId && r.PropertyTypeId == propertyTypeId);
+            if (binRec == null)
+                return null;
+            var fileRec = Files.FirstOrDefault(f => f.FileId == binRec.FileId);
+            if (fileRec == null)
+                return null;
+
+            string ext = fileRec.Extension ?? string.Empty;
+            if (ext.Length != 0)
+                ext = ext.Remove(0, 1); // Remove dot from the start if extension is not empty
+            string fn = fileRec.FileNameWithoutExtension ?? string.Empty;
+
+            return new BinaryDataValue
+            {
+                Id = binRec.BinaryPropertyId,
+                FileId = binRec.FileId,
+                Checksum = null, // not supported
+                FileName = new BinaryFileName(fn, ext),
+                ContentType = fileRec.ContentType,
+                Size = fileRec.Size,
+                Timestamp = 0L // not supported
+            };
         }
 
         #region NOT IMPLEMENTED
@@ -509,19 +582,18 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                     r.NodeCreatedById, r.NodeModifiedById, r.Index, r.LockedById, r.NodeTimestamp);
         }
 
-        #region NOT IMPLEMENTED
-
         protected internal override NodeHead LoadNodeHeadByVersionId(int versionId)
         {
-            throw new NotImplementedException();
+            var version = Versions.FirstOrDefault(v => v.VersionId == versionId);
+            if (version == null)
+                return null;
+            return LoadNodeHead(version.NodeId);
         }
 
         protected internal override IEnumerable<NodeHead> LoadNodeHeads(IEnumerable<int> heads)
         {
-            throw new NotImplementedException();
+            return Nodes.Where(n => heads.Contains(n.NodeId)).Select(CreateNodeHead);
         }
-
-        #endregion
 
         protected internal override void LoadNodes(System.Collections.Generic.Dictionary<int, NodeBuilder> buildersByVersionId)
         {
@@ -603,11 +675,19 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+        #endregion
 
         protected internal override IEnumerable<int> QueryNodesByTypeAndPath(int[] nodeTypeIds, string pathStart, bool orderByPath)
         {
-            throw new NotImplementedException();
+            var types = nodeTypeIds.ToList();
+            var nodes = Nodes.Where(n => types.Contains(n.NodeTypeId) && n.Path.StartsWith(pathStart));
+            if (orderByPath)
+                nodes = nodes.OrderBy(n => n.Path);
+            var ids = nodes.Select(n => n.NodeId);
+            return ids.ToArray();
         }
+
+        #region NOT IMPLEMENTED
 
         protected internal override IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name)
         {
@@ -706,8 +786,10 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         /* ====================================================================================== Database */
 
-        private static readonly List<VersionRecord> Versions;
         private static readonly List<NodeRecord> Nodes;
+        private static readonly List<VersionRecord> Versions;
+        private static readonly List<BinaryPropertyRecord> BinaryProperties;
+        private static readonly List<FileRecord> Files;
         private static readonly List<IndexingActivityRecord> IndexingActivity = new List<IndexingActivityRecord>();
 
         static InMemoryDataProvider()
@@ -745,6 +827,68 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                 CreatedById = 1,
                 ModifiedById = 1
             }).ToList();
+
+            BinaryProperties = _initialBinaryProperties.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+                .Skip(skip)
+                .Select(l =>
+                {
+                    var record = l.Split('\t');
+                    return new BinaryPropertyRecord
+                    {
+                        BinaryPropertyId= int.Parse(record[0]),
+                        VersionId = int.Parse(record[1]),
+                        PropertyTypeId = int.Parse(record[2]),
+                        FileId = int.Parse(record[3])
+                    };
+                }).ToList();
+
+            var ctdDirectory = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                @"..\..\..\..\nuget\snadmin\install-services\import\System\Schema\ContentTypes"));
+
+            Files = _initialFiles.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+                .Skip(skip)
+                .Select(l =>
+                {
+                    var record = l.Split('\t');
+                    var name = record[2];
+                    var ext = record[3];
+
+                    var bytes = ext == ".ContentType" ? LoadContentTypeFromDisk(ctdDirectory, name) : new byte[0];
+
+                    return new FileRecord
+                    {
+                        FileId = int.Parse(record[0]),
+                        ContentType = record[1],
+                        FileNameWithoutExtension = name,
+                        Extension = ext,
+                        Size = bytes.LongLength,
+                        Stream = bytes
+                    };
+                }).ToList();
+        }
+        private static byte[] LoadContentTypeFromDisk(string path, string name)
+        {
+            var ctdPath = Path.Combine(path, name + ".xml");
+            if (!System.IO.File.Exists(ctdPath))
+            {
+                ctdPath = Path.Combine(path, name + "Ctd.xml");
+                if (!System.IO.File.Exists(ctdPath))
+                    //throw new FileNotFoundException("CTD not found.", name);
+                    return new byte[0];
+            }
+
+            var stream = new MemoryStream();
+            byte[] bytes;
+            using (var writer = new StreamWriter(stream, Encoding.UTF8))
+            using (var reader = new StreamReader(ctdPath))
+            {
+                writer.Write(reader.ReadToEnd());
+                writer.Flush();
+                var buffer = stream.GetBuffer();
+                bytes = new byte[stream.Length];
+                Array.Copy(buffer, bytes, bytes.Length);
+            }
+            return bytes;
         }
 
         #region Implementation classes
@@ -878,6 +1022,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         }
 
         #endregion
+
         #region Data classes
         private class NodeRecord
         {
@@ -925,6 +1070,23 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             public IEnumerable<ChangedData> ChangedData;
             public long VersionTimestamp;
         }
+        private class BinaryPropertyRecord
+        {
+            public int BinaryPropertyId;
+            public int VersionId;
+            public int PropertyTypeId;
+            public int FileId;
+        }
+        private class FileRecord
+        {
+            public int FileId;
+            public string ContentType;
+            public string FileNameWithoutExtension;
+            public string Extension;
+            public long Size;
+            public byte[] Stream;
+        }
+
         private class IndexingActivityRecord
         {
             public int IndexingActivityId;
