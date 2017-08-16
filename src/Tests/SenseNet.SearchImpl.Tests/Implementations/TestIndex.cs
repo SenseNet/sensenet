@@ -99,7 +99,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
             var fieldValues = GetValues(term);
             if (fieldValues.Count == 0)
-                return new Tuple<int, List<IndexField>>[0];
+                return null;
             if (fieldValues.Count > 1)
                 throw new NotImplementedException();
 
@@ -117,6 +117,9 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
             // return with all stored data by version ids without distinct
             var result = _storedData.Where(d => versionIds.Contains(d.Item1)).ToArray();
+            if (result.Length == 0)
+                result = null;
+
             return result;
         }
 

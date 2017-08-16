@@ -647,6 +647,8 @@ namespace SenseNet.ContentRepository.Schema
         }
         internal static PerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
         {
+            var ensureStart = Current;
+
             PerFieldIndexingInfo info = null;
             if (fieldName.Contains('.'))
                 info = Aspect.GetPerFieldIndexingInfo(fieldName);

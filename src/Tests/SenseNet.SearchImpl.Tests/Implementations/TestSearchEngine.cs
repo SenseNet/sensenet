@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Tools;
@@ -36,10 +33,9 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             return _analyzers;
         }
+
         public void SetIndexingInfo(object indexingInfo)
         {
-            //UNDONE: GetPerFieldIndexingInfo: store indexing info in current search engine
-
             var allInfo = (Dictionary<string, PerFieldIndexingInfo>)indexingInfo;
             var analyzerTypes = new Dictionary<string, Type>();
 

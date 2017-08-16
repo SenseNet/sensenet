@@ -23,10 +23,8 @@ namespace SenseNet.ContentRepository
                 .ToArray();
         }
 
-        //UNDONE: GetPerFieldIndexingInfo: Get from current search engine
         public IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
         {
-            var ensureStart = ContentTypeManager.Current;
             return ContentTypeManager.GetPerFieldIndexingInfo(fieldName);
         }
 

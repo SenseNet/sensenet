@@ -83,7 +83,8 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             foreach (var update in updates)
                 Index.Update(update.UpdateTerm, (IndexDocument)update.Document);
 
-            Index.AddDocument(addition);
+            if (addition != null)
+                Index.AddDocument(addition);
         }
 
         public void Actualize(IEnumerable<SnTerm> deletions, IEnumerable<IndexDocument> addition)

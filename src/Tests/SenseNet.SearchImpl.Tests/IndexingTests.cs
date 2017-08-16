@@ -16,40 +16,31 @@ namespace SenseNet.SearchImpl.Tests
     [TestClass]
     public class IndexingTests
     {
-        //public static void xxx()
-        //{
-        //    Repository.Start(new RepositoryStartSettings
-        //    {
-        //        StartLuceneManager = startLuceneManager,
-        //        PluginsPath = PluginsPath ?? context.SandboxPath,
-        //        IndexPath = null,
-        //        RestoreIndex = RestoreIndex,
-        //        BackupIndexAtTheEnd = BackupIndexAtTheEnd,
-        //        StartWorkflowEngine = StartWorkflowEngine
-        //    });
-        //}
-
         [TestMethod]
-        public void Indexing_IndexDocumentAndActivityConsistencyAfterCreate()
+        public void Indexing_Create()
         {
+            Node node;
             var result = InMemoryDataProviderTests.Test(() =>
             {
                 // create a test node unter the root.
-                var n = new SystemFolder(Node.LoadNode(Identifiers.PortalRootId))
+                node = new SystemFolder(Node.LoadNode(Identifiers.PortalRootId))
                 {
                     Name = "Node1",
-                    DisplayName = "Node 1"
+                    DisplayName = "Node 1",
+                    Index = 42
                 };
                 foreach (var observer in NodeObserver.GetObserverTypes())
-                    n.DisableObserver(observer);
-                n.Save();
+                    node.DisableObserver(observer);
+
+                // ACTION
+                node.Save();
 
                 // reload the newly created.
-                n = Node.Load<SystemFolder>(n.Id);
+                node = Node.Load<SystemFolder>(node.Id);
 
                 // load the pre-converted index document
                 var db = DataProvider.Current;
-                var indexDocument = db.LoadIndexDocumentByVersionId(n.VersionId);
+                var indexDocument = db.LoadIndexDocumentByVersionId(node.VersionId);
 
                 // load last indexing activity
                 var activityId = db.GetLastActivityId();
@@ -57,10 +48,10 @@ namespace SenseNet.SearchImpl.Tests
                     db.LoadIndexingActivities(activityId, activityId, 1, false, IndexingActivityFactory.Instance)
                     .FirstOrDefault();
 
-                return new Tuple<Node, IndexDocumentData, IIndexingActivity, TestIndex>(n, indexDocument, activity, GetTestIndex());
+                return new Tuple<Node, IndexDocumentData, IIndexingActivity, TestIndex>(node, indexDocument, activity, GetTestIndex());
             });
 
-            var node = result.Item1;
+            node = result.Item1;
             var indexDoc = result.Item2;
             var lastActivity = result.Item3;
             var index = result.Item4;
@@ -87,11 +78,96 @@ namespace SenseNet.SearchImpl.Tests
             var hit2 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.DisplayName, "node 1"));
             var hit3 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.NodeId, node.Id));
             var hit4 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.VersionId, node.VersionId));
+            var hit5 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.Index, node.Index));
 
             Assert.IsNotNull(hit1);
             Assert.IsNotNull(hit2);
             Assert.IsNotNull(hit3);
             Assert.IsNotNull(hit4);
+            Assert.IsNotNull(hit5);
+        }
+        [TestMethod]
+        public void Indexing_Update()
+        {
+            Node node;
+            var result = InMemoryDataProviderTests.Test(() =>
+            {
+                // create a test node unter the root.
+                node = new SystemFolder(Node.LoadNode(Identifiers.PortalRootId))
+                {
+                    Name = "Node1",
+                    DisplayName = "Node 1"
+                };
+                foreach (var observer in NodeObserver.GetObserverTypes())
+                    node.DisableObserver(observer);
+                node.Save();
+                // reload the newly created.
+                node = Node.Load<SystemFolder>(node.Id);
+
+                // ACTION
+                node.DisplayName = "Node 2";
+                node.Index = 43;
+                foreach (var observer in NodeObserver.GetObserverTypes())
+                    node.DisableObserver(observer);
+                node.Save();
+
+                // reload the updated.
+                node = Node.Load<SystemFolder>(node.Id);
+
+                // load the pre-converted index document
+                var db = DataProvider.Current;
+                var indexDocument = db.LoadIndexDocumentByVersionId(node.VersionId);
+
+                // load last indexing activity
+                var activityId = db.GetLastActivityId();
+                var activity =
+                    db.LoadIndexingActivities(activityId, activityId, 1, false, IndexingActivityFactory.Instance)
+                    .FirstOrDefault();
+
+                return new Tuple<Node, IndexDocumentData, IIndexingActivity, TestIndex>(node, indexDocument, activity, GetTestIndex());
+            });
+
+            node = result.Item1;
+            var indexDoc = result.Item2;
+            var lastActivity = result.Item3;
+            var index = result.Item4;
+
+            // check the index document head consistency
+            Assert.IsNotNull(indexDoc);
+            Assert.AreEqual(indexDoc.Path, node.Path);
+            Assert.AreEqual(indexDoc.NodeId, node.Id);
+            Assert.AreEqual(indexDoc.NodeTypeId, node.NodeTypeId);
+            Assert.AreEqual(indexDoc.ParentId, node.ParentId);
+            Assert.AreEqual(indexDoc.VersionId, node.VersionId);
+
+            // check the activity
+            Assert.IsNotNull(lastActivity);
+            Assert.AreEqual(IndexingActivityType.UpdateDocument, lastActivity.ActivityType);
+
+            var history = IndexingActivityHistory.GetHistory();
+            Assert.AreEqual(2, history.RecentLength);
+            var item = history.Recent[0];
+            Assert.AreEqual(IndexingActivityType.AddDocument.ToString(), item.TypeName);
+            Assert.AreEqual(null, item.Error);
+            item = history.Recent[1];
+            Assert.AreEqual(IndexingActivityType.UpdateDocument.ToString(), item.TypeName);
+            Assert.AreEqual(null, item.Error);
+
+            var hit1 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.Name, "node1"));
+            var hit2 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.DisplayName, "node 1"));
+            var hit3 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.DisplayName, "node 2"));
+            var hit4 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.NodeId, node.Id));
+            var hit5 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.VersionId, node.VersionId));
+            var hit6 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.Index, 42));
+            var hit7 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.Index, 43));
+
+            Assert.IsNotNull(hit1);
+            Assert.IsNull(hit2);
+            Assert.IsNotNull(hit3);
+            Assert.IsNotNull(hit4);
+            Assert.IsNotNull(hit5);
+            Assert.IsNull(hit6);
+            Assert.IsNotNull(hit7);
         }
 
         private TestIndex GetTestIndex()

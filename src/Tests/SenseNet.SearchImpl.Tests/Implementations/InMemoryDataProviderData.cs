@@ -15,13 +15,19 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         // 3 - Getting table data from the database
         //     3.1 - Run the MS SQL Management Studio
         //     3.2 - Connect to the installed web application's database
-        //     3.3 - Execute scripts and copy the data with headers into the following sections:
+        //     3.3 - Execute scripts and copy the data with headers into the following sections (use verbatim strings (@""
+        //           and replace single quotation marks to double)):
         //         3.3.1 - NODES:
         //                 SELECT NodeId, COALESCE(ParentNodeId, 0) ParentNodeId, NodeTypeId, LastMajorVersionId, LastMinorVersionId, [Index], IsSystem, Name, COALESCE(DisplayName, '""""'), [Path] FROM Nodes
         //         3.3.2 - BINARYPROPERTIES:
         //                 SELECT * FROM BinaryProperties
         //         3.3.3 - FILES:
         //                 SELECT FileId, ContentType, FileNameWithoutExtension, Extension, Size FROM Files
+        //         3.3.4 - TEXTPROPERTIES
+        //                 SELECT TextPropertyNVarcharId, VersionId, PropertyTypeId, Value FROM TextPropertiesNVarchar
+        //                 (After install the TextPropertiesNText table is empty)
+        //                 This result may contains multiline string values in the Value column. Line feeds need to be replaced
+        //                 to "\n" and tabs to "\t" sequences to ensure correct data for parsing table data.
         // 4 - Getting schema
         //     4.1 - Write this code at the end of the Application_Start method of a web application's Global.asax.cs
         //           that is extended with SenseNet.Services.Install nuget package:
@@ -33,7 +39,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         //
         //     4.2 - Run application and wait for the start screen
         //     4.3 - Copy the schema file content (C:\schema.xml in this example) into the SCHEMA section's
-        //           TestSchema variable's string literal (replace question marks to apostrophes).
+        //           TestSchema variable's string literal (replace quotation marks to apostrophes).
         // ---------------------------------------------------------------------------------------------------------------
         //
         // IMPORTANT:
@@ -530,6 +536,107 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 107	application/octet-stream	Webs	.asmx	76
 108	application/octet-stream	vsshandler	.ashx	90
 ";
+
+        #endregion
+
+        #region TEXTPROPERTIES
+
+        private static string _initialTextProperties = @"TextPropertyNVarcharId	VersionId	PropertyTypeId	Value
+1	105	70	bool generateMissing
+2	107	3	
+3	109	70	bool empty
+4	110	70	int page
+5	112	70	int pageCount
+6	113	70	SenseNet.Preview.PreviewStatus status
+7	116	3	
+8	117	3	
+9	118	3	
+10	119	3	
+11	122	70	string[] contentTypes
+12	123	70	\n      string level,\n      string member,\n      string[] permissions\n    
+13	124	70	\n      string level,\n      bool explicitOnly,\n      string member,\n      string[] includedTypes\n    
+14	125	70	string skin, string category
+15	126	3	
+16	127	70	\n      string username, \n      string password\n    
+17	128	3	
+18	129	3	
+19	131	70	\n      bool recursive, \n      SenseNet.ContentRepository.Storage.Search.IndexRebuildLevel rebuildLevel\n    
+20	135	70	\n      string level,\n      bool explicitOnly,\n      string member,\n      string[] permissions,\n    
+21	136	3	
+22	137	70	string[] contentTypes
+23	138	3	
+24	139	3	
+25	140	3	
+26	140	70	
+27	142	3	
+28	143	3	
+29	144	70	\n      string query,\n      string displayName,\n      string queryType\n    
+30	146	70	long fullSize, string fieldName
+31	147	70	string name, string contentType, long fullSize, string fieldName
+32	148	70	\n      string user\n    
+33	149	3	
+34	150	70	\n      string level,\n      string kind,\n      string[] permissions\n    
+35	151	70	\n      string level,\n      string kind\n    
+36	152	3	
+37	152	70	
+38	153	3	
+39	154	3	
+40	157	70	\n      bool recurse\n    
+41	159	3	
+42	159	70	
+43	160	3	
+44	161	3	
+45	162	70	SenseNet.TaskManagement.Core.SnTaskResult result
+46	163	70	string token, long fullSize, string fieldName, string fileName
+47	166	3	
+48	166	70	
+49	167	3	
+50	167	70	
+51	168	3	
+52	168	70	\n      string[] permissions\n    
+53	169	70	string fieldName
+54	170	70	\n      string identity\n    
+55	172	70	\n      string displayName\n    
+56	173	70	\n      string identity\n    
+57	174	70	\n      string identity\n    
+58	175	3	
+59	177	70	\n      bool onlyPublic\n    
+60	178	70	
+61	179	3	
+62	179	70	
+63	180	3	
+64	180	70	string userOrGroup
+65	183	70	int[] contentIds
+66	184	3	
+67	184	70	\n      bool directOnly\n    
+68	185	70	int[] contentIds
+69	187	3	
+70	189	3	
+71	191	70	
+72	195	70	string text
+73	196	70	string text
+74	198	3	
+75	198	70	\n      bool directOnly\n    
+76	199	3	
+77	199	70	string back
+78	1	129	<?xml version=""1.0"" encoding=""utf-16""?>\n<ArrayOfOldPasswordData xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">\n  <OldPasswordData>\n    <ModificationDate>2017-08-15T22:30:26.4952014Z</ModificationDate>\n    <Hash>$2a$10$q/.2oJCHigVA3mOeMiNTCOyUEfgaMmPJeIRHd9IszeXkac/x8lwCe</Hash>\n  </OldPasswordData>\n</ArrayOfOldPasswordData>
+79	201	3	
+80	202	3	
+81	203	3	
+82	204	3	
+83	205	3	
+84	11	3	Members of this group are able to perform administrative tasks in the Content Repository - e.g. importing the creation date of content.
+85	206	3	
+86	207	3	
+87	208	3	
+88	10	129	<?xml version=""1.0"" encoding=""utf-16""?>\n<ArrayOfOldPasswordData xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">\n  <OldPasswordData>\n    <ModificationDate>2017-08-15T22:30:27.3772574Z</ModificationDate>\n    <Hash>$2a$10$bkZT7Pv22O0QSFyPmGkVjuZy5HcQ.6O7MjJ1SOQKCHVowuv6WAMdi</Hash>\n  </OldPasswordData>\n</ArrayOfOldPasswordData>
+89	209	129	<?xml version=""1.0"" encoding=""utf-16""?>\n<ArrayOfOldPasswordData xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" />
+90	6	129	<?xml version=""1.0"" encoding=""utf-16""?>\n<ArrayOfOldPasswordData xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" />
+91	13	8	SystemFolder
+92	14	8	ContentType
+93	228	8	GetMetadataApplication SystemFolder Folder
+94	229	8	GetMetadataApplication SystemFolder Folder
+95	246	3	Http handler for serving Lucene index file paths. This content can be invoked only from the local machine.";
 
         #endregion
 

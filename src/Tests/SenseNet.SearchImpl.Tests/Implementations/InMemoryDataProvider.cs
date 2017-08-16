@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
-using Lucene.Net.Support;
+using Newtonsoft.Json;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -337,11 +337,17 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+        #endregion
 
         protected internal override NodeHead.NodeVersion[] GetNodeVersions(int nodeId)
         {
-            throw new NotImplementedException();
+            return Versions
+                .Where(v => v.NodeId == nodeId)
+                .Select(v =>new NodeHead.NodeVersion(v.Version, v.VersionId))
+                .ToArray();
         }
+
+        #region NOT IMPLEMENTED
 
         protected override int GetPermissionLogEntriesCountAfterMomentInternal(DateTime moment)
         {
@@ -392,13 +398,12 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+        #endregion
 
         protected internal override bool IsCacheableText(string text)
         {
-            throw new NotImplementedException();
+            return false;
         }
-
-        #endregion
 
         protected internal override bool IsTreeLocked(string path)
         {
@@ -635,11 +640,15 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             throw new NotImplementedException();
         }
-
+        #endregion
         protected internal override System.Collections.Generic.Dictionary<int, string> LoadTextPropertyValues(int versionId, int[] propertyTypeIds)
         {
-            throw new NotImplementedException();
+            return TextProperties
+                .Where(t => t.VersionId == versionId && propertyTypeIds.Contains(t.PropertyTypeId))
+                .ToDictionary(t => t.PropertyTypeId, t => t.Value);
         }
+
+        #region NOT IMPLEMENTED
 
         protected internal override DataOperationResult MoveNodeTree(int sourceNodeId, int targetNodeId, long sourceTimestamp = 0, long targetTimestamp = 0)
         {
@@ -790,11 +799,11 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         private static readonly List<VersionRecord> Versions;
         private static readonly List<BinaryPropertyRecord> BinaryProperties;
         private static readonly List<FileRecord> Files;
+        private static readonly List<TextPropertyRecord> TextProperties;
         private static readonly List<IndexingActivityRecord> IndexingActivity = new List<IndexingActivityRecord>();
 
         static InMemoryDataProvider()
         {
-            // SELECT NodeId, COALESCE(ParentNodeId, 0) ParentNodeId, NodeTypeId, LastMajorVersionId, LastMinorVersionId, [Index], IsSystem, Name, COALESCE(DisplayName, '""""'), [Path] FROM Nodes
             var skip = _initialNodes.StartsWith("NodeId") ? 1 : 0;
             Nodes = _initialNodes.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
                 .Skip(skip)
@@ -819,6 +828,8 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                     };
                 }).ToList();
 
+            // -------------------------------------------------------------------------------------
+
             Versions = Nodes.Select(n => new VersionRecord
             {
                 VersionId = n.LastMajorVersionId,
@@ -828,6 +839,9 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                 ModifiedById = 1
             }).ToList();
 
+            // -------------------------------------------------------------------------------------
+
+            skip = _initialBinaryProperties.StartsWith("BinaryPropertyId") ? 1 : 0;
             BinaryProperties = _initialBinaryProperties.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
                 .Skip(skip)
                 .Select(l =>
@@ -842,9 +856,12 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                     };
                 }).ToList();
 
+            // -------------------------------------------------------------------------------------
+
             var ctdDirectory = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                 @"..\..\..\..\nuget\snadmin\install-services\import\System\Schema\ContentTypes"));
 
+            skip = _initialFiles.StartsWith("FileId") ? 1 : 0;
             Files = _initialFiles.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
                 .Skip(skip)
                 .Select(l =>
@@ -865,7 +882,26 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                         Stream = bytes
                     };
                 }).ToList();
+
+            // -------------------------------------------------------------------------------------
+
+            skip = _initialTextProperties.StartsWith("TextPropertyNVarcharId") ? 1 : 0;
+            TextProperties = _initialTextProperties.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+                .Skip(skip)
+                .Select(l =>
+                {
+                    var record = l.Split('\t');
+                    var value = record[3].Replace(@"\n", Environment.NewLine).Replace(@"\t", "\t");
+                    return new TextPropertyRecord
+                    {
+                        TextPropertyNVarcharId = int.Parse(record[0]),
+                        VersionId = int.Parse(record[1]),
+                        PropertyTypeId = int.Parse(record[2]),
+                        Value = value
+                    };
+                }).ToList();
         }
+
         private static byte[] LoadContentTypeFromDisk(string path, string name)
         {
             var ctdPath = Path.Combine(path, name + ".xml");
@@ -964,13 +1000,80 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             {
                 throw new NotImplementedException();
             }
+
             public void UpdateNodeRow(NodeData nodeData)
             {
-                throw new NotImplementedException();
+                var nodeId = nodeData.Id;
+
+                var nodeRec = Nodes.FirstOrDefault(n => n.NodeId == nodeId);
+                if (nodeRec == null)
+                    throw new InvalidOperationException("Node not found. NodeId:" + nodeId);
+                var parentRec = Nodes.FirstOrDefault(n => n.NodeId == nodeRec.ParentNodeId);
+
+                nodeRec.NodeTypeId = nodeData.NodeTypeId;
+                nodeRec.ContentListTypeId = nodeData.ContentListTypeId;
+                nodeRec.ContentListId = nodeData.ContentListId;
+                nodeRec.CreatingInProgress = nodeData.CreatingInProgress;
+                nodeRec.IsDeleted = nodeData.IsDeleted;
+                nodeRec.ParentNodeId = nodeData.ParentId;
+                nodeRec.Name = nodeData.Name;
+                nodeRec.DisplayName = nodeData.DisplayName;
+                nodeRec.Path = $"{parentRec?.Path ?? ""}/{nodeRec.Name}";
+                nodeRec.Index = nodeData.Index;
+                nodeRec.Locked = nodeData.Locked;
+                nodeRec.LockedById = nodeData.LockedById;
+                nodeRec.ETag = nodeData.ETag;
+                nodeRec.LockType = nodeData.LockType;
+                nodeRec.LockTimeout = nodeData.LockTimeout;
+                nodeRec.LockDate = nodeData.LockDate;
+                nodeRec.LockToken = nodeData.LockToken;
+                nodeRec.LastLockUpdate = nodeData.LastLockUpdate;
+                nodeRec.NodeCreationDate = nodeData.CreationDate;
+                nodeRec.NodeCreatedById = nodeData.CreatedById;
+                nodeRec.NodeModificationDate = nodeData.ModificationDate;
+                nodeRec.NodeModifiedById = nodeData.ModifiedById;
+                nodeRec.IsSystem = nodeData.IsSystem;
+                nodeRec.OwnerId = nodeData.OwnerId;
+                nodeRec.SavingState = nodeData.SavingState;
             }
+
             public void UpdateVersionRow(NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId)
             {
-                throw new NotImplementedException();
+                var versionId = nodeData.VersionId;
+                var nodeId = nodeData.Id;
+
+                var versionRec = Versions.FirstOrDefault(v => v.VersionId == versionId);
+                if (versionRec == null)
+                    throw new InvalidOperationException("Version not found. VersionId:" + versionId);
+
+                versionRec.NodeId = nodeId;
+                versionRec.Version = nodeData.Version;
+                versionRec.CreationDate = nodeData.VersionCreationDate;
+                versionRec.CreatedById = nodeData.VersionCreatedById;
+                versionRec.ModificationDate = nodeData.VersionModificationDate;
+                versionRec.ModifiedById = nodeData.VersionModifiedById;
+                versionRec.ChangedData = nodeData.ChangedData;
+
+                var nodeRec = Nodes.FirstOrDefault(n => n.NodeId == nodeId);
+                if(nodeRec == null)
+                    throw new InvalidOperationException("Node not found. NodeId:" + nodeId);
+
+                if (nodeData.IsPropertyChanged("Version"))
+                {
+                    nodeRec.LastMinorVersionId = Versions
+                        .Where(v => v.NodeId == nodeId)
+                        .OrderByDescending(v => v.Version.Major)
+                        .ThenByDescending(v => v.Version.Minor)
+                        .First().VersionId;
+                    nodeRec.LastMajorVersionId = Versions
+                        .Where(v => v.NodeId == nodeId && v.Version.Minor == 0 && v.Version.Status == VersionStatus.Approved)
+                        .OrderByDescending(v => v.Version.Major)
+                        .ThenByDescending(v => v.Version.Minor)
+                        .First().VersionId;
+                }
+
+                lastMajorVersionId = nodeRec.LastMajorVersionId;
+                lastMinorVersionId = nodeRec.LastMinorVersionId;
             }
             public void CopyAndUpdateVersion(NodeData nodeData, int previousVersionId, out int lastMajorVersionId,
                 out int lastMinorVersionId)
@@ -1085,6 +1188,13 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             public string Extension;
             public long Size;
             public byte[] Stream;
+        }
+        private class TextPropertyRecord
+        {
+            public int TextPropertyNVarcharId;
+            public int VersionId;
+            public int PropertyTypeId;
+            public string Value;
         }
 
         private class IndexingActivityRecord
