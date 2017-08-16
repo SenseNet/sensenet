@@ -21,7 +21,7 @@ using SenseNet.Security.Messaging;
 namespace SenseNet.SearchImpl.Tests
 {
     [TestClass]
-    public class InMemoryDataProviderTests
+    public class InMemoryDataProviderTests : TestBase
     {
         [TestMethod]
         public void InMemDb_LoadRootById()
@@ -42,90 +42,29 @@ namespace SenseNet.SearchImpl.Tests
         [TestMethod]
         public void InMemDb_Create()
         {
-            var lastNodeId = InMemoryDataProvider.LastNodeId;
-
-            var node = Test<Node>(() =>
+            Node node;
+            var result = Test<Tuple<int, Node>>(() =>
             {
+                var lastNodeId = ((InMemoryDataProvider)DataProvider.Current).LastNodeId;
+
                 var root = Node.LoadNode(Identifiers.RootPath);
-                var n = new TestNode(root)
+                node = new SystemFolder(root)
                 {
                     Name = "Node1",
                     DisplayName = "Node 1"
                 };
                 foreach (var observer in NodeObserver.GetObserverTypes())
-                    n.DisableObserver(observer);
-                n.Save();
-                n = Node.Load<TestNode>(n.Id);
-                return n;
-            });
+                    node.DisableObserver(observer);
+                node.Save();
 
-            Assert.AreEqual(lastNodeId+1, node.Id);
+                node = Node.Load<SystemFolder>(node.Id);
+                return new Tuple<int, Node>(lastNodeId, node);
+
+            });
+            var lastId = result.Item1;
+            node = result.Item2;
+            Assert.AreEqual(lastId + 1, node.Id);
             Assert.AreEqual("/Root/Node1", node.Path);
         }
-
-
-
-        /* ============================================================================ */
-
-        public static T Test<T>(Func<T> callback)
-        {
-            TypeHandler.Initialize(new Dictionary<Type, Type[]>
-            {
-                {typeof(ElevatedModificationVisibilityRule), new[] {typeof(SnElevatedModificationVisibilityRule)}}
-            });
-
-            var dataProvider = new InMemoryDataProvider();
-            StartSecurity(dataProvider);
-
-            DistributedApplication.Cache.Reset();
-
-            using (new Tools.SearchEngineSwindler(new TestSearchEngine()))
-            using (Tools.Swindle(typeof(IndexManager), "_indexingEngineFactory", new TestIndexingEngineFactory()))
-            //using (Tools.Swindle(typeof(StorageContext.Search), "ContentRepository", new TestSearchEngineSupport(DefaultIndexingInfo)))
-            using (Tools.Swindle(typeof(StorageContext.Search), "ContentRepository", new SearchEngineSupport()))
-            using (Tools.Swindle(typeof(AccessProvider), "_current", new DesktopAccessProvider()))
-            using (Tools.Swindle(typeof(DataProvider), "_current", dataProvider))
-            using (new SystemAccount())
-            {
-                IndexManager.Start(new TestIndexingEngineFactory(), TextWriter.Null);
-                return callback();
-            }
-        }
-
-        private static readonly Dictionary<string, IPerFieldIndexingInfo>
-            DefaultIndexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
-            {
-                {"_Text", new TestPerfieldIndexingInfoString()},
-                {"Id", new TestPerfieldIndexingInfoInt()},
-                {"Name", new TestPerfieldIndexingInfoString()},
-                {"Path", new TestPerfieldIndexingInfoString()},
-                {"InTree", new TestPerfieldIndexingInfoString()},
-                {"InFolder", new TestPerfieldIndexingInfoString()},
-            };
-
-        private static void StartSecurity(InMemoryDataProvider repo)
-        {
-            var securityDataProvider = new MemoryDataProvider(new DatabaseStorage
-            {
-                Aces = new List<StoredAce>
-                {
-                    new StoredAce {EntityId = 2, IdentityId = 1, LocalOnly = false, AllowBits = 0x0EF, DenyBits = 0x000}
-                },
-                Entities = repo.GetSecurityEntities().ToDictionary(e => e.Id, e => e),
-                Memberships = new List<Membership>
-                {
-                    new Membership
-                    {
-                        GroupId = Identifiers.AdministratorsGroupId,
-                        MemberId = Identifiers.AdministratorUserId,
-                        IsUser = true
-                    }
-                },
-                Messages = new List<Tuple<int, DateTime, byte[]>>()
-            });
-
-            SecurityHandler.StartSecurity(false, securityDataProvider, new DefaultMessageProvider());
-        }
-
     }
 }

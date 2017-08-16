@@ -1,11 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Events;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Lucene29;
@@ -14,13 +18,13 @@ using SenseNet.SearchImpl.Tests.Implementations;
 namespace SenseNet.SearchImpl.Tests
 {
     [TestClass]
-    public class IndexingTests
+    public class IndexingTests : TestBase
     {
         [TestMethod]
         public void Indexing_Create()
         {
             Node node;
-            var result = InMemoryDataProviderTests.Test(() =>
+            var result = Test(() =>
             {
                 // create a test node unter the root.
                 node = new SystemFolder(Node.LoadNode(Identifiers.PortalRootId))
@@ -90,7 +94,7 @@ namespace SenseNet.SearchImpl.Tests
         public void Indexing_Update()
         {
             Node node;
-            var result = InMemoryDataProviderTests.Test(() =>
+            var result = Test(() =>
             {
                 // create a test node unter the root.
                 node = new SystemFolder(Node.LoadNode(Identifiers.PortalRootId))
@@ -169,6 +173,8 @@ namespace SenseNet.SearchImpl.Tests
             Assert.IsNull(hit6);
             Assert.IsNotNull(hit7);
         }
+
+        /* ============================================================================ */
 
         private TestIndex GetTestIndex()
         {

@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
-using Newtonsoft.Json;
-using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
@@ -20,7 +19,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
     {
         #region NOT IMPLEMENTED
 
-        public override System.Collections.Generic.Dictionary<DataType, int> ContentListMappingOffsets
+        public override Dictionary<DataType, int> ContentListMappingOffsets
         {
             get
             {
@@ -76,7 +75,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        public override ContentRepository.Storage.Data.ITransactionProvider CreateTransaction()
+        public override ITransactionProvider CreateTransaction()
         {
             throw new NotImplementedException();
         }
@@ -100,7 +99,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         public override int GetLastActivityId()
         {
-            return IndexingActivity.Max(r => r.IndexingActivityId);
+            return _db.IndexingActivity.Max(r => r.IndexingActivityId);
         }
 
         #region NOT IMPLEMENTED
@@ -115,12 +114,12 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        public override SenseNet.ContentRepository.Storage.Data.IDataProcedure GetTimestampDataForOneNodeIntegrityCheck(string path, int[] excludedNodeTypeIds)
+        public override IDataProcedure GetTimestampDataForOneNodeIntegrityCheck(string path, int[] excludedNodeTypeIds)
         {
             throw new NotImplementedException();
         }
 
-        public override ContentRepository.Storage.Data.IDataProcedure GetTimestampDataForRecursiveIntegrityCheck(string path, int[] excludedNodeTypeIds)
+        public override IDataProcedure GetTimestampDataForRecursiveIntegrityCheck(string path, int[] excludedNodeTypeIds)
         {
             throw new NotImplementedException();
         }
@@ -141,11 +140,11 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             var result = new List<IIndexingActivity>();
 
-            var activities = IndexingActivity.Where(r => r.IndexingActivityId >= fromId && r.IndexingActivityId <= toId).Take(count).ToArray();
+            var activities = _db.IndexingActivity.Where(r => r.IndexingActivityId >= fromId && r.IndexingActivityId <= toId).Take(count).ToArray();
             foreach (var activityRecord in activities)
             {
-                var nodeRecord = Nodes.FirstOrDefault(r => r.NodeId == activityRecord.NodeId);
-                var versionRecord = Versions.FirstOrDefault(r => r.VersionId == activityRecord.VersionId);
+                var nodeRecord = _db.Nodes.FirstOrDefault(r => r.NodeId == activityRecord.NodeId);
+                var versionRecord = _db.Versions.FirstOrDefault(r => r.VersionId == activityRecord.VersionId);
                 var activity = activityFactory.CreateActivity(activityRecord.ActivityType);
 
                 activity.Id = activityRecord.IndexingActivityId;
@@ -159,7 +158,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                 activity.IsUnprocessedActivity = executingUnprocessedActivities;
                 activity.Extension = activityRecord.Extension;
 
-                if (versionRecord?.IndexDocument != null)
+                if (versionRecord?.IndexDocument != null && nodeRecord != null)
                 {
                     activity.IndexDocumentData = new IndexDocumentData(null, versionRecord.IndexDocument)
                     {
@@ -170,7 +169,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                         Path = activity.Path,
                         IsSystem = nodeRecord.IsSystem,
                         IsLastDraft = nodeRecord.LastMinorVersionId == activity.VersionId,
-                        IsLastPublic = versionRecord.Version.Status == VersionStatus.Approved && nodeRecord.LastMajorVersionId == activity.VersionId,
+                        IsLastPublic = versionRecord.Version.Status == VersionStatus.Approved && nodeRecord.LastMajorVersionId == activity.VersionId
                         //NodeTimestamp = nodeTimeStamp,
                         //VersionTimestamp = versionTimestamp,
                     };
@@ -202,9 +201,9 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         public override void RegisterIndexingActivity(IIndexingActivity activity)
         {
-            var newId = IndexingActivity.Count == 0 ? 1 : IndexingActivity.Max(r => r.NodeId) + 1;
+            var newId = _db.IndexingActivity.Count == 0 ? 1 : _db.IndexingActivity.Max(r => r.NodeId) + 1;
 
-            IndexingActivity.Add(new IndexingActivityRecord
+            _db.IndexingActivity.Add(new IndexingActivityRecord
             {
                 IndexingActivityId = newId,
                 ActivityType = activity.ActivityType,
@@ -248,7 +247,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        protected internal override void CommitChunk(int versionId, int propertyTypeId, string token, long fullSize, ContentRepository.Storage.BinaryDataValue source = null)
+        protected internal override void CommitChunk(int versionId, int propertyTypeId, string token, long fullSize, BinaryDataValue source = null)
         {
             throw new NotImplementedException();
         }
@@ -263,22 +262,22 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        protected internal override ContentRepository.Storage.Data.IDataProcedure CreateDataProcedureInternal(string commandText, ContentRepository.Storage.Data.ConnectionInfo connectionInfo)
+        protected internal override IDataProcedure CreateDataProcedureInternal(string commandText, ConnectionInfo connectionInfo)
         {
             throw new NotImplementedException();
         }
 
-        protected internal override ContentRepository.Storage.Data.IDataProcedure CreateDataProcedureInternal(string commandText, string connectionName = null, ContentRepository.Storage.Data.InitialCatalog initialCatalog = 0)
+        protected internal override IDataProcedure CreateDataProcedureInternal(string commandText, string connectionName = null, InitialCatalog initialCatalog = 0)
         {
             throw new NotImplementedException();
         }
 
         protected internal override INodeWriter CreateNodeWriter()
         {
-            return new InMemoryNodeWriter();
+            return new InMemoryNodeWriter(_db);
         }
 
-        protected override System.Data.IDbDataParameter CreateParameterInternal()
+        protected override IDbDataParameter CreateParameterInternal()
         {
             throw new NotImplementedException();
         }
@@ -308,7 +307,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        protected internal override ContentRepository.Storage.Data.BlobStorageContext GetBlobStorageContext(int fileId, bool clearStream = false, int versionId = 0, int propertyTypeId = 0)
+        protected internal override BlobStorageContext GetBlobStorageContext(int fileId, bool clearStream = false, int versionId = 0, int propertyTypeId = 0)
         {
             throw new NotImplementedException();
         }
@@ -328,7 +327,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        protected internal override IndexDocumentData GetIndexDocumentDataFromReader(System.Data.Common.DbDataReader reader)
+        protected internal override IndexDocumentData GetIndexDocumentDataFromReader(DbDataReader reader)
         {
             throw new NotImplementedException();
         }
@@ -341,7 +340,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         protected internal override NodeHead.NodeVersion[] GetNodeVersions(int nodeId)
         {
-            return Versions
+            return _db.Versions
                 .Where(v => v.NodeId == nodeId)
                 .Select(v =>new NodeHead.NodeVersion(v.Version, v.VersionId))
                 .ToArray();
@@ -417,13 +416,13 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        protected internal override System.Collections.Generic.Dictionary<int, string> LoadAllTreeLocks()
+        protected internal override Dictionary<int, string> LoadAllTreeLocks()
         {
             throw new NotImplementedException();
         }
         #endregion
 
-        protected internal override ContentRepository.Storage.Data.BinaryCacheEntity LoadBinaryCacheEntity(int nodeVersionId, int propertyTypeId)
+        protected internal override BinaryCacheEntity LoadBinaryCacheEntity(int nodeVersionId, int propertyTypeId)
         {
 
             // SELECT F.Size, B.BinaryPropertyId, F.FileId, F.BlobProvider, F.BlobProviderData,
@@ -432,11 +431,11 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             //     JOIN Files F ON B.FileId = F.FileId
             // WHERE B.VersionId = @VersionId AND B.PropertyTypeId = @PropertyTypeId AND F.Staging IS NULL";
 
-            var binRec = BinaryProperties
+            var binRec = _db.BinaryProperties
                 .FirstOrDefault(r => r.VersionId == nodeVersionId && r.PropertyTypeId == propertyTypeId);
             if (binRec == null)
                 return null;
-            var fileRec = Files.FirstOrDefault(f => f.FileId == binRec.FileId);
+            var fileRec = _db.Files.FirstOrDefault(f => f.FileId == binRec.FileId);
             if (fileRec == null)
                 return null;
 
@@ -471,7 +470,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         #endregion
 
-        protected internal override ContentRepository.Storage.BinaryDataValue LoadBinaryPropertyValue(int versionId, int propertyTypeId)
+        protected internal override BinaryDataValue LoadBinaryPropertyValue(int versionId, int propertyTypeId)
         {
             //ALTER PROCEDURE [dbo].[proc_BinaryProperty_LoadValue]
             //	@VersionId int,
@@ -485,11 +484,11 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             //	WHERE VersionId = @VersionId AND PropertyTypeId = @PropertyTypeId AND Staging IS NULL
             //END
 
-            var binRec = BinaryProperties
+            var binRec = _db.BinaryProperties
                 .FirstOrDefault(r => r.VersionId == versionId && r.PropertyTypeId == propertyTypeId);
             if (binRec == null)
                 return null;
-            var fileRec = Files.FirstOrDefault(f => f.FileId == binRec.FileId);
+            var fileRec = _db.Files.FirstOrDefault(f => f.FileId == binRec.FileId);
             if (fileRec == null)
                 return null;
 
@@ -526,10 +525,10 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         protected internal override IndexDocumentData LoadIndexDocumentByVersionId(int versionId)
         {
-            var version = Versions.FirstOrDefault(v => v.VersionId == versionId);
+            var version = _db.Versions.FirstOrDefault(v => v.VersionId == versionId);
             if (version == null)
                 return null;
-            var node = Nodes.FirstOrDefault(n => n.NodeId == version.NodeId);
+            var node = _db.Nodes.FirstOrDefault(n => n.NodeId == version.NodeId);
             if (node == null)
                 return null;
 
@@ -547,7 +546,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                 Path = node.Path,
                 IsSystem = node.IsSystem,
                 IsLastDraft = node.LastMinorVersionId == versionId,
-                IsLastPublic = approved && isLastMajor,
+                IsLastPublic = approved && isLastMajor
                 //NodeTimestamp = node.Timestamp,
                 //VersionTimestamp = version.Timestamp,
             };
@@ -569,13 +568,13 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         protected internal override NodeHead LoadNodeHead(int nodeId)
         {
-            return CreateNodeHead(Nodes.FirstOrDefault(r => r.NodeId == nodeId));
+            return CreateNodeHead(_db.Nodes.FirstOrDefault(r => r.NodeId == nodeId));
         }
         protected internal override NodeHead LoadNodeHead(string path)
         {
             return
                 CreateNodeHead(
-                    Nodes.FirstOrDefault(r => string.Equals(r.Path, path, StringComparison.InvariantCultureIgnoreCase)));
+                    _db.Nodes.FirstOrDefault(r => string.Equals(r.Path, path, StringComparison.InvariantCultureIgnoreCase)));
         }
         private NodeHead CreateNodeHead(NodeRecord r)
         {
@@ -589,7 +588,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         protected internal override NodeHead LoadNodeHeadByVersionId(int versionId)
         {
-            var version = Versions.FirstOrDefault(v => v.VersionId == versionId);
+            var version = _db.Versions.FirstOrDefault(v => v.VersionId == versionId);
             if (version == null)
                 return null;
             return LoadNodeHead(version.NodeId);
@@ -597,17 +596,17 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         protected internal override IEnumerable<NodeHead> LoadNodeHeads(IEnumerable<int> heads)
         {
-            return Nodes.Where(n => heads.Contains(n.NodeId)).Select(CreateNodeHead);
+            return _db.Nodes.Where(n => heads.Contains(n.NodeId)).Select(CreateNodeHead);
         }
 
-        protected internal override void LoadNodes(System.Collections.Generic.Dictionary<int, NodeBuilder> buildersByVersionId)
+        protected internal override void LoadNodes(Dictionary<int, NodeBuilder> buildersByVersionId)
         {
             foreach (var versionId in buildersByVersionId.Keys)
             {
-                var version = Versions.FirstOrDefault(r => r.VersionId == versionId);
+                var version = _db.Versions.FirstOrDefault(r => r.VersionId == versionId);
                 if (version == null)
                     continue;
-                var node = Nodes.FirstOrDefault(r => r.NodeId == version.NodeId);
+                var node = _db.Nodes.FirstOrDefault(r => r.NodeId == version.NodeId);
                 if (node == null)
                     continue;
                 var builder = buildersByVersionId[versionId];
@@ -623,7 +622,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                 builder.Finish();
         }
 
-        protected internal override System.Data.DataSet LoadSchema()
+        protected internal override DataSet LoadSchema()
         {
             var xml = new XmlDocument();
             xml.LoadXml(TestSchema);
@@ -631,6 +630,8 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         }
 
         #region NOT IMPLEMENTED
+
+        [Obsolete("Use GetStream method on a BinaryData instance instead.", true)]
         protected internal override Stream LoadStream(int versionId, int propertyTypeId)
         {
             throw new NotImplementedException();
@@ -641,9 +642,9 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             throw new NotImplementedException();
         }
         #endregion
-        protected internal override System.Collections.Generic.Dictionary<int, string> LoadTextPropertyValues(int versionId, int[] propertyTypeIds)
+        protected internal override Dictionary<int, string> LoadTextPropertyValues(int versionId, int[] propertyTypeIds)
         {
-            return TextProperties
+            return _db.TextProperties
                 .Where(t => t.VersionId == versionId && propertyTypeIds.Contains(t.PropertyTypeId))
                 .ToDictionary(t => t.PropertyTypeId, t => t.Value);
         }
@@ -689,7 +690,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         protected internal override IEnumerable<int> QueryNodesByTypeAndPath(int[] nodeTypeIds, string pathStart, bool orderByPath)
         {
             var types = nodeTypeIds.ToList();
-            var nodes = Nodes.Where(n => types.Contains(n.NodeTypeId) && n.Path.StartsWith(pathStart));
+            var nodes = _db.Nodes.Where(n => types.Contains(n.NodeTypeId) && n.Path.StartsWith(pathStart));
             if (orderByPath)
                 nodes = nodes.OrderBy(n => n.Path);
             var ids = nodes.Select(n => n.NodeId);
@@ -751,7 +752,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         protected internal override void UpdateIndexDocument(NodeData nodeData, byte[] indexDocumentBytes)
         {
-            var versionRow = Versions.FirstOrDefault(r => r.VersionId == nodeData.VersionId);
+            var versionRow = _db.Versions.FirstOrDefault(r => r.VersionId == nodeData.VersionId);
             if (versionRow == null)
                 return;
             versionRow.IndexDocument = indexDocumentBytes;
@@ -780,7 +781,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         internal IEnumerable<StoredSecurityEntity> GetSecurityEntities()
         {
-            return Nodes.Select(n => new StoredSecurityEntity
+            return _db.Nodes.Select(n => new StoredSecurityEntity
             {
                 Id = n.NodeId,
                 nullableOwnerId = n.OwnerId,
@@ -788,24 +789,63 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             }).ToArray();
         }
 
-        internal static int LastNodeId
+        internal int LastNodeId
         {
-            get { return Nodes.Max(n => n.NodeId); }
+            get { return _db.Nodes.Max(n => n.NodeId); }
         }
 
         /* ====================================================================================== Database */
 
-        private static readonly List<NodeRecord> Nodes;
-        private static readonly List<VersionRecord> Versions;
-        private static readonly List<BinaryPropertyRecord> BinaryProperties;
-        private static readonly List<FileRecord> Files;
-        private static readonly List<TextPropertyRecord> TextProperties;
-        private static readonly List<IndexingActivityRecord> IndexingActivity = new List<IndexingActivityRecord>();
+        #region CREATION
 
+        // Preloade CTD bytes by name
+        private static readonly Dictionary<string, byte[]> ContentTypeBytes;
         static InMemoryDataProvider()
         {
+            // Preload CTD bytes from disk to avoid heavy IO charging
+
+            ContentTypeBytes = new Dictionary<string, byte[]>();
+
+            var ctdDirectory = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                @"..\..\..\..\nuget\snadmin\install-services\import\System\Schema\ContentTypes"));
+
+            foreach (var ctdPath in Directory.GetFiles(ctdDirectory, "*.xml"))
+            {
+                var stream = new MemoryStream();
+                byte[] bytes;
+                using (var writer = new StreamWriter(stream, Encoding.UTF8))
+                using (var reader = new StreamReader(ctdPath))
+                {
+                    writer.Write(reader.ReadToEnd());
+                    writer.Flush();
+                    var buffer = stream.GetBuffer();
+                    bytes = new byte[stream.Length];
+                    Array.Copy(buffer, bytes, bytes.Length);
+                }
+                ContentTypeBytes.Add(Path.GetFileNameWithoutExtension(ctdPath).ToLowerInvariant(), bytes);
+            }
+        }
+
+        private static byte[] GetContentTypeBytes(string name)
+        {
+            name = name.ToLowerInvariant();
+            if (!ContentTypeBytes.ContainsKey(name))
+            {
+                name = name + "ctd";
+                if (!ContentTypeBytes.ContainsKey(name))
+                    return new byte[0];
+            }
+            return ContentTypeBytes[name];
+        }
+
+        private readonly Database _db;
+
+        public InMemoryDataProvider()
+        {
+            _db = new Database();
+
             var skip = _initialNodes.StartsWith("NodeId") ? 1 : 0;
-            Nodes = _initialNodes.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+            _db.Nodes = _initialNodes.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
                 .Skip(skip)
                 .Select(l =>
                 {
@@ -830,7 +870,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
             // -------------------------------------------------------------------------------------
 
-            Versions = Nodes.Select(n => new VersionRecord
+            _db.Versions = _db.Nodes.Select(n => new VersionRecord
             {
                 VersionId = n.LastMajorVersionId,
                 NodeId = n.NodeId,
@@ -842,7 +882,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             // -------------------------------------------------------------------------------------
 
             skip = _initialBinaryProperties.StartsWith("BinaryPropertyId") ? 1 : 0;
-            BinaryProperties = _initialBinaryProperties.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+            _db.BinaryProperties = _initialBinaryProperties.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
                 .Skip(skip)
                 .Select(l =>
                 {
@@ -858,11 +898,8 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
             // -------------------------------------------------------------------------------------
 
-            var ctdDirectory = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                @"..\..\..\..\nuget\snadmin\install-services\import\System\Schema\ContentTypes"));
-
             skip = _initialFiles.StartsWith("FileId") ? 1 : 0;
-            Files = _initialFiles.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+            _db.Files = _initialFiles.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
                 .Skip(skip)
                 .Select(l =>
                 {
@@ -870,7 +907,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                     var name = record[2];
                     var ext = record[3];
 
-                    var bytes = ext == ".ContentType" ? LoadContentTypeFromDisk(ctdDirectory, name) : new byte[0];
+                    var bytes = ext == ".ContentType" ? GetContentTypeBytes(name) : new byte[0];
 
                     return new FileRecord
                     {
@@ -886,7 +923,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             // -------------------------------------------------------------------------------------
 
             skip = _initialTextProperties.StartsWith("TextPropertyNVarcharId") ? 1 : 0;
-            TextProperties = _initialTextProperties.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+            _db.TextProperties = _initialTextProperties.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
                 .Skip(skip)
                 .Select(l =>
                 {
@@ -902,35 +939,28 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                 }).ToList();
         }
 
-        private static byte[] LoadContentTypeFromDisk(string path, string name)
-        {
-            var ctdPath = Path.Combine(path, name + ".xml");
-            if (!System.IO.File.Exists(ctdPath))
-            {
-                ctdPath = Path.Combine(path, name + "Ctd.xml");
-                if (!System.IO.File.Exists(ctdPath))
-                    //throw new FileNotFoundException("CTD not found.", name);
-                    return new byte[0];
-            }
-
-            var stream = new MemoryStream();
-            byte[] bytes;
-            using (var writer = new StreamWriter(stream, Encoding.UTF8))
-            using (var reader = new StreamReader(ctdPath))
-            {
-                writer.Write(reader.ReadToEnd());
-                writer.Flush();
-                var buffer = stream.GetBuffer();
-                bytes = new byte[stream.Length];
-                Array.Copy(buffer, bytes, bytes.Length);
-            }
-            return bytes;
-        }
+        #endregion
 
         #region Implementation classes
 
+        private class Database
+        {
+            public List<NodeRecord> Nodes;
+            public List<VersionRecord> Versions;
+            public List<BinaryPropertyRecord> BinaryProperties;
+            public List<FileRecord> Files;
+            public List<TextPropertyRecord> TextProperties;
+            public List<IndexingActivityRecord> IndexingActivity = new List<IndexingActivityRecord>();
+        }
         private class InMemoryNodeWriter : INodeWriter
         {
+            private Database _db;
+
+            public InMemoryNodeWriter(Database db)
+            {
+                _db = db;
+            }
+
             public void Open()
             {
                 // do nothing
@@ -941,13 +971,13 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             }
             public void InsertNodeAndVersionRows(NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId)
             {
-                var newNodeId = Nodes.Max(r => r.NodeId) + 1;
-                var newVersionId = Versions.Max(r => r.NodeId) + 1;
+                var newNodeId = _db.Nodes.Max(r => r.NodeId) + 1;
+                var newVersionId = _db.Versions.Max(r => r.NodeId) + 1;
                 lastMinorVersionId = newVersionId;
                 lastMajorVersionId = nodeData.Version.IsMajor ? newVersionId : 0;
                 var nodeTimeStamp = 0L; //TODO:! InMemoryDataProvider: timestamp not supported
                 var versionTimestamp = 0L; //TODO:! InMemoryDataProvider: timestamp not supported
-                Nodes.Add(new NodeRecord
+                _db.Nodes.Add(new NodeRecord
                 {
                     NodeId = newNodeId,
                     NodeTypeId = nodeData.NodeTypeId,
@@ -979,7 +1009,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                     SavingState = nodeData.SavingState,
                     NodeTimestamp = nodeTimeStamp
                 });
-                Versions.Add(new VersionRecord
+                _db.Versions.Add(new VersionRecord
                 {
                     VersionId = newVersionId,
                     NodeId = newNodeId,
@@ -1005,10 +1035,10 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             {
                 var nodeId = nodeData.Id;
 
-                var nodeRec = Nodes.FirstOrDefault(n => n.NodeId == nodeId);
+                var nodeRec = _db.Nodes.FirstOrDefault(n => n.NodeId == nodeId);
                 if (nodeRec == null)
                     throw new InvalidOperationException("Node not found. NodeId:" + nodeId);
-                var parentRec = Nodes.FirstOrDefault(n => n.NodeId == nodeRec.ParentNodeId);
+                var parentRec = _db.Nodes.FirstOrDefault(n => n.NodeId == nodeRec.ParentNodeId);
 
                 nodeRec.NodeTypeId = nodeData.NodeTypeId;
                 nodeRec.ContentListTypeId = nodeData.ContentListTypeId;
@@ -1042,7 +1072,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                 var versionId = nodeData.VersionId;
                 var nodeId = nodeData.Id;
 
-                var versionRec = Versions.FirstOrDefault(v => v.VersionId == versionId);
+                var versionRec = _db.Versions.FirstOrDefault(v => v.VersionId == versionId);
                 if (versionRec == null)
                     throw new InvalidOperationException("Version not found. VersionId:" + versionId);
 
@@ -1054,18 +1084,18 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                 versionRec.ModifiedById = nodeData.VersionModifiedById;
                 versionRec.ChangedData = nodeData.ChangedData;
 
-                var nodeRec = Nodes.FirstOrDefault(n => n.NodeId == nodeId);
+                var nodeRec = _db.Nodes.FirstOrDefault(n => n.NodeId == nodeId);
                 if(nodeRec == null)
                     throw new InvalidOperationException("Node not found. NodeId:" + nodeId);
 
                 if (nodeData.IsPropertyChanged("Version"))
                 {
-                    nodeRec.LastMinorVersionId = Versions
+                    nodeRec.LastMinorVersionId = _db.Versions
                         .Where(v => v.NodeId == nodeId)
                         .OrderByDescending(v => v.Version.Major)
                         .ThenByDescending(v => v.Version.Minor)
                         .First().VersionId;
-                    nodeRec.LastMajorVersionId = Versions
+                    nodeRec.LastMajorVersionId = _db.Versions
                         .Where(v => v.NodeId == nodeId && v.Version.Minor == 0 && v.Version.Status == VersionStatus.Approved)
                         .OrderByDescending(v => v.Version.Major)
                         .ThenByDescending(v => v.Version.Minor)

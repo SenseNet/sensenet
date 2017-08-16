@@ -79,6 +79,7 @@
     <Compile Include="InMemoryDataProviderTests.cs" />
     <Compile Include="SnSarchToLucene29CompilerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestBase.cs" />
     <Compile Include="Tools.cs" />
   </ItemGroup>
   <ItemGroup>
