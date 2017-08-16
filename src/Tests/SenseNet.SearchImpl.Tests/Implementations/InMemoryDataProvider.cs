@@ -236,11 +236,14 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+        #endregion
 
         protected internal override int AcquireTreeLock(string path)
         {
-            throw new NotImplementedException();
+            return 1; //UNDONE:!!! TreeLock is not supported
         }
+
+        #region NOT IMPLEMENTED
 
         protected internal override void CheckScriptInternal(string commandText)
         {
@@ -291,11 +294,38 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+        #endregion
 
         protected internal override DataOperationResult DeleteNodeTreePsychical(int nodeId, long timestamp)
         {
-            throw new NotImplementedException();
+            var nodeRec = _db.Nodes.FirstOrDefault(n => n.NodeId == nodeId);
+            if(nodeRec == null)
+                return DataOperationResult.Successful;
+
+            var path = nodeRec.Path;
+            var nodeIds = _db.Nodes
+                .Where(n => n.Path.StartsWith(path, StringComparison.InvariantCultureIgnoreCase))
+                .Select(n => n.NodeId)
+                .ToArray();
+            var versionIds = _db.Versions
+                .Where(v => nodeIds.Contains(v.VersionId))
+                .Select(v => v.VersionId)
+                .ToArray();
+            var fileIds = _db.BinaryProperties
+                .Where(b => versionIds.Contains(b.VersionId))
+                .Select(b => b.FileId)
+                .ToArray();
+
+            _db.BinaryProperties.RemoveAll(r => versionIds.Contains(r.VersionId));
+            _db.Files.RemoveAll(r => fileIds.Contains(r.FileId));
+            _db.TextProperties.RemoveAll(r => versionIds.Contains(r.VersionId));
+            _db.Versions.RemoveAll(r => versionIds.Contains(r.VersionId));
+            _db.Nodes.RemoveAll(r => nodeIds.Contains(r.NodeId));
+
+            return DataOperationResult.Successful;
         }
+
+        #region NOT IMPLEMENTED
 
         protected internal override void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId)
         {
@@ -316,11 +346,18 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+        #endregion
 
         protected internal override List<ContentListType> GetContentListTypesInTree(string path)
         {
-            throw new NotImplementedException();
+            return _db.Nodes
+                .Where(n => n.ContentListId == 0 && n.ContentListTypeId != 0 &&
+                        n.Path.StartsWith(path, StringComparison.InvariantCultureIgnoreCase))
+                .Select(n => NodeTypeManager.Current.ContentListTypes.GetItemById(n.ContentListTypeId))
+                .ToList();
         }
+
+        #region NOT IMPLEMENTED
 
         protected internal override IEnumerable<int> GetIdsOfNodesThatDoNotHaveIndexDocument(int fromId, int toId)
         {
@@ -415,12 +452,12 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+        #endregion
 
         protected internal override Dictionary<int, string> LoadAllTreeLocks()
         {
-            throw new NotImplementedException();
+            return new Dictionary<int, string>(); //UNDONE:!!! TreeLock is not supported
         }
-        #endregion
 
         protected internal override BinaryCacheEntity LoadBinaryCacheEntity(int nodeVersionId, int propertyTypeId)
         {
@@ -718,11 +755,14 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+        #endregion
 
         protected internal override void ReleaseTreeLock(int[] lockIds)
         {
-            throw new NotImplementedException();
+            //UNDONE:!!! TreeLock is not supported
         }
+
+        #region NOT IMPLEMENTED
 
         protected internal override void Reset()
         {
@@ -954,7 +994,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         }
         private class InMemoryNodeWriter : INodeWriter
         {
-            private Database _db;
+            private readonly Database _db;
 
             public InMemoryNodeWriter(Database db)
             {

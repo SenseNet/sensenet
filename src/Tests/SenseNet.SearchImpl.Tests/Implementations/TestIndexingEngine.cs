@@ -77,11 +77,13 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         public void Actualize(IEnumerable<SnTerm> deletions, IndexDocument addition, IEnumerable<DocumentUpdate> updates)
         {
-            foreach (var term in deletions)
-                Index.Delete(term);
+            if(deletions != null)
+                foreach (var term in deletions)
+                    Index.Delete(term);
 
-            foreach (var update in updates)
-                Index.Update(update.UpdateTerm, (IndexDocument)update.Document);
+            if (updates != null)
+                foreach (var update in updates)
+                    Index.Update(update.UpdateTerm, (IndexDocument) update.Document);
 
             if (addition != null)
                 Index.AddDocument(addition);
