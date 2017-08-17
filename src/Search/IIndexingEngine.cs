@@ -8,6 +8,12 @@ namespace SenseNet.Search
         int LastActivityId { get; set; }
         int[] Gaps { get; set; }
     }
+    public class IndexingActivityStatus : IIndexingActivityStatus //UNDONE: Refactor with CompletionStatus
+    {
+        public static IndexingActivityStatus Startup => new IndexingActivityStatus { Gaps = new int[0], LastActivityId = 0 };
+        public int LastActivityId { get; set; }
+        public int[] Gaps { get; set; }
+    }
 
     public interface IIndexingEngine // IIndexActualizator, IIndexingEngine
     {

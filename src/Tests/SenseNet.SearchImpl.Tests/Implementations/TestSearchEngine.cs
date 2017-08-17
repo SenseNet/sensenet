@@ -12,15 +12,15 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         public void PauseIndexing()
         {
-            // do nothing
+            IndexManager.PauseIndexing();
         }
         public void ContinueIndexing()
         {
-            // do nothing
+            IndexManager.ContinueIndexing();
         }
         public void WaitIfIndexingPaused()
         {
-            // do nothing
+            IndexManager.WaitIfIndexingPaused();
         }
 
         public IIndexPopulator GetPopulator()

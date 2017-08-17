@@ -8,7 +8,7 @@ using SenseNet.Search;
 
 namespace SenseNet.SearchImpl.Tests.Implementations
 {
-    internal class TestIndex
+    internal class InMemoryIndex
     {
         // FieldName => FieldValue => VersionId
         private Dictionary<string, Dictionary<string, List<int>>> _indexData = new Dictionary<string, Dictionary<string, List<int>>>();

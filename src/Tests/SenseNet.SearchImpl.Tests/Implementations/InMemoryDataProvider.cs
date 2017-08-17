@@ -99,7 +99,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         public override int GetLastActivityId()
         {
-            return _db.IndexingActivity.Max(r => r.IndexingActivityId);
+            return _db.IndexingActivity.Count == 0 ? 0 : _db.IndexingActivity.Max(r => r.IndexingActivityId);
         }
 
         #region NOT IMPLEMENTED

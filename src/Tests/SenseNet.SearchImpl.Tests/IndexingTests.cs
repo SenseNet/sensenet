@@ -26,7 +26,7 @@ namespace SenseNet.SearchImpl.Tests
             Node node;
             var result = Test(() =>
             {
-                // create a test node unter the root.
+                // create a test node under the root.
                 node = new SystemFolder(Node.LoadNode(Identifiers.PortalRootId))
                 {
                     Name = "Node1",
@@ -52,7 +52,7 @@ namespace SenseNet.SearchImpl.Tests
                     db.LoadIndexingActivities(activityId, activityId, 1, false, IndexingActivityFactory.Instance)
                     .FirstOrDefault();
 
-                return new Tuple<Node, IndexDocumentData, IIndexingActivity, TestIndex>(node, indexDocument, activity, GetTestIndex());
+                return new Tuple<Node, IndexDocumentData, IIndexingActivity, InMemoryIndex>(node, indexDocument, activity, GetTestIndex());
             });
 
             node = result.Item1;
@@ -96,11 +96,12 @@ namespace SenseNet.SearchImpl.Tests
             Node node;
             var result = Test(() =>
             {
-                // create a test node unter the root.
+                // create a test node under the root.
                 node = new SystemFolder(Node.LoadNode(Identifiers.PortalRootId))
                 {
                     Name = "Node1",
-                    DisplayName = "Node 1"
+                    DisplayName = "Node 1",
+                    Index = 42
                 };
                 foreach (var observer in NodeObserver.GetObserverTypes())
                     node.DisableObserver(observer);
@@ -128,7 +129,7 @@ namespace SenseNet.SearchImpl.Tests
                     db.LoadIndexingActivities(activityId, activityId, 1, false, IndexingActivityFactory.Instance)
                     .FirstOrDefault();
 
-                return new Tuple<Node, IndexDocumentData, IIndexingActivity, TestIndex>(node, indexDocument, activity, GetTestIndex());
+                return new Tuple<Node, IndexDocumentData, IIndexingActivity, InMemoryIndex>(node, indexDocument, activity, GetTestIndex());
             });
 
             node = result.Item1;
@@ -176,25 +177,39 @@ namespace SenseNet.SearchImpl.Tests
         [TestMethod]
         public void Indexing_Delete()
         {
-            Node node;
+            Node node1, node2;
+
             var result = Test(() =>
             {
-                // create a test node unter the root.
-                node = new SystemFolder(Node.LoadNode(Identifiers.PortalRootId))
+                // create node#1 under the root.
+                node1 = new SystemFolder(Node.LoadNode(Identifiers.PortalRootId))
                 {
                     Name = "Node1",
-                    DisplayName = "Node 1"
+                    DisplayName = "Node 1",
+                    Index = 42
                 };
                 foreach (var observer in NodeObserver.GetObserverTypes())
-                    node.DisableObserver(observer);
-                node.Save();
-                // reload the newly created.
-                node = Node.Load<SystemFolder>(node.Id);
+                    node1.DisableObserver(observer);
+                node1.Save();
+
+                // create node#2 under the root.
+                node2 = new SystemFolder(Node.LoadNode(Identifiers.PortalRootId))
+                {
+                    Name = "Node2",
+                    DisplayName = "Node 2",
+                    Index = 43
+                };
+                foreach (var observer in NodeObserver.GetObserverTypes())
+                    node2.DisableObserver(observer);
+                node2.Save();
+
+                // reload.
+                node1 = Node.Load<SystemFolder>(node1.Id);
 
                 // ACTION
                 foreach (var observer in NodeObserver.GetObserverTypes())
-                    node.DisableObserver(observer);
-                node.ForceDelete();
+                    node1.DisableObserver(observer);
+                node1.ForceDelete();
 
                 // load last indexing activity
                 var db = DataProvider.Current;
@@ -203,45 +218,59 @@ namespace SenseNet.SearchImpl.Tests
                     db.LoadIndexingActivities(activityId, activityId, 1, false, IndexingActivityFactory.Instance)
                     .FirstOrDefault();
 
-                return new Tuple<Node, IIndexingActivity, TestIndex>(node, activity, GetTestIndex());
+                return new Tuple<Node, Node, IIndexingActivity, InMemoryIndex>(node1, node2, activity, GetTestIndex());
             });
 
-            node = result.Item1;
-            var lastActivity = result.Item2;
-            var index = result.Item3;
+            node1 = result.Item1;
+            node2 = result.Item2;
+            var lastActivity = result.Item3;
+            var index = result.Item4;
 
             // check the activity
             Assert.IsNotNull(lastActivity);
             Assert.AreEqual(IndexingActivityType.RemoveTree, lastActivity.ActivityType);
 
             var history = IndexingActivityHistory.GetHistory();
-            Assert.AreEqual(2, history.RecentLength);
+            Assert.AreEqual(3, history.RecentLength);
             var item = history.Recent[0];
             Assert.AreEqual(IndexingActivityType.AddDocument.ToString(), item.TypeName);
             Assert.AreEqual(null, item.Error);
             item = history.Recent[1];
+            Assert.AreEqual(IndexingActivityType.AddDocument.ToString(), item.TypeName);
+            Assert.AreEqual(null, item.Error);
+            item = history.Recent[2];
             Assert.AreEqual(IndexingActivityType.RemoveTree.ToString(), item.TypeName);
             Assert.AreEqual(null, item.Error);
 
             var hit1 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.Name, "node1"));
             var hit2 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.DisplayName, "node 1"));
-            var hit3 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.NodeId, node.Id));
-            var hit4 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.VersionId, node.VersionId));
+            var hit3 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.NodeId, node1.Id));
+            var hit4 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.VersionId, node1.VersionId));
             var hit5 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.Index, 42));
+            var hit6 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.Name, "node2"));
+            var hit7 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.DisplayName, "node 2"));
+            var hit8 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.NodeId, node2.Id));
+            var hit9 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.VersionId, node2.VersionId));
+            var hit10 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.Index, 43));
 
             Assert.IsNull(hit1);
             Assert.IsNull(hit2);
             Assert.IsNull(hit3);
             Assert.IsNull(hit4);
             Assert.IsNull(hit5);
+            Assert.IsNotNull(hit6);
+            Assert.IsNotNull(hit7);
+            Assert.IsNotNull(hit8);
+            Assert.IsNotNull(hit9);
+            Assert.IsNotNull(hit10);
         }
 
         /* ============================================================================ */
 
-        private TestIndex GetTestIndex()
+        private InMemoryIndex GetTestIndex()
         {
             var indexManagerAcc = new PrivateType(typeof(IndexManager));
-            var factory = (TestIndexingEngineFactory) indexManagerAcc.GetStaticField("_indexingEngineFactory");
+            var factory = (InMemoryIndexingEngineFactory) indexManagerAcc.GetStaticField("_indexingEngineFactory");
             return factory.Instance.Index;
         }
     }

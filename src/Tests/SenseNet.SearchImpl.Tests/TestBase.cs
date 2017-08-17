@@ -31,14 +31,14 @@ namespace SenseNet.SearchImpl.Tests
             DistributedApplication.Cache.Reset();
 
             using (new Tools.SearchEngineSwindler(new TestSearchEngine()))
-            using (Tools.Swindle(typeof(IndexManager), "_indexingEngineFactory", new TestIndexingEngineFactory()))
+            //using (Tools.Swindle(typeof(IndexManager), "_indexingEngineFactory", new InMemoryIndexingEngineFactory()))
             //using (Tools.Swindle(typeof(StorageContext.Search), "ContentRepository", new TestSearchEngineSupport(DefaultIndexingInfo)))
             using (Tools.Swindle(typeof(StorageContext.Search), "ContentRepository", new SearchEngineSupport()))
             using (Tools.Swindle(typeof(AccessProvider), "_current", new DesktopAccessProvider()))
             using (Tools.Swindle(typeof(DataProvider), "_current", dataProvider))
             using (new SystemAccount())
             {
-                IndexManager.Start(new TestIndexingEngineFactory(), TextWriter.Null);
+                IndexManager.Start(new InMemoryIndexingEngineFactory(), TextWriter.Null);
                 return callback();
             }
         }

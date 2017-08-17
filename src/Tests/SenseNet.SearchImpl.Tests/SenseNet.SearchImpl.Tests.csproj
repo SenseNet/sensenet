@@ -70,8 +70,7 @@
     <Compile Include="Implementations\InMemoryDataProvider.cs" />
     <Compile Include="Implementations\InMemoryDataProviderData.cs" />
     <Compile Include="Implementations\InMemoryIndexingEngine.cs" />
-    <Compile Include="Implementations\TestIndex.cs" />
-    <Compile Include="Implementations\TestIndexingEngine.cs" />
+    <Compile Include="Implementations\InMemoryIndex.cs" />
     <Compile Include="Implementations\TestNode.cs" />
     <Compile Include="Implementations\TestSearchEngine.cs" />
     <Compile Include="Implementations\TestSearchEngineSupport.cs" />

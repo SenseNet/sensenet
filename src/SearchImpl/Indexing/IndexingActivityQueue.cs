@@ -104,7 +104,7 @@ namespace SenseNet.Search.Indexing
         public static void Startup(System.IO.TextWriter consoleOut)
         {
             // initalize from index
-            var cud = IndexManager.IndexingEngine.ReadActivityStatusFromIndex() as CompletionState;
+            var cud = IndexManager.IndexingEngine.ReadActivityStatusFromIndex();
 
             var gapsLength = cud.Gaps?.Length ?? 0;
 
@@ -124,6 +124,7 @@ namespace SenseNet.Search.Indexing
             DependencyManager.Reset();
             TerminationHistory.Reset(lastExecutedId, gaps);
             Serializer.Start(lastDatabaseId, lastExecutedId, gaps, consoleOut);
+            IndexingActivityHistory.Reset();
         }
 
         public static CompletionState GetCurrentCompletionState()
