@@ -53,10 +53,5 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                 _analyzers = analyzerTypes;
             }
         }
-
-        public object DeserializeIndexDocumentInfo(byte[] indexDocumentInfoBytes)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
