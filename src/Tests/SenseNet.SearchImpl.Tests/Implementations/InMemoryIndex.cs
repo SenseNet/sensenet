@@ -127,20 +127,27 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             var fieldValues = new List<string>();
 
-            switch (field.Type)
+            if (field.Name == IndexFieldName.AllText) //UNDONE: Need to use analyzer
             {
-                case SnTermType.String: fieldValues.Add(field.StringValue); break;
-                case SnTermType.StringArray: fieldValues.AddRange(field.StringArrayValue); break;
-                case SnTermType.Bool: fieldValues.Add(field.BooleanValue.ToString(CultureInfo.InvariantCulture)); break;
-                case SnTermType.Int: fieldValues.Add(field.IntegerValue.ToString(CultureInfo.InvariantCulture)); break;
-                case SnTermType.Long: fieldValues.Add(field.LongValue.ToString(CultureInfo.InvariantCulture)); break;
-                case SnTermType.Float: fieldValues.Add(field.StringValue.ToString(CultureInfo.InvariantCulture)); break;
-                case SnTermType.Double: fieldValues.Add(field.DoubleValue.ToString(CultureInfo.InvariantCulture)); break;
-                case SnTermType.DateTime: fieldValues.Add(field.DateTimeValue.ToString("yyyy-MM-dd HH:mm:ss.ffff")); break;
-                default:
-                    throw new ArgumentOutOfRangeException();
+                var words = field.StringValue.Split("\t\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                fieldValues.AddRange(words);
             }
-
+            else
+            {
+                switch (field.Type)
+                {
+                    case SnTermType.String: fieldValues.Add(field.StringValue); break;
+                    case SnTermType.StringArray: fieldValues.AddRange(field.StringArrayValue); break;
+                    case SnTermType.Bool: fieldValues.Add(field.BooleanValue.ToString(CultureInfo.InvariantCulture)); break;
+                    case SnTermType.Int: fieldValues.Add(field.IntegerValue.ToString(CultureInfo.InvariantCulture)); break;
+                    case SnTermType.Long: fieldValues.Add(field.LongValue.ToString(CultureInfo.InvariantCulture)); break;
+                    case SnTermType.Float: fieldValues.Add(field.StringValue.ToString(CultureInfo.InvariantCulture)); break;
+                    case SnTermType.Double: fieldValues.Add(field.DoubleValue.ToString(CultureInfo.InvariantCulture)); break;
+                    case SnTermType.DateTime: fieldValues.Add(field.DateTimeValue.ToString("yyyy-MM-dd HH:mm:ss.ffff")); break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
             return fieldValues;
         }
 

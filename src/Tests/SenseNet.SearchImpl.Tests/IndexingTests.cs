@@ -62,11 +62,11 @@ namespace SenseNet.SearchImpl.Tests
 
             // check the index document head consistency
             Assert.IsNotNull(indexDoc);
-            Assert.AreEqual(indexDoc.Path, node.Path);
-            Assert.AreEqual(indexDoc.NodeId, node.Id);
-            Assert.AreEqual(indexDoc.NodeTypeId, node.NodeTypeId);
-            Assert.AreEqual(indexDoc.ParentId, node.ParentId);
-            Assert.AreEqual(indexDoc.VersionId, node.VersionId);
+            Assert.AreEqual(node.Path, indexDoc.Path);
+            Assert.AreEqual(node.Id, indexDoc.NodeId);
+            Assert.AreEqual(node.NodeTypeId, indexDoc.NodeTypeId);
+            Assert.AreEqual(node.ParentId, indexDoc.ParentId);
+            Assert.AreEqual(node.VersionId, indexDoc.VersionId);
 
             // check the activity
             Assert.IsNotNull(lastActivity);
@@ -139,11 +139,11 @@ namespace SenseNet.SearchImpl.Tests
 
             // check the index document head consistency
             Assert.IsNotNull(indexDoc);
-            Assert.AreEqual(indexDoc.Path, node.Path);
-            Assert.AreEqual(indexDoc.NodeId, node.Id);
-            Assert.AreEqual(indexDoc.NodeTypeId, node.NodeTypeId);
-            Assert.AreEqual(indexDoc.ParentId, node.ParentId);
-            Assert.AreEqual(indexDoc.VersionId, node.VersionId);
+            Assert.AreEqual(node.Path, indexDoc.Path);
+            Assert.AreEqual(node.Id, indexDoc.NodeId);
+            Assert.AreEqual(node.NodeTypeId, indexDoc.NodeTypeId);
+            Assert.AreEqual(node.ParentId, indexDoc.ParentId);
+            Assert.AreEqual(node.VersionId, indexDoc.VersionId);
 
             // check the activity
             Assert.IsNotNull(lastActivity);
@@ -263,6 +263,66 @@ namespace SenseNet.SearchImpl.Tests
             Assert.IsNotNull(hit8);
             Assert.IsNotNull(hit9);
             Assert.IsNotNull(hit10);
+        }
+
+        [TestMethod]
+        public void Indexing_AddTextEctract()
+        {
+            Node node;
+            var additionalText = "additionaltext";
+
+            var result = Test(() =>
+            {
+                // create a test node under the root.
+                node = new SystemFolder(Node.LoadNode(Identifiers.PortalRootId))
+                {
+                    Name = "Node1",
+                    DisplayName = "Node 1",
+                    Index = 42
+                };
+                foreach (var observer in NodeObserver.GetObserverTypes())
+                    node.DisableObserver(observer);
+                node.Save();
+
+                // ACTION
+                IndexingTools.AddTextExtract(node.VersionId, additionalText);
+
+                node = Node.Load<SystemFolder>(node.Id);
+
+                // load the pre-converted index document
+                var db = DataProvider.Current;
+                var indexDocument = db.LoadIndexDocumentByVersionId(node.VersionId);
+
+                return new Tuple<Node, IndexDocumentData, InMemoryIndex>(node, indexDocument, GetTestIndex());
+            });
+
+            node = result.Item1;
+            var indexDoc = result.Item2;
+            var index = result.Item3;
+
+            // check the index document head consistency
+            Assert.IsNotNull(indexDoc);
+            Assert.AreEqual(node.VersionId, indexDoc.VersionId);
+            Assert.IsTrue(indexDoc.IndexDocument.GetStringValue(IndexFieldName.AllText).Contains(additionalText));
+
+            // check executed activities
+            var history = IndexingActivityHistory.GetHistory();
+            Assert.AreEqual(2, history.RecentLength);
+            var item = history.Recent[0];
+            Assert.AreEqual(IndexingActivityType.AddDocument.ToString(), item.TypeName);
+            Assert.AreEqual(null, item.Error);
+            item = history.Recent[1];
+            Assert.AreEqual(IndexingActivityType.Rebuild.ToString(), item.TypeName);
+            Assert.AreEqual(null, item.Error);
+
+            // check index
+            var hit1 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.Name, "node1"));
+            var hit2 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.VersionId, node.VersionId));
+            var hit3 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.AllText, additionalText));
+
+            Assert.IsNotNull(hit1);
+            Assert.IsNotNull(hit2);
+            Assert.IsNotNull(hit3);
         }
 
         /* ============================================================================ */

@@ -41,7 +41,6 @@ namespace SenseNet.ContentRepository.Storage.Data
                 }
                 return _indexDocumentBytes;
             }
-
         }
         public long? IndexDocumentInfoSize { get; set; }
 
@@ -60,6 +59,11 @@ namespace SenseNet.ContentRepository.Storage.Data
         {
             _indexDocument = indexDocument;
             _indexDocumentBytes = indexDocumentBytes;
+        }
+
+        public void IndexDocumentChanged()
+        {
+            _indexDocumentBytes = null;
         }
     }
 }

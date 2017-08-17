@@ -552,13 +552,12 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+        #endregion
 
         protected internal override IEnumerable<IndexDocumentData> LoadIndexDocumentByVersionId(IEnumerable<int> versionId)
         {
-            throw new NotImplementedException();
+            return versionId.Select(LoadIndexDocumentByVersionId).Where(i => i != null).ToArray();
         }
-
-        #endregion
 
         protected internal override IndexDocumentData LoadIndexDocumentByVersionId(int versionId)
         {
@@ -783,12 +782,15 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+        #endregion
 
         protected internal override void UpdateIndexDocument(int versionId, byte[] indexDocumentBytes)
         {
-            throw new NotImplementedException();
+            var versionRow = _db.Versions.FirstOrDefault(r => r.VersionId == versionId);
+            if (versionRow == null)
+                return;
+            versionRow.IndexDocument = indexDocumentBytes;
         }
-        #endregion
 
         protected internal override void UpdateIndexDocument(NodeData nodeData, byte[] indexDocumentBytes)
         {

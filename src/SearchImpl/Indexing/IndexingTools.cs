@@ -16,42 +16,21 @@ namespace SenseNet.Search.Indexing
     /// </summary>
     public static class IndexingTools
     {
-        public static void AddTextExtract(int versionId, string textExtract)
+        /*done*/public static void AddTextExtract(int versionId, string textExtract)
         {
             // 1: load indexDocumentInfo.
             var docData = StorageContext.Search.LoadIndexDocumentByVersionId(versionId);
-
-            var buffer = docData.IndexDocumentInfoBytes;
-            var docStream = new System.IO.MemoryStream(buffer);
-            var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-            var info = (IndexDocumentInfo)formatter.Deserialize(docStream);
+            var indexDoc = docData.IndexDocument;
 
             // 2: original and new text extract concatenation.
-            var allTextField = info.Fields.FirstOrDefault(f => f.Name == IndexFieldName.AllText);
-            if (allTextField != null)
-            {
-                textExtract = allTextField.Value + " " + textExtract;
-                info.Fields.Remove(allTextField);
-            }
-            info.Fields.Add(
-                new IndexFieldInfo(
-                    IndexFieldName.AllText,
-                    textExtract,
-                    FieldInfoType.StringField,
-                    IndexStoringMode.No,
-                    IndexingMode.Analyzed,
-                    IndexTermVector.No));
+            textExtract = (indexDoc.GetStringValue(IndexFieldName.AllText) ?? "") + textExtract;
+
+            indexDoc.Add(new IndexField(IndexFieldName.AllText, textExtract, IndexingMode.Analyzed, IndexStoringMode.No,
+                IndexTermVector.No));
 
             // 3: save indexDocumentInfo.
-            using (var docStream2 = new MemoryStream())
-            {
-                var formatter2 = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-                formatter2.Serialize(docStream2, info);
-                docStream2.Flush();
-                docStream2.Position = 0;
-                var bytes = docStream2.GetBuffer();
-                DataProvider.SaveIndexDocument(versionId, bytes);
-            }
+            docData.IndexDocumentChanged();
+            DataProvider.SaveIndexDocument(versionId, docData.IndexDocumentInfoBytes);
 
             // 4: distributed cache invalidation because of version timestamp.
             DataBackingStore.RemoveNodeDataFromCacheByVersionId(versionId);
