@@ -7,7 +7,6 @@ Remove-Item $PSScriptRoot\*.nupkg
 
 nuget pack $srcPath\Common\Common.csproj -properties Configuration=Release -OutputDirectory $PSScriptRoot
 nuget pack $srcPath\BlobStorage\BlobStorage.csproj -properties Configuration=Release -OutputDirectory $PSScriptRoot
-nuget pack $srcPath\Preview\Preview.csproj -properties Configuration=Release -OutputDirectory $PSScriptRoot
 nuget pack $srcPath\Services\Services.nuspec -properties Configuration=Release -OutputDirectory $PSScriptRoot
 
 New-Item $srcPath\nuget\snadmin\install-services\scripts -ItemType directory -Force

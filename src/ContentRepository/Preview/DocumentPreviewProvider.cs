@@ -344,12 +344,12 @@ namespace SenseNet.Preview
 
             using (new SystemAccount())
             {
-                var x = Retrier.Retry<Node>(3, 100,
+                Retrier.Retry<Node>(3, 100,
                     () =>
                     {
                         // try
                         file.PageCount = pageCount;
-                        file.DisableObserver(typeof(DocumentPreviewObserver));
+                        file.DisableObserver(TypeResolver.GetType(NodeObserverNames.DOCUMENTPREVIEW, false));
                         file.DisableObserver(TypeResolver.GetType(NodeObserverNames.NOTIFICATION, false));
 
                         file.KeepWorkflowsAlive();
