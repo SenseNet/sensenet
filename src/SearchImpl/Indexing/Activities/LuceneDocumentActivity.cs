@@ -76,7 +76,7 @@ namespace SenseNet.Search.Indexing.Activities
                 {
                     // create document from indexdocumentdata if it has been supplied (eg via MSMQ if it was small enough to send it over)
                     doc = IndexDocumentData.IndexDocument;
-                    doc = IndexManager.CreateIndexDocument(doc, IndexDocumentData);
+                    doc = IndexManager.CreateIndexDocument(doc, IndexDocumentData); //UNDONE: refactor IndexDocumentData --> complete IndexDocument
 
                     if (doc == null)
                         SnTrace.Index.Write("LM: LuceneDocumentActivity.CreateDocument (VersionId:{0}): Document is NULL from QUEUE", VersionId);

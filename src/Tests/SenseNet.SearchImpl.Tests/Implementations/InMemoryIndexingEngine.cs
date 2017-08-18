@@ -61,7 +61,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             // do nothing
         }
 
-        public void Commit()
+        public void Commit(int lastActivityId = 0)
         {
             // do nothing
         }
@@ -92,7 +92,13 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         public void Actualize(IEnumerable<SnTerm> deletions, IEnumerable<IndexDocument> addition)
         {
-            throw new NotImplementedException();
+            if (deletions != null)
+                foreach (var term in deletions)
+                    Index.Delete(term);
+
+            if (addition != null)
+                foreach(var doc in addition)
+                    Index.AddDocument(doc);
         }
     }
 }

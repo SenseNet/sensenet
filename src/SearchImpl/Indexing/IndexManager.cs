@@ -113,17 +113,25 @@ namespace SenseNet.Search.Indexing
         {
             IndexingEngine.ActivityFinished();
         }
-        /*done*/internal static void Commit()
+        /*done*/internal static void Commit(int lastActivityId = 0)
         {
-            IndexingEngine.Commit();
+            IndexingEngine.Commit(lastActivityId);
         }
 
         #endregion
 
         #region /* ==================================================================== Document operations */
 
+        /* ClearAndPopulateAll */
+
+        internal static void AddDocument(IndexDocument document)
+        {
+            IndexingEngine.Actualize(null, document, null);
+        }
+
         /* AddDocumentActivity, RebuildActivity */
-        /*done*/internal static bool AddDocument(IndexDocument document, VersioningInfo versioning)
+        /*done*/
+        internal static bool AddDocument(IndexDocument document, VersioningInfo versioning)
         {
             var delTerms = versioning.Delete.Select(i => new SnTerm(IndexFieldName.VersionId, i)).ToArray();
             var updates = GetUpdates(versioning);
@@ -282,7 +290,7 @@ namespace SenseNet.Search.Indexing
                     .Select(CreateIndexDocument)
                     .ToArray();
         }
-        private static IndexDocument CreateIndexDocument(IndexDocumentData data)
+        private static IndexDocument CreateIndexDocument(IndexDocumentData data) //UNDONE: refactor IndexDocumentData --> complete IndexDocument
         {
             var buffer = data.IndexDocumentInfoBytes;
 
@@ -290,7 +298,7 @@ namespace SenseNet.Search.Indexing
             var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
             var info = (IndexDocument)formatter.Deserialize(docStream);
 
-            return CreateIndexDocument(info, data);
+            return CreateIndexDocument(info, data); //UNDONE: refactor IndexDocumentData --> complete IndexDocument
         }
         internal static IndexDocument CreateIndexDocument(IndexDocument doc, IndexDocumentData docData)
         {

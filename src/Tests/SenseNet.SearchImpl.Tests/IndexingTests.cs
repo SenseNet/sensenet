@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -50,9 +51,10 @@ namespace SenseNet.SearchImpl.Tests
                 var activityId = db.GetLastActivityId();
                 var activity =
                     db.LoadIndexingActivities(activityId, activityId, 1, false, IndexingActivityFactory.Instance)
-                    .FirstOrDefault();
+                        .FirstOrDefault();
 
-                return new Tuple<Node, IndexDocumentData, IIndexingActivity, InMemoryIndex>(node, indexDocument, activity, GetTestIndex());
+                return new Tuple<Node, IndexDocumentData, IIndexingActivity, InMemoryIndex>(node, indexDocument,
+                    activity, GetTestIndex());
             });
 
             node = result.Item1;
@@ -90,6 +92,7 @@ namespace SenseNet.SearchImpl.Tests
             Assert.IsNotNull(hit4);
             Assert.IsNotNull(hit5);
         }
+
         [TestMethod]
         public void Indexing_Update()
         {
@@ -127,9 +130,10 @@ namespace SenseNet.SearchImpl.Tests
                 var activityId = db.GetLastActivityId();
                 var activity =
                     db.LoadIndexingActivities(activityId, activityId, 1, false, IndexingActivityFactory.Instance)
-                    .FirstOrDefault();
+                        .FirstOrDefault();
 
-                return new Tuple<Node, IndexDocumentData, IIndexingActivity, InMemoryIndex>(node, indexDocument, activity, GetTestIndex());
+                return new Tuple<Node, IndexDocumentData, IIndexingActivity, InMemoryIndex>(node, indexDocument,
+                    activity, GetTestIndex());
             });
 
             node = result.Item1;
@@ -174,6 +178,7 @@ namespace SenseNet.SearchImpl.Tests
             Assert.IsNull(hit6);
             Assert.IsNotNull(hit7);
         }
+
         [TestMethod]
         public void Indexing_Delete()
         {
@@ -216,7 +221,7 @@ namespace SenseNet.SearchImpl.Tests
                 var activityId = db.GetLastActivityId();
                 var activity =
                     db.LoadIndexingActivities(activityId, activityId, 1, false, IndexingActivityFactory.Instance)
-                    .FirstOrDefault();
+                        .FirstOrDefault();
 
                 return new Tuple<Node, Node, IIndexingActivity, InMemoryIndex>(node1, node2, activity, GetTestIndex());
             });
@@ -264,6 +269,140 @@ namespace SenseNet.SearchImpl.Tests
             Assert.IsNotNull(hit9);
             Assert.IsNotNull(hit10);
         }
+
+        [TestMethod]
+        public void Indexing_Rename()
+        {
+            Node node1; // /Root/Node1
+            Node node2; // /Root/Node1/Node2
+            Node node3; // /Root/Node1/Node2/Node3
+            Node node4; // /Root/Node1/Node4
+            Node node5; // /Root/Node5
+            Node node6; // /Root/Node5/Node6
+            Node[] nodes;
+
+            var result = Test(() =>
+            {
+                // create initial structure.
+                var root = Node.LoadNode(Identifiers.PortalRootId);
+                node1 = new SystemFolder(root) {Name = "Node1"};  SaveNode(node1);
+                node2 = new SystemFolder(node1) {Name = "Node2"}; SaveNode(node2);
+                node3 = new SystemFolder(node2) {Name = "Node3"}; SaveNode(node3);
+                node4 = new SystemFolder(node1) {Name = "Node4"}; SaveNode(node4);
+                node5 = new SystemFolder(root) {Name = "Node5"};  SaveNode(node5);
+                node6 = new SystemFolder(node5) {Name = "Node6"}; SaveNode(node6);
+
+                // ACTION
+                node1 = Node.LoadNode(node1.Id);
+                node1.Name = "Node1Renamed";
+                SaveNode(node1);
+
+                // reload the newly created.
+                nodes = new[]
+                {
+                    Node.LoadNode(node1.Id),
+                    Node.LoadNode(node2.Id),
+                    Node.LoadNode(node3.Id),
+                    Node.LoadNode(node4.Id),
+                    Node.LoadNode(node5.Id),
+                    Node.LoadNode(node6.Id),
+                };
+
+                return new Tuple<Node[], IndexingActivityHistory, InMemoryIndex>(nodes,
+                    IndexingActivityHistory.GetHistory(), GetTestIndex());
+            });
+
+            nodes = result.Item1;
+            var history = result.Item2;
+            var index = result.Item3;
+
+            // check paths
+            Assert.AreEqual("/Root/Node1Renamed", nodes[0].Path);
+            Assert.AreEqual("/Root/Node1Renamed/Node2", nodes[1].Path);
+            Assert.AreEqual("/Root/Node1Renamed/Node2/Node3", nodes[2].Path);
+            Assert.AreEqual("/Root/Node1Renamed/Node4", nodes[3].Path);
+            Assert.AreEqual("/Root/Node5", nodes[4].Path);
+            Assert.AreEqual("/Root/Node5/Node6", nodes[5].Path);
+
+            // check indexing activities and errors
+            Assert.AreEqual(8, history.RecentLength);
+            Assert.AreEqual(IndexingActivityType.AddDocument.ToString(), history.Recent[0].TypeName);
+            Assert.AreEqual(IndexingActivityType.AddDocument.ToString(), history.Recent[1].TypeName);
+            Assert.AreEqual(IndexingActivityType.AddDocument.ToString(), history.Recent[2].TypeName);
+            Assert.AreEqual(IndexingActivityType.AddDocument.ToString(), history.Recent[3].TypeName);
+            Assert.AreEqual(IndexingActivityType.AddDocument.ToString(), history.Recent[4].TypeName);
+            Assert.AreEqual(IndexingActivityType.AddDocument.ToString(), history.Recent[5].TypeName);
+            Assert.AreEqual(IndexingActivityType.RemoveTree.ToString(), history.Recent[6].TypeName);
+            Assert.AreEqual(IndexingActivityType.AddTree.ToString(), history.Recent[7].TypeName);
+            Assert.AreEqual(null, history.Recent[0].Error);
+            Assert.AreEqual(null, history.Recent[1].Error);
+            Assert.AreEqual(null, history.Recent[2].Error);
+            Assert.AreEqual(null, history.Recent[3].Error);
+            Assert.AreEqual(null, history.Recent[4].Error);
+            Assert.AreEqual(null, history.Recent[5].Error);
+            Assert.AreEqual(null, history.Recent[6].Error);
+            Assert.AreEqual(null, history.Recent[7].Error);
+
+            // check name terms in index
+            var hit1 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.Name, "node1"));
+            var hit2 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.Name, "node1renamed"));
+            var hit3 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.Name, "node2"));
+            var hit4 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.Name, "node3"));
+            var hit5 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.Name, "node4"));
+            var hit6 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.Name, "node5"));
+            var hit7 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.Name, "node6"));
+            Assert.IsNull(hit1);
+            Assert.IsNotNull(hit2);
+            Assert.IsNotNull(hit3);
+            Assert.IsNotNull(hit4);
+            Assert.IsNotNull(hit5);
+            Assert.IsNotNull(hit6);
+            Assert.IsNotNull(hit7);
+
+            // check old subtree existence
+            var node1Tree = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.InTree, "/root/node1"));
+            Assert.IsNull(node1Tree);
+
+            // check renamed tree
+            var renamedTree =
+                index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.InTree, "/root/node1renamed")).ToArray();
+            Assert.IsNotNull(renamedTree);
+            Assert.AreEqual(4, renamedTree.Length);
+            // check node ids in renamed tree
+            var ids = string.Join(", ", renamedTree
+                .Select(x => x.Item2.First(y => y.Name == IndexFieldName.NodeId).IntegerValue)
+                .OrderBy(z => z).Select(z => z.ToString()).ToArray());
+            var expectedIds = string.Join(", ", new[] {nodes[0].Id, nodes[1].Id, nodes[2].Id, nodes[3].Id}
+                .OrderBy(z => z).Select(z => z.ToString()).ToArray());
+            Assert.AreEqual(expectedIds, ids);
+            // check paths ids in renamed tree
+            var paths = string.Join(", ", renamedTree
+                .Select(x => x.Item2.First(y => y.Name == IndexFieldName.Path).StringValue)
+                .OrderBy(z => z).ToArray());
+            var expectedPaths = string.Join(", ", new[] {nodes[0].Path, nodes[1].Path, nodes[2].Path, nodes[3].Path}
+                .OrderBy(z => z).ToArray());
+            Assert.AreEqual(expectedPaths.ToLowerInvariant(), paths);
+
+            // check untouched tree
+            var node5Tree = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.InTree, "/root/node5")).ToArray();
+            Assert.IsNotNull(node5Tree);
+            Assert.AreEqual(2, node5Tree.Count());
+            // check node ids in untouched tree
+            ids = string.Join(", ", node5Tree
+                .Select(x => x.Item2.First(y => y.Name == IndexFieldName.NodeId).IntegerValue)
+                .OrderBy(z => z).Select(z => z.ToString()).ToArray());
+            expectedIds = string.Join(", ", new[] {nodes[4].Id, nodes[5].Id}
+                .OrderBy(z => z).Select(z => z.ToString()).ToArray());
+            Assert.AreEqual(expectedIds, ids);
+            // check paths ids in untouched tree
+            paths = string.Join(", ", node5Tree
+                .Select(x => x.Item2.First(y => y.Name == IndexFieldName.Path).StringValue)
+                .OrderBy(z => z).ToArray());
+            expectedPaths = string.Join(", ", new[] {nodes[4].Path, nodes[5].Path}
+                .OrderBy(z => z).ToArray());
+            Assert.AreEqual(expectedPaths.ToLowerInvariant(), paths);
+        }
+
 
         [TestMethod]
         public void Indexing_AddTextEctract()
@@ -325,6 +464,44 @@ namespace SenseNet.SearchImpl.Tests
             Assert.IsNotNull(hit3);
         }
 
+        [TestMethod]
+        public void Indexing_ClearAndPopulateAll()
+        {
+            Assert.Inconclusive();
+
+            var sb = new StringBuilder();
+            IIndexingActivity[] activities;
+            var result = Test(() =>
+            {
+                // ACTION
+                using (var console = new StringWriter(sb))
+                    StorageContext.Search.SearchEngine.GetPopulator().ClearAndPopulateAll(false, console);
+
+                // load last indexing activity
+                var db = DataProvider.Current;
+                var activityId = db.GetLastActivityId();
+                activities = db.LoadIndexingActivities(1, activityId, 10000, false, IndexingActivityFactory.Instance);
+
+                return new Tuple<IIndexingActivity[], InMemoryIndex>(activities, GetTestIndex());
+            });
+
+            activities = result.Item1;
+            var index = result.Item2;
+
+            // check activities
+            Assert.IsNotNull(activities);
+            Assert.AreEqual(42, activities.Length);
+            Assert.AreEqual(IndexingActivityType.RemoveTree, activities.Last().ActivityType);
+
+            var historyItems = IndexingActivityHistory.GetHistory().Recent;
+            Assert.AreEqual(1, historyItems.Length);
+            foreach (IndexingActivityHistoryItem item in historyItems)
+                Assert.AreEqual(null, item.Error);
+
+            var hit1 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.Name, "node1"));
+            Assert.IsNull(hit1);
+        }
+
         /* ============================================================================ */
 
         private InMemoryIndex GetTestIndex()
@@ -332,6 +509,13 @@ namespace SenseNet.SearchImpl.Tests
             var indexManagerAcc = new PrivateType(typeof(IndexManager));
             var factory = (InMemoryIndexingEngineFactory) indexManagerAcc.GetStaticField("_indexingEngineFactory");
             return factory.Instance.Index;
+        }
+
+        private void SaveNode(Node node)
+        {
+            foreach (var observer in NodeObserver.GetObserverTypes())
+                node.DisableObserver(observer);
+            node.Save();
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Xml;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -74,11 +75,14 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+        #endregion
 
         public override ITransactionProvider CreateTransaction()
         {
-            throw new NotImplementedException();
+            return new TestTransaction();
         }
+
+        #region NOT IMPLEMENTED
 
         public override void DeleteAllIndexingActivities()
         {
@@ -201,7 +205,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         public override void RegisterIndexingActivity(IIndexingActivity activity)
         {
-            var newId = _db.IndexingActivity.Count == 0 ? 1 : _db.IndexingActivity.Max(r => r.NodeId) + 1;
+            var newId = _db.IndexingActivity.Count == 0 ? 1 : _db.IndexingActivity.Max(r => r.IndexingActivityId) + 1;
 
             _db.IndexingActivity.Add(new IndexingActivityRecord
             {
@@ -587,13 +591,42 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                 //VersionTimestamp = version.Timestamp,
             };
         }
+        private IndexDocumentData CreateIndexDocumentData(NodeRecord node, VersionRecord version)
+        {
+            var approved = version.Version.Status == VersionStatus.Approved;
+            var isLastMajor = node.LastMajorVersionId == version.VersionId;
 
-        #region NOT IMPLEMENTED
+            var bytes = version.IndexDocument ?? new byte[0];
+
+            return new IndexDocumentData(null, bytes)
+            {
+                NodeTypeId = node.NodeTypeId,
+                VersionId = version.VersionId,
+                NodeId = node.NodeId,
+                ParentId = node.ParentNodeId,
+                Path = node.Path,
+                IsSystem = node.IsSystem,
+                IsLastDraft = node.LastMinorVersionId == version.VersionId,
+                IsLastPublic = approved && isLastMajor
+                //NodeTimestamp = node.Timestamp,
+                //VersionTimestamp = version.Timestamp,
+            };
+        }
 
         protected internal override IEnumerable<IndexDocumentData> LoadIndexDocumentsByPath(string path, int[] excludedNodeTypes)
         {
-            throw new NotImplementedException();
+            var result = new List<IndexDocumentData>();
+            var pathExt = path + "/";
+
+            foreach (var node in _db.Nodes.Where(n => n.Path.Equals(path, StringComparison.InvariantCultureIgnoreCase) ||
+                                                      n.Path.StartsWith(pathExt, StringComparison.InvariantCultureIgnoreCase)).ToArray())
+                foreach (var version in _db.Versions.Where(v => v.NodeId == node.NodeId).ToArray())
+                    result.Add(CreateIndexDocumentData(node, version));
+
+            return result;
         }
+
+        #region NOT IMPLEMENTED
 
         protected internal override IndexBackup LoadLastBackup()
         {
@@ -985,6 +1018,45 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         #region Implementation classes
 
+        private class TestTransaction : ITransactionProvider
+        {
+            private static long _lastId;
+
+            public TestTransaction()
+            {
+                Id = Interlocked.Increment(ref _lastId);
+            }
+
+            public void Dispose()
+            {
+                // do nothing
+            }
+
+            public long Id { get; }
+            public DateTime Started { get; private set; }
+            public IsolationLevel IsolationLevel { get; private set; }
+            public void Begin(IsolationLevel isolationLevel)
+            {
+                IsolationLevel = isolationLevel;
+                Started = DateTime.Now;
+            }
+
+            public void Begin(IsolationLevel isolationLevel, TimeSpan timeout)
+            {
+                IsolationLevel = isolationLevel;
+                Started = DateTime.Now;
+            }
+
+            public void Commit()
+            {
+                // do nothing
+            }
+
+            public void Rollback()
+            {
+                throw new NotSupportedException();
+            }
+        }
         private class Database
         {
             public List<NodeRecord> Nodes;
@@ -1070,7 +1142,10 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             }
             public void UpdateSubTreePath(string oldPath, string newPath)
             {
-                throw new NotImplementedException();
+                var oldPathExt = oldPath + "/";
+                var newPathExt = newPath + "/";
+                foreach (var nodeRow in _db.Nodes.Where(n => n.Path.StartsWith(oldPathExt)))
+                    nodeRow.Path = nodeRow.Path.Replace(oldPathExt, newPathExt);
             }
 
             public void UpdateNodeRow(NodeData nodeData)

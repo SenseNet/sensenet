@@ -1,22 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Lucene.Net.Analysis;
-using Lucene.Net.Documents;
-using Lucene.Net.Index;
-using Lucene.Net.Store;
 using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Search;
-using Lucene.Net.Search;
-using Lucene.Net.Util;
 using SenseNet.Search.Indexing.Activities;
-using SenseNet.ContentRepository;
-using SenseNet.Communication.Messaging;
-using System.Diagnostics;
 using System.IO;
+using Lucene.Net.Index;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Search.Lucene29;
 
@@ -45,43 +35,25 @@ namespace SenseNet.Search.Indexing
         public void ClearAndPopulateAll(bool backup = true, TextWriter consoleWriter = null)
         {
             var lastActivityId = IndexManager.GetLastStoredIndexingActivityId();
-            var commitData = CompletionState.GetCommitUserData(lastActivityId);
 
             using (var op = SnTrace.Index.StartOperation("IndexPopulator ClearAndPopulateAll"))
             {
                 // recreate
-                var writer = Lucene29IndexManager.GetIndexWriter(true);
-                try
-                {
-                    var excludedNodeTypes = IndexManager.GetNotIndexedNodeTypes();
-                    foreach (var docData in StorageContext.Search.LoadIndexDocumentsByPath("/Root", excludedNodeTypes))
-                    {
-                        var doc = IndexDocumentInfo.GetDocument(docData);
-                        if (doc == null) // indexing disabled
-                            continue;
-                        writer.AddDocument(doc);
-                        OnNodeIndexed(docData.Path);
-                    }
-                    consoleWriter?.Write("  Commiting ... ");
-                    writer.Commit(commitData);
-                    consoleWriter?.WriteLine("ok");
-                    consoleWriter?.Write("  Optimizing ... ");
-                    writer.Optimize();
-                    consoleWriter?.WriteLine("ok");
-                }
-                finally
-                {
-                    writer.Close();
-                }
+                IndexManager.IndexingEngine.Actualize(null,
+                    StorageContext.Search.LoadIndexDocumentsByPath("/Root", IndexManager.GetNotIndexedNodeTypes())
+                        .Select(d =>
+                        {
+                            var indexDoc = IndexManager.CreateIndexDocument(d.IndexDocument, d); //UNDONE: refactor IndexDocumentData --> complete IndexDocument
+                            OnNodeIndexed(d.Path);
+                            return indexDoc;
+                        }));
+
+                consoleWriter?.Write("  Commiting ... ");
+                IndexManager.Commit(lastActivityId);
+                consoleWriter?.WriteLine("ok");
+
                 consoleWriter?.Write("  Deleting indexing activities ... ");
                 IndexManager.DeleteAllIndexingActivities();
-                consoleWriter?.WriteLine("ok");
-                if (backup)
-                {
-                    consoleWriter?.Write("  Making backup ... ");
-                    BackupTools.BackupIndexImmediatelly();
-                    consoleWriter?.WriteLine("ok");
-                }
                 op.Successful = true;
             }
         }
@@ -91,25 +63,9 @@ namespace SenseNet.Search.Indexing
         {
             using (var op = SnTrace.Index.StartOperation("IndexPopulator RepopulateTree"))
             {
-                var writer = Lucene29IndexManager.GetIndexWriter(false);
-                writer.DeleteDocuments(new Term(IndexFieldName.InTree, path.ToLowerInvariant()));
-                try
-                {
-                    var excludedNodeTypes = IndexManager.GetNotIndexedNodeTypes();
-                    foreach (var docData in StorageContext.Search.LoadIndexDocumentsByPath(path, excludedNodeTypes))
-                    {
-                        var doc = IndexDocumentInfo.GetDocument(docData);
-                        if (doc == null) // indexing disabled
-                            continue;
-                        writer.AddDocument(doc);
-                        OnNodeIndexed(docData.Path);
-                    }
-                    writer.Optimize();
-                }
-                finally
-                {
-                    writer.Close();
-                }
+                IndexManager.IndexingEngine.Actualize(new[] {new SnTerm(IndexFieldName.InTree, path)},
+                    StorageContext.Search.LoadIndexDocumentsByPath(path, IndexManager.GetNotIndexedNodeTypes())
+                        .Select(d => IndexManager.CreateIndexDocument(d.IndexDocument, d))); //UNDONE: refactor IndexDocumentData --> complete IndexDocument
                 op.Successful = true;
             }
         }

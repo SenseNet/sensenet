@@ -162,7 +162,7 @@ namespace SenseNet.Search.Lucene29
 #pragma warning restore 420
         }
 
-        public void Commit()
+        public void Commit(int lastActivityId = 0)
         {
             Commit(false);
         }

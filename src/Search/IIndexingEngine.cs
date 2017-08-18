@@ -27,7 +27,7 @@ namespace SenseNet.Search
         void Restart();
 
         void ActivityFinished();
-        void Commit();
+        void Commit(int lastActivityId = 0);
 
         IIndexingActivityStatus ReadActivityStatusFromIndex();
 

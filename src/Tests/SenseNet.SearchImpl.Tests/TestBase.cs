@@ -38,6 +38,7 @@ namespace SenseNet.SearchImpl.Tests
             using (Tools.Swindle(typeof(DataProvider), "_current", dataProvider))
             using (new SystemAccount())
             {
+                CommonComponents.TransactionFactory = dataProvider;
                 IndexManager.Start(new InMemoryIndexingEngineFactory(), TextWriter.Null);
                 return callback();
             }
