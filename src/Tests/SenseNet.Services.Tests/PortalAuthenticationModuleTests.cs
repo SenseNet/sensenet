@@ -62,8 +62,11 @@ namespace SenseNet.Services.Tests
             mockRequest.SetupGet(o => o.Url).Returns(new Uri("https://sensenet.com"));
             mockRequest.SetupGet(o => o.IsSecureConnection).Returns(true);
             var headers = new NameValueCollection();
-            headers.Add("X-Authentication-Type", "Token");
+            headers.Add("X-Authentication-Action", "TokenLogin");
             mockRequest.SetupGet(o => o.Headers).Returns(headers);
+            var requestCookies = new HttpCookieCollection();
+            //requestCookies.Add(new HttpCookie("ahp", ""));
+            mockRequest.SetupGet(o => o.Cookies).Returns(requestCookies);
             var mockResponse = new Mock<HttpResponseBase>();
             var cookies = new HttpCookieCollection();
             string body = "";
@@ -97,6 +100,7 @@ namespace SenseNet.Services.Tests
 
             Assert.NotNull(mockResponse.Object.Cookies["as"]);
             Assert.NotNull(mockResponse.Object.Cookies["rs"]);
+            Assert.NotNull(mockResponse.Object.Cookies["ahp"]);
             Assert.Matches("\"access\":\".+\"", body);
             Assert.Matches("\"refresh\":\".+\"", body);
             Assert.Equal(200, responseStatus);
@@ -143,6 +147,7 @@ namespace SenseNet.Services.Tests
 
             Assert.NotNull(mockResponse.Object.Cookies["as"]);
             Assert.NotNull(mockResponse.Object.Cookies["rs"]);
+            Assert.NotNull(mockResponse.Object.Cookies["ahp"]);
             Assert.Matches("\"access\":\".+\"", body);
             Assert.Matches("\"refresh\":\".+\"", body);
             Assert.Equal(200, responseStatus);
@@ -155,7 +160,7 @@ namespace SenseNet.Services.Tests
             mockRequest.SetupGet(o => o.Url).Returns(new Uri("https://sensenet.com"));
             mockRequest.SetupGet(o => o.IsSecureConnection).Returns(true);
             var headers = new NameValueCollection();
-            headers.Add("X-Authentication-Type", "Token");
+            headers.Add("X-Authentication-Action", "TokenLogin");
             mockRequest.SetupGet(o => o.Headers).Returns(headers);
             var mockResponse = new Mock<HttpResponseBase>();
             var cookies = new HttpCookieCollection();
@@ -191,6 +196,7 @@ namespace SenseNet.Services.Tests
 
             Assert.Null(mockResponse.Object.Cookies["as"]);
             Assert.Null(mockResponse.Object.Cookies["rs"]);
+            Assert.Null(mockResponse.Object.Cookies["ahp"]);
             Assert.DoesNotContain("\"access\":", body);
             Assert.DoesNotContain("\"refresh\":", body);
             Assert.Equal(401, responseStatus);
@@ -203,7 +209,7 @@ namespace SenseNet.Services.Tests
             mockRequest.SetupGet(o => o.Url).Returns(new Uri("https://sensenet.com"));
             mockRequest.SetupGet(o => o.IsSecureConnection).Returns(true);
             var headers = new NameValueCollection();
-            headers.Add("X-Authentication-Type", "Token");
+            headers.Add("X-Authentication-Action", "TokenRefresh");
             headers.Add("X-Refresh-Data", "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJpc3N1ZXIiLCJzdWIiOiJzdWJqZWN0IiwiYXVkIjoiYXVkaWVuY2UiLCJleHAiOjIwOTA1NzczOTcsImlhdCI6MTQ5MDU3NzA5NywibmJmIjoxNDkwNTc3Mzk3LCJuYW1lIjoiTXlOYW1lIn0");
             mockRequest.SetupGet(o => o.Headers).Returns(headers);
             var inCookies = new HttpCookieCollection();
@@ -235,6 +241,7 @@ namespace SenseNet.Services.Tests
             module.Object.OnAuthenticateRequest(application, EventArgs.Empty);
 
             Assert.NotNull(mockResponse.Object.Cookies["as"]);
+            Assert.NotNull(mockResponse.Object.Cookies["ahp"]);
             Assert.Null(mockResponse.Object.Cookies["rs"]);
             Assert.Matches("\"access\":\".+\"", body);
             Assert.DoesNotContain("\"refresh\":", body);
@@ -279,6 +286,7 @@ namespace SenseNet.Services.Tests
             module.Object.OnAuthenticateRequest(application, EventArgs.Empty);
 
             Assert.NotNull(mockResponse.Object.Cookies["as"]);
+            Assert.NotNull(mockResponse.Object.Cookies["ahp"]);
             Assert.Null(mockResponse.Object.Cookies["rs"]);
             Assert.Matches("\"access\":\".+\"", body);
             Assert.DoesNotContain("\"refresh\":", body);
@@ -292,7 +300,7 @@ namespace SenseNet.Services.Tests
             mockRequest.SetupGet(o => o.Url).Returns(new Uri("https://sensenet.com"));
             mockRequest.SetupGet(o => o.IsSecureConnection).Returns(true);
             var headers = new NameValueCollection();
-            headers.Add("X-Authentication-Type", "Token");
+            headers.Add("X-Authentication-Action", "TokenRefresh");
             headers.Add("X-Refresh-Data",
                 "yJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJpc3N1ZXIiLCJzdWIiOiJzdWJqZWN0IiwiYXVkIjoiYXVkaWVuY2UiLCJleHAiOjIwOTA1NzczOTcsImlhdCI6MTQ5MDU3NzA5NywibmJmIjoxNDkwNTc3Mzk3LCJuYW1lIjoiTXlOYW1lIn0");
             mockRequest.SetupGet(o => o.Headers).Returns(headers);
@@ -327,6 +335,7 @@ namespace SenseNet.Services.Tests
             module.Object.OnAuthenticateRequest(application, EventArgs.Empty);
 
             Assert.Null(mockResponse.Object.Cookies["as"]);
+            Assert.Null(mockResponse.Object.Cookies["ahp"]);
             Assert.Null(mockResponse.Object.Cookies["rs"]);
             Assert.DoesNotContain("\"access\":", body);
             Assert.DoesNotContain("\"refresh\":", body);

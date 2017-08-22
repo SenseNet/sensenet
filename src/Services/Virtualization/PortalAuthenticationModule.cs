@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Security.Authentication;
 using System.Security.Principal;
 using System.Text;
 using System.Web;
@@ -31,20 +32,29 @@ namespace SenseNet.Portal.Virtualization
             application.EndRequest += OnEndRequest; // Forms
         }
 
-        private const string AccessSignatureName = "as";
-        private const string RefreshSignatureName = "rs";
+        private const string AccessSignatureCookieName = "as";
+        private const string RefreshSignatureCookieName = "rs";
+        private const string AccessHeadAndPayloadCookieName = "ahp";
         private const string AccessHeaderName = "X-Access-Data";
         private const string RefreshHeaderName = "X-Refresh-Data";
-        private const string AuthenticationTypeHeaderName = "X-Authentication-Type";
+        private const string AuthenticationActionHeaderName = "X-Authentication-Action";
+        private const string LoginActionName = "TokenLogin";
+        private const string LogoutActionName = "TokenLogout";
+        private const string AccessActionName = "TokenAccess";
+        private const string RefreshActionName = "TokenRefresh";
         private const string TokenLoginPath = "/sn-token/login";
+        private const string TokenLogoutPath = "/sn-token/logout";
         private const string TokenRefreshPath = "/sn-token/refresh";
-        private static readonly string[] AcceptedTokenPaths = { TokenLoginPath, TokenRefreshPath };
+        private static readonly string[] TokenPaths = {TokenLoginPath, TokenLogoutPath, TokenRefreshPath};
+        private static readonly string[] TokenActions = {LoginActionName, LogoutActionName, AccessActionName, RefreshActionName};
+        private enum TokenAction { TokenLogin, TokenLogout, TokenAccess, TokenRefresh }
 
         private static class HttpResponseStatusCode
         {
             public static int Unauthorized = 401;
             public static int Ok = 200;
         }
+
         private static ISecurityKey _securityKey;
         private static readonly object _keyLock = new object();
 
@@ -58,7 +68,8 @@ namespace SenseNet.Portal.Virtualization
                     {
                         if (_securityKey == null)
                         {
-                            _securityKey = EncryptionHelper.CreateSymmetricKey(Configuration.TokenAuthentication.SymmetricKeySecret);
+                            _securityKey =
+                                EncryptionHelper.CreateSymmetricKey(Configuration.TokenAuthentication.SymmetricKeySecret);
                         }
                     }
                 }
@@ -66,12 +77,21 @@ namespace SenseNet.Portal.Virtualization
             }
         }
 
-        public Func<object, HttpContextBase> GetContext = sender => new HttpContextWrapper(((HttpApplication) sender).Context);
-        public Func<object, HttpRequestBase> GetRequest = sender => new HttpRequestWrapper(((HttpApplication)sender).Context.Request);
-        public Func<object, HttpResponseBase> GetResponse = sender => new HttpResponseWrapper(((HttpApplication)sender).Context.Response);
+        public Func<object, HttpContextBase> GetContext =
+            sender => new HttpContextWrapper(((HttpApplication) sender).Context);
+
+        public Func<object, HttpRequestBase> GetRequest =
+            sender => new HttpRequestWrapper(((HttpApplication) sender).Context.Request);
+
+        public Func<object, HttpResponseBase> GetResponse =
+            sender => new HttpResponseWrapper(((HttpApplication) sender).Context.Response);
+
         public Func<IPrincipal> GetVisitorPrincipal = () => new PortalPrincipal(User.Visitor);
         public Func<string, IPrincipal> LoadUserPrincipal = userName => new PortalPrincipal(User.Load(userName));
-        public Func<string, string, bool> IsUserValid = (userName, password) => Membership.ValidateUser(userName, password);
+
+        public Func<string, string, bool> IsUserValid =
+            (userName, password) => Membership.ValidateUser(userName, password);
+
         public Func<IDisposable> GetSystemAccount = () => new SystemAccount();
         public Func<string> GetBasicAuthHeader = () => PortalContext.Current.BasicAuthHeaders;
 
@@ -121,17 +141,17 @@ namespace SenseNet.Portal.Virtualization
 
             return true;
         }
-        
+
         public void OnAuthenticateRequest(object sender, EventArgs e)
         {
             var application = sender as HttpApplication;
             var context = GetContext(sender); //HttpContext.Current;
             var request = GetRequest(sender);
-            bool anonymAuthenticated;
-            
+            bool anonymAuthenticated, headerMark, uriMark;
+            string actionHeader, uri, accessHeadAndPayload;
             var basicAuthenticated = DispatchBasicAuthentication(context, out anonymAuthenticated);
 
-            if (IsTokenAuthenticationRequested(request))
+            if (IsTokenAuthenticationRequested(request, out headerMark, out uriMark, out actionHeader, out uri, out accessHeadAndPayload))
             {
 
                 if (basicAuthenticated && anonymAuthenticated)
@@ -146,7 +166,7 @@ namespace SenseNet.Portal.Virtualization
                 }
                 else
                 {
-                    TokenAuthenticate(basicAuthenticated, context, application);
+                    TokenAuthenticate(basicAuthenticated, headerMark, uriMark, actionHeader, uri, accessHeadAndPayload, context, application);
                 }
                 return;
             }
@@ -210,31 +230,81 @@ namespace SenseNet.Portal.Virtualization
             }
         }
 
-        private string GetAuthenticationTypeHeader(HttpRequestBase request)
+        private string GetAuthenticationActionHeader(HttpRequestBase request)
         {
-            return request.Headers[AuthenticationTypeHeaderName] ?? request.Headers[AuthenticationTypeHeaderName.ToLower()];
+            return request.Headers[AuthenticationActionHeaderName] ??
+                   request.Headers[AuthenticationActionHeaderName.ToLower()];
         }
 
         private string GetRefreshHeader(HttpRequestBase request)
         {
             return request.Headers[RefreshHeaderName] ?? request.Headers[RefreshHeaderName.ToLower()];
         }
+
         private string GetAccessHeader(HttpRequestBase request)
         {
             return request.Headers[AccessHeaderName] ?? request.Headers[AccessHeaderName.ToLower()];
         }
 
-        private bool IsTokenAuthenticationRequested(HttpRequestBase request)
+        private bool IsTokenAuthenticationRequested(HttpRequestBase request, out bool headerMark, out bool uriMark, out string actionHeader, out string uri, out string headAndPayload)
         {
-            return request.IsSecureConnection && (GetAuthenticationTypeHeader(request) == "Token"
-                || AcceptedTokenPaths.Contains(request.Url.AbsolutePath,  StringComparer.InvariantCultureIgnoreCase)
-                || !string.IsNullOrWhiteSpace(GetAccessHeader(request)));
+            actionHeader = GetAuthenticationActionHeader(request);
+            uri = request.Url.AbsolutePath;
+            headerMark = TokenActions.Contains(actionHeader, StringComparer.InvariantCultureIgnoreCase);
+            uriMark = TokenPaths.Contains(uri, StringComparer.InvariantCultureIgnoreCase);
+            var cookie = CookieHelper.GetCookie(request, AccessHeadAndPayloadCookieName);
+            headAndPayload = cookie == null ? request.Headers[RefreshHeaderName] : cookie.Value;
+            return request.IsSecureConnection && (headerMark || uriMark || headAndPayload != null);
         }
 
-        private void TokenAuthenticate(bool basicAuthenticated, HttpContextBase context, HttpApplication application)
+        private void TokenAuthenticate(bool basicAuthenticated, bool headerMark, bool uriMark, string actionHeader, string uri, string headAndPayLoad, HttpContextBase context, HttpApplication application)
         {
+            bool endRequest = false;
             try
             {
+                var tokenAction = TokenAction.TokenAccess;
+                string tokenHeadAndPayload = headAndPayLoad;
+                if (headerMark)
+                {
+                    if (!Enum.TryParse(actionHeader, true, out tokenAction))
+                    {
+                        throw new AuthenticationException("Invalid action header for header mark token authentication.");
+                    }
+                    if (tokenAction == TokenAction.TokenAccess || tokenAction == TokenAction.TokenLogout)
+                    {
+                        tokenHeadAndPayload = GetAccessHeader(context.Request);
+                    }
+                    else if (tokenAction == TokenAction.TokenRefresh)
+                    {
+                        tokenHeadAndPayload = GetRefreshHeader(context.Request);
+                    }
+                }
+                else if (uriMark)
+                {
+                    switch (uri)
+                    {
+                        case TokenLoginPath:
+                            tokenAction = TokenAction.TokenLogin;
+                            break;
+                        case TokenLogoutPath:
+                            tokenAction = TokenAction.TokenLogout;
+                            break;
+                        case TokenRefreshPath:
+                            tokenAction = TokenAction.TokenRefresh;
+                            break;
+                        default:
+                            throw new AuthenticationException("Invalid login uri for token authentication.");
+                    }
+                }
+                else if (!uriMark && !headerMark && !string.IsNullOrWhiteSpace(headAndPayLoad))
+                {
+                    tokenAction = TokenAction.TokenAccess;
+                }
+                else
+                {
+                    throw new AuthenticationException("Invalid method for token authentication.");
+                }
+
                 var tokenHandler = new JwsSecurityTokenHandler();
                 var validFrom = DateTime.UtcNow;
 
@@ -253,105 +323,127 @@ namespace SenseNet.Portal.Virtualization
 
                 var tokenManager = new TokenManager(SecurityKey, tokenHandler, generateTokenParameter);
 
-                if (basicAuthenticated)
+                switch (tokenAction)
                 {
-                    // user has just authenticated by basic auth, so let's emit a set of tokens and cookies in response 
-                    try
-                    {
-                        var userName = context.User.Identity.Name;
-                        var roleName = string.Empty;
-
-                        // emit both access and refresh token and cookie 
-                        EmitTokensAndCookies(context, tokenManager, validFrom, userName, roleName, true);
-                        context.Response.StatusCode = HttpResponseStatusCode.Ok;
-                    }
-                    catch (Exception ex)
-                    {
-                        SnLog.WriteException(ex);
-                        context.Response.StatusCode = HttpResponseStatusCode.Unauthorized;
-                    }
-                    finally
-                    {
-                        context.Response.Flush();
-                        if (application.Context != null)
-                        {
-                            application.CompleteRequest();
-                        }
-                    }
-                    return;
-                }
-
-                // user has not been authenticated yet, so there must be a valid token and cookie in the request
-                var header = GetRefreshHeader(context.Request);
-                if (!string.IsNullOrWhiteSpace(header))
-                {
-                    // we got a refresh token
-                    try
-                    {
-                        var authCookie = CookieHelper.GetCookie(context.Request, RefreshSignatureName);
-                        if (authCookie == null)
-                        {
-                            throw new UnauthorizedAccessException("Missing refresh cookie.");
-                        }
-
-                        var refreshHeadAndPayload = header;
-                        var refreshSignature = authCookie.Value;
-                        var principal = tokenManager.ValidateToken(refreshHeadAndPayload + "." + refreshSignature);
-                        var userName = principal.Identity.Name;
-                        var roleName = string.Empty;
-
-                        // emit access token and cookie only
-                        EmitTokensAndCookies(context, tokenManager, validFrom, userName, roleName, false);
-                        context.Response.StatusCode = HttpResponseStatusCode.Ok;
-                    }
-                    catch (Exception ex)
-                    {
-                        SnLog.WriteException(ex);
-                        context.Response.StatusCode = HttpResponseStatusCode.Unauthorized;
-                    }
-                    finally
-                    {
-                        context.Response.Flush();
-                        if (application.Context != null)
-                        {
-                            application.CompleteRequest();
-                        }
-                    }
-                    return;
-                }
-
-                header = GetAccessHeader(context.Request);
-                if (!string.IsNullOrWhiteSpace(header))
-                {
-                    // we got an access token
-                    var authCookie = CookieHelper.GetCookie(context.Request, AccessSignatureName);
-                    if (authCookie == null)
-                    {
-                        throw new UnauthorizedAccessException("Missing access cookie.");
-                    }
-
-                    var accessHeadAndPayload = header;
-                    var accessSignature = authCookie.Value;
-                    var principal = tokenManager.ValidateToken(accessHeadAndPayload + "." + accessSignature);
-                    if (principal == null)
-                    {
-                        throw new UnauthorizedAccessException("Invalid access token.");
-                    }
-                    var userName = tokenManager.GetPayLoadValue(accessHeadAndPayload.Split(Convert.ToChar("."))[1], "name");
-                    using (new SystemAccount())
-                    {
-                        context.User = LoadUserPrincipal(userName);
-                    }
+                    case TokenAction.TokenLogin:
+                        TokenLogin(basicAuthenticated, validFrom, tokenManager, context);
+                        endRequest = true;
+                        break;
+                    case TokenAction.TokenLogout:
+                        TokenLogout(tokenHeadAndPayload, tokenManager, context);
+                        endRequest = true;
+                        break;
+                    case TokenAction.TokenAccess:
+                        TokenAccess(tokenHeadAndPayload, tokenManager, context);
+                        break;
+                    case TokenAction.TokenRefresh:
+                        TokenRefresh(tokenHeadAndPayload, validFrom, tokenManager, context);
+                        endRequest = true;
+                        break;
                 }
             }
             catch (Exception ex)
             {
                 SnLog.WriteException(ex);
-                if (!basicAuthenticated)
+                context.Response.StatusCode = HttpResponseStatusCode.Unauthorized;
+            }
+            finally
+            {
+                if (endRequest)
                 {
-                    context.User = GetVisitorPrincipal();
+                    context.Response.Flush();
+                    if (application.Context != null)
+                    {
+                        application.CompleteRequest();
+                    }
+                }
+                else
+                {
+                    if (!basicAuthenticated)
+                    {
+                        context.User = GetVisitorPrincipal();
+                    }
                 }
             }
+        }
+
+        private void TokenLogin(bool basicAuthenticated, DateTime validFrom, TokenManager tokenManager, HttpContextBase context)
+        {
+            if (!basicAuthenticated)
+            {
+                throw new AuthenticationException("Missing basic authentication.");
+            }
+            // user has just authenticated by basic auth, so let's emit a set of tokens and cookies in response 
+            var userName = context.User.Identity.Name;
+            var roleName = string.Empty;
+
+            // emit both access and refresh token and cookie 
+            EmitTokensAndCookies(context, tokenManager, validFrom, userName, roleName, true);
+            context.Response.StatusCode = HttpResponseStatusCode.Ok;
+        }
+
+        private void TokenLogout(string accessHeadAndPayload, TokenManager tokenManager, HttpContextBase context)
+        {
+            if (!string.IsNullOrWhiteSpace(accessHeadAndPayload))
+            {
+                var authCookie = CookieHelper.GetCookie(context.Request, AccessSignatureCookieName);
+                if (authCookie == null)
+                {
+                    throw new UnauthorizedAccessException("Missing access cookie.");
+                }
+
+                var accessSignature = authCookie.Value;
+                var principal = tokenManager.ValidateToken(accessHeadAndPayload + "." + accessSignature);
+                if (principal == null)
+                {
+                    throw new UnauthorizedAccessException("Invalid access token.");
+                }
+                CookieHelper.DeleteCookie(context.Response, AccessSignatureCookieName);
+                CookieHelper.DeleteCookie(context.Response, AccessHeadAndPayloadCookieName);
+                CookieHelper.DeleteCookie(context.Response, RefreshSignatureCookieName);
+            }
+        }
+
+        private void TokenAccess(string accessHeadAndPayload, TokenManager tokenManager, HttpContextBase context)
+        {
+            if (!string.IsNullOrWhiteSpace(accessHeadAndPayload))
+            {
+                var authCookie = CookieHelper.GetCookie(context.Request, AccessSignatureCookieName);
+                if (authCookie == null)
+                {
+                    throw new UnauthorizedAccessException("Missing access cookie.");
+                }
+
+                var accessSignature = authCookie.Value;
+                var principal = tokenManager.ValidateToken(accessHeadAndPayload + "." + accessSignature);
+                if (principal == null)
+                {
+                    throw new UnauthorizedAccessException("Invalid access token.");
+                }
+                var userName = tokenManager.GetPayLoadValue(accessHeadAndPayload.Split(Convert.ToChar("."))[1],"name");
+                using (new SystemAccount())
+                {
+                    context.User = LoadUserPrincipal(userName);
+                }
+            }
+        }
+
+        private void TokenRefresh(string refreshHeadAndPayload, DateTime validFrom, TokenManager tokenManager, HttpContextBase context)
+        {
+            var authCookie = CookieHelper.GetCookie(context.Request, RefreshSignatureCookieName);
+            if (authCookie == null)
+            {
+                throw new UnauthorizedAccessException("Missing refresh cookie.");
+            }
+
+            var refreshSignature = authCookie.Value;
+            var principal = tokenManager.ValidateToken(refreshHeadAndPayload + "." + refreshSignature);
+            var userName = principal.Identity.Name;
+            var roleName = string.Empty;
+
+            // emit access token and cookie only
+            EmitTokensAndCookies(context, tokenManager, validFrom, userName, roleName, false);
+            context.Response.StatusCode = HttpResponseStatusCode.Ok;
         }
 
         private void EmitTokensAndCookies(HttpContextBase context, TokenManager tokenManager, DateTime validFrom, string userName, string roleName, bool refreshTokenAsWell)
@@ -364,7 +456,8 @@ namespace SenseNet.Portal.Virtualization
             var accessHeadAndPayload = token.Substring(0, accessSignatureIndex);
             var accessExpiration = validFrom.AddMinutes(Configuration.TokenAuthentication.AccessLifeTimeInMinutes);
 
-            CookieHelper.InsertSecureCookie(context.Response, accessSignature, AccessSignatureName, accessExpiration);
+            CookieHelper.InsertSecureCookie(context.Response, accessSignature, AccessSignatureCookieName, accessExpiration);
+            CookieHelper.InsertSecureCookie(context.Response, accessHeadAndPayload, AccessHeadAndPayloadCookieName, accessExpiration);
 
             tokenResponse.access = accessHeadAndPayload;
 
@@ -375,7 +468,7 @@ namespace SenseNet.Portal.Virtualization
                 var refreshHeadAndPayload = refreshToken.Substring(0, refreshSignatureIndex);
                 var refreshExpiration = accessExpiration.AddMinutes(Configuration.TokenAuthentication.RefreshLifeTimeInMinutes);
 
-                CookieHelper.InsertSecureCookie(context.Response, refreshSignature, RefreshSignatureName, refreshExpiration);
+                CookieHelper.InsertSecureCookie(context.Response, refreshSignature, RefreshSignatureCookieName, refreshExpiration);
 
                 tokenResponse.refresh = refreshHeadAndPayload;
             }

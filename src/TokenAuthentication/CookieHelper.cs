@@ -17,9 +17,18 @@ namespace SenseNet.TokenAuthentication
             response.Cookies.Add(authCookie);
         }
 
+        public static void DeleteCookie(HttpResponseBase response, string cookieName)
+        {
+            var sessionCookie = new HttpCookie(cookieName, string.Empty)
+            {
+                Expires = DateTime.UtcNow.AddDays(-1)
+            };
+            response.Cookies.Add(sessionCookie);
+        }
+
         public static HttpCookie GetCookie(HttpRequestBase request, string cookieName)
         {
-            return request.Cookies[cookieName];
+            return request.Cookies?[cookieName];
         }
     }
 }
