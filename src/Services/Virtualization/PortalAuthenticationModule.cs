@@ -401,6 +401,7 @@ namespace SenseNet.Portal.Virtualization
                 CookieHelper.DeleteCookie(context.Response, AccessSignatureCookieName);
                 CookieHelper.DeleteCookie(context.Response, AccessHeadAndPayloadCookieName);
                 CookieHelper.DeleteCookie(context.Response, RefreshSignatureCookieName);
+                context.Response.StatusCode = HttpResponseStatusCode.Ok;
             }
         }
 
