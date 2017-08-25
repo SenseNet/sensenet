@@ -326,26 +326,33 @@ namespace SenseNet.Portal.Virtualization
                 switch (tokenAction)
                 {
                     case TokenAction.TokenLogin:
-                        TokenLogin(basicAuthenticated, validFrom, tokenManager, context);
                         endRequest = true;
+                        TokenLogin(basicAuthenticated, validFrom, tokenManager, context);
                         break;
                     case TokenAction.TokenLogout:
-                        TokenLogout(tokenHeadAndPayload, tokenManager, context);
                         endRequest = true;
+                        TokenLogout(tokenHeadAndPayload, tokenManager, context);
                         break;
                     case TokenAction.TokenAccess:
                         TokenAccess(tokenHeadAndPayload, tokenManager, context);
                         break;
                     case TokenAction.TokenRefresh:
-                        TokenRefresh(tokenHeadAndPayload, validFrom, tokenManager, context);
                         endRequest = true;
+                        TokenRefresh(tokenHeadAndPayload, validFrom, tokenManager, context);
                         break;
                 }
             }
             catch (Exception ex)
             {
                 SnLog.WriteException(ex);
-                context.Response.StatusCode = HttpResponseStatusCode.Unauthorized;
+                if (endRequest)
+                {
+                    context.Response.StatusCode = HttpResponseStatusCode.Unauthorized;
+                }
+                else
+                { 
+                    context.User = GetVisitorPrincipal();
+                }
             }
             finally
             {
@@ -355,13 +362,6 @@ namespace SenseNet.Portal.Virtualization
                     if (application.Context != null)
                     {
                         application.CompleteRequest();
-                    }
-                }
-                else
-                {
-                    if (!basicAuthenticated)
-                    {
-                        context.User = GetVisitorPrincipal();
                     }
                 }
             }
