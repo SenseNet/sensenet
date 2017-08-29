@@ -54,7 +54,7 @@ namespace SenseNet.ContentRepository
         public static IEnumerable<T> GetTemplatesForType<T>(string contentTypeName, string contextPath) where T : Node
         {
             var path = RepositoryPath.Combine(contextPath, contentTypeName);
-            if (RepositoryInstance.ContentQueryIsAllowed)
+            if (StorageContext.Search.ContentQueryIsAllowed)
             {
                 return
                     ContentQuery_NEW.Query(SafeQueries.InFolder,
@@ -223,7 +223,7 @@ namespace SenseNet.ContentRepository
         {
             var templatePath = RepositoryPath.Combine(path, contentTypeName);
 
-            if (RepositoryInstance.ContentQueryIsAllowed)
+            if (StorageContext.Search.ContentQueryIsAllowed)
             {
                 return ContentQuery_NEW.Query(SafeQueries.InFolderCountOnly,
                     new QuerySettings { EnableAutofilters = FilterStatus.Disabled, EnableLifespanFilter = FilterStatus.Disabled },
@@ -383,7 +383,7 @@ namespace SenseNet.ContentRepository
             {
                 IEnumerable<Node> sourceNodes;
 
-                if (RepositoryInstance.ContentQueryIsAllowed)
+                if (StorageContext.Search.ContentQueryIsAllowed)
                 {
                     sourceNodes = ContentQuery_NEW.Query(SafeQueries.InTreeOrderByPath,
                         new QuerySettings { EnableAutofilters = FilterStatus.Disabled, EnableLifespanFilter = FilterStatus.Disabled },
@@ -462,7 +462,7 @@ namespace SenseNet.ContentRepository
             {
                 IEnumerable<Content> targetContentList;
 
-                if (RepositoryInstance.ContentQueryIsAllowed)
+                if (StorageContext.Search.ContentQueryIsAllowed)
                 {
                     targetContentList = Content.All.DisableAutofilters().DisableLifespan().Where(c => c.InTree(targetRoot)).OrderBy(c => c.Path).ToList();
                 }

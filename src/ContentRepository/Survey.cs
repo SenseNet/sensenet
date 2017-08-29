@@ -136,7 +136,7 @@ namespace SenseNet.ContentRepository
 
         public override void Save(SavingMode mode)
         {
-            if (this.Id > 0 && RepositoryInstance.ContentQueryIsAllowed)
+            if (this.Id > 0 && StorageContext.Search.ContentQueryIsAllowed)
             {
                 if (ContentQuery_NEW.Query(SafeQueries.SurveyItemsInFolderCount, null, this.Id)
                     .Count > 0 && _originalContentListDefinition != this.ContentListDefinition)

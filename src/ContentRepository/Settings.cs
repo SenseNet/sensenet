@@ -562,7 +562,7 @@ namespace SenseNet.ContentRepository
             
             var nameError = false;
             var globalSettingError = false;
-            if (RepositoryInstance.ContentQueryIsAllowed)
+            if (StorageContext.Search.ContentQueryIsAllowed)
             {
                 if (ContentQuery_NEW.Query(SafeQueries.SettingsByNameAndSubtree, null, name, id, rootpath).Count > 0)
                     nameError = true;

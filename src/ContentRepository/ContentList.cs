@@ -960,7 +960,7 @@ namespace SenseNet.ContentRepository
             int count;
             using (new SystemAccount())
             {
-                if (RepositoryInstance.ContentQueryIsAllowed)
+                if (StorageContext.Search.ContentQueryIsAllowed)
                 {
                     count = Content.All.OfType<ContentList>().Count(cl => (string)cl["ListEmail"] == email && cl.Id != this.Id);
                 }
@@ -1007,7 +1007,7 @@ namespace SenseNet.ContentRepository
             var targetPath = RepositoryPath.Combine(this.Path, "Workflows/MailProcess");
             IEnumerable<Node> runningWorkflows;
 
-            if (RepositoryInstance.ContentQueryIsAllowed)
+            if (StorageContext.Search.ContentQueryIsAllowed)
             {
                 runningWorkflows = Content.All.DisableAutofilters().Where(
                     c => c.TypeIs("MailProcessorWorkflow") &&

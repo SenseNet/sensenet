@@ -51,7 +51,7 @@ namespace SenseNet.ContentRepository
         {
             get
             {
-                if (!RepositoryInstance.ContentQueryIsAllowed)
+                if (!StorageContext.Search.ContentQueryIsAllowed)
                     return 0;
 
                 QueryResult cq = ContentQuery_NEW.Query(SafeQueries.InTreeAndTypeIs, null, this.Path, "expenseclaimitem");

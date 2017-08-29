@@ -250,7 +250,7 @@ namespace SenseNet.ContentRepository
         }
         public static bool AspectExists(string name)
         {
-            if (RepositoryInstance.ContentQueryIsAllowed)
+            if (StorageContext.Search.ContentQueryIsAllowed)
                 return ContentQuery_NEW.Query(SafeQueries.AspectExists, null, name).Count > 0;
             return LoadAspectByName(name) != null;
         }

@@ -26,7 +26,7 @@ namespace SenseNet.ContentRepository
         {
             base.OnCreating(sender, e);
 
-            if (!RepositoryInstance.ContentQueryIsAllowed)
+            if (!StorageContext.Search.ContentQueryIsAllowed)
                 return;
 
             var parent = e.SourceNode.Parent;

@@ -357,7 +357,7 @@ namespace SenseNet.ContentRepository
             switch (hint)
             {
                 case ExecutionHint.None: 
-                    forceCql = RepositoryInstance.ContentQueryIsAllowed; break;
+                    forceCql = StorageContext.Search.ContentQueryIsAllowed; break;
                 case ExecutionHint.ForceIndexedEngine: 
                     forceCql = true; break;
                 case ExecutionHint.ForceRelationalEngine: 
@@ -879,7 +879,7 @@ namespace SenseNet.ContentRepository
 
             List<int> identifiers;
 
-            if (RepositoryInstance.ContentQueryIsAllowed)
+            if (StorageContext.Search.ContentQueryIsAllowed)
             {
                 // We need to look for other users in elevated mode, because the current 
                 // user may not have enough permissions for the whole user tree.

@@ -128,7 +128,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             using (new SystemAccount())
             {
                 // import scenario
-                if (!RepositoryInstance.ContentQueryIsAllowed)
+                if (!StorageContext.Search.ContentQueryIsAllowed)
                 {
                     var resultIds = NodeQuery.QueryNodesByTypeAndPathAndName(new[]
                     {
