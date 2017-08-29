@@ -11,19 +11,6 @@ namespace SenseNet.Search.Indexing
 {
     public class IndexDocumentProvider : IIndexDocumentProvider
     {
-        //public object GetIndexDocumentInfo(Node node, bool skipBinaries, bool isNew, out bool hasBinary)
-        //{
-        //    var x = IndexDocumentInfo.Create(node, skipBinaries, isNew);
-        //    hasBinary = x.HasBinaryField;
-        //    return x;
-        //}
-        //public object CompleteIndexDocumentInfo(Node node, object baseDocumentInfo)
-        //{
-        //    return ((IndexDocumentInfo)baseDocumentInfo).Complete(node);
-        //}
-
-        /* ======================================================================================================== */
-
         [NonSerialized]
         private static List<string> PostponedFields = new List<string>(new string[] {
             IndexFieldName.Name, IndexFieldName.Path, IndexFieldName.InTree, IndexFieldName.InFolder, IndexFieldName.Depth, IndexFieldName.ParentId,

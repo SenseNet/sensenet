@@ -292,9 +292,9 @@ namespace SenseNet.Search.Indexing
         }
         private static IndexDocument CreateIndexDocument(IndexDocumentData data) //UNDONE: refactor IndexDocumentData --> complete IndexDocument
         {
-            var buffer = data.IndexDocumentInfoBytes;
+            var buffer = data.SerializedIndexDocument;
 
-            var docStream = new MemoryStream(data.IndexDocumentInfoBytes);
+            var docStream = new MemoryStream(data.SerializedIndexDocument);
             var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
             var info = (IndexDocument)formatter.Deserialize(docStream);
 

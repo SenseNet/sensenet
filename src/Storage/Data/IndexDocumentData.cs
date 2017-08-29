@@ -24,7 +24,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
 
         private byte[] _indexDocumentBytes;
-        public byte[] IndexDocumentInfoBytes //UNDONE:!!!!!!!!! Rename to SerializedIndexDocument
+        public byte[] SerializedIndexDocument
         {
             get
             {
@@ -35,14 +35,14 @@ namespace SenseNet.ContentRepository.Storage.Data
                         var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
                         formatter.Serialize(docStream, _indexDocument);
                         docStream.Flush();
-                        IndexDocumentInfoSize = docStream.Length;
+                        IndexDocumentSize = docStream.Length;
                         _indexDocumentBytes = docStream.GetBuffer();
                     }
                 }
                 return _indexDocumentBytes;
             }
         }
-        public long? IndexDocumentInfoSize { get; set; }
+        public long? IndexDocumentSize { get; set; }
 
         public int NodeTypeId { get; set; }
         public int VersionId { get; set; }

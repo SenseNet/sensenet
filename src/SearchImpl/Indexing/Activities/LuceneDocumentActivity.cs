@@ -108,7 +108,7 @@ namespace SenseNet.Search.Indexing.Activities
         public override void Distribute()
         {
             // check doc size before distributing
-            var sendDocOverMSMQ = IndexDocumentData != null && IndexDocumentData.IndexDocumentInfoSize.HasValue && IndexDocumentData.IndexDocumentInfoSize.Value < Messaging.MsmqIndexDocumentSizeLimit;
+            var sendDocOverMSMQ = IndexDocumentData != null && IndexDocumentData.IndexDocumentSize.HasValue && IndexDocumentData.IndexDocumentSize.Value < Messaging.MsmqIndexDocumentSizeLimit;
 
             if (sendDocOverMSMQ)
             {

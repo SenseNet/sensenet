@@ -18,7 +18,7 @@ namespace SenseNet.Search.Indexing
     {
         /*done*/public static void AddTextExtract(int versionId, string textExtract)
         {
-            // 1: load indexDocumentInfo.
+            // 1: load indexDocument.
             var docData = StorageContext.Search.LoadIndexDocumentByVersionId(versionId);
             var indexDoc = docData.IndexDocument;
 
@@ -28,9 +28,9 @@ namespace SenseNet.Search.Indexing
             indexDoc.Add(new IndexField(IndexFieldName.AllText, textExtract, IndexingMode.Analyzed, IndexStoringMode.No,
                 IndexTermVector.No));
 
-            // 3: save indexDocumentInfo.
+            // 3: save indexDocument.
             docData.IndexDocumentChanged();
-            DataProvider.SaveIndexDocument(versionId, docData.IndexDocumentInfoBytes);
+            DataProvider.SaveIndexDocument(versionId, docData.SerializedIndexDocument);
 
             // 4: distributed cache invalidation because of version timestamp.
             DataBackingStore.RemoveNodeDataFromCacheByVersionId(versionId);
