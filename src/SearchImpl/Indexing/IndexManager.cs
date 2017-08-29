@@ -318,14 +318,13 @@ namespace SenseNet.Search.Indexing
             doc.Add(new IndexField(IndexFieldName.VersionTimestamp, docData.VersionTimestamp, IndexingMode.AnalyzedNoNorms, IndexStoringMode.Yes, IndexTermVector.No));
 
             // custom fields
-            //UNDONE:!!!!! Reconcept, rewrite and implement ICustomIndexFieldProvider, CustomIndexFieldManager, IHasCustomIndexField
-            //if (document.HasCustomField)
-            //{
-            //    var customFields = CustomIndexFieldManager.GetFields(document, docData);
-            //    if (customFields != null)
-            //        foreach (var field in customFields)
-            //            doc.Add(field);
-            //}
+            if (doc.HasCustomField)
+            {
+                var customFields = CustomIndexFieldManager.GetFields(doc, docData);
+                if (customFields != null)
+                    foreach (var field in customFields)
+                        doc.Add(field);
+            }
 
             return doc;
         }

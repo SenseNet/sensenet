@@ -18,7 +18,7 @@ using SenseNet.Search.Lucene29;
 namespace SenseNet.Search.Lucene29
 {
     [Serializable]
-    public sealed class RequestBackupIndexMessage : DistributedAction
+    public sealed class RequestBackupIndexMessage : DistributedAction //UNDONE:!!!!! Delete asap.
     {
         private string _machine;
         private string _indexBackupCreatorId;
@@ -58,7 +58,7 @@ Debug.WriteLine(String.Format("@> {0} =========== BackupIndex END. id: {1}", App
         }
     }
     [Serializable]
-    public sealed class IndexBackupStartedMessage : ClusterMessage
+    public sealed class IndexBackupStartedMessage : ClusterMessage //UNDONE:!!!!! Delete asap.
     {
         private string _message;
         public string Message { get { return _message; } }
@@ -68,7 +68,7 @@ Debug.WriteLine(String.Format("@> {0} =========== BackupIndex END. id: {1}", App
         }
     }
     [Serializable]
-    public sealed class IndexBackupFinishedMessage : ClusterMessage
+    public sealed class IndexBackupFinishedMessage : ClusterMessage //UNDONE:!!!!! Delete asap.
     {
         private string _message;
         public string Message { get { return _message; } }
@@ -78,7 +78,7 @@ Debug.WriteLine(String.Format("@> {0} =========== BackupIndex END. id: {1}", App
         }
     }
     [Serializable]
-    public sealed class IndexBackupProgressMessage : ClusterMessage
+    public sealed class IndexBackupProgressMessage : ClusterMessage //UNDONE:!!!!! Delete asap.
     {
         public IndexBackupProgressType Type { get; private set; }
         public string Message { get; private set; }
@@ -296,7 +296,7 @@ Debug.WriteLine(String.Format("@> {0} =========== BackupIndex END. id: {1}", App
                 var writer = new Lucene.Net.Index.IndexWriter(dir, Lucene29IndexManager.GetAnalyzer(), false, Lucene.Net.Index.IndexWriter.MaxFieldLength.UNLIMITED);
                 writer.Optimize();
                 writer.Close();
-                if (!Lucene29IndexManager.WaitForWriterLockFileIsReleased(StorageContext.Search.IndexDirectoryBackupPath))
+                if (!Lucene29IndexingEngine.WaitForWriterLockFileIsReleased(StorageContext.Search.IndexDirectoryBackupPath))
                     throw new ApplicationException("Writer lock releasing time out.");
                 Progress.FinishOptimizeBeforeBackup();
                 op.Successful = true;

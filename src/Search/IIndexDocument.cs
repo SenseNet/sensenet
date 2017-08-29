@@ -59,7 +59,7 @@ namespace SenseNet.Search
         public IndexField(string name, DateTime value, IndexingMode mode, IndexStoringMode store, IndexTermVector termVector) : base(name, value) { Mode = mode; Store = store; TermVector = termVector; }
     }
 
-    public interface IIndexDocument: IEnumerable<IndexField> //UNDONE:!!!! Remove interface if possible
+    public interface IIndexDocument: IEnumerable<IndexField> //UNDONE: Remove interface if possible
     {
         int VersionId { get; }
         string Version { get; }

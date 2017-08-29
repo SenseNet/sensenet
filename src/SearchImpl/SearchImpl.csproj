@@ -89,7 +89,6 @@
     <Compile Include="Indexing\IndexManager.cs" />
     <Compile Include="Indexing\PerFieldIndexingInfo.cs" />
     <Compile Include="Indexing\SnPerFieldAnalyzerWrapper.cs" />
-    <Compile Include="Lucene29\Lucene29IndexDocument.cs" />
     <Compile Include="Lucene29\Lucene29IndexManager.cs" />
     <Compile Include="InvalidContentQueryException.cs" />
     <Compile Include="Lucene29\Lucene29Compiler.cs" />

@@ -111,8 +111,6 @@ namespace SenseNet.Services
                 var startConfig = new RepositoryStartSettings { StartLuceneManager = !firstRun, IsWebContext = true };
                 startConfig.ConfigureProvider(typeof(ElevatedModificationVisibilityRule), typeof(SnElevatedModificationVisibilityRule));
 
-                RepositoryInstance.WaitForWriterLockFileIsReleased(RepositoryInstance.WaitForLockFileType.OnStart);
-
                 Repository.Start(startConfig);
 
                 StorageContext.L2Cache = new L2CacheImpl();

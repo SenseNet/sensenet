@@ -24,10 +24,8 @@ namespace SenseNet.Search.Indexing
                 return IndexDocument.NotIndexedDocument;
 
             var textEtract = new StringBuilder();
-            var doc = new IndexDocument();
 
-            doc.HasCustomField = node is IHasCustomIndexField; //UNDONE:!!! Unit test IHasCustomIndexField feature
-
+            var doc = new IndexDocument {HasCustomField = node is IHasCustomIndexField}; //UNDONE: Unit test IHasCustomIndexField feature
             var ixnode = node as IIndexableDocument;
             var faultedFieldNames = new List<string>();
 

@@ -171,6 +171,8 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Starts workflow engine if it is not running.
         /// </summary>
+
+        private bool _workflowEngineIsRunning;
         public void StartWorkflowEngine()
         {
             if (_workflowEngineIsRunning)
@@ -409,12 +411,8 @@ namespace SenseNet.ContentRepository
                     IndexManager.ShutDown();
                 }
 
-                SnTrace.Repository.Write("Waiting for writer lock file is released.");
-                WaitForWriterLockFileIsReleased(RepositoryInstance.WaitForLockFileType.OnEnd);
-
                 var t = DateTime.UtcNow - _instance._startupInfo.Starting;
-                var msg = String.Format("Repository has stopped. Running time: {0}.{1:d2}:{2:d2}:{3:d2}", t.Days,
-                                        t.Hours, t.Minutes, t.Seconds);
+                var msg = $"Repository has stopped. Running time: {t.Days}.{t.Hours:d2}:{t.Minutes:d2}:{t.Seconds:d2}";
 
                 SnTrace.Repository.Write(msg);
                 SnTrace.Flush();
@@ -445,70 +443,6 @@ namespace SenseNet.ContentRepository
         {
             return _started;
         }
-
-        /* ======================================== Wait for write.lock */
-        private const string WRITELOCKREMOVEERRORSUBJECTSTR = "Error at application start";
-        private const string WRITELOCKREMOVEERRORTEMPLATESTR = "Write.lock was present at application start and was not removed within set timeout interval ({0} seconds) - a previous appdomain may use the index. Write.lock deletion and application start is forced. AppDomain friendlyname: {1}, base directory: {2}";
-        private const string WRITELOCKREMOVEERRORONENDTEMPLATESTR = "Write.lock was present at shutdown and was not removed within set timeout interval ({0} seconds) - application exit is forced. AppDomain friendlyname: {1}, base directory: {2}";
-        private const string WRITELOCKREMOVEEMAILERRORSTR = "Could not send notification email about write.lock removal. Check the notification section in the config file!";
-
-        public enum WaitForLockFileType { OnStart = 0, OnEnd }
-
-        /// <summary>
-        /// Waits for write.lock to disappear for a configured time interval. Timeout: configured with IndexLockFileWaitForRemovedTimeout key. 
-        /// If timeout is exceeded an error is logged and execution continues. For errors at OnStart an email is also sent to a configured address.
-        /// </summary>
-        /// <param name="waitType">A parameter that influences the logged error message and email template only.</param>
-        public static void WaitForWriterLockFileIsReleased(WaitForLockFileType waitType)
-        {
-            // check if writer.lock is still there -> if yes, wait for other appdomain to quit or lock to disappear - until a given timeout.
-            // after timeout is passed, Repository.Start will deliberately attempt to remove lock file on following startup
-
-            if (!Lucene29IndexManager.WaitForWriterLockFileIsReleased())
-            {
-                // lock file was not removed by other or current appdomain for the given time interval (onstart: other appdomain might use it, onend: current appdomain did not release it yet)
-                // onstart -> notify operator and start repository anyway
-                // onend -> log error, and continue
-                var template = waitType == WaitForLockFileType.OnEnd ? WRITELOCKREMOVEERRORONENDTEMPLATESTR : WRITELOCKREMOVEERRORTEMPLATESTR;
-                SnLog.WriteError(string.Format(template, Indexing.IndexLockFileWaitForRemovedTimeout,
-                    AppDomain.CurrentDomain.FriendlyName, AppDomain.CurrentDomain.BaseDirectory));
-
-                if (waitType == WaitForLockFileType.OnStart)
-                    SendWaitForLockErrorMail();
-            }
-        }
-        private static void SendWaitForLockErrorMail()
-        {
-            if (!String.IsNullOrEmpty(Notification.NotificationSender) && !String.IsNullOrEmpty(Indexing.IndexLockFileRemovedNotificationEmail))
-            {
-                try
-                {
-                    var smtpClient = new SmtpClient();
-                    var msgstr = String.Format(WRITELOCKREMOVEERRORTEMPLATESTR,
-                        Indexing.IndexLockFileWaitForRemovedTimeout,
-                        AppDomain.CurrentDomain.FriendlyName,
-                        AppDomain.CurrentDomain.BaseDirectory);
-                    var msg = new MailMessage(
-                        Notification.NotificationSender,
-                        Indexing.IndexLockFileRemovedNotificationEmail.Replace(';', ','),
-                        WRITELOCKREMOVEERRORSUBJECTSTR,
-                        msgstr);
-                    smtpClient.Send(msg);
-                }
-                catch (Exception ex)
-                {
-                    SnLog.WriteException(ex);
-                }
-            }
-            else
-            {
-                SnLog.WriteError(WRITELOCKREMOVEEMAILERRORSTR);
-            }
-        }
-
-        // ========================================
-
-        private bool _workflowEngineIsRunning;
 
         // ======================================== LuceneManager hooks
 
