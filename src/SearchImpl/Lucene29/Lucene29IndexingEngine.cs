@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -198,9 +199,16 @@ namespace SenseNet.Search.Lucene29
         }
         private void Startup(System.IO.TextWriter consoleOut)
         {
+            RemoveIndexWriterLockFile(consoleOut);
+
             // we positively start the message cluster
             int dummy = SenseNet.ContentRepository.DistributedApplication.Cache.Count;
             var dummy2 = SenseNet.ContentRepository.DistributedApplication.ClusterChannel;
+
+            // Lucene subsystem behaves strangely if the enums are not initialized.
+            var x = Lucene.Net.Documents.Field.Index.NO;
+            var y = Lucene.Net.Documents.Field.Store.NO;
+            var z = Lucene.Net.Documents.Field.TermVector.NO;
 
             if (StorageContext.Search.ContentRepository.RestoreIndexOnstartup())
                 BackupTools.RestoreIndex(false, consoleOut);
@@ -218,6 +226,42 @@ namespace SenseNet.Search.Lucene29
             SnTrace.Index.Write("LM: 'CommitWorker' thread started. ManagedThreadId: {0}", t.ManagedThreadId);
 
             IndexHealthMonitor.Start(consoleOut);
+        }
+        private void RemoveIndexWriterLockFile(System.IO.TextWriter consoleOut)
+        {
+            // delete write.lock if necessary
+            var lockFilePath = StorageContext.Search.IndexLockFilePath;
+            if (lockFilePath == null)
+                return;
+
+            consoleOut.WriteLine($"Index: {IndexDirectory.CurrentOrDefaultDirectory}");
+
+            if (System.IO.File.Exists(lockFilePath))
+            {
+                var endRetry = DateTime.UtcNow.AddSeconds(Configuration.Indexing.LuceneLockDeleteRetryInterval);
+                consoleOut.WriteLine("Index directory is read only.");
+
+                // retry write.lock for a given period of time
+                while (true)
+                {
+                    try
+                    {
+                        System.IO.File.Delete(lockFilePath);
+                        consoleOut.WriteLine("Index directory lock removed.");
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        Thread.Sleep(5000);
+                        if (DateTime.UtcNow > endRetry)
+                            throw new IOException("Cannot remove the index lock: " + ex.Message, ex);
+                    }
+                }
+            }
+            else
+            {
+                consoleOut.WriteLine("Index directory is read/write.");
+            }
         }
         private void Warmup()
         {

@@ -244,7 +244,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         protected internal override int AcquireTreeLock(string path)
         {
-            return 1; //UNDONE:!!! TreeLock is not supported
+            return 1; //UNDONE: TreeLock is not supported
         }
 
         #region NOT IMPLEMENTED
@@ -447,7 +447,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         protected internal override bool IsTreeLocked(string path)
         {
-            return false; //UNDONE:!!! TreeLock is not supported
+            return false; //UNDONE: TreeLock is not supported
         }
 
         #region NOT IMPLEMENTED
@@ -460,7 +460,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         protected internal override Dictionary<int, string> LoadAllTreeLocks()
         {
-            return new Dictionary<int, string>(); //UNDONE:!!! TreeLock is not supported
+            return new Dictionary<int, string>(); //UNDONE: TreeLock is not supported
         }
 
         protected internal override BinaryCacheEntity LoadBinaryCacheEntity(int nodeVersionId, int propertyTypeId)
@@ -817,7 +817,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         protected internal override void ReleaseTreeLock(int[] lockIds)
         {
-            //UNDONE:!!! TreeLock is not supported
+            //UNDONE: TreeLock is not supported
         }
 
         #region NOT IMPLEMENTED

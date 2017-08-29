@@ -178,10 +178,10 @@ Debug.WriteLine(String.Format("@> {0} -------- IndexDirectory reset", AppDomain.
 
         public static class Search
         {
-            public static readonly string Yes = "yes";                                                              //UNDONE: Approve and finalize
-            public static readonly string No = "no";                                                                //UNDONE: Approve and finalize
-            public static readonly List<string> YesList = new List<string>(new string[] { "1", "true", "y", Yes }); //UNDONE: Approve and finalize
-            public static readonly List<string> NoList = new List<string>(new string[] { "0", "false", "n", No });  //UNDONE: Approve and finalize
+            public static readonly string Yes = "yes";
+            public static readonly string No = "no";
+            public static readonly List<string> YesList = new List<string>(new string[] { "1", "true", "y", Yes });
+            public static readonly List<string> NoList = new List<string>(new string[] { "0", "false", "n", No });
 
             public static ISearchEngine SearchEngine
             {

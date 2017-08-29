@@ -15,7 +15,6 @@ namespace SenseNet.Search
     public enum IndexableDataType { String, Int, Long, Float, Double }
     public enum IndexFieldType { String, Int, Long, Float, Double, DateTime }
     public enum SnTermType { String, StringArray, Bool, Int, Long, Float, Double, DateTime }
-    public enum FieldInfoType { StringField, IntField, LongField, SingleField, DoubleField } //UNDONE:!!! obsolete: DELETE ASAP
 
     public interface ISnField
     {

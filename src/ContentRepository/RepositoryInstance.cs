@@ -53,14 +53,6 @@ namespace SenseNet.ContentRepository
             /// </summary>
             public string[] Plugins { get; internal set; }
             /// <summary>
-            /// Absolute path of the index directory.
-            /// </summary>
-            public string IndexDirectory { get; internal set; } //UNDONE:! Provider specific info
-            /// <summary>
-            /// True if the index was read only before startup. Means: there was writer.lock file in the configured index directory.
-            /// </summary>
-            public bool IndexWasReadOnly { get; internal set; } //UNDONE:! Provider specific info
-            /// <summary>
             /// Moment of the start before executing the startup sequence.
             /// </summary>
             public DateTime Starting { get; internal set; }
@@ -138,20 +130,12 @@ namespace SenseNet.ContentRepository
 
             InitializeLogger();
 
-            //UNDONE:!!! Move to SnSearch
-            // Lucene subsystem behaves strangely if the enums are not initialized.
-            var x = Lucene.Net.Documents.Field.Index.NO;
-            var y = Lucene.Net.Documents.Field.Store.NO;
-            var z = Lucene.Net.Documents.Field.TermVector.NO;
-
             CounterManager.Start();
 
             RegisterAppdomainEventHandlers();
 
             if (_settings.IndexPath != null)
                 StorageContext.Search.SetIndexDirectoryPath(_settings.IndexPath);
-            RemoveIndexWriterLockFile(); //UNDONE:!!! Move to SnSearch
-            _startupInfo.IndexDirectory = Path.GetDirectoryName(StorageContext.Search.IndexLockFilePath); //UNDONE:!!! Provider specific info
 
             LoadAssemblies();
 
@@ -331,39 +315,6 @@ namespace SenseNet.ContentRepository
                 SnLog.Instance = new DebugWriteLoggerAdapter();
         }
 
-        private void RemoveIndexWriterLockFile() //UNDONE:!!! Move to SnSearch
-        {
-            // delete write.lock if necessary
-            var lockFilePath = StorageContext.Search.IndexLockFilePath;
-            if (lockFilePath == null)
-                return;
-            if (System.IO.File.Exists(lockFilePath))
-            {
-                _startupInfo.IndexWasReadOnly = true;
-                var endRetry = DateTime.UtcNow.AddSeconds(Indexing.LuceneLockDeleteRetryInterval);
-
-                // retry write.lock for a given period of time
-                while (true)
-                {
-                    try
-                    {
-                        System.IO.File.Delete(lockFilePath);
-                        break;
-                    }
-                    catch (Exception ex)
-                    {
-                        Thread.Sleep(5000);
-                        if (DateTime.UtcNow > endRetry)
-                            throw new IOException("Cannot remove the index lock: " + ex.Message, ex);
-                    }
-                }
-            }
-            else
-            {
-                _startupInfo.IndexWasReadOnly = false;
-                ConsoleWriteLine("Index directory is read/write.");
-            }
-        }
         private void RegisterAppdomainEventHandlers()
         {
             AppDomain appDomain = AppDomain.CurrentDomain;
