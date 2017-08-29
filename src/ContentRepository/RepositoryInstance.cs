@@ -538,14 +538,6 @@ namespace SenseNet.ContentRepository
             return _instance._settings.RestoreIndex;
         }
 
-        // ======================================== Outer search engine
-
-        [Obsolete("Use StorageContext.Search.ContentQueryIsAllowed")] //UNDONE: review magic string
-        public static bool ContentQueryIsAllowed
-        {
-            get { return StorageContext.Search.ContentQueryIsAllowed; }
-        }
-
         // ======================================== IDisposable
         private bool _disposed;
         public void Dispose()

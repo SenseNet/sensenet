@@ -10,7 +10,6 @@ namespace SenseNet.Search
     [DebuggerDisplay("{ToString()}")]
     public class SortInfo
     {
-        //UNDONE: let FieldName mandatory by a parametered constructor
         public string FieldName { get; }
         public bool Reverse { get; }
 
@@ -26,7 +25,7 @@ namespace SenseNet.Search
 
         public override string ToString()
         {
-            return string.Format("{0} {1}", FieldName, Reverse ? "DESC" : "ASC");
+            return $"{FieldName} {(Reverse ? "DESC" : "ASC")}";
         }
     }
 }
