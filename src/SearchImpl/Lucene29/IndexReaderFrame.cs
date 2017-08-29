@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Lucene.Net.Index;
 using SenseNet.Search.Indexing;
 
@@ -9,8 +6,8 @@ namespace SenseNet.Search.Lucene29
 {
     public class IndexReaderFrame : IDisposable
     {
-        private IndexReader _reader;
-        public IndexReader IndexReader { get { return _reader; } }
+        private readonly IndexReader _reader;
+        public IndexReader IndexReader => _reader;
 
         public IndexReaderFrame(IndexReader reader)
         {
