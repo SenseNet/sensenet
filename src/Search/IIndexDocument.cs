@@ -59,7 +59,7 @@ namespace SenseNet.Search
         public IndexField(string name, DateTime value, IndexingMode mode, IndexStoringMode store, IndexTermVector termVector) : base(name, value) { Mode = mode; Store = store; TermVector = termVector; }
     }
 
-    public interface IIndexDocument: IEnumerable<IndexField>
+    public interface IIndexDocument: IEnumerable<IndexField> //UNDONE:!!!!!! Remove interface if possible
     {
         int VersionId { get; }
         string Version { get; }
@@ -254,9 +254,9 @@ namespace SenseNet.Search
 
         /* =========================================================================================== */
 
-        public static IndexDocument Deserialize(byte[] indexDocumentBytes)
+        public static IndexDocument Deserialize(byte[] serializedIndexDocument)
         {
-            var docStream = new MemoryStream(indexDocumentBytes);
+            var docStream = new MemoryStream(serializedIndexDocument);
             var formatter = new BinaryFormatter();
             var indxDoc = (IndexDocument)formatter.Deserialize(docStream);
             return indxDoc;

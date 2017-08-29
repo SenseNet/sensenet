@@ -35,23 +35,15 @@ namespace SenseNet.Search.Indexing
         public void ClearAndPopulateAll(bool backup = true, TextWriter consoleWriter = null)
         {
             var lastActivityId = IndexManager.GetLastStoredIndexingActivityId();
-
+            //UNDONE:!!!!! Clear index ???
             using (var op = SnTrace.Index.StartOperation("IndexPopulator ClearAndPopulateAll"))
             {
                 // recreate
-                IndexManager.IndexingEngine.Actualize(null,
-                    StorageContext.Search.LoadIndexDocumentsByPath("/Root", IndexManager.GetNotIndexedNodeTypes())
-                        .Select(d =>
-                        {
-                            var indexDoc = IndexManager.CreateIndexDocument(d.IndexDocument, d); //UNDONE: refactor IndexDocumentData --> complete IndexDocument
-                            OnNodeIndexed(d.Path);
-                            return indexDoc;
-                        }));
                 IndexManager.AddDocuments(
                     StorageContext.Search.LoadIndexDocumentsByPath("/Root", IndexManager.GetNotIndexedNodeTypes())
                         .Select(d =>
                         {
-                            var indexDoc = IndexManager.CreateIndexDocument(d.IndexDocument, d); //UNDONE: refactor IndexDocumentData --> complete IndexDocument
+                            var indexDoc = IndexManager.CompleteIndexDocument(d);
                             OnNodeIndexed(d.Path);
                             return indexDoc;
                         }));
@@ -73,7 +65,7 @@ namespace SenseNet.Search.Indexing
             {
                 IndexManager.IndexingEngine.Actualize(new[] {new SnTerm(IndexFieldName.InTree, path)},
                     StorageContext.Search.LoadIndexDocumentsByPath(path, IndexManager.GetNotIndexedNodeTypes())
-                        .Select(d => IndexManager.CreateIndexDocument(d.IndexDocument, d))); //UNDONE: refactor IndexDocumentData --> complete IndexDocument
+                        .Select(IndexManager.CompleteIndexDocument));
                 op.Successful = true;
             }
         }

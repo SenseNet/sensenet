@@ -281,16 +281,14 @@ namespace SenseNet.Search.Indexing
                     .Select(CreateIndexDocument)
                     .ToArray();
         }
-        private static IndexDocument CreateIndexDocument(IndexDocumentData data) //UNDONE: refactor IndexDocumentData --> complete IndexDocument
+        private static IndexDocument CreateIndexDocument(IndexDocumentData data)
         {
-            var docStream = new MemoryStream(data.SerializedIndexDocument);
-            var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-            var info = (IndexDocument)formatter.Deserialize(docStream);
-
-            return CreateIndexDocument(info, data); //UNDONE: refactor IndexDocumentData --> complete IndexDocument
+            return CompleteIndexDocument(data);
         }
-        internal static IndexDocument CreateIndexDocument(IndexDocument doc, IndexDocumentData docData)
+        internal static IndexDocument CompleteIndexDocument(IndexDocumentData docData)
         {
+            var doc = docData.IndexDocument;
+
             if (doc == null)
                 return null;
             if (doc is NotIndexedIndexDocument)
