@@ -15,7 +15,7 @@ namespace SenseNet.Search
     public enum IndexableDataType { String, Int, Long, Float, Double }
     public enum IndexFieldType { String, Int, Long, Float, Double, DateTime }
     public enum SnTermType { String, StringArray, Bool, Int, Long, Float, Double, DateTime }
-    public enum FieldInfoType { StringField, IntField, LongField, SingleField, DoubleField }
+    public enum FieldInfoType { StringField, IntField, LongField, SingleField, DoubleField } //UNDONE:!!! obsolete: DELETE ASAP
 
     public interface ISnField
     {
@@ -29,6 +29,7 @@ namespace SenseNet.Search
         bool Compile(IQueryCompilerValue value);
 
         /// <summary>For SnLucParser</summary>
+        [Obsolete("", false)]//UNDONE:!!!! do not use in parser
         bool TryParseAndSet(IQueryFieldValue value);
         /// <summary>For LINQ</summary>
         void ConvertToTermValue(IQueryFieldValue value);
@@ -40,17 +41,7 @@ namespace SenseNet.Search
         IPerFieldIndexingInfo OwnerIndexingInfo { get; set; }
         string GetSortFieldName(string fieldName);
 
-        IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(ISnField field, out string textExtract); //UNDONE:!!!! obsolete: DELETE ASAP
         IEnumerable<IndexField> GetIndexFields(ISnField field, out string textExtract);
-    }
-    public interface IIndexFieldInfo //UNDONE:!!!! obsolete: DELETE ASAP
-    {
-        string Name { get; }
-        string Value { get; }
-        FieldInfoType Type { get; }
-        IndexingMode Index { get; }
-        IndexStoringMode Store { get; }
-        IndexTermVector TermVector { get; }
     }
     public interface IPerFieldIndexingInfo //UNDONE: Racionalize interface names: IPerFieldIndexingInfo
     {
