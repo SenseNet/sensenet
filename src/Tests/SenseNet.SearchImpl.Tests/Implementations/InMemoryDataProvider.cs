@@ -82,12 +82,12 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             return new TestTransaction();
         }
 
-        #region NOT IMPLEMENTED
-
         public override void DeleteAllIndexingActivities()
         {
-            throw new NotImplementedException();
+            _db.IndexingActivity.Clear();
         }
+
+        #region NOT IMPLEMENTED
 
         public override void DeleteAllPackages()
         {
@@ -361,12 +361,12 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                 .ToList();
         }
 
-        #region NOT IMPLEMENTED
-
         protected internal override IEnumerable<int> GetIdsOfNodesThatDoNotHaveIndexDocument(int fromId, int toId)
         {
-            throw new NotImplementedException();
+            return _db.Versions.Where(v => v.IndexDocument == null).Select(v => v.NodeId).ToArray();
         }
+
+        #region NOT IMPLEMENTED
 
         protected internal override IndexDocumentData GetIndexDocumentDataFromReader(DbDataReader reader)
         {
@@ -724,11 +724,20 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+        #endregion 
 
         protected override int NodeCount(string path)
         {
-            throw new NotImplementedException();
+            return (string.IsNullOrEmpty(path) || path == RepositoryPath.PathSeparator)
+                ? _db.Nodes.Count
+                : _db.Nodes.Count(
+                    n =>
+                        n.Path.StartsWith(path + RepositoryPath.PathSeparator,
+                            StringComparison.InvariantCultureIgnoreCase)
+                        || n.Path.Equals(path, StringComparison.InvariantCultureIgnoreCase));
         }
+
+        #region NOT IMPLEMENTED
 
         protected override bool NodeExistsInDatabase(string path)
         {
@@ -744,34 +753,51 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+        #endregion
 
         protected internal override IEnumerable<int> QueryNodesByType(int[] typeIds)
         {
-            throw new NotImplementedException();
+            return QueryNodesByTypeAndPath(typeIds, new string[0], false);
         }
 
         protected internal override IEnumerable<int> QueryNodesByTypeAndPath(int[] nodeTypeIds, string[] pathStart, bool orderByPath)
         {
-            throw new NotImplementedException();
+            return QueryNodesByTypeAndPathAndName(nodeTypeIds, pathStart, orderByPath, null);
         }
-        #endregion
 
         protected internal override IEnumerable<int> QueryNodesByTypeAndPath(int[] nodeTypeIds, string pathStart, bool orderByPath)
         {
-            var types = nodeTypeIds.ToList();
-            var nodes = _db.Nodes.Where(n => types.Contains(n.NodeTypeId) && n.Path.StartsWith(pathStart));
+            return QueryNodesByTypeAndPathAndName(nodeTypeIds, new[] { pathStart }, orderByPath, null);
+        }
+
+        protected internal override IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name)
+        {
+            var nodes = _db.Nodes;
+            if (nodeTypeIds != null)
+                nodes = nodes
+                    .Where(n => nodeTypeIds.Contains(n.NodeTypeId))
+                    .ToList();
+
+            if (name != null)
+                nodes = nodes
+                    .Where(n => n.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase))
+                    .ToList();
+
+            if (pathStart != null)
+                nodes = nodes
+                    .Where(n => pathStart.Any(p => n.Path.StartsWith(p, StringComparison.InvariantCultureIgnoreCase)))
+                    .ToList();
+
             if (orderByPath)
-                nodes = nodes.OrderBy(n => n.Path);
+                nodes = nodes
+                    .OrderBy(n => n.Path)
+                    .ToList();
+
             var ids = nodes.Select(n => n.NodeId);
             return ids.ToArray();
         }
 
         #region NOT IMPLEMENTED
-
-        protected internal override IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name)
-        {
-            throw new NotImplementedException();
-        }
 
         protected internal override IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] nodeTypeIds, string pathStart, bool orderByPath, string name)
         {
@@ -833,12 +859,22 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             versionRow.IndexDocument = indexDocumentBytes;
         }
 
-        #region NOT IMPLEMENTED
-
         protected override int VersionCount(string path)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrEmpty(path) || path == RepositoryPath.PathSeparator)
+                return _db.Versions.Count;
+
+            var count = _db.Nodes.Join(_db.Versions, n => n.NodeId, v => v.NodeId,
+                    (node, version) => new {Node = node, Version = version})
+                .Count(
+                    x =>
+                        x.Node.Path.StartsWith(path + RepositoryPath.PathSeparator,
+                            StringComparison.InvariantCultureIgnoreCase)
+                        || x.Node.Path.Equals(path, StringComparison.InvariantCultureIgnoreCase));
+            return count;
         }
+
+        #region NOT IMPLEMENTED
 
         protected internal override void WriteChunk(int versionId, string token, byte[] buffer, long offset, long fullSize)
         {

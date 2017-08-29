@@ -467,12 +467,14 @@ namespace SenseNet.SearchImpl.Tests
         [TestMethod]
         public void Indexing_ClearAndPopulateAll()
         {
-            Assert.Inconclusive();
+            //Assert.Inconclusive();
 
             var sb = new StringBuilder();
             IIndexingActivity[] activities;
             var result = Test(() =>
             {
+                SaveInitialIndexDocuments();
+
                 // ACTION
                 using (var console = new StringWriter(sb))
                     StorageContext.Search.SearchEngine.GetPopulator().ClearAndPopulateAll(false, console);
@@ -482,24 +484,43 @@ namespace SenseNet.SearchImpl.Tests
                 var activityId = db.GetLastActivityId();
                 activities = db.LoadIndexingActivities(1, activityId, 10000, false, IndexingActivityFactory.Instance);
 
-                return new Tuple<IIndexingActivity[], InMemoryIndex>(activities, GetTestIndex());
+                var nodeCount = DataProvider.GetNodeCount();
+                var versionCount = DataProvider.GetVersionCount();
+
+                return new Tuple<IIndexingActivity[], InMemoryIndex, int, int>(activities, GetTestIndex(), nodeCount, versionCount);
             });
 
             activities = result.Item1;
             var index = result.Item2;
+            var nodeCountInDb = result.Item3;
+            var versionCountInDb = result.Item4;
 
             // check activities
             Assert.IsNotNull(activities);
-            Assert.AreEqual(42, activities.Length);
-            Assert.AreEqual(IndexingActivityType.RemoveTree, activities.Last().ActivityType);
+            Assert.AreEqual(0, activities.Length);
 
             var historyItems = IndexingActivityHistory.GetHistory().Recent;
-            Assert.AreEqual(1, historyItems.Length);
-            foreach (IndexingActivityHistoryItem item in historyItems)
-                Assert.AreEqual(null, item.Error);
+            Assert.AreEqual(0, historyItems.Length);
 
-            var hit1 = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.Name, "node1"));
-            Assert.IsNull(hit1);
+            var nodeCountInIndex = index.GetTermCount(IndexFieldName.NodeId);
+            var versionCountInIndex = index.GetTermCount(IndexFieldName.VersionId);
+
+            Assert.AreEqual(nodeCountInDb, nodeCountInIndex);
+            Assert.AreEqual(versionCountInDb, versionCountInIndex);
+        }
+        private void SaveInitialIndexDocuments()
+        {
+            var idSet = DataProvider.LoadIdsOfNodesThatDoNotHaveIndexDocument(0, 1100);
+            var nodes = Node.LoadNodes(idSet);
+
+            if (nodes.Count == 0)
+                return;
+
+            foreach (var node in nodes)
+            {
+                bool hasBinary;
+                DataBackingStore.SaveIndexDocument(node, false, false, out hasBinary);
+            }
         }
 
         /* ============================================================================ */

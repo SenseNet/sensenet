@@ -151,5 +151,10 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             return fieldValues;
         }
 
+        public int GetTermCount(string fieldName)
+        {
+            Dictionary<string, List<int>> fieldValues;
+            return _indexData.TryGetValue(fieldName, out fieldValues) ? fieldValues.Count : 0;
+        }
     }
 }
