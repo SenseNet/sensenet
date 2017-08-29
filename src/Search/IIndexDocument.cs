@@ -2,7 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -92,6 +94,15 @@ namespace SenseNet.Search
     {
         [NonSerialized]
         public static readonly IndexDocument NotIndexedDocument = new NotIndexedIndexDocument();
+
+        [NonSerialized]
+        public static List<string> PostponedFields = new List<string>(new string[] {
+            IndexFieldName.Name, IndexFieldName.Path, IndexFieldName.InTree, IndexFieldName.InFolder, IndexFieldName.Depth, IndexFieldName.ParentId,
+            IndexFieldName.IsSystem
+        });
+
+        [NonSerialized]
+        public static List<string> ForbiddenFields = new List<string>(new[] { "Password", "PasswordHash" });
 
         private readonly Dictionary<string, IndexField> _fields = new Dictionary<string, IndexField>();
 
@@ -208,7 +219,8 @@ namespace SenseNet.Search
         /// <param name="field"></param>
         public void Add(IndexField field)
         {
-            _fields[field.Name] = field;
+            if (!ForbiddenFields.Contains(field.Name))
+                _fields[field.Name] = field;
         }
 
         /// <summary>
@@ -244,8 +256,8 @@ namespace SenseNet.Search
 
         public static IndexDocument Deserialize(byte[] indexDocumentBytes)
         {
-            var docStream = new System.IO.MemoryStream(indexDocumentBytes);
-            var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+            var docStream = new MemoryStream(indexDocumentBytes);
+            var formatter = new BinaryFormatter();
             var indxDoc = (IndexDocument)formatter.Deserialize(docStream);
             return indxDoc;
         }

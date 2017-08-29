@@ -47,6 +47,14 @@ namespace SenseNet.Search.Indexing
                             OnNodeIndexed(d.Path);
                             return indexDoc;
                         }));
+                IndexManager.AddDocuments(
+                    StorageContext.Search.LoadIndexDocumentsByPath("/Root", IndexManager.GetNotIndexedNodeTypes())
+                        .Select(d =>
+                        {
+                            var indexDoc = IndexManager.CreateIndexDocument(d.IndexDocument, d); //UNDONE: refactor IndexDocumentData --> complete IndexDocument
+                            OnNodeIndexed(d.Path);
+                            return indexDoc;
+                        }));
 
                 consoleWriter?.Write("  Commiting ... ");
                 IndexManager.Commit(lastActivityId);

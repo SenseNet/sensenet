@@ -2,18 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-//using Lucene.Net.Index;
-//using Lucene.Net.Store;
-using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage;
-using System.Threading;
-//using Lucene.Net.Documents;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing.Activities;
-//using Lucene.Net.Util;
-//using SenseNet.Search.Lucene29;
-//using Field = Lucene.Net.Documents.Field;
 
 namespace SenseNet.Search.Indexing
 {
@@ -124,14 +116,13 @@ namespace SenseNet.Search.Indexing
 
         /* ClearAndPopulateAll */
 
-        internal static void AddDocument(IndexDocument document)
+        internal static void AddDocuments(IEnumerable<IndexDocument> documents)
         {
-            IndexingEngine.Actualize(null, document, null);
+            IndexingEngine.Actualize(null, documents);
         }
 
         /* AddDocumentActivity, RebuildActivity */
-        /*done*/
-        internal static bool AddDocument(IndexDocument document, VersioningInfo versioning)
+        /*done*/internal static bool AddDocument(IndexDocument document, VersioningInfo versioning)
         {
             var delTerms = versioning.Delete.Select(i => new SnTerm(IndexFieldName.VersionId, i)).ToArray();
             var updates = GetUpdates(versioning);
@@ -292,8 +283,6 @@ namespace SenseNet.Search.Indexing
         }
         private static IndexDocument CreateIndexDocument(IndexDocumentData data) //UNDONE: refactor IndexDocumentData --> complete IndexDocument
         {
-            var buffer = data.SerializedIndexDocument;
-
             var docStream = new MemoryStream(data.SerializedIndexDocument);
             var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
             var info = (IndexDocument)formatter.Deserialize(docStream);
@@ -308,7 +297,6 @@ namespace SenseNet.Search.Indexing
                 return null;
 
             //UNDONE:!! Ensure that all fields (except postponed fields) are available in this point.
-            //UNDONE:!! Ensure that the "Password" and "PasswordHash" are not in the document.
             var path = docData.Path.ToLowerInvariant();
 
             doc.Add(new IndexField(IndexFieldName.Name, RepositoryPath.GetFileName(path), NameFieldIndexingInfo.IndexingMode, NameFieldIndexingInfo.IndexStoringMode, NameFieldIndexingInfo.TermVectorStoringMode));

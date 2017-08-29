@@ -11,13 +11,6 @@ namespace SenseNet.Search.Indexing
 {
     public class IndexDocumentProvider : IIndexDocumentProvider
     {
-        [NonSerialized]
-        private static List<string> PostponedFields = new List<string>(new string[] {
-            IndexFieldName.Name, IndexFieldName.Path, IndexFieldName.InTree, IndexFieldName.InFolder, IndexFieldName.Depth, IndexFieldName.ParentId,
-            IndexFieldName.IsSystem
-        });
-        [NonSerialized]
-        private static List<string> ForbiddenFields = new List<string>(new string[] { "Password", "PasswordHash" });
         private static List<string> SkippedMultistepFields = new List<string>(new[] { "Size" });
 
         public IndexDocument GetIndexDocument(Node node, bool skipBinaries, bool isNew, out bool hasBinary)
@@ -51,9 +44,9 @@ namespace SenseNet.Search.Indexing
             {
                 foreach (var field in ixnode.GetIndexableFields())
                 {
-                    if (ForbiddenFields.Contains(field.Name))
+                    if (IndexDocument.ForbiddenFields.Contains(field.Name))
                         continue;
-                    if (PostponedFields.Contains(field.Name))
+                    if (IndexDocument.PostponedFields.Contains(field.Name))
                         continue;
                     if (node.SavingState != ContentSavingState.Finalized && (field.IsBinaryField || SkippedMultistepFields.Contains(field.Name)))
                         continue;
@@ -138,9 +131,9 @@ namespace SenseNet.Search.Indexing
             {
                 foreach (var field in ixnode.GetIndexableFields())
                 {
-                    if (ForbiddenFields.Contains(field.Name))
+                    if (IndexDocument.ForbiddenFields.Contains(field.Name))
                         continue;
-                    if (PostponedFields.Contains(field.Name))
+                    if (IndexDocument.PostponedFields.Contains(field.Name))
                         continue;
                     if (node.SavingState != ContentSavingState.Finalized && (field.IsBinaryField || SkippedMultistepFields.Contains(field.Name)))
                         continue;

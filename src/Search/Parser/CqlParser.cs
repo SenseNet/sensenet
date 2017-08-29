@@ -635,7 +635,7 @@ namespace SenseNet.Search.Parser
             if (_lexer.CurrentToken == CqlLexer.Token.Field)
             {
                 var name = _lexer.StringValue;
-                if (name == "Password" || name == "PasswordHash")
+                if (IndexDocument.ForbiddenFields.Contains(name))
                     throw new InvalidOperationException("Cannot search by '" + name + "' field name");
 
 
