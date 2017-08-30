@@ -36,6 +36,7 @@ namespace SenseNet.ContentRepository
             /// <summary>
             /// Gets a value that is 'true' if the Lucene index will be backed up before your tool exits. Default: false
             /// </summary>
+            [Obsolete("", true)] //UNDONE:!!!!!!! Delete ASAP
             public new bool BackupIndexAtTheEnd { get { return _backupIndexAtTheEnd; } }
             /// <summary>
             /// Gets a value that is 'true' if your tool needs a fresh index in the startup time. 'True' is the default. If StartLuceneManager = false, value of this property is irrelevant.

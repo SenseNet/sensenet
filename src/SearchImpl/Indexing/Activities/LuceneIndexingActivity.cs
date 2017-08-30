@@ -14,7 +14,7 @@ using System.Threading;
 namespace SenseNet.Search.Indexing.Activities
 {
     [Serializable]
-    public abstract class LuceneIndexingActivity : DistributedLuceneActivity, IIndexingActivity, System.Runtime.Serialization.IDeserializationCallback
+    public abstract class LuceneIndexingActivity : DistributedLuceneActivity, IIndexingActivity, System.Runtime.Serialization.IDeserializationCallback //UNDONE: Remove "Lucene". Maybe IndexingActivityBase
     {
         // stored properties
         public int Id { get; set; }

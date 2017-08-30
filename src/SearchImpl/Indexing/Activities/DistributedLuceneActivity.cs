@@ -14,7 +14,7 @@ using SenseNet.Search.Lucene29;
 namespace SenseNet.Search.Indexing.Activities
 {
     [Serializable]
-    public abstract class DistributedLuceneActivity : DistributedAction
+    public abstract class DistributedLuceneActivity : DistributedAction //UNDONE: Remove "Lucene". Maybe DistributedIndexingActivity
     {
         public override void DoAction(bool onRemote, bool isFromMe)
         {

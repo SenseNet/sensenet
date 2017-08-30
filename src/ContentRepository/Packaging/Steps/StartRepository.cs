@@ -25,6 +25,7 @@ namespace SenseNet.Packaging.Steps
         public string PluginsPath { get; set; }
         public string IndexPath { get; set; }
         public bool RestoreIndex { get; set; }
+        [Obsolete("", true)] //UNDONE:!!!!!!! Delete ASAP
         public bool BackupIndexAtTheEnd { get; set; }
         public bool StartWorkflowEngine { get; set; }
 
