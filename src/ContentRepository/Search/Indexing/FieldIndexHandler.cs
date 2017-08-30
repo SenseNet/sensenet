@@ -1123,23 +1123,6 @@ namespace SenseNet.Search.Indexing
         }
     }
 
-    // Inherited IIndexValueConverters.
-    [Obsolete("After V6.5 PATCH 7: Use Node.GetDepth(string) method. This class is unnecessary.", true)]
-    public class DepthIndexHandler : IntegerIndexHandler
-    {
-        public override IEnumerable<IndexField> GetIndexFields(ISnField snField, out string textExtract)
-        {
-            textExtract = string.Empty;
-            return CreateField(snField.Name, Node.GetDepth(((SnCR.Field)snField).Content.Path));
-        }
-        public override IEnumerable<string> GetParsableValues(ISnField snField)
-        {
-            var depth = Node.GetDepth(((SnCR.Field) snField).Content.Path);
-            return new[] {depth.ToString()};
-        }
-    }
-
-
     // Not finalized feature. After finalizing make public.
     internal class SystemContentIndexHandler : BooleanIndexHandler
     {

@@ -185,15 +185,6 @@ namespace SenseNet.ContentRepository
         [Obsolete("After V6.5 PATCH 9: Use Notification.DefaultEmailSender instead.")]
         public static string EmailSenderAddress => Notification.DefaultEmailSender;
 
-        [Obsolete("After V6.5 PATCH 9: Use Indexing.TextExtractTimeout instead.")]
-        public static int TextExtractTimeout => Indexing.TextExtractTimeout;
-        [Obsolete("After V6.5 PATCH 9: Use Indexing.IndexingPausedTimeout instead.")]
-        public static int IndexingPausedTimeout => Indexing.IndexingPausedTimeout;
-        [Obsolete("After V6.5 PATCH 9: Use Indexing.LuceneActivityTimeoutInSeconds instead.")]
-        public static int LuceneActivityTimeoutInSeconds => Indexing.LuceneActivityTimeoutInSeconds;
-        [Obsolete("After V6.5 PATCH 9: Use Indexing.LuceneActivityQueueMaxLength instead.")]
-        public static int LuceneActivityQueueMaxLength => Indexing.LuceneActivityQueueMaxLength;
-
         public static string[] ExecutableExtensions { get; internal set; } = { "aspx", "ashx", "asmx", "axd", "cshtml", "vbhtml" };
 
         public static readonly string[] ExecutableFileTypeNames = { "ExecutableFile", "WebServiceApplication" };

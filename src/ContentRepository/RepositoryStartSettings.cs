@@ -12,9 +12,6 @@ namespace SenseNet.ContentRepository
     /// </summary>
     public class RepositoryStartSettings
     {
-        [Obsolete("After V6.5 PATCH 9: Use Indexing.RestoreIndex instead.")]
-        public static bool? ConfigRestoreIndex => Indexing.RestoreIndex;
-
         /// <summary>
         /// Provides the control information of the startup sequence. 
         /// The instance of this class is the clone of the RepositoryStartSettings that was passed the Repository.Start(RepositoryStartSettings) method.

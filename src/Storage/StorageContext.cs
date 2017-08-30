@@ -243,9 +243,6 @@ Debug.WriteLine(String.Format("@> {0} -------- IndexDirectory reset", AppDomain.
             {
                 return DataProvider.LoadIndexDocument(path, excludedNodeTypes);
             }
-
-            [Obsolete("After V6.5 PATCH 9: Use Querying.DefaultTopAndGrowth instead.", true)]
-            public static int[] DefaultTopAndGrowth = { 100, 1000, 10000, 0 };
         }
 
         private static IL2Cache _l2Cache = new NullL2Cache();
