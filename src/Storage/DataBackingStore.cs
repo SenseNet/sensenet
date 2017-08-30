@@ -763,9 +763,9 @@ namespace SenseNet.ContentRepository.Storage
 
         // ====================================================================== Index backup / restore operations
 
-        public static Guid StoreIndexBackupToDb(string backupFilePath, IndexBackupProgress progress)
+        public static Guid StoreIndexBackupToDb(string backupFilePath)
         {
-            return DataProvider.StoreIndexBackupToDb(backupFilePath, progress);
+            return DataProvider.StoreIndexBackupToDb(backupFilePath);
         }
         public static void RecoverIndexBackupFromDb(string backupFilePath)
         {

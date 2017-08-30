@@ -17,22 +17,6 @@ using SenseNet.Search.Lucene29;
 
 namespace SenseNet.Search.Lucene29
 {
-    [Serializable]
-    public sealed class IndexBackupProgressMessage : ClusterMessage //UNDONE:!!!!!!! Delete asap.
-    {
-        public IndexBackupProgressType Type { get; private set; }
-        public string Message { get; private set; }
-        public long Value { get; private set; }
-        public long MaxValue { get; private set; }
-        public IndexBackupProgressMessage( IndexBackupProgressType type, string message, long value, long maxValue)
-        {
-            Type = type;
-            Message = message;
-            Value = value;
-            MaxValue = maxValue;
-        }
-    }
-
     public class BackupTools
     {
         internal const string BACKUPFILENAME = "IndexBackup.zip";
@@ -56,13 +40,10 @@ namespace SenseNet.Search.Lucene29
             get { return IO.Path.Combine(IndexDirectoryPath, RESTOREINFOFILENAME); }
         }
 
-        public static IndexBackupProgress Progress { get; private set; }
-
         static BackupTools()
         {
             _backupDirectoryPath = StorageContext.Search.IndexDirectoryBackupPath;
             _zipFilePath = IO.Path.Combine(_backupDirectoryPath, BACKUPFILENAME);
-            Progress = new IndexBackupProgress();
         }
 
         /// <summary>
@@ -120,9 +101,7 @@ namespace SenseNet.Search.Lucene29
         {
             var lockPath = StorageContext.Search.IndexLockFilePath;
             var excludedFileList = lockPath == null ? new List<string>(new[] { RestoreInfoPath }) : new List<string>(new[] { RestoreInfoPath, lockPath });
-            Progress.StartCopyIndexToBackupDirectory();
             CopyDirectoryContent(IndexDirectoryPath, _backupDirectoryPath, excludedFileList);
-            Progress.FinishCopyIndexToBackupDirectory();
         }
         internal static void OptimizeCompressAndStore() // caller: BackupIndexImmediatelly (synchron), BackupActivity.Execute() (asynchron)
         {
@@ -223,14 +202,12 @@ namespace SenseNet.Search.Lucene29
         {
             using (var op = SnTrace.Repository.StartOperation("Optimize index."))
             {
-                Progress.StartOptimizeBeforeBackup();
                 var dir = Lucene.Net.Store.FSDirectory.Open(new System.IO.DirectoryInfo(indexDirectoryPath));
                 var writer = new Lucene.Net.Index.IndexWriter(dir, Lucene29IndexManager.GetAnalyzer(), false, Lucene.Net.Index.IndexWriter.MaxFieldLength.UNLIMITED);
                 writer.Optimize();
                 writer.Close();
                 if (!Lucene29IndexingEngine.WaitForWriterLockFileIsReleased(StorageContext.Search.IndexDirectoryBackupPath))
                     throw new ApplicationException("Writer lock releasing time out.");
-                Progress.FinishOptimizeBeforeBackup();
                 op.Successful = true;
             }
         }
@@ -266,11 +243,9 @@ namespace SenseNet.Search.Lucene29
             using (ZipFile zip = new ZipFile())
             {
                 zip.CompressionLevel = Ionic.Zlib.CompressionLevel.None;
-                Progress.StartCompressTheIndex();
-                String[] filenames = System.IO.Directory.GetFiles(backupDirectoryPath);
+                var filenames = System.IO.Directory.GetFiles(backupDirectoryPath);
                 zip.AddFiles(filenames, COMPRESSIONROOT);
                 zip.Save(zipFilePath);
-                Progress.FinishCompressTheIndex();
             }
         }
         private static void DecompressTheIndex(string zipFilePath, string targetDirPath)
@@ -283,17 +258,11 @@ namespace SenseNet.Search.Lucene29
         }
         private static Guid StoreIndexBackupToDb(string backupFilePath)
         {
-            var length = new System.IO.FileInfo(backupFilePath).Length;
-            Progress.StartStoreIndexBackupToDb(length);
-            var id = SenseNet.ContentRepository.Storage.DataBackingStore.StoreIndexBackupToDb(backupFilePath, Progress);
-            Progress.FinishStoreIndexBackupToDb();
-            return id;
+            return ContentRepository.Storage.DataBackingStore.StoreIndexBackupToDb(backupFilePath);
         }
         private static void DeleteUnnecessaryBackups()
         {
-            Progress.StartDeleteUnnecessaryBackups();
-            SenseNet.ContentRepository.Storage.DataBackingStore.DeleteUnnecessaryBackups();
-            Progress.FinishDeleteUnnecessaryBackups();
+            ContentRepository.Storage.DataBackingStore.DeleteUnnecessaryBackups();
         }
         private static void RecoverIndexBackupFromDb(string recoveredFilePath)
         {

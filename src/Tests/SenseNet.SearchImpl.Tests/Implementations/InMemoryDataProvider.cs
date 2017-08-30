@@ -836,12 +836,12 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+        #endregion
 
-        protected internal override void StoreBackupStream(string backupFilePath, IndexBackup backup, IndexBackupProgress progress)
+        protected internal override void StoreBackupStream(string backupFilePath, IndexBackup backup)
         {
             throw new NotImplementedException();
         }
-        #endregion
 
         protected internal override void UpdateIndexDocument(int versionId, byte[] indexDocumentBytes)
         {

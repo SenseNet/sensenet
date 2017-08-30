@@ -229,10 +229,10 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             WriteLog(MethodBase.GetCurrentMethod(), backupNumber);
             return base.CreateBackup(backupNumber);
         }
-        protected internal override void StoreBackupStream(string backupFilePath, IndexBackup backup, IndexBackupProgress progress)
+        protected internal override void StoreBackupStream(string backupFilePath, IndexBackup backup)
         {
-            WriteLog(MethodBase.GetCurrentMethod(), backupFilePath, backup, progress);
-            base.StoreBackupStream(backupFilePath, backup, progress);
+            WriteLog(MethodBase.GetCurrentMethod(), backupFilePath, backup);
+            base.StoreBackupStream(backupFilePath, backup);
         }
         protected internal override void SetActiveBackup(IndexBackup backup, IndexBackup lastBackup)
         {

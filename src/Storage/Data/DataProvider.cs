@@ -495,18 +495,18 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         // ====================================================== Index backup / restore operations
 
-        internal static Guid StoreIndexBackupToDb(string backupFilePath, IndexBackupProgress progress)
+        internal static Guid StoreIndexBackupToDb(string backupFilePath)
         {
             var lastBackup = Current.LoadLastBackup();
-            var backupNumber = lastBackup == null ? 1 : lastBackup.BackupNumber + 1;
+            var backupNumber = lastBackup?.BackupNumber + 1 ?? 1;
             var backup = Current.CreateBackup(backupNumber);
-            Current.StoreBackupStream(backupFilePath, backup, progress);
+            Current.StoreBackupStream(backupFilePath, backup);
             Current.SetActiveBackup(backup, lastBackup);
             return backup.RowGuid; // backup.BackupNumber;
         }
         protected internal abstract IndexBackup LoadLastBackup();
         protected internal abstract IndexBackup CreateBackup(int backupNumber);
-        protected internal abstract void StoreBackupStream(string backupFilePath, IndexBackup backup, IndexBackupProgress progress);
+        protected internal abstract void StoreBackupStream(string backupFilePath, IndexBackup backup);
         protected internal abstract void SetActiveBackup(IndexBackup backup, IndexBackup lastBackup);
 
         internal static void DeleteUnnecessaryBackups()
