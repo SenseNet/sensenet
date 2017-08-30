@@ -6,8 +6,8 @@ using System.Text;
 namespace SenseNet.Search.Parser
 {
 	[global::System.Serializable]
-	public class ParserException_OLD : Exception
-	{
+	public class ParserException_OLD : Exception //UNDONE:!!! Delete ASAP
+    {
 		public LineInfo_OLD LineInfo { get; private set; }
 
 		public ParserException_OLD(LineInfo_OLD lineInfo) : base(MessageHelper(null, lineInfo))

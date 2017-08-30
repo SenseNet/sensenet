@@ -6,7 +6,9 @@ using System.Diagnostics;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
+    [Obsolete("", false)] //UNDONE:!!!!!!! Delete ASAP
     public enum IndexBackupProgressType { CopyIndexToBackup, Optimizing, Compressing, Storing, DeletingUnnecessaryBackups, Error }
+    [Obsolete("", false)] //UNDONE:!!!!!!! Delete ASAP
     public class IndexBackupProgress
     {
         public event EventHandler Changed;
