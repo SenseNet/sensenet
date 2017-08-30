@@ -20,7 +20,6 @@ namespace SenseNet.ContentRepository
         {
             private new bool _isWebContext;
             private new bool _startLuceneManager;
-            private new bool _backupIndexAtTheEnd;
             private new bool _restoreIndex;
             private new bool _startWorkflowEngine;
             private new string _pluginsPath;
@@ -33,11 +32,6 @@ namespace SenseNet.ContentRepository
             /// Gets a value that is 'true' if your tool uses the Content search and any modification features (e.g. save, move etc.). 'True' is the default.
             /// </summary>
             public new bool StartLuceneManager { get { return _startLuceneManager; } }
-            /// <summary>
-            /// Gets a value that is 'true' if the Lucene index will be backed up before your tool exits. Default: false
-            /// </summary>
-            [Obsolete("", true)] //UNDONE:!!!!!!! Delete ASAP
-            public new bool BackupIndexAtTheEnd { get { return _backupIndexAtTheEnd; } }
             /// <summary>
             /// Gets a value that is 'true' if your tool needs a fresh index in the startup time. 'True' is the default. If StartLuceneManager = false, value of this property is irrelevant.
             /// </summary>
@@ -72,7 +66,6 @@ namespace SenseNet.ContentRepository
             {
                 _isWebContext = settings._isWebContext;
                 _startLuceneManager = settings.StartLuceneManager;
-                _backupIndexAtTheEnd = settings.BackupIndexAtTheEnd;
                 _restoreIndex = Indexing.RestoreIndex.HasValue ? Indexing.RestoreIndex.Value : settings.RestoreIndex;
                 _startWorkflowEngine = settings.StartWorkflowEngine;
                 _console = settings.Console;
@@ -96,7 +89,6 @@ namespace SenseNet.ContentRepository
 
         private bool _isWebContext = false;
         private bool _startLuceneManager = true;
-        private bool _backupIndexAtTheEnd = false;
         private bool _restoreIndex = true;
         private bool _startWorkflowEngine = true;
         private string _pluginsPath;
@@ -119,14 +111,6 @@ namespace SenseNet.ContentRepository
         {
             get { return _startLuceneManager; }
             set { _startLuceneManager = value; }
-        }
-        /// <summary>
-        /// Gets or sets a value that is 'true' if the Lucene index will be backed up before your tool exits. Default: false
-        /// </summary>
-        public virtual bool BackupIndexAtTheEnd
-        {
-            get { return _backupIndexAtTheEnd; }
-            set { _backupIndexAtTheEnd = value; }
         }
         /// <summary>
         /// Gets or sets a value that is 'true' if your tool needs a fresh index in the startup time. 'True' is the default. If StartLuceneManager = false, value of this property is irrelevant.

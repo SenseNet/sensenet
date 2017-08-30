@@ -390,21 +390,6 @@ namespace SenseNet.ContentRepository
                 SnTrace.Repository.Write("Shutting down {0}", DistributedApplication.ClusterChannel.GetType().Name);
                 DistributedApplication.ClusterChannel.ShutDown();
 
-                if (Instance.StartSettings.BackupIndexAtTheEnd)
-                {
-                    SnTrace.Repository.Write("Backing up the index.");
-                    if (LuceneManagerIsRunning)
-                    {
-                        _instance.ConsoleWriteLine("Backing up the index...");
-                        BackupTools.SynchronousBackupIndex();
-                        _instance.ConsoleWriteLine("The backup of index is finished.");
-                    }
-                    else
-                    {
-                        _instance.ConsoleWriteLine("Backing up index is skipped because Lucene was not started.");
-                    }
-                }
-
                 if (LuceneManagerIsRunning)
                 {
                     SnTrace.Repository.Write("Shutting down LuceneManager.");
