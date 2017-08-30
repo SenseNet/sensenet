@@ -18,66 +18,6 @@ using SenseNet.Search.Lucene29;
 namespace SenseNet.Search.Lucene29
 {
     [Serializable]
-    public sealed class RequestBackupIndexMessage : DistributedAction //UNDONE:!!!!!!! Delete asap.
-    {
-        private string _machine;
-        private string _indexBackupCreatorId;
-
-        public RequestBackupIndexMessage(string machine, string indexBackupCreatorId)
-        {
-            _machine = machine;
-            _indexBackupCreatorId = indexBackupCreatorId;
-        }
-        public override void DoAction(bool onRemote, bool isFromMe)
-        {
-            if (onRemote && isFromMe)
-                return;
-Debug.WriteLine(String.Format("@> {0} RequestBackupIndexMessage received. onRemote: {1}, isFromMe: {2}, id: {3}", AppDomain.CurrentDomain.FriendlyName, onRemote, isFromMe, SenseNet.Configuration.Indexing.IndexBackupCreatorId));
-            if (Environment.MachineName == _machine && SenseNet.Configuration.Indexing.IndexBackupCreatorId == _indexBackupCreatorId)
-            {
-Debug.WriteLine(String.Format("@> {0} =========== BackupIndex START id: {1}", AppDomain.CurrentDomain.FriendlyName, SenseNet.Configuration.Indexing.IndexBackupCreatorId));
-                string msg = null;
-                BackupTools.DistributedNotifyProgress = true;
-                try
-                {
-                    new IndexBackupStartedMessage("Index backup has started.").Send();
-                    BackupTools.SynchronousBackupIndex();
-                    msg = String.Concat(BackupTools.Progress.Summary);
-                }
-                catch (Exception e)
-                {
-                    msg = e.Message;
-                }
-                finally
-                {
-                    BackupTools.DistributedNotifyProgress = false;
-                }
-                new IndexBackupFinishedMessage(msg).Send();
-Debug.WriteLine(String.Format("@> {0} =========== BackupIndex END. id: {1}", AppDomain.CurrentDomain.FriendlyName, SenseNet.Configuration.Indexing.IndexBackupCreatorId));
-            }
-        }
-    }
-    [Serializable]
-    public sealed class IndexBackupStartedMessage : ClusterMessage //UNDONE:!!!!!!! Delete asap.
-    {
-        private string _message;
-        public string Message { get { return _message; } }
-        public IndexBackupStartedMessage(string message)
-        {
-            _message = message;
-        }
-    }
-    [Serializable]
-    public sealed class IndexBackupFinishedMessage : ClusterMessage //UNDONE:!!!!!!! Delete asap.
-    {
-        private string _message;
-        public string Message { get { return _message; } }
-        public IndexBackupFinishedMessage(string message)
-        {
-            _message = message;
-        }
-    }
-    [Serializable]
     public sealed class IndexBackupProgressMessage : ClusterMessage //UNDONE:!!!!!!! Delete asap.
     {
         public IndexBackupProgressType Type { get; private set; }
@@ -117,20 +57,12 @@ Debug.WriteLine(String.Format("@> {0} =========== BackupIndex END. id: {1}", App
         }
 
         public static IndexBackupProgress Progress { get; private set; }
-        internal static bool DistributedNotifyProgress { get; set; }
 
         static BackupTools()
         {
             _backupDirectoryPath = StorageContext.Search.IndexDirectoryBackupPath;
             _zipFilePath = IO.Path.Combine(_backupDirectoryPath, BACKUPFILENAME);
             Progress = new IndexBackupProgress();
-            Progress.Changed += new EventHandler(Progress_Changed);
-        }
-
-        private static void Progress_Changed(object sender, EventArgs e)
-        {
-            if (DistributedNotifyProgress)
-                new IndexBackupProgressMessage(Progress.Type, Progress.Message, Progress.Value, Progress.MaxValue).Send();
         }
 
         /// <summary>
@@ -351,20 +283,11 @@ Debug.WriteLine(String.Format("@> {0} =========== BackupIndex END. id: {1}", App
         }
         private static Guid StoreIndexBackupToDb(string backupFilePath)
         {
-            try
-            {
-                var length = new System.IO.FileInfo(backupFilePath).Length;
-                Progress.StartStoreIndexBackupToDb(length);
-                var id = SenseNet.ContentRepository.Storage.DataBackingStore.StoreIndexBackupToDb(backupFilePath, Progress);
-                Progress.FinishStoreIndexBackupToDb();
-                return id;
-            }
-            catch (Exception e)
-            {
-                if (DistributedNotifyProgress)
-                    new IndexBackupProgressMessage(IndexBackupProgressType.Error, e.Message + e.StackTrace, 1, 1);
-                throw;
-            }
+            var length = new System.IO.FileInfo(backupFilePath).Length;
+            Progress.StartStoreIndexBackupToDb(length);
+            var id = SenseNet.ContentRepository.Storage.DataBackingStore.StoreIndexBackupToDb(backupFilePath, Progress);
+            Progress.FinishStoreIndexBackupToDb();
+            return id;
         }
         private static void DeleteUnnecessaryBackups()
         {
