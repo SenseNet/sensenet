@@ -7,6 +7,7 @@ using System.Net.Mail;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
@@ -684,12 +685,19 @@ namespace SenseNet.Search.Lucene29
         {
             var directory = FSDirectory.Open(new System.IO.DirectoryInfo(IndexDirectory.CurrentDirectory));
 
-            _writer = new IndexWriter(directory, Lucene29IndexManager.GetAnalyzer(), false, IndexWriter.MaxFieldLength.LIMITED);
+            _writer = new IndexWriter(directory, GetAnalyzer(), false, IndexWriter.MaxFieldLength.LIMITED);
 
             _writer.SetMaxMergeDocs(SenseNet.Configuration.Indexing.LuceneMaxMergeDocs);
             _writer.SetMergeFactor(SenseNet.Configuration.Indexing.LuceneMergeFactor);
             _writer.SetRAMBufferSizeMB(SenseNet.Configuration.Indexing.LuceneRAMBufferSizeMB);
             _reader = _writer.GetReader();
+        }
+        internal static Analyzer GetAnalyzer()
+        {
+            var defaultAnalyzer = new KeywordAnalyzer();
+            var analyzer = new Indexing.SnPerFieldAnalyzerWrapper(defaultAnalyzer);
+
+            return analyzer;
         }
         private Document GetFakeDocument()
         {

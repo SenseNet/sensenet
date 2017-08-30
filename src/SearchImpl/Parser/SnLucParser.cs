@@ -128,7 +128,7 @@ namespace SenseNet.Search.Parser
 
         public SnLucParser()
         {
-            _masterAnalyzer = Lucene29IndexManager.GetAnalyzer();
+            _masterAnalyzer = Lucene29IndexingEngine.GetAnalyzer();
         }
 
         public Query Parse(string queryText)

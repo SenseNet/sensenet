@@ -203,7 +203,7 @@ namespace SenseNet.Search.Lucene29
             using (var op = SnTrace.Repository.StartOperation("Optimize index."))
             {
                 var dir = Lucene.Net.Store.FSDirectory.Open(new System.IO.DirectoryInfo(indexDirectoryPath));
-                var writer = new Lucene.Net.Index.IndexWriter(dir, Lucene29IndexManager.GetAnalyzer(), false, Lucene.Net.Index.IndexWriter.MaxFieldLength.UNLIMITED);
+                var writer = new Lucene.Net.Index.IndexWriter(dir, Lucene29IndexingEngine.GetAnalyzer(), false, Lucene.Net.Index.IndexWriter.MaxFieldLength.UNLIMITED);
                 writer.Optimize();
                 writer.Close();
                 if (!Lucene29IndexingEngine.WaitForWriterLockFileIsReleased(StorageContext.Search.IndexDirectoryBackupPath))
