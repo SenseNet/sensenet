@@ -477,7 +477,7 @@ namespace SenseNet.SearchImpl.Tests
 
                 // ACTION
                 using (var console = new StringWriter(sb))
-                    StorageContext.Search.SearchEngine.GetPopulator().ClearAndPopulateAll(false, console);
+                    StorageContext.Search.SearchEngine.GetPopulator().ClearAndPopulateAll(console);
 
                 // load last indexing activity
                 var db = DataProvider.Current;

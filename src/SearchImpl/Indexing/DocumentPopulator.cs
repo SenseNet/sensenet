@@ -32,7 +32,7 @@ namespace SenseNet.Search.Indexing
         /*======================================================================================================= IIndexPopulator Members */
 
         // caller: IndexPopulator.Populator, Import.Importer, Tests
-        public void ClearAndPopulateAll(bool backup = true, TextWriter consoleWriter = null) //UNDONE:!!!! Remove backup parameter. Backup is the caller client's task.
+        public void ClearAndPopulateAll(TextWriter consoleWriter = null) //UNDONE:!!!! Remove backup parameter. Backup is the caller client's task.
         {
             var lastActivityId = IndexManager.GetLastStoredIndexingActivityId();
             using (var op = SnTrace.Index.StartOperation("IndexPopulator ClearAndPopulateAll"))

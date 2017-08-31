@@ -8,7 +8,7 @@ namespace SenseNet.ContentRepository.Storage.Search
 {
     public interface IIndexPopulator
     {
-        void ClearAndPopulateAll(bool backup = true, TextWriter consoleWriter = null);
+        void ClearAndPopulateAll(TextWriter consoleWriter = null);
         void RepopulateTree(string newPath);
         void PopulateTree(string newPath, int nodeId);
         object BeginPopulateNode(Node node, NodeSaveSettings settings, string originalPath, string newPath);
@@ -34,7 +34,7 @@ namespace SenseNet.ContentRepository.Storage.Search
 
         private static readonly object PopulatorData = new object();
 
-        public void ClearAndPopulateAll(bool backup = true, TextWriter consoleWriter = null) { }
+        public void ClearAndPopulateAll(TextWriter consoleWriter = null) { }
         public void RepopulateTree(string newPath) { }
         public void PopulateTree(string newPath, int nodeId) { }
         public object BeginPopulateNode(Node node, NodeSaveSettings settings, string originalPath, string newPath) { return PopulatorData; }
