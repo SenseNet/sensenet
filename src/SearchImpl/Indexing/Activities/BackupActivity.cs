@@ -10,7 +10,7 @@ using SenseNet.Search.Lucene29;
 namespace SenseNet.Search.Indexing.Activities
 {
     [Serializable]
-    internal class BackupActivity : DistributedLuceneActivity
+    internal class BackupActivity : DistributedIndexingActivity
     {
         private string _machine;
         public string _appDomain;
