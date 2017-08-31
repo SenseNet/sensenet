@@ -1,6 +1,4 @@
 ﻿using System;
-using Lucene.Net.Index;
-using SenseNet.Diagnostics;
 
 namespace SenseNet.Search.Indexing.Activities
 {

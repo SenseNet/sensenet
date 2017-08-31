@@ -1,5 +1,4 @@
 ﻿using System;
-using Lucene.Net.Documents;
 using SenseNet.Diagnostics;
 using Newtonsoft.Json;
 using SenseNet.Configuration;

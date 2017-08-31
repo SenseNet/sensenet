@@ -1,15 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Lucene.Net.Store;
-using SenseNet.Search.Indexing;
-using Lucene.Net.Documents;
-using Lucene.Net.Index;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Storage;
-using System.Threading;
 
 namespace SenseNet.Search.Indexing.Activities
 {

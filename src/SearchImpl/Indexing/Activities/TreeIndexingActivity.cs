@@ -1,11 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Lucene.Net.Store;
-using SenseNet.Search.Indexing;
-using Lucene.Net.Documents;
-using Lucene.Net.Index;
 
 namespace SenseNet.Search.Indexing.Activities
 {
