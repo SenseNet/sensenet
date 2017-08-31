@@ -13,7 +13,7 @@ using Lucene.Net.Util;
 namespace SenseNet.Search.Indexing.Activities
 {
     [Serializable]
-    internal class UpdateDocumentActivity : LuceneDocumentActivity
+    internal class UpdateDocumentActivity : DocumentIndexingActivity
     {
         protected override bool ProtectedExecute()
         {

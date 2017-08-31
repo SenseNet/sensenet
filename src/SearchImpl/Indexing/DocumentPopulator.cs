@@ -275,12 +275,12 @@ namespace SenseNet.Search.Indexing
 
             if (indexDocumentData != null)
             {
-                var lucDocAct = activity as LuceneDocumentActivity;
+                var lucDocAct = activity as DocumentIndexingActivity;
                 if (lucDocAct != null)
                     lucDocAct.IndexDocumentData = indexDocumentData;
             }
 
-            var documentActivity = activity as LuceneDocumentActivity;
+            var documentActivity = activity as DocumentIndexingActivity;
             if (documentActivity != null)
                 documentActivity.Versioning = versioningInfo;
 
@@ -295,7 +295,7 @@ namespace SenseNet.Search.Indexing
 
             if (indexDocumentData != null)
             {
-                var lucDocAct = activity as LuceneDocumentActivity;
+                var lucDocAct = activity as DocumentIndexingActivity;
                 if (lucDocAct != null)
                     lucDocAct.IndexDocumentData = indexDocumentData;
             }

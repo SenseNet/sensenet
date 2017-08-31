@@ -15,7 +15,7 @@ using SenseNet.ContentRepository.Storage.Data;
 namespace SenseNet.Search.Indexing.Activities
 {
     [Serializable]
-    internal class AddTreeActivity : LuceneTreeActivity
+    internal class AddTreeActivity : TreeIndexingActivity
     {
         private Document[] Documents { get; set; }
 

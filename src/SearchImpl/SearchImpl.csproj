@@ -67,9 +67,9 @@
     <Compile Include="Indexing\Activities\AddTreeActivity.cs" />
     <Compile Include="Indexing\Activities\BackupActivity.cs" />
     <Compile Include="Indexing\Activities\DistributedIndexingActivity.cs" />
-    <Compile Include="Indexing\Activities\LuceneDocumentActivity.cs" />
+    <Compile Include="Indexing\Activities\DocumentIndexingActivity.cs" />
     <Compile Include="Indexing\Activities\IndexingActivityBase.cs" />
-    <Compile Include="Indexing\Activities\LuceneTreeActivity.cs" />
+    <Compile Include="Indexing\Activities\TreeIndexingActivity.cs" />
     <Compile Include="Indexing\Activities\RebuildActivity.cs" />
     <Compile Include="Indexing\Activities\RemoveDocumentActivity.cs" />
     <Compile Include="Indexing\Activities\RemoveTreeActivity.cs" />

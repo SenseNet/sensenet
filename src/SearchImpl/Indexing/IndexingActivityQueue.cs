@@ -447,14 +447,14 @@ namespace SenseNet.Search.Indexing
                 if (olderActivity.Path == newerActivity.Path)
                     return true;
 
-                if (olderActivity is LuceneTreeActivity)
+                if (olderActivity is TreeIndexingActivity)
                 {
-                    if (newerActivity is LuceneTreeActivity)
+                    if (newerActivity is TreeIndexingActivity)
                         return olderActivity.IsInTree(newerActivity) || newerActivity.IsInTree(olderActivity);
                     else
                         return newerActivity.IsInTree(olderActivity);
                 }
-                return newerActivity is LuceneTreeActivity && olderActivity.IsInTree(newerActivity);
+                return newerActivity is TreeIndexingActivity && olderActivity.IsInTree(newerActivity);
             }
 
             internal static void Finish(IndexingActivityBase activity)

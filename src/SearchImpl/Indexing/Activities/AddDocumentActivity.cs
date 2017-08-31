@@ -14,7 +14,7 @@ using SenseNet.Search.Indexing;
 namespace SenseNet.Search.Indexing.Activities
 {
     [Serializable]
-    internal class AddDocumentActivity : LuceneDocumentActivity
+    internal class AddDocumentActivity : DocumentIndexingActivity
     {
         protected override bool ProtectedExecute()
         {

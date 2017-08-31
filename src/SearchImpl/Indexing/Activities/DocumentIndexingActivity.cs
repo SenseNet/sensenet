@@ -47,7 +47,7 @@ namespace SenseNet.Search.Indexing.Activities
     }
 
     [Serializable]
-    internal abstract class LuceneDocumentActivity : IndexingActivityBase
+    internal abstract class DocumentIndexingActivity : IndexingActivityBase
     {
         private bool _documentIsCreated;
 
