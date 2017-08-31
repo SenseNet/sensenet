@@ -175,6 +175,7 @@ namespace SenseNet.Search.Lucene29
 
             Commit();
             IndexWriterFrame.WaitForRunOutAllWriters();
+            Paused = true;
         }
         public void WaitIfIndexingPaused()
         {

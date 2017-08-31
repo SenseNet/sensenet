@@ -867,7 +867,7 @@ namespace SenseNet.Search.Indexing
                 return CreateField(snField.Name, node.Id.ToString());
             var nodes = data as System.Collections.IEnumerable;
             if (nodes != null)
-                return CreateField(snField.Name, nodes.Cast<Node>().Select(n => n.Id.ToString())); //UNDONE:!!!! int[] can be better
+                return CreateField(snField.Name, nodes.Cast<Node>().Select(n => n.Id.ToString()));
             return CreateField(snField.Name, SnQuery.NullReferenceValue);
         }
         public override bool Compile(IQueryCompilerValue value)

@@ -28,7 +28,7 @@ namespace SenseNet.Search
         bool Compile(IQueryCompilerValue value);
 
         /// <summary>For SnLucParser</summary>
-        [Obsolete("", false)]//UNDONE:!!!! do not use in parser
+        [Obsolete("", false)]//UNDONE:!! do not use in parser
         bool TryParseAndSet(IQueryFieldValue value);
         /// <summary>For LINQ</summary>
         void ConvertToTermValue(IQueryFieldValue value);
@@ -58,7 +58,7 @@ namespace SenseNet.Search
 
     public enum QueryFieldLevel { NotDefined = 0, HeadOnly = 1, NoBinaryOrFullText = 2, BinaryOrFullText = 3 }
 
-    public interface IQueryFieldValue //UNDONE:!!! do not use in parser / compiler
+    public interface IQueryFieldValue //UNDONE:!! do not use in parser / compiler
     {
         //internal bool IsPhrase { get; }
         //internal SnLucLexer.Token Token { get; }
@@ -80,7 +80,7 @@ namespace SenseNet.Search
     }
 
 
-    public class QueryFieldValue : IQueryFieldValue  //UNDONE:!!! do not use in parser / compiler
+    public class QueryFieldValue : IQueryFieldValue  //UNDONE:!! do not use in parser / compiler
     {
         internal bool IsPhrase { get; private set; }
         internal CqlLexer.Token Token { get; private set; }

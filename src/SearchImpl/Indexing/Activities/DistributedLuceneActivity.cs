@@ -48,7 +48,7 @@ namespace SenseNet.Search.Indexing.Activities
 
         public override void Distribute()
         {
-            //UNDONE:!!!! Decision: skip distribution
+            //UNDONE:!! Decision: skip distribution
             base.Distribute();
         }
 

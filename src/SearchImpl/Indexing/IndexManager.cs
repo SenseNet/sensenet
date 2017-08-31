@@ -32,7 +32,6 @@ namespace SenseNet.Search.Indexing
         }
         /*done*/internal static void ContinueIndexing()
         {
-            IndexingEngine.Continue();
             throw new NotSupportedException("Continue indexing is not supported in this version.");
         }
 
@@ -294,7 +293,6 @@ namespace SenseNet.Search.Indexing
             if (doc is NotIndexedIndexDocument)
                 return null;
 
-            //UNDONE:!! Ensure that all fields (except postponed fields) are available in this point.
             var path = docData.Path.ToLowerInvariant();
 
             doc.Add(new IndexField(IndexFieldName.Name, RepositoryPath.GetFileName(path), NameFieldIndexingInfo.IndexingMode, NameFieldIndexingInfo.IndexStoringMode, NameFieldIndexingInfo.TermVectorStoringMode));

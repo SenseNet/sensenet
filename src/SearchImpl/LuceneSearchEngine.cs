@@ -20,7 +20,8 @@ namespace SenseNet.Search
 
         public bool IndexingPaused
         {
-            get { return IndexManager.Paused; }}
+            get { return IndexManager.Paused; }
+        }
 
         public void PauseIndexing()
         {
