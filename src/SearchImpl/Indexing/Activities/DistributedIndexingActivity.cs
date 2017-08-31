@@ -17,7 +17,7 @@ namespace SenseNet.Search.Indexing.Activities
             if (onRemote && !isFromMe)
             {
                 //TODO: Remove unnecessary inheritance steps.
-                var luceneIndexingActivity = this as LuceneIndexingActivity;
+                var luceneIndexingActivity = this as IndexingActivityBase;
                 if (luceneIndexingActivity != null)
                 {
                     // We can drop activities here because the queue will load these from the database
@@ -58,7 +58,7 @@ namespace SenseNet.Search.Indexing.Activities
         {
             try
             {
-                var persistentActivity = this as LuceneIndexingActivity;
+                var persistentActivity = this as IndexingActivityBase;
                 var id = persistentActivity == null ? "" : ", ActivityId: " + persistentActivity.Id;
                 using (var op = SnTrace.Index.StartOperation("IndexingActivity execution: type:{0} id:{1}", this.GetType().Name, id))
                 {
@@ -87,7 +87,7 @@ namespace SenseNet.Search.Indexing.Activities
 
             _waitingThreadId = Thread.CurrentThread.ManagedThreadId;
 
-            var indexingActivity = this as LuceneIndexingActivity;
+            var indexingActivity = this as IndexingActivityBase;
 
             SnTrace.IndexQueue.Write("IAQ: A{0} blocks the T{1}", indexingActivity.Id, _waitingThreadId);
 

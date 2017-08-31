@@ -68,7 +68,7 @@
     <Compile Include="Indexing\Activities\BackupActivity.cs" />
     <Compile Include="Indexing\Activities\DistributedIndexingActivity.cs" />
     <Compile Include="Indexing\Activities\LuceneDocumentActivity.cs" />
-    <Compile Include="Indexing\Activities\LuceneIndexingActivity.cs" />
+    <Compile Include="Indexing\Activities\IndexingActivityBase.cs" />
     <Compile Include="Indexing\Activities\LuceneTreeActivity.cs" />
     <Compile Include="Indexing\Activities\RebuildActivity.cs" />
     <Compile Include="Indexing\Activities\RemoveDocumentActivity.cs" />

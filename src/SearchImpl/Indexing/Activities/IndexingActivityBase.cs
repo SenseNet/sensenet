@@ -14,7 +14,7 @@ using System.Threading;
 namespace SenseNet.Search.Indexing.Activities
 {
     [Serializable]
-    public abstract class LuceneIndexingActivity : DistributedIndexingActivity, IIndexingActivity, System.Runtime.Serialization.IDeserializationCallback //UNDONE: Remove "Lucene". Maybe IndexingActivityBase
+    public abstract class IndexingActivityBase : DistributedIndexingActivity, IIndexingActivity, System.Runtime.Serialization.IDeserializationCallback
     {
         // stored properties
         public int Id { get; set; }
@@ -102,8 +102,8 @@ namespace SenseNet.Search.Indexing.Activities
 
 
         [NonSerialized]
-        private LuceneIndexingActivity _attachedActivity;
-        internal LuceneIndexingActivity AttachedActivity { get { return _attachedActivity; } private set { _attachedActivity = value; } }
+        private IndexingActivityBase _attachedActivity;
+        internal IndexingActivityBase AttachedActivity { get { return _attachedActivity; } private set { _attachedActivity = value; } }
         /// <summary>
         /// When an activity gets executed and needs to be finalized, all activity objects that have
         /// the same id need to be finalized too. The Attach methods puts all activities with the
@@ -112,7 +112,7 @@ namespace SenseNet.Search.Indexing.Activities
         /// sources: e.g from messaging, from database or from direct execution.
         /// </summary>
         /// <param name="activity"></param>
-        internal void Attach(LuceneIndexingActivity activity)
+        internal void Attach(IndexingActivityBase activity)
         {
             if (AttachedActivity != null)
                 AttachedActivity.Attach(activity);
@@ -138,28 +138,28 @@ namespace SenseNet.Search.Indexing.Activities
 
         // ================================================= AQ16
 
-        public LuceneIndexingActivity()
+        public IndexingActivityBase()
         {
-            _waitingFor = new List<LuceneIndexingActivity>();
-            _waitingForMe = new List<LuceneIndexingActivity>();
+            _waitingFor = new List<IndexingActivityBase>();
+            _waitingForMe = new List<IndexingActivityBase>();
         }
 
         public void OnDeserialization(object sender)
         {
-            _waitingFor = new List<LuceneIndexingActivity>();
-            _waitingForMe = new List<LuceneIndexingActivity>();
+            _waitingFor = new List<IndexingActivityBase>();
+            _waitingForMe = new List<IndexingActivityBase>();
         }
 
 
         [NonSerialized]
-        private List<LuceneIndexingActivity> _waitingFor = new List<LuceneIndexingActivity>();
-        public List<LuceneIndexingActivity> WaitingFor { get { return _waitingFor; } }
+        private List<IndexingActivityBase> _waitingFor = new List<IndexingActivityBase>();
+        public List<IndexingActivityBase> WaitingFor { get { return _waitingFor; } }
 
         [NonSerialized]
-        private List<LuceneIndexingActivity> _waitingForMe;
-        public List<LuceneIndexingActivity> WaitingForMe { get { return _waitingForMe; } }
+        private List<IndexingActivityBase> _waitingForMe;
+        public List<IndexingActivityBase> WaitingForMe { get { return _waitingForMe; } }
 
-        internal void WaitFor(LuceneIndexingActivity olderActivity)
+        internal void WaitFor(IndexingActivityBase olderActivity)
         {
             // this method must called from thread safe block.
             if (!this.WaitingFor.Any(x => x.Id == olderActivity.Id))
@@ -168,19 +168,19 @@ namespace SenseNet.Search.Indexing.Activities
                 olderActivity.WaitingForMe.Add(this);
         }
 
-        internal void FinishWaiting(LuceneIndexingActivity olderActivity)
+        internal void FinishWaiting(IndexingActivityBase olderActivity)
         {
             // this method must called from thread safe block.
             RemoveDependency(this.WaitingFor, olderActivity);
             RemoveDependency(olderActivity.WaitingForMe, this);
         }
-        private static void RemoveDependency(List<LuceneIndexingActivity> dependencyList, LuceneIndexingActivity activity)
+        private static void RemoveDependency(List<IndexingActivityBase> dependencyList, IndexingActivityBase activity)
         {
             // this method must called from thread safe block.
             dependencyList.RemoveAll(x => x.Id == activity.Id);
         }
 
-        internal bool IsInTree(LuceneIndexingActivity newerActivity)
+        internal bool IsInTree(IndexingActivityBase newerActivity)
         {
             return this.Path.StartsWith(newerActivity.Path, StringComparison.OrdinalIgnoreCase);
         }

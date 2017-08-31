@@ -264,9 +264,9 @@ namespace SenseNet.Search.Indexing
         }
         /*================================================================================================================================*/
 
-        private static LuceneIndexingActivity CreateActivity(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp, bool? singleVersion, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData)
+        private static IndexingActivityBase CreateActivity(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp, bool? singleVersion, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData)
         {
-            var activity = (LuceneIndexingActivity)IndexingActivityFactory.Instance.CreateActivity(type);
+            var activity = (IndexingActivityBase)IndexingActivityFactory.Instance.CreateActivity(type);
             activity.Path = path.ToLowerInvariant();
             activity.NodeId = nodeId;
             activity.VersionId = versionId;
@@ -286,9 +286,9 @@ namespace SenseNet.Search.Indexing
 
             return activity;
         }
-        private static LuceneIndexingActivity CreateTreeActivity(IndexingActivityType type, string path, int nodeId, bool moveOrRename, IndexDocumentData indexDocumentData)
+        private static IndexingActivityBase CreateTreeActivity(IndexingActivityType type, string path, int nodeId, bool moveOrRename, IndexDocumentData indexDocumentData)
         {
-            var activity = (LuceneIndexingActivity)IndexingActivityFactory.Instance.CreateActivity(type);
+            var activity = (IndexingActivityBase)IndexingActivityFactory.Instance.CreateActivity(type);
             activity.Path = path.ToLowerInvariant();
             activity.NodeId = nodeId;
             activity.MoveOrRename = moveOrRename;
@@ -310,7 +310,7 @@ namespace SenseNet.Search.Indexing
         {
             ExecuteActivity(CreateTreeActivity(type, path, nodeId, moveOrRename, indexDocumentData));
         }
-        private static void ExecuteActivity(LuceneIndexingActivity activity)
+        private static void ExecuteActivity(IndexingActivityBase activity)
         {
             IndexManager.RegisterActivity(activity);
             IndexManager.ExecuteActivity(activity, true, true);

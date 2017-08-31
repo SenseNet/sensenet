@@ -43,7 +43,7 @@ namespace SenseNet.Search.Indexing
 
                 SnTrace.IndexQueue.Write("IAQ: Health checker is processing {0} gap{1}.", gapsLength, gapsLength > 1 ? "s" : "");
 
-                foreach (LuceneIndexingActivity activity in new IndexingActivityLoader(state.Gaps, false))
+                foreach (IndexingActivityBase activity in new IndexingActivityLoader(state.Gaps, false))
                 {
                     WaitIfOverloaded();
                     IndexingActivityQueue.ExecuteActivity(activity);
@@ -58,7 +58,7 @@ namespace SenseNet.Search.Indexing
 
                 SnTrace.IndexQueue.Write("IAQ: Health checker is processing activities from {0} to {1}", (lastId + 1), lastDbId);
 
-                foreach (LuceneIndexingActivity activity in new IndexingActivityLoader(lastId + 1, lastDbId, false))
+                foreach (IndexingActivityBase activity in new IndexingActivityLoader(lastId + 1, lastDbId, false))
                 {
                     WaitIfOverloaded();
                     IndexingActivityQueue.ExecuteActivity(activity);
@@ -141,7 +141,7 @@ namespace SenseNet.Search.Indexing
             };
         }
 
-        public static void ExecuteActivity(LuceneIndexingActivity activity)
+        public static void ExecuteActivity(IndexingActivityBase activity)
         {
             Serializer.EnqueueActivity(activity);
         }
@@ -195,7 +195,7 @@ namespace SenseNet.Search.Indexing
                 if (gaps.Any())
                 {
                     var loadedActivities = new IndexingActivityLoader(gaps, true);
-                    foreach (LuceneIndexingActivity loadedActivity in loadedActivities)
+                    foreach (IndexingActivityBase loadedActivity in loadedActivities)
                     {
                         // wait and start processing loaded activities in the meantime
                         WaitIfOverloaded(true);
@@ -211,7 +211,7 @@ namespace SenseNet.Search.Indexing
                 if (lastExecutedId < lastDatabaseId)
                 {
                     var loadedActivities = new IndexingActivityLoader(lastExecutedId + 1, lastDatabaseId, true);
-                    foreach (LuceneIndexingActivity loadedActivity in loadedActivities)
+                    foreach (IndexingActivityBase loadedActivity in loadedActivities)
                     {
                         // wait and start processing loaded activities in the meantime
                         WaitIfOverloaded(true);
@@ -261,9 +261,9 @@ namespace SenseNet.Search.Indexing
 
             private static object _arrivalQueueLock = new object();
             private static int _lastQueued;
-            private static Queue<LuceneIndexingActivity> _arrivalQueue = new Queue<LuceneIndexingActivity>();
+            private static Queue<IndexingActivityBase> _arrivalQueue = new Queue<IndexingActivityBase>();
 
-            public static void EnqueueActivity(LuceneIndexingActivity activity)
+            public static void EnqueueActivity(IndexingActivityBase activity)
             {
 
                 SnTrace.IndexQueue.Write("IAQ: A{0} arrived{1}. {2}, {3}", activity.Id, activity.FromReceiver ? " from another computer" : "", activity.GetType().Name, activity.Path);
@@ -307,7 +307,7 @@ namespace SenseNet.Search.Indexing
                                 return r.Count() == expectedCount;
                             });
 
-                        foreach (LuceneIndexingActivity loadedActivity in loadedActivities)
+                        foreach (IndexingActivityBase loadedActivity in loadedActivities)
                         {
                             IndexingActivityHistory.Arrive(loadedActivity);
                             _arrivalQueue.Enqueue(loadedActivity);
@@ -326,7 +326,7 @@ namespace SenseNet.Search.Indexing
                     DependencyManager.ActivityEnqueued();
                 }
             }
-            public static LuceneIndexingActivity DequeueActivity()
+            public static IndexingActivityBase DequeueActivity()
             {
                 lock (_arrivalQueueLock)
                 {
@@ -391,7 +391,7 @@ namespace SenseNet.Search.Indexing
             }
 
             private static object _waitingSetLock = new object();
-            private static List<LuceneIndexingActivity> _waitingSet = new List<LuceneIndexingActivity>();
+            private static List<IndexingActivityBase> _waitingSet = new List<IndexingActivityBase>();
 
             private static bool _run;
             public static void ActivityEnqueued()
@@ -415,7 +415,7 @@ namespace SenseNet.Search.Indexing
                     MakeDependencies(newerActivity);
                 }
             }
-            private static void MakeDependencies(LuceneIndexingActivity newerActivity)
+            private static void MakeDependencies(IndexingActivityBase newerActivity)
             {
                 lock (_waitingSetLock)
                 {
@@ -437,7 +437,7 @@ namespace SenseNet.Search.Indexing
                         Task.Run(() => Executor.Execute(newerActivity));
                 }
             }
-            private static bool MustWait(LuceneIndexingActivity newerActivity, LuceneIndexingActivity olderActivity)
+            private static bool MustWait(IndexingActivityBase newerActivity, IndexingActivityBase olderActivity)
             {
                 Debug.Assert(olderActivity.Id != newerActivity.Id);
 
@@ -457,7 +457,7 @@ namespace SenseNet.Search.Indexing
                 return newerActivity is LuceneTreeActivity && olderActivity.IsInTree(newerActivity);
             }
 
-            internal static void Finish(LuceneIndexingActivity activity)
+            internal static void Finish(IndexingActivityBase activity)
             {
                 lock (_waitingSetLock)
                 {
@@ -483,7 +483,7 @@ namespace SenseNet.Search.Indexing
                     }
                 }
             }
-            internal static void AttachOrFinish(LuceneIndexingActivity activity)
+            internal static void AttachOrFinish(IndexingActivityBase activity)
             {
                 lock (_waitingSetLock)
                 {
@@ -527,7 +527,7 @@ namespace SenseNet.Search.Indexing
                 }
             }
 
-            internal static void FinishActivity(LuceneIndexingActivity activity)
+            internal static void FinishActivity(IndexingActivityBase activity)
             {
                 var id = activity.Id;
                 lock (_gapsLock)
@@ -567,7 +567,7 @@ namespace SenseNet.Search.Indexing
 
         private static class Executor
         {
-            public static void Execute(LuceneIndexingActivity activity)
+            public static void Execute(IndexingActivityBase activity)
             {
                 using (var op = SnTrace.Index.StartOperation("IAQ: A{0} EXECUTION.", activity.Id))
                 {
@@ -647,7 +647,7 @@ namespace SenseNet.Search.Indexing
                 this.pageSize = pageSize;
                 this.executingUnprocessedActivities = executingUnprocessedActivities;
 
-                this.buffer = new LuceneIndexingActivity[pageSize];
+                this.buffer = new IndexingActivityBase[pageSize];
                 this.loadedPageSize = this.buffer.Length;
                 this.pointer = this.buffer.Length - 1;
             }
@@ -971,7 +971,7 @@ namespace SenseNet.Search.Indexing
         private static int _position = 0;
         private static int _unfinished;
 
-        internal static void Arrive(LuceneIndexingActivity activity)
+        internal static void Arrive(IndexingActivityBase activity)
         {
             lock (_lock)
             {
@@ -1002,7 +1002,7 @@ namespace SenseNet.Search.Indexing
                     _position = 0;
             }
         }
-        internal static void Wait(LuceneIndexingActivity activity)
+        internal static void Wait(IndexingActivityBase activity)
         {
             lock (_lock)
             {

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace SenseNet.Search.Indexing.Activities
 {
     [Serializable]
-    internal class RebuildActivity : LuceneIndexingActivity
+    internal class RebuildActivity : IndexingActivityBase
     {
         private static readonly int[] EmptyIntArray = new int[0];
         protected override bool ProtectedExecute()

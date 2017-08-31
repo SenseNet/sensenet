@@ -53,12 +53,12 @@ namespace SenseNet.Search.Indexing
 
         /* ========================================================================================== Register Activity */
 
-        public static void RegisterActivity(LuceneIndexingActivity activity)
+        public static void RegisterActivity(IndexingActivityBase activity)
         {
             DataProvider.Current.RegisterIndexingActivity(activity);
         }
 
-        public static void ExecuteActivity(LuceneIndexingActivity activity, bool waitForComplete, bool distribute)
+        public static void ExecuteActivity(IndexingActivityBase activity, bool waitForComplete, bool distribute)
         {
             if (distribute)
                 activity.Distribute();

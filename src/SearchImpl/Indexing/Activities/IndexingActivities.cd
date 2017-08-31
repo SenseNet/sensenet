@@ -42,11 +42,11 @@
       <FileName>Indexing\Activities\LuceneDocumentActivity.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="SenseNet.Search.Indexing.Activities.LuceneIndexingActivity" Collapsed="true">
+  <Class Name="SenseNet.Search.Indexing.Activities.IndexingActivityBase" Collapsed="true">
     <Position X="11.25" Y="2.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>QkACEBEEQEAAAEIAmICSACAAAKQAA0CFAEAQQAgBIAg=</HashCode>
-      <FileName>Indexing\Activities\LuceneIndexingActivity.cs</FileName>
+      <FileName>Indexing\Activities\IndexingActivityBase.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
   </Class>
