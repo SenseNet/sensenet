@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SenseNet.Search;
 
 namespace SenseNet.SearchImpl.Tests.Implementations
@@ -11,10 +9,10 @@ namespace SenseNet.SearchImpl.Tests.Implementations
     internal class InMemoryIndex
     {
         // FieldName => FieldValue => VersionId
-        private Dictionary<string, Dictionary<string, List<int>>> _indexData = new Dictionary<string, Dictionary<string, List<int>>>();
+        private readonly Dictionary<string, Dictionary<string, List<int>>> _indexData = new Dictionary<string, Dictionary<string, List<int>>>();
 
         // VersionId, IndexFields
-        private List<Tuple<int, List<IndexField>>> _storedData = new List<Tuple<int, List<IndexField>>>();
+        private readonly List<Tuple<int, List<IndexField>>> _storedData = new List<Tuple<int, List<IndexField>>>();
 
         public void AddDocument(IndexDocument document)
         {
@@ -155,6 +153,12 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             Dictionary<string, List<int>> fieldValues;
             return _indexData.TryGetValue(fieldName, out fieldValues) ? fieldValues.Count : 0;
+        }
+
+        public void Clear()
+        {
+            _indexData.Clear();
+            _storedData.Clear();
         }
     }
 }

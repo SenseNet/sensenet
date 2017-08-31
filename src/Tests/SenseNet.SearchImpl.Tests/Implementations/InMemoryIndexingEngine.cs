@@ -66,6 +66,11 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             // do nothing
         }
 
+        public void ClearIndex()
+        {
+            Index.Clear();
+        }
+
         public IIndexingActivityStatus ReadActivityStatusFromIndex()
         {
             return IndexingActivityStatus.Startup;

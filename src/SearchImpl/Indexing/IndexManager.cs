@@ -18,38 +18,42 @@ namespace SenseNet.Search.Indexing
         private static IIndexingEngineFactory _indexingEngineFactory; //UNDONE:!!!!! Inject _indexingEngineFactory
         internal static IIndexingEngine IndexingEngine => _indexingEngineFactory.CreateIndexingEngine();
 
-        /*done*/public static int[] GetNotIndexedNodeTypes()
+        public static int[] GetNotIndexedNodeTypes()
         {
             return StorageContext.Search.ContentRepository.GetNotIndexedNodeTypeIds();
         }
 
-        /*done*/public static bool Running => IndexingEngine.Running;
-        /*done*/internal static bool Paused => IndexingEngine.Paused;
+        public static bool Running => IndexingEngine.Running;
+        internal static bool Paused => IndexingEngine.Paused;
 
-        /*done*/internal static void PauseIndexing()
+        internal static void PauseIndexing()
         {
             IndexingEngine.Pause();
         }
-        /*done*/internal static void ContinueIndexing()
+        internal static void ContinueIndexing()
         {
             throw new NotSupportedException("Continue indexing is not supported in this version.");
         }
 
-        /*done*/internal static void WaitIfIndexingPaused()
+        internal static void WaitIfIndexingPaused()
         {
             IndexingEngine.WaitIfIndexingPaused();
         }
 
-        /*done*/public static void Start(IIndexingEngineFactory indexingEngineFactory, TextWriter consoleOut)
+        public static void Start(IIndexingEngineFactory indexingEngineFactory, TextWriter consoleOut)
         {
             _indexingEngineFactory = indexingEngineFactory;
             IndexingEngine.Start(consoleOut);
         }
 
+        public static void ClearIndex()
+        {
+            IndexingEngine.ClearIndex();
+        }
 
         /* ========================================================================================== Register Activity */
 
-        /*done*/public static void RegisterActivity(LuceneIndexingActivity activity)
+        public static void RegisterActivity(LuceneIndexingActivity activity)
         {
             DataProvider.Current.RegisterIndexingActivity(activity);
         }
@@ -78,33 +82,33 @@ namespace SenseNet.Search.Indexing
 
         // ========================================================================================== Start, Restart, Shutdown, Warmup
 
-        /*done*/internal static void Restart()
+        internal static void Restart()
         {
             IndexingEngine.Restart();
         }
-        /*done*/public static void ShutDown()
+        public static void ShutDown()
         {
             IndexingEngine.ShutDown();
             SnLog.WriteInformation("Indexing engine has stopped. Max task id and exceptions: " + IndexingActivityQueue.GetCurrentCompletionState());
         }
 
-        /*done*/public static int GetLastStoredIndexingActivityId()
+        public static int GetLastStoredIndexingActivityId()
         {
             return DataProvider.Current.GetLastActivityId();
         }
 
-        /*done*/internal static void DeleteAllIndexingActivities()
+        internal static void DeleteAllIndexingActivities()
         {
             DataProvider.Current.DeleteAllIndexingActivities();
         }
 
         /*========================================================================================== Commit */
 
-        /*done*/internal static void ActivityFinished(int activityId, bool executingUnprocessedActivities)
+        internal static void ActivityFinished(int activityId, bool executingUnprocessedActivities)
         {
             IndexingEngine.ActivityFinished();
         }
-        /*done*/internal static void Commit(int lastActivityId = 0)
+        internal static void Commit(int lastActivityId = 0)
         {
             IndexingEngine.Commit(lastActivityId);
         }
@@ -114,14 +118,13 @@ namespace SenseNet.Search.Indexing
         #region /* ==================================================================== Document operations */
 
         /* ClearAndPopulateAll */
-
         internal static void AddDocuments(IEnumerable<IndexDocument> documents)
         {
             IndexingEngine.Actualize(null, documents);
         }
 
         /* AddDocumentActivity, RebuildActivity */
-        /*done*/internal static bool AddDocument(IndexDocument document, VersioningInfo versioning)
+        internal static bool AddDocument(IndexDocument document, VersioningInfo versioning)
         {
             var delTerms = versioning.Delete.Select(i => new SnTerm(IndexFieldName.VersionId, i)).ToArray();
             var updates = GetUpdates(versioning);
@@ -134,7 +137,7 @@ namespace SenseNet.Search.Indexing
         }
 
         // UpdateDocumentActivity
-        /*done*/internal static bool UpdateDocument(IndexDocument document, VersioningInfo versioning)
+        internal static bool UpdateDocument(IndexDocument document, VersioningInfo versioning)
         {
             var delTerms = versioning.Delete.Select(i => new SnTerm(IndexFieldName.VersionId, i)).ToArray();
             var updates = GetUpdates(versioning).ToList();
@@ -174,7 +177,7 @@ namespace SenseNet.Search.Indexing
             return true;
         }
 
-        /*done*/private static IEnumerable<DocumentUpdate> GetUpdates(VersioningInfo versioning)
+        private static IEnumerable<DocumentUpdate> GetUpdates(VersioningInfo versioning)
         {
             var result = new List<DocumentUpdate>(versioning.Reindex.Length);
 
@@ -187,7 +190,7 @@ namespace SenseNet.Search.Indexing
 
             return result;
         }
-        /*done*/private static void SetDocumentFlags(IndexDocument doc, VersioningInfo versioning)
+        private static void SetDocumentFlags(IndexDocument doc, VersioningInfo versioning)
         {
             var versionId = doc.VersionId;
             var version = VersionNumber.Parse(doc.Version);
@@ -203,14 +206,14 @@ namespace SenseNet.Search.Indexing
             SetDocumentFlag(doc, IndexFieldName.IsLastPublic, isLastPublic);
             SetDocumentFlag(doc, IndexFieldName.IsLastDraft, isLastDraft);
         }
-        /*done*/private static void SetDocumentFlag(IndexDocument doc, string fieldName, bool value)
+        private static void SetDocumentFlag(IndexDocument doc, string fieldName, bool value)
         {
             doc.Add(new IndexField(fieldName, value, IndexingMode.NotAnalyzed, IndexStoringMode.Yes, IndexTermVector.No));
         }
 
 
         // AddTreeActivity
-        /*done*/internal static bool AddTree(string treeRoot, bool moveOrRename, int activityId, bool executingUnprocessedActivities)
+        internal static bool AddTree(string treeRoot, bool moveOrRename, int activityId, bool executingUnprocessedActivities)
         {
             var delTerm = executingUnprocessedActivities ? new [] { new SnTerm(IndexFieldName.InTree, treeRoot) } : null;
             var excludedNodeTypes = GetNotIndexedNodeTypes();
@@ -337,5 +340,6 @@ namespace SenseNet.Search.Indexing
         }
 
         #endregion
+
     }
 }

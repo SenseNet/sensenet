@@ -310,6 +310,11 @@ namespace SenseNet.Search.Lucene29
             Commit(false);
         }
 
+        public void ClearIndex()
+        {
+            throw new NotImplementedException(); //UNDONE: ClearIndex: new IndexWriter(createNew)?
+        }
+
         public IIndexingActivityStatus ReadActivityStatusFromIndex()
         {
             using (var readerFrame = GetIndexReaderFrame())

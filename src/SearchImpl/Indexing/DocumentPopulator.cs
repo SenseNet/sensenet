@@ -31,14 +31,17 @@ namespace SenseNet.Search.Indexing
 
         /*======================================================================================================= IIndexPopulator Members */
 
-        // caller: IndexPopulator.Populator, Import.Importer, Tests.Initializer, RunOnce
+        // caller: IndexPopulator.Populator, Import.Importer, Tests
         public void ClearAndPopulateAll(bool backup = true, TextWriter consoleWriter = null) //UNDONE:!!!! Remove backup parameter. Backup is the caller client's task.
         {
             var lastActivityId = IndexManager.GetLastStoredIndexingActivityId();
-            //UNDONE:!!!!! Clear index ???
             using (var op = SnTrace.Index.StartOperation("IndexPopulator ClearAndPopulateAll"))
             {
                 // recreate
+                consoleWriter?.Write("  Cleanup index ... ");
+                IndexManager.ClearIndex();
+                consoleWriter?.WriteLine("ok");
+
                 IndexManager.AddDocuments(
                     StorageContext.Search.LoadIndexDocumentsByPath("/Root", IndexManager.GetNotIndexedNodeTypes())
                         .Select(d =>
