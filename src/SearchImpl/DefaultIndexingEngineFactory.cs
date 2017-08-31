@@ -9,7 +9,7 @@ namespace SenseNet.Search
 {
     public class DefaultIndexingEngineFactory : IIndexingEngineFactory
     {
-        private Lucene29IndexingEngine _defaultEngine = new Lucene29IndexingEngine(); //UNDONE:!!!! Create instance by configuration
+        private Lucene29IndexingEngine _defaultEngine = new Lucene29IndexingEngine(); //UNDONE:!!! Create instance by configuration
 
         public IIndexingEngine CreateIndexingEngine()
         {

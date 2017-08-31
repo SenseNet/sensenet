@@ -15,7 +15,7 @@ namespace SenseNet.Search.Indexing
     {
         #region /* ==================================================================== Managing index */
 
-        private static IIndexingEngineFactory _indexingEngineFactory; //UNDONE:!!!!! Inject _indexingEngineFactory
+        private static IIndexingEngineFactory _indexingEngineFactory;
         internal static IIndexingEngine IndexingEngine => _indexingEngineFactory.CreateIndexingEngine();
 
         public static int[] GetNotIndexedNodeTypes()

@@ -35,7 +35,7 @@ namespace SenseNet.Search.Indexing
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        [Obsolete("", false)]//UNDONE:!!!! do not use in parser
+        [Obsolete("", false)]//UNDONE:!! do not use in parser
         public abstract bool TryParseAndSet(IQueryFieldValue value);
         /// <summary>
         /// For LINQ
