@@ -3,20 +3,17 @@ using SenseNet.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Storage
 {
     public class TreeLock : IDisposable
     {
-        private SnTrace.Operation logOp;
-
-        private int[] _lockIds;
+        private readonly SnTrace.Operation _logOp;
+        private readonly int[] _lockIds;
 
         private TreeLock(SnTrace.Operation logOp, params int[] lockIds)
         {
-            this.logOp = logOp;
+            this._logOp = logOp;
             _lockIds = lockIds;
         }
 
@@ -70,10 +67,10 @@ namespace SenseNet.ContentRepository.Storage
         {
             DataProvider.Current.ReleaseTreeLock(_lockIds);
 
-            if (this.logOp != null)
+            if (this._logOp != null)
             {
-                logOp.Successful = true;
-                logOp.Dispose();
+                _logOp.Successful = true;
+                _logOp.Dispose();
             }
         }
 

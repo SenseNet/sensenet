@@ -4,9 +4,11 @@ using System.Data;
 using System.Data.Common;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Xml;
+using Lucene.Net.Support;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
@@ -20,7 +22,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
     {
         #region NOT IMPLEMENTED
 
-        public override Dictionary<DataType, int> ContentListMappingOffsets
+        public override System.Collections.Generic.Dictionary<DataType, int> ContentListMappingOffsets
         {
             get
             {
@@ -242,10 +244,60 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         }
         #endregion
 
+
+        #region // ====================================================== Tree lock
+
         protected internal override int AcquireTreeLock(string path)
         {
-            return 1; //UNDONE: TreeLock is not supported
+            var parentChain = GetParentChain(path);
+            var timeMin = GetObsoleteLimitTime();
+
+            if (_db.TreeLocks
+                .Any(t => t.LockedAt > timeMin &&
+                          (parentChain.Contains(t.Path) ||
+                           t.Path.StartsWith(path + "/", StringComparison.InvariantCultureIgnoreCase))))
+            return 0;
+
+            var newTreeLockId = _db.TreeLocks.Count == 0 ? 1 : _db.TreeLocks.Max(t => t.TreeLockId) + 1;
+            _db.TreeLocks.Add(new TreeLockRow
+            {
+                TreeLockId = newTreeLockId,
+                Path = path,
+                LockedAt = DateTime.Now
+            });
+
+            return newTreeLockId;
         }
+        protected internal override bool IsTreeLocked(string path)
+        {
+            var parentChain = GetParentChain(path);
+            var timeMin = GetObsoleteLimitTime();
+
+            return _db.TreeLocks
+                .Any(t => t.LockedAt > timeMin &&
+                          (parentChain.Contains(t.Path) ||
+                           t.Path.StartsWith(path + "/", StringComparison.InvariantCultureIgnoreCase)));
+        }
+        protected internal override System.Collections.Generic.Dictionary<int, string> LoadAllTreeLocks()
+        {
+            return _db.TreeLocks.ToDictionary(t => t.TreeLockId, t => t.Path);
+        }
+
+        private string[] GetParentChain(string path)
+        {
+            var paths = path.Split(RepositoryPath.PathSeparatorChars, StringSplitOptions.RemoveEmptyEntries);
+            paths[0] = "/" + paths[0];
+            for (int i = 1; i < paths.Length; i++)
+                paths[i] = paths[i - 1] + "/" + paths[i];
+            return paths.Reverse().ToArray();
+        }
+        private DateTime GetObsoleteLimitTime()
+        {
+            return DateTime.Now.AddHours(-8.0);
+        }
+
+        #endregion
+
 
         #region NOT IMPLEMENTED
 
@@ -445,11 +497,6 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             return false;
         }
 
-        protected internal override bool IsTreeLocked(string path)
-        {
-            return false; //UNDONE: TreeLock is not supported
-        }
-
         #region NOT IMPLEMENTED
 
         protected override void KeepOnlyLastIndexBackup()
@@ -457,11 +504,6 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             throw new NotImplementedException();
         }
         #endregion
-
-        protected internal override Dictionary<int, string> LoadAllTreeLocks()
-        {
-            return new Dictionary<int, string>(); //UNDONE: TreeLock is not supported
-        }
 
         protected internal override BinaryCacheEntity LoadBinaryCacheEntity(int nodeVersionId, int propertyTypeId)
         {
@@ -668,7 +710,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             return _db.Nodes.Where(n => heads.Contains(n.NodeId)).Select(CreateNodeHead);
         }
 
-        protected internal override void LoadNodes(Dictionary<int, NodeBuilder> buildersByVersionId)
+        protected internal override void LoadNodes(System.Collections.Generic.Dictionary<int, NodeBuilder> buildersByVersionId)
         {
             foreach (var versionId in buildersByVersionId.Keys)
             {
@@ -711,7 +753,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             throw new NotImplementedException();
         }
         #endregion
-        protected internal override Dictionary<int, string> LoadTextPropertyValues(int versionId, int[] propertyTypeIds)
+        protected internal override System.Collections.Generic.Dictionary<int, string> LoadTextPropertyValues(int versionId, int[] propertyTypeIds)
         {
             return _db.TextProperties
                 .Where(t => t.VersionId == versionId && propertyTypeIds.Contains(t.PropertyTypeId))
@@ -817,7 +859,8 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         protected internal override void ReleaseTreeLock(int[] lockIds)
         {
-            //UNDONE: TreeLock is not supported
+            foreach (var item in _db.TreeLocks.Where(t => lockIds.Contains(t.TreeLockId)).ToArray())
+                _db.TreeLocks.Remove(item);
         }
 
         #region NOT IMPLEMENTED
@@ -910,12 +953,12 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         #region CREATION
 
         // Preloade CTD bytes by name
-        private static readonly Dictionary<string, byte[]> ContentTypeBytes;
+        private static readonly System.Collections.Generic.Dictionary<string, byte[]> ContentTypeBytes;
         static InMemoryDataProvider()
         {
             // Preload CTD bytes from disk to avoid heavy IO charging
 
-            ContentTypeBytes = new Dictionary<string, byte[]>();
+            ContentTypeBytes = new System.Collections.Generic.Dictionary<string, byte[]>();
 
             var ctdDirectory = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                 @"..\..\..\..\nuget\snadmin\install-services\import\System\Schema\ContentTypes"));
@@ -1101,6 +1144,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             public List<FileRecord> Files;
             public List<TextPropertyRecord> TextProperties;
             public List<IndexingActivityRecord> IndexingActivity = new List<IndexingActivityRecord>();
+            public List<TreeLockRow> TreeLocks = new List<TreeLockRow>();
         }
         private class InMemoryNodeWriter : INodeWriter
         {
@@ -1393,6 +1437,14 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             public string Path;
             public string Extension;
         }
+
+        private class TreeLockRow
+        {
+            public int TreeLockId;
+            public string Path;
+            public DateTime LockedAt;
+        }
         #endregion
     }
 }
+

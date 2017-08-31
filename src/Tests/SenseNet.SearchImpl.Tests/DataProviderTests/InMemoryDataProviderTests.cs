@@ -18,7 +18,7 @@ using SenseNet.Security;
 using SenseNet.Security.Data;
 using SenseNet.Security.Messaging;
 
-namespace SenseNet.SearchImpl.Tests
+namespace SenseNet.SearchImpl.Tests.DataProviderTests
 {
     [TestClass]
     public class InMemoryDataProviderTests : TestBase
