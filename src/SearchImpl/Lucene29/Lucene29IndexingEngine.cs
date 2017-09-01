@@ -223,17 +223,6 @@ namespace SenseNet.Search.Lucene29
             var idList = ((LuceneSearchEngine)StorageContext.Search.SearchEngine).Execute("+Id:1");
         }
 
-        public void Restart()
-        {
-            SnTrace.Index.Write("LM: LUCENEMANAGER RESTART");
-
-            using (var wrFrame = IndexWriterFrame.Get(true)) // // Restart
-            {
-                wrFrame.IndexWriter.Close();
-                CreateWriterAndReader();
-            }
-        }
-
         public void ShutDown()
         {
             if (!Running)

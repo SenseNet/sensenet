@@ -37,11 +37,6 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             Running = false;
         }
 
-        public void Restart()
-        {
-            throw new NotImplementedException();
-        }
-
         public void ActivityFinished()
         {
             // do nothing

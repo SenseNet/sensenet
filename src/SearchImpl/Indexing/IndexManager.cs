@@ -18,12 +18,12 @@ namespace SenseNet.Search.Indexing
         private static IIndexingEngineFactory _indexingEngineFactory;
         internal static IIndexingEngine IndexingEngine => _indexingEngineFactory.CreateIndexingEngine();
 
+        public static bool Running => IndexingEngine.Running;
+
         public static int[] GetNotIndexedNodeTypes()
         {
             return StorageContext.Search.ContentRepository.GetNotIndexedNodeTypeIds();
         }
-
-        public static bool Running => IndexingEngine.Running;
 
         public static void Start(IIndexingEngineFactory indexingEngineFactory, TextWriter consoleOut)
         {
@@ -31,12 +31,18 @@ namespace SenseNet.Search.Indexing
             IndexingEngine.Start(consoleOut);
         }
 
+        public static void ShutDown()
+        {
+            IndexingEngine.ShutDown();
+            SnLog.WriteInformation("Indexing engine has stopped. Max task id and exceptions: " + IndexingActivityQueue.GetCurrentCompletionState());
+        }
+
         public static void ClearIndex()
         {
             IndexingEngine.ClearIndex();
         }
 
-        /* ========================================================================================== Register Activity */
+        /* ========================================================================================== Activity */
 
         public static void RegisterActivity(IndexingActivityBase activity)
         {
@@ -63,18 +69,6 @@ namespace SenseNet.Search.Indexing
 
             if (waitForComplete)
                 activity.WaitForComplete();
-        }
-
-        // ========================================================================================== Start, Restart, Shutdown, Warmup
-
-        internal static void Restart()
-        {
-            IndexingEngine.Restart();
-        }
-        public static void ShutDown()
-        {
-            IndexingEngine.ShutDown();
-            SnLog.WriteInformation("Indexing engine has stopped. Max task id and exceptions: " + IndexingActivityQueue.GetCurrentCompletionState());
         }
 
         public static int GetLastStoredIndexingActivityId()

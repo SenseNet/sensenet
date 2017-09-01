@@ -22,7 +22,6 @@ namespace SenseNet.Search
         void Start(TextWriter consoleOut);
 
         void ShutDown();
-        void Restart(); //UNDONE:!!!!! Remove if possible
 
         void ActivityFinished(); //UNDONE:!!!!! Remove if possible
         void Commit(int lastActivityId = 0); //UNDONE:!!!!! Remove if possible
