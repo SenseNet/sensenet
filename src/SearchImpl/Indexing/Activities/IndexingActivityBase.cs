@@ -88,7 +88,7 @@ namespace SenseNet.Search.Indexing.Activities
         private bool IsExecutable()
         {
             // if not running or paused, skip execution except executing unprocessed activities
-            return IsUnprocessedActivity || (IndexManager.Running && !IndexManager.Paused);
+            return IsUnprocessedActivity || IndexManager.Running;
         }
 
 

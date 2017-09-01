@@ -167,25 +167,6 @@ namespace SenseNet.Search.Lucene29
         }
 
         public bool Running { get; private set; }
-        public bool Paused { get; private set; }
-
-        public void Pause()
-        {
-            _indexingSemaphore.Reset();
-
-            Commit();
-            IndexWriterFrame.WaitForRunOutAllWriters();
-            Paused = true;
-        }
-        public void WaitIfIndexingPaused()
-        {
-            if (!_indexingSemaphore.Wait(SenseNet.Configuration.Indexing.IndexingPausedTimeout * 1000))
-                throw new TimeoutException("Operation timed out, indexing is paused.");
-        }
-        public void Continue()
-        {
-            throw new NotSupportedException("Continue indexing is not supported in this version.");
-        }
 
         private object _startSync = new object();
         public void Start(System.IO.TextWriter consoleOut)
@@ -244,11 +225,6 @@ namespace SenseNet.Search.Lucene29
 
         public void Restart()
         {
-            if (Paused)
-            {
-                SnTrace.Index.Write("LM: LUCENEMANAGER RESTART called but it is not executed because indexing is paused.");
-                return;
-            }
             SnTrace.Index.Write("LM: LUCENEMANAGER RESTART");
 
             using (var wrFrame = IndexWriterFrame.Get(true)) // // Restart
@@ -262,8 +238,6 @@ namespace SenseNet.Search.Lucene29
         {
             if (!Running)
                 return;
-            if (Paused)
-                throw new InvalidOperationException("Cannot use the IndexReader if the indexing is paused (i.e. LuceneManager.Paused = true)");
 
             using (var op = SnTrace.Index.StartOperation("LUCENEMANAGER SHUTDOWN"))
             {
@@ -717,9 +691,6 @@ namespace SenseNet.Search.Lucene29
 
         internal void CommitOrDelay()
         {
-            if (Paused)
-                return;
-
             var act = _activities;
             if (act == 0 && _delayCycle == 0)
                 return;

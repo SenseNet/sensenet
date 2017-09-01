@@ -19,11 +19,11 @@ namespace SenseNet.Search.Lucene29
 {
     public class BackupTools
     {
-        internal const string BACKUPFILENAME = "IndexBackup.zip";
-        internal const string RECOVEREDFILENAME = "IndexRecovered.zip";
-        internal const string COMPRESSIONROOT = "files";
-        internal const string RESTOREINFOFILENAME = "RestoreInfo.xml";
-        internal const string RESTOREINFOCONTENT = @"<?xml version=""1.0"" encoding=""utf-8""?>
+        private const string BACKUPFILENAME = "IndexBackup.zip";
+        private const string RECOVEREDFILENAME = "IndexRecovered.zip";
+        private const string COMPRESSIONROOT = "files";
+        private const string RESTOREINFOFILENAME = "RestoreInfo.xml";
+        private const string RESTOREINFOCONTENT = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <RestoreInfo>
   <BackupId>{0}</BackupId>
 </RestoreInfo>";
@@ -46,47 +46,8 @@ namespace SenseNet.Search.Lucene29
             _zipFilePath = IO.Path.Combine(_backupDirectoryPath, BACKUPFILENAME);
         }
 
-        /// <summary>
-        /// Asynchronous backup method for GUI purposes.
-        /// </summary>
-        public static void BackupIndex()
-        {
-            EnsureEmptyDirctory(_backupDirectoryPath);
-
-            var activity = new SenseNet.Search.Indexing.Activities.BackupActivity(Environment.MachineName, AppDomain.CurrentDomain.FriendlyName);
-            activity.Distribute();
-            activity.InternalExecuteIndexingActivity();
-        }
-        /// <summary>
-        /// Synchronous backup method for console applications. 
-        /// </summary>
-        public static void SynchronousBackupIndex()
-        {
-            using (var op = SnTrace.Repository.StartOperation("Backup index immediatelly."))
-            {
-                EnsureEmptyDirctory(_backupDirectoryPath);
-                IndexManager.PauseIndexing();
-
-                while (!IndexManager.Paused)
-                {
-                    Thread.Sleep(100);
-                }
-                Thread.Sleep(1000);
-                try
-                {
-                    CopyIndexToBackupDirectory();
-                }
-                finally
-                {
-                    IndexManager.ContinueIndexing();
-                }
-
-                OptimizeCompressAndStore();
-
-                op.Successful = true;
-            }
-        }
-
+        //UNDONE:!!!!! Rename to BackupIndex if any other is deleted
+        //UNDONE:!!!!! Make public
         internal static void BackupIndexImmediatelly() // caller: DocumentPopulator.ClearAndPopulateAll
         {
             using (var op = SnTrace.Repository.StartOperation("Backup index immediatelly."))
@@ -97,13 +58,13 @@ namespace SenseNet.Search.Lucene29
                 op.Successful = true;
             }
         }
-        internal static void CopyIndexToBackupDirectory() // caller: BackupActivity.Execute() (synchron)
+        private static void CopyIndexToBackupDirectory() // caller: BackupActivity.Execute() (synchron)
         {
             var lockPath = StorageContext.Search.IndexLockFilePath;
             var excludedFileList = lockPath == null ? new List<string>(new[] { RestoreInfoPath }) : new List<string>(new[] { RestoreInfoPath, lockPath });
             CopyDirectoryContent(IndexDirectoryPath, _backupDirectoryPath, excludedFileList);
         }
-        internal static void OptimizeCompressAndStore() // caller: BackupIndexImmediatelly (synchron), BackupActivity.Execute() (asynchron)
+        private static void OptimizeCompressAndStore() // caller: BackupIndexImmediatelly (synchron), BackupActivity.Execute() (asynchron)
         {
             try
             {
@@ -121,6 +82,7 @@ namespace SenseNet.Search.Lucene29
             }
         }
 
+        //UNDONE:!!!!! RestoreIndex
         internal static void RestoreIndex(bool force, System.IO.TextWriter consoleOut)
         {
             using (var op = SnTrace.Repository.StartOperation("Restore index."))

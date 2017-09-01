@@ -25,25 +25,11 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         internal InMemoryIndex Index { get; } = new InMemoryIndex();
 
         public bool Running { get; private set; }
-        public bool Paused { get; private set; }
-        public void Pause()
-        {
-            Paused = true;
-        }
-        public void Continue()
-        {
-            Paused = false;
-        }
 
         public void Start(TextWriter consoleOut)
         {
             IndexingActivityQueue.Startup(consoleOut);
             Running = true;
-        }
-
-        public void WaitIfIndexingPaused()
-        {
-            // do nothing
         }
 
         public void ShutDown()

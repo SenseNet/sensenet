@@ -440,15 +440,6 @@ namespace SenseNet.ContentRepository
                 return IndexManager.Running;
             }
         }
-        public static bool IndexingPaused
-        {
-            get
-            {
-                if (_instance == null)
-                    throw new NotSupportedException("Querying pausing state of LuceneManager is not supported when RepositoryInstance is not created.");
-                return StorageContext.Search.SearchEngine.IndexingPaused;
-            }
-        }
 
         internal static bool RestoreIndexOnStartup()
         {

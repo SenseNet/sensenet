@@ -65,7 +65,6 @@
     <Compile Include="DefaultIndexingEngineFactory.cs" />
     <Compile Include="Indexing\Activities\AddDocumentActivity.cs" />
     <Compile Include="Indexing\Activities\AddTreeActivity.cs" />
-    <Compile Include="Indexing\Activities\BackupActivity.cs" />
     <Compile Include="Indexing\Activities\DistributedIndexingActivity.cs" />
     <Compile Include="Indexing\Activities\DocumentIndexingActivity.cs" />
     <Compile Include="Indexing\Activities\IndexingActivityBase.cs" />

@@ -18,25 +18,6 @@ namespace SenseNet.Search
             Lucene.Net.Search.BooleanQuery.SetMaxClauseCount(100000);
         }
 
-        public bool IndexingPaused
-        {
-            get { return IndexManager.Paused; }
-        }
-
-        public void PauseIndexing()
-        {
-            IndexManager.PauseIndexing();
-        }
-        public void ContinueIndexing()
-        {
-            IndexManager.ContinueIndexing();
-        }
-        public void WaitIfIndexingPaused()
-        {
-            IndexManager.WaitIfIndexingPaused();
-        }
-
-
         public IIndexPopulator GetPopulator()
         {
             return new DocumentPopulator();

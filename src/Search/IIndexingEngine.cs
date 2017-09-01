@@ -18,16 +18,14 @@ namespace SenseNet.Search
     public interface IIndexingEngine //UNDONE: Split or not: IIndexActualizator, IIndexingEngine
     {
         bool Running { get; }
-        bool Paused { get; }
-        void Pause();
-        void Continue();
-        void Start(TextWriter consoleOut);
-        void WaitIfIndexingPaused();
-        void ShutDown();
-        void Restart();
 
-        void ActivityFinished();
-        void Commit(int lastActivityId = 0);
+        void Start(TextWriter consoleOut);
+
+        void ShutDown();
+        void Restart(); //UNDONE:!!!!! Remove if possible
+
+        void ActivityFinished(); //UNDONE:!!!!! Remove if possible
+        void Commit(int lastActivityId = 0); //UNDONE:!!!!! Remove if possible
 
         void ClearIndex();
 
@@ -36,8 +34,8 @@ namespace SenseNet.Search
         /// <summary>Only for tests.</summary>
         IEnumerable<IIndexDocument> GetDocumentsByNodeId(int nodeId);
 
-        void Actualize(IEnumerable<SnTerm> deletions, IndexDocument addition, IEnumerable<DocumentUpdate> updates);
-        void Actualize(IEnumerable<SnTerm> deletions, IEnumerable<IndexDocument> addition);
+        void Actualize(IEnumerable<SnTerm> deletions, IndexDocument addition, IEnumerable<DocumentUpdate> updates); //UNDONE: rename to a better choice
+        void Actualize(IEnumerable<SnTerm> deletions, IEnumerable<IndexDocument> addition); //UNDONE: rename to a better choice
     }
 
     public interface IIndexingEngineFactory

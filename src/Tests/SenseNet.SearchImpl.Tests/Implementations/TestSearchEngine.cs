@@ -8,21 +8,6 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 {
     internal class TestSearchEngine : ISearchEngine
     {
-        public bool IndexingPaused => false;
-
-        public void PauseIndexing()
-        {
-            IndexManager.PauseIndexing();
-        }
-        public void ContinueIndexing()
-        {
-            IndexManager.ContinueIndexing();
-        }
-        public void WaitIfIndexingPaused()
-        {
-            IndexManager.WaitIfIndexingPaused();
-        }
-
         public IIndexPopulator GetPopulator()
         {
             return new DocumentPopulator();

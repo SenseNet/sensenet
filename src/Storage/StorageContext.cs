@@ -189,15 +189,8 @@ Debug.WriteLine(String.Format("@> {0} -------- IndexDirectory reset", AppDomain.
             }
             public static ISearchEngineSupport ContentRepository { get; set; }
 
-            public static bool ContentQueryIsAllowed
-            {
-                get
-                {
-                    return IsOuterEngineEnabled &&
-                           SearchEngine != InternalSearchEngine.Instance &&
-                           !SearchEngine.IndexingPaused;
-                }
-            }
+            public static bool ContentQueryIsAllowed => IsOuterEngineEnabled &&
+                                                        SearchEngine != InternalSearchEngine.Instance;
 
             public static bool IsOuterEngineEnabled
             {

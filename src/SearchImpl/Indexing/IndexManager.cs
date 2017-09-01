@@ -24,21 +24,6 @@ namespace SenseNet.Search.Indexing
         }
 
         public static bool Running => IndexingEngine.Running;
-        internal static bool Paused => IndexingEngine.Paused;
-
-        internal static void PauseIndexing()
-        {
-            IndexingEngine.Pause();
-        }
-        internal static void ContinueIndexing()
-        {
-            throw new NotSupportedException("Continue indexing is not supported in this version.");
-        }
-
-        internal static void WaitIfIndexingPaused()
-        {
-            IndexingEngine.WaitIfIndexingPaused();
-        }
 
         public static void Start(IIndexingEngineFactory indexingEngineFactory, TextWriter consoleOut)
         {

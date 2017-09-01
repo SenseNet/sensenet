@@ -2112,8 +2112,6 @@ namespace SenseNet.ContentRepository.Storage
             if (_data != null)
                 _data.SavingTimer.Restart();
 
-            StorageContext.Search.SearchEngine.WaitIfIndexingPaused();
-
             var lockBefore = this.Version == null ? false : this.Version.Status == VersionStatus.Locked;
             if (isNew)
                 CreatingInProgress = true;
@@ -2566,8 +2564,6 @@ namespace SenseNet.ContentRepository.Storage
         }
         private void MoveTo(Node target, long sourceTimestamp, long targetTimestamp)
         {
-            StorageContext.Search.SearchEngine.WaitIfIndexingPaused();
-
             this.AssertLock();
 
             if (target == null)
@@ -2726,8 +2722,6 @@ namespace SenseNet.ContentRepository.Storage
         }
         private static void CopyMoreInternal(IEnumerable<int> nodeList, string targetNodePath, ref List<Exception> errors)
         {
-            StorageContext.Search.SearchEngine.WaitIfIndexingPaused();
-
             var col2 = new List<Node>();
 
             var targetNode = LoadNode(targetNodePath);
@@ -2834,8 +2828,6 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public virtual void CopyTo(Node target, string newName)
         {
-            StorageContext.Search.SearchEngine.WaitIfIndexingPaused();
-
             using (var op = SnTrace.ContentOperation.StartOperation("Node.SaveCopied"))
             {
                 if (target == null)
@@ -3084,8 +3076,6 @@ namespace SenseNet.ContentRepository.Storage
         {
             using (var op = SnTrace.ContentOperation.StartOperation("Node.ForceDelete: Id:{0}, Path:{1}", Id, Path))
             {
-                StorageContext.Search.SearchEngine.WaitIfIndexingPaused();
-
                 this.Security.AssertSubtree(PermissionType.Delete);
 
                 this.AssertLock();
@@ -3238,8 +3228,6 @@ namespace SenseNet.ContentRepository.Storage
         // TODO: need to consider> method based upon the original DeleteInternal, this contains duplicated source code
         private static void DeleteMoreInternal(ICollection<Int32> nodeList, ref List<Exception> errors)
         {
-            StorageContext.Search.SearchEngine.WaitIfIndexingPaused();
-
             if (nodeList == null)
                 throw new ArgumentNullException("nodeList");
             if (nodeList.Count == 0)
