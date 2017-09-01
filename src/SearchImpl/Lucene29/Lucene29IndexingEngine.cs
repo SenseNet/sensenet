@@ -405,7 +405,7 @@ namespace SenseNet.Search.Lucene29
         private void RemoveIndexWriterLockFile(System.IO.TextWriter consoleOut)
         {
             // delete write.lock if necessary
-            var lockFilePath = StorageContext.Search.IndexLockFilePath;
+            var lockFilePath = IndexDirectory.IndexLockFilePath;
             if (lockFilePath == null)
                 return;
 

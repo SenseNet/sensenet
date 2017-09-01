@@ -33,7 +33,7 @@ namespace SenseNet.Search.Lucene29
 
         private static string IndexDirectoryPath
         {
-            get { return SenseNet.ContentRepository.Storage.IndexDirectory.CurrentDirectory; }
+            get { return IndexDirectory.CurrentDirectory; }
         }
         private static string RestoreInfoPath
         {
@@ -58,7 +58,7 @@ namespace SenseNet.Search.Lucene29
         }
         private static void CopyIndexToBackupDirectory()
         {
-            var lockPath = StorageContext.Search.IndexLockFilePath;
+            var lockPath = IndexDirectory.IndexLockFilePath;
             var excludedFileList = lockPath == null ? new List<string>(new[] { RestoreInfoPath }) : new List<string>(new[] { RestoreInfoPath, lockPath });
             CopyDirectoryContent(IndexDirectoryPath, _backupDirectoryPath, excludedFileList);
         }
@@ -96,11 +96,11 @@ namespace SenseNet.Search.Lucene29
                     RecoverIndexBackupFromDb(recoveredZipPath);
                     DecompressTheIndex(recoveredZipPath, _backupDirectoryPath);
 
-                    var dir = SenseNet.ContentRepository.Storage.IndexDirectory.CreateNew();
+                    var dir = IndexDirectory.CreateNew();
                     MoveDirectoryContent(recoveredFilesPath, dir);
                     SaveBackupIdToFile(lastIdFromDb, IO.Path.Combine(dir, RESTOREINFOFILENAME));
-                    SenseNet.ContentRepository.Storage.IndexDirectory.Reset();
-                    SenseNet.ContentRepository.Storage.IndexDirectory.RemoveUnnecessaryDirectories();
+                    IndexDirectory.Reset();
+                    IndexDirectory.RemoveUnnecessaryDirectories();
 
                     if (consoleOut != null)
                     {
