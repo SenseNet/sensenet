@@ -73,7 +73,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="HttpHelper.cs" />
-    <Compile Include="PortalAuthenticationModuleTests.cs" />
+    <Compile Include="TokenAuthenticationTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -87,6 +87,10 @@
     <ProjectReference Include="..\..\Services\Services.csproj">
       <Project>{b72529c8-feb1-49f5-b08b-56055b58f296}</Project>
       <Name>Services</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Storage\Storage.csproj">
+      <Project>{5DB4DDBA-81F6-4D81-943A-18F3178B3355}</Project>
+      <Name>Storage</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
