@@ -13,7 +13,7 @@ using SenseNet.SearchImpl.Tests.Implementations;
 namespace SenseNet.SearchImpl.Tests
 {
     [TestClass]
-    public class SnSarchToLucene29CompilerTests
+    public class SnSearchToLucene29CompilerTests
     {
         [TestMethod] // 38 tests
         public void Search_Compiler_Luc29_OriginalTests()
