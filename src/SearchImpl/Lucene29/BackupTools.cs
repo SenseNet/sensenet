@@ -46,9 +46,7 @@ namespace SenseNet.Search.Lucene29
             _zipFilePath = IO.Path.Combine(_backupDirectoryPath, BACKUPFILENAME);
         }
 
-        //UNDONE:!!!!! Rename to BackupIndex if any other is deleted
-        //UNDONE:!!!!! Make public
-        internal static void BackupIndexImmediatelly() // caller: DocumentPopulator.ClearAndPopulateAll
+        public static void BackupIndex()
         {
             using (var op = SnTrace.Repository.StartOperation("Backup index immediatelly."))
             {
@@ -58,13 +56,13 @@ namespace SenseNet.Search.Lucene29
                 op.Successful = true;
             }
         }
-        private static void CopyIndexToBackupDirectory() // caller: BackupActivity.Execute() (synchron)
+        private static void CopyIndexToBackupDirectory()
         {
             var lockPath = StorageContext.Search.IndexLockFilePath;
             var excludedFileList = lockPath == null ? new List<string>(new[] { RestoreInfoPath }) : new List<string>(new[] { RestoreInfoPath, lockPath });
             CopyDirectoryContent(IndexDirectoryPath, _backupDirectoryPath, excludedFileList);
         }
-        private static void OptimizeCompressAndStore() // caller: BackupIndexImmediatelly (synchron), BackupActivity.Execute() (asynchron)
+        private static void OptimizeCompressAndStore()
         {
             try
             {
