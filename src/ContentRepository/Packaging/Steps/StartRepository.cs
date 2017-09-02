@@ -24,7 +24,6 @@ namespace SenseNet.Packaging.Steps
 
         public string PluginsPath { get; set; }
         public string IndexPath { get; set; }
-        public bool RestoreIndex { get; set; }
         public bool StartWorkflowEngine { get; set; }
 
         public override void Execute(ExecutionContext context)
@@ -55,7 +54,6 @@ namespace SenseNet.Packaging.Steps
                 StartLuceneManager = startLuceneManager,
                 PluginsPath = PluginsPath ?? context.SandboxPath,
                 IndexPath = indexPath,
-                RestoreIndex = RestoreIndex,
                 StartWorkflowEngine = StartWorkflowEngine
             });
 

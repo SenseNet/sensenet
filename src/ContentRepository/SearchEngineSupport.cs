@@ -10,11 +10,6 @@ namespace SenseNet.ContentRepository
 {
     internal class SearchEngineSupport : ISearchEngineSupport
     {
-        public bool RestoreIndexOnstartup()
-        {
-            return RepositoryInstance.RestoreIndexOnStartup();
-        }
-
         public int[] GetNotIndexedNodeTypeIds()
         {
             return new AllContentTypes()

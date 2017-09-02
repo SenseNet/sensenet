@@ -493,44 +493,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected internal abstract IEnumerable<int> GetIdsOfNodesThatDoNotHaveIndexDocument(int fromId, int toId);
 
-        // ====================================================== Index backup / restore operations
-
-        internal static Guid StoreIndexBackupToDb(string backupFilePath)
-        {
-            var lastBackup = Current.LoadLastBackup();
-            var backupNumber = lastBackup?.BackupNumber + 1 ?? 1;
-            var backup = Current.CreateBackup(backupNumber);
-            Current.StoreBackupStream(backupFilePath, backup);
-            Current.SetActiveBackup(backup, lastBackup);
-            return backup.RowGuid; // backup.BackupNumber;
-        }
-        protected internal abstract IndexBackup LoadLastBackup();
-        protected internal abstract IndexBackup CreateBackup(int backupNumber);
-        protected internal abstract void StoreBackupStream(string backupFilePath, IndexBackup backup);
-        protected internal abstract void SetActiveBackup(IndexBackup backup, IndexBackup lastBackup);
-
-        internal static void DeleteUnnecessaryBackups()
-        {
-            Current.KeepOnlyLastIndexBackup();
-        }
-        protected abstract void KeepOnlyLastIndexBackup();
-
-        // ------------------------------------------------------
-
-        internal static Guid GetLastStoredBackupNumber()
-        {
-            return Current.GetLastIndexBackupNumber();
-        }
-        protected abstract Guid GetLastIndexBackupNumber();
-
-        // ------------------------------------------------------
-
-        internal static IndexBackup RecoverIndexBackupFromDb(string backupFilePath)
-        {
-            return Current.RecoverIndexBackup(backupFilePath);
-        }
-        protected abstract IndexBackup RecoverIndexBackup(string backupFilePath);
-
         // ====================================================== Indexing activity operations
 
         public abstract IIndexingActivity[] LoadIndexingActivities(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory);

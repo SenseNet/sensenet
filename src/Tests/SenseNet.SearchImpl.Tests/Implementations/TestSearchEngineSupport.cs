@@ -20,11 +20,6 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             _indexingInfos = indexingInfos;
         }
 
-        public bool RestoreIndexOnstartup()
-        {
-            throw new NotSupportedException();
-        }
-
         public int[] GetNotIndexedNodeTypeIds()
         {
             throw new NotSupportedException();

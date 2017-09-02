@@ -200,9 +200,6 @@ namespace SenseNet.Search.Lucene29
             var y = Lucene.Net.Documents.Field.Store.NO;
             var z = Lucene.Net.Documents.Field.TermVector.NO;
 
-            if (StorageContext.Search.ContentRepository.RestoreIndexOnstartup())
-                BackupTools.RestoreIndex(false, consoleOut);
-
             CreateWriterAndReader();
 
             IndexingActivityQueue.Startup(consoleOut);

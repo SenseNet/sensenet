@@ -20,7 +20,6 @@ namespace SenseNet.ContentRepository
         {
             private new bool _isWebContext;
             private new bool _startLuceneManager;
-            private new bool _restoreIndex;
             private new bool _startWorkflowEngine;
             private new string _pluginsPath;
             private new string _indexPath;
@@ -32,10 +31,6 @@ namespace SenseNet.ContentRepository
             /// Gets a value that is 'true' if your tool uses the Content search and any modification features (e.g. save, move etc.). 'True' is the default.
             /// </summary>
             public new bool StartLuceneManager { get { return _startLuceneManager; } }
-            /// <summary>
-            /// Gets a value that is 'true' if your tool needs a fresh index in the startup time. 'True' is the default. If StartLuceneManager = false, value of this property is irrelevant.
-            /// </summary>
-            public new bool RestoreIndex { get { return _restoreIndex; } }
             /// <summary>
             /// Gets or sets a value that is 'true' if your tool enables the running of workflow engine. 'True' is the default.
             /// </summary>
@@ -66,7 +61,6 @@ namespace SenseNet.ContentRepository
             {
                 _isWebContext = settings._isWebContext;
                 _startLuceneManager = settings.StartLuceneManager;
-                _restoreIndex = Indexing.RestoreIndex.HasValue ? Indexing.RestoreIndex.Value : settings.RestoreIndex;
                 _startWorkflowEngine = settings.StartWorkflowEngine;
                 _console = settings.Console;
                 _pluginsPath = settings.PluginsPath;
@@ -89,7 +83,6 @@ namespace SenseNet.ContentRepository
 
         private bool _isWebContext = false;
         private bool _startLuceneManager = true;
-        private bool _restoreIndex = true;
         private bool _startWorkflowEngine = true;
         private string _pluginsPath;
         private string _indexPath;
@@ -111,14 +104,6 @@ namespace SenseNet.ContentRepository
         {
             get { return _startLuceneManager; }
             set { _startLuceneManager = value; }
-        }
-        /// <summary>
-        /// Gets or sets a value that is 'true' if your tool needs a fresh index in the startup time. 'True' is the default. If StartLuceneManager = false, value of this property is irrelevant.
-        /// </summary>
-        public virtual bool RestoreIndex
-        {
-            get { return _restoreIndex; }
-            set { _restoreIndex = value; }
         }
         /// <summary>
         /// Gets or sets a value that is 'true' if your tool enables the running of workflow engine. 'True' is the default.

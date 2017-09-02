@@ -76,7 +76,6 @@
     <Compile Include="Indexing\CustomIndexFieldManager.cs" />
     <Compile Include="Indexing\IndexDocumentProvider.cs" />
     <Compile Include="Indexing\IndexingActivityQueue.cs" />
-    <Compile Include="Lucene29\BackupTools.cs" />
     <Compile Include="Indexing\DocumentPopulator.cs" />
     <Compile Include="Indexing\EnumConverter.cs" />
     <Compile Include="Indexing\ExplicitPerFieldIndexingInfo.cs" />

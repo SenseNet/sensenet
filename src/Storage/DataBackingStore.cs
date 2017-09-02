@@ -760,25 +760,5 @@ namespace SenseNet.ContentRepository.Storage
                 VersionTimestamp = node.VersionTimestamp
             };
         }
-
-        // ====================================================================== Index backup / restore operations
-
-        public static Guid StoreIndexBackupToDb(string backupFilePath)
-        {
-            return DataProvider.StoreIndexBackupToDb(backupFilePath);
-        }
-        public static void RecoverIndexBackupFromDb(string backupFilePath)
-        {
-            DataProvider.RecoverIndexBackupFromDb(backupFilePath);
-        }
-        public static Guid GetLastStoredBackupNumber()
-        {
-            return DataProvider.GetLastStoredBackupNumber();
-        }
-        public static void DeleteUnnecessaryBackups()
-        {
-            DataProvider.DeleteUnnecessaryBackups();
-        }
-
     }
 }

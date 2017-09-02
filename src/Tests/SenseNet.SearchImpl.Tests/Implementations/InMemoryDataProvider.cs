@@ -316,11 +316,6 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        protected internal override IndexBackup CreateBackup(int backupNumber)
-        {
-            throw new NotImplementedException();
-        }
-
         protected internal override IDataProcedure CreateDataProcedureInternal(string commandText, ConnectionInfo connectionInfo)
         {
             throw new NotImplementedException();
@@ -424,11 +419,6 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             throw new NotImplementedException();
         }
-
-        protected override Guid GetLastIndexBackupNumber()
-        {
-            throw new NotImplementedException();
-        }
         #endregion
 
         protected internal override NodeHead.NodeVersion[] GetNodeVersions(int nodeId)
@@ -496,14 +486,6 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             return false;
         }
-
-        #region NOT IMPLEMENTED
-
-        protected override void KeepOnlyLastIndexBackup()
-        {
-            throw new NotImplementedException();
-        }
-        #endregion
 
         protected internal override BinaryCacheEntity LoadBinaryCacheEntity(int nodeVersionId, int propertyTypeId)
         {
@@ -667,15 +649,6 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
             return result;
         }
-
-        #region NOT IMPLEMENTED
-
-        protected internal override IndexBackup LoadLastBackup()
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
 
         protected internal override NodeHead LoadNodeHead(int nodeId)
         {
@@ -850,11 +823,6 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             throw new NotImplementedException();
         }
-
-        protected override IndexBackup RecoverIndexBackup(string backupFilePath)
-        {
-            throw new NotImplementedException();
-        }
         #endregion
 
         protected internal override void ReleaseTreeLock(int[] lockIds)
@@ -870,21 +838,11 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        protected internal override void SetActiveBackup(IndexBackup backup, IndexBackup lastBackup)
-        {
-            throw new NotImplementedException();
-        }
-
         protected internal override string StartChunk(int versionId, int propertyTypeId, long fullSize)
         {
             throw new NotImplementedException();
         }
         #endregion
-
-        protected internal override void StoreBackupStream(string backupFilePath, IndexBackup backup)
-        {
-            throw new NotImplementedException();
-        }
 
         protected internal override void UpdateIndexDocument(int versionId, byte[] indexDocumentBytes)
         {

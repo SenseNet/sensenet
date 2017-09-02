@@ -110,7 +110,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         public static int IndexHistoryItemLimit => Indexing.IndexHistoryItemLimit;
         public static double CommitDelayInSeconds => Indexing.CommitDelayInSeconds;
         public static int DelayedCommitCycleMaxCount => Indexing.DelayedCommitCycleMaxCount;
-        public static string IndexBackupCreatorId => Indexing.IndexBackupCreatorId;
 
         #endregion
 

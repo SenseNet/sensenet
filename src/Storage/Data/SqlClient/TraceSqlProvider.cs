@@ -219,41 +219,6 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             WriteLog(MethodBase.GetCurrentMethod());
             return base.GetIdsOfNodesThatDoNotHaveIndexDocument(fromId, toId);
         }
-        protected internal override IndexBackup LoadLastBackup()
-        {
-            WriteLog(MethodBase.GetCurrentMethod());
-            return base.LoadLastBackup();
-        }
-        protected internal override IndexBackup CreateBackup(int backupNumber)
-        {
-            WriteLog(MethodBase.GetCurrentMethod(), backupNumber);
-            return base.CreateBackup(backupNumber);
-        }
-        protected internal override void StoreBackupStream(string backupFilePath, IndexBackup backup)
-        {
-            WriteLog(MethodBase.GetCurrentMethod(), backupFilePath, backup);
-            base.StoreBackupStream(backupFilePath, backup);
-        }
-        protected internal override void SetActiveBackup(IndexBackup backup, IndexBackup lastBackup)
-        {
-            WriteLog(MethodBase.GetCurrentMethod(), backup, lastBackup);
-            base.SetActiveBackup(backup, lastBackup);
-        }
-        protected override void KeepOnlyLastIndexBackup()
-        {
-            WriteLog(MethodBase.GetCurrentMethod());
-            base.KeepOnlyLastIndexBackup();
-        }
-        protected override Guid GetLastIndexBackupNumber()
-        {
-            WriteLog(MethodBase.GetCurrentMethod());
-            return base.GetLastIndexBackupNumber();
-        }
-        protected override IndexBackup RecoverIndexBackup(string backupFilePath)
-        {
-            WriteLog(MethodBase.GetCurrentMethod(), backupFilePath);
-            return base.RecoverIndexBackup(backupFilePath);
-        }
         public override int GetLastActivityId()
         {
             WriteLog(MethodBase.GetCurrentMethod());

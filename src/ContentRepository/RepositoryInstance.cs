@@ -441,13 +441,6 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        internal static bool RestoreIndexOnStartup()
-        {
-            if (_instance == null)
-                return true;
-            return _instance._settings.RestoreIndex;
-        }
-
         // ======================================== IDisposable
         private bool _disposed;
         public void Dispose()

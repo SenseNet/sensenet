@@ -66,10 +66,6 @@ namespace SenseNet.ContentRepository.Storage
             {
                 get { return Instance.IndexDirectoryPath; }
             }
-            public static string IndexDirectoryBackupPath
-            {
-                get { return Instance.IndexDirectoryBackupPath; }
-            }
             public static void EnableOuterEngine()
             {
                 if (false == Indexing.IsOuterSearchEngineEnabled)
@@ -160,21 +156,6 @@ namespace SenseNet.ContentRepository.Storage
             set
             {
                 __indexDirectoryPath = value;
-            }
-        }
-
-        private string __indexDirectoryBackupPath;
-        private string IndexDirectoryBackupPath
-        {
-            get
-            {
-                if (__indexDirectoryBackupPath == null)
-                    __indexDirectoryBackupPath = Indexing.IndexDirectoryBackupPath; //UNDONE:!!!!!! :() 
-                return __indexDirectoryBackupPath;
-            }
-            set
-            {
-                __indexDirectoryBackupPath = value;
             }
         }
 
