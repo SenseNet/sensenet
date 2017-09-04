@@ -16,7 +16,7 @@ namespace SenseNet.Search.Indexing
     /// </summary>
     public static class IndexingTools
     {
-        /*done*/public static void AddTextExtract(int versionId, string textExtract)
+        public static void AddTextExtract(int versionId, string textExtract)
         {
             // 1: load indexDocument.
             var docData = StorageContext.Search.LoadIndexDocumentByVersionId(versionId);

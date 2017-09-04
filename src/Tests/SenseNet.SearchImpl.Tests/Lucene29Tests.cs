@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Lucene.Net.Index;
+using Lucene.Net.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Security;
@@ -39,19 +40,45 @@ namespace SenseNet.SearchImpl.Tests
         [TestMethod]
         public void L29_ClearAndPopulateAll()
         {
-            Assert.Inconclusive();
+            var sb = new StringBuilder();
+            IIndexingActivity[] activities;
+            var result = L29Test(s =>
+            {
+                SaveInitialIndexDocuments();
 
-            var console = new StringWriter();
+                var paths = new List<string>();
+                var populator = StorageContext.Search.SearchEngine.GetPopulator();
+                populator.NodeIndexed += (sender, e) => { paths.Add(e.Path); };
 
-            var result =
-                L29Test(s =>
+                // ACTION
+                using (var console = new StringWriter(sb))
+                    populator.ClearAndPopulateAll(console);
+
+                // load last indexing activity
+                var db = DataProvider.Current;
+                var activityId = db.GetLastActivityId();
+                activities = db.LoadIndexingActivities(1, activityId, 10000, false, IndexingActivityFactory.Instance);
+
+                int[] nodeIds, versionIds;
+                GetIdValues(out nodeIds, out versionIds);
+                return new[]
                 {
-                    StorageContext.Search.SearchEngine.GetPopulator().ClearAndPopulateAll(console);
-                    return new Tuple<string, string>(IndexDirectory.CurrentDirectory, s);
-                });
-            var indx = result.Item1;
+                    activities.Length,
+                    DataProvider.GetNodeCount(),
+                    DataProvider.GetVersionCount(),
+                    nodeIds.Length,
+                    versionIds.Length
+                };
+            });
+            var activityCount = result[0];
+            var nodeCount = result[1];
+            var versionCount = result[2];
+            var nodeIdTermCount = result[3];
+            var versionIdTermCount = result[4];
 
-            Assert.IsNotNull(indx);
+            Assert.AreEqual(0, activityCount);
+            Assert.AreEqual(nodeCount, nodeIdTermCount);
+            Assert.AreEqual(versionCount, versionIdTermCount);
         }
 
         // =======================================================================================
@@ -95,6 +122,30 @@ namespace SenseNet.SearchImpl.Tests
             }
         }
 
+        private void GetIdValues(out int[] nodeIds, out int[] versionIds)
+        {
+            var nodeIdList = new List<int>();
+            var versionIdLists = new List<int>();
+            using (var rf = IndexReaderFrame.GetReaderFrame())
+            {
+                var reader = rf.IndexReader;
+                for (var d = 0; d < reader.NumDocs(); d++)
+                {
+                    var doc = reader.Document(d);
+
+                    var nodeIdString = doc.Get(IndexFieldName.NodeId);
+                    if (!string.IsNullOrEmpty(nodeIdString))
+                        nodeIdList.Add(int.Parse(nodeIdString));
+
+                    var versionIdString = doc.Get(IndexFieldName.VersionId);
+                    if (!string.IsNullOrEmpty(versionIdString))
+                        versionIdLists.Add(int.Parse(versionIdString));
+                }
+            }
+            nodeIds = nodeIdList.ToArray();
+            versionIds = versionIdLists.ToArray();
+        }
+
         public void EnsureEmptyIndexDirectory()
         {
             var path = StorageContext.Search.IndexDirectoryPath;
@@ -128,6 +179,7 @@ namespace SenseNet.SearchImpl.Tests
                 }
             }
         }
+
 
     }
 }

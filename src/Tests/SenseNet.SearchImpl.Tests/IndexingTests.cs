@@ -467,8 +467,6 @@ namespace SenseNet.SearchImpl.Tests
         [TestMethod]
         public void Indexing_ClearAndPopulateAll()
         {
-            //Assert.Inconclusive();
-
             var sb = new StringBuilder();
             IIndexingActivity[] activities;
             var result = Test(() =>
@@ -507,20 +505,6 @@ namespace SenseNet.SearchImpl.Tests
 
             Assert.AreEqual(nodeCountInDb, nodeCountInIndex);
             Assert.AreEqual(versionCountInDb, versionCountInIndex);
-        }
-        private void SaveInitialIndexDocuments()
-        {
-            var idSet = DataProvider.LoadIdsOfNodesThatDoNotHaveIndexDocument(0, 1100);
-            var nodes = Node.LoadNodes(idSet);
-
-            if (nodes.Count == 0)
-                return;
-
-            foreach (var node in nodes)
-            {
-                bool hasBinary;
-                DataBackingStore.SaveIndexDocument(node, false, false, out hasBinary);
-            }
         }
 
         /* ============================================================================ */

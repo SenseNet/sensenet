@@ -71,5 +71,20 @@ namespace SenseNet.SearchImpl.Tests
             SecurityHandler.StartSecurity(false, securityDataProvider, new DefaultMessageProvider());
         }
 
+        protected void SaveInitialIndexDocuments()
+        {
+            var idSet = DataProvider.LoadIdsOfNodesThatDoNotHaveIndexDocument(0, 1100);
+            var nodes = Node.LoadNodes(idSet);
+
+            if (nodes.Count == 0)
+                return;
+
+            foreach (var node in nodes)
+            {
+                bool hasBinary;
+                DataBackingStore.SaveIndexDocument(node, false, false, out hasBinary);
+            }
+        }
+
     }
 }

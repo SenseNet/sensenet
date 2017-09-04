@@ -18,17 +18,17 @@ namespace SenseNet.ContentRepository.Storage.Data
             get
             {
                 if (_indexDocument == null)
-                    _indexDocument = IndexDocument.Deserialize(_indexDocumentBytes);
+                    _indexDocument = IndexDocument.Deserialize(_serializedIndexDocument);
                 return _indexDocument;
             }
         }
 
-        private byte[] _indexDocumentBytes;
+        private byte[] _serializedIndexDocument;
         public byte[] SerializedIndexDocument
         {
             get
             {
-                if (_indexDocumentBytes == null)
+                if (_serializedIndexDocument == null)
                 {
                     using (var docStream = new MemoryStream())
                     {
@@ -36,10 +36,10 @@ namespace SenseNet.ContentRepository.Storage.Data
                         formatter.Serialize(docStream, _indexDocument);
                         docStream.Flush();
                         IndexDocumentSize = docStream.Length;
-                        _indexDocumentBytes = docStream.GetBuffer();
+                        _serializedIndexDocument = docStream.GetBuffer();
                     }
                 }
-                return _indexDocumentBytes;
+                return _serializedIndexDocument;
             }
         }
         public long? IndexDocumentSize { get; set; }
@@ -58,12 +58,12 @@ namespace SenseNet.ContentRepository.Storage.Data
         public IndexDocumentData(IndexDocument indexDocument, byte[] indexDocumentBytes)
         {
             _indexDocument = indexDocument;
-            _indexDocumentBytes = indexDocumentBytes;
+            _serializedIndexDocument = indexDocumentBytes;
         }
 
         public void IndexDocumentChanged()
         {
-            _indexDocumentBytes = null;
+            _serializedIndexDocument = null;
         }
     }
 }

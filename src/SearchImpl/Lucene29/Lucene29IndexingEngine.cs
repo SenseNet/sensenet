@@ -551,8 +551,50 @@ namespace SenseNet.Search.Lucene29
 
         private Document GetDocument(IIndexDocument snDoc)
         {
-            throw new NotImplementedException(); //UNDONE:!!!! implement GetDocument(IndexDocument snDoc):Document
+            var doc = new Document();
+            foreach (var indexField in snDoc)
+                AddFieldToDocument(indexField, doc);
+            return doc;
         }
+
+        private void AddFieldToDocument(IndexField indexField, Document doc)
+        {
+            var name = indexField.Name;
+            var store = EnumConverter.ToLuceneIndexStoringMode(indexField.Store);
+            var mode = EnumConverter.ToLuceneIndexingMode(indexField.Mode);
+            var termVect = EnumConverter.ToLuceneIndexTermVector(indexField.TermVector);
+            switch (indexField.Type)
+            {
+                case SnTermType.String:
+                    doc.Add(new Field(name, indexField.StringValue, store, mode, termVect));
+                    break;
+                case SnTermType.StringArray:
+                    foreach(var item in indexField.StringArrayValue)
+                        doc.Add(new Field(name, item, store, mode, termVect));
+                    break;
+                case SnTermType.Bool:
+                    doc.Add(new Field(name, indexField.BooleanValue ? StorageContext.Search.Yes : StorageContext.Search.No, store, mode, termVect));
+                    break;
+                case SnTermType.Int:
+                    doc.Add(new NumericField(name, store, indexField.Mode != IndexingMode.No).SetIntValue(indexField.IntegerValue));
+                    break;
+                case SnTermType.Long:
+                    doc.Add(new NumericField(name, store, indexField.Mode != IndexingMode.No).SetLongValue(indexField.LongValue));
+                    break;
+                case SnTermType.Float:
+                    doc.Add(new NumericField(name, store, indexField.Mode != IndexingMode.No).SetFloatValue(indexField.SingleValue));
+                    break;
+                case SnTermType.Double:
+                    doc.Add(new NumericField(name, store, indexField.Mode != IndexingMode.No).SetDoubleValue(indexField.DoubleValue));
+                    break;
+                case SnTermType.DateTime:
+                    doc.Add(new NumericField(name, store, indexField.Mode != IndexingMode.No).SetLongValue(indexField.DateTimeValue.Ticks));
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException($"Unknown SnTermType: {indexField.Type}");
+            }
+        }
+
 
         /* ============================================================================================= */
 
