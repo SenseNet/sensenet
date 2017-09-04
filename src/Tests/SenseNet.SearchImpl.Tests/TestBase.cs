@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Security;
@@ -10,6 +11,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
+using SenseNet.Search.Lucene29;
 using SenseNet.SearchImpl.Tests.Implementations;
 using SenseNet.Security;
 using SenseNet.Security.Data;
@@ -17,32 +19,9 @@ using SenseNet.Security.Messaging;
 
 namespace SenseNet.SearchImpl.Tests
 {
+    [TestClass]
     public class TestBase
     {
-        protected T L29Test<T>(Func<string, T> callback)
-        {
-            TypeHandler.Initialize(new Dictionary<Type, Type[]>
-            {
-                {typeof(ElevatedModificationVisibilityRule), new[] {typeof(SnElevatedModificationVisibilityRule)}}
-            });
-
-            var dataProvider = new InMemoryDataProvider();
-            StartSecurity(dataProvider);
-
-            DistributedApplication.Cache.Reset();
-
-            var indxManConsole = new StringWriter();
-
-            using (Tools.Swindle(typeof(StorageContext.Search), "ContentRepository", new SearchEngineSupport()))
-            using (Tools.Swindle(typeof(AccessProvider), "_current", new DesktopAccessProvider()))
-            using (Tools.Swindle(typeof(DataProvider), "_current", dataProvider))
-            using (new SystemAccount())
-            {
-                CommonComponents.TransactionFactory = dataProvider;
-                IndexManager.Start(new DefaultIndexingEngineFactory(), indxManConsole);
-                return callback(indxManConsole.ToString());
-            }
-        }
 
         protected T Test<T>(Func<T> callback)
         {
@@ -68,7 +47,7 @@ namespace SenseNet.SearchImpl.Tests
             }
         }
 
-        private void StartSecurity(InMemoryDataProvider repo)
+        protected void StartSecurity(InMemoryDataProvider repo)
         {
             var securityDataProvider = new MemoryDataProvider(new DatabaseStorage
             {

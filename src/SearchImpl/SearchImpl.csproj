@@ -115,6 +115,7 @@
     <Compile Include="QueryExecutors\SqlQueryExecutor.cs" />
     <Compile Include="RichTextStripper.cs" />
     <Compile Include="SafeQueries.cs" />
+    <Compile Include="SafeQueriesInternal.cs" />
     <Compile Include="SearchProvider.cs" />
     <Compile Include="SnCollector.cs" />
     <Compile Include="SnIFilter.cs" />

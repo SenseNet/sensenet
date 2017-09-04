@@ -168,6 +168,15 @@ namespace SenseNet.Search.Lucene29
 
         public bool Running { get; private set; }
 
+        public Lucene29IndexingEngine()
+        {
+            
+        }
+        public Lucene29IndexingEngine(TimeSpan forceReopenFrequency)
+        {
+            _forceReopenFrequency = forceReopenFrequency;
+        }
+
         private object _startSync = new object();
         public void Start(System.IO.TextWriter consoleOut)
         {
@@ -217,7 +226,7 @@ namespace SenseNet.Search.Lucene29
 
         private void Warmup()
         {
-            var idList = ((LuceneSearchEngine)StorageContext.Search.SearchEngine).Execute("+Id:1");
+            var result = ContentQuery_NEW.Query(SafeQueriesInternal.ContentById, QuerySettings.AdminSettings, 1);
         }
 
         public void ShutDown()
@@ -238,10 +247,8 @@ namespace SenseNet.Search.Lucene29
                     {
                         using (var wrFrame = IndexWriterFrame.Get(true)) // // ShutDown
                         {
-                            if (_reader != null)
-                                _reader.Close();
-                            if (_writer != null)
-                                _writer.Close();
+                            _reader?.Close();
+                            _writer?.Close();
                             Running = false;
                         }
                         op2.Successful = true;
@@ -272,7 +279,15 @@ namespace SenseNet.Search.Lucene29
 
         public void ClearIndex()
         {
-            throw new NotImplementedException(); //UNDONE: ClearIndex: new IndexWriter(createNew)?
+            _reader?.Close();
+            _writer?.Close();
+
+            var dir = FSDirectory.Open(new System.IO.DirectoryInfo(IndexDirectory.CurrentOrDefaultDirectory));
+            var writer = new IndexWriter(dir, GetAnalyzer(), true, IndexWriter.MaxFieldLength.UNLIMITED);
+            writer.Commit();
+            writer.Close();
+
+            CreateWriterAndReader();
         }
 
         public IIndexingActivityStatus ReadActivityStatusFromIndex()
@@ -649,7 +664,9 @@ namespace SenseNet.Search.Lucene29
 
         private void CreateWriterAndReader()
         {
-            var directory = FSDirectory.Open(new System.IO.DirectoryInfo(IndexDirectory.CurrentDirectory));
+            var path = IndexDirectory.CurrentDirectory;
+            var directory = FSDirectory.Open(new System.IO.DirectoryInfo(path));
+            EnsureIndex(path);
 
             _writer = new IndexWriter(directory, GetAnalyzer(), false, IndexWriter.MaxFieldLength.LIMITED);
 
@@ -658,6 +675,17 @@ namespace SenseNet.Search.Lucene29
             _writer.SetRAMBufferSizeMB(SenseNet.Configuration.Indexing.LuceneRAMBufferSizeMB);
             _reader = _writer.GetReader();
         }
+        private void EnsureIndex(string path)
+        {
+            // new IndexWriter(createNew = false) cannot be created if the directory is empty
+            if (System.IO.Directory.GetFiles(path).Any())
+                return;
+            var dir = FSDirectory.Open(new System.IO.DirectoryInfo(IndexDirectory.CurrentOrDefaultDirectory));
+            var writer = new IndexWriter(dir, GetAnalyzer(), true, IndexWriter.MaxFieldLength.UNLIMITED);
+            writer.Commit();
+            writer.Close();
+        }
+
         internal static Analyzer GetAnalyzer()
         {
             var defaultAnalyzer = new KeywordAnalyzer();

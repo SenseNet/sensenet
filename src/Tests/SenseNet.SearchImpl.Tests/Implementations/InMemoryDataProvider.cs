@@ -18,7 +18,7 @@ using SenseNet.Security;
 
 namespace SenseNet.SearchImpl.Tests.Implementations
 {
-    internal partial class InMemoryDataProvider : DataProvider
+    public partial class InMemoryDataProvider : DataProvider
     {
         #region NOT IMPLEMENTED
 
@@ -1121,6 +1121,9 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             {
                 // do nothing
             }
+
+            /*============================================================================ Node Insert/Update */
+
             public void InsertNodeAndVersionRows(NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId)
             {
                 var newNodeId = _db.Nodes.Max(r => r.NodeId) + 1;
@@ -1178,6 +1181,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                 nodeData.NodeTimestamp = nodeTimeStamp;
                 nodeData.VersionTimestamp = versionTimestamp;
             }
+
             public void UpdateSubTreePath(string oldPath, string newPath)
             {
                 var oldPathExt = oldPath + "/";
@@ -1185,7 +1189,6 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                 foreach (var nodeRow in _db.Nodes.Where(n => n.Path.StartsWith(oldPathExt)))
                     nodeRow.Path = nodeRow.Path.Replace(oldPathExt, newPathExt);
             }
-
             public void UpdateNodeRow(NodeData nodeData)
             {
                 var nodeId = nodeData.Id;
@@ -1221,6 +1224,8 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                 nodeRec.OwnerId = nodeData.OwnerId;
                 nodeRec.SavingState = nodeData.SavingState;
             }
+
+            /*============================================================================ Version Insert/Update */
 
             public void UpdateVersionRow(NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId)
             {
@@ -1270,6 +1275,9 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             {
                 throw new NotImplementedException();
             }
+
+            // ============================================================================ Property Insert/Update
+
             public void SaveStringProperty(int versionId, PropertyType propertyType, string value)
             {
                 //TODO:! InMemoryDataProvider: dynamic property not supported
@@ -1286,7 +1294,6 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             {
                 //TODO:! InMemoryDataProvider: dynamic property not supported
             }
-
             public void SaveTextProperty(int versionId, PropertyType propertyType, bool isLoaded, string value)
             {
                 //TODO:! InMemoryDataProvider: dynamic property not supported
@@ -1295,6 +1302,8 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             {
                 //TODO:! InMemoryDataProvider: dynamic property not supported
             }
+
+
             public void InsertBinaryProperty(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
             {
                 //TODO:! InMemoryDataProvider: dynamic property not supported

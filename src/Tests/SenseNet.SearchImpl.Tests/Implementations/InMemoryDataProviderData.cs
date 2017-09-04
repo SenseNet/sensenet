@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SenseNet.SearchImpl.Tests.Implementations
 {
-    internal partial class InMemoryDataProvider
+    public partial class InMemoryDataProvider
     {
         // Readme: Getting data
         //
