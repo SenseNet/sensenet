@@ -31,7 +31,7 @@ namespace SenseNet.Search
         IIndexingActivityStatus ReadActivityStatusFromIndex();
 
         /// <summary>Only for tests.</summary>
-        IEnumerable<IIndexDocument> GetDocumentsByNodeId(int nodeId);
+        IEnumerable<IndexDocument> GetDocumentsByNodeId(int nodeId);
 
         void Actualize(IEnumerable<SnTerm> deletions, IndexDocument addition, IEnumerable<DocumentUpdate> updates); //UNDONE: rename to a better choice
         void Actualize(IEnumerable<SnTerm> deletions, IEnumerable<IndexDocument> addition); //UNDONE: rename to a better choice

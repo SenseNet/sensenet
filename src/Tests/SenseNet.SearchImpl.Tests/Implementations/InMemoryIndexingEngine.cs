@@ -57,7 +57,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             return IndexingActivityStatus.Startup;
         }
 
-        public IEnumerable<IIndexDocument> GetDocumentsByNodeId(int nodeId)
+        public IEnumerable<IndexDocument> GetDocumentsByNodeId(int nodeId)
         {
             throw new NotImplementedException();
         }

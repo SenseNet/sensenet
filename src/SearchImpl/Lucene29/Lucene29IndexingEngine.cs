@@ -21,9 +21,9 @@ namespace SenseNet.Search.Lucene29
 {
     internal class Lucene29IndexingEngine : IIndexingEngine
     {
-        private class DocumentVersionComparer : IComparer<IIndexDocument>
+        private class DocumentVersionComparer : IComparer<IndexDocument>
         {
-            public int Compare(IIndexDocument x, IIndexDocument y)
+            public int Compare(IndexDocument x, IndexDocument y)
             {
                 var vx = x?.Version.Substring(1) ?? "0.0.A";
                 var vxa = vx.Split('.');
@@ -549,7 +549,7 @@ namespace SenseNet.Search.Lucene29
             return new Term(IndexFieldName.VersionId, Lucene.Net.Util.NumericUtils.IntToPrefixCoded(versionId));
         }
 
-        private Document GetDocument(IIndexDocument snDoc)
+        private Document GetDocument(IndexDocument snDoc)
         {
             var doc = new Document();
             foreach (var indexField in snDoc)
@@ -801,7 +801,7 @@ namespace SenseNet.Search.Lucene29
         /* ================================================================== Tools */
 
         /// <summary> For test purposes. </summary>
-        public IEnumerable<IIndexDocument> GetDocumentsByNodeId(int nodeId)
+        public IEnumerable<IndexDocument> GetDocumentsByNodeId(int nodeId)
         {
             using (var readerFrame = GetIndexReaderFrame())
             {
@@ -809,7 +809,7 @@ namespace SenseNet.Search.Lucene29
                 return GetDocumentsFromTermDocs(termDocs, readerFrame);
             }
         }
-        private IEnumerable<IIndexDocument> GetDocumentsFromTermDocs(TermDocs termDocs, IndexReaderFrame readerFrame)
+        private IEnumerable<IndexDocument> GetDocumentsFromTermDocs(TermDocs termDocs, IndexReaderFrame readerFrame)
         {
             throw new NotImplementedException();
             //var docs = new List<IIndexDocument>();

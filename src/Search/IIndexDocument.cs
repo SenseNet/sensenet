@@ -14,7 +14,7 @@ namespace SenseNet.Search
     public class DocumentUpdate
     {
         public SnTerm UpdateTerm;
-        public IIndexDocument Document;
+        public IndexDocument Document;
     }
 
     [Serializable]
@@ -59,38 +59,11 @@ namespace SenseNet.Search
         public IndexField(string name, DateTime value, IndexingMode mode, IndexStoringMode store, IndexTermVector termVector) : base(name, value) { Mode = mode; Store = store; TermVector = termVector; }
     }
 
-    public interface IIndexDocument: IEnumerable<IndexField> //UNDONE: Remove interface if possible
-    {
-        int VersionId { get; }
-        string Version { get; }
-
-        string GetStringValue(string fieldName);
-        string[] GetStringArrayValue(string fieldName);
-        bool GetBooleanValue(string fieldName);
-        int GetIntegerValue(string fieldName);
-        long GetLongValue(string fieldName);
-        float GetSingleValue(string fieldName);
-        double GetDoubleValue(string fieldName);
-        DateTime GetDateTimeValue(string fieldName);
-
-        /// <summary>
-        /// Adds or change the existing field in the document.
-        /// </summary>
-        /// <param name="field"></param>
-        void Add(IndexField field);
-
-        /// <summary>
-        /// Removes a field by name if it exists.
-        /// </summary>
-        /// <param name="fieldName"></param>
-        void Remove(string fieldName);
-    }
-
     [Serializable]
     public class NotIndexedIndexDocument : IndexDocument { }
 
     [Serializable]
-    public class IndexDocument : IIndexDocument
+    public class IndexDocument : IEnumerable<IndexField>
     {
         [NonSerialized]
         public static readonly IndexDocument NotIndexedDocument = new NotIndexedIndexDocument();
