@@ -344,12 +344,12 @@ namespace SenseNet.Preview
 
             using (new SystemAccount())
             {
-                var x = Retrier.Retry<Node>(3, 100,
+                Retrier.Retry<Node>(3, 100,
                     () =>
                     {
                         // try
                         file.PageCount = pageCount;
-                        file.DisableObserver(typeof(DocumentPreviewObserver));
+                        file.DisableObserver(TypeResolver.GetType(NodeObserverNames.DOCUMENTPREVIEW, false));
                         file.DisableObserver(TypeResolver.GetType(NodeObserverNames.NOTIFICATION, false));
 
                         file.KeepWorkflowsAlive();
@@ -446,11 +446,15 @@ namespace SenseNet.Preview
 
         protected static IEnumerable<Node> QueryPreviewImages(string path)
         {
-            return NodeQuery.QueryNodesByTypeAndPath(NodeType.GetByName(PREVIEWIMAGE_CONTENTTYPE), false, path + "/", false)
+            var previewType = ActiveSchema.NodeTypes[PREVIEWIMAGE_CONTENTTYPE];
+            if (previewType == null)
+                return new Node[0];
+
+            return NodeQuery.QueryNodesByTypeAndPath(previewType, false, path + "/", false)
                 .Identifiers
-                .Select(i => NodeHead.Get(i))
+                .Select(NodeHead.Get)
                 .Where(h => (h != null) && h.Name.StartsWith("preview", StringComparison.OrdinalIgnoreCase))
-                .Select(h => Node.LoadNode(h))
+                .Select(Node.LoadNode)
                 .Where(x => x != null)
                 .OrderBy(p => p.Index);
         }
@@ -585,17 +589,29 @@ namespace SenseNet.Preview
 
         public virtual bool IsPreviewOrThumbnailImage(NodeHead imageHead)
         {
-            return (imageHead != null &&
-                    imageHead.GetNodeType().IsInstaceOfOrDerivedFrom(ActiveSchema.NodeTypes[PREVIEWIMAGE_CONTENTTYPE]) &&
-                    imageHead.Path.Contains(RepositoryPath.PathSeparator + PREVIEWS_FOLDERNAME + RepositoryPath.PathSeparator)) &&
-                    new Regex(PREVIEW_THUMBNAIL_REGEX).IsMatch(imageHead.Name);
+            if (imageHead == null)
+                return false;
+
+            var previewType = ActiveSchema.NodeTypes[PREVIEWIMAGE_CONTENTTYPE];
+            if (previewType == null)
+                return false;
+
+            return imageHead.GetNodeType().IsInstaceOfOrDerivedFrom(previewType) &&
+                   imageHead.Path.Contains(RepositoryPath.PathSeparator + PREVIEWS_FOLDERNAME + RepositoryPath.PathSeparator) &&
+                   new Regex(PREVIEW_THUMBNAIL_REGEX).IsMatch(imageHead.Name);
         }
 
         public virtual bool IsThumbnailImage(Image image)
         {
-            return (image != null &&
-                    image.NodeType.IsInstaceOfOrDerivedFrom(ActiveSchema.NodeTypes[PREVIEWIMAGE_CONTENTTYPE]) &&
-                    new Regex(THUMBNAIL_REGEX).IsMatch(image.Name));
+            if (image == null)
+                return false;
+
+            var previewType = ActiveSchema.NodeTypes[PREVIEWIMAGE_CONTENTTYPE];
+            if (previewType == null)
+                return false;
+
+            return image.NodeType.IsInstaceOfOrDerivedFrom(previewType) &&
+                   new Regex(THUMBNAIL_REGEX).IsMatch(image.Name);
         }
 
         public bool HasPreviewPermission(NodeHead nodeHead)
@@ -1237,7 +1253,11 @@ namespace SenseNet.Preview
                 return false;
 
             // collect all preview and thumbnail images
-            var previewIds = NodeQuery.QueryNodesByTypeAndPath(NodeType.GetByName(PREVIEWIMAGE_CONTENTTYPE), false, prevFolder.Path + RepositoryPath.PathSeparator, true).Identifiers.ToList();
+            var previewType = NodeType.GetByName(PREVIEWIMAGE_CONTENTTYPE);
+            if (previewType == null)
+                return false;
+
+            var previewIds = NodeQuery.QueryNodesByTypeAndPath(previewType, false, prevFolder.Path + RepositoryPath.PathSeparator, true).Identifiers.ToList();
 
             if (previewIds.Count == 0) 
                 return false;

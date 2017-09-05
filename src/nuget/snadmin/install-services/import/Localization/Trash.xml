@@ -1,0 +1,145 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="view.xslt"?>
+<Resources>
+  <ResourceClass name="Trash">
+    <Languages>
+      <Language cultureName="en">
+        <data name="TrashBinInformation" xml:space="preserve">
+          <value>Trash Bin Information</value>
+        </data>
+        <data name="TrashBinInformationLong" xml:space="preserve">
+          <value>This is the place for your deleted items, here you are able to restore your deleted items or empty the trash to save space. (Navigate your mouse over the <img src="/Root/Global/images/icon-info.png" /> to get more information!)</value>
+        </data>
+        <data name="TrashBinState" xml:space="preserve">
+          <value>Trash Bin state <img src="/Root/Global/images/icon-info.png" alt="info" title="Contents already in the trash are not affected, but new trash can not be added to the Trash Bin. This settings overwrites local settings." /></value>
+        </data>
+        <data name="Globally" xml:space="preserve">
+          <value>Globally</value>
+        </data>
+        <data name="MinimumRetentionTime" xml:space="preserve">
+          <value>Minimum retention time</value>
+        </data>
+        <data name="ContentsDeletedToday" xml:space="preserve">
+          <value>Content deleted today will not be disposed of before</value>
+        </data>
+        <data name="ContentsDeletedTodayNote" xml:space="preserve">
+          <value>Please note that retention time may change for future deletions!</value>
+        </data>
+        <data name="SpaceUsed" xml:space="preserve">
+          <value>Space used</value>
+        </data>
+        <data name="SizeQuotaNotSet" xml:space="preserve">
+          <value>Size Quota is currently not set (unlimited)</value>
+        </data>
+        <data name="MaximumCapacity" xml:space="preserve">
+          <value>Maximum capacity is defined by the Size Quota of the Trash Bin</value>
+        </data>
+        <data name="TrashBinSizeIsSet" xml:space="preserve">
+          <value>Trash bin size is set</value>
+        </data>
+        <data name="UsedFrom" xml:space="preserve">
+          <value>used from</value>
+        </data>
+        <data name="Used" xml:space="preserve">
+          <value>used</value>
+        </data>
+        <data name="EmptyTrashBin" xml:space="preserve">
+          <value>Empty Trash Bin</value>
+        </data>
+        <data name="Enabled" xml:space="preserve">
+          <value>enabled</value>
+        </data>
+        <data name="Disabled" xml:space="preserve">
+          <value>disabled</value>
+        </data>
+        <data name="YouAreAboutToDelete" xml:space="preserve">
+          <value>You are about to delete </value>
+        </data>
+        <data name="AreYouSure" xml:space="preserve">
+          <value><span class='sn-icon-big sn-icon-button snIconBig_warning'></span> Are you sure?</value>
+        </data>
+        <data name="AllBagsView" xml:space="preserve">
+          <value>All deleted items</value>
+        </data>
+        <data name="MyBagsView" xml:space="preserve">
+          <value>My deleted items</value>
+        </data>
+        <data name="Day" xml:space="preserve">
+          <value>day</value>
+        </data>
+        <data name="Days" xml:space="preserve">
+          <value>days</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="TrashBinInformation" xml:space="preserve">
+          <value>Kuka információk</value>
+        </data>
+        <data name="TrashBinInformationLong" xml:space="preserve">
+          <value>A kuka a törölt elemek gyűjtője, innen tudja tartalmait visszaállítani, vagy végleg törölni. (Navigálja a kurzort <img src="/Root/Global/images/icon-info.png" /> fölé további információkért!)</value>
+        </data>
+        <data name="TrashBinState" xml:space="preserve">
+          <value>Kuka állapota <img src="/Root/Global/images/icon-info.png" alt="info" title="A már kukában lévő tartalmak nem érintettek, de több tartalom nem kerülhet a kukába." /></value>
+        </data>
+        <data name="Globally" xml:space="preserve">
+          <value>Globálisan</value>
+        </data>
+        <data name="MinimumRetentionTime" xml:space="preserve">
+          <value>Minimum megtartási idő</value>
+        </data>
+        <data name="ContentsDeletedToday" xml:space="preserve">
+          <value>E dátum előtt a tartalmak nem üríthetők végleg a kukából.</value>
+        </data>
+        <data name="ContentsDeletedTodayNote" xml:space="preserve">
+          <value>Kérjük, vegye figyelembe, hogy ez a beállítás a már törölt elemekre is érvényes visszamenőleg!</value>
+        </data>
+        <data name="SpaceUsed" xml:space="preserve">
+          <value>Használt terület</value>
+        </data>
+        <data name="SizeQuotaNotSet" xml:space="preserve">
+          <value>A mérethatár jelenleg nincs beállítva.</value>
+        </data>
+        <data name="MaximumCapacity" xml:space="preserve">
+          <value>A maximális méret a mérethatárnál megállapítottak szerint definiált.</value>
+        </data>
+        <data name="TrashBinSizeIsSet" xml:space="preserve">
+          <value>A kuka mérete be van állítva.</value>
+        </data>
+        <data name="UsedFrom" xml:space="preserve">
+          <value>használt</value>
+        </data>
+        <data name="Used" xml:space="preserve">
+          <value>használt</value>
+        </data>
+        <data name="EmptyTrashBin" xml:space="preserve">
+          <value>Kuka ürítése</value>
+        </data>
+        <data name="Enabled" xml:space="preserve">
+          <value>bekapcsolva</value>
+        </data>
+        <data name="Disabled" xml:space="preserve">
+          <value>kikapcsolva</value>
+        </data>
+        <data name="YouAreAboutToDelete" xml:space="preserve">
+          <value>Törölni fogja a következő tartalmat </value>
+        </data>
+        <data name="AreYouSure" xml:space="preserve">
+          <value><span class='sn-icon-big sn-icon-button snIconBig_warning'></span> Biztos benne?</value>
+        </data>
+
+        <data name="AllBagsView" xml:space="preserve">
+          <value>Minden törölt elem</value>
+        </data>
+        <data name="MyBagsView" xml:space="preserve">
+          <value>Általam törölt elemek</value>
+        </data>
+        <data name="Day" xml:space="preserve">
+          <value>nap</value>
+        </data>
+        <data name="Days" xml:space="preserve">
+          <value>nap</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+</Resources>

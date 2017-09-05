@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>SenseNet.Services.Install</id>
-    <version>7.0.0-beta3</version>
+    <version>7.0.0-beta44</version>
     <title>sensenet ECM Services install package</title>
     <authors>kavics,aniko,laci,borsi,lajos,tusmester</authors>
     <owners>Sense/Net</owners>
@@ -15,7 +15,7 @@
     <copyright>Copyright © Sense/Net Inc.</copyright>
     <tags>sensenet ecm ecms</tags>
     <dependencies>
-      <dependency id="SenseNet.Services" version="7.0.0-beta3" />
+      <dependency id="SenseNet.Services" version="7.0.0-beta44" />
       <dependency id="SenseNet.SnAdmin" version="1.4.3" />
     </dependencies>
   </metadata>

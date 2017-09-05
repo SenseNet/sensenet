@@ -232,6 +232,70 @@ If the “import” directory contains a content “MyContent”, after the exec
 ### ImportSchema
 >This step is deprecated, use the more generic **Import** step to import all kinds of content, even content types to the repository.
 
+### SetField
+- Full name: `SenseNet.Packaging.Steps.SetField`
+- Default property: `Value`
+- Additional properties: `Content, Name, Fields, Overwrite`
+
+> This step can be placed in ForEach steps' Block sections.
+
+Sets one or more field values on the provided content. By default the field values will be overwritten unconditionally, but if you set the *overwrite* property to false, fields that already contain a value will be skipped.
+
+```xml
+<SetField name="Description" content="/Root/MyContent"><![CDATA[New description]]></SetField>
+
+<SetField name="IncomingEmailWorkflow" content="/Root/ContentTemplates/DocumentLibrary/Document_Library" overwrite="@overwrite">
+   <Value>
+      <Path>/Root/System/Schema/ContentTypes/GenericContent/Workflow/MailProcessorWorkflow</Path>
+   </Value>
+</SetField>
+
+<SetField content="/Root/ContentTemplates/EventList/Calendar" overwrite="@overwrite">
+   <Fields>
+      <Field name="IncomingEmailWorkflow">
+         <Value>
+            <Path>/Root/System/Schema/ContentTypes/GenericContent/Workflow/MailProcessorWorkflow</Path>
+         </Value>
+      </Field>
+   </Fields>   	
+</SetField>
+```
+
+### AddReference
+- Full name: `SenseNet.Packaging.Steps.AddReference`
+- Default property: -
+- Additional properties: `Content, Name, Value, Fields`
+
+> This step can be placed in ForEach steps' Block sections.
+
+Adds one or more content as a reference to a reference field. Previous list is preserved, this is an addition. Both path and id work.
+
+```xml
+<AddReference name="Members" content="/Root/IMS/BuiltIn/Portal/HR">
+   <Value>
+      <Path>/Root/IMS/BuiltIn/johnsmiths</Path>
+      <Id>12345</Id>
+   </Value>
+</AddReference>
+```
+
+### RemoveReference
+- Full name: `SenseNet.Packaging.Steps.RemoveReference`
+- Default property: -
+- Additional properties: `Content, Name, Value, Fields`
+
+> This step can be placed in ForEach steps' Block sections.
+
+Removes one or more content from a reference field. All other referenced values remain untouched. Both path and id work.
+
+```xml
+<RemoveReference name="Members" content="/Root/IMS/BuiltIn/Portal/HR">
+   <Value>
+      <Path>/Root/IMS/BuiltIn/johnsmiths</Path>
+   </Value>
+</RemoveReference>
+```
+
 ### Rename
 -   Full name: `SenseNet.Packaging.Steps.Rename`
 -   Default property: `NewName`
@@ -268,6 +332,15 @@ Loads a content or a text file defined by the Path property (on all configured w
 If the Path is a Content Repository path, than you can define a Field (optionally) to target any content field.
 
 You can define either the *Template* or the *Regex* property for searching replaceable text, but **not both of them**.
+
+### SetUrl
+- Full name: `SenseNet.Packaging.Steps.SetUrl`
+- Default property: `Url`
+- Additional properties: `Site, AuthenticationType` 
+
+Sets a url on a site content in the Content Repository. If the url is already assigned to another site, this step will fail.
+
+>Please make sure that a **StartRepository** step precedes this one to make sure that the repository is started.
 
 ## JSON text
 ### EditJson
@@ -1078,7 +1151,7 @@ System step for creating the provided log and source in Windows Event log.
 ```xml
 <CreateEventLog LogName="@logName" Machine="@machine" Sources="@sources" />
 ```
-##x DeleteEventLog
+### DeleteEventLog
 - Full name: `SenseNet.Packaging.Steps.CreateEventLog`
 - Default property: -
 - Additional properties: `LogName, Machine, Sources`

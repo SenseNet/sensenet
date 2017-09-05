@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Configuration;
-using System.Web;
-using System.Diagnostics;
 using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.Communication.Messaging;
 using SenseNet.Configuration;
@@ -76,9 +71,9 @@ namespace SenseNet.ContentRepository
 
         private static Type GetChannelProviderType()
         {
-            var channelAdapterType = TypeResolver.GetType(Providers.ClusterChannelProviderClassName);
+            var channelAdapterType = TypeResolver.GetType(Providers.ClusterChannelProviderClassName, false);
             if (channelAdapterType == null)
-                throw new ArgumentException("ClusterChannelProvider is not correctly configured.");
+                throw new ArgumentException("ClusterChannelProvider is not configured correctly.");
 
             return channelAdapterType;
         }

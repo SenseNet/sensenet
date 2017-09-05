@@ -7,8 +7,9 @@ namespace SenseNet.ContentRepository.Storage.Events
 {
     public static class NodeObserverNames
     {
-        public static readonly string NOTIFICATION = "SenseNet.Messaging.NotificationObserver";
+        public static readonly string NOTIFICATION = "SenseNet.Notification.NotificationObserver";
         public static readonly string WORKFLOWNOTIFICATION = "SenseNet.Workflow.WorkflowNotificationObserver";
+        public static readonly string DOCUMENTPREVIEW = "SenseNet.Preview.DocumentPreviewObserver";
     }
 
     public abstract class NodeObserver

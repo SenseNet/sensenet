@@ -284,6 +284,20 @@ namespace SenseNet.ContentRepository.Fields
 
         }
 
+        public override bool HasValue()
+        {
+            var originalValue = OriginalValue;
+            if (originalValue == null)
+                return false;
+
+            var node = originalValue as Node;
+            if (node != null)
+                return true;
+
+            var nodes = originalValue as IEnumerable;
+            return nodes != null && nodes.Cast<Node>().Any();
+        }
+
         /*======================================================= IXmlChildList Members ====*/
 
         public string GetXmlChildName()

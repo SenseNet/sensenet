@@ -1,0 +1,18 @@
+<Package type='Tool'>
+  <Id>SenseNet.Delete</Id>
+  <Description>sensenet ECM tool for deleting items from the Content Repository.</Description>
+  <ReleaseDate>2017-07-13</ReleaseDate>
+  <Version>7.0.0</Version>
+  <Dependencies>
+    <Dependency id='SenseNet.Services' minVersion='7.0.0' />
+  </Dependencies>
+  <Parameters>
+    <Parameter name="@path" description="Content Repository path of the content to delete." />
+  </Parameters>
+  <Steps>
+    <Phase>
+      <StartRepository />
+      <Delete Path="@path" />
+    </Phase>
+  </Steps>
+</Package>
