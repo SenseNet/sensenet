@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using SenseNet.ContentRepository.Storage.Search;
+using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Tools;
 
@@ -37,6 +38,11 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                 }
                 _analyzers = analyzerTypes;
             }
+        }
+
+        public IIndexingEngine GetIndexingEngine() //UNDONE: not tested
+        {
+            return new InMemoryIndexingEngine();
         }
     }
 }

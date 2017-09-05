@@ -3,27 +3,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.Search.Lucene29;
 
 namespace SenseNet.Search
 {
     public class DefaultIndexingEngineFactory : IIndexingEngineFactory
     {
-        private IIndexingEngine _defaultEngine;
+        private readonly IIndexingEngine _instance;
 
         public IIndexingEngine CreateIndexingEngine()
         {
-            return _defaultEngine;
+            return _instance;
         }
 
         public DefaultIndexingEngineFactory()
         {
-            _defaultEngine = new Lucene29IndexingEngine(); //UNDONE:!!! Create instance by configuration
+            _instance = StorageContext.Search.SearchEngine.GetIndexingEngine();
         }
 
         public DefaultIndexingEngineFactory(IIndexingEngine indexingEngine)
         {
-            _defaultEngine = indexingEngine;
+            _instance = indexingEngine;
         }
     }
 }

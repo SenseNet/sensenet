@@ -4,6 +4,7 @@ using System.Linq;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search.Indexing;
+using SenseNet.Search.Lucene29;
 using SenseNet.Tools;
 
 namespace SenseNet.Search
@@ -61,6 +62,11 @@ namespace SenseNet.Search
                 }
                 _analyzers = analyzerTypes;
             }
+        }
+
+        public IIndexingEngine GetIndexingEngine()
+        {
+            return new Lucene29IndexingEngine();
         }
     }
 }
