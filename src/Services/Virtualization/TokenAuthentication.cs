@@ -219,7 +219,7 @@ namespace SenseNet.Portal.Virtualization
                 }
 
                 var accessSignature = authCookie.Value;
-                var principal = tokenManager.ValidateToken(accessHeadAndPayload + "." + accessSignature);
+                var principal = tokenManager.ValidateToken(accessHeadAndPayload + "." + accessSignature, false);
                 if (principal == null)
                 {
                     throw new UnauthorizedAccessException("Invalid access token.");
@@ -335,18 +335,5 @@ namespace SenseNet.Portal.Virtualization
             public string access;
             public string refresh;
         }
-
-        //public Func<object, HttpContextBase> GetContext = sender => new HttpContextWrapper(((HttpApplication)sender).Context);
-
-        //public Func<object, HttpRequestBase> GetRequest = sender => new HttpRequestWrapper(((HttpApplication)sender).Context.Request);
-
-        //public Func<object, HttpResponseBase> GetResponse = sender => new HttpResponseWrapper(((HttpApplication)sender).Context.Response);
-
-        //public Func<IPrincipal> GetVisitorPrincipal = () => new PortalPrincipal(User.Visitor);
-        //public Func<string, IPrincipal> LoadUserPrincipal = userName => new PortalPrincipal(User.Load(userName));
-
-        //public Func<string, string, bool> IsUserValid = (userName, password) => Membership.ValidateUser(userName, password);
-
-        //public Func<IDisposable> GetSystemAccount = () => new SystemAccount();
     }
 }
