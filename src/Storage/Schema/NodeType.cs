@@ -226,14 +226,14 @@ namespace SenseNet.ContentRepository.Storage.Schema
         public Node CreateInstance(Node parent)
         {
             if (parent == null)
-                throw new ArgumentNullException("parent");
+                throw new ArgumentNullException(nameof(parent));
 
             if (_type == null)
-                _type = TypeResolver.GetType(_className);
+                _type = TypeResolver.GetType(_className, false);
 
             if (_type == null)
             {
-                string exceptionMessage = String.Concat("Type not found, therefore the node can't be created.",
+                var exceptionMessage = string.Concat("Type not found, therefore the node can't be created.",
                     "\nClass name: ", _className,
                     "\nNode type path: ", _nodeTypePath,
                     "\nParent class name: ", (_parent != null ? _parent._className : "Parent is null"), "\n");
@@ -243,7 +243,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
             // only public ctor is valid: public NodeDescendant(Node parent, string nodeTypeName)
             ConstructorInfo ctor = _type.GetConstructor(BindingFlags.Public | BindingFlags.Instance, null, _newArgTypes, null);
             if (ctor == null)
-                throw new TypeInitializationException(String.Concat("Constructor not found. Valid signature: ctor(Node, string).\nClassName: ", _className), null);
+                throw new TypeInitializationException(string.Concat("Constructor not found. Valid signature: ctor(Node, string).\nClassName: ", _className), null);
 
             Node node;
             try
@@ -262,11 +262,11 @@ namespace SenseNet.ContentRepository.Storage.Schema
         internal Node CreateInstance(NodeToken token)
         {
             if (_type == null)
-                _type = TypeResolver.GetType(_className);
+                _type = TypeResolver.GetType(_className, false);
 
             if (_type == null)
             {
-                string exceptionMessage = string.Format(CultureInfo.InvariantCulture, "Type not found, therefore the node can't be created.\nClass name: {0}\nNode type path: {1}\nParent class name: {2}\n", _className, _nodeTypePath, (_parent != null ? _parent._className : "Parent type is null"));
+                var exceptionMessage = string.Format(CultureInfo.InvariantCulture, "Type not found, therefore the node can't be created.\nClass name: {0}\nNode type path: {1}\nParent class name: {2}\n", _className, _nodeTypePath, (_parent != null ? _parent._className : "Parent type is null"));
                 if (token != null)
                     exceptionMessage = string.Concat(exceptionMessage, string.Format(CultureInfo.InvariantCulture, "Token.NodeId: {0}\nToken.Path: {1}", token.NodeId, (token.NodeData != null ? token.NodeData.Path : "UNKNOWN (InnerInfo is not loaded)")));
                 else

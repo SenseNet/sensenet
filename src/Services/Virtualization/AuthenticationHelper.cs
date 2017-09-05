@@ -11,6 +11,8 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
+using System.Security.Principal;
+using SenseNet.ContentRepository.Security;
 
 namespace SenseNet.Portal.Virtualization
 {
@@ -150,5 +152,18 @@ namespace SenseNet.Portal.Virtualization
             var sessionStateSection = (SessionStateSection)ConfigurationManager.GetSection("system.web/sessionState");
             return sessionStateSection != null ? sessionStateSection.CookieName : string.Empty;
         }
+
+        public static Func<object, HttpContextBase> GetContext = sender => new HttpContextWrapper(((HttpApplication)sender).Context);
+        public static Func<object, HttpRequestBase> GetRequest = sender => new HttpRequestWrapper(((HttpApplication)sender).Context.Request);
+        public static Func<object, HttpResponseBase> GetResponse = sender => new HttpResponseWrapper(((HttpApplication)sender).Context.Response);
+
+        public static Func<IPrincipal> GetVisitorPrincipal = () => new PortalPrincipal(User.Visitor);
+        public static Func<string, IPrincipal> LoadUserPrincipal = userName => new PortalPrincipal(User.Load(userName));
+
+        public static Func<string, string, bool> IsUserValid = (userName, password) => Membership.ValidateUser(userName, password);
+
+        public static Func<IDisposable> GetSystemAccount = () => new SystemAccount();
+        public static Func<string> GetBasicAuthHeader = () => PortalContext.Current.BasicAuthHeaders;
+
     }
 }

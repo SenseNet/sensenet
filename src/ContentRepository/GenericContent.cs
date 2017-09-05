@@ -1311,7 +1311,7 @@ namespace SenseNet.ContentRepository
         public void KeepWorkflowsAlive()
         {
             _keepWorkflowsAlive = true;
-            DisableObserver(TypeResolver.GetType(NodeObserverNames.WORKFLOWNOTIFICATION));
+            DisableObserver(TypeResolver.GetType(NodeObserverNames.WORKFLOWNOTIFICATION, false));
         }
 
         private void UpdateRelatedWorkflows()

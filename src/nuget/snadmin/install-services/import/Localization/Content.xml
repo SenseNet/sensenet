@@ -1,0 +1,518 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="view.xslt"?>
+<Resources>
+  <ResourceClass name="Content">
+    <Languages>
+      <Language cultureName="en">
+        <data name="Edit" xml:space="preserve">
+          <value>Edit</value>
+        </data>
+        <data name="Print" xml:space="preserve">
+          <value>Print</value>
+        </data>
+        <data name="Delete" xml:space="preserve">
+          <value>Delete</value>
+        </data>
+        <data name="History" xml:space="preserve">
+          <value>History</value>
+        </data>
+        <data name="Modified" xml:space="preserve">
+          <value>Modified:</value>
+        </data>
+        <data name="Author" xml:space="preserve">
+          <value>Author: </value>
+        </data>
+        <data name="Published" xml:space="preserve">
+          <value>Published: </value>
+        </data>
+        <data name="SelectOrdering" xml:space="preserve">
+          <value>Select ordering...</value>
+        </data>
+        <data name="Location" xml:space="preserve">
+          <value>Location: </value>
+        </data>
+        <data name="StartDate" xml:space="preserve">
+          <value>Start date: </value>
+        </data>
+        <data name="EndDate" xml:space="preserve">
+          <value>End date: </value>
+        </data>
+        <data name="DueDate" xml:space="preserve">
+          <value>Due date: </value>
+        </data>
+        <data name="AssignedTo" xml:space="preserve">
+          <value>Assigned to: </value>
+        </data>
+        <data name="FurtherInformation" xml:space="preserve">
+          <value>Further information:</value>
+        </data>
+        <data name="Back" xml:space="preserve">
+          <value>Back</value>
+        </data>
+        <data name="Ok" xml:space="preserve">
+          <value>Ok</value>
+        </data>
+        <data name="Save" xml:space="preserve">
+          <value>Save</value>
+        </data>
+        <data name="Cancel" xml:space="preserve">
+          <value>Cancel</value>
+        </data>
+        <data name="MoreInformation" xml:space="preserve">
+          <value>For more information go to </value>
+        </data>
+        <data name="Or" xml:space="preserve">
+          <value>or</value>
+        </data>
+        <data name="ListOfFields" xml:space="preserve">
+          <value>list of Fields</value>
+        </data>
+        <data name="Notes" xml:space="preserve">
+          <value>
+            THIS TEMPLATE CONTAINS THE MOST COMMON FIELD TYPES AND OPTIONS.<br />
+            CUSTOMIZE IT AND REMOVE UNNECESSARY FIELDS AND OPTIONS BEFORE INSTALLING IT. <br/>
+          </value>
+        </data>
+        <data name="From" xml:space="preserve">
+          <value>From</value>
+        </data>
+        <data name="Subject" xml:space="preserve">
+          <value>Subject</value>
+        </data>
+        <data name="Sent" xml:space="preserve">
+          <value>Sent</value>
+        </data>
+        <data name="Currency" xml:space="preserve">
+          <value>USD</value>
+        </data>
+        <data name="Done" xml:space="preserve">
+          <value>Done</value>
+        </data>
+        <data name="DisplayName" xml:space="preserve">
+          <value>DisplayName</value>
+        </data>
+        <data name="Amount" xml:space="preserve">
+          <value>Amount</value>
+        </data>
+        <data name="Currency" xml:space="preserve">
+          <value>Currency</value>
+        </data>
+        <data name="Date" xml:space="preserve">
+          <value>Date</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Description</value>
+        </data>
+        <data name="Approver" xml:space="preserve">
+          <value>Approver</value>
+        </data>
+        <data name="ApproverDesc" xml:space="preserve">
+          <value>The user who will be responsible for approving the expense claim</value>
+        </data>
+        <data name="StartWorkflow" xml:space="preserve">
+          <value>
+            <span>You can only start this workflow on an <strong>Expense claim</strong> content.</span>
+          </value>
+        </data>
+        <data name="CannotStartWorkflow" xml:space="preserve">
+          <value>
+            <span>You cannot start this workflow without adding one or more expense claim items to the expense claim.</span>
+          </value>
+        </data>
+        <data name="Start" xml:space="preserve">
+          <value>START</value>
+        </data>
+        <data name="CannotStartManually" xml:space="preserve">
+          <value>This workflow cannot be started manually.</value>
+        </data>
+        <data name="MustBePending" xml:space="preserve">
+          <value><span>The content must be in <strong>Pending</strong> state to start the approval process</span></value>
+        </data>
+        <data name="ExpanseClaimItems" xml:space="preserve">
+          <value>Expense claim items</value>
+        </data>
+        <data name="Sum" xml:space="preserve">
+          <value>SUM</value>
+        </data>
+        <data name="DoNotHavePermission" xml:space="preserve">
+          <value>The expense claim cannot be approved either because it is not in pending state or you do not have enough permissions.</value>
+        </data>
+        <data name="Compulsory" xml:space="preserve">
+          <value>* compulsory field</value>
+        </data>
+        <data name="Send" xml:space="preserve">
+          <value>Send</value>
+        </data>
+        <data name="Address" xml:space="preserve">
+          <value></value>
+        </data>
+        <data name="Gift" xml:space="preserve">
+          <value>t</value>
+        </data>
+        <data name="FullForm" xml:space="preserve">
+          <value></value>
+        </data>
+        <data name="Version" xml:space="preserve">
+          <value>Version:</value>
+        </data>
+        <data name="Path" xml:space="preserve">
+          <value>Path:</value>
+        </data>
+        <data name="SystemGroup" xml:space="preserve">
+          <value><strong> Please note that this is a special system group. The Members field of this group cannot be edited because it is maintained automatically by the portal.</strong></value>
+        </data>
+        <data name="Refresh" xml:space="preserve">
+          <value>Refresh</value>
+        </data>
+        <data name="Completion" xml:space="preserve">
+          <value>Completion: </value>
+        </data>
+        <data name="Actions" xml:space="preserve">
+          <value>Actions: </value>
+        </data>
+        <data name="Status" xml:space="preserve">
+          <value>Status: </value>
+        </data>
+        <data name="Priority" xml:space="preserve">
+          <value>Priority: </value>
+        </data>
+        <data name="KeepUntil" xml:space="preserve">
+          <value>Keep until: </value>
+        </data>
+        <data name="OriginalPath" xml:space="preserve">
+          <value>Original path: </value>
+        </data>
+        <data name="TrashBagInfo" xml:space="preserve">
+          <value>Trash Bag Information</value>
+        </data>
+        <data name="DownloadContent" xml:space="preserve">
+          <value>Download content</value>
+        </data>
+        <data name="Restore" xml:space="preserve">
+          <value>Restore</value>
+        </data>
+        <data name="Purge" xml:space="preserve">
+          <value>Purge</value>
+        </data>
+        <data name="MissingImage" xml:space="preserve">
+          <value>Missing User Image</value>
+        </data>
+        <data name="Education" xml:space="preserve">
+          <value>Education:</value>
+        </data>
+        <data name="EditProfile" xml:space="preserve">
+          <value>Edit Profile</value>
+        </data>
+        <data name="Notifications" xml:space="preserve">
+          <value>Notifications</value>
+        </data>
+        <data name="Permissions" xml:space="preserve">
+          <value>Permissions</value>
+        </data>
+        <data name="UserName" xml:space="preserve">
+          <value>User name:</value>
+        </data>
+        <data name="ContactInformation" xml:space="preserve">
+          <value>Contact Information</value>
+        </data>
+        <data name="Work" xml:space="preserve">
+          <value>Work</value>
+        </data>
+        <data name="Personal" xml:space="preserve">
+          <value>Personal</value>
+        </data>
+        <data name="Skills" xml:space="preserve">
+          <value>Skills</value>
+        </data>
+        <data name="Community" xml:space="preserve">
+          <value>Community</value>
+        </data>
+        <data name="Info" xml:space="preserve">
+          <value>Info</value>
+        </data>
+        <data name="Photos" xml:space="preserve">
+          <value>Photos</value>
+        </data>
+        <data name="Personal" xml:space="preserve">
+          <value>Personal</value>
+        </data>
+        <data name="DateOfBirth" xml:space="preserve">
+          <value>Date of birth:</value>
+        </data>
+        <data name="MaritialStatus" xml:space="preserve">
+          <value>Maritial status:</value>
+        </data>
+        <data name="EducationAndWork" xml:space="preserve">
+          <value>Education and work</value>
+        </data>
+        <data name="SocialNetworks" xml:space="preserve">
+          <value>Social networks</value>
+        </data>
+        <data name="CreateANew" xml:space="preserve">
+          <value>Create a new</value>
+        </data>
+        <data name="To" xml:space="preserve">
+          <value>to:</value>
+        </data>
+        <data name="Ba" xml:space="preserve">
+          <value></value>
+        </data>
+        <data name="Name" xml:space="preserve">
+          <value>Url name</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="Edit" xml:space="preserve">
+          <value>Szerkesztés</value>
+        </data>
+        <data name="Print" xml:space="preserve">
+          <value>Nyomtatás</value>
+        </data>
+        <data name="Delete" xml:space="preserve">
+          <value>Törlés</value>
+        </data>
+        <data name="History" xml:space="preserve">
+          <value>Előzmények</value>
+        </data>
+        <data name="Modified" xml:space="preserve">
+          <value>Utolsó módosítás:</value>
+        </data>
+        <data name="Author" xml:space="preserve">
+          <value>Szerző: </value>
+        </data>
+        <data name="Published" xml:space="preserve">
+          <value>Publikálva: </value>
+        </data>
+        <data name="SelectOrdering" xml:space="preserve">
+          <value>Válasszon sorrendezést...</value>
+        </data>
+        <data name="Location" xml:space="preserve">
+          <value>Helyszín: </value>
+        </data>
+        <data name="StartDate" xml:space="preserve">
+          <value>Kezdő dátum: </value>
+        </data>
+        <data name="EndDate" xml:space="preserve">
+          <value>Vég dátum: </value>
+        </data>
+        <data name="DueDate" xml:space="preserve">
+          <value>Határidő: </value>
+        </data>
+        <data name="AssignedTo" xml:space="preserve">
+          <value>Felelős: </value>
+        </data>
+        <data name="FurtherInformation" xml:space="preserve">
+          <value>További információk:</value>
+        </data>
+        <data name="Back" xml:space="preserve">
+          <value>Vissza</value>
+        </data>
+        <data name="Ok" xml:space="preserve">
+          <value>Ok</value>
+        </data>
+        <data name="Save" xml:space="preserve">
+          <value>Mentés</value>
+        </data>
+        <data name="Cancel" xml:space="preserve">
+          <value>Mégsem</value>
+        </data>
+        <data name="MoreInformation" xml:space="preserve">
+          <value>További információ </value>
+        </data>
+        <data name="Or" xml:space="preserve">
+          <value>-ről vagy</value>
+        </data>
+        <data name="ListOfFields" xml:space="preserve">
+          <value>a mezők listájaról</value>
+        </data>
+        <data name="Notes" xml:space="preserve">
+          <value>
+            EZ A SABLON TARTALMAZZA A TARTALOM MEZŐIT.<br />
+            SZERKESSZE VAGY TÖRÖLJE A SZÜKSÉGTELEN MEZŐKET ÉS OPCIÓKAT MENTÉS ELŐTT.<br/>
+          </value>
+        </data>
+        <data name="From" xml:space="preserve">
+          <value>Feladó: </value>
+        </data>
+        <data name="Subject" xml:space="preserve">
+          <value>Tárgy: </value>
+        </data>
+        <data name="Sent" xml:space="preserve">
+          <value>Elküldve: </value>
+        </data>
+        <data name="Currency" xml:space="preserve">
+          <value>Ft</value>
+        </data>
+        <data name="Done" xml:space="preserve">
+          <value>Kész</value>
+        </data>
+        <data name="DisplayName" xml:space="preserve">
+          <value>Olvasható név</value>
+        </data>
+        <data name="Amount" xml:space="preserve">
+          <value>Összeg</value>
+        </data>
+        <data name="Currency" xml:space="preserve">
+          <value>Currency</value>
+        </data>
+        <data name="Date" xml:space="preserve">
+          <value>Dátum</value>
+        </data>
+        <data name="Description" xml:space="preserve">
+          <value>Leírás</value>
+        </data>
+        <data name="Approver" xml:space="preserve">
+          <value>Jóváhagyó</value>
+        </data>
+        <data name="ApproverDesc" xml:space="preserve">
+          <value>A jóváhagyásért felelős személy.</value>
+        </data>
+        <data name="StartWorkflow" xml:space="preserve">
+          <value>
+            <span>Ezt a munkafolyamatot csak <strong>Expense claim</strong> tartalmakon lehet elindítani.</span>
+          </value>
+        </data>
+        <data name="CannotStartWorkflow" xml:space="preserve">
+          <value>
+            <span>Egy vagy több expense claim item hozzáadása nélkül ezt a munkafolyamatot nem tudja elindítani.</span>
+          </value>
+        </data>
+        <data name="Start" xml:space="preserve">
+          <value>START</value>
+        </data>
+        <data name="CannotStartManually" xml:space="preserve">
+          <value>Ezt a munkafolyamatot nem lehet manuális elindítani.</value>
+        </data>
+        <data name="MustBePending" xml:space="preserve">
+          <value><span>A jóváhagyási folyamat elindításához a tartalomnak <strong>Függőben</strong> státuszúnak kell lennie.</span></value>
+        </data>
+        <data name="ExpanseClaimItems" xml:space="preserve">
+          <value>Expense claim items</value>
+        </data>
+        <data name="Sum" xml:space="preserve">
+          <value>Összeg</value>
+        </data>
+        <data name="DoNotHavePermission" xml:space="preserve">
+          <value>The expense claim cannot be approved either because it is not in pending state or you do not have enough permissions.</value>
+        </data>
+        <data name="Compulsory" xml:space="preserve">
+          <value>* kötelező mező</value>
+        </data>
+        <data name="Send" xml:space="preserve">
+          <value>Küldés</value>
+        </data>
+        <data name="Address" xml:space="preserve">
+          <value>Postacímed, ahova a küldeményt küldhetjük:</value>
+        </data>
+        <data name="Version" xml:space="preserve">
+          <value>Verzió:</value>
+        </data>
+        <data name="Path" xml:space="preserve">
+          <value>Útvonal:</value>
+        </data>
+        <data name="SystemGroup" xml:space="preserve">
+          <value><strong>Kérjük, vegye figyelenbe, hogy ez egy rendszer csoport. A tagok listája nem szerkeszthető, mert automatikus a portálon.</strong></value>
+        </data>
+        <data name="Refresh" xml:space="preserve">
+          <value>Frissítés</value>
+        </data>
+        <data name="Completion" xml:space="preserve">
+          <value>Állapot: </value>
+        </data>
+        <data name="Actions" xml:space="preserve">
+          <value>Műveletek: </value>
+        </data>
+        <data name="Status" xml:space="preserve">
+          <value>Státusz: </value>
+        </data>
+        <data name="Priority" xml:space="preserve">
+          <value>Prioritás: </value>
+        </data>
+        <data name="KeepUntil" xml:space="preserve">
+          <value>Megtartva eddig: </value>
+        </data>
+        <data name="OriginalPath" xml:space="preserve">
+          <value>Eredeti hely: </value>
+        </data>
+        <data name="TrashBagInfo" xml:space="preserve">
+          <value>Trash Bag Information</value>
+        </data>
+        <data name="DownloadContent" xml:space="preserve">
+          <value>Tartalom letöltése</value>
+        </data>
+        <data name="Restore" xml:space="preserve">
+          <value>Visszaállítás</value>
+        </data>
+        <data name="Purge" xml:space="preserve">
+          <value>Végleges törlés</value>
+        </data>
+        <data name="MissingImage" xml:space="preserve">
+          <value>Hiányzó kép</value>
+        </data>
+        <data name="Education" xml:space="preserve">
+          <value>Tanulmányok:</value>
+        </data>
+        <data name="EditProfile" xml:space="preserve">
+          <value>Profil szerkesztése</value>
+        </data>
+        <data name="Notifications" xml:space="preserve">
+          <value>Értesítések</value>
+        </data>
+        <data name="Permissions" xml:space="preserve">
+          <value>Jogosultságok</value>
+        </data>
+        <data name="UserName" xml:space="preserve">
+          <value>Felhasználónév:</value>
+        </data>
+        <data name="ContactInformation" xml:space="preserve">
+          <value>Elérhetőségek</value>
+        </data>
+        <data name="Work" xml:space="preserve">
+          <value>Munka</value>
+        </data>
+        <data name="Personal" xml:space="preserve">
+          <value>Személyes</value>
+        </data>
+        <data name="Skills" xml:space="preserve">
+          <value>Képességek</value>
+        </data>
+        <data name="Community" xml:space="preserve">
+          <value>Közösség</value>
+        </data>
+        <data name="Info" xml:space="preserve">
+          <value>Információ</value>
+        </data>
+        <data name="Photos" xml:space="preserve">
+          <value>Fotók</value>
+        </data>
+        <data name="Personal" xml:space="preserve">
+          <value>Személyes</value>
+        </data>
+        <data name="DateOfBirth" xml:space="preserve">
+          <value>Születési idő:</value>
+        </data>
+        <data name="MaritialStatus" xml:space="preserve">
+          <value>Családi állapot:</value>
+        </data>
+        <data name="EducationAndWork" xml:space="preserve">
+          <value>Tanulmányok és munkahelyek</value>
+        </data>
+        <data name="SocialNetworks" xml:space="preserve">
+          <value>Közösségi oldalak</value>
+        </data>
+        <data name="CreateANew" xml:space="preserve">
+          <value>Új létrehozása a</value>
+        </data>
+        <data name="To" xml:space="preserve">
+          <value></value>
+        </data>
+        <data name="Ba" xml:space="preserve">
+          <value> alá</value>
+        </data>
+        <data name="Name" xml:space="preserve">
+          <value>Url név</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+</Resources>

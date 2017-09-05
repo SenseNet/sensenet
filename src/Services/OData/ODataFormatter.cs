@@ -867,7 +867,19 @@ new StackInfo
             {
                 return ODataReference.Create(String.Concat(selfUrl, "/", field.Name));
             }
-            data = field.GetData();
+            try
+            {
+                data = field.GetData();
+            }
+            catch (SenseNetSecurityException)
+            {
+                // The user does not have access to this field (e.g. cannot load
+                // a referenced content). In this case we serve a null value.
+                data = null;
+
+                SnTrace.Repository.Write("PERMISSION warning: user {0} does not have access to field '{1}' of {2}.", User.LoggedInUser.Username, field.Name, field.Content.Path);
+            }
+
             var nodeType = data as NodeType;
             if (nodeType != null)
                 return nodeType.Name;

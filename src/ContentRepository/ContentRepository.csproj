@@ -179,6 +179,9 @@
     <Compile Include="Packaging\SR.cs" />
     <Compile Include="Packaging\Steps\AddField.cs" />
     <Compile Include="Packaging\Steps\AddMembers.cs" />
+    <Compile Include="Packaging\Steps\SetUrl.cs" />
+    <Compile Include="Packaging\Steps\RemoveReference.cs" />
+    <Compile Include="Packaging\Steps\AddReference.cs" />
     <Compile Include="Packaging\Steps\AddResource.cs" />
     <Compile Include="Packaging\Steps\IfComponentExists.cs" />
     <Compile Include="Packaging\Steps\IfMatch.cs" />
@@ -222,6 +225,7 @@
     <Compile Include="Packaging\Steps\PopulateIndex.cs" />
     <Compile Include="Packaging\Steps\Rename.cs" />
     <Compile Include="Packaging\Steps\ReplaceText.cs" />
+    <Compile Include="Packaging\Steps\SetField.cs" />
     <Compile Include="Packaging\Steps\SetPermissions.cs" />
     <Compile Include="Packaging\Steps\StartRepository.cs" />
     <Compile Include="Packaging\Steps\Step.cs" />
@@ -267,7 +271,6 @@
     <Compile Include="Linq\SnExpression.cs" />
     <Compile Include="Mail\MailHelper.cs" />
     <Compile Include="Mail\MailProvider.cs" />
-    <Compile Include="Preview\DocumentPreviewObserver.cs" />
     <Compile Include="Preview\DocumentPreviewProvider.cs" />
     <Compile Include="DownloadCounter.cs" />
     <Compile Include="ExpenseClaim.cs" />
@@ -498,10 +501,6 @@
     <ProjectReference Include="..\Common\Common.csproj">
       <Project>{A453E920-29C0-45CD-984C-0D8E3631B1E3}</Project>
       <Name>Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Preview\Preview.csproj">
-      <Project>{01ae54af-db4e-431e-a3f9-fbcd2ad73d03}</Project>
-      <Name>Preview</Name>
     </ProjectReference>
     <ProjectReference Include="..\SearchImpl\SearchImpl.csproj">
       <Project>{ff0b1af9-753b-4660-8bd0-b84492321808}</Project>

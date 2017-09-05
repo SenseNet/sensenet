@@ -3,10 +3,8 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: InternalsVisibleTo("SenseNet.Tests")]
+[assembly: InternalsVisibleTo("SenseNet.Services.Tests")]
 
-// General Information about an assembly is controlled through the following 
-// set of attributes. Change these attribute values to modify the information
-// associated with an assembly.
 #if DEBUG
 [assembly: AssemblyTitle("SenseNet.Services (Debug)")]
 #else
@@ -24,4 +22,4 @@ using System.Runtime.InteropServices;
 
 // This attribute is used by NuGet to determine the package file name and version.
 // It may contain a SemVer value.
-[assembly: AssemblyInformationalVersion("7.0.0-beta3")]
+[assembly: AssemblyInformationalVersion("7.0.0-beta44")]

@@ -1683,7 +1683,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         private static Type GetMessageProviderType()
         {
             var messageProviderTypeName = Providers.SecurityMessageProviderClassName;
-            var t = TypeResolver.GetType(messageProviderTypeName);
+            var t = TypeResolver.GetType(messageProviderTypeName, false);
             if (t == null)
                 throw new InvalidOperationException("Unknown security message provider: " + messageProviderTypeName);
 
