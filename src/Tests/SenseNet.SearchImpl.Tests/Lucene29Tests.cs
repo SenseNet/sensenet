@@ -98,7 +98,7 @@ namespace SenseNet.SearchImpl.Tests
 
             var indxManConsole = new StringWriter();
 
-            using (new Tools.SearchEngineSwindler(new TestSearchEngine())) //UNDONE: change to final (Lucene29SearchEngine)
+            using (new Tools.SearchEngineSwindler(new InMemorySearchEngine())) //UNDONE: change to final (Lucene29SearchEngine)
             using (Tools.Swindle(typeof(StorageContext.Search), "ContentRepository", new SearchEngineSupport()))
             using (Tools.Swindle(typeof(AccessProvider), "_current", new DesktopAccessProvider()))
             using (Tools.Swindle(typeof(DataProvider), "_current", dataProvider))

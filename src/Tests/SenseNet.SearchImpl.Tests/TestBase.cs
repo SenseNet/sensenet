@@ -35,7 +35,7 @@ namespace SenseNet.SearchImpl.Tests
 
             DistributedApplication.Cache.Reset();
 
-            using (new Tools.SearchEngineSwindler(new TestSearchEngine()))
+            using (new Tools.SearchEngineSwindler(new InMemorySearchEngine()))
             using (Tools.Swindle(typeof(StorageContext.Search), "ContentRepository", new SearchEngineSupport()))
             using (Tools.Swindle(typeof(AccessProvider), "_current", new DesktopAccessProvider()))
             using (Tools.Swindle(typeof(DataProvider), "_current", dataProvider))

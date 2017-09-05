@@ -43,7 +43,10 @@ namespace SenseNet.ContentRepository.Storage.Search
         IDictionary<string, Type> GetAnalyzers();
 
         void SetIndexingInfo(object indexingInfo);
+
         IIndexingEngine GetIndexingEngine();
+
+        IQueryEngine GetQueryEngine();
     }
     public class InternalSearchEngine : ISearchEngine
     {
@@ -63,6 +66,11 @@ namespace SenseNet.ContentRepository.Storage.Search
         }
 
         public IIndexingEngine GetIndexingEngine()
+        {
+            throw new SnNotSupportedException();
+        }
+
+        public IQueryEngine GetQueryEngine()
         {
             throw new SnNotSupportedException();
         }

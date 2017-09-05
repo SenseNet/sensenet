@@ -68,5 +68,10 @@ namespace SenseNet.Search.Lucene29
         {
             return new Lucene29IndexingEngine();
         }
+
+        public IQueryEngine GetQueryEngine()
+        {
+            return new Lucene29QueryEngine();
+        }
     }
 }

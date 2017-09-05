@@ -7,7 +7,7 @@ using SenseNet.Tools;
 
 namespace SenseNet.SearchImpl.Tests.Implementations
 {
-    internal class TestSearchEngine : ISearchEngine
+    internal class InMemorySearchEngine : ISearchEngine
     {
         public IIndexPopulator GetPopulator()
         {
@@ -43,6 +43,11 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         public IIndexingEngine GetIndexingEngine() //UNDONE: not tested
         {
             return new InMemoryIndexingEngine();
+        }
+
+        public IQueryEngine GetQueryEngine()
+        {
+            throw new NotImplementedException();
         }
     }
 }
