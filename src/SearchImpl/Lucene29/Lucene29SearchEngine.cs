@@ -7,14 +7,14 @@ using SenseNet.Search.Indexing;
 using SenseNet.Search.Lucene29;
 using SenseNet.Tools;
 
-namespace SenseNet.Search
+namespace SenseNet.Search.Lucene29
 {
-    public class LuceneSearchEngine : ISearchEngine
+    public class Lucene29SearchEngine : ISearchEngine
     {
         public static readonly Lucene.Net.Util.Version LuceneVersion = Lucene.Net.Util.Version.LUCENE_29;
 
 
-        static LuceneSearchEngine()
+        static Lucene29SearchEngine()
         {
             Lucene.Net.Search.BooleanQuery.SetMaxClauseCount(100000);
         }

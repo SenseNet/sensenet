@@ -460,7 +460,6 @@
       <SubType>
       </SubType>
     </EmbeddedResource>
-    <None Include="Search\ClassDiagram1.cd" />
     <None Include="Schema\ContentListDefinition.xsx">
       <DependentUpon>ContentListDefinition.xsd</DependentUpon>
     </None>
