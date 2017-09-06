@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Lucene.Net.Index;
 using Lucene.Net.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;

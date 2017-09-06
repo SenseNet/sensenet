@@ -8,7 +8,7 @@ using SenseNet.Search.Lucene29;
 
 namespace SenseNet.Search
 {
-    public class DefaultIndexingEngineFactory : IIndexingEngineFactory
+    public class DefaultIndexingEngineFactory : IIndexingEngineFactory //UNDONE:!!!!!! Remove IndexingEngineFactory
     {
         private readonly IIndexingEngine _instance;
 
