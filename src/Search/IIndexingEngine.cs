@@ -36,9 +36,4 @@ namespace SenseNet.Search
         void Actualize(IEnumerable<SnTerm> deletions, IndexDocument addition, IEnumerable<DocumentUpdate> updates); //UNDONE: rename to a better choice
         void Actualize(IEnumerable<SnTerm> deletions, IEnumerable<IndexDocument> addition); //UNDONE: rename to a better choice
     }
-
-    public interface IIndexingEngineFactory //UNDONE:!!!!!! Remove IIndexingEngineFactory
-    {
-        IIndexingEngine CreateIndexingEngine();
-    }
 }

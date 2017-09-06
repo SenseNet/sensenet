@@ -9,17 +9,6 @@ using SenseNet.Search.Indexing;
 
 namespace SenseNet.SearchImpl.Tests.Implementations
 {
-    internal class InMemoryIndexingEngineFactory : IIndexingEngineFactory
-    {
-        //TODO: thread affinity to enable multithreaded unit testing
-        public InMemoryIndexingEngine Instance { get; } = new InMemoryIndexingEngine();
-
-        public IIndexingEngine CreateIndexingEngine()
-        {
-            return Instance;
-        }
-    }
-
     internal class InMemoryIndexingEngine : IIndexingEngine
     {
         internal InMemoryIndex Index { get; } = new InMemoryIndex();

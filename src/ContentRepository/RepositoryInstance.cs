@@ -164,7 +164,7 @@ namespace SenseNet.ContentRepository
             }
             ConsoleWriteLine("Starting LuceneManager:");
 
-            IndexManager.Start(new DefaultIndexingEngineFactory(), _settings.Console);
+            IndexManager.Start(_settings.Console);
 
             ConsoleWriteLine("LuceneManager has started.");
         }

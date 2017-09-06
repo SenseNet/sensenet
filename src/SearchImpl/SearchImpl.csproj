@@ -62,7 +62,6 @@
     <Compile Include="Configuration\Querying.cs" />
     <Compile Include="ContentQuery.cs" />
     <Compile Include="ContentQuery_NEW.cs" />
-    <Compile Include="DefaultIndexingEngineFactory.cs" />
     <Compile Include="Indexing\Activities\AddDocumentActivity.cs" />
     <Compile Include="Indexing\Activities\AddTreeActivity.cs" />
     <Compile Include="Indexing\Activities\DistributedIndexingActivity.cs" />

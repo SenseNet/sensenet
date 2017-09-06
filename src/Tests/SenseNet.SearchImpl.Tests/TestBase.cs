@@ -168,7 +168,7 @@ namespace SenseNet.SearchImpl.Tests
                 ))
             using (new SystemAccount())
             {
-                IndexManager.Start(new InMemoryIndexingEngineFactory(), TextWriter.Null);
+                IndexManager.Start(TextWriter.Null);
                 return callback();
             }
         }

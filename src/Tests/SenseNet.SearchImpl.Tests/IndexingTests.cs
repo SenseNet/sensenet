@@ -511,9 +511,7 @@ namespace SenseNet.SearchImpl.Tests
 
         private InMemoryIndex GetTestIndex()
         {
-            var indexManagerAcc = new PrivateType(typeof(IndexManager));
-            var factory = (InMemoryIndexingEngineFactory) indexManagerAcc.GetStaticField("_indexingEngineFactory");
-            return factory.Instance.Index;
+            return ((InMemoryIndexingEngine) IndexManager.IndexingEngine).Index;
         }
 
         private void SaveNode(Node node)
