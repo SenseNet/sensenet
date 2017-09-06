@@ -9,10 +9,10 @@ namespace SenseNet.SearchImpl.Tests.Implementations
     internal class InMemoryIndex
     {
         // FieldName => FieldValue => VersionId
-        private readonly Dictionary<string, Dictionary<string, List<int>>> _indexData = new Dictionary<string, Dictionary<string, List<int>>>();
+        internal Dictionary<string, Dictionary<string, List<int>>> IndexData { get; } = new Dictionary<string, Dictionary<string, List<int>>>();
 
         // VersionId, IndexFields
-        private readonly List<Tuple<int, List<IndexField>>> _storedData = new List<Tuple<int, List<IndexField>>>();
+        internal List<Tuple<int, List<IndexField>>> StoredData { get; } = new List<Tuple<int, List<IndexField>>>();
 
         public void AddDocument(IndexDocument document)
         {
@@ -20,17 +20,17 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
             var storedFields = document.Where(f => f.Store == IndexStoringMode.Yes).ToList();
             if (storedFields.Count > 0)
-                _storedData.Add(new Tuple<int, List<IndexField>>(versionId, storedFields));
+                StoredData.Add(new Tuple<int, List<IndexField>>(versionId, storedFields));
 
             foreach (var field in document)
             {
                 var fieldName = field.Name;
 
                 Dictionary<string, List<int>> existingFieldData;
-                if (!_indexData.TryGetValue(fieldName, out existingFieldData))
+                if (!IndexData.TryGetValue(fieldName, out existingFieldData))
                 {
                     existingFieldData = new Dictionary<string, List<int>>();
-                    _indexData.Add(fieldName, existingFieldData);
+                    IndexData.Add(fieldName, existingFieldData);
                 }
 
                 var fieldValues = GetValues(field);
@@ -55,7 +55,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
             // get category by term name
             Dictionary<string, List<int>> existingFieldData;
-            if (!_indexData.TryGetValue(fieldName, out existingFieldData))
+            if (!IndexData.TryGetValue(fieldName, out existingFieldData))
                 return;
 
             var deletableVersionIds = new List<int>();
@@ -70,7 +70,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             }
 
             // delete all version ids in any depth
-            foreach (var item in _indexData)
+            foreach (var item in IndexData)
             {
                 foreach (var subItem in item.Value)
                 {
@@ -81,8 +81,8 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             }
 
             // delete stored data by all version ids
-            foreach (var deletableStoredData in _storedData.Where(s => deletableVersionIds.Contains(s.Item1)).ToArray())
-                _storedData.Remove(deletableStoredData);
+            foreach (var deletableStoredData in StoredData.Where(s => deletableVersionIds.Contains(s.Item1)).ToArray())
+                StoredData.Remove(deletableStoredData);
         }
 
         public void Update(SnTerm term, IndexDocument document)
@@ -105,7 +105,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
             // get category by term name
             Dictionary<string, List<int>> existingFieldData;
-            if (!_indexData.TryGetValue(fieldName, out existingFieldData))
+            if (!IndexData.TryGetValue(fieldName, out existingFieldData))
                 return null;
 
             // get version id set by term value
@@ -114,7 +114,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                 return null;
 
             // return with all stored data by version ids without distinct
-            var result = _storedData.Where(d => versionIds.Contains(d.Item1)).ToArray();
+            var result = StoredData.Where(d => versionIds.Contains(d.Item1)).ToArray();
             if (result.Length == 0)
                 result = null;
 
@@ -152,13 +152,13 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         public int GetTermCount(string fieldName)
         {
             Dictionary<string, List<int>> fieldValues;
-            return _indexData.TryGetValue(fieldName, out fieldValues) ? fieldValues.Count : 0;
+            return IndexData.TryGetValue(fieldName, out fieldValues) ? fieldValues.Count : 0;
         }
 
         public void Clear()
         {
-            _indexData.Clear();
-            _storedData.Clear();
+            IndexData.Clear();
+            StoredData.Clear();
         }
     }
 }

@@ -73,6 +73,7 @@
     <Compile Include="Implementations\InMemoryIndexingEngine.cs" />
     <Compile Include="Implementations\InMemoryIndex.cs" />
     <Compile Include="Implementations\InMemoryQueryEngine.cs" />
+    <Compile Include="Implementations\SafeQueries.cs" />
     <Compile Include="Implementations\TestNode.cs" />
     <Compile Include="Implementations\InMemorySearchEngine.cs" />
     <Compile Include="Implementations\TestSearchEngineSupport.cs" />

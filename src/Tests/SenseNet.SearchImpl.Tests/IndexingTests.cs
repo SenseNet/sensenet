@@ -15,6 +15,7 @@ using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Lucene29;
 using SenseNet.SearchImpl.Tests.Implementations;
+using SafeQueries = SenseNet.SearchImpl.Tests.Implementations.SafeQueries;
 
 namespace SenseNet.SearchImpl.Tests
 {
@@ -505,6 +506,36 @@ namespace SenseNet.SearchImpl.Tests
 
             Assert.AreEqual(nodeCountInDb, nodeCountInIndex);
             Assert.AreEqual(versionCountInDb, versionCountInIndex);
+        }
+
+        /* ============================================================================ */
+
+        [TestMethod]
+        public void Querying_Term()
+        {
+            Node node;
+            var result = Test(() =>
+            {
+                // create a test node under the root.
+                node = new SystemFolder(Node.LoadNode(Identifiers.PortalRootId))
+                {
+                    Name = "Node1",
+                    DisplayName = "Node 1",
+                    Index = 42
+                };
+                foreach (var observer in NodeObserver.GetObserverTypes())
+                    node.DisableObserver(observer);
+                node.Save();
+
+                // ACTION
+                var qresult = ContentQuery_NEW.Query(SafeQueries.Name, QuerySettings.AdminSettings, "Node1");
+
+                return new Tuple<int[], Node[]>(qresult.Identifiers.ToArray(), qresult.Nodes.ToArray());
+            });
+
+            var nodeIds = result.Item1;
+            var nodes = result.Item2;
+            
         }
 
         /* ============================================================================ */
