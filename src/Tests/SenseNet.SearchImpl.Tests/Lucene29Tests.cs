@@ -60,7 +60,7 @@ namespace SenseNet.SearchImpl.Tests
                 activities = db.LoadIndexingActivities(1, activityId, 10000, false, IndexingActivityFactory.Instance);
 
                 int[] nodeIds, versionIds;
-                GetIdValues(out nodeIds, out versionIds);
+                GetAllIdValuesFromIndex(out nodeIds, out versionIds);
                 return new[]
                 {
                     activities.Length,
@@ -122,7 +122,7 @@ namespace SenseNet.SearchImpl.Tests
             }
         }
 
-        private void GetIdValues(out int[] nodeIds, out int[] versionIds)
+        private void GetAllIdValuesFromIndex(out int[] nodeIds, out int[] versionIds)
         {
             var nodeIdList = new List<int>();
             var versionIdLists = new List<int>();

@@ -78,7 +78,7 @@
     <Compile Include="IndexingTests.cs" />
     <Compile Include="DataProviderTests\InMemoryDataProviderTests.cs" />
     <Compile Include="Lucene29Tests.cs" />
-    <Compile Include="SnSearchToLucene29CompilerTests.cs" />
+    <Compile Include="Lucene29CompilerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestBase.cs" />
     <Compile Include="Tools.cs" />
