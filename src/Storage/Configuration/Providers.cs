@@ -1,6 +1,14 @@
-﻿using SenseNet.Communication.Messaging;
+﻿using System;
+using System.Collections.Generic;
+using SenseNet.Communication.Messaging;
+using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
+using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics;
 using SenseNet.Security.Messaging;
+using SenseNet.Tools;
 
 // ReSharper disable once CheckNamespace
 // ReSharper disable RedundantTypeArgumentsOfMethod
@@ -33,6 +41,102 @@ namespace SenseNet.Configuration
         private static string GetProvider(string key, string defaultValue = null)
         {
             return GetString(SectionName, key, defaultValue);
+        }
+
+        //===================================================================================== Instance
+
+        /// <summary>
+        /// Lets you access the replaceable providers in the system. This instance may be replaced 
+        /// by a derived special implementation that stores instances on a thread context 
+        /// for testing purposes.
+        /// </summary>
+        public static Providers Instance { get; set; } = new Providers();
+
+        //===================================================================================== Named providers
+
+        private Lazy<DataProvider> _dataProvider = new Lazy<DataProvider>(() =>
+        {
+            DataProvider dbp;
+
+            try
+            {
+                dbp = (DataProvider)TypeResolver.CreateInstance(DataProviderClassName);
+            }
+            catch (TypeNotFoundException)
+            {
+                throw new ConfigurationException($"{SR.Exceptions.Configuration.Msg_DataProviderImplementationDoesNotExist}: {DataProviderClassName}");
+            }
+            catch (InvalidCastException)
+            {
+                throw new ConfigurationException(SR.Exceptions.Configuration.Msg_InvalidDataProviderImplementation);
+            }
+
+            CommonComponents.TransactionFactory = dbp;
+            SnLog.WriteInformation("DataProvider created: " + DataProviderClassName);
+
+            return dbp;
+        });
+        public virtual DataProvider DataProvider
+        {
+            get { return _dataProvider.Value; }
+            set { _dataProvider = new Lazy<DataProvider>(() => value); }
+        }
+
+        private Lazy<AccessProvider> _accessProvider = new Lazy<AccessProvider>(() =>
+        {
+            try
+            {
+                var provider = (AccessProvider)TypeResolver.CreateInstance(AccessProviderClassName);
+                provider.InitializeInternal();
+
+                SnLog.WriteInformation("AccessProvider created: " + AccessProviderClassName);
+
+                return provider;
+            }
+            catch (TypeNotFoundException) // rethrow
+            {
+                throw new ConfigurationException($"{SR.Exceptions.Configuration.Msg_AccessProviderImplementationDoesNotExist}: {AccessProviderClassName}");
+            }
+            catch (InvalidCastException) // rethrow
+            {
+                throw new ConfigurationException($"{SR.Exceptions.Configuration.Msg_InvalidAccessProviderImplementation}: {AccessProviderClassName}");
+            }
+        });
+        public virtual AccessProvider AccessProvider
+        {
+            get { return _accessProvider.Value; }
+            set { _accessProvider = new Lazy<AccessProvider>(() => value); }
+        }
+
+        //===================================================================================== General provider API
+
+        private readonly Dictionary<string, object> _providersByName = new Dictionary<string, object>();
+        private readonly Dictionary<Type, object> _providersByType = new Dictionary<Type, object>();
+
+        public virtual T GetProvider<T>(string name) where T: class 
+        {
+            object provider;
+            if (_providersByName.TryGetValue(name, out provider))
+                return provider as T;
+
+            return null;
+        }
+        public virtual T GetProvider<T>(Type providerType) where T : class
+        {
+            object provider;
+            if (_providersByType.TryGetValue(providerType, out provider))
+                return provider as T;
+
+            return null;
+        }
+
+        public virtual void SetProvider(string providerName, object provider)
+        {
+            _providersByName[providerName] = provider;
+        }
+        public virtual void SetProvider(Type providerType, object provider)
+        {
+            _providersByType[providerType] = provider;
         }
     }
 }

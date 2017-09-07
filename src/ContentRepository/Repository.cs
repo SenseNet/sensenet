@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Configuration;
@@ -57,6 +58,37 @@ namespace SenseNet.ContentRepository
             AccessProvider.RestoreOriginalUser();
             return instance;
         }
+        public static RepositoryInstance Start(RepositoryBuilder builder)
+        {
+            if (builder == null)
+                return Start();
+
+            BuildProviders(builder);
+
+            return Start((RepositoryStartSettings) builder);
+        }
+
+        private static void BuildProviders(RepositoryBuilder builder)
+        {
+            if (builder?.AccessProvider != null)
+                Providers.Instance.AccessProvider = builder.AccessProvider;
+
+            if (builder?.DataProvider != null)
+                Providers.Instance.DataProvider = builder.DataProvider;
+
+            if (builder == null)
+                return;
+
+            foreach (var provider in builder.ProvidersByName)
+            {
+                Providers.Instance.SetProvider(provider.Key, provider.Value);
+            }
+            foreach (var provider in builder.ProvidersByType)
+            {
+                Providers.Instance.SetProvider(provider.Key, provider.Value);
+            }
+        }
+
         /// <summary>
         /// Returns the running state of the Repository.
         /// </summary>
