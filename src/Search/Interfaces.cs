@@ -209,10 +209,6 @@ namespace SenseNet.Search
         IQueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter);
         IQueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter);
     }
-    public interface IQueryEngineSelector
-    {
-        IQueryEngine Select(SnQuery query, QuerySettings settings);
-    }
 
     public interface IPermissionFilter
     {
@@ -240,7 +236,7 @@ namespace SenseNet.Search
         }
         public bool IsPermitted(int nodeId, bool isLastPublic, bool isLastDraft)
         {
-            return true; //UNDONE: fake implementation
+            return true; //UNDONE:!!! DefaultPermissionFilter: fake implementation
         }
     }
 
@@ -249,14 +245,6 @@ namespace SenseNet.Search
         public IPermissionFilter Create(int userId)
         {
             return new DefaultPermissionFilter(userId);
-        }
-    }
-
-    public class DefaultQueryEngineSelector : IQueryEngineSelector
-    {
-        public IQueryEngine Select(SnQuery query, QuerySettings settings)
-        {
-            return new DefaultQueryEngine();
         }
     }
 

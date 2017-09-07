@@ -10,6 +10,7 @@ namespace SenseNet.Search.Parser
     {
         QuerySettings Settings { get; }
         int UserId { get; }
+        IQueryEngine QueryEngine { get; }
 
         IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName);
     }

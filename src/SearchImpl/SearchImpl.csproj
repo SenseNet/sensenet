@@ -118,6 +118,7 @@
     <Compile Include="SearchProvider.cs" />
     <Compile Include="SnCollector.cs" />
     <Compile Include="SnIFilter.cs" />
+    <Compile Include="SnQueryContext.cs" />
     <Compile Include="TextSplitter.cs" />
   </ItemGroup>
   <ItemGroup>

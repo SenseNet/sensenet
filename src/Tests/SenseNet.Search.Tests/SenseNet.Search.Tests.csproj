@@ -60,7 +60,6 @@
     <Compile Include="Implementations\TestIndexFieldHandler.cs" />
     <Compile Include="Implementations\TestPerfieldIndexingInfo.cs" />
     <Compile Include="Implementations\TestQueryEngine.cs" />
-    <Compile Include="Implementations\TestQueryEngineSelector.cs" />
     <Compile Include="SnQueryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Implementations\SnQueryToStringVisitor.cs" />

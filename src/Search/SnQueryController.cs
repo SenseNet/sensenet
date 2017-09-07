@@ -16,22 +16,18 @@ namespace SenseNet.Search
         public static readonly string NullReferenceValue = "null";
 
         private static IPermissionFilterFactory PermissionFilterFactory = new DefaultPermissionFilterFactory();
-        private static IQueryEngineSelector QueryEngineSelector = new DefaultQueryEngineSelector();
-        private static IQueryParserFactory QueryParserFactory = new DefaultQueryParserFactory();
 
         public static IQueryResult<int> Query(string queryText, IQueryContext context)
         {
-            var query = QueryParserFactory.Create().Parse(queryText, context);
+            var query = new CqlParser().Parse(queryText, context);
             var permissionFilter = PermissionFilterFactory.Create(context.UserId);
-            var engine = QueryEngineSelector.Select(query, context.Settings);
-            return engine.ExecuteQuery(query, permissionFilter);
+            return context.QueryEngine.ExecuteQuery(query, permissionFilter);
         }
         public static IQueryResult<string> QueryAndProject(string queryText, IQueryContext context)
         {
-            var query = QueryParserFactory.Create().Parse(queryText, context);
+            var query = new CqlParser().Parse(queryText, context);
             var permissionFilter = PermissionFilterFactory.Create(context.UserId);
-            var engine = QueryEngineSelector.Select(query, context.Settings);
-            return engine.ExecuteQueryAndProject(query, permissionFilter);
+            return context.QueryEngine.ExecuteQueryAndProject(query, permissionFilter);
         }
     }
 }

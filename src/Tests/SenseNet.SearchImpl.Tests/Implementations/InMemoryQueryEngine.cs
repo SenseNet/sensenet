@@ -95,7 +95,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                 if (_index.IndexData.TryGetValue(text.FieldName, out fieldValues))
                 {
                     List<int> versionIds;
-                    if (fieldValues.TryGetValue(text.Value, out versionIds))
+                    if (fieldValues.TryGetValue(text.Value.ToLowerInvariant(), out versionIds)) //UNDONE: call perfield indexing info
                         result.AddRange(versionIds);
                 }
                 _hitStack.Push(result);

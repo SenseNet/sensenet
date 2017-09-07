@@ -13,16 +13,19 @@ namespace SenseNet.Search.Tests.Implementations
 
         public QuerySettings Settings { get; }
         public int UserId { get; }
+        public IQueryEngine QueryEngine { get; }
+
         public IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
         {
             return _indexingInfo[fieldName];
         }
 
-        public TestQueryContext(QuerySettings settings, int userId, IDictionary<string, IPerFieldIndexingInfo> indexingInfo)
+        public TestQueryContext(QuerySettings settings, int userId, IDictionary<string, IPerFieldIndexingInfo> indexingInfo, IQueryEngine queryEngine = null)
         {
             Settings = settings;
             UserId = userId;
             _indexingInfo = indexingInfo;
+            QueryEngine = queryEngine;
         }
     }
 }

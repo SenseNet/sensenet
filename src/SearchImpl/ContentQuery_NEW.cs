@@ -307,7 +307,8 @@ namespace SenseNet.Search
             if (String.IsNullOrEmpty(queryText))
                 throw new InvalidOperationException("Cannot execute query with null or empty Text");
 
-            if (AccessProvider.Current.GetCurrentUser().Id == Identifiers.SystemUserId && !this.IsSafe)
+            var userId = AccessProvider.Current.GetCurrentUser().Id;
+            if (userId == Identifiers.SystemUserId && !this.IsSafe)
             {
                 var ex = new InvalidOperationException("Cannot execute this query, please convert it to a safe query.");
                 ex.Data.Add("EventId", EventId.Querying);
@@ -322,11 +323,13 @@ namespace SenseNet.Search
             {
                 if (!queryText.Contains("}}"))
                 {
-                    string projection;
-                    var lucObjects = ExecuteAtomic(queryText, Settings.Top, Settings.Skip, Settings.Sort, Settings.EnableAutofilters,
-                        Settings.EnableLifespanFilter, Settings.QueryExecutionMode, Settings, false, out projection,
-                        out totalCount);
-                    identifiers = lucObjects.Select(l => l.NodeId).ToArray();
+                    //var lucObjects = ExecuteAtomic(queryText, Settings.Top, Settings.Skip, Settings.Sort, Settings.EnableAutofilters,
+                    //    Settings.EnableLifespanFilter, Settings.QueryExecutionMode, Settings, false, out projection,
+                    //    out totalCount);
+                    //identifiers = lucObjects.Select(l => l.NodeId).ToArray();
+                    var result = SnQuery.Query(queryText, new SnQueryContext(Settings, userId));
+                    identifiers = result.Hits;
+                    totalCount = result.TotalCount;
                 }
                 else
                 {
@@ -340,8 +343,9 @@ namespace SenseNet.Search
             return new QueryResult(identifiers, totalCount);
         }
 
+
         //UNDONE: ## Deepest level in the general layer
-        private static IEnumerable<LucObject> ExecuteAtomic(string queryText, int top, int skip, IEnumerable<SortInfo> sort, FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode, QuerySettings settings, bool enableProjection, out string projection, out int totalCount)
+        private static IEnumerable<LucObject> ExecuteAtomic_DELETE(string queryText, int top, int skip, IEnumerable<SortInfo> sort, FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode, QuerySettings settings, bool enableProjection, out string projection, out int totalCount)
         {
             LucQuery query;
 
@@ -529,7 +533,7 @@ namespace SenseNet.Search
                 InnerQueryResult result;
 
                 string projection;
-                var lucObjects = ExecuteAtomic(queryText, top, skip, sort, enableAutofilters, enableLifespanFilter, executionMode, settings, enableProjection, out projection, out totalCount);
+                var lucObjects = ExecuteAtomic_DELETE(queryText, top, skip, sort, enableAutofilters, enableLifespanFilter, executionMode, settings, enableProjection, out projection, out totalCount);
 
                 if (projection == null || !enableProjection)
                 {

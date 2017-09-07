@@ -68,9 +68,7 @@
     <Compile Include="Parser\EmptyPredicateVisitor.cs" />
     <Compile Include="Parser\Predicates\LogicalClause.cs" />
     <Compile Include="Parser\Predicates\LogicalPredicate.cs" />
-    <Compile Include="Parser\DefaultQueryParserFactory.cs" />
     <Compile Include="Parser\IQueryContext.cs" />
-    <Compile Include="Parser\IQueryParserFactory.cs" />
     <Compile Include="Parser\Predicates\RangePredicate.cs" />
     <Compile Include="Parser\SnQueryPredicate.cs" />
     <Compile Include="Parser\ISnQueryParser.cs" />
