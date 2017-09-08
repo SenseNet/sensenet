@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Lucene.Net.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.Search;
@@ -173,17 +174,65 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             public override SnQueryPredicate VisitTextPredicate(TextPredicate text)
             {
                 var result = new List<int>();
+
+                var value = text.Value.ToLowerInvariant();
                 Dictionary<string, List<int>> fieldValues;
                 if (_index.IndexData.TryGetValue(text.FieldName, out fieldValues))
                 {
-                    List<int> versionIds;
-                    if (fieldValues.TryGetValue(text.Value.ToLowerInvariant(), out versionIds)) //UNDONE: call perfield indexing info
-                        result.AddRange(versionIds);
+                    if (!value.Contains("*"))
+                    {
+                        List<int> versionIds;
+                        if (fieldValues.TryGetValue(value, out versionIds))
+                            //UNDONE: call perfield indexing info
+                            result.AddRange(versionIds);
+                    }
+                    else
+                    {
+                        result.AddRange(GetVersionIdsByWildcard(fieldValues, value));
+                    }
                 }
                 _hitStack.Push(result);
                 return text;
             }
 
+            private IEnumerable<int> GetVersionIdsByWildcard(Dictionary<string, List<int>> fieldValues, string value)
+            {
+                if (value.Contains("?"))
+                    throw new NotSupportedException($"Wildcard '?' not supported.");
+                if(value.Replace("*", "").Length == 0)
+                    throw new NotSupportedException($"Query is not supported for this field value: {value}");
+
+                List<int>[] versionIds;
+                if (value.StartsWith("*") && value.EndsWith("*"))
+                {
+                    var middle = value.Trim('*');
+                    versionIds = fieldValues.Keys.Where(k => k.Contains(middle)).Select(k => fieldValues[k]).ToArray();
+                }
+                else if (value.StartsWith("*"))
+                {
+                    var suffix = value.Trim('*');
+                    versionIds = fieldValues.Keys.Where(k => k.EndsWith(suffix)).Select(k => fieldValues[k]).ToArray();
+                }
+                else if (value.EndsWith("*"))
+                {
+                    var prefix = value.Trim('*');
+                    versionIds = fieldValues.Keys.Where(k => k.StartsWith(prefix)).Select(k => fieldValues[k]).ToArray();
+                }
+                else // if (value.Contains("*"))
+                {
+                    var sa = value.Split("*".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                    var prefix = sa[0];
+                    var suffix = sa[1];
+                    versionIds = fieldValues.Keys.Where(k => k.StartsWith(prefix) && k.EndsWith(suffix)).Select(k => fieldValues[k]).ToArray();
+                }
+
+                // aggregate
+                var result = new int[0].AsEnumerable();
+                foreach (var item in versionIds)
+                    result = result.Union(item);
+
+                return result.Distinct().ToArray();
+            }
         }
     }
 }

@@ -634,6 +634,91 @@ namespace SenseNet.SearchImpl.Tests
             Assert.AreEqual(expectedNames, actualNames);
         }
 
+        [TestMethod]
+        public void InMemSearch_Query_PrefixOrSuffix()
+        {
+            var createNode = new Func<Node, string, Node>((parent, name) =>
+            {
+                var node = new SystemFolder(parent) { Name = name };
+                foreach (var observer in NodeObserver.GetObserverTypes())
+                    node.DisableObserver(observer);
+                node.Save();
+                return node;
+            });
+
+            var result = Test(() =>
+            {
+                // create a test structure:
+                var root = Node.LoadNode(Identifiers.PortalRootId);
+                var f1 = createNode(root, "F1");
+                createNode(f1, "A1");
+                createNode(f1, "B1");
+                createNode(f1, "C1");
+                createNode(f1, "A2");
+                createNode(f1, "B2");
+                createNode(f1, "C2");
+                createNode(f1, "A3");
+                createNode(f1, "B3");
+                createNode(f1, "C3");
+
+                // ACTION
+                var settings = QuerySettings.AdminSettings;
+                settings.Sort = new[] { new SortInfo(IndexFieldName.Name) };
+                var qresult1 = ContentQuery_NEW.Query(SafeQueries.OneTerm, settings, "Name", "B*");
+                var qresult2 = ContentQuery_NEW.Query(SafeQueries.OneTerm, settings, "Name", "*3");
+
+                return new Tuple<Node[], Node[]>(qresult1.Nodes.ToArray(), qresult2.Nodes.ToArray());
+            });
+
+            var nodes1 = result.Item1;
+            var nodes2 = result.Item2;
+
+            Assert.AreEqual("B1, B2, B3", string.Join(", ", nodes1.Select(n => n.Name)));
+            Assert.AreEqual("A3, B3, C3", string.Join(", ", nodes2.Select(n => n.Name)));
+        }
+
+        [TestMethod]
+        public void InMemSearch_Query_PrefixAndSuffixOrMiddle()
+        {
+            var createNode = new Func<Node, string, Node>((parent, name) =>
+            {
+                var node = new SystemFolder(parent) { Name = name };
+                foreach (var observer in NodeObserver.GetObserverTypes())
+                    node.DisableObserver(observer);
+                node.Save();
+                return node;
+            });
+
+            var result = Test(() =>
+            {
+                // create a test structure:
+                var root = Node.LoadNode(Identifiers.PortalRootId);
+                var f1 = createNode(root, "F1");
+                createNode(f1, "Ax1");
+                createNode(f1, "Ax2");
+                createNode(f1, "Ay1");
+                createNode(f1, "Ay2");
+                createNode(f1, "Bx1");
+                createNode(f1, "Bx2");
+                createNode(f1, "By1");
+                createNode(f1, "By2");
+
+                // ACTION
+                var settings = QuerySettings.AdminSettings;
+                settings.Sort = new[] { new SortInfo(IndexFieldName.Name) };
+                var qresult1 = ContentQuery_NEW.Query(SafeQueries.OneTerm, settings, "Name", "A*2");
+                var qresult2 = ContentQuery_NEW.Query(SafeQueries.OneTerm, settings, "Name", "*y*");
+
+                return new Tuple<Node[], Node[]>(qresult1.Nodes.ToArray(), qresult2.Nodes.ToArray());
+            });
+
+            var nodes1 = result.Item1;
+            var nodes2 = result.Item2;
+
+            Assert.AreEqual("Ax2, Ay2", string.Join(", ", nodes1.Select(n => n.Name)));
+            Assert.AreEqual("Ay1, Ay2, By1, By2", string.Join(", ", nodes2.Select(n => n.Name)));
+        }
+
         /* ============================================================================ */
 
         private InMemoryIndex GetTestIndex()
