@@ -23,7 +23,7 @@ namespace SenseNet.SearchImpl.Tests
     public class IndexingTests : TestBase
     {
         [TestMethod]
-        public void Indexing_Create()
+        public void InMemSearch_Indexing_Create()
         {
             Node node;
             var result = Test(() =>
@@ -95,7 +95,7 @@ namespace SenseNet.SearchImpl.Tests
         }
 
         [TestMethod]
-        public void Indexing_Update()
+        public void InMemSearch_Indexing_Update()
         {
             Node node;
             var result = Test(() =>
@@ -181,7 +181,7 @@ namespace SenseNet.SearchImpl.Tests
         }
 
         [TestMethod]
-        public void Indexing_Delete()
+        public void InMemSearch_Indexing_Delete()
         {
             Node node1, node2;
 
@@ -272,7 +272,7 @@ namespace SenseNet.SearchImpl.Tests
         }
 
         [TestMethod]
-        public void Indexing_Rename()
+        public void InMemSearch_Indexing_Rename()
         {
             Node node1; // /Root/Node1
             Node node2; // /Root/Node1/Node2
@@ -406,7 +406,7 @@ namespace SenseNet.SearchImpl.Tests
 
 
         [TestMethod]
-        public void Indexing_AddTextEctract()
+        public void InMemSearch_Indexing_AddTextEctract()
         {
             Node node;
             var additionalText = "additionaltext";
@@ -466,7 +466,7 @@ namespace SenseNet.SearchImpl.Tests
         }
 
         [TestMethod]
-        public void Indexing_ClearAndPopulateAll()
+        public void InMemSearch_Indexing_ClearAndPopulateAll()
         {
             var sb = new StringBuilder();
             IIndexingActivity[] activities;
@@ -511,7 +511,7 @@ namespace SenseNet.SearchImpl.Tests
         /* ============================================================================ */
 
         [TestMethod]
-        public void Query_1Term1Hit()
+        public void InMemSearch_Query_1Term1Hit()
         {
             Node node;
             var result = Test(() =>
@@ -539,7 +539,7 @@ namespace SenseNet.SearchImpl.Tests
         }
 
         [TestMethod]
-        public void Query_1TermMoreHit1Order()
+        public void InMemSearch_Query_1TermMoreHit1Order()
         {
             var createNode = new Func<Node, string, int, Node>((parent, name, index) =>
             {
@@ -593,7 +593,7 @@ namespace SenseNet.SearchImpl.Tests
         }
 
         [TestMethod]
-        public void Query_1TermMoreHit2Order()
+        public void InMemSearch_Query_1TermMoreHit2Order()
         {
             var createNode = new Func<Node, string, string, int, Node>((parent, name, displayName, index) =>
             {

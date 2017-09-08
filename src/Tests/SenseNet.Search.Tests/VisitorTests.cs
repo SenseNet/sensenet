@@ -25,7 +25,7 @@ namespace SenseNet.Search.Tests
         }
 
         [TestMethod]
-        public void Search_Visitor_Rewrite()
+        public void SnQuery_Visitor_Rewrite()
         {
             var tree = new LogicalPredicate(
                 new []
@@ -52,7 +52,7 @@ namespace SenseNet.Search.Tests
         }
 
         [TestMethod]
-        public void Search_Visitor_VisitNull()
+        public void SnQuery_Visitor_VisitNull()
         {
             var visitor = new TestVisitor();
             Assert.IsNull(visitor.Visit(null));
@@ -60,7 +60,7 @@ namespace SenseNet.Search.Tests
 
         [TestMethod]
         [ExpectedException(typeof(NotSupportedException))]
-        public void Search_Visitor_VisitUnknown()
+        public void SnQuery_Visitor_VisitUnknown()
         {
             var visitor = new TestVisitor();
             visitor.Visit(new UnknownPredicate());

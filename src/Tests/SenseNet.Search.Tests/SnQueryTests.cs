@@ -11,7 +11,7 @@ namespace SenseNet.Search.Tests
     public class SnQueryTests
     {
         [TestMethod]
-        public void Search_Query_IntResult()
+        public void SnQuery_Result_Int()
         {
             var intResults = new Dictionary<string, IQueryResult<int>> { { "asdf", new QueryResult<int>(new[] { 1, 2, 3 }, 4) } };
             var context = new TestQueryContext(QuerySettings.AdminSettings, 0, null, new TestQueryEngine(intResults, null));
@@ -26,7 +26,7 @@ namespace SenseNet.Search.Tests
         }
 
         [TestMethod]
-        public void Search_Query_StringResult()
+        public void SnQuery_Result_String()
         {
             var stringResults = new Dictionary<string, IQueryResult<string>>{ {"asdf", new QueryResult<string>(new[] {"1", "2", "3"}, 4)} };
             var context = new TestQueryContext(QuerySettings.AdminSettings, 0, null, new TestQueryEngine(null, stringResults));
