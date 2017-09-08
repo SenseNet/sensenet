@@ -7,7 +7,7 @@ namespace SenseNet.Search
     {
         public QuerySettings Settings { get; }
         public int UserId { get; }
-        public IQueryEngine QueryEngine => StorageContext.Search.SearchEngine.GetQueryEngine();
+        public IQueryEngine QueryEngine => StorageContext.Search.SearchEngine.QueryEngine;
 
         public SnQueryContext(QuerySettings settings, int userId)
         {

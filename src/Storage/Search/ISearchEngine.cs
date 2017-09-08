@@ -38,19 +38,35 @@ namespace SenseNet.ContentRepository.Storage.Search
 
     public interface ISearchEngine
     {
-        IIndexPopulator GetPopulator(); //UNDONE: not SearchEngine responsibility: GetPopulator()
+        /// <summary>
+        /// Gets an IIndexingEngine implementation. The instance is not changed during the repository's lifetime. 
+        /// </summary>
+        IIndexingEngine IndexingEngine { get; }
+
+        /// <summary>
+        /// Gets an IQueryEngine implementation. The instance is not changed during the repository's lifetime.
+        /// </summary>
+        IQueryEngine QueryEngine { get; }
 
         IDictionary<string, Type> GetAnalyzers();
 
         void SetIndexingInfo(object indexingInfo);
 
-        IIndexingEngine GetIndexingEngine();
-
-        IQueryEngine GetQueryEngine();
+        IIndexPopulator GetPopulator(); //UNDONE: not SearchEngine responsibility: GetPopulator()
     }
     public class InternalSearchEngine : ISearchEngine
     {
         public static InternalSearchEngine Instance = new InternalSearchEngine();
+
+        public IIndexingEngine IndexingEngine
+        {
+            get { throw new SnNotSupportedException(); }
+        }
+
+        public IQueryEngine QueryEngine
+        {
+            get { throw new SnNotSupportedException(); }
+        }
 
         public IIndexPopulator GetPopulator()
         {
@@ -63,16 +79,6 @@ namespace SenseNet.ContentRepository.Storage.Search
         public void SetIndexingInfo(object indexingInfo)
         {
             // do nothing
-        }
-
-        public IIndexingEngine GetIndexingEngine()
-        {
-            throw new SnNotSupportedException();
-        }
-
-        public IQueryEngine GetQueryEngine()
-        {
-            throw new SnNotSupportedException();
         }
     }
 

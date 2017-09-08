@@ -15,7 +15,7 @@ namespace SenseNet.Search.Indexing
     {
         #region /* ==================================================================== Managing index */
 
-        internal static IIndexingEngine IndexingEngine => StorageContext.Search.SearchEngine.GetIndexingEngine();
+        internal static IIndexingEngine IndexingEngine => StorageContext.Search.SearchEngine.IndexingEngine;
 
         public static bool Running => IndexingEngine.Running;
 

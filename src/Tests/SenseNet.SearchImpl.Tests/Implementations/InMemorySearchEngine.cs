@@ -13,6 +13,10 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         private readonly InMemoryIndexingEngine _indexingEngine;
         private readonly InMemoryQueryEngine _queryEngine;
 
+        public IIndexingEngine IndexingEngine => _indexingEngine;
+
+        public IQueryEngine QueryEngine => _queryEngine;
+
         public IIndexPopulator GetPopulator()
         {
             return new DocumentPopulator();
@@ -48,16 +52,6 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         {
             _indexingEngine = new InMemoryIndexingEngine();
             _queryEngine = new InMemoryQueryEngine(_indexingEngine.Index);
-        }
-
-        public IIndexingEngine GetIndexingEngine()
-        {
-            return _indexingEngine;
-        }
-
-        public IQueryEngine GetQueryEngine()
-        {
-            return _queryEngine;
         }
     }
 }
