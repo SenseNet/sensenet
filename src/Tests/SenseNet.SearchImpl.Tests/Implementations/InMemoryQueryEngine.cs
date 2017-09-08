@@ -194,7 +194,6 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                 _hitStack.Push(result);
                 return text;
             }
-
             private IEnumerable<int> GetVersionIdsByWildcard(Dictionary<string, List<int>> fieldValues, string value)
             {
                 if (value.Contains("?"))
@@ -232,6 +231,61 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                     result = result.Union(item);
 
                 return result.Distinct().ToArray();
+            }
+
+            public override SnQueryPredicate VisitRangePredicate(RangePredicate range)
+            {
+                var result = new List<int>();
+
+                Dictionary<string, List<int>> fieldValues;
+                if (_index.IndexData.TryGetValue(range.FieldName, out fieldValues))
+                {
+                    var min = range.Min?.ToLowerInvariant();
+                    var max = range.Max?.ToLowerInvariant();
+                    IEnumerable<KeyValuePair<string, List<int>>> expression;
+
+                    // play permutation of min, max and exclusiveness
+                    if (min != null && max != null)
+                    {
+                        if (!range.MinExclusive && !range.MaxExclusive)
+                            expression = fieldValues.Where(x => (string.Compare(x.Key, min, StringComparison.Ordinal) >= 0) &&
+                                                                (string.Compare(x.Key, max, StringComparison.Ordinal) <= 0));
+                        else if (!range.MinExclusive && range.MaxExclusive)
+                            expression = fieldValues.Where(x => (string.Compare(x.Key, min, StringComparison.Ordinal) >= 0) &&
+                                                                (string.Compare(x.Key, max, StringComparison.Ordinal) < 0));
+                        else if (range.MinExclusive && !range.MaxExclusive)
+                            expression = fieldValues.Where(x => (string.Compare(x.Key, min, StringComparison.Ordinal) > 0) &&
+                                                                (string.Compare(x.Key, max, StringComparison.Ordinal) <= 0));
+                        else
+                            expression = fieldValues.Where(x => (string.Compare(x.Key, min, StringComparison.Ordinal) > 0) &&
+                                                                (string.Compare(x.Key, max, StringComparison.Ordinal) < 0));
+                    }
+                    else if (min != null)
+                    {
+                        if (!range.MinExclusive)
+                            expression = fieldValues.Where(x => string.Compare(x.Key, min, StringComparison.Ordinal) >= 0);
+                        else
+                            expression = fieldValues.Where(x => string.Compare(x.Key, min, StringComparison.Ordinal) > 0);
+                    }
+                    else
+                    {
+                        if (!range.MaxExclusive)
+                            expression = fieldValues.Where(x => string.Compare(x.Key, max, StringComparison.Ordinal) <= 0);
+                        else
+                            expression = fieldValues.Where(x => string.Compare(x.Key, max, StringComparison.Ordinal) < 0);
+                    }
+
+                    var lists = expression.Select(x => x.Value).ToArray();
+
+                    // aggregate
+                    var aggregation = new int[0].AsEnumerable();
+                    foreach (var item in lists)
+                        aggregation = aggregation.Union(item);
+                    result = aggregation.Distinct().ToList();
+                }
+
+                _hitStack.Push(result);
+                return range;
             }
         }
     }

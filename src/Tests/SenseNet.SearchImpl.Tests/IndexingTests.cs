@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
@@ -717,6 +718,62 @@ namespace SenseNet.SearchImpl.Tests
 
             Assert.AreEqual("Ax2, Ay2", string.Join(", ", nodes1.Select(n => n.Name)));
             Assert.AreEqual("Ay1, Ay2, By1, By2", string.Join(", ", nodes2.Select(n => n.Name)));
+        }
+
+
+        [TestMethod]
+        public void InMemSearch_Query_Range()
+        {
+            var createNode = new Func<Node, string, Node>((parent, name) =>
+            {
+                var node = new SystemFolder(parent) { Name = name };
+                foreach (var observer in NodeObserver.GetObserverTypes())
+                    node.DisableObserver(observer);
+                node.Save();
+                return node;
+            });
+
+            var result = Test(() =>
+            {
+                // create a test structure:
+                var root = Node.LoadNode(Identifiers.PortalRootId);
+                createNode(root, "N0");
+                createNode(root, "N1");
+                createNode(root, "N2");
+                createNode(root, "N3");
+                createNode(root, "N4");
+                createNode(root, "N5");
+                createNode(root, "N6");
+                createNode(root, "N7");
+                createNode(root, "N8");
+                createNode(root, "N9");
+
+                // ACTION
+                var settings = QuerySettings.AdminSettings;
+                settings.Sort = new[] { new SortInfo(IndexFieldName.Name) };
+                string[] results = new[]
+                {
+                    string.Join(", ", ContentQuery_NEW.Query(SafeQueries.GT, settings, "Name", "N4").Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery_NEW.Query(SafeQueries.GTE, settings, "Name", "N4").Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery_NEW.Query(SafeQueries.LT, settings, "Name", "N4").Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery_NEW.Query(SafeQueries.LTE, settings, "Name", "N4").Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery_NEW.Query(SafeQueries.BracketBracketRange, settings, "Name", "N2", "N7").Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery_NEW.Query(SafeQueries.BracketBraceRange, settings, "Name", "N2", "N7").Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery_NEW.Query(SafeQueries.BraceBracketRange, settings, "Name", "N2", "N7").Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery_NEW.Query(SafeQueries.BraceBraceRange, settings, "Name", "N2", "N7").Nodes.Select(n => n.Name).ToArray()),
+                };
+
+                return results;
+            });
+
+            Assert.AreEqual("N5, N6, N7, N8, N9",     result[0]);
+            Assert.AreEqual("N4, N5, N6, N7, N8, N9", result[1]);
+            Assert.AreEqual("N0, N1, N2, N3",         result[2]);
+            Assert.AreEqual("N0, N1, N2, N3, N4",     result[3]);
+            Assert.AreEqual("N2, N3, N4, N5, N6, N7", result[4]);
+            Assert.AreEqual("N2, N3, N4, N5, N6",     result[5]);
+            Assert.AreEqual(    "N3, N4, N5, N6, N7", result[6]);
+            Assert.AreEqual(    "N3, N4, N5, N6",     result[7]);
         }
 
         /* ============================================================================ */
