@@ -511,7 +511,7 @@ namespace SenseNet.SearchImpl.Tests
         /* ============================================================================ */
 
         [TestMethod]
-        public void Querying_Term()
+        public void Query_1Term1Hit()
         {
             Node node;
             var result = Test(() =>
@@ -535,7 +535,103 @@ namespace SenseNet.SearchImpl.Tests
 
             var nodeIds = result.Item1;
             var nodes = result.Item2;
-            
+
+        }
+
+        [TestMethod]
+        public void Query_1TermMoreHit1Order()
+        {
+            var createNode = new Func<Node, string, int, Node>((parent, name, index) =>
+            {
+                var node = new SystemFolder(parent) {Name = name, Index = index};
+                foreach (var observer in NodeObserver.GetObserverTypes())
+                    node.DisableObserver(observer);
+                node.Save();
+                return node;
+            });
+
+            Node root, f1, f2, f3, node1, node2, node3;
+            node1 = node2 = node3 = null;
+
+            var result = Test(() =>
+            {
+                // create a test structure:
+                //    Root
+                //      F1
+                //        Node1 (Index=42)
+                //      F2
+                //        Node1 (Index=41)
+                //      F3
+                //        Node1 (Index=43)
+                root = Node.LoadNode(Identifiers.PortalRootId);
+
+                f1 = createNode(root, "F1", 0);
+                node1 = createNode(f1, "Node1", 42);
+                f2 = createNode(root, "F2", 0);
+                node2 = createNode(f2, "Node1", 41);
+                f3 = createNode(root, "F3", 0);
+                node3 = createNode(f3, "Node1", 43);
+
+                // ACTION
+                var settings = QuerySettings.AdminSettings;
+                settings.Sort = new[] { new SortInfo(IndexFieldName.Index) };
+                var qresult = ContentQuery_NEW.Query(SafeQueries.Name, settings, "Node1");
+
+                return new Tuple<int[], Node[]>(qresult.Identifiers.ToArray(), qresult.Nodes.ToArray());
+            });
+
+            var nodeIds = result.Item1;
+            var nodes = result.Item2;
+
+            var expectedNodeIds = $"{node2.Id}, {node1.Id}, {node3.Id}";
+            var actualNodeIds = string.Join(", ", nodeIds);
+            Assert.AreEqual(expectedNodeIds, actualNodeIds);
+
+            var expectedPaths = $"/Root/F2/Node1, /Root/F1/Node1, /Root/F3/Node1";
+            var actualPaths = string.Join(", ", nodes.Select(n => n.Path));
+            Assert.AreEqual(expectedPaths, actualPaths);
+        }
+
+        [TestMethod]
+        public void Query_1TermMoreHit2Order()
+        {
+            var createNode = new Func<Node, string, string, int, Node>((parent, name, displayName, index) =>
+            {
+                var node = new SystemFolder(parent) { Name = name, DisplayName = displayName, Index = index };
+                foreach (var observer in NodeObserver.GetObserverTypes())
+                    node.DisableObserver(observer);
+                node.Save();
+                return node;
+            });
+
+            var result = Test(() =>
+            {
+                // create a test structure:
+                var root = Node.LoadNode(Identifiers.PortalRootId);
+                var f1 = createNode(root, "F1", "F1", 0);
+                createNode(f1, "N1", "D2", 2);
+                createNode(f1, "N2", "D3", 2);
+                createNode(f1, "N3", "D2", 3);
+                createNode(f1, "N4", "D3", 3);
+                createNode(f1, "N5", "D1", 2);
+                createNode(f1, "N6", "D3", 1);
+                createNode(f1, "N7", "D2", 1);
+                createNode(f1, "N8", "D1", 1);
+
+                // ACTION
+                var settings = QuerySettings.AdminSettings;
+                settings.Sort = new[] {new SortInfo(IndexFieldName.DisplayName), new SortInfo(IndexFieldName.Index, true) };
+                var qresult = ContentQuery_NEW.Query(SafeQueries.OneTerm, settings, "ParentId", f1.Id.ToString());
+
+                return new Tuple<int[], Node[]>(qresult.Identifiers.ToArray(), qresult.Nodes.ToArray());
+            });
+
+            var nodeIds = result.Item1;
+            var nodes = result.Item2;
+
+            var expectedNames = "N5, N8, N3, N1, N7, N4, N2, N6";
+            var actualNames = string.Join(", ", nodes.Select(n => n.Name));
+            Assert.AreEqual(expectedNames, actualNames);
         }
 
         /* ============================================================================ */

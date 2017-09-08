@@ -11,5 +11,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
     {
         /// <summary>Returns with the following query: "Name:@0"</summary>
         public static string Name => "Name:@0";
+        /// <summary>Returns with the following query: "Name:@0"</summary>
+        public static string OneTerm => "@0:@1";
     }
 }

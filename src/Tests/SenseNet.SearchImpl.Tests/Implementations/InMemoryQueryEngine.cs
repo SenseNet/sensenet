@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.Search;
 using SenseNet.Search.Parser;
 using SenseNet.Search.Parser.Predicates;
@@ -19,6 +22,31 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             public bool IsLastDraft;
             public string ValueForProject;
             public string[] ValuesForSort;
+        }
+
+        private class HitComparer : IComparer<Hit>
+        {
+            private SortInfo[] _sort;
+
+            public HitComparer(SortInfo[] sort)
+            {
+                _sort = sort;
+            }
+
+            public int Compare(Hit x, Hit y)
+            {
+                for (var i = 0; i < _sort.Length; i++)
+                {
+                    var vx = x.ValuesForSort[i];
+                    var vy = y.ValuesForSort[i];
+                    var c = _sort[i].Reverse
+                        ? string.Compare(vy, vx, StringComparison.InvariantCultureIgnoreCase)
+                        : string.Compare(vx, vy, StringComparison.InvariantCultureIgnoreCase);
+                    if (c != 0)
+                        return c;
+                }
+                return 0;
+            }
         }
 
         private readonly InMemoryIndex _index;
@@ -52,7 +80,6 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         private class SnQueryInterpreter : SnQueryVisitor
         {
-            private SnQuery _query;
             private readonly InMemoryIndex _index;
             private readonly Stack<List<int>> _hitStack = new Stack<List<int>>();
 
@@ -63,13 +90,11 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
             public IEnumerable<Hit> Execute(SnQuery query, IPermissionFilter filter, out int totalCount)
             {
-                _query = query;
-
                 Visit(query.QueryTree);
 
                 var foundVersionIds = _hitStack.Pop();
-                IEnumerable<Hit> permittedHits = foundVersionIds.Select(GetHitByVersionId).Where(h=>filter.IsPermitted(h.NodeId, h.IsLastPublic, h.IsLastDraft));
-                var sortedHits = GetSortedResult(permittedHits).ToArray();
+                IEnumerable<Hit> permittedHits = foundVersionIds.Select(v=>GetHitByVersionId(v, query.Projection, query.Sort)).Where(h=>filter.IsPermitted(h.NodeId, h.IsLastPublic, h.IsLastDraft));
+                var sortedHits = GetSortedResult(permittedHits, query.Sort).ToArray();
 
                 totalCount = sortedHits.Length;
 
@@ -77,16 +102,73 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                 return result;
             }
 
-            private IEnumerable<Hit> GetSortedResult(IEnumerable<Hit> hits)
+            private IEnumerable<Hit> GetSortedResult(IEnumerable<Hit> hits, SortInfo[] sort)
             {
-                throw new NotImplementedException();
+                var hitList = hits.ToList();
+                hitList.Sort(new HitComparer(sort));
+                return hitList;
             }
 
-            private Hit GetHitByVersionId(int versionId)
+            private Hit GetHitByVersionId(int versionId, string projection, SortInfo[] sort)
             {
-                throw new NotImplementedException();
+                // VersionId, IndexFields
+                // List<Tuple<int, List<IndexField>>>
+                var storedFields = _index.StoredData.First(x => x.Item1 == versionId).Item2;
+
+                var hit = new Hit
+                {
+                    NodeId = storedFields.First(f=>f.Name == IndexFieldName.NodeId).IntegerValue,
+                    VersionId = versionId,
+                    IsLastDraft = storedFields.First(f => f.Name == IndexFieldName.IsLastDraft).BooleanValue,
+                    IsLastPublic = storedFields.First(f => f.Name == IndexFieldName.IsLastPublic).BooleanValue,
+                };
+
+                if (projection != null)
+                    hit.ValueForProject = GetFieldValueAsString(storedFields.FirstOrDefault(f => f.Name == projection));
+
+                if (sort != null)
+                    hit.ValuesForSort = sort.Select(s => FindSortFieldValue(versionId, s.FieldName)).ToArray();
+
+                return hit;
             }
 
+            private string FindSortFieldValue(int versionId, string fieldName)
+            {
+                // FieldName => FieldValue => VersionId
+                // Dictionary<string, Dictionary<string, List<int>>>
+                Dictionary<string, List<int>> fieldValues;
+                if (!_index.IndexData.TryGetValue(fieldName, out fieldValues))
+                    return null;
+                var values = fieldValues.Where(v => v.Value.Contains(versionId)).Select(v => v.Key).ToArray();
+                return values.FirstOrDefault();
+            }
+
+            private string GetFieldValueAsString(IndexField field)
+            {
+                switch (field.Type)
+                {
+                    case SnTermType.String:
+                        return field.StringValue;
+                    case SnTermType.StringArray:
+                        throw new NotImplementedException();
+                    case SnTermType.Bool:
+                        return field.BooleanValue ? StorageContext.Search.Yes : StorageContext.Search.No;
+                    case SnTermType.Int:
+                        return field.IntegerValue.ToString(CultureInfo.InvariantCulture);
+                    case SnTermType.Long:
+                        return field.LongValue.ToString(CultureInfo.InvariantCulture);
+                    case SnTermType.Float:
+                        return field.SingleValue.ToString(CultureInfo.InvariantCulture);
+                    case SnTermType.Double:
+                        return field.DoubleValue.ToString(CultureInfo.InvariantCulture);
+                    case SnTermType.DateTime:
+                        return field.DateTimeValue.ToString("yyyy-MM-dd HH:mm:ss.ffff");
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+
+            // ========================================================================================
 
             public override SnQueryPredicate VisitTextPredicate(TextPredicate text)
             {
