@@ -7,6 +7,8 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
+using SenseNet.Security;
+using SenseNet.Security.EF6SecurityStore;
 using SenseNet.Security.Messaging;
 using SenseNet.Tools;
 
@@ -29,12 +31,18 @@ namespace SenseNet.Configuration
             typeof(ContentRepository.Storage.Security.Sha256PasswordHashProviderWithoutSalt).FullName);
         public static string SkinManagerClassName { get; internal set; } = GetProvider("SkinManager", "SenseNet.Portal.SkinManager");
         public static string DirectoryProviderClassName { get; internal set; } = GetProvider("DirectoryProvider");
+        public static string SecurityDataProviderClassName { get; internal set; } = GetProvider("SecurityDataProvider",
+            typeof(EF6SecurityDataProvider).FullName);
         public static string SecurityMessageProviderClassName { get; internal set; } = GetProvider("SecurityMessageProvider", 
             typeof(DefaultMessageProvider).FullName);
         public static string DocumentPreviewProviderClassName { get; internal set; } = GetProvider("DocumentPreviewProvider",
             "SenseNet.Preview.DefaultDocumentPreviewProvider");
         public static string ClusterChannelProviderClassName { get; internal set; } = GetProvider("ClusterChannelProvider",
             typeof(VoidChannel).FullName);
+
+        public static string ElevatedModificationVisibilityRuleProviderName { get; internal set; } =
+            GetProvider("ElevatedModificationVisibilityRuleProvider",
+                "SenseNet.ContentRepository.SnElevatedModificationVisibilityRule");
 
         public static bool RepositoryPathProviderEnabled { get; internal set; } = GetValue<bool>(SectionName, "RepositoryPathProviderEnabled", true);
 
@@ -108,6 +116,64 @@ namespace SenseNet.Configuration
             set { _accessProvider = new Lazy<AccessProvider>(() => value); }
         }
 
+        private Lazy<ISecurityDataProvider> _securityDataProvider = new Lazy<ISecurityDataProvider>(() =>
+        {
+            ISecurityDataProvider securityDataProvider = null;
+
+            try
+            {
+                // if other than the known implementation, create it automatically
+                if (string.Compare(SecurityDataProviderClassName, typeof(EF6SecurityDataProvider).FullName, StringComparison.Ordinal) != 0)
+                    securityDataProvider = (ISecurityDataProvider)TypeResolver.CreateInstance(SecurityDataProviderClassName);
+            }
+            catch (TypeNotFoundException)
+            {
+                throw new ConfigurationException($"Security data provider implementation not found: {SecurityDataProviderClassName}");
+            }
+            catch (InvalidCastException)
+            {
+                throw new ConfigurationException($"Invalid security data provider implementation: {SecurityDataProviderClassName}");
+            }
+
+            if (securityDataProvider == null)
+            {
+                // default implementation
+                securityDataProvider = new EF6SecurityDataProvider(
+                    Security.SecurityDatabaseCommandTimeoutInSeconds,
+                    ConnectionStrings.SecurityDatabaseConnectionString);
+            }
+
+            SnLog.WriteInformation("SecurityDataProvider created: " + securityDataProvider.GetType().FullName);
+
+            return securityDataProvider;
+        });
+        public virtual ISecurityDataProvider SecurityDataProvider
+        {
+            get { return _securityDataProvider.Value; }
+            set { _securityDataProvider = new Lazy<ISecurityDataProvider>(() => value); }
+        }
+
+        private Lazy<ElevatedModificationVisibilityRule> _elevatedModificationVisibilityRuleProvider =
+            new Lazy<ElevatedModificationVisibilityRule>(() =>
+            {
+                try
+                {
+                    return (ElevatedModificationVisibilityRule)TypeResolver.CreateInstance(ElevatedModificationVisibilityRuleProviderName);
+                }
+                catch (TypeNotFoundException)
+                {
+                    throw new ConfigurationException($"Elevated modification visibility rule provider implementation not found: {ElevatedModificationVisibilityRuleProviderName}");
+                }
+                catch (InvalidCastException)
+                {
+                    throw new ConfigurationException($"Invalid Elevated modification visibility rule provider implementation: {ElevatedModificationVisibilityRuleProviderName}");
+                }
+            });
+        public virtual ElevatedModificationVisibilityRule ElevatedModificationVisibilityRuleProvider
+        {
+            get { return _elevatedModificationVisibilityRuleProvider.Value; }
+            set { _elevatedModificationVisibilityRuleProvider = new Lazy<ElevatedModificationVisibilityRule>(() => value); }
+        }
         //===================================================================================== General provider API
 
         private readonly Dictionary<string, object> _providersByName = new Dictionary<string, object>();

@@ -76,6 +76,12 @@ namespace SenseNet.ContentRepository
             if (builder?.DataProvider != null)
                 Providers.Instance.DataProvider = builder.DataProvider;
 
+            if (builder?.SecurityDataProvider != null)
+                Providers.Instance.SecurityDataProvider = builder.SecurityDataProvider;
+
+            if (builder?.ElevatedModificationVisibilityRuleProvider != null)
+                Providers.Instance.ElevatedModificationVisibilityRuleProvider = builder.ElevatedModificationVisibilityRuleProvider;
+
             if (builder == null)
                 return;
 
