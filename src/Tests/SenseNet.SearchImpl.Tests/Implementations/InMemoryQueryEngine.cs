@@ -93,7 +93,13 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             {
                 Visit(query.QueryTree);
 
+                if (_hitStack.Count == 0)
+                    throw new CompilerException($"Compiler error: The stack does not contain any elements.");
+                if (_hitStack.Count != 1)
+                    throw new CompilerException($"Compiler error: The stack contains more than one elements ({_hitStack.Count}).");
+
                 var foundVersionIds = _hitStack.Pop();
+
                 IEnumerable<Hit> permittedHits = foundVersionIds.Select(v=>GetHitByVersionId(v, query.Projection, query.Sort)).Where(h=>filter.IsPermitted(h.NodeId, h.IsLastPublic, h.IsLastDraft));
                 var sortedHits = GetSortedResult(permittedHits, query.Sort).ToArray();
 
@@ -285,7 +291,59 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                 }
 
                 _hitStack.Push(result);
+
                 return range;
+            }
+
+            public override List<LogicalClause> VisitLogicalClauses(List<LogicalClause> clauses)
+            {
+                // interpret every clause in deep
+                var visitedClauses = base.VisitLogicalClauses(clauses);
+
+                // pop every subset belonging to clauses and categorize them
+                var shouldSubset = new List<int>();
+                var mustSubset = new List<int>();
+                var notSubset = new List<int>();
+                var firstMust = true;
+
+                for (int i = visitedClauses.Count - 1; i >= 0; i--)
+                {
+                    var clause = visitedClauses[i];
+
+                    var currentSubset = _hitStack.Pop();
+                    var occur = clause.Occur == Occurence.Default ? Occurence.Should : clause.Occur;
+                    switch (occur)
+                    {
+                        case Occurence.Should:
+                            shouldSubset = shouldSubset.Union(currentSubset).Distinct().ToList();
+                            break;
+                        case Occurence.Must:
+                            if (firstMust)
+                            {
+                                mustSubset = currentSubset;
+                                firstMust = false;
+                            }
+                            else
+                            {
+                                mustSubset = mustSubset.Intersect(currentSubset).ToList();
+                            }
+                            break;
+                        case Occurence.MustNot:
+                            notSubset = notSubset.Union(currentSubset).Distinct().ToList();
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                }
+
+                // combine the subsets (if there is any "must", the "should" is irrelevant)
+                var result = (mustSubset.Count > 0 ? mustSubset : shouldSubset).Except(notSubset).ToList();
+
+                // push result to the hit stack
+                _hitStack.Push(result);
+
+                // return with the original parameter
+                return clauses;
             }
         }
     }

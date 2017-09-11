@@ -29,5 +29,17 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         public static string BraceBracketRange => "@0:{@1 TO @2]";
         /// <summary>Returns with the following query: "@0:{@1 TO @2}"</summary>
         public static string BraceBraceRange => "@0:{@1 TO @2}";
+
+        /// <summary>Returns with the following query: "@0:@1 @2:@3"</summary>
+        public static string TwoTermsShouldShould => "@0:@1 @2:@3";
+        /// <summary>Returns with the following query: "+@0:@1 +@2:@3"</summary>
+        public static string TwoTermsMustMust => "+@0:@1 +@2:@3";
+        /// <summary>Returns with the following query: "+@0:@1 -@2:@3"</summary>
+        public static string TwoTermsMustNot => "+@0:@1 -@2:@3";
+
+        /// <summary>Returns with the following query: "(+@0:@1 +@2:@3) (+@4:@5 +@6:@7)"</summary>
+        public static string MultiLevelBool1 => "(+@0:@1 +@2:@3) (+@4:@5 +@6:@7)";
+        /// <summary>Returns with the following query: "+(@0:@1 @2:@3) +(@4:@5 @6:@7)"</summary>
+        public static string MultiLevelBool2 => "+(@0:@1 @2:@3) +(@4:@5 @6:@7)";
     }
 }

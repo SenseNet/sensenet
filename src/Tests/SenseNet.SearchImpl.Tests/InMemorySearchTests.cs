@@ -776,6 +776,93 @@ namespace SenseNet.SearchImpl.Tests
             Assert.AreEqual(    "N3, N4, N5, N6",     result[7]);
         }
 
+
+        [TestMethod]
+        public void InMemSearch_Query_2TermsBool()
+        {
+            var createNode = new Func<Node, string, int, Node>((parent, name, index) =>
+            {
+                var node = new SystemFolder(parent) { Name = name, Index = index };
+                foreach (var observer in NodeObserver.GetObserverTypes())
+                    node.DisableObserver(observer);
+                node.Save();
+                return node;
+            });
+
+            var result = Test(() =>
+            {
+                // create a test structure:
+                var root = Node.LoadNode(Identifiers.PortalRootId);
+                createNode(root, "A0", 0);
+                createNode(root, "A1", 1);
+                createNode(root, "A2", 2);
+                createNode(root, "A3", 3);
+                createNode(root, "B0", 0);
+                createNode(root, "B1", 1);
+                createNode(root, "B2", 2);
+                createNode(root, "B3", 3);
+
+                // ACTION
+                var settings = QuerySettings.AdminSettings;
+                settings.Sort = new[] { new SortInfo(IndexFieldName.Name) };
+                string[] results = new[]
+                {
+                    string.Join(", ", ContentQuery_NEW.Query(SafeQueries.TwoTermsShouldShould, settings, "Name", "A*", "Index", 1).Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery_NEW.Query(SafeQueries.TwoTermsMustMust, settings, "Name", "A*", "Index", 1).Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery_NEW.Query(SafeQueries.TwoTermsMustNot, settings, "Name", "A*", "Index", 1).Nodes.Select(n => n.Name).ToArray()),
+                };
+
+                return results;
+            });
+
+            Assert.AreEqual("A0, A1, A2, A3, B1", result[0]);
+            Assert.AreEqual("A1", result[1]);
+            Assert.AreEqual("A0, A2, A3", result[2]);
+        }
+
+        [TestMethod]
+        public void InMemSearch_Query_MultiLevelBool()
+        {
+            var createNode = new Func<Node, string, int, Node>((parent, name, index) =>
+            {
+                var node = new SystemFolder(parent) { Name = name, Index = index };
+                foreach (var observer in NodeObserver.GetObserverTypes())
+                    node.DisableObserver(observer);
+                node.Save();
+                return node;
+            });
+
+            var result = Test(() =>
+            {
+                // create a test structure:
+                var root = Node.LoadNode(Identifiers.PortalRootId);
+                createNode(root, "A0", 0);
+                createNode(root, "A1", 1);
+                createNode(root, "A2", 2);
+                createNode(root, "A3", 3);
+                createNode(root, "B0", 0);
+                createNode(root, "B1", 1);
+                createNode(root, "B2", 2);
+                createNode(root, "B3", 3);
+
+                // ACTION
+                var settings = QuerySettings.AdminSettings;
+                settings.Sort = new[] { new SortInfo(IndexFieldName.Name) };
+                string[] results = new[]
+                {
+                    //  (+Name:A* +Index:1) (+Name:B* +Index:2) --> A1, B2
+                    string.Join(", ", ContentQuery_NEW.Query(SafeQueries.MultiLevelBool1, settings, "Name", "A*", "Index", 1, "Name", "B*", "Index", 2).Nodes.Select(n => n.Name).ToArray()),
+                    //  +(Name:A* Index:1) +(Name:B* Index:2) --> +(A0, A1, A2, A3, B1) +(B0, B1, B2, B3, A2) --> A2, B1
+                    string.Join(", ", ContentQuery_NEW.Query(SafeQueries.MultiLevelBool2, settings, "Name", "A*", "Index", 1, "Name", "B*", "Index", 2).Nodes.Select(n => n.Name).ToArray()),
+                };
+
+                return results;
+            });
+
+            Assert.AreEqual("A1, B2", result[0]);
+            Assert.AreEqual("A2, B1", result[1]);
+        }
+
         /* ============================================================================ */
 
         private InMemoryIndex GetTestIndex()
