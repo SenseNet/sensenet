@@ -21,7 +21,7 @@ using SafeQueries = SenseNet.SearchImpl.Tests.Implementations.SafeQueries;
 namespace SenseNet.SearchImpl.Tests
 {
     [TestClass]
-    public class IndexingTests : TestBase
+    public class InMemorySearchTests : TestBase
     {
         [TestMethod]
         public void InMemSearch_Indexing_Create()
