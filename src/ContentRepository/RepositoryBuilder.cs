@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
@@ -7,27 +6,19 @@ using SenseNet.Security;
 
 namespace SenseNet.ContentRepository
 {
+    /// <summary>
+    /// Settings and provider builder class that controls the startup options and provider
+    /// instances when a sensenet ECM repository starts.
+    /// </summary>
     public class RepositoryBuilder : RepositoryStartSettings
     {
-        //======================================================================== Internal properties
-
-        internal DataProvider DataProvider { get; private set; }
-        internal AccessProvider AccessProvider { get; private set; }
-        internal ISecurityDataProvider SecurityDataProvider { get; private set; }
-        internal ElevatedModificationVisibilityRule ElevatedModificationVisibilityRuleProvider { get; private set; }
-
-        internal Dictionary<string, object> ProvidersByName { get; } = new Dictionary<string, object>();
-        internal Dictionary<Type, object> ProvidersByType { get; } = new Dictionary<Type, object>();
-
-        //======================================================================== Public API
-
         /// <summary>
         /// Sets the data provider used for all db operations in the system.
         /// </summary>
         /// <param name="dataProvider">DataProvider instance.</param>
         public RepositoryBuilder UseDataProvider(DataProvider dataProvider)
         {
-            this.DataProvider = dataProvider;
+            Configuration.Providers.Instance.DataProvider = dataProvider;
             return this;
         }
         /// <summary>
@@ -36,7 +27,7 @@ namespace SenseNet.ContentRepository
         /// <param name="accessProvider">AccessProvider instance.</param>
         public RepositoryBuilder UseAccessProvider(AccessProvider accessProvider)
         {
-            this.AccessProvider = accessProvider;
+            Configuration.Providers.Instance.AccessProvider = accessProvider;
             return this;
         }
         /// <summary>
@@ -45,13 +36,15 @@ namespace SenseNet.ContentRepository
         /// <param name="securityDataProvider">ISecurityDataProvider instance.</param>
         public RepositoryBuilder UseSecurityDataProvider(ISecurityDataProvider securityDataProvider)
         {
-            this.SecurityDataProvider = securityDataProvider;
+            Configuration.Providers.Instance.SecurityDataProvider = securityDataProvider;
             return this;
         }
-
+        /// <summary>
+        /// Sets the elevated modification visibility rule provider.
+        /// </summary>
         public RepositoryBuilder UseElevatedModificationVisibilityRuleProvider(ElevatedModificationVisibilityRule modificationVisibilityRuleProvider)
         {
-            this.ElevatedModificationVisibilityRuleProvider = modificationVisibilityRuleProvider;
+            Configuration.Providers.Instance.ElevatedModificationVisibilityRuleProvider = modificationVisibilityRuleProvider;
             return this;
         }
 
@@ -63,7 +56,7 @@ namespace SenseNet.ContentRepository
         /// <param name="provider">Provider instance.</param>
         public RepositoryBuilder UseProvider(string providerName, object provider)
         {
-            ProvidersByName[providerName] = provider;
+            Configuration.Providers.Instance.SetProvider(providerName, provider);
             return this;
         }
         /// <summary>
@@ -74,7 +67,7 @@ namespace SenseNet.ContentRepository
         /// <param name="provider">Provider instance.</param>
         public RepositoryBuilder UseProvider(Type providerType, object provider)
         {
-            ProvidersByType[providerType] = provider;
+            Configuration.Providers.Instance.SetProvider(providerType, provider);
             return this;
         }
 

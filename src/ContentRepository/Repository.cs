@@ -60,39 +60,7 @@ namespace SenseNet.ContentRepository
         }
         public static RepositoryInstance Start(RepositoryBuilder builder)
         {
-            if (builder == null)
-                return Start();
-
-            BuildProviders(builder);
-
-            return Start((RepositoryStartSettings) builder);
-        }
-
-        private static void BuildProviders(RepositoryBuilder builder)
-        {
-            if (builder?.AccessProvider != null)
-                Providers.Instance.AccessProvider = builder.AccessProvider;
-
-            if (builder?.DataProvider != null)
-                Providers.Instance.DataProvider = builder.DataProvider;
-
-            if (builder?.SecurityDataProvider != null)
-                Providers.Instance.SecurityDataProvider = builder.SecurityDataProvider;
-
-            if (builder?.ElevatedModificationVisibilityRuleProvider != null)
-                Providers.Instance.ElevatedModificationVisibilityRuleProvider = builder.ElevatedModificationVisibilityRuleProvider;
-
-            if (builder == null)
-                return;
-
-            foreach (var provider in builder.ProvidersByName)
-            {
-                Providers.Instance.SetProvider(provider.Key, provider.Value);
-            }
-            foreach (var provider in builder.ProvidersByType)
-            {
-                Providers.Instance.SetProvider(provider.Key, provider.Value);
-            }
+            return builder == null ? Start() : Start((RepositoryStartSettings) builder);
         }
 
         /// <summary>
