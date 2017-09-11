@@ -187,10 +187,10 @@ namespace SenseNet.Configuration
 
             return null;
         }
-        public virtual T GetProvider<T>(Type providerType) where T : class
+        public virtual T GetProvider<T>() where T : class
         {
             object provider;
-            if (_providersByType.TryGetValue(providerType, out provider))
+            if (_providersByType.TryGetValue(typeof(T), out provider))
                 return provider as T;
 
             return null;
