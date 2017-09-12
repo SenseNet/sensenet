@@ -62,6 +62,7 @@ namespace SenseNet.Configuration
 
         //===================================================================================== Named providers
 
+        #region private Lazy<DataProvider> _dataProvider = new Lazy<DataProvider>
         private Lazy<DataProvider> _dataProvider = new Lazy<DataProvider>(() =>
         {
             DataProvider dbp;
@@ -89,7 +90,9 @@ namespace SenseNet.Configuration
             get { return _dataProvider.Value; }
             set { _dataProvider = new Lazy<DataProvider>(() => value); }
         }
+        #endregion
 
+        #region private Lazy<AccessProvider> _accessProvider = new Lazy<AccessProvider>
         private Lazy<AccessProvider> _accessProvider = new Lazy<AccessProvider>(() =>
         {
             try
@@ -115,7 +118,9 @@ namespace SenseNet.Configuration
             get { return _accessProvider.Value; }
             set { _accessProvider = new Lazy<AccessProvider>(() => value); }
         }
+        #endregion
 
+        #region private Lazy<ISecurityDataProvider> _securityDataProvider = new Lazy<ISecurityDataProvider>
         private Lazy<ISecurityDataProvider> _securityDataProvider = new Lazy<ISecurityDataProvider>(() =>
         {
             ISecurityDataProvider securityDataProvider = null;
@@ -152,7 +157,9 @@ namespace SenseNet.Configuration
             get { return _securityDataProvider.Value; }
             set { _securityDataProvider = new Lazy<ISecurityDataProvider>(() => value); }
         }
+        #endregion
 
+        #region private Lazy<ElevatedModificationVisibilityRule> _elevatedModificationVisibilityRuleProvider
         private Lazy<ElevatedModificationVisibilityRule> _elevatedModificationVisibilityRuleProvider =
             new Lazy<ElevatedModificationVisibilityRule>(() =>
             {
@@ -174,6 +181,8 @@ namespace SenseNet.Configuration
             get { return _elevatedModificationVisibilityRuleProvider.Value; }
             set { _elevatedModificationVisibilityRuleProvider = new Lazy<ElevatedModificationVisibilityRule>(() => value); }
         }
+        #endregion
+
         //===================================================================================== General provider API
 
         private readonly Dictionary<string, object> _providersByName = new Dictionary<string, object>();

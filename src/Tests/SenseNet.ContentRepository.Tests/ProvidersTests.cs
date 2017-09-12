@@ -19,6 +19,10 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void Provider_ByType()
         {
+            // reset
+            Providers.Instance.SetProvider("TestProvider", null);
+            Providers.Instance.SetProvider(typeof(TestProvider), null);
+
             var p1 = Providers.Instance.GetProvider<TestProvider>();
             Assert.IsNull(p1);
 
@@ -31,17 +35,18 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void Provider_ByName()
         {
+            // reset
+            Providers.Instance.SetProvider("TestProvider", null);
+            Providers.Instance.SetProvider(typeof(TestProvider), null);
+
             var p1 = Providers.Instance.GetProvider<TestProvider>("TestProvider");
             Assert.IsNull(p1);
 
             Providers.Instance.SetProvider("TestProvider", new TestProvider { TestProperty = 456 });
 
-            //TODO: to make this work, implement a thread-dependent provider factory 
-            // (currently the provider list is static for the whole environment)
-
             // get by type: still null
-            //p1 = Providers.Instance.GetProvider<TestProvider>();
-            //Assert.IsNull(p1);
+            p1 = Providers.Instance.GetProvider<TestProvider>();
+            Assert.IsNull(p1);
 
             p1 = Providers.Instance.GetProvider<TestProvider>("TestProvider");
             Assert.AreEqual(456, p1.TestProperty);
