@@ -323,9 +323,7 @@ namespace SenseNet.Search
                 else
                 {
                     List<string> log;
-                    identifiers = RecursiveExecutor.ExecuteRecursive(queryText, Settings.Top, Settings.Skip, Settings.Sort, Settings.EnableAutofilters,
-                        Settings.EnableLifespanFilter, Settings.QueryExecutionMode,
-                        userId, out totalCount, out log);
+                    identifiers = RecursiveExecutor.ExecuteRecursive(queryText, Settings, userId, out totalCount, out log);
                 }
                 op.Successful = true;
             }
@@ -352,15 +350,23 @@ namespace SenseNet.Search
                 EscaperRegex = new Regex(pattern.ToString());
             }
 
-            public static IEnumerable<int> ExecuteRecursive(string queryText, int top, int skip,
-                IEnumerable<SortInfo> sort, FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode,
-                int userId, out int count, out List<string> log)
+            public static IEnumerable<int> ExecuteRecursive(string queryText, QuerySettings querySettings, int userId, out int count, out List<string> log)
             {
                 log = new List<string>();
                 IEnumerable<int> result;
                 var src = queryText;
                 log.Add(src);
                 var control = GetControlString(src);
+
+                var recursiveQuerySettings = new QuerySettings
+                {
+                    Skip = 0,
+                    Top = 0,
+                    Sort = querySettings.Sort,
+                    EnableAutofilters = querySettings.EnableAutofilters,
+                    EnableLifespanFilter = querySettings.EnableLifespanFilter,
+                    QueryExecutionMode = querySettings.QueryExecutionMode
+                };
 
                 while (true)
                 {
@@ -374,8 +380,7 @@ namespace SenseNet.Search
                         control = control.Remove(start, sss.Length);
 
                         int innerCount;
-                        var innerResult = ExecuteInnerScript(sss.Substring(2, sss.Length - 4), 0, 0,
-                            sort, enableAutofilters, enableLifespanFilter, executionMode, true, userId, out innerCount).StringArray;
+                        var innerResult = ExecuteInnerScript(sss.Substring(2, sss.Length - 4), recursiveQuerySettings, true, userId, out innerCount).StringArray;
 
                         switch (innerResult.Length)
                         {
@@ -396,8 +401,7 @@ namespace SenseNet.Search
                     }
                     else
                     {
-                        result = ExecuteInnerScript(src, top, skip, sort, enableAutofilters, enableLifespanFilter, executionMode,
-                            false, userId, out count).IntArray;
+                        result = ExecuteInnerScript(src, querySettings, false, userId, out count).IntArray;
 
                         log.Add(string.Join(" ", result.Select(i => i.ToString()).ToArray()));
                         break;
@@ -469,20 +473,9 @@ namespace SenseNet.Search
                 var ss = src.Substring(p0, p1 - p0 + 2);
                 return ss;
             }
-            private static InnerQueryResult ExecuteInnerScript(string queryText,
-                int top, int skip, IEnumerable<SortInfo> sort, FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode,
+            private static InnerQueryResult ExecuteInnerScript(string queryText, QuerySettings querySettings,
                 bool enableProjection, int userId, out int totalCount)
             {
-                var querySettings = new QuerySettings
-                {
-                    Skip = skip,
-                    Top = top,
-                    Sort = sort,
-                    EnableAutofilters = enableAutofilters,
-                    EnableLifespanFilter = enableLifespanFilter,
-                    QueryExecutionMode = executionMode
-                };
-
                 InnerQueryResult result;
                 var queryContext = new SnQueryContext(querySettings, userId);
                 if (enableProjection)
