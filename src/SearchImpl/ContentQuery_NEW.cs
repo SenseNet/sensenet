@@ -310,23 +310,21 @@ namespace SenseNet.Search
                 throw ex;
             }
 
-            IEnumerable<int> identifiers;
-            int totalCount;
+            QueryResult result;
             using (var op = SnTrace.Query.StartOperation("ContentQuery: {0} | Top:{1} Skip:{2} Sort:{3} Mode:{4}", queryText, _settings.Top, _settings.Skip, _settings.Sort, _settings.QueryExecutionMode))
             {
                 if (!queryText.Contains("}}"))
                 {
-                    var result = SnQuery.Query(queryText, new SnQueryContext(Settings, userId));
-                    identifiers = result.Hits;
-                    totalCount = result.TotalCount;
+                    var snQueryResultresult = SnQuery.Query(queryText, new SnQueryContext(Settings, userId));
+                    result = new QueryResult(snQueryResultresult.Hits, snQueryResultresult.TotalCount);
                 }
                 else
                 {
-                    identifiers = RecursiveExecutor.ExecuteRecursive(queryText, Settings, userId, out totalCount);
+                    result = RecursiveExecutor.ExecuteRecursive(queryText, Settings, userId);
                 }
                 op.Successful = true;
             }
-            return new QueryResult(identifiers, totalCount);
+            return result;
         }
 
         // ================================================================== Recursive executor class
@@ -343,11 +341,11 @@ namespace SenseNet.Search
                 EscaperRegex = new Regex(pattern.ToString());
             }
 
-            public static IEnumerable<int> ExecuteRecursive(string queryText, QuerySettings querySettings, int userId, out int count, List<string> log = null)
+            public static QueryResult ExecuteRecursive(string queryText, QuerySettings querySettings, int userId)
             {
-                IEnumerable<int> result;
+                QueryResult result;
+
                 var src = queryText;
-                log?.Add(src);
                 var control = GetControlString(src);
 
                 var recursiveQuerySettings = new QuerySettings
@@ -364,17 +362,16 @@ namespace SenseNet.Search
                 while (true)
                 {
                     int start;
-                    var sss = GetInnerScript(src, control, out start);
-                    var end = sss == string.Empty;
+                    var innerScript = GetInnerScript(src, control, out start);
+                    var end = innerScript == string.Empty;
 
                     if (!end)
                     {
-                        src = src.Remove(start, sss.Length);
-                        control = control.Remove(start, sss.Length);
+                        src = src.Remove(start, innerScript.Length);
+                        control = control.Remove(start, innerScript.Length);
 
                         // execute inner query
-                        //var innerResult = ExecuteInnerScript(sss.Substring(2, sss.Length - 4), recursiveQuerySettings, true, userId, out innerCount).StringArray;
-                        var subQuery = sss.Substring(2, sss.Length - 4);
+                        var subQuery = innerScript.Substring(2, innerScript.Length - 4);
                         var snQueryresult = SnQuery.QueryAndProject(subQuery, recursiveQueryContext);
                         var innerResult = snQueryresult.Hits
                                 .Where(s => !string.IsNullOrEmpty(s))
@@ -386,26 +383,24 @@ namespace SenseNet.Search
                         switch (innerResult.Length)
                         {
                             case 0:
-                                sss = SnQuery.EmptyInnerQueryText;
+                                innerScript = SnQuery.EmptyInnerQueryText;
                                 break;
                             case 1:
-                                sss = innerResult[0];
+                                innerScript = innerResult[0];
                                 break;
                             default:
-                                sss = string.Join(" ", innerResult);
-                                sss = "(" + sss + ")";
+                                innerScript = string.Join(" ", innerResult);
+                                innerScript = "(" + innerScript + ")";
                                 break;
                         }
-                        src = src.Insert(start, sss);
-                        control = control.Insert(start, sss);
-                        log?.Add(src);
+                        src = src.Insert(start, innerScript);
+                        control = control.Insert(start, innerScript);
                     }
                     else
                     {
+                        // execute and process top level query
                         var snQueryresult = SnQuery.Query(src, new SnQueryContext(querySettings, userId));
-                        result = snQueryresult.Hits.ToArray();
-                        count = snQueryresult.TotalCount;
-                        log?.Add(string.Join(" ", result.Select(i => i.ToString()).ToArray()));
+                        result = new QueryResult(snQueryresult.Hits.ToArray(), snQueryresult.TotalCount);
                         break;
                     }
                 }
