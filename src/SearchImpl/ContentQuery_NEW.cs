@@ -336,7 +336,7 @@ namespace SenseNet.Search
                     List<string> log;
                     identifiers = RecursiveExecutor.ExecuteRecursive(queryText, Settings.Top, Settings.Skip, Settings.Sort, Settings.EnableAutofilters,
                         Settings.EnableLifespanFilter, Settings.QueryExecutionMode,
-                        Settings, userId, out totalCount, out log);
+                        userId, out totalCount, out log);
                 }
                 op.Successful = true;
             }
@@ -355,7 +355,7 @@ namespace SenseNet.Search
 
             public static IEnumerable<int> ExecuteRecursive(string queryText, int top, int skip,
                 IEnumerable<SortInfo> sort, FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode,
-                QuerySettings settings, int userId, out int count, out List<string> log)
+                int userId, out int count, out List<string> log)
             {
                 log = new List<string>();
                 IEnumerable<int> result;
@@ -376,7 +376,7 @@ namespace SenseNet.Search
 
                         int innerCount;
                         var innerResult = ExecuteInnerScript(sss.Substring(2, sss.Length - 4), 0, 0,
-                            sort, enableAutofilters, enableLifespanFilter, executionMode, null, true, userId, out innerCount).StringArray;
+                            sort, enableAutofilters, enableLifespanFilter, executionMode, true, userId, out innerCount).StringArray;
 
                         switch (innerResult.Length)
                         {
@@ -398,7 +398,7 @@ namespace SenseNet.Search
                     else
                     {
                         result = ExecuteInnerScript(src, top, skip, sort, enableAutofilters, enableLifespanFilter, executionMode,
-                            settings, false, userId, out count).IntArray;
+                            false, userId, out count).IntArray;
 
                         log.Add(String.Join(" ", result.Select(i => i.ToString()).ToArray()));
                         break;
@@ -471,8 +471,8 @@ namespace SenseNet.Search
                 return ss;
             }
 
-            private static InnerQueryResult ExecuteInnerScript(string queryText, int top, int skip, IEnumerable<SortInfo> sort,
-                FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode, QuerySettings settings,
+            private static InnerQueryResult ExecuteInnerScript(string queryText,
+                int top, int skip, IEnumerable<SortInfo> sort, FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode,
                 bool enableProjection, int userId, out int totalCount)
             {
                 var querySettings = new QuerySettings
