@@ -322,8 +322,7 @@ namespace SenseNet.Search
                 }
                 else
                 {
-                    List<string> log;
-                    identifiers = RecursiveExecutor.ExecuteRecursive(queryText, Settings, userId, out totalCount, out log);
+                    identifiers = RecursiveExecutor.ExecuteRecursive(queryText, Settings, userId, out totalCount);
                 }
                 op.Successful = true;
             }
@@ -344,12 +343,11 @@ namespace SenseNet.Search
                 EscaperRegex = new Regex(pattern.ToString());
             }
 
-            public static IEnumerable<int> ExecuteRecursive(string queryText, QuerySettings querySettings, int userId, out int count, out List<string> log)
+            public static IEnumerable<int> ExecuteRecursive(string queryText, QuerySettings querySettings, int userId, out int count, List<string> log = null)
             {
-                log = new List<string>();
                 IEnumerable<int> result;
                 var src = queryText;
-                log.Add(src);
+                log?.Add(src);
                 var control = GetControlString(src);
 
                 var recursiveQuerySettings = new QuerySettings
@@ -400,14 +398,14 @@ namespace SenseNet.Search
                         }
                         src = src.Insert(start, sss);
                         control = control.Insert(start, sss);
-                        log.Add(src);
+                        log?.Add(src);
                     }
                     else
                     {
                         var snQueryresult = SnQuery.Query(src, new SnQueryContext(querySettings, userId));
                         result = snQueryresult.Hits.ToArray();
                         count = snQueryresult.TotalCount;
-                        log.Add(string.Join(" ", result.Select(i => i.ToString()).ToArray()));
+                        log?.Add(string.Join(" ", result.Select(i => i.ToString()).ToArray()));
                         break;
                     }
                 }
@@ -477,20 +475,6 @@ namespace SenseNet.Search
                 var ss = src.Substring(p0, p1 - p0 + 2);
                 return ss;
             }
-
-            private static string[] ExecuteInnerScript(string queryText, QuerySettings querySettings, int userId)
-            {
-                var queryContext = new SnQueryContext(querySettings, userId);
-
-                var snQueryresult = SnQuery.QueryAndProject(queryText, queryContext);
-                var result = snQueryresult.Hits
-                        .Where(s => !string.IsNullOrEmpty(s))
-                        .Select(EscapeForQuery)
-                        .ToArray();
-
-                return result;
-            }
-
             private static string EscapeForQuery(string value)
             {
                 if (EscaperRegex.IsMatch(value))
