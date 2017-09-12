@@ -24,7 +24,7 @@ namespace SenseNet.SearchImpl.Tests
     public class TestBase
     {
         #region Prototype
-        private class RepoBuilder
+        protected class RepoBuilder
         {
             // Ensure that all providers use these slots
             public DataProvider DataProvider { get; private set; }
@@ -119,7 +119,7 @@ namespace SenseNet.SearchImpl.Tests
             }
         }
 
-        private IDisposable RepositoryStart(RepoBuilder builder)
+        protected IDisposable RepositoryStart(RepoBuilder builder)
         {
             return new RepositoryThatBuiltBasedOnAVeryMNodernApproach(builder);
         }
