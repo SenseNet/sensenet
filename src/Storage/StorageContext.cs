@@ -7,6 +7,7 @@ using System.Configuration;
 using System.Diagnostics;
 using SenseNet.Configuration;
 using SenseNet.Diagnostics;
+using SenseNet.Search;
 
 namespace SenseNet.ContentRepository.Storage
 {
@@ -44,10 +45,8 @@ namespace SenseNet.ContentRepository.Storage
 
         public static class Search
         {
-            public static readonly string Yes = "yes"; //UNDONE:!!!!!!!!! Use SnTerm.Yes
-            public static readonly string No = "no"; //UNDONE:!!!!!!!!! Use SnTerm.No
-            public static readonly List<string> YesList = new List<string>(new string[] { "1", "true", "y", Yes });
-            public static readonly List<string> NoList = new List<string>(new string[] { "0", "false", "n", No });
+            public static readonly List<string> YesList = new List<string>(new [] { "1", "true", "y", SnTerm.Yes });
+            public static readonly List<string> NoList = new List<string>(new [] { "0", "false", "n", SnTerm.No });
 
             public static ISearchEngine SearchEngine
             {

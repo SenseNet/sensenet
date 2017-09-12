@@ -162,7 +162,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                     case SnTermType.StringArray:
                         throw new NotImplementedException();
                     case SnTermType.Bool:
-                        return field.BooleanValue ? StorageContext.Search.Yes : StorageContext.Search.No;
+                        return field.BooleanValue ? SnTerm.Yes : SnTerm.No;
                     case SnTermType.Int:
                         return field.IntegerValue.ToString(CultureInfo.InvariantCulture);
                     case SnTermType.Long:

@@ -529,7 +529,7 @@ namespace SenseNet.Search.Lucene29
                 case SnTermType.StringArray:
                     return snTerm.StringArrayValue.Select(s=> new Term(snTerm.Name, s) ).ToArray();
                 case SnTermType.Bool:
-                    return new[] { new Term(snTerm.Name, snTerm.BooleanValue ? StorageContext.Search.Yes : StorageContext.Search.No) };
+                    return new[] { new Term(snTerm.Name, snTerm.BooleanValue ? SnTerm.Yes : SnTerm.No) };
                 case SnTermType.Int:
                     return new[] { new Term(snTerm.Name, NumericUtils.IntToPrefixCoded(snTerm.IntegerValue)) };
                 case SnTermType.Long:
@@ -573,7 +573,7 @@ namespace SenseNet.Search.Lucene29
                         doc.Add(new Field(name, item, store, mode, termVect));
                     break;
                 case SnTermType.Bool:
-                    doc.Add(new Field(name, indexField.BooleanValue ? StorageContext.Search.Yes : StorageContext.Search.No, store, mode, termVect));
+                    doc.Add(new Field(name, indexField.BooleanValue ? SnTerm.Yes : SnTerm.No, store, mode, termVect));
                     break;
                 case SnTermType.Int:
                     doc.Add(new NumericField(name, store, indexField.Mode != IndexingMode.No).SetIntValue(indexField.IntegerValue));

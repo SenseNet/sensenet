@@ -337,8 +337,8 @@ namespace SenseNet.Search.Lucene29
                 var isLastDraft = doc.Get(IndexFieldName.IsLastDraft);
                 var isLastPublicInDb = versionId == lastMajorVersionId;
                 var isLastDraftInDb = versionId == lastMinorVersionId;
-                var isLastPublicInIndex = isLastPublic == StorageContext.Search.Yes;
-                var isLastDraftInIndex = isLastDraft == StorageContext.Search.Yes;
+                var isLastPublicInIndex = isLastPublic == SnTerm.Yes;
+                var isLastDraftInIndex = isLastDraft == SnTerm.Yes;
 
                 if (isLastPublicInDb != isLastPublicInIndex)
                 {
@@ -378,7 +378,7 @@ namespace SenseNet.Search.Lucene29
                 if (dbNodeTimestamp != indexNodeTimestamp)
                 {
                     var ok = false;
-                    if (isLastDraft != StorageContext.Search.Yes)
+                    if (isLastDraft != SnTerm.Yes)
                     {
                         var latestDocs = ixreader.TermDocs(new Lucene.Net.Index.Term(IndexFieldName.NodeId, Lucene.Net.Util.NumericUtils.IntToPrefixCoded(nodeId)));
                         Lucene.Net.Documents.Document latestDoc = null;
@@ -386,7 +386,7 @@ namespace SenseNet.Search.Lucene29
                         {
                             var latestdocid = latestDocs.Doc();
                             var d = ixreader.Document(latestdocid);
-                            if (d.Get(IndexFieldName.IsLastDraft) != StorageContext.Search.Yes)
+                            if (d.Get(IndexFieldName.IsLastDraft) != SnTerm.Yes)
                                 continue;
                             latestDoc = d;
                             break;

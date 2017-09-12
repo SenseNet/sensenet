@@ -540,9 +540,6 @@ namespace SenseNet.Search.Indexing
     }
     public class BooleanIndexHandler : FieldIndexHandler, IIndexValueConverter<bool>, IIndexValueConverter
     {
-        public static string YES => StorageContext.Search.Yes;
-        public static string NO => StorageContext.Search.No;
-
         public static List<string> YesList => StorageContext.Search.YesList;
         public static List<string> NoList => StorageContext.Search.NoList;
 
@@ -557,18 +554,18 @@ namespace SenseNet.Search.Indexing
             var v = value.StringValue.ToLowerInvariant();
             if (YesList.Contains(v))
             {
-                value.Set(YES);
+                value.Set(SnTerm.Yes);
                 return true;
             }
             if (NoList.Contains(v))
             {
-                value.Set(NO);
+                value.Set(SnTerm.No);
                 return true;
             }
             bool b;
             if (Boolean.TryParse(v, out b))
             {
-                value.Set(b ? YES : NO);
+                value.Set(b ? SnTerm.Yes : SnTerm.No);
                 return true;
             }
             return false;
@@ -578,25 +575,25 @@ namespace SenseNet.Search.Indexing
             var v = value.StringValue.ToLowerInvariant();
             if (YesList.Contains(v))
             {
-                value.Set(YES);
+                value.Set(SnTerm.Yes);
                 return true;
             }
             if (NoList.Contains(v))
             {
-                value.Set(NO);
+                value.Set(SnTerm.No);
                 return true;
             }
             bool b;
             if (Boolean.TryParse(v, out b))
             {
-                value.Set(b ? YES : NO);
+                value.Set(b ? SnTerm.Yes : SnTerm.No);
                 return true;
             }
             return false;
         }
         public override void ConvertToTermValue(IQueryFieldValue value)
         {
-            value.Set(((bool)value.InputObject) ? YES : NO);
+            value.Set(((bool)value.InputObject) ? SnTerm.Yes : SnTerm.No);
         }
         public bool GetBack(string lucFieldValue)
         {
@@ -609,13 +606,13 @@ namespace SenseNet.Search.Indexing
 
         public static bool ConvertBack(string lucFieldValue)
         {
-            return lucFieldValue == YES;
+            return lucFieldValue == SnTerm.Yes;
         }
         public override IEnumerable<string> GetParsableValues(ISnField snField)
         {
             var value = ((SnCR.Field)snField).GetData();
             var boolValue = value == null ? false : (bool)value;
-            return new[] { boolValue ? YES : NO };
+            return new[] { boolValue ? SnTerm.Yes : SnTerm.No };
         }
     }
     public class IntegerIndexHandler : FieldIndexHandler, IIndexValueConverter<Int32>, IIndexValueConverter
@@ -1202,7 +1199,7 @@ namespace SenseNet.Search.Indexing
                 }
             }
 
-            return new[] { boolValue ? BooleanIndexHandler.YES : BooleanIndexHandler.NO };
+            return new[] { boolValue ? SnTerm.Yes : SnTerm.No };
         }
     }
 }
