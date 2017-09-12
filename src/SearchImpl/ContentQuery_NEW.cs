@@ -336,68 +336,11 @@ namespace SenseNet.Search
                     List<string> log;
                     identifiers = RecursiveExecutor.ExecuteRecursive(queryText, Settings.Top, Settings.Skip, Settings.Sort, Settings.EnableAutofilters,
                         Settings.EnableLifespanFilter, Settings.QueryExecutionMode,
-                        Settings, out totalCount, out log);
+                        Settings, userId, out totalCount, out log);
                 }
                 op.Successful = true;
             }
             return new QueryResult(identifiers, totalCount);
-        }
-
-
-        //UNDONE: ## Deepest level in the general layer
-        private static IEnumerable<LucObject> ExecuteAtomic_DELETE(string queryText, int top, int skip, IEnumerable<SortInfo> sort, FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode, QuerySettings settings, bool enableProjection, out string projection, out int totalCount)
-        {
-            LucQuery query;
-
-            try
-            {
-                query = LucQuery.Parse(queryText);
-            }
-            catch (ParserException ex)
-            {
-                throw new InvalidContentQueryException(queryText, innerException: ex);
-            }
-
-            projection = query.Projection;
-            if (projection != null)
-            {
-                if (!enableProjection)
-                    throw new ApplicationException(
-                        $"Projection in top level query is not allowed ({SnLucLexer.Keywords.Select}:{projection})");
-                query.ForceLuceneExecution = true;
-            }
-
-            if (skip != 0)
-                query.Skip = skip;
-
-            if (query.Top == 0)
-                query.Top = GetDefaultMaxResults();
-            if (top == 0)
-                top = GetDefaultMaxResults();
-            query.Top = Math.Min(top, query.Top);
-            query.PageSize = query.Top;
-
-            if (sort != null && sort.Any())
-                query.SetSort(sort);
-
-            if (enableAutofilters != FilterStatus.Default)
-                query.EnableAutofilters = enableAutofilters;
-            if (enableLifespanFilter != FilterStatus.Default)
-                query.EnableLifespanFilter = enableLifespanFilter;
-            if (executionMode != QueryExecutionMode.Default)
-                query.QueryExecutionMode = executionMode;
-
-            // Re-set settings values. This is important for NodeList that
-            // uses the paging info written into the query text.
-            if (settings != null)
-            {
-                settings.Top = query.PageSize;
-                settings.Skip = query.Skip;
-            }
-
-            var lucObjects = query.Execute().ToList();
-            totalCount = query.TotalCount;
-            return lucObjects;
         }
 
         // ================================================================== Recursive executor class
@@ -412,10 +355,10 @@ namespace SenseNet.Search
 
             public static IEnumerable<int> ExecuteRecursive(string queryText, int top, int skip,
                 IEnumerable<SortInfo> sort, FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode,
-                QuerySettings settings, out int count, out List<string> log)
+                QuerySettings settings, int userId, out int count, out List<string> log)
             {
                 log = new List<string>();
-                IEnumerable<int> result = new int[0];
+                IEnumerable<int> result;
                 var src = queryText;
                 log.Add(src);
                 var control = GetControlString(src);
@@ -433,7 +376,7 @@ namespace SenseNet.Search
 
                         int innerCount;
                         var innerResult = ExecuteInnerScript(sss.Substring(2, sss.Length - 4), 0, 0,
-                            sort, enableAutofilters, enableLifespanFilter, executionMode, null, true, out innerCount).StringArray;
+                            sort, enableAutofilters, enableLifespanFilter, executionMode, null, true, userId, out innerCount).StringArray;
 
                         switch (innerResult.Length)
                         {
@@ -455,7 +398,7 @@ namespace SenseNet.Search
                     else
                     {
                         result = ExecuteInnerScript(src, top, skip, sort, enableAutofilters, enableLifespanFilter, executionMode,
-                            settings, false, out count).IntArray;
+                            settings, false, userId, out count).IntArray;
 
                         log.Add(String.Join(" ", result.Select(i => i.ToString()).ToArray()));
                         break;
@@ -528,27 +471,39 @@ namespace SenseNet.Search
                 return ss;
             }
 
-            private static InnerQueryResult ExecuteInnerScript(string queryText, int top, int skip, IEnumerable<SortInfo> sort, FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode, QuerySettings settings, bool enableProjection, out int totalCount)
+            private static InnerQueryResult ExecuteInnerScript(string queryText, int top, int skip, IEnumerable<SortInfo> sort,
+                FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode, QuerySettings settings,
+                bool enableProjection, int userId, out int totalCount)
             {
-                InnerQueryResult result;
-
-                string projection;
-                var lucObjects = ExecuteAtomic_DELETE(queryText, top, skip, sort, enableAutofilters, enableLifespanFilter, executionMode, settings, enableProjection, out projection, out totalCount);
-
-                if (projection == null || !enableProjection)
+                var querySettings = new QuerySettings
                 {
-                    var idResult = lucObjects.Select(o => o.NodeId).ToArray();
-                    result = new InnerQueryResult { IntArray = idResult };
-                    if (enableProjection)
-                        result.StringArray = idResult.Select(i => i.ToString()).ToArray();
+                    Skip = skip,
+                    Top = top,
+                    Sort = sort,
+                    EnableAutofilters = enableAutofilters,
+                    EnableLifespanFilter = enableLifespanFilter,
+                    QueryExecutionMode = executionMode
+                };
+
+                InnerQueryResult result;
+                var queryContext = new SnQueryContext(querySettings, userId);
+                if (enableProjection)
+                {
+                    var snQueryresult = SnQuery.QueryAndProject(queryText, queryContext);
+                    result = new InnerQueryResult
+                    {
+                        StringArray = snQueryresult.Hits
+                            .Where(s => !string.IsNullOrEmpty(s))
+                            .Select(EscapeForQuery)
+                            .ToArray()
+                    };
+                    totalCount = snQueryresult.TotalCount;
                 }
                 else
                 {
-                    var stringResult = lucObjects.Select(o => o[projection, false]).Where(r => !String.IsNullOrEmpty(r));
-                    var escaped = new List<string>();
-                    foreach (var s in stringResult)
-                        escaped.Add(EscapeForQuery(s));
-                    result = new InnerQueryResult { StringArray = escaped.ToArray() };
+                    var snQueryresult = SnQuery.Query(queryText, queryContext);
+                    result = new InnerQueryResult {IntArray = snQueryresult.Hits.ToArray()};
+                    totalCount = snQueryresult.TotalCount;
                 }
 
                 return result;

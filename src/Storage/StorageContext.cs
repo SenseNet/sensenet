@@ -44,8 +44,8 @@ namespace SenseNet.ContentRepository.Storage
 
         public static class Search
         {
-            public static readonly string Yes = "yes";
-            public static readonly string No = "no";
+            public static readonly string Yes = "yes"; //UNDONE:!!!!!!!!! Use SnTerm.Yes
+            public static readonly string No = "no"; //UNDONE:!!!!!!!!! Use SnTerm.No
             public static readonly List<string> YesList = new List<string>(new string[] { "1", "true", "y", Yes });
             public static readonly List<string> NoList = new List<string>(new string[] { "0", "false", "n", No });
 

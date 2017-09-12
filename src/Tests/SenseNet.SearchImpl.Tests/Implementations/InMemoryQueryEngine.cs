@@ -74,7 +74,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             int totalCount;
             var result = interpreter.Execute(query, filter, out totalCount);
 
-            var projectedValues = result.Select(h => h.ValueForProject).ToArray();
+            var projectedValues = result.Select(h => h.ValueForProject).Distinct().ToArray();
             var queryResult = new QueryResult<string>(projectedValues, totalCount);
             return queryResult;
         }
@@ -152,6 +152,9 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
             private string GetFieldValueAsString(IndexField field)
             {
+                if (field == null)
+                    return null;
+
                 switch (field.Type)
                 {
                     case SnTermType.String:

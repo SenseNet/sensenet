@@ -863,6 +863,57 @@ namespace SenseNet.SearchImpl.Tests
             Assert.AreEqual("A2, B1", result[1]);
         }
 
+
+        [TestMethod]
+        public void InMemSearch_Query_Recursive()
+        {
+            var createNode = new Func<Node, string, Node>((parent, name) =>
+            {
+                var node = new SystemFolder(parent) { Name = name };
+                foreach (var observer in NodeObserver.GetObserverTypes())
+                    node.DisableObserver(observer);
+                node.Save();
+                return node;
+            });
+
+            var result = Test(() =>
+            {
+                SaveInitialIndexDocuments();
+                StorageContext.Search.SearchEngine.GetPopulator().ClearAndPopulateAll();
+
+                // create a test structure:
+                var root = Node.LoadNode(Identifiers.PortalRootId);
+                var folder0 = createNode(root, "Folder0");
+                createNode(folder0, "A0");
+                createNode(folder0, "A1");
+                createNode(folder0, "A2");
+                var folder1 = createNode(root, "Folder1");
+                createNode(folder1, "B0");
+                createNode(folder1, "B1");
+                createNode(folder1, "B2");
+                var folder2 = createNode(root, "Folder2");
+                createNode(folder2, "A0");
+                createNode(folder2, "A1");
+                createNode(folder2, "A2");
+
+                // ACTION
+                var settings = QuerySettings.AdminSettings;
+                settings.Sort = new[] { new SortInfo(IndexFieldName.Name) };
+
+                string queryResult = string.Join(", ",
+                    ContentQuery_NEW.Query(SafeQueries.Recursive, settings, "Name", "A*",
+                        "Index", 2).Nodes.Select(n => n.Name).ToArray());
+
+                return queryResult;
+            });
+
+            Assert.AreEqual("Admin", result);
+        }
+
+        //UNDONE:!!!!!!!! TEST AND DEVELOP in InMem: Id:(1 2 (+3 +4))
+        //UNDONE:!!!!!!!! UNITTEST Recursive with RecursiveExecutor's log
+        //UNDONE:!!!!!!!! TEST Indexing: Stored data is not complete (e.g.: Name = null)
+
         /* ============================================================================ */
 
         private InMemoryIndex GetTestIndex()

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Dynamic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -18,16 +20,20 @@ namespace SenseNet.Search
     }
 
     [Serializable]
+    [DebuggerDisplay("{Name}:{ValueAsString}:{Type}")]
     public class SnTerm
     {
+        public const string Yes = "yes";
+        public const string No = "no";
+
         public SnTerm(string name, string value)   { Name = name; Type = SnTermType.String;      StringValue = value;}
-        public SnTerm(string name, string[] value) { Name = name; Type = SnTermType.StringArray; StringArrayValue = value; }
-        public SnTerm(string name, bool value)     { Name = name; Type = SnTermType.Bool;        BooleanValue = value; }
-        public SnTerm(string name, int value)      { Name = name; Type = SnTermType.Int;         IntegerValue = value; }
-        public SnTerm(string name, long value)     { Name = name; Type = SnTermType.Long;        LongValue = value; }
-        public SnTerm(string name, float value)    { Name = name; Type = SnTermType.Float;       SingleValue = value; }
-        public SnTerm(string name, double value)   { Name = name; Type = SnTermType.Double;      DoubleValue = value; }
-        public SnTerm(string name, DateTime value) { Name = name; Type = SnTermType.DateTime;    DateTimeValue = value; }
+        public SnTerm(string name, string[] value) { Name = name; Type = SnTermType.StringArray; StringArrayValue = value; ValueAsString = string.Join(",", value); }
+        public SnTerm(string name, bool value)     { Name = name; Type = SnTermType.Bool;        BooleanValue = value;     ValueAsString = value ? Yes : No; }
+        public SnTerm(string name, int value)      { Name = name; Type = SnTermType.Int;         IntegerValue = value;     ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
+        public SnTerm(string name, long value)     { Name = name; Type = SnTermType.Long;        LongValue = value;        ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
+        public SnTerm(string name, float value)    { Name = name; Type = SnTermType.Float;       SingleValue = value;      ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
+        public SnTerm(string name, double value)   { Name = name; Type = SnTermType.Double;      DoubleValue = value;      ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
+        public SnTerm(string name, DateTime value) { Name = name; Type = SnTermType.DateTime;    DateTimeValue = value;    ValueAsString = value.ToString("yyyy-MM-dd HH:mm:ss.ffff"); }
 
         public string Name { get; }
         public SnTermType Type { get; }
@@ -40,9 +46,12 @@ namespace SenseNet.Search
         public virtual float SingleValue { get; }
         public virtual double DoubleValue { get; }
         public virtual DateTime DateTimeValue { get; }
+
+        public string ValueAsString { get; }
     }
 
     [Serializable]
+    [DebuggerDisplay("{Name}:{ValueAsString}:{Type}, Mode:{Mode}, Store:{Store}, TermVector:{TermVector}")]
     public class IndexField : SnTerm
     {
         public IndexingMode Mode { get; }

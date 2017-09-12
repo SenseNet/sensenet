@@ -41,5 +41,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
         public static string MultiLevelBool1 => "(+@0:@1 +@2:@3) (+@4:@5 +@6:@7)";
         /// <summary>Returns with the following query: "+(@0:@1 @2:@3) +(@4:@5 @6:@7)"</summary>
         public static string MultiLevelBool2 => "+(@0:@1 @2:@3) +(@4:@5 @6:@7)";
+
+        public static string Recursive => "Id:{{@0:@1 .SELECT:OwnerId}}";
     }
 }
