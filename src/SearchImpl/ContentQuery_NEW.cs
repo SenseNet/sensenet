@@ -334,12 +334,6 @@ namespace SenseNet.Search
 
         private static class RecursiveExecutor
         {
-            private class InnerQueryResult
-            {
-                internal string[] StringArray;
-                internal int[] IntArray;
-            }
-
             private static readonly Regex EscaperRegex;
             static RecursiveExecutor()
             {
@@ -367,6 +361,7 @@ namespace SenseNet.Search
                     EnableLifespanFilter = querySettings.EnableLifespanFilter,
                     QueryExecutionMode = querySettings.QueryExecutionMode
                 };
+                var recursiveQueryContext = new SnQueryContext(recursiveQuerySettings, userId);
 
                 while (true)
                 {
@@ -379,9 +374,17 @@ namespace SenseNet.Search
                         src = src.Remove(start, sss.Length);
                         control = control.Remove(start, sss.Length);
 
-                        int innerCount;
-                        var innerResult = ExecuteInnerScript(sss.Substring(2, sss.Length - 4), recursiveQuerySettings, true, userId, out innerCount).StringArray;
+                        // execute inner query
+                        //var innerResult = ExecuteInnerScript(sss.Substring(2, sss.Length - 4), recursiveQuerySettings, true, userId, out innerCount).StringArray;
+                        var subQuery = sss.Substring(2, sss.Length - 4);
+                        var snQueryresult = SnQuery.QueryAndProject(subQuery, recursiveQueryContext);
+                        var innerResult = snQueryresult.Hits
+                                .Where(s => !string.IsNullOrEmpty(s))
+                                .Select(EscapeForQuery)
+                                .ToArray();
 
+
+                        // process inner query result
                         switch (innerResult.Length)
                         {
                             case 0:
@@ -401,8 +404,9 @@ namespace SenseNet.Search
                     }
                     else
                     {
-                        result = ExecuteInnerScript(src, querySettings, false, userId, out count).IntArray;
-
+                        var snQueryresult = SnQuery.Query(src, new SnQueryContext(querySettings, userId));
+                        result = snQueryresult.Hits.ToArray();
+                        count = snQueryresult.TotalCount;
                         log.Add(string.Join(" ", result.Select(i => i.ToString()).ToArray()));
                         break;
                     }
@@ -473,32 +477,20 @@ namespace SenseNet.Search
                 var ss = src.Substring(p0, p1 - p0 + 2);
                 return ss;
             }
-            private static InnerQueryResult ExecuteInnerScript(string queryText, QuerySettings querySettings,
-                bool enableProjection, int userId, out int totalCount)
+
+            private static string[] ExecuteInnerScript(string queryText, QuerySettings querySettings, int userId)
             {
-                InnerQueryResult result;
                 var queryContext = new SnQueryContext(querySettings, userId);
-                if (enableProjection)
-                {
-                    var snQueryresult = SnQuery.QueryAndProject(queryText, queryContext);
-                    result = new InnerQueryResult
-                    {
-                        StringArray = snQueryresult.Hits
-                            .Where(s => !string.IsNullOrEmpty(s))
-                            .Select(EscapeForQuery)
-                            .ToArray()
-                    };
-                    totalCount = snQueryresult.TotalCount;
-                }
-                else
-                {
-                    var snQueryresult = SnQuery.Query(queryText, queryContext);
-                    result = new InnerQueryResult {IntArray = snQueryresult.Hits.ToArray()};
-                    totalCount = snQueryresult.TotalCount;
-                }
+
+                var snQueryresult = SnQuery.QueryAndProject(queryText, queryContext);
+                var result = snQueryresult.Hits
+                        .Where(s => !string.IsNullOrEmpty(s))
+                        .Select(EscapeForQuery)
+                        .ToArray();
 
                 return result;
             }
+
             private static string EscapeForQuery(string value)
             {
                 if (EscaperRegex.IsMatch(value))
