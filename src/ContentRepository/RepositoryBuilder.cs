@@ -1,6 +1,7 @@
 ﻿using System;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Security;
 
@@ -45,6 +46,24 @@ namespace SenseNet.ContentRepository
         public RepositoryBuilder UseElevatedModificationVisibilityRuleProvider(ElevatedModificationVisibilityRule modificationVisibilityRuleProvider)
         {
             Configuration.Providers.Instance.ElevatedModificationVisibilityRuleProvider = modificationVisibilityRuleProvider;
+            return this;
+        }
+        /// <summary>
+        /// Sets the search engine used for querying and indexing.
+        /// </summary>
+        /// <param name="searchEngine">SearchEngine instance.</param>
+        public RepositoryBuilder UseSearchEngine(ISearchEngine searchEngine)
+        {
+            Configuration.Providers.Instance.SearchEngine = searchEngine;
+            return this;
+        }
+        /// <summary>
+        /// Sets the membership extender used for extending user membership on-the-fly.
+        /// </summary>
+        /// <param name="membershipExtender">MembershipExtender instance.</param>
+        public RepositoryBuilder UseMembershipExtender(MembershipExtenderBase membershipExtender)
+        {
+            Configuration.Providers.Instance.MembershipExtender = membershipExtender;
             return this;
         }
 

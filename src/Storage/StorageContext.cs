@@ -158,20 +158,9 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
-        private readonly object _searchEngineLock = new object();
-        private ISearchEngine _searchEngine;
-
         private ISearchEngine GetSearchEnginePrivate()
         {
-            if (!IsOuterEngineEnabled)
-                return InternalSearchEngine.Instance;
-
-            if (_searchEngine == null)
-                lock (_searchEngineLock)
-                    if (_searchEngine == null)
-                        _searchEngine = TypeHandler.ResolveProvider<ISearchEngine>() ?? InternalSearchEngine.Instance;
-
-            return _searchEngine;
+            return !IsOuterEngineEnabled ? InternalSearchEngine.Instance : Providers.Instance.SearchEngine;
         }
     }
 }

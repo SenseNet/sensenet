@@ -5,6 +5,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
+using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Security;
@@ -39,6 +40,10 @@ namespace SenseNet.Configuration
             "SenseNet.Preview.DefaultDocumentPreviewProvider");
         public static string ClusterChannelProviderClassName { get; internal set; } = GetProvider("ClusterChannelProvider",
             typeof(VoidChannel).FullName);
+        public static string SearchEngineClassName { get; internal set; } = GetProvider("SearchEngine",
+            "SenseNet.Search.Lucene29.Lucene29SearchEngine");
+        public static string MembershipExtenderClassName { get; internal set; } = GetProvider("MembershipExtender",
+            "SenseNet.ContentRepository.Storage.Security.DefaultMembershipExtender");
 
         public static string ElevatedModificationVisibilityRuleProviderName { get; internal set; } =
             GetProvider("ElevatedModificationVisibilityRuleProvider",
@@ -89,6 +94,35 @@ namespace SenseNet.Configuration
         {
             get { return _dataProvider.Value; }
             set { _dataProvider = new Lazy<DataProvider>(() => value); }
+        }
+        #endregion
+
+        #region private Lazy<ISearchEngine> _searchEngine = new Lazy<ISearchEngine>
+        private Lazy<ISearchEngine> _searchEngine = new Lazy<ISearchEngine>(() =>
+        {
+            ISearchEngine se;
+
+            try
+            {
+                se = (ISearchEngine)TypeResolver.CreateInstance(SearchEngineClassName);
+            }
+            catch (TypeNotFoundException)
+            {
+                throw new ConfigurationException($"Search engine implementation does not exist: {SearchEngineClassName}");
+            }
+            catch (InvalidCastException)
+            {
+                throw new ConfigurationException($"Invalid search engine implementation: {SearchEngineClassName}");
+            }
+
+            SnLog.WriteInformation("SearchEngine created: " + SearchEngineClassName);
+
+            return se;
+        });
+        public virtual ISearchEngine SearchEngine
+        {
+            get { return _searchEngine.Value; }
+            set { _searchEngine = new Lazy<ISearchEngine>(() => value); }
         }
         #endregion
 
@@ -180,6 +214,35 @@ namespace SenseNet.Configuration
         {
             get { return _elevatedModificationVisibilityRuleProvider.Value; }
             set { _elevatedModificationVisibilityRuleProvider = new Lazy<ElevatedModificationVisibilityRule>(() => value); }
+        }
+        #endregion
+
+        #region private Lazy<MembershipExtenderBase> _membershipExtender = new Lazy<MembershipExtenderBase>
+        private Lazy<MembershipExtenderBase> _membershipExtender = new Lazy<MembershipExtenderBase>(() =>
+        {
+            MembershipExtenderBase me;
+
+            try
+            {
+                me = (MembershipExtenderBase)TypeResolver.CreateInstance(MembershipExtenderClassName);
+            }
+            catch (TypeNotFoundException)
+            {
+                throw new ConfigurationException($"Membership extender implementation does not exist: {MembershipExtenderClassName}");
+            }
+            catch (InvalidCastException)
+            {
+                throw new ConfigurationException($"Invalid membership extender implementation: {MembershipExtenderClassName}");
+            }
+
+            SnLog.WriteInformation("MembershipExtender created: " + MembershipExtenderClassName);
+
+            return me;
+        });
+        public virtual MembershipExtenderBase MembershipExtender
+        {
+            get { return _membershipExtender.Value; }
+            set { _membershipExtender = new Lazy<MembershipExtenderBase>(() => value); }
         }
         #endregion
 
