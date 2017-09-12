@@ -4,7 +4,6 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Data.Common;
-using System.Diagnostics;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Search.Internal;
 using SenseNet.ContentRepository.Storage.Schema;
@@ -19,40 +18,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         //////////////////////////////////////// Static Access ////////////////////////////////////////
 
-        private static DataProvider _current;
-        private static readonly object _lock = new object();
-
-        public static DataProvider Current
-        {
-            [DebuggerStepThrough]
-            get
-            {
-                if (_current == null)
-                {
-                    lock (_lock)
-                    {
-                        if (_current == null)
-                        {
-                            try
-                            {
-                                _current = (DataProvider)TypeResolver.CreateInstance(Providers.DataProviderClassName);
-                            }
-                            catch (TypeNotFoundException) // rethrow
-                            {
-                                throw new ConfigurationException(String.Concat(SR.Exceptions.Configuration.Msg_DataProviderImplementationDoesNotExist, ": ", Providers.DataProviderClassName));
-                            }
-                            catch (InvalidCastException) // rethrow
-                            {
-                                throw new ConfigurationException(String.Concat(SR.Exceptions.Configuration.Msg_InvalidDataProviderImplementation, ": ", Providers.DataProviderClassName));
-                            }
-                            CommonComponents.TransactionFactory = _current;
-                            SnLog.WriteInformation("DataProvider created: " + _current);
-                        }
-                    }
-                }
-                return _current;
-            }
-        }
+        public static DataProvider Current => Providers.Instance.DataProvider;
 
         //////////////////////////////////////// For tests ////////////////////////////////////////
 

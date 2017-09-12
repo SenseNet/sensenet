@@ -57,6 +57,11 @@ namespace SenseNet.ContentRepository
             AccessProvider.RestoreOriginalUser();
             return instance;
         }
+        public static RepositoryInstance Start(RepositoryBuilder builder)
+        {
+            return builder == null ? Start() : Start((RepositoryStartSettings) builder);
+        }
+
         /// <summary>
         /// Returns the running state of the Repository.
         /// </summary>

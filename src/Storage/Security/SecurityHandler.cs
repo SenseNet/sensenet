@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Diagnostics;
 using System.Linq;
 using System.Xml;
@@ -8,7 +7,6 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Security;
-using SenseNet.Security.EF6SecurityStore;
 using SenseNet.Security.Messaging;
 using SenseNet.Tools;
 
@@ -1648,11 +1646,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             IMessageProvider messageProvider = null)
         {
             var dummy = PermissionType.Open;
-
-            securityDataProvider = securityDataProvider ?? new EF6SecurityDataProvider(
-                Configuration.Security.SecurityDatabaseCommandTimeoutInSeconds,
-                ConnectionStrings.SecurityDatabaseConnectionString);
-
+            var securityDbProvider = securityDataProvider ?? Providers.Instance.SecurityDataProvider;
             messageProvider = messageProvider ?? (IMessageProvider)Activator.CreateInstance(GetMessageProviderType());
             messageProvider.Initialize();
 
@@ -1660,7 +1654,7 @@ namespace SenseNet.ContentRepository.Storage.Security
 
             SnSecurityContext.StartTheSystem(new SecurityConfiguration
             {
-                SecurityDataProvider = securityDataProvider,
+                SecurityDataProvider = securityDbProvider,
                 MessageProvider = messageProvider,
                 SystemUserId = Identifiers.SystemUserId,
                 VisitorUserId = Identifiers.VisitorUserId,
@@ -1676,7 +1670,7 @@ namespace SenseNet.ContentRepository.Storage.Security
 
             SnLog.WriteInformation("Security subsystem started", EventId.RepositoryLifecycle,
                 properties: new Dictionary<string, object> { 
-                    { "DataProvider", securityDataProvider.GetType().FullName },
+                    { "DataProvider", securityDbProvider.GetType().FullName },
                     { "MessageProvider", messageProvider.GetType().FullName }
                 });
         }

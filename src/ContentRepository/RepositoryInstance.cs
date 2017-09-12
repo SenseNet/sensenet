@@ -75,14 +75,15 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Gets the startup control information.
         /// </summary>
-        public RepositoryStartSettings.ImmutableRepositoryStartSettings StartSettings
-        {
-            get { return _settings; }
-        }
+        [Obsolete("Use individual immutable properties instead.")]
+        public RepositoryStartSettings.ImmutableRepositoryStartSettings StartSettings => _settings;
+
         /// <summary>
         /// Gets the started up instance or null.
         /// </summary>
         public static RepositoryInstance Instance { get { return _instance; } }
+
+        public TextWriter Console => _settings?.Console;
 
         private RepositoryInstance()
         {
@@ -438,7 +439,7 @@ namespace SenseNet.ContentRepository
                 if (_instance == null)
                     throw new NotSupportedException("Querying running state of LuceneManager is not supported when RepositoryInstance is not created.");
                 return IndexManager.Running;
-            }
+        }
         }
 
         // ======================================== IDisposable
