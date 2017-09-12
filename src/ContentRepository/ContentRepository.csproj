@@ -237,6 +237,7 @@
     <Compile Include="Packaging\Steps\Trace.cs" />
     <Compile Include="Packaging\Steps\XmlEditorStep.cs" />
     <Compile Include="Packaging\ZipUnpacker.cs" />
+    <Compile Include="RepositoryBuilder.cs" />
     <Compile Include="Schema\Metadata\IMetaNode.cs" />
     <Compile Include="Schema\Metadata\MetaCollectionEnumerable.cs" />
     <Compile Include="Schema\Metadata\SchemaVisitor.cs" />

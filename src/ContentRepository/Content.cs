@@ -1500,13 +1500,8 @@ namespace SenseNet.ContentRepository
                     {
                         SnLog.WriteException(ex);
 
-                        var console = RepositoryInstance.Instance != null && RepositoryInstance.Instance.StartSettings != null
-                            ? RepositoryInstance.Instance.StartSettings.Console
-                            : null;
-
                         // log this to the screen or log file if exists
-                        if (console != null)
-                            console.WriteLine("---------- Reference skipped: " + field.Name);
+                        RepositoryInstance.Instance?.Console?.WriteLine("---------- Reference skipped: " + field.Name);
                     }
                     else
                     {
@@ -1619,13 +1614,8 @@ namespace SenseNet.ContentRepository
                             {
                                 SnLog.WriteException(ex);
 
-                                var console = RepositoryInstance.Instance != null && RepositoryInstance.Instance.StartSettings != null
-                                    ? RepositoryInstance.Instance.StartSettings.Console
-                                    : null;
-
                                 // log this to the screen or log file if exists
-                                if (console != null)
-                                    console.WriteLine("---------- Reference skipped: " + refField.Name);
+                                RepositoryInstance.Instance?.Console?.WriteLine("---------- Reference skipped: " + refField.Name);
                             }
                             else
                             {
