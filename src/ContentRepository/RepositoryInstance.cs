@@ -10,6 +10,7 @@ using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Storage.Data;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using SenseNet.Communication.Messaging;
 using SenseNet.ContentRepository.Storage.Diagnostics;
@@ -74,14 +75,16 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Gets the startup control information.
         /// </summary>
-        public RepositoryStartSettings.ImmutableRepositoryStartSettings StartSettings
-        {
-            get { return _settings; }
-        }
+        [Obsolete("Use individual immutable properties instead.")]
+        public RepositoryStartSettings.ImmutableRepositoryStartSettings StartSettings => _settings;
+
         /// <summary>
         /// Gets the started up instance or null.
         /// </summary>
         public static RepositoryInstance Instance { get { return _instance; } }
+
+        public TextWriter Console => _settings?.Console;
+        public bool BackupIndexAtTheEnd => _settings?.BackupIndexAtTheEnd ?? false;
 
         private RepositoryInstance()
         {
@@ -425,7 +428,7 @@ namespace SenseNet.ContentRepository
                 SnTrace.Repository.Write("Shutting down {0}", DistributedApplication.ClusterChannel.GetType().Name);
                 DistributedApplication.ClusterChannel.ShutDown();
 
-                if (Instance.StartSettings.BackupIndexAtTheEnd)
+                if (Instance.BackupIndexAtTheEnd)
                 {
                     SnTrace.Repository.Write("Backing up the index.");
                     if (LuceneManagerIsRunning)

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using SenseNet.Configuration;
 
 namespace SenseNet.ContentRepository.Storage
 {
@@ -12,17 +8,11 @@ namespace SenseNet.ContentRepository.Storage
     /// </summary>
     public class ElevatedModificationVisibilityRule
     {
-        private static ElevatedModificationVisibilityRule instance;
-        static ElevatedModificationVisibilityRule()
-        {
-            instance = TypeHandler.GetProviderInstance<ElevatedModificationVisibilityRule>();
-        }
+        private static ElevatedModificationVisibilityRule Instance => Providers.Instance.ElevatedModificationVisibilityRuleProvider;
 
         internal static bool EvaluateRule(Node node)
         {
-            if (instance == null)
-                return false;
-            return instance.IsModificationVisible(node);
+            return Instance?.IsModificationVisible(node) ?? false;
         }
 
         /// <summary>

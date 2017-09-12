@@ -1,8 +1,5 @@
 using System;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.Diagnostics;
-using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Storage.Security
 {
@@ -10,46 +7,20 @@ namespace SenseNet.ContentRepository.Storage.Security
     {
 		protected readonly IUser StartupUser = new StartupUser();
 
-        private static readonly object _lock = new object();
-        private static AccessProvider _current;
-        public static AccessProvider Current
-        {
-            get
-            {
-                if(_current == null)
-                {
-                    lock(_lock)
-                    {
-                        if(_current == null)
-                        {
-							try
-							{
-								var provider = (AccessProvider)TypeResolver.CreateInstance(Providers.AccessProviderClassName);
-                                provider.Initialize();
-                                _current = provider;
-							}
-							catch (TypeNotFoundException) // rethrow
-							{
-								throw new ConfigurationException(String.Concat(SR.Exceptions.Configuration.Msg_AccessProviderImplementationDoesNotExist, ": ", Providers.AccessProviderClassName));
-							}
-							catch (InvalidCastException) // rethrow
-							{
-								throw new ConfigurationException(String.Concat(SR.Exceptions.Configuration.Msg_InvalidAccessProviderImplementation, ": ", Providers.AccessProviderClassName));
-							}
-                            SnLog.WriteInformation("AccessProvider created: " + _current);
-                        }
-                    }
-                }
-                return _current;
-            }
-        }
+        public static AccessProvider Current => Providers.Instance.AccessProvider;
 
         protected virtual void Initialize()
         {
             // do nothing
         }
 
-        public static bool IsInitialized { get { return _current != null; } }
+        internal void InitializeInternal()
+        {
+            Initialize();
+        }
+
+        [Obsolete]
+        public static bool IsInitialized => Current != null;
 
         public abstract IUser GetCurrentUser();
 
