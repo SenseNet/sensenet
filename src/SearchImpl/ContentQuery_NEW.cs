@@ -2,20 +2,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Parser;
-using SenseNet.Tools;
 
 namespace SenseNet.Search
 {
-    public class ContentQuery_NEW
+    //UNDONE: remove ReSharper comment if the ContentQuery_NEW is renamed well.
+    // ReSharper disable once InconsistentNaming
+    public class ContentQuery_NEW //UNDONE: Delete original ContentQuery and rename this to ContentQuery
     {
         private static readonly string[] QuerySettingParts = new[] { "SKIP", "TOP", "SORT", "REVERSESORT", "AUTOFILTERS", "LIFESPAN", "COUNTONLY" };
         private static readonly string RegexKeywordsAndComments = "//|/\\*|(\\.(?<keyword>[A-Z]+)(([ ]*:[ ]*[#]?\\w+(\\.\\w+)?)|([\\) $\\r\\n]+)))";
@@ -114,7 +112,7 @@ namespace SenseNet.Search
                 foreach (var x in enumerableValue)
                     if (x != null)
                         escaped.Add(EscapeParameter(x.ToString()));
-                var joined = String.Join(" ", escaped);
+                var joined = string.Join(" ", escaped);
                 if (escaped.Count < 2)
                     return joined;
                 return "(" + joined + ")";
@@ -261,7 +259,7 @@ namespace SenseNet.Search
 
         private static string FixMultilineComment(string queryText)
         {
-            if (String.IsNullOrEmpty(queryText))
+            if (string.IsNullOrEmpty(queryText))
                 return queryText;
 
             // find the last multiline comment
@@ -295,16 +293,11 @@ namespace SenseNet.Search
             return queryText.Length;
         }
 
-        private static int GetDefaultMaxResults()
-        {
-            return Int32.MaxValue;
-        }
-
         public QueryResult Execute()
         {
             var queryText = Text;
 
-            if (String.IsNullOrEmpty(queryText))
+            if (string.IsNullOrEmpty(queryText))
                 throw new InvalidOperationException("Cannot execute query with null or empty Text");
 
             var userId = AccessProvider.Current.GetCurrentUser().Id;
@@ -323,10 +316,6 @@ namespace SenseNet.Search
             {
                 if (!queryText.Contains("}}"))
                 {
-                    //var lucObjects = ExecuteAtomic(queryText, Settings.Top, Settings.Skip, Settings.Sort, Settings.EnableAutofilters,
-                    //    Settings.EnableLifespanFilter, Settings.QueryExecutionMode, Settings, false, out projection,
-                    //    out totalCount);
-                    //identifiers = lucObjects.Select(l => l.NodeId).ToArray();
                     var result = SnQuery.Query(queryText, new SnQueryContext(Settings, userId));
                     identifiers = result.Hits;
                     totalCount = result.TotalCount;
@@ -353,6 +342,16 @@ namespace SenseNet.Search
                 internal int[] IntArray;
             }
 
+            private static readonly Regex EscaperRegex;
+            static RecursiveExecutor()
+            {
+                var pattern = new StringBuilder("[");
+                foreach (var c in SnLucLexer.STRINGTERMINATORCHARS.ToCharArray())
+                    pattern.Append("\\" + c);
+                pattern.Append("]");
+                EscaperRegex = new Regex(pattern.ToString());
+            }
+
             public static IEnumerable<int> ExecuteRecursive(string queryText, int top, int skip,
                 IEnumerable<SortInfo> sort, FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode,
                 int userId, out int count, out List<string> log)
@@ -367,7 +366,7 @@ namespace SenseNet.Search
                 {
                     int start;
                     var sss = GetInnerScript(src, control, out start);
-                    var end = sss == String.Empty;
+                    var end = sss == string.Empty;
 
                     if (!end)
                     {
@@ -387,7 +386,7 @@ namespace SenseNet.Search
                                 sss = innerResult[0];
                                 break;
                             default:
-                                sss = String.Join(" ", innerResult);
+                                sss = string.Join(" ", innerResult);
                                 sss = "(" + sss + ")";
                                 break;
                         }
@@ -400,7 +399,7 @@ namespace SenseNet.Search
                         result = ExecuteInnerScript(src, top, skip, sort, enableAutofilters, enableLifespanFilter, executionMode,
                             false, userId, out count).IntArray;
 
-                        log.Add(String.Join(" ", result.Select(i => i.ToString()).ToArray()));
+                        log.Add(string.Join(" ", result.Select(i => i.ToString()).ToArray()));
                         break;
                     }
                 }
@@ -462,15 +461,14 @@ namespace SenseNet.Search
                 start = 0;
                 var p1 = control.IndexOf("}}");
                 if (p1 < 0)
-                    return String.Empty;
+                    return string.Empty;
                 var p0 = control.LastIndexOf("{{", p1);
                 if (p0 < 0)
-                    return String.Empty;
+                    return string.Empty;
                 start = p0;
                 var ss = src.Substring(p0, p1 - p0 + 2);
                 return ss;
             }
-
             private static InnerQueryResult ExecuteInnerScript(string queryText,
                 int top, int skip, IEnumerable<SortInfo> sort, FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode,
                 bool enableProjection, int userId, out int totalCount)
@@ -508,22 +506,10 @@ namespace SenseNet.Search
 
                 return result;
             }
-
-            private static readonly Regex EscaperRegex;
-
-            static RecursiveExecutor()
-            {
-                var pattern = new StringBuilder("[");
-                foreach (var c in SnLucLexer.STRINGTERMINATORCHARS.ToCharArray())
-                    pattern.Append("\\" + c);
-                pattern.Append("]");
-                EscaperRegex = new Regex(pattern.ToString());
-            }
-
             private static string EscapeForQuery(string value)
             {
                 if (EscaperRegex.IsMatch(value))
-                    return String.Concat("'", value, "'");
+                    return string.Concat("'", value, "'");
                 return value;
             }
         }
