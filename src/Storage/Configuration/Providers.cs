@@ -70,23 +70,9 @@ namespace SenseNet.Configuration
         #region private Lazy<DataProvider> _dataProvider = new Lazy<DataProvider>
         private Lazy<DataProvider> _dataProvider = new Lazy<DataProvider>(() =>
         {
-            DataProvider dbp;
-
-            try
-            {
-                dbp = (DataProvider)TypeResolver.CreateInstance(DataProviderClassName);
-            }
-            catch (TypeNotFoundException)
-            {
-                throw new ConfigurationException($"{SR.Exceptions.Configuration.Msg_DataProviderImplementationDoesNotExist}: {DataProviderClassName}");
-            }
-            catch (InvalidCastException)
-            {
-                throw new ConfigurationException(SR.Exceptions.Configuration.Msg_InvalidDataProviderImplementation);
-            }
-
+            var dbp = CreateProviderInstance<DataProvider>(DataProviderClassName, "DataProvider");
+            
             CommonComponents.TransactionFactory = dbp;
-            SnLog.WriteInformation("DataProvider created: " + DataProviderClassName);
 
             return dbp;
         });
@@ -98,27 +84,8 @@ namespace SenseNet.Configuration
         #endregion
 
         #region private Lazy<ISearchEngine> _searchEngine = new Lazy<ISearchEngine>
-        private Lazy<ISearchEngine> _searchEngine = new Lazy<ISearchEngine>(() =>
-        {
-            ISearchEngine se;
-
-            try
-            {
-                se = (ISearchEngine)TypeResolver.CreateInstance(SearchEngineClassName);
-            }
-            catch (TypeNotFoundException)
-            {
-                throw new ConfigurationException($"Search engine implementation does not exist: {SearchEngineClassName}");
-            }
-            catch (InvalidCastException)
-            {
-                throw new ConfigurationException($"Invalid search engine implementation: {SearchEngineClassName}");
-            }
-
-            SnLog.WriteInformation("SearchEngine created: " + SearchEngineClassName);
-
-            return se;
-        });
+        private Lazy<ISearchEngine> _searchEngine =
+            new Lazy<ISearchEngine>(() => CreateProviderInstance<ISearchEngine>(SearchEngineClassName, "SearchEngine"));
         public virtual ISearchEngine SearchEngine
         {
             get { return _searchEngine.Value; }
@@ -129,23 +96,10 @@ namespace SenseNet.Configuration
         #region private Lazy<AccessProvider> _accessProvider = new Lazy<AccessProvider>
         private Lazy<AccessProvider> _accessProvider = new Lazy<AccessProvider>(() =>
         {
-            try
-            {
-                var provider = (AccessProvider)TypeResolver.CreateInstance(AccessProviderClassName);
-                provider.InitializeInternal();
+            var provider = CreateProviderInstance<AccessProvider>(AccessProviderClassName, "AccessProvider");
+            provider.InitializeInternal();
 
-                SnLog.WriteInformation("AccessProvider created: " + AccessProviderClassName);
-
-                return provider;
-            }
-            catch (TypeNotFoundException) // rethrow
-            {
-                throw new ConfigurationException($"{SR.Exceptions.Configuration.Msg_AccessProviderImplementationDoesNotExist}: {AccessProviderClassName}");
-            }
-            catch (InvalidCastException) // rethrow
-            {
-                throw new ConfigurationException($"{SR.Exceptions.Configuration.Msg_InvalidAccessProviderImplementation}: {AccessProviderClassName}");
-            }
+            return provider;
         });
         public virtual AccessProvider AccessProvider
         {
@@ -195,21 +149,8 @@ namespace SenseNet.Configuration
 
         #region private Lazy<ElevatedModificationVisibilityRule> _elevatedModificationVisibilityRuleProvider
         private Lazy<ElevatedModificationVisibilityRule> _elevatedModificationVisibilityRuleProvider =
-            new Lazy<ElevatedModificationVisibilityRule>(() =>
-            {
-                try
-                {
-                    return (ElevatedModificationVisibilityRule)TypeResolver.CreateInstance(ElevatedModificationVisibilityRuleProviderName);
-                }
-                catch (TypeNotFoundException)
-                {
-                    throw new ConfigurationException($"Elevated modification visibility rule provider implementation not found: {ElevatedModificationVisibilityRuleProviderName}");
-                }
-                catch (InvalidCastException)
-                {
-                    throw new ConfigurationException($"Invalid Elevated modification visibility rule provider implementation: {ElevatedModificationVisibilityRuleProviderName}");
-                }
-            });
+            new Lazy<ElevatedModificationVisibilityRule>(() => CreateProviderInstance<ElevatedModificationVisibilityRule>(
+                ElevatedModificationVisibilityRuleProviderName, "ElevatedModificationVisibilityRule"));
         public virtual ElevatedModificationVisibilityRule ElevatedModificationVisibilityRuleProvider
         {
             get { return _elevatedModificationVisibilityRuleProvider.Value; }
@@ -218,27 +159,7 @@ namespace SenseNet.Configuration
         #endregion
 
         #region private Lazy<MembershipExtenderBase> _membershipExtender = new Lazy<MembershipExtenderBase>
-        private Lazy<MembershipExtenderBase> _membershipExtender = new Lazy<MembershipExtenderBase>(() =>
-        {
-            MembershipExtenderBase me;
-
-            try
-            {
-                me = (MembershipExtenderBase)TypeResolver.CreateInstance(MembershipExtenderClassName);
-            }
-            catch (TypeNotFoundException)
-            {
-                throw new ConfigurationException($"Membership extender implementation does not exist: {MembershipExtenderClassName}");
-            }
-            catch (InvalidCastException)
-            {
-                throw new ConfigurationException($"Invalid membership extender implementation: {MembershipExtenderClassName}");
-            }
-
-            SnLog.WriteInformation("MembershipExtender created: " + MembershipExtenderClassName);
-
-            return me;
-        });
+        private Lazy<MembershipExtenderBase> _membershipExtender = new Lazy<MembershipExtenderBase>(() => CreateProviderInstance<MembershipExtenderBase>(MembershipExtenderClassName, "MembershipExtender"));
         public virtual MembershipExtenderBase MembershipExtender
         {
             get { return _membershipExtender.Value; }
@@ -275,6 +196,28 @@ namespace SenseNet.Configuration
         public virtual void SetProvider(Type providerType, object provider)
         {
             _providersByType[providerType] = provider;
+        }
+
+        private static T CreateProviderInstance<T>(string className, string providerName)
+        {
+            T provider;
+
+            try
+            {
+                provider = (T)TypeResolver.CreateInstance(className);
+            }
+            catch (TypeNotFoundException)
+            {
+                throw new ConfigurationException($"{providerName} implementation does not exist: {className}");
+            }
+            catch (InvalidCastException)
+            {
+                throw new ConfigurationException($"Invalid {providerName} implementation: {className}");
+            }
+
+            SnLog.WriteInformation($"{providerName} created: {className}");
+
+            return provider;
         }
     }
 }
