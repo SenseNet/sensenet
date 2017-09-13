@@ -15,7 +15,7 @@ namespace SenseNet.Search.Tests
     [TestClass]
     public class CqlParserTests
     {
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void SnQuery_Parser_AstToString_FromOriginalLuceneQueryParserSyntax()
         {
             Test("value", "_Text:value");
@@ -57,7 +57,7 @@ namespace SenseNet.Search.Tests
             Test("(jakarta OR apache) AND website", "+(_Text:jakarta _Text:apache) +_Text:website");
             Test("title:(+return +\"pink panther\")", "+title:return +title:'pink panther'");
         }
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void SnQuery_Parser_AstToString_AdditionalTests()
         {
             Test("42value", "_Text:42value");
@@ -69,7 +69,7 @@ namespace SenseNet.Search.Tests
             Test("(Name:aaa Id:2)", "Name:aaa Id:2"); // unnecessary parenthesis
             TestError("Name:\"aaa");
         }
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void SnQuery_Parser_AstToString_EmptyQueries()
         {
             var empty = SnQuery.EmptyText;
@@ -87,7 +87,7 @@ namespace SenseNet.Search.Tests
             TestError($"F1:[{empty} TO {empty}]");
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void SnQuery_Parser_AstToString_PredicateTypes()
         {
             SnQuery q;
@@ -96,7 +96,7 @@ namespace SenseNet.Search.Tests
             q = Test("Value:3.14"); Assert.AreEqual(typeof(TextPredicate), q.QueryTree.GetType());
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void SnQuery_Parser_AstToString_CqlExtension_Ranges()
         {
             SnQuery q;
@@ -113,7 +113,7 @@ namespace SenseNet.Search.Tests
             q = Test("Value:<=3.14"); Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());
             q = Test("Value:>=3.14"); Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());
         }
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void SnQuery_Parser_AstToString_CqlExtension_SpecialChars()
         {
             Test("F1:(V1 OR V2)", "F1:V1 F1:V2");
@@ -149,7 +149,7 @@ namespace SenseNet.Search.Tests
             TestError("Name:\"aaa\\\"");
             TestError("Name:<>:");
         }
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void SnQuery_Parser_AstToString_CqlExtension_Comments()
         {
             Test("F1:V1 //asdf", "F1:V1");
@@ -161,7 +161,7 @@ namespace SenseNet.Search.Tests
             Test("+Name:\"aaa\"//comment\n+Id:<42", "+Name:aaa +Id:<42");
             Test("Name:aaa /*unterminatedblockcomment", "Name:aaa");
         }
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void SnQuery_Parser_AstToString_CqlExtension_Controls()
         {
             // ".SELECT";
@@ -227,7 +227,7 @@ namespace SenseNet.Search.Tests
             TestError("F1:V1 .SELECT:");
             TestError("F1:V1 .SELECT:123");
         }
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void SnQuery_Parser_AstToString_CqlErrors()
         {
             TestError("");
@@ -282,7 +282,7 @@ namespace SenseNet.Search.Tests
             return string.Join(", ", sortInfo.Select(s => $"{s.FieldName} {(s.Reverse ? "DESC" : "ASC")}").ToArray());
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void SnQuery_Parser_AggregateSettingsTest()
         {
             var indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
@@ -366,7 +366,7 @@ namespace SenseNet.Search.Tests
         }
 
         //UNDONE: Move this test to QueryClassifier tests
-        //[TestMethod]
+        //[TestMethod, TestCategory("IR")]
         //public void SnQuery_Parser_UsedFieldNames()
         //{
         //    var indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>

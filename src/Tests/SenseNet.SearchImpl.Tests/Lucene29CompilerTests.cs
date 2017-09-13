@@ -15,7 +15,7 @@ namespace SenseNet.SearchImpl.Tests
     [TestClass]
     public class Lucene29CompilerTests
     {
-        [TestMethod] // 38 tests
+        [TestMethod, TestCategory("IR")] // 38 tests
         public void Search_Compiler_Luc29_OriginalTests()
         {
             Test("value", "_Text:value");
@@ -58,7 +58,7 @@ namespace SenseNet.SearchImpl.Tests
             Test("title:(+return +\"pink panther\")", "+title:return +title:\"pink panther\"");
         }
 
-        [TestMethod] // 11 tests
+        [TestMethod, TestCategory("IR")] // 11 tests
         public void Search_Compiler_Luc29__QueryTypes()
         {
             Query q;
@@ -77,7 +77,7 @@ namespace SenseNet.SearchImpl.Tests
             q = Test("_Text:\"aa bbb\""); Assert.AreEqual(q.GetType(), typeof(PhraseQuery));
         }
 
-        [TestMethod] // 4 tests
+        [TestMethod, TestCategory("IR")] // 4 tests
         public void Search_Compiler_Luc29__QueryType_Numeric()
         {
             Query q;
@@ -87,7 +87,7 @@ namespace SenseNet.SearchImpl.Tests
             q = Test("DoubleField1:1.0000001"); Assert.AreEqual(q.GetType(), typeof(TermQuery));
         }
 
-        [TestMethod] // 20 tests
+        [TestMethod, TestCategory("IR")] // 20 tests
         public void Search_Compiler_Luc29__CqlExtension_Ranges()
         {
             Query q;

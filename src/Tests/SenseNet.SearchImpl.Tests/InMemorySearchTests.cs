@@ -25,7 +25,7 @@ namespace SenseNet.SearchImpl.Tests
     [TestClass]
     public class InMemorySearchTests : TestBase
     {
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void InMemSearch_Indexing_Create()
         {
             Node node;
@@ -97,7 +97,7 @@ namespace SenseNet.SearchImpl.Tests
             Assert.IsNotNull(hit5);
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void InMemSearch_Indexing_Update()
         {
             Node node;
@@ -183,7 +183,7 @@ namespace SenseNet.SearchImpl.Tests
             Assert.IsNotNull(hit7);
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void InMemSearch_Indexing_Delete()
         {
             Node node1, node2;
@@ -274,7 +274,7 @@ namespace SenseNet.SearchImpl.Tests
             Assert.IsNotNull(hit10);
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void InMemSearch_Indexing_Rename()
         {
             Node node1; // /Root/Node1
@@ -410,7 +410,7 @@ namespace SenseNet.SearchImpl.Tests
         }
 
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void InMemSearch_Indexing_AddTextEctract()
         {
             Node node;
@@ -468,7 +468,7 @@ namespace SenseNet.SearchImpl.Tests
             });
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void InMemSearch_Indexing_ClearAndPopulateAll()
         {
             var sb = new StringBuilder();
@@ -513,7 +513,7 @@ namespace SenseNet.SearchImpl.Tests
 
         /* ============================================================================ */
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void InMemSearch_Query_1Term1Hit()
         {
             Node node;
@@ -541,7 +541,7 @@ namespace SenseNet.SearchImpl.Tests
 
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void InMemSearch_Query_1TermMoreHit1Order()
         {
             var createNode = new Func<Node, string, int, Node>((parent, name, index) =>
@@ -595,7 +595,7 @@ namespace SenseNet.SearchImpl.Tests
             Assert.AreEqual(expectedPaths, actualPaths);
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void InMemSearch_Query_1TermMoreHit2Order()
         {
             var createNode = new Func<Node, string, string, int, Node>((parent, name, displayName, index) =>
@@ -637,7 +637,7 @@ namespace SenseNet.SearchImpl.Tests
             Assert.AreEqual(expectedNames, actualNames);
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void InMemSearch_Query_PrefixOrSuffix()
         {
             var createNode = new Func<Node, string, Node>((parent, name) =>
@@ -680,7 +680,7 @@ namespace SenseNet.SearchImpl.Tests
             Assert.AreEqual("A3, B3, C3", string.Join(", ", nodes2.Select(n => n.Name)));
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void InMemSearch_Query_PrefixAndSuffixOrMiddle()
         {
             var createNode = new Func<Node, string, Node>((parent, name) =>
@@ -723,7 +723,7 @@ namespace SenseNet.SearchImpl.Tests
         }
 
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void InMemSearch_Query_Range()
         {
             var createNode = new Func<Node, string, Node>((parent, name) =>
@@ -779,7 +779,7 @@ namespace SenseNet.SearchImpl.Tests
         }
 
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void InMemSearch_Query_2TermsBool()
         {
             var createNode = new Func<Node, string, int, Node>((parent, name, index) =>
@@ -822,7 +822,7 @@ namespace SenseNet.SearchImpl.Tests
             Assert.AreEqual("A0, A2, A3", result[2]);
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void InMemSearch_Query_MultiLevelBool()
         {
             var createNode = new Func<Node, string, int, Node>((parent, name, index) =>
@@ -866,7 +866,7 @@ namespace SenseNet.SearchImpl.Tests
         }
 
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void InMemSearch_Query_Recursive_One()
         {
             var mock = new Dictionary<string, string[]>
@@ -900,7 +900,7 @@ namespace SenseNet.SearchImpl.Tests
             Assert.AreEqual("Id:(1 3 7)", log[1]);
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void InMemSearch_Query_Recursive_Three()
         {
             var qtext = "+F4:{{F2:{{F1:v1 .SELECT:P1}} F3:v4 .SELECT:P2}} +F5:{{F6:v6 .SELECT:P6}}";

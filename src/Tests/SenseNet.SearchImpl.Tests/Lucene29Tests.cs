@@ -23,7 +23,7 @@ namespace SenseNet.SearchImpl.Tests
     [TestClass]
     public class Lucene29Tests : TestBase
     {
-        [TestMethod, Timeout(20*1000)]
+        [TestMethod, TestCategory("IR"), Timeout(20*1000)]
         public void L29_BasicConditions()
         {
             var result =
@@ -38,7 +38,7 @@ namespace SenseNet.SearchImpl.Tests
             Assert.IsNotNull(indxDir);
         }
 
-        [TestMethod, Timeout(40*1000)]
+        [TestMethod, TestCategory("IR"), Timeout(40*1000)]
         public void L29_ClearAndPopulateAll()
         {
             var sb = new StringBuilder();

@@ -10,7 +10,7 @@ namespace SenseNet.Search.Tests
     [TestClass]
     public class SnQueryTests
     {
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void SnQuery_Result_Int()
         {
             var intResults = new Dictionary<string, IQueryResult<int>> { { "asdf", new QueryResult<int>(new[] { 1, 2, 3 }, 4) } };
@@ -25,7 +25,7 @@ namespace SenseNet.Search.Tests
             Assert.AreEqual(result.TotalCount, intResults[queryText].TotalCount);
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void SnQuery_Result_String()
         {
             var stringResults = new Dictionary<string, IQueryResult<string>>{ {"asdf", new QueryResult<string>(new[] {"1", "2", "3"}, 4)} };

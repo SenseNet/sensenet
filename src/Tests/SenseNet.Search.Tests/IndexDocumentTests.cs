@@ -8,7 +8,7 @@ namespace SenseNet.Search.Tests
     [TestClass]
     public class IndexDocumentTests
     {
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void IndexDoc_Security_CannotAddPassword()
         {
             var passwordFieldName = "Password";
@@ -22,7 +22,7 @@ namespace SenseNet.Search.Tests
             var fields = (Dictionary<string, IndexField>)indexDocAcc.GetFieldOrProperty("_fields");
             Assert.IsFalse(fields.ContainsKey(passwordFieldName));
         }
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void IndexDoc_Security_CannotAddPasswordHash()
         {
             var passwordHashFieldName = "PasswordHash";

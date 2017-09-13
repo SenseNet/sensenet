@@ -24,7 +24,7 @@ namespace SenseNet.Search.Tests
             
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void SnQuery_Visitor_Rewrite()
         {
             var tree = new LogicalPredicate(
@@ -51,14 +51,14 @@ namespace SenseNet.Search.Tests
             Assert.AreEqual("+(F1:V1 F2:V2222) +(F3:V3 F4:<10)", dumper.Output);
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void SnQuery_Visitor_VisitNull()
         {
             var visitor = new TestVisitor();
             Assert.IsNull(visitor.Visit(null));
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         [ExpectedException(typeof(NotSupportedException))]
         public void SnQuery_Visitor_VisitUnknown()
         {
