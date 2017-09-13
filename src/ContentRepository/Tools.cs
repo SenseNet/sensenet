@@ -315,7 +315,7 @@ namespace SenseNet.ContentRepository
         public static Dictionary<string, List<string>> CheckAllowedChildTypesOfFolders(Content root)
         {
             var result = new Dictionary<string, List<string>>();
-            var rootPath = root != null ? root.Path : Repository.Root.Path;
+            var rootPath = root != null ? root.Path : Identifiers.RootPath;
             foreach (var node in NodeEnumerator.GetNodes(rootPath))
             {
                 if (!(node is IFolder))

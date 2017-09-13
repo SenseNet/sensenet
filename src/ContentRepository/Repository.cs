@@ -52,9 +52,7 @@ namespace SenseNet.ContentRepository
         public static RepositoryInstance Start(RepositoryStartSettings settings)
         {
             var instance = RepositoryInstance.Start(settings);
-            AccessProvider.ChangeToSystemAccount();
-            Root = (PortalRoot)Node.LoadNode(RootPath);
-            AccessProvider.RestoreOriginalUser();
+            SystemAccount.Execute(() => Root);
             return instance;
         }
         public static RepositoryInstance Start(RepositoryBuilder builder)
@@ -138,7 +136,7 @@ namespace SenseNet.ContentRepository
         /// Gets the root Node.
         /// </summary>
         /// <value>The root Node.</value>
-        public static PortalRoot Root { get; private set; }
+        public static PortalRoot Root => (PortalRoot)Node.LoadNode(Identifiers.PortalRootId);
 
         public static Folder AspectsFolder // creates if doesn't exist
         {
