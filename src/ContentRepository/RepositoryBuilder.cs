@@ -4,6 +4,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Security;
+using SenseNet.Security.Messaging;
 
 namespace SenseNet.ContentRepository
 {
@@ -38,6 +39,15 @@ namespace SenseNet.ContentRepository
         public RepositoryBuilder UseSecurityDataProvider(ISecurityDataProvider securityDataProvider)
         {
             Configuration.Providers.Instance.SecurityDataProvider = securityDataProvider;
+            return this;
+        }
+        /// <summary>
+        /// Sets the security message provider used for security messaging operations.
+        /// </summary>
+        /// <param name="securityMessageProvider">IMessageProvider instance that will handle security-related messages.</param>
+        public RepositoryBuilder UseSecurityMessageProvider(IMessageProvider securityMessageProvider)
+        {
+            Configuration.Providers.Instance.SecurityMessageProvider = securityMessageProvider;
             return this;
         }
         /// <summary>

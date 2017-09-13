@@ -147,6 +147,20 @@ namespace SenseNet.Configuration
         }
         #endregion
 
+        private Lazy<IMessageProvider> _securityMessageProvider = new Lazy<IMessageProvider>(() =>
+        {
+            var msgProvider = CreateProviderInstance<IMessageProvider>(SecurityMessageProviderClassName,
+                "SecurityMessageProvider");
+            msgProvider.Initialize();
+
+            return msgProvider;
+        });
+        public virtual IMessageProvider SecurityMessageProvider
+        {
+            get { return _securityMessageProvider.Value; }
+            set { _securityMessageProvider = new Lazy<IMessageProvider>(() => value); }
+        }
+
         #region private Lazy<ElevatedModificationVisibilityRule> _elevatedModificationVisibilityRuleProvider
         private Lazy<ElevatedModificationVisibilityRule> _elevatedModificationVisibilityRuleProvider =
             new Lazy<ElevatedModificationVisibilityRule>(() => CreateProviderInstance<ElevatedModificationVisibilityRule>(

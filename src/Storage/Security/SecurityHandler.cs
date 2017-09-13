@@ -1641,20 +1641,16 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Initializes the security system. Called during system startup.
         /// WARNING! Do not use this method in your code!
         /// </summary>
-        public static void StartSecurity(bool isWebContext,
-            ISecurityDataProvider securityDataProvider = null,
-            IMessageProvider messageProvider = null)
+        public static void StartSecurity(bool isWebContext)
         {
             var dummy = PermissionType.Open;
-            var securityDbProvider = securityDataProvider ?? Providers.Instance.SecurityDataProvider;
-            messageProvider = messageProvider ?? (IMessageProvider)Activator.CreateInstance(GetMessageProviderType());
-            messageProvider.Initialize();
-
+            var securityDataProvider = Providers.Instance.SecurityDataProvider;
+            var messageProvider = Providers.Instance.SecurityMessageProvider;
             var startingThesystem = DateTime.UtcNow;
 
             SnSecurityContext.StartTheSystem(new SecurityConfiguration
             {
-                SecurityDataProvider = securityDbProvider,
+                SecurityDataProvider = securityDataProvider,
                 MessageProvider = messageProvider,
                 SystemUserId = Identifiers.SystemUserId,
                 VisitorUserId = Identifiers.VisitorUserId,
@@ -1670,18 +1666,9 @@ namespace SenseNet.ContentRepository.Storage.Security
 
             SnLog.WriteInformation("Security subsystem started", EventId.RepositoryLifecycle,
                 properties: new Dictionary<string, object> { 
-                    { "DataProvider", securityDbProvider.GetType().FullName },
+                    { "DataProvider", securityDataProvider.GetType().FullName },
                     { "MessageProvider", messageProvider.GetType().FullName }
                 });
-        }
-        private static Type GetMessageProviderType()
-        {
-            var messageProviderTypeName = Providers.SecurityMessageProviderClassName;
-            var t = TypeResolver.GetType(messageProviderTypeName, false);
-            if (t == null)
-                throw new InvalidOperationException("Unknown security message provider: " + messageProviderTypeName);
-
-            return t;
         }
 
         internal static void DeleteEverythingAndRestart()
