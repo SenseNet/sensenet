@@ -65,8 +65,7 @@ namespace SenseNet.ContentRepository
         private StartupInfo _startupInfo;
         private RepositoryStartSettings.ImmutableRepositoryStartSettings _settings;
         private static RepositoryInstance _instance;
-        private static object _startupSync = new Object();
-        private static object _shutDownSync = new Object();
+        private static object _startStopSync = new object();
 
         /// <summary>
         /// Gets a <see cref="StartupInfo"/> instance that provides some information about the boot sequence.
@@ -95,7 +94,7 @@ namespace SenseNet.ContentRepository
         {
             if (!_started)
             {
-                lock (_startupSync)
+                lock (_startStopSync)
                 {
                     if (!_started)
                     {
@@ -365,7 +364,7 @@ namespace SenseNet.ContentRepository
                 return;
             }
 
-            lock (_shutDownSync)
+            lock (_startStopSync)
             {
                 if (_instance == null)
                 {
@@ -406,7 +405,9 @@ namespace SenseNet.ContentRepository
                 _instance.ConsoleWriteLine(msg);
                 _instance.ConsoleWriteLine();
                 SnLog.WriteInformation(msg);
+
                 _instance = null;
+                _started = false;
             }
         }
 
