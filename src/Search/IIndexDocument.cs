@@ -26,7 +26,7 @@ namespace SenseNet.Search
         public const string Yes = "yes";
         public const string No = "no";
 
-        public SnTerm(string name, string value)   { Name = name; Type = SnTermType.String;      StringValue = value;}
+        public SnTerm(string name, string value)   { Name = name; Type = SnTermType.String;      StringValue = value;      ValueAsString = value;}
         public SnTerm(string name, string[] value) { Name = name; Type = SnTermType.StringArray; StringArrayValue = value; ValueAsString = string.Join(",", value); }
         public SnTerm(string name, bool value)     { Name = name; Type = SnTermType.Bool;        BooleanValue = value;     ValueAsString = value ? Yes : No; }
         public SnTerm(string name, int value)      { Name = name; Type = SnTermType.Int;         IntegerValue = value;     ValueAsString = value.ToString(CultureInfo.InvariantCulture); }

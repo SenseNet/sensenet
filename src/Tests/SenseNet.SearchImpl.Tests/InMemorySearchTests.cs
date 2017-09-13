@@ -938,10 +938,6 @@ namespace SenseNet.SearchImpl.Tests
             Assert.AreEqual("+F4:(v2a v2b v2c) +F5:(v3a v3b v3c)", log[3]);
         }
 
-        //UNDONE:!!!!!!!! TEST AND DEVELOP in InMem: Id:(1 2 (+3 +4))
-        //UNDONE:!!!!!!!! UNITTEST Recursive with RecursiveExecutor's log
-        //UNDONE:!!!!!!!! TEST Indexing: Stored data is not complete (e.g.: Name = null)
-
         /* ============================================================================ */
 
         private InMemoryIndex GetTestIndex()
