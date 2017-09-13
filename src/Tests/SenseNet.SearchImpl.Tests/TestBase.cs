@@ -23,108 +23,6 @@ namespace SenseNet.SearchImpl.Tests
     [TestClass]
     public class TestBase
     {
-        #region Prototype
-        protected class RepoBuilder
-        {
-            // Ensure that all providers use these slots
-            public DataProvider DataProvider { get; private set; }
-            public ITransactionFactory TransactionFactory { get; private set; }
-            public ISearchEngine SearchEngine { get; private set; }
-            public ISearchEngineSupport SearchEngineSupport { get; private set; }
-            public AccessProvider AccessProvider { get; private set; }
-            /* ... */
-
-            public Dictionary<Type, Type[]> TypeHandlerInitialization { get; private set; }
-            /* ... */
-
-            public RepoBuilder UseDataProvider(DataProvider dataProvider)
-            {
-                this.DataProvider = dataProvider;
-                return this;
-            }
-            public RepoBuilder UseTransactionFactory(ITransactionFactory transactionFactory)
-            {
-                this.TransactionFactory = transactionFactory;
-                return this;
-            }
-            public RepoBuilder UseSearchEngine(ISearchEngine searchEngine)
-            {
-                this.SearchEngine = searchEngine;
-                return this;
-            }
-            public RepoBuilder UseSearchEngineSupport(ISearchEngineSupport searchEngineSupport)
-            {
-                this.SearchEngineSupport = searchEngineSupport;
-                return this;
-            }
-            public RepoBuilder UseAccessProvider(AccessProvider accessProvider)
-            {
-                this.AccessProvider = accessProvider;
-                return this;
-            }
-            /* ... */
-
-            public RepoBuilder InitializeTypeHandler(Dictionary<Type, Type[]> providers)
-            {
-                this.TypeHandlerInitialization = providers;
-                return this;
-            }
-            /* ... */
-        }
-
-        private class RepositoryThatBuiltBasedOnAVeryMNodernApproach : IDisposable
-        {
-            private readonly List<IDisposable> _swindlers = new List<IDisposable>();
-
-            public RepositoryThatBuiltBasedOnAVeryMNodernApproach(RepoBuilder builder)
-            {
-                if (builder.DataProvider == null)
-                {
-                    // read from config and instantiate
-                }
-                if (builder.TransactionFactory == null)
-                {
-                    // read from config and instantiate
-                }
-                /* ... */
-
-                #region hacked version
-
-                if (builder.TypeHandlerInitialization != null)
-                    TypeHandler.Initialize(builder.TypeHandlerInitialization);
-
-                if (builder.DataProvider != null)
-                    _swindlers.Add(Tools.Swindle(typeof(DataProvider), "_current", builder.DataProvider));
-                if (builder.TransactionFactory != null)
-                    _swindlers.Add(Tools.Swindle(typeof(CommonComponents), "TransactionFactory", builder.TransactionFactory));
-
-                var inMemDb = builder.DataProvider as InMemoryDataProvider;
-                if (inMemDb != null)
-                    StartSecurity(inMemDb);
-
-                if (builder.SearchEngine != null)
-                    _swindlers.Add(new Tools.SearchEngineSwindler(builder.SearchEngine));
-                if (builder.SearchEngineSupport != null)
-                    _swindlers.Add(Tools.Swindle(typeof(StorageContext.Search), "ContentRepository", builder.SearchEngineSupport));
-                if (builder.AccessProvider != null)
-                    _swindlers.Add(Tools.Swindle(typeof(AccessProvider), "_current", builder.AccessProvider));
-
-                #endregion
-            }
-
-            public void Dispose()
-            {
-                foreach(var swindler in _swindlers)
-                    swindler.Dispose();
-            }
-        }
-
-        protected IDisposable RepositoryStart(RepoBuilder builder)
-        {
-            return new RepositoryThatBuiltBasedOnAVeryMNodernApproach(builder);
-        }
-        #endregion
-
         // ORIGINAL TEST WITHOUT USING PROTOTYPE
         //protected T Test<T>(Func<T> callback)
         //{
@@ -154,22 +52,6 @@ namespace SenseNet.SearchImpl.Tests
         {
             DistributedApplication.Cache.Reset();
 
-            //var repoBuilder = new RepoBuilder();
-            //using (RepositoryStart(repoBuilder
-                //    .UseDataProvider(new InMemoryDataProvider())
-            //    .UseTransactionFactory(repoBuilder.DataProvider)
-                //    .UseSearchEngine(new InMemorySearchEngine())
-            //    .UseSearchEngineSupport(new SearchEngineSupport())
-            //    .UseAccessProvider(new DesktopAccessProvider())
-                //    .InitializeTypeHandler(new Dictionary<Type, Type[]>
-                //    {
-                //        {typeof(ElevatedModificationVisibilityRule), new[] {typeof(SnElevatedModificationVisibilityRule)}}
-                //    })
-                //    ))
-                //using (new SystemAccount())
-                //{
-                //    return callback();
-                //}
             Indexing.IsOuterSearchEngineEnabled = true;
             using (var repo = Repository.Start(new RepositoryBuilder()
                 .UseDataProvider(new InMemoryDataProvider())
@@ -184,9 +66,9 @@ namespace SenseNet.SearchImpl.Tests
         }
 
 
-        protected static void StartSecurity(InMemoryDataProvider repo)
+        protected static ISecurityDataProvider GetSecurityDataProvider(InMemoryDataProvider repo)
         {
-            var securityDataProvider = new MemoryDataProvider(new DatabaseStorage
+            return new MemoryDataProvider(new DatabaseStorage
             {
                 Aces = new List<StoredAce>
                 {
@@ -204,8 +86,6 @@ namespace SenseNet.SearchImpl.Tests
                 },
                 Messages = new List<Tuple<int, DateTime, byte[]>>()
             });
-
-            SecurityHandler.StartSecurity(false, securityDataProvider, new DefaultMessageProvider());
         }
 
         protected void SaveInitialIndexDocuments()

@@ -86,38 +86,41 @@ namespace SenseNet.SearchImpl.Tests
 
         protected T L29Test<T>(Func<string, T> callback)
         {
-            TypeHandler.Initialize(new Dictionary<Type, Type[]>
-            {
-                {typeof(ElevatedModificationVisibilityRule), new[] {typeof(SnElevatedModificationVisibilityRule)}}
-            });
-
             var dataProvider = new InMemoryDataProvider();
-            StartSecurity(dataProvider);
+            var securityDataProvider = GetSecurityDataProvider(dataProvider);
 
+            Indexing.IsOuterSearchEngineEnabled = true;
+            CommonComponents.TransactionFactory = dataProvider;
             DistributedApplication.Cache.Reset();
-            IndexDirectory.Reset();
 
             var indxManConsole = new StringWriter();
+            var repoBuilder = new RepositoryBuilder()
+                .UseDataProvider(dataProvider)
+                .UseAccessProvider(new DesktopAccessProvider())
+                .UseSearchEngine(new Lucene29SearchEngine())
+                .UseSecurityDataProvider(securityDataProvider)
+                .StartWorkflowEngine(false);
 
-            using (new Tools.SearchEngineSwindler(new Lucene29SearchEngine()))
-            using (Tools.Swindle(typeof(StorageContext.Search), "ContentRepository", new SearchEngineSupport()))
-            using (Tools.Swindle(typeof(AccessProvider), "_current", new DesktopAccessProvider()))
-            using (Tools.Swindle(typeof(DataProvider), "_current", dataProvider))
-            using (new SystemAccount())
+            repoBuilder.Console = indxManConsole;
+
+            using (Repository.Start(repoBuilder))
             {
-                CommonComponents.TransactionFactory = dataProvider;
-                EnsureEmptyIndexDirectory();
+                IndexDirectory.Reset();
 
-                IndexManager.Start(indxManConsole);
+                using (Tools.Swindle(typeof (StorageContext.Search), "ContentRepository", new SearchEngineSupport()))
+                using (new SystemAccount())
+                {
+                    EnsureEmptyIndexDirectory();
 
-                try
-                {
-                    var result = callback(indxManConsole.ToString());
-                    return result;
-                }
-                finally
-                {
-                    DeleteIndexDirectories();
+                    try
+                    {
+                        var result = callback(indxManConsole.ToString());
+                        return result;
+                    }
+                    finally
+                    {
+                        DeleteIndexDirectories();
+                    }
                 }
             }
         }
