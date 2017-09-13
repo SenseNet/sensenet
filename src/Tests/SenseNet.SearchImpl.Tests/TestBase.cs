@@ -154,21 +154,31 @@ namespace SenseNet.SearchImpl.Tests
         {
             DistributedApplication.Cache.Reset();
 
-            var repoBuilder = new RepoBuilder();
-            using (RepositoryStart(repoBuilder
+            //var repoBuilder = new RepoBuilder();
+            //using (RepositoryStart(repoBuilder
+                //    .UseDataProvider(new InMemoryDataProvider())
+            //    .UseTransactionFactory(repoBuilder.DataProvider)
+                //    .UseSearchEngine(new InMemorySearchEngine())
+            //    .UseSearchEngineSupport(new SearchEngineSupport())
+            //    .UseAccessProvider(new DesktopAccessProvider())
+                //    .InitializeTypeHandler(new Dictionary<Type, Type[]>
+                //    {
+                //        {typeof(ElevatedModificationVisibilityRule), new[] {typeof(SnElevatedModificationVisibilityRule)}}
+                //    })
+                //    ))
+                //using (new SystemAccount())
+                //{
+                //    return callback();
+                //}
+            Indexing.IsOuterSearchEngineEnabled = true;
+            using (var repo = Repository.Start(new RepositoryBuilder()
                 .UseDataProvider(new InMemoryDataProvider())
-                .UseTransactionFactory(repoBuilder.DataProvider)
                 .UseSearchEngine(new InMemorySearchEngine())
-                .UseSearchEngineSupport(new SearchEngineSupport())
-                .UseAccessProvider(new DesktopAccessProvider())
-                .InitializeTypeHandler(new Dictionary<Type, Type[]>
-                {
-                    {typeof(ElevatedModificationVisibilityRule), new[] {typeof(SnElevatedModificationVisibilityRule)}}
-                })
-                ))
+                .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
+                .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
+                .StartWorkflowEngine(false)))
             using (new SystemAccount())
             {
-                IndexManager.Start(TextWriter.Null);
                 return callback();
             }
         }
