@@ -51,7 +51,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        public void Actualize(IEnumerable<SnTerm> deletions, IndexDocument addition, IEnumerable<DocumentUpdate> updates)
+        public void WriteIndex(IEnumerable<SnTerm> deletions, IndexDocument addition, IEnumerable<DocumentUpdate> updates)
         {
             if (deletions != null)
                 foreach (var term in deletions)
@@ -65,7 +65,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
                 Index.AddDocument(addition);
         }
 
-        public void Actualize(IEnumerable<SnTerm> deletions, IEnumerable<IndexDocument> addition)
+        public void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<IndexDocument> addition)
         {
             if (deletions != null)
                 foreach (var term in deletions)

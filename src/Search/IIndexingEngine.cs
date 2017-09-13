@@ -33,7 +33,7 @@ namespace SenseNet.Search
         /// <summary>Only for tests.</summary>
         IEnumerable<IndexDocument> GetDocumentsByNodeId(int nodeId);
 
-        void Actualize(IEnumerable<SnTerm> deletions, IndexDocument addition, IEnumerable<DocumentUpdate> updates); //UNDONE: rename to a better choice
-        void Actualize(IEnumerable<SnTerm> deletions, IEnumerable<IndexDocument> addition); //UNDONE: rename to a better choice
+        void WriteIndex(IEnumerable<SnTerm> deletions, IndexDocument addition, IEnumerable<DocumentUpdate> updates); //UNDONE: rename to a better choice
+        void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<IndexDocument> addition); //UNDONE: rename to a better choice
     }
 }

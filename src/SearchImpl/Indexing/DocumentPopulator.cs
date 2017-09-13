@@ -66,7 +66,7 @@ namespace SenseNet.Search.Indexing
         {
             using (var op = SnTrace.Index.StartOperation("IndexPopulator RepopulateTree"))
             {
-                IndexManager.IndexingEngine.Actualize(new[] {new SnTerm(IndexFieldName.InTree, path)},
+                IndexManager.IndexingEngine.WriteIndex(new[] {new SnTerm(IndexFieldName.InTree, path)},
                     StorageContext.Search.LoadIndexDocumentsByPath(path, IndexManager.GetNotIndexedNodeTypes())
                         .Select(IndexManager.CompleteIndexDocument));
                 op.Successful = true;

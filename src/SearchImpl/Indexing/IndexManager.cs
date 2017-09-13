@@ -97,7 +97,7 @@ namespace SenseNet.Search.Indexing
         /* ClearAndPopulateAll */
         internal static void AddDocuments(IEnumerable<IndexDocument> documents)
         {
-            IndexingEngine.Actualize(null, documents);
+            IndexingEngine.WriteIndex(null, documents);
         }
 
         /* AddDocumentActivity, RebuildActivity */
@@ -108,7 +108,7 @@ namespace SenseNet.Search.Indexing
             if(document != null)
                 SetDocumentFlags(document, versioning);
 
-            IndexingEngine.Actualize(delTerms, document, updates);
+            IndexingEngine.WriteIndex(delTerms, document, updates);
 
             return true;
         }
@@ -128,7 +128,7 @@ namespace SenseNet.Search.Indexing
                 });
             }
 
-            IndexingEngine.Actualize(delTerms, null, updates);
+            IndexingEngine.WriteIndex(delTerms, null, updates);
 
             return true;
         }
@@ -139,14 +139,14 @@ namespace SenseNet.Search.Indexing
             delTerms.Add(new SnTerm(IndexFieldName.VersionId, versionId));
             var updates = GetUpdates(versioning).ToList();
 
-            IndexingEngine.Actualize(delTerms, null, updates);
+            IndexingEngine.WriteIndex(delTerms, null, updates);
 
             return true;
         }
         // RemoveTreeActivity, RebuildActivity
         internal static bool DeleteDocuments(IEnumerable<SnTerm> deleteTerms, VersioningInfo versioning)
         {
-            IndexingEngine.Actualize(deleteTerms, null, null);
+            IndexingEngine.WriteIndex(deleteTerms, null, null);
 
             // don't need to check if indexing interfered here. If it did, change is detected in overlapped adddocument/updatedocument, and refresh (re-delete) is called there.
             // deletedocuments will never detect change in index, since it sets timestamp in indexhistory to maxvalue.
@@ -197,7 +197,7 @@ namespace SenseNet.Search.Indexing
             var docs =
                 StorageContext.Search.LoadIndexDocumentsByPath(treeRoot, excludedNodeTypes)
                     .Select(d => CreateIndexDocument(d));
-            IndexingEngine.Actualize(delTerm, docs);
+            IndexingEngine.WriteIndex(delTerm, docs);
 
             return true;
         }

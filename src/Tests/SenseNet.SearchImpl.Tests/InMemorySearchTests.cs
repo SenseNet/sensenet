@@ -1010,11 +1010,11 @@ namespace SenseNet.SearchImpl.Tests
                 {
                     throw new NotImplementedException();
                 }
-                public void Actualize(IEnumerable<SnTerm> deletions, IndexDocument addition, IEnumerable<DocumentUpdate> updates)
+                public void WriteIndex(IEnumerable<SnTerm> deletions, IndexDocument addition, IEnumerable<DocumentUpdate> updates)
                 {
                     throw new NotImplementedException();
                 }
-                public void Actualize(IEnumerable<SnTerm> deletions, IEnumerable<IndexDocument> addition)
+                public void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<IndexDocument> addition)
                 {
                     throw new NotImplementedException();
                 }
