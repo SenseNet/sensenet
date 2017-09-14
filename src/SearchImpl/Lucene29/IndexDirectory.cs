@@ -118,29 +118,31 @@ namespace SenseNet.Search.Lucene29
         private string GetCurrentDirectory()
         {
             var root = StorageContext.Search.IndexDirectoryPath;
-            var rootExists = Directory.Exists(root);
-            string path = null;
-            if (rootExists)
-            {
-                EnsureFirstDirectory(root);
-                path = Directory.GetDirectories(root)
-                    .Where(a => char.IsDigit(Path.GetFileName(a)[0]))
-                    .OrderBy(s => s)
-                    .LastOrDefault();
-            }
-            Debug.WriteLine(
-                $"@> {AppDomain.CurrentDomain.FriendlyName} -------- GetCurrentDirectory: {(path ?? "[null]")}");
+            EnsureFirstDirectory(root);
+
+            var path = Directory.GetDirectories(root)
+                .Where(a => char.IsDigit(Path.GetFileName(a)[0]))
+                .OrderBy(s => s)
+                .LastOrDefault();
+
+            if (path == null)
+                path = CreateNew();
+
             return path;
         }
         private void EnsureFirstDirectory(string root)
         {
-            // backward compatibility: move files to new subdirectory (name = '0')
+            if (!Directory.Exists(root))
+                Directory.CreateDirectory(root);
+
             var files = Directory.GetFiles(root);
             if (files.Length == 0)
                 return;
+
             var firstDir = Path.Combine(root, DEFAULTDIRECTORYNAME);
-            Debug.WriteLine("@> new index directory: " + firstDir + " copy files.");
             Directory.CreateDirectory(firstDir);
+
+            // backward compatibility: move files to new subdirectory (name = '0')
             foreach (var file in files)
                 File.Move(file, Path.Combine(firstDir, Path.GetFileName(file)));
         }
