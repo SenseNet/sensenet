@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
@@ -21,8 +22,8 @@ namespace SenseNet.Search.Lucene29
             {
                 if (CurrentDirectory != null)
                     return CurrentDirectory;
-                var path = System.IO.Path.Combine(StorageContext.Search.IndexDirectoryPath, DEFAULTDIRECTORYNAME);
-                System.IO.Directory.CreateDirectory(path);
+                var path = Path.Combine(StorageContext.Search.IndexDirectoryPath, DEFAULTDIRECTORYNAME);
+                Directory.CreateDirectory(path);
                 Reset();
                 return CurrentDirectory;
             }
@@ -34,8 +35,8 @@ namespace SenseNet.Search.Lucene29
         public static string CreateNew()
         {
             var name = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
-            var path = System.IO.Path.Combine(StorageContext.Search.IndexDirectoryPath, name);
-            System.IO.Directory.CreateDirectory(path);
+            var path = Path.Combine(StorageContext.Search.IndexDirectoryPath, name);
+            Directory.CreateDirectory(path);
             Debug.WriteLine($"@> {AppDomain.CurrentDomain.FriendlyName} -------- new index directory: {path}");
             return path;
         }
@@ -48,17 +49,17 @@ namespace SenseNet.Search.Lucene29
         public static void RemoveUnnecessaryDirectories()
         {
             var root = StorageContext.Search.IndexDirectoryPath;
-            if (!System.IO.Directory.Exists(root))
+            if (!Directory.Exists(root))
                 return;
-            var unnecessaryDirs = System.IO.Directory.GetDirectories(root)
-                .Where(a => char.IsDigit(System.IO.Path.GetFileName(a)[0]))
+            var unnecessaryDirs = Directory.GetDirectories(root)
+                .Where(a => char.IsDigit(Path.GetFileName(a)[0]))
                 .OrderByDescending(s => s)
                 .Skip(2).Where(x => Deletable(x));
             foreach (var dir in unnecessaryDirs)
             {
                 try
                 {
-                    System.IO.Directory.Delete(dir, true);
+                    Directory.Delete(dir, true);
                 }
                 catch (Exception e)
                 {
@@ -69,13 +70,13 @@ namespace SenseNet.Search.Lucene29
         }
         private static bool Deletable(string path)
         {
-            var time = new System.IO.DirectoryInfo(path).CreationTime;
+            var time = new DirectoryInfo(path).CreationTime;
             if (time.AddMinutes(10) < DateTime.UtcNow)
                 return true;
             return false;
         }
 
-        public static string IndexLockFilePath => Exists ? System.IO.Path.Combine(CurrentDirectory, "write.lock") : null;
+        public static string IndexLockFilePath => Exists ? Path.Combine(CurrentDirectory, "write.lock") : null;
 
         // ==================================================================================
 
@@ -117,31 +118,33 @@ namespace SenseNet.Search.Lucene29
         private string GetCurrentDirectory()
         {
             var root = StorageContext.Search.IndexDirectoryPath;
-            var rootExists = System.IO.Directory.Exists(root);
-            string path = null;
-            if (rootExists)
-            {
-                EnsureFirstDirectory(root);
-                path = System.IO.Directory.GetDirectories(root)
-                    .Where(a => char.IsDigit(System.IO.Path.GetFileName(a)[0]))
-                    .OrderBy(s => s)
-                    .LastOrDefault();
-            }
-            Debug.WriteLine(
-                $"@> {AppDomain.CurrentDomain.FriendlyName} -------- GetCurrentDirectory: {(path ?? "[null]")}");
+            EnsureFirstDirectory(root);
+
+            var path = Directory.GetDirectories(root)
+                .Where(a => char.IsDigit(Path.GetFileName(a)[0]))
+                .OrderBy(s => s)
+                .LastOrDefault();
+
+            if (path == null)
+                path = CreateNew();
+
             return path;
         }
         private void EnsureFirstDirectory(string root)
         {
-            // backward compatibility: move files to new subdirectory (name = '0')
-            var files = System.IO.Directory.GetFiles(root);
+            if (!Directory.Exists(root))
+                Directory.CreateDirectory(root);
+
+            var files = Directory.GetFiles(root);
             if (files.Length == 0)
                 return;
-            var firstDir = System.IO.Path.Combine(root, DEFAULTDIRECTORYNAME);
-            Debug.WriteLine("@> new index directory: " + firstDir + " copy files.");
-            System.IO.Directory.CreateDirectory(firstDir);
+
+            var firstDir = Path.Combine(root, DEFAULTDIRECTORYNAME);
+            Directory.CreateDirectory(firstDir);
+
+            // backward compatibility: move files to new subdirectory (name = '0')
             foreach (var file in files)
-                System.IO.File.Move(file, System.IO.Path.Combine(firstDir, System.IO.Path.GetFileName(file)));
+                File.Move(file, Path.Combine(firstDir, Path.GetFileName(file)));
         }
     }
 }

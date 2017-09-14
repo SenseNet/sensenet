@@ -4,9 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
@@ -294,6 +292,11 @@ namespace SenseNet.Search.Lucene29
         {
             using (var readerFrame = GetIndexReaderFrame())
                 return CompletionState.ParseFromReader(readerFrame.IndexReader);
+        }
+
+        public void WriteActivityStatusToIndex(IIndexingActivityStatus state) //UNDONE:!!!!! Finalize/Validate this method (not called)
+        {
+            throw new NotImplementedException();
         }
 
         /* =========================================================================================== Lock file operationss */

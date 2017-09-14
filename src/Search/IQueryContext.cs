@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SenseNet.Search.Parser
+namespace SenseNet.Search
 {
     public interface IQueryContext
     {

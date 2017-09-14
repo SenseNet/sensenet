@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Security.Principal;
 using SenseNet.Search.Parser.Predicates;
 
 namespace SenseNet.Search.Parser

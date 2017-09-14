@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.Remoting.Messaging;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Events;
@@ -15,7 +13,6 @@ using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
-using SenseNet.Search.Lucene29;
 using SenseNet.SearchImpl.Tests.Implementations;
 using SenseNet.Security.Data;
 using SafeQueries = SenseNet.SearchImpl.Tests.Implementations.SafeQueries;
@@ -966,12 +963,12 @@ namespace SenseNet.SearchImpl.Tests
                     _log = log;
                 }
 
-                public IQueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter)
+                public IQueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
                 {
                     _log.Add(query.Querytext);
                     return new QueryResult<int>(new [] {42}, 42);
                 }
-                public IQueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter)
+                public IQueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
                 {
                     var strings = _mockResultsPerQueries[query.Querytext];
                     _log.Add(query.Querytext);
@@ -1003,6 +1000,10 @@ namespace SenseNet.SearchImpl.Tests
                     throw new NotImplementedException();
                 }
                 public IIndexingActivityStatus ReadActivityStatusFromIndex()
+                {
+                    throw new NotImplementedException();
+                }
+                public void WriteActivityStatusToIndex(IIndexingActivityStatus state) //UNDONE:!!!!! Finalize/Validate this method (not called)
                 {
                     throw new NotImplementedException();
                 }
