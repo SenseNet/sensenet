@@ -52,6 +52,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <Choose>
@@ -68,14 +69,8 @@
   </Choose>
   <ItemGroup>
     <Compile Include="DataProviderTests\TreeLockTests.cs" />
-    <Compile Include="Implementations\InMemoryDataProvider.cs" />
-    <Compile Include="Implementations\InMemoryDataProviderData.cs" />
-    <Compile Include="Implementations\InMemoryIndexingEngine.cs" />
-    <Compile Include="Implementations\InMemoryIndex.cs" />
-    <Compile Include="Implementations\InMemoryQueryEngine.cs" />
     <Compile Include="Implementations\SafeQueries.cs" />
     <Compile Include="Implementations\TestNode.cs" />
-    <Compile Include="Implementations\InMemorySearchEngine.cs" />
     <Compile Include="Implementations\TestSearchEngineSupport.cs" />
     <Compile Include="InMemorySearchTests.cs" />
     <Compile Include="DataProviderTests\InMemoryDataProviderTests.cs" />
@@ -113,6 +108,10 @@
     <ProjectReference Include="..\..\Storage\Storage.csproj">
       <Project>{5DB4DDBA-81F6-4D81-943A-18F3178B3355}</Project>
       <Name>Storage</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SenseNet.ContentRepository.Tests\SenseNet.ContentRepository.Tests.csproj">
+      <Project>{7DE6A7E8-5738-4436-9646-9C1179F752EA}</Project>
+      <Name>SenseNet.ContentRepository.Tests</Name>
     </ProjectReference>
     <ProjectReference Include="..\SenseNet.Search.Tests\SenseNet.Search.Tests.csproj">
       <Project>{0c78c008-db1d-4ce6-b081-a04afdaf5880}</Project>

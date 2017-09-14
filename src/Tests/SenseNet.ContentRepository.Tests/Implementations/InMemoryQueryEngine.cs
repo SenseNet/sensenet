@@ -6,7 +6,7 @@ using SenseNet.Search;
 using SenseNet.Search.Parser;
 using SenseNet.Search.Parser.Predicates;
 
-namespace SenseNet.SearchImpl.Tests.Implementations
+namespace SenseNet.ContentRepository.Tests.Implementations
 {
     internal class InMemoryQueryEngine : IQueryEngine
     {
