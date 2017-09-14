@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SenseNet.SearchImpl.Tests.Implementations
+namespace SenseNet.ContentRepository.Tests.Implementations
 {
     public partial class InMemoryDataProvider
     {

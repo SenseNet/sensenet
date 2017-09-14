@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 
-namespace SenseNet.SearchImpl.Tests.Implementations
+namespace SenseNet.ContentRepository.Tests.Implementations
 {
-    internal class InMemoryIndexingEngine : IIndexingEngine
+    public class InMemoryIndexingEngine : IIndexingEngine
     {
-        internal InMemoryIndex Index { get; } = new InMemoryIndex();
+        public InMemoryIndex Index { get; } = new InMemoryIndex();
 
         public bool Running { get; private set; }
 

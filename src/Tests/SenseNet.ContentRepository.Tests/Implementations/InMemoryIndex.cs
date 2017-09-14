@@ -4,9 +4,9 @@ using System.Globalization;
 using System.Linq;
 using SenseNet.Search;
 
-namespace SenseNet.SearchImpl.Tests.Implementations
+namespace SenseNet.ContentRepository.Tests.Implementations
 {
-    internal class InMemoryIndex
+    public class InMemoryIndex
     {
         // FieldName => FieldValue => VersionId
         internal Dictionary<string, Dictionary<string, List<int>>> IndexData { get; } = new Dictionary<string, Dictionary<string, List<int>>>();
