@@ -15,7 +15,7 @@ namespace SenseNet.Search
         public int[] Gaps { get; set; }
     }
 
-    public interface IIndexingEngine //UNDONE: Split or not: IIndexActualizator, IIndexingEngine
+    public interface IIndexingEngine
     {
         bool Running { get; }
 
@@ -29,11 +29,12 @@ namespace SenseNet.Search
         void ClearIndex();
 
         IIndexingActivityStatus ReadActivityStatusFromIndex();
+        void WriteActivityStatusToIndex(IIndexingActivityStatus state); //UNDONE:!!!!! Finalize/Validate this method (not called)
 
         /// <summary>Only for tests.</summary>
-        IEnumerable<IndexDocument> GetDocumentsByNodeId(int nodeId);
+        IEnumerable<IndexDocument> GetDocumentsByNodeId(int nodeId); //UNDONE:!!!!! Remove if possible
 
-        void WriteIndex(IEnumerable<SnTerm> deletions, IndexDocument addition, IEnumerable<DocumentUpdate> updates); //UNDONE: rename to a better choice
-        void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<IndexDocument> addition); //UNDONE: rename to a better choice
+        void WriteIndex(IEnumerable<SnTerm> deletions, IndexDocument addition, IEnumerable<DocumentUpdate> updates);
+        void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<IndexDocument> addition);
     }
 }

@@ -294,6 +294,11 @@ namespace SenseNet.Search.Lucene29
                 return CompletionState.ParseFromReader(readerFrame.IndexReader);
         }
 
+        public void WriteActivityStatusToIndex(IIndexingActivityStatus state) //UNDONE:!!!!! Finalize/Validate this method (not called)
+        {
+            throw new NotImplementedException();
+        }
+
         /* =========================================================================================== Lock file operationss */
 
         public enum WaitForLockFileType { OnStart = 0, OnEnd }

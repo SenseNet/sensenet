@@ -46,6 +46,11 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             return IndexingActivityStatus.Startup;
         }
 
+        public void WriteActivityStatusToIndex(IIndexingActivityStatus state) //UNDONE:!!!!! Finalize/Validate this method (not called)
+        {
+            throw new NotImplementedException();
+        }
+
         public IEnumerable<IndexDocument> GetDocumentsByNodeId(int nodeId)
         {
             throw new NotImplementedException();
