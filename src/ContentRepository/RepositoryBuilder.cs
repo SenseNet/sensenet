@@ -1,5 +1,7 @@
 ﻿using System;
+using SenseNet.Communication.Messaging;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
@@ -48,6 +50,24 @@ namespace SenseNet.ContentRepository
         public RepositoryBuilder UseSecurityMessageProvider(IMessageProvider securityMessageProvider)
         {
             Configuration.Providers.Instance.SecurityMessageProvider = securityMessageProvider;
+            return this;
+        }
+        /// <summary>
+        /// Sets the cache provider.
+        /// </summary>
+        /// <param name="cacheProvider">ICache instance.</param>
+        public RepositoryBuilder UseCacheProvider(ICache cacheProvider)
+        {
+            Configuration.Providers.Instance.CacheProvider = cacheProvider;
+            return this;
+        }
+        /// <summary>
+        /// Sets the cluster channel provider.
+        /// </summary>
+        /// <param name="clusterChanneleProvider">IClusterChannel instance.</param>
+        public RepositoryBuilder UseClusterChannelProvider(IClusterChannel clusterChanneleProvider)
+        {
+            Configuration.Providers.Instance.ClusterChannelProvider = clusterChanneleProvider;
             return this;
         }
         /// <summary>
