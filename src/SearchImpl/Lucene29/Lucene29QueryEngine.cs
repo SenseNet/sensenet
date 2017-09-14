@@ -1,31 +1,26 @@
 ﻿using System;
-using System.CodeDom.Compiler;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SenseNet.Search.Parser;
 
 namespace SenseNet.Search.Lucene29
 {
     internal class Lucene29QueryEngine : IQueryEngine
     {
-        public IQueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter)
+        public IQueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
-            var lucQuery = Compile(query);
+            var lucQuery = Compile(query, context);
             var queryInfo = Classify(query);
             return Execute(lucQuery, queryInfo, filter);
         }
-        public IQueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter)
+        public IQueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
-            var lucQuery = Compile(query);
+            var lucQuery = Compile(query, context);
             var queryInfo = Classify(query);
             return ExecuteAndProject(lucQuery, queryInfo, filter);
         }
 
         /* ============================================================================================= */
 
-        private LucQuery Compile(SnQuery query)
+        private LucQuery Compile(SnQuery query, IQueryContext context)
         {
             throw new NotImplementedException(); //UNDONE:! not implemented: Compile
         }

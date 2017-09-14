@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SenseNet.Search.Parser;
 
 namespace SenseNet.Search
@@ -206,8 +202,8 @@ namespace SenseNet.Search
 
     public interface IQueryEngine
     {
-        IQueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter);
-        IQueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter);
+        IQueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context);
+        IQueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context);
     }
 
     public interface IPermissionFilter
@@ -250,11 +246,11 @@ namespace SenseNet.Search
 
     public class DefaultQueryEngine : IQueryEngine //UNDONE: Delete DefaultQueryEngine if the final version is done.
     {
-        public IQueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter)
+        public IQueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
             throw new NotImplementedException();
         }
-        public IQueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter)
+        public IQueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
             var projection = query.Projection;
             throw new NotImplementedException();

@@ -13,7 +13,7 @@ namespace SenseNet.Search.Tests.Implementations
             _stringResults = stringResults;
         }
 
-        public IQueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter)
+        public IQueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
             IQueryResult<int> result;
             if (_intResults.TryGetValue(query.Querytext, out result))
@@ -21,7 +21,7 @@ namespace SenseNet.Search.Tests.Implementations
             return QueryResult<int>.Empty;
         }
 
-        public IQueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter)
+        public IQueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
             return _stringResults[query.Querytext];
         }

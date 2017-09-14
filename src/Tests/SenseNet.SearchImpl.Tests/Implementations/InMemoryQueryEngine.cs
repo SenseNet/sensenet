@@ -2,11 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Lucene.Net.Search;
-using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.Search;
 using SenseNet.Search.Parser;
 using SenseNet.Search.Parser.Predicates;
@@ -57,7 +52,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             _index = index;
         }
 
-        public IQueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter)
+        public IQueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
             var interpreter = new SnQueryInterpreter(_index);
             int totalCount;
@@ -68,7 +63,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             return queryResult;
         }
 
-        public IQueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter)
+        public IQueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
             var interpreter = new SnQueryInterpreter(_index);
             int totalCount;

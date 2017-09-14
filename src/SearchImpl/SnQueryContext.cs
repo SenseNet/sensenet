@@ -1,5 +1,4 @@
 ﻿using SenseNet.ContentRepository.Storage;
-using SenseNet.Search.Parser;
 
 namespace SenseNet.Search
 {

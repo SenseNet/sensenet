@@ -21,13 +21,13 @@ namespace SenseNet.Search
         {
             var query = new CqlParser().Parse(queryText, context);
             var permissionFilter = PermissionFilterFactory.Create(context.UserId);
-            return context.QueryEngine.ExecuteQuery(query, permissionFilter);
+            return context.QueryEngine.ExecuteQuery(query, permissionFilter, context);
         }
         public static IQueryResult<string> QueryAndProject(string queryText, IQueryContext context)
         {
             var query = new CqlParser().Parse(queryText, context);
             var permissionFilter = PermissionFilterFactory.Create(context.UserId);
-            return context.QueryEngine.ExecuteQueryAndProject(query, permissionFilter);
+            return context.QueryEngine.ExecuteQueryAndProject(query, permissionFilter, context);
         }
     }
 }
