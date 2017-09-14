@@ -64,10 +64,10 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Sets the cluster channel provider.
         /// </summary>
-        /// <param name="clusterChanneleProvider">IClusterChannel instance.</param>
-        public RepositoryBuilder UseClusterChannelProvider(IClusterChannel clusterChanneleProvider)
+        /// <param name="clusterChannelProvider">IClusterChannel instance.</param>
+        public RepositoryBuilder UseClusterChannelProvider(IClusterChannel clusterChannelProvider)
         {
-            Configuration.Providers.Instance.ClusterChannelProvider = clusterChanneleProvider;
+            Configuration.Providers.Instance.ClusterChannelProvider = clusterChannelProvider;
             return this;
         }
         /// <summary>
