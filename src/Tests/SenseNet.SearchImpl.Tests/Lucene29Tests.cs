@@ -99,6 +99,7 @@ namespace SenseNet.SearchImpl.Tests
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseSearchEngine(new Lucene29SearchEngine())
                 .UseSecurityDataProvider(securityDataProvider)
+                .UseCacheProvider(new EmptyCache())
                 .StartWorkflowEngine(false);
 
             repoBuilder.Console = indxManConsole;

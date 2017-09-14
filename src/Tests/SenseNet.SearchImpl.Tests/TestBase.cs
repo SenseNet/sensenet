@@ -58,6 +58,7 @@ namespace SenseNet.SearchImpl.Tests
                 .UseSearchEngine(new InMemorySearchEngine())
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
+                .UseCacheProvider(new EmptyCache())
                 .StartWorkflowEngine(false)))
             using (new SystemAccount())
             {
