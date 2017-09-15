@@ -8,7 +8,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Xml;
-using Lucene.Net.Support;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
@@ -16,7 +15,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
 using SenseNet.Security;
 
-namespace SenseNet.SearchImpl.Tests.Implementations
+namespace SenseNet.ContentRepository.Tests.Implementations
 {
     public partial class InMemoryDataProvider : DataProvider
     {
@@ -891,7 +890,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         /* ====================================================================================== */
 
-        internal IEnumerable<StoredSecurityEntity> GetSecurityEntities()
+        public IEnumerable<StoredSecurityEntity> GetSecurityEntities()
         {
             return _db.Nodes.Select(n => new StoredSecurityEntity
             {
@@ -901,7 +900,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             }).ToArray();
         }
 
-        internal int LastNodeId
+        public int LastNodeId
         {
             get { return _db.Nodes.Max(n => n.NodeId); }
         }

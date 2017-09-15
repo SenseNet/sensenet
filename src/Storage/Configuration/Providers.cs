@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using SenseNet.Communication.Messaging;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.ContentRepository.Storage.Search;
@@ -44,6 +45,8 @@ namespace SenseNet.Configuration
             "SenseNet.Search.Lucene29.Lucene29SearchEngine");
         public static string MembershipExtenderClassName { get; internal set; } = GetProvider("MembershipExtender",
             "SenseNet.ContentRepository.Storage.Security.DefaultMembershipExtender");
+        public static string CacheClassName { get; internal set; } = GetProvider("Cache",
+            typeof(AspNetCache).FullName);
 
         public static string ElevatedModificationVisibilityRuleProviderName { get; internal set; } =
             GetProvider("ElevatedModificationVisibilityRuleProvider",
@@ -147,6 +150,7 @@ namespace SenseNet.Configuration
         }
         #endregion
 
+        #region private Lazy<IMessageProvider> _securityMessageProvider = new Lazy<IMessageProvider>
         private Lazy<IMessageProvider> _securityMessageProvider = new Lazy<IMessageProvider>(() =>
         {
             var msgProvider = CreateProviderInstance<IMessageProvider>(SecurityMessageProviderClassName,
@@ -160,6 +164,7 @@ namespace SenseNet.Configuration
             get { return _securityMessageProvider.Value; }
             set { _securityMessageProvider = new Lazy<IMessageProvider>(() => value); }
         }
+        #endregion
 
         #region private Lazy<ElevatedModificationVisibilityRule> _elevatedModificationVisibilityRuleProvider
         private Lazy<ElevatedModificationVisibilityRule> _elevatedModificationVisibilityRuleProvider =
@@ -178,6 +183,49 @@ namespace SenseNet.Configuration
         {
             get { return _membershipExtender.Value; }
             set { _membershipExtender = new Lazy<MembershipExtenderBase>(() => value); }
+        }
+        #endregion
+        
+        #region private Lazy<ICache> _cacheProvider = new Lazy<ICache>
+        private Lazy<ICache> _cacheProvider =
+            new Lazy<ICache>(() => CreateProviderInstance<ICache>(CacheClassName, "CacheProvider"));
+        public virtual ICache CacheProvider
+        {
+            get { return _cacheProvider.Value; }
+            set { _cacheProvider = new Lazy<ICache>(() => value); }
+        }
+        #endregion
+
+        #region private Lazy<IClusterChannel> _clusterChannelProvider = new Lazy<IClusterChannel>
+        private Lazy<IClusterChannel> _clusterChannelProvider = new Lazy<IClusterChannel>(() =>
+        {
+            IClusterChannel provider;
+
+            try
+            {
+                provider = (IClusterChannel)TypeResolver.CreateInstance(ClusterChannelProviderClassName, 
+                    new BinaryMessageFormatter(), ClusterMemberInfo.Current);
+            }
+            catch (TypeNotFoundException)
+            {
+                throw new ConfigurationException($"ClusterChannel implementation does not exist: {ClusterChannelProviderClassName}");
+            }
+            catch (InvalidCastException)
+            {
+                throw new ConfigurationException($"Invalid ClusterChannel implementation: {ClusterChannelProviderClassName}");
+            }
+            
+            provider.Start();
+
+            SnTrace.Messaging.Write("Cluster channel created: " + ClusterChannelProviderClassName);
+            SnLog.WriteInformation($"ClusterChannel created: {ClusterChannelProviderClassName}");
+
+            return provider;
+        });
+        public virtual IClusterChannel ClusterChannelProvider
+        {
+            get { return _clusterChannelProvider.Value; }
+            set { _clusterChannelProvider = new Lazy<IClusterChannel>(() => value); }
         }
         #endregion
 

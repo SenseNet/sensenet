@@ -5,9 +5,9 @@ using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Tools;
 
-namespace SenseNet.SearchImpl.Tests.Implementations
+namespace SenseNet.ContentRepository.Tests.Implementations
 {
-    internal class InMemorySearchEngine : ISearchEngine
+    public class InMemorySearchEngine : ISearchEngine
     {
         private IDictionary<string, Type> _analyzers = new Dictionary<string, Type>();
         private readonly InMemoryIndexingEngine _indexingEngine;

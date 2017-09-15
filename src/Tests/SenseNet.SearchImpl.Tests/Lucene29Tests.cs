@@ -13,6 +13,7 @@ using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.ContentRepository.Tests.Implementations;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Lucene29;
@@ -101,6 +102,7 @@ namespace SenseNet.SearchImpl.Tests
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseSearchEngine(new Lucene29SearchEngine())
                 .UseSecurityDataProvider(securityDataProvider)
+                .UseCacheProvider(new EmptyCache())
                 .StartWorkflowEngine(false);
 
             repoBuilder.Console = indxManConsole;
