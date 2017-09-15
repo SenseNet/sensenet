@@ -83,7 +83,7 @@ namespace SenseNet.Search.Parser
             //result.QueryFieldNames = _usedFieldNames;
             return result;
         }
-        private SnQueryPredicate Parse(string queryText)
+        internal SnQueryPredicate Parse(string queryText)
         {
             _lexer = new CqlLexer(queryText);
             _controls.Clear();

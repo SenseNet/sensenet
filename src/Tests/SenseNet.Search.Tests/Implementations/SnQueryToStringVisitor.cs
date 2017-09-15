@@ -80,14 +80,14 @@ namespace SenseNet.Search.Tests.Implementations
             if (op == null)
             {
                 _output.Append(!minExclusive ? '[' : '{');
-                _output.Append(min);
+                _output.Append(Escape(min));
                 _output.Append(" TO ");
-                _output.Append(max);
+                _output.Append(Escape(max));
                 _output.Append(!maxExclusive ? ']' : '}');
             }
             else
             {
-                _output.Append(op).Append(oneTerm);
+                _output.Append(op).Append(Escape(oneTerm));
             }
             BoostTostring(range.Boost);
 

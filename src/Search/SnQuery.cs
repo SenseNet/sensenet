@@ -6,6 +6,15 @@ namespace SenseNet.Search
 {
     public partial class SnQuery
     {
+        public static readonly string EmptyText = "$##$EMPTY$##$";
+        public static readonly string EmptyInnerQueryText = "$##$EMPTYINNERQUERY$##$";
+        public static readonly double DefaultSimilarity = 0.5d;
+        public static readonly double DefaultFuzzyValue = 0.5d;
+        public static readonly string NullReferenceValue = "null";
+
+        public static readonly FilterStatus EnableAutofiltersDefaultValue = FilterStatus.Enabled;
+        public static readonly FilterStatus EnableLifespanFilterDefaultValue = FilterStatus.Disabled;
+
         public string Querytext { get; internal set; }
         public string Projection { get; internal set; }
         public int Top { get; internal set; }
