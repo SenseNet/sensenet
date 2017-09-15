@@ -37,7 +37,7 @@ namespace SenseNet.Search
         }
         public string QueryText { get { return QueryToString(Query); } }
         internal QueryFieldLevel FieldLevel { get; private set; }
-        internal QueryInfo QueryInfo { get; private set; }
+        internal QueryInfo QueryInfo { get; set; }
 
         public IUser User { get; set; }
         public SortField[] SortFields { get; set; }

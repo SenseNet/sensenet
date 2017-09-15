@@ -18,6 +18,9 @@ namespace SenseNet.Search
         public bool CountOnly { get; internal set; }
         public QueryExecutionMode QueryExecutionMode { get; internal set; }
 
+        //UNDONE:!!!!!!!!!!!!!!!!!!!
+        //public QueryInfo QueryInfo { get; set; }
+
         //public List<string> QueryFieldNames { get; internal set; }
         //public string[] SortFieldNames
         //{

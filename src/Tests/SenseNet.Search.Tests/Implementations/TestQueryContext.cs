@@ -14,6 +14,7 @@ namespace SenseNet.Search.Tests.Implementations
         public QuerySettings Settings { get; }
         public int UserId { get; }
         public IQueryEngine QueryEngine { get; }
+        public bool AllVersions { get; set; }
 
         public IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
         {
