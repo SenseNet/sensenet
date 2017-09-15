@@ -21,13 +21,28 @@ namespace SenseNet.Search
         {
             var query = new CqlParser().Parse(queryText, context);
             var permissionFilter = PermissionFilterFactory.Create(context.UserId);
-            return context.QueryEngine.ExecuteQuery(query, permissionFilter, context);
+            PrepareQuery(query);
+            var engine = SelectQueryEngine(query, context);
+            return engine.ExecuteQuery(query, permissionFilter, context);
         }
         public static IQueryResult<string> QueryAndProject(string queryText, IQueryContext context)
         {
             var query = new CqlParser().Parse(queryText, context);
             var permissionFilter = PermissionFilterFactory.Create(context.UserId);
-            return context.QueryEngine.ExecuteQueryAndProject(query, permissionFilter, context);
+            PrepareQuery(query);
+            var engine = SelectQueryEngine(query, context);
+            return engine.ExecuteQueryAndProject(query, permissionFilter, context);
+        }
+
+        private static void PrepareQuery(SnQuery query)
+        {
+            //UNDONE:!!!!!!!!!!!!!!! Modify query by AutoFilter and TimespanFilter
+        }
+
+        private static IQueryEngine SelectQueryEngine(SnQuery query, IQueryContext context)
+        {
+            //UNDONE:!!!!!!!!!!!!! Classify query and choice: SQL or configured
+            throw new NotImplementedException();
         }
     }
 }

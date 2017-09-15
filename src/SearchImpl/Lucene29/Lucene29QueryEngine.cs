@@ -10,12 +10,21 @@ namespace SenseNet.Search.Lucene29
         public IQueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
             var lucQuery = Compile(query, context);
-            return Execute(lucQuery, filter);
+
+            //UNDONE:!!!!!!!!!!!!! Classify query
+            //return lucQuery.Execute(filter);
+
+            throw new NotImplementedException(); //UNDONE:! not implemented: Execute
         }
+
         public IQueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
             var lucQuery = Compile(query, context);
-            return ExecuteAndProject(lucQuery, filter);
+
+            //UNDONE:!!!!!!!!!!!!! Classify query
+            //return lucQuery.ExecuteAndProject(filter);
+
+            throw new NotImplementedException(); //UNDONE:! not implemented: ExecuteAndProject
         }
 
         /* ============================================================================================= */
@@ -35,32 +44,14 @@ namespace SenseNet.Search.Lucene29
             result.QueryExecutionMode = query.QueryExecutionMode;
             result.CountOnly = query.CountOnly;
 
-            //UNDONE:!!!!!!!!!!!!!!!!!!!
+            //UNDONE:!!!!!!!!!!!!! Classify query
             //result.QueryInfo = query.QueryInfo;
-            
+
             //UNDONE:!!!!!! Set CountAllPages, FieldLevel
             //result.CountAllPages = 0;
             //result.FieldLevel = 0;
 
             return result;
-        }
-        private QueryInfo Classify(LucQuery query, IQueryContext context)
-        {
-            var queryInfo = QueryClassifier.Classify(query, context.AllVersions);
-            return queryInfo;
-        }
-
-        private IQueryResult<int> Execute(LucQuery lucQuery, IPermissionFilter filter)
-        {
-            //UNDONE:!!!!!!!!!!!!!!!!!!!
-            //return lucQuery.Execute(filter);
-            throw new NotImplementedException(); //UNDONE:! not implemented: Execute
-        }
-        private IQueryResult<string> ExecuteAndProject(LucQuery lucQuery, IPermissionFilter filter)
-        {
-            //UNDONE:!!!!!!!!!!!!!!!!!!!
-            //return lucQuery.ExecuteAndProject(filter);
-            throw new NotImplementedException(); //UNDONE:! not implemented: ExecuteAndProject
         }
     }
 }
