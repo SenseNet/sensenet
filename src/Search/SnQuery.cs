@@ -27,8 +27,9 @@ namespace SenseNet.Search
         public bool CountOnly { get; internal set; }
         public QueryExecutionMode QueryExecutionMode { get; internal set; }
 
-        //UNDONE:!!!!!!!!!!!!! Classify query
-        //public QueryInfo QueryInfo { get; set; }
+        public bool CountAllPages { get; set; }
+
+        public SnQueryInfo QueryInfo { get; internal set; }
 
         //public List<string> QueryFieldNames { get; internal set; }
         //public string[] SortFieldNames

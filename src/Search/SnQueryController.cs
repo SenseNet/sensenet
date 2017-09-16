@@ -104,8 +104,12 @@ namespace SenseNet.Search
 
         internal static IQueryEngine SelectQueryEngine(SnQuery query, IQueryContext context)
         {
-            //UNDONE:!!!!!!!!!!!!! Classify query and choice: SQL or configured
-            throw new NotImplementedException();
+            var queryInfo = SnQueryClassifier.Classify(query, context.AllVersions);
+            query.QueryInfo = queryInfo;
+
+            //UNDONE:!!!!!!!!!!!!! Choice query engine: SQL or configured
+
+            return context.QueryEngine;
         }
     }
 }

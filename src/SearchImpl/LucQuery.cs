@@ -37,7 +37,7 @@ namespace SenseNet.Search
         }
         public string QueryText { get { return QueryToString(Query); } }
         internal QueryFieldLevel FieldLevel { get; private set; }
-        internal QueryInfo QueryInfo { get; set; }
+        internal SnQueryInfo QueryInfo { get; set; }
 
         public IUser User { get; set; }
         public SortField[] SortFields { get; set; }
@@ -252,7 +252,8 @@ namespace SenseNet.Search
                     FieldLevel = GetFieldLevel();
                 var permissionChecker = new PermissionChecker(this.User ?? AccessProvider.Current.GetCurrentUser(), FieldLevel, allVersions);
 
-                this.QueryInfo = QueryClassifier.Classify(this, allVersions);
+                //UNDONE:!!!!!!!!!!!!!!!!!! check this.QueryInfo 
+                //this.QueryInfo = QueryClassifier.Classify(this, allVersions);
 
                 IEnumerable<LucObject> result = null;
                 IQueryExecutor executor = null;

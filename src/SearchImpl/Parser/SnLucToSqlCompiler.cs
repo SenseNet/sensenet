@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.Search.Parser
 {
@@ -54,6 +55,27 @@ namespace SenseNet.Search.Parser
             _indexedFields = new[] { "Id", "Type", "TypeIs", "ParentId", "InFolder", };
         }
 
+        internal static bool TryCompile(SnQueryPredicate query, int top, int skip, SortInfo[] orders, bool countOnly, out string sqlQueryText, out NodeQueryParameter[] sqlParameters)
+        {
+            try
+            {
+                var compiler = new SnLucToSqlCompiler();
+                sqlQueryText = compiler.Compile(query, top, skip, orders, countOnly, out sqlParameters);
+                return true;
+            }
+            catch (SnNotSupportedException e)
+            {
+                SnTrace.Query.Write("SQL:Not supported: {0}, original query: {1}", e.Message, query);
+                sqlQueryText = null;
+                sqlParameters = null;
+                return false;
+            }
+        }
+        private string Compile(SnQueryPredicate query, int top, int skip, SortInfo[] orders, bool countOnly, out NodeQueryParameter[] parameters)
+        {
+            throw new NotImplementedException();
+        }
+
         public static bool TryCompile(Query query, int top, int skip, SortField[] orders, bool countOnly, out string sqlQueryText, out SenseNet.ContentRepository.Storage.Search.NodeQueryParameter[] parameters)
         {
             try
@@ -70,7 +92,7 @@ namespace SenseNet.Search.Parser
                 return false;
             }
         }
-        public string Compile(Query query, int top, int skip, SortField[] orders, bool countOnly, out SenseNet.ContentRepository.Storage.Search.NodeQueryParameter[] parameters)
+        public string Compile(Query query, int top, int skip, SortField[] orders, bool countOnly, out NodeQueryParameter[] parameters)
         {
             if (countOnly)
                 throw new SnNotSupportedException("'CountOnly' is not supported.");
@@ -99,7 +121,7 @@ namespace SenseNet.Search.Parser
             return sb.ToString();
         }
 
-        internal static bool CanCompile(QueryInfo queryInfo)
+        internal static bool CanCompile(SnQueryInfo queryInfo)
         {
             var trace = SnTrace.Query.Enabled;
             var msg = CanCompile(queryInfo, trace);
@@ -107,7 +129,7 @@ namespace SenseNet.Search.Parser
                 SnTrace.Query.Write(msg);
             return msg == null;
         }
-        internal static string CanCompile(QueryInfo queryInfo, bool withMessages)
+        internal static string CanCompile(SnQueryInfo queryInfo, bool withMessages)
         {
             var msg = "error";
 
@@ -140,12 +162,6 @@ namespace SenseNet.Search.Parser
             {
                 return withMessages ? "Cannot compile to SQL: InlineCount: AllPages": msg;
             }
-            if (0 < queryInfo.PhraseQueries)
-            {
-                if (withMessages)
-                    msg = "Cannot compile to SQL: PhraseQuery is forbidden.";
-                return msg;
-            }
             if (0 < queryInfo.FuzzyQueries)
             {
                 if (withMessages)
@@ -158,7 +174,7 @@ namespace SenseNet.Search.Parser
                     msg = "Cannot compile to SQL: a question mark wildcard exists.";
                 return msg;
             }
-            if (0 < queryInfo.FullRangeNumericQueries + queryInfo.FullRangeTermQueries)
+            if (0 < queryInfo.FullRangeQueries)
             {
                 if (withMessages)
                     msg = "Cannot compile to SQL: in a range query both limit are defined.";

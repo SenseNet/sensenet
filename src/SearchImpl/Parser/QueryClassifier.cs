@@ -7,6 +7,7 @@ using Lucene.Net.Search;
 
 namespace SenseNet.Search.Parser
 {
+    [Obsolete("", true)] //UNDONE:!!!!!!!!!!!!!!!!!!! Remove this
     public class QueryInfo
     {
         public LucQuery Query { get; set; }
@@ -91,8 +92,10 @@ namespace SenseNet.Search.Parser
         }
     }
 
+    [Obsolete("", true)] //UNDONE:!!!!!!!!!!!!!!!!!!! Remove this
     internal class QueryClassifier : LucQueryVisitor
     {
+        [Obsolete("", true)] //UNDONE:!!!!!!!!!!!!!!!!!!! Remove this
         public static QueryInfo Classify(LucQuery query, bool allVersions)
         {
             var sortfieldNames = query.SortFields == null ? new List<string>() : query.SortFields.Select(x => x.GetField()).ToList();
@@ -114,6 +117,7 @@ namespace SenseNet.Search.Parser
             return queryInfo;
         }
 
+        [Obsolete("", true)] //UNDONE:!!!!!!!!!!!!!!!!!!! Remove this
         private class QueryClassifierVisitor : LucQueryVisitor
         {
             private QueryInfo _queryInfo;

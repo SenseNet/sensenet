@@ -43,13 +43,11 @@ namespace SenseNet.Search.Lucene29
             result.EnableLifespanFilter = query.EnableLifespanFilter;
             result.QueryExecutionMode = query.QueryExecutionMode;
             result.CountOnly = query.CountOnly;
+            result.CountAllPages = query.CountAllPages;
+            result.QueryInfo = query.QueryInfo;
 
-            //UNDONE:!!!!!!!!!!!!! Classify query
-            //result.QueryInfo = query.QueryInfo;
-
-            //UNDONE:!!!!!! Set CountAllPages, FieldLevel
-            //result.CountAllPages = 0;
-            //result.FieldLevel = 0;
+            //UNDONE:!!!!!! FieldLevel
+            //result.FieldLevel = ;
 
             return result;
         }

@@ -78,6 +78,7 @@
     <Compile Include="Parser\Predicates\TextPredicate.cs" />
     <Compile Include="Parser\SnQueryVisitor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SnQueryClassifier.cs" />
     <Compile Include="QueryExecutionMode.cs" />
     <Compile Include="QuerySettings.cs" />
     <Compile Include="SnQuery.cs" />

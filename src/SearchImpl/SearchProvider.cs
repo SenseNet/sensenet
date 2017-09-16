@@ -34,7 +34,7 @@ namespace SenseNet.Search
             return _fallbackProvider.CreateNew(queryInfo).GetExecutor();
         }
 
-        private static SearchProvider GetProvider(LucQuery lucQuery, QueryInfo queryInfo)
+        private static SearchProvider GetProvider(LucQuery lucQuery, SnQueryInfo queryInfo)
         {
             SearchProvider candidate;
             foreach (var prototype in _providers)
@@ -49,9 +49,9 @@ namespace SenseNet.Search
             return null;
         }
 
-        public QueryInfo QueryInfo { get; set; }
+        public SnQueryInfo QueryInfo { get; set; }
 
-        public abstract SearchProvider CreateNew(QueryInfo queryInfo);
+        public abstract SearchProvider CreateNew(SnQueryInfo queryInfo);
         public abstract bool CanExecute();
         public abstract IQueryExecutor GetExecutor();
     }
@@ -59,7 +59,7 @@ namespace SenseNet.Search
 
     internal class SqlSearchProvider : SearchProvider
     {
-        public override SearchProvider CreateNew(QueryInfo queryInfo)
+        public override SearchProvider CreateNew(SnQueryInfo queryInfo)
         {
             return new SqlSearchProvider() { QueryInfo = queryInfo };
         }
@@ -72,7 +72,7 @@ namespace SenseNet.Search
             string _sqlQueryText;
             NodeQueryParameter[] _sqlParameters;
 
-            if (SnLucToSqlCompiler.TryCompile(QueryInfo.Query.Query, QueryInfo.Top, QueryInfo.Skip, QueryInfo.SortFields, QueryInfo.CountOnly, out _sqlQueryText, out _sqlParameters))
+            if (SnLucToSqlCompiler.TryCompile(QueryInfo.Query.QueryTree, QueryInfo.Top, QueryInfo.Skip, QueryInfo.SortFields, QueryInfo.CountOnly, out _sqlQueryText, out _sqlParameters))
                 return new SqlQueryExecutor(_sqlQueryText, _sqlParameters);
             return null;
         }
@@ -81,7 +81,7 @@ namespace SenseNet.Search
 
     internal class LuceneSearchProvider : SearchProvider
     {
-        public override SearchProvider CreateNew(QueryInfo queryInfo)
+        public override SearchProvider CreateNew(SnQueryInfo queryInfo)
         {
             return new LuceneSearchProvider() { QueryInfo = queryInfo };
         }
