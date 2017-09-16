@@ -95,8 +95,6 @@ namespace SenseNet.ContentRepository.Storage
 
             if (unloadHeads.Count > 0)
             {
-                var needsSorting = nodeHeads.Count > 0;
-
                 foreach (var head in DataProvider.Current.LoadNodeHeads(unloadHeads))
                 {
                     if (head != null)
@@ -104,17 +102,12 @@ namespace SenseNet.ContentRepository.Storage
                     nodeHeads.Add(head);
                 }
 
-                // we need to sort the final list only if we have 
-                // node heads from the cache AND the database too 
-                if (needsSorting)
-                {
-                    // sort the node heads aligned with the original list
-                    nodeHeads = (from id in idArray
-                                 join head in nodeHeads.Where(h => h != null)
-                                     on id equals head.Id
-                                 where head != null
-                                 select head).ToList();
-                }
+                // sort the node heads aligned with the original list
+                nodeHeads = (from id in idArray
+                    join head in nodeHeads.Where(h => h != null)
+                    on id equals head.Id
+                    where head != null
+                    select head).ToList();
             }
             return nodeHeads;
         }
