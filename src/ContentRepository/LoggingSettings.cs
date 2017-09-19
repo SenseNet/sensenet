@@ -83,6 +83,11 @@ namespace SenseNet.ContentRepository
                 SnLog.WriteInformation("Trace settings were updated (for STARTUP).", EventId.RepositoryRuntime,
                     properties: SnTrace.Categories.ToDictionary(c => c.Name, c => (object)c.Enabled.ToString()));
             }
+
+            /// <summary>
+            /// Enables trace categories. It only switches the provided categories ON,
+            /// it does not switch off the ones that are not listed.
+            /// </summary>
             internal static void UpdateCategories(string[] categoryNames)
             {
                 if (categoryNames == null)
@@ -91,8 +96,11 @@ namespace SenseNet.ContentRepository
                     return;
                 }
 
-                foreach (var category in SnTrace.Categories)
-                    category.Enabled = categoryNames.Contains(category.Name);
+                // do not switch off any category, only switch ON the listed ones
+                foreach (var category in SnTrace.Categories.Where(c => categoryNames.Contains(c.Name)))
+                {
+                    category.Enabled = true;
+                }
 
                 SnTrace.System.Write("Trace settings were updated. Enabled: {0}", string.Join(", ", SnTrace.Categories
                     .Where(c => c.Enabled).Select(c => c.Name)));

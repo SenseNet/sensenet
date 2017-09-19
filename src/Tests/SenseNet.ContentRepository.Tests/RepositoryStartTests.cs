@@ -22,6 +22,9 @@ namespace SenseNet.ContentRepository.Tests
             var accessProvider = new DesktopAccessProvider();
             var emvrProvider = new ElevatedModificationVisibilityRule();
 
+            // switch this ON here for testing purposes (to check that repo start does not override it)
+            SnTrace.Custom.Enabled = true;
+
             var repoBuilder = new RepositoryBuilder()
                 .UseDataProvider(dbProvider)
                 .UseSecurityDataProvider(securityDbProvider)
@@ -30,7 +33,7 @@ namespace SenseNet.ContentRepository.Tests
                 .UseElevatedModificationVisibilityRuleProvider(emvrProvider)
                 .StartLuceneManager(false)
                 .StartWorkflowEngine(false)
-                .UseTraceCategories(new[] {"Custom", "Test", "Web", "System"});
+                .UseTraceCategories(new[] {"Test", "Web", "System"});
 
             using (var repo = Repository.Start(repoBuilder))
             {

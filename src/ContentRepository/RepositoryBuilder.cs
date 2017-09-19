@@ -106,10 +106,9 @@ namespace SenseNet.ContentRepository
             Configuration.Providers.Instance.MembershipExtender = membershipExtender;
             return this;
         }
-
         /// <summary>
         /// Sets trace categories that should be enabled when the repository starts. This will
-        /// override both startup and runtime categories.
+        /// override both startup and runtime categories, but will not switch any category off.
         /// </summary> 
         public RepositoryBuilder UseTraceCategories(string[] categoryNames)
         {
