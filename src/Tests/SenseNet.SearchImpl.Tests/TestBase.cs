@@ -11,6 +11,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Tests.Implementations;
+using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Lucene29;
@@ -49,6 +50,22 @@ namespace SenseNet.SearchImpl.Tests
         //    }
         //}
 
+        public TestContext TestContext { get; set; }
+
+        [TestInitialize]
+        public void InitializeTest()
+        {
+            SnTrace.Test.Enabled = true;
+            SnTrace.Test.Write("START test: {0}", TestContext.TestName);
+        }
+
+        [TestCleanup]
+        public void CleanupTest()
+        {
+            SnTrace.Test.Enabled = true;
+            SnTrace.Test.Write("END test: {0}", TestContext.TestName);
+        }
+
         protected T Test<T>(Func<T> callback)
         {
             DistributedApplication.Cache.Reset();
@@ -60,7 +77,8 @@ namespace SenseNet.SearchImpl.Tests
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .UseCacheProvider(new EmptyCache())
-                .StartWorkflowEngine(false)))
+                .StartWorkflowEngine(false)
+                .UseTraceCategories(new[] { "Test", "System", "Repository" })))
             using (new SystemAccount())
             {
                 return callback();
