@@ -122,7 +122,10 @@ namespace SenseNet.ContentRepository
             ConsoleWriteLine("Starting Repository...");
             ConsoleWriteLine();
 
-            LoggingSettings.SnTraceConfigurator.UpdateStartupCategories();
+            if (_settings.TraceCategories != null)
+                LoggingSettings.SnTraceConfigurator.UpdateCategories(_settings.TraceCategories);
+            else
+                LoggingSettings.SnTraceConfigurator.UpdateStartupCategories();
             
             TypeHandler.Initialize(_settings.Providers);
 
@@ -144,7 +147,10 @@ namespace SenseNet.ContentRepository
             using (new SystemAccount())
                 StartManagers();
 
-            LoggingSettings.SnTraceConfigurator.UpdateCategories();
+            if (_settings.TraceCategories != null)
+                LoggingSettings.SnTraceConfigurator.UpdateCategories(_settings.TraceCategories);
+            else
+                LoggingSettings.SnTraceConfigurator.UpdateCategories();
 
             ConsoleWriteLine();
             ConsoleWriteLine("Repository has started.");

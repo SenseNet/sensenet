@@ -108,6 +108,16 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
+        /// Sets trace categories that should be enabled when the repository starts. This will
+        /// override both startup and runtime categories.
+        /// </summary> 
+        public RepositoryBuilder UseTraceCategories(string[] categoryNames)
+        {
+            this.TraceCategories = categoryNames;
+            return this;
+        }
+
+        /// <summary>
         /// General API for defining a provider instance that will be injected into and can be loaded
         /// from the Providers.Instance store.
         /// </summary>

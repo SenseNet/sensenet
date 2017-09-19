@@ -83,6 +83,20 @@ namespace SenseNet.ContentRepository
                 SnLog.WriteInformation("Trace settings were updated (for STARTUP).", EventId.RepositoryRuntime,
                     properties: SnTrace.Categories.ToDictionary(c => c.Name, c => (object)c.Enabled.ToString()));
             }
+            internal static void UpdateCategories(string[] categoryNames)
+            {
+                if (categoryNames == null)
+                {
+                    SnTrace.DisableAll();
+                    return;
+                }
+
+                foreach (var category in SnTrace.Categories)
+                    category.Enabled = categoryNames.Contains(category.Name);
+
+                SnTrace.System.Write("Trace settings were updated. Enabled: {0}", string.Join(", ", SnTrace.Categories
+                    .Where(c => c.Enabled).Select(c => c.Name)));
+            }
         }
     }
 }
