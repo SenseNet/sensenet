@@ -48,6 +48,11 @@ namespace SenseNet.ContentRepository
             /// </summary>
             public new System.IO.TextWriter Console { get { return _console; } }
             /// <summary>
+            /// Determines trace categories that should be enabled when the repository starts. This will
+            /// override both startup and runtime categories.
+            /// </summary>
+            public new string[] TraceCategories { get; }
+            /// <summary>
             /// Contains type matching configurations.
             /// Every item can contain one or more Type for the key Type.
             /// </summary>
@@ -66,6 +71,8 @@ namespace SenseNet.ContentRepository
                 _pluginsPath = settings.PluginsPath;
                 _indexPath = settings.IndexPath;
                 _providers = new ReadOnlyDictionary<Type, Type[]>(settings.Providers);
+
+                TraceCategories = settings.TraceCategories;
             }
 
             private const string NotSupportedMessage = "This method is not supported after calling Repository.Start method.";
@@ -140,6 +147,11 @@ namespace SenseNet.ContentRepository
             get { return _console; }
             set { _console = value; }
         }
+        /// <summary>
+        /// Determines trace categories that should be enabled when the repository starts. This will
+        /// override both startup and runtime categories.
+        /// </summary>
+        public virtual string[] TraceCategories { get; protected set; }
         /// <summary>
         /// Contains type matching configurations.
         /// Every item can contain one or more Type for the key Type.

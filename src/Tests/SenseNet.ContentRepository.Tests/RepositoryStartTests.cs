@@ -5,6 +5,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Tests.Implementations;
+using SenseNet.Diagnostics;
 using SenseNet.Security.Data;
 
 namespace SenseNet.ContentRepository.Tests
@@ -21,6 +22,9 @@ namespace SenseNet.ContentRepository.Tests
             var accessProvider = new DesktopAccessProvider();
             var emvrProvider = new ElevatedModificationVisibilityRule();
 
+            // switch this ON here for testing purposes (to check that repo start does not override it)
+            SnTrace.Custom.Enabled = true;
+
             var repoBuilder = new RepositoryBuilder()
                 .UseDataProvider(dbProvider)
                 .UseSecurityDataProvider(securityDbProvider)
@@ -28,7 +32,8 @@ namespace SenseNet.ContentRepository.Tests
                 .UseAccessProvider(accessProvider)
                 .UseElevatedModificationVisibilityRuleProvider(emvrProvider)
                 .StartLuceneManager(false)
-                .StartWorkflowEngine(false);
+                .StartWorkflowEngine(false)
+                .UseTraceCategories(new[] {"Test", "Web", "System"});
 
             using (var repo = Repository.Start(repoBuilder))
             {
@@ -41,6 +46,14 @@ namespace SenseNet.ContentRepository.Tests
                 // db provider from the prototype, so it cannot be ref equal with the original.
                 // Assert.AreEqual(securityDbProvider, SecurityHandler.SecurityContext.DataProvider);
                 Assert.AreEqual(securityDbProvider, Providers.Instance.SecurityDataProvider);
+
+                // Check a few trace categories that were switched ON above.
+                Assert.IsTrue(SnTrace.Custom.Enabled);
+                Assert.IsTrue(SnTrace.Test.Enabled);
+                Assert.IsTrue(SnTrace.Web.Enabled);
+                Assert.IsTrue(SnTrace.System.Enabled);
+                Assert.IsFalse(SnTrace.TaskManagement.Enabled);
+                Assert.IsFalse(SnTrace.Workflow.Enabled);
             }
         }
     }
