@@ -9,7 +9,7 @@ using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.SearchImpl.Tests
 {
-    internal class Tools
+    public class Tools
     {
         public static IDisposable Swindle(Type @class, string memberName, object cheat)
         {
@@ -35,7 +35,7 @@ namespace SenseNet.SearchImpl.Tests
             }
         }
 
-        internal class SearchEngineSwindler : IDisposable
+        public class SearchEngineSwindler : IDisposable
         {
             private readonly PrivateObject _accessor;
             private string _memberName = "_searchEngine";

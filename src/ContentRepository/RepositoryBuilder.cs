@@ -5,6 +5,7 @@ using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Security.Messaging;
 
@@ -32,6 +33,15 @@ namespace SenseNet.ContentRepository
         public RepositoryBuilder UseAccessProvider(AccessProvider accessProvider)
         {
             Configuration.Providers.Instance.AccessProvider = accessProvider;
+            return this;
+        }
+        /// <summary>
+        /// Sets the permission filter factory responsible for creating a filter for every query execution.
+        /// </summary>
+        /// <param name="permissionFilterFactory">IPermissionFilterFactory implementation instance.</param>
+        public RepositoryBuilder UsePermissionFilterFactory(IPermissionFilterFactory permissionFilterFactory)
+        {
+            Configuration.Providers.Instance.PermissionFilterFactory = permissionFilterFactory;
             return this;
         }
         /// <summary>

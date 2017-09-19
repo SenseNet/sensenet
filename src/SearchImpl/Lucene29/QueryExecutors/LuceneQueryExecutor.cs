@@ -1,23 +1,17 @@
-﻿using Lucene.Net.Documents;
+﻿using System;
+using System.Collections.Generic;
+using Lucene.Net.Documents;
 using Lucene.Net.Search;
 using SenseNet.Diagnostics;
-using SenseNet.Search.Indexing;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SenseNet.ContentRepository.Storage;
-using SenseNet.Search.Lucene29;
 
-namespace SenseNet.Search
+namespace SenseNet.Search.Lucene29.QueryExecutors
 {
-    internal abstract class LuceneQueryExecutor : IQueryExecutor //UNDONE: move to Luc29 implementation
+    internal abstract class LuceneQueryExecutor : IQueryExecutor
     {
-        public PermissionChecker PermissionChecker { get; private set; }
+        public IPermissionFilter PermissionChecker { get; private set; }
         public LucQuery LucQuery { get; private set; }
 
-        public void Initialize(LucQuery lucQuery, PermissionChecker permissionChecker)
+        public void Initialize(LucQuery lucQuery, IPermissionFilter permissionChecker)
         {
             this.LucQuery = lucQuery;
             this.PermissionChecker = permissionChecker;
@@ -37,7 +31,7 @@ namespace SenseNet.Search
             {
                 SearchResult result = null;
 
-                int top = this.LucQuery.Top != 0 ? this.LucQuery.Top : this.LucQuery.PageSize;
+                var top = this.LucQuery.Top != 0 ? this.LucQuery.Top : this.LucQuery.PageSize;
                 if (top == 0)
                     top = int.MaxValue;
 

@@ -9,6 +9,7 @@ using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
+using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Security.EF6SecurityStore;
 using SenseNet.Security.Messaging;
@@ -28,9 +29,9 @@ namespace SenseNet.Configuration
         public static string ContentNamingProviderClassName { get; internal set; } = GetProvider("ContentNamingProvider");
         public static string TaskManagerClassName { get; internal set; } = GetProvider("TaskManager");
         public static string PasswordHashProviderClassName { get; internal set; } = GetProvider("PasswordHashProvider",
-            typeof(ContentRepository.Storage.Security.SenseNetPasswordHashProvider).FullName);
+            typeof(SenseNetPasswordHashProvider).FullName);
         public static string OutdatedPasswordHashProviderClassName { get; internal set; } = GetProvider("OutdatedPasswordHashProvider",
-            typeof(ContentRepository.Storage.Security.Sha256PasswordHashProviderWithoutSalt).FullName);
+            typeof(Sha256PasswordHashProviderWithoutSalt).FullName);
         public static string SkinManagerClassName { get; internal set; } = GetProvider("SkinManager", "SenseNet.Portal.SkinManager");
         public static string DirectoryProviderClassName { get; internal set; } = GetProvider("DirectoryProvider");
         public static string SecurityDataProviderClassName { get; internal set; } = GetProvider("SecurityDataProvider",
@@ -227,6 +228,21 @@ namespace SenseNet.Configuration
             get { return _clusterChannelProvider.Value; }
             set { _clusterChannelProvider = new Lazy<IClusterChannel>(() => value); }
         }
+
+        #endregion
+
+        //UNDONE:!!!! :() Configure or not?
+        #region private Lazy<IPermissionFilterFactory> _permissionFilterFactory = new Lazy<IPermissionFilterFactory>
+        private Lazy<IPermissionFilterFactory> _permissionFilterFactory = new Lazy<IPermissionFilterFactory>(() =>
+        {
+            return new SnPermissionFilterFactory();
+        });
+        public virtual IPermissionFilterFactory PermissionFilterFactory
+        {
+            get { return _permissionFilterFactory.Value; }
+            set { _permissionFilterFactory = new Lazy<IPermissionFilterFactory>(() => value); }
+        }
+
         #endregion
 
         //===================================================================================== General provider API

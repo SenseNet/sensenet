@@ -81,7 +81,7 @@ namespace SenseNet.Search.Parser
         }
     }
 
-    internal class SnQueryClassifier : SnQueryVisitor
+    public class SnQueryClassifier : SnQueryVisitor
     {
         public static SnQueryInfo Classify(SnQuery query, bool allVersions)
         {

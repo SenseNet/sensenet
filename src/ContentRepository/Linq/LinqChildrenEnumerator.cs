@@ -40,7 +40,7 @@ namespace SenseNet.ContentRepository.Linq
             if (_result == null)
             {
                 Compile();
-                var qresult = _query.Execute();
+                var qresult = _query.Execute(); //UNDONE:!!!!!!!!!!! Use SnQuery instead of LucQuery
                 if (_isContent)
                     _result = (IEnumerable<T>)qresult.Select(x => Content.Load(x.NodeId));
                 else

@@ -265,6 +265,8 @@ namespace SenseNet.ContentRepository
                 dummy = User.Current;
                 ConsoleWriteLine("ok.");
 
+                SnQuery.SetPermissionFilterFactory(Providers.Instance.PermissionFilterFactory);
+
                 if (_settings.StartLuceneManager)
                     StartLucene();
                 else

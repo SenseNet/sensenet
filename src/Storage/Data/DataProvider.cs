@@ -20,6 +20,10 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public static DataProvider Current => Providers.Instance.DataProvider;
 
+        // ====================================================== Query support
+
+        public abstract IMetaQueryEngine MetaQueryEngine { get; }
+
         //////////////////////////////////////// For tests ////////////////////////////////////////
 
         internal static void InitializeForTests()

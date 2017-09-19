@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Lucene.Net.Index;
 using Lucene.Net.Util;
@@ -12,6 +13,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Tests.Implementations;
 using SenseNet.Search;
@@ -87,7 +89,53 @@ namespace SenseNet.SearchImpl.Tests
         //    Assert.AreEqual(versionCount, versionIdTermCount);
         //}
 
-        // =======================================================================================
+        [TestMethod, TestCategory("IR, L29")]
+        //[Timeout(20*1000)]
+        public void L29_Query()
+        {
+            QueryResult queryResult1, queryResult2;
+            var result =
+                L29Test(console =>
+                {
+                    var indexPopulator = StorageContext.Search.SearchEngine.GetPopulator();
+
+                    var root = Repository.Root;
+                    indexPopulator.RebuildIndex(root, false, IndexRebuildLevel.DatabaseAndIndex);
+                    var admin = User.Administrator;
+                    indexPopulator.RebuildIndex(admin, false, IndexRebuildLevel.DatabaseAndIndex);
+
+                    queryResult1 = CreateSafeContentQuery("Id:1").Execute();
+                    queryResult2 = CreateSafeContentQuery("Id:2 .COUNTONLY").Execute();
+
+                    return new Tuple<IIndexingEngine, string, IUser, QueryResult, QueryResult, string>(
+                        IndexManager.IndexingEngine, IndexDirectory.CurrentDirectory, User.Current,
+                        queryResult1, queryResult2, console);
+                });
+
+            var engine = result.Item1;
+            var indxDir = result.Item2;
+            var user = result.Item3;
+            queryResult1 = result.Item4;
+            queryResult2 = result.Item5;
+
+            Assert.AreEqual(typeof(Lucene29IndexingEngine).FullName, engine.GetType().FullName);
+            Assert.IsNotNull(indxDir);
+            Assert.AreEqual(1, user.Id);
+            Assert.AreEqual(1, queryResult1.Count);
+            Assert.AreEqual(1, queryResult1.Identifiers.FirstOrDefault());
+            Assert.AreEqual(1, queryResult2.Count);
+            Assert.AreEqual(0, queryResult2.Identifiers.FirstOrDefault());
+        }
+
+        private ContentQuery_NEW CreateSafeContentQuery(string qtext)
+        {
+            var cquery = ContentQuery_NEW.CreateQuery(qtext, QuerySettings.AdminSettings);
+            var cqueryAcc = new PrivateObject(cquery);
+            cqueryAcc.SetFieldOrProperty("IsSafe", true);
+            return cquery;
+        }
+
+        /* ======================================================================================= */
 
         protected T L29Test<T>(Func<string, T> callback)
         {
@@ -102,6 +150,7 @@ namespace SenseNet.SearchImpl.Tests
             var repoBuilder = new RepositoryBuilder()
                 .UseDataProvider(dataProvider)
                 .UseAccessProvider(new DesktopAccessProvider())
+                .UsePermissionFilterFactory(new EverythingAllowedPermissionFilterFactory())
                 .UseSearchEngine(new Lucene29SearchEngine())
                 .UseSecurityDataProvider(securityDataProvider)
                 .UseCacheProvider(new EmptyCache())
@@ -109,26 +158,29 @@ namespace SenseNet.SearchImpl.Tests
 
             repoBuilder.Console = indxManConsole;
 
-            using (Repository.Start(repoBuilder))
+            T result = default(T);
+            try
             {
-                IndexDirectory.Reset();
-
-                using (Tools.Swindle(typeof (StorageContext.Search), "ContentRepository", new SearchEngineSupport()))
-                using (new SystemAccount())
+                using (Repository.Start(repoBuilder))
                 {
-                    EnsureEmptyIndexDirectory();
+                    //IndexDirectory.CreateNew();
+                    //IndexDirectory.Reset();
 
-                    try
+                    using (Tools.Swindle(typeof(StorageContext.Search), "ContentRepository", new SearchEngineSupport()))
+                    //using (new SystemAccount())
                     {
-                        var result = callback(indxManConsole.ToString());
-                        return result;
-                    }
-                    finally
-                    {
-                        DeleteIndexDirectories();
+                        //EnsureEmptyIndexDirectory();
+
+                        result = callback(indxManConsole.ToString());
                     }
                 }
             }
+            finally
+            {
+                DeleteIndexDirectories();
+            }
+
+            return result;
         }
 
         private void GetAllIdValuesFromIndex(out int[] nodeIds, out int[] versionIds)

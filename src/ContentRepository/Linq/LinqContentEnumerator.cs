@@ -39,7 +39,7 @@ namespace SenseNet.ContentRepository.Linq
             if (_result == null)
             {
                 Compile();
-                var qresult = _query.Execute();
+                var qresult = _query.Execute(); //UNDONE:!!!!!!!!!!! Use SnQuery instead of LucQuery
 
                 var nresult = new Storage.NodeList<Storage.Node>(qresult.Select(x => x.NodeId).ToArray());
                 if (_isContent)

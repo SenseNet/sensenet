@@ -177,6 +177,10 @@
     <Compile Include="Data\SnMaintenance.cs" />
     <Compile Include="Data\RepositoryPathTooLongException.cs" />
     <Compile Include="Data\SqlClient\DataReaderExtensions.cs" />
+    <Compile Include="Data\SqlClient\SnLucToSqlCompiler.cs" />
+    <Compile Include="Data\SqlClient\SqlQueryEngine.cs" />
+    <Compile Include="Data\SqlClient\SqlQueryExecutor.cs" />
+    <Compile Include="Data\SqlClient\SqlQueryFieldInfo.cs" />
     <Compile Include="Data\SqlClient\TextPropertyWriter.cs" />
     <Compile Include="Data\SqlClient\TraceSqlProvider.cs" />
     <Compile Include="Data\StorageDataReaderExtensions.cs" />
@@ -281,6 +285,7 @@
     <Compile Include="Search\ISearchEngine.cs" />
     <Compile Include="Search\Internal\Operator.cs" />
     <Compile Include="Search\ISearchEngineSupport.cs" />
+    <Compile Include="Search\SnPermissionFilterFactory.cs" />
     <Compile Include="Security\BCrypt.cs" />
     <Compile Include="Security\Extensions.cs" />
     <Compile Include="Security\PermissionType.cs" />

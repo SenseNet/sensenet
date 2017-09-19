@@ -29,12 +29,6 @@ namespace SenseNet.Search
 
         public bool CountAllPages { get; set; }
 
-        public SnQueryInfo QueryInfo { get; internal set; }
-
-        //public List<string> QueryFieldNames { get; internal set; }
-        //public string[] SortFieldNames
-        //{
-        //    get { return Sort?.Select(s => s.FieldName).Distinct().ToArray() ?? new string[0]; }
-        //}
+        //UNDONE:!!!!!!!!!!!!!!!!!! AllVersions ???
     }
 }

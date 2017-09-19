@@ -1,13 +1,8 @@
 ﻿using Lucene.Net.Search;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace SenseNet.Search
+namespace SenseNet.Search.Lucene29.QueryExecutors
 {
-    internal class QueryExecutor20131012CountOnly : LuceneQueryExecutor //UNDONE: move to Luc29 implementation
+    internal class QueryExecutor20131012CountOnly : LuceneQueryExecutor
     {
         protected override SearchResult DoExecute(SearchParams p)
         {
@@ -17,15 +12,13 @@ namespace SenseNet.Search
             if (maxtop < 1)
                 return SearchResult.Empty;
 
-            SearchResult r = null;
             var defaultTop = p.numDocs;
 
             p.howMany = defaultTop;
             p.useHowMany = false;
-            var maxSize = p.numDocs;
             p.collectorSize = 1;
 
-            r = Search(p);
+            var r = Search(p);
 
             return r;
         }

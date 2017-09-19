@@ -1,28 +1,74 @@
-﻿using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.Diagnostics;
-using SenseNet.Security;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics;
+using SenseNet.Search;
 using SenseNet.Search.Parser;
+using SenseNet.Search.Parser.Predicates;
+using SenseNet.Security;
 
-namespace SenseNet.Search
+namespace SenseNet.ContentRepository.Storage.Search
 {
-    public enum DocumentOpenLevel { Denied, See, Preview, Open, OpenMinor }
-    public class PermissionChecker
+    internal class SnPermissionFilterFactory : IPermissionFilterFactory
     {
-        private IUser _user;
-        private QueryFieldLevel _queryFieldLevel;
-        private bool _allVersions;
+        public IPermissionFilter Create(int userId)
+        {
+            throw new NotImplementedException();
+        }
 
+        public IPermissionFilter Create(SnQuery query, IQueryContext context)
+        {
+            return new PermissionChecker(query, context);
+        }
+    }
+    internal class PermissionChecker : IPermissionFilter
+    {
+        private enum DocumentOpenLevel { Denied, See, Preview, Open, OpenMinor }
+
+        #region  private class FieldNameVisitor : SnQueryVisitor
+        private class FieldNameVisitor : SnQueryVisitor
+        {
+            private List<string> _fieldNames = new List<string>();
+            public IEnumerable<string> FieldNames { get { return _fieldNames; } }
+
+            public override SnQueryPredicate VisitRangePredicate(RangePredicate range)
+            {
+                var visitedField = range.FieldName;
+                if (!_fieldNames.Contains(visitedField))
+                    _fieldNames.Add(visitedField);
+                return base.VisitRangePredicate(range);
+            }
+
+            public override SnQueryPredicate VisitTextPredicate(TextPredicate text)
+            {
+                var visitedField = text.FieldName;
+                if (!_fieldNames.Contains(visitedField))
+                    _fieldNames.Add(visitedField);
+                return base.VisitTextPredicate(text);
+            }
+        }
+        #endregion
+
+        private readonly int _userId;
+        private IUser _user;
+        private readonly QueryFieldLevel _queryFieldLevel;
+        private readonly bool _allVersions;
+
+        [Obsolete("", true)]
         public PermissionChecker(IUser user, QueryFieldLevel queryFieldLevel, bool allVersions)
         {
+            _userId = user.Id;
             _user = user;
             _queryFieldLevel = queryFieldLevel;
             _allVersions = allVersions;
+        }
+        public PermissionChecker(SnQuery query, IQueryContext context)
+        {
+            _userId = context.UserId;
+            _user = Node.LoadNode(_userId) as IUser;
+            _queryFieldLevel = GetFieldLevel(query);
+            _allVersions = context.AllVersions;
         }
 
         public bool IsPermitted(int nodeId, bool isLastPublic, bool isLastDraft)
@@ -73,13 +119,13 @@ namespace SenseNet.Search
         }
         private DocumentOpenLevel GetDocumentLevel(int nodeId)
         {
-            var userId = _user.Id;
+            var userId = _userId;
             if (userId == -1)
                 return DocumentOpenLevel.OpenMinor;
             if (userId < -1)
                 return DocumentOpenLevel.Denied;
 
-            List<int> identities = null;
+            List<int> identities;
             try
             {
                 identities = SecurityHandler.GetIdentitiesByMembership(_user, nodeId);
@@ -89,7 +135,7 @@ namespace SenseNet.Search
                 return DocumentOpenLevel.Denied;
             }
 
-            List<AceInfo> entries = null;
+            List<AceInfo> entries;
             try
             {
                 using (new SystemAccount())
@@ -125,5 +171,47 @@ namespace SenseNet.Search
             return docLevel;
         }
 
+        // -----------------------------------------------------------------------
+
+        private static readonly string[] HeadOnlyFields = Node.GetHeadOnlyProperties();
+
+        private QueryFieldLevel GetFieldLevel(SnQuery query)
+        {
+            var v = new FieldNameVisitor();
+            v.Visit(query.QueryTree);
+            return GetFieldLevel(v.FieldNames);
+        }
+        internal static QueryFieldLevel GetFieldLevel(IEnumerable<string> fieldNames)
+        {
+            var fieldLevel = QueryFieldLevel.NotDefined;
+            foreach (var fieldName in fieldNames)
+            {
+                var indexingInfo = StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(fieldName);
+                var level = GetFieldLevel(fieldName, indexingInfo);
+                fieldLevel = level > fieldLevel ? level : fieldLevel;
+            }
+            return fieldLevel;
+        }
+        internal static QueryFieldLevel GetFieldLevel(string fieldName, IPerFieldIndexingInfo indexingInfo)
+        {
+            QueryFieldLevel level;
+
+            if (fieldName == IndexFieldName.AllText)
+                level = QueryFieldLevel.BinaryOrFullText;
+            else if (indexingInfo == null)
+                level = QueryFieldLevel.BinaryOrFullText;
+            else if (indexingInfo.FieldDataType == typeof(BinaryData))
+                level = QueryFieldLevel.BinaryOrFullText;
+            else if (fieldName == IndexFieldName.InFolder || fieldName == IndexFieldName.InTree
+                || fieldName == IndexFieldName.Type || fieldName == IndexFieldName.TypeIs
+                || HeadOnlyFields.Contains(fieldName))
+                level = QueryFieldLevel.HeadOnly;
+            else
+                level = QueryFieldLevel.NoBinaryOrFullText;
+
+            return level;
+        }
+
     }
+
 }

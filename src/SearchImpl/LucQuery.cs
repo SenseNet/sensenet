@@ -19,6 +19,7 @@ using SenseNet.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Diagnostics;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.Search.Lucene29.QueryExecutors;
 
 namespace SenseNet.Search
 {
@@ -36,8 +37,9 @@ namespace SenseNet.Search
             private set { __query = value; }
         }
         public string QueryText { get { return QueryToString(Query); } }
-        internal QueryFieldLevel FieldLevel { get; private set; }
-        internal SnQueryInfo QueryInfo { get; set; }
+
+        [Obsolete("", true)]
+        internal QueryFieldLevel FieldLevel { get; set; }
 
         public IUser User { get; set; }
         public SortField[] SortFields { get; set; }
@@ -72,38 +74,6 @@ namespace SenseNet.Search
         public bool ExistenceOnly { get; set; } // only carries: linq visitor sets, executor reads
 
         public int TotalCount { get; private set; }
-
-        private Query _autoFilterQuery;
-        internal Query AutoFilterQuery
-        {
-            get
-            {
-                if (_autoFilterQuery == null)
-                {
-                    var parser = new SnLucParser();
-                    _autoFilterQuery = parser.Parse("IsSystemContent:no");
-                }
-                return _autoFilterQuery;
-            }
-        }
-
-        private static readonly string LifespanQueryText = "EnableLifespan:no OR (+ValidFrom:<@@CurrentTime@@ +(ValidTill:>@@CurrentTime@@ ValidTill:'0001-01-01 00:00:00'))";
-        private Query _lifespanQuery;
-        internal Query LifespanQuery
-        {
-            get
-            {
-                // This has to be an instance property instead of static because
-                // it contains time parameters that refer to the _current_ time.
-                if (_lifespanQuery == null)
-                {
-                    var parser = new SnLucParser();
-                    var lfspText = StorageContext.Search.ContentRepository.ReplaceQueryTemplates(LifespanQueryText);
-                    _lifespanQuery = parser.Parse(lfspText);
-                }
-                return _lifespanQuery;
-            }
-        }
 
         private LucQuery() { }
 
@@ -179,7 +149,7 @@ namespace SenseNet.Search
                 }
             }
             result.SortFields = sortFields.ToArray();
-            result.FieldLevel = parser.FieldLevel;
+            //result.FieldLevel = parser.FieldLevel;
             return result;
         }
         public static SortField CreateSortField(string fieldName, bool reverse)
@@ -227,82 +197,65 @@ namespace SenseNet.Search
 
         // ========================================================================================
 
+        [Obsolete("", false)] //UNDONE:!!!!!!!!!!! [Obsolete("", true)]
         public IEnumerable<LucObject> Execute()
         {
             return Execute(false);
         }
+        [Obsolete("", true)]
         public IEnumerable<LucObject> Execute(bool allVersions)
         {
-            if (LucQuery.IsAutofilterEnabled(this.EnableAutofilters) || LucQuery.IsLifespanFilterEnabled(this.EnableLifespanFilter))
-            {
-                var fullQuery = new BooleanQuery();
-                fullQuery.Add(new BooleanClause(this.Query, BooleanClause.Occur.MUST));
-
-                if (LucQuery.IsAutofilterEnabled(this.EnableAutofilters))
-                    fullQuery.Add(new BooleanClause(this.AutoFilterQuery, BooleanClause.Occur.MUST));
-                if (LucQuery.IsLifespanFilterEnabled(this.EnableLifespanFilter) && this.LifespanQuery != null)
-                    fullQuery.Add(new BooleanClause(this.LifespanQuery, BooleanClause.Occur.MUST));
-
-                this.Query = fullQuery;
-            }
-
             using (var op = SnTrace.Query.StartOperation("LucQuery: {0}", this))
             {
-                if (FieldLevel == QueryFieldLevel.NotDefined)
-                    FieldLevel = GetFieldLevel();
-                var permissionChecker = new PermissionChecker(this.User ?? AccessProvider.Current.GetCurrentUser(), FieldLevel, allVersions);
-
-                //UNDONE:!!!!!!!!!!!!!!!!!! check this.QueryInfo 
-                //this.QueryInfo = QueryClassifier.Classify(this, allVersions);
+                //if (FieldLevel == QueryFieldLevel.NotDefined)
+                //    FieldLevel = GetFieldLevel();
+                //var permissionChecker = new PermissionChecker(this.User ?? AccessProvider.Current.GetCurrentUser(), FieldLevel, allVersions);
 
                 IEnumerable<LucObject> result = null;
                 IQueryExecutor executor = null;
+                if (this.CountOnly)
+                    executor = new QueryExecutor20131012CountOnly();
+                else
+                    executor = new QueryExecutor20131012();
 
+                //UNDONE:! SQL: ContentQueryExecutionAlgorithm
                 var executionAlgorithm = ForceLuceneExecution
                     ? ContentQueryExecutionAlgorithm.LuceneOnly
                     : Configuration.Querying.ContentQueryExecutionAlgorithm;
 
-                switch (executionAlgorithm)
-                {
-                    default:
-                    case ContentQueryExecutionAlgorithm.Default:
-                    case ContentQueryExecutionAlgorithm.Provider:
-                        {
-                            executor = SearchProvider.GetExecutor(this);
-                            executor.Initialize(this, permissionChecker);
-                            result = Execute(executor);
-                        }
-                        break;
-                    case ContentQueryExecutionAlgorithm.LuceneOnly:
-                        {
-                            executor = SearchProvider.GetFallbackExecutor(this);
-                            executor.Initialize(this, permissionChecker);
-                            result = Execute(executor);
-                        }
-                        break;
-                    case ContentQueryExecutionAlgorithm.Validation:
-                        {
-                            executor = SearchProvider.GetExecutor(this);
-                            executor.Initialize(this, permissionChecker);
-                            result = Execute(executor);
-                            if (!(executor is LuceneQueryExecutor))
-                            {
-                                var fallbackExecutor = SearchProvider.GetFallbackExecutor(this);
-                                fallbackExecutor.Initialize(this, permissionChecker);
-                                var expectedResult = Execute(fallbackExecutor);
-                                AssertResultsAreEqual(expectedResult, result, fallbackExecutor.QueryString, executor.QueryString);
-                            }
-                        }
-                        break;
-                }
+                //executor.Initialize(this, permissionChecker);
+                result = executor.Execute();
 
                 op.Successful = true;
                 return result;
             }
         }
 
+        public IEnumerable<LucObject> Execute(IPermissionFilter filter, IQueryContext context)
+        {
+            using (var op = SnTrace.Query.StartOperation("LucQuery: {0}", this))
+            {
+                IEnumerable<LucObject> result = null;
+                IQueryExecutor executor = null;
+                if (this.CountOnly)
+                    executor = new QueryExecutor20131012CountOnly();
+                else
+                    executor = new QueryExecutor20131012();
+
+                executor.Initialize(this, filter);
+                result = executor.Execute();
+                TotalCount = executor.TotalCount;
+                SnTrace.Query.Write("LucQuery.Execute total count: {0}", TotalCount);
+
+                op.Successful = true;
+                return result ?? new LucObject[0];
+            }
+        }
+
+        //UNDONE:! SQL: ContentQueryExecutionAlgorithm
         public enum ContentQueryExecutionAlgorithm { Default, Provider, LuceneOnly, Validation }
 
+        //UNDONE:! SQL: ContentQueryExecutionAlgorithm
         protected void AssertResultsAreEqual(IEnumerable<LucObject> expected, IEnumerable<LucObject> actual, string cql, string sql)
         {
             var exp = string.Join(",", expected.Select(x => x.NodeId).Distinct().OrderBy(y => y));
@@ -313,14 +266,6 @@ namespace SenseNet.Search
                 SnTrace.Test.Write(msg);
                 throw new Exception(msg);
             }
-        }
-
-        internal IEnumerable<LucObject> Execute(IQueryExecutor executor)
-        {
-            var result = executor.Execute();
-            TotalCount = executor.TotalCount;
-            SnTrace.Query.Write("LucQuery.Execute total count: {0}", TotalCount);
-            return result == null ? new LucObject[0] : result;
         }
 
         private QueryFieldLevel GetFieldLevel()

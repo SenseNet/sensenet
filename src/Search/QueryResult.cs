@@ -12,9 +12,9 @@ namespace SenseNet.Search
         public IEnumerable<T> Hits { get; }
         public int TotalCount { get; }
 
-        public QueryResult(IEnumerable<T> identifiers, int totalCount)
+        public QueryResult(IEnumerable<T> hits, int totalCount)
         {
-            Hits = identifiers;
+            Hits = hits;
             TotalCount = totalCount;
         }
     }

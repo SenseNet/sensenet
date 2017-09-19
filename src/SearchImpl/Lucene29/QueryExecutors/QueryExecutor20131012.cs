@@ -1,12 +1,12 @@
-﻿using Lucene.Net.Documents;
-using Lucene.Net.Search;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Lucene.Net.Documents;
+using Lucene.Net.Search;
 using SenseNet.Configuration;
 
-namespace SenseNet.Search
+namespace SenseNet.Search.Lucene29.QueryExecutors
 {
-    internal class QueryExecutor20131012 : LuceneQueryExecutor //UNDONE: move to Luc29 implementation
+    internal class QueryExecutor20131012 : LuceneQueryExecutor
     {
         protected override SearchResult DoExecute(SearchParams p)
         {

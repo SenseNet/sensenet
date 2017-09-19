@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
-using Lucene.Net.Search;
-using SenseNet.Search.Parser;
+using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.Search.Lucene29
 {
@@ -11,23 +10,33 @@ namespace SenseNet.Search.Lucene29
         {
             var lucQuery = Compile(query, context);
 
-            //UNDONE:!!!!!!!!!!!!! Classify query
-            //return lucQuery.Execute(filter);
+            var lucQueryResult = lucQuery.Execute(filter, context);
+            var hits = lucQueryResult?.Select(x => x.NodeId).ToArray() ?? new int[0];
 
-            throw new NotImplementedException(); //UNDONE:! not implemented: Execute
+            return new QueryResult<int>(hits, lucQuery.TotalCount);
         }
 
         public IQueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
             var lucQuery = Compile(query, context);
 
-            //UNDONE:!!!!!!!!!!!!! Classify query
-            //return lucQuery.ExecuteAndProject(filter);
+            var projection = query.Projection ?? IndexFieldName.NodeId;
+            var indexFieldHandler = context.GetPerFieldIndexingInfo(projection).IndexFieldHandler as IIndexValueConverter;
+            var converter = indexFieldHandler == null ? DefaultConverter : indexFieldHandler.GetBack; 
+            var lucQueryResult = lucQuery.Execute(filter, context);
+            var hits = lucQueryResult?
+                           .Select(x => x[projection, false])
+                           .Where(r => !string.IsNullOrEmpty(r))
+                           .Select(q => converter(q).ToString())
+                           .ToArray()
+                       ?? new string[0];
 
-            throw new NotImplementedException(); //UNDONE:! not implemented: ExecuteAndProject
+            return new QueryResult<string>(hits, lucQuery.TotalCount);
         }
 
         /* ============================================================================================= */
+
+        private static readonly Func<string, object> DefaultConverter = s => s;
 
         private LucQuery Compile(SnQuery query, IQueryContext context)
         {
@@ -44,10 +53,6 @@ namespace SenseNet.Search.Lucene29
             result.QueryExecutionMode = query.QueryExecutionMode;
             result.CountOnly = query.CountOnly;
             result.CountAllPages = query.CountAllPages;
-            result.QueryInfo = query.QueryInfo;
-
-            //UNDONE:!!!!!! FieldLevel
-            //result.FieldLevel = ;
 
             return result;
         }
