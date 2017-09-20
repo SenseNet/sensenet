@@ -168,17 +168,25 @@ namespace SenseNet.ApplicationModel
             return GetActions(context, scenario, scenarioParameters, backUrl);
         }
 
-        public static IEnumerable<ActionBase> GetActions(Content context, string scenario, string scenarioParameters, string backUri)
+        public static IEnumerable<ActionBase> GetActions(Content context, string scenarios, string scenarioParameters, string backUri)
         {
-            if (!string.IsNullOrEmpty(scenario))
+            if (!string.IsNullOrEmpty(scenarios))
             {
-                // if the scenario name is given, try to load actions in that scenario
-                var sc = ScenarioManager.GetScenario(scenario, scenarioParameters);
-                if (sc != null)
-                    return sc.GetActions(context, backUri);
+                var scenarioList = scenarios.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries);
+                var actions = new List<ActionBase>();
+                foreach (var scenario in scenarioList)
+                {
+                    // if the scenario name is given, try to load actions in that scenario
+                    var sc = ScenarioManager.GetScenario(scenario, null);
+                    if (sc != null)
+                    {
+                        actions.AddRange(sc.GetActions(context, backUri));
+                    }
+                }
+                return actions;
             }
 
-            return GetActionsFromContentRepository(context, scenario, backUri);
+            return GetActionsFromContentRepository(context, scenarios, backUri);
         }
 
         public static IEnumerable<ActionBase> GetActionsFromContentRepository(Content context, string scenario, string backUri)

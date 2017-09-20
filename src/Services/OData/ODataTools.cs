@@ -81,9 +81,9 @@ namespace SenseNet.Portal.OData
                 request != null ? request.Scenario : null,
                 string.IsNullOrEmpty(backUrl) ? null : backUrl);
         }
-        internal static IEnumerable<ODataActionItem> GetHtmlActionItems(Content content, ODataRequest request)
+        internal static IEnumerable<ODataActionItem> GetActionItems(Content content, ODataRequest request)
         {
-            return GetActions(content, request).Where(a => a.IsHtmlOperation).Select(a => new ODataActionItem
+            return GetActions(content, request).Select(a => new ODataActionItem
             {
                 Name = a.Name,
                 DisplayName = SNSR.GetString(a.Text),
@@ -92,8 +92,24 @@ namespace SenseNet.Portal.OData
                 Url = a.Uri,
                 IncludeBackUrl = a.GetApplication() == null ? 0 : (int)a.GetApplication().IncludeBackUrl,
                 ClientAction = a is ClientAction && !string.IsNullOrEmpty(((ClientAction)a).Callback),
-                Forbidden = a.Forbidden
+                Forbidden = a.Forbidden,
+                IsODataAction = a.IsODataOperation,
+                ActionParameters = string.Join(",", a.ActionParameters.Select(p => p.Name))
             });
         }
+        //internal static IEnumerable<ODataActionItem> GetHtmlActionItems(Content content, ODataRequest request)
+        //{
+        //    return GetActions(content, request).Where(a => a.IsHtmlOperation).Select(a => new ODataActionItem
+        //    {
+        //        Name = a.Name,
+        //        DisplayName = SNSR.GetString(a.Text),
+        //        Icon = a.Icon,
+        //        Index = a.Index,
+        //        Url = a.Uri,
+        //        IncludeBackUrl = a.GetApplication() == null ? 0 : (int)a.GetApplication().IncludeBackUrl,
+        //        ClientAction = a is ClientAction && !string.IsNullOrEmpty(((ClientAction)a).Callback),
+        //        Forbidden = a.Forbidden
+        //    });
+        //}
     }
 }
