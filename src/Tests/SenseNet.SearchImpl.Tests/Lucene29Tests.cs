@@ -13,6 +13,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Tests.Implementations;
@@ -89,11 +90,49 @@ namespace SenseNet.SearchImpl.Tests
         //    Assert.AreEqual(versionCount, versionIdTermCount);
         //}
 
+        //[TestMethod, TestCategory("IR, L29")]
+        ////[Timeout(20*1000)]
+        //public void L29_Query()
+        //{
+        //    QueryResult queryResult1, queryResult2;
+        //    var result =
+        //        L29Test(console =>
+        //        {
+        //            var indexPopulator = StorageContext.Search.SearchEngine.GetPopulator();
+
+        //            var root = Repository.Root;
+        //            indexPopulator.RebuildIndex(root, false, IndexRebuildLevel.DatabaseAndIndex);
+        //            var admin = User.Administrator;
+        //            indexPopulator.RebuildIndex(admin, false, IndexRebuildLevel.DatabaseAndIndex);
+
+        //            queryResult1 = CreateSafeContentQuery("Id:1").Execute();
+        //            queryResult2 = CreateSafeContentQuery("Id:2 .COUNTONLY").Execute();
+
+        //            return new Tuple<IIndexingEngine, string, IUser, QueryResult, QueryResult, string>(
+        //                IndexManager.IndexingEngine, IndexDirectory.CurrentDirectory, User.Current,
+        //                queryResult1, queryResult2, console);
+        //        });
+
+        //    var engine = result.Item1;
+        //    var indxDir = result.Item2;
+        //    var user = result.Item3;
+        //    queryResult1 = result.Item4;
+        //    queryResult2 = result.Item5;
+
+        //    Assert.AreEqual(typeof(Lucene29IndexingEngine).FullName, engine.GetType().FullName);
+        //    Assert.IsNotNull(indxDir);
+        //    Assert.AreEqual(1, user.Id);
+        //    Assert.AreEqual(1, queryResult1.Count);
+        //    Assert.AreEqual(1, queryResult1.Identifiers.FirstOrDefault());
+        //    Assert.AreEqual(1, queryResult2.Count);
+        //    Assert.AreEqual(0, queryResult2.Identifiers.FirstOrDefault());
+        //}
+
         [TestMethod, TestCategory("IR, L29")]
         //[Timeout(20*1000)]
-        public void L29_Query()
+        public void L29_SaveAndQuery()
         {
-            QueryResult queryResult1, queryResult2;
+            QueryResult queryResultBefore, queryResultAfter;
             var result =
                 L29Test(console =>
                 {
@@ -104,27 +143,34 @@ namespace SenseNet.SearchImpl.Tests
                     var admin = User.Administrator;
                     indexPopulator.RebuildIndex(admin, false, IndexRebuildLevel.DatabaseAndIndex);
 
-                    queryResult1 = CreateSafeContentQuery("Id:1").Execute();
-                    queryResult2 = CreateSafeContentQuery("Id:2 .COUNTONLY").Execute();
+                    var nodeName = "NodeForL29_SaveAndQuery";
 
-                    return new Tuple<IIndexingEngine, string, IUser, QueryResult, QueryResult, string>(
-                        IndexManager.IndexingEngine, IndexDirectory.CurrentDirectory, User.Current,
-                        queryResult1, queryResult2, console);
+                    queryResultBefore = CreateSafeContentQuery($"Name:{nodeName}").Execute();
+
+                    var node = new SystemFolder(root) {Name = nodeName};
+                    using (new SystemAccount())
+                        SaveNode(node);
+
+                    queryResultAfter = CreateSafeContentQuery($"Name:{nodeName}").Execute();
+
+                    return new Tuple<QueryResult, QueryResult, int, string>(
+                        queryResultBefore, queryResultAfter, node.Id, console);
                 });
 
-            var engine = result.Item1;
-            var indxDir = result.Item2;
-            var user = result.Item3;
-            queryResult1 = result.Item4;
-            queryResult2 = result.Item5;
+            queryResultBefore = result.Item1;
+            queryResultAfter = result.Item2;
+            var nodeId = result.Item3;
 
-            Assert.AreEqual(typeof(Lucene29IndexingEngine).FullName, engine.GetType().FullName);
-            Assert.IsNotNull(indxDir);
-            Assert.AreEqual(1, user.Id);
-            Assert.AreEqual(1, queryResult1.Count);
-            Assert.AreEqual(1, queryResult1.Identifiers.FirstOrDefault());
-            Assert.AreEqual(1, queryResult2.Count);
-            Assert.AreEqual(0, queryResult2.Identifiers.FirstOrDefault());
+            Assert.AreEqual(0, queryResultBefore.Count);
+            Assert.AreEqual(1, queryResultAfter.Count);
+            Assert.IsTrue(nodeId > 0);
+            Assert.AreEqual(nodeId, queryResultAfter.Identifiers.FirstOrDefault());
+        }
+        private void SaveNode(Node node)
+        {
+            foreach (var observer in NodeObserver.GetObserverTypes())
+                node.DisableObserver(observer);
+            node.Save();
         }
 
         private ContentQuery_NEW CreateSafeContentQuery(string qtext)
