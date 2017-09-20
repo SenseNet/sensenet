@@ -307,8 +307,7 @@ namespace SenseNet.ContentRepository
             catch
             {
                 // If an error occoured, shut down the cluster channel.
-                if (channel != null)
-                    channel.ShutDown();
+                channel?.ShutDown();
 
                 throw;
             }
@@ -398,11 +397,9 @@ namespace SenseNet.ContentRepository
                 SnTrace.Repository.Write("Shutting down {0}", DistributedApplication.ClusterChannel.GetType().Name);
                 DistributedApplication.ClusterChannel.ShutDown();
 
-                if (LuceneManagerIsRunning)
-                {
-                    SnTrace.Repository.Write("Shutting down LuceneManager.");
-                    IndexManager.ShutDown();
-                }
+                SnTrace.Repository.Write("Shutting down LuceneManager.");
+                IndexManager.ShutDown();
+
                 ContextHandler.Reset();
 
                 var t = DateTime.UtcNow - _instance._startupInfo.Starting;

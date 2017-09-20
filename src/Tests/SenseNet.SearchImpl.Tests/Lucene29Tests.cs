@@ -23,6 +23,19 @@ using SenseNet.SearchImpl.Tests.Implementations;
 
 namespace SenseNet.SearchImpl.Tests
 {
+    /// <summary>
+    /// Test indexing engine implementation for throwing an exception during testing.
+    /// </summary>
+    internal class Lucene29IndexingEngineFailStartup : Lucene29IndexingEngine
+    {
+        protected override void Startup(TextWriter consoleOut)
+        {
+            base.Startup(consoleOut);
+
+            throw new InvalidOperationException("Exception thrown for testing purposes, ignore it.");
+        }
+    }
+
     [TestClass]
     public class Lucene29Tests : TestBase
     {
@@ -125,6 +138,125 @@ namespace SenseNet.SearchImpl.Tests
             Assert.AreEqual(1, queryResult1.Identifiers.FirstOrDefault());
             Assert.AreEqual(1, queryResult2.Count);
             Assert.AreEqual(0, queryResult2.Identifiers.FirstOrDefault());
+        }
+
+        [TestMethod, TestCategory("IR, L29")]
+        [Timeout(20 * 1000)]
+        public void L29_StartUpFail()
+        {
+            Assert.Inconclusive("Currently the write.lock cleanup does not work correctly in a test environment.");
+
+            var dataProvider = new InMemoryDataProvider();
+            var securityDataProvider = GetSecurityDataProvider(dataProvider);
+
+            // Search engine that contains an indexing engine that will throw 
+            // an exception during startup to test index directory cleanup.
+            var searchEngine = new Lucene29SearchEngine
+            {
+                IndexingEngine = new Lucene29IndexingEngineFailStartup()
+            };
+
+            Indexing.IsOuterSearchEngineEnabled = true;
+            CommonComponents.TransactionFactory = dataProvider;
+            DistributedApplication.Cache.Reset();
+
+            var indxManConsole = new StringWriter();
+            var repoBuilder = new RepositoryBuilder()
+                .UseDataProvider(dataProvider)
+                .UseAccessProvider(new DesktopAccessProvider())
+                .UsePermissionFilterFactory(new EverythingAllowedPermissionFilterFactory())
+                .UseSearchEngine(searchEngine)
+                .UseSecurityDataProvider(securityDataProvider)
+                .UseCacheProvider(new EmptyCache())
+                .StartWorkflowEngine(false)
+                .UseTraceCategories(new [] { "Test", "Event", "Repository", "System" });
+
+            repoBuilder.Console = indxManConsole;
+
+            try
+            {
+                using (Repository.Start(repoBuilder))
+                {
+                    // Although the repo start process fails, the next startup
+                    // should clean the lock file from the index directory.
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                // expected
+            }
+
+            // revert to a regular search engine that does not throw an exception
+            repoBuilder.UseSearchEngine(new Lucene29SearchEngine());
+
+            var originalTimeout = Indexing.IndexLockFileWaitForRemovedTimeout;
+
+            try
+            {
+                // remove lock file after 5 seconds
+                Indexing.IndexLockFileWaitForRemovedTimeout = 5;
+
+                // Start the repo again to check if indexmanager is able to start again correctly.
+                using (Repository.Start(repoBuilder))
+                {
+
+                }
+            }
+            finally
+            {
+                Indexing.IndexLockFileWaitForRemovedTimeout = originalTimeout;
+            }
+        }
+
+        [TestMethod, TestCategory("IR, L29")]
+        [Timeout(10 * 1000)]
+        public void L29_SwitchOffRunningState()
+        {
+            var dataProvider = new InMemoryDataProvider();
+            var securityDataProvider = GetSecurityDataProvider(dataProvider);
+            var indexingEngine = new Lucene29IndexingEngine();
+
+            var searchEngine = new Lucene29SearchEngine
+            {
+                IndexingEngine = indexingEngine
+            };
+
+            Indexing.IsOuterSearchEngineEnabled = true;
+            CommonComponents.TransactionFactory = dataProvider;
+            DistributedApplication.Cache.Reset();
+
+            var indxManConsole = new StringWriter();
+            var repoBuilder = new RepositoryBuilder()
+                .UseDataProvider(dataProvider)
+                .UseAccessProvider(new DesktopAccessProvider())
+                .UsePermissionFilterFactory(new EverythingAllowedPermissionFilterFactory())
+                .UseSearchEngine(searchEngine)
+                .UseSecurityDataProvider(securityDataProvider)
+                .UseCacheProvider(new EmptyCache())
+                .StartWorkflowEngine(false)
+                .UseTraceCategories(new[] { "Test", "Event", "Repository", "System" });
+
+            repoBuilder.Console = indxManConsole;
+
+            try
+            {
+                using (Repository.Start(repoBuilder))
+                {
+                    // Switch off the running flag. The shutdown mechanism
+                    // should still clean up the index directory.
+                    indexingEngine.Running = false;
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                // expected
+            }
+
+            // Start the repo again to check if indexmanager is able to start again correctly.
+            using (Repository.Start(repoBuilder))
+            {
+
+            }
         }
 
         private ContentQuery_NEW CreateSafeContentQuery(string qtext)
