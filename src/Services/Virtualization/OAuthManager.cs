@@ -1,26 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using SenseNet.Configuration;
 using SenseNet.Portal.Virtualization;
 
 namespace SenseNet.Services.Virtualization
 {
-    public class OAuthProviderFactory
+    public class OAuthManager
     {
         //UNDONE: get it from the Providers class when available
-        public static OAuthProviderFactory Instance = new OAuthProviderFactory();
+        public static OAuthManager Instance = new OAuthManager();
 
-        public OAuthProvider GetProvider(string name)
+        protected virtual OAuthProvider GetProvider(string name)
         {
-            throw new NotImplementedException();
+            //UNDONE: where do we set these providers?
+            return Providers.Instance.GetProvider<OAuthProvider>("oauth-" + name);
         }
-    }
-
-    public class OAuthProvider
-    {
+    
         private const string OAuthPath = "/sn-oauth";
 
         public bool Authenticate(HttpApplication application)
@@ -33,8 +34,23 @@ namespace SenseNet.Services.Virtualization
             if (string.IsNullOrEmpty(providerName))
                 throw new InvalidOperationException("Provider parameter is missing.");
 
-            //UNDONE:
-            //var oap = OAuthProviderFactory.Instance.GetProvider(providerName);
+            var provider = this.GetProvider(providerName);
+
+            //UNDONE: get the token from the request 
+            // Load and pass the whole body stream, extracting the token is the 
+            // reposonsibility of the provider.
+
+            string body;
+            using (var reader = new StreamReader(request.InputStream))
+            {
+                body = reader.ReadToEnd();
+            }
+            
+            var principal = provider.VerifyToken(body);
+
+            //UNDONE: implement user loading or creation
+            // Who's responsibility is creating the user? The provider knows the user field 
+            // where it stores its id, it knows about other fields (e.g. email) to fill.
             
             return false;
         }
