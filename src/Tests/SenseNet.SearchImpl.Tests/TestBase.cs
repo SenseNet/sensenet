@@ -64,6 +64,7 @@ namespace SenseNet.SearchImpl.Tests
         {
             SnTrace.Test.Enabled = true;
             SnTrace.Test.Write("END test: {0}", TestContext.TestName);
+            SnTrace.Flush();
         }
 
         protected T Test<T>(Func<T> callback)
@@ -78,7 +79,7 @@ namespace SenseNet.SearchImpl.Tests
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .UseCacheProvider(new EmptyCache())
                 .StartWorkflowEngine(false)
-                .UseTraceCategories(new[] { "Test", "System", "Repository" })))
+                .UseTraceCategories(new[] { "Test", "Event", "System", "Repository" })))
             using (new SystemAccount())
             {
                 return callback();

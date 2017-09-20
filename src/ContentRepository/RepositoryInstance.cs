@@ -403,6 +403,7 @@ namespace SenseNet.ContentRepository
                     SnTrace.Repository.Write("Shutting down LuceneManager.");
                     IndexManager.ShutDown();
                 }
+                ContextHandler.Reset();
 
                 var t = DateTime.UtcNow - _instance._startupInfo.Starting;
                 var msg = $"Repository has stopped. Running time: {t.Days}.{t.Hours:d2}:{t.Minutes:d2}:{t.Seconds:d2}";
