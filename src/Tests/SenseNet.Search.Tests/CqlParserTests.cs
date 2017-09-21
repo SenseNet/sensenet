@@ -243,7 +243,7 @@ namespace SenseNet.Search.Tests
             TestError("_Text:\"aaa bbb\"~");
             TestError("Name:aaa~1.5");
             TestError("Name:aaa^x");
-            //UNDONE: Nullref exception in this test: Test("Name:()");
+            //UNDONE: TEST: Nullref exception in this test: Test("Name:()");
         }
 
         private SnQuery Test(string queryText, string expected = null)
@@ -365,7 +365,7 @@ namespace SenseNet.Search.Tests
             }
         }
 
-        //UNDONE: Move this test to QueryClassifier tests
+        //UNDONE: TEST: Move this test to QueryClassifier tests
         //[TestMethod, TestCategory("IR")]
         //public void SnQuery_Parser_UsedFieldNames()
         //{

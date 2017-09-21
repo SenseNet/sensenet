@@ -23,7 +23,7 @@ using SenseNet.Search.Lucene29.QueryExecutors;
 
 namespace SenseNet.Search
 {
-    public class LucQuery
+    public class LucQuery //UNDONE:!!! After LINQ: Delete ASAP
     {
         private static string[] _headOnlyFields = SenseNet.ContentRepository.Storage.Node.GetHeadOnlyProperties();
 
@@ -197,7 +197,7 @@ namespace SenseNet.Search
 
         // ========================================================================================
 
-        [Obsolete("", false)] //UNDONE:!!!!!!!!!!! [Obsolete("", true)]
+        [Obsolete("", false)] //UNDONE:!!! LINQ: [Obsolete("", true)]
         public IEnumerable<LucObject> Execute()
         {
             return Execute(false);

@@ -29,6 +29,6 @@ namespace SenseNet.Search
 
         public bool CountAllPages { get; set; }
 
-        //UNDONE:!!!!!!!!!!!!!!!!!! AllVersions ???
+        //UNDONE: TEST: AllVersions ???
     }
 }

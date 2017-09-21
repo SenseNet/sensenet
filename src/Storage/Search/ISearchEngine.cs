@@ -52,7 +52,7 @@ namespace SenseNet.ContentRepository.Storage.Search
 
         void SetIndexingInfo(object indexingInfo);
 
-        IIndexPopulator GetPopulator(); //UNDONE: not SearchEngine responsibility: GetPopulator()
+        IIndexPopulator GetPopulator(); //UNDONE: REFACTOR: not SearchEngine responsibility: GetPopulator()
     }
     public class InternalSearchEngine : ISearchEngine
     {

@@ -522,7 +522,7 @@ new StackInfo
             if (cdef.QueryExecutionMode != QueryExecutionMode.Default)
                 lucQuery.QueryExecutionMode = cdef.QueryExecutionMode;
 
-            var result = lucQuery.Execute(); //UNDONE:!!!!!!!!!!! Use SnQuery instead of LucQuery
+            var result = lucQuery.Execute(); //UNDONE:!!! LINQ: Use SnQuery instead of LucQuery
             var idResult = result.Select(x => x.NodeId);
             // for optimization purposes this combined condition is examined separately
             if (req.InlineCount == InlineCount.AllPages && req.CountOnly)

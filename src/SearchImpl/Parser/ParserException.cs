@@ -6,7 +6,7 @@ using System.Text;
 namespace SenseNet.Search.Parser
 {
 	[global::System.Serializable]
-	public class ParserException_OLD : Exception //UNDONE:!!! Delete ASAP
+	public class ParserException_OLD : Exception //UNDONE:!!! After LINQ: Delete ASAP
     {
 		public LineInfo_OLD LineInfo { get; private set; }
 

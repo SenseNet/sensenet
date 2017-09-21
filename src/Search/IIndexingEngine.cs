@@ -23,16 +23,16 @@ namespace SenseNet.Search
 
         void ShutDown();
 
-        void ActivityFinished(); //UNDONE:!!!!! Remove if possible
-        void Commit(int lastActivityId = 0); //UNDONE:!!!!! Remove if possible
+        void ActivityFinished(); //UNDONE:!!!!! API COMMIT: Remove if possible
+        void Commit(int lastActivityId = 0); //UNDONE:!!!!! API COMMIT: Remove if possible
 
         void ClearIndex();
 
         IIndexingActivityStatus ReadActivityStatusFromIndex();
-        void WriteActivityStatusToIndex(IIndexingActivityStatus state); //UNDONE:!!!!! Finalize/Validate this method (not called)
+        void WriteActivityStatusToIndex(IIndexingActivityStatus state); //UNDONE:!!!!! API COMMIT: Finalize/Validate this method (not called)
 
         /// <summary>Only for tests.</summary>
-        IEnumerable<IndexDocument> GetDocumentsByNodeId(int nodeId); //UNDONE:!!!!! Remove if possible
+        IEnumerable<IndexDocument> GetDocumentsByNodeId(int nodeId); //UNDONE:!!!!! API: Remove if possible
 
         void WriteIndex(IEnumerable<SnTerm> deletions, IndexDocument addition, IEnumerable<DocumentUpdate> updates);
         void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<IndexDocument> addition);

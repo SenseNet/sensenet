@@ -125,7 +125,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         {
             var fieldValues = new List<string>();
 
-            if (field.Name == IndexFieldName.AllText) //UNDONE: Need to use analyzer
+            if (field.Name == IndexFieldName.AllText) //UNDONE: TEST: Need to use analyzer
             {
                 var words = field.StringValue.Split("\t\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
                 fieldValues.AddRange(words);

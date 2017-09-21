@@ -27,7 +27,7 @@ namespace SenseNet.SearchImpl.Tests
     [TestClass]
     public class Lucene29Tests : TestBase
     {
-        //UNDONE:!!!!!! Use these tests
+        //UNDONE:!!!!! TEST: Use these tests
 
         //[TestMethod, TestCategory("IR, L29")]
         //[Timeout(20 * 1000)]

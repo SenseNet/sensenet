@@ -172,7 +172,7 @@ namespace SenseNet.ContentRepository.Linq
                 TraceLog.Append("Query:      ").AppendLine(query.ToString());
                 TraceLog.AppendLine("--------------");
             }
-            var result = this.ExecuteQuery ? query.Execute() : null; //UNDONE:!!!!!!!!!!! Use SnQuery instead of LucQuery
+            var result = this.ExecuteQuery ? query.Execute() : null; //UNDONE:!!! LINQ: Use SnQuery instead of LucQuery
             if (query.CountOnly)
             {
                 if (this.ExecuteQuery)

@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 
 namespace SenseNet.Search.Parser.Predicates
 {
-    //UNDONE: Can be term, fuzzy, prefix, wildcard, phrase query
-    //UNDONE: Fuzzy is converted to Slope if the result is PhraseQuery
     public class TextPredicate : SnQueryPredicate
     {
         public string FieldName { get; }

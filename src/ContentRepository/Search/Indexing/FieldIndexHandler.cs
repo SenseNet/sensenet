@@ -16,7 +16,7 @@ using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search.Parser;
 
-//UNDONE: Refactor after Lucene "usings" removed (Lucene and SN fields are conflicted)
+//UNDONE: REFACTOR after Lucene "usings" removed (Lucene and SN fields are conflicted)
 namespace SenseNet.Search.Indexing
 {
 
@@ -35,7 +35,7 @@ namespace SenseNet.Search.Indexing
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        [Obsolete("", false)]//UNDONE:!! do not use in parser
+        [Obsolete("", false)]//UNDONE:!! After LINQ: do not use in parser
         public abstract bool TryParseAndSet(IQueryFieldValue value);
         /// <summary>
         /// For LINQ
@@ -269,7 +269,7 @@ namespace SenseNet.Search.Indexing
         }
         public override IEnumerable<string> GetParsableValues(ISnField snField)
         {
-            var data = (SenseNet.ContentRepository.Fields.HyperLinkField.HyperlinkData)((SnCR.Field)snField).GetData(); //UNDONE: Really disgusting solution...
+            var data = (SenseNet.ContentRepository.Fields.HyperLinkField.HyperlinkData)((SnCR.Field)snField).GetData(); //UNDONE: REFACTOR: Really disgusting solution...
             if (data == null)
             {
                 return null;

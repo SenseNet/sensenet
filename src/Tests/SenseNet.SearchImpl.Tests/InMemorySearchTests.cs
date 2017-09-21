@@ -299,7 +299,7 @@ namespace SenseNet.SearchImpl.Tests
                 node1.Name = "Node1Renamed";
                 SaveNode(node1);
 
-                DistributedApplication.Cache.Reset(); //UNDONE:!!!!!!!!! The test should work without explicitly cleared cache
+                DistributedApplication.Cache.Reset(); //UNDONE:!!!!! TEST: The test should work without explicitly cleared cache
 
                 // reload the newly created.
                 nodes = new[]
@@ -1004,11 +1004,11 @@ namespace SenseNet.SearchImpl.Tests
                 {
                     throw new NotImplementedException();
                 }
-                public void WriteActivityStatusToIndex(IIndexingActivityStatus state) //UNDONE:!!!!! Finalize/Validate this method (not called)
+                public void WriteActivityStatusToIndex(IIndexingActivityStatus state) //UNDONE:!!!!! API: Finalize/Validate this method (not called)
                 {
                     throw new NotImplementedException();
                 }
-                public IEnumerable<IndexDocument> GetDocumentsByNodeId(int nodeId)
+                public IEnumerable<IndexDocument> GetDocumentsByNodeId(int nodeId) //UNDONE:!!!!! API: Remove if possible
                 {
                     throw new NotImplementedException();
                 }

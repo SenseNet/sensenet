@@ -294,7 +294,7 @@ namespace SenseNet.Search.Lucene29
                 return CompletionState.ParseFromReader(readerFrame.IndexReader);
         }
 
-        public void WriteActivityStatusToIndex(IIndexingActivityStatus state) //UNDONE:!!!!! Finalize/Validate this method (not called)
+        public void WriteActivityStatusToIndex(IIndexingActivityStatus state) //UNDONE:!!!!! API: Finalize/Validate this method (not called)
         {
             throw new NotImplementedException();
         }
@@ -804,7 +804,7 @@ namespace SenseNet.Search.Lucene29
         /* ================================================================== Tools */
 
         /// <summary> For test purposes. </summary>
-        public IEnumerable<IndexDocument> GetDocumentsByNodeId(int nodeId)
+        public IEnumerable<IndexDocument> GetDocumentsByNodeId(int nodeId) //UNDONE:!!!!! API: Remove if possible
         {
             using (var readerFrame = GetIndexReaderFrame())
             {

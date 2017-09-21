@@ -13,7 +13,7 @@ namespace SenseNet.Search
         IQueryEngine QueryEngine { get; }
         IMetaQueryEngine MetaQueryEngine { get; }
 
-        bool AllVersions { get; set; } //UNDONE: Move or not to QuerySettings.
+        bool AllVersions { get; set; } //UNDONE: TEST: AllVersions: Move or not to QuerySettings.
 
         IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName);
     }

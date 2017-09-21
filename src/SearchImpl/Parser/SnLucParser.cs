@@ -19,7 +19,7 @@ using SenseNet.Search.Lucene29;
 
 namespace SenseNet.Search.Parser
 {
-    public class QueryFieldValue_OLD : IQueryFieldValue //UNDONE:!!! Delete ASAP
+    public class QueryFieldValue_OLD : IQueryFieldValue //UNDONE:!!! After LINQ: Delete ASAP
     {
         internal bool IsPhrase { get; private set; }
         internal SnLucLexer.Token Token { get; private set; }
@@ -78,7 +78,7 @@ namespace SenseNet.Search.Parser
         }
     }
 
-    internal class SnLucParser //UNDONE:!!! Delete ASAP
+    internal class SnLucParser //UNDONE:!!! After LINQ: Delete ASAP
     {
         public enum DefaultOperator { Or, And }
 

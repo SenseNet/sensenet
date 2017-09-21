@@ -8,7 +8,7 @@ using SenseNet.Diagnostics;
 
 namespace SenseNet.Search.Lucene29
 {
-    //UNDONE:!!!! L29 Testability: IndexDirectory instance need to be stored somewhere in the RepositoryInstance
+    //UNDONE:!!!!! TEST: L29 Testability: IndexDirectory instance need to be stored somewhere in the RepositoryInstance
     public class IndexDirectory
     {
         private static readonly string DEFAULTDIRECTORYNAME = "0";

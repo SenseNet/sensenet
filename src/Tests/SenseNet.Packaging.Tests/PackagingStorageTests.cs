@@ -30,7 +30,7 @@ namespace SenseNet.Packaging.Tests
                 DataProcedureFactory = Factory
             };
 
-            //UNDONE: set provider locally (per-thread) instead of changing 
+            //UNDONE: TEST: set provider locally (per-thread) instead of changing 
             //the global value, that is used by every test.
             Providers.Instance.DataProvider = sqlProvider;
         }

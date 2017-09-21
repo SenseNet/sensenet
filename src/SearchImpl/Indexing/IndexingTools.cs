@@ -41,7 +41,7 @@ namespace SenseNet.Search.Indexing
                 StorageContext.Search.SearchEngine.GetPopulator().RebuildIndex(node);
         }
 
-        //UNDONE: Temporarily commented out: GetExplicitPerFieldIndexingInfo
+        //UNDONE: Unused but useful tool temporarily commented out: GetAllFieldNames
 
         /// <summary>
         /// Gets the name of every field in the system.
@@ -58,7 +58,7 @@ namespace SenseNet.Search.Indexing
             throw new NotImplementedException();
         }
 
-        //UNDONE: Temporarily commented out: GetExplicitPerFieldIndexingInfo
+        //UNDONE: Unused but useful tool temporarily commented out: GetExplicitPerFieldIndexingInfo
 
         /// <summary>
         /// Gets detailed indexing information about all fields in the repository.
@@ -137,7 +137,7 @@ namespace SenseNet.Search.Indexing
             throw new NotImplementedException();
         }
 
-        //UNDONE: Temporarily commented out: GetExplicitIndexingInfo
+        //UNDONE: Unused but useful tool temporarily commented out: GetExplicitIndexingInfo
 
         /// <summary>
         /// Gets explicit per-field indexing information collected into a table.

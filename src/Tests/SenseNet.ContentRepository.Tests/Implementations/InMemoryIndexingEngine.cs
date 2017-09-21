@@ -46,7 +46,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             return IndexingActivityStatus.Startup;
         }
 
-        public void WriteActivityStatusToIndex(IIndexingActivityStatus state) //UNDONE:!!!!! Finalize/Validate this method (not called)
+        public void WriteActivityStatusToIndex(IIndexingActivityStatus state) //UNDONE:!!!!! API: Finalize/Validate this method (not called)
         {
             throw new NotImplementedException();
         }
