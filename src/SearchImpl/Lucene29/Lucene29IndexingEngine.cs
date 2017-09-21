@@ -165,10 +165,11 @@ namespace SenseNet.Search.Lucene29
         }
 
         public bool Running { get; internal set; }
+        internal IndexDirectory IndexDirectory { get; }
 
-        public Lucene29IndexingEngine()
+        public Lucene29IndexingEngine(IndexDirectory indexDirectory = null)
         {
-            
+            IndexDirectory = indexDirectory ?? new IndexDirectory();
         }
         public Lucene29IndexingEngine(TimeSpan forceReopenFrequency)
         {
@@ -190,7 +191,7 @@ namespace SenseNet.Search.Lucene29
                 }
             }
         }
-        protected virtual void Startup(System.IO.TextWriter consoleOut)
+        protected virtual void Startup(TextWriter consoleOut)
         {
             WaitForWriterLockFileIsReleased(WaitForLockFileType.OnStart);
 
@@ -258,7 +259,7 @@ namespace SenseNet.Search.Lucene29
             _reader?.Close();
             _writer?.Close();
 
-            var dir = FSDirectory.Open(new System.IO.DirectoryInfo(IndexDirectory.CurrentOrDefaultDirectory));
+            var dir = FSDirectory.Open(new System.IO.DirectoryInfo(IndexDirectory.CurrentDirectory));
             var writer = new IndexWriter(dir, GetAnalyzer(), true, IndexWriter.MaxFieldLength.UNLIMITED);
             writer.Commit();
             writer.Close();
@@ -293,7 +294,7 @@ namespace SenseNet.Search.Lucene29
         /// If timeout is exceeded an error is logged and execution continues. For errors at OnStart an email is also sent to a configured address.
         /// </summary>
         /// <param name="waitType">A parameter that influences the logged error message and email template only.</param>
-        public static void WaitForWriterLockFileIsReleased(WaitForLockFileType waitType)
+        public void WaitForWriterLockFileIsReleased(WaitForLockFileType waitType)
         {
             // check if writer.lock is still there -> if yes, wait for other appdomain to quit or lock to disappear - until a given timeout.
             // after timeout is passed, Repository.Start will deliberately attempt to remove lock file on following startup
@@ -345,7 +346,7 @@ namespace SenseNet.Search.Lucene29
         /// Returns true if the lock was released. Returns false if the time has expired.
         /// </summary>
         /// <returns>Returns true if the lock was released. Returns false if the time has expired.</returns>
-        public static bool WaitForWriterLockFileIsReleased()
+        public bool WaitForWriterLockFileIsReleased()
         {
             return WaitForWriterLockFileIsReleased(IndexDirectory.CurrentDirectory);
         }
@@ -402,7 +403,7 @@ namespace SenseNet.Search.Lucene29
             if (lockFilePath == null)
                 return;
 
-            consoleOut.WriteLine($"Index: {IndexDirectory.CurrentOrDefaultDirectory}");
+            consoleOut.WriteLine($"Index: {IndexDirectory.CurrentDirectory}");
 
             if (System.IO.File.Exists(lockFilePath))
             {
@@ -695,7 +696,7 @@ namespace SenseNet.Search.Lucene29
             // new IndexWriter(createNew = false) cannot be created if the directory is empty
             if (System.IO.Directory.GetFiles(path).Any())
                 return;
-            var dir = FSDirectory.Open(new System.IO.DirectoryInfo(IndexDirectory.CurrentOrDefaultDirectory));
+            var dir = FSDirectory.Open(new System.IO.DirectoryInfo(IndexDirectory.CurrentDirectory));
             var writer = new IndexWriter(dir, GetAnalyzer(), true, IndexWriter.MaxFieldLength.UNLIMITED);
             writer.Commit();
             writer.Close();

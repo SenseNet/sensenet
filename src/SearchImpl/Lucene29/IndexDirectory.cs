@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using SenseNet.ContentRepository.Storage;
@@ -8,45 +7,20 @@ using SenseNet.Diagnostics;
 
 namespace SenseNet.Search.Lucene29
 {
-    //UNDONE:!!!!! TEST: L29 Testability: IndexDirectory instance need to be stored somewhere in the RepositoryInstance
     public class IndexDirectory
     {
         private static readonly string DEFAULTDIRECTORYNAME = "0";
 
-        public static bool Exists
-        {
-            get { return CurrentDirectory != null; }
-        }
-        public static string CurrentOrDefaultDirectory
-        {
-            get
-            {
-                if (CurrentDirectory != null)
-                    return CurrentDirectory;
-                var path = Path.Combine(StorageContext.Search.IndexDirectoryPath, DEFAULTDIRECTORYNAME);
-                Directory.CreateDirectory(path);
-                Reset();
-                return CurrentDirectory;
-            }
-        }
-        public static string CurrentDirectory
-        {
-            get { return Instance.CurrentDirectoryPrivate; }
-        }
-        public static string CreateNew()
-        {
-            var name = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
-            var path = Path.Combine(StorageContext.Search.IndexDirectoryPath, name);
-            Directory.CreateDirectory(path);
-            Debug.WriteLine($"@> {AppDomain.CurrentDomain.FriendlyName} -------- new index directory: {path}");
-            return path;
-        }
-        public static void Reset()
-        {
-            Debug.WriteLine($"@> {AppDomain.CurrentDomain.FriendlyName} -------- IndexDirectory reset");
-            Instance._currentDirDone = false;
-            Instance._currentDirectory = null;
-        }
+        //================================================================================== Instance API
+
+        public string Name { get; }
+
+        private readonly Lazy<string> _currentDirectory;
+        public string CurrentDirectory => _currentDirectory.Value;
+        public string IndexLockFilePath => Path.Combine(CurrentDirectory, "write.lock");
+        
+        //================================================================================== Static API
+        
         public static void RemoveUnnecessaryDirectories()
         {
             var root = StorageContext.Search.IndexDirectoryPath;
@@ -55,7 +29,7 @@ namespace SenseNet.Search.Lucene29
             var unnecessaryDirs = Directory.GetDirectories(root)
                 .Where(a => char.IsDigit(Path.GetFileName(a)[0]))
                 .OrderByDescending(s => s)
-                .Skip(2).Where(x => Deletable(x));
+                .Skip(2).Where(Deletable);
             foreach (var dir in unnecessaryDirs)
             {
                 try
@@ -64,7 +38,6 @@ namespace SenseNet.Search.Lucene29
                 }
                 catch (Exception e)
                 {
-                    Debug.WriteLine(String.Concat("Cannot delete the directory: ", dir, ", ", e.Message));
                     SnLog.WriteWarning("Cannot delete the directory: " + dir, properties: new Dictionary<string, object> { { "Reason", e.Message }, { "StackTrace", e.StackTrace } });
                 }
             }
@@ -72,62 +45,49 @@ namespace SenseNet.Search.Lucene29
         private static bool Deletable(string path)
         {
             var time = new DirectoryInfo(path).CreationTime;
-            if (time.AddMinutes(10) < DateTime.UtcNow)
-                return true;
-            return false;
+
+            return time.AddMinutes(10) < DateTime.UtcNow;
         }
 
-        public static string IndexLockFilePath => Exists ? Path.Combine(CurrentDirectory, "write.lock") : null;
+        //================================================================================== Construction
 
-        // ==================================================================================
-
-        private IndexDirectory() { }
-        private static object _sync = new object();
-        private static IndexDirectory _instance;
-        private static IndexDirectory Instance
+        internal IndexDirectory(string name = null)
         {
-            get
-            {
-                if (_instance == null)
-                {
-                    lock (_sync)
-                    {
-                        if (_instance == null)
-                            _instance = new IndexDirectory();
-                    }
-                }
-                return _instance;
-            }
+            Name = name;
+            _currentDirectory = new Lazy<string>(GetCurrentDirectory);
         }
 
-        // ==================================================================================
+        //================================================================================== Helper methods
 
-        private string _currentDirectory;
-        private bool _currentDirDone;
-        private string CurrentDirectoryPrivate
+        private string CreateNew()
         {
-            get
-            {
-                if (!_currentDirDone)
-                {
-                    _currentDirectory = GetCurrentDirectory();
-                    _currentDirDone = true;
-                }
-                return _currentDirectory;
-            }
+            var name = Name ?? DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+            var path = Path.Combine(StorageContext.Search.IndexDirectoryPath, name);
+
+            Directory.CreateDirectory(path);
+            SnTrace.Index.Write("New index directory: {0}", path);
+
+            return path;
         }
         private string GetCurrentDirectory()
         {
             var root = StorageContext.Search.IndexDirectoryPath;
             EnsureFirstDirectory(root);
 
+            if (!string.IsNullOrEmpty(Name))
+            {
+                //UNDONE: maybe clean up the directory if we have found it?
+                var namedDirectory = Path.Combine(root, Name);
+                if (!Directory.Exists(namedDirectory))
+                    CreateNew();
+
+                return namedDirectory;
+            }
+
             var path = Directory.GetDirectories(root)
                 .Where(a => char.IsDigit(Path.GetFileName(a)[0]))
                 .OrderBy(s => s)
-                .LastOrDefault();
-
-            if (path == null)
-                path = CreateNew();
+                .LastOrDefault() ?? CreateNew();
 
             return path;
         }
