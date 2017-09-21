@@ -164,7 +164,7 @@ namespace SenseNet.Search.Lucene29
             }
         }
 
-        public bool Running { get; private set; }
+        public bool Running { get; internal set; }
 
         public Lucene29IndexingEngine()
         {
@@ -190,7 +190,7 @@ namespace SenseNet.Search.Lucene29
                 }
             }
         }
-        private void Startup(System.IO.TextWriter consoleOut)
+        protected virtual void Startup(System.IO.TextWriter consoleOut)
         {
             WaitForWriterLockFileIsReleased(WaitForLockFileType.OnStart);
 
@@ -223,9 +223,6 @@ namespace SenseNet.Search.Lucene29
 
         public void ShutDown()
         {
-            if (!Running)
-                return;
-
             using (var op = SnTrace.Index.StartOperation("LUCENEMANAGER SHUTDOWN"))
             {
                 if (_writer != null)
@@ -240,6 +237,9 @@ namespace SenseNet.Search.Lucene29
                             _reader?.Close();
                             _writer?.Close();
                             Running = false;
+                            
+                            _writer = null;
+                            _reader = null;
                         }
                         op2.Successful = true;
                     }
