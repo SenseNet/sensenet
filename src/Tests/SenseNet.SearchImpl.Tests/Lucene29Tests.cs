@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -140,6 +141,12 @@ namespace SenseNet.SearchImpl.Tests
         //    Assert.AreEqual(1, queryResult2.Count);
         //    Assert.AreEqual(0, queryResult2.Identifiers.FirstOrDefault());
         //}
+
+        [ClassCleanup]
+        public static void ClassCleanup()
+        {
+            DeleteIndexDirectories();
+        }
 
         [TestMethod, TestCategory("IR, L29")]
         //[Timeout(20*1000)]
@@ -305,20 +312,18 @@ namespace SenseNet.SearchImpl.Tests
             }
         }
 
-        private ContentQuery_NEW CreateSafeContentQuery(string qtext)
+        [TestMethod, TestCategory("IR, L29")]
+        [Timeout(10 * 1000)]
+        public void L29_NamedIndexDirectory()
         {
-            var cquery = ContentQuery_NEW.CreateQuery(qtext, QuerySettings.AdminSettings);
-            var cqueryAcc = new PrivateObject(cquery);
-            cqueryAcc.SetFieldOrProperty("IsSafe", true);
-            return cquery;
-        }
+            var folderName = "Test_" + System.Reflection.MethodBase.GetCurrentMethod().Name;
 
-        /* ======================================================================================= */
-
-        protected T L29Test<T>(Func<string, T> callback)
-        {
             var dataProvider = new InMemoryDataProvider();
-            var securityDataProvider = GetSecurityDataProvider(dataProvider);
+            var indexingEngine = new Lucene29IndexingEngine(new IndexDirectory(folderName));
+            var searchEngine = new Lucene29SearchEngine
+            {
+                IndexingEngine = indexingEngine
+            };
 
             Indexing.IsOuterSearchEngineEnabled = true;
             CommonComponents.TransactionFactory = dataProvider;
@@ -329,7 +334,57 @@ namespace SenseNet.SearchImpl.Tests
                 .UseDataProvider(dataProvider)
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UsePermissionFilterFactory(new EverythingAllowedPermissionFilterFactory())
-                .UseSearchEngine(new Lucene29SearchEngine())
+                .UseSearchEngine(searchEngine)
+                .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
+                .UseCacheProvider(new EmptyCache())
+                .StartWorkflowEngine(false)
+                .UseTraceCategories(new[] { "Test", "Event", "Repository", "System" });
+
+            repoBuilder.Console = indxManConsole;
+
+            using (Repository.Start(repoBuilder))
+            {
+                var expectedPath = Path.Combine(StorageContext.Search.IndexDirectoryPath, folderName);
+
+                Assert.AreEqual(expectedPath,
+                    indexingEngine.IndexDirectory.CurrentDirectory);
+                Assert.AreEqual(Path.Combine(expectedPath, "write.lock"),
+                    indexingEngine.IndexDirectory.IndexLockFilePath);
+                Assert.IsTrue(System.IO.File.Exists(indexingEngine.IndexDirectory.IndexLockFilePath));
+            }
+        }
+
+        private ContentQuery_NEW CreateSafeContentQuery(string qtext)
+        {
+            var cquery = ContentQuery_NEW.CreateQuery(qtext, QuerySettings.AdminSettings);
+            var cqueryAcc = new PrivateObject(cquery);
+            cqueryAcc.SetFieldOrProperty("IsSafe", true);
+            return cquery;
+        }
+
+        /* ======================================================================================= */
+
+        protected T L29Test<T>(Func<string, T> callback, [CallerMemberName]string memberName = "")
+        {
+            var dataProvider = new InMemoryDataProvider();
+            var securityDataProvider = GetSecurityDataProvider(dataProvider);
+            var indexFolderName = "Test_" + memberName;
+            var indexingEngine = new Lucene29IndexingEngine(new IndexDirectory(indexFolderName));
+            var searchEngine = new Lucene29SearchEngine
+            {
+                IndexingEngine = indexingEngine
+            };
+
+            Indexing.IsOuterSearchEngineEnabled = true;
+            CommonComponents.TransactionFactory = dataProvider;
+            DistributedApplication.Cache.Reset();
+
+            var indxManConsole = new StringWriter();
+            var repoBuilder = new RepositoryBuilder()
+                .UseDataProvider(dataProvider)
+                .UseAccessProvider(new DesktopAccessProvider())
+                .UsePermissionFilterFactory(new EverythingAllowedPermissionFilterFactory())
+                .UseSearchEngine(searchEngine)
                 .UseSecurityDataProvider(securityDataProvider)
                 .UseCacheProvider(new EmptyCache())
                 .StartWorkflowEngine(false);
@@ -355,7 +410,7 @@ namespace SenseNet.SearchImpl.Tests
             }
             finally
             {
-                DeleteIndexDirectories();
+                //DeleteIndexDirectories();
             }
 
             return result;
@@ -390,11 +445,11 @@ namespace SenseNet.SearchImpl.Tests
             var path = StorageContext.Search.IndexDirectoryPath;
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
-            IndexDirectory.CreateNew();
+            //IndexDirectory.Instance.CreateNew();
             //IndexManager.ClearIndex();
         }
 
-        public void DeleteIndexDirectories()
+        public static void DeleteIndexDirectories()
         {
             var path = StorageContext.Search.IndexDirectoryPath;
             foreach (var indexDir in Directory.GetDirectories(path))
@@ -418,7 +473,5 @@ namespace SenseNet.SearchImpl.Tests
                 }
             }
         }
-
-
     }
 }
