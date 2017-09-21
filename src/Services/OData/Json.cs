@@ -109,7 +109,7 @@ namespace SenseNet.Portal.OData
         public int IncludeBackUrl { get; set; }
         public bool ClientAction { get; set; }
         public bool IsODataAction { get; set; }
-        public string ActionParameters { get; set; }
+        public string[] ActionParameters { get; set; }
         public bool Forbidden { get; set; }
     }
 
