@@ -5,6 +5,7 @@ using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Security.Messaging;
@@ -24,6 +25,8 @@ namespace SenseNet.ContentRepository
         public RepositoryBuilder UseDataProvider(DataProvider dataProvider)
         {
             Configuration.Providers.Instance.DataProvider = dataProvider;
+            WriteLog("DataProvider", dataProvider);
+
             return this;
         }
         /// <summary>
@@ -33,6 +36,8 @@ namespace SenseNet.ContentRepository
         public RepositoryBuilder UseAccessProvider(AccessProvider accessProvider)
         {
             Configuration.Providers.Instance.AccessProvider = accessProvider;
+            WriteLog("AccessProvider", accessProvider);
+
             return this;
         }
         /// <summary>
@@ -42,6 +47,8 @@ namespace SenseNet.ContentRepository
         public RepositoryBuilder UsePermissionFilterFactory(IPermissionFilterFactory permissionFilterFactory)
         {
             Configuration.Providers.Instance.PermissionFilterFactory = permissionFilterFactory;
+            WriteLog("PermissionFilterFactory", permissionFilterFactory);
+
             return this;
         }
         /// <summary>
@@ -51,6 +58,8 @@ namespace SenseNet.ContentRepository
         public RepositoryBuilder UseSecurityDataProvider(ISecurityDataProvider securityDataProvider)
         {
             Configuration.Providers.Instance.SecurityDataProvider = securityDataProvider;
+            WriteLog("SecurityDataProvider", securityDataProvider);
+
             return this;
         }
         /// <summary>
@@ -60,6 +69,8 @@ namespace SenseNet.ContentRepository
         public RepositoryBuilder UseSecurityMessageProvider(IMessageProvider securityMessageProvider)
         {
             Configuration.Providers.Instance.SecurityMessageProvider = securityMessageProvider;
+            WriteLog("SecurityMessageProvider", securityMessageProvider);
+
             return this;
         }
         /// <summary>
@@ -69,6 +80,8 @@ namespace SenseNet.ContentRepository
         public RepositoryBuilder UseCacheProvider(ICache cacheProvider)
         {
             Configuration.Providers.Instance.CacheProvider = cacheProvider;
+            WriteLog("CacheProvider", cacheProvider);
+
             return this;
         }
         /// <summary>
@@ -78,6 +91,8 @@ namespace SenseNet.ContentRepository
         public RepositoryBuilder UseClusterChannelProvider(IClusterChannel clusterChannelProvider)
         {
             Configuration.Providers.Instance.ClusterChannelProvider = clusterChannelProvider;
+            WriteLog("ClusterChannelProvider", clusterChannelProvider);
+
             return this;
         }
         /// <summary>
@@ -86,6 +101,8 @@ namespace SenseNet.ContentRepository
         public RepositoryBuilder UseElevatedModificationVisibilityRuleProvider(ElevatedModificationVisibilityRule modificationVisibilityRuleProvider)
         {
             Configuration.Providers.Instance.ElevatedModificationVisibilityRuleProvider = modificationVisibilityRuleProvider;
+            WriteLog("ElevatedModificationVisibilityRuleProvider", modificationVisibilityRuleProvider);
+
             return this;
         }
         /// <summary>
@@ -95,6 +112,8 @@ namespace SenseNet.ContentRepository
         public RepositoryBuilder UseSearchEngine(ISearchEngine searchEngine)
         {
             Configuration.Providers.Instance.SearchEngine = searchEngine;
+            WriteLog("SearchEngine", searchEngine);
+
             return this;
         }
         /// <summary>
@@ -104,6 +123,8 @@ namespace SenseNet.ContentRepository
         public RepositoryBuilder UseMembershipExtender(MembershipExtenderBase membershipExtender)
         {
             Configuration.Providers.Instance.MembershipExtender = membershipExtender;
+            WriteLog("MembershipExtender", membershipExtender);
+
             return this;
         }
         /// <summary>
@@ -125,6 +146,8 @@ namespace SenseNet.ContentRepository
         public RepositoryBuilder UseProvider(string providerName, object provider)
         {
             Configuration.Providers.Instance.SetProvider(providerName, provider);
+            WriteLog(providerName, provider);
+
             return this;
         }
         /// <summary>
@@ -136,6 +159,8 @@ namespace SenseNet.ContentRepository
         public RepositoryBuilder UseProvider(Type providerType, object provider)
         {
             Configuration.Providers.Instance.SetProvider(providerType, provider);
+            WriteLog(providerType?.Name ?? "Null provider", provider);
+
             return this;
         }
 
@@ -195,6 +220,14 @@ namespace SenseNet.ContentRepository
         {
             Console = console;
             return this;
+        }
+
+        private static void WriteLog(string name, object provider)
+        {
+            var message = $"{name} configured: {provider?.GetType().FullName ?? "null"}";
+
+            SnTrace.Repository.Write(message);
+            SnLog.WriteInformation(message);
         }
     }
 }
