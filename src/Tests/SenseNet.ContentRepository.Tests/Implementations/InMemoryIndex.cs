@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlTypes;
 using System.Globalization;
 using System.Linq;
 using SenseNet.Search;
@@ -168,17 +167,17 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         /* ========================================================================== Activity staus */
 
-        private class ActivityStatux : IIndexingActivityStatus
+        private class ActivityStatus : IIndexingActivityStatus
         {
             public int LastActivityId { get; set; }
             public int[] Gaps { get; set; }
         }
 
-        private ActivityStatux _activityStatux = new ActivityStatux { LastActivityId = 0, Gaps = new int[0] };
+        private ActivityStatus _activityStatux = new ActivityStatus { LastActivityId = 0, Gaps = new int[0] };
 
         internal void WriteActivityStatus(IIndexingActivityStatus status)
         {
-            _activityStatux = new ActivityStatux
+            _activityStatux = new ActivityStatus
             {
                 LastActivityId = status.LastActivityId,
                 Gaps = status.Gaps.ToArray()
