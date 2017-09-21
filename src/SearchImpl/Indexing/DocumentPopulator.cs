@@ -34,7 +34,6 @@ namespace SenseNet.Search.Indexing
         // caller: IndexPopulator.Populator, Import.Importer, Tests
         public void ClearAndPopulateAll(TextWriter consoleWriter = null)
         {
-            var lastActivityId = IndexManager.GetLastStoredIndexingActivityId();
             using (var op = SnTrace.Index.StartOperation("IndexPopulator ClearAndPopulateAll"))
             {
                 // recreate
@@ -52,7 +51,7 @@ namespace SenseNet.Search.Indexing
                         }));
 
                 consoleWriter?.Write("  Commiting ... ");
-                IndexManager.Commit(lastActivityId);
+                IndexManager.Commit(); // explicit commit
                 consoleWriter?.WriteLine("ok");
 
                 consoleWriter?.Write("  Deleting indexing activities ... ");

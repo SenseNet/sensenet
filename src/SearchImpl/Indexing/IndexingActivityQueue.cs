@@ -244,7 +244,7 @@ namespace SenseNet.Search.Indexing
 
                     // Commit is necessary because otherwise the gap is removed only in memory, but
                     // the index is not updated in the file system.
-                    IndexManager.Commit();
+                    IndexManager.Commit(); // explicit commit
                 }
 
                 SnLog.WriteInformation($"Executing unprocessed activities ({count}) finished.", EventId.RepositoryLifecycle);
@@ -843,7 +843,7 @@ namespace SenseNet.Search.Indexing
             return result;
         }
 
-        internal static Dictionary<string, string> GetCommitUserData(CompletionState data)
+        internal static Dictionary<string, string> GetCommitUserData(IIndexingActivityStatus data)
         {
             return GetCommitUserData(data.LastActivityId, data.Gaps);
         }

@@ -16,6 +16,7 @@ namespace SenseNet.Search.Indexing
         #region /* ==================================================================== Managing index */
 
         internal static IIndexingEngine IndexingEngine => StorageContext.Search.SearchEngine.IndexingEngine;
+        internal static ICommitManager CommitManager { get; } = new NoDelayCommitManager();
 
         public static bool Running => IndexingEngine.Running;
 
@@ -27,10 +28,12 @@ namespace SenseNet.Search.Indexing
         public static void Start(TextWriter consoleOut)
         {
             IndexingEngine.Start(consoleOut);
+            CommitManager.Start();
         }
 
         public static void ShutDown()
         {
+            CommitManager.ShutDown();
             IndexingEngine.ShutDown();
             SnLog.WriteInformation("Indexing engine has stopped. Max task id and exceptions: " + IndexingActivityQueue.GetCurrentCompletionState());
         }
@@ -83,11 +86,11 @@ namespace SenseNet.Search.Indexing
 
         internal static void ActivityFinished(int activityId, bool executingUnprocessedActivities)
         {
-            IndexingEngine.ActivityFinished();
+            CommitManager.ActivityFinished();
         }
-        internal static void Commit(int lastActivityId = 0)
+        internal static void Commit()
         {
-            IndexingEngine.Commit(lastActivityId);
+            IndexingEngine.WriteActivityStatusToIndex(CompletionState.GetCurrent());
         }
 
         #endregion

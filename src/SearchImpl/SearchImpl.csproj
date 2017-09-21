@@ -72,6 +72,7 @@
     <Compile Include="Indexing\Activities\RemoveDocumentActivity.cs" />
     <Compile Include="Indexing\Activities\RemoveTreeActivity.cs" />
     <Compile Include="Indexing\Activities\UpdateDocumentActivity.cs" />
+    <Compile Include="Indexing\CommitManager.cs" />
     <Compile Include="Indexing\CustomIndexFieldManager.cs" />
     <Compile Include="Indexing\IndexDocumentProvider.cs" />
     <Compile Include="Indexing\IndexingActivityQueue.cs" />

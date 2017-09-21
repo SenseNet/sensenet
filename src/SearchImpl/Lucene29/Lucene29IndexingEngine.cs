@@ -213,12 +213,6 @@ namespace SenseNet.Search.Lucene29
 
             Warmup();
 
-            var commitStart = new ThreadStart(CommitWorker);
-            var t = new Thread(commitStart);
-            t.Start();
-
-            SnTrace.Index.Write("LM: 'CommitWorker' thread started. ManagedThreadId: {0}", t.ManagedThreadId);
-
             IndexHealthMonitor.Start(consoleOut);
         }
 
@@ -236,8 +230,6 @@ namespace SenseNet.Search.Lucene29
             {
                 if (_writer != null)
                 {
-                    _stopCommitWorker = true;
-
                     lock (_commitLock)
                         Commit(false);
 
@@ -261,20 +253,6 @@ namespace SenseNet.Search.Lucene29
             }
         }
 
-        public void ActivityFinished()
-        {
-            // compiler warning here is not a problem, Interlocked 
-            // class can work with a volatile variable
-#pragma warning disable 420
-            Interlocked.Increment(ref _activities);
-#pragma warning restore 420
-        }
-
-        public void Commit(int lastActivityId = 0)
-        {
-            Commit(false);
-        }
-
         public void ClearIndex()
         {
             _reader?.Close();
@@ -294,9 +272,9 @@ namespace SenseNet.Search.Lucene29
                 return CompletionState.ParseFromReader(readerFrame.IndexReader);
         }
 
-        public void WriteActivityStatusToIndex(IIndexingActivityStatus state) //UNDONE:!!!!! API: Finalize/Validate this method (not called)
+        public void WriteActivityStatusToIndex(IIndexingActivityStatus state) //UNDONE:!!!!! API COMMIT: Review and write unit tests.
         {
-            throw new NotImplementedException();
+            Commit(true, state);
         }
 
         /* =========================================================================================== Lock file operationss */
@@ -601,14 +579,13 @@ namespace SenseNet.Search.Lucene29
 
         /* ============================================================================================= */
 
-        private void Commit(bool reopenReader)
+        private void Commit(bool reopenReader, IIndexingActivityStatus state = null)
         {
-            CompletionState commitState;
             using (var op = SnTrace.Index.StartOperation("LM: Commit. reopenReader:{0}", reopenReader))
             {
                 using (var wrFrame = IndexWriterFrame.Get(!reopenReader)) // // Commit
                 {
-                    commitState = CompletionState.GetCurrent();
+                    var commitState = state ?? CompletionState.GetCurrent();
                     var commitStateMessage = commitState.ToString();
 
                     SnTrace.Index.Write("LM: Committing_writer. commitState: " + commitStateMessage);
@@ -621,11 +598,6 @@ namespace SenseNet.Search.Lucene29
                     if (reopenReader)
                         ReopenReader();
                 }
-
-#pragma warning disable 420
-                Interlocked.Exchange(ref _activities, 0);
-#pragma warning restore 420
-                _delayCycle = 0;
 
                 op.Successful = true;
             }
@@ -676,8 +648,6 @@ namespace SenseNet.Search.Lucene29
         private ReaderWriterLockSlim _writerRestartLock = new ReaderWriterLockSlim();
 
         private readonly ManualResetEventSlim _indexingSemaphore = new ManualResetEventSlim(true);
-        private volatile int _delayCycle;          // committer thread uses
-        private volatile int _activities;          // committer thread sets 0 other threads increment
         private volatile int _recentlyUsedReaderFrames;
 
         private TimeSpan _forceReopenFrequency;
@@ -748,58 +718,7 @@ namespace SenseNet.Search.Lucene29
             return doc;
         }
 
-        internal void CommitOrDelay()
-        {
-            var act = _activities;
-            if (act == 0 && _delayCycle == 0)
-                return;
-
-            if (act < 2)
-            {
-                Commit();
-            }
-            else
-            {
-                _delayCycle++;
-                if (_delayCycle > SenseNet.Configuration.Indexing.DelayedCommitCycleMaxCount)
-                {
-                    Commit();
-                }
-            }
-
-#pragma warning disable 420
-            Interlocked.Exchange(ref _activities, 0);
-#pragma warning restore 420
-        }
-
-        private bool _stopCommitWorker;
         private object _commitLock = new object();
-        private void CommitWorker()
-        {
-            int wait = (int)(SenseNet.Configuration.Indexing.CommitDelayInSeconds * 1000.0);
-            for (;;)
-            {
-                // check if commit worker instructed to stop
-                if (_stopCommitWorker)
-                {
-                    _stopCommitWorker = false;
-                    return;
-                }
-
-                try
-                {
-                    lock (_commitLock)
-                    {
-                        CommitOrDelay();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    SnLog.WriteException(ex);
-                }
-                Thread.Sleep(wait);
-            }
-        }
 
         /* ================================================================== Tools */
 

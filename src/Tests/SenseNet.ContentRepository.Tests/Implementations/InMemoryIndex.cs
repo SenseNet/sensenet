@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Globalization;
 using System.Linq;
 using SenseNet.Search;
@@ -8,11 +9,15 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 {
     public class InMemoryIndex
     {
+        /* ========================================================================== Data */
+
         // FieldName => FieldValue => VersionId
         internal Dictionary<string, Dictionary<string, List<int>>> IndexData { get; } = new Dictionary<string, Dictionary<string, List<int>>>();
 
         // VersionId, IndexFields
         internal List<Tuple<int, List<IndexField>>> StoredData { get; } = new List<Tuple<int, List<IndexField>>>();
+
+        /* ========================================================================== Operations */
 
         public void AddDocument(IndexDocument document)
         {
@@ -160,5 +165,30 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             IndexData.Clear();
             StoredData.Clear();
         }
+
+        /* ========================================================================== Activity staus */
+
+        private class ActivityStatux : IIndexingActivityStatus
+        {
+            public int LastActivityId { get; set; }
+            public int[] Gaps { get; set; }
+        }
+
+        private ActivityStatux _activityStatux = new ActivityStatux { LastActivityId = 0, Gaps = new int[0] };
+
+        internal void WriteActivityStatus(IIndexingActivityStatus status)
+        {
+            _activityStatux = new ActivityStatux
+            {
+                LastActivityId = status.LastActivityId,
+                Gaps = status.Gaps.ToArray()
+            };
+        }
+
+        internal IIndexingActivityStatus ReadActivityStatus()
+        {
+            return _activityStatux;
+        }
+
     }
 }

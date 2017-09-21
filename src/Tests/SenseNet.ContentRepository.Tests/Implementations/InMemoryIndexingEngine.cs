@@ -26,16 +26,6 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             Running = false;
         }
 
-        public void ActivityFinished()
-        {
-            // do nothing
-        }
-
-        public void Commit(int lastActivityId = 0)
-        {
-            // do nothing
-        }
-
         public void ClearIndex()
         {
             Index.Clear();
@@ -43,12 +33,12 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         public IIndexingActivityStatus ReadActivityStatusFromIndex()
         {
-            return IndexingActivityStatus.Startup;
+            return Index.ReadActivityStatus();
         }
 
-        public void WriteActivityStatusToIndex(IIndexingActivityStatus state) //UNDONE:!!!!! API: Finalize/Validate this method (not called)
+        public void WriteActivityStatusToIndex(IIndexingActivityStatus state) //UNDONE:!!!!! API COMMIT: Review and write unit tests.
         {
-            throw new NotImplementedException();
+            Index.WriteActivityStatus(state);
         }
 
         public IEnumerable<IndexDocument> GetDocumentsByNodeId(int nodeId)

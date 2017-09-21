@@ -988,14 +988,6 @@ namespace SenseNet.SearchImpl.Tests
                 {
                     // do nothing
                 }
-                public void ActivityFinished()
-                {
-                    throw new NotImplementedException();
-                }
-                public void Commit(int lastActivityId = 0)
-                {
-                    throw new NotImplementedException();
-                }
                 public void ClearIndex()
                 {
                     throw new NotImplementedException();
@@ -1004,7 +996,7 @@ namespace SenseNet.SearchImpl.Tests
                 {
                     throw new NotImplementedException();
                 }
-                public void WriteActivityStatusToIndex(IIndexingActivityStatus state) //UNDONE:!!!!! API: Finalize/Validate this method (not called)
+                public void WriteActivityStatusToIndex(IIndexingActivityStatus state)
                 {
                     throw new NotImplementedException();
                 }
