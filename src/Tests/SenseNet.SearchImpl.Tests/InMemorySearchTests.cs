@@ -945,6 +945,65 @@ namespace SenseNet.SearchImpl.Tests
 
         /* ============================================================================ */
 
+        [TestMethod, TestCategory("IR")]
+        public void InMemSearch_ActivityStatus_WithoutRepository()
+        {
+            var newStatus = new IndexingActivityStatus
+            {
+                LastActivityId = 33,
+                Gaps = new[] { 5, 6, 7 }
+            };
+
+            var searchEngine = new InMemorySearchEngine();
+            var originalStatus = searchEngine.IndexingEngine.ReadActivityStatusFromIndex();
+
+            searchEngine.IndexingEngine.WriteActivityStatusToIndex(newStatus);
+
+            var updatedStatus = searchEngine.IndexingEngine.ReadActivityStatusFromIndex();
+            var resultStatus = new IndexingActivityStatus()
+            {
+                LastActivityId = updatedStatus.LastActivityId,
+                Gaps = updatedStatus.Gaps
+            };
+
+            Assert.AreEqual(originalStatus.LastActivityId, 0);
+            Assert.AreEqual(originalStatus.Gaps.Length, 0);
+            Assert.AreEqual(newStatus.ToString(), resultStatus.ToString());
+        }
+
+        [TestMethod, TestCategory("IR")]
+        public void InMemSearch_ActivityStatus_WithRepository()
+        {
+            var newStatus = new IndexingActivityStatus
+            {
+                LastActivityId = 33,
+                Gaps = new[] { 5, 6, 7 }
+            };
+
+            var result = Test(() =>
+            {
+                var searchEngine = StorageContext.Search.SearchEngine;
+                var originalStatus = searchEngine.IndexingEngine.ReadActivityStatusFromIndex();
+                searchEngine.IndexingEngine.WriteActivityStatusToIndex(newStatus);
+
+                var updatedStatus = searchEngine.IndexingEngine.ReadActivityStatusFromIndex();
+
+                return new Tuple<IIndexingActivityStatus, IIndexingActivityStatus>(originalStatus, updatedStatus);
+            });
+
+            var resultStatus = new IndexingActivityStatus()
+            {
+                LastActivityId = result.Item2.LastActivityId,
+                Gaps = result.Item2.Gaps
+            };
+
+            Assert.AreEqual(result.Item1.LastActivityId, 0);
+            Assert.AreEqual(result.Item1.Gaps.Length, 0);
+            Assert.AreEqual(newStatus.ToString(), resultStatus.ToString());
+        }        
+
+        /* ============================================================================ */
+
         private InMemoryIndex GetTestIndex()
         {
             return ((InMemoryIndexingEngine) IndexManager.IndexingEngine).Index;
