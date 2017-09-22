@@ -70,7 +70,7 @@ namespace SenseNet.Portal
 
             // collect aspect fields
             var types2 = new List<type>();
-            var aspects = ContentQuery_NEW.Query("TypeIs:Aspect .AUTOFILTERS:OFF").Nodes;
+            var aspects = ContentQuery.Query("TypeIs:Aspect .AUTOFILTERS:OFF").Nodes;
             i = 0;
 
             foreach (Aspect aspect in aspects)

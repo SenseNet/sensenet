@@ -219,7 +219,7 @@ namespace SenseNet.Search.Lucene29
 
         private void Warmup()
         {
-            var result = ContentQuery_NEW.Query(SafeQueriesInternal.ContentById, QuerySettings.AdminSettings, 1);
+            var result = ContentQuery.Query(SafeQueriesInternal.ContentById, QuerySettings.AdminSettings, 1);
         }
 
         public void ShutDown()

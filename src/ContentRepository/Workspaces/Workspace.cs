@@ -45,7 +45,7 @@ namespace SenseNet.ContentRepository.Workspaces
             var groupFolderPath = RepositoryPath.Combine(this.Path, LocalGroupsFolderName);
 
             var settings = new SenseNet.Search.QuerySettings { EnableAutofilters = FilterStatus.Disabled };
-            var workspaceGroups = SenseNet.Search.ContentQuery_NEW.Query(SafeQueries.InTreeAndTypeIs, settings, groupFolderPath, typeof(Group).Name).Nodes;
+            var workspaceGroups = SenseNet.Search.ContentQuery.Query(SafeQueries.InTreeAndTypeIs, settings, groupFolderPath, typeof(Group).Name).Nodes;
 
             foreach (var group in workspaceGroups.OfType<IGroup>())
             {

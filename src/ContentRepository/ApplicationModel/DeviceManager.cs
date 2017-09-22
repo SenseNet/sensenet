@@ -96,7 +96,7 @@ namespace SenseNet.ApplicationModel
 
             if (StorageContext.Search.ContentQueryIsAllowed)
             {
-                var result = ContentQuery_NEW.Query(SafeQueries.AllDevices);
+                var result = ContentQuery.Query(SafeQueries.AllDevices);
                 devices = result.Nodes.Cast<Device>().ToList();
             }
             else

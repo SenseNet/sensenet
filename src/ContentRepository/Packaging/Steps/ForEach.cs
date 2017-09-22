@@ -73,7 +73,7 @@ namespace SenseNet.Packaging.Steps
         {
             context.AssertRepositoryStarted();
 
-            var result = Search.ContentQuery_NEW.Query(ContentQuery);
+            var result = Search.ContentQuery.Query(ContentQuery);
             Logger.LogMessage("Content query result count: ", result.Count);
             return result.Nodes.Select(Content.Create);
         }

@@ -2367,7 +2367,7 @@ namespace SenseNet.ContentRepository
             var dynamicContentTypes = types.Where(x => typeof(ISupportsDynamicFields).IsAssignableFrom(TypeResolver.GetType(x.HandlerName))).ToArray();
             if (dynamicContentTypes.Length > 0)
             {
-                var results = ContentQuery_NEW.Query(SafeQueries.InFolderAndTypeIs,
+                var results = ContentQuery.Query(SafeQueries.InFolderAndTypeIs,
                     new QuerySettings { EnableAutofilters = FilterStatus.Enabled, QueryExecutionMode = QueryExecutionMode.Quick },
                     content.Path, dynamicContentTypes);
                 foreach (var meta in results.Nodes.Cast<ISupportsDynamicFields>().Select(x => x.GetDynamicFieldMetadata()).Where(x => x != null))

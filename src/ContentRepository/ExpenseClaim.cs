@@ -54,7 +54,7 @@ namespace SenseNet.ContentRepository
                 if (!StorageContext.Search.ContentQueryIsAllowed)
                     return 0;
 
-                QueryResult cq = ContentQuery_NEW.Query(SafeQueries.InTreeAndTypeIs, null, this.Path, "expenseclaimitem");
+                QueryResult cq = ContentQuery.Query(SafeQueries.InTreeAndTypeIs, null, this.Path, "expenseclaimitem");
                 return Convert.ToInt32(cq.Nodes.Sum(elem => (decimal)elem["Amount"]));
             }
         }

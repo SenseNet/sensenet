@@ -370,7 +370,7 @@ namespace SenseNet.ContentRepository
             {
                 if (forceCql)
                 {
-                    var userResult = ContentQuery_NEW.Query(SafeQueries.UsersByLoginName, QuerySettings.AdminSettings, domainPath, name);
+                    var userResult = ContentQuery.Query(SafeQueries.UsersByLoginName, QuerySettings.AdminSettings, domainPath, name);
                     
                     // non-unique user, do not allow login
                     if (userResult.Count > 1)
@@ -885,7 +885,7 @@ namespace SenseNet.ContentRepository
                 // user may not have enough permissions for the whole user tree.
                 using (new SystemAccount())
                 {
-                    var queryResult = ContentQuery_NEW.Query(SafeQueries.UserOrGroupByLoginName,
+                    var queryResult = ContentQuery.Query(SafeQueries.UserOrGroupByLoginName,
                         new QuerySettings {EnableAutofilters = FilterStatus.Disabled, Top = 2},
                         domainPath.TrimEnd('/'), 
                         Name,

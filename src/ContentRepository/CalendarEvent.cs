@@ -137,7 +137,7 @@ namespace SenseNet.ContentRepository
             var regForm = item.GetReference<Node>(REGISTRATIONFORM);
             if (regForm != null)
             {
-                var qResult = ContentQuery_NEW.Query("+Type:eventregistrationformitem +ParentId:@0",
+                var qResult = ContentQuery.Query("+Type:eventregistrationformitem +ParentId:@0",
                     new QuerySettings { EnableAutofilters = FilterStatus.Disabled, EnableLifespanFilter = FilterStatus.Disabled },
                     regForm.Id);
 

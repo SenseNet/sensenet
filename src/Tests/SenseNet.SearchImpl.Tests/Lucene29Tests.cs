@@ -344,9 +344,9 @@ namespace SenseNet.SearchImpl.Tests
             }
         }
 
-        private ContentQuery_NEW CreateSafeContentQuery(string qtext)
+        private ContentQuery CreateSafeContentQuery(string qtext)
         {
-            var cquery = ContentQuery_NEW.CreateQuery(qtext, QuerySettings.AdminSettings);
+            var cquery = ContentQuery.CreateQuery(qtext, QuerySettings.AdminSettings);
             var cqueryAcc = new PrivateObject(cquery);
             cqueryAcc.SetFieldOrProperty("IsSafe", true);
             return cquery;

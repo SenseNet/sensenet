@@ -121,7 +121,7 @@ namespace SenseNet.ApplicationModel
 
             sbQueryText.Append(" .REVERSESORT:Depth");
 
-            var templateResult = ContentQuery_NEW.Query(sbQueryText.ToString(), new QuerySettings { EnableAutofilters = FilterStatus.Disabled, EnableLifespanFilter = FilterStatus.Disabled }).Nodes.ToList();
+            var templateResult = ContentQuery.Query(sbQueryText.ToString(), new QuerySettings { EnableAutofilters = FilterStatus.Disabled, EnableLifespanFilter = FilterStatus.Disabled }).Nodes.ToList();
             var templatesNonGlobal = templateResult.Where(ct => !ct.Path.StartsWith(RepositoryStructure.ContentTemplateFolderPath)).ToList();
             var templatesGlobal = templateResult.Where(ct => ct.Path.StartsWith(RepositoryStructure.ContentTemplateFolderPath)).ToList();
 

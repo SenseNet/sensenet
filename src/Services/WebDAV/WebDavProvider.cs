@@ -92,7 +92,7 @@ namespace SenseNet.Portal.WebDAV
 
         public override IEnumerable<Node> GetDocumentsAndFolders(string documentLibraryPath)
         {
-            return ContentQuery_NEW.Query("+TypeIs:(File Folder) +InTree:@0 -Path:@0", null, documentLibraryPath).Nodes;
+            return ContentQuery.Query("+TypeIs:(File Folder) +InTree:@0 -Path:@0", null, documentLibraryPath).Nodes;
         }
 
         public override IEnumerable<IUser> GetWorkspaceMembers(Workspace workspace)

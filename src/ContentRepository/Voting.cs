@@ -93,7 +93,7 @@ namespace SenseNet.ContentRepository
             get
             {
                 return Convert.ToBoolean(this["EnableMoreFilling"]) ||
-                       ContentQuery_NEW.Query("+Type:votingitem +CreatedById:@0 +InTree:@1 .AUTOFILTERS:OFF .COUNTONLY", null, User.Current.Id, this.Path).Count <= 0;
+                       ContentQuery.Query("+Type:votingitem +CreatedById:@0 +InTree:@1 .AUTOFILTERS:OFF .COUNTONLY", null, User.Current.Id, this.Path).Count <= 0;
             }
         }
 
@@ -180,14 +180,14 @@ namespace SenseNet.ContentRepository
 
                 foreach (var question in questions)
                 {
-                    var count = ContentQuery_NEW.Query("+Type:votingitem +InTree:@0 +@1:@2 .AUTOFILTERS:OFF .COUNTONLY", null,
+                    var count = ContentQuery.Query("+Type:votingitem +InTree:@0 +@1:@2 .AUTOFILTERS:OFF .COUNTONLY", null,
                         this.Path, questionName, question.Key).Count;
 
                     result.Add(question.Value, count.ToString());
                     excludedQuestionsExp.Append(" -").Append(questionName).Append(":").Append(question.Key);
                 }
 
-                var otherAnswersCount = ContentQuery_NEW.Query(string.Format("+Type:votingitem +InTree:\"{0}\" {1} .AUTOFILTERS:OFF .COUNTONLY", this.Path, excludedQuestionsExp)).Count;
+                var otherAnswersCount = ContentQuery.Query(string.Format("+Type:votingitem +InTree:\"{0}\" {1} .AUTOFILTERS:OFF .COUNTONLY", this.Path, excludedQuestionsExp)).Count;
 
                 if (otherAnswersCount > 0)
                     result.Add("Other", otherAnswersCount.ToString());

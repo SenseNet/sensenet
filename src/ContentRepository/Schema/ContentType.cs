@@ -860,7 +860,7 @@ namespace  SenseNet.ContentRepository.Schema
         {
             if (StorageContext.Search.ContentQueryIsAllowed)
             {
-                var query = ContentQuery_NEW.CreateQuery(getAllChildren ? SafeQueries.InTree : SafeQueries.InFolder, settings, this.Path);
+                var query = ContentQuery.CreateQuery(getAllChildren ? SafeQueries.InTree : SafeQueries.InFolder, settings, this.Path);
                 if (!string.IsNullOrEmpty(text))
                     query.AddClause(text);
                 return query.Execute();

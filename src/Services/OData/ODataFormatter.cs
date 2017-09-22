@@ -151,7 +151,7 @@ namespace SenseNet.Portal.OData
             var chdef = content.ChildrenDefinition;
             if (req.HasContentQuery)
             {
-                chdef.ContentQuery = ContentQuery_NEW.AddClause(req.ContentQueryText, String.Concat("InTree:'", path, "'"), ChainOperator.And);
+                chdef.ContentQuery = ContentQuery.AddClause(req.ContentQueryText, String.Concat("InTree:'", path, "'"), ChainOperator.And);
 
                 if (req.AutofiltersEnabled != FilterStatus.Default)
                     chdef.EnableAutofilters = req.AutofiltersEnabled;
@@ -171,7 +171,7 @@ namespace SenseNet.Portal.OData
                 chdef.EnableAutofilters = FilterStatus.Disabled;
                 if (string.IsNullOrEmpty(chdef.ContentQuery))
                 {
-                    chdef.ContentQuery = ContentQuery_NEW.AddClause(chdef.ContentQuery, String.Concat("InFolder:'", path, "'"), ChainOperator.And);
+                    chdef.ContentQuery = ContentQuery.AddClause(chdef.ContentQuery, String.Concat("InFolder:'", path, "'"), ChainOperator.And);
                 }
             }
 

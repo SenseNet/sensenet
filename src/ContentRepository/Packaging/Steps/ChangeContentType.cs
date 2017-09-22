@@ -31,7 +31,7 @@ namespace SenseNet.Packaging.Steps
 
             var count = 0;
 
-            foreach (var sourceContent in Search.ContentQuery_NEW.Query(ContentQuery).Nodes.Select(n => Content.Create(n)))
+            foreach (var sourceContent in Search.ContentQuery.Query(ContentQuery).Nodes.Select(n => Content.Create(n)))
             {
                 try
                 {

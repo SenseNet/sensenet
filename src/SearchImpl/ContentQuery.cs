@@ -11,9 +11,7 @@ using SenseNet.Search.Parser;
 
 namespace SenseNet.Search
 {
-    //UNDONE: remove ReSharper comment if the ContentQuery_NEW is renamed well.
-    // ReSharper disable once InconsistentNaming
-    public class ContentQuery_NEW //UNDONE: Delete original ContentQuery and rename this to ContentQuery
+    public class ContentQuery
     {
         private static readonly string[] QuerySettingParts = new[] { "SKIP", "TOP", "SORT", "REVERSESORT", "AUTOFILTERS", "LIFESPAN", "COUNTONLY" };
         private static readonly string RegexKeywordsAndComments = "//|/\\*|(\\.(?<keyword>[A-Z]+)(([ ]*:[ ]*[#]?\\w+(\\.\\w+)?)|([\\) $\\r\\n]+)))";
@@ -47,16 +45,16 @@ namespace SenseNet.Search
             return CreateQuery(text, settings, parameters).Execute();
         }
 
-        public static ContentQuery_NEW CreateQuery(string text)
+        public static ContentQuery CreateQuery(string text)
         {
             return CreateQuery(text, null, null);
         }
-        public static ContentQuery_NEW CreateQuery(string text, QuerySettings settings, params object[] parameters)
+        public static ContentQuery CreateQuery(string text, QuerySettings settings, params object[] parameters)
         {
             var isSafe = IsSafeQuery(text);
             if (parameters != null && parameters.Length > 0)
                 text = SubstituteParameters(text, parameters);
-            var query = new ContentQuery_NEW
+            var query = new ContentQuery
             {
                 Text = text,
                 IsSafe = isSafe,

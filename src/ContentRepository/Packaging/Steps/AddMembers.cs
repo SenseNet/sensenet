@@ -28,7 +28,7 @@ namespace SenseNet.Packaging.Steps
 
             var group = Group.StartsWith("/root", StringComparison.InvariantCultureIgnoreCase)
                 ? Node.Load<Group>(Group)
-                : (Group)ContentQuery_NEW.Query(Group).Nodes.FirstOrDefault();
+                : (Group)ContentQuery.Query(Group).Nodes.FirstOrDefault();
 
             if (group == null)
             {
@@ -78,7 +78,7 @@ namespace SenseNet.Packaging.Steps
             }
 
             // maybe a content query
-            var queryResult = ContentQuery_NEW.Query(src);
+            var queryResult = ContentQuery.Query(src);
             foreach (var node in queryResult.Nodes)
             {
                 result[node.Id] = node;

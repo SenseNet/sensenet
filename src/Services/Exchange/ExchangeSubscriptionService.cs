@@ -16,7 +16,7 @@ namespace SenseNet.Portal.Exchange
 
             // renew subscriptions
             //  1: go through doclibs with email addresses
-            var doclibs = ContentQuery_NEW.Query("+TypeIs:DocumentLibrary +ListEmail:* -ListEmail:\"\"");
+            var doclibs = ContentQuery.Query("+TypeIs:DocumentLibrary +ListEmail:* -ListEmail:\"\"");
             if (doclibs.Count > 0)
             {
                 SnLog.WriteInformation(String.Concat("Exchange subscription service enabled, running subscriptions (", doclibs.Count.ToString(), " found)"), categories: ExchangeHelper.ExchangeLogCategory);

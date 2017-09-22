@@ -25,7 +25,7 @@ namespace SenseNet.ContentRepository
 
         private SearchFolder() { }
 
-        public static SearchFolder Create(ContentQuery_NEW query)
+        public static SearchFolder Create(ContentQuery query)
         {
             var folder = new SearchFolder
             {

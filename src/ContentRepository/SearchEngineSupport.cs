@@ -48,7 +48,7 @@ namespace SenseNet.ContentRepository
 
         public QueryResult ExecuteContentQuery(string text, QuerySettings settings, params object[] parameters)
         {
-            return ContentQuery_NEW.Query(text, settings, parameters);
+            return ContentQuery.Query(text, settings, parameters);
         }
     }
 }

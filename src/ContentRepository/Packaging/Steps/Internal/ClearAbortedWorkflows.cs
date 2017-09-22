@@ -21,7 +21,7 @@ namespace SenseNet.Packaging.Steps.Internal
         {
             using (new SystemAccount())
             {
-                var result = ContentQuery_NEW.Query(SafeQueries.ConnectedAbortedAndCompletedWorkflows, QuerySettings.AdminSettings, WorkflowInstanceClearedGuid);
+                var result = ContentQuery.Query(SafeQueries.ConnectedAbortedAndCompletedWorkflows, QuerySettings.AdminSettings, WorkflowInstanceClearedGuid);
 
                 foreach (var item in result.Nodes)
                 {

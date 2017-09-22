@@ -102,7 +102,7 @@ namespace SenseNet.ContentRepository.Security
             if (_path != null)
                 cq += " +InTree:{_path}";
             cq += $" .TOP:{pageSize} .SKIP:{pageIndex*pageSize}";
-            var result = ContentQuery_NEW.Query(cq, QuerySettings.AdminSettings);
+            var result = ContentQuery.Query(cq, QuerySettings.AdminSettings);
 
             // get paged resultlist
             foreach (Node node in result.Nodes)

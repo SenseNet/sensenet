@@ -861,7 +861,7 @@ namespace SenseNet.ContentRepository
                     using (new SystemAccount())
                     {
                         var fn = this.GetPropertySingleId(fieldSetting.Name);
-                        var result = ContentQuery_NEW.Query(SafeQueries.InTree,
+                        var result = ContentQuery.Query(SafeQueries.InTree,
                             new QuerySettings { EnableAutofilters = FilterStatus.Disabled },
                             this.Path);
 

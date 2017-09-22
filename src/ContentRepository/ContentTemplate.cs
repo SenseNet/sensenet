@@ -59,7 +59,7 @@ namespace SenseNet.ContentRepository
             if (StorageContext.Search.ContentQueryIsAllowed)
             {
                 return
-                    ContentQuery_NEW.Query(SafeQueries.InFolder,
+                    ContentQuery.Query(SafeQueries.InFolder,
                         new QuerySettings { EnableAutofilters = FilterStatus.Disabled, EnableLifespanFilter = FilterStatus.Disabled },
                         path).Nodes.Where(ct => ct is T).Cast<T>();
             }
@@ -227,7 +227,7 @@ namespace SenseNet.ContentRepository
 
             if (StorageContext.Search.ContentQueryIsAllowed)
             {
-                return ContentQuery_NEW.Query(SafeQueries.InFolderCountOnly,
+                return ContentQuery.Query(SafeQueries.InFolderCountOnly,
                     new QuerySettings { EnableAutofilters = FilterStatus.Disabled, EnableLifespanFilter = FilterStatus.Disabled },
                     templatePath).Count > 0;
             }
@@ -387,7 +387,7 @@ namespace SenseNet.ContentRepository
 
                 if (StorageContext.Search.ContentQueryIsAllowed)
                 {
-                    sourceNodes = ContentQuery_NEW.Query(SafeQueries.InTreeOrderByPath,
+                    sourceNodes = ContentQuery.Query(SafeQueries.InTreeOrderByPath,
                         new QuerySettings { EnableAutofilters = FilterStatus.Disabled, EnableLifespanFilter = FilterStatus.Disabled },
                         templateRoot.Path).Nodes;
                 }

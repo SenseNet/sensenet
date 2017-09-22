@@ -33,7 +33,7 @@ namespace SenseNet.ContentRepository
             var searchPath = parent is Voting ? parent.Path : parent.ParentPath;
 
             // Count Voting Items
-            var votingItemCount = ContentQuery_NEW.Query(SafeQueries.InTreeAndTypeIsCountOnly,
+            var votingItemCount = ContentQuery.Query(SafeQueries.InTreeAndTypeIsCountOnly,
                 new QuerySettings { EnableAutofilters = FilterStatus.Disabled },
                 searchPath, typeof(VotingItem).Name).Count;
 

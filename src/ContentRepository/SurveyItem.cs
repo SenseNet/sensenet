@@ -106,7 +106,7 @@ namespace SenseNet.ContentRepository
             var searchPath = parent is Survey ? parent.Path : parent.ParentPath;
 
             // Count Survey Items
-            var surveyItemCount = ContentQuery_NEW.Query("+Type:surveyitem +InTree:@0 .AUTOFILTERS:OFF .COUNTONLY", null, searchPath).Count;
+            var surveyItemCount = ContentQuery.Query("+Type:surveyitem +InTree:@0 .AUTOFILTERS:OFF .COUNTONLY", null, searchPath).Count;
 
             // Get children (SurveyItems) count
             String tempName;

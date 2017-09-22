@@ -138,7 +138,7 @@ namespace SenseNet.ContentRepository
         {
             if (this.Id > 0 && StorageContext.Search.ContentQueryIsAllowed)
             {
-                if (ContentQuery_NEW.Query(SafeQueries.SurveyItemsInFolderCount, null, this.Id)
+                if (ContentQuery.Query(SafeQueries.SurveyItemsInFolderCount, null, this.Id)
                     .Count > 0 && _originalContentListDefinition != this.ContentListDefinition)
                 {
                     throw new InvalidOperationException("Cannot modify questions due to existing filled survey(s).");

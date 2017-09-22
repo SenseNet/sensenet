@@ -315,7 +315,7 @@ namespace SenseNet.Portal.Resources
             if (res != null)
                 return res;
 
-            var resources = ContentQuery_NEW.Query("+Type:Resource", new QuerySettings { EnableAutofilters = FilterStatus.Disabled }).Nodes.OrderBy(i => i.Index);
+            var resources = ContentQuery.Query("+Type:Resource", new QuerySettings { EnableAutofilters = FilterStatus.Disabled }).Nodes.OrderBy(i => i.Index);
             foreach (Resource resc in resources)
             {
                 var xml = new XmlDocument();

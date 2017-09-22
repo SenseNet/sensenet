@@ -834,7 +834,7 @@ namespace SenseNet.Portal.Dws
                     list.AppendChild(ID);
 
                     // Get all the Links
-                    var result = ContentQuery_NEW.Query(ContentRepository.SafeQueries.InTreeAndTypeIs, null, linksPath, "Link");
+                    var result = ContentQuery.Query(ContentRepository.SafeQueries.InTreeAndTypeIs, null, linksPath, "Link");
 
                     foreach (Content cnt in result.Nodes.Select(n => Content.Create(n)))
                     {
@@ -977,7 +977,7 @@ namespace SenseNet.Portal.Dws
                     ID.InnerText = tasksNodeHead.Id.ToString();
                     list.AppendChild(ID);
 
-                    var result = ContentQuery_NEW.Query(ContentRepository.SafeQueries.InTreeAndTypeIs, null, tasksPath, "Task");
+                    var result = ContentQuery.Query(ContentRepository.SafeQueries.InTreeAndTypeIs, null, tasksPath, "Task");
 
                     foreach (Content cnt in result.Nodes.Select(n => Content.Create(n)))
                     {

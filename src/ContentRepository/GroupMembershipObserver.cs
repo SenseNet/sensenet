@@ -145,7 +145,7 @@ namespace SenseNet.ContentRepository.Storage.Security
                     return resultIds;
                 }
 
-                return ContentQuery_NEW.Query(SafeQueries.SecurityIdentitiesInTree, QuerySettings.AdminSettings, node.Path).Identifiers.ToList();
+                return ContentQuery.Query(SafeQueries.SecurityIdentitiesInTree, QuerySettings.AdminSettings, node.Path).Identifiers.ToList();
             }
         }
 
@@ -155,7 +155,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         private static void CollectSecurityIdentityChildren(NodeHead head, ICollection<int> userIds, ICollection<int> groupIds)
         {
-            foreach (var childHead in ContentQuery_NEW.Query(SafeQueries.InFolder, QuerySettings.AdminSettings, head.Path).Identifiers.Select(NodeHead.Get).Where(h => h != null))
+            foreach (var childHead in ContentQuery.Query(SafeQueries.InFolder, QuerySettings.AdminSettings, head.Path).Identifiers.Select(NodeHead.Get).Where(h => h != null))
             {
                 // in case of identity types: simply add them to the appropriate collection and move on
                 if (childHead.GetNodeType().IsInstaceOfOrDerivedFrom("User"))
