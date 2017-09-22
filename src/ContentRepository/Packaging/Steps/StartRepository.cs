@@ -10,15 +10,15 @@ namespace SenseNet.Packaging.Steps
 {
     public class StartRepository : Step
     {
-        private bool _startLuceneManagerChanged;
-        private bool _startLuceneManager;
-        public bool StartLuceneManager
+        private bool _startIndexingEngineChanged;
+        private bool _startIndexingEngine;
+        public bool StartLuceneManager //UNDONE:!!!!!!! tusmester API: StartLuceneManager need to be changed to StartIndexingEngine
         {
-            get { return _startLuceneManager; }
+            get { return _startIndexingEngine; }
             set
             {
-                _startLuceneManager = value;
-                _startLuceneManagerChanged = true;
+                _startIndexingEngine = value;
+                _startIndexingEngineChanged = true;
             }
         }
 
@@ -36,7 +36,7 @@ namespace SenseNet.Packaging.Steps
                 indexPath = Configuration.Indexing.IndexDirectoryPath;
                 if (string.IsNullOrEmpty(indexPath))
                 {
-                    indexPath = System.IO.Path.Combine(context.TargetPath, "App_Data\\LuceneIndex");
+                    indexPath = System.IO.Path.Combine(context.TargetPath, "App_Data\\LuceneIndex");//UNDONE:!!!!!!! tusmester API: we does not know this stuff: "App_Data\LuceneIndex"
                 }
                 else
                 {
@@ -44,14 +44,14 @@ namespace SenseNet.Packaging.Steps
                         indexPath = System.IO.Path.GetFullPath(System.IO.Path.Combine(context.TargetPath, indexPath));
                 }
             }
-            var startLuceneManager = _startLuceneManagerChanged ? StartLuceneManager : StorageContext.Search.IsOuterEngineEnabled;
+            var startIndexingEngine = _startIndexingEngineChanged ? StartLuceneManager : StorageContext.Search.IsOuterEngineEnabled;
 
-            context.Console.WriteLine("startLuceneManager: " + startLuceneManager);
+            context.Console.WriteLine("startIndexingEngine: " + startIndexingEngine);
             context.Console.WriteLine("indexPath: " + indexPath);
 
             Repository.Start(new RepositoryStartSettings
             {
-                StartLuceneManager = startLuceneManager,
+                StartIndexingEngine = startIndexingEngine,
                 PluginsPath = PluginsPath ?? context.SandboxPath,
                 IndexPath = indexPath,
                 StartWorkflowEngine = StartWorkflowEngine

@@ -6,25 +6,17 @@ using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Storage;
 using System.Configuration;
 using System.Reflection;
-using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Diagnostics;
-using SenseNet.ContentRepository.Storage.Data;
-using System.Diagnostics;
 using System.IO;
-using System.Net.Mail;
-using System.Threading;
 using System.Web;
 using System.Web.Compilation;
 using SenseNet.Communication.Messaging;
-using SenseNet.ContentRepository.Storage.Diagnostics;
-using SenseNet.TaskManagement.Core;
 using SenseNet.BackgroundOperations;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
-using SenseNet.Search.Lucene29;
 using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository
@@ -159,20 +151,20 @@ namespace SenseNet.ContentRepository
             _startupInfo.Started = DateTime.UtcNow;
         }
         /// <summary>
-        /// Starts Lucene if it is not running.
+        /// Starts IndexingEngine if it is not running.
         /// </summary>
-        public void StartLucene()
+        public void StartIndexingEngine()
         {
-            if (LuceneManagerIsRunning)
+            if (IndexingEngineIsRunning)
             {
-                ConsoleWrite("LuceneManager has already started.");
+                ConsoleWrite("IndexingEngine has already started.");
                 return;
             }
-            ConsoleWriteLine("Starting LuceneManager:");
+            ConsoleWriteLine("Starting IndexingEngine:");
 
             IndexManager.Start(_settings.Console);
 
-            ConsoleWriteLine("LuceneManager has started.");
+            ConsoleWriteLine("IndexingEngine has started.");
         }
         /// <summary>
         /// Starts workflow engine if it is not running.
@@ -273,15 +265,13 @@ namespace SenseNet.ContentRepository
 
                 SnQuery.SetPermissionFilterFactory(Providers.Instance.PermissionFilterFactory);
 
-                if (_settings.StartLuceneManager)
-                    StartLucene();
+                if (_settings.StartIndexingEngine)
+                    StartIndexingEngine();
                 else
-                    ConsoleWriteLine("LuceneManager is not started.");
+                    ConsoleWriteLine("IndexingEngine is not started.");
 
-                // switch on message processing after LuceneManager was started
+                // switch on message processing after IndexingEngine was started.
                 channel.AllowMessageProcessing = true;
-
-                //SenseNet.Search.Indexing.IndexHealthMonitor.Start(_settings.Console);
 
                 if (_settings.StartWorkflowEngine)
                     StartWorkflowEngine();
@@ -397,7 +387,7 @@ namespace SenseNet.ContentRepository
                 SnTrace.Repository.Write("Shutting down {0}", DistributedApplication.ClusterChannel.GetType().Name);
                 DistributedApplication.ClusterChannel.ShutDown();
 
-                SnTrace.Repository.Write("Shutting down LuceneManager.");
+                SnTrace.Repository.Write("Shutting down IndexingEngine.");
                 IndexManager.ShutDown();
 
                 ContextHandler.Reset();
@@ -437,14 +427,14 @@ namespace SenseNet.ContentRepository
             return _started;
         }
 
-        // ======================================== LuceneManager hooks
+        // ======================================== IndexingEngine hooks
 
-        public static bool LuceneManagerIsRunning
+        public static bool IndexingEngineIsRunning
         {
             get
             {
                 if (_instance == null)
-                    throw new NotSupportedException("Querying running state of LuceneManager is not supported when RepositoryInstance is not created.");
+                    throw new NotSupportedException("Querying running state of IndexingEngine is not supported when RepositoryInstance is not created.");
                 return IndexManager.Running;
         }
         }

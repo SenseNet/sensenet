@@ -170,11 +170,11 @@ namespace SenseNet.ContentRepository
         /// </summary>
         /// <remarks>
         /// If your tool needs to query for content and querying is switched off by this method, 
-        /// you may call the RepositoryInstance.StartLucene() method later.
+        /// you may call the RepositoryInstance.StartIndexingEngine() method later.
         /// </remarks>
-        public new RepositoryBuilder StartLuceneManager(bool start = true)
+        public new RepositoryBuilder StartIndexingEngine(bool start = true)
         {
-            base.StartLuceneManager = start;
+            base.StartIndexingEngine = start;
             return this;
         }
         public new RepositoryBuilder IsWebContext(bool webContext = false)

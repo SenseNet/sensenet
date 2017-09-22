@@ -31,7 +31,7 @@ namespace SenseNet.ContentRepository.Tests
                 .UseSearchEngine(searchEngine)
                 .UseAccessProvider(accessProvider)
                 .UseElevatedModificationVisibilityRuleProvider(emvrProvider)
-                .StartLuceneManager(false)
+                .StartIndexingEngine(false)
                 .StartWorkflowEngine(false)
                 .UseTraceCategories(new[] {"Test", "Web", "System"});
 

@@ -489,7 +489,7 @@ namespace SenseNet.ContentRepository
 
             // Find all settings that inherit from this setting and remove their cached data
 
-            if (RepositoryInstance.LuceneManagerIsRunning && !RepositoryEnvironment.WorkingMode.Importing)
+            if (RepositoryInstance.IndexingEngineIsRunning && !RepositoryEnvironment.WorkingMode.Importing)
             {
                 string contextPath = null;
 
@@ -577,7 +577,7 @@ namespace SenseNet.ContentRepository
             {
                 var settingsType = ActiveSchema.NodeTypes["Settings"];
 
-                // query content without Lucene
+                // query content without outer search engine
                 var nqResult = NodeQuery.QueryNodesByTypeAndPathAndName(settingsType, false, rootpath, false, name);
                 if (nqResult.Nodes.Any(n => n.Id != id))
                     nameError = true;

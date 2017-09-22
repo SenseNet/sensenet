@@ -108,7 +108,7 @@ namespace SenseNet.Services
             {
                 var runOnceMarkerPath = application.Server.MapPath("/" + RunOnceGuid);
                 var firstRun = File.Exists(runOnceMarkerPath);
-                var startConfig = new RepositoryStartSettings { StartLuceneManager = !firstRun, IsWebContext = true };
+                var startConfig = new RepositoryStartSettings { StartIndexingEngine = !firstRun, IsWebContext = true };
 
                 Repository.Start(startConfig);
 
