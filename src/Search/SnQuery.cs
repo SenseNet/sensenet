@@ -29,6 +29,6 @@ namespace SenseNet.Search
 
         public bool CountAllPages { get; set; }
 
-        //UNDONE:!!!!! API: TEST: AllVersions ???
+        //UNDONE:!!!!! tusmester API: TEST: AllVersions: Move to QuerySettings.
     }
 }

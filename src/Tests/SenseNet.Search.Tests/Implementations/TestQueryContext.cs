@@ -15,7 +15,7 @@ namespace SenseNet.Search.Tests.Implementations
         public int UserId { get; }
         public IQueryEngine QueryEngine { get; }
         public IMetaQueryEngine MetaQueryEngine { get; }
-        public bool AllVersions { get; set; } //UNDONE:!!!!! API: TEST: AllVersions: Move or not to QuerySettings.
+        public bool AllVersions { get; set; } //UNDONE:!!!!! tusmester API: TEST: AllVersions: Move to QuerySettings.
 
         public IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
         {

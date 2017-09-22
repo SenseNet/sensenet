@@ -50,9 +50,9 @@ namespace SenseNet.ContentRepository.Storage.Search
 
         IDictionary<string, Type> GetAnalyzers();
 
-        void SetIndexingInfo(object indexingInfo);
+        void SetIndexingInfo(object indexingInfo); //UNDONE: tusmester REFACTOR API: IDictionary<string, IPerFieldIndexingInfo> instead of object
 
-        IIndexPopulator GetPopulator(); //UNDONE: REFACTOR: not SearchEngine responsibility: GetPopulator()
+        IIndexPopulator GetPopulator(); //UNDONE: REFACTOR: tusmester not SearchEngine responsibility: GetPopulator()
     }
     public class InternalSearchEngine : ISearchEngine
     {
