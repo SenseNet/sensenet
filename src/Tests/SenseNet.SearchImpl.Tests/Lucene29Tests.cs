@@ -41,10 +41,7 @@ namespace SenseNet.SearchImpl.Tests
     [TestClass]
     public class Lucene29Tests : TestBase
     {
-        //UNDONE:!!!!! TEST: Use these tests
-
         [TestMethod, TestCategory("IR, L29")]
-        [Timeout(20 * 1000)]
         public void L29_BasicConditions()
         {
             var result =
@@ -59,7 +56,6 @@ namespace SenseNet.SearchImpl.Tests
         }
 
         [TestMethod, TestCategory("IR, L29")]
-        //[Timeout(40 * 1000)]
         public void L29_ClearAndPopulateAll()
         {
             var sb = new StringBuilder();
@@ -104,7 +100,6 @@ namespace SenseNet.SearchImpl.Tests
         }
 
         [TestMethod, TestCategory("IR, L29")]
-        [Timeout(20*1000)]
         public void L29_Query()
         {
             QueryResult queryResult1, queryResult2;
@@ -148,7 +143,6 @@ namespace SenseNet.SearchImpl.Tests
         }
 
         [TestMethod, TestCategory("IR, L29")]
-        //[Timeout(20*1000)]
         public void L29_SaveAndQuery()
         {
             QueryResult queryResultBefore, queryResultAfter;
@@ -193,7 +187,6 @@ namespace SenseNet.SearchImpl.Tests
         }
 
         [TestMethod, TestCategory("IR, L29")]
-        [Timeout(20 * 1000)]
         public void L29_StartUpFail()
         {
             Assert.Inconclusive("Currently the write.lock cleanup does not work correctly in a test environment.");
@@ -261,7 +254,6 @@ namespace SenseNet.SearchImpl.Tests
         }
 
         [TestMethod, TestCategory("IR, L29")]
-        [Timeout(10 * 1000)]
         public void L29_SwitchOffRunningState()
         {
             var dataProvider = new InMemoryDataProvider();
@@ -312,7 +304,6 @@ namespace SenseNet.SearchImpl.Tests
         }
 
         [TestMethod, TestCategory("IR, L29")]
-        [Timeout(10 * 1000)]
         public void L29_NamedIndexDirectory()
         {
             var folderName = "Test_" + System.Reflection.MethodBase.GetCurrentMethod().Name;
