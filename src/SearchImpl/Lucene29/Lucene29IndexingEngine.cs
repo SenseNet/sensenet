@@ -403,7 +403,7 @@ namespace SenseNet.Search.Lucene29
             if (lockFilePath == null)
                 return;
 
-            consoleOut.WriteLine($"Index: {IndexDirectory.CurrentDirectory}");
+            consoleOut.WriteLine($"Index directory: {IndexDirectory.CurrentDirectory}");
 
             if (System.IO.File.Exists(lockFilePath))
             {

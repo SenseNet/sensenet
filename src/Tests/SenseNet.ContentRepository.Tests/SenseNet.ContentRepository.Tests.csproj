@@ -76,6 +76,7 @@
     <Compile Include="ProvidersTests.cs" />
     <Compile Include="RepositoryStartTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestBase.cs" />
     <Compile Include="Tools.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -11,10 +11,10 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.ContentRepository.Tests;
 using SenseNet.ContentRepository.Tests.Implementations;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
-using SenseNet.SearchImpl.Tests.Implementations;
 using SenseNet.Security.Data;
 using SafeQueries = SenseNet.SearchImpl.Tests.Implementations.SafeQueries;
 
@@ -414,7 +414,7 @@ namespace SenseNet.SearchImpl.Tests
             Node node;
             var additionalText = "additionaltext";
 
-            var result = Test(() =>
+            Test(() =>
             {
                 // create a test node under the root.
                 node = new SystemFolder(Node.LoadNode(Identifiers.PortalRootId))
@@ -531,12 +531,20 @@ namespace SenseNet.SearchImpl.Tests
                 // ACTION
                 var qresult = ContentQuery.Query(SafeQueries.Name, QuerySettings.AdminSettings, "Node1");
 
-                return new Tuple<int[], Node[]>(qresult.Identifiers.ToArray(), qresult.Nodes.ToArray());
+                return new Tuple<int, int[], Node[]>(node.Id, qresult.Identifiers.ToArray(), qresult.Nodes.ToArray());
             });
 
-            var nodeIds = result.Item1;
-            var nodes = result.Item2;
+            var nodeId = result.Item1;
+            var nodeIds = result.Item2;
+            var nodes = result.Item3;
 
+            Assert.IsTrue(nodeId > 0);
+
+            Assert.AreEqual(1, nodeIds.Length);
+            Assert.AreEqual(nodeId, nodeIds[0]);
+
+            Assert.AreEqual(1, nodes.Length);
+            Assert.AreEqual(nodeId, nodes[0].Id);
         }
 
         [TestMethod, TestCategory("IR")]
@@ -627,7 +635,6 @@ namespace SenseNet.SearchImpl.Tests
                 return new Tuple<int[], Node[]>(qresult.Identifiers.ToArray(), qresult.Nodes.ToArray());
             });
 
-            var nodeIds = result.Item1;
             var nodes = result.Item2;
 
             var expectedNames = "N5, N8, N3, N1, N7, N4, N2, N6";
@@ -875,7 +882,7 @@ namespace SenseNet.SearchImpl.Tests
             QueryResult result;
 
             Indexing.IsOuterSearchEngineEnabled = true;
-            using (var repo = Repository.Start(new RepositoryBuilder()
+            using (Repository.Start(new RepositoryBuilder()
                 .UseDataProvider(new InMemoryDataProvider())
                 .UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log))
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
@@ -912,7 +919,7 @@ namespace SenseNet.SearchImpl.Tests
             QueryResult result;
 
             Indexing.IsOuterSearchEngineEnabled = true;
-            using (var repo = Repository.Start(new RepositoryBuilder()
+            using (Repository.Start(new RepositoryBuilder()
                 .UseDataProvider(new InMemoryDataProvider())
                 .UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log))
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
@@ -1012,7 +1019,9 @@ namespace SenseNet.SearchImpl.Tests
 
             private readonly Dictionary<string, string[]> _mockResultsPerQueries;
             private readonly List<string> _log;
+            // ReSharper disable once NotAccessedField.Local
             private Dictionary<string, string> _analyzerNames;
+            // ReSharper disable once NotAccessedField.Local
             private Dictionary<string, PerFieldIndexingInfo> _perFieldIndexingInfos;
 
             public SearchEngineForNestedQueryTests(Dictionary<string, string[]> mockResultsPerQueries, List<string> log)

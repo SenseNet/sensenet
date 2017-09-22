@@ -1,55 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Tests.Implementations;
 using SenseNet.Diagnostics;
-using SenseNet.Search;
-using SenseNet.Search.Indexing;
-using SenseNet.Search.Lucene29;
-using SenseNet.SearchImpl.Tests.Implementations;
 using SenseNet.Security;
 using SenseNet.Security.Data;
-using SenseNet.Security.Messaging;
 
-namespace SenseNet.SearchImpl.Tests
+namespace SenseNet.ContentRepository.Tests
 {
     [TestClass]
     public class TestBase
     {
-        // ORIGINAL TEST WITHOUT USING PROTOTYPE
-        //protected T Test<T>(Func<T> callback)
-        //{
-        //    TypeHandler.Initialize(new Dictionary<Type, Type[]>
-        //    {
-        //        {typeof(ElevatedModificationVisibilityRule), new[] {typeof(SnElevatedModificationVisibilityRule)}}
-        //    });
-
-        //    var dataProvider = new InMemoryDataProvider();
-        //    StartSecurity(dataProvider);
-
-        //    DistributedApplication.Cache.Reset();
-
-        //    using (new Tools.SearchEngineSwindler(new InMemorySearchEngine()))
-        //    using (Tools.Swindle(typeof(StorageContext.Search), "ContentRepository", new SearchEngineSupport()))
-        //    using (Tools.Swindle(typeof(AccessProvider), "_current", new DesktopAccessProvider()))
-        //    using (Tools.Swindle(typeof(DataProvider), "_current", dataProvider))
-        //    using (new SystemAccount())
-        //    {
-        //        CommonComponents.TransactionFactory = dataProvider;
-        //        IndexManager.Start(new InMemoryIndexingEngineFactory(), TextWriter.Null);
-        //        return callback();
-        //    }
-        //}
-
         public TestContext TestContext { get; set; }
 
         [TestInitialize]
@@ -72,7 +38,7 @@ namespace SenseNet.SearchImpl.Tests
             DistributedApplication.Cache.Reset();
 
             Indexing.IsOuterSearchEngineEnabled = true;
-            using (var repo = Repository.Start(new RepositoryBuilder()
+            using (Repository.Start(new RepositoryBuilder()
                 .UseDataProvider(new InMemoryDataProvider())
                 .UseSearchEngine(new InMemorySearchEngine())
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))

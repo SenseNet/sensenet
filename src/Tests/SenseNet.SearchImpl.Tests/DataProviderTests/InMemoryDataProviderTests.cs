@@ -1,23 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Events;
-using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.ContentRepository.Tests;
 using SenseNet.ContentRepository.Tests.Implementations;
-using SenseNet.Search;
-using SenseNet.Search.Indexing;
-using SenseNet.Search.Tests.Implementations;
-using SenseNet.SearchImpl.Tests.Implementations;
-using SenseNet.Security;
-using SenseNet.Security.Data;
-using SenseNet.Security.Messaging;
 
 namespace SenseNet.SearchImpl.Tests.DataProviderTests
 {
@@ -44,7 +33,7 @@ namespace SenseNet.SearchImpl.Tests.DataProviderTests
         public void InMemDb_Create()
         {
             Node node;
-            var result = Test<Tuple<int, Node>>(() =>
+            var result = Test(() =>
             {
                 var lastNodeId = ((InMemoryDataProvider)DataProvider.Current).LastNodeId;
 

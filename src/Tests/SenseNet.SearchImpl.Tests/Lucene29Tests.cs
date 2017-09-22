@@ -2,12 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Lucene.Net.Index;
-using Lucene.Net.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -17,6 +14,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.ContentRepository.Tests;
 using SenseNet.ContentRepository.Tests.Implementations;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
@@ -53,6 +51,8 @@ namespace SenseNet.SearchImpl.Tests
 
             var indxDir =((Lucene29IndexingEngine)engine).IndexDirectory.CurrentDirectory;
             Assert.IsNotNull(indxDir);
+            Assert.IsTrue(indxDir.EndsWith(MethodBase.GetCurrentMethod().Name));
+            Assert.IsTrue(console.Contains(indxDir));
         }
 
         [TestMethod, TestCategory("IR, L29")]
@@ -85,7 +85,8 @@ namespace SenseNet.SearchImpl.Tests
                     DataProvider.GetNodeCount(),
                     DataProvider.GetVersionCount(),
                     nodeIds.Length,
-                    versionIds.Length
+                    versionIds.Length,
+                    paths.Count
                 };
             });
             var activityCount = result[0];
@@ -93,10 +94,12 @@ namespace SenseNet.SearchImpl.Tests
             var versionCount = result[2];
             var nodeIdTermCount = result[3];
             var versionIdTermCount = result[4];
+            var pathCount = result[5];
 
             Assert.AreEqual(0, activityCount);
             Assert.AreEqual(nodeCount, nodeIdTermCount);
             Assert.AreEqual(versionCount, versionIdTermCount);
+            Assert.AreEqual(versionCount, pathCount);
         }
 
         [TestMethod, TestCategory("IR, L29")]
@@ -186,72 +189,72 @@ namespace SenseNet.SearchImpl.Tests
             node.Save();
         }
 
-        [TestMethod, TestCategory("IR, L29")]
-        public void L29_StartUpFail()
-        {
-            Assert.Inconclusive("Currently the write.lock cleanup does not work correctly in a test environment.");
+        //[TestMethod, TestCategory("IR, L29")]
+        //public void L29_StartUpFail()
+        //{
+        //    Assert.Inconclusive("Currently the write.lock cleanup does not work correctly in a test environment.");
 
-            var dataProvider = new InMemoryDataProvider();
-            var securityDataProvider = GetSecurityDataProvider(dataProvider);
+        //    var dataProvider = new InMemoryDataProvider();
+        //    var securityDataProvider = GetSecurityDataProvider(dataProvider);
 
-            // Search engine that contains an indexing engine that will throw 
-            // an exception during startup to test index directory cleanup.
-            var searchEngine = new Lucene29SearchEngine
-            {
-                IndexingEngine = new Lucene29IndexingEngineFailStartup()
-            };
+        //    // Search engine that contains an indexing engine that will throw 
+        //    // an exception during startup to test index directory cleanup.
+        //    var searchEngine = new Lucene29SearchEngine
+        //    {
+        //        IndexingEngine = new Lucene29IndexingEngineFailStartup()
+        //    };
 
-            Indexing.IsOuterSearchEngineEnabled = true;
-            CommonComponents.TransactionFactory = dataProvider;
-            DistributedApplication.Cache.Reset();
+        //    Indexing.IsOuterSearchEngineEnabled = true;
+        //    CommonComponents.TransactionFactory = dataProvider;
+        //    DistributedApplication.Cache.Reset();
 
-            var indxManConsole = new StringWriter();
-            var repoBuilder = new RepositoryBuilder()
-                .UseDataProvider(dataProvider)
-                .UseAccessProvider(new DesktopAccessProvider())
-                .UsePermissionFilterFactory(new EverythingAllowedPermissionFilterFactory())
-                .UseSearchEngine(searchEngine)
-                .UseSecurityDataProvider(securityDataProvider)
-                .UseCacheProvider(new EmptyCache())
-                .StartWorkflowEngine(false)
-                .UseTraceCategories(new [] { "Test", "Event", "Repository", "System" });
+        //    var indxManConsole = new StringWriter();
+        //    var repoBuilder = new RepositoryBuilder()
+        //        .UseDataProvider(dataProvider)
+        //        .UseAccessProvider(new DesktopAccessProvider())
+        //        .UsePermissionFilterFactory(new EverythingAllowedPermissionFilterFactory())
+        //        .UseSearchEngine(searchEngine)
+        //        .UseSecurityDataProvider(securityDataProvider)
+        //        .UseCacheProvider(new EmptyCache())
+        //        .StartWorkflowEngine(false)
+        //        .UseTraceCategories(new [] { "Test", "Event", "Repository", "System" });
 
-            repoBuilder.Console = indxManConsole;
+        //    repoBuilder.Console = indxManConsole;
 
-            try
-            {
-                using (Repository.Start(repoBuilder))
-                {
-                    // Although the repo start process fails, the next startup
-                    // should clean the lock file from the index directory.
-                }
-            }
-            catch (InvalidOperationException)
-            {
-                // expected
-            }
+        //    try
+        //    {
+        //        using (Repository.Start(repoBuilder))
+        //        {
+        //            // Although the repo start process fails, the next startup
+        //            // should clean the lock file from the index directory.
+        //        }
+        //    }
+        //    catch (InvalidOperationException)
+        //    {
+        //        // expected
+        //    }
 
-            // revert to a regular search engine that does not throw an exception
-            repoBuilder.UseSearchEngine(new Lucene29SearchEngine());
+        //    // revert to a regular search engine that does not throw an exception
+        //    repoBuilder.UseSearchEngine(new Lucene29SearchEngine());
 
-            var originalTimeout = Indexing.IndexLockFileWaitForRemovedTimeout;
+        //    var originalTimeout = Indexing.IndexLockFileWaitForRemovedTimeout;
 
-            try
-            {
-                // remove lock file after 5 seconds
-                Indexing.IndexLockFileWaitForRemovedTimeout = 5;
+        //    try
+        //    {
+        //        // remove lock file after 5 seconds
+        //        Indexing.IndexLockFileWaitForRemovedTimeout = 5;
 
-                // Start the repo again to check if indexmanager is able to start again correctly.
-                using (Repository.Start(repoBuilder))
-                {
+        //        // Start the repo again to check if indexmanager is able to start again correctly.
+        //        using (Repository.Start(repoBuilder))
+        //        {
 
-                }
-            }
-            finally
-            {
-                Indexing.IndexLockFileWaitForRemovedTimeout = originalTimeout;
-            }
-        }
+        //        }
+        //    }
+        //    finally
+        //    {
+        //        Indexing.IndexLockFileWaitForRemovedTimeout = originalTimeout;
+        //    }
+        //}
 
         [TestMethod, TestCategory("IR, L29")]
         public void L29_SwitchOffRunningState()
@@ -306,7 +309,7 @@ namespace SenseNet.SearchImpl.Tests
         [TestMethod, TestCategory("IR, L29")]
         public void L29_NamedIndexDirectory()
         {
-            var folderName = "Test_" + System.Reflection.MethodBase.GetCurrentMethod().Name;
+            var folderName = "Test_" + MethodBase.GetCurrentMethod().Name;
 
             var dataProvider = new InMemoryDataProvider();
             var indexingEngine = new Lucene29IndexingEngine(new IndexDirectory(folderName));
@@ -381,26 +384,19 @@ namespace SenseNet.SearchImpl.Tests
 
             repoBuilder.Console = indxManConsole;
 
-            T result = default(T);
-            try
+            T result;
+            using (Repository.Start(repoBuilder))
             {
-                using (Repository.Start(repoBuilder))
-                {
-                    //IndexDirectory.CreateNew();
-                    //IndexDirectory.Reset();
+                //IndexDirectory.CreateNew();
+                //IndexDirectory.Reset();
 
-                    using (Tools.Swindle(typeof(StorageContext.Search), "ContentRepository", new SearchEngineSupport()))
+                using (Tools.Swindle(typeof(StorageContext.Search), "ContentRepository", new SearchEngineSupport()))
                     //using (new SystemAccount())
-                    {
-                        //EnsureEmptyIndexDirectory();
+                {
+                    //EnsureEmptyIndexDirectory();
 
-                        result = callback(indxManConsole.ToString());
-                    }
+                    result = callback(indxManConsole.ToString());
                 }
-            }
-            finally
-            {
-                //DeleteIndexDirectories();
             }
 
             return result;
@@ -448,8 +444,9 @@ namespace SenseNet.SearchImpl.Tests
                 {
                     Directory.Delete(indexDir, true);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
+                    // ignored
                 }
             }
             foreach (var file in Directory.GetFiles(path))
@@ -458,8 +455,9 @@ namespace SenseNet.SearchImpl.Tests
                 {
                     System.IO.File.Delete(file);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
+                    // ignored
                 }
             }
         }
