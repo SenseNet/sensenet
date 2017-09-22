@@ -41,11 +41,6 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             Index.WriteActivityStatus(state);
         }
 
-        public IEnumerable<IndexDocument> GetDocumentsByNodeId(int nodeId)
-        {
-            throw new NotImplementedException();
-        }
-
         public void WriteIndex(IEnumerable<SnTerm> deletions, IndexDocument addition, IEnumerable<DocumentUpdate> updates)
         {
             if (deletions != null)

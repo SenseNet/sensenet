@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace SenseNet.Search
@@ -20,16 +21,11 @@ namespace SenseNet.Search
         bool Running { get; }
 
         void Start(TextWriter consoleOut);
-
         void ShutDown();
-
         void ClearIndex();
 
         IIndexingActivityStatus ReadActivityStatusFromIndex();
         void WriteActivityStatusToIndex(IIndexingActivityStatus state);
-
-        /// <summary>Only for tests.</summary>
-        IEnumerable<IndexDocument> GetDocumentsByNodeId(int nodeId); //UNDONE:!!!!! API: Remove if possible
 
         void WriteIndex(IEnumerable<SnTerm> deletions, IndexDocument addition, IEnumerable<DocumentUpdate> updates);
         void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<IndexDocument> addition);

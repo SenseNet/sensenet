@@ -721,26 +721,5 @@ namespace SenseNet.Search.Lucene29
 
         private object _commitLock = new object();
 
-        /* ================================================================== Tools */
-
-        /// <summary> For test purposes. </summary>
-        public IEnumerable<IndexDocument> GetDocumentsByNodeId(int nodeId) //UNDONE:!!!!! API: Remove if possible
-        {
-            using (var readerFrame = GetIndexReaderFrame())
-            {
-                var termDocs = readerFrame.IndexReader.TermDocs(new Term(IndexFieldName.NodeId, Lucene.Net.Util.NumericUtils.IntToPrefixCoded(nodeId)));
-                return GetDocumentsFromTermDocs(termDocs, readerFrame);
-            }
-        }
-        private IEnumerable<IndexDocument> GetDocumentsFromTermDocs(TermDocs termDocs, IndexReaderFrame readerFrame)
-        {
-            throw new NotImplementedException();
-            //var docs = new List<IIndexDocument>();
-            //while (termDocs.Next())
-            //    docs.Add(new Lucene29IndexDocument(readerFrame.IndexReader.Document(termDocs.Doc())));
-            //docs.Sort(new DocumentVersionComparer());
-            //return docs;
-        }
-
     }
 }

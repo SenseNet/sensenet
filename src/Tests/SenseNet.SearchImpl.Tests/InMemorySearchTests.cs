@@ -1000,10 +1000,6 @@ namespace SenseNet.SearchImpl.Tests
                 {
                     throw new NotImplementedException();
                 }
-                public IEnumerable<IndexDocument> GetDocumentsByNodeId(int nodeId) //UNDONE:!!!!! API: Remove if possible
-                {
-                    throw new NotImplementedException();
-                }
                 public void WriteIndex(IEnumerable<SnTerm> deletions, IndexDocument addition, IEnumerable<DocumentUpdate> updates)
                 {
                     throw new NotImplementedException();
