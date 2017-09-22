@@ -18,13 +18,14 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             //if (SnLucToSqlCompiler.TryCompile(QueryInfo.Query.QueryTree, QueryInfo.Top, QueryInfo.Skip,
             //    QueryInfo.SortFields, QueryInfo.CountOnly, out _sqlQueryText, out _sqlParameters))
 
-            throw new NotImplementedException();
+            return null; // means: cannot execute
         }
 
+        //UNDONE:! SQL: Develop SqlQueryEngine.TryExecuteQueryAndProject
         public IQueryResult<string> TryExecuteQueryAndProject(SnQuery query, IPermissionFilter filter,
             IQueryContext context)
         {
-            throw new NotImplementedException();
+            return null; // means: cannot execute
         }
 
     }
