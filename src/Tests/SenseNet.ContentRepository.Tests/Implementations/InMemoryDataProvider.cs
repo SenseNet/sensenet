@@ -898,6 +898,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             return _db.Nodes.Select(n => new StoredSecurityEntity
             {
                 Id = n.NodeId,
+                IsInherited = true,
                 nullableOwnerId = n.OwnerId,
                 nullableParentId = n.ParentNodeId
             }).ToArray();
