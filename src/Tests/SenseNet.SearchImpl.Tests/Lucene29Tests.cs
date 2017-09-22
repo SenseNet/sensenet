@@ -43,104 +43,103 @@ namespace SenseNet.SearchImpl.Tests
     {
         //UNDONE:!!!!! TEST: Use these tests
 
-        //[TestMethod, TestCategory("IR, L29")]
-        //[Timeout(20 * 1000)]
-        //public void L29_BasicConditions()
-        //{
-        //    var result =
-        //        L29Test(s =>
-        //                new Tuple<IIndexingEngine, string, string>(IndexManager.IndexingEngine,
-        //                    IndexDirectory.CurrentDirectory, s));
-        //    var engine = result.Item1;
-        //    var indxDir = result.Item2;
-        //    var console = result.Item3;
+        [TestMethod, TestCategory("IR, L29")]
+        [Timeout(20 * 1000)]
+        public void L29_BasicConditions()
+        {
+            var result =
+                L29Test(s =>
+                        new Tuple<IIndexingEngine, string>(IndexManager.IndexingEngine, s));
+            var engine = result.Item1;
+            var console = result.Item2;
+            Assert.AreEqual(typeof(Lucene29IndexingEngine).FullName, engine.GetType().FullName);
 
-        //    Assert.AreEqual(typeof(Lucene29IndexingEngine).FullName, engine.GetType().FullName);
-        //    Assert.IsNotNull(indxDir);
-        //}
+            var indxDir =((Lucene29IndexingEngine)engine).IndexDirectory.CurrentDirectory;
+            Assert.IsNotNull(indxDir);
+        }
 
-        //[TestMethod, TestCategory("IR, L29")]
+        [TestMethod, TestCategory("IR, L29")]
         //[Timeout(40 * 1000)]
-        //public void L29_ClearAndPopulateAll()
-        //{
-        //    var sb = new StringBuilder();
-        //    IIndexingActivity[] activities;
-        //    var result = L29Test(s =>
-        //    {
-        //        SaveInitialIndexDocuments();
+        public void L29_ClearAndPopulateAll()
+        {
+            var sb = new StringBuilder();
+            IIndexingActivity[] activities;
+            var result = L29Test(s =>
+            {
+                SaveInitialIndexDocuments();
 
-        //        var paths = new List<string>();
-        //        var populator = StorageContext.Search.SearchEngine.GetPopulator();
-        //        populator.NodeIndexed += (sender, e) => { paths.Add(e.Path); };
+                var paths = new List<string>();
+                var populator = StorageContext.Search.SearchEngine.GetPopulator();
+                populator.NodeIndexed += (sender, e) => { paths.Add(e.Path); };
 
-        //        // ACTION
-        //        using (var console = new StringWriter(sb))
-        //            populator.ClearAndPopulateAll(console);
+                // ACTION
+                using (var console = new StringWriter(sb))
+                    populator.ClearAndPopulateAll(console);
 
-        //        // load last indexing activity
-        //        var db = DataProvider.Current;
-        //        var activityId = db.GetLastActivityId();
-        //        activities = db.LoadIndexingActivities(1, activityId, 10000, false, IndexingActivityFactory.Instance);
+                // load last indexing activity
+                var db = DataProvider.Current;
+                var activityId = db.GetLastActivityId();
+                activities = db.LoadIndexingActivities(1, activityId, 10000, false, IndexingActivityFactory.Instance);
 
-        //        int[] nodeIds, versionIds;
-        //        GetAllIdValuesFromIndex(out nodeIds, out versionIds);
-        //        return new[]
-        //        {
-        //            activities.Length,
-        //            DataProvider.GetNodeCount(),
-        //            DataProvider.GetVersionCount(),
-        //            nodeIds.Length,
-        //            versionIds.Length
-        //        };
-        //    });
-        //    var activityCount = result[0];
-        //    var nodeCount = result[1];
-        //    var versionCount = result[2];
-        //    var nodeIdTermCount = result[3];
-        //    var versionIdTermCount = result[4];
+                int[] nodeIds, versionIds;
+                GetAllIdValuesFromIndex(out nodeIds, out versionIds);
+                return new[]
+                {
+                    activities.Length,
+                    DataProvider.GetNodeCount(),
+                    DataProvider.GetVersionCount(),
+                    nodeIds.Length,
+                    versionIds.Length
+                };
+            });
+            var activityCount = result[0];
+            var nodeCount = result[1];
+            var versionCount = result[2];
+            var nodeIdTermCount = result[3];
+            var versionIdTermCount = result[4];
 
-        //    Assert.AreEqual(0, activityCount);
-        //    Assert.AreEqual(nodeCount, nodeIdTermCount);
-        //    Assert.AreEqual(versionCount, versionIdTermCount);
-        //}
+            Assert.AreEqual(0, activityCount);
+            Assert.AreEqual(nodeCount, nodeIdTermCount);
+            Assert.AreEqual(versionCount, versionIdTermCount);
+        }
 
-        //[TestMethod, TestCategory("IR, L29")]
-        ////[Timeout(20*1000)]
-        //public void L29_Query()
-        //{
-        //    QueryResult queryResult1, queryResult2;
-        //    var result =
-        //        L29Test(console =>
-        //        {
-        //            var indexPopulator = StorageContext.Search.SearchEngine.GetPopulator();
+        [TestMethod, TestCategory("IR, L29")]
+        [Timeout(20*1000)]
+        public void L29_Query()
+        {
+            QueryResult queryResult1, queryResult2;
+            var result =
+                L29Test(console =>
+                {
+                    var indexPopulator = StorageContext.Search.SearchEngine.GetPopulator();
 
-        //            var root = Repository.Root;
-        //            indexPopulator.RebuildIndex(root, false, IndexRebuildLevel.DatabaseAndIndex);
-        //            var admin = User.Administrator;
-        //            indexPopulator.RebuildIndex(admin, false, IndexRebuildLevel.DatabaseAndIndex);
+                    var root = Repository.Root;
+                    indexPopulator.RebuildIndex(root, false, IndexRebuildLevel.DatabaseAndIndex);
+                    var admin = User.Administrator;
+                    indexPopulator.RebuildIndex(admin, false, IndexRebuildLevel.DatabaseAndIndex);
 
-        //            queryResult1 = CreateSafeContentQuery("Id:1").Execute();
-        //            queryResult2 = CreateSafeContentQuery("Id:2 .COUNTONLY").Execute();
+                    queryResult1 = CreateSafeContentQuery("Id:1").Execute();
+                    queryResult2 = CreateSafeContentQuery("Id:2 .COUNTONLY").Execute();
 
-        //            return new Tuple<IIndexingEngine, string, IUser, QueryResult, QueryResult, string>(
-        //                IndexManager.IndexingEngine, IndexDirectory.CurrentDirectory, User.Current,
-        //                queryResult1, queryResult2, console);
-        //        });
+                    return new Tuple<IIndexingEngine, IUser, QueryResult, QueryResult, string>(
+                        IndexManager.IndexingEngine, User.Current,
+                        queryResult1, queryResult2, console);
+                });
 
-        //    var engine = result.Item1;
-        //    var indxDir = result.Item2;
-        //    var user = result.Item3;
-        //    queryResult1 = result.Item4;
-        //    queryResult2 = result.Item5;
+            var engine = result.Item1;
+            var user = result.Item2;
+            queryResult1 = result.Item3;
+            queryResult2 = result.Item4;
 
-        //    Assert.AreEqual(typeof(Lucene29IndexingEngine).FullName, engine.GetType().FullName);
-        //    Assert.IsNotNull(indxDir);
-        //    Assert.AreEqual(1, user.Id);
-        //    Assert.AreEqual(1, queryResult1.Count);
-        //    Assert.AreEqual(1, queryResult1.Identifiers.FirstOrDefault());
-        //    Assert.AreEqual(1, queryResult2.Count);
-        //    Assert.AreEqual(0, queryResult2.Identifiers.FirstOrDefault());
-        //}
+            Assert.AreEqual(typeof(Lucene29IndexingEngine).FullName, engine.GetType().FullName);
+            var indxDir = ((Lucene29IndexingEngine)engine).IndexDirectory.CurrentDirectory;
+            Assert.IsNotNull(indxDir);
+            Assert.AreEqual(1, user.Id);
+            Assert.AreEqual(1, queryResult1.Count);
+            Assert.AreEqual(1, queryResult1.Identifiers.FirstOrDefault());
+            Assert.AreEqual(1, queryResult2.Count);
+            Assert.AreEqual(0, queryResult2.Identifiers.FirstOrDefault());
+        }
 
         [ClassCleanup]
         public static void ClassCleanup()
