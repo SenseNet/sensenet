@@ -344,6 +344,60 @@ namespace SenseNet.SearchImpl.Tests
             }
         }
 
+        [TestMethod, TestCategory("IR, L29")]
+        public void L29_ActivityStatus_WithoutSave()
+        {
+            var newStatus = new IndexingActivityStatus
+            {
+                LastActivityId = 33,
+                Gaps = new[] { 5, 6, 7 }
+            };
+
+            var result = L29Test(s =>
+            {
+                var searchEngine = StorageContext.Search.SearchEngine;
+                var originalStatus = searchEngine.IndexingEngine.ReadActivityStatusFromIndex();
+
+                searchEngine.IndexingEngine.WriteActivityStatusToIndex(newStatus);
+
+                var updatedStatus = searchEngine.IndexingEngine.ReadActivityStatusFromIndex();
+
+                return new Tuple<IIndexingActivityStatus, IIndexingActivityStatus>(originalStatus, updatedStatus);
+            });
+
+            var resultStatus = new IndexingActivityStatus()
+            {
+                LastActivityId = result.Item2.LastActivityId,
+                Gaps = result.Item2.Gaps
+            };
+
+            Assert.AreEqual(result.Item1.LastActivityId, 0);
+            Assert.AreEqual(result.Item1.Gaps.Length, 0);
+            Assert.AreEqual(newStatus.ToString(), resultStatus.ToString());
+        }
+        [TestMethod, TestCategory("IR, L29")]
+        public void L29_ActivityStatus_WithSave()
+        {
+            var result = L29Test(s =>
+            {
+                var searchEngine = StorageContext.Search.SearchEngine;
+                var originalStatus = searchEngine.IndexingEngine.ReadActivityStatusFromIndex();
+
+                var node = new SystemFolder(Repository.Root) { Name = "L29_ActivityStatus_WithSave" };
+                using (new SystemAccount())
+                    SaveNode(node);
+
+                //UNDONE: this should work without an explicit commit
+                //IndexManager.Commit();
+
+                var updatedStatus = searchEngine.IndexingEngine.ReadActivityStatusFromIndex();
+
+                return new Tuple<IIndexingActivityStatus, IIndexingActivityStatus>(originalStatus, updatedStatus);
+            });
+
+            Assert.AreEqual(result.Item1.LastActivityId + 1, result.Item2.LastActivityId);
+        }
+
         private ContentQuery CreateSafeContentQuery(string qtext)
         {
             var cquery = ContentQuery.CreateQuery(qtext, QuerySettings.AdminSettings);
