@@ -19,7 +19,7 @@ namespace SenseNet.Search
             var query = new CqlParser().Parse(queryText, context);
             var permissionFilter = _permissionFilterFactory.Create(query, context);
             PrepareQuery(query);
-            //UNDONE:! SQL: ContentQueryExecutionAlgorithm
+            //UNDONE: SQL: ContentQueryExecutionAlgorithm
             return TryExecuteQuery(query, permissionFilter, context)
                    ?? context.QueryEngine.ExecuteQuery(query, permissionFilter, context);
         }
@@ -28,7 +28,7 @@ namespace SenseNet.Search
             var query = new CqlParser().Parse(queryText, context);
             var permissionFilter = _permissionFilterFactory.Create(query, context);
             PrepareQuery(query);
-            //UNDONE:! SQL: ContentQueryExecutionAlgorithm
+            //UNDONE: SQL: ContentQueryExecutionAlgorithm
             return TryExecuteQueryAndProject(query, permissionFilter, context)
                    ?? context.QueryEngine.ExecuteQueryAndProject(query, permissionFilter, context);
         }
@@ -127,7 +127,7 @@ namespace SenseNet.Search
             }
         }
 
-        //UNDONE:! SQL: Develop query validation
+        //UNDONE: SQL: Develop query validation
         //private static void ValidateQuery<T>(IQueryResult<T> x, IQueryResult<T> y)
         //{
         //    executor = SearchProvider.GetExecutor(this);

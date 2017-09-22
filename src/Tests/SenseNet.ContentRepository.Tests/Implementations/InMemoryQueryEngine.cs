@@ -187,7 +187,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                     {
                         List<int> versionIds;
                         if (fieldValues.TryGetValue(value, out versionIds))
-                            //UNDONE: call perfield indexing info
+                            //UNDONE: TEST: call perfield indexing info
                             result.AddRange(versionIds);
                     }
                     else

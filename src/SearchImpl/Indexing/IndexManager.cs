@@ -59,14 +59,14 @@ namespace SenseNet.Search.Indexing
             // data of the activity to prevent memory overflow. We still have to wait for the 
             // activity to finish, but the inner data can (and will) be loaded from the db when 
             // the time comes for this activity to be executed.
-            if (IndexingActivityQueue.IsOverloaded()) //UNDONE:!!!! Decision: execution without queue
+            if (IndexingActivityQueue.IsOverloaded())
             {
                 SnTrace.Index.Write("IAQ OVERLOAD drop activity FromPopulator A:" + activity.Id);
                 activity.IndexDocumentData = null;
             }
 
             // all activities must be executed through the activity queue's API
-            IndexingActivityQueue.ExecuteActivity(activity); //UNDONE:!!!! Decision: execution without queue
+            IndexingActivityQueue.ExecuteActivity(activity);
 
             if (waitForComplete)
                 activity.WaitForComplete();
@@ -136,7 +136,7 @@ namespace SenseNet.Search.Indexing
             return true;
         }
         // RemoveDocumentActivity
-        internal static bool DeleteDocument(int versionId, VersioningInfo versioning)
+        internal static bool DeleteDocument(int versionId, VersioningInfo versioning) //UNDONE:!!!!!!!! RemoveDocumentActivity: Unused method
         {
             var delTerms = versioning.Delete.Select(i => new SnTerm(IndexFieldName.VersionId, i)).ToList();
             delTerms.Add(new SnTerm(IndexFieldName.VersionId, versionId));

@@ -3,7 +3,7 @@
 namespace SenseNet.Search.Indexing.Activities
 {
     [Serializable]
-    internal class RemoveDocumentActivity : DocumentIndexingActivity
+    internal class RemoveDocumentActivity : DocumentIndexingActivity //UNDONE:!!!!!!!! RemoveDocumentActivity: Unused class
     {
         protected override bool ProtectedExecute()
         {

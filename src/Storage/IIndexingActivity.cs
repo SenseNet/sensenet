@@ -12,7 +12,7 @@ namespace SenseNet.ContentRepository.Storage
         AddDocument = 1,
         AddTree = 2,
         UpdateDocument = 3,
-        RemoveDocument = 4,
+        RemoveDocument = 4, //UNDONE:!!!!!!!! RemoveDocumentActivity: Unused enum member
         RemoveTree = 5,
         Rebuild
     }

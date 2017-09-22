@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace SenseNet.Search
 {
-    //UNDONE:! SQL: Develop SqlQueryExecutor
+    //UNDONE: SQL: Develop SqlQueryExecutor
     internal class SqlQueryExecutor
     {
         //public IPermissionFilter PermissionChecker { get; private set; }

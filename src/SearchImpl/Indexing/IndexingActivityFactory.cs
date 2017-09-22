@@ -21,7 +21,7 @@ namespace SenseNet.Search.Indexing
                 case IndexingActivityType.AddTree: activity = new AddTreeActivity(); break;
                 case IndexingActivityType.UpdateDocument: activity = new UpdateDocumentActivity(); break;
                 case IndexingActivityType.RemoveTree: activity = new RemoveTreeActivity(); break;
-                case IndexingActivityType.RemoveDocument: activity = new RemoveDocumentActivity(); break;
+                case IndexingActivityType.RemoveDocument: activity = new RemoveDocumentActivity(); break; //UNDONE:!!!!!!!! RemoveDocumentActivity: Unused case label
                 case IndexingActivityType.Rebuild: activity = new RebuildActivity(); break;
                 default: throw new NotSupportedException("Unknown IndexingActivityType: " + activityType);
             }

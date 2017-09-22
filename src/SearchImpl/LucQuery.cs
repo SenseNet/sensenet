@@ -218,7 +218,7 @@ namespace SenseNet.Search
                 else
                     executor = new QueryExecutor20131012();
 
-                //UNDONE:! SQL: ContentQueryExecutionAlgorithm
+                //UNDONE: SQL: ContentQueryExecutionAlgorithm
                 var executionAlgorithm = ForceLuceneExecution
                     ? ContentQueryExecutionAlgorithm.LuceneOnly
                     : Configuration.Querying.ContentQueryExecutionAlgorithm;
@@ -252,10 +252,10 @@ namespace SenseNet.Search
             }
         }
 
-        //UNDONE:! SQL: ContentQueryExecutionAlgorithm
+        //UNDONE: SQL: ContentQueryExecutionAlgorithm
         public enum ContentQueryExecutionAlgorithm { Default, Provider, LuceneOnly, Validation }
 
-        //UNDONE:! SQL: ContentQueryExecutionAlgorithm
+        //UNDONE: SQL: ContentQueryExecutionAlgorithm
         protected void AssertResultsAreEqual(IEnumerable<LucObject> expected, IEnumerable<LucObject> actual, string cql, string sql)
         {
             var exp = string.Join(",", expected.Select(x => x.NodeId).Distinct().OrderBy(y => y));
