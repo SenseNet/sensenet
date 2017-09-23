@@ -8,7 +8,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search.Indexing;
 
-namespace SenseNet.Search
+namespace SenseNet.Search.Lucene29
 {
     public class LucObject
     {

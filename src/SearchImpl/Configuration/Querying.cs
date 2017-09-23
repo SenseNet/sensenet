@@ -1,6 +1,7 @@
 ﻿using System;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Search;
+using SenseNet.Search.Lucene29;
 
 // ReSharper disable RedundantTypeArgumentsOfMethod
 namespace SenseNet.Configuration

@@ -21,7 +21,7 @@ using SenseNet.ContentRepository.Storage.Diagnostics;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Search.Lucene29.QueryExecutors;
 
-namespace SenseNet.Search
+namespace SenseNet.Search.Lucene29
 {
     public class LucQuery //UNDONE:!!! After LINQ: Delete ASAP
     {

@@ -7,6 +7,7 @@ using Lucene.Net.Search;
 using Lucene.Net.Index;
 using System.Collections;
 using System.Linq.Expressions;
+using SenseNet.Search.Lucene29;
 
 namespace SenseNet.ContentRepository.Linq
 {

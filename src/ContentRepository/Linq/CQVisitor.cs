@@ -15,6 +15,7 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
+using SenseNet.Search.Lucene29;
 using Expression = System.Linq.Expressions.Expression;
 
 namespace SenseNet.ContentRepository.Linq

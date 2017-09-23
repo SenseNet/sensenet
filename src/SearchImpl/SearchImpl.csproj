@@ -93,8 +93,8 @@
     <Compile Include="Lucene29\Lucene29QueryEngine.cs" />
     <Compile Include="Lucene29\SnQueryToLucQueryVisitor.cs" />
     <Compile Include="Lucene29\Lucene29SearchEngine.cs" />
-    <Compile Include="LucObject.cs" />
-    <Compile Include="LucQuery.cs" />
+    <Compile Include="Lucene29\LucObject.cs" />
+    <Compile Include="Lucene29\LucQuery.cs" />
     <Compile Include="Parser\DumpVisitor.cs" />
     <Compile Include="Parser\FieldNameVisitor.cs" />
     <Compile Include="Parser\LineInfo.cs" />
