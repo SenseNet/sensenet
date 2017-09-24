@@ -73,6 +73,7 @@
     <Compile Include="Implementations\InMemoryIndexingEngine.cs" />
     <Compile Include="Implementations\InMemoryQueryEngine.cs" />
     <Compile Include="Implementations\InMemorySearchEngine.cs" />
+    <Compile Include="LinqTests.cs" />
     <Compile Include="ProvidersTests.cs" />
     <Compile Include="RepositoryStartTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
