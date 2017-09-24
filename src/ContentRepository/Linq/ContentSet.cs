@@ -105,7 +105,7 @@ namespace SenseNet.ContentRepository.Linq
             ContextPath = contextPath;
         }
 
-        internal static LucQuery GetLucQuery(Expression expr, bool autoFiltersEnabled,bool lifespanEnabled, ChildrenDefinition childrenDef, string contextPath)
+        internal static SnQuery GetSnQuery(Expression expr, bool autoFiltersEnabled,bool lifespanEnabled, ChildrenDefinition childrenDef, string contextPath)
         {
             return SnExpression.BuildQuery(expr, typeof(T), contextPath, childrenDef);
         }
@@ -173,19 +173,18 @@ namespace SenseNet.ContentRepository.Linq
                 TraceLog.Append("Query:      ").AppendLine(query.ToString());
                 TraceLog.AppendLine("--------------");
             }
-            var result = this.ExecuteQuery ? query.Execute() : null; //UNDONE:!!! LINQ: Use SnQuery instead of LucQuery
+            var result = this.ExecuteQuery ? query.Execute(SnQueryContext.CreateDefault()) : null; //UNDONE:!!! LINQ: Use SnQuery instead of LucQuery
             if (query.CountOnly)
             {
                 if (this.ExecuteQuery)
-                    count = query.TotalCount;
+                    count = result.TotalCount;
 
                 if (query.ExistenceOnly)
                     return (TResult)Convert.ChangeType(count > 0, typeof(TResult));
-                else
-                    return (TResult)Convert.ChangeType(count, typeof(TResult));
+                return (TResult)Convert.ChangeType(count, typeof(TResult));
             }
             if (this.ExecuteQuery)
-                count = result.Count();
+                count = result.TotalCount;
 
             if (count == 0)
             {
@@ -198,11 +197,11 @@ namespace SenseNet.ContentRepository.Linq
                 if (typeof(Node).IsAssignableFrom(typeof(TResult)))
                 {
                     if (this.ExecuteQuery)
-                        return (TResult)Convert.ChangeType(Node.LoadNode(result.First().NodeId), typeof(TResult));
+                        return (TResult)Convert.ChangeType(Node.LoadNode(result.Hits.First()), typeof(TResult));
                     return (TResult)Convert.ChangeType(ChildrenDefinition.BaseCollection.First(), typeof(TResult));
                 }
                 if (this.ExecuteQuery)
-                    return (TResult)Convert.ChangeType(Content.Load(result.First().NodeId), typeof(TResult));
+                    return (TResult)Convert.ChangeType(Content.Load(result.Hits.First()), typeof(TResult));
                 return (TResult)Convert.ChangeType(Content.Create(ChildrenDefinition.BaseCollection.First()), typeof(TResult));
             }
 
@@ -240,7 +239,7 @@ namespace SenseNet.ContentRepository.Linq
         }
 
         // ==================================================================================================================================================
-        public LucQuery GetCompiledQuery()
+        public SnQuery GetCompiledQuery()
         {
             var q = SnExpression.BuildQuery(this.Expression, typeof(T), this.ContextPath, this.ChildrenDefinition);
             return q;

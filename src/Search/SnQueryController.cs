@@ -13,24 +13,52 @@ namespace SenseNet.Search
         }
 
         internal bool FiltersPrepared { get; private set; }
+        public static SnQueryPredicate FullSetPredicate { get; } = new RangePredicate("Id", "0", null, false, false);
+
 
         public static IQueryResult<int> Query(string queryText, IQueryContext context)
         {
             var query = new CqlParser().Parse(queryText, context);
-            var permissionFilter = _permissionFilterFactory.Create(query, context);
-            PrepareQuery(query);
-            //UNDONE: SQL: ContentQueryExecutionAlgorithm
-            return TryExecuteQuery(query, permissionFilter, context)
-                   ?? context.QueryEngine.ExecuteQuery(query, permissionFilter, context);
+            return query.Execute(context);
         }
+        public IQueryResult<int> Execute(IQueryContext context)
+        {
+            var permissionFilter = _permissionFilterFactory.Create(this, context);
+            PrepareQuery(this);
+            //UNDONE: SQL: ContentQueryExecutionAlgorithm
+            return TryExecuteQuery(this, permissionFilter, context)
+                   ?? context.QueryEngine.ExecuteQuery(this, permissionFilter, context);
+        }
+
         public static IQueryResult<string> QueryAndProject(string queryText, IQueryContext context)
         {
             var query = new CqlParser().Parse(queryText, context);
-            var permissionFilter = _permissionFilterFactory.Create(query, context);
-            PrepareQuery(query);
+            return query.ExecuteAndProject(context);
+        }
+        public IQueryResult<string> ExecuteAndProject(IQueryContext context)
+        {
+            var permissionFilter = _permissionFilterFactory.Create(this, context);
+            PrepareQuery(this);
             //UNDONE: SQL: ContentQueryExecutionAlgorithm
-            return TryExecuteQueryAndProject(query, permissionFilter, context)
-                   ?? context.QueryEngine.ExecuteQueryAndProject(query, permissionFilter, context);
+            return TryExecuteQueryAndProject(this, permissionFilter, context)
+                   ?? context.QueryEngine.ExecuteQueryAndProject(this, permissionFilter, context);
+        }
+
+        public void AddAndClause(SnQueryPredicate clause)
+        {
+            AddClause(clause, Occurence.Must);
+        }
+        public void AddOrClause(SnQueryPredicate clause)
+        {
+            AddClause(clause, Occurence.Should);
+        }
+        public void AddClause(SnQueryPredicate clause, Occurence occurence)
+        {
+            QueryTree = new LogicalPredicate(new[]
+            {
+                new LogicalClause(this.QueryTree, occurence),
+                new LogicalClause(clause, occurence),
+            });
         }
 
         internal static void PrepareQuery(SnQuery query)
@@ -152,6 +180,16 @@ namespace SenseNet.Search
         //        throw new Exception(msg);
         //    }
         //}
+
+        public static SnQuery Parse(string queryText)
+        {
+            return new SnQuery {QueryTree = new CqlParser().Parse(queryText)};
+        }
+
+        public static SnQuery Create(SnQueryPredicate predicate)
+        {
+            return new SnQuery {QueryTree = predicate};
+        }
 
     }
 }

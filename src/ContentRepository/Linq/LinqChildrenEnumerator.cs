@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using SenseNet.Search;
-using SenseNet.Search.Lucene29;
 
 namespace SenseNet.ContentRepository.Linq
 {
@@ -12,8 +9,11 @@ namespace SenseNet.ContentRepository.Linq
         private ChildrenContentSet<T> _queryable;
         private IEnumerable<T> _result;
         private IEnumerator<T> _resultEnumerator;
-        private LucQuery _query;
+        private SnQuery _query;
+        private IQueryContext _queryContext;
         private bool _isContent;
+
+        private IQueryContext QueryContext => _queryContext ?? (_queryContext = SnQueryContext.CreateDefault());
 
         public LinqChildrenEnumerator(ChildrenContentSet<T> queryable)
         {
@@ -34,6 +34,7 @@ namespace SenseNet.ContentRepository.Linq
         }
         public void Reset()
         {
+            _queryContext = null;
             _resultEnumerator.Reset();
         }
         public bool MoveNext()
@@ -41,11 +42,11 @@ namespace SenseNet.ContentRepository.Linq
             if (_result == null)
             {
                 Compile();
-                var qresult = _query.Execute(); //UNDONE:!!! LINQ: Use SnQuery instead of LucQuery
+                var qresult = _query.Execute(QueryContext); //UNDONE:!!! LINQ: Use SnQuery instead of LucQuery
                 if (_isContent)
-                    _result = (IEnumerable<T>)qresult.Select(x => Content.Load(x.NodeId));
+                    _result = (IEnumerable<T>)qresult.Hits.Select(Content.Load);
                 else
-                    _result = (IEnumerable<T>)qresult.Select(x => SenseNet.ContentRepository.Storage.Node.LoadNode(x.NodeId));
+                    _result = (IEnumerable<T>)qresult.Hits.Select(Storage.Node.LoadNode);
                 _resultEnumerator = _result.GetEnumerator();
             }
             return _resultEnumerator.MoveNext();
@@ -54,9 +55,8 @@ namespace SenseNet.ContentRepository.Linq
         {
             if (_query == null)
             {
-                var q = LucQuery.Create(SnExpression.GetPathQuery(_queryable.ContextPath, _queryable.SubTree));
                 var query = SnExpression.BuildQuery(_queryable.Expression, typeof(T), _queryable.ContextPath, _queryable.ChildrenDefinition);
-                query.AddAndClause(q);
+                query.AddAndClause(SnExpression.GetPathPredicate(_queryable.ContextPath, _queryable.SubTree));
                 _query = query;
             }
         }

@@ -3,9 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Lucene.Net.Search;
+using SenseNet.Search.Parser;
 
 namespace SenseNet.ContentRepository.Linq
 {
+    internal class OptimizeBooleansVisitor_NEW : SnQueryVisitor //UNDONE:. LINQ: OptimizeBooleansVisitor_NEW is not implemented
+    {
+        public override SnQueryPredicate Visit(SnQueryPredicate predicate)
+        {
+            return predicate;
+        }
+    }
+
+    [Obsolete(", true")]
     internal class OptimizeBooleansVisitor : SenseNet.Search.Parser.LucQueryVisitor
     {
         public override Query Visit(Query q)

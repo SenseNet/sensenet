@@ -28,13 +28,10 @@ namespace SenseNet.Search.Parser
         private readonly Stack<FieldInfo> _currentField = new Stack<FieldInfo>();
         private readonly List<QueryControlParam> _controls = new List<QueryControlParam>();
         //private readonly List<string> _usedFieldNames = new List<string>();
-        private IQueryContext _context;
         private bool _hasEmptyQuery;
 
         public SnQuery Parse(string queryText, IQueryContext context)
         {
-            _context = context;
-
             var rootNode = Parse(queryText);
 
             if (_hasEmptyQuery)

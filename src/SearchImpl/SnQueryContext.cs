@@ -1,5 +1,6 @@
 ﻿using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.Search
 {
@@ -20,6 +21,11 @@ namespace SenseNet.Search
         public IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
         {
             return StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(fieldName);
+        }
+
+        public static IQueryContext CreateDefault()
+        {
+            return new SnQueryContext(QuerySettings.Default, AccessProvider.Current.GetCurrentUser().Id);
         }
     }
 }

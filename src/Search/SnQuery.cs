@@ -17,17 +17,20 @@ namespace SenseNet.Search
 
         public string Querytext { get; internal set; }
         public string Projection { get; internal set; }
-        public int Top { get; internal set; }
-        public int Skip { get; internal set; }
-        public SortInfo[] Sort { get; internal set; }
+        public int Top { get; set; }
+        public int Skip { get; set; }
+        public SortInfo[] Sort { get; set; }
 
         public SnQueryPredicate QueryTree { get; internal set; }
-        public FilterStatus EnableAutofilters { get; internal set; }
-        public FilterStatus EnableLifespanFilter { get; internal set; }
-        public bool CountOnly { get; internal set; }
-        public QueryExecutionMode QueryExecutionMode { get; internal set; }
+        public FilterStatus EnableAutofilters { get; set; }
+        public FilterStatus EnableLifespanFilter { get; set; }
+        public bool CountOnly { get; set; }
+        public QueryExecutionMode QueryExecutionMode { get; set; }
 
         public bool CountAllPages { get; set; }
+
+        public bool ThrowIfEmpty { get; set; } //UNDONE:.. LINQ: review necessity
+        public bool ExistenceOnly { get; set; } //UNDONE:.. LINQ: review necessity
 
         //UNDONE:!!!!! tusmester API: TEST: AllVersions: Move to QuerySettings.
     }

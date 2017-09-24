@@ -20,6 +20,22 @@ using Expression = System.Linq.Expressions.Expression;
 
 namespace SenseNet.ContentRepository.Linq
 {
+    internal class CQVisitor_NEW : ExpressionVisitor
+    {
+        public int Top { get; private set; }
+        public int Skip { get; private set; }
+        public bool CountOnly { get; private set; }
+        public List<SortInfo> Sort { get; private set; }
+        public bool ThrowIfEmpty { get; private set; }
+        public bool ExistenceOnly { get; private set; }
+
+        internal SnQueryPredicate GetQuery(Type sourceCollectionItemType, ChildrenDefinition childrenDef)
+        {
+            //UNDONE:. LINQ: OptimizeBooleansVisitor_NEW is not implemented
+            throw new NotImplementedException();
+        }
+
+    }
     internal class CQVisitor : ExpressionVisitor
     {
         private class ContentHandlerGetTypeQuery : Query
