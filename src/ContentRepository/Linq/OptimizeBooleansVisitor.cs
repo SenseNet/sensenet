@@ -16,7 +16,7 @@ namespace SenseNet.ContentRepository.Linq
 
         private SnQueryPredicate VisitBooleanMemberQuery(SnLinqVisitor.BooleanMemberPredicate boolMemberQ)
         {
-            return SnLinqVisitor.CreateTermQuery(boolMemberQ.FieldName, boolMemberQ.Value);
+            return SnLinqVisitor.CreateTextPredicate(boolMemberQ.FieldName, boolMemberQ.Value);
         }
 
         public override SnQueryPredicate VisitLogicalPredicate(LogicalPredicate logic)

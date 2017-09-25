@@ -49,7 +49,7 @@ namespace SenseNet.ContentRepository.Linq
                 }
                 v = new SnLinqVisitor();
                 v.Visit(expr2);
-                q0 = v.GetQuery(sourceCollectionItemType, childrenDef);
+                q0 = v.GetPredicate(sourceCollectionItemType, childrenDef);
             }
 
             // #2 combining with additional query clause
