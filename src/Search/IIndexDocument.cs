@@ -20,22 +20,21 @@ namespace SenseNet.Search
     }
 
     [Serializable]
-    [DebuggerDisplay("{Name}:{ValueAsString}:{Type}")]
-    public class SnTerm
+    [DebuggerDisplay("{ValueAsString}:{Type}")]
+    public class IndexFieldValue
     {
         public const string Yes = "yes";
         public const string No = "no";
 
-        public SnTerm(string name, string value)   { Name = name; Type = SnTermType.String;      StringValue = value;      ValueAsString = value;}
-        public SnTerm(string name, string[] value) { Name = name; Type = SnTermType.StringArray; StringArrayValue = value; ValueAsString = string.Join(",", value); }
-        public SnTerm(string name, bool value)     { Name = name; Type = SnTermType.Bool;        BooleanValue = value;     ValueAsString = value ? Yes : No; }
-        public SnTerm(string name, int value)      { Name = name; Type = SnTermType.Int;         IntegerValue = value;     ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
-        public SnTerm(string name, long value)     { Name = name; Type = SnTermType.Long;        LongValue = value;        ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
-        public SnTerm(string name, float value)    { Name = name; Type = SnTermType.Float;       SingleValue = value;      ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
-        public SnTerm(string name, double value)   { Name = name; Type = SnTermType.Double;      DoubleValue = value;      ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
-        public SnTerm(string name, DateTime value) { Name = name; Type = SnTermType.DateTime;    DateTimeValue = value;    ValueAsString = value.ToString("yyyy-MM-dd HH:mm:ss.ffff"); }
+        public IndexFieldValue(string value)   { Type = SnTermType.String; StringValue = value; ValueAsString = value; }
+        public IndexFieldValue(string[] value) { Type = SnTermType.StringArray; StringArrayValue = value; ValueAsString = string.Join(",", value); }
+        public IndexFieldValue(bool value)     { Type = SnTermType.Bool; BooleanValue = value; ValueAsString = value ? Yes : No; }
+        public IndexFieldValue(int value)      { Type = SnTermType.Int; IntegerValue = value; ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
+        public IndexFieldValue(long value)     { Type = SnTermType.Long; LongValue = value; ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
+        public IndexFieldValue(float value)    { Type = SnTermType.Float; SingleValue = value; ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
+        public IndexFieldValue(double value)   { Type = SnTermType.Double; DoubleValue = value; ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
+        public IndexFieldValue(DateTime value) { Type = SnTermType.DateTime; DateTimeValue = value; ValueAsString = value.ToString("yyyy-MM-dd HH:mm:ss.ffff"); }
 
-        public string Name { get; }
         public SnTermType Type { get; }
 
         public virtual string StringValue { get; }
@@ -48,6 +47,22 @@ namespace SenseNet.Search
         public virtual DateTime DateTimeValue { get; }
 
         public string ValueAsString { get; }
+    }
+
+    [Serializable]
+    [DebuggerDisplay("{Name}:{ValueAsString}:{Type}")]
+    public class SnTerm : IndexFieldValue
+    {
+        public SnTerm(string name, string value)   : base(value) { Name = name; }
+        public SnTerm(string name, string[] value) : base(value) { Name = name; }
+        public SnTerm(string name, bool value)     : base(value) { Name = name; }
+        public SnTerm(string name, int value)      : base(value) { Name = name; }
+        public SnTerm(string name, long value)     : base(value) { Name = name; }
+        public SnTerm(string name, float value)    : base(value) { Name = name; }
+        public SnTerm(string name, double value)   : base(value) { Name = name; }
+        public SnTerm(string name, DateTime value) : base(value) { Name = name; }
+
+        public string Name { get; }
     }
 
     [Serializable]
