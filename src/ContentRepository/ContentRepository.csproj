@@ -168,6 +168,7 @@
     <Compile Include="Configuration\Services.cs" />
     <Compile Include="Configuration\Versioning.cs" />
     <Compile Include="Linq\CaseInsensitiveFilterVisitor.cs" />
+    <Compile Include="Linq\CQVisitor_NEW.cs" />
     <Compile Include="Packaging\Dependency.cs" />
     <Compile Include="Packaging\ExecutionContext.cs" />
     <Compile Include="Packaging\InstallResult.cs" />

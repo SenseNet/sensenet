@@ -1,83 +1,71 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Lucene.Net.Search;
+﻿using System.Collections.Generic;
 using SenseNet.Search.Parser;
+using SenseNet.Search.Parser.Predicates;
 
 namespace SenseNet.ContentRepository.Linq
 {
-    internal class OptimizeBooleansVisitor_NEW : SnQueryVisitor //UNDONE:. LINQ: OptimizeBooleansVisitor_NEW is not implemented
+    internal class OptimizeBooleansVisitor : SnQueryVisitor
     {
         public override SnQueryPredicate Visit(SnQueryPredicate predicate)
         {
-            return predicate;
-        }
-    }
-
-    [Obsolete(", true")]
-    internal class OptimizeBooleansVisitor : SenseNet.Search.Parser.LucQueryVisitor
-    {
-        public override Query Visit(Query q)
-        {
-            var boolMemberQ = q as CQVisitor.BooleanMemberQuery;
-            if (boolMemberQ != null)
-                return VisitBooleanMemberQuery(boolMemberQ);
-            return base.Visit(q);
+            var boolMemberPredicate = predicate as CQVisitor.BooleanMemberPredicate;
+            if (boolMemberPredicate != null)
+                return VisitBooleanMemberQuery(boolMemberPredicate);
+            return base.Visit(predicate);
         }
 
-        private Query VisitBooleanMemberQuery(CQVisitor.BooleanMemberQuery boolMemberQ)
+        private SnQueryPredicate VisitBooleanMemberQuery(CQVisitor.BooleanMemberPredicate boolMemberQ)
         {
             return CQVisitor.CreateTermQuery(boolMemberQ.FieldName, boolMemberQ.Value);
         }
-        public override Query VisitBooleanQuery(BooleanQuery booleanq)
-        {
-            var clauses = booleanq.GetClauses();
-            var visitedClauses = VisitBooleanClauses(clauses);
 
-            var newClauses = new List<BooleanClause>();
+        public override SnQueryPredicate VisitLogicalPredicate(LogicalPredicate logic)
+        {
+            var clauses = logic.Clauses;
+            var visitedClauses = VisitLogicalClauses(clauses);
+
+            var newClauses = new List<LogicalClause>();
             var changed = false;
             foreach (var clause in visitedClauses)
             {
-                var bq = clause.GetQuery() as BooleanQuery;
-                if (bq == null)
+                var lp = clause.Predicate as LogicalPredicate;
+                if (lp == null)
                 {
                     newClauses.Add(clause);
-                    continue;
                 }
                 else
                 {
-                    var subClauses = bq.GetClauses();
+                    var subClauses = lp.Clauses;
                     var must = 0;
                     var mustnot = 0;
                     var should = 0;
-                    BooleanClause.Occur occur;
-                    for (int i = 0; i < subClauses.Length; i++)
+                    Occurence occur;
+                    for (var i = 0; i < subClauses.Count; i++)
                     {
-                        occur = subClauses[i].GetOccur();
-                        if (occur == BooleanClause.Occur.MUST) must++;
-                        else if (occur == BooleanClause.Occur.MUST_NOT) mustnot++;
-                        else if (occur == BooleanClause.Occur.SHOULD) should++;
-                        else if (occur == null) should++;
+                        occur = subClauses[i].Occur;
+                        if (occur == Occurence.Must) must++;
+                        else if (occur == Occurence.MustNot) mustnot++;
+                        else if (occur == Occurence.Should) should++;
+                        else if (occur == Occurence.Default) should++;
                     }
-                    occur = clause.GetOccur();
+                    occur = clause.Occur;
 
                     if (mustnot == 0 && should == 0) // MUST
                     {
-                        if (occur == BooleanClause.Occur.MUST)
-                            add(newClauses, subClauses, BooleanClause.Occur.MUST);
-                        else if (occur == BooleanClause.Occur.MUST_NOT)
-                            add(newClauses, subClauses, BooleanClause.Occur.MUST_NOT);
+                        if (occur == Occurence.Must)
+                            AddClause(newClauses, subClauses, Occurence.Must);
+                        else if (occur == Occurence.MustNot)
+                            AddClause(newClauses, subClauses, Occurence.MustNot);
                         else
                             newClauses.Add(clause);
                         changed = true;
                     }
                     else if (must == 0 && should == 0) // MUST_NOT
                     {
-                        if (occur == BooleanClause.Occur.MUST)
-                            add(newClauses, subClauses, BooleanClause.Occur.MUST_NOT);
-                        else if (occur == BooleanClause.Occur.MUST_NOT)
-                            add(newClauses, subClauses, BooleanClause.Occur.MUST);
+                        if (occur == Occurence.Must)
+                            AddClause(newClauses, subClauses, Occurence.MustNot);
+                        else if (occur == Occurence.MustNot)
+                            AddClause(newClauses, subClauses, Occurence.Must);
                         else
                             newClauses.Add(clause);
                         changed = true;
@@ -89,25 +77,22 @@ namespace SenseNet.ContentRepository.Linq
                 }
             }
             if (changed)
-                visitedClauses = newClauses.ToArray();
+                visitedClauses = newClauses;
 
-            BooleanQuery newQuery = null;
+            LogicalPredicate newQuery = null;
             if (visitedClauses != clauses)
-            {
-                newQuery = new BooleanQuery(booleanq.IsCoordDisabled());
-                for (int i = 0; i < visitedClauses.Length; i++)
-                    newQuery.Add(visitedClauses[i]);
-            }
-            return newQuery ?? booleanq;
+                newQuery = new LogicalPredicate(visitedClauses);
+            return newQuery ?? logic;
         }
 
-        private void add(List<BooleanClause> newClauses, BooleanClause[] oldClauses, BooleanClause.Occur newOccur)
+        private void AddClause(ICollection<LogicalClause> newClauses, IEnumerable<LogicalClause> oldClauses, Occurence newOccur)
         {
             foreach (var oldClause in oldClauses)
             {
-                oldClause.SetOccur(newOccur);
+                oldClause.Occur = newOccur;
                 newClauses.Add(oldClause);
             }
         }
+
     }
 }

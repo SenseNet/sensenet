@@ -20,6 +20,7 @@ namespace SenseNet.Search
         public int Top { get; set; }
         public int Skip { get; set; }
         public SortInfo[] Sort { get; set; }
+        public bool HasSort => Sort != null && Sort.Length > 0;
 
         public SnQueryPredicate QueryTree { get; internal set; }
         public FilterStatus EnableAutofilters { get; set; }

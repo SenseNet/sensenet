@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Linq;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Search;
 
@@ -200,6 +201,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 get { return this.GetChildren(); }
             }
+
             public virtual int ChildCount
             {
                 get { return this.GetChildCount(); }
@@ -207,7 +209,20 @@ namespace SenseNet.ContentRepository.Tests
 
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_IdEquality()
+        {
+            Test(() =>
+            {
+                var expected = "Id:42";
+                Assert.AreEqual(expected, GetQueryString(Content.All.Where(c => c.Id == 42)));
+                Assert.AreEqual(expected, GetQueryString(from c in Content.All where c.Id == 42 select c));
+
+                return true;
+            });
+        }
+
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_IdRange_Order()
         {
             string expected;
@@ -228,19 +243,19 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(expected, GetQueryString(Content.All.Where(c => c.Id <= 4 && c.Id > 1).OrderBy(c => c.Id)));
             Assert.AreEqual(expected, GetQueryString(from c in Content.All where c.Id <= 4 && c.Id > 1 orderby c.Id select c));
         }
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_SingleNegativeTerm()
         {
             Assert.AreEqual("-Id:42 +Id:>0", GetQueryString(Content.All.Where(c => c.Id != 42)));
         }
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_StartsWithEndsWithContains()
         {
             Assert.AreEqual("Name:car*", GetQueryString(Content.All.Where(c => c.Name.StartsWith("Car"))));
             Assert.AreEqual("Name:*r2", GetQueryString(Content.All.Where(c => c.Name.EndsWith("r2"))));
             Assert.AreEqual("Name:*ro*", GetQueryString(Content.All.Where(c => c.Name.Contains("ro"))));
         }
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_CaseSensitivity()
         {
             string expected;
@@ -253,40 +268,51 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(expected, GetQueryString(Content.All.Where(c => c.Name == "Admin").OrderBy(c => c.Id)));
             Assert.AreEqual(expected, GetQueryString(from c in Content.All where c.Name == "Admin" orderby c.Id select c));
         }
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_EmptyString()
         {
             Assert.AreEqual("DisplayName:''", GetQueryString(Content.All.Where(c => c.DisplayName == "")));
         }
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_NullString()
         {
-            var cars = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
-            cars.Save();
+            Test(() =>
+            {
+                var cars = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
+                SaveNode(cars);
 
-            var expected = "Model:'' ??????? .AUTOFILTERS:OFF";
-            Assert.AreEqual(expected, GetQueryString(Content.All.DisableAutofilters().Where(c => c.InTree(cars) && (string)c["Model"] == null).OrderBy(c => c.Name)));
-            Assert.AreEqual(expected, GetQueryString(from c in Content.All.DisableAutofilters() where c.InTree(cars) && (string)c["Model"] == null orderby c.Name select c));
+                var expected = "Model:'' ??????? .AUTOFILTERS:OFF";
+                Assert.AreEqual(expected, GetQueryString(Content.All.DisableAutofilters().Where(c => c.InTree(cars) && (string)c["Model"] == null).OrderBy(c => c.Name)));
+                Assert.AreEqual(expected, GetQueryString(from c in Content.All.DisableAutofilters() where c.InTree(cars) && (string)c["Model"] == null orderby c.Name select c));
+
+                return true;
+            });
         }
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_DateTime()
         {
-            var root = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
-            root.Save();
+            Test(() =>
+            {
 
-            var expected = "??????? .AUTOFILTERS:OFF";
-            Assert.AreEqual(expected, GetQueryString(Content.All.DisableAutofilters().Where(c => c.InTree(root) && c.ModificationDate < DateTime.UtcNow.AddDays(-2)).OrderBy(c => c.Name)));
-            Assert.AreEqual(expected, GetQueryString(from c in Content.All.DisableAutofilters() where c.InTree(root) && c.ModificationDate < DateTime.UtcNow.AddDays(-2) orderby c.Name select c));
+                var root = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
+                SaveNode(root);
+
+                var expected = "??????? .AUTOFILTERS:OFF";
+                Assert.AreEqual(expected, GetQueryString(Content.All.DisableAutofilters().Where(c => c.InTree(root) && c.ModificationDate < DateTime.UtcNow.AddDays(-2)).OrderBy(c => c.Name)));
+                Assert.AreEqual(expected, GetQueryString(from c in Content.All.DisableAutofilters() where c.InTree(root) && c.ModificationDate < DateTime.UtcNow.AddDays(-2) orderby c.Name select c));
+
+                return true;
+            });
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_NegativeTerm()
         {
             Assert.AreEqual("-Id:2 +Id:<=4", GetQueryString(Content.All.Where(c => c.Id <= 4 && c.Id != 2)));
             Assert.AreEqual("-Id:2 +Id:>0", GetQueryString(Content.All.Where(c => c.Id != 2)));
             Assert.AreEqual("-Id:2 +Id:>0", GetQueryString(Content.All.Where(c => c.Id > 0 && c.Id != 2)));
         }
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_Bool()
         {
             string q;
@@ -309,7 +335,7 @@ namespace SenseNet.ContentRepository.Tests
             q = GetQueryString(Content.All.OfType<SenseNet.Portal.Site>().Where(c => c.EnableClientBasedCulture));
             Assert.AreEqual("+TypeIs:site +EnableClientBasedCulture:yes", q);
         }
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_Bool_Negation()
         {
             string q;
@@ -333,7 +359,7 @@ namespace SenseNet.ContentRepository.Tests
             q = GetQueryString(Content.All.Where(c => !((SenseNet.Portal.Site)c.ContentHandler).EnableClientBasedCulture));
             Assert.AreEqual("EnableClientBasedCulture:no", q);
         }
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_Negation()
         {
             string q;
@@ -350,27 +376,38 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual("-(+IsFolder:no -Index:42) +Id:>0", q);
 
         }
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_SingleReference()
         {
-            var mother1 = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
-            mother1.Save();
+            Test(() =>
+            {
+                var mother1 = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
+                SaveNode(mother1);
 
-            Assert.AreEqual(
-                $"+TypeIs:repositorytest_reftestnode +Mother:{mother1.Id}",
-                GetQueryString(Content.All.OfType<RefTestNode>().Where(c => c.Mother == mother1)));
+                Assert.AreEqual(
+                    $"+TypeIs:repositorytest_reftestnode +Mother:{mother1.Id}",
+                    GetQueryString(Content.All.OfType<RefTestNode>().Where(c => c.Mother == mother1)));
+
+                return true;
+            });
         }
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_MultiReference()
         {
-            var child2 = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
-            child2.Save();
+            Test(() =>
+            {
+                var child2 = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
+                SaveNode(child2);
 
-            Assert.AreEqual(
-                $"+TypeIs:repositorytest_reftestnode +Mother:{child2.Id}",
-                GetQueryString(Content.All.DisableAutofilters().Where(c => ((RefTestNode) c.ContentHandler).Neighbors.Contains(child2))));
+                Assert.AreEqual(
+                    $"+TypeIs:repositorytest_reftestnode +Mother:{child2.Id}",
+                    GetQueryString(Content.All.DisableAutofilters().Where(c => ((RefTestNode) c.ContentHandler).Neighbors.Contains(child2))));
+
+                    return true;
+            });
         }
-        //[TestMethod]
+
+        //[TestMethod, TestCategory("IR, LINQ")]
         //public void Linq_EmptyReference()
         //{
         //    Content[] result;
@@ -398,7 +435,7 @@ namespace SenseNet.ContentRepository.Tests
         //    Assert.IsTrue(expected == actual, String.Format("#6: actual is {0}, expected: {1}", actual, expected));
         //}
 
-        //[TestMethod]
+        //[TestMethod, TestCategory("IR, LINQ")]
         //public void Linq_Children()
         //{
         //    var folderName = "Linq_Children_test";
@@ -427,7 +464,7 @@ namespace SenseNet.ContentRepository.Tests
 
         //}
 
-        //[TestMethod]
+        //[TestMethod, TestCategory("IR, LINQ")]
         //public void Linq_Children_Count()
         //{
         //    if (ContentQuery.Query(".AUTOFILTERS:OFF .COUNTONLY Infolder:" + TestRoot.Path).Count == 0)
@@ -440,7 +477,7 @@ namespace SenseNet.ContentRepository.Tests
         //    Assert.AreEqual(expected, actual);
         //}
 
-        //[TestMethod]
+        //[TestMethod, TestCategory("IR, LINQ")]
         //public void Linq_First()
         //{
         //    //.First(c => ...), .FirstOrDefault(c => ...)
@@ -452,19 +489,19 @@ namespace SenseNet.ContentRepository.Tests
         //{
         //    var content = Content.All.DisableAutofilters().Where(c => c.Id < 0).OrderByDescending(c => c.Id).First();
         //}
-        //[TestMethod]
+        //[TestMethod, TestCategory("IR, LINQ")]
         //public void Linq_FirstOrDefault()
         //{
         //    var content = Content.All.DisableAutofilters().Where(c => c.Id < 6).OrderByDescending(c => c.Id).FirstOrDefault();
         //    Assert.AreEqual(5, content.Id);
         //}
-        //[TestMethod]
+        //[TestMethod, TestCategory("IR, LINQ")]
         //public void Linq_FirstOrDefault_OnEmpty()
         //{
         //    var content = Content.All.DisableAutofilters().Where(c => c.Id < 0).OrderByDescending(c => c.Id).FirstOrDefault();
         //    Assert.IsNull(content);
         //}
-        //[TestMethod]
+        //[TestMethod, TestCategory("IR, LINQ")]
         //public void Linq_First_WithPredicate()
         //{
         //    var content = Content.All.DisableAutofilters().Where(c => c.Id < 10).OrderByDescending(c => c.Id).First(c => c.Id < 4);
@@ -477,13 +514,13 @@ namespace SenseNet.ContentRepository.Tests
         //    var content = Content.All.DisableAutofilters().Where(c => c.Id > 10).OrderByDescending(c => c.Id).First(c => c.Id < 4);
         //    Assert.AreEqual(3, content.Id);
         //}
-        //[TestMethod]
+        //[TestMethod, TestCategory("IR, LINQ")]
         //public void Linq_FirstOrDefault_WithPredicate()
         //{
         //    var content = Content.All.DisableAutofilters().Where(c => c.Id < 10).OrderByDescending(c => c.Id).FirstOrDefault(c => c.Id < 4);
         //    Assert.AreEqual(3, content.Id);
         //}
-        //[TestMethod]
+        //[TestMethod, TestCategory("IR, LINQ")]
         //public void Linq_FirstOrDefault_WithPredicate_EmptySource()
         //{
         //    //var x = Enumerable.Range(1, 100).Where(i => i > 10).OrderByDescending(i => i).FirstOrDefault(i => i < 4);
@@ -491,7 +528,7 @@ namespace SenseNet.ContentRepository.Tests
         //    Assert.IsNull(content);
         //}
 
-        //[TestMethod]
+        //[TestMethod, TestCategory("IR, LINQ")]
         //public void Linq_CountOnly()
         //{
         //    var qresult = ContentQuery.Query(string.Concat("InFolder:", TestRoot.Path, " .AUTOFILTERS:OFF .COUNTONLY"));
@@ -500,7 +537,7 @@ namespace SenseNet.ContentRepository.Tests
         //    var actual = Content.All.DisableAutofilters().Where(c => c.InFolder(TestRoot)).Count();
         //    Assert.AreEqual(expected, actual);
         //}
-        //[TestMethod]
+        //[TestMethod, TestCategory("IR, LINQ")]
         //public void Linq_CountIsDeferred()
         //{
         //    string log = null;
@@ -517,14 +554,14 @@ namespace SenseNet.ContentRepository.Tests
         //    }
         //    Assert.IsTrue(log.Contains(".COUNTONLY"));
         //}
-        //[TestMethod]
+        //[TestMethod, TestCategory("IR, LINQ")]
         //public void Linq_Count_WithPredicate()
         //{
         //    Assert.AreEqual(6, Content.All.DisableAutofilters().Count(c => c.Id < 7));
         //    Assert.AreEqual(4, Content.All.DisableAutofilters().Where(c => c.Id > 2).Count(c => c.Id < 7));
         //}
 
-        //[TestMethod]
+        //[TestMethod, TestCategory("IR, LINQ")]
         //public void Linq_Any()
         //{
         //    Assert.IsFalse(Content.All.DisableAutofilters().Any(c => c.Id == 0), "#1");
@@ -532,48 +569,62 @@ namespace SenseNet.ContentRepository.Tests
         //    Assert.IsTrue(Content.All.DisableAutofilters().Any(c => c.Id > 0), "#3");
         //}
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_InFolder()
         {
-            var root = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
-            root.Save();
+            Test(() =>
+            {
+                var root = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
+                SaveNode(root);
 
-            var expected = "??????? .AUTOFILTERS:OFF";
-            Assert.AreEqual(expected, GetQueryString(Content.All.DisableAutofilters().Where(c => c.InFolder(root.Path + "/Cars")).OrderBy(c => c.Id)));
-            Assert.AreEqual(expected, GetQueryString(from x in Content.All.DisableAutofilters() where x.InFolder(root.Path + "/Cars") orderby x.Id select x));
+                var expected = "??????? .AUTOFILTERS:OFF";
+                Assert.AreEqual(expected, GetQueryString(Content.All.DisableAutofilters().Where(c => c.InFolder(root.Path + "/Cars")).OrderBy(c => c.Id)));
+                Assert.AreEqual(expected, GetQueryString(from x in Content.All.DisableAutofilters() where x.InFolder(root.Path + "/Cars") orderby x.Id select x));
+
+                return true;
+            });
         }
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_InTree()
         {
-            Assert.AreEqual("InTree:" + Repository.ImsFolder.Path, GetQueryString(Content.All.Where(c => c.InTree(Repository.ImsFolder))));
+            Test(() =>
+            {
+                Assert.AreEqual("InTree:" + Repository.ImsFolder.Path, GetQueryString(Content.All.Where(c => c.InTree(Repository.ImsFolder))));
+                return true;
+            });
         }
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         [SuppressMessage("ReSharper", "UseIsOperator.1")]
         [SuppressMessage("ReSharper", "UseMethodIsInstanceOfType")]
         public void Linq_TypeFilter_Strong()
         {
-            var root = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
-            root.Save();
+            Test(() =>
+            {
+                var root = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
+                SaveNode(root);
 
-            //-- type that handles one content type
-            var expected = "_______";
-            Assert.AreEqual(expected, GetQueryString(Content.All.DisableAutofilters().Where(c => c.InTree(root) && c.ContentHandler is Group).OrderBy(c => c.Name)));
-            Assert.AreEqual(expected, GetQueryString(from c in Content.All.DisableAutofilters() where c.InTree(root) && c.ContentHandler is Group orderby c.Name select c));
+                //-- type that handles one content type
+                var expected = "_______";
+                Assert.AreEqual(expected, GetQueryString(Content.All.DisableAutofilters().Where(c => c.InTree(root) && c.ContentHandler is Group).OrderBy(c => c.Name)));
+                Assert.AreEqual(expected, GetQueryString(from c in Content.All.DisableAutofilters() where c.InTree(root) && c.ContentHandler is Group orderby c.Name select c));
 
-            expected = "_______";
-            Assert.AreEqual(expected, GetQueryString(Content.All.DisableAutofilters().Where(c => c.InTree(root) && typeof(Group).IsAssignableFrom(c.ContentHandler.GetType())).OrderBy(c => c.Name)));
-            Assert.AreEqual(expected, GetQueryString(from c in Content.All.DisableAutofilters() where c.InTree(root) && typeof(Group).IsAssignableFrom(c.ContentHandler.GetType()) orderby c.Name select c));
+                expected = "_______";
+                Assert.AreEqual(expected, GetQueryString(Content.All.DisableAutofilters().Where(c => c.InTree(root) && typeof(Group).IsAssignableFrom(c.ContentHandler.GetType())).OrderBy(c => c.Name)));
+                Assert.AreEqual(expected, GetQueryString(from c in Content.All.DisableAutofilters() where c.InTree(root) && typeof(Group).IsAssignableFrom(c.ContentHandler.GetType()) orderby c.Name select c));
 
-            //-- type that handles more than one content type
-            expected = "_______";
-            Assert.AreEqual(expected, GetQueryString(Content.All.DisableAutofilters().Where(c => c.InTree(root.Path + "/Cars") && c.ContentHandler is GenericContent).OrderBy(c => c.Name)));
-            Assert.AreEqual(expected, GetQueryString(from c in Content.All.DisableAutofilters() where c.InTree(root.Path + "/Cars") && c.ContentHandler is GenericContent orderby c.Name select c));
+                //-- type that handles more than one content type
+                expected = "_______";
+                Assert.AreEqual(expected, GetQueryString(Content.All.DisableAutofilters().Where(c => c.InTree(root.Path + "/Cars") && c.ContentHandler is GenericContent).OrderBy(c => c.Name)));
+                Assert.AreEqual(expected, GetQueryString(from c in Content.All.DisableAutofilters() where c.InTree(root.Path + "/Cars") && c.ContentHandler is GenericContent orderby c.Name select c));
 
-            expected = "_______";
-            Assert.AreEqual(expected, GetQueryString(Content.All.DisableAutofilters().Where(c => c.InTree(root.Path + "/Cars") && typeof(GenericContent).IsAssignableFrom(c.ContentHandler.GetType())).OrderBy(c => c.Name)));
-            Assert.AreEqual(expected, GetQueryString(from c in Content.All.DisableAutofilters() where c.InTree(root.Path + "/Cars") && typeof(GenericContent).IsAssignableFrom(c.ContentHandler.GetType()) orderby c.Name select c));
+                expected = "_______";
+                Assert.AreEqual(expected, GetQueryString(Content.All.DisableAutofilters().Where(c => c.InTree(root.Path + "/Cars") && typeof(GenericContent).IsAssignableFrom(c.ContentHandler.GetType())).OrderBy(c => c.Name)));
+                Assert.AreEqual(expected, GetQueryString(from c in Content.All.DisableAutofilters() where c.InTree(root.Path + "/Cars") && typeof(GenericContent).IsAssignableFrom(c.ContentHandler.GetType()) orderby c.Name select c));
+
+                return true;
+            });
         }
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_TypeFilter_String()
         {
             Assert.AreEqual("+Id:>0 +Type:group", GetQueryString(Content.All.Where(c => c.ContentType.Name == "Group" && c.Id > 0)));
@@ -582,63 +633,105 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual("TypeIs:car", GetQueryString(Content.All.Where(c => c.TypeIs("Car"))));
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_ConditionalOperator()
         {
-            // First operand of the conditional operator is a constant
-            var b = true;
-            Assert.AreEqual("DisplayName:car", GetQueryString(Content.All.Where(c => b ? c.DisplayName == "Car" : c.Index == 42)));
-            b = false;
-            Assert.AreEqual("Index:42", GetQueryString(Content.All.Where(c => b ? c.DisplayName == "Car" : c.Index == 42)));
+            Test(() =>
+            {
+                // First operand of the conditional operator is a constant
+                var b = true;
+                Assert.AreEqual("DisplayName:car", GetQueryString(Content.All.Where(c => b ? c.DisplayName == "Car" : c.Index == 42)));
 
-            // First operand is not a constant
-            Assert.AreEqual("(+Index:85 -Type:car) (+DisplayName:ferrari +Type:car)", GetQueryString(Content.All.Where(c => c.Type("Car") ? c.DisplayName == "Ferrari" : c.Index == 85)));
-            Assert.AreEqual("(+Index:85 -Type:car) (+DisplayName:\"my nice ferrari\" +Type:car)", GetQueryString(Content.All.Where(c => c.Type("Car") ? c.DisplayName == "My nice Ferrari" : c.Index == 85)));
+                b = false;
+                Assert.AreEqual("Index:42", GetQueryString(Content.All.Where(c => b ? c.DisplayName == "Car" : c.Index == 42)));
+
+                // First operand is not a constant
+                Assert.AreEqual("(+Index:85 -Type:car) (+DisplayName:ferrari +Type:car)",
+                    GetQueryString(Content.All.Where(c => c.Type("Car") ? c.DisplayName == "Ferrari" : c.Index == 85)));
+
+                Assert.AreEqual("(+Index:85 -Type:car) (+DisplayName:\"my nice ferrari\" +Type:car)",
+                    GetQueryString(Content.All.Where(c => c.Type("Car") ? c.DisplayName == "My nice Ferrari" : c.Index == 85)));
+
+                return true;
+            });
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_FieldWithIndexer()
         {
-            var root = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
-            root.Save();
+            Test(() =>
+            {
+                var root = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
+                SaveNode(root);
 
-            var expected = "_______";
-            Assert.AreEqual(expected, GetQueryString(Content.All.DisableAutofilters().Where(c => c.InTree(root) && (string)c["Make"] == "Porsche").OrderBy(c => c.Name)));
-            Assert.AreEqual(expected, GetQueryString(from c in Content.All.DisableAutofilters() where c.InTree(root) && (string)c["Make"] == "Porsche" orderby c.Name select c));
+                var expected = "_______";
+                Assert.AreEqual(expected, GetQueryString(
+                    Content.All.DisableAutofilters()
+                        .Where(c => c.InTree(root) && (string) c["Make"] == "Porsche")
+                        .OrderBy(c => c.Name)));
+                Assert.AreEqual(expected, GetQueryString(from c in Content.All.DisableAutofilters()
+                    where c.InTree(root) && (string) c["Make"] == "Porsche"
+                    orderby c.Name
+                    select c));
+
+                return true;
+            });
         }
-        [TestMethod]
+
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_Boolean()
         {
-            var root = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
-            root.Save();
+            Test(() =>
+            {
+                var root = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
+                SaveNode(root);
 
-            var expected = "_______";
-            Assert.AreEqual(expected, GetQueryString(Content.All.DisableAutofilters().Where(c => c.InTree(root) && (((int)c["Index"] == 2 && (string)c["Make"] == "Porsche") || ((int)c["Index"] == 4 && (string)c["Make"] == "Ferrari"))).OrderBy(c => c.Name)));
-            Assert.AreEqual(expected, GetQueryString(from c in Content.All.DisableAutofilters() where c.InTree(root) && (((int)c["Index"] == 2 && (string)c["Make"] == "Porsche") || ((int)c["Index"] == 4 && (string)c["Make"] == "Ferrari")) orderby c.Name select c));
+                var expected = "_______";
+                Assert.AreEqual(expected, GetQueryString(Content.All.DisableAutofilters().Where(c => c.InTree(root) && (((int)c["Index"] == 2 && (string)c["Make"] == "Porsche") || ((int)c["Index"] == 4 && (string)c["Make"] == "Ferrari"))).OrderBy(c => c.Name)));
+                Assert.AreEqual(expected, GetQueryString(from c in Content.All.DisableAutofilters() where c.InTree(root) && (((int)c["Index"] == 2 && (string)c["Make"] == "Porsche") || ((int)c["Index"] == 4 && (string)c["Make"] == "Ferrari")) orderby c.Name select c));
+
+                return true;
+            });
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_AndOrPrecedence()
         {
-            var root = Repository.Root;
-            Assert.AreEqual("+(Index:3 (+Index:2 +TypeIs:group)) +InTree:/root/_linqtests", GetQueryString(Content.All.Where(c => c.InTree(root) && (c.ContentHandler is Group && c.Index == 2 || c.Index == 3))));
-            Assert.AreEqual("+((+TypeIs:group +Index:3) Index:2) +InTree:/root/_linqtests", GetQueryString(Content.All.Where(c => c.InTree(root) && (c.Index == 2 || c.Index == 3 && c.ContentHandler is Group))));
+            Test(() =>
+            {
+                var root = Repository.Root;
+                Assert.AreEqual("+(Index:3 (+Index:2 +TypeIs:group)) +InTree:/root",
+                    GetQueryString(
+                        Content.All.Where(
+                            c => c.InTree(root) && (c.ContentHandler is Group && c.Index == 2 || c.Index == 3))));
+                Assert.AreEqual("+((+TypeIs:group +Index:3) Index:2) +InTree:/root",
+                    GetQueryString(
+                        Content.All.Where(
+                            c => c.InTree(root) && (c.Index == 2 || c.Index == 3 && c.ContentHandler is Group))));
+
+                return true;
+            });
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_OrderBy()
         {
-            var root = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
-            root.Save();
+            Test(() =>
+            {
+                var root = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
+                SaveNode(root);
 
-            Assert.AreEqual("+(Index:3 (+Index:2 +TypeIs:group)) +InTree:/root/_linqtests", GetQueryString(
-                Content.All.DisableAutofilters()
-                    .Where(c => c.InTree(root) && c.TypeIs("Car"))
-                    .OrderBy(c => c.Index)
-                    .ThenByDescending(c => c.Name)));
+                Assert.AreEqual("+(Index:3 (+Index:2 +TypeIs:group)) +InTree:/root/_linqtests", GetQueryString(
+                    Content.All.DisableAutofilters()
+                        .Where(c => c.InTree(root) && c.TypeIs("Car"))
+                        .OrderBy(c => c.Index)
+                        .ThenByDescending(c => c.Name)));
+
+                return true;
+            });
         }
 
-        //[TestMethod]
+        //[TestMethod, TestCategory("IR, LINQ")]
         //public void Linq_SelectSimple()
         //{
         //    var names = String.Join(", ",
@@ -649,7 +742,7 @@ namespace SenseNet.ContentRepository.Tests
         //        );
         //    Assert.AreEqual("Admin, Administrators, BuiltIn, Everyone, IMS, Owners, Portal, Root, Visitor", names);
         //}
-        //[TestMethod]
+        //[TestMethod, TestCategory("IR, LINQ")]
         //public void Linq_Select_WithoutAsEnumerable()
         //{
         //    try
@@ -663,7 +756,7 @@ namespace SenseNet.ContentRepository.Tests
         //            Assert.Fail("Exception message does not contain 'AsEnumerable'");
         //    }
         //}
-        //[TestMethod]
+        //[TestMethod, TestCategory("IR, LINQ")]
         //public void Linq_SelectNew()
         //{
         //    var x = Content.All.Where(c => c.Id < 10).OrderBy(c => c.Id).AsEnumerable().Select(c => new { Id = c.Id, c.Name }).ToArray();
@@ -671,7 +764,7 @@ namespace SenseNet.ContentRepository.Tests
         //    Assert.AreEqual("1, Admin, 2, Root, 3, IMS, 4, BuiltIn, 5, Portal, 6, Visitor, 7, Administrators, 8, Everyone, 9, Owners", y);
         //}
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_OfType()
         {
             Assert.AreEqual("+TypeIs:site +EnableClientBasedCulture:yes",
@@ -684,14 +777,13 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(list1.Count(), list2.Count());
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_TakeSkip()
         {
-            var q = GetQueryString(Content.All.Where(c => c.IsFolder == true).Skip(8).Take(5));
-            Assert.AreEqual("IsFolder:yes .TOP:5 .SKIP:8", q);
+            Assert.AreEqual("IsFolder:yes .TOP:5 .SKIP:8", GetQueryString(Content.All.Where(c => c.IsFolder == true).Skip(8).Take(5)));
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_CombiningQueries()
         {
             var childrenDef = new ChildrenDefinition { PathUsage = PathUsageMode.InFolderOr, ContentQuery = "Id:>42", EnableAutofilters = FilterStatus.Disabled, Skip = 18, Top = 15 };
@@ -701,7 +793,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(expected, actual);
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_API()
         {
             ContentSet<Content>[] contentSets =
@@ -746,7 +838,7 @@ Id:<42 .QUICK";
             var actual = String.Join("\r\n", queries);
             Assert.AreEqual(expected, actual);
         }
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_ExecutionMode_Quick()
         {
             ContentSet<Content>[] contentSets =
@@ -766,7 +858,7 @@ Id:<42 .QUICK";
             Assert.AreEqual(expected, actual);
         }
 
-        //[TestMethod]
+        //[TestMethod, TestCategory("IR, LINQ")]
         //public void Linq_OfTypeAndFirst()
         //{
         //    var email = "admin@b.c";
@@ -778,7 +870,7 @@ Id:<42 .QUICK";
         //    var result = Content.All.OfType<User>().FirstOrDefault(c => c.InTree(Repository.ImsFolderPath) && c.Email == email);
         //    Assert.IsTrue(result != null);
         //}
-        //[TestMethod]
+        //[TestMethod, TestCategory("IR, LINQ")]
         //public void Linq_OfTypeAndWhere()
         //{
         //    string path = "/Root/IMS/BuiltIn/Portal";
@@ -789,7 +881,7 @@ Id:<42 .QUICK";
 
         ////---------------------------------------------------------------------------------------------------------
 
-        //[TestMethod]
+        //[TestMethod, TestCategory("IR, LINQ")]
         //public void Linq_Error_UnknownField()
         //{
         //    try
@@ -804,7 +896,7 @@ Id:<42 .QUICK";
         //        Assert.IsTrue(msg.Contains("UnknownField"), "Error message does not contain the field name: 'UnknownField'.");
         //    }
         //}
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_Error_NotConstants()
         {
             try { var x = Content.All.Where(c => c.DisplayName.StartsWith(c.Name)).ToArray(); Assert.Fail("#1 Exception wasn't thrown"); }
@@ -826,11 +918,9 @@ Id:<42 .QUICK";
 
         //---------------------------------------------------------------------------------------------------------
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_OptimizeBooleans()
         {
-            var folder = Repository.Root;
-
             var childrenDef = new ChildrenDefinition { PathUsage = PathUsageMode.InFolderAnd };
             //var expr = Content.All.Where(c => c.Path != "/Root/A" && c.Path != "/Root/B" && c.Path != "/Root/C" && c.Type("Folder") && c.InFolder(folder)).Expression;
             var expr = Content.All.Where(c => c.Name != "A" && c.Name != "B" && c.Name != "C" && c.TypeIs("Folder")).Expression;
@@ -841,20 +931,16 @@ Id:<42 .QUICK";
 
         //---------------------------------------------------------------------------------------------------------
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_AspectField()
         {
-            //var aspect1 = AspectTests.EnsureAspect("Linq_AspectField_Aspect1");
-            //aspect1.AspectDefinition = @"<AspectDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/AspectDefinition'>
-            //                                <Fields><AspectField name='Field1' type='ShortText' /></Fields></AspectDefinition>";
-            //aspect1.Save();
-
-            Assert.AreEqual("Linq_AspectField_Aspect1.Field1:fieldvalue", GetQueryString(Content.All.OfType<Content>().Where(c => (string)c["Linq_AspectField_Aspect1.Field1"] == "fieldvalue")));
+            Assert.AreEqual("Linq_AspectField_Aspect1.Field1:fieldvalue",
+                GetQueryString(Content.All.OfType<Content>().Where(c => (string)c["Linq_AspectField_Aspect1.Field1"] == "fieldvalue")));
         }
 
         //========================================================================================================= bugz
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_OptimizeBooleans_1()
         {
             // +(TypeIs:group TypeIs:user) +InFolder:/root/ims/builtin/demo/managers
@@ -886,7 +972,7 @@ Id:<42 .QUICK";
             Assert.AreEqual(expected, actual);
         }
 
-        //[TestMethod]
+        //[TestMethod, TestCategory("IR, LINQ")]
         //public void Linq_Bug_StackOverflow()
         //{
         //    // There was a bug in a customer code that caused StackOverflowException but in Sense/Net this case has never been reproduced.
@@ -909,7 +995,7 @@ Id:<42 .QUICK";
         //    Assert.IsNull(aspect);
         //}
 
-        //[TestMethod]
+        //[TestMethod, TestCategory("IR, LINQ")]
         //public void Linq_Bug_ChildrenBatchLoadInsteadOfOneByOne()
         //{
         //    var folderNode = new SystemFolder(TestRoot) { Name = Guid.NewGuid().ToString() };
@@ -936,7 +1022,7 @@ Id:<42 .QUICK";
         //    Assert.AreEqual(1, loadNodes);
         //}
 
-        //[TestMethod]
+        //[TestMethod, TestCategory("IR, LINQ")]
         //public void Linq_Bug_BooleanFieldIsQueryable()
         //{
         //    var webContentName = "Linq_Bug_NewBooleanFieldIsQueryable_WebContent_Lifespan";
@@ -979,7 +1065,7 @@ Id:<42 .QUICK";
         //        node.ForceDelete();
         //}
 
-        ////[TestMethod]
+        ////[TestMethod, TestCategory("IR, LINQ")]
         ////public void Linq_ContentSet_CountVsTotalCount()
         ////{
         ////    var qtextBase = "+Name:(a* b*) +TypeIs:ContentType .AUTOFILTERS:OFF";
@@ -1030,5 +1116,13 @@ Id:<42 .QUICK";
             var cs = queryable.Provider as ContentSet<T>;
             return cs.GetCompiledQuery().ToString();
         }
+
+        private void SaveNode(Node node)
+        {
+            foreach (var observer in NodeObserver.GetObserverTypes())
+                node.DisableObserver(observer);
+            node.Save();
+        }
+
     }
 }

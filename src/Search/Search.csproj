@@ -85,6 +85,7 @@
     <Compile Include="QueryResult.cs" />
     <Compile Include="SnQueryController.cs" />
     <Compile Include="Parser\CqlParser.cs" />
+    <Compile Include="SnQueryToStringVisitor.cs" />
     <Compile Include="SortInfo.cs" />
   </ItemGroup>
   <ItemGroup>

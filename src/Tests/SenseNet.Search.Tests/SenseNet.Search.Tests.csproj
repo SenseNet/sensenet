@@ -62,7 +62,6 @@
     <Compile Include="Implementations\TestQueryEngine.cs" />
     <Compile Include="SnQueryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Implementations\SnQueryToStringVisitor.cs" />
     <Compile Include="Implementations\TestQueryContext.cs" />
     <Compile Include="IndexDocumentTests.cs" />
     <Compile Include="VisitorTests.cs" />
