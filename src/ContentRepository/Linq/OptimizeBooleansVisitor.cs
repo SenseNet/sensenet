@@ -8,15 +8,15 @@ namespace SenseNet.ContentRepository.Linq
     {
         public override SnQueryPredicate Visit(SnQueryPredicate predicate)
         {
-            var boolMemberPredicate = predicate as CQVisitor.BooleanMemberPredicate;
+            var boolMemberPredicate = predicate as SnLinqVisitor.BooleanMemberPredicate;
             if (boolMemberPredicate != null)
                 return VisitBooleanMemberQuery(boolMemberPredicate);
             return base.Visit(predicate);
         }
 
-        private SnQueryPredicate VisitBooleanMemberQuery(CQVisitor.BooleanMemberPredicate boolMemberQ)
+        private SnQueryPredicate VisitBooleanMemberQuery(SnLinqVisitor.BooleanMemberPredicate boolMemberQ)
         {
-            return CQVisitor.CreateTermQuery(boolMemberQ.FieldName, boolMemberQ.Value);
+            return SnLinqVisitor.CreateTermQuery(boolMemberQ.FieldName, boolMemberQ.Value);
         }
 
         public override SnQueryPredicate VisitLogicalPredicate(LogicalPredicate logic)

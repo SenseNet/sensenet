@@ -13,7 +13,7 @@ using Expression = System.Linq.Expressions.Expression;
 
 namespace SenseNet.ContentRepository.Linq
 {
-    internal class CQVisitor : ExpressionVisitor
+    internal class SnLinqVisitor : ExpressionVisitor
     {
         #region ContentHandlerGetTypePredicate, BooleanMemberPredicate
 

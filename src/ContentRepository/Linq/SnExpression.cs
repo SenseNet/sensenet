@@ -35,7 +35,7 @@ namespace SenseNet.ContentRepository.Linq
         {
             SnQueryPredicate q0 = null;
 
-            CQVisitor v = null;
+            SnLinqVisitor v = null;
             // #1 compiling linq expression
             if (expression != null)
             {
@@ -47,7 +47,7 @@ namespace SenseNet.ContentRepository.Linq
                     var v2 = new ExecutorVisitor(v1.GetExpressions());
                     expr2 = v2.Visit(expr1);
                 }
-                v = new CQVisitor();
+                v = new SnLinqVisitor();
                 v.Visit(expr2);
                 q0 = v.GetQuery(sourceCollectionItemType, childrenDef);
             }
