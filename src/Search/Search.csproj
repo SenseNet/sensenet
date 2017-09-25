@@ -59,9 +59,11 @@
     <Compile Include="ChainOperator.cs" />
     <Compile Include="ExecutionHint.cs" />
     <Compile Include="FilterStatus.cs" />
-    <Compile Include="IIndexDocument.cs" />
+    <Compile Include="IndexDocument.cs" />
     <Compile Include="IIndexingEngine.cs" />
+    <Compile Include="IndexField.cs" />
     <Compile Include="IndexFieldName.cs" />
+    <Compile Include="IndexFieldValue.cs" />
     <Compile Include="Interfaces.cs" />
     <Compile Include="OrderDirection.cs" />
     <Compile Include="Parser\CompilerException.cs" />
@@ -86,6 +88,7 @@
     <Compile Include="SnQueryController.cs" />
     <Compile Include="Parser\CqlParser.cs" />
     <Compile Include="SnQueryToStringVisitor.cs" />
+    <Compile Include="SnTerm.cs" />
     <Compile Include="SortInfo.cs" />
   </ItemGroup>
   <ItemGroup>

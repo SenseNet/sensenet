@@ -1,15 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Dynamic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace SenseNet.Search
 {
@@ -17,70 +11,6 @@ namespace SenseNet.Search
     {
         public SnTerm UpdateTerm;
         public IndexDocument Document;
-    }
-
-    [Serializable]
-    [DebuggerDisplay("{ValueAsString}:{Type}")]
-    public class IndexFieldValue
-    {
-        public const string Yes = "yes";
-        public const string No = "no";
-
-        public IndexFieldValue(string value)   { Type = SnTermType.String; StringValue = value; ValueAsString = value; }
-        public IndexFieldValue(string[] value) { Type = SnTermType.StringArray; StringArrayValue = value; ValueAsString = string.Join(",", value); }
-        public IndexFieldValue(bool value)     { Type = SnTermType.Bool; BooleanValue = value; ValueAsString = value ? Yes : No; }
-        public IndexFieldValue(int value)      { Type = SnTermType.Int; IntegerValue = value; ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
-        public IndexFieldValue(long value)     { Type = SnTermType.Long; LongValue = value; ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
-        public IndexFieldValue(float value)    { Type = SnTermType.Float; SingleValue = value; ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
-        public IndexFieldValue(double value)   { Type = SnTermType.Double; DoubleValue = value; ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
-        public IndexFieldValue(DateTime value) { Type = SnTermType.DateTime; DateTimeValue = value; ValueAsString = value.ToString("yyyy-MM-dd HH:mm:ss.ffff"); }
-
-        public SnTermType Type { get; }
-
-        public virtual string StringValue { get; }
-        public virtual string[] StringArrayValue { get; }
-        public virtual bool BooleanValue { get; }
-        public virtual int IntegerValue { get; }
-        public virtual long LongValue { get; }
-        public virtual float SingleValue { get; }
-        public virtual double DoubleValue { get; }
-        public virtual DateTime DateTimeValue { get; }
-
-        public string ValueAsString { get; }
-    }
-
-    [Serializable]
-    [DebuggerDisplay("{Name}:{ValueAsString}:{Type}")]
-    public class SnTerm : IndexFieldValue
-    {
-        public SnTerm(string name, string value)   : base(value) { Name = name; }
-        public SnTerm(string name, string[] value) : base(value) { Name = name; }
-        public SnTerm(string name, bool value)     : base(value) { Name = name; }
-        public SnTerm(string name, int value)      : base(value) { Name = name; }
-        public SnTerm(string name, long value)     : base(value) { Name = name; }
-        public SnTerm(string name, float value)    : base(value) { Name = name; }
-        public SnTerm(string name, double value)   : base(value) { Name = name; }
-        public SnTerm(string name, DateTime value) : base(value) { Name = name; }
-
-        public string Name { get; }
-    }
-
-    [Serializable]
-    [DebuggerDisplay("{Name}:{ValueAsString}:{Type}, Mode:{Mode}, Store:{Store}, TermVector:{TermVector}")]
-    public class IndexField : SnTerm
-    {
-        public IndexingMode Mode { get; }
-        public IndexStoringMode Store { get; }
-        public IndexTermVector TermVector { get; }
-
-        public IndexField(string name, string value,   IndexingMode mode, IndexStoringMode store, IndexTermVector termVector) : base(name, value) { Mode = mode; Store = store; TermVector = termVector; }
-        public IndexField(string name, string[] value, IndexingMode mode, IndexStoringMode store, IndexTermVector termVector) : base(name, value) { Mode = mode; Store = store; TermVector = termVector; }
-        public IndexField(string name, bool value,     IndexingMode mode, IndexStoringMode store, IndexTermVector termVector) : base(name, value) { Mode = mode; Store = store; TermVector = termVector; }
-        public IndexField(string name, int value,      IndexingMode mode, IndexStoringMode store, IndexTermVector termVector) : base(name, value) { Mode = mode; Store = store; TermVector = termVector; }
-        public IndexField(string name, long value,     IndexingMode mode, IndexStoringMode store, IndexTermVector termVector) : base(name, value) { Mode = mode; Store = store; TermVector = termVector; }
-        public IndexField(string name, float value,    IndexingMode mode, IndexStoringMode store, IndexTermVector termVector) : base(name, value) { Mode = mode; Store = store; TermVector = termVector; }
-        public IndexField(string name, double value,   IndexingMode mode, IndexStoringMode store, IndexTermVector termVector) : base(name, value) { Mode = mode; Store = store; TermVector = termVector; }
-        public IndexField(string name, DateTime value, IndexingMode mode, IndexStoringMode store, IndexTermVector termVector) : base(name, value) { Mode = mode; Store = store; TermVector = termVector; }
     }
 
     [Serializable]
@@ -93,7 +23,7 @@ namespace SenseNet.Search
         public static readonly IndexDocument NotIndexedDocument = new NotIndexedIndexDocument();
 
         [NonSerialized]
-        public static List<string> PostponedFields = new List<string>(new string[] {
+        public static List<string> PostponedFields = new List<string>(new [] {
             IndexFieldName.Name, IndexFieldName.Path, IndexFieldName.InTree, IndexFieldName.InFolder, IndexFieldName.Depth, IndexFieldName.ParentId,
             IndexFieldName.IsSystem
         });

@@ -381,6 +381,7 @@ namespace SenseNet.SearchImpl.Tests
         [TestMethod, TestCategory("IR, L29")]
         public void L29_ActivityStatus_WithSave()
         {
+            Assert.Inconclusive(); 
             var result = L29Test(s =>
             {
                 var searchEngine = StorageContext.Search.SearchEngine;
