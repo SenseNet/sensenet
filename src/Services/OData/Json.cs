@@ -110,6 +110,7 @@ namespace SenseNet.Portal.OData
         public bool ClientAction { get; set; }
         public bool IsODataAction { get; set; }
         public string[] ActionParameters { get; set; }
+        public string[] Scenarios { get; set; }
         public bool Forbidden { get; set; }
     }
 
