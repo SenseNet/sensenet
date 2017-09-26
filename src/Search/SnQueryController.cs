@@ -199,25 +199,25 @@ namespace SenseNet.Search
             var sb = new StringBuilder(visitor.Output);
 
             if (CountOnly)
-                sb.Append(" ").Append(CqlLexer.Keywords.CountOnly);
+                sb.Append(" ").Append(Cql.Keyword.CountOnly);
             if (Top != 0)
-                sb.Append(" ").Append(CqlLexer.Keywords.Top).Append(":").Append(Top);
+                sb.Append(" ").Append(Cql.Keyword.Top).Append(":").Append(Top);
             if (Skip != 0)
-                sb.Append(" ").Append(CqlLexer.Keywords.Skip).Append(":").Append(Skip);
+                sb.Append(" ").Append(Cql.Keyword.Skip).Append(":").Append(Skip);
             if (HasSort)
             {
                 foreach (var sortInfo in Sort)
                     if (sortInfo.Reverse)
-                        sb.Append(" ").Append(CqlLexer.Keywords.ReverseSort).Append(":").Append(sortInfo.FieldName);
+                        sb.Append(" ").Append(Cql.Keyword.ReverseSort).Append(":").Append(sortInfo.FieldName);
                     else
-                        sb.Append(" ").Append(CqlLexer.Keywords.Sort).Append(":").Append(sortInfo.FieldName);
+                        sb.Append(" ").Append(Cql.Keyword.Sort).Append(":").Append(sortInfo.FieldName);
             }
             if (EnableAutofilters != FilterStatus.Default && EnableAutofilters != EnableAutofiltersDefaultValue)
-                sb.Append(" ").Append(CqlLexer.Keywords.Autofilters).Append(":").Append(EnableAutofiltersDefaultValue == FilterStatus.Enabled ? CqlLexer.Keywords.Off : CqlLexer.Keywords.On);
+                sb.Append(" ").Append(Cql.Keyword.Autofilters).Append(":").Append(EnableAutofiltersDefaultValue == FilterStatus.Enabled ? Cql.Keyword.Off : Cql.Keyword.On);
             if (EnableLifespanFilter != FilterStatus.Default && EnableLifespanFilter != EnableLifespanFilterDefaultValue)
-                sb.Append(" ").Append(CqlLexer.Keywords.Lifespan).Append(":").Append(EnableLifespanFilterDefaultValue == FilterStatus.Enabled ? CqlLexer.Keywords.Off : CqlLexer.Keywords.On);
+                sb.Append(" ").Append(Cql.Keyword.Lifespan).Append(":").Append(EnableLifespanFilterDefaultValue == FilterStatus.Enabled ? Cql.Keyword.Off : Cql.Keyword.On);
             if (QueryExecutionMode == QueryExecutionMode.Quick)
-                sb.Append(" ").Append(CqlLexer.Keywords.Quick);
+                sb.Append(" ").Append(Cql.Keyword.Quick);
 
             return sb.ToString();
         }

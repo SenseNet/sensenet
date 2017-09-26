@@ -94,64 +94,6 @@ namespace SenseNet.Search.Lucene29
             return new LucQuery { Query = luceneQuery };
         }
 
-        public static LucQuery Parse(string luceneQueryText)
-        {
-            var result = new LucQuery();
-            var parser = new SnLucParser();
-            Query query;
-
-            var replacedText = StorageContext.Search.ContentRepository.ReplaceQueryTemplates(luceneQueryText); 
-            query = parser.Parse(replacedText);
-
-            // Run EmptyTermVisitor if the parser created empty query term.
-            if (parser.ParseEmptyQuery)
-            {
-                var visitor = new EmptyTermVisitor();
-                result.Query = visitor.Visit(query);
-            }
-            else
-            {
-                result.Query = query;
-            }
-
-            var sortFields = new List<SortField>();
-            foreach (var control in parser.Controls)
-            {
-                switch (control.Name)
-                {
-                    case SnLucLexer.Keywords.Select:
-                        result.Projection = control.Value;
-                        break;
-                    case SnLucLexer.Keywords.Top:
-                        result.Top = Convert.ToInt32(control.Value);
-                        break;
-                    case SnLucLexer.Keywords.Skip:
-                        result.Skip = Convert.ToInt32(control.Value);
-                        break;
-                    case SnLucLexer.Keywords.Sort:
-                        sortFields.Add(CreateSortField(control.Value, false));
-                        break;
-                    case SnLucLexer.Keywords.ReverseSort:
-                        sortFields.Add(CreateSortField(control.Value, true));
-                        break;
-                    case SnLucLexer.Keywords.Autofilters:
-                        result.EnableAutofilters = control.Value == SnLucLexer.Keywords.On ? FilterStatus.Enabled : FilterStatus.Disabled;
-                        break;
-                    case SnLucLexer.Keywords.Lifespan:
-                        result.EnableLifespanFilter = control.Value == SnLucLexer.Keywords.On ? FilterStatus.Enabled : FilterStatus.Disabled;
-                        break;
-                    case SnLucLexer.Keywords.CountOnly:
-                        result.CountOnly = true;
-                        break;
-                    case SnLucLexer.Keywords.Quick:
-                        result.QueryExecutionMode = QueryExecutionMode.Quick;
-                        break;
-                }
-            }
-            result.SortFields = sortFields.ToArray();
-            //result.FieldLevel = parser.FieldLevel;
-            return result;
-        }
         public static SortField CreateSortField(string fieldName, bool reverse)
         {
             var info = StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(fieldName);
@@ -309,25 +251,25 @@ namespace SenseNet.Search.Lucene29
         {
             var result = new StringBuilder(QueryText);
             if (CountOnly)
-                result.Append(" ").Append(SnLucLexer.Keywords.CountOnly);
+                result.Append(" ").Append(Cql.Keyword.CountOnly);
             if (Top != 0)
-                result.Append(" ").Append(SnLucLexer.Keywords.Top).Append(":").Append(Top);
+                result.Append(" ").Append(Cql.Keyword.Top).Append(":").Append(Top);
             if (Skip != 0)
-                result.Append(" ").Append(SnLucLexer.Keywords.Skip).Append(":").Append(Skip);
+                result.Append(" ").Append(Cql.Keyword.Skip).Append(":").Append(Skip);
             if (this.HasSort)
             {
                 foreach (var sortField in this.SortFields)
                     if (sortField.GetReverse())
-                        result.Append(" ").Append(SnLucLexer.Keywords.ReverseSort).Append(":").Append(sortField.GetField());
+                        result.Append(" ").Append(Cql.Keyword.ReverseSort).Append(":").Append(sortField.GetField());
                     else
-                        result.Append(" ").Append(SnLucLexer.Keywords.Sort).Append(":").Append(sortField.GetField());
+                        result.Append(" ").Append(Cql.Keyword.Sort).Append(":").Append(sortField.GetField());
             }
             if (EnableAutofilters != FilterStatus.Default && EnableAutofilters != EnableAutofilters_DefaultValue)
-                result.Append(" ").Append(SnLucLexer.Keywords.Autofilters).Append(":").Append(EnableAutofilters_DefaultValue == FilterStatus.Enabled ? SnLucLexer.Keywords.Off : SnLucLexer.Keywords.On);
+                result.Append(" ").Append(Cql.Keyword.Autofilters).Append(":").Append(EnableAutofilters_DefaultValue == FilterStatus.Enabled ? Cql.Keyword.Off : Cql.Keyword.On);
             if (EnableLifespanFilter != FilterStatus.Default && EnableLifespanFilter != EnableLifespanFilter_DefaultValue)
-                result.Append(" ").Append(SnLucLexer.Keywords.Lifespan).Append(":").Append(EnableLifespanFilter_DefaultValue == FilterStatus.Enabled ? SnLucLexer.Keywords.Off : SnLucLexer.Keywords.On);
+                result.Append(" ").Append(Cql.Keyword.Lifespan).Append(":").Append(EnableLifespanFilter_DefaultValue == FilterStatus.Enabled ? Cql.Keyword.Off : Cql.Keyword.On);
             if (QueryExecutionMode == QueryExecutionMode.Quick)
-                result.Append(" ").Append(SnLucLexer.Keywords.Quick);
+                result.Append(" ").Append(Cql.Keyword.Quick);
             return result.ToString();
         }
         private string QueryToString(Query query)

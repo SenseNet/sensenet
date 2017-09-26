@@ -11,46 +11,27 @@ namespace SenseNet.Search.Parser
     {
         internal const string STRINGTERMINATORCHARS = "\":+-&|!(){}[]^~";
 
-        public static class Keywords
+        private static class Keywords
         {
-            public const string Or = "OR";
-            public const string And = "AND";
-            public const string Not = "NOT";
-            public const string To = "TO";
-
             public static Token ScanKeyword(string text)
             {
                 switch (text)
                 {
-                    case Or: return Token.Or;
-                    case And: return Token.And;
-                    case Not: return Token.Not;
-                    case To: return Token.To;
+                    case Cql.Keyword.Or: return Token.Or;
+                    case Cql.Keyword.And: return Token.And;
+                    case Cql.Keyword.Not: return Token.Not;
+                    case Cql.Keyword.To: return Token.To;
                     default: return Token.String;
                 }
             }
 
-            public const string Select = ".SELECT";
-            public const string Skip = ".SKIP";
-            public const string Top = ".TOP";
-            public const string Sort = ".SORT";
-            public const string ReverseSort = ".REVERSESORT";
-            public const string Autofilters = ".AUTOFILTERS";
-            public const string Lifespan = ".LIFESPAN";
-            public const string CountOnly = ".COUNTONLY";
-            public const string Quick = ".QUICK";
-
             public static Token ScanControl(string text, LineInfo line)
             {
-                if (text == Select || text == Skip || text == Top || text == Sort || text == ReverseSort ||
-                    text == Autofilters || text == Lifespan || text == CountOnly || text == Quick)
+                if (text == Cql.Keyword.Select || text == Cql.Keyword.Skip || text == Cql.Keyword.Top || text == Cql.Keyword.Sort || text == Cql.Keyword.ReverseSort ||
+                    text == Cql.Keyword.Autofilters || text == Cql.Keyword.Lifespan || text == Cql.Keyword.CountOnly || text == Cql.Keyword.Quick)
                     return Token.ControlKeyword;
                 throw new ParserException("Unknown control keyword: " + text, line);
             }
-
-            public const string On = "ON";
-            public const string Off = "OFF";
-
         }
         public enum Token
         {

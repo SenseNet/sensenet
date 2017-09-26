@@ -9,17 +9,17 @@ namespace SenseNet.Search.Tests.Implementations
 {
     public class TestIndexFieldHandlerString : IFieldIndexHandler
     {
-        public bool Compile(IQueryCompilerValue value)
+        public bool Compile(QueryCompilerValue value)
         {
             value.Set(value.StringValue.ToLowerInvariant());
             return true;
         }
-        public bool TryParseAndSet(IQueryFieldValue value)
+        public bool TryParseAndSet(QueryFieldValue value)
         {
             throw new NotImplementedException();
         }
 
-        public void ConvertToTermValue(IQueryFieldValue value)
+        public void ConvertToTermValue(QueryFieldValue value)
         {
             throw new NotImplementedException();
         }
@@ -49,7 +49,7 @@ namespace SenseNet.Search.Tests.Implementations
     }
     public class TestIndexFieldHandlerInt : IFieldIndexHandler
     {
-        public bool Compile(IQueryCompilerValue value)
+        public bool Compile(QueryCompilerValue value)
         {
             int converted;
             if (!int.TryParse(value.StringValue, out converted))
@@ -57,12 +57,12 @@ namespace SenseNet.Search.Tests.Implementations
             value.Set(converted);
             return true;
         }
-        public bool TryParseAndSet(IQueryFieldValue value)
+        public bool TryParseAndSet(QueryFieldValue value)
         {
             throw new NotImplementedException();
         }
 
-        public void ConvertToTermValue(IQueryFieldValue value)
+        public void ConvertToTermValue(QueryFieldValue value)
         {
             throw new NotImplementedException();
         }
@@ -92,7 +92,7 @@ namespace SenseNet.Search.Tests.Implementations
     }
     public class TestIndexFieldHandlerLong : IFieldIndexHandler
     {
-        public bool Compile(IQueryCompilerValue value)
+        public bool Compile(QueryCompilerValue value)
         {
             long converted;
             if (!long.TryParse(value.StringValue, out converted))
@@ -100,12 +100,12 @@ namespace SenseNet.Search.Tests.Implementations
             value.Set(converted);
             return true;
         }
-        public bool TryParseAndSet(IQueryFieldValue value)
+        public bool TryParseAndSet(QueryFieldValue value)
         {
             throw new NotImplementedException();
         }
 
-        public void ConvertToTermValue(IQueryFieldValue value)
+        public void ConvertToTermValue(QueryFieldValue value)
         {
             throw new NotImplementedException();
         }
@@ -135,7 +135,7 @@ namespace SenseNet.Search.Tests.Implementations
     }
     public class TestIndexFieldHandlerSingle : IFieldIndexHandler
     {
-        public bool Compile(IQueryCompilerValue value)
+        public bool Compile(QueryCompilerValue value)
         {
             float converted;
             if (!float.TryParse(value.StringValue, System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.CultureInfo.InvariantCulture, out converted))
@@ -143,12 +143,12 @@ namespace SenseNet.Search.Tests.Implementations
             value.Set(converted);
             return true;
         }
-        public bool TryParseAndSet(IQueryFieldValue value)
+        public bool TryParseAndSet(QueryFieldValue value)
         {
             throw new NotImplementedException();
         }
 
-        public void ConvertToTermValue(IQueryFieldValue value)
+        public void ConvertToTermValue(QueryFieldValue value)
         {
             throw new NotImplementedException();
         }
@@ -178,7 +178,7 @@ namespace SenseNet.Search.Tests.Implementations
     }
     public class TestIndexFieldHandlerDouble : IFieldIndexHandler
     {
-        public bool Compile(IQueryCompilerValue value)
+        public bool Compile(QueryCompilerValue value)
         {
             double converted;
             if (!double.TryParse(value.StringValue, System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.CultureInfo.InvariantCulture, out converted))
@@ -187,11 +187,11 @@ namespace SenseNet.Search.Tests.Implementations
             return true;
         }
 
-        public bool TryParseAndSet(IQueryFieldValue value)
+        public bool TryParseAndSet(QueryFieldValue value)
         {
             throw new NotImplementedException();
         }
-        public void ConvertToTermValue(IQueryFieldValue value)
+        public void ConvertToTermValue(QueryFieldValue value)
         {
             throw new NotImplementedException();
         }

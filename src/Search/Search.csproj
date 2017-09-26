@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChainOperator.cs" />
+    <Compile Include="Cql.cs" />
     <Compile Include="ExecutionHint.cs" />
     <Compile Include="FilterStatus.cs" />
     <Compile Include="IndexDocument.cs" />
@@ -90,6 +91,7 @@
     <Compile Include="SnQueryToStringVisitor.cs" />
     <Compile Include="SnTerm.cs" />
     <Compile Include="SortInfo.cs" />
+    <Compile Include="_OBSOLETE.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

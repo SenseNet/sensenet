@@ -166,7 +166,7 @@ namespace SenseNet.Portal
             try
             {
                 // We need to validate the query to avoid saving unknown texts.
-                LucQuery.Parse(query);
+                SnQuery.Parse(query);
             }
             catch (Exception ex)
             {

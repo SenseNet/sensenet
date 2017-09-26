@@ -46,31 +46,31 @@ namespace SenseNet.Search.Parser
                 // ReSharper disable once SwitchStatementMissingSomeCases
                 switch (control.Name)
                 {
-                    case CqlLexer.Keywords.Select:
+                    case Cql.Keyword.Select:
                         result.Projection = control.Value;
                         break;
-                    case CqlLexer.Keywords.Top:
+                    case Cql.Keyword.Top:
                         result.Top = Convert.ToInt32(control.Value);
                         break;
-                    case CqlLexer.Keywords.Skip:
+                    case Cql.Keyword.Skip:
                         result.Skip = Convert.ToInt32(control.Value);
                         break;
-                    case CqlLexer.Keywords.Sort:
+                    case Cql.Keyword.Sort:
                         sortFields.Add(new SortInfo(control.Value));
                         break;
-                    case CqlLexer.Keywords.ReverseSort:
+                    case Cql.Keyword.ReverseSort:
                         sortFields.Add(new SortInfo(control.Value, true));
                         break;
-                    case CqlLexer.Keywords.Autofilters:
-                        result.EnableAutofilters = control.Value == CqlLexer.Keywords.On ? FilterStatus.Enabled : FilterStatus.Disabled;
+                    case Cql.Keyword.Autofilters:
+                        result.EnableAutofilters = control.Value == Cql.Keyword.On ? FilterStatus.Enabled : FilterStatus.Disabled;
                         break;
-                    case CqlLexer.Keywords.Lifespan:
-                        result.EnableLifespanFilter = control.Value == CqlLexer.Keywords.On ? FilterStatus.Enabled : FilterStatus.Disabled;
+                    case Cql.Keyword.Lifespan:
+                        result.EnableLifespanFilter = control.Value == Cql.Keyword.On ? FilterStatus.Enabled : FilterStatus.Disabled;
                         break;
-                    case CqlLexer.Keywords.CountOnly:
+                    case Cql.Keyword.CountOnly:
                         result.CountOnly = true;
                         break;
-                    case CqlLexer.Keywords.Quick:
+                    case Cql.Keyword.Quick:
                         result.QueryExecutionMode = QueryExecutionMode.Quick;
                         break;
                 }
@@ -514,8 +514,8 @@ namespace SenseNet.Search.Parser
             string name = null;
             switch (_lexer.StringValue)
             {
-                case CqlLexer.Keywords.Top: name = CqlLexer.Keywords.Top; break;
-                case CqlLexer.Keywords.Skip: name = CqlLexer.Keywords.Skip; break;
+                case Cql.Keyword.Top: name = Cql.Keyword.Top; break;
+                case Cql.Keyword.Skip: name = Cql.Keyword.Skip; break;
             }
             if (name != null)
                 _lexer.NextToken();
@@ -542,9 +542,9 @@ namespace SenseNet.Search.Parser
             string name = null;
             switch (_lexer.StringValue)
             {
-                case CqlLexer.Keywords.Select: name = CqlLexer.Keywords.Select; break;
-                case CqlLexer.Keywords.Sort: name = CqlLexer.Keywords.Sort; break;
-                case CqlLexer.Keywords.ReverseSort: name = CqlLexer.Keywords.ReverseSort; break;
+                case Cql.Keyword.Select: name = Cql.Keyword.Select; break;
+                case Cql.Keyword.Sort: name = Cql.Keyword.Sort; break;
+                case Cql.Keyword.ReverseSort: name = Cql.Keyword.ReverseSort; break;
             }
             if (name != null)
                 _lexer.NextToken();
@@ -569,8 +569,8 @@ namespace SenseNet.Search.Parser
             string name = null;
             switch (_lexer.StringValue)
             {
-                case CqlLexer.Keywords.Autofilters: name = CqlLexer.Keywords.Autofilters; break;
-                case CqlLexer.Keywords.Lifespan: name = CqlLexer.Keywords.Lifespan; break;
+                case Cql.Keyword.Autofilters: name = Cql.Keyword.Autofilters; break;
+                case Cql.Keyword.Lifespan: name = Cql.Keyword.Lifespan; break;
             }
             if (name != null)
                 _lexer.NextToken();
@@ -581,9 +581,9 @@ namespace SenseNet.Search.Parser
         {
             // SwitchParam             ==>  ON | OFF
             if ((_lexer.CurrentToken != CqlLexer.Token.String)
-                || (_lexer.StringValue != CqlLexer.Keywords.On && _lexer.StringValue != CqlLexer.Keywords.Off))
+                || (_lexer.StringValue != Cql.Keyword.On && _lexer.StringValue != Cql.Keyword.Off))
                 throw ParserError(String.Concat("Invalid parameter: ", _lexer.StringValue,
-                    ". Expected: '", CqlLexer.Keywords.On, "' or '", CqlLexer.Keywords.Off, "'"));
+                    ". Expected: '", Cql.Keyword.On, "' or '", Cql.Keyword.Off, "'"));
             var value = _lexer.StringValue;
             _lexer.NextToken();
             return value;
@@ -606,8 +606,8 @@ namespace SenseNet.Search.Parser
             string name = null;
             switch (_lexer.StringValue)
             {
-                case CqlLexer.Keywords.CountOnly: name = CqlLexer.Keywords.CountOnly; break;
-                case CqlLexer.Keywords.Quick: name = CqlLexer.Keywords.Quick; break;
+                case Cql.Keyword.CountOnly: name = Cql.Keyword.CountOnly; break;
+                case Cql.Keyword.Quick: name = Cql.Keyword.Quick; break;
             }
             if (name != null)
                 _lexer.NextToken();

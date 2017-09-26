@@ -333,7 +333,7 @@ namespace SenseNet.Search
             static RecursiveExecutor()
             {
                 var pattern = new StringBuilder("[");
-                foreach (var c in SnLucLexer.STRINGTERMINATORCHARS.ToCharArray())
+                foreach (var c in Cql.StringTerminatorChars.ToCharArray())
                     pattern.Append("\\" + c);
                 pattern.Append("]");
                 EscaperRegex = new Regex(pattern.ToString());

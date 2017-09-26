@@ -11,6 +11,7 @@ using SenseNet.Diagnostics;
 
 namespace SenseNet.Search.Parser
 {
+    // DO NOT DELETE: integration tests use this class (in budapest branch).
     internal class DumpVisitor : LucQueryVisitor
     {
         private StringBuilder _dump = new StringBuilder();

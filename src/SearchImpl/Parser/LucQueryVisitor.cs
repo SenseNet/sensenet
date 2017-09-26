@@ -497,7 +497,7 @@ namespace SenseNet.Search.Parser
         {
             if (Char.IsWhiteSpace(c))
                 return false;
-            return !(SnLucLexer.STRINGTERMINATORCHARS.Contains(c));
+            return !(Cql.StringTerminatorChars.Contains(c));
         }
         private string BoostToString(float boost)
         {
