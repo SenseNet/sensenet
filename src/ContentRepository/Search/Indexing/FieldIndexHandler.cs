@@ -31,13 +31,6 @@ namespace SenseNet.Search.Indexing
         /// </summary>
         public abstract bool Compile(QueryCompilerValue value);
         /// <summary>
-        /// For SnLucParser
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        [Obsolete("", false)]//UNDONE:!! After LINQ: do not use in parser
-        public abstract bool TryParseAndSet(QueryFieldValue value);
-        /// <summary>
         /// For LINQ
         /// </summary>
         /// <param name="value"></param>
@@ -147,10 +140,6 @@ namespace SenseNet.Search.Indexing
         {
             return false;
         }
-        public override bool TryParseAndSet(QueryFieldValue value)
-        {
-            return false;
-        }
         public override void ConvertToTermValue(QueryFieldValue value)
         {
             value.Set(value.InputObject.ToString());
@@ -170,11 +159,6 @@ namespace SenseNet.Search.Indexing
             return CreateField(snField.Name, textExtract);
         }
         public override bool Compile(QueryCompilerValue value)
-        {
-            value.Set(value.StringValue.ToLowerInvariant());
-            return true;
-        }
-        public override bool TryParseAndSet(QueryFieldValue value)
         {
             value.Set(value.StringValue.ToLowerInvariant());
             return true;
@@ -201,11 +185,6 @@ namespace SenseNet.Search.Indexing
             return CreateField(snField.Name, types);
         }
         public override bool Compile(QueryCompilerValue value)
-        {
-            value.Set(value.StringValue.ToLowerInvariant());
-            return true;
-        }
-        public override bool TryParseAndSet(QueryFieldValue value)
         {
             value.Set(value.StringValue.ToLowerInvariant());
             return true;
@@ -247,11 +226,6 @@ namespace SenseNet.Search.Indexing
             return CreateField(snField.Name, strings);
         }
         public override bool Compile(QueryCompilerValue value)
-        {
-            value.Set(value.StringValue.ToLowerInvariant());
-            return true;
-        }
-        public override bool TryParseAndSet(QueryFieldValue value)
         {
             value.Set(value.StringValue.ToLowerInvariant());
             return true;
@@ -394,11 +368,6 @@ namespace SenseNet.Search.Indexing
             value.Set(value.StringValue.ToLowerInvariant());
             return true;
         }
-        public override bool TryParseAndSet(QueryFieldValue value)
-        {
-            value.Set(value.StringValue.ToLowerInvariant());
-            return true;
-        }
         public override void ConvertToTermValue(QueryFieldValue value)
         {
             if (value.InputObject == null)
@@ -445,11 +414,6 @@ namespace SenseNet.Search.Indexing
             return CreateField(snField.Name, terms);
         }
         public override bool Compile(QueryCompilerValue value)
-        {
-            value.Set(value.StringValue.ToLowerInvariant());
-            return true;
-        }
-        public override bool TryParseAndSet(QueryFieldValue value)
         {
             value.Set(value.StringValue.ToLowerInvariant());
             return true;
@@ -512,11 +476,6 @@ namespace SenseNet.Search.Indexing
             value.Set(value.StringValue.ToLowerInvariant());
             return true;
         }
-        public override bool TryParseAndSet(QueryFieldValue value)
-        {
-            value.Set(value.StringValue.ToLowerInvariant());
-            return true;
-        }
         public override void ConvertToTermValue(QueryFieldValue value)
         {
             if (value.InputObject == null)
@@ -550,27 +509,6 @@ namespace SenseNet.Search.Indexing
             return CreateField(snField.Name, boolValue);
         }
         public override bool Compile(QueryCompilerValue value)
-        {
-            var v = value.StringValue.ToLowerInvariant();
-            if (YesList.Contains(v))
-            {
-                value.Set(SnTerm.Yes);
-                return true;
-            }
-            if (NoList.Contains(v))
-            {
-                value.Set(SnTerm.No);
-                return true;
-            }
-            bool b;
-            if (Boolean.TryParse(v, out b))
-            {
-                value.Set(b ? SnTerm.Yes : SnTerm.No);
-                return true;
-            }
-            return false;
-        }
-        public override bool TryParseAndSet(QueryFieldValue value)
         {
             var v = value.StringValue.ToLowerInvariant();
             if (YesList.Contains(v))
@@ -644,14 +582,6 @@ namespace SenseNet.Search.Indexing
             value.Set(intValue);
             return true;
         }
-        public override bool TryParseAndSet(QueryFieldValue value)
-        {
-            Int32 intValue;
-            if (!Int32.TryParse(value.StringValue, out intValue))
-                return false;
-            value.Set(intValue);
-            return true;
-        }
         public override void ConvertToTermValue(QueryFieldValue value)
         {
             value.Set((int)value.InputObject);
@@ -700,14 +630,6 @@ namespace SenseNet.Search.Indexing
             value.Set(doubleValue);
             return true;
         }
-        public override bool TryParseAndSet(QueryFieldValue value)
-        {
-            Double doubleValue;
-            if (!Double.TryParse(value.StringValue, System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.CultureInfo.InvariantCulture, out doubleValue))
-                return false;
-            value.Set(doubleValue);
-            return true;
-        }
         public override void ConvertToTermValue(QueryFieldValue value)
         {
             var doubleValue = Convert.ToDouble(value.InputObject);
@@ -742,14 +664,6 @@ namespace SenseNet.Search.Indexing
             return CreateField(snField.Name, new DateTime(SetPrecision((SnCR.Field)snField, dateTime.Ticks)));
         }
         public override bool Compile(QueryCompilerValue value)
-        {
-            DateTime dateTimeValue;
-            if (!DateTime.TryParse(value.StringValue, CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTimeValue))
-                return false;
-            value.Set(dateTimeValue.Ticks);
-            return true;
-        }
-        public override bool TryParseAndSet(QueryFieldValue value)
         {
             DateTime dateTimeValue;
             if (!DateTime.TryParse(value.StringValue, CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTimeValue))
@@ -825,11 +739,6 @@ namespace SenseNet.Search.Indexing
             value.Set(value.StringValue.ToLowerInvariant());
             return true;
         }
-        public override bool TryParseAndSet(QueryFieldValue value)
-        {
-            value.Set(value.StringValue.ToLowerInvariant());
-            return true;
-        }
         public override void ConvertToTermValue(QueryFieldValue value)
         {
             if (value.InputObject == null)
@@ -868,15 +777,6 @@ namespace SenseNet.Search.Indexing
             return CreateField(snField.Name, SnQuery.NullReferenceValue);
         }
         public override bool Compile(QueryCompilerValue value)
-        {
-            int intValue;
-            if (Int32.TryParse(value.StringValue, out intValue))
-                value.Set(intValue.ToString());
-            else
-                value.Set(SnQuery.NullReferenceValue);
-            return true;
-        }
-        public override bool TryParseAndSet(QueryFieldValue value)
         {
             int intValue;
             if (Int32.TryParse(value.StringValue, out intValue))
@@ -935,11 +835,6 @@ namespace SenseNet.Search.Indexing
             value.Set(value.StringValue.ToLowerInvariant());
             return true;
         }
-        public override bool TryParseAndSet(QueryFieldValue value)
-        {
-            value.Set(value.StringValue.ToLowerInvariant());
-            return true;
-        }
         public override void ConvertToTermValue(QueryFieldValue value)
         {
             if (value.InputObject == null)
@@ -984,13 +879,6 @@ namespace SenseNet.Search.Indexing
                 return true;
             return false;
         }
-        public override bool TryParseAndSet(QueryFieldValue value)
-        {
-            value.Set(value.StringValue.ToLowerInvariant());
-            if (value.StringValue.StartsWith("/root"))
-                return true;
-            return false;
-        }
         public override void ConvertToTermValue(QueryFieldValue value)
         {
             var path = ((string)value.InputObject).ToLowerInvariant();
@@ -1022,11 +910,6 @@ namespace SenseNet.Search.Indexing
             return CreateField(snField.Name, value.ToLowerInvariant());
         }
         public override bool Compile(QueryCompilerValue value)
-        {
-            value.Set(value.StringValue.ToLowerInvariant());
-            return true;
-        }
-        public override bool TryParseAndSet(QueryFieldValue value)
         {
             value.Set(value.StringValue.ToLowerInvariant());
             return true;
@@ -1081,13 +964,6 @@ namespace SenseNet.Search.Indexing
             return CreateField(snField.Name, terms);
         }
         public override bool Compile(QueryCompilerValue value)
-        {
-            // Set the parsed value.
-            value.Set(value.StringValue.ToLowerInvariant());
-            // Successful.
-            return true;
-        }
-        public override bool TryParseAndSet(QueryFieldValue value)
         {
             // Set the parsed value.
             value.Set(value.StringValue.ToLowerInvariant());

@@ -22,9 +22,6 @@ namespace SenseNet.Search
         /// <summary>For SnQuery compilers</summary>
         bool Compile(QueryCompilerValue value);
 
-        /// <summary>For SnLucParser</summary>
-        [Obsolete("", false)]//UNDONE:!! After LINQ: do not use in parser
-        bool TryParseAndSet(QueryFieldValue value);
         /// <summary>For LINQ</summary>
         void ConvertToTermValue(QueryFieldValue value);
 

@@ -14,10 +14,6 @@ namespace SenseNet.Search.Tests.Implementations
             value.Set(value.StringValue.ToLowerInvariant());
             return true;
         }
-        public bool TryParseAndSet(QueryFieldValue value)
-        {
-            throw new NotImplementedException();
-        }
 
         public void ConvertToTermValue(QueryFieldValue value)
         {
@@ -56,10 +52,6 @@ namespace SenseNet.Search.Tests.Implementations
                 return false;
             value.Set(converted);
             return true;
-        }
-        public bool TryParseAndSet(QueryFieldValue value)
-        {
-            throw new NotImplementedException();
         }
 
         public void ConvertToTermValue(QueryFieldValue value)
@@ -100,10 +92,6 @@ namespace SenseNet.Search.Tests.Implementations
             value.Set(converted);
             return true;
         }
-        public bool TryParseAndSet(QueryFieldValue value)
-        {
-            throw new NotImplementedException();
-        }
 
         public void ConvertToTermValue(QueryFieldValue value)
         {
@@ -142,10 +130,6 @@ namespace SenseNet.Search.Tests.Implementations
                 return false;
             value.Set(converted);
             return true;
-        }
-        public bool TryParseAndSet(QueryFieldValue value)
-        {
-            throw new NotImplementedException();
         }
 
         public void ConvertToTermValue(QueryFieldValue value)
@@ -187,10 +171,6 @@ namespace SenseNet.Search.Tests.Implementations
             return true;
         }
 
-        public bool TryParseAndSet(QueryFieldValue value)
-        {
-            throw new NotImplementedException();
-        }
         public void ConvertToTermValue(QueryFieldValue value)
         {
             throw new NotImplementedException();
