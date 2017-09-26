@@ -5,7 +5,7 @@ namespace SenseNet.Search
 {
     [Serializable]
     [DebuggerDisplay("{Name}:{ValueAsString}:{Type}")]
-    public class SnTerm : IndexFieldValue
+    public class SnTerm : IndexValue
     {
         public SnTerm(string name, string value) : base(value) { Name = name; }
         public SnTerm(string name, string[] value) : base(value) { Name = name; }

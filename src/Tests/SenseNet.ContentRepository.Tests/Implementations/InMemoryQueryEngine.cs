@@ -152,21 +152,21 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
                 switch (field.Type)
                 {
-                    case SnTermType.String:
+                    case IndexValueType.String:
                         return field.StringValue;
-                    case SnTermType.StringArray:
+                    case IndexValueType.StringArray:
                         throw new NotImplementedException();
-                    case SnTermType.Bool:
-                        return field.BooleanValue ? SnTerm.Yes : SnTerm.No;
-                    case SnTermType.Int:
+                    case IndexValueType.Bool:
+                        return field.BooleanValue ? IndexValue.Yes : IndexValue.No;
+                    case IndexValueType.Int:
                         return field.IntegerValue.ToString(CultureInfo.InvariantCulture);
-                    case SnTermType.Long:
+                    case IndexValueType.Long:
                         return field.LongValue.ToString(CultureInfo.InvariantCulture);
-                    case SnTermType.Float:
+                    case IndexValueType.Float:
                         return field.SingleValue.ToString(CultureInfo.InvariantCulture);
-                    case SnTermType.Double:
+                    case IndexValueType.Double:
                         return field.DoubleValue.ToString(CultureInfo.InvariantCulture);
-                    case SnTermType.DateTime:
+                    case IndexValueType.DateTime:
                         return field.DateTimeValue.ToString("yyyy-MM-dd HH:mm:ss.ffff");
                     default:
                         throw new ArgumentOutOfRangeException();

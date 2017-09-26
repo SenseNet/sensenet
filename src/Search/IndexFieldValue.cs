@@ -4,25 +4,25 @@ using System.Globalization;
 
 namespace SenseNet.Search
 {
-    public enum SnTermType { String, StringArray, Bool, Int, Long, Float, Double, DateTime }
+    public enum IndexValueType { String, StringArray, Bool, Int, Long, Float, Double, DateTime }
 
     [Serializable]
     [DebuggerDisplay("{ValueAsString}:{Type}")]
-    public class IndexFieldValue
+    public class IndexValue
     {
         public const string Yes = "yes";
         public const string No = "no";
 
-        public IndexFieldValue(string value) { Type = SnTermType.String; StringValue = value; ValueAsString = value; }
-        public IndexFieldValue(string[] value) { Type = SnTermType.StringArray; StringArrayValue = value; ValueAsString = string.Join(",", value); }
-        public IndexFieldValue(bool value) { Type = SnTermType.Bool; BooleanValue = value; ValueAsString = value ? Yes : No; }
-        public IndexFieldValue(int value) { Type = SnTermType.Int; IntegerValue = value; ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
-        public IndexFieldValue(long value) { Type = SnTermType.Long; LongValue = value; ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
-        public IndexFieldValue(float value) { Type = SnTermType.Float; SingleValue = value; ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
-        public IndexFieldValue(double value) { Type = SnTermType.Double; DoubleValue = value; ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
-        public IndexFieldValue(DateTime value) { Type = SnTermType.DateTime; DateTimeValue = value; ValueAsString = value.ToString("yyyy-MM-dd HH:mm:ss.ffff"); }
+        public IndexValue(string value) { Type = IndexValueType.String; StringValue = value; ValueAsString = value; }
+        public IndexValue(string[] value) { Type = IndexValueType.StringArray; StringArrayValue = value; ValueAsString = string.Join(",", value); }
+        public IndexValue(bool value) { Type = IndexValueType.Bool; BooleanValue = value; ValueAsString = value ? Yes : No; }
+        public IndexValue(int value) { Type = IndexValueType.Int; IntegerValue = value; ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
+        public IndexValue(long value) { Type = IndexValueType.Long; LongValue = value; ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
+        public IndexValue(float value) { Type = IndexValueType.Float; SingleValue = value; ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
+        public IndexValue(double value) { Type = IndexValueType.Double; DoubleValue = value; ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
+        public IndexValue(DateTime value) { Type = IndexValueType.DateTime; DateTimeValue = value; ValueAsString = value.ToString("yyyy-MM-dd HH:mm:ss.ffff"); }
 
-        public SnTermType Type { get; }
+        public IndexValueType Type { get; }
 
         public virtual string StringValue { get; }
         public virtual string[] StringArrayValue { get; }

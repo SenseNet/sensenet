@@ -138,14 +138,14 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             {
                 switch (field.Type)
                 {
-                    case SnTermType.String: fieldValues.Add(field.StringValue); break;
-                    case SnTermType.StringArray: fieldValues.AddRange(field.StringArrayValue); break;
-                    case SnTermType.Bool: fieldValues.Add(field.BooleanValue.ToString(CultureInfo.InvariantCulture)); break;
-                    case SnTermType.Int: fieldValues.Add(field.IntegerValue.ToString(CultureInfo.InvariantCulture)); break;
-                    case SnTermType.Long: fieldValues.Add(field.LongValue.ToString(CultureInfo.InvariantCulture)); break;
-                    case SnTermType.Float: fieldValues.Add(field.StringValue.ToString(CultureInfo.InvariantCulture)); break;
-                    case SnTermType.Double: fieldValues.Add(field.DoubleValue.ToString(CultureInfo.InvariantCulture)); break;
-                    case SnTermType.DateTime: fieldValues.Add(field.DateTimeValue.ToString("yyyy-MM-dd HH:mm:ss.ffff")); break;
+                    case IndexValueType.String: fieldValues.Add(field.StringValue); break;
+                    case IndexValueType.StringArray: fieldValues.AddRange(field.StringArrayValue); break;
+                    case IndexValueType.Bool: fieldValues.Add(field.BooleanValue.ToString(CultureInfo.InvariantCulture)); break;
+                    case IndexValueType.Int: fieldValues.Add(field.IntegerValue.ToString(CultureInfo.InvariantCulture)); break;
+                    case IndexValueType.Long: fieldValues.Add(field.LongValue.ToString(CultureInfo.InvariantCulture)); break;
+                    case IndexValueType.Float: fieldValues.Add(field.StringValue.ToString(CultureInfo.InvariantCulture)); break;
+                    case IndexValueType.Double: fieldValues.Add(field.DoubleValue.ToString(CultureInfo.InvariantCulture)); break;
+                    case IndexValueType.DateTime: fieldValues.Add(field.DateTimeValue.ToString("yyyy-MM-dd HH:mm:ss.ffff")); break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }

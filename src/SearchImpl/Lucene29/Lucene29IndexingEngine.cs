@@ -506,21 +506,21 @@ namespace SenseNet.Search.Lucene29
         {
             switch (snTerm.Type)
             {
-                case SnTermType.String:
+                case IndexValueType.String:
                     return new[] {new Term(snTerm.Name, snTerm.StringValue)};
-                case SnTermType.StringArray:
+                case IndexValueType.StringArray:
                     return snTerm.StringArrayValue.Select(s=> new Term(snTerm.Name, s) ).ToArray();
-                case SnTermType.Bool:
-                    return new[] { new Term(snTerm.Name, snTerm.BooleanValue ? SnTerm.Yes : SnTerm.No) };
-                case SnTermType.Int:
+                case IndexValueType.Bool:
+                    return new[] { new Term(snTerm.Name, snTerm.BooleanValue ? IndexValue.Yes : IndexValue.No) };
+                case IndexValueType.Int:
                     return new[] { new Term(snTerm.Name, NumericUtils.IntToPrefixCoded(snTerm.IntegerValue)) };
-                case SnTermType.Long:
+                case IndexValueType.Long:
                     return new[] { new Term(snTerm.Name, NumericUtils.LongToPrefixCoded(snTerm.LongValue)) };
-                case SnTermType.Float:
+                case IndexValueType.Float:
                     return new[] { new Term(snTerm.Name, NumericUtils.FloatToPrefixCoded(snTerm.SingleValue)) };
-                case SnTermType.Double:
+                case IndexValueType.Double:
                     return new[] { new Term(snTerm.Name, NumericUtils.DoubleToPrefixCoded(snTerm.DoubleValue)) };
-                case SnTermType.DateTime:
+                case IndexValueType.DateTime:
                     return new[] { new Term(snTerm.Name, NumericUtils.LongToPrefixCoded(snTerm.DateTimeValue.Ticks)) };
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -547,29 +547,29 @@ namespace SenseNet.Search.Lucene29
             var termVect = EnumConverter.ToLuceneIndexTermVector(indexField.TermVector);
             switch (indexField.Type)
             {
-                case SnTermType.String:
+                case IndexValueType.String:
                     doc.Add(new Field(name, indexField.StringValue, store, mode, termVect));
                     break;
-                case SnTermType.StringArray:
+                case IndexValueType.StringArray:
                     foreach(var item in indexField.StringArrayValue)
                         doc.Add(new Field(name, item, store, mode, termVect));
                     break;
-                case SnTermType.Bool:
+                case IndexValueType.Bool:
                     doc.Add(new Field(name, indexField.BooleanValue ? SnTerm.Yes : SnTerm.No, store, mode, termVect));
                     break;
-                case SnTermType.Int:
+                case IndexValueType.Int:
                     doc.Add(new NumericField(name, store, indexField.Mode != IndexingMode.No).SetIntValue(indexField.IntegerValue));
                     break;
-                case SnTermType.Long:
+                case IndexValueType.Long:
                     doc.Add(new NumericField(name, store, indexField.Mode != IndexingMode.No).SetLongValue(indexField.LongValue));
                     break;
-                case SnTermType.Float:
+                case IndexValueType.Float:
                     doc.Add(new NumericField(name, store, indexField.Mode != IndexingMode.No).SetFloatValue(indexField.SingleValue));
                     break;
-                case SnTermType.Double:
+                case IndexValueType.Double:
                     doc.Add(new NumericField(name, store, indexField.Mode != IndexingMode.No).SetDoubleValue(indexField.DoubleValue));
                     break;
-                case SnTermType.DateTime:
+                case IndexValueType.DateTime:
                     doc.Add(new NumericField(name, store, indexField.Mode != IndexingMode.No).SetLongValue(indexField.DateTimeValue.Ticks));
                     break;
                 default:

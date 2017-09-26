@@ -51,10 +51,10 @@ namespace SenseNet.Search
             if (!_fields.TryGetValue(fieldName, out field))
                 return default(string);
 
-            if (field.Type == SnTermType.String)
+            if (field.Type == IndexValueType.String)
                 return field.StringValue;
 
-            if (field.Type == SnTermType.StringArray)
+            if (field.Type == IndexValueType.StringArray)
                 return field.StringArrayValue.FirstOrDefault();
 
             throw TypeError(fieldName, field.Type);
@@ -65,10 +65,10 @@ namespace SenseNet.Search
             if (!_fields.TryGetValue(fieldName, out field))
                 return default(string[]);
 
-            if (field.Type == SnTermType.String)
+            if (field.Type == IndexValueType.String)
                 return new[] {field.StringValue};
 
-            if (field.Type == SnTermType.StringArray)
+            if (field.Type == IndexValueType.StringArray)
                 return field.StringArrayValue;
 
             throw TypeError(fieldName, field.Type);
@@ -79,7 +79,7 @@ namespace SenseNet.Search
             if (!_fields.TryGetValue(fieldName, out field))
                 return default(bool);
 
-            if (field.Type == SnTermType.Bool)
+            if (field.Type == IndexValueType.Bool)
                 return field.BooleanValue;
 
             throw TypeError(fieldName, field.Type);
@@ -90,7 +90,7 @@ namespace SenseNet.Search
             if (!_fields.TryGetValue(fieldName, out field))
                 return default(int);
 
-            if (field.Type == SnTermType.Int)
+            if (field.Type == IndexValueType.Int)
                 return field.IntegerValue;
 
             throw TypeError(fieldName, field.Type);
@@ -101,7 +101,7 @@ namespace SenseNet.Search
             if (!_fields.TryGetValue(fieldName, out field))
                 return default(long);
 
-            if (field.Type == SnTermType.Long)
+            if (field.Type == IndexValueType.Long)
                 return field.LongValue;
 
             throw TypeError(fieldName, field.Type);
@@ -112,7 +112,7 @@ namespace SenseNet.Search
             if (!_fields.TryGetValue(fieldName, out field))
                 return default(float);
 
-            if (field.Type == SnTermType.Float)
+            if (field.Type == IndexValueType.Float)
                 return field.SingleValue;
 
             throw TypeError(fieldName, field.Type);
@@ -123,7 +123,7 @@ namespace SenseNet.Search
             if (!_fields.TryGetValue(fieldName, out field))
                 return default(double);
 
-            if (field.Type == SnTermType.Double)
+            if (field.Type == IndexValueType.Double)
                 return field.DoubleValue;
 
             throw TypeError(fieldName, field.Type);
@@ -134,7 +134,7 @@ namespace SenseNet.Search
             if (!_fields.TryGetValue(fieldName, out field))
                 return default(DateTime);
 
-            if (field.Type == SnTermType.DateTime)
+            if (field.Type == IndexValueType.DateTime)
                 return field.DateTimeValue;
 
             throw TypeError(fieldName, field.Type);
@@ -174,7 +174,7 @@ namespace SenseNet.Search
             return _fields.Values.GetEnumerator();
         }
 
-        private Exception TypeError(string fieldName, SnTermType fieldType)
+        private Exception TypeError(string fieldName, IndexValueType fieldType)
         {
             return new ApplicationException($"Cannot return with string value because Indexfield '{fieldName}' is {fieldType}");
         }
