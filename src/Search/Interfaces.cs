@@ -22,7 +22,7 @@ namespace SenseNet.Search
         bool Compile(QueryCompilerValue value);
 
         /// <summary>For LINQ</summary>
-        void ConvertToTermValue(QueryFieldValue value);
+        IndexValue ConvertToTermValue(object value);
 
         string GetDefaultAnalyzerName();
         IEnumerable<string> GetParsableValues(ISnField field);

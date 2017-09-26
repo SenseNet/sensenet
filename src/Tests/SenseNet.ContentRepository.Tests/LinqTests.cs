@@ -251,7 +251,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_StartsWithEndsWithContains()
         {
-            Assert.AreEqual("Name:car*", GetQueryString(Content.All.Where(c => c.Name.StartsWith("Car"))));
+            Assert.AreEqual("Name:Car*", GetQueryString(Content.All.Where(c => c.Name.StartsWith("Car"))));
             Assert.AreEqual("Name:*r2", GetQueryString(Content.All.Where(c => c.Name.EndsWith("r2"))));
             Assert.AreEqual("Name:*ro*", GetQueryString(Content.All.Where(c => c.Name.Contains("ro"))));
         }

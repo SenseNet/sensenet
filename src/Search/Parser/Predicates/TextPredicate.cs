@@ -18,5 +18,10 @@ namespace SenseNet.Search.Parser.Predicates
             Value = value;
             FuzzyValue = fuzzyValue;
         }
+
+        public TextPredicate(string fieldName, IndexValue indexValue)
+        {
+            throw new NotImplementedException(); //UNDONE:.... LINQ: TextPredicate is not implemented
+        }
     }
 }

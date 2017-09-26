@@ -22,5 +22,10 @@ namespace SenseNet.Search.Parser.Predicates
             MinExclusive = minExclusive;
             MaxExclusive = maxExclusive;
         }
+
+        public RangePredicate(string fieldName, IndexValue min, IndexValue max, bool minExclusive, bool maxExclusive)
+        {
+            throw new NotImplementedException(); //UNDONE:.... LINQ: RangePredicate is not implemented
+        }
     }
 }

@@ -23,18 +23,22 @@ namespace SenseNet.Search.Indexing
     public abstract class FieldIndexHandler : IFieldIndexHandler
     {
         public IPerFieldIndexingInfo OwnerIndexingInfo { get; set; }
+
         public virtual int SortingType { get { return Lucene.Net.Search.SortField.STRING; } }
+
         public virtual IndexFieldType IndexFieldType { get { return IndexFieldType.String; } }
 
         /// <summary>
         /// For SnQuery compilers
         /// </summary>
         public abstract bool Compile(QueryCompilerValue value);
+
         /// <summary>
         /// For LINQ
         /// </summary>
         /// <param name="value"></param>
-        public abstract void ConvertToTermValue(QueryFieldValue value);
+        public abstract IndexValue ConvertToTermValue(object value);
+
         public abstract IEnumerable<IndexField> GetIndexFields(ISnField field, out string textExtract);
 
         public abstract IEnumerable<string> GetParsableValues(ISnField snField);
@@ -140,9 +144,9 @@ namespace SenseNet.Search.Indexing
         {
             return false;
         }
-        public override void ConvertToTermValue(QueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            value.Set(value.InputObject.ToString());
+            return new IndexValue(value.ToString());
         }
         public override IEnumerable<string> GetParsableValues(ISnField snField)
         {
@@ -163,12 +167,9 @@ namespace SenseNet.Search.Indexing
             value.Set(value.StringValue.ToLowerInvariant());
             return true;
         }
-        public override void ConvertToTermValue(QueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            if (value.InputObject == null)
-                value.Set(string.Empty);
-            else
-                value.Set(((string)value.InputObject).ToLowerInvariant());
+            return value == null ? new IndexValue(string.Empty) : new IndexValue(((string)value).ToLowerInvariant());
         }
         public override IEnumerable<string> GetParsableValues(ISnField snField)
         {
@@ -189,12 +190,9 @@ namespace SenseNet.Search.Indexing
             value.Set(value.StringValue.ToLowerInvariant());
             return true;
         }
-        public override void ConvertToTermValue(QueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            if (value.InputObject == null)
-                value.Set(string.Empty);
-            else
-                value.Set(((string)value.InputObject).ToLowerInvariant());
+            return value == null ? new IndexValue(string.Empty) : new IndexValue(((string)value).ToLowerInvariant());
         }
         public override IEnumerable<string> GetParsableValues(ISnField snField)
         {
@@ -230,12 +228,9 @@ namespace SenseNet.Search.Indexing
             value.Set(value.StringValue.ToLowerInvariant());
             return true;
         }
-        public override void ConvertToTermValue(QueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            if (value.InputObject == null)
-                value.Set(string.Empty);
-            else
-                value.Set(((string)value.InputObject).ToLowerInvariant());
+            return value == null ? new IndexValue(string.Empty) : new IndexValue(((string)value).ToLowerInvariant());
         }
         public object GetBack(string lucFieldValue)
         {
@@ -368,12 +363,9 @@ namespace SenseNet.Search.Indexing
             value.Set(value.StringValue.ToLowerInvariant());
             return true;
         }
-        public override void ConvertToTermValue(QueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            if (value.InputObject == null)
-                value.Set(string.Empty);
-            else
-                value.Set(((string)value.InputObject).ToLowerInvariant());
+            return value == null ? new IndexValue(string.Empty) : new IndexValue(((string)value).ToLowerInvariant());
         }
         public object GetBack(string lucFieldValue)
         {
@@ -418,12 +410,9 @@ namespace SenseNet.Search.Indexing
             value.Set(value.StringValue.ToLowerInvariant());
             return true;
         }
-        public override void ConvertToTermValue(QueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            if (value.InputObject == null)
-                value.Set(string.Empty);
-            else
-                value.Set(((string)value.InputObject).ToLowerInvariant());
+            return value == null ? new IndexValue(string.Empty) : new IndexValue(((string)value).ToLowerInvariant());
         }
         public object GetBack(string lucFieldValue)
         {
@@ -476,12 +465,9 @@ namespace SenseNet.Search.Indexing
             value.Set(value.StringValue.ToLowerInvariant());
             return true;
         }
-        public override void ConvertToTermValue(QueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            if (value.InputObject == null)
-                value.Set(string.Empty);
-            else
-                value.Set(((string)value.InputObject).ToLowerInvariant());
+            return value == null ? new IndexValue(string.Empty) : new IndexValue(((string)value).ToLowerInvariant());
         }
         public string GetBack(string lucFieldValue)
         {
@@ -529,9 +515,9 @@ namespace SenseNet.Search.Indexing
             }
             return false;
         }
-        public override void ConvertToTermValue(QueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            value.Set(((bool)value.InputObject) ? SnTerm.Yes : SnTerm.No);
+            return new IndexValue((bool) value);
         }
         public bool GetBack(string lucFieldValue)
         {
@@ -582,9 +568,9 @@ namespace SenseNet.Search.Indexing
             value.Set(intValue);
             return true;
         }
-        public override void ConvertToTermValue(QueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            value.Set((int)value.InputObject);
+            return new IndexValue((int)value);
         }
         public Int32 GetBack(string lucFieldValue)
         {
@@ -630,10 +616,10 @@ namespace SenseNet.Search.Indexing
             value.Set(doubleValue);
             return true;
         }
-        public override void ConvertToTermValue(QueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            var doubleValue = Convert.ToDouble(value.InputObject);
-            value.Set(doubleValue);
+            var doubleValue = Convert.ToDouble(value);
+            return new IndexValue(doubleValue);
         }
         public Decimal GetBack(string lucFieldValue)
         {
@@ -671,9 +657,9 @@ namespace SenseNet.Search.Indexing
             value.Set(dateTimeValue.Ticks);
             return true;
         }
-        public override void ConvertToTermValue(QueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            value.Set(((DateTime)value.InputObject).Ticks);
+            return new IndexValue(((DateTime)value));
         }
         public DateTime GetBack(string lucFieldValue)
         {
@@ -739,12 +725,9 @@ namespace SenseNet.Search.Indexing
             value.Set(value.StringValue.ToLowerInvariant());
             return true;
         }
-        public override void ConvertToTermValue(QueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            if (value.InputObject == null)
-                value.Set(string.Empty);
-            else
-                value.Set(((string)value.InputObject).ToLowerInvariant());
+            return value == null ? new IndexValue(string.Empty) : new IndexValue(((string)value).ToLowerInvariant());
         }
         public string GetBack(string lucFieldValue)
         {
@@ -785,23 +768,19 @@ namespace SenseNet.Search.Indexing
                 value.Set(SnQuery.NullReferenceValue);
             return true;
         }
-        public override void ConvertToTermValue(QueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            if (value.InputObject == null)
-            {
-                value.Set(SnQuery.NullReferenceValue);
-                return;
-            }
-            var node = value.InputObject as Node;
+            if (value == null)
+                return new IndexValue(SnQuery.NullReferenceValue);
+
+            var node = value as Node;
             if (node != null)
-            {
-                value.Set(node.Id.ToString());
-                return;
-            }
+                return new IndexValue(node.Id);
+
             var enumerable = value as System.Collections.IEnumerable;
             if (enumerable != null)
                 throw new SnNotSupportedException("ReferenceIndexHandler.ConvertToTermValue() isn't implemented when value is IEnumerable.");
-            throw new NotSupportedException(string.Format("Type {0} is not supported as value of ReferenceField",value.InputObject.GetType().ToString()));
+            throw new NotSupportedException($"Type {value.GetType()} is not supported as value of ReferenceField");
         }
         public int GetBack(string lucFieldValue)
         {
@@ -835,12 +814,9 @@ namespace SenseNet.Search.Indexing
             value.Set(value.StringValue.ToLowerInvariant());
             return true;
         }
-        public override void ConvertToTermValue(QueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            if (value.InputObject == null)
-                value.Set(string.Empty);
-            else
-                value.Set(((string)value.InputObject).ToLowerInvariant());
+            return value == null ? new IndexValue(string.Empty) : new IndexValue(((string)value).ToLowerInvariant());
         }
         public override IEnumerable<IndexField> GetIndexFields(ISnField snField, out string textExtract)
         {
@@ -879,12 +855,12 @@ namespace SenseNet.Search.Indexing
                 return true;
             return false;
         }
-        public override void ConvertToTermValue(QueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            var path = ((string)value.InputObject).ToLowerInvariant();
+            var path = ((string)value).ToLowerInvariant();
             if (!path.StartsWith("/root"))
                 throw new ApplicationException(string.Concat("Invalid path: '", path, "'. It must be absolute: '/root' or '/root/...'."));
-            value.Set(path);
+            return new IndexValue(path);
         }
         public string GetBack(string lucFieldValue)
         {
@@ -914,12 +890,12 @@ namespace SenseNet.Search.Indexing
             value.Set(value.StringValue.ToLowerInvariant());
             return true;
         }
-        public override void ConvertToTermValue(QueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            var path = ((string)value.InputObject).ToLowerInvariant();
+            var path = ((string)value).ToLowerInvariant();
             if (!path.StartsWith("/root"))
                 throw new ApplicationException(string.Concat("Invalid path: '", path, "'. It must be absolute: '/root' or '/root/...'."));
-            value.Set(path);
+            return new IndexValue(path);
         }
         public string GetBack(string lucFieldValue)
         {
@@ -970,12 +946,9 @@ namespace SenseNet.Search.Indexing
             // Successful.
             return true;
         }
-        public override void ConvertToTermValue(QueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            if (value.InputObject == null)
-                value.Set(string.Empty);
-            else
-                value.Set(((string)value.InputObject).ToLowerInvariant());
+            return value == null ? new IndexValue(string.Empty) : new IndexValue(((string)value).ToLowerInvariant());
         }
         public string GetBack(string lucFieldValue)
         {

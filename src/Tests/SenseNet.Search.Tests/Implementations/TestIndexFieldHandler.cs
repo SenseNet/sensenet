@@ -15,7 +15,7 @@ namespace SenseNet.Search.Tests.Implementations
             return true;
         }
 
-        public void ConvertToTermValue(QueryFieldValue value)
+        public IndexValue ConvertToTermValue(object value)
         {
             throw new NotImplementedException();
         }
@@ -54,7 +54,7 @@ namespace SenseNet.Search.Tests.Implementations
             return true;
         }
 
-        public void ConvertToTermValue(QueryFieldValue value)
+        public IndexValue ConvertToTermValue(object value)
         {
             throw new NotImplementedException();
         }
@@ -93,7 +93,7 @@ namespace SenseNet.Search.Tests.Implementations
             return true;
         }
 
-        public void ConvertToTermValue(QueryFieldValue value)
+        public IndexValue ConvertToTermValue(object value)
         {
             throw new NotImplementedException();
         }
@@ -132,7 +132,7 @@ namespace SenseNet.Search.Tests.Implementations
             return true;
         }
 
-        public void ConvertToTermValue(QueryFieldValue value)
+        public IndexValue ConvertToTermValue(object value)
         {
             throw new NotImplementedException();
         }
@@ -171,7 +171,7 @@ namespace SenseNet.Search.Tests.Implementations
             return true;
         }
 
-        public void ConvertToTermValue(QueryFieldValue value)
+        public IndexValue ConvertToTermValue(object value)
         {
             throw new NotImplementedException();
         }

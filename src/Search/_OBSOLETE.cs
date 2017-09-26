@@ -12,10 +12,11 @@ namespace SenseNet.Search
     public class QueryFieldValue //UNDONE:!! After LINQ: do not use in parser / compiler
     {
         internal bool IsPhrase { get; private set; }
-        //internal CqlLexer.Token Token { get; private set; }
         internal double? FuzzyValue { get; set; }
-        public string StringValue { get; private set; }
+
         public object InputObject { get; private set; }
+
+        public string StringValue { get; private set; }
 
         public IndexableDataType Datatype { get; private set; }
         public int IntValue { get; private set; }

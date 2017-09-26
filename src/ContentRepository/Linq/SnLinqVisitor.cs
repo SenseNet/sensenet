@@ -698,7 +698,7 @@ namespace SenseNet.ContentRepository.Linq
 
             // converting
             Type fieldDatatype;
-            var queryFieldValue = ConvertValue(fieldName, value, out fieldDatatype);
+            var indexValue = ConvertValue(fieldName, value, out fieldDatatype);
 
             // creating product
             SnQueryPredicate predicate;
@@ -708,25 +708,25 @@ namespace SenseNet.ContentRepository.Linq
                     if (fieldDatatype == typeof(bool))
                         predicate = new BooleanMemberPredicate { FieldName = fieldName, Value = (bool)value };
                     else
-                        predicate = CreateTextPredicate(fieldName, queryFieldValue);
+                        predicate = CreateTextPredicate(fieldName, indexValue);
                     break;
                 case ExpressionType.NotEqual:            // -term
                     if (fieldDatatype == typeof(bool))
                         predicate = new BooleanMemberPredicate { FieldName = fieldName, Value = !(bool)value };
                     else
-                        predicate = new LogicalPredicate(new List<LogicalClause> { new LogicalClause(CreateTextPredicate(fieldName, queryFieldValue), Occurence.MustNot) });
+                        predicate = new LogicalPredicate(new List<LogicalClause> { new LogicalClause(CreateTextPredicate(fieldName, indexValue), Occurence.MustNot) });
                     break;
                 case ExpressionType.GreaterThan:         // field:{value TO ]
-                    predicate = CreateRangePredicate(fieldName, queryFieldValue, null, false, true);
+                    predicate = CreateRangePredicate(fieldName, indexValue, null, false, true);
                     break;
                 case ExpressionType.GreaterThanOrEqual:  // field:[value TO ]
-                    predicate = CreateRangePredicate(fieldName, queryFieldValue, null, true, true);
+                    predicate = CreateRangePredicate(fieldName, indexValue, null, true, true);
                     break;
                 case ExpressionType.LessThan:            // field:[ to value}
-                    predicate = CreateRangePredicate(fieldName, null, queryFieldValue, true, false);
+                    predicate = CreateRangePredicate(fieldName, null, indexValue, true, false);
                     break;
                 case ExpressionType.LessThanOrEqual:     // field:[ to value]
-                    predicate = CreateRangePredicate(fieldName, null, queryFieldValue, true, true);
+                    predicate = CreateRangePredicate(fieldName, null, indexValue, true, true);
                     break;
                 default:
                     throw new SnNotSupportedException($"NodeType {node.NodeType} isn't implemented");
@@ -736,12 +736,12 @@ namespace SenseNet.ContentRepository.Linq
                     _predicates.Pop();
             _predicates.Push(predicate);
         }
-        /*???*/internal static TextPredicate CreateTextPredicate(string fieldName, object value)
+        internal static TextPredicate CreateTextPredicate(string fieldName, object value)
         {
-            var queryFieldValue = value as QueryFieldValue;
-            if (value == null)
-                queryFieldValue = ConvertValue(fieldName, value);
-            return new TextPredicate(fieldName, queryFieldValue.StringValue); //UNDONE:.... LINQ: conversion?
+            var indexValue = value as IndexValue;
+            if (indexValue == null)
+                indexValue = ConvertValue(fieldName, value);
+            return new TextPredicate(fieldName, indexValue);
         }
         private void BuildTextPredicate(string fieldName, object value)
         {
@@ -791,12 +791,12 @@ namespace SenseNet.ContentRepository.Linq
             _predicates.Push(new LogicalPredicate(clauses));
         }
 
-        private static QueryFieldValue ConvertValue(string name, object value)
+        private static IndexValue ConvertValue(string name, object value)
         {
             Type fieldDataType;
             return ConvertValue(name, value, out fieldDataType);
         }
-        private static QueryFieldValue ConvertValue(string name, object value, out Type fieldDataType)
+        private static IndexValue ConvertValue(string name, object value, out Type fieldDataType)
         {
             var contentTypeValue = value as ContentType;
             if (contentTypeValue != null && name == "ContentType")
@@ -810,18 +810,15 @@ namespace SenseNet.ContentRepository.Linq
                 throw new InvalidOperationException("Unknown field: " + name);
             var converter = fieldInfo.IndexFieldHandler;
 
-            var queryFieldValue = new QueryFieldValue(value);
-            converter.ConvertToTermValue(queryFieldValue);
+            var indexValue = converter.ConvertToTermValue(value);
 
             fieldDataType = fieldInfo.FieldDataType;
-            return queryFieldValue;
+            return indexValue;
         }
 
-        /*???*/private SnQueryPredicate CreateRangePredicate(string fieldName, QueryFieldValue minValue, QueryFieldValue maxValue, bool includeLower, bool includeUpper)
+        private SnQueryPredicate CreateRangePredicate(string fieldName, IndexValue minValue, IndexValue maxValue, bool includeLower, bool includeUpper)
         {
-            var lowerTerm = minValue?.StringValue; //UNDONE:.... LINQ: conversion?
-            var upperTerm = maxValue?.StringValue; //UNDONE:.... LINQ: conversion?
-            return new RangePredicate(fieldName, lowerTerm, upperTerm, includeLower, includeUpper);
+            return new RangePredicate(fieldName, minValue, maxValue, includeLower, includeUpper);
         }
 
         private SortInfo CreateSortInfoFromExpr(MethodCallExpression node, bool reverse)
