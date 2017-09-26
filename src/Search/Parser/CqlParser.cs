@@ -708,7 +708,7 @@ namespace SenseNet.Search.Parser
                 return val;
             if (_lexer.CurrentToken == CqlLexer.Token.WildcardString)
             {
-                val = new QueryFieldValue(_lexer.StringValue, _lexer.CurrentToken, _lexer.IsPhrase);
+                val = new QueryFieldValue(_lexer.StringValue, _lexer.IsPhrase);
                 _lexer.NextToken();
                 return val;
             }
@@ -720,7 +720,7 @@ namespace SenseNet.Search.Parser
             if (_lexer.StringValue == SnQuery.EmptyText)
             {
                 _hasEmptyQuery = true;
-                var fieldVal = new QueryFieldValue(_lexer.StringValue, _lexer.CurrentToken, _lexer.IsPhrase);
+                var fieldVal = new QueryFieldValue(_lexer.StringValue, _lexer.IsPhrase);
                 _lexer.NextToken();
                 return fieldVal;
             }
@@ -731,7 +731,7 @@ namespace SenseNet.Search.Parser
                 return null;
             }
 
-            var val = new QueryFieldValue(_lexer.StringValue, _lexer.CurrentToken, _lexer.IsPhrase);
+            var val = new QueryFieldValue(_lexer.StringValue, _lexer.IsPhrase);
             _lexer.NextToken();
             return val;
         }

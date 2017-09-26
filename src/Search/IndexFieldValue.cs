@@ -4,6 +4,8 @@ using System.Globalization;
 
 namespace SenseNet.Search
 {
+    public enum SnTermType { String, StringArray, Bool, Int, Long, Float, Double, DateTime }
+
     [Serializable]
     [DebuggerDisplay("{ValueAsString}:{Type}")]
     public class IndexFieldValue

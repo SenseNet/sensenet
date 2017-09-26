@@ -9,7 +9,6 @@ namespace SenseNet.Search
     public enum IndexTermVector { Default, No, WithOffsets, WithPositions, WithPositionsOffsets, Yes }
 
     public enum IndexFieldType { String, Int, Long, Float, Double, DateTime }
-    public enum SnTermType { String, StringArray, Bool, Int, Long, Float, Double, DateTime }
 
     public interface ISnField
     {
