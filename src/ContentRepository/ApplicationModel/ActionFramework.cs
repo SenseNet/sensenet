@@ -192,7 +192,7 @@ namespace SenseNet.ApplicationModel
                     var sc = ScenarioManager.GetScenario(scenario, null);
                     if (sc != null)
                     {
-                        actions.AddRange(sc.GetActions(context, backUri));
+                        actions.AddRange(sc.GetActions(context, backUri).Where(a => !actions.Exists(ba => ba.Name == a.Name)));
                     }
                 }
                 return actions;
