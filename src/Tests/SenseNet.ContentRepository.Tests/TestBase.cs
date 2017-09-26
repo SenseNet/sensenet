@@ -45,6 +45,8 @@ namespace SenseNet.ContentRepository.Tests
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .UseCacheProvider(new EmptyCache())
                 .StartWorkflowEngine(false)
+                .DisableNodeObservers()
+                .EnableNodeObservers(typeof(SettingsCache))
                 .UseTraceCategories(new[] { "Test", "Event", "System", "Repository" })))
             using (new SystemAccount())
             {
