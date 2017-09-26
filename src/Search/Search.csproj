@@ -64,7 +64,7 @@
     <Compile Include="IIndexingEngine.cs" />
     <Compile Include="IndexField.cs" />
     <Compile Include="IndexFieldName.cs" />
-    <Compile Include="IndexFieldValue.cs" />
+    <Compile Include="IndexValue.cs" />
     <Compile Include="Interfaces.cs" />
     <Compile Include="OrderDirection.cs" />
     <Compile Include="Parser\CompilerException.cs" />
