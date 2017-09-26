@@ -45,5 +45,8 @@
       <RunApplication>Allow</RunApplication>
       <TakeOwnership>Allow</TakeOwnership>
     </Identity>
+    <Identity path="/Root/IMS/BuiltIn/Portal/Everyone">
+      <RunApplication>Allow</RunApplication>
+    </Identity>
   </Permissions>
 </ContentMetaData>
