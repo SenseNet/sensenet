@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using SenseNet.ContentRepository.Storage.Schema;
 using System.Linq;
+using SenseNet.Configuration;
 
 namespace SenseNet.ContentRepository.Storage.Events
 {
@@ -16,15 +16,15 @@ namespace SenseNet.ContentRepository.Storage.Events
     {
         public static NodeObserver GetInstance(Type type)
         {
-            return NodeTypeManager.Current.NodeObservers.FirstOrDefault(x => x.GetType() == type);
+            return Providers.Instance.NodeObservers.FirstOrDefault(x => x.GetType() == type);
         }
         public static NodeObserver GetInstanceByGenericBaseType(Type baseType)
         {
-            return NodeTypeManager.Current.NodeObservers.FirstOrDefault(x => x.GetType().IsSubclassOf(baseType));
+            return Providers.Instance.NodeObservers.FirstOrDefault(x => x.GetType().IsSubclassOf(baseType));
         }
         public static Type[] GetObserverTypes()
         {
-            return NodeTypeManager.Current.NodeObservers.Select(o => o.GetType()).ToArray();
+            return Providers.Instance.NodeObservers.Select(o => o.GetType()).ToArray();
         }
 
         // ================================================================================================ Safe caller methods
@@ -110,7 +110,7 @@ namespace SenseNet.ContentRepository.Storage.Events
         internal static void FireOnStart(EventHandler<EventArgs> Start)
         {
             InvokeEventHandlers<EventArgs>(Start, null, EventArgs.Empty);
-            var observers = NodeTypeManager.Current.NodeObservers;
+            var observers = Providers.Instance.NodeObservers;
             if (observers == null)
                 return;
             foreach (NodeObserver observer in observers)
@@ -119,7 +119,7 @@ namespace SenseNet.ContentRepository.Storage.Events
         internal static void FireOnReset(EventHandler<EventArgs> Reset)
         {
             InvokeEventHandlers<EventArgs>(Reset, null, EventArgs.Empty);
-            var observers = NodeTypeManager.Current.NodeObservers;
+            var observers = Providers.Instance.NodeObservers;
             if (observers == null)
                 return;
             foreach (NodeObserver observer in observers)
@@ -128,7 +128,7 @@ namespace SenseNet.ContentRepository.Storage.Events
         internal static void FireOnNodeCreating(CancellableNodeEventHandler Creating, Node sender, CancellableNodeEventArgs e, List<Type> disabledObservers)
         {
             InvokeCancelEventHandlers(Creating, sender, e);
-            var observers = NodeTypeManager.Current.NodeObservers;
+            var observers = Providers.Instance.NodeObservers;
             if (observers == null)
                 return;
             if (disabledObservers == null)
@@ -142,7 +142,7 @@ namespace SenseNet.ContentRepository.Storage.Events
         internal static void FireOnNodeCreated(EventHandler<NodeEventArgs> Created, Node sender, NodeEventArgs e, List<Type> disabledObservers)
         {
             InvokeEventHandlers<NodeEventArgs>(Created, sender, e);
-            var observers = NodeTypeManager.Current.NodeObservers;
+            var observers = Providers.Instance.NodeObservers;
             if (observers == null)
                 return;
             if (disabledObservers == null)
@@ -156,7 +156,7 @@ namespace SenseNet.ContentRepository.Storage.Events
         internal static void FireOnNodeModifying(CancellableNodeEventHandler Modifying, Node sender, CancellableNodeEventArgs e, List<Type> disabledObservers)
         {
             InvokeCancelEventHandlers(Modifying, sender, e);
-            var observers = NodeTypeManager.Current.NodeObservers;
+            var observers = Providers.Instance.NodeObservers;
             if (observers == null)
                 return;
             if (disabledObservers == null)
@@ -170,7 +170,7 @@ namespace SenseNet.ContentRepository.Storage.Events
         internal static void FireOnNodeModified(EventHandler<NodeEventArgs> Modified, Node sender, NodeEventArgs e, List<Type> disabledObservers)
         {
             InvokeEventHandlers<NodeEventArgs>(Modified, sender, e);
-            var observers = NodeTypeManager.Current.NodeObservers;
+            var observers = Providers.Instance.NodeObservers;
             if (observers == null)
                 return;
             if (disabledObservers == null)
@@ -184,7 +184,7 @@ namespace SenseNet.ContentRepository.Storage.Events
         internal static void FireOnNodeDeleting(CancellableNodeEventHandler Deleting, Node sender, CancellableNodeEventArgs e, List<Type> disabledObservers)
         {
             InvokeCancelEventHandlers(Deleting, sender, e);
-            var observers = NodeTypeManager.Current.NodeObservers;
+            var observers = Providers.Instance.NodeObservers;
             if (observers == null)
                 return;
             if (disabledObservers == null)
@@ -198,7 +198,7 @@ namespace SenseNet.ContentRepository.Storage.Events
         internal static void FireOnNodeDeleted(EventHandler<NodeEventArgs> Deleted, Node sender, NodeEventArgs e, List<Type> disabledObservers)
         {
             InvokeEventHandlers<NodeEventArgs>(Deleted, sender, e);
-            var observers = NodeTypeManager.Current.NodeObservers;
+            var observers = Providers.Instance.NodeObservers;
             if (observers == null)
                 return;
             if (disabledObservers == null)
@@ -212,7 +212,7 @@ namespace SenseNet.ContentRepository.Storage.Events
         internal static void FireOnNodeDeletingPhysically(CancellableNodeEventHandler DeletingPhysically, Node sender, CancellableNodeEventArgs e, List<Type> disabledObservers)
         {
             InvokeCancelEventHandlers(DeletingPhysically, sender, e);
-            var observers = NodeTypeManager.Current.NodeObservers;
+            var observers = Providers.Instance.NodeObservers;
             if (observers == null)
                 return;
             if (disabledObservers == null)
@@ -226,7 +226,7 @@ namespace SenseNet.ContentRepository.Storage.Events
         internal static void FireOnNodeDeletedPhysically(EventHandler<NodeEventArgs> DeletedPhysically, Node sender, NodeEventArgs e, List<Type> disabledObservers)
         {
             InvokeEventHandlers<NodeEventArgs>(DeletedPhysically, sender, e);
-            var observers = NodeTypeManager.Current.NodeObservers;
+            var observers = Providers.Instance.NodeObservers;
             if (observers == null)
                 return;
             if (disabledObservers == null)
@@ -240,7 +240,7 @@ namespace SenseNet.ContentRepository.Storage.Events
         internal static void FireOnNodeMoving(CancellableNodeOperationEventHandler Moving, Node sender, CancellableNodeOperationEventArgs e, List<Type> disabledObservers)
         {
             InvokeCancelOperationEventHandlers(Moving, sender, e);
-            var observers = NodeTypeManager.Current.NodeObservers;
+            var observers = Providers.Instance.NodeObservers;
             if (observers == null)
                 return;
             if (disabledObservers == null)
@@ -254,7 +254,7 @@ namespace SenseNet.ContentRepository.Storage.Events
         internal static void FireOnNodeMoved(EventHandler<NodeOperationEventArgs> Moved, Node sender, NodeOperationEventArgs e, List<Type> disabledObservers)
         {
             InvokeEventHandlers<NodeOperationEventArgs>(Moved, sender, e);
-            var observers = NodeTypeManager.Current.NodeObservers;
+            var observers = Providers.Instance.NodeObservers;
             if (observers == null)
                 return;
             if (disabledObservers == null)
@@ -268,7 +268,7 @@ namespace SenseNet.ContentRepository.Storage.Events
         internal static void FireOnNodeCopying(CancellableNodeOperationEventHandler Copying, Node sender, CancellableNodeOperationEventArgs e, List<Type> disabledObservers)
         {
             InvokeCancelOperationEventHandlers(Copying, sender, e);
-            var observers = NodeTypeManager.Current.NodeObservers;
+            var observers = Providers.Instance.NodeObservers;
             if (observers == null)
                 return;
             if (disabledObservers == null)
@@ -282,7 +282,7 @@ namespace SenseNet.ContentRepository.Storage.Events
         internal static void FireOnNodeCopied(EventHandler<NodeOperationEventArgs> Copied, Node sender, NodeOperationEventArgs e, List<Type> disabledObservers)
         {
             InvokeEventHandlers<NodeOperationEventArgs>(Copied, sender, e);
-            var observers = NodeTypeManager.Current.NodeObservers;
+            var observers = Providers.Instance.NodeObservers;
             if (observers == null)
                 return;
             if (disabledObservers == null)
@@ -296,7 +296,7 @@ namespace SenseNet.ContentRepository.Storage.Events
         internal static void FireOnPermissionChanging(CancellableNodeEventHandler PermissionChanging, Node sender, CancellablePermissionChangingEventArgs e, List<Type> disabledObservers)
         {
             InvokeCancelEventHandlers(PermissionChanging, sender, e);
-            var observers = NodeTypeManager.Current.NodeObservers;
+            var observers = Providers.Instance.NodeObservers;
             if (observers == null)
                 return;
             if (disabledObservers == null)
@@ -310,7 +310,7 @@ namespace SenseNet.ContentRepository.Storage.Events
         internal static void FireOnPermissionChanged(EventHandler<PermissionChangedEventArgs> PermissionChanged, Node sender, PermissionChangedEventArgs e, List<Type> disabledObservers)
         {
             InvokeEventHandlers(PermissionChanged, sender, e);
-            var observers = NodeTypeManager.Current.NodeObservers;
+            var observers = Providers.Instance.NodeObservers;
             if (observers == null)
                 return;
             if (disabledObservers == null)
