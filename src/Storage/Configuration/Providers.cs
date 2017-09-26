@@ -6,6 +6,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
+using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
@@ -14,6 +15,7 @@ using SenseNet.Security;
 using SenseNet.Security.EF6SecurityStore;
 using SenseNet.Security.Messaging;
 using SenseNet.Tools;
+using System.Linq;
 
 // ReSharper disable once CheckNamespace
 // ReSharper disable RedundantTypeArgumentsOfMethod
@@ -243,6 +245,42 @@ namespace SenseNet.Configuration
             set { _permissionFilterFactory = new Lazy<IPermissionFilterFactory>(() => value); }
         }
 
+        #endregion
+
+        #region NodeObservers
+        private Lazy<NodeObserver[]> _nodeObservers = new Lazy<NodeObserver[]>(() =>
+        {
+            var nodeObserverTypes = TypeResolver.GetTypesByBaseType(typeof(NodeObserver));
+            var activeObservers = nodeObserverTypes.Where(t => !t.IsAbstract).Select(t => (NodeObserver)Activator.CreateInstance(t, true))
+                .Where(n => !RepositoryEnvironment.DisabledNodeObservers.Contains(n.GetType().FullName)).ToArray();
+
+            if (SnTrace.Repository.Enabled)
+            {
+                SnTrace.Repository.Write("NodeObservers (count: {0}):", nodeObserverTypes.Length);
+                for (var i = 0; i < nodeObserverTypes.Length; i++)
+                {
+                    var observerType = nodeObserverTypes[i];
+                    var fullName = observerType.FullName;
+                    SnTrace.Repository.Write("  #{0} ({1}): {2}:{3} // {4}",
+                        i + 1,
+                        RepositoryEnvironment.DisabledNodeObservers.Contains(fullName) ? "disabled" : "active",
+                        observerType.Name,
+                        observerType.BaseType?.Name,
+                        observerType.Assembly.GetName().Name);
+                }
+            }
+
+            var activeObserverNames = activeObservers.Select(x => x.GetType().FullName).ToArray();
+            SnLog.WriteInformation("NodeObservers are instantiated. ", EventId.RepositoryLifecycle,
+                properties: new Dictionary<string, object> { { "Types", string.Join(", ", activeObserverNames) } });
+
+            return activeObservers;
+        });
+        public NodeObserver[] NodeObservers
+        {
+            get { return _nodeObservers.Value; }
+            set { _nodeObservers = new Lazy<NodeObserver[]>(() => value); }
+        }
         #endregion
 
         //===================================================================================== General provider API

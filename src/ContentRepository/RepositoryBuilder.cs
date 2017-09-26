@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using SenseNet.Communication.Messaging;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
@@ -219,6 +222,50 @@ namespace SenseNet.ContentRepository
         public RepositoryBuilder SetConsole(System.IO.TextWriter console)
         {
             Console = console;
+            return this;
+        }
+
+        /// <summary>
+        /// Disables one or more node observers in the system. If you call it without parameters, 
+        /// it will disable all available node observers.
+        /// </summary>
+        public RepositoryBuilder DisableNodeObservers(params Type[] nodeObserverTypes)
+        {
+            if (nodeObserverTypes == null || nodeObserverTypes.Length == 0)
+            {
+                Configuration.Providers.Instance.NodeObservers = new NodeObserver[0];
+            }
+            else
+            {
+                var observers = Configuration.Providers.Instance.NodeObservers;
+
+                // remove only the provided types
+                Configuration.Providers.Instance.NodeObservers =
+                    observers.Where(o => !nodeObserverTypes.Contains(o.GetType())).ToArray();
+            }
+            return this;
+        }
+        /// <summary>
+        /// Enables one or more node observers.
+        /// </summary>
+        public RepositoryBuilder EnableNodeObservers(params Type[] nodeObserverTypes)
+        {
+            if (nodeObserverTypes != null && nodeObserverTypes.Any())
+            {
+                var observers = new List<NodeObserver>(Configuration.Providers.Instance.NodeObservers);
+
+                // add missing observer instances
+                foreach (var nodeObserverType in nodeObserverTypes)
+                {
+                    if (observers.All(no => no.GetType() != nodeObserverType))
+                    {
+                        observers.Add((NodeObserver)Activator.CreateInstance(nodeObserverType, true));
+                    }
+                }
+
+                Configuration.Providers.Instance.NodeObservers = observers.ToArray();
+            }
+
             return this;
         }
 
