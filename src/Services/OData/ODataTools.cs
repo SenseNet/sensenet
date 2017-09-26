@@ -116,35 +116,46 @@ namespace SenseNet.Portal.OData
                 ? PortalContext.Current.BackUrl
                 : null;
 
-            if (string.IsNullOrEmpty(backUrl) && (request == null || request.IncludeBackUrl) && HttpContext.Current != null && HttpContext.Current.Request.UrlReferrer != null)
+            if (string.IsNullOrEmpty(backUrl) && (request == null || request.IncludeBackUrl) && 
+                HttpContext.Current?.Request?.UrlReferrer != null)
             { 
                 backUrl = HttpContext.Current.Request.UrlReferrer.ToString();
             }
+
             var scenarioActions = new Dictionary<string, ScenarioAction>();
             var scenarios = request?.Scenario?.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries);
-            if (scenarios == null)
+            if (scenarios == null || scenarios.Length == 0)
             {
                 var actions = ActionFramework.GetActions(content, default(string), string.IsNullOrEmpty(backUrl) ? null : backUrl);
                 foreach (var action in actions)
                 {
-                    scenarioActions.Add(action.Name, new ScenarioAction { Action = action, Scenarios = new List<string>()});
-
+                    scenarioActions.Add(action.Name, new ScenarioAction
+                    {
+                        Action = action,
+                        Scenarios = new List<string>()
+                    });
                 }
                 return scenarioActions;
             }
+
             foreach (var scenario in scenarios)
             {
                 var actions = ActionFramework.GetActions(content, scenario, string.IsNullOrEmpty(backUrl) ? null : backUrl);
                 foreach (var action in actions)
                 {
-                    if (scenarioActions.Any(p => p.Value.Action.Name == action.Name))
+                    ScenarioAction groupedAction;
+                    if (scenarioActions.TryGetValue(action.Name, out groupedAction))
                     {
-                        var groupedAction = scenarioActions.First(p => p.Value.Action.Name == action.Name).Value;
-                        groupedAction.Scenarios.Add(scenario);
+                        if (!groupedAction.Scenarios.Contains(scenario))
+                            groupedAction.Scenarios.Add(scenario);
                     }
                     else
                     {
-                        scenarioActions.Add(action.Name, new ScenarioAction {Action = action, Scenarios = new [] {scenario}.ToList()});
+                        scenarioActions.Add(action.Name, new ScenarioAction
+                        {
+                            Action = action,
+                            Scenarios = new[] { scenario }.ToList()
+                        });
                     }
                 }
             }
