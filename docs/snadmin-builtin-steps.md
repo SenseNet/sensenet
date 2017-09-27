@@ -1140,7 +1140,7 @@ In the opposite case, when an error is detected in the environment and any furth
 ```
 
 ### CreateEventLog
-- Full name: `vSenseNet.Packaging.Steps.CreateEventLog`
+- Full name: `SenseNet.Packaging.Steps.CreateEventLog`
 - Default property: -
 - Additional properties: `LogName, Machine, Sources`
 
@@ -1151,7 +1151,7 @@ System step for creating the provided log and source in Windows Event log.
 ```xml
 <CreateEventLog LogName="@logName" Machine="@machine" Sources="@sources" />
 ```
-##x DeleteEventLog
+### DeleteEventLog
 - Full name: `SenseNet.Packaging.Steps.DeleteEventLog`
 - Default property: -
 - Additional properties: `LogName, Machine, Sources`
