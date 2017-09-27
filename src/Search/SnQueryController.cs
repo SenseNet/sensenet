@@ -14,7 +14,7 @@ namespace SenseNet.Search
         }
 
         internal bool FiltersPrepared { get; private set; }
-        public static SnQueryPredicate FullSetPredicate { get; } = new RangePredicate("Id", new IndexValue(0), null, false, false);
+        public static SnQueryPredicate FullSetPredicate { get; } = new RangePredicate("Id", new IndexValue(0), null, true, false);
 
 
         public static IQueryResult<int> Query(string queryText, IQueryContext context)
@@ -200,7 +200,7 @@ namespace SenseNet.Search
 
             if (CountOnly)
                 sb.Append(" ").Append(Cql.Keyword.CountOnly);
-            if (Top != 0)
+            if (Top != 0 && Top != int.MaxValue)
                 sb.Append(" ").Append(Cql.Keyword.Top).Append(":").Append(Top);
             if (Skip != 0)
                 sb.Append(" ").Append(Cql.Keyword.Skip).Append(":").Append(Skip);

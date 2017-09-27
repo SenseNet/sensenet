@@ -5,6 +5,7 @@ using System.Text;
 using SenseNet.Search;
 using System.Collections;
 using System.Linq.Expressions;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.Search.Lucene29;
 using SenseNet.Search.Parser;
 using SenseNet.Search.Parser.Predicates;
@@ -25,13 +26,13 @@ namespace SenseNet.ContentRepository.Linq
                 EnableLifespanFilter = settings.EnableLifespanFilter
             };
 
-            return BuildLucQuery(expression, sourceCollectionItemType, contextPath, childrenDef);
+            return BuildSnQuery(expression, sourceCollectionItemType, contextPath, childrenDef);
         }
         public static SnQuery BuildQuery(Expression expression, Type sourceCollectionItemType, string contextPath, ChildrenDefinition childrenDef)
         {
-            return BuildLucQuery(expression, sourceCollectionItemType, contextPath, childrenDef);
+            return BuildSnQuery(expression, sourceCollectionItemType, contextPath, childrenDef);
         }
-        private static SnQuery BuildLucQuery(Expression expression, Type sourceCollectionItemType, string contextPath, ChildrenDefinition childrenDef)
+        private static SnQuery BuildSnQuery(Expression expression, Type sourceCollectionItemType, string contextPath, ChildrenDefinition childrenDef)
         {
             SnQueryPredicate q0 = null;
 
@@ -116,7 +117,7 @@ namespace SenseNet.ContentRepository.Linq
             {
                 if (lq.Skip > 0)
                     query.Skip = lq.Skip;
-                if (lq.Top > 0)
+                if (lq.Top > 0 && lq.Top != int.MaxValue)
                     query.Top = lq.Top;
                 if (lq.Sort != null && lq.Sort.Length > 0)
                     query.Sort = lq.Sort;
@@ -174,7 +175,9 @@ namespace SenseNet.ContentRepository.Linq
         {
             if (path == null)
                 return null;
-            return new TextPredicate(inTree ? IndexFieldName.InTree : IndexFieldName.InFolder, new IndexValue(path));
+            var fieldName = inTree ? IndexFieldName.InTree : IndexFieldName.InFolder;
+            var converter = ContentTypeManager.GetPerFieldIndexingInfo(fieldName).IndexFieldHandler;
+            return new TextPredicate(fieldName, converter.ConvertToTermValue(path));
         }
 
         public static Expression GetCaseInsensitiveFilter(Expression expression)

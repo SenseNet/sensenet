@@ -225,66 +225,85 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_IdRange_Order()
         {
-            string expected;
+            Test(() =>
+            {
+                var expected = "Id:<4 .SORT:Id";
+                Assert.AreEqual(expected, GetQueryString(Content.All.Where(c => c.Id < 4).OrderBy(c => c.Id)));
+                Assert.AreEqual(expected, GetQueryString(from c in Content.All where c.Id < 4 orderby c.Id select c));
 
-            expected = "Id:<4 .SORT:Id";
-            Assert.AreEqual(expected, GetQueryString(Content.All.Where(c => c.Id < 4).OrderBy(c => c.Id)));
-            Assert.AreEqual(expected, GetQueryString(from c in Content.All where c.Id < 4 orderby c.Id select c));
+                expected = "Id:<=4 .SORT:Id";
+                Assert.AreEqual(expected, GetQueryString(Content.All.Where(c => c.Id <= 4).OrderBy(c => c.Id)));
+                Assert.AreEqual(expected, GetQueryString(from c in Content.All where c.Id <= 4 orderby c.Id select c));
 
-            expected = "Id:<=4 .SORT:Id";
-            Assert.AreEqual(expected, GetQueryString(Content.All.Where(c => c.Id <= 4).OrderBy(c => c.Id)));
-            Assert.AreEqual(expected, GetQueryString(from c in Content.All where c.Id <= 4 orderby c.Id select c));
+                expected = "Id:<=4 .REVERSESORT:Id";
+                Assert.AreEqual(expected, GetQueryString(Content.All.Where(c => c.Id <= 4).OrderByDescending(c => c.Id)));
+                Assert.AreEqual(expected, GetQueryString(from c in Content.All where c.Id <= 4 orderby c.Id descending select c));
 
-            expected = "Id:<=4 .REVERSESORT:Id";
-            Assert.AreEqual(expected, GetQueryString(Content.All.Where(c => c.Id <= 4).OrderByDescending(c => c.Id)));
-            Assert.AreEqual(expected, GetQueryString(from c in Content.All where c.Id <= 4 orderby c.Id descending select c));
+                expected = "+Id:>1 +Id:<=4 .SORT:Id";
+                Assert.AreEqual(expected, GetQueryString(Content.All.Where(c => c.Id <= 4 && c.Id > 1).OrderBy(c => c.Id)));
+                Assert.AreEqual(expected, GetQueryString(from c in Content.All where c.Id <= 4 && c.Id > 1 orderby c.Id select c));
 
-            expected = "+Id:<=4 +Id:>1 .SORT:Id";
-            Assert.AreEqual(expected, GetQueryString(Content.All.Where(c => c.Id <= 4 && c.Id > 1).OrderBy(c => c.Id)));
-            Assert.AreEqual(expected, GetQueryString(from c in Content.All where c.Id <= 4 && c.Id > 1 orderby c.Id select c));
+                return true;
+            });
         }
+
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_SingleNegativeTerm()
         {
-            Assert.AreEqual("-Id:42 +Id:>0", GetQueryString(Content.All.Where(c => c.Id != 42)));
+            Test(() =>
+            {
+                Assert.AreEqual("-Id:42 +Id:>0", GetQueryString(Content.All.Where(c => c.Id != 42)));
+                return true;
+            });
         }
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_StartsWithEndsWithContains()
         {
-            Assert.AreEqual("Name:Car*", GetQueryString(Content.All.Where(c => c.Name.StartsWith("Car"))));
-            Assert.AreEqual("Name:*r2", GetQueryString(Content.All.Where(c => c.Name.EndsWith("r2"))));
-            Assert.AreEqual("Name:*ro*", GetQueryString(Content.All.Where(c => c.Name.Contains("ro"))));
+            Test(() =>
+            {
+                Assert.AreEqual("Name:Car*", GetQueryString(Content.All.Where(c => c.Name.StartsWith("Car"))));
+                Assert.AreEqual("Name:*r2", GetQueryString(Content.All.Where(c => c.Name.EndsWith("r2"))));
+                Assert.AreEqual("Name:*ro*", GetQueryString(Content.All.Where(c => c.Name.Contains("ro"))));
+                return true;
+            });
         }
+
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_CaseSensitivity()
         {
-            string expected;
+            Test(() =>
+            {
+                string expected;
 
-            expected = "Name:<admin .SORT:Id";
-            Assert.AreEqual(expected, GetQueryString(Content.All.Where(c => c.Name == "admin").OrderBy(c => c.Id)));
-            Assert.AreEqual(expected, GetQueryString(from c in Content.All where c.Name == "admin" orderby c.Id select c));
+                expected = "Name:admin .SORT:Id";
+                Assert.AreEqual(expected, GetQueryString(Content.All.Where(c => c.Name == "admin").OrderBy(c => c.Id)));
+                Assert.AreEqual(expected, GetQueryString(from c in Content.All where c.Name == "admin" orderby c.Id select c));
 
-            expected = "Name:<Admin .SORT:Id";
-            Assert.AreEqual(expected, GetQueryString(Content.All.Where(c => c.Name == "Admin").OrderBy(c => c.Id)));
-            Assert.AreEqual(expected, GetQueryString(from c in Content.All where c.Name == "Admin" orderby c.Id select c));
+                expected = "Name:admin .SORT:Id";
+                Assert.AreEqual(expected, GetQueryString(Content.All.Where(c => c.Name == "Admin").OrderBy(c => c.Id)));
+                Assert.AreEqual(expected, GetQueryString(from c in Content.All where c.Name == "Admin" orderby c.Id select c));
+
+                return true;
+            });
         }
+
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_EmptyString()
         {
-            Assert.AreEqual("DisplayName:''", GetQueryString(Content.All.Where(c => c.DisplayName == "")));
+            Test(() =>
+            {
+                Assert.AreEqual("DisplayName:''", GetQueryString(Content.All.Where(c => c.DisplayName == "")));
+                return true;
+            });
         }
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_NullString()
         {
             Test(() =>
             {
-                var cars = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
-                SaveNode(cars);
-
-                var expected = "Model:'' ??????? .AUTOFILTERS:OFF";
-                Assert.AreEqual(expected, GetQueryString(Content.All.DisableAutofilters().Where(c => c.InTree(cars) && (string)c["Model"] == null).OrderBy(c => c.Name)));
-                Assert.AreEqual(expected, GetQueryString(from c in Content.All.DisableAutofilters() where c.InTree(cars) && (string)c["Model"] == null orderby c.Name select c));
-
+                var expected = "DisplayName:''";
+                Assert.AreEqual(expected, GetQueryString(Content.All.Where(c => (string)c["DisplayName"] == null)));
+                Assert.AreEqual(expected, GetQueryString(from c in Content.All where (string)c["DisplayName"] == null select c));
                 return true;
             });
         }
@@ -293,12 +312,20 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var root = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
-                SaveNode(root);
+                var d0 = DateTime.UtcNow.AddDays(-2);
 
-                var expected = "??????? .AUTOFILTERS:OFF";
-                Assert.AreEqual(expected, GetQueryString(Content.All.DisableAutofilters().Where(c => c.InTree(root) && c.ModificationDate < DateTime.UtcNow.AddDays(-2)).OrderBy(c => c.Name)));
-                Assert.AreEqual(expected, GetQueryString(from c in Content.All.DisableAutofilters() where c.InTree(root) && c.ModificationDate < DateTime.UtcNow.AddDays(-2) orderby c.Name select c));
+                // ModificationDate:<'2345-06-07 08:09:10.0000'
+                var q1 = GetQueryString(Content.All.Where(c => c.ModificationDate < DateTime.UtcNow.AddDays(-2)));
+                q1 = q1.Substring(19, 24);
+                var d1 = DateTime.Parse(q1);
+
+                Assert.IsTrue(d1 - d0 < TimeSpan.FromSeconds(1));
+
+                var q2 = GetQueryString(from c in Content.All where c.ModificationDate < DateTime.UtcNow.AddDays(-2) select c);
+                q2 = q2.Substring(19, 24);
+                var d2 = DateTime.Parse(q2);
+
+                Assert.IsTrue(d2 - d0 < TimeSpan.FromSeconds(1));
 
                 return true;
             });
@@ -307,74 +334,91 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_NegativeTerm()
         {
-            Assert.AreEqual("-Id:2 +Id:<=4", GetQueryString(Content.All.Where(c => c.Id <= 4 && c.Id != 2)));
-            Assert.AreEqual("-Id:2 +Id:>0", GetQueryString(Content.All.Where(c => c.Id != 2)));
-            Assert.AreEqual("-Id:2 +Id:>0", GetQueryString(Content.All.Where(c => c.Id > 0 && c.Id != 2)));
+            Test(() =>
+            {
+                Assert.AreEqual("-Id:2 +Id:<=4", GetQueryString(Content.All.Where(c => c.Id <= 4 && c.Id != 2)));
+                Assert.AreEqual("-Id:2 +Id:>0", GetQueryString(Content.All.Where(c => c.Id != 2)));
+                Assert.AreEqual("-Id:2 +Id:>0", GetQueryString(Content.All.Where(c => c.Id > 0 && c.Id != 2)));
+                return true;
+            });
         }
+
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_Bool()
         {
-            string q;
+            Test(() =>
+            {
+                var q = GetQueryString(Content.All.Where(c => c.IsFolder == true));
+                Assert.AreEqual("IsFolder:yes", q);
 
-            q = GetQueryString(Content.All.Where(c => c.IsFolder == true));
-            Assert.AreEqual("IsFolder:yes", q);
+                q = GetQueryString(Content.All.Where(c => c.IsFolder == false));
+                Assert.AreEqual("IsFolder:no", q);
 
-            q = GetQueryString(Content.All.Where(c => c.IsFolder == false));
-            Assert.AreEqual("IsFolder:no", q);
+                q = GetQueryString(Content.All.Where(c => c.IsFolder != true));
+                Assert.AreEqual("IsFolder:no", q);
 
-            q = GetQueryString(Content.All.Where(c => c.IsFolder != true));
-            Assert.AreEqual("IsFolder:no", q);
+                q = GetQueryString(Content.All.Where(c => c.IsFolder));
+                Assert.AreEqual("IsFolder:yes", q);
 
-            q = GetQueryString(Content.All.Where(c => c.IsFolder));
-            Assert.AreEqual("IsFolder:yes", q);
+                q = GetQueryString(Content.All.Where(c => (bool) c["Hidden"]));
+                Assert.AreEqual("Hidden:yes", q);
 
-            q = GetQueryString(Content.All.Where(c => (bool)c["Hidden"]));
-            Assert.AreEqual("Hidden:yes", q);
+                q = GetQueryString(Content.All.OfType<SenseNet.Portal.Site>().Where(c => c.EnableClientBasedCulture));
+                Assert.AreEqual("+TypeIs:site +EnableClientBasedCulture:yes", q);
 
-            q = GetQueryString(Content.All.OfType<SenseNet.Portal.Site>().Where(c => c.EnableClientBasedCulture));
-            Assert.AreEqual("+TypeIs:site +EnableClientBasedCulture:yes", q);
+                return true;
+            });
         }
+
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_Bool_Negation()
         {
-            string q;
+            Test(() =>
+            {
+                var q = GetQueryString(Content.All.Where(c => !c.IsFolder));
+                Assert.AreEqual("IsFolder:no", q);
 
-            q = GetQueryString(Content.All.Where(c => !c.IsFolder));
-            Assert.AreEqual("IsFolder:no", q);
+                q = GetQueryString(Content.All.Where(c => c.IsFolder != true));
+                Assert.AreEqual("IsFolder:no", q);
 
-            q = GetQueryString(Content.All.Where(c => c.IsFolder != true));
-            Assert.AreEqual("IsFolder:no", q);
+                // ReSharper disable once NegativeEqualityExpression
+                q = GetQueryString(Content.All.Where(c => !(c.IsFolder == true)));
+                Assert.AreEqual("IsFolder:no", q);
 
-            // ReSharper disable once NegativeEqualityExpression
-            q = GetQueryString(Content.All.Where(c => !(c.IsFolder == true)));
-            Assert.AreEqual("IsFolder:no", q);
+                q = GetQueryString(Content.All.Where(c => !(bool) c["Hidden"]));
+                Assert.AreEqual("Hidden:no", q);
 
-            q = GetQueryString(Content.All.Where(c => !(bool)c["Hidden"]));
-            Assert.AreEqual("Hidden:no", q);
+                q = GetQueryString(Content.All.OfType<SenseNet.Portal.Site>().Where(c => !c.EnableClientBasedCulture));
+                Assert.AreEqual("+TypeIs:site +EnableClientBasedCulture:no", q);
 
-            q = GetQueryString(Content.All.OfType<SenseNet.Portal.Site>().Where(c => !c.EnableClientBasedCulture));
-            Assert.AreEqual("+TypeIs:site +EnableClientBasedCulture:no", q);
-
-            q = GetQueryString(Content.All.Where(c => !((SenseNet.Portal.Site)c.ContentHandler).EnableClientBasedCulture));
-            Assert.AreEqual("EnableClientBasedCulture:no", q);
+                q =
+                    GetQueryString(
+                        Content.All.Where(c => !((SenseNet.Portal.Site) c.ContentHandler).EnableClientBasedCulture));
+                Assert.AreEqual("EnableClientBasedCulture:no", q);
+                return true;
+            });
         }
+
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_Negation()
         {
-            string q;
+            Test(() =>
+            {
+                var q = GetQueryString(Content.All.Where(c => c.Index != 42));
+                Assert.AreEqual("-Index:42 +Id:>0", q);
 
-            q = GetQueryString(Content.All.Where(c => c.Index != 42));
-            Assert.AreEqual("-Index:42 +Id:>0", q);
+                // ReSharper disable once NegativeEqualityExpression
+                q = GetQueryString(Content.All.Where(c => !(c.Index == 42)));
+                Assert.AreEqual("-Index:42 +Id:>0", q);
 
-            // ReSharper disable once NegativeEqualityExpression
-            q = GetQueryString(Content.All.Where(c => !(c.Index == 42)));
-            Assert.AreEqual("-Index:42 +Id:>0", q);
+                // ReSharper disable once NegativeEqualityExpression
+                q = GetQueryString(Content.All.Where(c => !(!(c.Index == 42) && !c.IsFolder)));
+                Assert.AreEqual("-(+IsFolder:no -Index:42) +Id:>0", q);
 
-            // ReSharper disable once NegativeEqualityExpression
-            q = GetQueryString(Content.All.Where(c => !(!(c.Index == 42) && !c.IsFolder)));
-            Assert.AreEqual("-(+IsFolder:no -Index:42) +Id:>0", q);
-
+                return true;
+            });
         }
+
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_SingleReference()
         {
@@ -573,12 +617,12 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var root = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
+                var root = Content.CreateNew("Folder", Repository.Root, "Folder1").ContentHandler;
                 SaveNode(root);
 
-                var expected = "??????? .AUTOFILTERS:OFF";
-                Assert.AreEqual(expected, GetQueryString(Content.All.DisableAutofilters().Where(c => c.InFolder(root.Path + "/Cars")).OrderBy(c => c.Id)));
-                Assert.AreEqual(expected, GetQueryString(from x in Content.All.DisableAutofilters() where x.InFolder(root.Path + "/Cars") orderby x.Id select x));
+                var expected = "InFolder:/root/folder1/cars";
+                Assert.AreEqual(expected, GetQueryString(Content.All.Where(c => c.InFolder(root.Path + "/Cars"))));
+                Assert.AreEqual(expected, GetQueryString(from x in Content.All where x.InFolder(root.Path + "/Cars") select x));
 
                 return true;
             });
@@ -599,37 +643,41 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var root = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
+                var name = Guid.NewGuid().ToString();
+                var root = Content.CreateNew("Folder", Repository.Root, name).ContentHandler;
                 SaveNode(root);
 
                 //-- type that handles one content type
-                var expected = "_______";
+                var expected = $"+TypeIs:group +InTree:'/root/{name}' .SORT:Name .AUTOFILTERS:OFF";
                 Assert.AreEqual(expected, GetQueryString(Content.All.DisableAutofilters().Where(c => c.InTree(root) && c.ContentHandler is Group).OrderBy(c => c.Name)));
                 Assert.AreEqual(expected, GetQueryString(from c in Content.All.DisableAutofilters() where c.InTree(root) && c.ContentHandler is Group orderby c.Name select c));
 
-                expected = "_______";
                 Assert.AreEqual(expected, GetQueryString(Content.All.DisableAutofilters().Where(c => c.InTree(root) && typeof(Group).IsAssignableFrom(c.ContentHandler.GetType())).OrderBy(c => c.Name)));
                 Assert.AreEqual(expected, GetQueryString(from c in Content.All.DisableAutofilters() where c.InTree(root) && typeof(Group).IsAssignableFrom(c.ContentHandler.GetType()) orderby c.Name select c));
 
                 //-- type that handles more than one content type
-                expected = "_______";
+                expected = $"+TypeIs:genericcontent +InTree:'/root/{name}/cars' .SORT:Name .AUTOFILTERS:OFF";
                 Assert.AreEqual(expected, GetQueryString(Content.All.DisableAutofilters().Where(c => c.InTree(root.Path + "/Cars") && c.ContentHandler is GenericContent).OrderBy(c => c.Name)));
                 Assert.AreEqual(expected, GetQueryString(from c in Content.All.DisableAutofilters() where c.InTree(root.Path + "/Cars") && c.ContentHandler is GenericContent orderby c.Name select c));
 
-                expected = "_______";
                 Assert.AreEqual(expected, GetQueryString(Content.All.DisableAutofilters().Where(c => c.InTree(root.Path + "/Cars") && typeof(GenericContent).IsAssignableFrom(c.ContentHandler.GetType())).OrderBy(c => c.Name)));
                 Assert.AreEqual(expected, GetQueryString(from c in Content.All.DisableAutofilters() where c.InTree(root.Path + "/Cars") && typeof(GenericContent).IsAssignableFrom(c.ContentHandler.GetType()) orderby c.Name select c));
 
                 return true;
             });
         }
+
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_TypeFilter_String()
         {
-            Assert.AreEqual("+Id:>0 +Type:group", GetQueryString(Content.All.Where(c => c.ContentType.Name == "Group" && c.Id > 0)));
-            Assert.AreEqual("Type:group", GetQueryString(Content.All.Where(c => c.ContentType == ContentType.GetByName("Group"))));
-            Assert.AreEqual("Type:car", GetQueryString(Content.All.Where(c => c.Type("Car"))));
-            Assert.AreEqual("TypeIs:car", GetQueryString(Content.All.Where(c => c.TypeIs("Car"))));
+            Test(() =>
+            {
+                Assert.AreEqual("+Id:>0 +Type:group", GetQueryString(Content.All.Where(c => c.ContentType.Name == "Group" && c.Id > 0)));
+                Assert.AreEqual("Type:group", GetQueryString(Content.All.Where(c => c.ContentType == ContentType.GetByName("Group"))));
+                Assert.AreEqual("Type:car", GetQueryString(Content.All.Where(c => c.Type("Car"))));
+                Assert.AreEqual("TypeIs:car", GetQueryString(Content.All.Where(c => c.TypeIs("Car"))));
+                return true;
+            });
         }
 
         [TestMethod, TestCategory("IR, LINQ")]
@@ -648,7 +696,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual("(+Index:85 -Type:car) (+DisplayName:ferrari +Type:car)",
                     GetQueryString(Content.All.Where(c => c.Type("Car") ? c.DisplayName == "Ferrari" : c.Index == 85)));
 
-                Assert.AreEqual("(+Index:85 -Type:car) (+DisplayName:\"my nice ferrari\" +Type:car)",
+                Assert.AreEqual("(+Index:85 -Type:car) (+DisplayName:'my nice ferrari' +Type:car)",
                     GetQueryString(Content.All.Where(c => c.Type("Car") ? c.DisplayName == "My nice Ferrari" : c.Index == 85)));
 
                 return true;
@@ -660,16 +708,16 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var root = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
+                var root = Content.CreateNew("Folder", Repository.Root, "Folder1").ContentHandler;
                 SaveNode(root);
 
-                var expected = "_______";
+                var expected = "+DisplayName:porsche +InTree:/root/folder1 .SORT:Name .AUTOFILTERS:OFF";
                 Assert.AreEqual(expected, GetQueryString(
                     Content.All.DisableAutofilters()
-                        .Where(c => c.InTree(root) && (string) c["Make"] == "Porsche")
+                        .Where(c => c.InTree(root) && (string) c["DisplayName"] == "Porsche")
                         .OrderBy(c => c.Name)));
                 Assert.AreEqual(expected, GetQueryString(from c in Content.All.DisableAutofilters()
-                    where c.InTree(root) && (string) c["Make"] == "Porsche"
+                    where c.InTree(root) && (string) c["DisplayName"] == "Porsche"
                     orderby c.Name
                     select c));
 
@@ -682,12 +730,12 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var root = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
+                var root = Content.CreateNew("Folder", Repository.Root, "Folder1").ContentHandler;
                 SaveNode(root);
 
-                var expected = "_______";
-                Assert.AreEqual(expected, GetQueryString(Content.All.DisableAutofilters().Where(c => c.InTree(root) && (((int)c["Index"] == 2 && (string)c["Make"] == "Porsche") || ((int)c["Index"] == 4 && (string)c["Make"] == "Ferrari"))).OrderBy(c => c.Name)));
-                Assert.AreEqual(expected, GetQueryString(from c in Content.All.DisableAutofilters() where c.InTree(root) && (((int)c["Index"] == 2 && (string)c["Make"] == "Porsche") || ((int)c["Index"] == 4 && (string)c["Make"] == "Ferrari")) orderby c.Name select c));
+                var expected = "+((+DisplayName:ferrari +Index:4) (+DisplayName:porsche +Index:2)) +InTree:/root/folder1 .SORT:Name .AUTOFILTERS:OFF";
+                Assert.AreEqual(expected, GetQueryString(Content.All.DisableAutofilters().Where(c => c.InTree(root) && (((int)c["Index"] == 2 && (string)c["DisplayName"] == "Porsche") || ((int)c["Index"] == 4 && (string)c["DisplayName"] == "Ferrari"))).OrderBy(c => c.Name)));
+                Assert.AreEqual(expected, GetQueryString(from c in Content.All.DisableAutofilters() where c.InTree(root) && (((int)c["Index"] == 2 && (string)c["DisplayName"] == "Porsche") || ((int)c["Index"] == 4 && (string)c["DisplayName"] == "Ferrari")) orderby c.Name select c));
 
                 return true;
             });
@@ -717,12 +765,12 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var root = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
+                var root = Content.CreateNew("Folder", Repository.Root, "Folder1").ContentHandler;
                 SaveNode(root);
 
-                Assert.AreEqual("+(Index:3 (+Index:2 +TypeIs:group)) +InTree:/root/_linqtests", GetQueryString(
+                Assert.AreEqual("+TypeIs:folder +InTree:/root/folder1 .SORT:Index .REVERSESORT:Name .AUTOFILTERS:OFF", GetQueryString(
                     Content.All.DisableAutofilters()
-                        .Where(c => c.InTree(root) && c.TypeIs("Car"))
+                        .Where(c => c.InTree(root) && c.TypeIs("Folder"))
                         .OrderBy(c => c.Index)
                         .ThenByDescending(c => c.Name)));
 
@@ -766,59 +814,78 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_OfType()
         {
-            Assert.AreEqual("+TypeIs:site +EnableClientBasedCulture:yes",
-                GetQueryString(Content.All.OfType<SenseNet.Portal.Site>().Where(c => c.EnableClientBasedCulture == true)));
+            Test(() =>
+            {
+                Assert.AreEqual("TypeIs:contenttype .AUTOFILTERS:OFF",
+                    GetQueryString(Content.All.DisableAutofilters().OfType<ContentType>()));
 
-            var list1 = ContentQuery.Query("+TypeIs:ContentType .AUTOFILTERS:OFF").Nodes;
-            //var list2 = Content.All.DisableAutofilters().OfType<ContentType>().Where(x => x.Id > 0).ToList();
-            var list2 = Content.All.DisableAutofilters().OfType<ContentType>().ToList();
-            Assert.AreEqual(ContentTypeManager.Current.GetContentTypes().Length, list1.Count());
-            Assert.AreEqual(list1.Count(), list2.Count());
+                return true;
+            });
         }
 
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_TakeSkip()
         {
-            Assert.AreEqual("IsFolder:yes .TOP:5 .SKIP:8", GetQueryString(Content.All.Where(c => c.IsFolder == true).Skip(8).Take(5)));
+            Test(() =>
+            {
+                Assert.AreEqual("IsFolder:yes .TOP:5 .SKIP:8", GetQueryString(Content.All.Where(c => c.IsFolder == true).Skip(8).Take(5)));
+                return true;
+            });
         }
 
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_CombiningQueries()
         {
-            var childrenDef = new ChildrenDefinition { PathUsage = PathUsageMode.InFolderOr, ContentQuery = "Id:>42", EnableAutofilters = FilterStatus.Disabled, Skip = 18, Top = 15 };
-            var expr = Content.All.Where(c => c.IsFolder == true).Skip(8).Take(5).Expression;
-            var actual = SnExpression.BuildQuery(expr, typeof(Content), "/Root/FakePath", childrenDef).ToString();
-            var expected = "(+IsFolder:yes +Id:>42) InFolder:/root/fakepath .TOP:15 .SKIP:18 .AUTOFILTERS:OFF";
-            Assert.AreEqual(expected, actual);
+            Test(() =>
+            {
+                var childrenDef = new ChildrenDefinition
+                {
+                    PathUsage = PathUsageMode.InFolderOr,
+                    ContentQuery = "Id:>42",
+                    EnableAutofilters = FilterStatus.Disabled,
+                    Skip = 18,
+                    Top = 15
+                };
+                var expr = Content.All.Where(c => c.IsFolder == true).Skip(8).Take(5).Expression;
+                var actual = SnExpression.BuildQuery(expr, typeof(Content), "/Root/FakePath", childrenDef).ToString();
+                var expected = "(+IsFolder:yes +Id:>42) InFolder:/root/fakepath .TOP:15 .SKIP:18 .AUTOFILTERS:OFF";
+                Assert.AreEqual(expected, actual);
+
+                return true;
+            });
         }
 
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_API()
         {
-            ContentSet<Content>[] contentSets =
+            Test(() =>
             {
-                (ContentSet<Content>)Content.All.Where(c => c.Id < 6),                                           // -, -
-                (ContentSet<Content>)Content.All.EnableAutofilters().Where(c => c.Id < 6),                       // -, -
-                (ContentSet<Content>)Content.All.DisableAutofilters().Where(c => c.Id < 6),                      // 
-                (ContentSet<Content>)Content.All.EnableLifespan().Where(c => c.Id < 6),                          // 
-                (ContentSet<Content>)Content.All.DisableLifespan().Where(c => c.Id < 6),                         // 
-                (ContentSet<Content>)Content.All.EnableAutofilters().EnableLifespan().Where(c => c.Id < 6),      // 
-                (ContentSet<Content>)Content.All.EnableAutofilters().DisableLifespan().Where(c => c.Id < 6),     // 
-                (ContentSet<Content>)Content.All.DisableAutofilters().EnableLifespan().Where(c => c.Id < 6),     // 
-                (ContentSet<Content>)Content.All.DisableAutofilters().DisableLifespan().Where(c => c.Id < 6),    // 
-                (ContentSet<Content>)Content.All.EnableLifespan().EnableAutofilters().Where(c => c.Id < 6),      // 
-                (ContentSet<Content>)Content.All.DisableLifespan().EnableAutofilters().Where(c => c.Id < 6),     // 
-                (ContentSet<Content>)Content.All.EnableLifespan().DisableAutofilters().Where(c => c.Id < 6),     // 
-                (ContentSet<Content>)Content.All.DisableLifespan().DisableAutofilters().Where(c => c.Id < 6),    // 
-                (ContentSet<Content>)Content.All.SetExecutionMode(QueryExecutionMode.Default).Where(c => c.Id < 42),  // 
-                (ContentSet<Content>)Content.All.SetExecutionMode(QueryExecutionMode.Strict).Where(c => c.Id < 42),   // 
-                (ContentSet<Content>)Content.All.SetExecutionMode(QueryExecutionMode.Quick).Where(c => c.Id < 42),    // 
-            };
-            var queries = new string[contentSets.Length];
-            for (var i = 0; i < contentSets.Length; i++)
-                queries[i] = SnExpression.BuildQuery(contentSets[i].Expression, typeof(Content), contentSets[i].ContextPath, contentSets[i].ChildrenDefinition).ToString();
+                ContentSet<Content>[] contentSets =
+                {
+                    (ContentSet<Content>) Content.All.Where(c => c.Id < 6),
+                    (ContentSet<Content>) Content.All.EnableAutofilters().Where(c => c.Id < 6),
+                    (ContentSet<Content>) Content.All.DisableAutofilters().Where(c => c.Id < 6),
+                    (ContentSet<Content>) Content.All.EnableLifespan().Where(c => c.Id < 6),
+                    (ContentSet<Content>) Content.All.DisableLifespan().Where(c => c.Id < 6),
+                    (ContentSet<Content>) Content.All.EnableAutofilters().EnableLifespan().Where(c => c.Id < 6),
+                    (ContentSet<Content>) Content.All.EnableAutofilters().DisableLifespan().Where(c => c.Id < 6),
+                    (ContentSet<Content>) Content.All.DisableAutofilters().EnableLifespan().Where(c => c.Id < 6),
+                    (ContentSet<Content>) Content.All.DisableAutofilters().DisableLifespan().Where(c => c.Id < 6),
+                    (ContentSet<Content>) Content.All.EnableLifespan().EnableAutofilters().Where(c => c.Id < 6),
+                    (ContentSet<Content>) Content.All.DisableLifespan().EnableAutofilters().Where(c => c.Id < 6),
+                    (ContentSet<Content>) Content.All.EnableLifespan().DisableAutofilters().Where(c => c.Id < 6),
+                    (ContentSet<Content>) Content.All.DisableLifespan().DisableAutofilters().Where(c => c.Id < 6),
+                    (ContentSet<Content>) Content.All.SetExecutionMode(QueryExecutionMode.Default).Where(c => c.Id < 42),
+                    (ContentSet<Content>) Content.All.SetExecutionMode(QueryExecutionMode.Strict).Where(c => c.Id < 42),
+                    (ContentSet<Content>) Content.All.SetExecutionMode(QueryExecutionMode.Quick).Where(c => c.Id < 42),
+                };
+                var queries = new string[contentSets.Length];
+                for (var i = 0; i < contentSets.Length; i++)
+                    queries[i] =
+                        SnExpression.BuildQuery(contentSets[i].Expression, typeof(Content), contentSets[i].ContextPath,
+                            contentSets[i].ChildrenDefinition).ToString();
 
-            var expected = @"Id:<6
+                var expected = @"Id:<6
 Id:<6
 Id:<6 .AUTOFILTERS:OFF
 Id:<6 .LIFESPAN:ON
@@ -834,27 +901,38 @@ Id:<6 .AUTOFILTERS:OFF
 Id:<42
 Id:<42
 Id:<42 .QUICK";
-            var actual = String.Join("\r\n", queries);
-            Assert.AreEqual(expected, actual);
+
+                var actual = String.Join("\r\n", queries);
+                Assert.AreEqual(expected, actual);
+
+                return true;
+            });
         }
+
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_ExecutionMode_Quick()
         {
-            ContentSet<Content>[] contentSets =
+            Test(() =>
             {
-                (ContentSet<Content>)Content.All.SetExecutionMode(QueryExecutionMode.Default).Where(c => c.Id < 42),  // 
-                (ContentSet<Content>)Content.All.SetExecutionMode(QueryExecutionMode.Strict).Where(c => c.Id < 42),   // 
-                (ContentSet<Content>)Content.All.SetExecutionMode(QueryExecutionMode.Quick).Where(c => c.Id < 42),    // 
-            };
-            var queries = new string[contentSets.Length];
-            for (var i = 0; i < contentSets.Length; i++)
-                queries[i] = SnExpression.BuildQuery(contentSets[i].Expression, typeof(Content), contentSets[i].ContextPath, contentSets[i].ChildrenDefinition).ToString();
+                ContentSet<Content>[] contentSets =
+                {
+                    (ContentSet<Content>) Content.All.SetExecutionMode(QueryExecutionMode.Default).Where(c => c.Id < 42),
+                    (ContentSet<Content>) Content.All.SetExecutionMode(QueryExecutionMode.Strict).Where(c => c.Id < 42),
+                    (ContentSet<Content>) Content.All.SetExecutionMode(QueryExecutionMode.Quick).Where(c => c.Id < 42),
+                };
+                var queries = new string[contentSets.Length];
+                for (var i = 0; i < contentSets.Length; i++)
+                    queries[i] =
+                        SnExpression.BuildQuery(contentSets[i].Expression, typeof(Content), contentSets[i].ContextPath,
+                            contentSets[i].ChildrenDefinition).ToString();
 
-            var expected = @"Id:<42
+                var expected = @"Id:<42
 Id:<42
 Id:<42 .QUICK";
-            var actual = String.Join("\r\n", queries);
-            Assert.AreEqual(expected, actual);
+                var actual = String.Join("\r\n", queries);
+                Assert.AreEqual(expected, actual);
+                return true;
+            });
         }
 
         //[TestMethod, TestCategory("IR, LINQ")]
@@ -898,21 +976,19 @@ Id:<42 .QUICK";
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_Error_NotConstants()
         {
-            try { var x = Content.All.Where(c => c.DisplayName.StartsWith(c.Name)).ToArray(); Assert.Fail("#1 Exception wasn't thrown"); }
-            catch (NotSupportedException) { }
-            try { var x = Content.All.Where(c => c.DisplayName.EndsWith(c.Name)).ToArray(); Assert.Fail("#2 Exception wasn't thrown"); }
-            catch (NotSupportedException) { }
-            try { var x = Content.All.Where(c => c.DisplayName.Contains(c.Name)).ToArray(); Assert.Fail("#3 Exception wasn't thrown"); }
-            catch (NotSupportedException) { }
+            Test(() =>
+            {
+                try { var x = Content.All.Where(c => c.DisplayName.StartsWith(c.Name)).ToArray(); Assert.Fail("#1 Exception wasn't thrown"); } catch (NotSupportedException) { }
+                try { var x = Content.All.Where(c => c.DisplayName.EndsWith(c.Name)).ToArray(); Assert.Fail("#2 Exception wasn't thrown"); } catch (NotSupportedException) { }
+                try { var x = Content.All.Where(c => c.DisplayName.Contains(c.Name)).ToArray(); Assert.Fail("#3 Exception wasn't thrown"); } catch (NotSupportedException) { }
 
-            try { var x = Content.All.Where(c => c.Type(c.DisplayName)).ToArray(); Assert.Fail("#4 Exception wasn't thrown"); }
-            catch (NotSupportedException) { }
-            try { var x = Content.All.Where(c => c.TypeIs(c.DisplayName)).ToArray(); Assert.Fail("#5 Exception wasn't thrown"); }
-            catch (NotSupportedException) { }
-            try { var x = Content.All.Where(c => c.InFolder(c.WorkspacePath)).ToArray(); Assert.Fail("#6 Exception wasn't thrown"); }
-            catch (NotSupportedException) { }
-            try { var x = Content.All.Where(c => c.InTree(c.WorkspacePath)).ToArray(); Assert.Fail("#7 Exception wasn't thrown"); }
-            catch (NotSupportedException) { }
+                try { var x = Content.All.Where(c => c.Type(c.DisplayName)).ToArray(); Assert.Fail("#4 Exception wasn't thrown"); } catch (NotSupportedException) { }
+                try { var x = Content.All.Where(c => c.TypeIs(c.DisplayName)).ToArray(); Assert.Fail("#5 Exception wasn't thrown"); } catch (NotSupportedException) { }
+                try { var x = Content.All.Where(c => c.InFolder(c.WorkspacePath)).ToArray(); Assert.Fail("#6 Exception wasn't thrown"); } catch (NotSupportedException) { }
+                try { var x = Content.All.Where(c => c.InTree(c.WorkspacePath)).ToArray(); Assert.Fail("#7 Exception wasn't thrown"); } catch (NotSupportedException) { }
+
+                return true;
+            });
         }
 
         //---------------------------------------------------------------------------------------------------------
@@ -920,12 +996,19 @@ Id:<42 .QUICK";
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_OptimizeBooleans()
         {
-            var childrenDef = new ChildrenDefinition { PathUsage = PathUsageMode.InFolderAnd };
-            //var expr = Content.All.Where(c => c.Path != "/Root/A" && c.Path != "/Root/B" && c.Path != "/Root/C" && c.Type("Folder") && c.InFolder(folder)).Expression;
-            var expr = Content.All.Where(c => c.Name != "A" && c.Name != "B" && c.Name != "C" && c.TypeIs("Folder")).Expression;
-            var actual = SnExpression.BuildQuery(expr, typeof(Content), "/Root/FakePath", childrenDef).ToString();
-            var expected = "+(+TypeIs:folder -Name:c -Name:b -Name:a) +InFolder:/root/fakepath";
-            Assert.AreEqual(expected, actual);
+            Test(() =>
+            {
+                var childrenDef = new ChildrenDefinition {PathUsage = PathUsageMode.InFolderAnd};
+                //var expr = Content.All.Where(c => c.Path != "/Root/A" && c.Path != "/Root/B" && c.Path != "/Root/C" && c.Type("Folder") && c.InFolder(folder)).Expression;
+                var expr =
+                    Content.All.Where(c => c.Name != "A" && c.Name != "B" && c.Name != "C" && c.TypeIs("Folder"))
+                        .Expression;
+                var actual = SnExpression.BuildQuery(expr, typeof(Content), "/Root/FakePath", childrenDef).ToString();
+                var expected = "+(+TypeIs:folder -Name:c -Name:b -Name:a) +InFolder:/root/fakepath";
+                Assert.AreEqual(expected, actual);
+
+                return true;
+            });
         }
 
         //---------------------------------------------------------------------------------------------------------
@@ -933,8 +1016,12 @@ Id:<42 .QUICK";
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_AspectField()
         {
-            Assert.AreEqual("Linq_AspectField_Aspect1.Field1:fieldvalue",
+            Test(() =>
+            {
+                Assert.AreEqual("Linq_AspectField_Aspect1.Field1:fieldvalue",
                 GetQueryString(Content.All.OfType<Content>().Where(c => (string)c["Linq_AspectField_Aspect1.Field1"] == "fieldvalue")));
+                return true;
+            });
         }
 
         //========================================================================================================= bugz
@@ -942,33 +1029,38 @@ Id:<42 .QUICK";
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_OptimizeBooleans_1()
         {
-            // +(TypeIs:group TypeIs:user) +InFolder:/root/ims/builtin/demo/managers
-            ChildrenDefinition childrenDef;
-            System.Linq.Expressions.Expression expr;
-            string actual;
-            string expected;
+            Test(() =>
+            {
+                // +(TypeIs:group TypeIs:user) +InFolder:/root/ims/builtin/demo/managers
+                ChildrenDefinition childrenDef;
+                System.Linq.Expressions.Expression expr;
+                string actual;
+                string expected;
 
-            childrenDef = new ChildrenDefinition { PathUsage = PathUsageMode.InFolderAnd };
-            expr = Content.All.Where(c => c.ContentHandler is Group || c.ContentHandler is User).Expression;
-            actual = SnExpression.BuildQuery(expr, typeof(Content), "/Root/FakePath", childrenDef).ToString();
-            expected = "+(TypeIs:user TypeIs:group) +InFolder:/root/fakepath";
-            Assert.AreEqual(expected, actual);
+                childrenDef = new ChildrenDefinition {PathUsage = PathUsageMode.InFolderAnd};
+                expr = Content.All.Where(c => c.ContentHandler is Group || c.ContentHandler is User).Expression;
+                actual = SnExpression.BuildQuery(expr, typeof(Content), "/Root/FakePath", childrenDef).ToString();
+                expected = "+(TypeIs:user TypeIs:group) +InFolder:/root/fakepath";
+                Assert.AreEqual(expected, actual);
 
-            childrenDef = new ChildrenDefinition { PathUsage = PathUsageMode.InFolderAnd, ContentQuery = "Id:>0" };
-            expr = Content.All.Where(c => c.ContentHandler is Group || c.ContentHandler is User).Expression;
-            actual = SnExpression.BuildQuery(expr, typeof(Content), "/Root/FakePath", childrenDef).ToString();
-            expected = "+(TypeIs:user TypeIs:group) +Id:>0 +InFolder:/root/fakepath";
-            Assert.AreEqual(expected, actual);
+                childrenDef = new ChildrenDefinition {PathUsage = PathUsageMode.InFolderAnd, ContentQuery = "Id:>0"};
+                expr = Content.All.Where(c => c.ContentHandler is Group || c.ContentHandler is User).Expression;
+                actual = SnExpression.BuildQuery(expr, typeof(Content), "/Root/FakePath", childrenDef).ToString();
+                expected = "+(TypeIs:user TypeIs:group) +Id:>0 +InFolder:/root/fakepath";
+                Assert.AreEqual(expected, actual);
 
-            childrenDef = new ChildrenDefinition { PathUsage = PathUsageMode.InFolderAnd, ContentQuery = "TypeIs:user TypeIs:group" };
-            actual = SnExpression.BuildQuery(null, typeof(Content), "/Root/FakePath", childrenDef).ToString();
-            expected = "+(TypeIs:user TypeIs:group) +InFolder:/root/fakepath";
-            Assert.AreEqual(expected, actual);
+                childrenDef = new ChildrenDefinition {PathUsage = PathUsageMode.InFolderAnd, ContentQuery = "TypeIs:user TypeIs:group"};
+                actual = SnExpression.BuildQuery(null, typeof(Content), "/Root/FakePath", childrenDef).ToString();
+                expected = "+(TypeIs:user TypeIs:group) +InFolder:/root/fakepath";
+                Assert.AreEqual(expected, actual);
 
-            childrenDef = new ChildrenDefinition { PathUsage = PathUsageMode.InFolderAnd, ContentQuery = "+(TypeIs:user TypeIs:group)" };
-            actual = SnExpression.BuildQuery(null, typeof(Content), "/Root/FakePath", childrenDef).ToString();
-            expected = "+(TypeIs:user TypeIs:group) +InFolder:/root/fakepath";
-            Assert.AreEqual(expected, actual);
+                childrenDef = new ChildrenDefinition {PathUsage = PathUsageMode.InFolderAnd, ContentQuery = "+(TypeIs:user TypeIs:group)"};
+                actual = SnExpression.BuildQuery(null, typeof(Content), "/Root/FakePath", childrenDef).ToString();
+                expected = "+(TypeIs:user TypeIs:group) +InFolder:/root/fakepath";
+                Assert.AreEqual(expected, actual);
+
+                return true;
+            });
         }
 
         //[TestMethod, TestCategory("IR, LINQ")]

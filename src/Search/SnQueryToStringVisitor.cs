@@ -38,7 +38,7 @@ namespace SenseNet.Search
             var stringValue = value.ValueAsString;
             if (stringValue == null)
                 return value;
-            if (_escaperRegex.IsMatch(stringValue))
+            if (stringValue.Length == 0 || _escaperRegex.IsMatch(stringValue))
                 return $"'{stringValue}'";
             return stringValue;
         }

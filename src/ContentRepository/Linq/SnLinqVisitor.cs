@@ -82,7 +82,7 @@ namespace SenseNet.ContentRepository.Linq
                 Sort = new List<SortInfo>();
             }
 
-            if (node != _root)
+            if (node != _root)            //UNDONE:.... LINQ: Why if?
                 return base.Visit(node);
 
             return base.Visit(node); // first visit
@@ -578,7 +578,7 @@ namespace SenseNet.ContentRepository.Linq
             var contentTypeName = ContentTypeManager.GetContentTypeNameByType(targetType);
             if (contentTypeName == null)
                 throw new ApplicationException($"Unknown Content Type: {targetType.FullName}");
-            return new TextPredicate(IndexFieldName.TypeIs, new IndexValue(contentTypeName));
+            return new TextPredicate(IndexFieldName.TypeIs, ConvertValue(IndexFieldName.TypeIs, contentTypeName));
         }
         private bool RemoveDuplicatedTopLevelBooleanMemberPredicate(SnQueryPredicate predicate)
         {
@@ -802,7 +802,7 @@ namespace SenseNet.ContentRepository.Linq
             if (contentTypeValue != null && name == "ContentType")
             {
                 name = "TypeIs";
-                value = contentTypeValue.Name;
+                value = contentTypeValue.Name; //UNDONE:.... LINQ: tested?
             }
 
             var fieldInfo = ContentTypeManager.GetPerFieldIndexingInfo(name);
@@ -818,7 +818,7 @@ namespace SenseNet.ContentRepository.Linq
 
         private SnQueryPredicate CreateRangePredicate(string fieldName, IndexValue minValue, IndexValue maxValue, bool includeLower, bool includeUpper)
         {
-            return new RangePredicate(fieldName, minValue, maxValue, includeLower, includeUpper);
+            return new RangePredicate(fieldName, minValue, maxValue, !includeLower, !includeUpper);
         }
 
         private SortInfo CreateSortInfoFromExpr(MethodCallExpression node, bool reverse)

@@ -8,6 +8,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Tests.Implementations;
 using SenseNet.Diagnostics;
+using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Security.Data;
 
@@ -88,6 +89,14 @@ namespace SenseNet.ContentRepository.Tests
                 bool hasBinary;
                 DataBackingStore.SaveIndexDocument(node, false, false, out hasBinary);
             }
+        }
+
+        protected ContentQuery CreateSafeContentQuery(string qtext)
+        {
+            var cquery = ContentQuery.CreateQuery(qtext, QuerySettings.AdminSettings);
+            var cqueryAcc = new PrivateObject(cquery);
+            cqueryAcc.SetFieldOrProperty("IsSafe", true);
+            return cquery;
         }
 
     }

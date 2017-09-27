@@ -402,14 +402,6 @@ namespace SenseNet.SearchImpl.Tests
             Assert.AreEqual(result.Item1.LastActivityId + 1, result.Item2.LastActivityId);
         }
 
-        private ContentQuery CreateSafeContentQuery(string qtext)
-        {
-            var cquery = ContentQuery.CreateQuery(qtext, QuerySettings.AdminSettings);
-            var cqueryAcc = new PrivateObject(cquery);
-            cqueryAcc.SetFieldOrProperty("IsSafe", true);
-            return cquery;
-        }
-
         /* ======================================================================================= */
 
         protected T L29Test<T>(Func<string, T> callback, [CallerMemberName]string memberName = "")

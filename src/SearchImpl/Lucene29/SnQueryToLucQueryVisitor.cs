@@ -166,6 +166,9 @@ namespace SenseNet.Search.Lucene29
         }
         private IndexValue ConvertRangeValue(IndexValue input)
         {
+            if (input == null)
+                return null;
+
             switch (input.Type)
             {
                 case IndexValueType.String:
