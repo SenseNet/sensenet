@@ -55,7 +55,7 @@ namespace SenseNet.Search.Lucene29
             var hasWildcard = stringValue.Contains('*') || stringValue.Contains('?');
 
             //var text = fieldName == "_Text" ? stringValue : ConvertTermValue(fieldName, stringValue, false);
-            var text = stringValue; //UNDONE:.... LINQ: remove this varable if the line above is deleted.
+            var text = stringValue; //UNDONE:.. LINQ: remove this varable if the line above is deleted.
 
             if (hasWildcard)
             {
@@ -95,7 +95,7 @@ namespace SenseNet.Search.Lucene29
             switch (value.Type)
             {
                 case IndexValueType.String:      return value.StringValue;
-                case IndexValueType.StringArray: throw new NotImplementedException(); //UNDONE:..... LINQ: ConvertToTermValue StringArray is not implemented
+                case IndexValueType.StringArray: throw new NotImplementedException(); //UNDONE:.. LINQ: ConvertToTermValue StringArray is not implemented
                 case IndexValueType.Bool:        return value.BooleanValue ? IndexValue.Yes : IndexValue.No;
                 case IndexValueType.Int:         return NumericUtils.IntToPrefixCoded(value.IntegerValue);
                 case IndexValueType.Long:        return NumericUtils.LongToPrefixCoded(value.LongValue);
@@ -130,68 +130,59 @@ namespace SenseNet.Search.Lucene29
             var minIncl = !range.MinExclusive;
             var maxIncl = !range.MaxExclusive;
 
-            QueryCompilerValue min, max;
-            var fieldType = ConvertRangeValue(range.FieldName, range.Min, range.Max, out min, out max);
+            var min = ConvertRangeValue(range.Min);
+            var max = ConvertRangeValue(range.Max);
+            if (min == null && max == null)
+                throw new CompilerException("Range is not supported if both min and max values are null.");
+
+            if (min != null && max != null && (min.Type != max.Type))
+                throw new CompilerException(
+                    $"Range is not supported for different types: min value is {min.Type} but max value is {max.Type}");
 
             Query query;
-            switch (fieldType)
+            switch (min?.Type ?? max.Type)
             {
-                case IndexableDataType.String:
+                case IndexValueType.String:
                     query = new TermRangeQuery(fieldName, min?.StringValue, max?.StringValue, minIncl, maxIncl);
                     break;
-                case IndexableDataType.Int:
-                    query = NumericRangeQuery.NewIntRange(fieldName, min?.IntValue, max?.IntValue, minIncl, maxIncl);
+                case IndexValueType.Int:
+                    query = NumericRangeQuery.NewIntRange(fieldName, min?.IntegerValue, max?.IntegerValue, minIncl, maxIncl);
                     break;
-                case IndexableDataType.Long:
+                case IndexValueType.Long:
                     query = NumericRangeQuery.NewIntRange(fieldName, min?.LongValue, max?.LongValue, minIncl, maxIncl);
                     break;
-                case IndexableDataType.Float:
+                case IndexValueType.Float:
                     query = NumericRangeQuery.NewIntRange(fieldName, min?.SingleValue, max?.SingleValue, minIncl, maxIncl);
                     break;
-                case IndexableDataType.Double:
+                case IndexValueType.Double:
                     query = NumericRangeQuery.NewIntRange(fieldName, min?.DoubleValue, max?.DoubleValue, minIncl, maxIncl);
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new CompilerException("Cannot create range query from this type");
             }
             _queryTree.Push(query);
 
             return range;
         }
-        private IndexableDataType ConvertRangeValue(string fieldName, string min, string max, out QueryCompilerValue convertedMin, out QueryCompilerValue convertedMax)
+        private IndexValue ConvertRangeValue(IndexValue input)
         {
-            var converter = _context.GetPerFieldIndexingInfo(fieldName)?.IndexFieldHandler;
-            if (converter == null)
+            switch (input.Type)
             {
-                convertedMin = min == null ? null : new QueryCompilerValue(min);
-                convertedMax = min == null ? null : new QueryCompilerValue(max);
-                return IndexableDataType.String;
-            }
+                case IndexValueType.String:
+                case IndexValueType.Int:
+                case IndexValueType.Long:
+                case IndexValueType.Float:
+                case IndexValueType.Double:
+                    return input;
+                case IndexValueType.DateTime:
+                    return new IndexValue(input.DateTimeValue.Ticks);
 
-            if (min != null)
-            {
-                convertedMin = new QueryCompilerValue(min);
-                if (!converter.Compile(convertedMin))
-                    throw new CompilerException(
-                        $"Cannot parse the '{fieldName}' as {converter.IndexFieldType} field value: {min}");
+                case IndexValueType.StringArray:
+                case IndexValueType.Bool:
+                    throw new NotSupportedException("Range is not supported for this type: " + input.Type);
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
-            else
-            {
-                convertedMin = null;
-            }
-            if (max != null)
-            {
-                convertedMax = new QueryCompilerValue(max);
-                if (!converter.Compile(convertedMax))
-                    throw new CompilerException(
-                        $"Cannot parse the '{fieldName}' as {converter.IndexFieldType} field value: {max}");
-            }
-            else
-            {
-                convertedMax = null;
-            }
-
-            return (convertedMin ?? convertedMax).Datatype;
         }
 
         public override SnQueryPredicate VisitLogicalPredicate(LogicalPredicate logic)
@@ -203,7 +194,7 @@ namespace SenseNet.Search.Lucene29
         public override LogicalClause VisitLogicalClause(LogicalClause clause)
         {
             Visit(clause.Predicate);
-            var compiledClause = new Lucene.Net.Search.BooleanClause(_queryTree.Pop(), CompileOccur(clause.Occur));
+            var compiledClause = new BooleanClause(_queryTree.Pop(), CompileOccur(clause.Occur));
             var booleanQuery = (BooleanQuery)_queryTree.Peek();
             booleanQuery.Add(compiledClause);
             return clause;
@@ -212,14 +203,14 @@ namespace SenseNet.Search.Lucene29
         // ======================================================================
 
 
-        private Lucene.Net.Search.BooleanClause.Occur CompileOccur(Occurence occur)
+        private BooleanClause.Occur CompileOccur(Occurence occur)
         {
             switch (occur)
             {
                 case Occurence.Default:
-                case Occurence.Should: return Lucene.Net.Search.BooleanClause.Occur.SHOULD;
-                case Occurence.Must: return Lucene.Net.Search.BooleanClause.Occur.MUST;
-                case Occurence.MustNot: return Lucene.Net.Search.BooleanClause.Occur.MUST_NOT;
+                case Occurence.Should: return BooleanClause.Occur.SHOULD;
+                case Occurence.Must: return BooleanClause.Occur.MUST;
+                case Occurence.MustNot: return BooleanClause.Occur.MUST_NOT;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(occur), occur, null);
             }

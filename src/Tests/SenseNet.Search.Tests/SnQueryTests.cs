@@ -13,11 +13,41 @@ namespace SenseNet.Search.Tests
     [TestClass]
     public class SnQueryTests
     {
+        Dictionary<string, IPerFieldIndexingInfo> _indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
+            {
+                {"_Text", new TestPerfieldIndexingInfoString()},
+                {"#Field1", new TestPerfieldIndexingInfoString()},
+                {"Field1", new TestPerfieldIndexingInfoString()},
+                {"Field2", new TestPerfieldIndexingInfoString()},
+                {"Field3", new TestPerfieldIndexingInfoString()},
+                {"F1", new TestPerfieldIndexingInfoString()},
+                {"F2", new TestPerfieldIndexingInfoString()},
+                {"F3", new TestPerfieldIndexingInfoString()},
+                {"F4", new TestPerfieldIndexingInfoString()},
+                {"f1", new TestPerfieldIndexingInfoString()},
+                {"f2", new TestPerfieldIndexingInfoString()},
+                {"f3", new TestPerfieldIndexingInfoString()},
+                {"f4", new TestPerfieldIndexingInfoString()},
+                {"f5", new TestPerfieldIndexingInfoString()},
+                {"f6", new TestPerfieldIndexingInfoString()},
+                {"mod_date", new TestPerfieldIndexingInfoInt()},
+                {"title", new TestPerfieldIndexingInfoString()},
+                {"Name", new TestPerfieldIndexingInfoString()},
+                {"Id", new TestPerfieldIndexingInfoInt()},
+                {"LongField1", new TestPerfieldIndexingInfoLong()},
+                {"SingleField1", new TestPerfieldIndexingInfoSingle()},
+                {"DoubleField1", new TestPerfieldIndexingInfoDouble()},
+                {"IsSystemContent", new TestPerfieldIndexingInfoBool()},
+                {"EnableLifespan", new TestPerfieldIndexingInfoBool()},
+                {"ValidFrom", new TestPerfieldIndexingInfoDateTime()},
+                {"ValidTill", new TestPerfieldIndexingInfoDateTime()},
+            };
+
         [TestMethod, TestCategory("IR")]
         public void SnQuery_Result_Int()
         {
             var intResults = new Dictionary<string, IQueryResult<int>> { { "asdf", new QueryResult<int>(new[] { 1, 2, 3 }, 4) } };
-            var context = new TestQueryContext(QuerySettings.AdminSettings, 0, null, new TestQueryEngine(intResults, null));
+            var context = new TestQueryContext(QuerySettings.AdminSettings, 0, _indexingInfo, new TestQueryEngine(intResults, null));
             using (Tools.Swindle(typeof(SnQuery), "_permissionFilterFactory", new EverythingAllowedPermissionFilterFactory()))
             {
                 var queryText = "asdf";
@@ -38,7 +68,8 @@ namespace SenseNet.Search.Tests
             {
                 {"asdf", new QueryResult<string>(new[] {"1", "2", "3"}, 4)}
             };
-            var context = new TestQueryContext(QuerySettings.AdminSettings, 0, null, new TestQueryEngine(null, stringResults));
+
+            var context = new TestQueryContext(QuerySettings.AdminSettings, 0, _indexingInfo, new TestQueryEngine(null, stringResults));
             using (Tools.Swindle(typeof(SnQuery), "_permissionFilterFactory", new EverythingAllowedPermissionFilterFactory()))
             {
                 var queryText = "asdf";
@@ -56,12 +87,14 @@ namespace SenseNet.Search.Tests
         public void SnQuery_PrepareFilters_DisabledDisabled()
         {
             var queryText = "Name:MyDocument.doc";
+            var expected = "Name:mydocument.doc";
+
             var result = CreateQueryAndPrepare(queryText, FilterStatus.Disabled, FilterStatus.Disabled);
             var query = result.Item1;
             var queryTextAfter = result.Item2;
 
             Assert.IsTrue(query.FiltersPrepared);
-            Assert.AreEqual(queryText, queryTextAfter);
+            Assert.AreEqual(expected, queryTextAfter);
         }
         [TestMethod, TestCategory("IR")]
         public void SnQuery_PrepareFilters_DisabledEnabled()
@@ -75,7 +108,7 @@ namespace SenseNet.Search.Tests
             Assert.IsTrue(query.FiltersPrepared);
 
             // get times from the query
-            var regex = new Regex("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}");
+            var regex = new Regex("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}.\\d{4}");
             var matches = regex.Matches(queryTextAfter);
 
             // check that the query contains 3 time and the first 2 are equal. 
@@ -88,7 +121,7 @@ namespace SenseNet.Search.Tests
             Assert.IsTrue(DateTime.Now - queryTime < TimeSpan.FromSeconds(10));
 
             // check global format of the query
-            var expectedQueryText = $"+Name:MyDocument.doc +(EnableLifespan:no (+ValidFrom:<'{queryTimeString}' +(ValidTill:>'{queryTimeString}' ValidTill:'0001-01-01 00:00:00')))";
+            var expectedQueryText = $"+Name:mydocument.doc +(EnableLifespan:no (+ValidFrom:<'{queryTimeString}' +(ValidTill:>'{queryTimeString}' ValidTill:'0001-01-01 00:00:00.0000')))";
             Assert.AreEqual(expectedQueryText, queryTextAfter);
         }
         [TestMethod, TestCategory("IR")]
@@ -102,7 +135,7 @@ namespace SenseNet.Search.Tests
 
             Assert.IsTrue(query.FiltersPrepared);
 
-            var expectedQueryText = "+Name:MyDocument.doc +IsSystemContent:no";
+            var expectedQueryText = "+Name:mydocument.doc +IsSystemContent:no";
             Assert.AreEqual(expectedQueryText, queryTextAfter);
         }
         [TestMethod, TestCategory("IR")]
@@ -117,7 +150,7 @@ namespace SenseNet.Search.Tests
             Assert.IsTrue(query.FiltersPrepared);
 
             // get times from the query
-            var regex = new Regex("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}");
+            var regex = new Regex("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}.\\d{4}");
             var matches = regex.Matches(queryTextAfter);
 
             // check that the query contains 3 time and the first 2 are equal. 
@@ -130,7 +163,7 @@ namespace SenseNet.Search.Tests
             Assert.IsTrue(DateTime.Now-queryTime < TimeSpan.FromSeconds(10));
 
             // check global format of the query
-            var expectedQueryText = $"+Name:MyDocument.doc +IsSystemContent:no +(EnableLifespan:no (+ValidFrom:<'{queryTimeString}' +(ValidTill:>'{queryTimeString}' ValidTill:'0001-01-01 00:00:00')))";
+            var expectedQueryText = $"+Name:mydocument.doc +IsSystemContent:no +(EnableLifespan:no (+ValidFrom:<'{queryTimeString}' +(ValidTill:>'{queryTimeString}' ValidTill:'0001-01-01 00:00:00.0000')))";
             Assert.AreEqual(expectedQueryText, queryTextAfter);
         }
         [TestMethod, TestCategory("IR")]
@@ -146,7 +179,7 @@ namespace SenseNet.Search.Tests
             Assert.IsTrue(query.FiltersPrepared);
 
             // get times from the query
-            var regex = new Regex("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}");
+            var regex = new Regex("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}.\\d{4}");
             var matches = regex.Matches(queryTextAfter);
 
             // check that the query contains 3 time and the first 2 are equal. 
@@ -159,21 +192,22 @@ namespace SenseNet.Search.Tests
             Assert.IsTrue(DateTime.Now - queryTime < TimeSpan.FromSeconds(10));
 
             // check global format of the query
-            var expectedQueryText = $"+Name:MyDocument.doc +IsSystemContent:no +(EnableLifespan:no (+ValidFrom:<'{queryTimeString}' +(ValidTill:>'{queryTimeString}' ValidTill:'0001-01-01 00:00:00')))";
+            var expectedQueryText = $"+Name:mydocument.doc +IsSystemContent:no +(EnableLifespan:no (+ValidFrom:<'{queryTimeString}' +(ValidTill:>'{queryTimeString}' ValidTill:'0001-01-01 00:00:00.0000')))";
             Assert.AreEqual(expectedQueryText, queryTextAfter);
         }
 
         private Tuple<SnQuery, string> CreateQueryAndPrepare(string queryText, FilterStatus autoFilters, FilterStatus lifespanFilter)
         {
             var parser = new CqlParser();
+            var context = new TestQueryContext(QuerySettings.AdminSettings, 1, _indexingInfo);
             var query = new SnQuery
             {
                 Querytext = queryText,
-                QueryTree = parser.Parse(queryText),
+                QueryTree = parser.Parse(queryText, context).QueryTree,
                 EnableAutofilters = autoFilters,
                 EnableLifespanFilter = lifespanFilter
             };
-            SnQuery.PrepareQuery(query);
+            SnQuery.PrepareQuery(query, context);
 
             var visitor = new SnQueryToStringVisitor();
             visitor.Visit(query.QueryTree);

@@ -56,4 +56,24 @@ namespace SenseNet.Search.Tests.Implementations
         public bool IsInIndex { get; } = true;
         public Type FieldDataType { get; set; } = typeof(int);
     }
+    public class TestPerfieldIndexingInfoBool : IPerFieldIndexingInfo
+    {
+        public string Analyzer { get; set; }
+        public IFieldIndexHandler IndexFieldHandler { get; set; } = new TestIndexFieldHandlerBool();
+        public IndexingMode IndexingMode { get; set; } = IndexingMode.NotAnalyzed;
+        public IndexStoringMode IndexStoringMode { get; set; } = IndexStoringMode.Yes;
+        public IndexTermVector TermVectorStoringMode { get; set; } = IndexTermVector.No;
+        public bool IsInIndex { get; } = true;
+        public Type FieldDataType { get; set; } = typeof(int);
+    }
+    public class TestPerfieldIndexingInfoDateTime : IPerFieldIndexingInfo
+    {
+        public string Analyzer { get; set; }
+        public IFieldIndexHandler IndexFieldHandler { get; set; } = new TestIndexFieldHandlerDateTime();
+        public IndexingMode IndexingMode { get; set; } = IndexingMode.NotAnalyzed;
+        public IndexStoringMode IndexStoringMode { get; set; } = IndexStoringMode.Yes;
+        public IndexTermVector TermVectorStoringMode { get; set; } = IndexTermVector.No;
+        public bool IsInIndex { get; } = true;
+        public Type FieldDataType { get; set; } = typeof(int);
+    }
 }

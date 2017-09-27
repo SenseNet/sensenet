@@ -244,8 +244,8 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 Dictionary<string, List<int>> fieldValues;
                 if (_index.IndexData.TryGetValue(range.FieldName, out fieldValues))
                 {
-                    var min = range.Min?.ToLowerInvariant();
-                    var max = range.Max?.ToLowerInvariant();
+                    var min = range.Min?.ValueAsString.ToLowerInvariant();
+                    var max = range.Max?.ValueAsString.ToLowerInvariant();
                     IEnumerable<KeyValuePair<string, List<int>>> expression;
 
                     // play permutation of min, max and exclusiveness

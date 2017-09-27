@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using SenseNet.Search.Parser.Predicates;
 
 namespace SenseNet.Search.Parser
@@ -24,6 +25,7 @@ namespace SenseNet.Search.Parser
 
         private DefaultOperator _defaultOperator = DefaultOperator.Or;
 
+        private IQueryContext _context;
         private CqlLexer _lexer;
         private readonly Stack<FieldInfo> _currentField = new Stack<FieldInfo>();
         private readonly List<QueryControlParam> _controls = new List<QueryControlParam>();
@@ -32,7 +34,8 @@ namespace SenseNet.Search.Parser
 
         public SnQuery Parse(string queryText, IQueryContext context)
         {
-            var rootNode = Parse(queryText);
+            _context = context;
+            var rootNode = ParsePredicate(queryText);
 
             if (_hasEmptyQuery)
                 rootNode = new EmptyPredicateVisitor().Visit(rootNode);
@@ -80,7 +83,7 @@ namespace SenseNet.Search.Parser
             //result.QueryFieldNames = _usedFieldNames;
             return result;
         }
-        internal SnQueryPredicate Parse(string queryText)
+        private SnQueryPredicate ParsePredicate(string queryText)
         {
             _lexer = new CqlLexer(queryText);
             _controls.Clear();
@@ -882,37 +885,55 @@ namespace SenseNet.Search.Parser
             var currentField = _currentField.Peek();
             var fieldName = currentField.Name;
 
-            if (value.StringValue == SnQuery.EmptyText)
-                return new TextPredicate(currentField.Name, value);
-            if (value.StringValue == SnQuery.EmptyInnerQueryText)
-                return new TextPredicate(IndexFieldName.NodeId, new IndexValue(0));
+            var parsedValue = ParseValue(fieldName, value, _context);
 
-            return new TextPredicate(currentField.Name, value, value.FuzzyValue);
+            if (parsedValue.Type == IndexValueType.String)
+            {
+                if (parsedValue.StringValue == SnQuery.EmptyText)
+                    return new TextPredicate(currentField.Name, parsedValue);
+                if (parsedValue.StringValue == SnQuery.EmptyInnerQueryText)
+                    return new TextPredicate(IndexFieldName.NodeId, new IndexValue(0));
+            }
+            return new TextPredicate(currentField.Name, parsedValue, value.FuzzyValue);
+        }
+        private IndexValue ParseValue(string fieldName, QueryFieldValue value, IQueryContext context, bool throwIfError = true)
+        {
+            if (value == null)
+                return null;
+
+            var parser = context.GetPerFieldIndexingInfo(fieldName);
+            var parsed = parser.IndexFieldHandler.Parse(value.StringValue);
+            if(parsed == null)
+                throw new ParserException($"Cannot parse the value. FieldName {fieldName}, Parser: {parser.GetType().Name}", _lexer.CreateLastLineInfo());
+
+            return parsed;
         }
 
         private SnQueryPredicate CreateRangeQuery(string fieldName, QueryFieldValue minValue, QueryFieldValue maxValue, bool includeLower, bool includeUpper)
         {
-            if (minValue != null && minValue.StringValue == SnQuery.EmptyText && maxValue == null)
-            {
-                _hasEmptyQuery = true;
-                return new TextPredicate(fieldName, minValue);
-            }
-            if (maxValue != null && maxValue.StringValue == SnQuery.EmptyText && minValue == null)
-            {
-                _hasEmptyQuery = true;
-                return new TextPredicate(fieldName, maxValue);
-            }
-            if (minValue != null && minValue.StringValue == SnQuery.EmptyText)
-                minValue = null;
-            if (maxValue != null && maxValue.StringValue == SnQuery.EmptyText)
-                maxValue = null;
+            var min = ParseValue(fieldName, minValue, _context);
+            var max = ParseValue(fieldName, maxValue, _context);
 
-            if (minValue == null && maxValue == null)
+            if (min?.StringValue == SnQuery.EmptyText && max == null)
+            {
+                _hasEmptyQuery = true;
+                return new TextPredicate(fieldName, min);
+            }
+            if (max?.StringValue == SnQuery.EmptyText && min == null)
+            {
+                _hasEmptyQuery = true;
+                return new TextPredicate(fieldName, max);
+            }
+
+            if (min?.StringValue == SnQuery.EmptyText)
+                min = null;
+            if (max?.StringValue == SnQuery.EmptyText)
+                max = null;
+
+            if (min == null && max == null)
                 throw ParserError("Invalid range: the minimum and the maximum value are cannot be null/empty together.");
 
-            var lowerTerm = minValue?.StringValue;
-            var upperTerm = maxValue?.StringValue;
-            return new RangePredicate(fieldName, lowerTerm, upperTerm, !includeLower, !includeUpper);
+            return new RangePredicate(fieldName, min, max, !includeLower, !includeUpper);
         }
 
         private bool IsEof()

@@ -14,7 +14,7 @@ namespace SenseNet.Search
         }
 
         internal bool FiltersPrepared { get; private set; }
-        public static SnQueryPredicate FullSetPredicate { get; } = new RangePredicate("Id", "0", null, false, false);
+        public static SnQueryPredicate FullSetPredicate { get; } = new RangePredicate("Id", new IndexValue(0), null, false, false);
 
 
         public static IQueryResult<int> Query(string queryText, IQueryContext context)
@@ -25,7 +25,7 @@ namespace SenseNet.Search
         public IQueryResult<int> Execute(IQueryContext context)
         {
             var permissionFilter = _permissionFilterFactory.Create(this, context);
-            PrepareQuery(this);
+            PrepareQuery(this, context);
             //UNDONE: SQL: ContentQueryExecutionAlgorithm
             return TryExecuteQuery(this, permissionFilter, context)
                    ?? context.QueryEngine.ExecuteQuery(this, permissionFilter, context);
@@ -39,7 +39,7 @@ namespace SenseNet.Search
         public IQueryResult<string> ExecuteAndProject(IQueryContext context)
         {
             var permissionFilter = _permissionFilterFactory.Create(this, context);
-            PrepareQuery(this);
+            PrepareQuery(this, context);
             //UNDONE: SQL: ContentQueryExecutionAlgorithm
             return TryExecuteQueryAndProject(this, permissionFilter, context)
                    ?? context.QueryEngine.ExecuteQueryAndProject(this, permissionFilter, context);
@@ -62,7 +62,7 @@ namespace SenseNet.Search
             });
         }
 
-        internal static void PrepareQuery(SnQuery query)
+        internal static void PrepareQuery(SnQuery query, IQueryContext context)
         {
             if (query.FiltersPrepared)
                 return;
@@ -76,9 +76,9 @@ namespace SenseNet.Search
                 topLevelPredicate.Clauses.Add(new LogicalClause(query.QueryTree, Occurence.Must));
 
                 if (autoFiltersEnabled)
-                    topLevelPredicate.Clauses.Add(new LogicalClause(GetAutoFilterClause(), Occurence.Must));
+                    topLevelPredicate.Clauses.Add(new LogicalClause(GetAutoFilterClause(context), Occurence.Must));
                 if (lifespanFiltersEnabled)
-                    topLevelPredicate.Clauses.Add(new LogicalClause(GetLifespanFilterClause(), Occurence.Must));
+                    topLevelPredicate.Clauses.Add(new LogicalClause(GetLifespanFilterClause(context), Occurence.Must));
 
                 query.QueryTree = topLevelPredicate;
             }
@@ -116,20 +116,20 @@ namespace SenseNet.Search
         }
 
         private static SnQueryPredicate _autoFilterClause;
-        private static SnQueryPredicate GetAutoFilterClause()
+        private static SnQueryPredicate GetAutoFilterClause(IQueryContext context)
         {
             if (_autoFilterClause == null)
             {
                 var parser = new CqlParser();
-                _autoFilterClause = parser.Parse("IsSystemContent:no");
+                _autoFilterClause = parser.Parse("IsSystemContent:no", context).QueryTree;
             }
             return _autoFilterClause;
         }
-        private static SnQueryPredicate GetLifespanFilterClause()
+        private static SnQueryPredicate GetLifespanFilterClause(IQueryContext context)
         {
             var now = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
             var parser = new CqlParser();
-            var clause = parser.Parse($"EnableLifespan:no OR (+ValidFrom:<'{now}' +(ValidTill:>'{now}' ValidTill:'0001-01-01 00:00:00'))");
+            var clause = parser.Parse($"EnableLifespan:no OR (+ValidFrom:<'{now}' +(ValidTill:>'{now}' ValidTill:'0001-01-01 00:00:00'))", context).QueryTree;
             return clause;
         }
 
@@ -182,9 +182,9 @@ namespace SenseNet.Search
         //    }
         //}
 
-        public static SnQuery Parse(string queryText)
+        public static SnQuery Parse(string queryText, IQueryContext context)
         {
-            return new SnQuery {QueryTree = new CqlParser().Parse(queryText)};
+            return new CqlParser().Parse(queryText, context);
         }
 
         public static SnQuery Create(SnQueryPredicate predicate)

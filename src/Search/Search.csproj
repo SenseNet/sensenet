@@ -91,7 +91,6 @@
     <Compile Include="SnQueryToStringVisitor.cs" />
     <Compile Include="SnTerm.cs" />
     <Compile Include="SortInfo.cs" />
-    <Compile Include="_OBSOLETE.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

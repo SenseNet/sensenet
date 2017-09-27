@@ -293,7 +293,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-
                 var root = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
                 SaveNode(root);
 
@@ -589,7 +588,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                Assert.AreEqual("InTree:" + Repository.ImsFolder.Path, GetQueryString(Content.All.Where(c => c.InTree(Repository.ImsFolder))));
+                Assert.AreEqual("InTree:" + Repository.ImsFolder.Path.ToLowerInvariant(), GetQueryString(Content.All.Where(c => c.InTree(Repository.ImsFolder))));
                 return true;
             });
         }

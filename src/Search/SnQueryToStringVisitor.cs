@@ -33,9 +33,9 @@ namespace SenseNet.Search
 
             return base.VisitTextPredicate(text);
         }
-        private object Escape(object value)
+        private object Escape(IndexValue value)
         {
-            var stringValue = value as string;
+            var stringValue = value.ValueAsString;
             if (stringValue == null)
                 return value;
             if (_escaperRegex.IsMatch(stringValue))
@@ -60,7 +60,7 @@ namespace SenseNet.Search
             var minExclusive = range.MinExclusive;
             var maxExclusive = range.MaxExclusive;
 
-            string oneTerm = null;
+            IndexValue oneTerm = null;
 
             _output.Append(range.FieldName);
             _output.Append(":");

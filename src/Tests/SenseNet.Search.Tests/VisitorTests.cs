@@ -38,7 +38,7 @@ namespace SenseNet.Search.Tests
                     new LogicalClause(new LogicalPredicate(
                         new [] {
                             new LogicalClause(new TextPredicate("F3", new IndexValue("V3")), Occurence.Should),
-                            new LogicalClause(new RangePredicate("F4", null, "10", true, true), Occurence.Should), 
+                            new LogicalClause(new RangePredicate("F4", null, new IndexValue(10), true, true), Occurence.Should), 
                         }), Occurence.Must),
                 });
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,10 +10,9 @@ namespace SenseNet.Search.Tests.Implementations
 {
     public class TestIndexFieldHandlerString : IFieldIndexHandler
     {
-        public bool Compile(QueryCompilerValue value)
+        public IndexValue Parse(string text)
         {
-            value.Set(value.StringValue.ToLowerInvariant());
-            return true;
+            return new IndexValue(text.ToLowerInvariant());
         }
 
         public IndexValue ConvertToTermValue(object value)
@@ -45,13 +45,12 @@ namespace SenseNet.Search.Tests.Implementations
     }
     public class TestIndexFieldHandlerInt : IFieldIndexHandler
     {
-        public bool Compile(QueryCompilerValue value)
+        public IndexValue Parse(string text)
         {
             int converted;
-            if (!int.TryParse(value.StringValue, out converted))
-                return false;
-            value.Set(converted);
-            return true;
+            if (int.TryParse(text, out converted))
+                return new IndexValue(converted);
+            return null;
         }
 
         public IndexValue ConvertToTermValue(object value)
@@ -84,13 +83,12 @@ namespace SenseNet.Search.Tests.Implementations
     }
     public class TestIndexFieldHandlerLong : IFieldIndexHandler
     {
-        public bool Compile(QueryCompilerValue value)
+        public IndexValue Parse(string text)
         {
             long converted;
-            if (!long.TryParse(value.StringValue, out converted))
-                return false;
-            value.Set(converted);
-            return true;
+            if (long.TryParse(text, out converted))
+                return new IndexValue(converted);
+            return null;
         }
 
         public IndexValue ConvertToTermValue(object value)
@@ -123,13 +121,12 @@ namespace SenseNet.Search.Tests.Implementations
     }
     public class TestIndexFieldHandlerSingle : IFieldIndexHandler
     {
-        public bool Compile(QueryCompilerValue value)
+        public IndexValue Parse(string text)
         {
             float converted;
-            if (!float.TryParse(value.StringValue, System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.CultureInfo.InvariantCulture, out converted))
-                return false;
-            value.Set(converted);
-            return true;
+            if (float.TryParse(text, System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.CultureInfo.InvariantCulture, out converted))
+                return new IndexValue(converted);
+            return null;
         }
 
         public IndexValue ConvertToTermValue(object value)
@@ -162,13 +159,97 @@ namespace SenseNet.Search.Tests.Implementations
     }
     public class TestIndexFieldHandlerDouble : IFieldIndexHandler
     {
-        public bool Compile(QueryCompilerValue value)
+        public IndexValue Parse(string text)
         {
             double converted;
-            if (!double.TryParse(value.StringValue, System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.CultureInfo.InvariantCulture, out converted))
-                return false;
-            value.Set(converted);
-            return true;
+            if (double.TryParse(text, System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.CultureInfo.InvariantCulture, out converted))
+                return new IndexValue(converted);
+            return null;
+        }
+
+        public IndexValue ConvertToTermValue(object value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetDefaultAnalyzerName()
+        {
+            return typeof(KeywordAnalyzer).FullName;
+        }
+
+        public IEnumerable<string> GetParsableValues(ISnField field)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int SortingType { get; }
+        public IndexFieldType IndexFieldType { get; } = IndexFieldType.Double;
+        public IPerFieldIndexingInfo OwnerIndexingInfo { get; set; }
+        public string GetSortFieldName(string fieldName)
+        {
+            return fieldName;
+        }
+
+        public IEnumerable<IndexField> GetIndexFields(ISnField field, out string textExtract)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class TestIndexFieldHandlerBool : IFieldIndexHandler
+    {
+        public static readonly List<string> YesList = new List<string>(new[] { "1", "true", "y", IndexValue.Yes });
+        public static readonly List<string> NoList = new List<string>(new[] { "0", "false", "n", IndexValue.No });
+
+        public IndexValue Parse(string text)
+        {
+            var v = text.ToLowerInvariant();
+            if (YesList.Contains(v))
+                return new IndexValue(true);
+            if (NoList.Contains(v))
+                return new IndexValue(false);
+            bool b;
+            if (bool.TryParse(v, out b))
+                return new IndexValue(b);
+            return null;
+        }
+
+        public IndexValue ConvertToTermValue(object value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetDefaultAnalyzerName()
+        {
+            return typeof(KeywordAnalyzer).FullName;
+        }
+
+        public IEnumerable<string> GetParsableValues(ISnField field)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int SortingType { get; }
+        public IndexFieldType IndexFieldType { get; } = IndexFieldType.Double;
+        public IPerFieldIndexingInfo OwnerIndexingInfo { get; set; }
+        public string GetSortFieldName(string fieldName)
+        {
+            return fieldName;
+        }
+
+        public IEnumerable<IndexField> GetIndexFields(ISnField field, out string textExtract)
+        {
+            throw new NotImplementedException();
+        }
+    }
+    public class TestIndexFieldHandlerDateTime : IFieldIndexHandler
+    {
+        public IndexValue Parse(string text)
+        {
+            DateTime dateTimeValue;
+            if (DateTime.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTimeValue))
+                return new IndexValue(dateTimeValue);
+            return null;
         }
 
         public IndexValue ConvertToTermValue(object value)

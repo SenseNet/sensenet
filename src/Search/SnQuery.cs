@@ -6,8 +6,8 @@ namespace SenseNet.Search
 {
     public partial class SnQuery
     {
-        public static readonly string EmptyText = "$##$EMPTY$##$";
-        public static readonly string EmptyInnerQueryText = "$##$EMPTYINNERQUERY$##$";
+        public static readonly string EmptyText = "$##$empty$##$";
+        public static readonly string EmptyInnerQueryText = "$##$emptyinnerquery$##$";
         public static readonly double DefaultSimilarity = 0.5d;
         public static readonly double DefaultFuzzyValue = 0.5d;
         public static readonly string NullReferenceValue = "null";

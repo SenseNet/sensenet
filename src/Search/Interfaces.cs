@@ -18,8 +18,8 @@ namespace SenseNet.Search
 
     public interface IFieldIndexHandler
     {
-        /// <summary>For SnQuery compilers</summary>
-        bool Compile(QueryCompilerValue value);
+        /// <summary>For SnQuery parser</summary>
+        IndexValue Parse(string text);
 
         /// <summary>For LINQ</summary>
         IndexValue ConvertToTermValue(object value);

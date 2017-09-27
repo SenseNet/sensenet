@@ -166,7 +166,7 @@ namespace SenseNet.Portal
             try
             {
                 // We need to validate the query to avoid saving unknown texts.
-                SnQuery.Parse(query);
+                SnQuery.Parse(query, new SnQueryContext(QuerySettings.Default, User.Current.Id));
             }
             catch (Exception ex)
             {

@@ -31,7 +31,7 @@ namespace SenseNet.Search.Indexing
         /// <summary>
         /// For SnQuery compilers
         /// </summary>
-        public abstract bool Compile(QueryCompilerValue value);
+        public abstract IndexValue Parse(string text);
 
         /// <summary>
         /// For LINQ
@@ -139,10 +139,9 @@ namespace SenseNet.Search.Indexing
             textExtract = string.Empty;
             return new IndexField[0];
         }
-
-        public override bool Compile(QueryCompilerValue value)
+        public override IndexValue Parse(string text)
         {
-            return false;
+            return null;
         }
         public override IndexValue ConvertToTermValue(object value)
         {
@@ -162,10 +161,9 @@ namespace SenseNet.Search.Indexing
             textExtract = data == null ? string.Empty : SenseNet.Search.TextExtractor.GetExtract(data, ((SnCR.Field)snField).Content.ContentHandler);
             return CreateField(snField.Name, textExtract);
         }
-        public override bool Compile(QueryCompilerValue value)
+        public override IndexValue Parse(string text)
         {
-            value.Set(value.StringValue.ToLowerInvariant());
-            return true;
+            return new IndexValue(text.ToLowerInvariant());
         }
         public override IndexValue ConvertToTermValue(object value)
         {
@@ -185,10 +183,9 @@ namespace SenseNet.Search.Indexing
             var types = nodeType.NodeTypePath.Split('/').Select(p => p.ToLowerInvariant());
             return CreateField(snField.Name, types);
         }
-        public override bool Compile(QueryCompilerValue value)
+        public override IndexValue Parse(string text)
         {
-            value.Set(value.StringValue.ToLowerInvariant());
-            return true;
+            return new IndexValue(text.ToLowerInvariant());
         }
         public override IndexValue ConvertToTermValue(object value)
         {
@@ -223,10 +220,9 @@ namespace SenseNet.Search.Indexing
             textExtract = string.Join(" ", strings.ToArray());
             return CreateField(snField.Name, strings);
         }
-        public override bool Compile(QueryCompilerValue value)
+        public override IndexValue Parse(string text)
         {
-            value.Set(value.StringValue.ToLowerInvariant());
-            return true;
+            return new IndexValue(text.ToLowerInvariant());
         }
         public override IndexValue ConvertToTermValue(object value)
         {
@@ -261,7 +257,6 @@ namespace SenseNet.Search.Indexing
         {
             return fieldName + "_sort";
         }
-
         public override IEnumerable<IndexField> GetIndexFields(ISnField snField, out string textExtract)
         {
             var data = snField.GetData() ?? string.Empty;
@@ -358,10 +353,9 @@ namespace SenseNet.Search.Indexing
             throw new NotSupportedException(string.Concat("Cannot create index from this type: ", data.GetType().FullName,
                 ". Indexable data can be string, IEnumerable<string> or IEnumerable."));
         }
-        public override bool Compile(QueryCompilerValue value)
+        public override IndexValue Parse(string text)
         {
-            value.Set(value.StringValue.ToLowerInvariant());
-            return true;
+            return new IndexValue(text.ToLowerInvariant());
         }
         public override IndexValue ConvertToTermValue(object value)
         {
@@ -405,10 +399,9 @@ namespace SenseNet.Search.Indexing
 
             return CreateField(snField.Name, terms);
         }
-        public override bool Compile(QueryCompilerValue value)
+        public override IndexValue Parse(string text)
         {
-            value.Set(value.StringValue.ToLowerInvariant());
-            return true;
+            return new IndexValue(text.ToLowerInvariant());
         }
         public override IndexValue ConvertToTermValue(object value)
         {
@@ -460,10 +453,9 @@ namespace SenseNet.Search.Indexing
 
             return CreateField(field.Name, stringValue);
         }
-        public override bool Compile(QueryCompilerValue value)
+        public override IndexValue Parse(string text)
         {
-            value.Set(value.StringValue.ToLowerInvariant());
-            return true;
+            return new IndexValue(text.ToLowerInvariant());
         }
         public override IndexValue ConvertToTermValue(object value)
         {
@@ -494,26 +486,17 @@ namespace SenseNet.Search.Indexing
             var boolValue = (bool?)snField.GetData() ?? false;
             return CreateField(snField.Name, boolValue);
         }
-        public override bool Compile(QueryCompilerValue value)
+        public override IndexValue Parse(string text)
         {
-            var v = value.StringValue.ToLowerInvariant();
+            var v = text.ToLowerInvariant();
             if (YesList.Contains(v))
-            {
-                value.Set(SnTerm.Yes);
-                return true;
-            }
+                return new IndexValue(true);
             if (NoList.Contains(v))
-            {
-                value.Set(SnTerm.No);
-                return true;
-            }
+                return new IndexValue(false);
             bool b;
-            if (Boolean.TryParse(v, out b))
-            {
-                value.Set(b ? SnTerm.Yes : SnTerm.No);
-                return true;
-            }
-            return false;
+            if (bool.TryParse(v, out b))
+                return new IndexValue(b);
+            return null;
         }
         public override IndexValue ConvertToTermValue(object value)
         {
@@ -560,13 +543,12 @@ namespace SenseNet.Search.Indexing
             textExtract = intValue.ToString();
             return CreateField(snField.Name, intValue);
         }
-        public override bool Compile(QueryCompilerValue value)
+        public override IndexValue Parse(string text)
         {
-            Int32 intValue;
-            if (!Int32.TryParse(value.StringValue, out intValue))
-                return false;
-            value.Set(intValue);
-            return true;
+            int intValue;
+            if (int.TryParse(text, out intValue))
+                return new IndexValue(intValue);
+            return null;
         }
         public override IndexValue ConvertToTermValue(object value)
         {
@@ -608,13 +590,12 @@ namespace SenseNet.Search.Indexing
             textExtract = decimalValue.ToString(CultureInfo.InvariantCulture);
             return CreateField(snField.Name, doubleValue);
         }
-        public override bool Compile(QueryCompilerValue value)
+        public override IndexValue Parse(string text)
         {
-            Double doubleValue;
-            if (!Double.TryParse(value.StringValue, System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.CultureInfo.InvariantCulture, out doubleValue))
-                return false;
-            value.Set(doubleValue);
-            return true;
+            double doubleValue;
+            if (double.TryParse(text, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out doubleValue))
+                return new IndexValue(doubleValue);
+            return null;
         }
         public override IndexValue ConvertToTermValue(object value)
         {
@@ -649,13 +630,12 @@ namespace SenseNet.Search.Indexing
             var dateTime = (DateTime?)data ?? DateTime.MinValue;
             return CreateField(snField.Name, new DateTime(SetPrecision((SnCR.Field)snField, dateTime.Ticks)));
         }
-        public override bool Compile(QueryCompilerValue value)
+        public override IndexValue Parse(string text)
         {
             DateTime dateTimeValue;
-            if (!DateTime.TryParse(value.StringValue, CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTimeValue))
-                return false;
-            value.Set(dateTimeValue.Ticks);
-            return true;
+            if (DateTime.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTimeValue))
+                return new IndexValue(dateTimeValue);
+            return null;
         }
         public override IndexValue ConvertToTermValue(object value)
         {
@@ -720,10 +700,9 @@ namespace SenseNet.Search.Indexing
             textExtract = data == null ? string.Empty : data.ToLowerInvariant();
             return CreateField(snField.Name, textExtract);
         }
-        public override bool Compile(QueryCompilerValue value)
+        public override IndexValue Parse(string text)
         {
-            value.Set(value.StringValue.ToLowerInvariant());
-            return true;
+            return new IndexValue(text.ToLowerInvariant());
         }
         public override IndexValue ConvertToTermValue(object value)
         {
@@ -759,14 +738,12 @@ namespace SenseNet.Search.Indexing
                 return CreateField(snField.Name, nodes.Cast<Node>().Select(n => n.Id.ToString()));
             return CreateField(snField.Name, SnQuery.NullReferenceValue);
         }
-        public override bool Compile(QueryCompilerValue value)
+        public override IndexValue Parse(string text)
         {
             int intValue;
-            if (Int32.TryParse(value.StringValue, out intValue))
-                value.Set(intValue.ToString());
-            else
-                value.Set(SnQuery.NullReferenceValue);
-            return true;
+            if (int.TryParse(text, out intValue))
+                return new IndexValue(intValue);
+            return new IndexValue(SnQuery.NullReferenceValue);
         }
         public override IndexValue ConvertToTermValue(object value)
         {
@@ -809,10 +786,9 @@ namespace SenseNet.Search.Indexing
     }
     public class ExclusiveTypeIndexHandler : FieldIndexHandler, IIndexValueConverter<ContentType>, IIndexValueConverter
     {
-        public override bool Compile(QueryCompilerValue value)
+        public override IndexValue Parse(string text)
         {
-            value.Set(value.StringValue.ToLowerInvariant());
-            return true;
+            return new IndexValue(text.ToLowerInvariant());
         }
         public override IndexValue ConvertToTermValue(object value)
         {
@@ -848,12 +824,12 @@ namespace SenseNet.Search.Indexing
             var parentPath = RepositoryPath.GetParentPath(textExtract) ?? "/";
             return CreateField(snField.Name, parentPath);
         }
-        public override bool Compile(QueryCompilerValue value)
+        public override IndexValue Parse(string text)
         {
-            value.Set(value.StringValue.ToLowerInvariant());
-            if (value.StringValue.StartsWith("/root"))
-                return true;
-            return false;
+            var stringValue = text.ToLowerInvariant();
+            if (stringValue.StartsWith("/root"))
+                return new IndexValue(stringValue);
+            return null;
         }
         public override IndexValue ConvertToTermValue(object value)
         {
@@ -885,10 +861,9 @@ namespace SenseNet.Search.Indexing
             var value = (string)snField.GetData() ?? string.Empty;
             return CreateField(snField.Name, value.ToLowerInvariant());
         }
-        public override bool Compile(QueryCompilerValue value)
+        public override IndexValue Parse(string text)
         {
-            value.Set(value.StringValue.ToLowerInvariant());
-            return true;
+            return new IndexValue(text.ToLowerInvariant());
         }
         public override IndexValue ConvertToTermValue(object value)
         {
@@ -939,12 +914,9 @@ namespace SenseNet.Search.Indexing
             // Produce the lucene multiterm field with a base's tool and return with it.
             return CreateField(snField.Name, terms);
         }
-        public override bool Compile(QueryCompilerValue value)
+        public override IndexValue Parse(string text)
         {
-            // Set the parsed value.
-            value.Set(value.StringValue.ToLowerInvariant());
-            // Successful.
-            return true;
+            return new IndexValue(text.ToLowerInvariant());
         }
         public override IndexValue ConvertToTermValue(object value)
         {

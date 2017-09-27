@@ -9,23 +9,18 @@ namespace SenseNet.Search.Parser.Predicates
     public class RangePredicate : SnQueryPredicate
     {
         public string FieldName { get; }
-        public string Min { get; }
-        public string Max { get; }
+        public IndexValue Min { get; }
+        public IndexValue Max { get; }
         public bool MinExclusive { get; }
         public bool MaxExclusive { get; }
 
-        public RangePredicate(string fieldName, string min, string max, bool minExclusive, bool maxExclusive)
+        public RangePredicate(string fieldName, IndexValue min, IndexValue max, bool minExclusive, bool maxExclusive)
         {
             FieldName = fieldName;
             Min = min;
             Max = max;
             MinExclusive = minExclusive;
             MaxExclusive = maxExclusive;
-        }
-
-        public RangePredicate(string fieldName, IndexValue min, IndexValue max, bool minExclusive, bool maxExclusive)
-        {
-            throw new NotImplementedException(); //UNDONE:.... LINQ: RangePredicate is not implemented
         }
     }
 }
