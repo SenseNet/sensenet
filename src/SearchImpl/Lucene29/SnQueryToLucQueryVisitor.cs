@@ -39,24 +39,23 @@ namespace SenseNet.Search.Lucene29
 
         public override SnQueryPredicate VisitTextPredicate(TextPredicate text)
         {
-            var query = CreateStringValueQuery(text);
+            var query = CreateStringValueQuery(text.FieldName, ConvertToTermValue(text.Value), text.FuzzyValue );
             if(text.Boost.HasValue)
                 query.SetBoost(Convert.ToSingle(text.Boost.Value));
             _queryTree.Push(query);
             return text;
         }
-        private Query CreateStringValueQuery(TextPredicate predicate)
+        private Query CreateStringValueQuery(string fieldName, string stringValue, double? fuzzyValue)
         {
-            var fieldName = predicate.FieldName;
-            var value = predicate.Value;
-
-            if (value == SnQuery.EmptyText)
-                return new TermQuery(new Term(fieldName, value));
-            if (value == SnQuery.EmptyInnerQueryText)
+            if (stringValue == SnQuery.EmptyText)
+                return new TermQuery(new Term(fieldName, stringValue));
+            if (stringValue == SnQuery.EmptyInnerQueryText)
                 return new TermQuery(new Term("Id", NumericUtils.IntToPrefixCoded(0)));
 
-            var hasWildcard = value.Contains('*') || value.Contains('?');
-            var text = fieldName == "_Text" ? value : ConvertTermValue(fieldName, value, false);
+            var hasWildcard = stringValue.Contains('*') || stringValue.Contains('?');
+
+            //var text = fieldName == "_Text" ? stringValue : ConvertTermValue(fieldName, stringValue, false);
+            var text = stringValue; //UNDONE:.... LINQ: remove this varable if the line above is deleted.
 
             if (hasWildcard)
             {
@@ -69,10 +68,9 @@ namespace SenseNet.Search.Lucene29
             }
 
             var words = GetAnalyzedText(fieldName, text);
-            var fuzzyValue = predicate.FuzzyValue;
 
             if (words.Length == 0)
-                words = new[] { string.Empty }; //return null;
+                words = new[] {string.Empty}; //return null;
             if (words.Length == 1)
             {
                 var term = new Term(fieldName, words[0]);
@@ -92,30 +90,23 @@ namespace SenseNet.Search.Lucene29
             }
             return phraseQuery;
         }
-        private string ConvertTermValue(string fieldName, string text, bool throwEx)
+        private string ConvertToTermValue(IndexValue value)
         {
-            var converter = _context.GetPerFieldIndexingInfo(fieldName)?.IndexFieldHandler;
-            if (converter == null)
-                return text;
-
-            var val = new QueryCompilerValue(text);
-            if (!converter.Compile(val))
+            switch (value.Type)
             {
-                if (throwEx)
-                    throw new CompilerException($"Cannot parse the '{fieldName}' field value: {text}");
-                return null;
-            }
-
-            switch (val.Datatype)
-            {
-                case IndexableDataType.String: return val.StringValue;
-                case IndexableDataType.Int:    return NumericUtils.IntToPrefixCoded(val.IntValue);
-                case IndexableDataType.Long:   return NumericUtils.LongToPrefixCoded(val.LongValue);
-                case IndexableDataType.Float:  return NumericUtils.FloatToPrefixCoded(val.SingleValue);
-                case IndexableDataType.Double: return NumericUtils.DoubleToPrefixCoded(val.DoubleValue);
-                default: throw new ArgumentOutOfRangeException();
+                case IndexValueType.String:      return value.StringValue;
+                case IndexValueType.StringArray: throw new NotImplementedException(); //UNDONE:..... LINQ: ConvertToTermValue StringArray is not implemented
+                case IndexValueType.Bool:        return value.BooleanValue ? IndexValue.Yes : IndexValue.No;
+                case IndexValueType.Int:         return NumericUtils.IntToPrefixCoded(value.IntegerValue);
+                case IndexValueType.Long:        return NumericUtils.LongToPrefixCoded(value.LongValue);
+                case IndexValueType.Float:       return NumericUtils.FloatToPrefixCoded(value.SingleValue);
+                case IndexValueType.Double:      return NumericUtils.DoubleToPrefixCoded(value.DoubleValue);
+                case IndexValueType.DateTime:    return NumericUtils.LongToPrefixCoded(value.DateTimeValue.Ticks);
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
+
         private string[] GetAnalyzedText(string fieldName, string text)
         {
             //return TextSplitter.SplitText(field, text, _analyzers);

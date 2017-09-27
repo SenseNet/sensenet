@@ -883,11 +883,11 @@ namespace SenseNet.Search.Parser
             var fieldName = currentField.Name;
 
             if (value.StringValue == SnQuery.EmptyText)
-                return new TextPredicate(currentField.Name, value.StringValue);
+                return new TextPredicate(currentField.Name, value);
             if (value.StringValue == SnQuery.EmptyInnerQueryText)
-                return new TextPredicate(IndexFieldName.NodeId, "0");
+                return new TextPredicate(IndexFieldName.NodeId, new IndexValue(0));
 
-            return new TextPredicate(currentField.Name, value.StringValue, value.FuzzyValue);
+            return new TextPredicate(currentField.Name, value, value.FuzzyValue);
         }
 
         private SnQueryPredicate CreateRangeQuery(string fieldName, QueryFieldValue minValue, QueryFieldValue maxValue, bool includeLower, bool includeUpper)
@@ -895,12 +895,12 @@ namespace SenseNet.Search.Parser
             if (minValue != null && minValue.StringValue == SnQuery.EmptyText && maxValue == null)
             {
                 _hasEmptyQuery = true;
-                return new TextPredicate(fieldName, minValue.StringValue);
+                return new TextPredicate(fieldName, minValue);
             }
             if (maxValue != null && maxValue.StringValue == SnQuery.EmptyText && minValue == null)
             {
                 _hasEmptyQuery = true;
-                return new TextPredicate(fieldName, maxValue.StringValue);
+                return new TextPredicate(fieldName, maxValue);
             }
             if (minValue != null && minValue.StringValue == SnQuery.EmptyText)
                 minValue = null;

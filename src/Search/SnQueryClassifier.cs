@@ -118,12 +118,13 @@ namespace SenseNet.Search.Parser
                 if (!_queryInfo.QueryFieldNames.Contains(text.FieldName))
                     _queryInfo.QueryFieldNames.Add(text.FieldName);
 
-                var asterisks = text.Value.Count(c => c == '*');
-                var questionMarks = text.Value.Count(c => c == '?');
+                var stringValue = text.Value.ValueAsString;
+                var asterisks = stringValue.Count(c => c == '*');
+                var questionMarks = stringValue.Count(c => c == '?');
 
                 if (asterisks + questionMarks > 0)
                 {
-                    if (asterisks == 1 && questionMarks == 0 && text.Value.EndsWith("*"))
+                    if (asterisks == 1 && questionMarks == 0 && stringValue.EndsWith("*"))
                         _queryInfo.PrefixQueries++;
                     else
                         _queryInfo.WildcardQueries++;

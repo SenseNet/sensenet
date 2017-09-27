@@ -13,9 +13,9 @@ namespace SenseNet.Search.Tests
         {
             public override SnQueryPredicate VisitTextPredicate(TextPredicate textPredicate)
             {
-                if (textPredicate.Value != "V2")
+                if (textPredicate.Value.ValueAsString != "V2")
                     return textPredicate;
-                return new TextPredicate(textPredicate.FieldName, "V2222");
+                return new TextPredicate(textPredicate.FieldName, new IndexValue("V2222"));
             }
         }
 
@@ -32,12 +32,12 @@ namespace SenseNet.Search.Tests
                 {
                     new LogicalClause(new LogicalPredicate(
                         new [] {
-                            new LogicalClause(new TextPredicate("F1", "V1"), Occurence.Should),
-                            new LogicalClause(new TextPredicate("F2", "V2"), Occurence.Should)
+                            new LogicalClause(new TextPredicate("F1", new IndexValue("V1")), Occurence.Should),
+                            new LogicalClause(new TextPredicate("F2", new IndexValue("V2")), Occurence.Should)
                         }), Occurence.Must),
                     new LogicalClause(new LogicalPredicate(
                         new [] {
-                            new LogicalClause(new TextPredicate("F3", "V3"), Occurence.Should),
+                            new LogicalClause(new TextPredicate("F3", new IndexValue("V3")), Occurence.Should),
                             new LogicalClause(new RangePredicate("F4", null, "10", true, true), Occurence.Should), 
                         }), Occurence.Must),
                 });

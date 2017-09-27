@@ -35,4 +35,21 @@ namespace SenseNet.Search
 
         public string ValueAsString { get; }
     }
+
+    public class QueryFieldValue : IndexValue
+    {
+        internal bool IsPhrase { get; private set; }
+        internal double? FuzzyValue { get; set; }
+
+        internal QueryFieldValue(string stringValue, bool isPhrase) : base (stringValue)
+        {
+            IsPhrase = isPhrase;
+        }
+
+        public override string ToString()
+        {
+            return string.Concat(ValueAsString, FuzzyValue == null ? "" : ":" + FuzzyValue);
+        }
+
+    }
 }

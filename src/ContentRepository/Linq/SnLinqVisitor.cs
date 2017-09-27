@@ -578,7 +578,7 @@ namespace SenseNet.ContentRepository.Linq
             var contentTypeName = ContentTypeManager.GetContentTypeNameByType(targetType);
             if (contentTypeName == null)
                 throw new ApplicationException($"Unknown Content Type: {targetType.FullName}");
-            return new TextPredicate(IndexFieldName.TypeIs, contentTypeName);
+            return new TextPredicate(IndexFieldName.TypeIs, new IndexValue(contentTypeName));
         }
         private bool RemoveDuplicatedTopLevelBooleanMemberPredicate(SnQueryPredicate predicate)
         {
@@ -867,7 +867,7 @@ namespace SenseNet.ContentRepository.Linq
                 case WildcardPosition.AtStartAndEnd: text = string.Concat("*", arg, "*"); break;
                 default: throw new SnNotSupportedException("WildcardType is not supported: " + type);
             }
-            var wq = new TextPredicate(field, text);
+            var wq = new TextPredicate(field, new IndexValue(text));
             _predicates.Push(wq);
         }
 

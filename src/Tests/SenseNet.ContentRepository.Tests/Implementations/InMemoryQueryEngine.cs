@@ -179,7 +179,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             {
                 var result = new List<int>();
 
-                var value = text.Value.ToLowerInvariant();
+                var value = text.Value.ValueAsString.ToLowerInvariant();
                 Dictionary<string, List<int>> fieldValues;
                 if (_index.IndexData.TryGetValue(text.FieldName, out fieldValues))
                 {

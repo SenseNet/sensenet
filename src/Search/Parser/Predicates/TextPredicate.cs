@@ -9,19 +9,14 @@ namespace SenseNet.Search.Parser.Predicates
     public class TextPredicate : SnQueryPredicate
     {
         public string FieldName { get; }
-        public string Value { get; }
+        public IndexValue Value { get; }
         public double? FuzzyValue { get; }
 
-        public TextPredicate(string fieldName, string value, double? fuzzyValue = null)
+        public TextPredicate(string fieldName, IndexValue value, double? fuzzyValue = null)
         {
             FieldName = fieldName;
             Value = value;
             FuzzyValue = fuzzyValue;
-        }
-
-        public TextPredicate(string fieldName, IndexValue indexValue)
-        {
-            throw new NotImplementedException(); //UNDONE:.... LINQ: TextPredicate is not implemented
         }
     }
 }

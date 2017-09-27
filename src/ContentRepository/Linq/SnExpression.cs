@@ -174,7 +174,7 @@ namespace SenseNet.ContentRepository.Linq
         {
             if (path == null)
                 return null;
-            return new TextPredicate(inTree ? IndexFieldName.InTree : IndexFieldName.InFolder, path);
+            return new TextPredicate(inTree ? IndexFieldName.InTree : IndexFieldName.InFolder, new IndexValue(path));
         }
 
         public static Expression GetCaseInsensitiveFilter(Expression expression)
