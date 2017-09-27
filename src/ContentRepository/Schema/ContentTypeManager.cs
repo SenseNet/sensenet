@@ -331,9 +331,9 @@ namespace SenseNet.ContentRepository.Schema
         internal static void ApplyChangesInEditor(ContentType contentType, SchemaEditor editor)
         {
             // Find ContentHandler
-            Type handlerType = TypeResolver.GetType(contentType.HandlerName);
+            var handlerType = TypeResolver.GetType(contentType.HandlerName, false);
             if (handlerType == null)
-                throw new RegistrationException(String.Concat(
+                throw new RegistrationException(string.Concat(
                     SR.Exceptions.Registration.Msg_ContentHandlerNotFound, ": ", contentType.HandlerName));
 
             // parent type

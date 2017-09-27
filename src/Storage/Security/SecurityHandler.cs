@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Diagnostics;
 using System.Linq;
 using System.Xml;
@@ -8,7 +7,6 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Security;
-using SenseNet.Security.EF6SecurityStore;
 using SenseNet.Security.Messaging;
 using SenseNet.Tools;
 
@@ -1634,9 +1632,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         public static void StartSecurity(bool isWebContext)
         {
             var dummy = PermissionType.Open;
-            var securityDataProvider = new EF6SecurityDataProvider(
-                Configuration.Security.SecurityDatabaseCommandTimeoutInSeconds,
-                ConnectionStrings.SecurityDatabaseConnectionString);
+            var securityDataProvider = Providers.Instance.SecurityDataProvider;
             var messageProvider = (IMessageProvider)Activator.CreateInstance(GetMessageProviderType());
 
             messageProvider.Initialize();
@@ -1668,7 +1664,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         private static Type GetMessageProviderType()
         {
             var messageProviderTypeName = Providers.SecurityMessageProviderClassName;
-            var t = TypeResolver.GetType(messageProviderTypeName);
+            var t = TypeResolver.GetType(messageProviderTypeName, false);
             if (t == null)
                 throw new InvalidOperationException("Unknown security message provider: " + messageProviderTypeName);
 

@@ -4,8 +4,8 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.Packaging.Tests.Implementations;
 
@@ -25,10 +25,14 @@ namespace SenseNet.Packaging.Tests
         {
             PackageManager.StorageFactory = new BuiltinPackageStorageProviderFactory();
 
-            var sqlProvider = new SqlProvider();
-            sqlProvider.DataProcedureFactory = Factory;
-            var dataProviderAcc = new PrivateType(typeof(DataProvider));
-            dataProviderAcc.SetStaticField("_current", sqlProvider);
+            var sqlProvider = new SqlProvider
+            {
+                DataProcedureFactory = Factory
+            };
+
+            //UNDONE: set provider locally (per-thread) instead of changing 
+            //the global value, that is used by every test.
+            Providers.Instance.DataProvider = sqlProvider;
         }
 
         /* ================================================================================================== Tests */

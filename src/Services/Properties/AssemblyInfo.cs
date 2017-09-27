@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: InternalsVisibleTo("SenseNet.Tests")]
+[assembly: InternalsVisibleTo("SenseNet.Services.Tests")]
 
 #if DEBUG
 [assembly: AssemblyTitle("SenseNet.Services (Debug)")]
@@ -21,4 +22,4 @@ using System.Runtime.InteropServices;
 
 // This attribute is used by NuGet to determine the package file name and version.
 // It may contain a SemVer value.
-[assembly: AssemblyInformationalVersion("7.0.0-beta4")]
+[assembly: AssemblyInformationalVersion("7.0.0-beta44")]

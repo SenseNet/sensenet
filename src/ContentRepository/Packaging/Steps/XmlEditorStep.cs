@@ -89,7 +89,14 @@ namespace SenseNet.Packaging.Steps
                 if (!EditXml(doc, path))
                     return;
 
-                using (var writer = XmlWriter.Create(path, new XmlWriterSettings { Indent = true, OmitXmlDeclaration = omitXmlDeclaration }))
+                var settings = new XmlWriterSettings
+                {
+                    Indent = true,
+                    OmitXmlDeclaration = omitXmlDeclaration,
+                    CloseOutput = true
+                };
+
+                using (var writer = XmlWriter.Create(path, settings))
                     doc.Save(writer);
             }
         }
