@@ -338,12 +338,6 @@ You can define either the *Template* or the *Regex* property for searching repla
 - Default property: `Url`
 - Additional properties: `Site, AuthenticationType` 
 
-## JSON text
-### EditJson
-- Full name: `SenseNet.Packaging.Steps.EditJson`
-- Default property: `Value`
-- Additional properties: `Path, Field`
-
 Sets a url on a site content in the Content Repository. If the url is already assigned to another site, this step will fail.
 
 >Please make sure that a **StartRepository** step precedes this one to make sure that the repository is started.
