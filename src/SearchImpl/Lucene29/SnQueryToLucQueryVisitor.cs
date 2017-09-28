@@ -39,56 +39,63 @@ namespace SenseNet.Search.Lucene29
 
         public override SnQueryPredicate VisitTextPredicate(TextPredicate text)
         {
-            var query = CreateStringValueQuery(text.FieldName, ConvertToTermValue(text.Value), text.FuzzyValue );
+            var query = CreateStringValueQuery(text.FieldName, text.Value, text.FuzzyValue );
             if(text.Boost.HasValue)
                 query.SetBoost(Convert.ToSingle(text.Boost.Value));
             _queryTree.Push(query);
             return text;
         }
-        private Query CreateStringValueQuery(string fieldName, string stringValue, double? fuzzyValue)
+        private Query CreateStringValueQuery(string fieldName, IndexValue value, double? fuzzyValue)
         {
-            if (stringValue == SnQuery.EmptyText)
-                return new TermQuery(new Term(fieldName, stringValue));
-            if (stringValue == SnQuery.EmptyInnerQueryText)
-                return new TermQuery(new Term("Id", NumericUtils.IntToPrefixCoded(0)));
-
-            var hasWildcard = stringValue.Contains('*') || stringValue.Contains('?');
-
-            //var text = fieldName == "_Text" ? stringValue : ConvertTermValue(fieldName, stringValue, false);
-            var text = stringValue; //UNDONE:.. LINQ: remove this varable if the line above is deleted.
-
-            if (hasWildcard)
+            if (value.Type == IndexValueType.String)
             {
-                if (!text.EndsWith("*"))
-                    return new WildcardQuery(new Term(fieldName, text));
-                var s = text.TrimEnd('*');
-                if (s.Contains('?') || s.Contains('*'))
-                    return new WildcardQuery(new Term(fieldName, text));
-                return new PrefixQuery(new Term(fieldName, s));
+                var stringValue = value.StringValue;
+
+                if (stringValue == SnQuery.EmptyText)
+                    return new TermQuery(new Term(fieldName, stringValue));
+                if (stringValue == SnQuery.EmptyInnerQueryText)
+                    return new TermQuery(new Term("Id", NumericUtils.IntToPrefixCoded(0)));
+
+                var hasWildcard = stringValue.Contains('*') || stringValue.Contains('?');
+
+                //var text = fieldName == "_Text" ? stringValue : ConvertTermValue(fieldName, stringValue, false);
+                var text = stringValue; //UNDONE:.. LINQ: remove this varable if the line above is deleted.
+
+                if (hasWildcard)
+                {
+                    if (!text.EndsWith("*"))
+                        return new WildcardQuery(new Term(fieldName, text));
+                    var s = text.TrimEnd('*');
+                    if (s.Contains('?') || s.Contains('*'))
+                        return new WildcardQuery(new Term(fieldName, text));
+                    return new PrefixQuery(new Term(fieldName, s));
+                }
+
+                var words = GetAnalyzedText(fieldName, text);
+
+                if (words.Length == 0)
+                    words = new[] { string.Empty }; //return null;
+                if (words.Length == 1)
+                {
+                    var term = new Term(fieldName, words[0]);
+                    if (fuzzyValue == null)
+                        return new TermQuery(term);
+                    return new FuzzyQuery(term, Convert.ToSingle(fuzzyValue));
+                }
+
+                var phraseQuery = new PhraseQuery();
+                foreach (var word in words)
+                    phraseQuery.Add(new Term(fieldName, word));
+
+                if (fuzzyValue != null)
+                {
+                    var slop = Convert.ToInt32(fuzzyValue.Value);
+                    phraseQuery.SetSlop(slop);
+                }
+                return phraseQuery;
             }
 
-            var words = GetAnalyzedText(fieldName, text);
-
-            if (words.Length == 0)
-                words = new[] {string.Empty}; //return null;
-            if (words.Length == 1)
-            {
-                var term = new Term(fieldName, words[0]);
-                if (fuzzyValue == null)
-                    return new TermQuery(term);
-                return new FuzzyQuery(term, Convert.ToSingle(fuzzyValue));
-            }
-
-            var phraseQuery = new PhraseQuery();
-            foreach (var word in words)
-                phraseQuery.Add(new Term(fieldName, word));
-
-            if (fuzzyValue != null)
-            {
-                var slop = Convert.ToInt32(fuzzyValue.Value);
-                phraseQuery.SetSlop(slop);
-            }
-            return phraseQuery;
+            return new TermQuery(new Term(fieldName, ConvertToTermValue(value)));
         }
         private string ConvertToTermValue(IndexValue value)
         {
