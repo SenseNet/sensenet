@@ -22,7 +22,7 @@ namespace SenseNet.ContentRepository.Tests
         public class RefTestNode : GenericContent, IFolder
         {
             public static string ContentTypeDefinition = @"<?xml version='1.0' encoding='utf-8'?>
-<ContentType name='RepositoryTest_RefTestNode' parentType='GenericContent' handler='SenseNet.ContentRepository.Tests.ContentHandlers.RefTestNode' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+<ContentType name='RepositoryTest_RefTestNode' parentType='GenericContent' handler='" + typeof(RefTestNode).FullName + @"' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
 	<Fields>
 		<Field name='Mother' type='Reference'>
 			<Configuration>
@@ -424,7 +424,9 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var mother1 = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
+                ContentTypeInstaller.InstallContentType(RefTestNode.ContentTypeDefinition);
+
+                var mother1 = Content.CreateNew("RefTestNode", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
                 SaveNode(mother1);
 
                 Assert.AreEqual(
@@ -441,6 +443,8 @@ namespace SenseNet.ContentRepository.Tests
             {
                 var child2 = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
                 SaveNode(child2);
+
+                ContentTypeInstaller.InstallContentType(RefTestNode.ContentTypeDefinition);
 
                 Assert.AreEqual(
                     $"+TypeIs:repositorytest_reftestnode +Mother:{child2.Id}",
