@@ -1,8 +1,10 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Tests.Implementations;
 using SenseNet.Diagnostics;
@@ -13,6 +15,9 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class RepositoryStartTests
     {
+        public class TestNodeObserver1 : NodeObserver { }
+        public class TestNodeObserver2 : NodeObserver { }
+
         [TestMethod]
         public void NamedProviders()
         {
@@ -54,6 +59,96 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsTrue(SnTrace.System.Enabled);
                 Assert.IsFalse(SnTrace.TaskManagement.Enabled);
                 Assert.IsFalse(SnTrace.Workflow.Enabled);
+            }
+        }
+
+        [TestMethod]
+        public void NodeObservers_DisableAll()
+        {
+            var repoBuilder = new RepositoryBuilder()
+                .UseDataProvider(new InMemoryDataProvider())
+                .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
+                .UseSearchEngine(new InMemorySearchEngine())
+                .UseAccessProvider(new DesktopAccessProvider())
+                .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
+                .UseCacheProvider(new EmptyCache())
+                .DisableNodeObservers()
+                .StartIndexingEngine(false)
+                .StartWorkflowEngine(false)
+                .UseTraceCategories(new[] { "Test", "Web", "System" });
+
+            using (var repo = Repository.Start(repoBuilder))
+            {
+                Assert.IsFalse(Providers.Instance.NodeObservers.Any());
+            }
+        }
+        [TestMethod]
+        public void NodeObservers_EnableOne()
+        {
+            var repoBuilder = new RepositoryBuilder()
+                .UseDataProvider(new InMemoryDataProvider())
+                .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
+                .UseSearchEngine(new InMemorySearchEngine())
+                .UseAccessProvider(new DesktopAccessProvider())
+                .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
+                .UseCacheProvider(new EmptyCache())
+                .DisableNodeObservers()
+                .EnableNodeObservers(typeof(TestNodeObserver1))
+                .StartIndexingEngine(false)
+                .StartWorkflowEngine(false)
+                .UseTraceCategories(new[] { "Test", "Web", "System" });
+
+            using (var repo = Repository.Start(repoBuilder))
+            {
+                Assert.AreEqual(1, Providers.Instance.NodeObservers.Length);
+                Assert.AreEqual(typeof(TestNodeObserver1), Providers.Instance.NodeObservers[0].GetType());
+            }
+        }
+        [TestMethod]
+        public void NodeObservers_EnableMore()
+        {
+            var repoBuilder = new RepositoryBuilder()
+                .UseDataProvider(new InMemoryDataProvider())
+                .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
+                .UseSearchEngine(new InMemorySearchEngine())
+                .UseAccessProvider(new DesktopAccessProvider())
+                .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
+                .UseCacheProvider(new EmptyCache())
+                .DisableNodeObservers()
+                .EnableNodeObservers(typeof(TestNodeObserver1), typeof(TestNodeObserver2))
+                .StartIndexingEngine(false)
+                .StartWorkflowEngine(false)
+                .UseTraceCategories(new[] { "Test", "Web", "System" });
+
+            using (var repo = Repository.Start(repoBuilder))
+            {
+                Assert.AreEqual(2, Providers.Instance.NodeObservers.Length);
+                Assert.IsTrue(Providers.Instance.NodeObservers.Any(no => no.GetType() == typeof(TestNodeObserver1)));
+                Assert.IsTrue(Providers.Instance.NodeObservers.Any(no => no.GetType() == typeof(TestNodeObserver2)));
+            }
+        }
+        [TestMethod]
+        public void NodeObservers_DisableOne()
+        {
+            var repoBuilder = new RepositoryBuilder()
+                .UseDataProvider(new InMemoryDataProvider())
+                .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
+                .UseSearchEngine(new InMemorySearchEngine())
+                .UseAccessProvider(new DesktopAccessProvider())
+                .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
+                .UseCacheProvider(new EmptyCache())
+                .DisableNodeObservers(typeof(TestNodeObserver1))
+                .StartIndexingEngine(false)
+                .StartWorkflowEngine(false)
+                .UseTraceCategories(new[] { "Test", "Web", "System" });
+
+            using (var repo = Repository.Start(repoBuilder))
+            {
+                Assert.IsFalse(Providers.Instance.NodeObservers.Any(no => no.GetType() == typeof(TestNodeObserver1)));
+
+                //TODO: currently this does not work, because observers are enabled/disabled globally.
+                // Itt will, when we move to a per-thread environment in tests.
+                //Assert.IsTrue(Providers.Instance.NodeObservers.Any(no => no.GetType() == typeof(TestNodeObserver2)));
             }
         }
     }

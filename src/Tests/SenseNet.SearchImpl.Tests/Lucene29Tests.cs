@@ -165,7 +165,7 @@ namespace SenseNet.SearchImpl.Tests
 
                     var node = new SystemFolder(root) {Name = nodeName};
                     using (new SystemAccount())
-                        SaveNode(node);
+                        node.Save();
 
                     queryResultAfter = CreateSafeContentQuery($"Name:{nodeName}").Execute();
 
@@ -181,12 +181,6 @@ namespace SenseNet.SearchImpl.Tests
             Assert.AreEqual(1, queryResultAfter.Count);
             Assert.IsTrue(nodeId > 0);
             Assert.AreEqual(nodeId, queryResultAfter.Identifiers.FirstOrDefault());
-        }
-        private void SaveNode(Node node)
-        {
-            foreach (var observer in NodeObserver.GetObserverTypes())
-                node.DisableObserver(observer);
-            node.Save();
         }
 
         //[TestMethod, TestCategory("IR, L29")]
@@ -389,7 +383,7 @@ namespace SenseNet.SearchImpl.Tests
 
                 var node = new SystemFolder(Repository.Root) { Name = "L29_ActivityStatus_WithSave" };
                 using (new SystemAccount())
-                    SaveNode(node);
+                    node.Save();
 
                 //UNDONE: this should work without an explicit commit
                 //IndexManager.Commit();

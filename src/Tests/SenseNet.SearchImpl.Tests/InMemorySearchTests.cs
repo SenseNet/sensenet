@@ -36,8 +36,6 @@ namespace SenseNet.SearchImpl.Tests
                     DisplayName = "Node 1",
                     Index = 42
                 };
-                foreach (var observer in NodeObserver.GetObserverTypes())
-                    node.DisableObserver(observer);
 
                 // ACTION
                 node.Save();
@@ -108,8 +106,7 @@ namespace SenseNet.SearchImpl.Tests
                     DisplayName = "Node 1",
                     Index = 42
                 };
-                foreach (var observer in NodeObserver.GetObserverTypes())
-                    node.DisableObserver(observer);
+
                 node.Save();
                 // reload the newly created.
                 node = Node.Load<SystemFolder>(node.Id);
@@ -117,8 +114,6 @@ namespace SenseNet.SearchImpl.Tests
                 // ACTION
                 node.DisplayName = "Node 2";
                 node.Index = 43;
-                foreach (var observer in NodeObserver.GetObserverTypes())
-                    node.DisableObserver(observer);
                 node.Save();
 
                 // reload the updated.
@@ -195,8 +190,7 @@ namespace SenseNet.SearchImpl.Tests
                     DisplayName = "Node 1",
                     Index = 42
                 };
-                foreach (var observer in NodeObserver.GetObserverTypes())
-                    node1.DisableObserver(observer);
+
                 node1.Save();
 
                 // create node#2 under the root.
@@ -206,16 +200,13 @@ namespace SenseNet.SearchImpl.Tests
                     DisplayName = "Node 2",
                     Index = 43
                 };
-                foreach (var observer in NodeObserver.GetObserverTypes())
-                    node2.DisableObserver(observer);
+
                 node2.Save();
 
                 // reload.
                 node1 = Node.Load<SystemFolder>(node1.Id);
 
                 // ACTION
-                foreach (var observer in NodeObserver.GetObserverTypes())
-                    node1.DisableObserver(observer);
                 node1.ForceDelete();
 
                 // load last indexing activity
@@ -287,17 +278,17 @@ namespace SenseNet.SearchImpl.Tests
             {
                 // create initial structure.
                 var root = Node.LoadNode(Identifiers.PortalRootId);
-                node1 = new SystemFolder(root) {Name = "Node1"};  SaveNode(node1);
-                node2 = new SystemFolder(node1) {Name = "Node2"}; SaveNode(node2);
-                node3 = new SystemFolder(node2) {Name = "Node3"}; SaveNode(node3);
-                node4 = new SystemFolder(node1) {Name = "Node4"}; SaveNode(node4);
-                node5 = new SystemFolder(root) {Name = "Node5"};  SaveNode(node5);
-                node6 = new SystemFolder(node5) {Name = "Node6"}; SaveNode(node6);
+                node1 = new SystemFolder(root) {Name = "Node1"};  node1.Save();
+                node2 = new SystemFolder(node1) {Name = "Node2"}; node2.Save();
+                node3 = new SystemFolder(node2) {Name = "Node3"}; node3.Save();
+                node4 = new SystemFolder(node1) {Name = "Node4"}; node4.Save();
+                node5 = new SystemFolder(root) {Name = "Node5"};  node5.Save();
+                node6 = new SystemFolder(node5) {Name = "Node6"}; node6.Save();
 
                 // ACTION
                 node1 = Node.LoadNode(node1.Id);
                 node1.Name = "Node1Renamed";
-                SaveNode(node1);
+                node1.Save();
 
                 DistributedApplication.Cache.Reset(); //UNDONE: TEST: The test should work without explicitly cleared cache
 
@@ -423,8 +414,7 @@ namespace SenseNet.SearchImpl.Tests
                     DisplayName = "Node 1",
                     Index = 42
                 };
-                foreach (var observer in NodeObserver.GetObserverTypes())
-                    node.DisableObserver(observer);
+
                 node.Save();
 
                 // ACTION
@@ -524,8 +514,7 @@ namespace SenseNet.SearchImpl.Tests
                     DisplayName = "Node 1",
                     Index = 42
                 };
-                foreach (var observer in NodeObserver.GetObserverTypes())
-                    node.DisableObserver(observer);
+
                 node.Save();
 
                 // ACTION
@@ -553,8 +542,6 @@ namespace SenseNet.SearchImpl.Tests
             var createNode = new Func<Node, string, int, Node>((parent, name, index) =>
             {
                 var node = new SystemFolder(parent) {Name = name, Index = index};
-                foreach (var observer in NodeObserver.GetObserverTypes())
-                    node.DisableObserver(observer);
                 node.Save();
                 return node;
             });
@@ -607,8 +594,6 @@ namespace SenseNet.SearchImpl.Tests
             var createNode = new Func<Node, string, string, int, Node>((parent, name, displayName, index) =>
             {
                 var node = new SystemFolder(parent) { Name = name, DisplayName = displayName, Index = index };
-                foreach (var observer in NodeObserver.GetObserverTypes())
-                    node.DisableObserver(observer);
                 node.Save();
                 return node;
             });
@@ -648,8 +633,6 @@ namespace SenseNet.SearchImpl.Tests
             var createNode = new Func<Node, string, Node>((parent, name) =>
             {
                 var node = new SystemFolder(parent) { Name = name };
-                foreach (var observer in NodeObserver.GetObserverTypes())
-                    node.DisableObserver(observer);
                 node.Save();
                 return node;
             });
@@ -691,8 +674,6 @@ namespace SenseNet.SearchImpl.Tests
             var createNode = new Func<Node, string, Node>((parent, name) =>
             {
                 var node = new SystemFolder(parent) { Name = name };
-                foreach (var observer in NodeObserver.GetObserverTypes())
-                    node.DisableObserver(observer);
                 node.Save();
                 return node;
             });
@@ -734,8 +715,6 @@ namespace SenseNet.SearchImpl.Tests
             var createNode = new Func<Node, string, Node>((parent, name) =>
             {
                 var node = new SystemFolder(parent) { Name = name };
-                foreach (var observer in NodeObserver.GetObserverTypes())
-                    node.DisableObserver(observer);
                 node.Save();
                 return node;
             });
@@ -790,8 +769,6 @@ namespace SenseNet.SearchImpl.Tests
             var createNode = new Func<Node, string, int, Node>((parent, name, index) =>
             {
                 var node = new SystemFolder(parent) { Name = name, Index = index };
-                foreach (var observer in NodeObserver.GetObserverTypes())
-                    node.DisableObserver(observer);
                 node.Save();
                 return node;
             });
@@ -833,8 +810,6 @@ namespace SenseNet.SearchImpl.Tests
             var createNode = new Func<Node, string, int, Node>((parent, name, index) =>
             {
                 var node = new SystemFolder(parent) { Name = name, Index = index };
-                foreach (var observer in NodeObserver.GetObserverTypes())
-                    node.DisableObserver(observer);
                 node.Save();
                 return node;
             });
@@ -1008,15 +983,6 @@ namespace SenseNet.SearchImpl.Tests
         {
             return ((InMemoryIndexingEngine) IndexManager.IndexingEngine).Index;
         }
-
-        private void SaveNode(Node node)
-        {
-            foreach (var observer in NodeObserver.GetObserverTypes())
-                node.DisableObserver(observer);
-            node.Save();
-        }
-
-
 
         private class SearchEngineForNestedQueryTests : ISearchEngine
         {

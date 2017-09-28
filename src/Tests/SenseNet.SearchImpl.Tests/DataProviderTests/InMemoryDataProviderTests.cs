@@ -43,8 +43,7 @@ namespace SenseNet.SearchImpl.Tests.DataProviderTests
                     Name = "Node1",
                     DisplayName = "Node 1"
                 };
-                foreach (var observer in NodeObserver.GetObserverTypes())
-                    node.DisableObserver(observer);
+
                 node.Save();
 
                 node = Node.Load<SystemFolder>(node.Id);
