@@ -55,5 +55,16 @@ namespace SenseNet.SearchImpl.Tests.DataProviderTests
             Assert.AreEqual(lastId + 1, node.Id);
             Assert.AreEqual("/Root/Node1", node.Path);
         }
+
+        [TestMethod]
+        public void InMemDb_DynamicPropertyLoaded()
+        {
+            Test(() =>
+            {
+                var user = User.Somebody;
+                Assert.AreEqual("Domain", user.Domain);
+                return 0;
+            });
+        }
     }
 }
