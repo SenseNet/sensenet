@@ -717,7 +717,16 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                     }
                 }
 
-                //UNDONE:@ load references
+                var referenceCollector = new Dictionary<int, List<int>>();
+                foreach (var row in _db.ReferenceProperties.Where(r => r.VersionId == versionId))
+                {
+                    List<int> refList;
+                    if (!referenceCollector.TryGetValue(row.PropertyTypeId, out refList))
+                        referenceCollector.Add(row.PropertyTypeId, refList = new List<int>());
+                    refList.Add(row.ReferredNodeId);
+                }
+                foreach (var item in referenceCollector)
+                    builder.AddDynamicProperty(item.Key, item.Value);
             }
 
             foreach (var builder in buildersByVersionId.Values)

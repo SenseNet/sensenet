@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Events;
+using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Tests;
 using SenseNet.ContentRepository.Tests.Implementations;
 
@@ -57,12 +59,24 @@ namespace SenseNet.SearchImpl.Tests.DataProviderTests
         }
 
         [TestMethod]
-        public void InMemDb_DynamicPropertyLoaded()
+        public void InMemDb_FlatPropertyLoaded()
         {
             Test(() =>
             {
                 var user = User.Somebody;
                 Assert.AreEqual("BuiltIn", user.Domain);
+                return 0;
+            });
+        }
+
+        [TestMethod]
+        public void InMemDb_ReferencePropertyLoaded()
+        {
+            Test(() =>
+            {
+                var group = Group.Administrators;
+                Assert.IsTrue(group.Members.Any());
+                Assert.IsTrue(group.HasReference(PropertyType.GetByName("Members"), User.Administrator));
                 return 0;
             });
         }
