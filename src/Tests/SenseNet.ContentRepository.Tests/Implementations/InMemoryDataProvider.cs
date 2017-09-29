@@ -1505,7 +1505,20 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
             public void SaveReferenceProperty(int versionId, PropertyType propertyType, IEnumerable<int> value)
             {
-                //TODO:! InMemoryDataProvider: dynamic property not supported
+                var rows =
+                    _db.ReferenceProperties.Where(r => r.VersionId == versionId && r.PropertyTypeId == propertyType.Id)
+                        .ToArray();
+                foreach (var row in rows)
+                    _db.ReferenceProperties.Remove(row);
+
+                foreach(var referredNodeId in value.Distinct())
+                    _db.ReferenceProperties.Add(new ReferencePropertyRow
+                    {
+                        ReferencePropertyId = _db.ReferenceProperties.Max(x=>x.ReferencePropertyId) + 1,
+                        VersionId = versionId,
+                        PropertyTypeId = propertyType.Id,
+                        ReferredNodeId = referredNodeId
+                    });
             }
 
             public void InsertBinaryProperty(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
