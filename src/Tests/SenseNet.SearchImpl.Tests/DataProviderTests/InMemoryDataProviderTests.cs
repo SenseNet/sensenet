@@ -62,7 +62,7 @@ namespace SenseNet.SearchImpl.Tests.DataProviderTests
             Test(() =>
             {
                 var user = User.Somebody;
-                Assert.AreEqual("Domain", user.Domain);
+                Assert.AreEqual("BuiltIn", user.Domain);
                 return 0;
             });
         }

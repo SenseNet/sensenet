@@ -697,6 +697,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 var node = _db.Nodes.FirstOrDefault(r => r.NodeId == version.NodeId);
                 if (node == null)
                     continue;
+
                 var builder = buildersByVersionId[versionId];
                 builder.SetCoreAttributes(node.NodeId, node.NodeTypeId, node.ContentListId, node.ContentListTypeId,
                     node.CreatingInProgress, node.IsDeleted, node.ParentNodeId, node.Name, node.DisplayName, node.Path,
@@ -705,10 +706,63 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                     version.CreatedById, version.ModificationDate, version.ModifiedById, node.IsSystem, node.OwnerId,
                     node.SavingState, version.ChangedData, node.NodeCreationDate, node.NodeCreatedById,
                     node.NodeModificationDate, node.NodeModifiedById, node.NodeTimestamp, version.VersionTimestamp);
+
+                foreach (var flatPropertRow in _db.FlatProperties.Where(r => r.VersionId == versionId))
+                {
+                    foreach (PropertyType pt in builder.Token.AllPropertyTypes)
+                    {
+                        object value;
+                        if(GetDataSlot(flatPropertRow, flatPropertRow.Page, pt, out value))
+                            builder.AddDynamicProperty(pt, value);
+                    }
+                }
+
+                //UNDONE:@ load references
             }
+
             foreach (var builder in buildersByVersionId.Values)
                 builder.Finish();
         }
+        private static bool GetDataSlot(FlatPropertyRow row, int queryedPage, PropertyType pt, out object value)
+        {
+            value = null;
+            int pageSize;
+            switch (pt.DataType)
+            {
+                case DataType.String:
+                    pageSize = SqlProvider.StringPageSize;
+                    break;
+                case DataType.Int:
+                    pageSize = SqlProvider.IntPageSize;
+                    break;
+                case DataType.DateTime:
+                    pageSize = SqlProvider.DateTimePageSize;
+                    break;
+                case DataType.Currency:
+                    pageSize = SqlProvider.CurrencyPageSize;
+                    break;
+                default:
+                    return false;
+            }
+
+            var mappingIndex = pt.Mapping;
+            var page = mappingIndex / pageSize;
+            if (page != queryedPage)
+                return false;
+
+            int index = mappingIndex - (page * pageSize);
+
+            switch (pt.DataType)
+            {
+                case DataType.String: value = row.Strings[index]; return true;
+                case DataType.Int: value = row.Integers[index]; return true;
+                case DataType.Currency: value = row.Decimals[index]; return true;
+                case DataType.DateTime: value = row.Datetimes[index]; return true;
+            }
+
+            return false;
+        }
+
 
         protected internal override DataSet LoadSchema()
         {
