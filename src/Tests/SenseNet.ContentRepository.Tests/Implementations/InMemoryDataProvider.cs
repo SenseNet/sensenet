@@ -1481,7 +1481,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 var row = _db.FlatProperties.FirstOrDefault(r => r.VersionId == versionId && r.Page == page);
                 if (row == null)
                 {
-                    var id = _db.FlatProperties.Max(r => r.Id);
+                    var id = _db.FlatProperties.Max(r => r.Id) + 1;
                     row = new FlatPropertyRow { Id = id, VersionId = versionId, Page = page };
                     _db.FlatProperties.Add(row);
                 }
@@ -1490,7 +1490,17 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
             public void SaveTextProperty(int versionId, PropertyType propertyType, bool isLoaded, string value)
             {
-                //TODO:! InMemoryDataProvider: dynamic property not supported
+                var row =
+                    _db.TextProperties.FirstOrDefault(
+                        r => r.VersionId == versionId && r.PropertyTypeId == propertyType.Id);
+                if (row == null)
+                    _db.TextProperties.Add(row = new TextPropertyRecord
+                    {
+                        TextPropertyNVarcharId = _db.TextProperties.Max(r => r.TextPropertyNVarcharId) + 1,
+                        VersionId = versionId,
+                        PropertyTypeId = propertyType.Id
+                    });
+                row.Value = value;
             }
 
             public void SaveReferenceProperty(int versionId, PropertyType propertyType, IEnumerable<int> value)

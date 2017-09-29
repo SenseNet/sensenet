@@ -91,6 +91,30 @@ namespace SenseNet.SearchImpl.Tests.DataProviderTests
         }
 
         [TestMethod]
+        public void InMemDb_TextPropertyWrite()
+        {
+            Test(() =>
+            {
+                // ARRANGE
+                var propertyName = "Education";
+                var testValue = "High school 46";
+                var admin = Node.Load<User>(Identifiers.AdministratorUserId);
+                Assert.AreEqual(DataType.Text, PropertyType.GetByName(propertyName).DataType);
+                Assert.AreNotEqual(testValue, admin.GetProperty<string>(propertyName));
+
+                // ACTION
+                admin.SetProperty(propertyName, testValue);
+                admin.Save();
+
+                // ASSERT
+                admin = Node.Load<User>(Identifiers.AdministratorUserId);
+                Assert.AreEqual(testValue, admin.GetProperty<string>(propertyName));
+
+                return 0;
+            });
+        }
+
+        [TestMethod]
         public void InMemDb_ReferencePropertyLoaded()
         {
             Test(() =>
