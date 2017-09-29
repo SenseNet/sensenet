@@ -1455,29 +1455,48 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
             public void SaveStringProperty(int versionId, PropertyType propertyType, string value)
             {
-                //TODO:! InMemoryDataProvider: dynamic property not supported
+                int mapping;
+                GetFlatPropertyRow(versionId, propertyType.Mapping, SqlProvider.StringPageSize, out mapping).Strings[mapping] = value;
             }
+
             public void SaveDateTimeProperty(int versionId, PropertyType propertyType, DateTime value)
             {
-                //TODO:! InMemoryDataProvider: dynamic property not supported
+                int mapping;
+                GetFlatPropertyRow(versionId, propertyType.Mapping, SqlProvider.DateTimePageSize, out mapping).Datetimes[mapping] = value;
             }
             public void SaveIntProperty(int versionId, PropertyType propertyType, int value)
             {
-                //TODO:! InMemoryDataProvider: dynamic property not supported
+                int mapping;
+                GetFlatPropertyRow(versionId, propertyType.Mapping, SqlProvider.IntPageSize, out mapping).Integers[mapping] = value;
             }
             public void SaveCurrencyProperty(int versionId, PropertyType propertyType, decimal value)
             {
-                //TODO:! InMemoryDataProvider: dynamic property not supported
+                int mapping;
+                GetFlatPropertyRow(versionId, propertyType.Mapping, SqlProvider.CurrencyPageSize, out mapping).Decimals[mapping] = value;
             }
+            private FlatPropertyRow GetFlatPropertyRow(int versionId, int mapping, int pageSize, out int propertyIndex)
+            {
+                var page = mapping / pageSize;
+                propertyIndex = mapping % pageSize;
+                var row = _db.FlatProperties.FirstOrDefault(r => r.VersionId == versionId && r.Page == page);
+                if (row == null)
+                {
+                    var id = _db.FlatProperties.Max(r => r.Id);
+                    row = new FlatPropertyRow { Id = id, VersionId = versionId, Page = page };
+                    _db.FlatProperties.Add(row);
+                }
+                return row;
+            }
+
             public void SaveTextProperty(int versionId, PropertyType propertyType, bool isLoaded, string value)
             {
                 //TODO:! InMemoryDataProvider: dynamic property not supported
             }
+
             public void SaveReferenceProperty(int versionId, PropertyType propertyType, IEnumerable<int> value)
             {
                 //TODO:! InMemoryDataProvider: dynamic property not supported
             }
-
 
             public void InsertBinaryProperty(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
             {

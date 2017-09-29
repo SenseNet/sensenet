@@ -68,6 +68,27 @@ namespace SenseNet.SearchImpl.Tests.DataProviderTests
                 return 0;
             });
         }
+        [TestMethod]
+        public void InMemDb_FlatPropertyWrite()
+        {
+            Test(() =>
+            {
+                // ARRANGE
+                var admin = Node.Load<User>(Identifiers.AdministratorUserId);
+                var testValue = "Administrator 22";
+                Assert.AreNotEqual(testValue, admin.FullName);
+
+                // ACTION
+                admin.FullName = testValue;
+                admin.Save();
+
+                // ASSERT
+                admin = Node.Load<User>(Identifiers.AdministratorUserId);
+                Assert.AreEqual(testValue, admin.FullName);
+
+                return 0;
+            });
+        }
 
         [TestMethod]
         public void InMemDb_ReferencePropertyLoaded()
@@ -77,6 +98,31 @@ namespace SenseNet.SearchImpl.Tests.DataProviderTests
                 var group = Group.Administrators;
                 Assert.IsTrue(group.Members.Any());
                 Assert.IsTrue(group.HasReference(PropertyType.GetByName("Members"), User.Administrator));
+                return 0;
+            });
+        }
+
+        [TestMethod]
+        public void InMemDb_ReferencePropertyWrite()
+        {
+            Test(() =>
+            {
+                // ARRANGE
+                var editors = Node.Load<Group>("/Root/IMS/BuiltIn/Portal/Editors");
+                var developers = Node.Load<Group>("/Root/IMS/BuiltIn/Portal/Developers");
+                var developersGroupId = developers.Id;
+
+                var editorMembersBefore = editors.Members.Select(n => n.Id).OrderBy(i => i).ToArray();
+                Assert.IsFalse(editorMembersBefore.Contains(developersGroupId));
+
+                // ACTION
+                editors.AddMember(developers);
+
+                // ASSERT
+                editors = Node.Load<Group>("/Root/IMS/BuiltIn/Portal/Editors"); // reload
+                var editorMembersAfter = editors.Members.Select(n => n.Id).OrderBy(i => i).ToArray();
+                Assert.IsTrue(editorMembersAfter.Contains(developersGroupId));
+
                 return 0;
             });
         }
