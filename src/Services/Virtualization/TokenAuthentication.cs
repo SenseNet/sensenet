@@ -56,7 +56,7 @@ namespace SenseNet.Portal.Virtualization
         }
 
 
-        public void Authenticate(HttpApplication application, bool basicAuthenticated, bool anonymAuthenticated)
+        public bool Authenticate(HttpApplication application, bool basicAuthenticated, bool anonymAuthenticated)
         {
             var context = AuthenticationHelper.GetContext(application); //HttpContext.Current;
             var request = AuthenticationHelper.GetRequest(application);
@@ -80,7 +80,9 @@ namespace SenseNet.Portal.Virtualization
                 {
                     TokenAuthenticate(basicAuthenticated, headerMark, uriMark, actionHeader, uri, accessHeadAndPayload, context, application);
                 }
+                return true;
             }
+            return false;
         }
 
         private void TokenAuthenticate(bool basicAuthenticated, bool headerMark, bool uriMark, string actionHeader, string uri, string headAndPayLoad, HttpContextBase context, HttpApplication application)
