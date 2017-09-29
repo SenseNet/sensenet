@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -1053,6 +1054,111 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                         Value = value
                     };
                 }).ToList();
+
+            // -------------------------------------------------------------------------------------
+
+            // nvarchars
+            skip = _initialFlatPropertiesNvarchar.StartsWith("Id") ? 1 : 0;
+            var flatRows = _initialFlatPropertiesNvarchar.Split("\r\n".ToCharArray(),
+                    StringSplitOptions.RemoveEmptyEntries)
+                .Skip(skip)
+                .Select(l =>
+                {
+                    var record = l.Split('\t');
+                    return new FlatPropertyRow
+                    {
+                        Id = int.Parse(record[0]),
+                        VersionId = int.Parse(record[1]),
+                        Page = int.Parse(record[2]),
+                        Strings = record.Skip(3).ToArray(),
+                    };
+                }).ToDictionary(x => x.Id, x => x);
+
+            // integers
+            skip = _initialFlatPropertiesInt.StartsWith("Id") ? 1 : 0;
+            foreach (var item in _initialFlatPropertiesInt.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Skip(skip))
+            {
+                var record = item.Split('\t');
+                var id = int.Parse(record[0]);
+                var intValues = record.Skip(3).Select(x => x == "NULL" ? (int?)null : int.Parse(x)).ToArray();
+
+                FlatPropertyRow row;
+                if (!flatRows.TryGetValue(id, out row))
+                {
+                    row = new FlatPropertyRow
+                    {
+                        Id = int.Parse(record[0]),
+                        VersionId = int.Parse(record[1]),
+                        Page = int.Parse(record[2]),
+                    };
+                    flatRows.Add(row.Id, row);
+                }
+                row.Integers = intValues;
+            }
+
+            // datetimes
+            skip = _initialFlatPropertiesDatetime.StartsWith("Id") ? 1 : 0;
+            foreach (var item in _initialFlatPropertiesDatetime.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Skip(skip))
+            {
+                var record = item.Split('\t');
+                var id = int.Parse(record[0]);
+                var dateTimeValues = record.Skip(3).Select(x => x == "NULL" ? (DateTime?)null : DateTime.Parse(x)).ToArray();
+
+                FlatPropertyRow row;
+                if (!flatRows.TryGetValue(id, out row))
+                {
+                    row = new FlatPropertyRow
+                    {
+                        Id = int.Parse(record[0]),
+                        VersionId = int.Parse(record[1]),
+                        Page = int.Parse(record[2]),
+                    };
+                    flatRows.Add(row.Id, row);
+                }
+                row.Datetimes = dateTimeValues;
+            }
+
+            // decimals
+            skip = _initialFlatPropertiesDecimal.StartsWith("Id") ? 1 : 0;
+            foreach (var item in _initialFlatPropertiesDecimal.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Skip(skip))
+            {
+                var record = item.Split('\t');
+                var id = int.Parse(record[0]);
+                var decimalValues = record.Skip(3).Select(x => x == "NULL" ? (decimal?)null : decimal.Parse(x, CultureInfo.InvariantCulture)).ToArray();
+
+                FlatPropertyRow row;
+                if (!flatRows.TryGetValue(id, out row))
+                {
+                    row = new FlatPropertyRow
+                    {
+                        Id = int.Parse(record[0]),
+                        VersionId = int.Parse(record[1]),
+                        Page = int.Parse(record[2]),
+                    };
+                    flatRows.Add(row.Id, row);
+                }
+                row.Decimals = decimalValues;
+            }
+
+            _db.FlatProperties = flatRows.Values.ToList();
+
+            // -------------------------------------------------------------------------------------
+
+            skip = _initialReferenceProperties.StartsWith("ReferencePropertyId") ? 1 : 0;
+            _db.ReferenceProperties = _initialReferenceProperties.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+                .Skip(skip)
+                .Select(l =>
+                {
+                    var record = l.Split('\t');
+                    return new ReferencePropertyRow
+                    {
+                        ReferencePropertyId = int.Parse(record[0]),
+                        VersionId = int.Parse(record[1]),
+                        PropertyTypeId = int.Parse(record[2]),
+                        ReferredNodeId = int.Parse(record[3])
+                    };
+                }).ToList();
+
         }
 
         #endregion
@@ -1105,6 +1211,8 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             public List<BinaryPropertyRecord> BinaryProperties;
             public List<FileRecord> Files;
             public List<TextPropertyRecord> TextProperties;
+            public List<FlatPropertyRow> FlatProperties;
+            public List<ReferencePropertyRow> ReferenceProperties;
             public List<IndexingActivityRecord> IndexingActivity = new List<IndexingActivityRecord>();
             public List<TreeLockRow> TreeLocks = new List<TreeLockRow>();
         }
@@ -1394,7 +1502,23 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             public int PropertyTypeId;
             public string Value;
         }
-
+        private class FlatPropertyRow
+        {
+            public int Id;
+            public int VersionId;
+            public int Page;
+            public string[] Strings = new string[80];
+            public int?[] Integers = new int?[40];
+            public DateTime?[] Datetimes = new DateTime?[25];
+            public decimal?[] Decimals = new decimal?[15];
+        }
+        private class ReferencePropertyRow
+        {
+            public int ReferencePropertyId;
+            public int VersionId;
+            public int PropertyTypeId;
+            public int ReferredNodeId;
+        }
         private class IndexingActivityRecord
         {
             public int IndexingActivityId;
@@ -1408,7 +1532,6 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             public string Path;
             public string Extension;
         }
-
         private class TreeLockRow
         {
             public int TreeLockId;
