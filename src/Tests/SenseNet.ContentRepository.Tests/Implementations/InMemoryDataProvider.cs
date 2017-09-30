@@ -342,7 +342,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         protected internal override SchemaWriter CreateSchemaWriter()
         {
-            throw new NotImplementedException();
+            return new InMemorySchemaWriter();
         }
 
         protected internal override DataOperationResult DeleteNodeTree(int nodeId)
@@ -775,9 +775,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         protected internal override DataSet LoadSchema()
         {
-            var xml = new XmlDocument();
-            xml.LoadXml(TestSchema);
-            return SchemaRoot.BuildDataSetFromXml(xml);
+            return SchemaRoot.BuildDataSetFromXml(_db.Schema);
         }
 
         #region NOT IMPLEMENTED
@@ -1024,6 +1022,9 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         {
             _db = new Database();
 
+            _db.Schema = new XmlDocument();
+            _db.Schema.LoadXml(_initialSchema);
+
             var skip = _initialNodes.StartsWith("NodeId") ? 1 : 0;
             _db.Nodes = _initialNodes.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
                 .Skip(skip)
@@ -1269,6 +1270,8 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         }
         private class Database
         {
+            public XmlDocument Schema;
+
             public List<NodeRecord> Nodes;
             public List<VersionRecord> Versions;
             public List<BinaryPropertyRecord> BinaryProperties;
@@ -1532,6 +1535,60 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             public void DeleteBinaryProperty(int versionId, PropertyType propertyType)
             {
                 //TODO:! InMemoryDataProvider: dynamic property not supported
+            }
+        }
+        private class InMemorySchemaWriter : SchemaWriter
+        {
+            public override void Open()
+            {
+            }
+            public override void Close()
+            {
+                throw new NotImplementedException(); //UNDONE:@ Close is not implemented
+            }
+
+            public override void CreatePropertyType(string name, DataType dataType, int mapping, bool isContentListProperty)
+            {
+                throw new NotImplementedException(); //UNDONE:@ CreatePropertyType is not implemented
+            }
+            public override void DeletePropertyType(PropertyType propertyType)
+            {
+                throw new NotImplementedException(); //UNDONE:@ DeletePropertyType is not implemented
+            }
+
+            public override void CreateContentListType(string name)
+            {
+                throw new NotImplementedException(); //UNDONE:@ CreateContentListType is not implemented
+            }
+            public override void DeleteContentListType(ContentListType contentListType)
+            {
+                throw new NotImplementedException(); //UNDONE:@ DeleteContentListType is not implemented
+            }
+
+            public override void CreateNodeType(NodeType parent, string name, string className)
+            {
+                throw new NotImplementedException(); //UNDONE:@ CreateNodeType is not implemented
+            }
+            public override void ModifyNodeType(NodeType nodeType, NodeType parent, string className)
+            {
+                throw new NotImplementedException(); //UNDONE:@ ModifyNodeType is not implemented
+            }
+            public override void DeleteNodeType(NodeType nodeType)
+            {
+                throw new NotImplementedException(); //UNDONE:@ DeleteNodeType is not implemented
+            }
+
+            public override void AddPropertyTypeToPropertySet(PropertyType propertyType, PropertySet owner, bool isDeclared)
+            {
+                throw new NotImplementedException(); //UNDONE:@ AddPropertyTypeToPropertySet is not implemented
+            }
+            public override void RemovePropertyTypeFromPropertySet(PropertyType propertyType, PropertySet owner)
+            {
+                throw new NotImplementedException(); //UNDONE:@ RemovePropertyTypeFromPropertySet is not implemented
+            }
+            public override void UpdatePropertyTypeDeclarationState(PropertyType propertyType, NodeType owner, bool isDeclared)
+            {
+                throw new NotImplementedException(); //UNDONE:@ UpdatePropertyTypeDeclarationState is not implemented
             }
         }
 

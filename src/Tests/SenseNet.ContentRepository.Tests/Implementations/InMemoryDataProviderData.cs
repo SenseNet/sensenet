@@ -1342,7 +1342,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         #region SCHEMA
 
-        private static readonly string TestSchema = @"<?xml version='1.0' encoding='utf-8' ?>
+        private static readonly string _initialSchema = @"<?xml version='1.0' encoding='utf-8' ?>
 <StorageSchema xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/Storage/Schema'>
 	<UsedPropertyTypes>
 		<PropertyType itemID='1' name='Binary' dataType='Binary' mapping='0' />
