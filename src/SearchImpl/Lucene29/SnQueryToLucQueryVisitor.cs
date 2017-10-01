@@ -56,22 +56,17 @@ namespace SenseNet.Search.Lucene29
                 if (stringValue == SnQuery.EmptyInnerQueryText)
                     return new TermQuery(new Term("Id", NumericUtils.IntToPrefixCoded(0)));
 
-                var hasWildcard = stringValue.Contains('*') || stringValue.Contains('?');
-
-                //var text = fieldName == "_Text" ? stringValue : ConvertTermValue(fieldName, stringValue, false);
-                var text = stringValue; //UNDONE:.. LINQ: remove this varable if the line above is deleted.
-
-                if (hasWildcard)
+                if (stringValue.Contains('*') || stringValue.Contains('?'))
                 {
-                    if (!text.EndsWith("*"))
-                        return new WildcardQuery(new Term(fieldName, text));
-                    var s = text.TrimEnd('*');
+                    if (!stringValue.EndsWith("*"))
+                        return new WildcardQuery(new Term(fieldName, stringValue));
+                    var s = stringValue.TrimEnd('*');
                     if (s.Contains('?') || s.Contains('*'))
-                        return new WildcardQuery(new Term(fieldName, text));
+                        return new WildcardQuery(new Term(fieldName, stringValue));
                     return new PrefixQuery(new Term(fieldName, s));
                 }
 
-                var words = GetAnalyzedText(fieldName, text);
+                var words = GetAnalyzedText(fieldName, stringValue);
 
                 if (words.Length == 0)
                     words = new[] { string.Empty }; //return null;
@@ -102,7 +97,7 @@ namespace SenseNet.Search.Lucene29
             switch (value.Type)
             {
                 case IndexValueType.String:      return value.StringValue;
-                case IndexValueType.StringArray: throw new NotImplementedException(); //UNDONE:.. LINQ: ConvertToTermValue StringArray is not implemented
+                case IndexValueType.StringArray: throw new NotSupportedException();
                 case IndexValueType.Bool:        return value.BooleanValue ? IndexValue.Yes : IndexValue.No;
                 case IndexValueType.Int:         return NumericUtils.IntToPrefixCoded(value.IntegerValue);
                 case IndexValueType.Long:        return NumericUtils.LongToPrefixCoded(value.LongValue);

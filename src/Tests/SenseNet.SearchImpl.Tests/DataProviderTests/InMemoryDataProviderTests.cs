@@ -1,8 +1,10 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Events;
@@ -146,6 +148,79 @@ namespace SenseNet.SearchImpl.Tests.DataProviderTests
                 editors = Node.Load<Group>("/Root/IMS/BuiltIn/Portal/Editors"); // reload
                 var editorMembersAfter = editors.Members.Select(n => n.Id).OrderBy(i => i).ToArray();
                 Assert.IsTrue(editorMembersAfter.Contains(developersGroupId));
+
+                return 0;
+            });
+        }
+
+        [TestMethod]
+        public void InMemDb_SaveAndLoadNewNodeWithAllDynamicDataTypes()
+        {
+            Test(() =>
+            {
+                // ARRANGE
+                var stringFieldName = "StringField1";
+                var intFieldName = "IntField1";
+                var dateTimeFieldName = "DateTimeField1";
+                var decimalFieldName = "DecimalField1";
+                var textFieldName = "TextField1";
+                var referenceFieldName = "ReferenceField1";
+                var binaryFieldName = "BinaryField1";
+
+                var stringValue = Guid.NewGuid().ToString();
+                var intValue = 34562;
+                var dateTimeValue = DateTime.UtcNow;
+                var decimalValue = Convert.ToDecimal(9287456.5432);
+                var textValue = "Lorem ipsum...";
+                var referenceValue = User.Visitor;
+                var buffer = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 2, 1 };
+
+                ContentTypeManager.Reset(); //UNDONE: TEST: ContentTypeManager.Current cannot be a pinned static member.
+                ContentTypeInstaller.InstallContentType($@"<?xml version='1.0' encoding='utf-8'?>
+<ContentType name='DataTestNode' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+	<Fields>
+		<Field name='{stringFieldName}' type='ShortText'></Field>
+		<Field name='{intFieldName}' type='Integer'></Field>
+		<Field name='{dateTimeFieldName}' type='DateTime'></Field>
+		<Field name='{decimalFieldName}' type='Currency'></Field>
+		<Field name='{textFieldName}' type='LongText'></Field>
+		<Field name='{referenceFieldName}' type='Reference'></Field>
+		<Field name='{binaryFieldName}' type='Binary'></Field>
+	</Fields>
+</ContentType>
+");
+
+                var root = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
+                root.Save();
+
+                // ACTION
+                var content = Content.CreateNew("DataTestNode", root, Guid.NewGuid().ToString());
+                content[stringFieldName] = stringValue;
+                content[intFieldName] = intValue;
+                content[dateTimeFieldName] = dateTimeValue;
+                content[decimalFieldName] = decimalValue;
+                content[textFieldName] = textValue;
+                content.ContentHandler.SetReference(referenceFieldName, referenceValue);
+                ((BinaryData)content[binaryFieldName]).SetStream(new MemoryStream(buffer));
+                content.Save();
+
+                // ASSERT
+                content = Content.Load(content.Id);
+                Assert.AreEqual(stringValue, content[stringFieldName]);
+                Assert.AreEqual(intValue, content[intFieldName]);
+                Assert.AreEqual(dateTimeValue, content[dateTimeFieldName]);
+                Assert.AreEqual(decimalValue, content[decimalFieldName]);
+                Assert.AreEqual(textValue, content[textFieldName]);
+
+                var referred = content.ContentHandler.GetReference<Node>(referenceFieldName);
+                Assert.AreEqual(referenceValue.Id, referred.Id);
+
+                var stream = ((BinaryData) content[binaryFieldName]).GetStream();
+                var b = new byte[stream.Length];
+                stream.Read(b, 0, b.Length);
+                var expected = string.Join(",", buffer.Select(x => x.ToString()));
+                var actual = string.Join(",", b.Select(x => x.ToString()));
+                Assert.AreEqual(expected, actual);
 
                 return 0;
             });

@@ -802,7 +802,7 @@ namespace SenseNet.ContentRepository.Linq
             if (contentTypeValue != null && name == "ContentType")
             {
                 name = "TypeIs";
-                value = contentTypeValue.Name; //UNDONE:.... LINQ: tested?
+                value = contentTypeValue.Name.ToLowerInvariant();
             }
 
             var fieldInfo = ContentTypeManager.GetPerFieldIndexingInfo(name);

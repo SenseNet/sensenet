@@ -30,8 +30,8 @@ namespace SenseNet.Search
 
         public bool CountAllPages { get; set; }
 
-        public bool ThrowIfEmpty { get; set; } //UNDONE:.. LINQ: review necessity
-        public bool ExistenceOnly { get; set; } //UNDONE:.. LINQ: review necessity
+        public bool ThrowIfEmpty { get; set; }
+        public bool ExistenceOnly { get; set; }
 
         //UNDONE:!!!!! tusmester API: TEST: AllVersions: Move to QuerySettings.
     }

@@ -1615,7 +1615,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             }
             public override void DeletePropertyType(PropertyType propertyType)
             {
-                throw new NotImplementedException(); //UNDONE:@ DeletePropertyType is not implemented
+                throw new NotImplementedException();
             }
 
             public override void CreateContentListType(string name)
@@ -1644,11 +1644,11 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             }
             public override void ModifyNodeType(NodeType nodeType, NodeType parent, string className)
             {
-                throw new NotImplementedException(); //UNDONE:@ ModifyNodeType is not implemented
+                throw new NotImplementedException();
             }
             public override void DeleteNodeType(NodeType nodeType)
             {
-                throw new NotImplementedException(); //UNDONE:@ DeleteNodeType is not implemented
+                throw new NotImplementedException();
             }
 
             public override void AddPropertyTypeToPropertySet(PropertyType propertyType, PropertySet owner, bool isDeclared)
@@ -1666,11 +1666,11 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             }
             public override void RemovePropertyTypeFromPropertySet(PropertyType propertyType, PropertySet owner)
             {
-                throw new NotImplementedException(); //UNDONE:@ RemovePropertyTypeFromPropertySet is not implemented
+                throw new NotImplementedException();
             }
             public override void UpdatePropertyTypeDeclarationState(PropertyType propertyType, NodeType owner, bool isDeclared)
             {
-                throw new NotImplementedException(); //UNDONE:@ UpdatePropertyTypeDeclarationState is not implemented
+                throw new NotImplementedException();
             }
         }
 
