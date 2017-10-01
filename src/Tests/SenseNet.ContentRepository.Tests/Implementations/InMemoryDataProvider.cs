@@ -342,7 +342,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         protected internal override SchemaWriter CreateSchemaWriter()
         {
-            return new InMemorySchemaWriter();
+            return new InMemorySchemaWriter(_db.Schema);
         }
 
         protected internal override DataOperationResult DeleteNodeTree(int nodeId)
@@ -533,9 +533,9 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         #region NOT IMPLEMENTED
 
         protected internal override byte[] LoadBinaryFragment(int fileId, long position, int count)
-            {
-                throw new NotImplementedException();
-            }
+        {
+            throw new NotImplementedException();
+        }
 
         #endregion
 
@@ -900,7 +900,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         protected internal override void Reset()
         {
-            throw new NotImplementedException();
+            // read the same method of the SqlProvider
         }
 
         protected internal override string StartChunk(int versionId, int propertyTypeId, long fullSize)
@@ -1018,7 +1018,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         private readonly Database _db;
 
-        public InMemoryDataProvider()
+        public InMemoryDataProvider() //UNDONE: REFACTOR split to private methods
         {
             _db = new Database();
 
@@ -1526,30 +1526,92 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
             public void InsertBinaryProperty(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
             {
-                //TODO:! InMemoryDataProvider: dynamic property not supported
+                if (isNewNode)
+                    _db.BinaryProperties.RemoveAll(r => r.VersionId == versionId && r.PropertyTypeId == propertyTypeId);
+
+                var fileId = value.FileId;
+                if (fileId == 0 || value.Stream != null)
+                {
+                    fileId = _db.Files.Max(r => r.FileId) + 1;
+                    _db.Files.Add(new FileRecord
+                    {
+                        FileId = fileId,
+                        ContentType = value.ContentType,
+                        FileNameWithoutExtension = value.FileName.FileNameWithoutExtension,
+                        Extension = value.FileName.Extension,
+                        Size = value.Stream?.Length ?? 0L,
+                        Stream = GetBytes(value.Stream)
+                    });
+                    value.FileId = fileId;
+                }
+
+                var binaryPropertyId = _db.BinaryProperties.Max(r => r.BinaryPropertyId) + 1;
+                _db.BinaryProperties.Add(new BinaryPropertyRecord
+                {
+                    BinaryPropertyId = binaryPropertyId,
+                    VersionId = versionId,
+                    PropertyTypeId = propertyTypeId,
+                    FileId = fileId
+                });
+                value.Id = binaryPropertyId;
             }
+            private byte[] GetBytes(Stream stream)
+            {
+                var buffer = new byte[stream.Length];
+                stream.Read(buffer, 0, buffer.Length);
+                return buffer;
+            }
+
             public void UpdateBinaryProperty(BinaryDataValue value)
             {
-                //TODO:! InMemoryDataProvider: dynamic property not supported
+                throw new NotImplementedException();
             }
             public void DeleteBinaryProperty(int versionId, PropertyType propertyType)
             {
-                //TODO:! InMemoryDataProvider: dynamic property not supported
+                throw new NotImplementedException();
             }
         }
         private class InMemorySchemaWriter : SchemaWriter
         {
+            private XmlDocument _schemaXml;
+            private string _xmlNamespace = "http://schemas.sensenet.com/SenseNet/ContentRepository/Storage/Schema";
+            private XmlNamespaceManager _nsmgr;
+
+            public InMemorySchemaWriter(XmlDocument schemaXml)
+            {
+                _schemaXml = schemaXml;
+                _nsmgr = new XmlNamespaceManager(_schemaXml.NameTable);
+                _nsmgr.AddNamespace("x", _xmlNamespace);
+            }
+
             public override void Open()
             {
+                // do nothing
             }
             public override void Close()
             {
-                throw new NotImplementedException(); //UNDONE:@ Close is not implemented
+                // do nothing
             }
 
             public override void CreatePropertyType(string name, DataType dataType, int mapping, bool isContentListProperty)
             {
-                throw new NotImplementedException(); //UNDONE:@ CreatePropertyType is not implemented
+                if(isContentListProperty)
+                    throw new NotImplementedException(); //TODO: ContentListProperty creating is not implemented.
+
+                // ReSharper disable once AssignNullToNotNullAttribute
+                var ids =
+                    _schemaXml.SelectNodes("/x:StorageSchema/x:UsedPropertyTypes/x:PropertyType/@itemID", _nsmgr)
+                        .OfType<XmlAttribute>().Select(a=>int.Parse(a.Value)).ToArray();
+                var id = ids.Max() + 1;
+
+                var element = _schemaXml.CreateElement("PropertyType", _xmlNamespace);
+                element.SetAttribute("itemID", id.ToString());
+                element.SetAttribute("name", name);
+                element.SetAttribute("dataType", dataType.ToString());
+                element.SetAttribute("mapping", mapping.ToString());
+
+                var parentElement = (XmlElement)_schemaXml.SelectSingleNode("/x:StorageSchema/x:UsedPropertyTypes", _nsmgr);
+                parentElement.AppendChild(element);
             }
             public override void DeletePropertyType(PropertyType propertyType)
             {
@@ -1558,16 +1620,27 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
             public override void CreateContentListType(string name)
             {
-                throw new NotImplementedException(); //UNDONE:@ CreateContentListType is not implemented
+                throw new NotImplementedException();
             }
             public override void DeleteContentListType(ContentListType contentListType)
             {
-                throw new NotImplementedException(); //UNDONE:@ DeleteContentListType is not implemented
+                throw new NotImplementedException();
             }
 
             public override void CreateNodeType(NodeType parent, string name, string className)
             {
-                throw new NotImplementedException(); //UNDONE:@ CreateNodeType is not implemented
+                var ids =
+                    _schemaXml.SelectNodes("//x:NodeType/@itemID", _nsmgr)
+                        .OfType<XmlAttribute>().Select(a => int.Parse(a.Value)).ToArray();
+                var id = ids.Max() + 1;
+
+                var element = _schemaXml.CreateElement("NodeType", _xmlNamespace);
+                element.SetAttribute("itemID", id.ToString());
+                element.SetAttribute("name", name);
+                element.SetAttribute("className", className);
+
+                var parentElement = (XmlElement)_schemaXml.SelectSingleNode($"//x:NodeType[@itemID = '{parent.Id}']", _nsmgr);
+                parentElement.AppendChild(element);
             }
             public override void ModifyNodeType(NodeType nodeType, NodeType parent, string className)
             {
@@ -1580,7 +1653,16 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
             public override void AddPropertyTypeToPropertySet(PropertyType propertyType, PropertySet owner, bool isDeclared)
             {
-                throw new NotImplementedException(); //UNDONE:@ AddPropertyTypeToPropertySet is not implemented
+                if (!isDeclared)
+                    return;
+
+                var element = _schemaXml.CreateElement("PropertyType", _xmlNamespace);
+                element.SetAttribute("name", propertyType.Name);
+
+                var parentElement = (XmlElement)_schemaXml.SelectSingleNode($"//x:NodeType[@name = '{owner.Name}']", _nsmgr);
+                if (parentElement == null)
+                    throw new NotImplementedException(); //TODO: ContentList property adding is not implemented.
+                parentElement.AppendChild(element);
             }
             public override void RemovePropertyTypeFromPropertySet(PropertyType propertyType, PropertySet owner)
             {

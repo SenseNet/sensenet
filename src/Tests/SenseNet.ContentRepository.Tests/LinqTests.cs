@@ -22,12 +22,12 @@ namespace SenseNet.ContentRepository.Tests
         public class RefTestNode : GenericContent, IFolder
         {
             public static string ContentTypeDefinition = @"<?xml version='1.0' encoding='utf-8'?>
-<ContentType name='RepositoryTest_RefTestNode' parentType='GenericContent' handler='" + typeof(RefTestNode).FullName + @"' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+<ContentType name='RefTestNode' parentType='GenericContent' handler='" + typeof(RefTestNode).FullName + @"' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
 	<Fields>
 		<Field name='Mother' type='Reference'>
 			<Configuration>
 				<AllowedTypes>
-					<Type>RepositoryTest_RefTestNode</Type>
+					<Type>RefTestNode</Type>
 				</AllowedTypes>
 			</Configuration>
 		</Field>
@@ -35,7 +35,7 @@ namespace SenseNet.ContentRepository.Tests
 			<Configuration>
 				<AllowMultiple>true</AllowMultiple>
 				<AllowedTypes>
-					<Type>RepositoryTest_RefTestNode</Type>
+					<Type>RefTestNode</Type>
 				</AllowedTypes>
 			</Configuration>
 		</Field>
@@ -43,7 +43,8 @@ namespace SenseNet.ContentRepository.Tests
 </ContentType>
 ";
 
-            public RefTestNode(Node parent) : base(parent, "RepositoryTest_RefTestNode") { }
+            public RefTestNode(Node parent) : base(parent, "RefTestNode") { }
+            public RefTestNode(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
             protected RefTestNode(NodeToken nt) : base(nt) { }
 
             #region Properties
@@ -424,13 +425,17 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
+                ContentTypeManager.Reset(); //UNDONE: TEST: ContentTypeManager.Current cannot be a pinned static member.
                 ContentTypeInstaller.InstallContentType(RefTestNode.ContentTypeDefinition);
 
-                var mother1 = Content.CreateNew("RefTestNode", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
+                var root = new SystemFolder(Repository.Root) {Name = Guid.NewGuid().ToString()};
+                root.Save();
+
+                var mother1 = Content.CreateNew("RefTestNode", root, Guid.NewGuid().ToString()).ContentHandler;
                 SaveNode(mother1);
 
                 Assert.AreEqual(
-                    $"+TypeIs:repositorytest_reftestnode +Mother:{mother1.Id}",
+                    $"+TypeIs:reftestnode +Mother:{mother1.Id}",
                     GetQueryString(Content.All.OfType<RefTestNode>().Where(c => c.Mother == mother1)));
 
                 return true;
@@ -441,16 +446,19 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var child2 = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
-                SaveNode(child2);
-
+                ContentTypeManager.Reset(); //UNDONE: TEST: ContentTypeManager.Current cannot be a pinned static member.
                 ContentTypeInstaller.InstallContentType(RefTestNode.ContentTypeDefinition);
 
-                Assert.AreEqual(
-                    $"+TypeIs:repositorytest_reftestnode +Mother:{child2.Id}",
-                    GetQueryString(Content.All.DisableAutofilters().Where(c => ((RefTestNode) c.ContentHandler).Neighbors.Contains(child2))));
+                //var root = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
+                //root.Save();
+                var node = Content.CreateNew("Folder", Repository.Root, Guid.NewGuid().ToString()).ContentHandler;
+                SaveNode(node);
 
-                    return true;
+                Assert.AreEqual(
+                    $"Neighbors:{node.Id}",
+                    GetQueryString(Content.All.Where(c => ((RefTestNode) c.ContentHandler).Neighbors.Contains(node))));
+
+                return true;
             });
         }
 
@@ -474,7 +482,7 @@ namespace SenseNet.ContentRepository.Tests
         //    actual = String.Join(", ", result.Select(x => x.Id));
         //    Assert.IsTrue(expected == actual, String.Format("#6: actual is {0}, expected: {1}", actual, expected));
 
-        //    qresult = ContentQuery.Query(String.Concat("-Mother:null +InTree:", TestRoot2.Path, " +TypeIs:repositorytest_reftestnode .AUTOFILTERS:OFF"));
+        //    qresult = ContentQuery.Query(String.Concat("-Mother:null +InTree:", TestRoot2.Path, " +TypeIs:reftestnode .AUTOFILTERS:OFF"));
         //    result = Content.All.DisableAutofilters().Where(c => c.InTree(TestRoot2) && ((RefTestNode)c.ContentHandler).Mother != null && c.ContentHandler is RefTestNode).OrderBy(c => c.Name).ToArray();
         //    Assert.IsTrue(result.Length == 2, String.Format("#5: count is {0}, expected: 2", result.Length));
         //    expected = String.Concat(child1.Id, ", ", child2.Id);
