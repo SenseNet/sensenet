@@ -42,7 +42,7 @@ namespace SenseNet.ContentRepository.Linq
             if (_result == null)
             {
                 Compile();
-                var qresult = _query.Execute(QueryContext); //UNDONE:!!! LINQ: Use SnQuery instead of LucQuery
+                var qresult = _query.Execute(QueryContext);
                 if (_isContent)
                     _result = (IEnumerable<T>)qresult.Hits.Select(Content.Load);
                 else

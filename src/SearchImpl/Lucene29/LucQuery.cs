@@ -23,7 +23,7 @@ using SenseNet.Search.Lucene29.QueryExecutors;
 
 namespace SenseNet.Search.Lucene29
 {
-    public class LucQuery //UNDONE:!!! After LINQ: Delete ASAP
+    internal class LucQuery
     {
         private static string[] _headOnlyFields = SenseNet.ContentRepository.Storage.Node.GetHeadOnlyProperties();
 
@@ -138,40 +138,6 @@ namespace SenseNet.Search.Lucene29
         }
 
         // ========================================================================================
-
-        [Obsolete("", false)] //UNDONE:!!! LINQ: [Obsolete("", true)]
-        public IEnumerable<LucObject> Execute()
-        {
-            return Execute(false);
-        }
-        [Obsolete("", true)]
-        public IEnumerable<LucObject> Execute(bool allVersions)
-        {
-            using (var op = SnTrace.Query.StartOperation("LucQuery: {0}", this))
-            {
-                //if (FieldLevel == QueryFieldLevel.NotDefined)
-                //    FieldLevel = GetFieldLevel();
-                //var permissionChecker = new PermissionChecker(this.User ?? AccessProvider.Current.GetCurrentUser(), FieldLevel, allVersions);
-
-                IEnumerable<LucObject> result = null;
-                IQueryExecutor executor = null;
-                if (this.CountOnly)
-                    executor = new QueryExecutor20131012CountOnly();
-                else
-                    executor = new QueryExecutor20131012();
-
-                //UNDONE: SQL: ContentQueryExecutionAlgorithm
-                var executionAlgorithm = ForceLuceneExecution
-                    ? ContentQueryExecutionAlgorithm.LuceneOnly
-                    : Configuration.Querying.ContentQueryExecutionAlgorithm;
-
-                //executor.Initialize(this, permissionChecker);
-                result = executor.Execute();
-
-                op.Successful = true;
-                return result;
-            }
-        }
 
         public IEnumerable<LucObject> Execute(IPermissionFilter filter, IQueryContext context)
         {
