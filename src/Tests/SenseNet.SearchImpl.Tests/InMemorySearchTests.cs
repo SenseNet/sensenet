@@ -15,6 +15,8 @@ using SenseNet.ContentRepository.Tests;
 using SenseNet.ContentRepository.Tests.Implementations;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
+using SenseNet.Search.Tests.Implementations;
+using SenseNet.SearchImpl.Tests.Implementations;
 using SenseNet.Security.Data;
 using SafeQueries = SenseNet.SearchImpl.Tests.Implementations.SafeQueries;
 
@@ -890,6 +892,17 @@ namespace SenseNet.SearchImpl.Tests
                 {"F2:(v1a v1b v1c) F3:v4 .SELECT:P2", new [] {"v2a", "v2b", "v2c"}},
                 {"F6:v6 .SELECT:P6", new [] {"v3a", "v3b", "v3c"}}
             };
+            var indexingInfo = new Lucene.Net.Support.Dictionary<string, IPerFieldIndexingInfo>
+            {
+                {"_Text", new TestPerfieldIndexingInfoString()},
+                {"F1", new TestPerfieldIndexingInfoString()},
+                {"F2", new TestPerfieldIndexingInfoString()},
+                {"F3", new TestPerfieldIndexingInfoString()},
+                {"F4", new TestPerfieldIndexingInfoString()},
+                {"F5", new TestPerfieldIndexingInfoString()},
+                {"F6", new TestPerfieldIndexingInfoString()},
+            };
+
             var log = new List<string>();
             QueryResult result;
 
@@ -900,6 +913,7 @@ namespace SenseNet.SearchImpl.Tests
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartWorkflowEngine(false)))
+            using(new Tools.RepositorySupportSwindler(new TestSearchEngineSupport(indexingInfo)))
             using (new SystemAccount())
             {
                 var cquery = ContentQuery.CreateQuery(qtext, QuerySettings.AdminSettings);

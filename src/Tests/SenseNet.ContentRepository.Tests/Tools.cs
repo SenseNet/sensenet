@@ -55,5 +55,18 @@ namespace SenseNet.SearchImpl.Tests
             }
         }
 
+        public class RepositorySupportSwindler : IDisposable
+        {
+            private readonly ISearchEngineSupport _savedSearchEngineSupport;
+            public RepositorySupportSwindler(ISearchEngineSupport cheat)
+            {
+                _savedSearchEngineSupport = StorageContext.Search.ContentRepository;
+                StorageContext.Search.ContentRepository = cheat;
+            }
+            public void Dispose()
+            {
+                StorageContext.Search.ContentRepository = _savedSearchEngineSupport;
+            }
+        }
     }
 }

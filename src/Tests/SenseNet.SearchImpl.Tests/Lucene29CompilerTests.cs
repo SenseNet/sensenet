@@ -149,23 +149,25 @@ namespace SenseNet.SearchImpl.Tests
                 {"DoubleField1", new TestPerfieldIndexingInfoDouble()},
             };
 
-            StorageContext.Search.ContentRepository = new TestSearchEngineSupport(indexingInfo);
+            using (new Tools.RepositorySupportSwindler(new TestSearchEngineSupport(indexingInfo)))
+            {
+                var queryContext = new TestQueryContext(QuerySettings.Default, 0, indexingInfo);
+                var parser = new CqlParser();
+                var snQuery = parser.Parse(queryText, queryContext);
 
-            var queryContext = new TestQueryContext(QuerySettings.Default, 0, indexingInfo);
-            var parser = new CqlParser();
-            var snQuery = parser.Parse(queryText, queryContext);
+                var compiler = new Lucene29Compiler();
+                var lucQuery = compiler.Compile(snQuery, queryContext);
 
-            var compiler = new Lucene29Compiler();
-            var lucQuery = compiler.Compile(snQuery, queryContext);
+                var lqVisitor = new LucQueryToStringVisitor();
+                lqVisitor.Visit(lucQuery.Query);
+                var actual = lqVisitor.ToString();
 
-            var lqVisitor = new LucQueryToStringVisitor();
-            lqVisitor.Visit(lucQuery.Query);
-            var actual = lqVisitor.ToString();
+                Assert.AreEqual(expected, actual);
 
-            Assert.AreEqual(expected, actual);
-
-            return lucQuery.Query;
+                return lucQuery.Query;
+            }
         }
+
         private void CheckNumericRange(Query q, Type type)
         {
             var nq = q as NumericRangeQuery;
