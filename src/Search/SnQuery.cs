@@ -27,12 +27,11 @@ namespace SenseNet.Search
         public FilterStatus EnableLifespanFilter { get; set; }
         public bool CountOnly { get; set; }
         public QueryExecutionMode QueryExecutionMode { get; set; }
+        public bool AllVersions { get; set; }
 
         public bool CountAllPages { get; set; }
 
         public bool ThrowIfEmpty { get; set; }
         public bool ExistenceOnly { get; set; }
-
-        //UNDONE:!!!!! tusmester API: TEST: AllVersions: Move to QuerySettings.
     }
 }

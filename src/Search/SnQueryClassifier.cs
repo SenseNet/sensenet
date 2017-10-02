@@ -83,7 +83,7 @@ namespace SenseNet.Search.Parser
 
     public class SnQueryClassifier : SnQueryVisitor
     {
-        public static SnQueryInfo Classify(SnQuery query, bool allVersions)
+        public static SnQueryInfo Classify(SnQuery query)
         {
             var sortfieldNames = query.Sort?.Select(x => x.FieldName).ToList() ?? new List<string>();
             var queryInfo = new SnQueryInfo
@@ -95,7 +95,7 @@ namespace SenseNet.Search.Parser
                 SortFieldNames = sortfieldNames,
                 CountAllPages = query.CountAllPages,
                 CountOnly = query.CountOnly,
-                AllVersions = allVersions
+                AllVersions = query.AllVersions
             };
 
             var visitor = new QueryClassifierVisitor(queryInfo);

@@ -68,7 +68,7 @@ namespace SenseNet.ContentRepository.Storage.Search
             _userId = context.UserId;
             _user = Node.LoadNode(_userId) as IUser;
             _queryFieldLevel = GetFieldLevel(query);
-            _allVersions = context.AllVersions;
+            _allVersions = query.AllVersions;
         }
 
         public bool IsPermitted(int nodeId, bool isLastPublic, bool isLastDraft)

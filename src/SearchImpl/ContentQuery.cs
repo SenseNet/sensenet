@@ -309,7 +309,7 @@ namespace SenseNet.Search
             }
 
             QueryResult result;
-            using (var op = SnTrace.Query.StartOperation("ContentQuery: {0} | Top:{1} Skip:{2} Sort:{3} Mode:{4}", queryText, _settings.Top, _settings.Skip, _settings.Sort, _settings.QueryExecutionMode))
+            using (var op = SnTrace.Query.StartOperation("ContentQuery: {0} | Top:{1} Skip:{2} Sort:{3} Mode:{4} AllVersions:{5}", queryText, _settings.Top, _settings.Skip, _settings.Sort, _settings.QueryExecutionMode, _settings.AllVersions))
             {
                 if (!queryText.Contains("}}"))
                 {
@@ -353,7 +353,8 @@ namespace SenseNet.Search
                     Sort = querySettings.Sort,
                     EnableAutofilters = querySettings.EnableAutofilters,
                     EnableLifespanFilter = querySettings.EnableLifespanFilter,
-                    QueryExecutionMode = querySettings.QueryExecutionMode
+                    QueryExecutionMode = querySettings.QueryExecutionMode,
+                    // AllVersions be always false in the inner queries
                 };
                 var recursiveQueryContext = new SnQueryContext(recursiveQuerySettings, userId);
 

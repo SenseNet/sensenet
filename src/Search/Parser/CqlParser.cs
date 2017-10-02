@@ -76,11 +76,14 @@ namespace SenseNet.Search.Parser
                     case Cql.Keyword.Quick:
                         result.QueryExecutionMode = QueryExecutionMode.Quick;
                         break;
+                    case Cql.Keyword.AllVersions:
+                        result.AllVersions = true;
+                        break;
                 }
             }
             result.Sort = sortFields.ToArray();
             AggregateSettings(result, context.Settings);
-            //result.QueryFieldNames = _usedFieldNames;
+
             return result;
         }
         private SnQueryPredicate ParsePredicate(string queryText)
@@ -104,6 +107,8 @@ namespace SenseNet.Search.Parser
                 query.EnableLifespanFilter = settings.EnableLifespanFilter;
             if (settings.QueryExecutionMode != QueryExecutionMode.Default)
                 query.QueryExecutionMode = settings.QueryExecutionMode;
+            if (settings.AllVersions)
+                query.AllVersions = true;
         }
 
         /* ============================================================================ Recursive descent methods */
@@ -611,6 +616,7 @@ namespace SenseNet.Search.Parser
             {
                 case Cql.Keyword.CountOnly: name = Cql.Keyword.CountOnly; break;
                 case Cql.Keyword.Quick: name = Cql.Keyword.Quick; break;
+                case Cql.Keyword.AllVersions: name = Cql.Keyword.AllVersions; break;
             }
             if (name != null)
                 _lexer.NextToken();

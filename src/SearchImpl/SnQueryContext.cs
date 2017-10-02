@@ -10,7 +10,6 @@ namespace SenseNet.Search
         public int UserId { get; }
         public IQueryEngine QueryEngine => StorageContext.Search.SearchEngine.QueryEngine;
         public IMetaQueryEngine MetaQueryEngine => DataProvider.Current.MetaQueryEngine;
-        public bool AllVersions { get; set; } //UNDONE:!!!!! tusmester API: TEST: AllVersions: Move to QuerySettings.
 
         public SnQueryContext(QuerySettings settings, int userId)
         {

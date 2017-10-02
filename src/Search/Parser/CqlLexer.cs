@@ -28,7 +28,7 @@ namespace SenseNet.Search.Parser
             public static Token ScanControl(string text, LineInfo line)
             {
                 if (text == Cql.Keyword.Select || text == Cql.Keyword.Skip || text == Cql.Keyword.Top || text == Cql.Keyword.Sort || text == Cql.Keyword.ReverseSort ||
-                    text == Cql.Keyword.Autofilters || text == Cql.Keyword.Lifespan || text == Cql.Keyword.CountOnly || text == Cql.Keyword.Quick)
+                    text == Cql.Keyword.Autofilters || text == Cql.Keyword.Lifespan || text == Cql.Keyword.CountOnly || text == Cql.Keyword.Quick || text == Cql.Keyword.AllVersions)
                     return Token.ControlKeyword;
                 throw new ParserException("Unknown control keyword: " + text, line);
             }

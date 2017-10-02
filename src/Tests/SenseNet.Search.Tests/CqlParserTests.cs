@@ -206,6 +206,7 @@ namespace SenseNet.Search.Tests
             // ".LIFESPAN";
             // ".COUNTONLY";
             // ".QUICK";
+            // ".ALLVERSIONS";
 
             var q = Test("F1:V1", "F1:v1");
             Assert.AreEqual(int.MaxValue, q.Top);
@@ -226,6 +227,7 @@ namespace SenseNet.Search.Tests
             q = Test("F1:V1 .LIFESPAN:OFF", "F1:v1"); Assert.AreEqual(FilterStatus.Disabled, q.EnableLifespanFilter);
             q = Test("F1:V1 .QUICK", "F1:v1"); Assert.AreEqual(QueryExecutionMode.Quick, q.QueryExecutionMode);
             q = Test("F1:V1 .SELECT:Name", "F1:v1"); Assert.AreEqual("Name", q.Projection);
+            q = Test("F1:V1 .ALLVERSIONS", "F1:v1"); Assert.AreEqual(true, q.AllVersions);
 
             q = Test("F1:V1 .SORT:F1", "F1:v1"); Assert.AreEqual("F1 ASC", SortToString(q.Sort));
             q = Test("F1:V1 .REVERSESORT:F1", "F1:v1"); Assert.AreEqual("F1 DESC", SortToString(q.Sort));
@@ -259,6 +261,10 @@ namespace SenseNet.Search.Tests
             TestError("F1:V1 .SELECT");
             TestError("F1:V1 .SELECT:");
             TestError("F1:V1 .SELECT:123");
+            TestError("F1:V1 .ALLVERSIONS:");
+            TestError("F1:V1 .ALLVERSIONS:aaa");
+            TestError("F1:V1 .ALLVERSIONS:42");
+            TestError("F1:V1 .ALLVERSIONS:ON");
         }
         [TestMethod, TestCategory("IR")]
         public void SnQuery_Parser_AstToString_CqlErrors()
@@ -396,6 +402,42 @@ namespace SenseNet.Search.Tests
                 var sortIndex =  settings.IndexOf(setting);
                 Assert.IsTrue((!snQuery.Sort.Any() && expectedSortInfo[sortIndex] == null) || expectedSortInfo[sortIndex].Count() == snQuery.Sort.Length);
             }
+        }
+        [TestMethod, TestCategory("IR")]
+        public void SnQuery_Parser_AggregateSettingsCountOnlyAllVersions()
+        {
+            var indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
+            {
+                {"Id", new TestPerfieldIndexingInfoInt() }
+            };
+
+            var test =
+                new Action<string, string, QuerySettings, bool, bool>(
+                    (queryText, expectedQueryText, settings, expectedCountOnly, expectedAllVersions) =>
+                    {
+                        var queryContext = new TestQueryContext(settings, 0, indexingInfo);
+
+                        var parser = new CqlParser();
+                        var snQuery = parser.Parse(queryText, queryContext);
+
+
+                        Assert.AreEqual(expectedQueryText ?? queryText, snQuery.ToString());
+                        Assert.AreEqual(expectedCountOnly, snQuery.CountOnly);
+                        Assert.AreEqual(expectedAllVersions, snQuery.AllVersions);
+                    });
+
+            test("Id:>0", null, new QuerySettings(), false, false);
+            test("Id:>0 .COUNTONLY", null, new QuerySettings(), true, false);
+            test("Id:>0 .ALLVERSIONS", null, new QuerySettings(), false, true);
+            test("Id:>0 .ALLVERSIONS .COUNTONLY", null, new QuerySettings(), true, true);
+            test("Id:>0 .COUNTONLY .ALLVERSIONS", "Id:>0 .ALLVERSIONS .COUNTONLY", new QuerySettings(), true, true);
+
+            test("Id:>0",              "Id:>0", new QuerySettings { AllVersions = false }, false, false);
+            test("Id:>0",              "Id:>0 .ALLVERSIONS", new QuerySettings { AllVersions = true }, false, true);
+            test("Id:>0 .ALLVERSIONS", "Id:>0 .ALLVERSIONS", new QuerySettings { AllVersions = false }, false, true);
+            test("Id:>0 .ALLVERSIONS", "Id:>0 .ALLVERSIONS", new QuerySettings { AllVersions = true }, false, true);
+
+            test("Id:>0 .COUNTONLY", "Id:>0 .ALLVERSIONS .COUNTONLY", new QuerySettings { AllVersions = true }, true, true);
         }
 
         //UNDONE: TEST: Move this test to QueryClassifier tests

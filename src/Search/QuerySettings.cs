@@ -17,6 +17,8 @@ namespace SenseNet.Search
 
         public QueryExecutionMode QueryExecutionMode { get; set; }
 
+        public bool AllVersions { get; set; }
+
         public static QuerySettings AdminSettings
         {
             get

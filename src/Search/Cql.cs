@@ -26,6 +26,7 @@ namespace SenseNet.Search
             public const string Lifespan = ".LIFESPAN";
             public const string CountOnly = ".COUNTONLY";
             public const string Quick = ".QUICK";
+            public const string AllVersions = ".ALLVERSIONS";
 
             public const string On = "ON";
             public const string Off = "OFF";

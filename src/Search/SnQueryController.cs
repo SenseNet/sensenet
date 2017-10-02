@@ -198,6 +198,8 @@ namespace SenseNet.Search
             visitor.Visit(this.QueryTree);
             var sb = new StringBuilder(visitor.Output);
 
+            if (AllVersions)
+                sb.Append(" ").Append(Cql.Keyword.AllVersions);
             if (CountOnly)
                 sb.Append(" ").Append(Cql.Keyword.CountOnly);
             if (Top != 0 && Top != int.MaxValue)

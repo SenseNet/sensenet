@@ -127,6 +127,8 @@ namespace SenseNet.ContentRepository.Linq
                     query.EnableLifespanFilter = lq.EnableLifespanFilter;
                 if (lq.QueryExecutionMode != QueryExecutionMode.Default)
                     query.QueryExecutionMode = lq.QueryExecutionMode;
+                if (lq.AllVersions)
+                    query.AllVersions = true;
             }
 
             return query;

@@ -13,8 +13,6 @@ namespace SenseNet.Search
         IQueryEngine QueryEngine { get; }
         IMetaQueryEngine MetaQueryEngine { get; }
 
-        bool AllVersions { get; set; } //UNDONE:!!!!! tusmester API: TEST: AllVersions: Move to QuerySettings.
-
         IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName);
     }
 }
