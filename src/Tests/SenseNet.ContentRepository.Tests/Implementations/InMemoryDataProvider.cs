@@ -1018,15 +1018,25 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         private readonly Database _db;
 
-        public InMemoryDataProvider() //UNDONE:|||||||| REFACTOR: REFACTOR split to private methods
+        public InMemoryDataProvider()
         {
             _db = new Database();
 
             _db.Schema = new XmlDocument();
             _db.Schema.LoadXml(_initialSchema);
 
+            _db.Nodes = GetInitialNodes();
+            _db.Versions = GetInitialVersions();
+            _db.BinaryProperties = GetInitialBinaryProperties();
+            _db.Files = GetInitialFiles();
+            _db.TextProperties = GetInitialTextProperties();
+            _db.FlatProperties = GetInitialFlatProperties();
+            _db.ReferenceProperties = GetInitialReferencProperties();
+        }
+        private List<NodeRecord> GetInitialNodes()
+        {
             var skip = _initialNodes.StartsWith("NodeId") ? 1 : 0;
-            _db.Nodes = _initialNodes.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+            return _initialNodes.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
                 .Skip(skip)
                 .Select(l =>
                 {
@@ -1048,10 +1058,10 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                         OwnerId = 1
                     };
                 }).ToList();
-
-            // -------------------------------------------------------------------------------------
-
-            _db.Versions = _db.Nodes.Select(n => new VersionRecord
+        }
+        private List<VersionRecord> GetInitialVersions()
+        {
+            return _db.Nodes.Select(n => new VersionRecord
             {
                 VersionId = n.LastMajorVersionId,
                 NodeId = n.NodeId,
@@ -1059,28 +1069,28 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 CreatedById = 1,
                 ModifiedById = 1
             }).ToList();
-
-            // -------------------------------------------------------------------------------------
-
-            skip = _initialBinaryProperties.StartsWith("BinaryPropertyId") ? 1 : 0;
-            _db.BinaryProperties = _initialBinaryProperties.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+        }
+        private List<BinaryPropertyRecord> GetInitialBinaryProperties()
+        {
+            var skip = _initialBinaryProperties.StartsWith("BinaryPropertyId") ? 1 : 0;
+            return _initialBinaryProperties.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
                 .Skip(skip)
                 .Select(l =>
                 {
                     var record = l.Split('\t');
                     return new BinaryPropertyRecord
                     {
-                        BinaryPropertyId= int.Parse(record[0]),
+                        BinaryPropertyId = int.Parse(record[0]),
                         VersionId = int.Parse(record[1]),
                         PropertyTypeId = int.Parse(record[2]),
                         FileId = int.Parse(record[3])
                     };
                 }).ToList();
-
-            // -------------------------------------------------------------------------------------
-
-            skip = _initialFiles.StartsWith("FileId") ? 1 : 0;
-            _db.Files = _initialFiles.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+        }
+        private List<FileRecord> GetInitialFiles()
+        {
+            var skip = _initialFiles.StartsWith("FileId") ? 1 : 0;
+            return _initialFiles.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
                 .Skip(skip)
                 .Select(l =>
                 {
@@ -1100,11 +1110,11 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                         Stream = bytes
                     };
                 }).ToList();
-
-            // -------------------------------------------------------------------------------------
-
-            skip = _initialTextProperties.StartsWith("TextPropertyNVarcharId") ? 1 : 0;
-            _db.TextProperties = _initialTextProperties.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+        }
+        private List<TextPropertyRecord> GetInitialTextProperties()
+        {
+            var skip = _initialTextProperties.StartsWith("TextPropertyNVarcharId") ? 1 : 0;
+            return _initialTextProperties.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
                 .Skip(skip)
                 .Select(l =>
                 {
@@ -1119,10 +1129,11 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                     };
                 }).ToList();
 
-            // -------------------------------------------------------------------------------------
-
+        }
+        private List<FlatPropertyRow> GetInitialFlatProperties()
+        {
             // nvarchars
-            skip = _initialFlatPropertiesNvarchar.StartsWith("Id") ? 1 : 0;
+            var skip = _initialFlatPropertiesNvarchar.StartsWith("Id") ? 1 : 0;
             var flatRows = _initialFlatPropertiesNvarchar.Split("\r\n".ToCharArray(),
                     StringSplitOptions.RemoveEmptyEntries)
                 .Skip(skip)
@@ -1204,12 +1215,12 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 row.Decimals = decimalValues;
             }
 
-            _db.FlatProperties = flatRows.Values.ToList();
-
-            // -------------------------------------------------------------------------------------
-
-            skip = _initialReferenceProperties.StartsWith("ReferencePropertyId") ? 1 : 0;
-            _db.ReferenceProperties = _initialReferenceProperties.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+           return flatRows.Values.ToList();
+        }
+        private List<ReferencePropertyRow> GetInitialReferencProperties()
+        {
+            var skip = _initialReferenceProperties.StartsWith("ReferencePropertyId") ? 1 : 0;
+            return _initialReferenceProperties.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
                 .Skip(skip)
                 .Select(l =>
                 {
@@ -1222,7 +1233,6 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                         ReferredNodeId = int.Parse(record[3])
                     };
                 }).ToList();
-
         }
 
         #endregion
