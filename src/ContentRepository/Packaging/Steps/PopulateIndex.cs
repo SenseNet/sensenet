@@ -31,7 +31,7 @@ namespace SenseNet.Packaging.Steps
             var savedMode = RepositoryEnvironment.WorkingMode.Populating;
             RepositoryEnvironment.WorkingMode.Populating = true;
 
-            var populator = StorageContext.Search.SearchEngine.GetPopulator();
+            var populator = StorageContext.Search.ContentRepository.GetIndexPopulator();
             populator.NodeIndexed += Populator_NodeIndexed;
 
             try

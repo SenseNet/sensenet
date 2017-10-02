@@ -20,11 +20,6 @@ namespace SenseNet.Search.Lucene29
             Lucene.Net.Search.BooleanQuery.SetMaxClauseCount(100000);
         }
 
-        public IIndexPopulator GetPopulator()
-        {
-            return new DocumentPopulator();
-        }
-
         private IDictionary<string, Type> _analyzers = new Dictionary<string, Type>();
         public IDictionary<string, Type> GetAnalyzers()
         {

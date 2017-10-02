@@ -59,7 +59,7 @@ namespace SenseNet.ContentRepository.Storage
 
             public static bool IsOuterEngineEnabled
             {
-                get { return Instance.IsOuterEngineEnabled; }
+                get { return Indexing.IsOuterSearchEngineEnabled; }
             }
             public static string IndexDirectoryPath
             {
@@ -69,11 +69,11 @@ namespace SenseNet.ContentRepository.Storage
             {
                 if (false == Indexing.IsOuterSearchEngineEnabled)
                     throw new InvalidOperationException("Indexing is not allowed in the configuration");
-                Instance.IsOuterEngineEnabled = true;
+                Indexing.IsOuterSearchEngineEnabled = true;
             }
             public static void DisableOuterEngine()
             {
-                Instance.IsOuterEngineEnabled = false;
+                Indexing.IsOuterSearchEngineEnabled = false;
             }
 
             public static void SetIndexDirectoryPath(string path)
@@ -128,21 +128,6 @@ namespace SenseNet.ContentRepository.Storage
 
         // ========================================================================== Private interface
 
-        private bool? __isOuterEngineEnabled;
-        private bool IsOuterEngineEnabled
-        {
-            get
-            {
-                if (__isOuterEngineEnabled == null)
-                    __isOuterEngineEnabled = Indexing.IsOuterSearchEngineEnabled;
-                return (__isOuterEngineEnabled.Value);
-            }
-            set
-            {
-                __isOuterEngineEnabled = value;
-            }
-        }
-
         private string __indexDirectoryPath;
         private string IndexDirectoryPath
         {
@@ -160,7 +145,7 @@ namespace SenseNet.ContentRepository.Storage
 
         private ISearchEngine GetSearchEnginePrivate()
         {
-            return !IsOuterEngineEnabled ? InternalSearchEngine.Instance : Providers.Instance.SearchEngine;
+            return !Indexing.IsOuterSearchEngineEnabled ? InternalSearchEngine.Instance : Providers.Instance.SearchEngine;
         }
     }
 }

@@ -12,5 +12,7 @@ namespace SenseNet.ContentRepository.Storage.Search
         string ReplaceQueryTemplates(string luceneQueryText);
         T GetSettingsValue<T>(string key, T defaultValue);
         QueryResult ExecuteContentQuery(string text, QuerySettings settings, params object[] parameters);
+
+        IIndexPopulator GetIndexPopulator();
     }
 }

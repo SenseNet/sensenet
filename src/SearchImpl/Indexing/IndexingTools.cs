@@ -38,7 +38,7 @@ namespace SenseNet.Search.Indexing
             // 5: distributed lucene index update.
             var node = Node.LoadNodeByVersionId(versionId);
             if (node != null)
-                StorageContext.Search.SearchEngine.GetPopulator().RebuildIndex(node);
+                StorageContext.Search.ContentRepository.GetIndexPopulator().RebuildIndex(node);
         }
 
         //UNDONE: Unused but useful tool temporarily commented out: GetAllFieldNames

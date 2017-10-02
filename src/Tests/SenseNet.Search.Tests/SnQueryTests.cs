@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.ContentRepository.Tests;
 using SenseNet.Search.Parser;
 using SenseNet.Search.Tests.Implementations;
 using SenseNet.SearchImpl.Tests;

@@ -17,11 +17,6 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         public IQueryEngine QueryEngine => _queryEngine;
 
-        public IIndexPopulator GetPopulator()
-        {
-            return new DocumentPopulator();
-        }
-
         public IDictionary<string, Type> GetAnalyzers()
         {
             return _analyzers;

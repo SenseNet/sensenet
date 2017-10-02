@@ -149,7 +149,7 @@ namespace SenseNet.SearchImpl.Tests
                 {"DoubleField1", new TestPerfieldIndexingInfoDouble()},
             };
 
-            using (new Tools.RepositorySupportSwindler(new TestSearchEngineSupport(indexingInfo)))
+            using (new ContentRepository.Tests.Tools.RepositorySupportSwindler(new TestSearchEngineSupport(indexingInfo)))
             {
                 var queryContext = new TestQueryContext(QuerySettings.Default, 0, indexingInfo);
                 var parser = new CqlParser();

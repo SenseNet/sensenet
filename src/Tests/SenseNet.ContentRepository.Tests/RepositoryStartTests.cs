@@ -5,21 +5,23 @@ using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Events;
+using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Tests.Implementations;
 using SenseNet.Diagnostics;
+using SenseNet.Search.Indexing;
 using SenseNet.Security.Data;
 
 namespace SenseNet.ContentRepository.Tests
 {
     [TestClass]
-    public class RepositoryStartTests
+    public class RepositoryStartTests : TestBase
     {
         public class TestNodeObserver1 : NodeObserver { }
         public class TestNodeObserver2 : NodeObserver { }
 
         [TestMethod]
-        public void NamedProviders()
+        public void RepositoryStart_NamedProviders()
         {
             var dbProvider = new InMemoryDataProvider();
             var securityDbProvider = new MemoryDataProvider(DatabaseStorage.CreateEmpty());
@@ -63,7 +65,7 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public void NodeObservers_DisableAll()
+        public void RepositoryStart_NodeObservers_DisableAll()
         {
             var repoBuilder = new RepositoryBuilder()
                 .UseDataProvider(new InMemoryDataProvider())
@@ -83,7 +85,7 @@ namespace SenseNet.ContentRepository.Tests
             }
         }
         [TestMethod]
-        public void NodeObservers_EnableOne()
+        public void RepositoryStart_NodeObservers_EnableOne()
         {
             var repoBuilder = new RepositoryBuilder()
                 .UseDataProvider(new InMemoryDataProvider())
@@ -105,7 +107,7 @@ namespace SenseNet.ContentRepository.Tests
             }
         }
         [TestMethod]
-        public void NodeObservers_EnableMore()
+        public void RepositoryStart_NodeObservers_EnableMore()
         {
             var repoBuilder = new RepositoryBuilder()
                 .UseDataProvider(new InMemoryDataProvider())
@@ -128,7 +130,7 @@ namespace SenseNet.ContentRepository.Tests
             }
         }
         [TestMethod]
-        public void NodeObservers_DisableOne()
+        public void RepositoryStart_NodeObservers_DisableOne()
         {
             var repoBuilder = new RepositoryBuilder()
                 .UseDataProvider(new InMemoryDataProvider())
@@ -149,6 +151,43 @@ namespace SenseNet.ContentRepository.Tests
                 //TODO: currently this does not work, because observers are enabled/disabled globally.
                 // Itt will, when we move to a per-thread environment in tests.
                 //Assert.IsTrue(Providers.Instance.NodeObservers.Any(no => no.GetType() == typeof(TestNodeObserver2)));
+            }
+        }
+
+        [TestMethod]
+        public void RepositoryStart_NullPopulator()
+        {
+            var dbProvider = new InMemoryDataProvider();
+            var securityDbProvider = new MemoryDataProvider(DatabaseStorage.CreateEmpty());
+            var searchEngine = new InMemorySearchEngine();
+            var accessProvider = new DesktopAccessProvider();
+            var emvrProvider = new ElevatedModificationVisibilityRule();
+
+            var repoBuilder = new RepositoryBuilder()
+                .UseDataProvider(dbProvider)
+                .UseSecurityDataProvider(securityDbProvider)
+                .UseSearchEngine(searchEngine)
+                .UseAccessProvider(accessProvider)
+                .UseElevatedModificationVisibilityRuleProvider(emvrProvider)
+                .StartIndexingEngine(false)
+                .StartWorkflowEngine(false)
+                .UseTraceCategories(new[] {"Test", "Web", "System"});
+
+            var originalIsOuterSearchEngineEnabled = Indexing.IsOuterSearchEngineEnabled;
+            Indexing.IsOuterSearchEngineEnabled = false;
+            try
+            {
+                using (Repository.Start(repoBuilder))
+                {
+                    Assert.IsFalse(StorageContext.Search.IsOuterEngineEnabled);
+                    Assert.AreEqual(typeof(InternalSearchEngine), StorageContext.Search.SearchEngine.GetType());
+                    var populator = StorageContext.Search.ContentRepository.GetIndexPopulator();
+                    Assert.AreEqual(typeof(NullPopulator), populator.GetType());
+                }
+            }
+            finally
+            {
+                Indexing.IsOuterSearchEngineEnabled = originalIsOuterSearchEngineEnabled;
             }
         }
     }

@@ -4,6 +4,7 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search;
+using SenseNet.Search.Indexing;
 using SenseNet.Search.Parser;
 
 namespace SenseNet.ContentRepository
@@ -49,6 +50,13 @@ namespace SenseNet.ContentRepository
         public QueryResult ExecuteContentQuery(string text, QuerySettings settings, params object[] parameters)
         {
             return ContentQuery.Query(text, settings, parameters);
+        }
+
+        public IIndexPopulator GetIndexPopulator()
+        {
+            return StorageContext.Search.IsOuterEngineEnabled
+                ? (IIndexPopulator) new DocumentPopulator()
+                : NullPopulator.Instance;
         }
     }
 }

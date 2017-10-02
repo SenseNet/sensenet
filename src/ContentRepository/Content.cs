@@ -1407,7 +1407,7 @@ namespace SenseNet.ContentRepository
         /// <param name="rebuildLevel">The algorithm selector. Value can be <value>IndexOnly</value> or <value>DatabaseAndIndex</value>. Default: <value>IndexOnly</value></param>
         public void RebuildIndex(bool recursive = false, IndexRebuildLevel rebuildLevel = IndexRebuildLevel.IndexOnly)
         {
-            StorageContext.Search.SearchEngine.GetPopulator().RebuildIndex(this.ContentHandler, recursive, rebuildLevel);
+            StorageContext.Search.ContentRepository.GetIndexPopulator().RebuildIndex(this.ContentHandler, recursive, rebuildLevel);
         }
 
         /*-------------------------------------------------------------------------- SnLinq */

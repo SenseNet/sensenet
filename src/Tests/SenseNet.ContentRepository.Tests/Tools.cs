@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Search;
 
-namespace SenseNet.SearchImpl.Tests
+namespace SenseNet.ContentRepository.Tests
 {
     public class Tools
     {

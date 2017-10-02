@@ -65,7 +65,7 @@ namespace SenseNet.SearchImpl.Tests
                 SaveInitialIndexDocuments();
 
                 var paths = new List<string>();
-                var populator = StorageContext.Search.SearchEngine.GetPopulator();
+                var populator = StorageContext.Search.ContentRepository.GetIndexPopulator();
                 populator.NodeIndexed += (sender, e) => { paths.Add(e.Path); };
 
                 // ACTION
@@ -109,7 +109,7 @@ namespace SenseNet.SearchImpl.Tests
             var result =
                 L29Test(console =>
                 {
-                    var indexPopulator = StorageContext.Search.SearchEngine.GetPopulator();
+                    var indexPopulator = StorageContext.Search.ContentRepository.GetIndexPopulator();
 
                     var root = Repository.Root;
                     indexPopulator.RebuildIndex(root, false, IndexRebuildLevel.DatabaseAndIndex);
@@ -152,7 +152,7 @@ namespace SenseNet.SearchImpl.Tests
             var result =
                 L29Test(console =>
                 {
-                    var indexPopulator = StorageContext.Search.SearchEngine.GetPopulator();
+                    var indexPopulator = StorageContext.Search.ContentRepository.GetIndexPopulator();
 
                     var root = Repository.Root;
                     indexPopulator.RebuildIndex(root, false, IndexRebuildLevel.DatabaseAndIndex);
@@ -432,7 +432,7 @@ namespace SenseNet.SearchImpl.Tests
                 //IndexDirectory.CreateNew();
                 //IndexDirectory.Reset();
 
-                using (Tools.Swindle(typeof(StorageContext.Search), "ContentRepository", new SearchEngineSupport()))
+                using (ContentRepository.Tests.Tools.Swindle(typeof(StorageContext.Search), "ContentRepository", new SearchEngineSupport()))
                     //using (new SystemAccount())
                 {
                     //EnsureEmptyIndexDirectory();

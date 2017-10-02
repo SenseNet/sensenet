@@ -469,7 +469,7 @@ namespace SenseNet.SearchImpl.Tests
 
                 // ACTION
                 using (var console = new StringWriter(sb))
-                    StorageContext.Search.SearchEngine.GetPopulator().ClearAndPopulateAll(console);
+                    StorageContext.Search.ContentRepository.GetIndexPopulator().ClearAndPopulateAll(console);
 
                 // load last indexing activity
                 var db = DataProvider.Current;
@@ -913,7 +913,7 @@ namespace SenseNet.SearchImpl.Tests
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartWorkflowEngine(false)))
-            using(new Tools.RepositorySupportSwindler(new TestSearchEngineSupport(indexingInfo)))
+            using(new ContentRepository.Tests.Tools.RepositorySupportSwindler(new TestSearchEngineSupport(indexingInfo)))
             using (new SystemAccount())
             {
                 var cquery = ContentQuery.CreateQuery(qtext, QuerySettings.AdminSettings);
@@ -1090,10 +1090,6 @@ namespace SenseNet.SearchImpl.Tests
 
                 _perFieldIndexingInfos = allInfo;
                 _analyzerNames = analyzerNames;
-            }
-            public IIndexPopulator GetPopulator()
-            {
-                throw new NotImplementedException();
             }
         }
     }

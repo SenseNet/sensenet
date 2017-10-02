@@ -86,10 +86,7 @@ namespace SenseNet.ContentRepository.Storage
 
         public string NodeOperation { get; set; }
 
-        private static IIndexPopulator Populator
-        {
-            get { return StorageContext.Search.SearchEngine.GetPopulator(); }
-        }
+        private static IIndexPopulator Populator => StorageContext.Search.ContentRepository.GetIndexPopulator(); //UNDONE:@ Remove this and call directly
 
         private SecurityHandler _security;
         private LockHandler _lockHandler;
