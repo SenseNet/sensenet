@@ -15,13 +15,6 @@ namespace SenseNet.ContentRepository.Storage.Search
     {
         IEnumerable<IIndexableField> GetIndexableFields();
     }
-    public interface IIndexableField
-    {
-        string Name { get; }
-        bool IsInIndex { get; }
-        bool IsBinaryField { get; }
-        IEnumerable<IndexField> GetIndexFields(out string textExtract);
-    }
     public interface IIndexValueConverter<T>
     {
         T GetBack(string fieldValue);

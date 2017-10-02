@@ -10,10 +10,14 @@ namespace SenseNet.Search
 
     public enum IndexFieldType { String, Int, Long, Float, Double, DateTime }
 
-    public interface ISnField
+    public interface IIndexableField
     {
         string Name { get; }
         object GetData(bool localized = true);
+
+        bool IsInIndex { get; }
+        bool IsBinaryField { get; }
+        IEnumerable<IndexField> GetIndexFields(out string textExtract);
     }
 
     public interface IFieldIndexHandler
@@ -25,13 +29,13 @@ namespace SenseNet.Search
         IndexValue ConvertToTermValue(object value);
 
         string GetDefaultAnalyzerName();
-        IEnumerable<string> GetParsableValues(ISnField field);
+        IEnumerable<string> GetParsableValues(IIndexableField field);
         int SortingType { get; }
         IndexFieldType IndexFieldType { get; }
         IPerFieldIndexingInfo OwnerIndexingInfo { get; set; }
         string GetSortFieldName(string fieldName);
 
-        IEnumerable<IndexField> GetIndexFields(ISnField field, out string textExtract);
+        IEnumerable<IndexField> GetIndexFields(IIndexableField field, out string textExtract);
     }
     public interface IPerFieldIndexingInfo
     {

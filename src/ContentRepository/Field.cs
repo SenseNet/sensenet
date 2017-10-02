@@ -41,7 +41,7 @@ namespace SenseNet.ContentRepository
     /// By defining a new <c>Field</c> class a system-wide usable atomic data type is defined.
     /// This kind of extension is usually done when having a need of a more complex or different type than ones already defined in the system.
     /// </remarks>
-	public abstract partial class Field : IIndexableField, ISnField //UNDONE:|||||||| REFACTOR: API: join these interfaces to ISnField
+	public abstract partial class Field : IIndexableField
     {
         private object __value;
         private bool _changed;

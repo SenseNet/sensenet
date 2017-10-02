@@ -25,7 +25,7 @@ namespace SenseNet.Search.Tests.Implementations
             return typeof(KeywordAnalyzer).FullName;
         }
 
-        public IEnumerable<string> GetParsableValues(ISnField field)
+        public IEnumerable<string> GetParsableValues(IIndexableField field)
         {
             throw new NotImplementedException();
         }
@@ -38,7 +38,7 @@ namespace SenseNet.Search.Tests.Implementations
             return fieldName;
         }
 
-        public IEnumerable<IndexField> GetIndexFields(ISnField field, out string textExtract)
+        public IEnumerable<IndexField> GetIndexFields(IIndexableField field, out string textExtract)
         {
             throw new NotImplementedException();
         }
@@ -63,7 +63,7 @@ namespace SenseNet.Search.Tests.Implementations
             return typeof(KeywordAnalyzer).FullName;
         }
 
-        public IEnumerable<string> GetParsableValues(ISnField field)
+        public IEnumerable<string> GetParsableValues(IIndexableField field)
         {
             throw new NotImplementedException();
         }
@@ -76,7 +76,7 @@ namespace SenseNet.Search.Tests.Implementations
             return fieldName;
         }
 
-        public IEnumerable<IndexField> GetIndexFields(ISnField field, out string textExtract)
+        public IEnumerable<IndexField> GetIndexFields(IIndexableField field, out string textExtract)
         {
             throw new NotImplementedException();
         }
@@ -101,7 +101,7 @@ namespace SenseNet.Search.Tests.Implementations
             return typeof(KeywordAnalyzer).FullName;
         }
 
-        public IEnumerable<string> GetParsableValues(ISnField field)
+        public IEnumerable<string> GetParsableValues(IIndexableField field)
         {
             throw new NotImplementedException();
         }
@@ -114,7 +114,7 @@ namespace SenseNet.Search.Tests.Implementations
             return fieldName;
         }
 
-        public IEnumerable<IndexField> GetIndexFields(ISnField field, out string textExtract)
+        public IEnumerable<IndexField> GetIndexFields(IIndexableField field, out string textExtract)
         {
             throw new NotImplementedException();
         }
@@ -139,7 +139,7 @@ namespace SenseNet.Search.Tests.Implementations
             return typeof(KeywordAnalyzer).FullName;
         }
 
-        public IEnumerable<string> GetParsableValues(ISnField field)
+        public IEnumerable<string> GetParsableValues(IIndexableField field)
         {
             throw new NotImplementedException();
         }
@@ -152,7 +152,7 @@ namespace SenseNet.Search.Tests.Implementations
             return fieldName;
         }
 
-        public IEnumerable<IndexField> GetIndexFields(ISnField field, out string textExtract)
+        public IEnumerable<IndexField> GetIndexFields(IIndexableField field, out string textExtract)
         {
             throw new NotImplementedException();
         }
@@ -177,7 +177,7 @@ namespace SenseNet.Search.Tests.Implementations
             return typeof(KeywordAnalyzer).FullName;
         }
 
-        public IEnumerable<string> GetParsableValues(ISnField field)
+        public IEnumerable<string> GetParsableValues(IIndexableField field)
         {
             throw new NotImplementedException();
         }
@@ -190,7 +190,7 @@ namespace SenseNet.Search.Tests.Implementations
             return fieldName;
         }
 
-        public IEnumerable<IndexField> GetIndexFields(ISnField field, out string textExtract)
+        public IEnumerable<IndexField> GetIndexFields(IIndexableField field, out string textExtract)
         {
             throw new NotImplementedException();
         }
@@ -224,7 +224,7 @@ namespace SenseNet.Search.Tests.Implementations
             return typeof(KeywordAnalyzer).FullName;
         }
 
-        public IEnumerable<string> GetParsableValues(ISnField field)
+        public IEnumerable<string> GetParsableValues(IIndexableField field)
         {
             throw new NotImplementedException();
         }
@@ -237,7 +237,7 @@ namespace SenseNet.Search.Tests.Implementations
             return fieldName;
         }
 
-        public IEnumerable<IndexField> GetIndexFields(ISnField field, out string textExtract)
+        public IEnumerable<IndexField> GetIndexFields(IIndexableField field, out string textExtract)
         {
             throw new NotImplementedException();
         }
@@ -262,7 +262,7 @@ namespace SenseNet.Search.Tests.Implementations
             return typeof(KeywordAnalyzer).FullName;
         }
 
-        public IEnumerable<string> GetParsableValues(ISnField field)
+        public IEnumerable<string> GetParsableValues(IIndexableField field)
         {
             throw new NotImplementedException();
         }
@@ -275,7 +275,7 @@ namespace SenseNet.Search.Tests.Implementations
             return fieldName;
         }
 
-        public IEnumerable<IndexField> GetIndexFields(ISnField field, out string textExtract)
+        public IEnumerable<IndexField> GetIndexFields(IIndexableField field, out string textExtract)
         {
             throw new NotImplementedException();
         }
