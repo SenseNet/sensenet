@@ -8,12 +8,11 @@
   </Dependencies>
   <Parameters>
     <Parameter name="@path" description="Subtree path to rebuild the index for. Default: the whole Content Repository." />
-    <Parameter name="@backup" description="Whether to compress and insert the new index into the database.">true</Parameter>
   </Parameters>
   <Steps>
     <Phase>
-      <StartRepository StartLuceneManager="false" StartWorkflowEngine="false" />
-      <PopulateIndex Path="@path" Backup="@backup" />
+      <StartRepository StartIndexingEngine="false" StartWorkflowEngine="false" />
+      <PopulateIndex Path="@path" />
     </Phase>
   </Steps>
 </Package>
