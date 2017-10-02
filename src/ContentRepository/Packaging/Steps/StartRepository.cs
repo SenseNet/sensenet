@@ -12,7 +12,14 @@ namespace SenseNet.Packaging.Steps
     {
         private bool _startIndexingEngineChanged;
         private bool _startIndexingEngine;
-        public bool StartLuceneManager //UNDONE:! tusmester API: StartLuceneManager need to be changed to StartIndexingEngine
+
+        [Obsolete("Use the StartIndexingEngine property instead.")]
+        public bool StartLuceneManager
+        {
+            get { return StartIndexingEngine; }
+            set { StartIndexingEngine = value; }
+        }
+        public bool StartIndexingEngine
         {
             get { return _startIndexingEngine; }
             set
@@ -44,7 +51,7 @@ namespace SenseNet.Packaging.Steps
                         indexPath = System.IO.Path.GetFullPath(System.IO.Path.Combine(context.TargetPath, indexPath));
                 }
             }
-            var startIndexingEngine = _startIndexingEngineChanged ? StartLuceneManager : StorageContext.Search.IsOuterEngineEnabled;
+            var startIndexingEngine = _startIndexingEngineChanged ? StartIndexingEngine : StorageContext.Search.IsOuterEngineEnabled;
 
             context.Console.WriteLine("startIndexingEngine: " + startIndexingEngine);
             context.Console.WriteLine("indexPath: " + indexPath);
