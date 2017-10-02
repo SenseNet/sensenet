@@ -1028,10 +1028,24 @@ Id:<42 .QUICK";
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_AspectField()
         {
+            var aspectName = "Linq_AspectField_Aspect1";
+            var fieldName = "Field1";
+            var fieldValue = "fieldvalue";
+            var aspectDefinition =
+                $@"<AspectDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/AspectDefinition'>
+  <Fields>
+    <AspectField name='{fieldName}' type='ShortText' />
+  </Fields>
+</AspectDefinition>";
+
             Test(() =>
             {
-                Assert.AreEqual("Linq_AspectField_Aspect1.Field1:fieldvalue",
-                GetQueryString(Content.All.OfType<Content>().Where(c => (string)c["Linq_AspectField_Aspect1.Field1"] == "fieldvalue")));
+                var aspect = new Aspect(Repository.AspectsFolder) {Name = aspectName };
+                aspect.AspectDefinition = aspectDefinition;
+                aspect.Save();
+
+                Assert.AreEqual($"{aspectName}.{ fieldName}:{ fieldValue}",
+                GetQueryString(Content.All.OfType<Content>().Where(c => (string)c[$"{aspectName}.{fieldName}"] == fieldValue)));
                 return true;
             });
         }
