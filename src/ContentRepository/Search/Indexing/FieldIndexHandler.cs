@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Lucene.Net.Documents;
 using SenseNet.ContentRepository;
 using SnCR = SenseNet.ContentRepository;
 using System.Globalization;
@@ -10,13 +9,10 @@ using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.i18n;
-using Lucene.Net.Analysis;
-using Lucene.Net.Analysis.Standard;
-using SenseNet.ContentRepository.Search;
+using Lucene.Net.Analysis;          //UNDONE:!! ANALYZER: remove using line and assembly reference
+using Lucene.Net.Analysis.Standard; //UNDONE:!! ANALYZER: remove using line and assembly reference
 using SenseNet.ContentRepository.Storage.Search;
-using SenseNet.Search.Parser;
 
-//UNDONE: REFACTOR after Lucene "usings" removed (Lucene and SN fields are conflicted)
 namespace SenseNet.Search.Indexing
 {
 
@@ -42,15 +38,6 @@ namespace SenseNet.Search.Indexing
         public abstract IEnumerable<IndexField> GetIndexFields(ISnField field, out string textExtract);
 
         public abstract IEnumerable<string> GetParsableValues(ISnField snField);
-
-        private static NumericField GetNumericField(string fieldName, PerFieldIndexingInfo indexingInfo)
-        {
-            // Do not reusing any fields.
-            var index = EnumConverter.ToLuceneIndexingMode(indexingInfo.IndexingMode);
-            var store = EnumConverter.ToLuceneIndexStoringMode(indexingInfo.IndexStoringMode);
-            var lucField = new Lucene.Net.Documents.NumericField(fieldName, store, index != Lucene.Net.Documents.Field.Index.NO);
-            return lucField;
-        }
 
         protected IEnumerable<IndexField> CreateField(string name, string value)
         {
@@ -127,7 +114,7 @@ namespace SenseNet.Search.Indexing
             };
         }
 
-        public virtual string GetDefaultAnalyzerName() { return typeof(KeywordAnalyzer).FullName; }
+        public virtual string GetDefaultAnalyzerName() { return typeof(KeywordAnalyzer).FullName; } //UNDONE:!! ANALYZER: Change to an enum member
         public virtual string GetSortFieldName(string fieldName) { return fieldName; }
     }
 
@@ -154,7 +141,7 @@ namespace SenseNet.Search.Indexing
     }
     public class BinaryIndexHandler : FieldIndexHandler
     {
-        public override string GetDefaultAnalyzerName() { return typeof(StandardAnalyzer).FullName; }
+        public override string GetDefaultAnalyzerName() { return typeof(StandardAnalyzer).FullName; } //UNDONE:!! ANALYZER: Change to an enum member
         public override IEnumerable<IndexField> GetIndexFields(ISnField snField, out string textExtract)
         {
             var data = snField.GetData() as SenseNet.ContentRepository.Storage.BinaryData;
@@ -693,7 +680,7 @@ namespace SenseNet.Search.Indexing
     }
     public class LongTextIndexHandler : FieldIndexHandler, IIndexValueConverter<string>, IIndexValueConverter
     {
-        public override string GetDefaultAnalyzerName() { return typeof(StandardAnalyzer).FullName; }
+        public override string GetDefaultAnalyzerName() { return typeof(StandardAnalyzer).FullName; } //UNDONE:!! ANALYZER: Change to an enum member
         public override IEnumerable<IndexField> GetIndexFields(ISnField snField, out string textExtract)
         {
             var data = snField.GetData() as string;

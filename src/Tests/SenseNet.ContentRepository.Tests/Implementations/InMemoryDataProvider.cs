@@ -1308,8 +1308,8 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 var newVersionId = _db.Versions.Max(r => r.NodeId) + 1;
                 lastMinorVersionId = newVersionId;
                 lastMajorVersionId = nodeData.Version.IsMajor ? newVersionId : 0;
-                var nodeTimeStamp = 0L; //TODO:! InMemoryDataProvider: timestamp not supported
-                var versionTimestamp = 0L; //TODO:! InMemoryDataProvider: timestamp not supported
+                var nodeTimeStamp = 0L; //TODO: InMemoryDataProvider: timestamp not supported
+                var versionTimestamp = 0L; //TODO: InMemoryDataProvider: timestamp not supported
                 _db.Nodes.Add(new NodeRecord
                 {
                     NodeId = newNodeId,

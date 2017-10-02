@@ -233,7 +233,6 @@ namespace SenseNet.Configuration
 
         #endregion
 
-        //UNDONE: :() Configure or not: IPermissionFilterFactory
         #region private Lazy<IPermissionFilterFactory> _permissionFilterFactory = new Lazy<IPermissionFilterFactory>
         private Lazy<IPermissionFilterFactory> _permissionFilterFactory = new Lazy<IPermissionFilterFactory>(() =>
         {

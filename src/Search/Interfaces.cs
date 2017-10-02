@@ -148,18 +148,4 @@ namespace SenseNet.Search
         IEnumerable<T> Hits { get; }
         int TotalCount { get; }
     }
-
-    public class DefaultQueryEngine : IQueryEngine //UNDONE: Delete DefaultQueryEngine if the final version is done.
-    {
-        public IQueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
-        {
-            throw new NotImplementedException();
-        }
-        public IQueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
-        {
-            var projection = query.Projection;
-            throw new NotImplementedException();
-        }
-    }
-
 }
