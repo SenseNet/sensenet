@@ -135,17 +135,6 @@ namespace SenseNet.Search.Indexing
 
             return true;
         }
-        // RemoveDocumentActivity
-        internal static bool DeleteDocument(int versionId, VersioningInfo versioning) //UNDONE:!!!!!!!! RemoveDocumentActivity: Unused method
-        {
-            var delTerms = versioning.Delete.Select(i => new SnTerm(IndexFieldName.VersionId, i)).ToList();
-            delTerms.Add(new SnTerm(IndexFieldName.VersionId, versionId));
-            var updates = GetUpdates(versioning).ToList();
-
-            IndexingEngine.WriteIndex(delTerms, null, updates);
-
-            return true;
-        }
         // RemoveTreeActivity, RebuildActivity
         internal static bool DeleteDocuments(IEnumerable<SnTerm> deleteTerms, VersioningInfo versioning)
         {
