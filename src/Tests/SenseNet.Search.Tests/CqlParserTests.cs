@@ -97,6 +97,8 @@ namespace SenseNet.Search.Tests
             Test("Name:42aa*");
             Test("(Name:aaa Id:2)", "Name:aaa Id:2"); // unnecessary parenthesis
             TestError("Name:\"aaa");
+            TestError("");
+            TestError(".TOP:10");
         }
         [TestMethod, TestCategory("IR")]
         public void SnQuery_Parser_AstToString_EmptyQueries()

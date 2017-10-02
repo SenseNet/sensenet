@@ -39,7 +39,6 @@ namespace SenseNet.Search.Parser
 
             if (_hasEmptyQuery)
                 rootNode = new EmptyPredicateVisitor().Visit(rootNode);
-            //UNDONE: what if the rootNode is null?
 
             var result = new SnQuery { Querytext = queryText, QueryTree = rootNode };
 

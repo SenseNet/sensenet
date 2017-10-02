@@ -82,10 +82,7 @@ namespace SenseNet.ContentRepository.Linq
                 Sort = new List<SortInfo>();
             }
 
-            if (node != _root)            //UNDONE:.... LINQ: Why if?
-                return base.Visit(node);
-
-            return base.Visit(node); // first visit
+            return base.Visit(node);
         }
         protected override Expression VisitBinary(BinaryExpression node)
         {

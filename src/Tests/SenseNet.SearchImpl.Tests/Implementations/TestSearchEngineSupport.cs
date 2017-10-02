@@ -33,7 +33,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         public bool IsContentTypeIndexed(string contentTypeName)
         {
-            return true; //UNDONE: Partial solution
+            return true; //UNDONE: TEST: Partial solution
         }
 
         public bool TextExtractingWillBePotentiallySlow(IIndexableField field)

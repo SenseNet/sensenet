@@ -36,7 +36,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             return Index.ReadActivityStatus();
         }
 
-        public void WriteActivityStatusToIndex(IIndexingActivityStatus state) //UNDONE:!!!!! API COMMIT: Review and write unit tests.
+        public void WriteActivityStatusToIndex(IIndexingActivityStatus state)
         {
             Index.WriteActivityStatus(state);
         }

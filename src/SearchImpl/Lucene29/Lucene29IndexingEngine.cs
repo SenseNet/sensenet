@@ -273,7 +273,7 @@ namespace SenseNet.Search.Lucene29
                 return CompletionState.ParseFromReader(readerFrame.IndexReader);
         }
 
-        public void WriteActivityStatusToIndex(IIndexingActivityStatus state) //UNDONE:!!!!! API COMMIT: Review and write unit tests.
+        public void WriteActivityStatusToIndex(IIndexingActivityStatus state)
         {
             Commit(true, state);
         }

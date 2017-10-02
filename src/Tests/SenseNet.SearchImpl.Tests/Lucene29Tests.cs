@@ -385,7 +385,7 @@ namespace SenseNet.SearchImpl.Tests
                 using (new SystemAccount())
                     node.Save();
 
-                //UNDONE: this should work without an explicit commit
+                //UNDONE:!!! TEST: this should work without an explicit commit
                 //IndexManager.Commit();
 
                 var updatedStatus = searchEngine.IndexingEngine.ReadActivityStatusFromIndex();

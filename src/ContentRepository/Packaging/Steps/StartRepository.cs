@@ -12,7 +12,7 @@ namespace SenseNet.Packaging.Steps
     {
         private bool _startIndexingEngineChanged;
         private bool _startIndexingEngine;
-        public bool StartLuceneManager //UNDONE:!!!!!!! tusmester API: StartLuceneManager need to be changed to StartIndexingEngine
+        public bool StartLuceneManager //UNDONE:! tusmester API: StartLuceneManager need to be changed to StartIndexingEngine
         {
             get { return _startIndexingEngine; }
             set
@@ -36,7 +36,7 @@ namespace SenseNet.Packaging.Steps
                 indexPath = Configuration.Indexing.IndexDirectoryPath;
                 if (string.IsNullOrEmpty(indexPath))
                 {
-                    indexPath = System.IO.Path.Combine(context.TargetPath, "App_Data\\LuceneIndex");//UNDONE:!!!!!!! tusmester API: we does not know this stuff: "App_Data\LuceneIndex"
+                    indexPath = System.IO.Path.Combine(context.TargetPath, "App_Data\\LuceneIndex");//UNDONE:! tusmester API: we does not know this stuff: "App_Data\LuceneIndex"
                 }
                 else
                 {
