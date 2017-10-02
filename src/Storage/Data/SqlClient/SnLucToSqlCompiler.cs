@@ -9,7 +9,7 @@ using SenseNet.Search.Parser;
 
 namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 {
-    //UNDONE: SQL: Develop SqlQueryEngine.TryExecuteQuery
+    //UNDONE:| SQL: Develop SqlQueryEngine.TryExecuteQuery
     internal class SnLucToSqlCompiler
     {
         //private static Dictionary<string, SqlQueryFieldInfo> _sqlFields;

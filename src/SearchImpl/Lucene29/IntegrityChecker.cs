@@ -148,7 +148,7 @@ namespace SenseNet.Search.Lucene29
             //    return new IntegrityChecker().CheckRecurse(path);
             //}
             //return new IntegrityChecker().CheckNode(path ?? "/Root");
-            throw new NotImplementedException(); //UNDONE: IntegrityChecker.Check is not implemented
+            throw new NotImplementedException(); //UNDONE:||| INTEGRITYCHECKER: IntegrityChecker.Check is not implemented
         }
 
         /*==================================================================================== Instance part */

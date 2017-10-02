@@ -96,7 +96,7 @@ namespace SenseNet.Search.Parser
             query.Top = Math.Min(
                 settings.Top == 0 ? int.MaxValue : settings.Top,
                 query.Top == 0 ? int.MaxValue : query.Top);
-            if (settings.Skip > 0) //UNDONE: Known issue: if the query contains skip, the setting cannot override with 0 value (first page problem).
+            if (settings.Skip > 0)
                 query.Skip = settings.Skip;
             if (settings.Sort != null && settings.Sort.Any())
                 query.Sort = settings.Sort.ToArray();

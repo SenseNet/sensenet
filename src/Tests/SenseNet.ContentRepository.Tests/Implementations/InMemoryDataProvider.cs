@@ -78,7 +78,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         public override void AssertSchemaTimestampAndWriteModificationDate(long timestamp)
         {
-            //UNDONE: TEST: AssertSchemaTimestampAndWriteModificationDate is not implemented in the InMemoryDataProvider
+            //UNDONE:|||| TEST: AssertSchemaTimestampAndWriteModificationDate is not implemented in the InMemoryDataProvider
             // do nothimg
         }
         #endregion
@@ -1018,7 +1018,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         private readonly Database _db;
 
-        public InMemoryDataProvider() //UNDONE: REFACTOR split to private methods
+        public InMemoryDataProvider() //UNDONE:|||||||| REFACTOR: REFACTOR split to private methods
         {
             _db = new Database();
 

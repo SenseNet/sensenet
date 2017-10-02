@@ -284,7 +284,7 @@ namespace SenseNet.Search.Tests
             TestError("_Text:\"aaa bbb\"~");
             TestError("Name:aaa~1.5");
             TestError("Name:aaa^x");
-            //UNDONE: TEST: Nullref exception in this test: Test("Name:()");
+            //UNDONE:|||| TEST: Nullref exception in this test: Test("Name:()");
         }
 
         private SnQuery Test(string queryText, string expected = null)
@@ -442,7 +442,7 @@ namespace SenseNet.Search.Tests
             test("Id:>0 .COUNTONLY", "Id:>0 .ALLVERSIONS .COUNTONLY", new QuerySettings { AllVersions = true }, true, true);
         }
 
-        //UNDONE: TEST: Move this test to QueryClassifier tests
+        //UNDONE:|||| TEST: Move this test to QueryClassifier tests
         //[TestMethod, TestCategory("IR")]
         //public void SnQuery_Parser_UsedFieldNames()
         //{

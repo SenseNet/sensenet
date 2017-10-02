@@ -292,7 +292,7 @@ namespace SenseNet.SearchImpl.Tests
                 node1.Name = "Node1Renamed";
                 node1.Save();
 
-                DistributedApplication.Cache.Reset(); //UNDONE: TEST: The test should work without explicitly cleared cache
+                DistributedApplication.Cache.Reset(); //UNDONE:|||| TEST: The test should work without explicitly cleared cache
 
                 // reload the newly created.
                 nodes = new[]

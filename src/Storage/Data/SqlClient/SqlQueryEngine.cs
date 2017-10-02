@@ -11,7 +11,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 {
     internal class SqlQueryEngine : IMetaQueryEngine
     {
-        //UNDONE: SQL: Develop SqlQueryEngine.TryExecuteQuery
+        //UNDONE:| SQL: Develop SqlQueryEngine.TryExecuteQuery
         public IQueryResult<int> TryExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
             //var queryInfo = SnQueryClassifier.Classify(query, context.AllVersions);
@@ -21,7 +21,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             return null; // means: cannot execute
         }
 
-        //UNDONE: SQL: Develop SqlQueryEngine.TryExecuteQueryAndProject
+        //UNDONE:| SQL: Develop SqlQueryEngine.TryExecuteQueryAndProject
         public IQueryResult<string> TryExecuteQueryAndProject(SnQuery query, IPermissionFilter filter,
             IQueryContext context)
         {

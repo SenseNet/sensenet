@@ -9,8 +9,8 @@ using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.i18n;
-using Lucene.Net.Analysis;          //UNDONE:!! ANALYZER: remove using line and assembly reference
-using Lucene.Net.Analysis.Standard; //UNDONE:!! ANALYZER: remove using line and assembly reference
+using Lucene.Net.Analysis;          //UNDONE:||||| ANALYZER: remove using line and assembly reference
+using Lucene.Net.Analysis.Standard; //UNDONE:||||| ANALYZER: remove using line and assembly reference
 using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.Search.Indexing
@@ -114,7 +114,7 @@ namespace SenseNet.Search.Indexing
             };
         }
 
-        public virtual string GetDefaultAnalyzerName() { return typeof(KeywordAnalyzer).FullName; } //UNDONE:!! ANALYZER: Change to an enum member
+        public virtual string GetDefaultAnalyzerName() { return typeof(KeywordAnalyzer).FullName; } //UNDONE:||||| ANALYZER: Change to an enum member
         public virtual string GetSortFieldName(string fieldName) { return fieldName; }
     }
 
@@ -141,7 +141,7 @@ namespace SenseNet.Search.Indexing
     }
     public class BinaryIndexHandler : FieldIndexHandler
     {
-        public override string GetDefaultAnalyzerName() { return typeof(StandardAnalyzer).FullName; } //UNDONE:!! ANALYZER: Change to an enum member
+        public override string GetDefaultAnalyzerName() { return typeof(StandardAnalyzer).FullName; } //UNDONE:||||| ANALYZER: Change to an enum member
         public override IEnumerable<IndexField> GetIndexFields(ISnField snField, out string textExtract)
         {
             var data = snField.GetData() as SenseNet.ContentRepository.Storage.BinaryData;
@@ -221,7 +221,7 @@ namespace SenseNet.Search.Indexing
         }
         public override IEnumerable<string> GetParsableValues(ISnField snField)
         {
-            var data = (SenseNet.ContentRepository.Fields.HyperLinkField.HyperlinkData)((SnCR.Field)snField).GetData(); //UNDONE: REFACTOR: Really disgusting solution...
+            var data = (ContentRepository.Fields.HyperLinkField.HyperlinkData)snField.GetData();
             if (data == null)
             {
                 return null;
@@ -680,7 +680,7 @@ namespace SenseNet.Search.Indexing
     }
     public class LongTextIndexHandler : FieldIndexHandler, IIndexValueConverter<string>, IIndexValueConverter
     {
-        public override string GetDefaultAnalyzerName() { return typeof(StandardAnalyzer).FullName; } //UNDONE:!! ANALYZER: Change to an enum member
+        public override string GetDefaultAnalyzerName() { return typeof(StandardAnalyzer).FullName; } //UNDONE:||||| ANALYZER: Change to an enum member
         public override IEnumerable<IndexField> GetIndexFields(ISnField snField, out string textExtract)
         {
             var data = snField.GetData() as string;

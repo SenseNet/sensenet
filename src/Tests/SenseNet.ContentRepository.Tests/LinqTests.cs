@@ -425,7 +425,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                ContentTypeManager.Reset(); //UNDONE: TEST: ContentTypeManager.Current cannot be a pinned static member.
+                ContentTypeManager.Reset(); //UNDONE:|||| TEST: ContentTypeManager.Current cannot be a pinned static member.
                 ContentTypeInstaller.InstallContentType(RefTestNode.ContentTypeDefinition);
 
                 var root = new SystemFolder(Repository.Root) {Name = Guid.NewGuid().ToString()};
@@ -446,7 +446,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                ContentTypeManager.Reset(); //UNDONE: TEST: ContentTypeManager.Current cannot be a pinned static member.
+                ContentTypeManager.Reset(); //UNDONE:|||| TEST: ContentTypeManager.Current cannot be a pinned static member.
                 ContentTypeInstaller.InstallContentType(RefTestNode.ContentTypeDefinition);
 
                 //var root = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };

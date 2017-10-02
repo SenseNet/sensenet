@@ -43,7 +43,7 @@ namespace SenseNet.Packaging.Steps
                 indexPath = Configuration.Indexing.IndexDirectoryPath;
                 if (string.IsNullOrEmpty(indexPath))
                 {
-                    indexPath = System.IO.Path.Combine(context.TargetPath, "App_Data\\LuceneIndex");//UNDONE:! tusmester API: we does not know this stuff: "App_Data\LuceneIndex"
+                    indexPath = System.IO.Path.Combine(context.TargetPath, "App_Data\\LuceneIndex"); //UNDONE:||||||||| tusmester API: we does not know this stuff: "App_Data\LuceneIndex"
                 }
                 else
                 {

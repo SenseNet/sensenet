@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace SenseNet.Search.Parser
 {
-    //UNDONE: SQL: SqlQueryFieldInfo in the SnQuery to SQL query compilation.
+    //UNDONE:| SQL: SqlQueryFieldInfo in the SnQuery to SQL query compilation.
     internal abstract class SqlQueryFieldInfo
     {
         public string SqlName;

@@ -33,7 +33,7 @@ namespace SenseNet.Search
 
         IEnumerable<IndexField> GetIndexFields(ISnField field, out string textExtract);
     }
-    public interface IPerFieldIndexingInfo //UNDONE: REFACTOR: Racionalize interface names: IPerFieldIndexingInfo
+    public interface IPerFieldIndexingInfo
     {
         string Analyzer { get; set; }
         IFieldIndexHandler IndexFieldHandler { get; set; }

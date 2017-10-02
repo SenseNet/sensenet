@@ -76,7 +76,6 @@ namespace SenseNet.Search.Lucene29
 
             if (!string.IsNullOrEmpty(Name))
             {
-                //UNDONE: maybe clean up the directory if we have found it?
                 var namedDirectory = Path.Combine(root, Name);
                 if (!Directory.Exists(namedDirectory))
                     CreateNew();

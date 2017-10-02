@@ -160,10 +160,10 @@ namespace SenseNet.Search.Lucene29
             }
         }
 
-        //UNDONE: SQL: ContentQueryExecutionAlgorithm
+        //UNDONE:| SQL: ContentQueryExecutionAlgorithm
         public enum ContentQueryExecutionAlgorithm { Default, Provider, LuceneOnly, Validation }
 
-        //UNDONE: SQL: ContentQueryExecutionAlgorithm
+        //UNDONE:| SQL: ContentQueryExecutionAlgorithm
         protected void AssertResultsAreEqual(IEnumerable<LucObject> expected, IEnumerable<LucObject> actual, string cql, string sql)
         {
             var exp = string.Join(",", expected.Select(x => x.NodeId).Distinct().OrderBy(y => y));
