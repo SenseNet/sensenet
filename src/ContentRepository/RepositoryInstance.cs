@@ -153,6 +153,9 @@ namespace SenseNet.ContentRepository
 
             LoggingSettings.SnTraceConfigurator.UpdateCategories();
 
+            //UNDONE: find a place for registering oauth providers
+            Providers.Instance.SetProvider("oauth-google", TypeResolver.CreateInstance("SenseNet.OAuth.Google.GoogleOAuthProvider"));
+
             ConsoleWriteLine();
             ConsoleWriteLine("Repository has started.");
             ConsoleWriteLine();

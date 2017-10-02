@@ -15,6 +15,7 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using Newtonsoft.Json;
 using SenseNet.Configuration;
+using SenseNet.Services.Virtualization;
 using SenseNet.TokenAuthentication;
 
 namespace SenseNet.Portal.Virtualization
@@ -89,7 +90,14 @@ namespace SenseNet.Portal.Virtualization
             bool anonymAuthenticated;
             var basicAuthenticated = DispatchBasicAuthentication(context, out anonymAuthenticated);
 
-            new TokenAuthentication().Authenticate(application, basicAuthenticated, anonymAuthenticated);
+            var ta = new TokenAuthentication();
+            ta.Authenticate(application, basicAuthenticated, anonymAuthenticated);
+
+            var oam = new OAuthManager();
+            if (oam.Authenticate(application))
+            {
+                ta.TokenAuthenticate2(context, application);
+            }
 
             // if it is a simple basic authentication case
             if (basicAuthenticated)

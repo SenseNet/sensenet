@@ -193,6 +193,47 @@ namespace SenseNet.Portal.Virtualization
             }
         }
 
+
+        //UNDONE: refactor this (new name and api)
+        public void TokenAuthenticate2(HttpContextBase context, HttpApplication application)
+        {
+            try
+            {
+                var tokenHandler = new JwsSecurityTokenHandler();
+                var validFrom = DateTime.UtcNow;
+
+                ITokenParameters generateTokenParameter = new TokenParameters
+                {
+                    Audience = Configuration.TokenAuthentication.Audience,
+                    Issuer = Configuration.TokenAuthentication.Issuer,
+                    Subject = Configuration.TokenAuthentication.Subject,
+                    EncryptionAlgorithm = Configuration.TokenAuthentication.EncriptionAlgorithm,
+                    AccessLifeTimeInMinutes = Configuration.TokenAuthentication.AccessLifeTimeInMinutes,
+                    RefreshLifeTimeInMinutes = Configuration.TokenAuthentication.RefreshLifeTimeInMinutes,
+                    ClockSkewInMinutes = Configuration.TokenAuthentication.ClockSkewInMinutes,
+                    ValidFrom = validFrom,
+                    ValidateLifeTime = true
+                };
+
+                var tokenManager = new TokenManager(SecurityKey, tokenHandler, generateTokenParameter);
+
+                TokenLogin(true, validFrom, tokenManager, context);
+            }
+            catch (Exception ex)
+            {
+                SnLog.WriteException(ex);
+                context.Response.StatusCode = HttpResponseStatusCode.Unauthorized;
+            }
+            finally
+            {
+                context.Response.Flush();
+                if (application?.Context != null)
+                {
+                    application.CompleteRequest();
+                }
+            }
+        }
+
         private void TokenLogin(bool basicAuthenticated, DateTime validFrom, TokenManager tokenManager, HttpContextBase context)
         {
             if (!basicAuthenticated)
