@@ -964,7 +964,7 @@ namespace  SenseNet.ContentRepository.Schema
             return ContentTypeManager.Current.TraceContentSchema();
         }
 
-        public static PerFieldIndexingInfo GetPerfieldIndexingInfo(string fieldName)
+        public static IPerFieldIndexingInfo GetPerfieldIndexingInfo(string fieldName)
         {
             return ContentTypeManager.GetPerFieldIndexingInfo(fieldName);
         }

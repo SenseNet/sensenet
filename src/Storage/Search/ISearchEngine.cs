@@ -44,7 +44,7 @@ namespace SenseNet.ContentRepository.Storage.Search
 
         IDictionary<string, Type> GetAnalyzers();
 
-        void SetIndexingInfo(object indexingInfo); //UNDONE:|||||||| REFACTOR: API: IDictionary<string, IPerFieldIndexingInfo> instead of object
+        void SetIndexingInfo(IDictionary<string, IPerFieldIndexingInfo> indexingInfo);
     }
 
     public class InternalSearchEngine : ISearchEngine
@@ -62,7 +62,7 @@ namespace SenseNet.ContentRepository.Storage.Search
         {
             return null;
         }
-        public void SetIndexingInfo(object indexingInfo)
+        public void SetIndexingInfo(IDictionary<string, IPerFieldIndexingInfo> indexingInfo)
         {
             // do nothing
         }

@@ -26,12 +26,11 @@ namespace SenseNet.Search.Lucene29
             return _analyzers;
         }
 
-        public void SetIndexingInfo(object indexingInfo)
+        public void SetIndexingInfo(IDictionary<string, IPerFieldIndexingInfo> indexingInfo)
         {
-            var allInfo = (Dictionary<string, PerFieldIndexingInfo>)indexingInfo;
             var analyzerTypes = new Dictionary<string, Type>();
 
-            foreach (var item in allInfo)
+            foreach (var item in indexingInfo)
             {
                 var fieldName = item.Key;
                 var fieldInfo = item.Value;

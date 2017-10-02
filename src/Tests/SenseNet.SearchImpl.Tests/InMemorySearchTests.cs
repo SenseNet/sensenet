@@ -1061,7 +1061,7 @@ namespace SenseNet.SearchImpl.Tests
             // ReSharper disable once NotAccessedField.Local
             private Dictionary<string, string> _analyzerNames;
             // ReSharper disable once NotAccessedField.Local
-            private Dictionary<string, PerFieldIndexingInfo> _perFieldIndexingInfos;
+            private IDictionary<string, IPerFieldIndexingInfo> _perFieldIndexingInfos;
 
             public SearchEngineForNestedQueryTests(Dictionary<string, string[]> mockResultsPerQueries, List<string> log)
             {
@@ -1075,12 +1075,11 @@ namespace SenseNet.SearchImpl.Tests
             {
                 throw new NotImplementedException();
             }
-            public void SetIndexingInfo(object indexingInfo)
+            public void SetIndexingInfo(IDictionary<string, IPerFieldIndexingInfo> indexingInfo)
             {
-                var allInfo = (Dictionary<string, PerFieldIndexingInfo>)indexingInfo;
                 var analyzerNames = new Dictionary<string, string>();
 
-                foreach (var item in allInfo)
+                foreach (var item in indexingInfo)
                 {
                     var fieldName = item.Key;
                     var fieldInfo = item.Value;
@@ -1088,7 +1087,7 @@ namespace SenseNet.SearchImpl.Tests
                         analyzerNames.Add(fieldName, fieldInfo.Analyzer);
                 }
 
-                _perFieldIndexingInfos = allInfo;
+                _perFieldIndexingInfos = indexingInfo;
                 _analyzerNames = analyzerNames;
             }
         }

@@ -405,7 +405,7 @@ namespace SenseNet.ContentRepository
 
         public bool IsBinaryField => this is BinaryField;
 
-        public string GetIndexFieldInfoErrorLog(string message, FieldSetting fieldSetting, PerFieldIndexingInfo indexingInfo)
+        public string GetIndexFieldInfoErrorLog(string message, FieldSetting fieldSetting, IPerFieldIndexingInfo indexingInfo)
         {
             return message +
                 " (Field name: " + this.Name +

@@ -374,7 +374,7 @@ namespace SenseNet.ContentRepository.Schema
 
         // Indexing control //////////////////////////////////////////////////
 
-        public PerFieldIndexingInfo IndexingInfo
+        public IPerFieldIndexingInfo IndexingInfo
         {
             get
             {

@@ -168,7 +168,7 @@ namespace SenseNet.ContentRepository.Schema
 
                 // Do not call ActiveSchema.Reset();
                 _current = null;
-                _indexingInfoTable = new Dictionary<string, PerFieldIndexingInfo>();
+                _indexingInfoTable = new Dictionary<string, IPerFieldIndexingInfo>();
                 ContentType.OnTypeSystemRestarted();
             }
         }
@@ -638,18 +638,18 @@ namespace SenseNet.ContentRepository.Schema
 
         // ====================================================================== Indexing
 
-        private static Dictionary<string, PerFieldIndexingInfo> _indexingInfoTable = new Dictionary<string, PerFieldIndexingInfo>();
-        internal Dictionary<string, PerFieldIndexingInfo> IndexingInfo { get { return _indexingInfoTable; } }
+        private static IDictionary<string, IPerFieldIndexingInfo> _indexingInfoTable = new Dictionary<string, IPerFieldIndexingInfo>();
+        internal IDictionary<string, IPerFieldIndexingInfo> IndexingInfo { get { return _indexingInfoTable; } }
 
-        internal static Dictionary<string, PerFieldIndexingInfo> GetPerFieldIndexingInfo()
+        internal static IDictionary<string, IPerFieldIndexingInfo> GetPerFieldIndexingInfo()
         {
             return Current.IndexingInfo;
         }
-        internal static PerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
+        internal static IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
         {
             var ensureStart = Current;
 
-            PerFieldIndexingInfo info = null;
+            IPerFieldIndexingInfo info = null;
             if (fieldName.Contains('.'))
                 info = Aspect.GetPerFieldIndexingInfo(fieldName);
 
@@ -658,9 +658,9 @@ namespace SenseNet.ContentRepository.Schema
 
             return null;
         }
-        internal static void SetPerFieldIndexingInfo(string fieldName, string contentTypeName, PerFieldIndexingInfo indexingInfo)
+        internal static void SetPerFieldIndexingInfo(string fieldName, string contentTypeName, IPerFieldIndexingInfo indexingInfo)
         {
-            PerFieldIndexingInfo origInfo;
+            IPerFieldIndexingInfo origInfo;
 
             if (!_indexingInfoTable.TryGetValue(fieldName, out origInfo))
             {
