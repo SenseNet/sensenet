@@ -273,6 +273,7 @@ namespace SenseNet.Search.Tests
         {
             TestError("");
             TestError("()");
+            TestError("Name:()");
             TestError("+(+(Id:1 Id:2) +Name:<b");
             TestError("Id:(1 2 3");
             TestError("Password:asdf");
@@ -284,7 +285,6 @@ namespace SenseNet.Search.Tests
             TestError("_Text:\"aaa bbb\"~");
             TestError("Name:aaa~1.5");
             TestError("Name:aaa^x");
-            //UNDONE:|||| TEST: Nullref exception in this test: Test("Name:()");
         }
 
         private SnQuery Test(string queryText, string expected = null)

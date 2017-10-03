@@ -468,6 +468,8 @@ namespace SenseNet.Search.Parser
             // ValueClause       ==>  [Occur] ValueGroup
             var occur = ParseOccur();
             var query = ParseValueGroup();
+            if (query == null)
+                throw ParserError("Empty clause list is not allowed: '()'.");
             query.Boost = ParseBoost();
             if (occur == Occurence.Default || occur == Occurence.Should)
                 return query;
