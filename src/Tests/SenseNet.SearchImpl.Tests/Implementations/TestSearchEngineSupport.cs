@@ -1,20 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Mime;
-using System.Text;
-using System.Threading.Tasks;
-using SenseNet.BackgroundOperations;
-using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
+using ContentType = SenseNet.ContentRepository.Schema.ContentType;
 
 namespace SenseNet.SearchImpl.Tests.Implementations
 {
     internal class TestSearchEngineSupport : ISearchEngineSupport
     {
-        private IDictionary<string, IPerFieldIndexingInfo> _indexingInfos;
+        private readonly IDictionary<string, IPerFieldIndexingInfo> _indexingInfos;
 
         public TestSearchEngineSupport(IDictionary<string, IPerFieldIndexingInfo> indexingInfos)
         {
@@ -34,7 +29,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         public bool IsContentTypeIndexed(string contentTypeName)
         {
-            return true; //UNDONE:|||| TEST: Partial solution
+            return ContentType.GetByName(contentTypeName)?.IndexingEnabled ?? true;
         }
 
         public bool TextExtractingWillBePotentiallySlow(IIndexableField field)

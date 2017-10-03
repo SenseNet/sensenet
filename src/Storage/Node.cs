@@ -96,7 +96,7 @@ namespace SenseNet.ContentRepository.Storage
         /// but can be overidden in derived classes. Determines whether an indexing activity and index
         /// document will be created for this content.
         /// </summary>
-        protected internal virtual bool IsIndexingEnabled { get { return true; } }
+        protected internal virtual bool IsIndexingEnabled => true;
 
         private static readonly List<string> SeeEnabledProperties = new List<string> { "Name", "Path", "Id", "Index", "NodeType", "ContentListId", "ContentListType", "Parent", "IsModified", "IsDeleted", "CreationDate", "ModificationDate", "CreatedBy", "ModifiedBy", "VersionCreationDate", "VersionModificationDate", "VersionCreatedById", "VersionModifiedById", "Aspects", "Icon", "StoredIcon" };
         public bool IsAllowedProperty(string name)

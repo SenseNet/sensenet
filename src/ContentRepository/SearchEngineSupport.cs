@@ -26,10 +26,7 @@ namespace SenseNet.ContentRepository
 
         public bool IsContentTypeIndexed(string contentTypeName)
         {
-            var ct = ContentType.GetByName(contentTypeName);
-            if (ct == null)
-                return true;
-            return ct.IndexingEnabled;
+            return ContentType.GetByName(contentTypeName)?.IndexingEnabled ?? true;
         }
 
         public bool TextExtractingWillBePotentiallySlow(IIndexableField field)
@@ -44,7 +41,7 @@ namespace SenseNet.ContentRepository
 
         public T GetSettingsValue<T>(string key, T defaultValue)
         {
-            return Settings.GetValue<T>(IndexingSettings.SETTINGSNAME, key, null, defaultValue);
+            return Settings.GetValue(IndexingSettings.SETTINGSNAME, key, null, defaultValue);
         }
 
         public QueryResult ExecuteContentQuery(string text, QuerySettings settings, params object[] parameters)
