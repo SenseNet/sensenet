@@ -80,6 +80,9 @@ namespace SenseNet.Services.Virtualization
                     var userData = provider.GetUserData(tokenData);
 
                     //UNDONE: configurable user parent (domain or org unit)
+                    // This can be a hard-coded Public domain, and it would be
+                    // nice if we could separate users by provider.
+                    // E.g. /Root/IMS/Public/facebook/myuser
                     var parent = Node.LoadNode(RepositoryPath.Combine(RepositoryStructure.ImsFolderPath,
                         IdentityManagement.DefaultDomain));
 
@@ -87,6 +90,8 @@ namespace SenseNet.Services.Virtualization
                     var userContent = Content.CreateNew("User", parent, userData.Username);
                     userContent[fieldName] = userId;
                     userContent["Enabled"] = true;
+                    userContent["FullName"] = userData.FullName ?? userData.Username;
+
                     if (!string.IsNullOrEmpty(userData.Email))
                         userContent["Email"] = userData.Email;
 

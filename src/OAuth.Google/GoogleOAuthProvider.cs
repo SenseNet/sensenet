@@ -22,7 +22,8 @@ namespace SenseNet.OAuth.Google
             {
                 Identifier = userData.sub,
                 Email = userData.email,
-                Username = userData.sub
+                Username = userData.sub,
+                FullName = userData.name
             };
 
             return userData.sub;
@@ -38,6 +39,8 @@ namespace SenseNet.OAuth.Google
 
             dynamic requestBody = JsonConvert.DeserializeObject(body);
             string token = requestBody.token;
+
+            //UNDONE: verify and extract token data locally, not using the rest api
             var url = "https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=" + token;
             var gRequest = (HttpWebRequest)WebRequest.Create(url);
             gRequest.Method = "GET";
