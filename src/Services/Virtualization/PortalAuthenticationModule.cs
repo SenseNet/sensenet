@@ -95,6 +95,7 @@ namespace SenseNet.Portal.Virtualization
 
             if (!tokenAuthenticated)
             {
+                //UNDONE: refactor this (new name and api)
                 var oam = new OAuthManager();
                 tokenAuthenticated = oam.Authenticate(application);
                 if (tokenAuthenticated)
