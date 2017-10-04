@@ -196,8 +196,11 @@ namespace SenseNet.Portal.Virtualization
         }
 
 
-        //UNDONE: refactor this (new name and api)
-        public void TokenAuthenticate2(HttpContextBase context, HttpApplication application)
+        /// <summary>
+        /// Assembles the necessary artifacts (cookies and response tokens). This should be called only 
+        /// if the user is already authenticated.
+        /// </summary>
+        internal void TokenLogin(HttpContextBase context, HttpApplication application)
         {
             try
             {

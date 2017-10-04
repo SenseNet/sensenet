@@ -90,17 +90,16 @@ namespace SenseNet.Portal.Virtualization
             bool anonymAuthenticated;
             var basicAuthenticated = DispatchBasicAuthentication(context, out anonymAuthenticated);
 
-            var ta = new TokenAuthentication();
-            var tokenAuthenticated = ta.Authenticate(application, basicAuthenticated, anonymAuthenticated);
+            var tokenAuth = new TokenAuthentication();
+            var tokenAuthenticated = tokenAuth.Authenticate(application, basicAuthenticated, anonymAuthenticated);
 
             if (!tokenAuthenticated)
             {
-                //UNDONE: refactor this (new name and api)
-                var oam = new OAuthManager();
-                tokenAuthenticated = oam.Authenticate(application);
+                var oAuthManager = new OAuthManager();
+                tokenAuthenticated = oAuthManager.Authenticate(application);
                 if (tokenAuthenticated)
                 {
-                    ta.TokenAuthenticate2(context, application);
+                    tokenAuth.TokenLogin(context, application);
                 }
             }
 
