@@ -247,7 +247,7 @@ namespace SenseNet.ContentRepository.Storage
         {
             var listTypeId = listType == null ? 0 : listType.Id;
             var parentId = parent == null ? 0 : parent.Id;
-            var userId = Math.Max(AccessProvider.Current.GetOriginalUser().Id, 1); //UNDONE: systemuser issue hack
+            var userId = AccessProvider.Current.GetOriginalUser().Id;
             var now = DataProvider.Current.RoundDateTime(DateTime.UtcNow);
             var name = String.Concat(nodeType.Name, "-", now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture));
             var path = (parent == null) ? "/" + name : RepositoryPath.Combine(parent.Path, name);
