@@ -17,8 +17,6 @@ namespace SenseNet.Search.Indexing
     {
         public IPerFieldIndexingInfo OwnerIndexingInfo { get; set; }
 
-        public virtual int SortingType { get { return Lucene.Net.Search.SortField.STRING; } } //UNDONE:||||| SORTINGTYPE
-
         public virtual IndexFieldType IndexFieldType { get { return IndexFieldType.String; } }
 
         /// <summary>
@@ -508,7 +506,6 @@ namespace SenseNet.Search.Indexing
     }
     public class IntegerIndexHandler : FieldIndexHandler, IIndexValueConverter<Int32>, IIndexValueConverter
     {
-        public override int SortingType { get { return Lucene.Net.Search.SortField.INT; } }
         public override IndexFieldType IndexFieldType { get { return IndexFieldType.Int; } }
 
         public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
@@ -563,7 +560,6 @@ namespace SenseNet.Search.Indexing
     }
     public class NumberIndexHandler : FieldIndexHandler, IIndexValueConverter<Decimal>, IIndexValueConverter
     {
-        public override int SortingType { get { return Lucene.Net.Search.SortField.DOUBLE; } }
         public override IndexFieldType IndexFieldType { get { return IndexFieldType.Double; } }
 
         public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
@@ -604,7 +600,6 @@ namespace SenseNet.Search.Indexing
     }
     public class DateTimeIndexHandler : FieldIndexHandler, IIndexValueConverter<DateTime>, IIndexValueConverter
     {
-        public override int SortingType { get { return Lucene.Net.Search.SortField.LONG; } }
         public override IndexFieldType IndexFieldType { get { return IndexFieldType.DateTime; } }
 
         public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
@@ -708,8 +703,6 @@ namespace SenseNet.Search.Indexing
     }
     public class ReferenceIndexHandler : FieldIndexHandler, IIndexValueConverter<int>, IIndexValueConverter
     {
-        public override int SortingType { get { return Lucene.Net.Search.SortField.STRING; } }
-
         public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
             textExtract = string.Empty;

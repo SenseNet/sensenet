@@ -33,7 +33,6 @@ namespace SenseNet.Search
         IndexFieldAnalyzer GetDefaultAnalyzer();
 
         IEnumerable<string> GetParsableValues(IIndexableField field);
-        int SortingType { get; }
         IndexFieldType IndexFieldType { get; }
         IPerFieldIndexingInfo OwnerIndexingInfo { get; set; }
         string GetSortFieldName(string fieldName);

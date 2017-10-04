@@ -30,7 +30,6 @@ namespace SenseNet.Search.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        public int SortingType { get; }
         public IndexFieldType IndexFieldType { get; } = IndexFieldType.String;
         public IPerFieldIndexingInfo OwnerIndexingInfo { get; set; }
         public string GetSortFieldName(string fieldName)
@@ -68,7 +67,6 @@ namespace SenseNet.Search.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        public int SortingType { get; }
         public IndexFieldType IndexFieldType { get; } = IndexFieldType.Int;
         public IPerFieldIndexingInfo OwnerIndexingInfo { get; set; }
         public string GetSortFieldName(string fieldName)
@@ -106,7 +104,6 @@ namespace SenseNet.Search.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        public int SortingType { get; }
         public IndexFieldType IndexFieldType { get; } = IndexFieldType.Long;
         public IPerFieldIndexingInfo OwnerIndexingInfo { get; set; }
         public string GetSortFieldName(string fieldName)
@@ -144,7 +141,6 @@ namespace SenseNet.Search.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        public int SortingType { get; }
         public IndexFieldType IndexFieldType { get; } = IndexFieldType.Float;
         public IPerFieldIndexingInfo OwnerIndexingInfo { get; set; }
         public string GetSortFieldName(string fieldName)
@@ -182,7 +178,6 @@ namespace SenseNet.Search.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        public int SortingType { get; }
         public IndexFieldType IndexFieldType { get; } = IndexFieldType.Double;
         public IPerFieldIndexingInfo OwnerIndexingInfo { get; set; }
         public string GetSortFieldName(string fieldName)
@@ -229,7 +224,6 @@ namespace SenseNet.Search.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        public int SortingType { get; }
         public IndexFieldType IndexFieldType { get; } = IndexFieldType.Double;
         public IPerFieldIndexingInfo OwnerIndexingInfo { get; set; }
         public string GetSortFieldName(string fieldName)
@@ -267,7 +261,6 @@ namespace SenseNet.Search.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        public int SortingType { get; }
         public IndexFieldType IndexFieldType { get; } = IndexFieldType.Double;
         public IPerFieldIndexingInfo OwnerIndexingInfo { get; set; }
         public string GetSortFieldName(string fieldName)

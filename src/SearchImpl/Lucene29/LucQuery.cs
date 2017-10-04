@@ -2,22 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using SenseNet.ContentRepository.Storage.Search;
 using Lucene.Net.Search;
-using Lucene.Net.QueryParsers;
-using Lucene.Net.Analysis.Standard;
-using Lucene.Net.Documents;
-using System.Collections;
 using SenseNet.ContentRepository.Storage.Security;
-using Lucene.Net.Index;
-using Lucene.Net.Util;
 using SenseNet.Diagnostics;
 using System.Diagnostics;
-using SenseNet.ContentRepository;
 using SenseNet.Search.Parser;
-using SenseNet.Search.Indexing;
-using SenseNet.ContentRepository.Storage.Schema;
-using SenseNet.ContentRepository.Storage.Diagnostics;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Search.Lucene29.QueryExecutors;
 
@@ -25,7 +14,7 @@ namespace SenseNet.Search.Lucene29
 {
     internal class LucQuery
     {
-        private static string[] _headOnlyFields = SenseNet.ContentRepository.Storage.Node.GetHeadOnlyProperties();
+        private static readonly string[] HeadOnlyFields = Node.GetHeadOnlyProperties();
 
         public static Query FullSetQuery = NumericRangeQuery.NewIntRange("Id", 0, null, false, false); // MachAllDocsQuery in 3.0.3
         //public static readonly string NullReferenceValue = "null";
@@ -36,14 +25,14 @@ namespace SenseNet.Search.Lucene29
             get { return __query; }
             private set { __query = value; }
         }
-        public string QueryText { get { return QueryToString(Query); } }
+        public string QueryText => QueryToString(Query);
 
         [Obsolete("", true)]
         internal QueryFieldLevel FieldLevel { get; set; }
 
         public IUser User { get; set; }
         public SortField[] SortFields { get; set; }
-        public bool HasSort { get { return SortFields != null && SortFields.Length > 0; } }
+        public bool HasSort => SortFields != null && SortFields.Length > 0;
         public string Projection { get; private set; }
 
         public bool ForceLuceneExecution { get; set; }
@@ -82,13 +71,6 @@ namespace SenseNet.Search.Lucene29
             if (propertyName == "NodeId") return "Id";
             return propertyName;
         }
-        private static int GetSortType(string propertyName)
-        {
-            var x = StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(GetFieldNameByPropertyName(propertyName));
-            if (x != null)
-                return x.IndexFieldHandler.SortingType;
-            return SortField.STRING;
-        }
         public static LucQuery Create(Query luceneQuery)
         {
             return new LucQuery { Query = luceneQuery };
@@ -100,9 +82,31 @@ namespace SenseNet.Search.Lucene29
             var sortType = SortField.STRING;
             if (info != null)
             {
-                sortType = info.IndexFieldHandler.SortingType;
                 fieldName = info.IndexFieldHandler.GetSortFieldName(fieldName);
+
+                switch (info.IndexFieldHandler.IndexFieldType)
+                {
+                    case IndexFieldType.String:
+                        sortType = SortField.STRING;
+                        break;
+                    case IndexFieldType.Int:
+                        sortType = SortField.INT;
+                        break;
+                    case IndexFieldType.DateTime:
+                    case IndexFieldType.Long:
+                        sortType = SortField.LONG;
+                        break;
+                    case IndexFieldType.Float:
+                        sortType = SortField.FLOAT;
+                     break;
+                    case IndexFieldType.Double:
+                        sortType = SortField.DOUBLE;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
             }
+
             if (sortType == SortField.STRING)
                 return new SortField(fieldName, System.Threading.Thread.CurrentThread.CurrentCulture, reverse);
             return new SortField(fieldName, sortType, reverse);
@@ -205,7 +209,7 @@ namespace SenseNet.Search.Lucene29
                 level = QueryFieldLevel.BinaryOrFullText;
             else if (fieldName == IndexFieldName.InFolder || fieldName == IndexFieldName.InTree
                 || fieldName == IndexFieldName.Type || fieldName == IndexFieldName.TypeIs
-                || _headOnlyFields.Contains(fieldName))
+                || HeadOnlyFields.Contains(fieldName))
                 level = QueryFieldLevel.HeadOnly;
             else
                 level = QueryFieldLevel.NoBinaryOrFullText;
