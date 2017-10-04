@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>User</ContentType>
+  <ContentName>Startup</ContentName>
+  <Fields>
+    <Enabled>true</Enabled>
+    <FullName>Startup User</FullName>
+    <LoginName>Startup</LoginName>
+    <Password>
+      <Text>startup</Text>
+    </Password>
+  </Fields>
+</ContentMetaData>
