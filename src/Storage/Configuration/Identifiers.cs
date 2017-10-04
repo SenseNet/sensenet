@@ -3,7 +3,7 @@
     public class Identifiers
     {
         public const int AdministratorUserId = 1;
-        public const int StartupUserId = -2;
+        public const int StartupUserId = 12;
         public const int SystemUserId = -1;
         public const int PortalRootId = 2;
         public const int PortalOrgUnitId = 5;

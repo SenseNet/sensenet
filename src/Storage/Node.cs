@@ -2456,7 +2456,7 @@ namespace SenseNet.ContentRepository.Storage
             var currentUser = AccessProvider.Current.GetOriginalUser();
 
             var currentUserNode = currentUser as Node;
-            if (currentUserNode == null)
+            if (currentUserNode == null && !(currentUser is StartupUser))
                 throw new InvalidOperationException("Cannot save the content because the current user account representation is not a Node.");
 
             var thisList = this as IContentList;
