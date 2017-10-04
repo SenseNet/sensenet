@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search;
@@ -128,7 +129,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             using (new SystemAccount())
             {
                 // import scenario
-                if (!StorageContext.Search.ContentQueryIsAllowed)
+                if (!SearchManager.ContentQueryIsAllowed)
                 {
                     var resultIds = NodeQuery.QueryNodesByTypeAndPathAndName(new[]
                     {

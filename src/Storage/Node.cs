@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Search;
@@ -148,7 +149,7 @@ namespace SenseNet.ContentRepository.Storage
             return NodeQuery.QueryChildren(this.Id);
         }
 
-        public virtual int NodesInTree => StorageContext.Search.ContentRepository.ExecuteContentQuery(
+        public virtual int NodesInTree => SearchManager.ContentRepository.ExecuteContentQuery(
                 "+InTree:@0",
                 QuerySettings.AdminSettings,
                 this.Path)
@@ -2036,7 +2037,7 @@ namespace SenseNet.ContentRepository.Storage
                 var thisPath = RepositoryPath.Combine(parentPath, this.Name);
 
                 // save
-                DataBackingStore.SaveNodeData(this, settings, StorageContext.Search.ContentRepository.GetIndexPopulator(), thisPath, thisPath);
+                DataBackingStore.SaveNodeData(this, settings, SearchManager.ContentRepository.GetIndexPopulator(), thisPath, thisPath);
 
                 // <L2Cache>
                 StorageContext.L2Cache.Clear();
@@ -2268,7 +2269,7 @@ namespace SenseNet.ContentRepository.Storage
                     try
                     {
                         this.Data.PreloadTextProperties();
-                        DataBackingStore.SaveNodeData(this, settings, StorageContext.Search.ContentRepository.GetIndexPopulator(), originalPath, newPath);
+                        DataBackingStore.SaveNodeData(this, settings, SearchManager.ContentRepository.GetIndexPopulator(), originalPath, newPath);
                     }
                     finally
                     {
@@ -2366,7 +2367,7 @@ namespace SenseNet.ContentRepository.Storage
                     ExpectedVersionId = this.VersionId,
                     MultistepSaving = false
                 };
-                DataBackingStore.SaveNodeData(this, settings, StorageContext.Search.ContentRepository.GetIndexPopulator(), Path, Path);
+                DataBackingStore.SaveNodeData(this, settings, SearchManager.ContentRepository.GetIndexPopulator(), Path, Path);
 
                 // events
                 if (this.Version.Status != VersionStatus.Locked)
@@ -2617,7 +2618,7 @@ namespace SenseNet.ContentRepository.Storage
                     PathDependency.FireChanged(pathToInvalidate);
                     PathDependency.FireChanged(this.Path);
 
-                    var populator = StorageContext.Search.ContentRepository.GetIndexPopulator();
+                    var populator = SearchManager.ContentRepository.GetIndexPopulator();
                     populator.DeleteTree(this.Path, this.Id, true);
 
                     // <L2Cache>
@@ -3138,7 +3139,7 @@ namespace SenseNet.ContentRepository.Storage
                     if (this.Id > 0)
                         SecurityHandler.DeleteEntity(this.Id);
 
-                    StorageContext.Search.ContentRepository.GetIndexPopulator().DeleteTree(myPath, this.Id, false);
+                    SearchManager.ContentRepository.GetIndexPopulator().DeleteTree(myPath, this.Id, false);
 
                     if (hadContentList)
                         FireAnyContentListDeleted();
@@ -3304,7 +3305,7 @@ namespace SenseNet.ContentRepository.Storage
             }
             try
             {
-                StorageContext.Search.ContentRepository.GetIndexPopulator().DeleteForest(ids, false);
+                SearchManager.ContentRepository.GetIndexPopulator().DeleteForest(ids, false);
             }
             catch (Exception e)
             {

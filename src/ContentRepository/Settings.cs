@@ -15,6 +15,7 @@ using SenseNet.Search;
 using System.Collections;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Json;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Search.Internal;
@@ -562,7 +563,7 @@ namespace SenseNet.ContentRepository
             
             var nameError = false;
             var globalSettingError = false;
-            if (StorageContext.Search.ContentQueryIsAllowed)
+            if (SearchManager.ContentQueryIsAllowed)
             {
                 if (ContentQuery.Query(SafeQueries.SettingsByNameAndSubtree, null, name, id, rootpath).Count > 0)
                     nameError = true;

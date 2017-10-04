@@ -1,5 +1,6 @@
 ﻿using System;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Search;
@@ -31,7 +32,7 @@ namespace SenseNet.Packaging.Steps
             var savedMode = RepositoryEnvironment.WorkingMode.Populating;
             RepositoryEnvironment.WorkingMode.Populating = true;
 
-            var populator = StorageContext.Search.ContentRepository.GetIndexPopulator();
+            var populator = SearchManager.ContentRepository.GetIndexPopulator();
             populator.NodeIndexed += Populator_NodeIndexed;
 
             try

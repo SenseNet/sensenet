@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Storage.Data;
@@ -142,7 +143,7 @@ namespace SenseNet.ContentRepository.Storage
             switch (_hint)
             {
                 case ExecutionHint.None:
-                    if (StorageContext.Search.IsOuterEngineEnabled && StorageContext.Search.SearchEngine != InternalSearchEngine.Instance)
+                    if (SearchManager.IsOuterEngineEnabled && SearchManager.SearchEngine != InternalSearchEngine.Instance)
                         return QueryChildrenFromLucene(thisId);
                     return QueryChildrenFromDatabase(thisId);
                 case ExecutionHint.ForceRelationalEngine:
@@ -158,7 +159,7 @@ namespace SenseNet.ContentRepository.Storage
             var q = $"ParentId:{thisId}";
             if (_filter != null)
                 q += $" +({_filter})";
-            return StorageContext.Search.ContentRepository.ExecuteContentQuery(q, QuerySettings.AdminSettings);
+            return SearchManager.ContentRepository.ExecuteContentQuery(q, QuerySettings.AdminSettings);
         }
         private QueryResult QueryChildrenFromDatabase(int thisId)
         {

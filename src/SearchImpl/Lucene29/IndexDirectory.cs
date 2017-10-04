@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
 
@@ -23,7 +24,7 @@ namespace SenseNet.Search.Lucene29
         
         public static void RemoveUnnecessaryDirectories()
         {
-            var root = StorageContext.Search.IndexDirectoryPath;
+            var root = SearchManager.IndexDirectoryPath;
             if (!Directory.Exists(root))
                 return;
             var unnecessaryDirs = Directory.GetDirectories(root)
@@ -62,7 +63,7 @@ namespace SenseNet.Search.Lucene29
         private string CreateNew()
         {
             var name = Name ?? DateTime.UtcNow.ToString("yyyyMMddHHmmss");
-            var path = Path.Combine(StorageContext.Search.IndexDirectoryPath, name);
+            var path = Path.Combine(SearchManager.IndexDirectoryPath, name);
 
             Directory.CreateDirectory(path);
             SnTrace.Index.Write("New index directory: {0}", path);
@@ -71,7 +72,7 @@ namespace SenseNet.Search.Lucene29
         }
         private string GetCurrentDirectory()
         {
-            var root = StorageContext.Search.IndexDirectoryPath;
+            var root = SearchManager.IndexDirectoryPath;
             EnsureFirstDirectory(root);
 
             if (!string.IsNullOrEmpty(Name))

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Tests.Implementations;
 using SenseNet.Search;
@@ -26,7 +27,7 @@ namespace SenseNet.ContentRepository.Tests
 
             Test(() =>
             {
-                var analyzersBefore = StorageContext.Search.SearchEngine.GetAnalyzers();
+                var analyzersBefore = SearchManager.SearchEngine.GetAnalyzers();
 
                 ContentTypeManager.Reset(); //UNDONE:|||| TEST: ContentTypeManager.Current cannot be a pinned static member.
                 ContentTypeInstaller.InstallContentType($@"<?xml version='1.0' encoding='utf-8'?>
@@ -40,7 +41,7 @@ namespace SenseNet.ContentRepository.Tests
 ");
                 ContentType.GetByName(contentTypeName); // starts the contenttype system
 
-                var analyzersAfter = StorageContext.Search.SearchEngine.GetAnalyzers();
+                var analyzersAfter = SearchManager.SearchEngine.GetAnalyzers();
 
                 Assert.IsFalse(analyzersBefore.ContainsKey(fieldName1));
                 Assert.IsFalse(analyzersBefore.ContainsKey(fieldName2));
@@ -63,7 +64,7 @@ namespace SenseNet.ContentRepository.Tests
             var analyzerValue = "Lucene.Net.Analysis.KeywordAnalyzer";
             Test(() =>
             {
-                var searchEngine = StorageContext.Search.SearchEngine as InMemorySearchEngine;
+                var searchEngine = SearchManager.SearchEngine as InMemorySearchEngine;
                 Assert.IsNotNull(searchEngine);
 
                 string message = null;

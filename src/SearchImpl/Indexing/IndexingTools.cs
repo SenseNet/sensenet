@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Search;
@@ -19,7 +20,7 @@ namespace SenseNet.Search.Indexing
         public static void AddTextExtract(int versionId, string textExtract)
         {
             // 1: load indexDocument.
-            var docData = StorageContext.Search.LoadIndexDocumentByVersionId(versionId);
+            var docData = SearchManager.LoadIndexDocumentByVersionId(versionId);
             var indexDoc = docData.IndexDocument;
 
             // 2: original and new text extract concatenation.
@@ -38,7 +39,7 @@ namespace SenseNet.Search.Indexing
             // 5: distributed lucene index update.
             var node = Node.LoadNodeByVersionId(versionId);
             if (node != null)
-                StorageContext.Search.ContentRepository.GetIndexPopulator().RebuildIndex(node);
+                SearchManager.ContentRepository.GetIndexPopulator().RebuildIndex(node);
         }
 
         //UNDONE:|| INDEXING INFO VIEW: Unused but useful tool temporarily commented out: GetAllFieldNames

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Search;
@@ -144,7 +145,7 @@ namespace SenseNet.ContentRepository.Storage.AppModel
 
         internal static NodeHead ResolveFirstByPaths(IEnumerable<string> paths)
         {
-            if (StorageContext.Search.IsOuterEngineEnabled)
+            if (SearchManager.IsOuterEngineEnabled)
                 return ResolveFirstByPathsFromIndexedEngine(paths);
 
             var script = DataProvider.GetAppModelScript(paths, false, false);
@@ -165,7 +166,7 @@ namespace SenseNet.ContentRepository.Storage.AppModel
         {
             foreach (var path in paths)
             {
-                var r = StorageContext.Search.ContentRepository.ExecuteContentQuery($"Path:{path}", QuerySettings.AdminSettings);
+                var r = SearchManager.ContentRepository.ExecuteContentQuery($"Path:{path}", QuerySettings.AdminSettings);
                 if (r.Count > 0)
                     return NodeHead.Get(r.Identifiers.First());
             }
@@ -174,7 +175,7 @@ namespace SenseNet.ContentRepository.Storage.AppModel
 
         internal static IEnumerable<NodeHead> ResolveAllByPaths(IEnumerable<string> paths, bool resolveChildren)
         {
-            if (StorageContext.Search.IsOuterEngineEnabled)
+            if (SearchManager.IsOuterEngineEnabled)
                 return ResolveAllByPathsFromIndexedEngine(paths, resolveChildren);
 
             var script = DataProvider.GetAppModelScript(paths, true, resolveChildren);
@@ -216,7 +217,7 @@ namespace SenseNet.ContentRepository.Storage.AppModel
             {
                 if (resolveChildren)
                 {
-                    var r = StorageContext.Search.ContentRepository.ExecuteContentQuery("InTree:@0.SORT:Path",
+                    var r = SearchManager.ContentRepository.ExecuteContentQuery("InTree:@0.SORT:Path",
                         QuerySettings.AdminSettings, path);
                     if (r.Count > 0)
                         // skip first because it is the root of subtree

@@ -6,6 +6,7 @@ using Lucene.Net.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using System.Diagnostics;
+using SenseNet.ContentRepository.Search;
 using SenseNet.Search.Parser;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Search.Lucene29.QueryExecutors;
@@ -78,7 +79,7 @@ namespace SenseNet.Search.Lucene29
 
         public static SortField CreateSortField(string fieldName, bool reverse)
         {
-            var info = StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(fieldName);
+            var info = SearchManager.ContentRepository.GetPerFieldIndexingInfo(fieldName);
             var sortType = SortField.STRING;
             if (info != null)
             {
@@ -191,7 +192,7 @@ namespace SenseNet.Search.Lucene29
             var fieldLevel = QueryFieldLevel.NotDefined;
             foreach (var fieldName in fieldNames)
             {
-                var indexingInfo = StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(fieldName);
+                var indexingInfo = SearchManager.ContentRepository.GetPerFieldIndexingInfo(fieldName);
                 var level = GetFieldLevel(fieldName, indexingInfo);
                 fieldLevel = level > fieldLevel ? level : fieldLevel;
             }

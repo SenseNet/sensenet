@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Xml.XPath;
 using SenseNet.Communication.Messaging;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Search;
@@ -716,7 +717,7 @@ namespace SenseNet.ContentRepository.Schema
 
         private void FinalizeIndexingInfo()
         {
-            StorageContext.Search.SearchEngine.SetIndexingInfo(_indexingInfoTable);
+            SearchManager.SearchEngine.SetIndexingInfo(_indexingInfoTable);
         }
 
         public static long _GetTimestamp()

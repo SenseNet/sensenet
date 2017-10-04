@@ -6,6 +6,7 @@ using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Events;
@@ -469,7 +470,7 @@ namespace SenseNet.SearchImpl.Tests
 
                 // ACTION
                 using (var console = new StringWriter(sb))
-                    StorageContext.Search.ContentRepository.GetIndexPopulator().ClearAndPopulateAll(console);
+                    SearchManager.ContentRepository.GetIndexPopulator().ClearAndPopulateAll(console);
 
                 // load last indexing activity
                 var db = DataProvider.Current;
@@ -971,7 +972,7 @@ namespace SenseNet.SearchImpl.Tests
 
             var result = Test(() =>
             {
-                var searchEngine = StorageContext.Search.SearchEngine;
+                var searchEngine = SearchManager.SearchEngine;
                 var originalStatus = searchEngine.IndexingEngine.ReadActivityStatusFromIndex();
                 searchEngine.IndexingEngine.WriteActivityStatusToIndex(newStatus);
 

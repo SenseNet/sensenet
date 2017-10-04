@@ -4,6 +4,7 @@ using System.Web;
 using Microsoft.JScript;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Versioning;
 using SenseNet.Search;
 
@@ -51,7 +52,7 @@ namespace SenseNet.ContentRepository
         {
             get
             {
-                if (!StorageContext.Search.ContentQueryIsAllowed)
+                if (!SearchManager.ContentQueryIsAllowed)
                     return 0;
 
                 QueryResult cq = ContentQuery.Query(SafeQueries.InTreeAndTypeIs, null, this.Path, "expenseclaimitem");

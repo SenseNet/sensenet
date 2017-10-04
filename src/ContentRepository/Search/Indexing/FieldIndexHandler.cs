@@ -9,6 +9,7 @@ using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.i18n;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.Search.Indexing
@@ -459,8 +460,8 @@ namespace SenseNet.Search.Indexing
     }
     public class BooleanIndexHandler : FieldIndexHandler, IIndexValueConverter<bool>, IIndexValueConverter
     {
-        public static List<string> YesList => StorageContext.Search.YesList;
-        public static List<string> NoList => StorageContext.Search.NoList;
+        public static List<string> YesList => SearchManager.YesList;
+        public static List<string> NoList => SearchManager.NoList;
 
         public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {

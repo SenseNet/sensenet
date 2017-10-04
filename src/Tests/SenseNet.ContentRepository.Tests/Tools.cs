@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Search;
 
@@ -60,12 +61,12 @@ namespace SenseNet.ContentRepository.Tests
             private readonly ISearchEngineSupport _savedSearchEngineSupport;
             public RepositorySupportSwindler(ISearchEngineSupport cheat)
             {
-                _savedSearchEngineSupport = StorageContext.Search.ContentRepository;
-                StorageContext.Search.ContentRepository = cheat;
+                _savedSearchEngineSupport = SearchManager.ContentRepository;
+                SearchManager.ContentRepository = cheat;
             }
             public void Dispose()
             {
-                StorageContext.Search.ContentRepository = _savedSearchEngineSupport;
+                SearchManager.ContentRepository = _savedSearchEngineSupport;
             }
         }
     }

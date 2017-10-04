@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using SenseNet.ContentRepository;
 using System.Configuration;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.Packaging.Steps
@@ -51,7 +52,7 @@ namespace SenseNet.Packaging.Steps
                         indexPath = System.IO.Path.GetFullPath(System.IO.Path.Combine(context.TargetPath, indexPath));
                 }
             }
-            var startIndexingEngine = _startIndexingEngineChanged ? StartIndexingEngine : StorageContext.Search.IsOuterEngineEnabled;
+            var startIndexingEngine = _startIndexingEngineChanged ? StartIndexingEngine : SearchManager.IsOuterEngineEnabled;
 
             context.Console.WriteLine("startIndexingEngine: " + startIndexingEngine);
             context.Console.WriteLine("indexPath: " + indexPath);

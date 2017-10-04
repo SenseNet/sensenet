@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using SenseNet.ContentRepository.Search;
 
 namespace SenseNet.Search
 {
@@ -11,7 +12,7 @@ namespace SenseNet.Search
 
         internal static string[] SplitText(string fieldName, string text)
         {
-            return SplitText(fieldName, text, ContentRepository.Storage.StorageContext.Search.SearchEngine.GetAnalyzers());
+            return SplitText(fieldName, text, SearchManager.SearchEngine.GetAnalyzers());
         }
         internal static string[] SplitText(string fieldName, string text, IDictionary<string, IndexFieldAnalyzer> analyzers)
         {

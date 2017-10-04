@@ -43,57 +43,6 @@ namespace SenseNet.ContentRepository.Storage
             var instance = System.Data.Entity.SqlServer.SqlProviderServices.Instance;
         }
 
-        public static class Search
-        {
-            public static readonly List<string> YesList = new List<string>(new [] { "1", "true", "y", SnTerm.Yes });
-            public static readonly List<string> NoList = new List<string>(new [] { "0", "false", "n", SnTerm.No });
-
-            public static ISearchEngine SearchEngine
-            {
-                get { return Instance.GetSearchEnginePrivate(); }
-            }
-            public static ISearchEngineSupport ContentRepository { get; set; }
-
-            public static bool ContentQueryIsAllowed => IsOuterEngineEnabled &&
-                                                        SearchEngine != InternalSearchEngine.Instance;
-
-            public static bool IsOuterEngineEnabled
-            {
-                get { return Indexing.IsOuterSearchEngineEnabled; }
-            }
-            public static string IndexDirectoryPath
-            {
-                get { return Instance.IndexDirectoryPath; }
-            }
-            public static void EnableOuterEngine()
-            {
-                if (false == Indexing.IsOuterSearchEngineEnabled)
-                    throw new InvalidOperationException("Indexing is not allowed in the configuration");
-                Indexing.IsOuterSearchEngineEnabled = true;
-            }
-            public static void DisableOuterEngine()
-            {
-                Indexing.IsOuterSearchEngineEnabled = false;
-            }
-
-            public static void SetIndexDirectoryPath(string path)
-            {
-                Instance.IndexDirectoryPath = path;
-            }
-
-            public static IndexDocumentData LoadIndexDocumentByVersionId(int versionId)
-            {
-                return DataProvider.LoadIndexDocument(versionId);
-            }
-            public static IEnumerable<IndexDocumentData> LoadIndexDocumentByVersionId(IEnumerable<int> versionId)
-            {
-                return DataProvider.LoadIndexDocument(versionId);
-            }
-            public static IEnumerable<IndexDocumentData> LoadIndexDocumentsByPath(string path, int[] excludedNodeTypes)
-            {
-                return DataProvider.LoadIndexDocument(path, excludedNodeTypes);
-            }
-        }
 
         private static IL2Cache _l2Cache = new NullL2Cache();
         public static IL2Cache L2Cache
@@ -102,50 +51,5 @@ namespace SenseNet.ContentRepository.Storage
             set { _l2Cache = value; }
         }
 
-
-        // ========================================================================== Singleton model
-
-        private static StorageContext instance;
-        private static object instanceLock=new object();
-
-        private static StorageContext Instance
-        {
-            get
-            {
-                if (instance != null)
-                    return instance;
-                lock (instanceLock)
-                {
-                    if (instance != null)
-                        return instance;
-                    instance = new StorageContext();
-                    return instance;
-                }
-            }
-        }
-
-        private StorageContext() { }
-
-        // ========================================================================== Private interface
-
-        private string __indexDirectoryPath;
-        private string IndexDirectoryPath
-        {
-            get
-            {
-                if (__indexDirectoryPath == null)
-                    __indexDirectoryPath = Indexing.IndexDirectoryFullPath;
-                return __indexDirectoryPath;
-            }
-            set
-            {
-                __indexDirectoryPath = value;
-            }
-        }
-
-        private ISearchEngine GetSearchEnginePrivate()
-        {
-            return !Indexing.IsOuterSearchEngineEnabled ? InternalSearchEngine.Instance : Providers.Instance.SearchEngine;
-        }
     }
 }

@@ -20,6 +20,7 @@ using System.Diagnostics;
 using System.Globalization;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Fields;
+using SenseNet.ContentRepository.Search;
 using SenseNet.Search;
 using SenseNet.Tools;
 
@@ -960,7 +961,7 @@ namespace SenseNet.ContentRepository
             int count;
             using (new SystemAccount())
             {
-                if (StorageContext.Search.ContentQueryIsAllowed)
+                if (SearchManager.ContentQueryIsAllowed)
                 {
                     count = Content.All.OfType<ContentList>().Count(cl => (string)cl["ListEmail"] == email && cl.Id != this.Id);
                 }
@@ -1007,7 +1008,7 @@ namespace SenseNet.ContentRepository
             var targetPath = RepositoryPath.Combine(this.Path, "Workflows/MailProcess");
             IEnumerable<Node> runningWorkflows;
 
-            if (StorageContext.Search.ContentQueryIsAllowed)
+            if (SearchManager.ContentQueryIsAllowed)
             {
                 runningWorkflows = Content.All.DisableAutofilters().Where(
                     c => c.TypeIs("MailProcessorWorkflow") &&

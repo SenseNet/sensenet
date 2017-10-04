@@ -11,6 +11,7 @@ using System.IO;
 using System.Xml;
 using SenseNet.ContentRepository.Storage.Events;
 using System.Reflection;
+using SenseNet.ContentRepository.Search;
 using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Search;
@@ -250,7 +251,7 @@ namespace SenseNet.ContentRepository
         }
         public static bool AspectExists(string name)
         {
-            if (StorageContext.Search.ContentQueryIsAllowed)
+            if (SearchManager.ContentQueryIsAllowed)
                 return ContentQuery.Query(SafeQueries.AspectExists, null, name).Count > 0;
             return LoadAspectByName(name) != null;
         }

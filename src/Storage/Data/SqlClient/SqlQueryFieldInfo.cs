@@ -2,6 +2,7 @@
 using SenseNet.ContentRepository.Storage.Schema;
 using System;
 using System.Linq;
+using SenseNet.ContentRepository.Search;
 
 namespace SenseNet.Search.Parser
 {
@@ -70,7 +71,7 @@ namespace SenseNet.Search.Parser
         }
         public override string GetSqlTextValue(string termValue)
         {
-            return StorageContext.Search.YesList.Contains(termValue.ToLowerInvariant()) ? " IS NOT NULL" : " IS NULL";
+            return SearchManager.YesList.Contains(termValue.ToLowerInvariant()) ? " IS NOT NULL" : " IS NULL";
         }
     }
 
@@ -123,7 +124,7 @@ namespace SenseNet.Search.Parser
     {
         public override object GetParameterValue(string termValue)
         {
-            return StorageContext.Search.YesList.Contains(termValue.ToLowerInvariant()) ? "1" : "0";
+            return SearchManager.YesList.Contains(termValue.ToLowerInvariant()) ? "1" : "0";
         }
         public override string GetSqlTextValue(string termValue)
         {

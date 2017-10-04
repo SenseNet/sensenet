@@ -459,7 +459,7 @@ namespace SenseNet.Search.Lucene29
         //    // We must exclude those content types from the integrity check
         //    // where indexing is completely switched OFF, because otherwise
         //    // these kinds of content would appear as missing items.
-        //    return StorageContext.Search.ContentRepository.GetNotIndexedNodeTypeIds();
+        //    return SearchManager.ContentRepository.GetNotIndexedNodeTypeIds();
         //}
 
         //private static int ParseInt(string data)

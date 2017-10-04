@@ -21,6 +21,7 @@ using System.Xml.Serialization;
 using System.IO;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.i18n;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Setting;
 using SenseNet.ContentRepository.Storage.Search.Internal;
 using SenseNet.Security;
@@ -357,7 +358,7 @@ namespace SenseNet.ContentRepository
             switch (hint)
             {
                 case ExecutionHint.None: 
-                    forceCql = StorageContext.Search.ContentQueryIsAllowed; break;
+                    forceCql = SearchManager.ContentQueryIsAllowed; break;
                 case ExecutionHint.ForceIndexedEngine: 
                     forceCql = true; break;
                 case ExecutionHint.ForceRelationalEngine: 
@@ -879,7 +880,7 @@ namespace SenseNet.ContentRepository
 
             List<int> identifiers;
 
-            if (StorageContext.Search.ContentQueryIsAllowed)
+            if (SearchManager.ContentQueryIsAllowed)
             {
                 // We need to look for other users in elevated mode, because the current 
                 // user may not have enough permissions for the whole user tree.

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Diagnostics;
@@ -20,7 +21,7 @@ namespace SenseNet.Search.Indexing
 
             hasBinary = false;
 
-            if(!StorageContext.Search.ContentRepository.IsContentTypeIndexed(node.NodeType.Name))
+            if(!SearchManager.ContentRepository.IsContentTypeIndexed(node.NodeType.Name))
                 return IndexDocument.NotIndexedDocument;
 
             var textEtract = new StringBuilder();
@@ -50,7 +51,7 @@ namespace SenseNet.Search.Indexing
                         continue;
                     if (skipBinaries && (field.IsBinaryField))
                     {
-                        if (!StorageContext.Search.ContentRepository.TextExtractingWillBePotentiallySlow(field))
+                        if (!SearchManager.ContentRepository.TextExtractingWillBePotentiallySlow(field))
                         {
                             hasBinary = true;
                             continue;
@@ -137,7 +138,7 @@ namespace SenseNet.Search.Indexing
                         continue;
                     if (!field.IsBinaryField)
                         continue;
-                    if (!StorageContext.Search.ContentRepository.TextExtractingWillBePotentiallySlow(field))
+                    if (!SearchManager.ContentRepository.TextExtractingWillBePotentiallySlow(field))
                         continue;
 
                     IEnumerable<IndexField> indexFields = null;

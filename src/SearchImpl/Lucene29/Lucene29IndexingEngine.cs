@@ -11,6 +11,7 @@ using Lucene.Net.Index;
 using Lucene.Net.Store;
 using Lucene.Net.Util;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
@@ -658,7 +659,7 @@ namespace SenseNet.Search.Lucene29
             {
                 if (_forceReopenFrequency == default(TimeSpan))
                 {
-                    var settings = StorageContext.Search.ContentRepository.GetSettingsValue<int>("ForceReopenFrequencyInSeconds", 0);
+                    var settings = SearchManager.ContentRepository.GetSettingsValue<int>("ForceReopenFrequencyInSeconds", 0);
                     _forceReopenFrequency = TimeSpan.FromSeconds(settings == 0 ? 30.0 : settings);
                 }
                 return _forceReopenFrequency;

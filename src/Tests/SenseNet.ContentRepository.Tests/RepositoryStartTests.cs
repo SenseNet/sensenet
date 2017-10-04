@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -45,7 +46,7 @@ namespace SenseNet.ContentRepository.Tests
             using (var repo = Repository.Start(repoBuilder))
             {
                 Assert.AreEqual(dbProvider, DataProvider.Current);
-                Assert.AreEqual(searchEngine, StorageContext.Search.SearchEngine);
+                Assert.AreEqual(searchEngine, SearchManager.SearchEngine);
                 Assert.AreEqual(accessProvider, AccessProvider.Current);
                 Assert.AreEqual(emvrProvider, Providers.Instance.ElevatedModificationVisibilityRuleProvider);
 
@@ -179,9 +180,9 @@ namespace SenseNet.ContentRepository.Tests
             {
                 using (Repository.Start(repoBuilder))
                 {
-                    Assert.IsFalse(StorageContext.Search.IsOuterEngineEnabled);
-                    Assert.AreEqual(typeof(InternalSearchEngine), StorageContext.Search.SearchEngine.GetType());
-                    var populator = StorageContext.Search.ContentRepository.GetIndexPopulator();
+                    Assert.IsFalse(SearchManager.IsOuterEngineEnabled);
+                    Assert.AreEqual(typeof(InternalSearchEngine), SearchManager.SearchEngine.GetType());
+                    var populator = SearchManager.ContentRepository.GetIndexPopulator();
                     Assert.AreEqual(typeof(NullPopulator), populator.GetType());
                 }
             }

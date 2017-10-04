@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
@@ -186,7 +187,7 @@ namespace SenseNet.ContentRepository.Storage.Search
             var fieldLevel = QueryFieldLevel.NotDefined;
             foreach (var fieldName in fieldNames)
             {
-                var indexingInfo = StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(fieldName);
+                var indexingInfo = SearchManager.ContentRepository.GetPerFieldIndexingInfo(fieldName);
                 var level = GetFieldLevel(fieldName, indexingInfo);
                 fieldLevel = level > fieldLevel ? level : fieldLevel;
             }

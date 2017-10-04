@@ -1,4 +1,5 @@
-﻿using SenseNet.ContentRepository.Storage;
+﻿using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 
@@ -8,7 +9,7 @@ namespace SenseNet.Search
     {
         public QuerySettings Settings { get; }
         public int UserId { get; }
-        public IQueryEngine QueryEngine => StorageContext.Search.SearchEngine.QueryEngine;
+        public IQueryEngine QueryEngine => SearchManager.SearchEngine.QueryEngine;
         public IMetaQueryEngine MetaQueryEngine => DataProvider.Current.MetaQueryEngine;
 
         public SnQueryContext(QuerySettings settings, int userId)
@@ -19,7 +20,7 @@ namespace SenseNet.Search
 
         public IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
         {
-            return StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(fieldName);
+            return SearchManager.ContentRepository.GetPerFieldIndexingInfo(fieldName);
         }
 
         public static IQueryContext CreateDefault()

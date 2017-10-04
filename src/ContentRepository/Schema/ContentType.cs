@@ -14,6 +14,7 @@ using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.ContentRepository.Linq;
+using SenseNet.ContentRepository.Search;
 using SenseNet.Tools;
 
 namespace  SenseNet.ContentRepository.Schema
@@ -846,7 +847,7 @@ namespace  SenseNet.ContentRepository.Schema
 
         public virtual QueryResult GetChildren(string text, QuerySettings settings, bool getAllChildren)
         {
-            if (StorageContext.Search.ContentQueryIsAllowed)
+            if (SearchManager.ContentQueryIsAllowed)
             {
                 var query = ContentQuery.CreateQuery(getAllChildren ? SafeQueries.InTree : SafeQueries.InFolder, settings, this.Path);
                 if (!string.IsNullOrEmpty(text))

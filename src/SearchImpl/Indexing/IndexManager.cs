@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
@@ -15,14 +16,14 @@ namespace SenseNet.Search.Indexing
     {
         #region /* ==================================================================== Managing index */
 
-        internal static IIndexingEngine IndexingEngine => StorageContext.Search.SearchEngine.IndexingEngine;
+        internal static IIndexingEngine IndexingEngine => SearchManager.SearchEngine.IndexingEngine;
         internal static ICommitManager CommitManager { get; } = new NoDelayCommitManager();
 
         public static bool Running => IndexingEngine.Running;
 
         public static int[] GetNotIndexedNodeTypes()
         {
-            return StorageContext.Search.ContentRepository.GetNotIndexedNodeTypeIds();
+            return SearchManager.ContentRepository.GetNotIndexedNodeTypeIds();
         }
 
         public static void Start(TextWriter consoleOut)
@@ -187,7 +188,7 @@ namespace SenseNet.Search.Indexing
             var delTerm = executingUnprocessedActivities ? new [] { new SnTerm(IndexFieldName.InTree, treeRoot) } : null;
             var excludedNodeTypes = GetNotIndexedNodeTypes();
             var docs =
-                StorageContext.Search.LoadIndexDocumentsByPath(treeRoot, excludedNodeTypes)
+                SearchManager.LoadIndexDocumentsByPath(treeRoot, excludedNodeTypes)
                     .Select(d => CreateIndexDocument(d));
             IndexingEngine.WriteIndex(delTerm, docs);
 
@@ -208,7 +209,7 @@ namespace SenseNet.Search.Indexing
             get
             {
                 if (__nameFieldIndexingInfo == null)
-                    __nameFieldIndexingInfo = StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(IndexFieldName.Name);
+                    __nameFieldIndexingInfo = SearchManager.ContentRepository.GetPerFieldIndexingInfo(IndexFieldName.Name);
                 return __nameFieldIndexingInfo;
             }
         }
@@ -217,7 +218,7 @@ namespace SenseNet.Search.Indexing
             get
             {
                 if (__pathFieldIndexingInfo == null)
-                    __pathFieldIndexingInfo = StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(IndexFieldName.Path);
+                    __pathFieldIndexingInfo = SearchManager.ContentRepository.GetPerFieldIndexingInfo(IndexFieldName.Path);
                 return __pathFieldIndexingInfo;
             }
         }
@@ -226,7 +227,7 @@ namespace SenseNet.Search.Indexing
             get
             {
                 if (__inTreeFieldIndexingInfo == null)
-                    __inTreeFieldIndexingInfo = StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(IndexFieldName.InTree);
+                    __inTreeFieldIndexingInfo = SearchManager.ContentRepository.GetPerFieldIndexingInfo(IndexFieldName.InTree);
                 return __inTreeFieldIndexingInfo;
             }
         }
@@ -235,20 +236,20 @@ namespace SenseNet.Search.Indexing
             get
             {
                 if (__inFolderFieldIndexingInfo == null)
-                    __inFolderFieldIndexingInfo = StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(IndexFieldName.InFolder);
+                    __inFolderFieldIndexingInfo = SearchManager.ContentRepository.GetPerFieldIndexingInfo(IndexFieldName.InFolder);
                 return __inFolderFieldIndexingInfo;
             }
         }
 
         internal static IndexDocument LoadIndexDocumentByVersionId(int versionId)
         {
-            return CreateIndexDocument(StorageContext.Search.LoadIndexDocumentByVersionId(versionId));
+            return CreateIndexDocument(SearchManager.LoadIndexDocumentByVersionId(versionId));
         }
         internal static IEnumerable<IndexDocument> LoadIndexDocumentsByVersionId(int[] versionIds)
         {
             return versionIds.Length == 0
                 ? new IndexDocument[0]
-                : StorageContext.Search.LoadIndexDocumentByVersionId(versionIds)
+                : SearchManager.LoadIndexDocumentByVersionId(versionIds)
                     .Select(CreateIndexDocument)
                     .ToArray();
         }

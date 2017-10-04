@@ -8,7 +8,7 @@ namespace SenseNet.Configuration
 
         private static string _indexDirectoryPath;
         /// <summary>
-        /// Do not use this property directly. Use StorageContext.Search.IndexDirectoryPath instead.
+        /// Do not use this property directly. Use SearchManager.IndexDirectoryPath instead.
         /// </summary>
         internal static string IndexDirectoryFullPath
         {
@@ -32,7 +32,7 @@ namespace SenseNet.Configuration
         public static string IndexDirectoryPath { get; internal set; } = GetString(SectionName, "IndexDirectoryPath", string.Empty);
 
         /// <summary>
-        /// Do not use this property directly. Use StorageContext.Search.IsOuterEngineEnabled instead.
+        /// Do not use this property directly. Use SearchManager.IsOuterEngineEnabled instead.
         /// </summary>
         internal static bool IsOuterSearchEngineEnabled { get; set; } = GetValue<bool>(SectionName, "EnableOuterSearchEngine", true);
         public static int LuceneMergeFactor { get; internal set; } = GetInt(SectionName, "LuceneMergeFactor", 10);

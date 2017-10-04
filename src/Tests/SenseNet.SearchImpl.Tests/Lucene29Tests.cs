@@ -10,6 +10,7 @@ using Lucene.Net.Analysis.Standard;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -67,7 +68,7 @@ namespace SenseNet.SearchImpl.Tests
                 SaveInitialIndexDocuments();
 
                 var paths = new List<string>();
-                var populator = StorageContext.Search.ContentRepository.GetIndexPopulator();
+                var populator = SearchManager.ContentRepository.GetIndexPopulator();
                 populator.NodeIndexed += (sender, e) => { paths.Add(e.Path); };
 
                 // ACTION
@@ -111,7 +112,7 @@ namespace SenseNet.SearchImpl.Tests
             var result =
                 L29Test(console =>
                 {
-                    var indexPopulator = StorageContext.Search.ContentRepository.GetIndexPopulator();
+                    var indexPopulator = SearchManager.ContentRepository.GetIndexPopulator();
 
                     var root = Repository.Root;
                     indexPopulator.RebuildIndex(root, false, IndexRebuildLevel.DatabaseAndIndex);
@@ -154,7 +155,7 @@ namespace SenseNet.SearchImpl.Tests
             var result =
                 L29Test(console =>
                 {
-                    var indexPopulator = StorageContext.Search.ContentRepository.GetIndexPopulator();
+                    var indexPopulator = SearchManager.ContentRepository.GetIndexPopulator();
 
                     var root = Repository.Root;
                     indexPopulator.RebuildIndex(root, false, IndexRebuildLevel.DatabaseAndIndex);
@@ -333,7 +334,7 @@ namespace SenseNet.SearchImpl.Tests
 
             using (Repository.Start(repoBuilder))
             {
-                var expectedPath = Path.Combine(StorageContext.Search.IndexDirectoryPath, folderName);
+                var expectedPath = Path.Combine(SearchManager.IndexDirectoryPath, folderName);
 
                 Assert.AreEqual(expectedPath,
                     indexingEngine.IndexDirectory.CurrentDirectory);
@@ -354,7 +355,7 @@ namespace SenseNet.SearchImpl.Tests
 
             var result = L29Test(s =>
             {
-                var searchEngine = StorageContext.Search.SearchEngine;
+                var searchEngine = SearchManager.SearchEngine;
                 var originalStatus = searchEngine.IndexingEngine.ReadActivityStatusFromIndex();
 
                 searchEngine.IndexingEngine.WriteActivityStatusToIndex(newStatus);
@@ -380,7 +381,7 @@ namespace SenseNet.SearchImpl.Tests
             Assert.Inconclusive(); 
             var result = L29Test(s =>
             {
-                var searchEngine = StorageContext.Search.SearchEngine;
+                var searchEngine = SearchManager.SearchEngine;
                 var originalStatus = searchEngine.IndexingEngine.ReadActivityStatusFromIndex();
 
                 var node = new SystemFolder(Repository.Root) { Name = "L29_ActivityStatus_WithSave" };
@@ -403,7 +404,7 @@ namespace SenseNet.SearchImpl.Tests
         {
             L29Test(s =>
             {
-                var searchEngine = StorageContext.Search.SearchEngine;
+                var searchEngine = SearchManager.SearchEngine;
                 var analyzers = searchEngine.GetAnalyzers();
 
                 var masterAnalyzerAcc = new PrivateObject(new SnPerFieldAnalyzerWrapper());
@@ -455,7 +456,7 @@ namespace SenseNet.SearchImpl.Tests
                 //IndexDirectory.CreateNew();
                 //IndexDirectory.Reset();
 
-                using (ContentRepository.Tests.Tools.Swindle(typeof(StorageContext.Search), "ContentRepository", new SearchEngineSupport()))
+                using (ContentRepository.Tests.Tools.Swindle(typeof(SearchManager), "ContentRepository", new SearchEngineSupport()))
                     //using (new SystemAccount())
                 {
                     //EnsureEmptyIndexDirectory();
@@ -493,7 +494,7 @@ namespace SenseNet.SearchImpl.Tests
 
         public void EnsureEmptyIndexDirectory()
         {
-            var path = StorageContext.Search.IndexDirectoryPath;
+            var path = SearchManager.IndexDirectoryPath;
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
             //IndexDirectory.Instance.CreateNew();
@@ -502,7 +503,7 @@ namespace SenseNet.SearchImpl.Tests
 
         public static void DeleteIndexDirectories()
         {
-            var path = StorageContext.Search.IndexDirectoryPath;
+            var path = SearchManager.IndexDirectoryPath;
             foreach (var indexDir in Directory.GetDirectories(path))
             {
                 try

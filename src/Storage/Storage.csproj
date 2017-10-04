@@ -242,6 +242,7 @@
     <Compile Include="PreviewProvider.cs" />
     <Compile Include="QueryResult.cs" />
     <Compile Include="Retrier.cs" />
+    <Compile Include="SearchManager.cs" />
     <Compile Include="Search\IIndexPopulator.cs" />
     <Compile Include="Instrumentation\TraceFrame.cs" />
     <Compile Include="Instrumentation\TraceFrameEventType.cs" />

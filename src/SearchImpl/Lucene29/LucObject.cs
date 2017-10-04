@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Lucene.Net.Documents;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Search;
@@ -37,7 +38,7 @@ namespace SenseNet.Search.Lucene29
         }
         public T Get<T>(string fieldName)
         {
-            var info = StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(fieldName);
+            var info = SearchManager.ContentRepository.GetPerFieldIndexingInfo(fieldName);
             var converter = info.IndexFieldHandler as IIndexValueConverter<T>;
             if (converter == null)
                 return default(T);
@@ -46,7 +47,7 @@ namespace SenseNet.Search.Lucene29
         }
         public object Get(string fieldName)
         {
-            var info = StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(fieldName);
+            var info = SearchManager.ContentRepository.GetPerFieldIndexingInfo(fieldName);
             var converter = info.IndexFieldHandler as IIndexValueConverter;
             if (converter == null)
                 return null;

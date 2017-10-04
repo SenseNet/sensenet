@@ -15,6 +15,7 @@ using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using System.Diagnostics;
 using SenseNet.ContentRepository.Linq;
+using SenseNet.ContentRepository.Search;
 using SenseNet.Preview;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Tools;
@@ -1325,7 +1326,7 @@ namespace SenseNet.ContentRepository
                 var newTimeStamp = this.NodeTimestamp;
 
                 // query all workflows in the system that have this content as their related content
-                var nodes = StorageContext.Search.ContentQueryIsAllowed
+                var nodes = SearchManager.ContentQueryIsAllowed
                     ? ContentQuery.Query(SafeQueries.WorkflowsByRelatedContent, null, this.Id).Nodes
                     : NodeQuery.QueryNodesByReferenceAndType("RelatedContent", this.Id,
                         ActiveSchema.NodeTypes["Workflow"], false).Nodes;
@@ -1529,7 +1530,7 @@ namespace SenseNet.ContentRepository
         [Obsolete("Use declarative concept instead: ChildrenDefinition")]
         public virtual QueryResult GetChildren(string text, QuerySettings settings, bool getAllChildren)
         {
-            if (StorageContext.Search.ContentQueryIsAllowed)
+            if (SearchManager.ContentQueryIsAllowed)
             {
                 var query = ContentQuery.CreateQuery(getAllChildren ? SafeQueries.InTree : SafeQueries.InFolder, settings, this.Path);
                 if (!string.IsNullOrEmpty(text))

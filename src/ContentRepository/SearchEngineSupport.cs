@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search;
@@ -51,7 +52,7 @@ namespace SenseNet.ContentRepository
 
         public IIndexPopulator GetIndexPopulator()
         {
-            return StorageContext.Search.IsOuterEngineEnabled
+            return SearchManager.IsOuterEngineEnabled
                 ? (IIndexPopulator) new DocumentPopulator()
                 : NullPopulator.Instance;
         }

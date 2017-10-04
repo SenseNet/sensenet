@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Search.Lucene29;
 using SenseNet.Tools;
@@ -29,7 +30,7 @@ namespace SenseNet.Search.Indexing
                 return _analyzers[IndexFieldAnalyzer.Standard];
 
             // For everything else, ask the ContentTypeManager
-            var pfii = StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(fieldName);
+            var pfii = SearchManager.ContentRepository.GetPerFieldIndexingInfo(fieldName);
 
             // Return with analyzer by indexing info  or the default analyzer if indexing info was not found.
             return pfii == null ? _defaultAnalyzer : GetAnalyzer(pfii);

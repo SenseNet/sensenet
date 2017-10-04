@@ -7,6 +7,7 @@ using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search.Indexing.Activities;
 using System.IO;
 using Lucene.Net.Index;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Search.Lucene29;
 
@@ -42,7 +43,7 @@ namespace SenseNet.Search.Indexing
                 consoleWriter?.WriteLine("ok");
 
                 IndexManager.AddDocuments(
-                    StorageContext.Search.LoadIndexDocumentsByPath("/Root", IndexManager.GetNotIndexedNodeTypes())
+                    SearchManager.LoadIndexDocumentsByPath("/Root", IndexManager.GetNotIndexedNodeTypes())
                         .Select(d =>
                         {
                             var indexDoc = IndexManager.CompleteIndexDocument(d);
@@ -66,7 +67,7 @@ namespace SenseNet.Search.Indexing
             using (var op = SnTrace.Index.StartOperation("IndexPopulator RepopulateTree"))
             {
                 IndexManager.IndexingEngine.WriteIndex(new[] {new SnTerm(IndexFieldName.InTree, path)},
-                    StorageContext.Search.LoadIndexDocumentsByPath(path, IndexManager.GetNotIndexedNodeTypes())
+                    SearchManager.LoadIndexDocumentsByPath(path, IndexManager.GetNotIndexedNodeTypes())
                         .Select(IndexManager.CompleteIndexDocument));
                 op.Successful = true;
             }

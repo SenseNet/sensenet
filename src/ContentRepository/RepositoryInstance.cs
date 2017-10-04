@@ -14,6 +14,7 @@ using SenseNet.Communication.Messaging;
 using SenseNet.BackgroundOperations;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
@@ -121,7 +122,7 @@ namespace SenseNet.ContentRepository
             
             TypeHandler.Initialize(_settings.Providers);
 
-            StorageContext.Search.ContentRepository = new SearchEngineSupport();
+            SearchManager.ContentRepository = new SearchEngineSupport();
 
             InitializeLogger();
 
@@ -130,7 +131,7 @@ namespace SenseNet.ContentRepository
             RegisterAppdomainEventHandlers();
 
             if (_settings.IndexPath != null)
-                StorageContext.Search.SetIndexDirectoryPath(_settings.IndexPath);
+                SearchManager.SetIndexDirectoryPath(_settings.IndexPath);
 
             LoadAssemblies();
 

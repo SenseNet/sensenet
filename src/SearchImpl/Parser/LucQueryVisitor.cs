@@ -8,6 +8,7 @@ using Lucene.Net.Search.Spans;
 using Lucene.Net.Index;
 using System.Globalization;
 using Lucene.Net.Util;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Search;
 
@@ -443,7 +444,7 @@ namespace SenseNet.Search.Parser
             if (fieldText == null)
                 return null;
 
-            var info = StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(fieldName);
+            var info = SearchManager.ContentRepository.GetPerFieldIndexingInfo(fieldName);
             if (info == null)
             {
                 var c = fieldText.ToCharArray();
