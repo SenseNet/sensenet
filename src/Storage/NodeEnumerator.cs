@@ -143,9 +143,9 @@ namespace SenseNet.ContentRepository.Storage
             switch (_hint)
             {
                 case ExecutionHint.None:
-                    if (SearchManager.IsOuterEngineEnabled && SearchManager.SearchEngine != InternalSearchEngine.Instance)
-                        return QueryChildrenFromLucene(thisId);
-                    return QueryChildrenFromDatabase(thisId);
+                    return SearchManager.ContentQueryIsAllowed
+                        ? QueryChildrenFromLucene(thisId)
+                        : QueryChildrenFromDatabase(thisId);
                 case ExecutionHint.ForceRelationalEngine:
                     return QueryChildrenFromDatabase(thisId);
                 case ExecutionHint.ForceIndexedEngine:

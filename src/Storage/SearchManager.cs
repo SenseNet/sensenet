@@ -36,11 +36,13 @@ namespace SenseNet.ContentRepository.Search
         public static readonly List<string> YesList = new List<string>(new[] { "1", "true", "y", SnTerm.Yes });
         public static readonly List<string> NoList = new List<string>(new[] { "0", "false", "n", SnTerm.No });
 
-        public static ISearchEngine SearchEngine => !Indexing.IsOuterSearchEngineEnabled ? InternalSearchEngine.Instance : Providers.Instance.SearchEngine;
+        public static ISearchEngine SearchEngine => !Indexing.IsOuterSearchEngineEnabled
+            ? InternalSearchEngine.Instance
+            : Providers.Instance.SearchEngine;
 
         public static ISearchEngineSupport ContentRepository { get; set; }
 
-        public static bool ContentQueryIsAllowed => IsOuterEngineEnabled &&
+        public static bool ContentQueryIsAllowed => Indexing.IsOuterSearchEngineEnabled &&
                                                     SearchEngine != InternalSearchEngine.Instance;
 
         public static bool IsOuterEngineEnabled
