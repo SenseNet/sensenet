@@ -9,7 +9,7 @@ namespace SenseNet.Search.Indexing
         public static readonly IndexStoringMode DefaultIndexStoringMode = IndexStoringMode.No;
         public static readonly IndexTermVector DefaultTermVectorStoringMode = IndexTermVector.No;
 
-        public string Analyzer { get; set; }
+        public IndexFieldAnalyzer Analyzer { get; set; }
         public IFieldIndexHandler IndexFieldHandler { get; set; }
 
         public IndexingMode IndexingMode { get; set; }

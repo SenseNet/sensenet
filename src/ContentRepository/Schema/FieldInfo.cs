@@ -28,7 +28,7 @@ namespace SenseNet.ContentRepository.Schema
         /// <summary>
         /// Fully qualified type name of the associated Analyzer
         /// </summary>
-        public string Analyzer { get; set; }
+        public IndexFieldAnalyzer Analyzer { get; set; }
         /// <summary>
         /// Fully qualified type name of the associated FieldIndexHandler
         /// </summary>

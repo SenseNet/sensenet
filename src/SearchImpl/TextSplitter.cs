@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using Lucene.Net.Analysis;
 
 namespace SenseNet.Search
 {
@@ -13,24 +11,23 @@ namespace SenseNet.Search
 
         internal static string[] SplitText(string fieldName, string text)
         {
-            return SplitText(fieldName, text, SenseNet.ContentRepository.Storage.StorageContext.Search.SearchEngine.GetAnalyzers());
+            return SplitText(fieldName, text, ContentRepository.Storage.StorageContext.Search.SearchEngine.GetAnalyzers());
         }
-        internal static string[] SplitText(string fieldName, string text, IDictionary<string, Type> analyzers)
+        internal static string[] SplitText(string fieldName, string text, IDictionary<string, IndexFieldAnalyzer> analyzers)
         {
             if (String.IsNullOrEmpty(fieldName))
                 fieldName = IndexFieldName.AllText;
-            Type analyzerType;
+            IndexFieldAnalyzer analyzerType;
             if (!analyzers.TryGetValue(fieldName, out analyzerType) && fieldName != IndexFieldName.AllText)
-                analyzerType = typeof(KeywordAnalyzer);
-            var needToSplit = analyzerType != typeof(KeywordAnalyzer);
+                analyzerType = IndexFieldAnalyzer.Keyword;
 
             string[] words;
-            if (analyzerType == typeof(WhitespaceAnalyzer))
+            if (analyzerType == IndexFieldAnalyzer.Whitespace)
                 words = text.ToLower().Split(WhitespaceChars, StringSplitOptions.RemoveEmptyEntries);
-            else if (analyzerType != typeof(KeywordAnalyzer))
+            else if (analyzerType != IndexFieldAnalyzer.Keyword)
                 words = SplitByNonAlphanum(text.ToLower());
             else
-                words = new string[] { text.ToLower() };
+                words = new[] {text.ToLower()};
 
             return words;
         }
@@ -42,7 +39,7 @@ namespace SenseNet.Search
             while (++p < text.Length)
             {
                 var c = text[p];
-                if (Char.IsLetterOrDigit(c))
+                if (char.IsLetterOrDigit(c))
                 {
                     word.Append(c);
                 }

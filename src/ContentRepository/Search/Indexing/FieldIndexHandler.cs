@@ -9,18 +9,15 @@ using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.i18n;
-using Lucene.Net.Analysis;          //UNDONE:||||| ANALYZER: remove using line and assembly reference
-using Lucene.Net.Analysis.Standard; //UNDONE:||||| ANALYZER: remove using line and assembly reference
 using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.Search.Indexing
 {
-
     public abstract class FieldIndexHandler : IFieldIndexHandler
     {
         public IPerFieldIndexingInfo OwnerIndexingInfo { get; set; }
 
-        public virtual int SortingType { get { return Lucene.Net.Search.SortField.STRING; } }
+        public virtual int SortingType { get { return Lucene.Net.Search.SortField.STRING; } } //UNDONE:||||| SORTINGTYPE
 
         public virtual IndexFieldType IndexFieldType { get { return IndexFieldType.String; } }
 
@@ -114,7 +111,7 @@ namespace SenseNet.Search.Indexing
             };
         }
 
-        public virtual string GetDefaultAnalyzerName() { return typeof(KeywordAnalyzer).FullName; } //UNDONE:||||| ANALYZER: Change to an enum member
+        public virtual IndexFieldAnalyzer GetDefaultAnalyzer() { return IndexFieldAnalyzer.Keyword; }
         public virtual string GetSortFieldName(string fieldName) { return fieldName; }
     }
 
@@ -141,7 +138,7 @@ namespace SenseNet.Search.Indexing
     }
     public class BinaryIndexHandler : FieldIndexHandler
     {
-        public override string GetDefaultAnalyzerName() { return typeof(StandardAnalyzer).FullName; } //UNDONE:||||| ANALYZER: Change to an enum member
+        public override IndexFieldAnalyzer GetDefaultAnalyzer() { return IndexFieldAnalyzer.Standard; }
         public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
             var data = snField.GetData() as SenseNet.ContentRepository.Storage.BinaryData;
@@ -680,7 +677,7 @@ namespace SenseNet.Search.Indexing
     }
     public class LongTextIndexHandler : FieldIndexHandler, IIndexValueConverter<string>, IIndexValueConverter
     {
-        public override string GetDefaultAnalyzerName() { return typeof(StandardAnalyzer).FullName; } //UNDONE:||||| ANALYZER: Change to an enum member
+        public override IndexFieldAnalyzer GetDefaultAnalyzer() { return IndexFieldAnalyzer.Standard; }
         public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
             var data = snField.GetData() as string;

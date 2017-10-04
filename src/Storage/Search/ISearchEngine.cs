@@ -42,7 +42,7 @@ namespace SenseNet.ContentRepository.Storage.Search
         /// </summary>
         IQueryEngine QueryEngine { get; }
 
-        IDictionary<string, Type> GetAnalyzers();
+        IDictionary<string, IndexFieldAnalyzer> GetAnalyzers();
 
         void SetIndexingInfo(IDictionary<string, IPerFieldIndexingInfo> indexingInfo);
     }
@@ -58,7 +58,7 @@ namespace SenseNet.ContentRepository.Storage.Search
             get { throw new SnNotSupportedException(); }
         }
 
-        public IDictionary<string, Type> GetAnalyzers()
+        public IDictionary<string, IndexFieldAnalyzer> GetAnalyzers()
         {
             return null;
         }

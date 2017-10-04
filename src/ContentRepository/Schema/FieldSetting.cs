@@ -1490,8 +1490,8 @@ namespace SenseNet.ContentRepository.Schema
                 WriteElement(writer, indexingInfo.IndexStoringMode.ToString(), "Store");
             if (indexingInfo.TermVectorStoringMode != IndexTermVector.Default && indexingInfo.TermVectorStoringMode != PerFieldIndexingInfo.DefaultTermVectorStoringMode)
                 WriteElement(writer, indexingInfo.TermVectorStoringMode.ToString(), "TermVector");
-            if (!string.IsNullOrEmpty(indexingInfo.Analyzer))
-                WriteElement(writer, indexingInfo.Analyzer, "Analyzer");
+            if (indexingInfo.Analyzer != IndexFieldAnalyzer.Default)
+                WriteElement(writer, indexingInfo.Analyzer.ToString(), "Analyzer");
             if (indexingInfo.IndexFieldHandler != null)
                 WriteElement(writer, indexingInfo.IndexFieldHandler.GetType().FullName, "IndexHandler");
 

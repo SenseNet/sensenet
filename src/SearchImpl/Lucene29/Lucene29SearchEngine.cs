@@ -20,29 +20,27 @@ namespace SenseNet.Search.Lucene29
             Lucene.Net.Search.BooleanQuery.SetMaxClauseCount(100000);
         }
 
-        private IDictionary<string, Type> _analyzers = new Dictionary<string, Type>();
-        public IDictionary<string, Type> GetAnalyzers()
+        private IDictionary<string, IndexFieldAnalyzer> _analyzers = new Dictionary<string, IndexFieldAnalyzer>();
+        public IDictionary<string, IndexFieldAnalyzer> GetAnalyzers()
         {
             return _analyzers;
         }
 
         public void SetIndexingInfo(IDictionary<string, IPerFieldIndexingInfo> indexingInfo)
         {
-            var analyzerTypes = new Dictionary<string, Type>();
+            var analyzerTypes = new Dictionary<string, IndexFieldAnalyzer>();
 
             foreach (var item in indexingInfo)
             {
                 var fieldName = item.Key;
                 var fieldInfo = item.Value;
-                if (fieldInfo.Analyzer != null)
+                if (fieldInfo.Analyzer != IndexFieldAnalyzer.Default)
                 {
-                    var analyzerType = TypeResolver.GetType(fieldInfo.Analyzer);
-                    if (analyzerType == null)
-                        throw new InvalidOperationException(String.Concat("Unknown analyzer: ", fieldInfo.Analyzer, ". Field: ", fieldName));
-                    analyzerTypes.Add(fieldName, analyzerType);
+                    analyzerTypes.Add(fieldName, fieldInfo.Analyzer);
                 }
-                _analyzers = analyzerTypes;
             }
+
+            _analyzers = analyzerTypes;
         }
     }
 }

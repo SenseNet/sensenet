@@ -689,9 +689,9 @@ namespace SenseNet.ContentRepository.Schema
             else if (indexingInfo.TermVectorStoringMode != IndexTermVector.Default && indexingInfo.TermVectorStoringMode != origInfo.TermVectorStoringMode)
                 throw new ContentRegistrationException("Cannot override TermVectorStoringMode", contentTypeName, fieldName);
 
-            if (String.IsNullOrEmpty(origInfo.Analyzer))
+            if (origInfo.Analyzer == IndexFieldAnalyzer.Default)
                 origInfo.Analyzer = indexingInfo.Analyzer;
-            else if (!String.IsNullOrEmpty(indexingInfo.Analyzer) && indexingInfo.Analyzer != origInfo.Analyzer)
+            else if (indexingInfo.Analyzer != IndexFieldAnalyzer.Default && indexingInfo.Analyzer != origInfo.Analyzer)
                 throw new ContentRegistrationException("Cannot override Analyzer", contentTypeName, fieldName);
         }
 

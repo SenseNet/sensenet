@@ -106,7 +106,7 @@
       <Description>$Ctd-GenericContent,Name-Description</Description>
       <Indexing>
         <Store>Yes</Store>
-        <Analyzer>Lucene.Net.Analysis.KeywordAnalyzer</Analyzer>
+        <Analyzer>Keyword</Analyzer>
       </Indexing>
       <Configuration>
         <Compulsory>true</Compulsory>
@@ -157,7 +157,7 @@
       <Description>$Ctd-GenericContent,Path-Description</Description>
       <Indexing>
         <Store>Yes</Store>
-        <Analyzer>Lucene.Net.Analysis.KeywordAnalyzer</Analyzer>
+        <Analyzer>Keyword</Analyzer>
       </Indexing>
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
@@ -184,7 +184,7 @@
       <Description>$Ctd-GenericContent,InTree-Description</Description>
       <Bind property="Path"></Bind>
       <Indexing>
-        <Analyzer>Lucene.Net.Analysis.KeywordAnalyzer</Analyzer>
+        <Analyzer>Keyword</Analyzer>
         <IndexHandler>SenseNet.Search.Indexing.InTreeIndexHandler</IndexHandler>
       </Indexing>
       <Configuration>
@@ -199,7 +199,7 @@
       <Description>$Ctd-GenericContent,InFolder-Description</Description>
       <Bind property="Path"></Bind>
       <Indexing>
-        <Analyzer>Lucene.Net.Analysis.KeywordAnalyzer</Analyzer>
+        <Analyzer>Keyword</Analyzer>
         <IndexHandler>SenseNet.Search.Indexing.InFolderIndexHandler</IndexHandler>
       </Indexing>
       <Configuration>
@@ -240,7 +240,7 @@
       <DisplayName>$Ctd-GenericContent,Description-DisplayName</DisplayName>
       <Description>$Ctd-GenericContent,Description-Description</Description>
       <Indexing>
-        <Analyzer>Lucene.Net.Analysis.Standard.StandardAnalyzer</Analyzer>
+        <Analyzer>Standard</Analyzer>
       </Indexing>
       <Configuration>
         <ControlHint>sn:RichText</ControlHint>
@@ -469,7 +469,7 @@
       <DisplayName>$Ctd-GenericContent,ExtensionData-DisplayName</DisplayName>
       <Description>$Ctd-GenericContent,ExtensionData-Description</Description>
       <Indexing>
-        <Analyzer>Lucene.Net.Analysis.Standard.StandardAnalyzer</Analyzer>
+        <Analyzer>Standard</Analyzer>
       </Indexing>
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
@@ -600,7 +600,7 @@
       <DisplayName>$Ctd-GenericContent,CheckInComments-DisplayName</DisplayName>
       <Description>$Ctd-GenericContent,CheckInComments-Description</Description>
       <Indexing>
-        <Analyzer>Lucene.Net.Analysis.Standard.StandardAnalyzer</Analyzer>
+        <Analyzer>Standard</Analyzer>
       </Indexing>
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
@@ -612,7 +612,7 @@
       <DisplayName>$Ctd-GenericContent,RejectReason-DisplayName</DisplayName>
       <Description>$Ctd-GenericContent,RejectReason-Description</Description>
       <Indexing>
-        <Analyzer>Lucene.Net.Analysis.Standard.StandardAnalyzer</Analyzer>
+        <Analyzer>Standard</Analyzer>
       </Indexing>
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>

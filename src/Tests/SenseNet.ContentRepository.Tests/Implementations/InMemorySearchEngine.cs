@@ -9,7 +9,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 {
     public class InMemorySearchEngine : ISearchEngine
     {
-        private IDictionary<string, Type> _analyzers = new Dictionary<string, Type>();
+        private IDictionary<string, IndexFieldAnalyzer> _analyzers = new Dictionary<string, IndexFieldAnalyzer>();
         private readonly InMemoryIndexingEngine _indexingEngine;
         private readonly InMemoryQueryEngine _queryEngine;
 
@@ -17,28 +17,24 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         public IQueryEngine QueryEngine => _queryEngine;
 
-        public IDictionary<string, Type> GetAnalyzers()
+        public IDictionary<string, IndexFieldAnalyzer> GetAnalyzers()
         {
             return _analyzers;
         }
 
         public void SetIndexingInfo(IDictionary<string, IPerFieldIndexingInfo> indexingInfo)
         {
-            var analyzerTypes = new Dictionary<string, Type>();
+            var analyzerTypes = new Dictionary<string, IndexFieldAnalyzer>();
 
             foreach (var item in indexingInfo)
             {
                 var fieldName = item.Key;
                 var fieldInfo = item.Value;
-                if (fieldInfo.Analyzer != null)
-                {
-                    var analyzerType = TypeResolver.GetType(fieldInfo.Analyzer);
-                    if (analyzerType == null)
-                        throw new InvalidOperationException(String.Concat("Unknown analyzer: ", fieldInfo.Analyzer, ". Field: ", fieldName));
-                    analyzerTypes.Add(fieldName, analyzerType);
-                }
-                _analyzers = analyzerTypes;
+                if (fieldInfo.Analyzer != IndexFieldAnalyzer.Default)
+                    analyzerTypes.Add(fieldName, fieldInfo.Analyzer);
             }
+
+            _analyzers = analyzerTypes;
         }
 
 

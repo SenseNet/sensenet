@@ -17,7 +17,7 @@ namespace SenseNet.Search.Indexing
         public string FieldTitle { get; internal set; }
         public string FieldDescription { get; internal set; }
         public string FieldType { get; internal set; }
-        public string Analyzer { get; internal set; }
+        public IndexFieldAnalyzer Analyzer { get; internal set; }
         public string IndexHandler { get; internal set; }
         public string IndexingMode { get; internal set; }
         public string IndexStoringMode { get; internal set; }

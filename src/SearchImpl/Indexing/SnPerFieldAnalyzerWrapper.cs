@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.Search.Lucene29;
 using SenseNet.Tools;
 
 namespace SenseNet.Search.Indexing
@@ -12,68 +13,43 @@ namespace SenseNet.Search.Indexing
     /// </summary>
     internal class SnPerFieldAnalyzerWrapper : Analyzer
     {
-        private Analyzer _defaultAnalyzer;
-        private Dictionary<string, Analyzer> _analyzers = new Dictionary<string, Analyzer>();
+        private readonly Analyzer _defaultAnalyzer = new KeywordAnalyzer();
+
+        private readonly Dictionary<IndexFieldAnalyzer, Analyzer> _analyzers = new Dictionary<IndexFieldAnalyzer, Analyzer>
+        {
+            {IndexFieldAnalyzer.Keyword, new KeywordAnalyzer()},
+            {IndexFieldAnalyzer.Standard, new StandardAnalyzer(Lucene29SearchEngine.LuceneVersion)},
+            {IndexFieldAnalyzer.Whitespace, new WhitespaceAnalyzer()}
+        };
 
         private Analyzer GetAnalyzer(string fieldName)
         {
             // Hard-code the _Text field
             if (fieldName == "_Text")
-                return _analyzers[typeof(StandardAnalyzer).FullName];
+                return _analyzers[IndexFieldAnalyzer.Standard];
 
             // For everything else, ask the ContentTypeManager
-            var pfii = //__supportClass.ContentTypeManager.GetPerFieldIndexingInfo(fieldName);
-                       StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(fieldName);
+            var pfii = StorageContext.Search.ContentRepository.GetPerFieldIndexingInfo(fieldName);
 
-            // Return the default analyzer if indexing info was not found.
-            if (pfii == null)
-                return _defaultAnalyzer;
-
-            // Get analyzername by IndexFieldHandler
-            string analyzerName = pfii.Analyzer;
-            if (string.IsNullOrEmpty(analyzerName))
-                analyzerName = pfii.IndexFieldHandler.GetDefaultAnalyzerName();
-
-            // Return the default analyzer if it is not specified any way.
-            if (string.IsNullOrEmpty(analyzerName))
-                return _defaultAnalyzer;
-
-            Analyzer analyzer;
-            if (_analyzers.TryGetValue(analyzerName, out analyzer))
-                return analyzer;
-
-            // Find the type
-            var analyzerType = TypeResolver.GetType(analyzerName);
-
-            // If it doesn't exist, return the default analyzer
-            if (analyzerType == null)
-                return _defaultAnalyzer;
-
-            // Store the instance in cache
-            analyzer = (Analyzer)Activator.CreateInstance(analyzerType);
-            _analyzers[analyzerName] = analyzer;
-
-            // Return analyzer
-            return analyzer;
+            // Return with analyzer by indexing info  or the default analyzer if indexing info was not found.
+            return pfii == null ? _defaultAnalyzer : GetAnalyzer(pfii);
         }
-
-        /// <summary>Constructs with default analyzer.</summary>
-        /// <param name="defaultAnalyzer">Any fields not specifically defined to use a different analyzer will use the one provided here.</param>
-        public SnPerFieldAnalyzerWrapper(Analyzer defaultAnalyzer)
+        private Analyzer GetAnalyzer(IPerFieldIndexingInfo pfii)
         {
-            // Save default analyzer
-            _defaultAnalyzer = defaultAnalyzer;
-            // Add default analyzer type to cache
-            _analyzers[defaultAnalyzer.GetType().FullName] = defaultAnalyzer;
+            var analyzerToken = pfii.Analyzer == IndexFieldAnalyzer.Default ? pfii.IndexFieldHandler.GetDefaultAnalyzer() : pfii.Analyzer;
 
-            // Add standard analyzer to cache if it's not the default
-            if (!_analyzers.ContainsKey(typeof(StandardAnalyzer).FullName))
-                _analyzers[typeof(StandardAnalyzer).FullName] = new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29);
+            // ReSharper disable once SwitchStatementMissingSomeCases
+            switch (analyzerToken)
+            {
+                case IndexFieldAnalyzer.Keyword: return new KeywordAnalyzer();
+                case IndexFieldAnalyzer.Standard: return new StandardAnalyzer(Lucene29SearchEngine.LuceneVersion);
+                case IndexFieldAnalyzer.Whitespace:return new WhitespaceAnalyzer();
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
-        /// <summary>Defines an analyzer to use for the specified field.</summary>
-        /// <param name="fieldName">field name requiring a non-default analyzer</param>
-        /// <param name="analyzer">non-default analyzer to use for field</param>
+
         public override TokenStream TokenStream(System.String fieldName, System.IO.TextReader reader)
         {
             var analyzer = GetAnalyzer(fieldName);

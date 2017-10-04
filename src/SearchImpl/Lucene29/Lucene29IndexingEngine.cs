@@ -705,7 +705,7 @@ namespace SenseNet.Search.Lucene29
         internal static Analyzer GetAnalyzer()
         {
             var defaultAnalyzer = new KeywordAnalyzer();
-            var analyzer = new Indexing.SnPerFieldAnalyzerWrapper(defaultAnalyzer);
+            var analyzer = new Indexing.SnPerFieldAnalyzerWrapper();
 
             return analyzer;
         }

@@ -5,6 +5,8 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Lucene.Net.Analysis;
+using Lucene.Net.Analysis.Standard;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -394,6 +396,27 @@ namespace SenseNet.SearchImpl.Tests
             });
 
             Assert.AreEqual(result.Item1.LastActivityId + 1, result.Item2.LastActivityId);
+        }
+
+        [TestMethod, TestCategory("IR, L29")]
+        public void L29_Analyzers()
+        {
+            L29Test(s =>
+            {
+                var searchEngine = StorageContext.Search.SearchEngine;
+                var analyzers = searchEngine.GetAnalyzers();
+
+                var masterAnalyzerAcc = new PrivateObject(new SnPerFieldAnalyzerWrapper());
+
+                Assert.AreEqual(typeof(StandardAnalyzer).FullName, ((Analyzer)masterAnalyzerAcc.Invoke("GetAnalyzer", IndexFieldName.AllText)).GetType().FullName);
+                Assert.AreEqual(typeof(KeywordAnalyzer).FullName, ((Analyzer)masterAnalyzerAcc.Invoke("GetAnalyzer", IndexFieldName.NodeId)).GetType().FullName);
+                Assert.AreEqual(typeof(KeywordAnalyzer).FullName, ((Analyzer)masterAnalyzerAcc.Invoke("GetAnalyzer", IndexFieldName.Name)).GetType().FullName);
+                Assert.AreEqual(typeof(StandardAnalyzer).FullName, ((Analyzer)masterAnalyzerAcc.Invoke("GetAnalyzer", "Description")).GetType().FullName);
+                Assert.AreEqual(typeof(StandardAnalyzer).FullName, ((Analyzer)masterAnalyzerAcc.Invoke("GetAnalyzer", "Binary")).GetType().FullName);
+                Assert.AreEqual(typeof(KeywordAnalyzer).FullName, ((Analyzer)masterAnalyzerAcc.Invoke("GetAnalyzer", "FakeField")).GetType().FullName);
+
+                return 0;
+            });
         }
 
         /* ======================================================================================= */

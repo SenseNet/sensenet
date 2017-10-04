@@ -10,6 +10,8 @@ namespace SenseNet.Search
 
     public enum IndexFieldType { String, Int, Long, Float, Double, DateTime }
 
+    public enum IndexFieldAnalyzer { Default, Keyword, Standard, Whitespace /*, Simple, Stop*/ }
+
     public interface IIndexableField
     {
         string Name { get; }
@@ -28,7 +30,8 @@ namespace SenseNet.Search
         /// <summary>For LINQ</summary>
         IndexValue ConvertToTermValue(object value);
 
-        string GetDefaultAnalyzerName();
+        IndexFieldAnalyzer GetDefaultAnalyzer();
+
         IEnumerable<string> GetParsableValues(IIndexableField field);
         int SortingType { get; }
         IndexFieldType IndexFieldType { get; }
@@ -39,7 +42,7 @@ namespace SenseNet.Search
     }
     public interface IPerFieldIndexingInfo
     {
-        string Analyzer { get; set; }
+        IndexFieldAnalyzer Analyzer { get; set; }
         IFieldIndexHandler IndexFieldHandler { get; set; }
 
         IndexingMode IndexingMode { get; set; }

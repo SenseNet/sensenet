@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Xml.XPath;
 using System.Xml;
+using SenseNet.Search;
 
 namespace SenseNet.ContentRepository.Schema
 {
@@ -20,7 +22,7 @@ namespace SenseNet.ContentRepository.Schema
         internal string IndexingMode { get; private set; }
         internal string IndexStoringMode { get; private set; }
         internal string IndexingTermVector { get; private set; }
-        internal string Analyzer { get; private set; }
+        internal IndexFieldAnalyzer Analyzer { get; private set; }
         internal string IndexHandlerTypeName { get; private set; }
         internal string FieldSettingTypeName { get; private set; }
         public XPathNavigator ConfigurationElement { get; private set; }
@@ -78,7 +80,7 @@ namespace SenseNet.ContentRepository.Schema
                                 case "Mode": fdesc.IndexingMode = indexingSubElement.Value; break;
                                 case "Store": fdesc.IndexStoringMode = indexingSubElement.Value; break;
                                 case "TermVector": fdesc.IndexingTermVector = indexingSubElement.Value; break;
-                                case "Analyzer": fdesc.Analyzer = indexingSubElement.Value; break;
+                                case "Analyzer": fdesc.Analyzer = ParseAnalyzer(indexingSubElement.Value, contentType.Name, fieldName); break;
                                 case "IndexHandler": fdesc.IndexHandlerTypeName = indexingSubElement.Value; break;
                             }
                         }
@@ -114,6 +116,18 @@ namespace SenseNet.ContentRepository.Schema
             fdesc.XmlNamespaceResolver = nsres;
 
             return fdesc;
+        }
+        private static IndexFieldAnalyzer ParseAnalyzer(string analyzerName, string contentTypeName, string fieldName)
+        {
+            IndexFieldAnalyzer result;
+            if(Enum.TryParse(analyzerName, true, out result))
+                return result;
+
+            var values = Enum.GetValues(typeof(IndexFieldAnalyzer)).OfType<string>().ToArray();
+            var validValues = string.Join("', '", values);
+            throw new ContentRegistrationException(
+                $"Invalid analyzer in {fieldName} field of content type {contentTypeName}: {analyzerName}. " +
+                $"Valid values are: '{validValues}', default value: 'Default'");
         }
     }
 }

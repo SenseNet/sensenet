@@ -20,9 +20,9 @@ namespace SenseNet.Search.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        public string GetDefaultAnalyzerName()
+        public IndexFieldAnalyzer GetDefaultAnalyzer()
         {
-            return typeof(KeywordAnalyzer).FullName;
+            return IndexFieldAnalyzer.Keyword;
         }
 
         public IEnumerable<string> GetParsableValues(IIndexableField field)
@@ -58,9 +58,9 @@ namespace SenseNet.Search.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        public string GetDefaultAnalyzerName()
+        public IndexFieldAnalyzer GetDefaultAnalyzer()
         {
-            return typeof(KeywordAnalyzer).FullName;
+            return IndexFieldAnalyzer.Keyword;
         }
 
         public IEnumerable<string> GetParsableValues(IIndexableField field)
@@ -96,9 +96,9 @@ namespace SenseNet.Search.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        public string GetDefaultAnalyzerName()
+        public IndexFieldAnalyzer GetDefaultAnalyzer()
         {
-            return typeof(KeywordAnalyzer).FullName;
+            return IndexFieldAnalyzer.Keyword;
         }
 
         public IEnumerable<string> GetParsableValues(IIndexableField field)
@@ -134,9 +134,9 @@ namespace SenseNet.Search.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        public string GetDefaultAnalyzerName()
+        public IndexFieldAnalyzer GetDefaultAnalyzer()
         {
-            return typeof(KeywordAnalyzer).FullName;
+            return IndexFieldAnalyzer.Keyword;
         }
 
         public IEnumerable<string> GetParsableValues(IIndexableField field)
@@ -172,9 +172,9 @@ namespace SenseNet.Search.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        public string GetDefaultAnalyzerName()
+        public IndexFieldAnalyzer GetDefaultAnalyzer()
         {
-            return typeof(KeywordAnalyzer).FullName;
+            return IndexFieldAnalyzer.Keyword;
         }
 
         public IEnumerable<string> GetParsableValues(IIndexableField field)
@@ -219,9 +219,9 @@ namespace SenseNet.Search.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        public string GetDefaultAnalyzerName()
+        public IndexFieldAnalyzer GetDefaultAnalyzer()
         {
-            return typeof(KeywordAnalyzer).FullName;
+            return IndexFieldAnalyzer.Keyword;
         }
 
         public IEnumerable<string> GetParsableValues(IIndexableField field)
@@ -257,9 +257,9 @@ namespace SenseNet.Search.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        public string GetDefaultAnalyzerName()
+        public IndexFieldAnalyzer GetDefaultAnalyzer()
         {
-            return typeof(KeywordAnalyzer).FullName;
+            return IndexFieldAnalyzer.Keyword;
         }
 
         public IEnumerable<string> GetParsableValues(IIndexableField field)

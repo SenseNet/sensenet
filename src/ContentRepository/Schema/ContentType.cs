@@ -413,7 +413,6 @@ namespace  SenseNet.ContentRepository.Schema
             foreach (XPathNavigator fieldElement in fieldsElement.SelectChildren(XPathNodeType.Element))
             {
                 FieldDescriptor fieldDescriptor = FieldDescriptor.Parse(fieldElement, nsres, this);
-                CheckFieldValidation(fieldDescriptor, this.Name);
                 
                 int fieldIndex = GetFieldSettingIndexByName(fieldDescriptor.FieldName);
                 FieldSetting fieldSetting = fieldIndex < 0 ? null : this.FieldSettings[fieldIndex];
@@ -818,17 +817,6 @@ namespace  SenseNet.ContentRepository.Schema
             return -1;
         }
 
-        // ---------------------------------------------------------------------- Other validation
-
-        private static void CheckFieldValidation(FieldDescriptor fieldDesc, string contentTypeName)
-        {
-            if (fieldDesc.Analyzer != null)
-            {
-                var analyzerType = TypeResolver.GetType(fieldDesc.Analyzer, false);
-                if (analyzerType == null)
-                    throw new RegistrationException(string.Concat("Unknown analyzer: ", fieldDesc.Analyzer, ". Field: ", fieldDesc.FieldName, ", ContentType: ", contentTypeName));
-            }
-        }
         // ==================================================== IFolder 
 
         /// <summary>
@@ -1122,8 +1110,8 @@ namespace  SenseNet.ContentRepository.Schema
                 sb.Append(item.Value.IndexingMode).Append("\t");
                 sb.Append(item.Value.IndexStoringMode).Append("\t");
                 sb.Append(item.Value.TermVectorStoringMode).Append("\t");
-                sb.Append((item.Value.Analyzer ?? "[null]").Replace("Lucene.Net.Analysis.", String.Empty)).Append("\t");
-                sb.AppendLine(item.Value.IndexFieldHandler.GetType().FullName.Replace("SenseNet.Search.", String.Empty));
+                sb.Append(item.Value.Analyzer).Append("\t");
+                sb.AppendLine(item.Value.IndexFieldHandler?.GetType().FullName?.Replace("SenseNet.Search.", string.Empty) ?? "[null]");
             }
             return sb.ToString();
         }
