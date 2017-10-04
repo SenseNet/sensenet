@@ -10,4 +10,15 @@
       <Text>startup</Text>
     </Password>
   </Fields>
+  <Permissions>
+    <Identity path="/Root/IMS/BuiltIn/Portal/Administrators">
+      <Delete>Deny</Delete>
+    </Identity>
+    <Identity path="/Root/IMS/BuiltIn/Portal/HR">
+      <Delete>Deny</Delete>
+    </Identity>
+    <Identity path="/Root/IMS/BuiltIn/Portal/Owners">
+      <Delete>Deny</Delete>
+    </Identity>
+  </Permissions>
 </ContentMetaData>
