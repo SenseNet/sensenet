@@ -101,7 +101,7 @@ namespace SenseNet.Search.Indexing
         /* ClearAndPopulateAll */
         internal static void AddDocuments(IEnumerable<IndexDocument> documents)
         {
-            IndexingEngine.WriteIndex(null, documents);
+            IndexingEngine.WriteIndex(null, null, documents);
         }
 
         /* AddDocumentActivity, RebuildActivity */
@@ -112,7 +112,7 @@ namespace SenseNet.Search.Indexing
             if(document != null)
                 SetDocumentFlags(document, versioning);
 
-            IndexingEngine.WriteIndex(delTerms, document, updates);
+            IndexingEngine.WriteIndex(delTerms, updates, new[] {document});
 
             return true;
         }
@@ -132,7 +132,7 @@ namespace SenseNet.Search.Indexing
                 });
             }
 
-            IndexingEngine.WriteIndex(delTerms, null, updates);
+            IndexingEngine.WriteIndex(delTerms, updates, null);
 
             return true;
         }
@@ -185,13 +185,10 @@ namespace SenseNet.Search.Indexing
         // AddTreeActivity
         internal static bool AddTree(string treeRoot, bool moveOrRename, int activityId, bool executingUnprocessedActivities)
         {
-            var delTerm = executingUnprocessedActivities ? new [] { new SnTerm(IndexFieldName.InTree, treeRoot) } : null;
+            var delTerms = executingUnprocessedActivities ? new [] { new SnTerm(IndexFieldName.InTree, treeRoot) } : null;
             var excludedNodeTypes = GetNotIndexedNodeTypes();
-            var docs =
-                SearchManager.LoadIndexDocumentsByPath(treeRoot, excludedNodeTypes)
-                    .Select(d => CreateIndexDocument(d));
-            IndexingEngine.WriteIndex(delTerm, docs);
-
+            var docs = SearchManager.LoadIndexDocumentsByPath(treeRoot, excludedNodeTypes).Select(d => CreateIndexDocument(d));
+            IndexingEngine.WriteIndex(delTerms, null, docs);
             return true;
         }
 

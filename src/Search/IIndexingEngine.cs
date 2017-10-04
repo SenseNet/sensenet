@@ -27,8 +27,6 @@ namespace SenseNet.Search
         IIndexingActivityStatus ReadActivityStatusFromIndex();
         void WriteActivityStatusToIndex(IIndexingActivityStatus state);
 
-        //UNDONE:||||||| MERGE METHODS: Merge WriteIndex methods
-        void WriteIndex(IEnumerable<SnTerm> deletions, IndexDocument addition, IEnumerable<DocumentUpdate> updates);
-        void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<IndexDocument> addition);
+        void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates, IEnumerable<IndexDocument> addition);
     }
 }

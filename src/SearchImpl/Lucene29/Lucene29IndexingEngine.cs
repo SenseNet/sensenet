@@ -436,58 +436,33 @@ namespace SenseNet.Search.Lucene29
 
         /* ============================================================================================= Document Operations */
 
-        public void WriteIndex(IEnumerable<SnTerm> deletions, IndexDocument addition, IEnumerable<DocumentUpdate> updates)
-        {
-            using (var wrFrame = IndexWriterFrame.Get(false)) // // AddDocument
-            {
-                if (deletions != null)
-                    wrFrame.IndexWriter.DeleteDocuments(GetTerms(deletions));
-
-                if(updates != null)
-                    foreach (var update in updates)
-                        wrFrame.IndexWriter.UpdateDocument(GetTerm(update.UpdateTerm), GetDocument(update.Document));
-
-                if (addition != null)
-                {
-                    // pessimistic approach: delete document before adding it to avoid duplicate index documents
-                    wrFrame.IndexWriter.DeleteDocuments(GetVersionIdTerm(addition.VersionId));
-                    wrFrame.IndexWriter.AddDocument(GetDocument(addition));
-                }
-            }
-        }
-
-        public void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<IndexDocument> addition)
+        public void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates, IEnumerable<IndexDocument> addition)
         {
             using (var wrFrame = IndexWriterFrame.Get(false)) // // AddTree
             {
                 if (deletions != null)
                     wrFrame.IndexWriter.DeleteDocuments(GetTerms(deletions));
 
-                foreach (var snDoc in addition)
+                if (updates != null)
                 {
-                    Document document;
-                    int versionId;
-                    try
+                    foreach (var update in updates)
                     {
-                        document = GetDocument(snDoc);
-                        if (document == null) // indexing disabled
-                            continue;
-                        versionId = snDoc.VersionId;
+                        if (update.Document != null)
+                            wrFrame.IndexWriter.UpdateDocument(GetTerm(update.UpdateTerm), GetDocument(update.Document));
                     }
-                    catch (Exception e)
+                }
+
+                if (addition != null)
+                {
+                    foreach (var snDoc in addition)
                     {
-                        var path = snDoc?.GetStringValue(IndexFieldName.Path) ?? string.Empty;
-                        SnLog.WriteException(e, "Error during indexing: the document data loaded from the database or the generated Lucene Document is invalid. Please save the content to regenerate the index for it. Path: " + path);
-
-                        SnTrace.Index.WriteError("LM: Error during indexing: the document data loaded from the database or the generated Lucene Document is invalid. Please save the content to regenerate the index for it. Path: " + path);
-                        SnTrace.Index.WriteError("LM: Error during indexing: " + e);
-
-                        throw;
+                        if (snDoc != null)
+                        {
+                            // pessimistic approach: delete document before adding it to avoid duplicate index documents
+                            wrFrame.IndexWriter.DeleteDocuments(GetVersionIdTerm(snDoc.VersionId));
+                            wrFrame.IndexWriter.AddDocument(GetDocument(snDoc));
+                        }
                     }
-
-                    // pessimistic approach: delete document before adding it to avoid duplicate index documents
-                    wrFrame.IndexWriter.DeleteDocuments(GetVersionIdTerm(versionId));
-                    wrFrame.IndexWriter.AddDocument(document);
                 }
             }
         }
@@ -534,10 +509,25 @@ namespace SenseNet.Search.Lucene29
 
         private Document GetDocument(IndexDocument snDoc)
         {
-            var doc = new Document();
-            foreach (var indexField in snDoc)
-                AddFieldToDocument(indexField, doc);
-            return doc;
+            try
+            {
+                var doc = new Document();
+                foreach (var indexField in snDoc)
+                    AddFieldToDocument(indexField, doc);
+                return doc;
+            }
+            catch (Exception e)
+            {
+                var path = snDoc.GetStringValue(IndexFieldName.Path) ?? string.Empty;
+                var msg = "Error during indexing: the document data loaded from the database or the generated Lucene Document is invalid. " +
+                          "Please save the content to regenerate the index for it. Path: " + path;
+                SnLog.WriteException(e, msg);
+                SnTrace.Index.WriteError(msg);
+                SnTrace.Index.WriteError("LM: Error during indexing: " + e);
+
+                throw;
+            }
+
         }
 
         private void AddFieldToDocument(IndexField indexField, Document doc)
