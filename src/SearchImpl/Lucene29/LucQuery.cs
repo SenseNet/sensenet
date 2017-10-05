@@ -87,20 +87,22 @@ namespace SenseNet.Search.Lucene29
 
                 switch (info.IndexFieldHandler.IndexFieldType)
                 {
-                    case IndexFieldType.String:
+                    case IndexValueType.Bool:
+                    case IndexValueType.String:
+                    case IndexValueType.StringArray:
                         sortType = SortField.STRING;
                         break;
-                    case IndexFieldType.Int:
+                    case IndexValueType.Int:
                         sortType = SortField.INT;
                         break;
-                    case IndexFieldType.DateTime:
-                    case IndexFieldType.Long:
+                    case IndexValueType.DateTime:
+                    case IndexValueType.Long:
                         sortType = SortField.LONG;
                         break;
-                    case IndexFieldType.Float:
+                    case IndexValueType.Float:
                         sortType = SortField.FLOAT;
                      break;
-                    case IndexFieldType.Double:
+                    case IndexValueType.Double:
                         sortType = SortField.DOUBLE;
                         break;
                     default:

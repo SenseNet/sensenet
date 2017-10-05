@@ -456,17 +456,19 @@ namespace SenseNet.Search.Lucene29
             var fieldHandler = info.IndexFieldHandler;
             switch (fieldHandler.IndexFieldType)
             {
-                case IndexFieldType.String:
+                case IndexValueType.Bool:
+                case IndexValueType.String:
+                case IndexValueType.StringArray:
                     return GetTermText(fieldText);
-                case IndexFieldType.Int:
+                case IndexValueType.Int:
                     return Convert.ToString(NumericUtils.PrefixCodedToInt(fieldText), CultureInfo.InvariantCulture);
-                case IndexFieldType.Long:
+                case IndexValueType.Long:
                     return Convert.ToString(NumericUtils.PrefixCodedToLong(fieldText), CultureInfo.InvariantCulture);
-                case IndexFieldType.Float:
+                case IndexValueType.Float:
                     return Convert.ToString(NumericUtils.PrefixCodedToFloat(fieldText), CultureInfo.InvariantCulture);
-                case IndexFieldType.Double:
+                case IndexValueType.Double:
                     return Convert.ToString(NumericUtils.PrefixCodedToDouble(fieldText), CultureInfo.InvariantCulture);
-                case IndexFieldType.DateTime:
+                case IndexValueType.DateTime:
                     var d = new DateTime(NumericUtils.PrefixCodedToLong(fieldText));
                     if (d.Hour == 0 && d.Minute == 0 && d.Second == 0)
                         return GetTermText(d.ToString("yyyy-MM-dd"));

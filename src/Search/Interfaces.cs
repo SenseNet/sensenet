@@ -8,8 +8,6 @@ namespace SenseNet.Search
     public enum IndexStoringMode { Default, No, Yes }
     public enum IndexTermVector { Default, No, WithOffsets, WithPositions, WithPositionsOffsets, Yes }
 
-    public enum IndexFieldType { String, Int, Long, Float, Double, DateTime }
-
     public enum IndexFieldAnalyzer { Default, Keyword, Standard, Whitespace /*, Simple, Stop*/ }
 
     public interface IIndexableField
@@ -33,7 +31,7 @@ namespace SenseNet.Search
         IndexFieldAnalyzer GetDefaultAnalyzer();
 
         IEnumerable<string> GetParsableValues(IIndexableField field);
-        IndexFieldType IndexFieldType { get; }
+        IndexValueType IndexFieldType { get; }
         IPerFieldIndexingInfo OwnerIndexingInfo { get; set; }
         string GetSortFieldName(string fieldName);
 

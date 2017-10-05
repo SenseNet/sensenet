@@ -338,13 +338,6 @@
       <FileName>Interfaces.cs</FileName>
     </TypeIdentifier>
   </Enum>
-  <Enum Name="SenseNet.Search.IndexFieldType">
-    <Position X="31" Y="11.75" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAAAAAEAAAAAAAAAQAAAAAAAAAACAAQAAAAAAAAgACA=</HashCode>
-      <FileName>Interfaces.cs</FileName>
-    </TypeIdentifier>
-  </Enum>
   <Enum Name="SenseNet.Search.IndexFieldAnalyzer">
     <Position X="24.25" Y="6.25" Width="1.75" />
     <TypeIdentifier>

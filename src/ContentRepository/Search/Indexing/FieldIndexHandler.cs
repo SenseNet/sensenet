@@ -18,7 +18,7 @@ namespace SenseNet.Search.Indexing
     {
         public IPerFieldIndexingInfo OwnerIndexingInfo { get; set; }
 
-        public virtual IndexFieldType IndexFieldType { get { return IndexFieldType.String; } }
+        public virtual IndexValueType IndexFieldType { get { return IndexValueType.String; } }
 
         /// <summary>
         /// For SnQuery compilers
@@ -507,7 +507,7 @@ namespace SenseNet.Search.Indexing
     }
     public class IntegerIndexHandler : FieldIndexHandler, IIndexValueConverter<Int32>, IIndexValueConverter
     {
-        public override IndexFieldType IndexFieldType { get { return IndexFieldType.Int; } }
+        public override IndexValueType IndexFieldType { get { return IndexValueType.Int; } }
 
         public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
@@ -561,7 +561,7 @@ namespace SenseNet.Search.Indexing
     }
     public class NumberIndexHandler : FieldIndexHandler, IIndexValueConverter<Decimal>, IIndexValueConverter
     {
-        public override IndexFieldType IndexFieldType { get { return IndexFieldType.Double; } }
+        public override IndexValueType IndexFieldType { get { return IndexValueType.Double; } }
 
         public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
@@ -601,7 +601,7 @@ namespace SenseNet.Search.Indexing
     }
     public class DateTimeIndexHandler : FieldIndexHandler, IIndexValueConverter<DateTime>, IIndexValueConverter
     {
-        public override IndexFieldType IndexFieldType { get { return IndexFieldType.DateTime; } }
+        public override IndexValueType IndexFieldType { get { return IndexValueType.DateTime; } }
 
         public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
