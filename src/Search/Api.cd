@@ -290,21 +290,21 @@
     </TypeIdentifier>
   </Enum>
   <Enum Name="SenseNet.Search.LogicalOperator">
-    <Position X="0.5" Y="24" Width="7.5" />
+    <Position X="8.5" Y="22.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>IAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAA=</HashCode>
       <FileName>LogicalOperator.cs</FileName>
     </TypeIdentifier>
   </Enum>
   <Enum Name="SenseNet.Search.ExecutionHint">
-    <Position X="4.75" Y="22" Width="1.5" />
+    <Position X="4.75" Y="22.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAEAAAAAAAAAAAAABAAAAAAAAAAEAAAA=</HashCode>
       <FileName>ExecutionHint.cs</FileName>
     </TypeIdentifier>
   </Enum>
   <Enum Name="SenseNet.Search.FilterStatus">
-    <Position X="0.5" Y="22" Width="1.5" />
+    <Position X="0.5" Y="22.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAIAAAACAIAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>FilterStatus.cs</FileName>
@@ -339,7 +339,7 @@
     </TypeIdentifier>
   </Enum>
   <Enum Name="SenseNet.Search.IndexFieldType">
-    <Position X="18.25" Y="10" Width="1.5" />
+    <Position X="31" Y="11.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAEAAAAAAAAAQAAAAAAAAAACAAQAAAAAAAAgACA=</HashCode>
       <FileName>Interfaces.cs</FileName>
@@ -353,14 +353,14 @@
     </TypeIdentifier>
   </Enum>
   <Enum Name="SenseNet.Search.QueryFieldLevel">
-    <Position X="6.75" Y="22" Width="1.5" />
+    <Position X="6.75" Y="22.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAQAAAAAAAAAAAAAAAIAAAAAAAAAAAAgAgAAA=</HashCode>
       <FileName>Interfaces.cs</FileName>
     </TypeIdentifier>
   </Enum>
   <Enum Name="SenseNet.Search.QueryExecutionMode">
-    <Position X="2.5" Y="22" Width="1.75" />
+    <Position X="2.5" Y="22.25" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAIgAAAAAAAAAAAAAAQAAAAAA=</HashCode>
       <FileName>QueryExecutionMode.cs</FileName>
