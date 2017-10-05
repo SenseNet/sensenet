@@ -978,7 +978,7 @@ namespace SenseNet.SearchImpl.Tests
 
                 var updatedStatus = searchEngine.IndexingEngine.ReadActivityStatusFromIndex();
 
-                return new Tuple<IIndexingActivityStatus, IIndexingActivityStatus>(originalStatus, updatedStatus);
+                return new Tuple<IndexingActivityStatus, IndexingActivityStatus>(originalStatus, updatedStatus);
             });
 
             var resultStatus = new IndexingActivityStatus()
@@ -1039,11 +1039,11 @@ namespace SenseNet.SearchImpl.Tests
                 {
                     throw new NotImplementedException();
                 }
-                public IIndexingActivityStatus ReadActivityStatusFromIndex()
+                public IndexingActivityStatus ReadActivityStatusFromIndex()
                 {
                     throw new NotImplementedException();
                 }
-                public void WriteActivityStatusToIndex(IIndexingActivityStatus state)
+                public void WriteActivityStatusToIndex(IndexingActivityStatus state)
                 {
                     throw new NotImplementedException();
                 }

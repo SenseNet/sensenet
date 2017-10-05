@@ -167,24 +167,18 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         /* ========================================================================== Activity staus */
 
-        private class ActivityStatus : IIndexingActivityStatus
-        {
-            public int LastActivityId { get; set; }
-            public int[] Gaps { get; set; }
-        }
+        private IndexingActivityStatus _activityStatux = new IndexingActivityStatus { LastActivityId = 0, Gaps = new int[0] };
 
-        private ActivityStatus _activityStatux = new ActivityStatus { LastActivityId = 0, Gaps = new int[0] };
-
-        internal void WriteActivityStatus(IIndexingActivityStatus status)
+        internal void WriteActivityStatus(IndexingActivityStatus status)
         {
-            _activityStatux = new ActivityStatus
+            _activityStatux = new IndexingActivityStatus
             {
                 LastActivityId = status.LastActivityId,
                 Gaps = status.Gaps.ToArray()
             };
         }
 
-        internal IIndexingActivityStatus ReadActivityStatus()
+        internal IndexingActivityStatus ReadActivityStatus()
         {
             return _activityStatux;
         }

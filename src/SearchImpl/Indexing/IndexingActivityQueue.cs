@@ -177,8 +177,7 @@ namespace SenseNet.Search.Indexing
             /// </summary>
             internal static void Start(int lastDatabaseId, int lastExecutedId, int[] gaps, System.IO.TextWriter consoleOut)
             {
-                if (consoleOut != null)
-                    consoleOut.WriteLine("Executing unprocessed activities. {0}-{1} {2}", lastExecutedId, lastDatabaseId, CompletionState.GapsToString(gaps, 5, 3));
+                consoleOut?.WriteLine("Executing unprocessed activities. {0}-{1} {2}", lastExecutedId, lastDatabaseId, IndexingActivityStatus.GapsToString(gaps, 5, 3));
 
                 SnLog.WriteInformation("Executing unprocessed activities.",
                     EventId.RepositoryRuntime,
@@ -186,7 +185,7 @@ namespace SenseNet.Search.Indexing
                         {"LastDatabaseId", lastDatabaseId},
                         {"LastExecutedId", lastExecutedId},
                         {"CountOfGaps", gaps.Length},
-                        {"Gaps", String.Join(", ", gaps)}
+                        {"Gaps", IndexingActivityStatus.GapsToString(gaps, 100, 3)}
                     });
 
                 DependencyManager.Start();
@@ -797,13 +796,10 @@ namespace SenseNet.Search.Indexing
         public int WaitingSetLength { get { return WaitingSet == null ? 0 : WaitingSet.Length; } }
         public int[] WaitingSet { get; set; }
     }
-    public class CompletionState : IIndexingActivityStatus
+    public class CompletionState : IndexingActivityStatus
     {
-        internal static readonly string LastActivityIdKey = "LastActivityId";
-        internal static readonly string GapsKey = "Gaps";
-
-        public int LastActivityId { get; set; }
-        public int[] Gaps { get; set; }
+        private const string LastActivityIdKey = "LastActivityId";
+        private const string GapsKey = "Gaps";
 
         public CompletionState()
         {
@@ -832,42 +828,27 @@ namespace SenseNet.Search.Indexing
                         if (int.TryParse(value, out lastActivityId))
                             result.LastActivityId = lastActivityId;
 
-                if (commitUserData.TryGetValue(CompletionState.GapsKey, out value))
+                if (commitUserData.TryGetValue(GapsKey, out value))
                     if (!string.IsNullOrEmpty(value))
                         result.Gaps = value
                             .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                            .Select(s => { int i; if (Int32.TryParse(s, out i)) return i; return 0; })
+                            .Select(s => { int i; return int.TryParse(s, out i) ? i : 0;})
                             .Where(i => i > 0)
                             .ToArray();
             }
             return result;
         }
 
-        internal static Dictionary<string, string> GetCommitUserData(IIndexingActivityStatus data)
+        internal static Dictionary<string, string> GetCommitUserData(IndexingActivityStatus data)
         {
             return GetCommitUserData(data.LastActivityId, data.Gaps);
         }
         internal static Dictionary<string, string> GetCommitUserData(int lastActivityId, int[] gaps = null)
         {
-            var data = new Dictionary<string, string>();
-            data.Add(CompletionState.LastActivityIdKey, lastActivityId.ToString());
+            var data = new Dictionary<string, string> {{CompletionState.LastActivityIdKey, lastActivityId.ToString()}};
             if (gaps != null && gaps.Length > 0)
-                data.Add(CompletionState.GapsKey, String.Join(",", gaps));
+                data.Add(GapsKey, string.Join(",", gaps));
             return data;
-        }
-
-        public override string ToString()
-        {
-            return String.Format("{0}({1})", LastActivityId, GapsToString(Gaps, 50, 10));
-        }
-
-        internal static object GapsToString(int[] gaps, int maxCount, int growth)
-        {
-            if (gaps.Length < maxCount + growth)
-                maxCount = gaps.Length;
-            return (gaps.Length > maxCount)
-                ? String.Format("{0},... and {1} additional items", String.Join(",", gaps.Take(maxCount)), gaps.Length - maxCount)
-                : String.Join(",", gaps);
         }
     }
     public class IndexingActivityQueueState

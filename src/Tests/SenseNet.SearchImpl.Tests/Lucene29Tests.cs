@@ -362,7 +362,7 @@ namespace SenseNet.SearchImpl.Tests
 
                 var updatedStatus = searchEngine.IndexingEngine.ReadActivityStatusFromIndex();
 
-                return new Tuple<IIndexingActivityStatus, IIndexingActivityStatus>(originalStatus, updatedStatus);
+                return new Tuple<IndexingActivityStatus, IndexingActivityStatus>(originalStatus, updatedStatus);
             });
 
             var resultStatus = new IndexingActivityStatus()
@@ -393,7 +393,7 @@ namespace SenseNet.SearchImpl.Tests
 
                 var updatedStatus = searchEngine.IndexingEngine.ReadActivityStatusFromIndex();
 
-                return new Tuple<IIndexingActivityStatus, IIndexingActivityStatus>(originalStatus, updatedStatus);
+                return new Tuple<IndexingActivityStatus, IndexingActivityStatus>(originalStatus, updatedStatus);
             });
 
             Assert.AreEqual(result.Item1.LastActivityId + 1, result.Item2.LastActivityId);

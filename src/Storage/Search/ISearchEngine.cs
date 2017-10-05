@@ -88,12 +88,12 @@ namespace SenseNet.ContentRepository.Storage.Search
                 throw new SnNotSupportedException();
             }
 
-            public IIndexingActivityStatus ReadActivityStatusFromIndex()
+            public IndexingActivityStatus ReadActivityStatusFromIndex()
             {
                 throw new SnNotSupportedException();
             }
 
-            public void WriteActivityStatusToIndex(IIndexingActivityStatus state)
+            public void WriteActivityStatusToIndex(IndexingActivityStatus state)
             {
                 throw new SnNotSupportedException();
             }

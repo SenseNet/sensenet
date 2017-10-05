@@ -31,12 +31,12 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             Index.Clear();
         }
 
-        public IIndexingActivityStatus ReadActivityStatusFromIndex()
+        public IndexingActivityStatus ReadActivityStatusFromIndex()
         {
             return Index.ReadActivityStatus();
         }
 
-        public void WriteActivityStatusToIndex(IIndexingActivityStatus state)
+        public void WriteActivityStatusToIndex(IndexingActivityStatus state)
         {
             Index.WriteActivityStatus(state);
         }

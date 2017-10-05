@@ -268,13 +268,13 @@ namespace SenseNet.Search.Lucene29
             CreateWriterAndReader();
         }
 
-        public IIndexingActivityStatus ReadActivityStatusFromIndex()
+        public IndexingActivityStatus ReadActivityStatusFromIndex()
         {
             using (var readerFrame = GetIndexReaderFrame())
                 return CompletionState.ParseFromReader(readerFrame.IndexReader);
         }
 
-        public void WriteActivityStatusToIndex(IIndexingActivityStatus state)
+        public void WriteActivityStatusToIndex(IndexingActivityStatus state)
         {
             Commit(true, state);
         }
@@ -571,7 +571,7 @@ namespace SenseNet.Search.Lucene29
 
         /* ============================================================================================= */
 
-        private void Commit(bool reopenReader, IIndexingActivityStatus state = null)
+        private void Commit(bool reopenReader, IndexingActivityStatus state = null)
         {
             using (var op = SnTrace.Index.StartOperation("LM: Commit. reopenReader:{0}", reopenReader))
             {
