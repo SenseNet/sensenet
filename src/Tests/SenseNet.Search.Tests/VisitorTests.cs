@@ -11,11 +11,11 @@ namespace SenseNet.Search.Tests
     {
         private class TestVisitor : SnQueryVisitor
         {
-            public override SnQueryPredicate VisitTextPredicate(TextPredicate textPredicate)
+            public override SnQueryPredicate VisitTextPredicate(SimplePredicate simplePredicate)
             {
-                if (textPredicate.Value.ValueAsString != "V2")
-                    return textPredicate;
-                return new TextPredicate(textPredicate.FieldName, new IndexValue("V2222"));
+                if (simplePredicate.Value.ValueAsString != "V2")
+                    return simplePredicate;
+                return new SimplePredicate(simplePredicate.FieldName, new IndexValue("V2222"));
             }
         }
 
@@ -32,12 +32,12 @@ namespace SenseNet.Search.Tests
                 {
                     new LogicalClause(new LogicalPredicate(
                         new [] {
-                            new LogicalClause(new TextPredicate("F1", new IndexValue("V1")), Occurence.Should),
-                            new LogicalClause(new TextPredicate("F2", new IndexValue("V2")), Occurence.Should)
+                            new LogicalClause(new SimplePredicate("F1", new IndexValue("V1")), Occurence.Should),
+                            new LogicalClause(new SimplePredicate("F2", new IndexValue("V2")), Occurence.Should)
                         }), Occurence.Must),
                     new LogicalClause(new LogicalPredicate(
                         new [] {
-                            new LogicalClause(new TextPredicate("F3", new IndexValue("V3")), Occurence.Should),
+                            new LogicalClause(new SimplePredicate("F3", new IndexValue("V3")), Occurence.Should),
                             new LogicalClause(new RangePredicate("F4", null, new IndexValue(10), true, true), Occurence.Should), 
                         }), Occurence.Must),
                 });

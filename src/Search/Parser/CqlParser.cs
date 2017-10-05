@@ -897,11 +897,11 @@ namespace SenseNet.Search.Parser
             if (parsedValue.Type == IndexValueType.String)
             {
                 if (parsedValue.StringValue == SnQuery.EmptyText)
-                    return new TextPredicate(currentField.Name, parsedValue);
+                    return new SimplePredicate(currentField.Name, parsedValue);
                 if (parsedValue.StringValue == SnQuery.EmptyInnerQueryText)
-                    return new TextPredicate(IndexFieldName.NodeId, new IndexValue(0));
+                    return new SimplePredicate(IndexFieldName.NodeId, new IndexValue(0));
             }
-            return new TextPredicate(currentField.Name, parsedValue, value.FuzzyValue);
+            return new SimplePredicate(currentField.Name, parsedValue, value.FuzzyValue);
         }
         private IndexValue ParseValue(string fieldName, QueryFieldValue value, IQueryContext context, bool throwIfError = true)
         {
@@ -924,12 +924,12 @@ namespace SenseNet.Search.Parser
             if (min?.StringValue == SnQuery.EmptyText && max == null)
             {
                 _hasEmptyQuery = true;
-                return new TextPredicate(fieldName, min);
+                return new SimplePredicate(fieldName, min);
             }
             if (max?.StringValue == SnQuery.EmptyText && min == null)
             {
                 _hasEmptyQuery = true;
-                return new TextPredicate(fieldName, max);
+                return new SimplePredicate(fieldName, max);
             }
 
             if (min?.StringValue == SnQuery.EmptyText)

@@ -78,7 +78,7 @@
     <Compile Include="Parser\CqlLexer.cs" />
     <Compile Include="Parser\LineInfo.cs" />
     <Compile Include="Parser\ParserException.cs" />
-    <Compile Include="Parser\Predicates\TextPredicate.cs" />
+    <Compile Include="Parser\Predicates\SimplePredicate.cs" />
     <Compile Include="Parser\SnQueryVisitor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SnQueryClassifier.cs" />

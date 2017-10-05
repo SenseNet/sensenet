@@ -575,7 +575,7 @@ namespace SenseNet.ContentRepository.Linq
             var contentTypeName = ContentTypeManager.GetContentTypeNameByType(targetType);
             if (contentTypeName == null)
                 throw new ApplicationException($"Unknown Content Type: {targetType.FullName}");
-            return new TextPredicate(IndexFieldName.TypeIs, ConvertValue(IndexFieldName.TypeIs, contentTypeName));
+            return new SimplePredicate(IndexFieldName.TypeIs, ConvertValue(IndexFieldName.TypeIs, contentTypeName));
         }
         private bool RemoveDuplicatedTopLevelBooleanMemberPredicate(SnQueryPredicate predicate)
         {
@@ -733,12 +733,12 @@ namespace SenseNet.ContentRepository.Linq
                     _predicates.Pop();
             _predicates.Push(predicate);
         }
-        internal static TextPredicate CreateTextPredicate(string fieldName, object value)
+        internal static SimplePredicate CreateTextPredicate(string fieldName, object value)
         {
             var indexValue = value as IndexValue;
             if (indexValue == null)
                 indexValue = ConvertValue(fieldName, value);
-            return new TextPredicate(fieldName, indexValue);
+            return new SimplePredicate(fieldName, indexValue);
         }
         private void BuildTextPredicate(string fieldName, object value)
         {
@@ -864,7 +864,7 @@ namespace SenseNet.ContentRepository.Linq
                 case WildcardPosition.AtStartAndEnd: text = string.Concat("*", arg, "*"); break;
                 default: throw new SnNotSupportedException("WildcardType is not supported: " + type);
             }
-            var wq = new TextPredicate(field, new IndexValue(text));
+            var wq = new SimplePredicate(field, new IndexValue(text));
             _predicates.Push(wq);
         }
 

@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace SenseNet.Search.Parser.Predicates
 {
-    public class TextPredicate : SnQueryPredicate
+    public class SimplePredicate : SnQueryPredicate
     {
         public string FieldName { get; }
         public IndexValue Value { get; }
         public double? FuzzyValue { get; }
 
-        public TextPredicate(string fieldName, IndexValue value, double? fuzzyValue = null)
+        public SimplePredicate(string fieldName, IndexValue value, double? fuzzyValue = null)
         {
             FieldName = fieldName;
             Value = value;

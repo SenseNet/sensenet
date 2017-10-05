@@ -11,16 +11,16 @@ namespace SenseNet.Search.Parser
             if (predicate == null)
                 return null;
 
-            var text  = predicate as TextPredicate;    if (text != null)  return VisitTextPredicate    (text);
+            var text  = predicate as SimplePredicate;    if (text != null)  return VisitTextPredicate    (text);
             var range = predicate as RangePredicate;   if (range != null) return VisitRangePredicate   (range);
             var logic = predicate as LogicalPredicate; if (logic != null) return VisitLogicalPredicate (logic);
 
             throw new NotSupportedException("Unknown predicate type: " + predicate.GetType().FullName);
         }
 
-        public virtual SnQueryPredicate VisitTextPredicate(TextPredicate text)
+        public virtual SnQueryPredicate VisitTextPredicate(SimplePredicate simplePredicate)
         {
-            return text;
+            return simplePredicate;
         }
 
         public virtual SnQueryPredicate VisitRangePredicate(RangePredicate range)

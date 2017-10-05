@@ -113,12 +113,12 @@ namespace SenseNet.Search.Parser
                 _queryInfo = queryInfo;
             }
 
-            public override SnQueryPredicate VisitTextPredicate(TextPredicate text)
+            public override SnQueryPredicate VisitTextPredicate(SimplePredicate simplePredicate)
             {
-                if (!_queryInfo.QueryFieldNames.Contains(text.FieldName))
-                    _queryInfo.QueryFieldNames.Add(text.FieldName);
+                if (!_queryInfo.QueryFieldNames.Contains(simplePredicate.FieldName))
+                    _queryInfo.QueryFieldNames.Add(simplePredicate.FieldName);
 
-                var stringValue = text.Value.ValueAsString;
+                var stringValue = simplePredicate.Value.ValueAsString;
                 var asterisks = stringValue.Count(c => c == '*');
                 var questionMarks = stringValue.Count(c => c == '?');
 
@@ -132,7 +132,7 @@ namespace SenseNet.Search.Parser
                     _queryInfo.AsteriskWildcards += asterisks;
                     _queryInfo.QuestionMarkWildcards += questionMarks;
                 }
-                else if (text.FuzzyValue != null)
+                else if (simplePredicate.FuzzyValue != null)
                 {
                     _queryInfo.FuzzyQueries++;
                 }
@@ -141,7 +141,7 @@ namespace SenseNet.Search.Parser
                     _queryInfo.TermQueries++;
                 }
 
-                return base.VisitTextPredicate(text);
+                return base.VisitTextPredicate(simplePredicate);
             }
 
             public override SnQueryPredicate VisitRangePredicate(RangePredicate range)

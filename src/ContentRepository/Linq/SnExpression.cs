@@ -179,7 +179,7 @@ namespace SenseNet.ContentRepository.Linq
                 return null;
             var fieldName = inTree ? IndexFieldName.InTree : IndexFieldName.InFolder;
             var converter = ContentTypeManager.GetPerFieldIndexingInfo(fieldName).IndexFieldHandler;
-            return new TextPredicate(fieldName, converter.ConvertToTermValue(path));
+            return new SimplePredicate(fieldName, converter.ConvertToTermValue(path));
         }
 
         public static Expression GetCaseInsensitiveFilter(Expression expression)

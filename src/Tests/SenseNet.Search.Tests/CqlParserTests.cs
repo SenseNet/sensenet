@@ -122,9 +122,9 @@ namespace SenseNet.Search.Tests
         public void SnQuery_Parser_AstToString_PredicateTypes()
         {
             SnQuery q;
-            q = Test("Name:aaa"); Assert.AreEqual(typeof(TextPredicate), q.QueryTree.GetType());
-            q = Test("Id:1000"); Assert.AreEqual(typeof(TextPredicate), q.QueryTree.GetType());
-            q = Test("DoubleField1:3.14"); Assert.AreEqual(typeof(TextPredicate), q.QueryTree.GetType());
+            q = Test("Name:aaa"); Assert.AreEqual(typeof(SimplePredicate), q.QueryTree.GetType());
+            q = Test("Id:1000"); Assert.AreEqual(typeof(SimplePredicate), q.QueryTree.GetType());
+            q = Test("DoubleField1:3.14"); Assert.AreEqual(typeof(SimplePredicate), q.QueryTree.GetType());
         }
 
         [TestMethod, TestCategory("IR")]

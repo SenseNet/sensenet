@@ -24,14 +24,14 @@ namespace SenseNet.Search
             _escaperRegex = new Regex(pattern.ToString());
         }
 
-        public override SnQueryPredicate VisitTextPredicate(TextPredicate text)
+        public override SnQueryPredicate VisitTextPredicate(SimplePredicate simplePredicate)
         {
-            var value = Escape(text.Value);
-            _output.Append($"{text.FieldName}:{value}");
-            BoostTostring(text.Boost);
-            FuzzyToString(text.FuzzyValue);
+            var value = Escape(simplePredicate.Value);
+            _output.Append($"{simplePredicate.FieldName}:{value}");
+            BoostTostring(simplePredicate.Boost);
+            FuzzyToString(simplePredicate.FuzzyValue);
 
-            return base.VisitTextPredicate(text);
+            return base.VisitTextPredicate(simplePredicate);
         }
         private object Escape(IndexValue value)
         {

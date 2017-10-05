@@ -41,12 +41,12 @@ namespace SenseNet.ContentRepository.Storage.Search
                 return base.VisitRangePredicate(range);
             }
 
-            public override SnQueryPredicate VisitTextPredicate(TextPredicate text)
+            public override SnQueryPredicate VisitTextPredicate(SimplePredicate simplePredicate)
             {
-                var visitedField = text.FieldName;
+                var visitedField = simplePredicate.FieldName;
                 if (!_fieldNames.Contains(visitedField))
                     _fieldNames.Add(visitedField);
-                return base.VisitTextPredicate(text);
+                return base.VisitTextPredicate(simplePredicate);
             }
         }
         #endregion

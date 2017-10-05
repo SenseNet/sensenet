@@ -175,13 +175,13 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
             // ========================================================================================
 
-            public override SnQueryPredicate VisitTextPredicate(TextPredicate text)
+            public override SnQueryPredicate VisitTextPredicate(SimplePredicate simplePredicate)
             {
                 var result = new List<int>();
 
-                var value = text.Value.ValueAsString.ToLowerInvariant();
+                var value = simplePredicate.Value.ValueAsString.ToLowerInvariant();
                 Dictionary<string, List<int>> fieldValues;
-                if (_index.IndexData.TryGetValue(text.FieldName, out fieldValues))
+                if (_index.IndexData.TryGetValue(simplePredicate.FieldName, out fieldValues))
                 {
                     if (!value.Contains("*"))
                     {
@@ -196,7 +196,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                     }
                 }
                 _hitStack.Push(result);
-                return text;
+                return simplePredicate;
             }
             private IEnumerable<int> GetVersionIdsByWildcard(Dictionary<string, List<int>> fieldValues, string value)
             {

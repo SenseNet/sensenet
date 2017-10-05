@@ -37,13 +37,13 @@ namespace SenseNet.Search.Lucene29
             _context = context;
         }
 
-        public override SnQueryPredicate VisitTextPredicate(TextPredicate text)
+        public override SnQueryPredicate VisitTextPredicate(SimplePredicate simplePredicate)
         {
-            var query = CreateStringValueQuery(text.FieldName, text.Value, text.FuzzyValue );
-            if(text.Boost.HasValue)
-                query.SetBoost(Convert.ToSingle(text.Boost.Value));
+            var query = CreateStringValueQuery(simplePredicate.FieldName, simplePredicate.Value, simplePredicate.FuzzyValue );
+            if(simplePredicate.Boost.HasValue)
+                query.SetBoost(Convert.ToSingle(simplePredicate.Boost.Value));
             _queryTree.Push(query);
-            return text;
+            return simplePredicate;
         }
         private Query CreateStringValueQuery(string fieldName, IndexValue value, double? fuzzyValue)
         {
