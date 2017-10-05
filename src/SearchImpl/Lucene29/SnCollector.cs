@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Lucene.Net.Index;
-using System.Diagnostics;
+﻿using Lucene.Net.Index;
 using Lucene.Net.Search;
-using SenseNet.Search.Lucene29;
 
-namespace SenseNet.Search
+namespace SenseNet.Search.Lucene29
 {
     internal interface ISnCollector
     {
@@ -21,7 +15,6 @@ namespace SenseNet.Search
         private int _docBase;
 
         public SnTopScoreDocCollector(int size, SearchParams searchParams)
-            : base()
         {
             _searchParams = searchParams;
             _wrapped = TopScoreDocCollector.Create(size, false);
@@ -76,7 +69,6 @@ namespace SenseNet.Search
         private int _docBase;
 
         public SnTopFieldCollector(int size, SearchParams searchParams, Sort sort)
-            : base()
         {
             _searchParams = searchParams;
             _wrapped = TopFieldCollector.Create(sort, size, false, true, false, false);

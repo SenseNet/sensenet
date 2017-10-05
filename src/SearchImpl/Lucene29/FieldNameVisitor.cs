@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace SenseNet.Search.Parser
+namespace SenseNet.Search.Lucene29
 {
     internal class FieldNameVisitor : LucQueryVisitor
     {

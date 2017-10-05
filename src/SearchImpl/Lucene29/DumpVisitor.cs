@@ -9,7 +9,7 @@ using SenseNet.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
 
-namespace SenseNet.Search.Parser
+namespace SenseNet.Search.Lucene29
 {
     // DO NOT DELETE: integration tests use this class (in budapest branch).
     internal class DumpVisitor : LucQueryVisitor

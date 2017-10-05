@@ -10,8 +10,6 @@ using SenseNet.Search.Indexing.Activities;
 
 namespace SenseNet.Search.Indexing
 {
-    public enum CommitHint { AddNew, AddNewVersion, Update, Rename, Move, Delete } ;
-
     public static class IndexManager // alias LuceneManager
     {
         #region /* ==================================================================== Managing index */

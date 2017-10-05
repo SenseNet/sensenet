@@ -6,7 +6,7 @@ using SenseNet.Search.Parser.Predicates;
 
 namespace SenseNet.Search.Parser
 {
-    internal class CqlParser : ISnQueryParser
+    internal class CqlParser
     {
         public enum DefaultOperator { Or, And }
 

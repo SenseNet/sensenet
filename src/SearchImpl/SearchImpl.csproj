@@ -75,7 +75,7 @@
     <Compile Include="Indexing\IndexDocumentProvider.cs" />
     <Compile Include="Indexing\IndexingActivityQueue.cs" />
     <Compile Include="Indexing\DocumentPopulator.cs" />
-    <Compile Include="Indexing\EnumConverter.cs" />
+    <Compile Include="Lucene29\EnumConverter.cs" />
     <Compile Include="Indexing\ExplicitPerFieldIndexingInfo.cs" />
     <Compile Include="Indexing\IndexHealthMonitor.cs" />
     <Compile Include="Indexing\IndexingActivityFactory.cs" />
@@ -86,7 +86,6 @@
     <Compile Include="Indexing\IndexManager.cs" />
     <Compile Include="Indexing\PerFieldIndexingInfo.cs" />
     <Compile Include="Indexing\SnPerFieldAnalyzerWrapper.cs" />
-    <Compile Include="InvalidContentQueryException.cs" />
     <Compile Include="Lucene29\Lucene29Compiler.cs" />
     <Compile Include="Lucene29\Lucene29IndexingEngine.cs" />
     <Compile Include="Lucene29\Lucene29QueryEngine.cs" />
@@ -94,9 +93,9 @@
     <Compile Include="Lucene29\Lucene29SearchEngine.cs" />
     <Compile Include="Lucene29\LucObject.cs" />
     <Compile Include="Lucene29\LucQuery.cs" />
-    <Compile Include="Parser\DumpVisitor.cs" />
-    <Compile Include="Parser\FieldNameVisitor.cs" />
-    <Compile Include="Parser\LucQueryVisitor.cs" />
+    <Compile Include="Lucene29\DumpVisitor.cs" />
+    <Compile Include="Lucene29\FieldNameVisitor.cs" />
+    <Compile Include="Lucene29\LucQueryVisitor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Lucene29\QueryExecutors\IQueryExecutor.cs" />
     <Compile Include="Lucene29\QueryExecutors\LuceneQueryExecutor.cs" />
@@ -105,7 +104,7 @@
     <Compile Include="RichTextStripper.cs" />
     <Compile Include="SafeQueries.cs" />
     <Compile Include="SafeQueriesInternal.cs" />
-    <Compile Include="SnCollector.cs" />
+    <Compile Include="Lucene29\SnCollector.cs" />
     <Compile Include="SnIFilter.cs" />
     <Compile Include="SnQueryContext.cs" />
     <Compile Include="TextSplitter.cs" />
@@ -127,6 +126,7 @@
       <Name>Storage</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

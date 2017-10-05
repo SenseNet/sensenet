@@ -12,9 +12,9 @@ using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Search;
 
-namespace SenseNet.Search.Parser
+namespace SenseNet.Search.Lucene29
 {
-    public abstract class LucQueryVisitor
+    internal abstract class LucQueryVisitor
     {
         public virtual Query Visit(Query q)
         {

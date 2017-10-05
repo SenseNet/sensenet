@@ -1,12 +1,11 @@
 ﻿using System;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search.Indexing;
 using LucField = Lucene.Net.Documents.Field;
 
-namespace SenseNet.Search.Indexing
+namespace SenseNet.Search.Lucene29
 {
-    public class EnumConverter
+    internal class EnumConverter
     {
         public static LucField.Index ToLuceneIndexingMode(IndexingMode mode)
         {
