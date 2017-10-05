@@ -56,7 +56,6 @@
   </Choose>
   <ItemGroup>
     <Compile Include="CqlParserTests.cs" />
-    <Compile Include="Implementations\SnQueryLegoBricks.cs" />
     <Compile Include="Implementations\TestIndexFieldHandler.cs" />
     <Compile Include="Implementations\TestPerfieldIndexingInfo.cs" />
     <Compile Include="Implementations\TestQueryEngine.cs" />

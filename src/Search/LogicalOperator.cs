@@ -1,6 +1,6 @@
 ﻿namespace SenseNet.Search
 {
-    public enum ChainOperator
+    public enum LogicalOperator
     {
         And,
         Or

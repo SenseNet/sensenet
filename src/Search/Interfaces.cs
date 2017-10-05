@@ -144,8 +144,6 @@ namespace SenseNet.Search
     }
     public interface IPermissionFilterFactory
     {
-        [Obsolete("", true)]
-        IPermissionFilter Create(int userId);
         IPermissionFilter Create(SnQuery query, IQueryContext context);
     }
 

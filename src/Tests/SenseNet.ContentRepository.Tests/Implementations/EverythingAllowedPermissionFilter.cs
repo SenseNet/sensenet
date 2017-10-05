@@ -4,10 +4,6 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 {
     public class EverythingAllowedPermissionFilterFactory : IPermissionFilterFactory
     {
-        public IPermissionFilter Create(int userId)
-        {
-            return new EverythingAllowedPermissionFilter();
-        }
         public IPermissionFilter Create(SnQuery query, IQueryContext context)
         {
             return new EverythingAllowedPermissionFilter();

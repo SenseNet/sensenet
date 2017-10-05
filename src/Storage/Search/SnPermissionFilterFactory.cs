@@ -13,11 +13,6 @@ namespace SenseNet.ContentRepository.Storage.Search
 {
     internal class SnPermissionFilterFactory : IPermissionFilterFactory
     {
-        public IPermissionFilter Create(int userId)
-        {
-            throw new NotImplementedException();
-        }
-
         public IPermissionFilter Create(SnQuery query, IQueryContext context)
         {
             return new PermissionChecker(query, context);

@@ -142,21 +142,21 @@ namespace SenseNet.Search
 
         public void AddClause(string text)
         {
-            AddClause(text, ChainOperator.And);
+            AddClause(text, LogicalOperator.And);
         }
-        public void AddClause(string text, ChainOperator chainOp)
+        public void AddClause(string text, LogicalOperator logicalOp)
         {
-            AddClause(text, chainOp, null);
+            AddClause(text, logicalOp, null);
         }
-        public void AddClause(string text, ChainOperator chainOp, params object[] parameters)
+        public void AddClause(string text, LogicalOperator logicalOp, params object[] parameters)
         {
             var isSafe = this.IsSafe && IsSafeQuery(text);
             if (parameters != null && parameters.Length > 0)
                 text = SubstituteParameters(text, parameters);
             this.IsSafe = isSafe;
-            AddClausePrivate(text, chainOp);
+            AddClausePrivate(text, logicalOp);
         }
-        private void AddClausePrivate(string text, ChainOperator chainOp)
+        private void AddClausePrivate(string text, LogicalOperator logicalOp)
         {
             if (text == null)
                 throw new ArgumentNullException("text");
@@ -170,12 +170,12 @@ namespace SenseNet.Search
             else
             {
                 // we can modify the _text variable here directly because it was already fixed at init time
-                switch (chainOp)
+                switch (logicalOp)
                 {
-                    case ChainOperator.And:
+                    case LogicalOperator.And:
                         this._text = MoveSettingsToTheEnd(string.Format("+({0}) +({1})", Text, text)).Trim();
                         break;
-                    case ChainOperator.Or:
+                    case LogicalOperator.Or:
                         this._text = MoveSettingsToTheEnd(string.Format("({0}) {1}", Text, text));
                         break;
                 }
@@ -229,7 +229,7 @@ namespace SenseNet.Search
             return string.Concat(queryText, backParts);
         }
 
-        public static string AddClause(string originalText, string addition, ChainOperator chainOp)
+        public static string AddClause(string originalText, string addition, LogicalOperator logicalOp)
         {
             if (addition == null)
                 throw new ArgumentNullException("addition");
@@ -241,12 +241,12 @@ namespace SenseNet.Search
 
             var queryText = string.Empty;
 
-            switch (chainOp)
+            switch (logicalOp)
             {
-                case ChainOperator.And:
+                case LogicalOperator.And:
                     queryText = MoveSettingsToTheEnd(string.Format("+({0}) +({1})", originalText, addition)).Trim();
                     break;
-                case ChainOperator.Or:
+                case LogicalOperator.Or:
                     queryText = MoveSettingsToTheEnd(string.Format("({0}) {1}", originalText, addition));
                     break;
             }
