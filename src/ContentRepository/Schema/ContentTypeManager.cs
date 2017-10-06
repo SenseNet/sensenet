@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Xml.XPath;
 using SenseNet.Communication.Messaging;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
@@ -39,27 +40,31 @@ namespace SenseNet.ContentRepository.Schema
 
         private static bool _initializing = false;
 
-        private static ContentTypeManager _current;
-        public static ContentTypeManager Current
+        private const string ContentTypeManagerProviderKey = "ContentTypeManager";
+
+        [Obsolete("Use Instace instead.")]
+        public static ContentTypeManager Current => Instance;
+
+        public static ContentTypeManager Instance
         {
             get
             {
-                if (_current == null)
+                if (Providers.Instance.GetProvider<ContentTypeManager>(ContentTypeManagerProviderKey) == null)
                 {
                     lock (_syncRoot)
                     {
-                        if (_current == null)
+                        if (Providers.Instance.GetProvider<ContentTypeManager>(ContentTypeManagerProviderKey) == null)
                         {
                             _initializing = true;
                             var current = new ContentTypeManager();
                             current.Initialize();
                             _initializing = false;
-                            _current = current;
-                            SnLog.WriteInformation("ContentTypeManager created. Content types: " + _current._contentTypes.Count);
+                            Providers.Instance.SetProvider(ContentTypeManagerProviderKey, current);
+                            SnLog.WriteInformation("ContentTypeManager created. Content types: " + current._contentTypes.Count);
                         }
                     }
                 }
-                return _current;
+                return Providers.Instance.GetProvider<ContentTypeManager>(ContentTypeManagerProviderKey);
             }
         }
 
@@ -168,7 +173,7 @@ namespace SenseNet.ContentRepository.Schema
                    properties: new Dictionary<string, object> { { "AppDomain", AppDomain.CurrentDomain.FriendlyName } });
 
                 // Do not call ActiveSchema.Reset();
-                _current = null;
+                Providers.Instance.SetProvider(ContentTypeManagerProviderKey, null);
                 _indexingInfoTable = new Dictionary<string, IPerFieldIndexingInfo>();
                 ContentType.OnTypeSystemRestarted();
             }
@@ -722,7 +727,7 @@ namespace SenseNet.ContentRepository.Schema
 
         public static long _GetTimestamp()
         {
-            if (_current == null)
+            if (Providers.Instance.GetProvider<ContentTypeManager>(ContentTypeManagerProviderKey) == null)
                 return 0L;
             ContentType ct = null;
             Current.ContentTypes.TryGetValue("Automobile", out ct);

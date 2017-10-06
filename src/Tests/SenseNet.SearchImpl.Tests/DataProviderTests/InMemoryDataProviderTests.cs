@@ -175,8 +175,7 @@ namespace SenseNet.SearchImpl.Tests.DataProviderTests
                 var referenceValue = User.Visitor;
                 var buffer = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 2, 1 };
 
-                ContentTypeManager.Reset(); //UNDONE:|||| TEST: ContentTypeManager.Current cannot be a pinned static member.
-                ContentTypeInstaller.InstallContentType($@"<?xml version='1.0' encoding='utf-8'?>
+                /**/ContentTypeInstaller.InstallContentType($@"<?xml version='1.0' encoding='utf-8'?>
 <ContentType name='DataTestNode' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
 	<Fields>
 		<Field name='{stringFieldName}' type='ShortText'></Field>

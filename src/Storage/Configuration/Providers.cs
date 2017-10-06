@@ -16,6 +16,7 @@ using SenseNet.Security.EF6SecurityStore;
 using SenseNet.Security.Messaging;
 using SenseNet.Tools;
 using System.Linq;
+using SenseNet.ContentRepository.Storage.Schema;
 
 // ReSharper disable once CheckNamespace
 // ReSharper disable RedundantTypeArgumentsOfMethod
@@ -281,6 +282,8 @@ namespace SenseNet.Configuration
             set { _nodeObservers = new Lazy<NodeObserver[]>(() => value); }
         }
         #endregion
+
+        internal NodeTypeManager NodeTypeManeger { get; set; }
 
         //===================================================================================== General provider API
 

@@ -29,8 +29,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 var analyzersBefore = SearchManager.SearchEngine.GetAnalyzers();
 
-                ContentTypeManager.Reset(); //UNDONE:|||| TEST: ContentTypeManager.Current cannot be a pinned static member.
-                ContentTypeInstaller.InstallContentType($@"<?xml version='1.0' encoding='utf-8'?>
+                /**/ContentTypeInstaller.InstallContentType($@"<?xml version='1.0' encoding='utf-8'?>
 <ContentType name='{contentTypeName}' parentType='GenericContent'
          handler='{typeof(GenericContent).FullName}' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
     <Fields>
@@ -68,10 +67,9 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsNotNull(searchEngine);
 
                 string message = null;
-                ContentTypeManager.Reset(); //UNDONE:|||| TEST: ContentTypeManager.Current cannot be a pinned static member.
                 try
                 {
-                    ContentTypeInstaller.InstallContentType($@"<?xml version='1.0' encoding='utf-8'?>
+                    /**/ContentTypeInstaller.InstallContentType($@"<?xml version='1.0' encoding='utf-8'?>
 <ContentType name='{contentTypeName}' parentType='GenericContent'
          handler='{typeof(GenericContent).FullName}' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
     <Fields>

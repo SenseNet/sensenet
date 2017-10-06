@@ -27,24 +27,24 @@ namespace SenseNet.ContentRepository.Storage.Schema
         }
         #endregion
 
-        private static NodeTypeManager _current;
+        //private static NodeTypeManager _current;
         private static readonly object _lock = new object();
 
 		internal static NodeTypeManager Current
 		{
 			get
 			{
-                if(_current == null)
+                if(Providers.Instance.NodeTypeManeger == null)
                 {
                     lock(_lock)
                     {
-                        if (_current == null)
+                        if (Providers.Instance.NodeTypeManeger == null)
                         {
                             LoadPrivate();
                         }
                     }
                 }
-                return _current;
+                return Providers.Instance.NodeTypeManeger;
 			}
 		}
 
@@ -92,10 +92,10 @@ namespace SenseNet.ContentRepository.Storage.Schema
             var current = new NodeTypeManager();
             current.Load();
 
-            _current = current;
+            Providers.Instance.NodeTypeManeger = current;
             
             NodeObserver.FireOnStart(Start);
-	        SnLog.WriteInformation("NodeTypeManager created: " + _current);
+	        SnLog.WriteInformation("NodeTypeManager created: " + Providers.Instance.NodeTypeManeger);
 	    }
 
 	    public static event EventHandler<EventArgs> Start;

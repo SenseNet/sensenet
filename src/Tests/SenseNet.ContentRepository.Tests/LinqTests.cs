@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Linq;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
@@ -425,8 +426,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                ContentTypeManager.Reset(); //UNDONE:|||| TEST: ContentTypeManager.Current cannot be a pinned static member.
-                ContentTypeInstaller.InstallContentType(RefTestNode.ContentTypeDefinition);
+                /**/ContentTypeInstaller.InstallContentType(RefTestNode.ContentTypeDefinition);
 
                 var root = new SystemFolder(Repository.Root) {Name = Guid.NewGuid().ToString()};
                 root.Save();
@@ -446,8 +446,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                ContentTypeManager.Reset(); //UNDONE:|||| TEST: ContentTypeManager.Current cannot be a pinned static member.
-                ContentTypeInstaller.InstallContentType(RefTestNode.ContentTypeDefinition);
+                /**/ContentTypeInstaller.InstallContentType(RefTestNode.ContentTypeDefinition);
 
                 //var root = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
                 //root.Save();

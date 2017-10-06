@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
@@ -37,6 +38,7 @@ namespace SenseNet.ContentRepository.Tests
         protected T Test<T>(Func<T> callback)
         {
             DistributedApplication.Cache.Reset();
+            ContentTypeManager.Reset();
 
             Indexing.IsOuterSearchEngineEnabled = true;
             using (Repository.Start(new RepositoryBuilder()
@@ -57,6 +59,7 @@ namespace SenseNet.ContentRepository.Tests
         protected T Test<T>(Action<RepositoryBuilder> initialize, Func<T> callback)
         {
             DistributedApplication.Cache.Reset();
+            ContentTypeManager.Reset();
 
             var builder = new RepositoryBuilder()
                 .UseDataProvider(new InMemoryDataProvider())
