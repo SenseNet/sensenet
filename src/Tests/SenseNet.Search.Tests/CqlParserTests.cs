@@ -441,28 +441,5 @@ namespace SenseNet.Search.Tests
 
             test("Id:>0 .COUNTONLY", "Id:>0 .ALLVERSIONS .COUNTONLY", new QuerySettings { AllVersions = true }, true, true);
         }
-
-        //UNDONE:|||| TEST: Move this test to QueryClassifier tests
-        //[TestMethod, TestCategory("IR")]
-        //public void SnQuery_Parser_UsedFieldNames()
-        //{
-        //    var indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
-        //    {
-        //        {"Id", new TestPerfieldIndexingInfo_int() },
-        //        {"Name", new TestPerfieldIndexingInfo_string() },
-        //        {"Field1", new TestPerfieldIndexingInfo_string() },
-        //        {"Field2", new TestPerfieldIndexingInfo_string() }
-        //    };
-        //    var queryContext = new TestQueryContext(QuerySettings.AdminSettings, 0, indexingInfo);
-        //    var parser = new CqlParser();
-        //    var queryText = "+Id:<1000 +Name:Admin* +(Field1:value1 Field2:value2) +(Field1:asdf)";
-        //    var expected = "Field1, Field2, Id, Name";
-
-        //    var snQuery = parser.Parse(queryText, queryContext);
-
-        //    var actual = string.Join(", ", snQuery.QueryFieldNames.OrderBy(x => x).ToArray());
-        //    Assert.AreEqual(expected, actual);
-        //}
-
     }
 }

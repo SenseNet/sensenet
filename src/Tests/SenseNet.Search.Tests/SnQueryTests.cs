@@ -197,6 +197,28 @@ namespace SenseNet.Search.Tests
             Assert.AreEqual(expectedQueryText, queryTextAfter);
         }
 
+        [TestMethod, TestCategory("IR")]
+        public void SnQuery_Classify_UsedFieldNames()
+        {
+            var indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
+            {
+                {"Id", new TestPerfieldIndexingInfoInt() },
+                {"Name", new TestPerfieldIndexingInfoString() },
+                {"Field1", new TestPerfieldIndexingInfoString() },
+                {"Field2", new TestPerfieldIndexingInfoString() }
+            };
+            var queryContext = new TestQueryContext(QuerySettings.AdminSettings, 0, indexingInfo);
+            var parser = new CqlParser();
+            var queryText = "+Id:<1000 +Name:Admin* +(Field1:value1 Field2:value2) +(Field1:asdf)";
+            var expected = "Field1, Field2, Id, Name";
+
+            var snQuery = parser.Parse(queryText, queryContext);
+            var info = SnQueryClassifier.Classify(snQuery);
+
+            var actual = string.Join(", ", info.QueryFieldNames.OrderBy(x => x).ToArray());
+            Assert.AreEqual(expected, actual);
+        }
+
         private Tuple<SnQuery, string> CreateQueryAndPrepare(string queryText, FilterStatus autoFilters, FilterStatus lifespanFilter)
         {
             var parser = new CqlParser();

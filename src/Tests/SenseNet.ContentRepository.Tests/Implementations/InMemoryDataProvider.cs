@@ -78,7 +78,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         public override void AssertSchemaTimestampAndWriteModificationDate(long timestamp)
         {
-            //UNDONE:|||| TEST: AssertSchemaTimestampAndWriteModificationDate is not implemented in the InMemoryDataProvider
+            //TODO: TEST: AssertSchemaTimestampAndWriteModificationDate is not implemented in the InMemoryDataProvider
             // do nothimg
         }
         #endregion
