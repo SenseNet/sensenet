@@ -277,38 +277,38 @@ namespace SenseNet.SearchImpl.Tests
             Node node6; // /Root/Node5/Node6
             Node[] nodes;
 
-            var result = Test(() =>
-            {
-                // create initial structure.
-                var root = Node.LoadNode(Identifiers.PortalRootId);
-                node1 = new SystemFolder(root) {Name = "Node1"};  node1.Save();
-                node2 = new SystemFolder(node1) {Name = "Node2"}; node2.Save();
-                node3 = new SystemFolder(node2) {Name = "Node3"}; node3.Save();
-                node4 = new SystemFolder(node1) {Name = "Node4"}; node4.Save();
-                node5 = new SystemFolder(root) {Name = "Node5"};  node5.Save();
-                node6 = new SystemFolder(node5) {Name = "Node6"}; node6.Save();
-
-                // ACTION
-                node1 = Node.LoadNode(node1.Id);
-                node1.Name = "Node1Renamed";
-                node1.Save();
-
-                DistributedApplication.Cache.Reset(); //UNDONE:|||| TEST: The test should work without explicitly cleared cache
-
-                // reload the newly created.
-                nodes = new[]
+            var result = Test(
+                builder => { builder.UseCacheProvider(new EmptyCache()); },
+                () =>
                 {
-                    Node.LoadNode(node1.Id),
-                    Node.LoadNode(node2.Id),
-                    Node.LoadNode(node3.Id),
-                    Node.LoadNode(node4.Id),
-                    Node.LoadNode(node5.Id),
-                    Node.LoadNode(node6.Id),
-                };
+                    // create initial structure.
+                    var root = Node.LoadNode(Identifiers.PortalRootId);
+                    node1 = new SystemFolder(root) {Name = "Node1"};  node1.Save();
+                    node2 = new SystemFolder(node1) {Name = "Node2"}; node2.Save();
+                    node3 = new SystemFolder(node2) {Name = "Node3"}; node3.Save();
+                    node4 = new SystemFolder(node1) {Name = "Node4"}; node4.Save();
+                    node5 = new SystemFolder(root) {Name = "Node5"};  node5.Save();
+                    node6 = new SystemFolder(node5) {Name = "Node6"}; node6.Save();
 
-                return new Tuple<Node[], IndexingActivityHistory, InMemoryIndex>(nodes,
-                    IndexingActivityHistory.GetHistory(), GetTestIndex());
-            });
+                    // ACTION
+                    node1 = Node.LoadNode(node1.Id);
+                    node1.Name = "Node1Renamed";
+                    node1.Save();
+
+                    // reload the newly created.
+                    nodes = new[]
+                    {
+                        Node.LoadNode(node1.Id),
+                        Node.LoadNode(node2.Id),
+                        Node.LoadNode(node3.Id),
+                        Node.LoadNode(node4.Id),
+                        Node.LoadNode(node5.Id),
+                        Node.LoadNode(node6.Id),
+                    };
+
+                    return new Tuple<Node[], IndexingActivityHistory, InMemoryIndex>(nodes,
+                        IndexingActivityHistory.GetHistory(), GetTestIndex());
+                });
 
             nodes = result.Item1;
             var history = result.Item2;

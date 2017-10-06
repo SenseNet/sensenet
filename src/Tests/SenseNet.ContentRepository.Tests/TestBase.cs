@@ -54,6 +54,30 @@ namespace SenseNet.ContentRepository.Tests
                 return callback();
             }
         }
+        protected T Test<T>(Action<RepositoryBuilder> initialize, Func<T> callback)
+        {
+            DistributedApplication.Cache.Reset();
+
+            var builder = new RepositoryBuilder()
+                .UseDataProvider(new InMemoryDataProvider())
+                .UseSearchEngine(new InMemorySearchEngine())
+                .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
+                .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
+                .UseCacheProvider(new EmptyCache())
+                .StartWorkflowEngine(false)
+                .DisableNodeObservers()
+                .EnableNodeObservers(typeof(SettingsCache))
+                .UseTraceCategories(new[] {"Test", "Event", "System", "Repository"});
+
+            initialize(builder);
+
+            Indexing.IsOuterSearchEngineEnabled = true;
+            using (Repository.Start(builder))
+            using (new SystemAccount())
+            {
+                return callback();
+            }
+        }
 
 
         protected static ISecurityDataProvider GetSecurityDataProvider(InMemoryDataProvider repo)
