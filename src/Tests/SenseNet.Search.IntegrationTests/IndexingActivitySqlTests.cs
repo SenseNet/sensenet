@@ -6,6 +6,7 @@ using SenseNet.Search.Indexing;
 using SenseNet.Search.Indexing.Activities;
 using SenseNet.ContentRepository.Storage;
 using System.Linq;
+using System.Threading;
 
 namespace SenseNet.Search.IntegrationTests
 {
@@ -13,14 +14,6 @@ namespace SenseNet.Search.IntegrationTests
     public class IndexingActivitySqlTests : TestBase
     {
         private static string _connectionString = @"Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=sn7tests;Data Source=.\SQL2016";
-
-        //UNDONE:|||||||| Check code coverage in SqlProvider
-        //public override IIndexingActivity[] LoadIndexingActivities(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
-        //public override IIndexingActivity[] LoadIndexingActivities(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
-        //private IIndexingActivity[] LoadIndexingActivities(SqlProcedure cmd, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
-        //public override void RegisterIndexingActivity(IIndexingActivity activity)
-        //public override void DeleteAllIndexingActivities()
-        //public override int GetLastActivityId()
 
         [TestMethod]
         public void IndexingSql_Register()
@@ -44,6 +37,10 @@ namespace SenseNet.Search.IntegrationTests
 
                 foreach (var activity in activities)
                     DataProvider.Current.RegisterIndexingActivity(activity);
+
+                // avoid rounding errors: reloaded datetime can be greater than timeAtEnd
+                // if rounding in sql converts the input to greater value.
+                Thread.Sleep(10);
 
                 var timeAtEnd = DateTime.UtcNow;
 
