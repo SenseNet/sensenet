@@ -77,7 +77,7 @@ namespace SenseNet.Search.Indexing
         public void PopulateTree(string path, int nodeId)
         {
             // add new tree
-            CreateTreeActivityAndExecute(IndexingActivityType.AddTree, path, nodeId, false, null);
+            CreateTreeActivityAndExecute(IndexingActivityType.AddTree, path, nodeId, null);
         }
 
         // caller: Node.Save, Node.SaveCopied
@@ -105,7 +105,7 @@ namespace SenseNet.Search.Indexing
             {
                 if (!state.OriginalPath.Equals(state.NewPath, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    DeleteTree(state.OriginalPath, state.Node.Id, true);
+                    DeleteTree(state.OriginalPath, state.Node.Id);
                     PopulateTree(state.NewPath, state.Node.Id);
                 }
                 else if (state.IsNewNode)
@@ -159,23 +159,23 @@ namespace SenseNet.Search.Indexing
         }
 
         // caller: CommitPopulateNode (rename), Node.MoveTo, Node.ForceDelete
-        public void DeleteTree(string path, int nodeId, bool moveOrRename)
+        public void DeleteTree(string path, int nodeId)
         {
             // add new tree
-            CreateTreeActivityAndExecute(IndexingActivityType.RemoveTree, path, nodeId, moveOrRename, null);
+            CreateTreeActivityAndExecute(IndexingActivityType.RemoveTree, path, nodeId, null);
         }
 
         // caller: Node.DeleteMoreInternal
-        public void DeleteForest(IEnumerable<Int32> idSet, bool moveOrRename)
+        public void DeleteForest(IEnumerable<Int32> idSet)
         {
             foreach (var head in NodeHead.Get(idSet))
-                DeleteTree(head.Path, head.Id, moveOrRename);
+                DeleteTree(head.Path, head.Id);
         }
         // caller: Node.MoveMoreInternal
-        public void DeleteForest(IEnumerable<string> pathSet, bool moveOrRename)
+        public void DeleteForest(IEnumerable<string> pathSet)
         {
             foreach (var head in NodeHead.Get(pathSet))
-                DeleteTree(head.Path, head.Id, moveOrRename);
+                DeleteTree(head.Path, head.Id);
         }
 
         public void RebuildIndex(Node node, bool recursive = false, IndexRebuildLevel rebuildLevel = IndexRebuildLevel.IndexOnly)
@@ -211,7 +211,7 @@ namespace SenseNet.Search.Indexing
                 Reindex = new int[0]
             };
 
-            CreateActivityAndExecute(IndexingActivityType.Rebuild, node.Path, node.Id, 0, 0, null, versioningInfo, null);
+            CreateActivityAndExecute(IndexingActivityType.Rebuild, node.Path, node.Id, 0, 0, versioningInfo, null);
         }
 
         private void RebuildIndex_Recursive(Node node, bool databaseAndIndex)
@@ -219,7 +219,7 @@ namespace SenseNet.Search.Indexing
             bool hasBinary;
             using (TreeLock.Acquire(node.Path))
             {
-                DeleteTree(node.Path, node.Id, true);
+                DeleteTree(node.Path, node.Id);
                 if (databaseAndIndex)
                     foreach (var n in NodeQuery.QueryNodesByPath(node.Path, true).Nodes)
                         DataBackingStore.SaveIndexDocument(n, false, false, out hasBinary);
@@ -242,17 +242,17 @@ namespace SenseNet.Search.Indexing
         // caller: CommitPopulateNode
         private static void CreateBrandNewNode(Node node, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData)
         {
-            CreateActivityAndExecute(IndexingActivityType.AddDocument, node.Path, node.Id, node.VersionId, node.VersionTimestamp, true, versioningInfo, indexDocumentData);
+            CreateActivityAndExecute(IndexingActivityType.AddDocument, node.Path, node.Id, node.VersionId, node.VersionTimestamp, versioningInfo, indexDocumentData);
         }
         // caller: CommitPopulateNode
         private static void AddNewVersion(Node newVersion, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData)
         {
-            CreateActivityAndExecute(IndexingActivityType.AddDocument, newVersion.Path, newVersion.Id, newVersion.VersionId, newVersion.VersionTimestamp, null, versioningInfo, indexDocumentData);
+            CreateActivityAndExecute(IndexingActivityType.AddDocument, newVersion.Path, newVersion.Id, newVersion.VersionId, newVersion.VersionTimestamp, versioningInfo, indexDocumentData);
         }
         // caller: CommitPopulateNode
         private static void UpdateVersion(DocumentPopulatorData state, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData)
         {
-            CreateActivityAndExecute(IndexingActivityType.UpdateDocument, state.OriginalPath, state.Node.Id, state.Node.VersionId, state.Node.VersionTimestamp, null, versioningInfo, indexDocumentData);
+            CreateActivityAndExecute(IndexingActivityType.UpdateDocument, state.OriginalPath, state.Node.Id, state.Node.VersionId, state.Node.VersionTimestamp, versioningInfo, indexDocumentData);
         }
 
         // caller: ClearAndPopulateAll, RepopulateTree
@@ -264,14 +264,13 @@ namespace SenseNet.Search.Indexing
         }
         /*================================================================================================================================*/
 
-        private static IndexingActivityBase CreateActivity(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp, bool? singleVersion, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData)
+        private static IndexingActivityBase CreateActivity(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData)
         {
             var activity = (IndexingActivityBase)IndexingActivityFactory.Instance.CreateActivity(type);
             activity.Path = path.ToLowerInvariant();
             activity.NodeId = nodeId;
             activity.VersionId = versionId;
             activity.VersionTimestamp = versionTimestamp;
-            activity.SingleVersion = singleVersion;
 
             if (indexDocumentData != null)
             {
@@ -286,12 +285,11 @@ namespace SenseNet.Search.Indexing
 
             return activity;
         }
-        private static IndexingActivityBase CreateTreeActivity(IndexingActivityType type, string path, int nodeId, bool moveOrRename, IndexDocumentData indexDocumentData)
+        private static IndexingActivityBase CreateTreeActivity(IndexingActivityType type, string path, int nodeId, IndexDocumentData indexDocumentData)
         {
             var activity = (IndexingActivityBase)IndexingActivityFactory.Instance.CreateActivity(type);
             activity.Path = path.ToLowerInvariant();
             activity.NodeId = nodeId;
-            activity.MoveOrRename = moveOrRename;
 
             if (indexDocumentData != null)
             {
@@ -302,13 +300,13 @@ namespace SenseNet.Search.Indexing
 
             return activity;
         }
-        private static void CreateActivityAndExecute(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp, bool? singleVersion, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData)
+        private static void CreateActivityAndExecute(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData)
         {
-            ExecuteActivity(CreateActivity(type, path, nodeId, versionId, versionTimestamp, singleVersion, versioningInfo, indexDocumentData));
+            ExecuteActivity(CreateActivity(type, path, nodeId, versionId, versionTimestamp, versioningInfo, indexDocumentData));
         }
-        private static void CreateTreeActivityAndExecute(IndexingActivityType type, string path, int nodeId, bool moveOrRename, IndexDocumentData indexDocumentData)
+        private static void CreateTreeActivityAndExecute(IndexingActivityType type, string path, int nodeId, IndexDocumentData indexDocumentData)
         {
-            ExecuteActivity(CreateTreeActivity(type, path, nodeId, moveOrRename, indexDocumentData));
+            ExecuteActivity(CreateTreeActivity(type, path, nodeId, indexDocumentData));
         }
         private static void ExecuteActivity(IndexingActivityBase activity)
         {
@@ -329,13 +327,13 @@ namespace SenseNet.Search.Indexing
         public object BeginPopulateNode(Node node, NodeSaveSettings settings, string originalPath, string newPath) { return PopulatorData; }
         public void CommitPopulateNode(object data, IndexDocumentData indexDocument) { }
         public void FinalizeTextExtracting(object data, IndexDocumentData indexDocument) { }
-        public void DeleteTree(string path, int nodeId, bool moveOrRename) { }
+        public void DeleteTree(string path, int nodeId) { }
 #pragma warning disable 0067
         // suppressed because it is not used but the interface declares.
         public event EventHandler<NodeIndexedEvenArgs> NodeIndexed;
 #pragma warning restore 0067
-        public void DeleteForest(IEnumerable<int> idSet, bool moveOrRename) { }
-        public void DeleteForest(IEnumerable<string> pathSet, bool moveOrRename) { }
+        public void DeleteForest(IEnumerable<int> idSet) { }
+        public void DeleteForest(IEnumerable<string> pathSet) { }
 
         public void RebuildIndex(Node node, bool recursive = false, IndexRebuildLevel rebuildLevel = IndexRebuildLevel.IndexOnly)
         {

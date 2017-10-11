@@ -161,8 +161,6 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 activity.ActivityType = activityRecord.ActivityType;
                 activity.NodeId = activityRecord.NodeId;
                 activity.VersionId = activityRecord.VersionId;
-                activity.SingleVersion = activityRecord.SingleVersion;
-                activity.MoveOrRename = activityRecord.MoveOrRename;
                 activity.Path = activityRecord.Path;
                 activity.FromDatabase = true;
                 activity.IsUnprocessedActivity = executingUnprocessedActivities;
@@ -220,9 +218,6 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 CreationDate=DateTime.UtcNow,
                 NodeId = activity.NodeId,
                 VersionId = activity.VersionId,
-                SingleVersion = activity.SingleVersion,
-                MoveOrRename = activity.MoveOrRename,
-                IsLastDraftValue = activity.IsLastDraftValue,
                 Path = activity.Path,
                 Extension = activity.Extension
             });
@@ -1780,9 +1775,6 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             public DateTime CreationDate;
             public int NodeId;
             public int VersionId;
-            public bool? SingleVersion;
-            public bool? MoveOrRename;
-            public bool? IsLastDraftValue;
             public string Path;
             public string Extension;
         }

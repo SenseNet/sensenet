@@ -28,9 +28,6 @@ namespace SenseNet.ContentRepository.Storage
         DateTime CreationDate { get; set; }
         int NodeId { get; set; }
         int VersionId { get; set; }
-        bool? SingleVersion { get; set; }
-        bool? MoveOrRename { get; set; }
-        bool? IsLastDraftValue { get; set; }
         string Path { get; set; }
         long? VersionTimestamp { get; set; }
         IndexDocumentData IndexDocumentData { get; set; }

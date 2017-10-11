@@ -43,11 +43,11 @@ namespace SenseNet.Search.IntegrationTests
 
                 var activities = new[]
                 {
-                    CreateActivity(IndexingActivityType.AddDocument, "/Root/42", 42, 42, 99999999, null, null),
-                    CreateActivity(IndexingActivityType.UpdateDocument, "/Root/43", 43, 43, 99999999, null, null),
-                    CreateTreeActivity(IndexingActivityType.AddTree, "/Root/44", 44, false, null),
-                    CreateTreeActivity(IndexingActivityType.RemoveTree, "/Root/45", 45, false, null),
-                    CreateActivity(IndexingActivityType.Rebuild, "/Root/46", 46, 46, 99999999, null, null),
+                    CreateActivity(IndexingActivityType.AddDocument, "/Root/42", 42, 42, 99999999, null),
+                    CreateActivity(IndexingActivityType.UpdateDocument, "/Root/43", 43, 43, 99999999, null),
+                    CreateTreeActivity(IndexingActivityType.AddTree, "/Root/44", 44, null),
+                    CreateTreeActivity(IndexingActivityType.RemoveTree, "/Root/45", 45, null),
+                    CreateActivity(IndexingActivityType.Rebuild, "/Root/46", 46, 46, 99999999, null),
                 };
 
                 foreach (var activity in activities)
@@ -134,16 +134,16 @@ namespace SenseNet.Search.IntegrationTests
             }
         }
 
-        private static IndexingActivityBase CreateActivity(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp, bool? singleVersion, IndexDocumentData indexDocumentData)
+        private static IndexingActivityBase CreateActivity(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp, IndexDocumentData indexDocumentData)
         {
             var populatorAcc = new PrivateType(typeof(DocumentPopulator));
-            var result = populatorAcc.InvokeStatic("CreateActivity", type, path, nodeId, versionId, versionTimestamp, singleVersion, null, indexDocumentData);
+            var result = populatorAcc.InvokeStatic("CreateActivity", type, path, nodeId, versionId, versionTimestamp, null, indexDocumentData);
             return (IndexingActivityBase)result;
         }
-        private static IndexingActivityBase CreateTreeActivity(IndexingActivityType type, string path, int nodeId, bool moveOrRename, IndexDocumentData indexDocumentData)
+        private static IndexingActivityBase CreateTreeActivity(IndexingActivityType type, string path, int nodeId, IndexDocumentData indexDocumentData)
         {
             var populatorAcc = new PrivateType(typeof(DocumentPopulator));
-            var result = populatorAcc.InvokeStatic("CreateTreeActivity", type, path, nodeId, moveOrRename, indexDocumentData);
+            var result = populatorAcc.InvokeStatic("CreateTreeActivity", type, path, nodeId, indexDocumentData);
             return (IndexingActivityBase)result;
         }
     }

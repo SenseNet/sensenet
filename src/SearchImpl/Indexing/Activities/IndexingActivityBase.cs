@@ -16,9 +16,6 @@ namespace SenseNet.Search.Indexing.Activities
         public DateTime CreationDate { get; set; }
         public int NodeId { get; set; }
         public int VersionId { get; set; }
-        public Nullable<bool> SingleVersion { get; set; }
-        public bool? MoveOrRename { get; set; }
-        public bool? IsLastDraftValue { get; set; }
         public string Path { get; set; }
         public long? VersionTimestamp { get; set; }
 

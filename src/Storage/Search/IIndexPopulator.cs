@@ -14,9 +14,9 @@ namespace SenseNet.ContentRepository.Storage.Search
         object BeginPopulateNode(Node node, NodeSaveSettings settings, string originalPath, string newPath);
         void CommitPopulateNode(object data, IndexDocumentData indexDocument);
         void FinalizeTextExtracting(object data, IndexDocumentData indexDocument);
-        void DeleteTree(string path, int nodeId, bool moveOrRename);
-        void DeleteForest(IEnumerable<int> idSet, bool moveOrRename);
-        void DeleteForest(IEnumerable<string> pathSet, bool moveOrRename);
+        void DeleteTree(string path, int nodeId);
+        void DeleteForest(IEnumerable<int> idSet);
+        void DeleteForest(IEnumerable<string> pathSet);
 
         void RebuildIndex(Node node, bool recursive = false, IndexRebuildLevel rebuildLevel = IndexRebuildLevel.IndexOnly);
 
