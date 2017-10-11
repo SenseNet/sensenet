@@ -446,7 +446,9 @@ namespace SenseNet.SearchImpl.Tests
                 .UseSecurityDataProvider(securityDataProvider)
                 .UseCacheProvider(new EmptyCache())
                 .UseTraceCategories(new[] {"ContentOperation", "Event", "Repository", "IndexQueue", "Index", "Query"})
-                .StartWorkflowEngine(false);
+                .DisableNodeObservers()
+                .EnableNodeObservers(typeof(SettingsCache))
+          .StartWorkflowEngine(false);
 
             repoBuilder.Console = indxManConsole;
 

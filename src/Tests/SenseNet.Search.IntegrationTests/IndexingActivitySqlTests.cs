@@ -10,7 +10,7 @@ using System.Linq;
 namespace SenseNet.Search.IntegrationTests
 {
     [TestClass]
-    public class IndexingActivitySqlTests// : TestBase
+    public class IndexingActivitySqlTests : TestBase
     {
         private static string _connectionString = @"Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=sn7tests;Data Source=.\SQL2016";
 
