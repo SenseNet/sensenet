@@ -15,8 +15,23 @@ namespace SenseNet.Search.IntegrationTests
     {
         private static string _connectionString = @"Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=sn7tests;Data Source=.\SQL2016";
 
+        [ClassInitialize]
+        public static void CleanupDatabase(TestContext context)
+        {
+            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
+            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
+            try
+            {
+                DataProvider.Current.DeleteAllIndexingActivities();
+            }
+            finally
+            {
+                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+            }
+        }
+
         [TestMethod]
-        public void IndexingSql_Register()
+        public void IndexingSql_RegisterAndReload()
         {
             var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
             SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
