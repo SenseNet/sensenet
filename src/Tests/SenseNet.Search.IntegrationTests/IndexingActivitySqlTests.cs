@@ -85,6 +85,8 @@ namespace SenseNet.Search.IntegrationTests
                     Assert.AreEqual(lastActivityIdBefore + i + 1, unprocessedActivities[i].Id);
                     Assert.IsTrue(timeAtAtStart <= unprocessedActivities[i].CreationDate && unprocessedActivities[i].CreationDate <= timeAtEnd);
                     Assert.IsTrue(unprocessedActivities[i].IsUnprocessedActivity);
+                    Assert.AreEqual(IndexingActivityState.Waiting, unprocessedActivities[i].ActivityState);
+                    Assert.IsNull(unprocessedActivities[i].StartDate);
                 }
 
                 // ---- simulating runtime maintenance
@@ -108,6 +110,8 @@ namespace SenseNet.Search.IntegrationTests
                     Assert.AreEqual(lastActivityIdBefore + i + 1, loadedActivities[i].Id);
                     Assert.IsTrue(timeAtAtStart <= loadedActivities[i].CreationDate && loadedActivities[i].CreationDate <= timeAtEnd);
                     Assert.IsFalse(loadedActivities[i].IsUnprocessedActivity);
+                    Assert.AreEqual(IndexingActivityState.Waiting, unprocessedActivities[i].ActivityState);
+                    Assert.IsNull(unprocessedActivities[i].StartDate);
                 }
 
                 var gaps = new[] { lastActivityIdBefore + 1, lastActivityIdBefore + 2 };

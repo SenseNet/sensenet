@@ -16,6 +16,13 @@ namespace SenseNet.ContentRepository.Storage
         Rebuild
     }
 
+    public enum IndexingActivityState
+    {
+        Waiting,
+        Running,
+        Done
+    }
+
     public interface IIndexingActivityFactory
     {
         IIndexingActivity CreateActivity(IndexingActivityType activityType);
@@ -26,6 +33,8 @@ namespace SenseNet.ContentRepository.Storage
         int Id { get; set; }
         IndexingActivityType ActivityType { get; set; }
         DateTime CreationDate { get; set; }
+        IndexingActivityState ActivityState { get; set; }
+        DateTime? StartDate { get; set; }
         int NodeId { get; set; }
         int VersionId { get; set; }
         string Path { get; set; }
