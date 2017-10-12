@@ -28,7 +28,8 @@ namespace SenseNet.Packaging.IntegrationTests
     {
         private static readonly string ConnectionString =
             //"Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=sensenet;Data Source=(local)";
-            "Data Source=.;Initial Catalog=sensenet;User ID=sa;Password=sa;Pooling=False";
+            //"Data Source=.;Initial Catalog=sensenet;User ID=sa;Password=sa;Pooling=False";
+            @"Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=sn7tests;Data Source=.\SQL2016";
 
         private static readonly string DropPackagesTableSql = @"
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Packages]') AND type in (N'U'))
