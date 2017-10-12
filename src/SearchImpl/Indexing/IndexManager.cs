@@ -181,7 +181,7 @@ namespace SenseNet.Search.Indexing
 
 
         // AddTreeActivity
-        internal static bool AddTree(string treeRoot, bool moveOrRename, int activityId, bool executingUnprocessedActivities)
+        internal static bool AddTree(string treeRoot, int activityId, bool executingUnprocessedActivities)
         {
             var delTerms = executingUnprocessedActivities ? new [] { new SnTerm(IndexFieldName.InTree, treeRoot) } : null;
             var excludedNodeTypes = GetNotIndexedNodeTypes();

@@ -468,6 +468,8 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract IIndexingActivity[] LoadIndexingActivities(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory);
         public abstract IIndexingActivity[] LoadIndexingActivities(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory);
         public abstract void RegisterIndexingActivity(IIndexingActivity activity);
+        public abstract IIndexingActivity[] StartIndexingActivities(int maxCount, int runningTimeoutInSeconds, IIndexingActivityFactory activityFactory);
+        public abstract void UpdateIndexingActivityRunningState(int indexingActivityId, IndexingActivityRunningState runningState);
         public abstract int GetLastActivityId();
         public abstract void DeleteAllIndexingActivities();
 
@@ -490,6 +492,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 @long = (@long << 8) + bytes[i];
             return @long;
         }
+
         internal static byte[] GetBytesFromLong(long @long)
         {
             var bytes = new byte[8];

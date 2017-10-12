@@ -2619,7 +2619,7 @@ namespace SenseNet.ContentRepository.Storage
                     PathDependency.FireChanged(this.Path);
 
                     var populator = SearchManager.ContentRepository.GetIndexPopulator();
-                    populator.DeleteTree(this.Path, this.Id, true);
+                    populator.DeleteTree(this.Path, this.Id);
 
                     // <L2Cache>
                     StorageContext.L2Cache.Clear();
@@ -3139,7 +3139,7 @@ namespace SenseNet.ContentRepository.Storage
                     if (this.Id > 0)
                         SecurityHandler.DeleteEntity(this.Id);
 
-                    SearchManager.ContentRepository.GetIndexPopulator().DeleteTree(myPath, this.Id, false);
+                    SearchManager.ContentRepository.GetIndexPopulator().DeleteTree(myPath, this.Id);
 
                     if (hadContentList)
                         FireAnyContentListDeleted();
@@ -3305,7 +3305,7 @@ namespace SenseNet.ContentRepository.Storage
             }
             try
             {
-                SearchManager.ContentRepository.GetIndexPopulator().DeleteForest(ids, false);
+                SearchManager.ContentRepository.GetIndexPopulator().DeleteForest(ids);
             }
             catch (Exception e)
             {

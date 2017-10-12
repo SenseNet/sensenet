@@ -14,11 +14,10 @@ namespace SenseNet.Search.Indexing.Activities
         public int Id { get; set; }
         public IndexingActivityType ActivityType { get; set; }
         public DateTime CreationDate { get; set; }
+        public IndexingActivityRunningState RunningState { get; set; }
+        public DateTime? StartDate { get; set; }
         public int NodeId { get; set; }
         public int VersionId { get; set; }
-        public Nullable<bool> SingleVersion { get; set; }
-        public bool? MoveOrRename { get; set; }
-        public bool? IsLastDraftValue { get; set; }
         public string Path { get; set; }
         public long? VersionTimestamp { get; set; }
 
@@ -152,6 +151,7 @@ namespace SenseNet.Search.Indexing.Activities
         [NonSerialized]
         private List<IndexingActivityBase> _waitingForMe;
         public List<IndexingActivityBase> WaitingForMe { get { return _waitingForMe; } }
+
 
         internal void WaitFor(IndexingActivityBase olderActivity)
         {

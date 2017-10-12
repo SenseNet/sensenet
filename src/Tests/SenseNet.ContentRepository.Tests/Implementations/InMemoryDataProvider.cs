@@ -159,10 +159,11 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
                 activity.Id = activityRecord.IndexingActivityId;
                 activity.ActivityType = activityRecord.ActivityType;
+                activity.CreationDate = activityRecord.CreationDate;
+                activity.RunningState = activityRecord.RunningState;
+                activity.StartDate = activityRecord.StartDate;
                 activity.NodeId = activityRecord.NodeId;
                 activity.VersionId = activityRecord.VersionId;
-                activity.SingleVersion = activityRecord.SingleVersion;
-                activity.MoveOrRename = activityRecord.MoveOrRename;
                 activity.Path = activityRecord.Path;
                 activity.FromDatabase = true;
                 activity.IsUnprocessedActivity = executingUnprocessedActivities;
@@ -217,17 +218,28 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             {
                 IndexingActivityId = newId,
                 ActivityType = activity.ActivityType,
-                CreationDate=DateTime.UtcNow,
+                CreationDate = DateTime.UtcNow,
+                RunningState = activity.RunningState,
+                StartDate = activity.StartDate,
                 NodeId = activity.NodeId,
                 VersionId = activity.VersionId,
-                SingleVersion = activity.SingleVersion,
-                MoveOrRename = activity.MoveOrRename,
-                IsLastDraftValue = activity.IsLastDraftValue,
                 Path = activity.Path,
                 Extension = activity.Extension
             });
 
             activity.Id = newId;
+        }
+
+        public override void UpdateIndexingActivityRunningState(int indexingActivityId, IndexingActivityRunningState runningState)
+        {
+            var activity = _db.IndexingActivity.Where(r => r.IndexingActivityId == indexingActivityId).FirstOrDefault();
+            if (activity != null)
+                activity.RunningState = runningState;
+        }
+
+        public override IIndexingActivity[] StartIndexingActivities(int maxCount, int runningTimeoutInSeconds, IIndexingActivityFactory activityFactory)
+        {
+            throw new NotImplementedException(); //TODO: StartIndexingActivities is not implemented
         }
 
         public override DateTime RoundDateTime(DateTime d)
@@ -1778,11 +1790,10 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             public int IndexingActivityId;
             public IndexingActivityType ActivityType;
             public DateTime CreationDate;
+            public IndexingActivityRunningState RunningState;
+            public DateTime? StartDate;
             public int NodeId;
             public int VersionId;
-            public bool? SingleVersion;
-            public bool? MoveOrRename;
-            public bool? IsLastDraftValue;
             public string Path;
             public string Extension;
         }
