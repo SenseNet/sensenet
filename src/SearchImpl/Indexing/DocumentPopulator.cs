@@ -311,7 +311,7 @@ namespace SenseNet.Search.Indexing
         private static void ExecuteActivity(IndexingActivityBase activity)
         {
             IndexManager.RegisterActivity(activity);
-            IndexManager.ExecuteActivity(activity, true, true);
+            IndexManager.ExecuteActivity(activity);
         }
     }
 

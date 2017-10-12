@@ -658,6 +658,8 @@ namespace SenseNet.Search.Lucene29
 
         public DateTime IndexReopenedAt { get; private set; }
 
+        public bool WorksAsCentralizedIndex => false;
+
         public IndexReaderFrame GetIndexReaderFrame(bool dirty = false)
         {
             var needReopen = (DateTime.UtcNow - IndexReopenedAt) > ForceReopenFrequency;

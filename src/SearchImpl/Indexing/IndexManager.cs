@@ -49,7 +49,14 @@ namespace SenseNet.Search.Indexing
             DataProvider.Current.RegisterIndexingActivity(activity);
         }
 
-        public static void ExecuteActivity(IndexingActivityBase activity, bool waitForComplete, bool distribute)
+        public static void ExecuteActivity(IndexingActivityBase activity)
+        {
+            if (SearchManager.SearchEngine.IndexingEngine.WorksAsCentralizedIndex)
+                CentralizedIndexingActivityQueue.ExecuteActivity(activity, true);
+            else
+                ExecuteActivity(activity, true, true);
+        }
+        private static void ExecuteActivity(IndexingActivityBase activity, bool waitForComplete, bool distribute)
         {
             if (distribute)
                 activity.Distribute();

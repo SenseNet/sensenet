@@ -33,6 +33,7 @@ namespace SenseNet.Search
     public interface IIndexingEngine
     {
         bool Running { get; }
+        bool WorksAsCentralizedIndex { get; }
 
         void Start(TextWriter consoleOut);
         void ShutDown();

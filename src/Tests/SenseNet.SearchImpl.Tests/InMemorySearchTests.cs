@@ -1027,6 +1027,9 @@ namespace SenseNet.SearchImpl.Tests
             private class IndexingEngineForNestedQueryTests : IIndexingEngine
             {
                 public bool Running { get { return true; } }
+
+                public bool WorksAsCentralizedIndex => false;
+
                 public void Start(TextWriter consoleOut)
                 {
                     // do nothing
