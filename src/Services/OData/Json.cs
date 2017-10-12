@@ -63,6 +63,34 @@ namespace SenseNet.Portal.OData
             return new ODataMultipleContent { Contents = dict };
         }
     }
+
+    internal class ODataActionResponse
+    {
+        [JsonProperty(PropertyName = "d", Order = 1)]
+        public Dictionary<string, object> Contents { get; private set; }
+        public static ODataActionResponse Create(IEnumerable<object> results, IEnumerable<ErrorContent> errors, int count = 0)
+        {
+            var resultArray = results.ToArray();
+            var errorArray = errors.ToArray();
+            var dict = new Dictionary<string, object>
+            {
+                {"__count", count == 0 ? resultArray.Length : count}
+                ,{"results", resultArray}
+                ,{"errors", errorArray}
+            };
+            return new ODataActionResponse { Contents = dict };
+        }
+    }
+
+    internal class ErrorContent
+    {
+        [JsonProperty(PropertyName = "content", Order = 1)]
+        public object Content { get; set; }
+
+        [JsonProperty(PropertyName = "error", Order = 2)]
+        public Error Error { get; set; }
+    }
+
     internal class ODataReference
     {
         [JsonProperty(PropertyName = "__deferred", Order = 1)]

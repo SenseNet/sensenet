@@ -155,9 +155,11 @@
     <Compile Include="ApplicationModel\AspectActions\RetrieveFieldsAction.cs" />
     <Compile Include="ApplicationModel\ClientAction.cs" />
     <Compile Include="ApplicationModel\CopyBatchAction.cs" />
+    <Compile Include="ApplicationModel\CopyBatchRespondAction.cs" />
     <Compile Include="ApplicationModel\CopyToAction.cs" />
     <Compile Include="ApplicationModel\DeleteAction.cs" />
     <Compile Include="ApplicationModel\DeleteBatchAction.cs" />
+    <Compile Include="ApplicationModel\DeleteBatchRespondAction.cs" />
     <Compile Include="ApplicationModel\DeleteFieldAction.cs" />
     <Compile Include="ApplicationModel\EditFieldAction.cs" />
     <Compile Include="ApplicationModel\GenericODataApplication.cs" />
@@ -171,6 +173,7 @@
     <Compile Include="ApplicationModel\HttpStatusApplication.cs" />
     <Compile Include="ApplicationModel\LogoutAction.cs" />
     <Compile Include="ApplicationModel\MoveBatchAction.cs" />
+    <Compile Include="ApplicationModel\MoveBatchRespondAction.cs" />
     <Compile Include="ApplicationModel\MoveToAction.cs" />
     <Compile Include="ApplicationModel\ODataActionBase.cs" />
     <Compile Include="ApplicationModel\OpenLinkAction.cs" />
