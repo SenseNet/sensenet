@@ -237,6 +237,11 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 activity.RunningState = runningState;
         }
 
+        public override IIndexingActivity[] StartIndexingActivities(int maxCount, int runningTimeoutInSeconds, IIndexingActivityFactory activityFactory)
+        {
+            throw new NotImplementedException(); //TODO: StartIndexingActivities is not implemented
+        }
+
         public override DateTime RoundDateTime(DateTime d)
         {
             return new DateTime(d.Ticks / 100000 * 100000);

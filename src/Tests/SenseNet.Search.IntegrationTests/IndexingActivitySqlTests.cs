@@ -7,6 +7,7 @@ using SenseNet.Search.Indexing.Activities;
 using SenseNet.ContentRepository.Storage;
 using System.Linq;
 using System.Threading;
+using System.Collections.Generic;
 
 namespace SenseNet.Search.IntegrationTests
 {
@@ -16,7 +17,11 @@ namespace SenseNet.Search.IntegrationTests
         private static string _connectionString = @"Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=sn7tests;Data Source=.\SQL2016";
 
         [ClassInitialize]
-        public static void CleanupDatabase(TestContext context)
+        public static void InitializeClass(TestContext context)
+        {
+            CleanupIndexingActivitiesTable();
+        }
+        public static void CleanupIndexingActivitiesTable()
         {
             var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
             SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
@@ -179,6 +184,274 @@ namespace SenseNet.Search.IntegrationTests
             {
                 SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
             }
+        }
+
+        [TestMethod, TestCategory("IR")]
+        public void IndexingSql_Allocate01_SelectWaiting()
+        {
+            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
+            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
+            try
+            {
+                CleanupIndexingActivitiesTable();
+                var start = new[]
+                {
+                    RegisterActivity(IndexingActivityType.AddDocument, IndexingActivityRunningState.Done, 1, 1, "/Root/Path1"),
+                    RegisterActivity(IndexingActivityType.AddDocument, IndexingActivityRunningState.Running, 2, 2, "/Root/Path2"),
+                    RegisterActivity(IndexingActivityType.AddDocument, IndexingActivityRunningState.Waiting, 3, 3, "/Root/Path3"),
+                };
+
+                var allocated =  DataProvider.Current.StartIndexingActivities(10, 60, new IndexingActivityFactory());
+
+                Assert.AreEqual(1, allocated.Length);
+                Assert.AreEqual(start[2].Id, allocated[0].Id);
+            }
+            finally
+            {
+                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+            }
+        }
+        [TestMethod, TestCategory("IR")]
+        public void IndexingSql_Allocate02_IdDependency()
+        {
+            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
+            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
+            try
+            {
+                CleanupIndexingActivitiesTable();
+                var start = new[]
+                {
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Waiting, 1, 1, "/Root/Path1"),
+                    RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 1, 1, "/Root/Path1"),
+                    RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 1, 1, "/Root/Path1"),
+                };
+
+                var allocated =  DataProvider.Current.StartIndexingActivities(10, 60, new IndexingActivityFactory());
+
+                Assert.AreEqual(1, allocated.Length);
+                Assert.AreEqual(start[0].Id, allocated[0].Id);
+            }
+            finally
+            {
+                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+            }
+        }
+        [TestMethod, TestCategory("IR")]
+        public void IndexingSql_Allocate03_InactiveDependency()
+        {
+            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
+            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
+            try
+            {
+                CleanupIndexingActivitiesTable();
+                var start = new[]
+                {
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Done,    1, 1, "/Root/Path1"),
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Done,    2, 2, "/Root/Path2"),
+                    RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 2, 2, "/Root/Path2"),
+                    RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 2, 2, "/Root/Path2"),
+                    RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 2, 2, "/Root/Path2"),
+                };
+
+                var allocated =  DataProvider.Current.StartIndexingActivities(10, 60, new IndexingActivityFactory());
+
+                Assert.AreEqual(1, allocated.Length);
+                Assert.AreEqual(start[2].Id, allocated[0].Id);
+            }
+            finally
+            {
+                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+            }
+        }
+        [TestMethod, TestCategory("IR")]
+        public void IndexingSql_Allocate04_SelectMore()
+        {
+            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
+            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
+            try
+            {
+                CleanupIndexingActivitiesTable();
+                var start = new[]
+                {
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Done,    1, 1, "/Root/Path1"), //   0
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Done,    2, 2, "/Root/Path2"), //   1
+                    RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 2, 2, "/Root/Path2"), // 2
+                    RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 2, 2, "/Root/Path2"), //   3
+                    RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 2, 2, "/Root/Path2"), //   4
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Waiting, 3, 3, "/Root/Path3"), // 5
+                    RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 3, 3, "/Root/Path3"), //   6
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Waiting, 4, 4, "/Root/Path4"), // 7
+                    RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 4, 4, "/Root/Path4"), //   8
+                };
+
+                var allocated =  DataProvider.Current.StartIndexingActivities(10, 60, new IndexingActivityFactory());
+
+                Assert.AreEqual(3, allocated.Length);
+                Assert.AreEqual(start[2].Id, allocated[0].Id);
+                Assert.AreEqual(start[5].Id, allocated[1].Id);
+                Assert.AreEqual(start[7].Id, allocated[2].Id);
+            }
+            finally
+            {
+                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+            }
+        }
+        [TestMethod, TestCategory("IR")]
+        public void IndexingSql_Allocate05_PathDependency()
+        {
+            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
+            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
+            try
+            {
+                CleanupIndexingActivitiesTable();
+                var start = new[]
+                {
+                    RegisterActivity(IndexingActivityType.AddTree,        IndexingActivityRunningState.Waiting, 1, 1, "/Root/Path1"),     // 0
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Waiting, 2, 2, "/Root/Path2"),     // 1
+                    RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 3, 3, "/Root/Path1/aaa"), //   2
+                    RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 4, 4, "/Root/Path1/bbb"), //   3
+                    RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 2, 2, "/Root/Path2"),     //   4
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Waiting, 5, 5, "/Root/Path3/xxx"), // 5
+                    RegisterActivity(IndexingActivityType.AddTree,        IndexingActivityRunningState.Waiting, 6, 6, "/Root/Path3"),     //   6
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Waiting, 7, 7, "/Root/Path4"),     // 7
+                };
+
+                var allocated =  DataProvider.Current.StartIndexingActivities(10, 60, new IndexingActivityFactory());
+
+                Assert.AreEqual(4, allocated.Length);
+                Assert.AreEqual(start[0].Id, allocated[0].Id);
+                Assert.AreEqual(start[1].Id, allocated[1].Id);
+                Assert.AreEqual(start[5].Id, allocated[2].Id);
+                Assert.AreEqual(start[7].Id, allocated[3].Id);
+            }
+            finally
+            {
+                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+            }
+        }
+        [TestMethod, TestCategory("IR")]
+        public void IndexingSql_Allocate06_Timeout()
+        {
+            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
+            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
+            try
+            {
+                CleanupIndexingActivitiesTable();
+                var start = new[]
+                {
+                    RegisterActivity(IndexingActivityType.AddDocument, IndexingActivityRunningState.Done, DateTime.UtcNow.AddSeconds(-75), 1, 1, "/Root/Path1"),        //   0
+                    RegisterActivity(IndexingActivityType.AddDocument, IndexingActivityRunningState.Done, DateTime.UtcNow.AddSeconds(-65), 2, 2, "/Root/Path2"),        //   1
+                    RegisterActivity(IndexingActivityType.AddDocument, IndexingActivityRunningState.Done, DateTime.UtcNow.AddSeconds(-55), 3, 3, "/Root/Path3"),        //   2
+                    RegisterActivity(IndexingActivityType.AddDocument, IndexingActivityRunningState.Done, DateTime.UtcNow,                 4, 4, "/Root/Path4"),        //   3
+
+                    RegisterActivity(IndexingActivityType.AddDocument, IndexingActivityRunningState.Running, DateTime.UtcNow.AddSeconds(-75), 5, 5, "/Root/Path5"),     //   4
+                    RegisterActivity(IndexingActivityType.AddDocument, IndexingActivityRunningState.Running, DateTime.UtcNow.AddSeconds(-65), 6, 6, "/Root/Path6"),     //   5
+                    RegisterActivity(IndexingActivityType.AddDocument, IndexingActivityRunningState.Running, DateTime.UtcNow.AddSeconds(-55), 7, 7, "/Root/Path7"),     // 6
+                    RegisterActivity(IndexingActivityType.AddDocument, IndexingActivityRunningState.Running, DateTime.UtcNow,                 8, 8, "/Root/Path8"),     // 7
+
+                    RegisterActivity(IndexingActivityType.AddDocument, IndexingActivityRunningState.Waiting, DateTime.UtcNow.AddSeconds(-75), 10, 10, "/Root/Path10"),   // 8
+                    RegisterActivity(IndexingActivityType.AddDocument, IndexingActivityRunningState.Waiting, DateTime.UtcNow.AddSeconds(-65), 11, 11, "/Root/Path11"),   // 9
+                    RegisterActivity(IndexingActivityType.AddDocument, IndexingActivityRunningState.Waiting, DateTime.UtcNow.AddSeconds(-55), 12, 12, "/Root/Path12"),   // 10
+                    RegisterActivity(IndexingActivityType.AddDocument, IndexingActivityRunningState.Waiting, DateTime.UtcNow,                 13, 13, "/Root/Path13"),   // 11
+                };
+
+                var allocated =  DataProvider.Current.StartIndexingActivities(10, 60, new IndexingActivityFactory());
+
+                Assert.AreEqual(6, allocated.Length);
+                Assert.AreEqual(start[4].Id, allocated[0].Id);
+                Assert.AreEqual(start[5].Id, allocated[1].Id);
+                Assert.AreEqual(start[8].Id, allocated[2].Id);
+                Assert.AreEqual(start[9].Id, allocated[3].Id);
+                Assert.AreEqual(start[10].Id, allocated[4].Id);
+                Assert.AreEqual(start[11].Id, allocated[5].Id);
+            }
+            finally
+            {
+                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+            }
+        }
+        [TestMethod, TestCategory("IR")]
+        public void IndexingSql_Allocate07_MaxRecords()
+        {
+            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
+            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
+            try
+            {
+                CleanupIndexingActivitiesTable();
+                var start = new IIndexingActivity[15];
+                for (int i = 1; i <= start.Length; i++)
+                {
+                    start[i - 1] = RegisterActivity(IndexingActivityType.AddDocument, IndexingActivityRunningState.Waiting, i, i, $"/Root/Path0{i}");
+                }
+
+                var allocated =  DataProvider.Current.StartIndexingActivities(10, 60, new IndexingActivityFactory());
+
+                Assert.AreEqual(10, allocated.Length);
+                for (var i = 0; i < 10; i++)
+                    Assert.AreEqual(start[i].Id, allocated[i].Id);
+            }
+            finally
+            {
+                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+            }
+        }
+        [TestMethod, TestCategory("IR")]
+        public void IndexingSql_Allocate08_StateUpdated()
+        {
+            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
+            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
+            try
+            {
+                CleanupIndexingActivitiesTable();
+                var start = new[]
+                {
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Waiting, 1, 1, "/Root/Path1"),
+                    RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 1, 1, "/Root/Path1"),
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Waiting, 2, 2, "/Root/Path2"),
+                    RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 2, 2, "/Root/Path2"),         
+                };
+
+                var allocated =  DataProvider.Current.StartIndexingActivities(10, 60, new IndexingActivityFactory());
+
+                Assert.AreEqual(2, allocated.Length);
+                Assert.AreEqual(start[0].Id, allocated[0].Id);
+                Assert.AreEqual(start[2].Id, allocated[1].Id);
+                Assert.AreEqual(IndexingActivityRunningState.Running, allocated[0].RunningState);
+                Assert.AreEqual(IndexingActivityRunningState.Running, allocated[1].RunningState);
+            }
+            finally
+            {
+                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+            }
+        }
+
+        private IIndexingActivity RegisterActivity(IndexingActivityType type, IndexingActivityRunningState state, int nodeId, int versionId, string path)
+        {
+            IndexingActivityBase activity;
+            if (type == IndexingActivityType.AddTree || type == IndexingActivityType.RemoveTree)
+                activity = CreateTreeActivity(type, path, nodeId, null);
+            else
+                activity = CreateActivity(type, path, nodeId, versionId, 9999, null);
+            activity.RunningState = state;
+
+            DataProvider.Current.RegisterIndexingActivity(activity);
+
+            return activity;
+        }
+        private IIndexingActivity RegisterActivity(IndexingActivityType type, IndexingActivityRunningState state, DateTime startDate, int nodeId, int versionId, string path)
+        {
+            IndexingActivityBase activity;
+            if (type == IndexingActivityType.AddTree || type == IndexingActivityType.RemoveTree)
+                activity = CreateTreeActivity(type, path, nodeId, null);
+            else
+                activity = CreateActivity(type, path, nodeId, versionId, 9999, null);
+
+            activity.RunningState = state;
+            activity.StartDate = startDate;
+
+            DataProvider.Current.RegisterIndexingActivity(activity);
+
+            return activity;
         }
 
         // ======================================================================================
