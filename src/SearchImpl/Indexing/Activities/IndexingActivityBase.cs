@@ -14,7 +14,7 @@ namespace SenseNet.Search.Indexing.Activities
         public int Id { get; set; }
         public IndexingActivityType ActivityType { get; set; }
         public DateTime CreationDate { get; set; }
-        public IndexingActivityState ActivityState { get; set; }
+        public IndexingActivityRunningState RunningState { get; set; }
         public DateTime? StartDate { get; set; }
         public int NodeId { get; set; }
         public int VersionId { get; set; }

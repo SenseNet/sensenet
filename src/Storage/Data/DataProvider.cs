@@ -468,6 +468,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract IIndexingActivity[] LoadIndexingActivities(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory);
         public abstract IIndexingActivity[] LoadIndexingActivities(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory);
         public abstract void RegisterIndexingActivity(IIndexingActivity activity);
+        public abstract void UpdateIndexingActivityRunningState(int indexingActivityId, IndexingActivityRunningState runningState);
         public abstract int GetLastActivityId();
         public abstract void DeleteAllIndexingActivities();
 

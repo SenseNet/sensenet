@@ -159,6 +159,9 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
                 activity.Id = activityRecord.IndexingActivityId;
                 activity.ActivityType = activityRecord.ActivityType;
+                activity.CreationDate = activityRecord.CreationDate;
+                activity.RunningState = activityRecord.RunningState;
+                activity.StartDate = activityRecord.StartDate;
                 activity.NodeId = activityRecord.NodeId;
                 activity.VersionId = activityRecord.VersionId;
                 activity.Path = activityRecord.Path;
@@ -215,7 +218,9 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             {
                 IndexingActivityId = newId,
                 ActivityType = activity.ActivityType,
-                CreationDate=DateTime.UtcNow,
+                CreationDate = DateTime.UtcNow,
+                RunningState = activity.RunningState,
+                StartDate = activity.StartDate,
                 NodeId = activity.NodeId,
                 VersionId = activity.VersionId,
                 Path = activity.Path,
@@ -223,6 +228,13 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             });
 
             activity.Id = newId;
+        }
+
+        public override void UpdateIndexingActivityRunningState(int indexingActivityId, IndexingActivityRunningState runningState)
+        {
+            var activity = _db.IndexingActivity.Where(r => r.IndexingActivityId == indexingActivityId).FirstOrDefault();
+            if (activity != null)
+                activity.RunningState = runningState;
         }
 
         public override DateTime RoundDateTime(DateTime d)
@@ -1773,6 +1785,8 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             public int IndexingActivityId;
             public IndexingActivityType ActivityType;
             public DateTime CreationDate;
+            public IndexingActivityRunningState RunningState;
+            public DateTime? StartDate;
             public int NodeId;
             public int VersionId;
             public string Path;

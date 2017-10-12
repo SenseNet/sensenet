@@ -30,7 +30,7 @@ namespace SenseNet.Search.IntegrationTests
             }
         }
 
-        [TestMethod]
+        [TestMethod, TestCategory("IR")]
         public void IndexingSql_RegisterAndReload()
         {
             var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
@@ -39,7 +39,11 @@ namespace SenseNet.Search.IntegrationTests
             {
                 var lastActivityIdBefore = DataProvider.Current.GetLastActivityId();
 
-                var timeAtAtStart = DateTime.UtcNow;
+                var timeAtStart = DateTime.UtcNow;
+
+                // avoid rounding errors: reloaded datetime can be less than timeAtStart
+                // if rounding in sql converts the input to smaller value.
+                Thread.Sleep(10);
 
                 var activities = new[]
                 {
@@ -83,9 +87,9 @@ namespace SenseNet.Search.IntegrationTests
                 for (int i = 0; i < unprocessedActivities.Length; i++)
                 {
                     Assert.AreEqual(lastActivityIdBefore + i + 1, unprocessedActivities[i].Id);
-                    Assert.IsTrue(timeAtAtStart <= unprocessedActivities[i].CreationDate && unprocessedActivities[i].CreationDate <= timeAtEnd);
+                    Assert.IsTrue(timeAtStart <= unprocessedActivities[i].CreationDate && unprocessedActivities[i].CreationDate <= timeAtEnd);
                     Assert.IsTrue(unprocessedActivities[i].IsUnprocessedActivity);
-                    Assert.AreEqual(IndexingActivityState.Waiting, unprocessedActivities[i].ActivityState);
+                    Assert.AreEqual(IndexingActivityRunningState.Waiting, unprocessedActivities[i].RunningState);
                     Assert.IsNull(unprocessedActivities[i].StartDate);
                 }
 
@@ -108,9 +112,9 @@ namespace SenseNet.Search.IntegrationTests
                 for (int i = 0; i < loadedActivities.Length; i++)
                 {
                     Assert.AreEqual(lastActivityIdBefore + i + 1, loadedActivities[i].Id);
-                    Assert.IsTrue(timeAtAtStart <= loadedActivities[i].CreationDate && loadedActivities[i].CreationDate <= timeAtEnd);
+                    Assert.IsTrue(timeAtStart <= loadedActivities[i].CreationDate && loadedActivities[i].CreationDate <= timeAtEnd);
                     Assert.IsFalse(loadedActivities[i].IsUnprocessedActivity);
-                    Assert.AreEqual(IndexingActivityState.Waiting, unprocessedActivities[i].ActivityState);
+                    Assert.AreEqual(IndexingActivityRunningState.Waiting, unprocessedActivities[i].RunningState);
                     Assert.IsNull(unprocessedActivities[i].StartDate);
                 }
 
@@ -137,6 +141,47 @@ namespace SenseNet.Search.IntegrationTests
                 SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
             }
         }
+
+        [TestMethod, TestCategory("IR")]
+        public void IndexingSql_UpdateStateToDone()
+        {
+            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
+            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
+            try
+            {
+                var lastActivityIdBefore = DataProvider.Current.GetLastActivityId();
+                DataProvider.Current.RegisterIndexingActivity(
+                    CreateActivity(
+                        IndexingActivityType.AddDocument, "/Root/IndexingSql_UpdateStateToDone", 42, 42, 99999999, null));
+                var lastActivityIdAfter = DataProvider.Current.GetLastActivityId();
+
+                var factory = new IndexingActivityFactory();
+                var loadedActivities = DataProvider.Current.LoadIndexingActivities(lastActivityIdBefore + 1, lastActivityIdAfter, 1000, false, factory).ToArray();
+                if (loadedActivities.Length != 1)
+                    Assert.Inconclusive("Successful test needs one IndexingActivity.");
+                var loadedActivity = loadedActivities[0];
+                if (loadedActivity == null)
+                    Assert.Inconclusive("Successful test needs the existing IndexingActivity.");
+                if (loadedActivity.RunningState != IndexingActivityRunningState.Waiting)
+                    Assert.Inconclusive("Successful test needs the requirement: ActivityState is IndexingActivityState.Waiting.");
+
+                // action
+                DataProvider.Current.UpdateIndexingActivityRunningState(loadedActivity.Id, IndexingActivityRunningState.Done);
+
+                // check
+                var lastActivityIdAfterUpdate = DataProvider.Current.GetLastActivityId();
+                Assert.AreEqual(lastActivityIdAfter, lastActivityIdAfterUpdate);
+
+                loadedActivity = DataProvider.Current.LoadIndexingActivities(lastActivityIdBefore + 1, lastActivityIdAfter, 1000, false, factory).First();
+                Assert.AreEqual(IndexingActivityRunningState.Done, loadedActivity.RunningState);
+            }
+            finally
+            {
+                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+            }
+        }
+
+        // ======================================================================================
 
         private static IndexingActivityBase CreateActivity(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp, IndexDocumentData indexDocumentData)
         {
