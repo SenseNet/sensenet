@@ -2677,6 +2677,124 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
+        /// <summary>
+        /// Modes the Node instance to another loacation. The new location is a Node instance which will be parent node.
+        /// </summary>
+        public virtual Node MoveToAndGetMoved(Node target)
+        {
+            if (target == null)
+            {
+                throw new ArgumentNullException("target");
+            }
+            return MoveToAndGetMoved(target, this.NodeTimestamp, target.NodeTimestamp);
+        }
+        private Node MoveToAndGetMoved(Node target, long sourceTimestamp, long targetTimestamp)
+        {
+            StorageContext.Search.SearchEngine.WaitIfIndexingPaused();
+
+            this.AssertLock();
+
+            if (target == null)
+            {
+                throw new ArgumentNullException("target");
+            }
+            // check permissions
+            this.Security.AssertSubtree(PermissionType.Delete);
+            target.Security.Assert(PermissionType.Open);
+            target.Security.Assert(PermissionType.AddNew);
+
+            var originalPath = this.Path;
+            var correctTargetPath = RepositoryPath.Combine(target.Path, RepositoryPath.PathSeparator);
+            var correctCurrentPath = RepositoryPath.Combine(this.Path, RepositoryPath.PathSeparator);
+
+            if (correctTargetPath.IndexOf(correctCurrentPath, StringComparison.Ordinal) != -1)
+            {
+                throw new InvalidOperationException(String.Format(CultureInfo.InvariantCulture, "Node cannot be moved under itself."));
+            }
+            if (target.Id == this.ParentId)
+            {
+                throw new InvalidOperationException("Node cannot be moved to its parent.");
+            }
+            var targetPath = RepositoryPath.Combine(target.Path, this.Name);
+
+            AssertPath(targetPath);
+
+            if (Exists(targetPath))
+            {
+                throw new NodeAlreadyExistsException(String.Concat("Cannot move the content because the target folder already contains a content named '", this.Name,"'."));
+            }
+            object customData = null;
+            using (var audit = new AuditBlock(AuditEvent.ContentMoved, "Trying to move content.", new Dictionary<string, object>
+            {{ "Id", Id }, {"Path", Path }, {"Target", targetPath }}))
+            {
+                using (var treeLock = TreeLock.Acquire(this.Path, RepositoryPath.Combine(target.Path, this.Name)))
+                {
+                    var args = new CancellableNodeOperationEventArgs(this, target, CancellableNodeEvent.Moving);
+                    FireOnMoving(args);
+                    if (args.Cancel)
+                    {
+                        throw new CancelNodeEventException(args.CancelMessage, args.EventType, this);
+                    }
+                    customData = args.CustomData;
+
+                    var pathToInvalidate = String.Concat(this.Path, "/");
+
+                    try
+                    {
+                        DataProvider.Current.MoveNode(this.Id, target.Id, sourceTimestamp, targetTimestamp);
+                    }
+                    catch (DataOperationException e) // rethrow
+                    {
+                        if (e.Result == DataOperationResult.DataTooLong)
+                        {
+                            throw new RepositoryPathTooLongException(targetPath);
+                        }
+                        throw new ApplicationException("Cannot move", e);
+                    }
+
+                    SecurityHandler.MoveEntity(this.Id, target.Id);
+
+                    PathDependency.FireChanged(pathToInvalidate);
+                    PathDependency.FireChanged(this.Path);
+
+                    Populator.DeleteTree(this.Path, this.Id, true);
+
+                    // <L2Cache>
+                    StorageContext.L2Cache.Clear();
+                    // </L2Cache>
+
+                    try
+                    {
+                        var nodeHead = NodeHead.Get(Id);
+                        var userAccessLevel = GetUserAccessLevel(nodeHead);
+                        var acceptedLevel = GetAcceptedLevel(userAccessLevel, VersionNumber.LastAccessible);
+                        var versionId = GetVersionId(nodeHead, acceptedLevel != AccessLevel.Header ? acceptedLevel : AccessLevel.Major, VersionNumber.LastAccessible);
+
+                        var sharedData = DataBackingStore.GetNodeData(nodeHead, versionId);
+                        var privateData = NodeData.CreatePrivateData(sharedData.NodeData);
+                        _data = privateData;
+                    }
+                    catch (Exception e) // logged
+                    {
+                        SnLog.WriteException(e);
+                    }
+
+                    using (new SystemAccount())
+                    {
+                        Populator.PopulateTree(targetPath, this.Id);
+                    }
+
+                } // end lock
+
+                SnLog.WriteAudit(AuditEvent.ContentMoved, GetLoggerPropertiesAfterMove(new object[] { this, originalPath, targetPath }));
+
+                FireOnMoved(target, customData, originalPath);
+
+                audit.Successful = true;
+            }
+            return this;
+        }
+
 
         public static void MoveMore(List<Int32> nodeList, string targetPath, ref List<Exception> errors)
         {
@@ -2839,14 +2957,14 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// Copies the Node instance to another loacation. The new location is a Node instance which will be parent node.
+        /// Copies the Node instance to another location. The new location is a Node instance which will be parent node.
         /// </summary>
         public virtual void CopyTo(Node target)
         {
             CopyTo(target, this.Name);
         }
         /// <summary>
-        /// Copies the Node instance to another loacation. The new location is a Node instance which will be parent node.
+        /// Copies the Node instance to another location. The new location is a Node instance which will be parent node.
         /// </summary>
         public virtual void CopyTo(Node target, string newName)
         {
@@ -2900,6 +3018,71 @@ namespace SenseNet.ContentRepository.Storage
                 op.Successful = true;
             }
         }
+
+        /// <summary>
+        /// Copies the Node instance to another location. The new location is a Node instance which will be parent node.
+        /// </summary>
+        public virtual Node CopyToAndGetCopy(Node target)
+        {
+            return CopyToAndGetCopy(target, this.Name);
+        }
+        /// <summary>
+        /// Copies the Node instance to another location. The new location is a Node instance which will be parent node.
+        /// </summary>
+        public virtual Node CopyToAndGetCopy(Node target, string newName)
+        {
+            StorageContext.Search.SearchEngine.WaitIfIndexingPaused();
+
+            using (var op = SnTrace.ContentOperation.StartOperation("Node.SaveCopied"))
+            {
+                if (target == null)
+                {
+                    throw new ArgumentNullException("target");
+                }
+                string msg = CheckListAndItemCopyingConditions(target);
+                if (msg != null)
+                {
+                    throw new InvalidOperationException(msg);
+                }
+                var originalPath = this.Path;
+                string newPath;
+                var correctTargetPath = RepositoryPath.Combine(target.Path, RepositoryPath.PathSeparator);
+                var correctCurrentPath = RepositoryPath.Combine(this.Path, RepositoryPath.PathSeparator);
+
+                if (correctTargetPath.IndexOf(correctCurrentPath) != -1)
+                {
+                    throw new InvalidOperationException("Node cannot be copied under itself.");
+                }
+                target.AssertLock();
+
+                var args = new CancellableNodeOperationEventArgs(this, target, CancellableNodeEvent.Copying);
+                FireOnCopying(args);
+
+                if (args.Cancel)
+                {
+                    throw new CancelNodeEventException(args.CancelMessage, args.EventType, this);
+                }
+                var customData = args.CustomData;
+                var targetName = newName;
+                int i = 0;
+                var nodeList = target.GetChildren();
+                while (NameExists(nodeList, targetName))
+                {
+                    if (target.Id != this.ParentId)
+                        throw new NodeAlreadyExistsException(String.Concat("Cannot copy the content because the target folder already contains a content named '", this.Name, "'."));
+                    targetName = GenerateCopyName(i++);
+                }
+                newPath = correctTargetPath + targetName;
+
+                var copyOfSource = DoCopyAndGetCopy(newPath, targetName);
+
+                SnTrace.ContentOperation.Write($"Node copied. NodeId:{this.Id}, Path:{this.Path}, OriginalPath:{originalPath}, NewPath:{newPath}");
+                FireOnCopied(target, customData);
+                op.Successful = true;
+                return copyOfSource;
+            }
+        }
+
         private string CheckListAndItemCopyingConditions(Node target)
         {
             string msg = null;
@@ -2962,6 +3145,37 @@ namespace SenseNet.ContentRepository.Storage
                 }
             }
         }
+
+        private Node DoCopyAndGetCopy(string targetPath, string newName)
+        {
+            bool first = true;
+            var sourcePath = this.Path;
+            Node copyOfSource = null;
+            if (!Node.Exists(sourcePath))
+                throw new ContentNotFoundException(sourcePath);
+            foreach (var sourceNode in NodeEnumerator.GetNodes(sourcePath, ExecutionHint.ForceRelationalEngine))
+            {
+                var targetNodePath = targetPath + sourceNode.Path.Substring(sourcePath.Length);
+                targetNodePath = RepositoryPath.GetParentPath(targetNodePath);
+                var targetNode = Node.LoadNode(targetNodePath);
+                if (first)
+                {
+                    copyOfSource = sourceNode.MakeCopy(targetNode, newName);
+                    copyOfSource.Save();
+                    CopyExplicitPermissionsTo(sourceNode, copyOfSource);
+                    newName = null;
+                    first = false;
+                }
+                else
+                {
+                    var copy = sourceNode.MakeCopy(targetNode, newName);
+                    copy.Save();
+                    CopyExplicitPermissionsTo(sourceNode, copy);
+                }
+            }
+            return copyOfSource;
+        }
+
         private void CopyExplicitPermissionsTo(Node sourceNode, Node targetNode)
         {
             AccessProvider.ChangeToSystemAccount();

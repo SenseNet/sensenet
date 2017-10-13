@@ -74,8 +74,8 @@ namespace SenseNet.Services.ApplicationModel
                 }
                 try
                 {
-                    node.CopyTo(targetNode);
-                    results.Add(new { node.Id, node.Path, node.Name});
+                    var copy = node.CopyToAndGetCopy(targetNode);
+                    results.Add(new { copy.Id, copy.Path, copy.Name});
                 }
                 catch (Exception e)
                 {
