@@ -237,7 +237,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 activity.RunningState = runningState;
         }
 
-        public override IIndexingActivity[] StartIndexingActivities(int maxCount, int runningTimeoutInSeconds, IIndexingActivityFactory activityFactory)
+        public override IIndexingActivity[] StartIndexingActivities(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds)
         {
             throw new NotImplementedException(); //TODO: StartIndexingActivities is not implemented
         }

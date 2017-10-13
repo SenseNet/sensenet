@@ -52,14 +52,19 @@ namespace SenseNet.Search.Indexing
         public static void ExecuteActivity(IndexingActivityBase activity)
         {
             if (SearchManager.SearchEngine.IndexingEngine.WorksAsCentralizedIndex)
-                CentralizedIndexingActivityQueue.ExecuteActivity(activity, true);
+                ExecuteCentralizedActivity(activity);
             else
-                ExecuteActivity(activity, true, true);
+                ExecuteDistributedActivity(activity);
         }
-        private static void ExecuteActivity(IndexingActivityBase activity, bool waitForComplete, bool distribute)
+        private static void ExecuteCentralizedActivity(IndexingActivityBase activity)
         {
-            if (distribute)
-                activity.Distribute();
+            CentralizedIndexingActivityQueue.ExecuteActivity(activity);
+
+            activity.WaitForComplete();
+        }
+        private static void ExecuteDistributedActivity(IndexingActivityBase activity)
+        {
+            activity.Distribute();
 
             // If there are too many activities in the queue, we have to drop at least the inner
             // data of the activity to prevent memory overflow. We still have to wait for the 
@@ -74,8 +79,7 @@ namespace SenseNet.Search.Indexing
             // all activities must be executed through the activity queue's API
             IndexingActivityQueue.ExecuteActivity(activity);
 
-            if (waitForComplete)
-                activity.WaitForComplete();
+            activity.WaitForComplete();
         }
 
         public static int GetLastStoredIndexingActivityId()

@@ -201,7 +201,7 @@ namespace SenseNet.Search.IntegrationTests
                     RegisterActivity(IndexingActivityType.AddDocument, IndexingActivityRunningState.Waiting, 3, 3, "/Root/Path3"),
                 };
 
-                var allocated =  DataProvider.Current.StartIndexingActivities(10, 60, new IndexingActivityFactory());
+                var allocated =  DataProvider.Current.StartIndexingActivities(new IndexingActivityFactory(), 10, 60);
 
                 Assert.AreEqual(1, allocated.Length);
                 Assert.AreEqual(start[2].Id, allocated[0].Id);
@@ -226,7 +226,7 @@ namespace SenseNet.Search.IntegrationTests
                     RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 1, 1, "/Root/Path1"),
                 };
 
-                var allocated =  DataProvider.Current.StartIndexingActivities(10, 60, new IndexingActivityFactory());
+                var allocated =  DataProvider.Current.StartIndexingActivities(new IndexingActivityFactory(), 10, 60);
 
                 Assert.AreEqual(1, allocated.Length);
                 Assert.AreEqual(start[0].Id, allocated[0].Id);
@@ -253,7 +253,7 @@ namespace SenseNet.Search.IntegrationTests
                     RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 2, 2, "/Root/Path2"),
                 };
 
-                var allocated =  DataProvider.Current.StartIndexingActivities(10, 60, new IndexingActivityFactory());
+                var allocated =  DataProvider.Current.StartIndexingActivities(new IndexingActivityFactory(), 10, 60);
 
                 Assert.AreEqual(1, allocated.Length);
                 Assert.AreEqual(start[2].Id, allocated[0].Id);
@@ -284,7 +284,7 @@ namespace SenseNet.Search.IntegrationTests
                     RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 4, 4, "/Root/Path4"), //   8
                 };
 
-                var allocated =  DataProvider.Current.StartIndexingActivities(10, 60, new IndexingActivityFactory());
+                var allocated =  DataProvider.Current.StartIndexingActivities(new IndexingActivityFactory(), 10, 60);
 
                 Assert.AreEqual(3, allocated.Length);
                 Assert.AreEqual(start[2].Id, allocated[0].Id);
@@ -316,7 +316,7 @@ namespace SenseNet.Search.IntegrationTests
                     RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Waiting, 7, 7, "/Root/Path4"),     // 7
                 };
 
-                var allocated =  DataProvider.Current.StartIndexingActivities(10, 60, new IndexingActivityFactory());
+                var allocated =  DataProvider.Current.StartIndexingActivities(new IndexingActivityFactory(), 10, 60);
 
                 Assert.AreEqual(4, allocated.Length);
                 Assert.AreEqual(start[0].Id, allocated[0].Id);
@@ -355,7 +355,7 @@ namespace SenseNet.Search.IntegrationTests
                     RegisterActivity(IndexingActivityType.AddDocument, IndexingActivityRunningState.Waiting, DateTime.UtcNow,                 13, 13, "/Root/Path13"),   // 11
                 };
 
-                var allocated =  DataProvider.Current.StartIndexingActivities(10, 60, new IndexingActivityFactory());
+                var allocated =  DataProvider.Current.StartIndexingActivities(new IndexingActivityFactory(), 10, 60);
 
                 Assert.AreEqual(6, allocated.Length);
                 Assert.AreEqual(start[4].Id, allocated[0].Id);
@@ -384,7 +384,7 @@ namespace SenseNet.Search.IntegrationTests
                     start[i - 1] = RegisterActivity(IndexingActivityType.AddDocument, IndexingActivityRunningState.Waiting, i, i, $"/Root/Path0{i}");
                 }
 
-                var allocated =  DataProvider.Current.StartIndexingActivities(10, 60, new IndexingActivityFactory());
+                var allocated =  DataProvider.Current.StartIndexingActivities(new IndexingActivityFactory(), 10, 60);
 
                 Assert.AreEqual(10, allocated.Length);
                 for (var i = 0; i < 10; i++)
@@ -411,7 +411,7 @@ namespace SenseNet.Search.IntegrationTests
                     RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 2, 2, "/Root/Path2"),         
                 };
 
-                var allocated =  DataProvider.Current.StartIndexingActivities(10, 60, new IndexingActivityFactory());
+                var allocated =  DataProvider.Current.StartIndexingActivities(new IndexingActivityFactory(), 10, 60);
 
                 Assert.AreEqual(2, allocated.Length);
                 Assert.AreEqual(start[0].Id, allocated[0].Id);
