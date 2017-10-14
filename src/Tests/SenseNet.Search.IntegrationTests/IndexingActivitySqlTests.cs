@@ -425,6 +425,8 @@ namespace SenseNet.Search.IntegrationTests
             }
         }
 
+        /* ====================================================================================== */
+
         private IIndexingActivity RegisterActivity(IndexingActivityType type, IndexingActivityRunningState state, int nodeId, int versionId, string path)
         {
             IndexingActivityBase activity;
@@ -453,8 +455,6 @@ namespace SenseNet.Search.IntegrationTests
 
             return activity;
         }
-
-        // ======================================================================================
 
         private static IndexingActivityBase CreateActivity(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp, IndexDocumentData indexDocumentData)
         {

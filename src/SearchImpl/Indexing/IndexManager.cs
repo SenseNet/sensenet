@@ -58,12 +58,14 @@ namespace SenseNet.Search.Indexing
         }
         private static void ExecuteCentralizedActivity(IndexingActivityBase activity)
         {
+            SnTrace.Index.Write("ExecuteCentralizedActivity: #{0}", activity.Id);
             CentralizedIndexingActivityQueue.ExecuteActivity(activity);
 
             activity.WaitForComplete();
         }
         private static void ExecuteDistributedActivity(IndexingActivityBase activity)
         {
+            SnTrace.Index.Write("ExecuteDistributedActivity: #{0}", activity.Id);
             activity.Distribute();
 
             // If there are too many activities in the queue, we have to drop at least the inner

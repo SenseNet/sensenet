@@ -101,7 +101,7 @@ namespace SenseNet.Search.Indexing
                 Serializer.QueueLength >= SenseNet.Configuration.Indexing.LuceneActivityQueueMaxLength;
         }
 
-        public static void Startup(System.IO.TextWriter consoleOut)
+        public static void Startup(System.IO.TextWriter consoleOut) //UNDONE:|||||||||||| Do not call this from concrete IndexingEngine
         {
             // initalize from index
             var cud = IndexManager.IndexingEngine.ReadActivityStatusFromIndex();
