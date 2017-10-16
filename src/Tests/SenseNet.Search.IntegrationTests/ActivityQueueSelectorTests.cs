@@ -115,7 +115,7 @@ namespace SenseNet.Search.IntegrationTests
         }
 
         [TestMethod, TestCategory("IR")]
-        public void Indexing_Distributed()
+        public void Indexing_ActivitySelector_Distributed()
         {
             var searchEngine = new SearchEngineForActivityQueueSelectorTests(false);
             ActivityQueueSelectorTest(searchEngine, s =>
@@ -129,7 +129,7 @@ namespace SenseNet.Search.IntegrationTests
             });
         }
         [TestMethod, TestCategory("IR")]
-        public void Indexing_Centralized()
+        public void Indexing_ActivitySelector_Centralized()
         {
             var searchEngine = new SearchEngineForActivityQueueSelectorTests(true);
             ActivityQueueSelectorTest(searchEngine, s =>
