@@ -34,7 +34,7 @@ namespace SenseNet.Search.Indexing
         {
             lock (_waitingActivitiesSync)
                 _waitingActivities.Add(activity.Id, activity);
-            ExecuteActivities();
+            ExecuteActivities(activity);
         }
 
         /// <summary>
@@ -54,15 +54,16 @@ namespace SenseNet.Search.Indexing
         /// <summary>
         /// Loads some available activities and executes them in asynchron way.
         /// </summary>
-        private static void ExecuteActivities()
+        private static void ExecuteActivities(IIndexingActivity waitingActivity)
         {
             // disable polling
             _executing = true;
 
             // load and execute some activity
             var loadedActivities = DataProvider.Current.StartIndexingActivities(_indexingActivityFactory, MaxCount, RunningTimeoutInSeconds);
+            SnTrace.IndexQueue.Write("CIAQ: loaded: {0}, waiting: {1}", loadedActivities.Length, _waitingActivities.Count);
             foreach (var loadedActivity in loadedActivities)
-                Task.Run(() => Execute(loadedActivity as IndexingActivityBase));
+                Task.Run(() => Execute(loadedActivity.Id == waitingActivity.Id ? waitingActivity : loadedActivity));
 
             // enable polling
             _executing = false;
@@ -74,28 +75,29 @@ namespace SenseNet.Search.Indexing
         /// Calls the activity's Finish to release the waiting thread.
         /// Removes the activity from the waiting list.
         /// </summary>
-        private static void Execute(IndexingActivityBase activity)
+        private static void Execute(IIndexingActivity activity)
         {
-            using (var op = SnTrace.Index.StartOperation("CIAQ: A{0} EXECUTION.", activity.Id))
+            var act = (IndexingActivityBase)activity;
+
+            using (var op = SnTrace.Index.StartOperation("CIAQ: A{0} EXECUTION.", act.Id))
             {
-                IndexingActivityHistory.Start(activity.Id);
                 try
                 {
                     using (new SenseNet.ContentRepository.Storage.Security.SystemAccount())
-                        activity.ExecuteIndexingActivity();
-                    DataProvider.Current.UpdateIndexingActivityRunningState(activity.Id, IndexingActivityRunningState.Done);
+                        act.ExecuteIndexingActivity();
+                    DataProvider.Current.UpdateIndexingActivityRunningState(act.Id, IndexingActivityRunningState.Done);
                 }
                 catch (Exception e)
                 {
                     //UNDONE:||||||||||| Error logging is not implemented. WARNING Do not fill the event log with repetitive messages.
                     //UNDONE:||||||||||| :() Wait and retry? The client may not be able to handle this situation
-                    SnTrace.Index.WriteError("CIAQ: A{0} EXECUTION ERROR: {1}", activity.Id, e);
+                    SnTrace.Index.WriteError("CIAQ: A{0} EXECUTION ERROR: {1}", act.Id, e);
                 }
                 finally
                 {
-                    activity.Finish();
+                    act.Finish();
                     lock (_waitingActivitiesSync)
-                        _waitingActivities.Remove(activity.Id);
+                        _waitingActivities.Remove(act.Id);
                 }
                 op.Successful = true;
             }

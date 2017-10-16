@@ -62,6 +62,15 @@ namespace SenseNet.Search.IntegrationTests
 
             public void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates, IEnumerable<IndexDocument> addition)
             {
+                var distributed = Environment.StackTrace.Contains(typeof(IndexingActivityQueue).FullName) ? "DISTRIBUTED" : "";
+                var centralized = Environment.StackTrace.Contains(typeof(CentralizedIndexingActivityQueue).FullName) ? "CENTRALIZED" : "";
+                _log.Append($"{centralized}{distributed}. deletions: {deletions?.Count() ?? 0}, updates: {updates?.Count() ?? 0}, addition: {addition?.Count() ?? 0}");
+            }
+
+            StringBuilder _log = new StringBuilder();
+            public string GetLog()
+            {
+                return _log.ToString();
             }
         }
 
@@ -98,35 +107,39 @@ namespace SenseNet.Search.IntegrationTests
             public void SetIndexingInfo(IDictionary<string, IPerFieldIndexingInfo> indexingInfo)
             {
             }
+
+            public string GetIndexingLog()
+            {
+                return ((IndexingEngineForActivityQueueSelectorTests)IndexingEngine).GetLog();
+            }
         }
 
         [TestMethod, TestCategory("IR")]
         public void Indexing_Distributed()
         {
             var searchEngine = new SearchEngineForActivityQueueSelectorTests(false);
-            var result = ActivityQueueSelectorTest(searchEngine, s =>
+            ActivityQueueSelectorTest(searchEngine, s =>
             {
                 var nodeName = "Indexing_Distributed";
                 var node = new SystemFolder(Repository.Root) { Name = nodeName };
                 using (new SystemAccount())
                     node.Save();
 
-                return true;
+                Assert.AreEqual($"DISTRIBUTED. deletions: 0, updates: 0, addition: 1", searchEngine.GetIndexingLog());
             });
         }
         [TestMethod, TestCategory("IR")]
         public void Indexing_Centralized()
         {
             var searchEngine = new SearchEngineForActivityQueueSelectorTests(true);
-            var result = ActivityQueueSelectorTest(searchEngine, s =>
+            ActivityQueueSelectorTest(searchEngine, s =>
             {
-                var versioningInfo = new VersioningInfo { LastDraftVersionId = 42, LastPublicVersionId = 42, Delete = new int[0], Reindex = new int[0] };
-                var activity = CreateActivity(IndexingActivityType.AddDocument, "/Root/Path1", 42, 42, 424242, versioningInfo);
-                activity.Id = 1;
+                var nodeName = "Indexing_Centralized";
+                var node = new SystemFolder(Repository.Root) { Name = nodeName };
+                using (new SystemAccount())
+                    node.Save();
 
-                IndexManager.ExecuteActivity(activity);
-
-                return true;
+                Assert.AreEqual($"CENTRALIZED. deletions: 0, updates: 0, addition: 1", searchEngine.GetIndexingLog());
             });
         }
 
@@ -152,7 +165,7 @@ namespace SenseNet.Search.IntegrationTests
 
         /* ============================================================================================== */
 
-        protected T ActivityQueueSelectorTest<T>(ISearchEngine searchEngine, Func<string, T> callback, [CallerMemberName]string memberName = "")
+        protected void ActivityQueueSelectorTest(ISearchEngine searchEngine, Action<string> callback, [CallerMemberName]string memberName = "")
         {
             var dataProvider = new InMemoryDataProvider();
             var securityDataProvider = GetSecurityDataProvider(dataProvider);
@@ -177,16 +190,13 @@ namespace SenseNet.Search.IntegrationTests
 
             repoBuilder.Console = indxManConsole;
 
-            T result;
             using (Repository.Start(repoBuilder))
             {
                 using (ContentRepository.Tests.Tools.Swindle(typeof(SearchManager), "ContentRepository", new SearchEngineSupport()))
                 {
-                    result = callback(indxManConsole.ToString());
+                    callback(indxManConsole.ToString());
                 }
             }
-
-            return result;
         }
 
         private IndexingActivityBase CreateActivity(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp, VersioningInfo versioningInfo)

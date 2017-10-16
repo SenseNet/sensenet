@@ -120,12 +120,12 @@ namespace SenseNet.Search.Indexing.Activities
         {
             if (AttachedActivity != null)
             {
-                SnTrace.IndexQueue.Write("IAQ: attached A{0} finished.", AttachedActivity.Id);
+                SnTrace.IndexQueue.Write("Attached IndexingActivity A{0} finished.", AttachedActivity.Id);
                 // finalize attached activities first
                 AttachedActivity.Finish();
             }
             base.Finish();
-            SnTrace.IndexQueue.Write("IAQ: A{0} finished.", this.Id);
+            SnTrace.IndexQueue.Write("IndexingActivity A{0} finished.", this.Id);
         }
 
 
