@@ -147,7 +147,18 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         public override IIndexingActivity[] LoadIndexingActivities(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
         {
-            throw new NotImplementedException();
+            var result = new List<IIndexingActivity>();
+            lock (_db.IndexingActivities)
+            {
+                var activities = _db.IndexingActivities.Where(r => gaps.Contains(r.IndexingActivityId)).ToArray();
+                foreach (var activityRecord in activities)
+                {
+                    var activity = LoadFullIndexingActivity(activityRecord, executingUnprocessedActivities, activityFactory);
+                    if (activity != null)
+                        result.Add(activity);
+                }
+            }
+            return result.ToArray();
         }
 
         #endregion

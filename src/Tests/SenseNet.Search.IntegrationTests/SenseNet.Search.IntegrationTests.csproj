@@ -55,7 +55,8 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IndexingActivitySqlTests.cs" />
+    <Compile Include="CentralizedIndexingInMemoryTests.cs" />
+    <Compile Include="CentralizedIndexingSqlTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ActivityQueueSelectorTests.cs" />
   </ItemGroup>
