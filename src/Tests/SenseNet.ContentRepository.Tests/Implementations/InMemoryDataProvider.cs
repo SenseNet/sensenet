@@ -582,10 +582,9 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             // To avoid accessing to blob provider, read data here, else set rawData to null
             byte[] rawData = fileRec.Stream;
 
-            var provider = BlobStorageBase.GetProvider(null);
+            IBlobProvider provider = null; //BlobStorageBase.GetProvider(null);
             var context = new BlobStorageContext(provider) { VersionId = nodeVersionId, PropertyTypeId = propertyTypeId, FileId = fileId, Length = length, UseFileStream = false };
-            if (provider == BlobStorageBase.BuiltInProvider)
-                context.BlobProviderData = new BuiltinBlobProviderData { FileStreamData = null };
+            context.BlobProviderData = new BuiltinBlobProviderData { FileStreamData = null };
 
             return new BinaryCacheEntity
             {
