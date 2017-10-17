@@ -117,6 +117,8 @@ namespace SenseNet.Search.Indexing
 
                 op.Successful = true;
             }
+
+            IndexHealthMonitor.Start(consoleOut);
         }
         private static void Startup(int lastDatabaseId, int lastExecutedId, int[] gaps, System.IO.TextWriter consoleOut)
         {

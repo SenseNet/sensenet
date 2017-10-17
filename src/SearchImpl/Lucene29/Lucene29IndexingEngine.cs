@@ -211,12 +211,7 @@ namespace SenseNet.Search.Lucene29
 
             CreateWriterAndReader();
 
-            //UNDONE:|||||||||||| Remove call: IndexingActivityQueue.Startup
-            IndexingActivityQueue.Startup(consoleOut);
-
             Warmup();
-
-            IndexHealthMonitor.Start(consoleOut);
         }
 
         private void Warmup()

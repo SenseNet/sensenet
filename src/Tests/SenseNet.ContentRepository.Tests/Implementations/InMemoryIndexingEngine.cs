@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
+using SenseNet.Diagnostics;
+using System.Collections.Concurrent;
 
 namespace SenseNet.ContentRepository.Tests.Implementations
 {
@@ -19,8 +21,6 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         public void Start(TextWriter consoleOut)
         {
-            //UNDONE:|||||||||||| Remove call: IndexingActivityQueue.Startup
-            IndexingActivityQueue.Startup(consoleOut);
             Running = true;
         }
 
