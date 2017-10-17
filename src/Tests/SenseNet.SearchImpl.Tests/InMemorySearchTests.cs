@@ -51,7 +51,7 @@ namespace SenseNet.SearchImpl.Tests
                 var indexDocument = db.LoadIndexDocumentByVersionId(node.VersionId);
 
                 // load last indexing activity
-                var activityId = db.GetLastActivityId();
+                var activityId = db.GetLastIndexingActivityId();
                 var activity =
                     db.LoadIndexingActivities(activityId, activityId, 1, false, IndexingActivityFactory.Instance)
                         .FirstOrDefault();
@@ -127,7 +127,7 @@ namespace SenseNet.SearchImpl.Tests
                 var indexDocument = db.LoadIndexDocumentByVersionId(node.VersionId);
 
                 // load last indexing activity
-                var activityId = db.GetLastActivityId();
+                var activityId = db.GetLastIndexingActivityId();
                 var activity =
                     db.LoadIndexingActivities(activityId, activityId, 1, false, IndexingActivityFactory.Instance)
                         .FirstOrDefault();
@@ -214,7 +214,7 @@ namespace SenseNet.SearchImpl.Tests
 
                 // load last indexing activity
                 var db = DataProvider.Current;
-                var activityId = db.GetLastActivityId();
+                var activityId = db.GetLastIndexingActivityId();
                 var activity =
                     db.LoadIndexingActivities(activityId, activityId, 1, false, IndexingActivityFactory.Instance)
                         .FirstOrDefault();
@@ -474,7 +474,7 @@ namespace SenseNet.SearchImpl.Tests
 
                 // load last indexing activity
                 var db = DataProvider.Current;
-                var activityId = db.GetLastActivityId();
+                var activityId = db.GetLastIndexingActivityId();
                 activities = db.LoadIndexingActivities(1, activityId, 10000, false, IndexingActivityFactory.Instance);
 
                 var nodeCount = DataProvider.GetNodeCount();
@@ -1028,7 +1028,7 @@ namespace SenseNet.SearchImpl.Tests
             {
                 public bool Running { get { return true; } }
 
-                public bool WorksAsCentralizedIndex => false;
+                public bool IndexIsCentralized => false;
 
                 public void Start(TextWriter consoleOut)
                 {

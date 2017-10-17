@@ -29,7 +29,7 @@ namespace SenseNet.Search.IntegrationTests
             public bool Running { get; private set; }
 
             private bool _centralized;
-            public bool WorksAsCentralizedIndex => _centralized;
+            public bool IndexIsCentralized => _centralized;
 
             public IndexingEngineForActivityQueueSelectorTests(bool centralized)
             {

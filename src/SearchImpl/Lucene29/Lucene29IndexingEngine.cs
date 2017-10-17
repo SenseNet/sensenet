@@ -654,7 +654,7 @@ namespace SenseNet.Search.Lucene29
 
         public DateTime IndexReopenedAt { get; private set; }
 
-        public bool WorksAsCentralizedIndex => false;
+        public bool IndexIsCentralized => false;
 
         public IndexReaderFrame GetIndexReaderFrame(bool dirty = false)
         {

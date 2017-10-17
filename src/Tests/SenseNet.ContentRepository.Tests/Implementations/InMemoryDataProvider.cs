@@ -110,7 +110,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         #endregion
 
-        public override int GetLastActivityId()
+        public override int GetLastIndexingActivityId()
         {
             lock (_db.IndexingActivities)
             {
@@ -232,7 +232,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             }
         }
 
-        public override IIndexingActivity[] StartIndexingActivities(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds)
+        public override IIndexingActivity[] LoadExecutableIndexingActivities(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds)
         {
             var output = new List<IIndexingActivity>();
             var recordsToStart = new List<IndexingActivityRecord>();
@@ -270,9 +270,9 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             }
             return output.ToArray();
         }
-        public override IIndexingActivity[] StartIndexingActivities(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds, out int[] finishedActivitiyIds)
+        public override IIndexingActivity[] LoadExecutableIndexingActivities(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds, out int[] finishedActivitiyIds)
         {
-            var activities = StartIndexingActivities(activityFactory, maxCount, runningTimeoutInSeconds);
+            var activities = LoadExecutableIndexingActivities(activityFactory, maxCount, runningTimeoutInSeconds);
             lock (_db.IndexingActivities)
             {
                 finishedActivitiyIds = _db.IndexingActivities

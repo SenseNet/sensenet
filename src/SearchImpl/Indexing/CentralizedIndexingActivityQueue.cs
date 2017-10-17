@@ -21,7 +21,6 @@ namespace SenseNet.Search.Indexing
         private static readonly object _waitingActivitiesSync = new object();
         private static readonly Dictionary<int, IndexingActivityBase> _waitingActivities = new Dictionary<int, IndexingActivityBase>();
         private static volatile int _activeTasks;
-        private static bool _executing;
 
         private static IIndexingActivityFactory _indexingActivityFactory = new IndexingActivityFactory();
         private static readonly int MaxCount = 10;
@@ -34,7 +33,7 @@ namespace SenseNet.Search.Indexing
                 // executing unprocessed activities in system start sequence.
                 while (true)
                 {
-                    var loadedActivities = DataProvider.Current.StartIndexingActivities(_indexingActivityFactory, MaxCount, RunningTimeoutInSeconds);
+                    var loadedActivities = DataProvider.Current.LoadExecutableIndexingActivities(_indexingActivityFactory, MaxCount, RunningTimeoutInSeconds);
                     if (loadedActivities.Length == 0)
                         break;
 
@@ -53,19 +52,16 @@ namespace SenseNet.Search.Indexing
         }
 
         /// <summary>
-        /// Entry point of the centralized indexing activity queue (organizer, manager, dealer, handler or anybody who doing something).
+        /// Entry point of the centralized indexing activity queue.
         /// Memorizes the activity in a waiting list and executes some available activities in asynchron way.
         /// </summary>
         public static void ExecuteActivity(IndexingActivityBase activity)
         {
-            // disable polling
-            _executing = true;
+            //UNDONE:||||||||||||| disable polling
 
-            // do it
             ExecuteActivities(activity);
 
-            // enable polling
-            _executing = false;
+            //UNDONE:||||||||||||| enable polling
         }
 
         private static void Polling()
@@ -73,9 +69,9 @@ namespace SenseNet.Search.Indexing
             //UNDONE:||||||||||| Check running state of the waiting activities and call the ExecuteActivities().
             //UNDONE:||||||||||| :() Do not check activities that are just running (need to watch active Tasks).
             //UNDONE:||||||||||| :() Which intervals should we call the polling method?
-            if (_executing)
-                return;
 
+
+            //UNDONE:||||||||||||| skip if polling disabled
         }
 
         /// <summary>
@@ -104,7 +100,7 @@ namespace SenseNet.Search.Indexing
             }
 
             // load some executable activities and currently finished ones
-            var loadedActivities = DataProvider.Current.StartIndexingActivities(
+            var loadedActivities = DataProvider.Current.LoadExecutableIndexingActivities(
                 _indexingActivityFactory,
                 MaxCount,
                 RunningTimeoutInSeconds,
@@ -148,14 +144,13 @@ namespace SenseNet.Search.Indexing
         /// </summary>
         private static void Execute(IIndexingActivity activity)
         {
-            _activeTasks++;
-
             var act = (IndexingActivityBase)activity;
-
             using (var op = SnTrace.Index.StartOperation("CIAQ: A{0} EXECUTION.", act.Id))
             {
                 try
                 {
+                    _activeTasks++;
+
                     // execute synchronously
                     using (new SenseNet.ContentRepository.Storage.Security.SystemAccount())
                         act.ExecuteIndexingActivity();
@@ -177,11 +172,10 @@ namespace SenseNet.Search.Indexing
                         act.Finish();
                         _waitingActivities.Remove(act.Id);
                     }
+                    _activeTasks--;
                 }
                 op.Successful = true;
             }
-
-            _activeTasks--;
         }
     }
 }

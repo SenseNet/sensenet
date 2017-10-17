@@ -17,7 +17,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         public bool Running { get; private set; }
 
-        public bool WorksAsCentralizedIndex => false;
+        public bool IndexIsCentralized => false;
 
         public void Start(TextWriter consoleOut)
         {

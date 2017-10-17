@@ -77,7 +77,7 @@ namespace SenseNet.SearchImpl.Tests
 
                 // load last indexing activity
                 var db = DataProvider.Current;
-                var activityId = db.GetLastActivityId();
+                var activityId = db.GetLastIndexingActivityId();
                 activities = db.LoadIndexingActivities(1, activityId, 10000, false, IndexingActivityFactory.Instance);
 
                 int[] nodeIds, versionIds;

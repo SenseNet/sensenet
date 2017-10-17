@@ -57,7 +57,7 @@ namespace SenseNet.ContentRepository.Storage.Search
 
             public bool Running => false;
 
-            public bool WorksAsCentralizedIndex => false;
+            public bool IndexIsCentralized => false;
 
             public void Start(TextWriter consoleOut)
             {

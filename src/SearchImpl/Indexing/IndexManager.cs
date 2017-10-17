@@ -29,7 +29,7 @@ namespace SenseNet.Search.Indexing
             IndexingEngine.Start(consoleOut);
             CommitManager.Start();
 
-            if (IndexingEngine.WorksAsCentralizedIndex)
+            if (IndexingEngine.IndexIsCentralized)
                 CentralizedIndexingActivityQueue.Startup(consoleOut);
             else
                 IndexingActivityQueue.Startup(consoleOut);
@@ -56,7 +56,7 @@ namespace SenseNet.Search.Indexing
 
         public static void ExecuteActivity(IndexingActivityBase activity)
         {
-            if (SearchManager.SearchEngine.IndexingEngine.WorksAsCentralizedIndex)
+            if (SearchManager.SearchEngine.IndexingEngine.IndexIsCentralized)
                 ExecuteCentralizedActivity(activity);
             else
                 ExecuteDistributedActivity(activity);
@@ -91,7 +91,7 @@ namespace SenseNet.Search.Indexing
 
         public static int GetLastStoredIndexingActivityId()
         {
-            return DataProvider.Current.GetLastActivityId();
+            return DataProvider.Current.GetLastIndexingActivityId();
         }
 
         internal static void DeleteAllIndexingActivities()
