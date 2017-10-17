@@ -16,24 +16,10 @@ namespace SenseNet.Search.IntegrationTests
     [TestClass]
     public class CentralizedIndexingInMemorylTests : TestBase
     {
-        private class DataProviderSwindler : IDisposable
-        {
-            DataProvider _providerInstanceBackup;
-            public DataProviderSwindler(DataProvider providerInstance)
-            {
-                _providerInstanceBackup = Providers.Instance.DataProvider;
-                Providers.Instance.DataProvider = providerInstance;
-            }
-            public void Dispose()
-            {
-                Providers.Instance.DataProvider = _providerInstanceBackup;
-            }
-        }
-
         [TestMethod, TestCategory("IR")]
         public void Indexing_Centralized_InMemory_RegisterAndReload()
         {
-            using (new DataProviderSwindler(new InMemoryDataProvider()))
+            using (new ContentRepository.Tests.Tools.DataProviderSwindler(new InMemoryDataProvider()))
             {
                 var lastActivityIdBefore = DataProvider.Current.GetLastActivityId();
 
@@ -139,7 +125,7 @@ namespace SenseNet.Search.IntegrationTests
         [TestMethod, TestCategory("IR")]
         public void Indexing_Centralized_InMemory_UpdateStateToDone()
         {
-            using (new DataProviderSwindler(new InMemoryDataProvider()))
+            using (new ContentRepository.Tests.Tools.DataProviderSwindler(new InMemoryDataProvider()))
             {
                 var lastActivityIdBefore = DataProvider.Current.GetLastActivityId();
                 DataProvider.Current.RegisterIndexingActivity(
@@ -172,7 +158,7 @@ namespace SenseNet.Search.IntegrationTests
         [TestMethod, TestCategory("IR")]
         public void Indexing_Centralized_InMemory_Allocate01_SelectWaiting()
         {
-            using (new DataProviderSwindler(new InMemoryDataProvider()))
+            using (new ContentRepository.Tests.Tools.DataProviderSwindler(new InMemoryDataProvider()))
             {
                 var start = new[]
                 {
@@ -190,7 +176,7 @@ namespace SenseNet.Search.IntegrationTests
         [TestMethod, TestCategory("IR")]
         public void Indexing_Centralized_InMemory_Allocate02_IdDependency()
         {
-            using (new DataProviderSwindler(new InMemoryDataProvider()))
+            using (new ContentRepository.Tests.Tools.DataProviderSwindler(new InMemoryDataProvider()))
             {
                 var start = new[]
                 {
@@ -208,7 +194,7 @@ namespace SenseNet.Search.IntegrationTests
         [TestMethod, TestCategory("IR")]
         public void Indexing_Centralized_InMemory_Allocate03_InactiveDependency()
         {
-            using (new DataProviderSwindler(new InMemoryDataProvider()))
+            using (new ContentRepository.Tests.Tools.DataProviderSwindler(new InMemoryDataProvider()))
             {
                 var start = new[]
                 {
@@ -228,7 +214,7 @@ namespace SenseNet.Search.IntegrationTests
         [TestMethod, TestCategory("IR")]
         public void Indexing_Centralized_InMemory_Allocate04_SelectMore()
         {
-            using (new DataProviderSwindler(new InMemoryDataProvider()))
+            using (new ContentRepository.Tests.Tools.DataProviderSwindler(new InMemoryDataProvider()))
             {
                 var start = new[]
                 {
@@ -254,7 +240,7 @@ namespace SenseNet.Search.IntegrationTests
         [TestMethod, TestCategory("IR")]
         public void Indexing_Centralized_InMemory_Allocate05_PathDependency()
         {
-            using (new DataProviderSwindler(new InMemoryDataProvider()))
+            using (new ContentRepository.Tests.Tools.DataProviderSwindler(new InMemoryDataProvider()))
             {
                 var start = new[]
                 {
@@ -280,7 +266,7 @@ namespace SenseNet.Search.IntegrationTests
         [TestMethod, TestCategory("IR")]
         public void Indexing_Centralized_InMemory_Allocate06_Timeout()
         {
-            using (new DataProviderSwindler(new InMemoryDataProvider()))
+            using (new ContentRepository.Tests.Tools.DataProviderSwindler(new InMemoryDataProvider()))
             {
                 var start = new[]
                 {
@@ -314,7 +300,7 @@ namespace SenseNet.Search.IntegrationTests
         [TestMethod, TestCategory("IR")]
         public void Indexing_Centralized_InMemory_Allocate07_MaxRecords()
         {
-            using (new DataProviderSwindler(new InMemoryDataProvider()))
+            using (new ContentRepository.Tests.Tools.DataProviderSwindler(new InMemoryDataProvider()))
             {
                 var start = new IIndexingActivity[15];
                 for (int i = 1; i <= start.Length; i++)
@@ -332,7 +318,7 @@ namespace SenseNet.Search.IntegrationTests
         [TestMethod, TestCategory("IR")]
         public void Indexing_Centralized_InMemory_Allocate08_StateUpdated()
         {
-            using (new DataProviderSwindler(new InMemoryDataProvider()))
+            using (new ContentRepository.Tests.Tools.DataProviderSwindler(new InMemoryDataProvider()))
             {
                 var start = new[]
                 {

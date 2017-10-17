@@ -28,6 +28,11 @@ namespace SenseNet.Search.Indexing
         {
             IndexingEngine.Start(consoleOut);
             CommitManager.Start();
+
+            if (IndexingEngine.WorksAsCentralizedIndex)
+                CentralizedIndexingActivityQueue.Startup(consoleOut);
+            else
+                IndexingActivityQueue.Startup(consoleOut);
         }
 
         public static void ShutDown()

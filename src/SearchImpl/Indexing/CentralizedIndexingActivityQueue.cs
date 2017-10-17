@@ -5,6 +5,7 @@ using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing.Activities;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,6 +26,27 @@ namespace SenseNet.Search.Indexing
         private static IIndexingActivityFactory _indexingActivityFactory = new IndexingActivityFactory();
         private static readonly int MaxCount = 10;
         private static readonly int RunningTimeoutInSeconds = 60;
+
+        public static void Startup(TextWriter consoleOut)
+        {
+            using (var op = SnTrace.Index.StartOperation("CIAQ: STARTUP."))
+            {
+                while (true)
+                {
+                    var loadedActivities = DataProvider.Current.StartIndexingActivities(_indexingActivityFactory, MaxCount, RunningTimeoutInSeconds);
+                    if (loadedActivities.Length == 0)
+                        break;
+
+                    SnTrace.IndexQueue.Write("CIAQ startup: loaded: {0}", loadedActivities.Length);
+                    foreach (var loadedActivity in loadedActivities)
+                    {
+                        loadedActivity.IsUnprocessedActivity = true;
+                        Execute(loadedActivity);
+                    }
+                }
+                op.Successful = true;
+            }
+        }
 
         /// <summary>
         /// Entry point of the centralized indexing activity organizer (manager, dealer, handler or anybody who doing something).

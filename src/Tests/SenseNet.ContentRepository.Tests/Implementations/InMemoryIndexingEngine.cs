@@ -19,6 +19,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         public void Start(TextWriter consoleOut)
         {
+            //UNDONE:|||||||||||| Remove call: IndexingActivityQueue.Startup
             IndexingActivityQueue.Startup(consoleOut);
             Running = true;
         }
