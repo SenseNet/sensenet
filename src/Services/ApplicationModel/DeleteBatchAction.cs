@@ -1,14 +1,16 @@
-﻿using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Schema;
-using SenseNet.Portal.Virtualization;
-using SenseNet.ContentRepository.i18n;
-using System;
-using System.Linq;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using SenseNet.ApplicationModel;
+using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.i18n;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
+using SenseNet.Portal.OData;
+using SenseNet.Portal.Virtualization;
 
-namespace SenseNet.ApplicationModel
+namespace SenseNet.Services.ApplicationModel
 {
     public class DeleteBatchAction : ClientAction
     {
@@ -27,8 +29,8 @@ namespace SenseNet.ApplicationModel
         private string _portletClientId;
         public string PortletClientId
         {
-            get 
-            { 
+            get
+            {
                 return _portletClientId ?? (_portletClientId = GetPortletClientId());
             }
         }
@@ -55,7 +57,7 @@ namespace SenseNet.ApplicationModel
             {
                 // original behavior for webforms action controls
                 if (PortalContext.Current.ActionName == "Explore")
-                    redirectPath =  this.Content.Path + "?action=Explore";
+                    redirectPath = this.Content.Path + "?action=Explore";
             }
 
             return string.Format(
@@ -66,7 +68,7 @@ var ids = SN.ListGrid.getSelectedIdsList('{0}', this);
 var contextpath = '{2}';
 var redirectPath = '{3}';
 SN.Util.CreateServerDialog('/Root/System/WebRoot/DeleteAction.aspx','{1}', {{paths:paths,ids:ids,contextpath:contextpath,batch:true,redirectPath:redirectPath}});",
-                PortletClientId, 
+                PortletClientId,
                 SenseNetResourceManager.Current.GetString("ContentDelete", "DeleteStatusDialogTitle"),
                 this.Content.Path,
                 redirectPath
@@ -84,15 +86,33 @@ SN.Util.CreateServerDialog('/Root/System/WebRoot/DeleteAction.aspx','{1}', {{pat
         public override object Execute(Content content, params object[] parameters)
         {
             var permanent = parameters.Length > 1 && parameters[1] != null && (bool)parameters[1];
-            var exceptions = new List<Exception>();
-
             // no need to throw an exception if no ids are provided: we simply do not have to delete anything
             var ids = parameters[0] as object[];
             if (ids == null)
                 return null;
 
-            foreach (var node in Node.LoadNodes(ids.Select(NodeIdentifier.Get)))
+            var results = new List<object>();
+            var errors = new List<ErrorContent>();
+            var identifiers = ids.Select(NodeIdentifier.Get).ToList();
+            var nodes = Node.LoadNodes(identifiers).ToList();
+            foreach (var id in identifiers)
             {
+                var node = nodes.FirstOrDefault(n => n.Id == id.Id || n.Path == id.Path);
+                if (node == null)
+                {
+                    errors.Add(new ErrorContent
+                    {
+                        Content = new { id.Id, id.Path, Name = "" },
+                        Error = new Error
+                        {
+                            Code = "ResourceNotFound",
+                            ExceptionType = null
+                            ,InnerError = null
+                            ,Message = new ErrorMessage { Lang = System.Globalization.CultureInfo.CurrentUICulture.Name.ToLower(), Value = null }
+                        }
+                    });
+                    continue;
+                }
                 try
                 {
                     var gc = node as GenericContent;
@@ -105,21 +125,29 @@ SN.Util.CreateServerDialog('/Root/System/WebRoot/DeleteAction.aspx','{1}', {{pat
                         var ct = node as ContentType;
                         ct?.Delete();
                     }
+                    results.Add(new { node.Id, node.Path, node.Name });
                 }
                 catch (Exception e)
                 {
-                    exceptions.Add(e);
-
                     //TODO: we should log only relevant exceptions here and skip
                     // business logic-related errors, e.g. lack of permissions or
                     // existing target content path.
                     SnLog.WriteException(e);
+                    errors.Add(new ErrorContent
+                    {
+                        Content = new { node.Id, node.Path, node.Name },
+                        Error = new Error
+                        {
+                            Code = "NotSpecified",
+                            ExceptionType = e.GetType().FullName
+                            ,InnerError = new StackInfo { Trace = e.StackTrace }
+                            ,Message = new ErrorMessage { Lang = System.Globalization.CultureInfo.CurrentUICulture.Name.ToLower(), Value = e.Message }
+                        }
+                    });
                 }
             }
-            if (exceptions.Count > 0)
-                throw new Exception(string.Join(Environment.NewLine, exceptions.Select(e => e.Message)));
-
-            return null;
+            return ODataActionResponse.Create(results, errors, results.Count + errors.Count);
         }
+
     }
 }
