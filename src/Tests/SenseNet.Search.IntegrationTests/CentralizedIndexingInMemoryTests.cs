@@ -338,6 +338,36 @@ namespace SenseNet.Search.IntegrationTests
             }
         }
 
+        [TestMethod, TestCategory("IR")]
+        public void Indexing_Centralized_InMemory_AllocateAndState()
+        {
+            using (new ContentRepository.Tests.Tools.DataProviderSwindler(new InMemoryDataProvider()))
+            {
+                var start = new[]
+                {
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Done, 1, 1, "/Root/Path1"),
+                    RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 1, 1, "/Root/Path1"),
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Running, 2, 2, "/Root/Path2"),
+                    RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 2, 2, "/Root/Path2"),
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Waiting, 3, 3, "/Root/Path3"),
+                    RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 3, 3, "/Root/Path3"),
+                };
+
+                var waitingIds = new[] { start[0].Id, start[2].Id };
+
+                var allocated = DataProvider.Current.StartIndexingActivities(new IndexingActivityFactory(), 10, 60, waitingIds, out int[] finishetIds);
+
+                Assert.AreEqual(1, finishetIds.Length);
+                Assert.AreEqual(start[0].Id, finishetIds[0]);
+
+                Assert.AreEqual(2, allocated.Length);
+                Assert.AreEqual(start[1].Id, allocated[0].Id);
+                Assert.AreEqual(start[4].Id, allocated[1].Id);
+                Assert.AreEqual(IndexingActivityRunningState.Running, allocated[0].RunningState);
+                Assert.AreEqual(IndexingActivityRunningState.Running, allocated[1].RunningState);
+            }
+        }
+
         /* ====================================================================================== */
 
         private IIndexingActivity RegisterActivity(IndexingActivityType type, IndexingActivityRunningState state, int nodeId, int versionId, string path)

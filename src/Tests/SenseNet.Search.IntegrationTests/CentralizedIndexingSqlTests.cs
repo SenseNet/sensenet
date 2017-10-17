@@ -16,25 +16,6 @@ namespace SenseNet.Search.IntegrationTests
     {
         private static string _connectionString = @"Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=sn7tests;Data Source=.\SQL2016";
 
-        [ClassInitialize]
-        public static void InitializeClass(TestContext context)
-        {
-            CleanupIndexingActivitiesTable();
-        }
-        public static void CleanupIndexingActivitiesTable()
-        {
-            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
-            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
-            try
-            {
-                DataProvider.Current.DeleteAllIndexingActivities();
-            }
-            finally
-            {
-                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
-            }
-        }
-
         [TestMethod, TestCategory("IR")]
         public void Indexing_Centralized_Sql_RegisterAndReload()
         {
@@ -42,6 +23,8 @@ namespace SenseNet.Search.IntegrationTests
             SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
             try
             {
+                CleanupIndexingActivitiesTable();
+
                 var lastActivityIdBefore = DataProvider.Current.GetLastActivityId();
 
                 var timeAtStart = DateTime.UtcNow;
@@ -154,6 +137,8 @@ namespace SenseNet.Search.IntegrationTests
             SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
             try
             {
+                CleanupIndexingActivitiesTable();
+
                 var lastActivityIdBefore = DataProvider.Current.GetLastActivityId();
                 DataProvider.Current.RegisterIndexingActivity(
                     CreateActivity(
@@ -425,7 +410,59 @@ namespace SenseNet.Search.IntegrationTests
             }
         }
 
+        [TestMethod, TestCategory("IR")]
+        public void Indexing_Centralized_Sql_AllocateAndState()
+        {
+            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
+            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
+            try
+            {
+                CleanupIndexingActivitiesTable();
+
+                var start = new[]
+                {
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Done, 1, 1, "/Root/Path1"),
+                    RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 1, 1, "/Root/Path1"),
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Running, 2, 2, "/Root/Path2"),
+                    RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 2, 2, "/Root/Path2"),
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Waiting, 3, 3, "/Root/Path3"),
+                    RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 3, 3, "/Root/Path3"),
+                };
+
+                var waitingIds = new[] { start[0].Id, start[2].Id };
+
+                var allocated = DataProvider.Current.StartIndexingActivities(new IndexingActivityFactory(), 10, 60, waitingIds, out int[] finishetIds);
+
+                Assert.AreEqual(1, finishetIds.Length);
+                Assert.AreEqual(start[0].Id, finishetIds[0]);
+
+                Assert.AreEqual(2, allocated.Length);
+                Assert.AreEqual(start[1].Id, allocated[0].Id);
+                Assert.AreEqual(start[4].Id, allocated[1].Id);
+                Assert.AreEqual(IndexingActivityRunningState.Running, allocated[0].RunningState);
+                Assert.AreEqual(IndexingActivityRunningState.Running, allocated[1].RunningState);
+            }
+            finally
+            {
+                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+            }
+        }
+
         /* ====================================================================================== */
+
+        public static void CleanupIndexingActivitiesTable()
+        {
+            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
+            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
+            try
+            {
+                DataProvider.Current.DeleteAllIndexingActivities();
+            }
+            finally
+            {
+                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+            }
+        }
 
         private IIndexingActivity RegisterActivity(IndexingActivityType type, IndexingActivityRunningState state, int nodeId, int versionId, string path)
         {

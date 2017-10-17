@@ -270,6 +270,18 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             }
             return output.ToArray();
         }
+        public override IIndexingActivity[] StartIndexingActivities(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds, out int[] finishedActivitiyIds)
+        {
+            var activities = StartIndexingActivities(activityFactory, maxCount, runningTimeoutInSeconds);
+            lock (_db.IndexingActivities)
+            {
+                finishedActivitiyIds = _db.IndexingActivities
+                    .Where(x => waitingActivityIds.Contains(x.IndexingActivityId) && x.RunningState == IndexingActivityRunningState.Done)
+                    .Select(x=>x.IndexingActivityId)
+                    .ToArray();
+            }
+            return activities;
+        }
         private IIndexingActivity LoadFullIndexingActivity(IndexingActivityRecord activityRecord, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
         {
             var nodeRecord = _db.Nodes.FirstOrDefault(r => r.NodeId == activityRecord.NodeId);
