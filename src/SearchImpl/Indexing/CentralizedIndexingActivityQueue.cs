@@ -8,23 +8,34 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SenseNet.Search.Indexing
 {
+    //UNDONE:||||||||||| Use async keyword in the whole class.
+    //UNDONE:||||||||||| Delete 'Done' activities preiodically.
     internal static class CentralizedIndexingActivityQueue
     {
-        //UNDONE:||||||||||| Polling timer is not implemented.
-        //UNDONE:||||||||||| Use async int the whole class.
-        //UNDONE:||||||||||| REFRESH STARTTIME OF THE RUNNING ACTIVITIES
+        private const int MaxCount = 10;
+        private const int RunningTimeoutInSeconds = 60;
+        private const int HearthBeatMilliseconds = 1000;
+
+        private static readonly TimeSpan _waitingPollingTime = TimeSpan.FromSeconds(2);
+        private static readonly TimeSpan _healthCheckTime = TimeSpan.FromMinutes(2);
+        private static readonly int _activeTaskLimit = 43;
+
+        private static System.Timers.Timer _timer;
+        private static DateTime _lastExecutionTime;
+        private static volatile int _activeTasks;
+        private static int _pollingBlockerCounter;
 
         private static readonly object _waitingActivitiesSync = new object();
         private static readonly Dictionary<int, IndexingActivityBase> _waitingActivities = new Dictionary<int, IndexingActivityBase>();
-        private static volatile int _activeTasks;
 
         private static IIndexingActivityFactory _indexingActivityFactory = new IndexingActivityFactory();
-        private static readonly int MaxCount = 10;
-        private static readonly int RunningTimeoutInSeconds = 60;
+
+        //UNDONE:||||||||||| REFRESH STARTTIME OF THE RUNNING ACTIVITIES
 
         public static void Startup(TextWriter consoleOut)
         {
@@ -33,22 +44,43 @@ namespace SenseNet.Search.Indexing
                 // executing unprocessed activities in system start sequence.
                 while (true)
                 {
-                    var loadedActivities = DataProvider.Current.LoadExecutableIndexingActivities(_indexingActivityFactory, MaxCount, RunningTimeoutInSeconds);
-                    if (loadedActivities.Length == 0)
+                    // execute one charge in async way
+                    ExecuteActivities(null, true);
+
+                    // get length of waiting list in thread safe way
+                    int waitingActivitiesCount;
+                    lock (_waitingActivitiesSync)
+                        waitingActivitiesCount = _waitingActivities.Count;
+
+                    // finish execution cycle if everything is done and nobody waits.
+                    if (_activeTasks == 0 && waitingActivitiesCount == 0)
                         break;
 
-                    SnTrace.IndexQueue.Write("CIAQ startup: loaded: {0}", loadedActivities.Length);
-                    foreach (var loadedActivity in loadedActivities)
-                    {
-                        loadedActivity.IsUnprocessedActivity = true;
-                        Execute(loadedActivity);
-                    }
+                    // wait a bit in case of too many active tasks
+                    while (_activeTasks > _activeTaskLimit)
+                        Thread.Sleep(HearthBeatMilliseconds);
                 }
 
-                //UNDONE:||||||||||| Polling timer need to be started in this method
+                _timer = new System.Timers.Timer(HearthBeatMilliseconds);
+                _timer.Elapsed += new System.Timers.ElapsedEventHandler(Timer_Elapsed);
+                _timer.Disposed += new EventHandler(Timer_Disposed);
+                _timer.Enabled = true;
+
+                var msg = $"CIAQ: polling timer started. Heartbeat: {HearthBeatMilliseconds} milliseconds";
+                SnTrace.IndexQueue.Write(msg);
+                consoleOut?.WriteLine(msg);
 
                 op.Successful = true;
             }
+        }
+        private static void Timer_Disposed(object sender, EventArgs e)
+        {
+            _timer.Elapsed -= new System.Timers.ElapsedEventHandler(Timer_Elapsed);
+            _timer.Disposed -= new EventHandler(Timer_Disposed);
+        }
+        private static void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            Polling();
         }
 
         /// <summary>
@@ -57,28 +89,60 @@ namespace SenseNet.Search.Indexing
         /// </summary>
         public static void ExecuteActivity(IndexingActivityBase activity)
         {
-            //UNDONE:||||||||||||| disable polling
-
-            ExecuteActivities(activity);
-
-            //UNDONE:||||||||||||| enable polling
+            try
+            {
+                DisablePolling();
+                ExecuteActivities(activity, false);
+            }
+            finally
+            {
+                EnablePolling();
+            }
         }
 
         private static void Polling()
         {
-            //UNDONE:||||||||||| Check running state of the waiting activities and call the ExecuteActivities().
-            //UNDONE:||||||||||| :() Do not check activities that are just running (need to watch active Tasks).
-            //UNDONE:||||||||||| :() Which intervals should we call the polling method?
+            if (!IsPollingEnabled())
+                return;
 
+            int waitingListLength;
+            lock (_waitingActivitiesSync)
+                waitingListLength = _waitingActivities.Count;
+            var timeLimit = waitingListLength > 0 ? _waitingPollingTime : _healthCheckTime;
 
-            //UNDONE:||||||||||||| skip if polling disabled
+            if ((DateTime.UtcNow - _lastExecutionTime) > timeLimit && _activeTasks < _activeTaskLimit)
+            {
+                try
+                {
+                    DisablePolling();
+                    SnTrace.IndexQueue.Write("CIAQ: '{0}' polling timer beats.", (waitingListLength > 0) ? "wait" : "health");
+                    ExecuteActivities(null, false);
+                }
+                finally
+                {
+                    EnablePolling();
+                }
+            }
+        }
+
+        private static void EnablePolling()
+        {
+            _pollingBlockerCounter--;
+        }
+        private static void DisablePolling()
+        {
+            _pollingBlockerCounter++;
+        }
+        private static bool IsPollingEnabled()
+        {
+            return _pollingBlockerCounter == 0;
         }
 
         /// <summary>
         /// Loads some executable activities and queries the state of the waiting activities in one database request.
         /// Releases the finished activities and executes the loaded ones in asynchron way.
         /// </summary>
-        private static void ExecuteActivities(IndexingActivityBase waitingActivity = null)
+        private static void ExecuteActivities(IndexingActivityBase waitingActivity, bool systemStart)
         {
             int[] waitingActivityIds;
             lock (_waitingActivitiesSync)
@@ -127,6 +191,9 @@ namespace SenseNet.Search.Indexing
             // execute loaded activities
             foreach (var loadedActivity in loadedActivities)
             {
+                if (systemStart)
+                    loadedActivity.IsUnprocessedActivity = true;
+
                 if (waitingActivity == null)
                     // polling branch
                     Task.Run(() => Execute(loadedActivity));
@@ -134,6 +201,9 @@ namespace SenseNet.Search.Indexing
                     // UI branch: pay attention to executing waiting instance, because that is needed to be released (loaded one can be dropped).
                     Task.Run(() => Execute(loadedActivity.Id == waitingActivity.Id ? waitingActivity : loadedActivity));
             }
+
+            // memorize last running time
+            _lastExecutionTime = DateTime.UtcNow;
         }
 
         /// <summary>
