@@ -41,19 +41,19 @@ namespace SenseNet.Search.Indexing
         {
             using (var op = SnTrace.Index.StartOperation("CIAQ: STARTUP."))
             {
+                var loadedCount = 0;
                 // executing unprocessed activities in system start sequence.
                 while (true)
                 {
                     // execute one charge in async way
-                    ExecuteActivities(null, true);
+                    if(_activeTasks < _activeTaskLimit)
+                        loadedCount = ExecuteActivities(null, true);
 
-                    // get length of waiting list in thread safe way
-                    int waitingActivitiesCount;
-                    lock (_waitingActivitiesSync)
-                        waitingActivitiesCount = _waitingActivities.Count;
+                    if(loadedCount > 0)
+                        Thread.Sleep(HearthBeatMilliseconds);
 
-                    // finish execution cycle if everything is done and nobody waits.
-                    if (_activeTasks == 0 && waitingActivitiesCount == 0)
+                    // finish execution cycle if everything is done.
+                    if (_activeTasks == 0 && loadedCount == 0)
                         break;
 
                     // wait a bit in case of too many active tasks
@@ -73,6 +73,13 @@ namespace SenseNet.Search.Indexing
                 op.Successful = true;
             }
         }
+        internal static void ShutDown()
+        {
+            SnTrace.IndexQueue.Write("Shutting down CentralizedIndexingActivityQueue.");
+            _timer.Enabled = false;
+            _timer.Dispose();
+        }
+
         private static void Timer_Disposed(object sender, EventArgs e)
         {
             _timer.Elapsed -= new System.Timers.ElapsedEventHandler(Timer_Elapsed);
@@ -142,7 +149,7 @@ namespace SenseNet.Search.Indexing
         /// Loads some executable activities and queries the state of the waiting activities in one database request.
         /// Releases the finished activities and executes the loaded ones in asynchron way.
         /// </summary>
-        private static void ExecuteActivities(IndexingActivityBase waitingActivity, bool systemStart)
+        private static int ExecuteActivities(IndexingActivityBase waitingActivity, bool systemStart)
         {
             int[] waitingActivityIds;
             lock (_waitingActivitiesSync)
@@ -154,7 +161,7 @@ namespace SenseNet.Search.Indexing
                         // if exists, attach the current to existing.
                         olderWaitingActivity.Attach(waitingActivity);
                         // do not load executables because wait-polling cycle is active.
-                        return;
+                        return 0;
                     }
                     // add to waiting list
                     _waitingActivities.Add(waitingActivity.Id, waitingActivity);
@@ -204,6 +211,8 @@ namespace SenseNet.Search.Indexing
 
             // memorize last running time
             _lastExecutionTime = DateTime.UtcNow;
+
+            return loadedActivities.Length;
         }
 
         /// <summary>

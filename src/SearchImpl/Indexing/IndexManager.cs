@@ -38,6 +38,10 @@ namespace SenseNet.Search.Indexing
         public static void ShutDown()
         {
             CommitManager.ShutDown();
+            if (IndexingEngine.IndexIsCentralized)
+                CentralizedIndexingActivityQueue.ShutDown();
+            else
+                IndexingActivityQueue.ShutDown();
             IndexingEngine.ShutDown();
             SnLog.WriteInformation("Indexing engine has stopped. Max task id and exceptions: " + IndexingActivityQueue.GetCurrentCompletionState());
         }

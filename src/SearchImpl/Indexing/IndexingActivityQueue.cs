@@ -129,6 +129,13 @@ namespace SenseNet.Search.Indexing
             IndexingActivityHistory.Reset();
         }
 
+        public static void ShutDown()
+        {
+            SnTrace.IndexQueue.Write("Shutting down IndexingActivityQueue.");
+            Serializer.ShutDown();
+            IndexHealthMonitor.ShutDown();
+        }
+
         public static CompletionState GetCurrentCompletionState()
         {
             return TerminationHistory.GetCurrentState();
@@ -249,6 +256,11 @@ namespace SenseNet.Search.Indexing
                 }
 
                 SnLog.WriteInformation($"Executing unprocessed activities ({count}) finished.", EventId.RepositoryLifecycle);
+            }
+            internal static void ShutDown()
+            {
+                Reset(int.MaxValue);
+                DependencyManager.ShutDown();
             }
 
             internal static bool IsEmpty
@@ -381,6 +393,10 @@ namespace SenseNet.Search.Indexing
             {
                 lock (_waitingSetLock)
                     _waitingSet.Clear();
+            }
+            internal static void ShutDown()
+            {
+                Reset();
             }
             internal static bool IsEmpty
             {

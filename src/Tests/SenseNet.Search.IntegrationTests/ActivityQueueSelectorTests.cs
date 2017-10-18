@@ -7,6 +7,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Tests;
 using SenseNet.ContentRepository.Tests.Implementations;
+using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Indexing.Activities;
 using SenseNet.SearchImpl.Tests.Implementations;
@@ -167,6 +168,8 @@ namespace SenseNet.Search.IntegrationTests
             RegisterActivity(IndexingActivityType.AddDocument, IndexingActivityRunningState.Waiting, nodeId, versionId, path);
             RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, nodeId, versionId, path);
             RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, nodeId, versionId, path);
+
+            SnTrace.Test.Write("Indexing_Centralized_InMemory_ExecuteUnprocessed ACTION");
 
             searchEngine = new SearchEngineForActivityQueueSelectorTests(true);
             ActivityQueueSelectorTest(searchEngine, dataProvider, s =>
