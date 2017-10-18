@@ -185,10 +185,30 @@ namespace SenseNet.Search.IntegrationTests
                     RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 1, 1, "/Root/Path1"),
                 };
 
-                var allocated =  DataProvider.Current.LoadExecutableIndexingActivities(new IndexingActivityFactory(), 10, 60);
+                var allocated = DataProvider.Current.LoadExecutableIndexingActivities(new IndexingActivityFactory(), 10, 60);
 
                 Assert.AreEqual(1, allocated.Length);
                 Assert.AreEqual(start[0].Id, allocated[0].Id);
+            }
+        }
+        [TestMethod, TestCategory("IR")]
+        public void Indexing_Centralized_InMemory_Allocate02_IdDependency_VersionId0()
+        {
+            using (new ContentRepository.Tests.Tools.DataProviderSwindler(new InMemoryDataProvider()))
+            {
+                var start = new[]
+                {
+                    RegisterActivity(IndexingActivityType.Rebuild, IndexingActivityRunningState.Waiting, 1, 0, "/Root/Path1"),
+                    RegisterActivity(IndexingActivityType.Rebuild, IndexingActivityRunningState.Waiting, 2, 0, "/Root/Path2"),
+                    RegisterActivity(IndexingActivityType.Rebuild, IndexingActivityRunningState.Waiting, 3, 0, "/Root/Path3"),
+                };
+
+                var allocated = DataProvider.Current.LoadExecutableIndexingActivities(new IndexingActivityFactory(), 10, 60);
+
+                Assert.AreEqual(3, allocated.Length);
+                Assert.AreEqual(start[0].Id, allocated[0].Id);
+                Assert.AreEqual(start[1].Id, allocated[1].Id);
+                Assert.AreEqual(start[2].Id, allocated[2].Id);
             }
         }
         [TestMethod, TestCategory("IR")]

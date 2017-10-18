@@ -249,7 +249,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                              (@old.RunningState == IndexingActivityRunningState.Waiting || old.RunningState == IndexingActivityRunningState.Running) &&
                              (
                                  @new.NodeId == @old.NodeId ||
-                                 @new.VersionId == @old.VersionId ||
+                                 (@new.VersionId != 0 && @new.VersionId == @old.VersionId) ||
                                  @new.Path.StartsWith(@old.Path + "/", StringComparison.OrdinalIgnoreCase) ||
                                  @old.Path.StartsWith(@new.Path + "/", StringComparison.OrdinalIgnoreCase)
                              )
