@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 namespace SenseNet.Search.Indexing
 {
     //UNDONE:||||||||||| Use async keyword in the whole class.
-    //UNDONE:||||||||||| Delete 'Done' activities preiodically.
     internal static class CentralizedIndexingActivityQueue
     {
         private static readonly int MaxCount = 10;
@@ -22,20 +21,20 @@ namespace SenseNet.Search.Indexing
         private static readonly int LockRefreshPeriodInMilliseconds = RunningTimeoutInSeconds * 3000 / 4;
         private static readonly int HearthBeatMilliseconds = 1000;
 
-        private static readonly TimeSpan _waitingPollingTime = TimeSpan.FromSeconds(2);
-        private static readonly TimeSpan _healthCheckTime = TimeSpan.FromMinutes(2);
+        private static readonly TimeSpan _waitingPollingPeriod = TimeSpan.FromSeconds(2);
+        private static readonly TimeSpan _healthCheckPeriod = TimeSpan.FromMinutes(2);
+        private static readonly TimeSpan _deleteFinishedPeriod = TimeSpan.FromMinutes(23);
         private static readonly int _activeTaskLimit = 43;
 
         private static System.Timers.Timer _timer;
         private static DateTime _lastExecutionTime;
         private static DateTime _lastLockRefreshTime;
+        private static DateTime _lastDeleteFinishedTime;
         private static volatile int _activeTasks;
         private static int _pollingBlockerCounter;
 
         private static readonly object _waitingActivitiesSync = new object();
         private static readonly Dictionary<int, IndexingActivityBase> _waitingActivities = new Dictionary<int, IndexingActivityBase>();
-
-        //UNDONE:||||||||||| REFRESH STARTTIME OF THE RUNNING ACTIVITIES
 
         public static void Startup(TextWriter consoleOut)
         {
@@ -46,10 +45,10 @@ namespace SenseNet.Search.Indexing
                 while (true)
                 {
                     // execute one charge in async way
-                    if(_activeTasks < _activeTaskLimit)
+                    if (_activeTasks < _activeTaskLimit)
                         loadedCount = ExecuteActivities(null, true);
 
-                    if(loadedCount > 0)
+                    if (loadedCount > 0)
                         Thread.Sleep(HearthBeatMilliseconds);
 
                     // finish execution cycle if everything is done.
@@ -61,9 +60,15 @@ namespace SenseNet.Search.Indexing
                         Thread.Sleep(HearthBeatMilliseconds);
                 }
 
+                // every period starts now
+                _lastLockRefreshTime = DateTime.UtcNow;
+                _lastExecutionTime = DateTime.UtcNow;
+                _lastDeleteFinishedTime = DateTime.UtcNow;
+
                 _timer = new System.Timers.Timer(HearthBeatMilliseconds);
                 _timer.Elapsed += new System.Timers.ElapsedEventHandler(Timer_Elapsed);
                 _timer.Disposed += new EventHandler(Timer_Disposed);
+                // awakening (this is the judgement day)
                 _timer.Enabled = true;
 
                 var msg = $"CIAQ: polling timer started. Heartbeat: {HearthBeatMilliseconds} milliseconds";
@@ -111,13 +116,15 @@ namespace SenseNet.Search.Indexing
         {
             RefreshLocks();
 
+            DeleteFinishedActivitiesOccasionally();
+
             if (!IsPollingEnabled())
                 return;
 
             int waitingListLength;
             lock (_waitingActivitiesSync)
                 waitingListLength = _waitingActivities.Count;
-            var timeLimit = waitingListLength > 0 ? _waitingPollingTime : _healthCheckTime;
+            var timeLimit = waitingListLength > 0 ? _waitingPollingPeriod : _healthCheckPeriod;
 
             if ((DateTime.UtcNow - _lastExecutionTime) > timeLimit && _activeTasks < _activeTaskLimit)
             {
@@ -133,6 +140,7 @@ namespace SenseNet.Search.Indexing
                 }
             }
         }
+
         private static void RefreshLocks()
         {
             if (DateTime.UtcNow.AddMilliseconds(LockRefreshPeriodInMilliseconds) > _lastLockRefreshTime)
@@ -147,6 +155,14 @@ namespace SenseNet.Search.Indexing
                 return;
 
             DataProvider.Current.RefreshIndexingActivityLockTime(waitingIds);
+        }
+        private static void DeleteFinishedActivitiesOccasionally()
+        {
+            if (DateTime.UtcNow - _lastDeleteFinishedTime >= _deleteFinishedPeriod)
+            {
+                DataProvider.Current.DeleteFinishedIndexingActivities();
+                _lastDeleteFinishedTime = DateTime.UtcNow;
+            }
         }
 
         private static void EnablePolling()

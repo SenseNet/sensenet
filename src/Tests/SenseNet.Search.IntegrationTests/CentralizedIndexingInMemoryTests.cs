@@ -419,6 +419,32 @@ namespace SenseNet.Search.IntegrationTests
                 Assert.IsTrue(time4 == activities[3].LockTime);
             }
         }
+        [TestMethod, TestCategory("IR")]
+        public void Indexing_Centralized_InMemory_DeleteFinished()
+        {
+            using (new ContentRepository.Tests.Tools.DataProviderSwindler(new InMemoryDataProvider()))
+            {
+                var start = new[]
+                {
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Done,    1, 1, "/Root/Path1"),
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Done,    2, 2, "/Root/Path2"),
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Running, 3, 3, "/Root/Path3"),
+                    RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 3, 3, "/Root/Path3"),
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Done,    4, 4, "/Root/Path4"),
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Waiting, 5, 5, "/Root/Path5"),
+                };
+
+                DataProvider.Current.DeleteFinishedIndexingActivities();
+
+                var loaded = DataProvider.Current.LoadIndexingActivities(0, int.MaxValue, 9999, false, IndexingActivityFactory.Instance);
+
+                Assert.AreEqual(3, loaded.Length);
+
+                Assert.AreEqual(start[2].Id, loaded[0].Id);
+                Assert.AreEqual(start[3].Id, loaded[1].Id);
+                Assert.AreEqual(start[5].Id, loaded[2].Id);
+            }
+        }
 
         /* ====================================================================================== */
 

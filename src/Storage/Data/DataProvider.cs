@@ -161,6 +161,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     throw new SnNotSupportedException("Unknown SavingAlgorithm: " + savingAlgorithm);
             }
         }
+
         private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
         {
             int versionId = nodeData.VersionId;
@@ -473,6 +474,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public abstract void UpdateIndexingActivityRunningState(int indexingActivityId, IndexingActivityRunningState runningState);
         public abstract void RefreshIndexingActivityLockTime(int[] waitingIds);
         public abstract int GetLastIndexingActivityId();
+        public abstract void DeleteFinishedIndexingActivities();
         public abstract void DeleteAllIndexingActivities();
 
         // ====================================================== Checking  index integrity

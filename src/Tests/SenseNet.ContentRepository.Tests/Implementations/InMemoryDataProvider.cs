@@ -332,6 +332,12 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             return activity;
         }
 
+        public override void DeleteFinishedIndexingActivities()
+        {
+            lock (_db.IndexingActivities)
+                _db.IndexingActivities.RemoveAll(x=>x.RunningState == IndexingActivityRunningState.Done);
+        }
+
         public override DateTime RoundDateTime(DateTime d)
         {
             return new DateTime(d.Ticks / 100000 * 100000);
