@@ -2974,11 +2974,12 @@ namespace SenseNet.ContentRepository.Storage
                 var targetNodePath = targetPath + sourceNode.Path.Substring(sourcePath.Length);
                 targetNodePath = RepositoryPath.GetParentPath(targetNodePath);
                 var targetNode = Node.LoadNode(targetNodePath);
-                copyOfSource = sourceNode.MakeCopy(targetNode, newName);
-                copyOfSource.Save();
-                CopyExplicitPermissionsTo(sourceNode, copyOfSource);
+                var copy = sourceNode.MakeCopy(targetNode, newName);
+                copy.Save();
+                CopyExplicitPermissionsTo(sourceNode, copy);
                 if (first)
                 {
+                    copyOfSource = copy;
                     newName = null;
                     first = false;
                 }
