@@ -17,9 +17,10 @@ namespace SenseNet.Search.Indexing
     //UNDONE:||||||||||| Delete 'Done' activities preiodically.
     internal static class CentralizedIndexingActivityQueue
     {
-        private const int MaxCount = 10;
-        private const int RunningTimeoutInSeconds = 60; //UNDONE:||||||||||| IndexingActivityTimeout from config
-        private const int HearthBeatMilliseconds = 1000;
+        private static readonly int MaxCount = 10;
+        private static readonly int RunningTimeoutInSeconds = Configuration.Indexing.LuceneActivityTimeoutInSeconds;
+        private static readonly int LockRefreshPeriodInMilliseconds = RunningTimeoutInSeconds * 3000 / 4;
+        private static readonly int HearthBeatMilliseconds = 1000;
 
         private static readonly TimeSpan _waitingPollingTime = TimeSpan.FromSeconds(2);
         private static readonly TimeSpan _healthCheckTime = TimeSpan.FromMinutes(2);
@@ -27,6 +28,7 @@ namespace SenseNet.Search.Indexing
 
         private static System.Timers.Timer _timer;
         private static DateTime _lastExecutionTime;
+        private static DateTime _lastLockRefreshTime;
         private static volatile int _activeTasks;
         private static int _pollingBlockerCounter;
 
@@ -109,6 +111,8 @@ namespace SenseNet.Search.Indexing
 
         private static void Polling()
         {
+            RefreshLocks();
+
             if (!IsPollingEnabled())
                 return;
 
@@ -130,6 +134,21 @@ namespace SenseNet.Search.Indexing
                     EnablePolling();
                 }
             }
+        }
+        private static void RefreshLocks()
+        {
+            if (DateTime.UtcNow.AddMilliseconds(LockRefreshPeriodInMilliseconds) > _lastLockRefreshTime)
+                return;
+            _lastLockRefreshTime = DateTime.UtcNow;
+
+            int[] waitingIds;
+            lock (_waitingActivitiesSync)
+                waitingIds = _waitingActivities.Keys.ToArray();
+
+            if (waitingIds.Length == 0)
+                return;
+
+            DataProvider.Current.RefreshIndexingActivityLockTime(waitingIds);
         }
 
         private static void EnablePolling()

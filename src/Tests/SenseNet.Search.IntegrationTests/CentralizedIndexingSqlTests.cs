@@ -475,6 +475,48 @@ namespace SenseNet.Search.IntegrationTests
             }
         }
 
+        [TestMethod, TestCategory("IR")]
+        public void Indexing_Centralized_Sql_RefreshLock()
+        {
+            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
+            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
+            try
+            {
+                CleanupIndexingActivitiesTable();
+
+                var now = DateTime.UtcNow;
+                var time1 = now.AddSeconds(-60 * 6);
+                var time2 = now.AddSeconds(-60 * 5);
+                var time3 = now.AddSeconds(-60 * 4);
+                var time4 = now.AddSeconds(-60 * 3);
+                var start = new[]
+                {
+                    RegisterActivity(IndexingActivityType.Rebuild, IndexingActivityRunningState.Waiting, time1, 1, 1, "/Root/Path1"),
+                    RegisterActivity(IndexingActivityType.Rebuild, IndexingActivityRunningState.Waiting, time2, 2, 2, "/Root/Path2"),
+                    RegisterActivity(IndexingActivityType.Rebuild, IndexingActivityRunningState.Waiting, time3, 3, 3, "/Root/Path3"),
+                    RegisterActivity(IndexingActivityType.Rebuild, IndexingActivityRunningState.Waiting, time4, 4, 4, "/Root/Path4"),
+                };
+                var startIds = start.Select(x => x.Id).ToArray();
+
+                var waitingIds = new[] { start[1].Id, start[2].Id };
+                DataProvider.Current.RefreshIndexingActivityLockTime(waitingIds);
+
+                var activities = DataProvider.Current.LoadIndexingActivities(startIds, false, IndexingActivityFactory.Instance);
+
+                Assert.AreEqual(4, activities.Length);
+
+                // pay attention to difference due to rounding datetime in the database.
+                Assert.IsTrue(Math.Abs(((TimeSpan)(time1 - activities[0].LockTime)).Ticks) < TimeSpan.FromSeconds(0.01).Ticks);
+                Assert.IsTrue(now <= activities[1].LockTime);
+                Assert.IsTrue(now <= activities[2].LockTime);
+                Assert.IsTrue(Math.Abs(((TimeSpan)(time4 - activities[3].LockTime)).Ticks) < TimeSpan.FromSeconds(0.01).Ticks);
+            }
+            finally
+            {
+                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+            }
+        }
+
         /* ====================================================================================== */
 
         public static void CleanupIndexingActivitiesTable()

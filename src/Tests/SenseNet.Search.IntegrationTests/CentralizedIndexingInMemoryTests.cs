@@ -387,6 +387,38 @@ namespace SenseNet.Search.IntegrationTests
                 Assert.AreEqual(IndexingActivityRunningState.Running, allocated[1].RunningState);
             }
         }
+        [TestMethod, TestCategory("IR")]
+        public void Indexing_Centralized_InMemory_RefreshLock()
+        {
+            using (new ContentRepository.Tests.Tools.DataProviderSwindler(new InMemoryDataProvider()))
+            {
+                var now = DateTime.UtcNow;
+                var time1 = now.AddSeconds(-60 * 6);
+                var time2 = now.AddSeconds(-60 * 5);
+                var time3 = now.AddSeconds(-60 * 4);
+                var time4 = now.AddSeconds(-60 * 3);
+                var start = new[]
+                {
+                    RegisterActivity(IndexingActivityType.Rebuild, IndexingActivityRunningState.Waiting, time1, 1, 1, "/Root/Path1"),
+                    RegisterActivity(IndexingActivityType.Rebuild, IndexingActivityRunningState.Waiting, time2, 2, 2, "/Root/Path2"),
+                    RegisterActivity(IndexingActivityType.Rebuild, IndexingActivityRunningState.Waiting, time3, 3, 3, "/Root/Path3"),
+                    RegisterActivity(IndexingActivityType.Rebuild, IndexingActivityRunningState.Waiting, time4, 4, 4, "/Root/Path4"),
+                };
+                var startIds = start.Select(x => x.Id).ToArray();
+
+                var waitingIds = new[] { start[1].Id, start[2].Id };
+                DataProvider.Current.RefreshIndexingActivityLockTime(waitingIds);
+
+                var activities = DataProvider.Current.LoadIndexingActivities(startIds, false, IndexingActivityFactory.Instance);
+
+                Assert.AreEqual(4, activities.Length);
+
+                Assert.IsTrue(time1 == activities[0].LockTime);
+                Assert.IsTrue(now <= activities[1].LockTime);
+                Assert.IsTrue(now <= activities[2].LockTime);
+                Assert.IsTrue(time4 == activities[3].LockTime);
+            }
+        }
 
         /* ====================================================================================== */
 

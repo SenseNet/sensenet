@@ -202,7 +202,6 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         {
             lock (_db.IndexingActivities)
             {
-
                 var newId = _db.IndexingActivities.Count == 0 ? 1 : _db.IndexingActivities.Max(r => r.IndexingActivityId) + 1;
 
                 _db.IndexingActivities.Add(new IndexingActivityRecord
@@ -229,6 +228,19 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 var activity = _db.IndexingActivities.Where(r => r.IndexingActivityId == indexingActivityId).FirstOrDefault();
                 if (activity != null)
                     activity.RunningState = runningState;
+            }
+        }
+        public override void RefreshIndexingActivityLockTime(int[] waitingIds)
+        {
+            lock (_db.IndexingActivities)
+            {
+                var now = DateTime.UtcNow;
+                foreach (var waitingId in waitingIds)
+                {
+                    var activity = _db.IndexingActivities.Where(r => r.IndexingActivityId == waitingId).FirstOrDefault();
+                    if (activity != null)
+                        activity.LockTime = now;
+                }
             }
         }
 
