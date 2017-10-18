@@ -34,7 +34,7 @@ namespace SenseNet.ContentRepository.Storage
         IndexingActivityType ActivityType { get; set; }
         DateTime CreationDate { get; set; }
         IndexingActivityRunningState RunningState { get; set; }
-        DateTime? StartDate { get; set; }
+        DateTime? LockTime { get; set; }
         int NodeId { get; set; }
         int VersionId { get; set; }
         string Path { get; set; }

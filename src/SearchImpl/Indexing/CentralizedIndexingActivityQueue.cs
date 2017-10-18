@@ -18,7 +18,7 @@ namespace SenseNet.Search.Indexing
     internal static class CentralizedIndexingActivityQueue
     {
         private const int MaxCount = 10;
-        private const int RunningTimeoutInSeconds = 60;
+        private const int RunningTimeoutInSeconds = 60; //UNDONE:||||||||||| IndexingActivityTimeout from config
         private const int HearthBeatMilliseconds = 1000;
 
         private static readonly TimeSpan _waitingPollingTime = TimeSpan.FromSeconds(2);

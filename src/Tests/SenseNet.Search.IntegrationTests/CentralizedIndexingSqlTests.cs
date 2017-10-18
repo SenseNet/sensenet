@@ -78,7 +78,7 @@ namespace SenseNet.Search.IntegrationTests
                     Assert.IsTrue(timeAtStart <= unprocessedActivities[i].CreationDate && unprocessedActivities[i].CreationDate <= timeAtEnd);
                     Assert.IsTrue(unprocessedActivities[i].IsUnprocessedActivity);
                     Assert.AreEqual(IndexingActivityRunningState.Waiting, unprocessedActivities[i].RunningState);
-                    Assert.IsNull(unprocessedActivities[i].StartDate);
+                    Assert.IsNull(unprocessedActivities[i].LockTime);
                 }
 
                 // ---- simulating runtime maintenance
@@ -103,7 +103,7 @@ namespace SenseNet.Search.IntegrationTests
                     Assert.IsTrue(timeAtStart <= loadedActivities[i].CreationDate && loadedActivities[i].CreationDate <= timeAtEnd);
                     Assert.IsFalse(loadedActivities[i].IsUnprocessedActivity);
                     Assert.AreEqual(IndexingActivityRunningState.Waiting, unprocessedActivities[i].RunningState);
-                    Assert.IsNull(unprocessedActivities[i].StartDate);
+                    Assert.IsNull(unprocessedActivities[i].LockTime);
                 }
 
                 var gaps = new[] { lastActivityIdBefore + 1, lastActivityIdBefore + 2 };
@@ -504,7 +504,7 @@ namespace SenseNet.Search.IntegrationTests
 
             return activity;
         }
-        private IIndexingActivity RegisterActivity(IndexingActivityType type, IndexingActivityRunningState state, DateTime startDate, int nodeId, int versionId, string path)
+        private IIndexingActivity RegisterActivity(IndexingActivityType type, IndexingActivityRunningState state, DateTime lockTime, int nodeId, int versionId, string path)
         {
             IndexingActivityBase activity;
             if (type == IndexingActivityType.AddTree || type == IndexingActivityType.RemoveTree)
@@ -513,7 +513,7 @@ namespace SenseNet.Search.IntegrationTests
                 activity = CreateActivity(type, path, nodeId, versionId, 9999, null);
 
             activity.RunningState = state;
-            activity.StartDate = startDate;
+            activity.LockTime = lockTime;
 
             DataProvider.Current.RegisterIndexingActivity(activity);
 

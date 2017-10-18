@@ -232,7 +232,7 @@ namespace SenseNet.Search.IntegrationTests
 
             return activity;
         }
-        private IIndexingActivity RegisterActivity(IndexingActivityType type, IndexingActivityRunningState state, DateTime startDate, int nodeId, int versionId, string path)
+        private IIndexingActivity RegisterActivity(IndexingActivityType type, IndexingActivityRunningState state, DateTime lockTime, int nodeId, int versionId, string path)
         {
             IndexingActivityBase activity;
             if (type == IndexingActivityType.AddTree || type == IndexingActivityType.RemoveTree)
@@ -241,7 +241,7 @@ namespace SenseNet.Search.IntegrationTests
                 activity = CreateActivity(type, path, nodeId, versionId, 9999);
 
             activity.RunningState = state;
-            activity.StartDate = startDate;
+            activity.LockTime = lockTime;
 
             DataProvider.Current.RegisterIndexingActivity(activity);
 

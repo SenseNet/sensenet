@@ -211,7 +211,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                     ActivityType = activity.ActivityType,
                     CreationDate = DateTime.UtcNow,
                     RunningState = activity.RunningState,
-                    StartDate = activity.StartDate,
+                    LockTime = activity.LockTime,
                     NodeId = activity.NodeId,
                     VersionId = activity.VersionId,
                     Path = activity.Path,
@@ -240,7 +240,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             lock (_db.IndexingActivities)
             {
                 foreach (var @new in _db.IndexingActivities
-                                        .Where(x => x.RunningState == IndexingActivityRunningState.Waiting || (x.RunningState == IndexingActivityRunningState.Running && x.StartDate < timeLimit))
+                                        .Where(x => x.RunningState == IndexingActivityRunningState.Waiting || (x.RunningState == IndexingActivityRunningState.Running && x.LockTime < timeLimit))
                                         .OrderBy(x => x.IndexingActivityId))
                 {
                     if (!_db.IndexingActivities.Any(@old =>
@@ -261,7 +261,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 foreach (var record in recordsToStart.Take(maxCount))
                 {
                     record.RunningState = IndexingActivityRunningState.Running;
-                    record.StartDate = DateTime.UtcNow;
+                    record.LockTime = DateTime.UtcNow;
 
                     var activity = LoadFullIndexingActivity(record, false, activityFactory);
                     if (activity != null)
@@ -292,7 +292,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             activity.ActivityType = activityRecord.ActivityType;
             activity.CreationDate = activityRecord.CreationDate;
             activity.RunningState = activityRecord.RunningState;
-            activity.StartDate = activityRecord.StartDate;
+            activity.LockTime = activityRecord.LockTime;
             activity.NodeId = activityRecord.NodeId;
             activity.VersionId = activityRecord.VersionId;
             activity.Path = activityRecord.Path;
@@ -1868,7 +1868,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             public IndexingActivityType ActivityType;
             public DateTime CreationDate;
             public IndexingActivityRunningState RunningState;
-            public DateTime? StartDate;
+            public DateTime? LockTime;
             public int NodeId;
             public int VersionId;
             public string Path;
