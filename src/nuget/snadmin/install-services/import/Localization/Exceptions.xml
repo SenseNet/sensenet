@@ -232,6 +232,9 @@
         <data name="ContentAlreadyExists_1" xml:space="preserve">
           <value>Content already exists: {0}.</value>
         </data>
+        <data name="ErrorContentNotFound" xml:space="preserve">
+          <value>Content does not exist at {0}.</value>
+        </data>
         <data name="OData_Restore_ExistingName" xml:space="preserve">
           <value>A content with this name already exists in the selected target folder.</value>
         </data>

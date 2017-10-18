@@ -172,6 +172,7 @@
     <Compile Include="ApplicationModel\LogoutAction.cs" />
     <Compile Include="ApplicationModel\MoveBatchAction.cs" />
     <Compile Include="ApplicationModel\MoveToAction.cs" />
+    <Compile Include="ApplicationModel\NodeIdentifierValue.cs" />
     <Compile Include="ApplicationModel\ODataActionBase.cs" />
     <Compile Include="ApplicationModel\OpenLinkAction.cs" />
     <Compile Include="ApplicationModel\OpenPickerAction.cs" />
@@ -240,6 +241,8 @@
     <Compile Include="OData\Actions\RejectAction.cs" />
     <Compile Include="OData\Actions\RestoreVersionAction.cs" />
     <Compile Include="OData\Actions\UndoCheckOutAction.cs" />
+    <Compile Include="OData\BatchActionResponse.cs" />
+    <Compile Include="OData\ErrorContent.cs" />
     <Compile Include="OData\ExpanderProjector.cs" />
     <Compile Include="OData\FieldConverter.cs" />
     <Compile Include="OData\Json.cs" />

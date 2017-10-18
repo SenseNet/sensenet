@@ -7,10 +7,12 @@ using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
+using SenseNet.Portal;
 using SenseNet.Portal.OData;
 using SenseNet.Portal.Virtualization;
+using SenseNet.Services.ApplicationModel;
 
-namespace SenseNet.Services.ApplicationModel
+namespace SenseNet.ApplicationModel
 {
     public class DeleteBatchAction : ClientAction
     {
@@ -94,29 +96,14 @@ SN.Util.CreateServerDialog('/Root/System/WebRoot/DeleteAction.aspx','{1}', {{pat
             var results = new List<object>();
             var errors = new List<ErrorContent>();
             var identifiers = ids.Select(NodeIdentifier.Get).ToList();
-            var nodes = Node.LoadNodes(identifiers).ToList();
-            foreach (var id in identifiers)
+            var foundIdentifiers = new List<NodeIdentifierValue>();
+            var nodes = Node.LoadNodes(identifiers);
+            foreach (var node in nodes)
             {
-                var node = nodes.FirstOrDefault(n => n.Id == id.Id || n.Path == id.Path);
-                if (node == null)
-                {
-                    errors.Add(new ErrorContent
-                    {
-                        Content = new { id.Id, id.Path, Name = "" },
-                        Error = new Error
-                        {
-                            Code = "ResourceNotFound",
-                            ExceptionType = null
-                            ,InnerError = null
-                            ,Message = new ErrorMessage { Lang = System.Globalization.CultureInfo.CurrentUICulture.Name.ToLower(), Value = null }
-                        }
-                    });
-                    continue;
-                }
                 try
                 {
-                    var gc = node as GenericContent;
-                    if (gc != null)
+                    foundIdentifiers.Add(new NodeIdentifierValue { Id = node.Id, Path = node.Path });
+                    if (node is GenericContent gc)
                     {
                         gc.Delete(permanent);
                     }
@@ -135,18 +122,36 @@ SN.Util.CreateServerDialog('/Root/System/WebRoot/DeleteAction.aspx','{1}', {{pat
                     SnLog.WriteException(e);
                     errors.Add(new ErrorContent
                     {
-                        Content = new { node.Id, node.Path, node.Name },
+                        Content = new {node?.Id, node?.Path},
                         Error = new Error
                         {
                             Code = "NotSpecified",
-                            ExceptionType = e.GetType().FullName
-                            ,InnerError = new StackInfo { Trace = e.StackTrace }
-                            ,Message = new ErrorMessage { Lang = System.Globalization.CultureInfo.CurrentUICulture.Name.ToLower(), Value = e.Message }
+                            ExceptionType = e.GetType().FullName,
+                            InnerError = new StackInfo { Trace = e.StackTrace },
+                            Message = new ErrorMessage { Lang = System.Globalization.CultureInfo.CurrentUICulture.Name.ToLower(), Value = e.Message }
                         }
                     });
                 }
             }
-            return ODataActionResponse.Create(results, errors, results.Count + errors.Count);
+            // iterating through the missing identifiers and making error items for them
+            foreach (var missing in identifiers.Where(id => !foundIdentifiers.Exists(f => f.Id == id.Id || f.Path == id.Path)))
+            {
+                errors.Add(new ErrorContent
+                {
+                    Content = new { missing?.Id, missing?.Path },
+                    Error = new Error
+                    {
+                        Code = "ResourceNotFound",
+                        ExceptionType = "ContentNotFoundException",
+                        InnerError = null,
+                        Message = new ErrorMessage { Lang = System.Globalization.CultureInfo.CurrentUICulture.Name.ToLower(),
+                            Value = string.Format(SNSR.GetString(SNSR.Exceptions.OData.ErrorContentNotFound), missing?.Path)
+                        }
+                    }
+                });
+            }
+
+            return BatchActionResponse.Create(results, errors, results.Count + errors.Count);
         }
 
     }
