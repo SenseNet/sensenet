@@ -35,8 +35,6 @@ namespace SenseNet.Search.Indexing
         private static readonly object _waitingActivitiesSync = new object();
         private static readonly Dictionary<int, IndexingActivityBase> _waitingActivities = new Dictionary<int, IndexingActivityBase>();
 
-        private static IIndexingActivityFactory _indexingActivityFactory = new IndexingActivityFactory();
-
         //UNDONE:||||||||||| REFRESH STARTTIME OF THE RUNNING ACTIVITIES
 
         public static void Startup(TextWriter consoleOut)
@@ -191,7 +189,7 @@ namespace SenseNet.Search.Indexing
 
             // load some executable activities and currently finished ones
             var loadedActivities = DataProvider.Current.LoadExecutableIndexingActivities(
-                _indexingActivityFactory,
+                IndexingActivityFactory.Instance,
                 MaxCount,
                 RunningTimeoutInSeconds,
                 waitingActivityIds,
