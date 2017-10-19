@@ -307,6 +307,9 @@
         <data name="ContentAlreadyExists_1" xml:space="preserve">
           <value>A tartalom már létezik: {0}.</value>
         </data>
+        <data name="ErrorContentNotFound" xml:space="preserve">
+          <value>A tartalom nem létezik: {0}.</value>
+        </data>
         <data name="OData_Restore_ExistingName" xml:space="preserve">
           <value>Ilyen nevű tartalom már létezik a kiválasztott mappában.</value>
         </data>

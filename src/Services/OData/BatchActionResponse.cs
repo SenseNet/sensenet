@@ -14,9 +14,9 @@ namespace SenseNet.Portal.OData
             var errorArray = errors.ToArray();
             var dict = new Dictionary<string, object>
             {
-                {"__count", count == 0 ? resultArray.Length : count}
-                ,{"results", resultArray}
-                ,{"errors", errorArray}
+                {"__count", count == 0 ? resultArray.Length : count},
+                {"results", resultArray},
+                {"errors", errorArray}
             };
             return new BatchActionResponse { Contents = dict };
         }

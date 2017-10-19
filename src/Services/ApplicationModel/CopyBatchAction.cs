@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Storage;
@@ -31,7 +30,7 @@ namespace SenseNet.ApplicationModel
 
         // =========================================================================== OData
 
-        public override bool IsODataOperation { get { return true; } }
+        public override bool IsODataOperation => true;
 
         public override ActionParameter[] ActionParameters { get; } =
         {
@@ -46,21 +45,25 @@ namespace SenseNet.ApplicationModel
             if (targetNode == null)
                 throw new ContentNotFoundException(targetPath);
 
-            var ids = parameters[1] as object[];
-            if (ids == null)
+            if (!(parameters[1] is object[] ids))
             {
                 throw new InvalidOperationException("No content identifiers provided.");
             }
+
             var results = new List<object>();
             var errors = new List<ErrorContent>();
             var identifiers = ids.Select(NodeIdentifier.Get).ToList();
             var foundIdentifiers = new List<NodeIdentifier>();
             var nodes = Node.LoadNodes(identifiers);
+
             foreach (var node in nodes)
             {
                 try
                 {
+                    // Collect already found identifiers in a separate list otherwise the error list
+                    // would contain multiple errors for the same content.
                     foundIdentifiers.Add(NodeIdentifier.Get(node));
+
                     var copy = node.CopyToAndGetCopy(targetNode);
                     results.Add(new { copy.Id, copy.Path, copy.Name });
                 }
@@ -70,36 +73,43 @@ namespace SenseNet.ApplicationModel
                     // business logic-related errors, e.g. lack of permissions or
                     // existing target content path.
                     SnLog.WriteException(e);
+
                     errors.Add(new ErrorContent
                     {
-                        Content = new { node?.Id, node?.Path, node?.Name},
+                        Content = new {node?.Id, node?.Path, node?.Name},
                         Error = new Error
                         {
                             Code = "NotSpecified",
                             ExceptionType = e.GetType().FullName,
-                            InnerError = new StackInfo { Trace = e.StackTrace },
-                            Message = new ErrorMessage { Lang = System.Globalization.CultureInfo.CurrentUICulture.Name.ToLower(), Value = e.Message }
+                            InnerError = new StackInfo {Trace = e.StackTrace},
+                            Message = new ErrorMessage
+                            {
+                                Lang = System.Globalization.CultureInfo.CurrentUICulture.Name.ToLower(),
+                                Value = e.Message
+                            }
                         }
                     });
                 }
             }
+
             // iterating through the missing identifiers and making error items for them
-            foreach (var missing in identifiers.Where(id => !foundIdentifiers.Exists(f => f.Id == id.Id || f.Path == id.Path)))
-            {
-                errors.Add(new ErrorContent
+            errors.AddRange(identifiers.Where(id => !foundIdentifiers.Exists(f => f.Id == id.Id || f.Path == id.Path))
+                .Select(missing => new ErrorContent
                 {
-                    Content = new { missing?.Id, missing?.Path },
+                    Content = new {missing?.Id, missing?.Path},
                     Error = new Error
                     {
                         Code = "ResourceNotFound",
                         ExceptionType = "ContentNotFoundException",
                         InnerError = null,
-                        Message = new ErrorMessage { Lang = System.Globalization.CultureInfo.CurrentUICulture.Name.ToLower(),
-                            Value = string.Format(SNSR.GetString(SNSR.Exceptions.OData.ErrorContentNotFound), missing?.Path)
+                        Message = new ErrorMessage
+                        {
+                            Lang = System.Globalization.CultureInfo.CurrentUICulture.Name.ToLower(),
+                            Value = string.Format(SNSR.GetString(SNSR.Exceptions.OData.ErrorContentNotFound),
+                                missing?.Path)
                         }
                     }
-                });
-            }
+                }));
 
             return BatchActionResponse.Create(results, errors, results.Count + errors.Count);
         }

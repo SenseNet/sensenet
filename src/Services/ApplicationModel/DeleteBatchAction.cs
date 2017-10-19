@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Schema;
@@ -17,24 +16,13 @@ namespace SenseNet.ApplicationModel
     {
         public override string Callback
         {
-            get
-            {
-                return this.Forbidden ? string.Empty : string.Format("{0};", GetCallBackScript());
-            }
-            set
-            {
-                base.Callback = value;
-            }
+            get => this.Forbidden ? string.Empty : $"{GetCallBackScript()};";
+            set => base.Callback = value;
         }
 
         private string _portletClientId;
-        public string PortletClientId
-        {
-            get
-            {
-                return _portletClientId ?? (_portletClientId = GetPortletClientId());
-            }
-        }
+        public string PortletClientId => _portletClientId ?? (_portletClientId = GetPortletClientId());
+
         protected string GetPortletClientId()
         {
             var parameters = GetParameteres();
@@ -88,8 +76,7 @@ SN.Util.CreateServerDialog('/Root/System/WebRoot/DeleteAction.aspx','{1}', {{pat
         {
             var permanent = parameters.Length > 1 && parameters[1] != null && (bool)parameters[1];
             // no need to throw an exception if no ids are provided: we simply do not have to delete anything
-            var ids = parameters[0] as object[];
-            if (ids == null)
+            if (!(parameters[0] is object[] ids))
                 return null;
 
             var results = new List<object>();
@@ -97,20 +84,25 @@ SN.Util.CreateServerDialog('/Root/System/WebRoot/DeleteAction.aspx','{1}', {{pat
             var identifiers = ids.Select(NodeIdentifier.Get).ToList();
             var foundIdentifiers = new List<NodeIdentifier>();
             var nodes = Node.LoadNodes(identifiers);
+
             foreach (var node in nodes)
             {
                 try
                 {
+                    // Collect already found identifiers in a separate list otherwise the error list
+                    // would contain multiple errors for the same content.
                     foundIdentifiers.Add(NodeIdentifier.Get(node));
-                    if (node is GenericContent gc)
+
+                    switch (node)
                     {
-                        gc.Delete(permanent);
+                        case GenericContent gc:
+                            gc.Delete(permanent);
+                            break;
+                        case ContentType ct:
+                            ct.Delete();
+                            break;
                     }
-                    else
-                    {
-                        var ct = node as ContentType;
-                        ct?.Delete();
-                    }
+
                     results.Add(new { node.Id, node.Path, node.Name });
                 }
                 catch (Exception e)
@@ -119,6 +111,7 @@ SN.Util.CreateServerDialog('/Root/System/WebRoot/DeleteAction.aspx','{1}', {{pat
                     // business logic-related errors, e.g. lack of permissions or
                     // existing target content path.
                     SnLog.WriteException(e);
+
                     errors.Add(new ErrorContent
                     {
                         Content = new {node?.Id, node?.Path},
@@ -126,32 +119,37 @@ SN.Util.CreateServerDialog('/Root/System/WebRoot/DeleteAction.aspx','{1}', {{pat
                         {
                             Code = "NotSpecified",
                             ExceptionType = e.GetType().FullName,
-                            InnerError = new StackInfo { Trace = e.StackTrace },
-                            Message = new ErrorMessage { Lang = System.Globalization.CultureInfo.CurrentUICulture.Name.ToLower(), Value = e.Message }
+                            InnerError = new StackInfo {Trace = e.StackTrace},
+                            Message = new ErrorMessage
+                            {
+                                Lang = System.Globalization.CultureInfo.CurrentUICulture.Name.ToLower(),
+                                Value = e.Message
+                            }
                         }
                     });
                 }
             }
+
             // iterating through the missing identifiers and making error items for them
-            foreach (var missing in identifiers.Where(id => !foundIdentifiers.Exists(f => f.Id == id.Id || f.Path == id.Path)))
-            {
-                errors.Add(new ErrorContent
+            errors.AddRange(identifiers.Where(id => !foundIdentifiers.Exists(f => f.Id == id.Id || f.Path == id.Path))
+                .Select(missing => new ErrorContent
                 {
-                    Content = new { missing?.Id, missing?.Path },
+                    Content = new {missing?.Id, missing?.Path},
                     Error = new Error
                     {
                         Code = "ResourceNotFound",
                         ExceptionType = "ContentNotFoundException",
                         InnerError = null,
-                        Message = new ErrorMessage { Lang = System.Globalization.CultureInfo.CurrentUICulture.Name.ToLower(),
-                            Value = string.Format(SNSR.GetString(SNSR.Exceptions.OData.ErrorContentNotFound), missing?.Path)
+                        Message = new ErrorMessage
+                        {
+                            Lang = System.Globalization.CultureInfo.CurrentUICulture.Name.ToLower(),
+                            Value = string.Format(SNSR.GetString(SNSR.Exceptions.OData.ErrorContentNotFound),
+                                missing?.Path)
                         }
                     }
-                });
-            }
+                }));
 
             return BatchActionResponse.Create(results, errors, results.Count + errors.Count);
         }
-
     }
 }
