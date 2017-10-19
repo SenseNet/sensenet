@@ -28,6 +28,7 @@ namespace SenseNet.Portal
                 public static string ResourceNotFound_2 =        "$Error_Portal:OData_ResourceNotFound_2";
                 public static string CannotConvertToJSON_2 =     "$Error_Portal:OData_CannotConvertToJSON_2";
                 public static string ContentAlreadyExists_1 =    "$Error_Portal:OData_ContentAlreadyExists_1";
+                public static string ErrorContentNotFound =      "$Error_Portal:ErrorContentNotFound";
 
                 public static string RestoreExistingName =         "$Error_Portal:OData_Restore_ExistingName";
                 public static string RestoreForbiddenContentType = "$Error_Portal:OData_Restore_ForbiddenContentType";
