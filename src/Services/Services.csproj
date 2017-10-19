@@ -172,7 +172,6 @@
     <Compile Include="ApplicationModel\LogoutAction.cs" />
     <Compile Include="ApplicationModel\MoveBatchAction.cs" />
     <Compile Include="ApplicationModel\MoveToAction.cs" />
-    <Compile Include="ApplicationModel\NodeIdentifierValue.cs" />
     <Compile Include="ApplicationModel\ODataActionBase.cs" />
     <Compile Include="ApplicationModel\OpenLinkAction.cs" />
     <Compile Include="ApplicationModel\OpenPickerAction.cs" />

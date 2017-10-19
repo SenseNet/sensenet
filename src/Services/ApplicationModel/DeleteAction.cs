@@ -1,7 +1,6 @@
 ﻿using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.i18n;
 using System.Web;
-using SenseNet.Services.ApplicationModel;
 
 namespace SenseNet.ApplicationModel
 {

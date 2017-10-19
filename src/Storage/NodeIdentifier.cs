@@ -24,10 +24,22 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// Gets a new node identifier based on the provided value.
+        /// Gets a node identifier from the provided node.
         /// </summary>
-        /// <param name="identifier">Can be a path or an id.</param>
-        public static NodeIdentifier Get(object identifier)
+        /// <param name="node">An existing Node.</param>
+        public static NodeIdentifier Get(Node node)
+        {
+            if (node == null)
+                return null;
+
+            return new NodeIdentifier{Id = node.Id, Path = node.Path};
+        }
+
+        /// <summary>
+            /// Gets a new node identifier based on the provided value.
+            /// </summary>
+            /// <param name="identifier">Can be a path or an id.</param>
+            public static NodeIdentifier Get(object identifier)
         {
             if (identifier == null)
                 return null;

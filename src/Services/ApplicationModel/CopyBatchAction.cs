@@ -8,7 +8,6 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
 using SenseNet.Portal;
 using SenseNet.Portal.OData;
-using SenseNet.Services.ApplicationModel;
 
 namespace SenseNet.ApplicationModel
 {
@@ -55,13 +54,13 @@ namespace SenseNet.ApplicationModel
             var results = new List<object>();
             var errors = new List<ErrorContent>();
             var identifiers = ids.Select(NodeIdentifier.Get).ToList();
-            var foundIdentifiers = new List<NodeIdentifierValue>();
+            var foundIdentifiers = new List<NodeIdentifier>();
             var nodes = Node.LoadNodes(identifiers);
             foreach (var node in nodes)
             {
                 try
                 {
-                    foundIdentifiers.Add(new NodeIdentifierValue { Id = node.Id, Path = node.Path });
+                    foundIdentifiers.Add(NodeIdentifier.Get(node));
                     var copy = node.CopyToAndGetCopy(targetNode);
                     results.Add(new { copy.Id, copy.Path, copy.Name });
                 }
