@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace SenseNet.Search.Indexing
 {
-    //UNDONE:||||||||||| Use async keyword in the whole class.
+    //UNDONE:||||| Use async keyword in the whole class.
     internal static class CentralizedIndexingActivityQueue
     {
         private static readonly int MaxCount = 10;
@@ -272,8 +272,7 @@ namespace SenseNet.Search.Indexing
                 }
                 catch (Exception e)
                 {
-                    //UNDONE:||||||||||| Error logging is not implemented. WARNING Do not fill the event log with repetitive messages.
-                    //UNDONE:||||||||||| :() Wait and retry? The client may not be able to handle this situation
+                    //UNDONE:||||| Error logging is not implemented. WARNING Do not fill the event log with repetitive messages.
                     SnTrace.Index.WriteError("CIAQ: A{0} EXECUTION ERROR: {1}", act.Id, e);
                 }
                 finally
