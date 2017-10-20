@@ -388,11 +388,6 @@ namespace SenseNet.SearchImpl.Tests
                 using (new SystemAccount())
                     node.Save();
 
-                //Thread.Sleep(3000);
-
-                //UNDONE:|||||| COMMIT/INDEXING STATUS: this should work without an explicit commit
-                //IndexManager.Commit();
-
                 var updatedStatus = searchEngine.IndexingEngine.ReadActivityStatusFromIndex();
 
                 return new Tuple<IndexingActivityStatus, IndexingActivityStatus>(originalStatus, updatedStatus);
