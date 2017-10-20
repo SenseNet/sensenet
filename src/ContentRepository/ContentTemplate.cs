@@ -10,6 +10,7 @@ using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Fields;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Security;
 using SenseNet.Tools;
@@ -56,7 +57,7 @@ namespace SenseNet.ContentRepository
         public static IEnumerable<T> GetTemplatesForType<T>(string contentTypeName, string contextPath) where T : Node
         {
             var path = RepositoryPath.Combine(contextPath, contentTypeName);
-            if (RepositoryInstance.ContentQueryIsAllowed)
+            if (SearchManager.ContentQueryIsAllowed)
             {
                 return
                     ContentQuery.Query(SafeQueries.InFolder,
@@ -225,7 +226,7 @@ namespace SenseNet.ContentRepository
         {
             var templatePath = RepositoryPath.Combine(path, contentTypeName);
 
-            if (RepositoryInstance.ContentQueryIsAllowed)
+            if (SearchManager.ContentQueryIsAllowed)
             {
                 return ContentQuery.Query(SafeQueries.InFolderCountOnly,
                     new QuerySettings { EnableAutofilters = FilterStatus.Disabled, EnableLifespanFilter = FilterStatus.Disabled },
@@ -385,7 +386,7 @@ namespace SenseNet.ContentRepository
             {
                 IEnumerable<Node> sourceNodes;
 
-                if (RepositoryInstance.ContentQueryIsAllowed)
+                if (SearchManager.ContentQueryIsAllowed)
                 {
                     sourceNodes = ContentQuery.Query(SafeQueries.InTreeOrderByPath,
                         new QuerySettings { EnableAutofilters = FilterStatus.Disabled, EnableLifespanFilter = FilterStatus.Disabled },
@@ -464,7 +465,7 @@ namespace SenseNet.ContentRepository
             {
                 IEnumerable<Content> targetContentList;
 
-                if (RepositoryInstance.ContentQueryIsAllowed)
+                if (SearchManager.ContentQueryIsAllowed)
                 {
                     targetContentList = Content.All.DisableAutofilters().DisableLifespan().Where(c => c.InTree(targetRoot)).OrderBy(c => c.Path).ToList();
                 }

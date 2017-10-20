@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Lucene.Net.Documents;
 using SenseNet.ContentRepository;
 using SnCR = SenseNet.ContentRepository;
 using System.Globalization;
@@ -10,176 +9,172 @@ using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.i18n;
-using Lucene.Net.Analysis;
-using Lucene.Net.Analysis.Standard;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Search;
 
-//UNDONE: Refactor after Lucene "usings" removed (Lucene and SN fields are conflicted)
 namespace SenseNet.Search.Indexing
 {
-
     public abstract class FieldIndexHandler : IFieldIndexHandler
     {
         public IPerFieldIndexingInfo OwnerIndexingInfo { get; set; }
-        public virtual int SortingType { get { return Lucene.Net.Search.SortField.STRING; } }
-        public virtual IndexFieldType IndexFieldType { get { return IndexFieldType.String; } }
+
+        public virtual IndexValueType IndexFieldType { get { return IndexValueType.String; } }
+
         /// <summary>
-        /// For SnLucParser
+        /// For SnQuery compilers
         /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public abstract bool TryParseAndSet(IQueryFieldValue value);
+        public abstract IndexValue Parse(string text);
+
         /// <summary>
         /// For LINQ
         /// </summary>
         /// <param name="value"></param>
-        public abstract void ConvertToTermValue(IQueryFieldValue value);
-        public abstract IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(ISnField snField, out string textExtract);
-        public abstract IEnumerable<string> GetParsableValues(ISnField snField);
+        public abstract IndexValue ConvertToTermValue(object value);
 
-        private static NumericField GetNumericField(string fieldName, PerFieldIndexingInfo indexingInfo)
-        {
-            // Do not reusing any fields.
-            var index = EnumConverter.ToLuceneIndexingMode(indexingInfo.IndexingMode);
-            var store = EnumConverter.ToLuceneIndexStoringMode(indexingInfo.IndexStoringMode);
-            var lucField = new Lucene.Net.Documents.NumericField(fieldName, store, index != Lucene.Net.Documents.Field.Index.NO);
-            return lucField;
-        }
+        public abstract IEnumerable<IndexField> GetIndexFields(IIndexableField field, out string textExtract);
 
-        protected IEnumerable<IndexFieldInfo> CreateFieldInfo(string name, string value)
+        public abstract IEnumerable<string> GetParsableValues(IIndexableField snField);
+
+        protected IEnumerable<IndexField> CreateField(string name, string value)
         {
-            return CreateFieldInfo(name, FieldInfoType.StringField, value);
+            return new[]
+            {
+                new IndexField(name, value,
+                    OwnerIndexingInfo.IndexingMode,
+                    OwnerIndexingInfo.IndexStoringMode,
+                    OwnerIndexingInfo.TermVectorStoringMode)
+            };
         }
-        protected IEnumerable<IndexFieldInfo> CreateFieldInfo(string name, Int32 value)
+        protected IEnumerable<IndexField> CreateField(string name, IEnumerable<string> value)
         {
-            return CreateFieldInfo(name, FieldInfoType.IntField, value.ToString(CultureInfo.InvariantCulture));
+            return new[]
+            {
+                new IndexField(name, value.ToArray(),
+                    OwnerIndexingInfo.IndexingMode,
+                    OwnerIndexingInfo.IndexStoringMode,
+                    OwnerIndexingInfo.TermVectorStoringMode)
+            };
         }
-        protected IEnumerable<IndexFieldInfo> CreateFieldInfo(string name, Int64 value)
+        protected IEnumerable<IndexField> CreateField(string name, IEnumerable<string> value, string sortTerm)
         {
-            return CreateFieldInfo(name, FieldInfoType.LongField, value.ToString(CultureInfo.InvariantCulture));
-        }
-        protected IEnumerable<IndexFieldInfo> CreateFieldInfo(string name, Single value)
-        {
-            return CreateFieldInfo(name, FieldInfoType.SingleField, value.ToString(CultureInfo.InvariantCulture));
-        }
-        protected IEnumerable<IndexFieldInfo> CreateFieldInfo(string name, Double value)
-        {
-            return CreateFieldInfo(name, FieldInfoType.DoubleField, value.ToString(CultureInfo.InvariantCulture));
-        }
-        protected IEnumerable<IndexFieldInfo> CreateFieldInfo(string name, IEnumerable<string> value)
-        {
-            return CreateFieldInfo(name, value, null);
-        }
-        protected IEnumerable<IndexFieldInfo> CreateFieldInfo(string name, IEnumerable<string> value, string sortTerm)
-        {
-            var indexingInfo = this.OwnerIndexingInfo;
-            var index = indexingInfo.IndexingMode;
-            var store = indexingInfo.IndexStoringMode;
-            var termVector = indexingInfo.TermVectorStoringMode;
-            var fields = value.Select(v => new IndexFieldInfo(name, v, FieldInfoType.StringField, store, index, termVector)).ToList();
-            if (!String.IsNullOrEmpty(sortTerm))
-                fields.Add(new IndexFieldInfo(
-                    GetSortFieldName(name),
-                    sortTerm, FieldInfoType.StringField,
-                    PerFieldIndexingInfo.DefaultIndexStoringMode,
+            return new[]
+            {
+                new IndexField(name, value.ToArray(),
+                    OwnerIndexingInfo.IndexingMode,
+                    OwnerIndexingInfo.IndexStoringMode,
+                    OwnerIndexingInfo.TermVectorStoringMode),
+                new IndexField(GetSortFieldName(name), sortTerm,
                     PerFieldIndexingInfo.DefaultIndexingMode,
-                    PerFieldIndexingInfo.DefaultTermVectorStoringMode));
-            return fields;
+                    PerFieldIndexingInfo.DefaultIndexStoringMode,
+                    PerFieldIndexingInfo.DefaultTermVectorStoringMode)
+            };
         }
-
-        protected IEnumerable<IndexFieldInfo> CreateFieldInfo(string name, IEnumerable<Int32> value)
+        protected IEnumerable<IndexField> CreateField(string name, bool value)
         {
-            var indexingInfo = this.OwnerIndexingInfo;
-            var index = indexingInfo.IndexingMode;
-            var store = indexingInfo.IndexStoringMode;
-            var termVector = indexingInfo.TermVectorStoringMode;
-            var x = value.Select(v =>  new IndexFieldInfo(name, v.ToString(CultureInfo.InvariantCulture), FieldInfoType.IntField, store, index, termVector)).ToArray();
-            return x;
+            return new[]
+            {
+                new IndexField(name, value,
+                    OwnerIndexingInfo.IndexingMode,
+                    OwnerIndexingInfo.IndexStoringMode,
+                    OwnerIndexingInfo.TermVectorStoringMode)
+            };
         }
-
-        private IEnumerable<IndexFieldInfo> CreateFieldInfo(string name, FieldInfoType type, string value)
+        protected IEnumerable<IndexField> CreateField(string name, int value)
         {
-            var indexingInfo = this.OwnerIndexingInfo;
-            var index = indexingInfo.IndexingMode;
-            var store = indexingInfo.IndexStoringMode;
-            var termVector = indexingInfo.TermVectorStoringMode;
-            return new[] { new IndexFieldInfo(name, value, type, store, index, termVector) };
+            return new[]
+            {
+                new IndexField(name, value,
+                    OwnerIndexingInfo.IndexingMode,
+                    OwnerIndexingInfo.IndexStoringMode,
+                    OwnerIndexingInfo.TermVectorStoringMode)
+            };
+        }
+        protected IEnumerable<IndexField> CreateField(string name, double value)
+        {
+            return new[]
+            {
+                new IndexField(name, value,
+                    OwnerIndexingInfo.IndexingMode,
+                    OwnerIndexingInfo.IndexStoringMode,
+                    OwnerIndexingInfo.TermVectorStoringMode)
+            };
+        }
+        protected IEnumerable<IndexField> CreateField(string name, DateTime value)
+        {
+            return new[]
+            {
+                new IndexField(name, value,
+                    OwnerIndexingInfo.IndexingMode,
+                    OwnerIndexingInfo.IndexStoringMode,
+                    OwnerIndexingInfo.TermVectorStoringMode)
+            };
         }
 
-        public virtual string GetDefaultAnalyzerName() { return typeof(KeywordAnalyzer).FullName; }
+        public virtual IndexFieldAnalyzer GetDefaultAnalyzer() { return IndexFieldAnalyzer.Keyword; }
         public virtual string GetSortFieldName(string fieldName) { return fieldName; }
     }
 
     // Not IIndexValueConverters.
     public class NotIndexedIndexFieldHandler : FieldIndexHandler
     {
-        public override IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(ISnField snField, out string textExtract)
+        public override IEnumerable<IndexField> GetIndexFields(IIndexableField field, out string textExtract)
         {
             textExtract = string.Empty;
-            return new IndexFieldInfo[0];
+            return new IndexField[0];
         }
-        public override bool TryParseAndSet(IQueryFieldValue value)
+        public override IndexValue Parse(string text)
         {
-            return false;
+            return null;
         }
-        public override void ConvertToTermValue(IQueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            value.Set(value.InputObject.ToString());
+            return new IndexValue(value.ToString());
         }
-        public override IEnumerable<string> GetParsableValues(ISnField snField)
+        public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
             return null;
         }
     }
     public class BinaryIndexHandler : FieldIndexHandler
     {
-        public override string GetDefaultAnalyzerName() { return typeof(StandardAnalyzer).FullName; }
-        public override IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(ISnField snField, out string textExtract)
+        public override IndexFieldAnalyzer GetDefaultAnalyzer() { return IndexFieldAnalyzer.Standard; }
+        public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
             var data = snField.GetData() as SenseNet.ContentRepository.Storage.BinaryData;
-            textExtract = data == null ? String.Empty : SenseNet.Search.TextExtractor.GetExtract(data, ((SnCR.Field)snField).Content.ContentHandler);
-            return CreateFieldInfo(snField.Name, textExtract);
+            textExtract = data == null ? string.Empty : SenseNet.Search.TextExtractor.GetExtract(data, ((SnCR.Field)snField).Content.ContentHandler);
+            return CreateField(snField.Name, textExtract);
         }
-        public override bool TryParseAndSet(IQueryFieldValue value)
+        public override IndexValue Parse(string text)
         {
-            value.Set(value.StringValue.ToLowerInvariant());
-            return true;
+            return new IndexValue(text.ToLowerInvariant());
         }
-        public override void ConvertToTermValue(IQueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            if (value.InputObject == null)
-                value.Set(String.Empty);
-            else
-                value.Set(((string)value.InputObject).ToLowerInvariant());
+            return value == null ? new IndexValue(string.Empty) : new IndexValue(((string)value).ToLowerInvariant());
         }
-        public override IEnumerable<string> GetParsableValues(ISnField snField)
+        public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
             return null;
         }
     }
     public class TypeTreeIndexHandler : FieldIndexHandler
     {
-        public override IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(ISnField snField, out string textExtract)
+        public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
-            textExtract = String.Empty;
+            textExtract = string.Empty;
             var nodeType = ((SnCR.Field)snField).Content.ContentHandler.NodeType;
             var types = nodeType.NodeTypePath.Split('/').Select(p => p.ToLowerInvariant());
-            return CreateFieldInfo(snField.Name, types);
+            return CreateField(snField.Name, types);
         }
-        public override bool TryParseAndSet(IQueryFieldValue value)
+        public override IndexValue Parse(string text)
         {
-            value.Set(value.StringValue.ToLowerInvariant());
-            return true;
+            return new IndexValue(text.ToLowerInvariant());
         }
-        public override void ConvertToTermValue(IQueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            if (value.InputObject == null)
-                value.Set(String.Empty);
-            else
-                value.Set(((string)value.InputObject).ToLowerInvariant());
+            return value == null ? new IndexValue(string.Empty) : new IndexValue(((string)value).ToLowerInvariant());
         }
-        public override IEnumerable<string> GetParsableValues(ISnField snField)
+        public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
             return ((SnCR.Field)snField).Content.ContentHandler.NodeType.NodeTypePath.Split('/').Select(p => p.ToLowerInvariant());
         }
@@ -188,12 +183,12 @@ namespace SenseNet.Search.Indexing
     // Not implemented IIndexValueConverters.
     public class HyperLinkIndexHandler : FieldIndexHandler, IIndexValueConverter<object>, IIndexValueConverter
     {
-        public override IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(ISnField snField, out string textExtract)
+        public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
             var data = (SenseNet.ContentRepository.Fields.HyperLinkField.HyperlinkData)snField.GetData();
             if (data == null)
             {
-                textExtract = String.Empty;
+                textExtract = string.Empty;
                 return null;
             }
             var strings = new List<string>();
@@ -205,29 +200,24 @@ namespace SenseNet.Search.Indexing
                 strings.Add(data.Text.ToLowerInvariant());
             if (data.Title != null)
                 strings.Add(data.Title.ToLowerInvariant());
-            textExtract = String.Join(" ", strings.ToArray());
-            return CreateFieldInfo(snField.Name, strings);
-
+            textExtract = string.Join(" ", strings.ToArray());
+            return CreateField(snField.Name, strings);
         }
-        public override bool TryParseAndSet(IQueryFieldValue value)
+        public override IndexValue Parse(string text)
         {
-            value.Set(value.StringValue.ToLowerInvariant());
-            return true;
+            return new IndexValue(text.ToLowerInvariant());
         }
-        public override void ConvertToTermValue(IQueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            if (value.InputObject == null)
-                value.Set(String.Empty);
-            else
-                value.Set(((string)value.InputObject).ToLowerInvariant());
+            return value == null ? new IndexValue(string.Empty) : new IndexValue(((string)value).ToLowerInvariant());
         }
         public object GetBack(string lucFieldValue)
         {
             throw new SnNotSupportedException();
         }
-        public override IEnumerable<string> GetParsableValues(ISnField snField)
+        public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
-            var data = (SenseNet.ContentRepository.Fields.HyperLinkField.HyperlinkData)((SnCR.Field)snField).GetData(); //UNDONE: Really disgusting solution...
+            var data = (ContentRepository.Fields.HyperLinkField.HyperlinkData)snField.GetData();
             if (data == null)
             {
                 return null;
@@ -250,8 +240,7 @@ namespace SenseNet.Search.Indexing
         {
             return fieldName + "_sort";
         }
-
-        public override IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(ISnField snField, out string textExtract)
+        public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
             var data = snField.GetData() ?? string.Empty;
 
@@ -259,7 +248,7 @@ namespace SenseNet.Search.Indexing
             if (stringData != null)
             {
                 textExtract = stringData.ToLowerInvariant();
-                return CreateFieldInfo(snField.Name, textExtract);
+                return CreateField(snField.Name, textExtract);
             }
 
             var listData = data as IEnumerable<string>;
@@ -327,10 +316,10 @@ namespace SenseNet.Search.Indexing
                     }
                 }
                 sortList.Sort();
-                var sortTerm = String.Join("-", sortList);
-                textExtract = String.Join(" ", localizedWords);
+                var sortTerm = string.Join("-", sortList);
+                textExtract = string.Join(" ", localizedWords);
                 wordList.AddRange(localizedWords);
-                return CreateFieldInfo(snField.Name, wordList, sortTerm);
+                return CreateField(snField.Name, wordList, sortTerm);
             }
 
             var enumerableData = data as System.Collections.IEnumerable;
@@ -340,30 +329,26 @@ namespace SenseNet.Search.Indexing
                 foreach (var item in enumerableData)
                     words.Add(Convert.ToString(item, System.Globalization.CultureInfo.InvariantCulture).ToLowerInvariant());
                 var wordArray = words.ToArray();
-                textExtract = String.Join(" ", wordArray);
-                return CreateFieldInfo(snField.Name, words);
+                textExtract = string.Join(" ", wordArray);
+                return CreateField(snField.Name, words);
             }
 
-            throw new NotSupportedException(String.Concat("Cannot create index from this type: ", data.GetType().FullName,
+            throw new NotSupportedException(string.Concat("Cannot create index from this type: ", data.GetType().FullName,
                 ". Indexable data can be string, IEnumerable<string> or IEnumerable."));
         }
-        public override bool TryParseAndSet(IQueryFieldValue value)
+        public override IndexValue Parse(string text)
         {
-            value.Set(value.StringValue.ToLowerInvariant());
-            return true;
+            return new IndexValue(text.ToLowerInvariant());
         }
-        public override void ConvertToTermValue(IQueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            if (value.InputObject == null)
-                value.Set(String.Empty);
-            else
-                value.Set(((string)value.InputObject).ToLowerInvariant());
+            return value == null ? new IndexValue(string.Empty) : new IndexValue(((string)value).ToLowerInvariant());
         }
         public object GetBack(string lucFieldValue)
         {
             throw new SnNotSupportedException();
         }
-        public override IEnumerable<string> GetParsableValues(ISnField snField)
+        public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
             var data = ((SnCR.Field)snField).GetData() ?? string.Empty;
 
@@ -385,35 +370,31 @@ namespace SenseNet.Search.Indexing
     }
     public class PermissionChoiceIndexHandler : FieldIndexHandler, IIndexValueConverter<object>, IIndexValueConverter
     {
-        public override IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(ISnField snField, out string textExtract)
+        public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
-            textExtract = String.Empty;
+            textExtract = string.Empty;
 
             var snFieldValue = (string[])snField.GetData();
             if (snFieldValue == null || snFieldValue.Length == 0)
-                return CreateFieldInfo(snField.Name, string.Empty);
+                return CreateField(snField.Name, string.Empty);
 
             var terms = snFieldValue.Select(x => x.ToLowerInvariant()).ToArray();
 
-            return CreateFieldInfo(snField.Name, terms); 
+            return CreateField(snField.Name, terms);
         }
-        public override bool TryParseAndSet(IQueryFieldValue value)
+        public override IndexValue Parse(string text)
         {
-            value.Set(value.StringValue.ToLowerInvariant());
-            return true;
+            return new IndexValue(text.ToLowerInvariant());
         }
-        public override void ConvertToTermValue(IQueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            if (value.InputObject == null)
-                value.Set(String.Empty);
-            else
-                value.Set(((string)value.InputObject).ToLowerInvariant());
+            return value == null ? new IndexValue(string.Empty) : new IndexValue(((string)value).ToLowerInvariant());
         }
         public object GetBack(string lucFieldValue)
         {
             throw new SnNotSupportedException();
         }
-        public override IEnumerable<string> GetParsableValues(ISnField snField)
+        public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
             // copied from TagIndexHandler...
             var data = ((SnCR.Field)snField).GetData() ?? string.Empty;
@@ -438,7 +419,7 @@ namespace SenseNet.Search.Indexing
     // IIndexValueConverters.
     public class LowerStringIndexHandler : FieldIndexHandler, IIndexValueConverter<string>, IIndexValueConverter
     {
-        public override IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(ISnField snField, out string textExtract)
+        public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
             var field = (SnCR.Field)snField;
             string className, name;
@@ -447,25 +428,21 @@ namespace SenseNet.Search.Indexing
                 var strings = SenseNetResourceManager.Current.GetStrings(className, name)
                     .Select(s => s.ToLowerInvariant()).ToArray();
                 textExtract = string.Join(" ", strings);
-                return CreateFieldInfo(field.Name, strings);
+                return CreateField(field.Name, strings);
             }
             var data = field.GetData();
-            var stringValue = data == null ? String.Empty : data.ToString().ToLowerInvariant();
+            var stringValue = data == null ? string.Empty : data.ToString().ToLowerInvariant();
             textExtract = stringValue;
 
-            return CreateFieldInfo(field.Name, stringValue);
+            return CreateField(field.Name, stringValue);
         }
-        public override bool TryParseAndSet(IQueryFieldValue value)
+        public override IndexValue Parse(string text)
         {
-            value.Set(value.StringValue.ToLowerInvariant());
-            return true;
+            return new IndexValue(text.ToLowerInvariant());
         }
-        public override void ConvertToTermValue(IQueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            if (value.InputObject == null)
-                value.Set(String.Empty);
-            else
-                value.Set(((string)value.InputObject).ToLowerInvariant());
+            return value == null ? new IndexValue(string.Empty) : new IndexValue(((string)value).ToLowerInvariant());
         }
         public string GetBack(string lucFieldValue)
         {
@@ -475,51 +452,38 @@ namespace SenseNet.Search.Indexing
         {
             return GetBack(lucFieldValue);
         }
-        public override IEnumerable<string> GetParsableValues(ISnField snField)
+        public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
             var data = ((SnCR.Field)snField).GetData();
-            return new[] { data == null ? String.Empty : data.ToString().ToLowerInvariant() };
+            return new[] { data == null ? string.Empty : data.ToString().ToLowerInvariant() };
         }
     }
     public class BooleanIndexHandler : FieldIndexHandler, IIndexValueConverter<bool>, IIndexValueConverter
     {
-        public static string YES => StorageContext.Search.Yes;
-        public static string NO => StorageContext.Search.No;
+        public static List<string> YesList => SearchManager.YesList;
+        public static List<string> NoList => SearchManager.NoList;
 
-        public static List<string> YesList => StorageContext.Search.YesList;
-        public static List<string> NoList => StorageContext.Search.NoList;
-
-        public override IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(ISnField snField, out string textExtract)
+        public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
-            var value = snField.GetData();
-            var boolValue = value == null ? false : (bool)value;
-            textExtract = String.Empty;
-            return CreateFieldInfo(snField.Name, boolValue ? YES : NO);
+            textExtract = string.Empty;
+            var boolValue = (bool?)snField.GetData() ?? false;
+            return CreateField(snField.Name, boolValue);
         }
-        public override bool TryParseAndSet(IQueryFieldValue value)
+        public override IndexValue Parse(string text)
         {
-            var v = value.StringValue.ToLowerInvariant();
+            var v = text.ToLowerInvariant();
             if (YesList.Contains(v))
-            {
-                value.Set(YES);
-                return true;
-            }
+                return new IndexValue(true);
             if (NoList.Contains(v))
-            {
-                value.Set(NO);
-                return true;
-            }
+                return new IndexValue(false);
             bool b;
-            if (Boolean.TryParse(v, out b))
-            {
-                value.Set(b ? YES : NO);
-                return true;
-            }
-            return false;
+            if (bool.TryParse(v, out b))
+                return new IndexValue(b);
+            return null;
         }
-        public override void ConvertToTermValue(IQueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            value.Set(((bool)value.InputObject) ? YES : NO);
+            return new IndexValue((bool) value);
         }
         public bool GetBack(string lucFieldValue)
         {
@@ -532,27 +496,26 @@ namespace SenseNet.Search.Indexing
 
         public static bool ConvertBack(string lucFieldValue)
         {
-            return lucFieldValue == YES;
+            return lucFieldValue == SnTerm.Yes;
         }
-        public override IEnumerable<string> GetParsableValues(ISnField snField)
+        public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
             var value = ((SnCR.Field)snField).GetData();
             var boolValue = value == null ? false : (bool)value;
-            return new[] { boolValue ? YES : NO };
+            return new[] { boolValue ? SnTerm.Yes : SnTerm.No };
         }
     }
     public class IntegerIndexHandler : FieldIndexHandler, IIndexValueConverter<Int32>, IIndexValueConverter
     {
-        public override int SortingType { get { return Lucene.Net.Search.SortField.INT; } }
-        public override IndexFieldType IndexFieldType { get { return IndexFieldType.Int; } }
+        public override IndexValueType IndexFieldType { get { return IndexValueType.Int; } }
 
-        public override IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(ISnField snField, out string textExtract)
+        public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
             var value = snField.GetData();
             var intValue = 0;
             try
             {
-                intValue = value == null ? 0 : (int)value;
+                intValue = (int?) value ?? 0;
             }
             catch (Exception) // logged rethrown
             {
@@ -560,19 +523,18 @@ namespace SenseNet.Search.Indexing
                 throw;
             }
             textExtract = intValue.ToString();
-            return CreateFieldInfo(snField.Name, intValue);
+            return CreateField(snField.Name, intValue);
         }
-        public override bool TryParseAndSet(IQueryFieldValue value)
+        public override IndexValue Parse(string text)
         {
-            Int32 intValue;
-            if (!Int32.TryParse(value.StringValue, out intValue))
-                return false;
-            value.Set(intValue);
-            return true;
+            int intValue;
+            if (int.TryParse(text, out intValue))
+                return new IndexValue(intValue);
+            return null;
         }
-        public override void ConvertToTermValue(IQueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            value.Set((int)value.InputObject);
+            return new IndexValue((int)value);
         }
         public Int32 GetBack(string lucFieldValue)
         {
@@ -590,7 +552,7 @@ namespace SenseNet.Search.Indexing
                 return intValue;
             return 0;
         }
-        public override IEnumerable<string> GetParsableValues(ISnField snField)
+        public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
             var value = ((SnCR.Field)snField).GetData();
             var intValue = value == null ? 0 : (int)value;
@@ -599,29 +561,27 @@ namespace SenseNet.Search.Indexing
     }
     public class NumberIndexHandler : FieldIndexHandler, IIndexValueConverter<Decimal>, IIndexValueConverter
     {
-        public override int SortingType { get { return Lucene.Net.Search.SortField.DOUBLE; } }
-        public override IndexFieldType IndexFieldType { get { return IndexFieldType.Double; } }
+        public override IndexValueType IndexFieldType { get { return IndexValueType.Double; } }
 
-        public override IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(ISnField snField, out string textExtract)
+        public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
             var value = snField.GetData();
-            var decimalValue = value == null ? (Decimal)0.0 : (Decimal)value;
+            var decimalValue = (Decimal?) value ?? (Decimal)0.0;
             var doubleValue = Convert.ToDouble(decimalValue);
-            textExtract = decimalValue.ToString(System.Globalization.CultureInfo.InvariantCulture);
-            return CreateFieldInfo(snField.Name, doubleValue);
+            textExtract = decimalValue.ToString(CultureInfo.InvariantCulture);
+            return CreateField(snField.Name, doubleValue);
         }
-        public override bool TryParseAndSet(IQueryFieldValue value)
+        public override IndexValue Parse(string text)
         {
-            Double doubleValue;
-            if (!Double.TryParse(value.StringValue, System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.CultureInfo.InvariantCulture, out doubleValue))
-                return false;
-            value.Set(doubleValue);
-            return true;
+            double doubleValue;
+            if (double.TryParse(text, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out doubleValue))
+                return new IndexValue(doubleValue);
+            return null;
         }
-        public override void ConvertToTermValue(IQueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            var doubleValue = Convert.ToDouble(value.InputObject);
-            value.Set(doubleValue);
+            var doubleValue = Convert.ToDouble(value);
+            return new IndexValue(doubleValue);
         }
         public Decimal GetBack(string lucFieldValue)
         {
@@ -631,7 +591,7 @@ namespace SenseNet.Search.Indexing
         {
             return GetBack(lucFieldValue);
         }
-        public override IEnumerable<string> GetParsableValues(ISnField snField)
+        public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
             var value = ((SnCR.Field)snField).GetData();
             var decimalValue = value == null ? (Decimal)0.0 : (Decimal)value;
@@ -641,27 +601,25 @@ namespace SenseNet.Search.Indexing
     }
     public class DateTimeIndexHandler : FieldIndexHandler, IIndexValueConverter<DateTime>, IIndexValueConverter
     {
-        public override int SortingType { get { return Lucene.Net.Search.SortField.LONG; } }
-        public override IndexFieldType IndexFieldType { get { return IndexFieldType.DateTime; } }
+        public override IndexValueType IndexFieldType { get { return IndexValueType.DateTime; } }
 
-        public override IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(ISnField snField, out string textExtract)
+        public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
-            textExtract = String.Empty;
+            textExtract = string.Empty;
             var data = snField.GetData();
-            var ticks = data == null ? 0 : ((DateTime)data).Ticks;
-            return CreateFieldInfo(snField.Name, SetPrecision((SnCR.Field)snField, ticks));
+            var dateTime = (DateTime?)data ?? DateTime.MinValue;
+            return CreateField(snField.Name, new DateTime(SetPrecision((SnCR.Field)snField, dateTime.Ticks)));
         }
-        public override bool TryParseAndSet(IQueryFieldValue value)
+        public override IndexValue Parse(string text)
         {
             DateTime dateTimeValue;
-            if (!DateTime.TryParse(value.StringValue, CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTimeValue))
-                return false;
-            value.Set(dateTimeValue.Ticks);
-            return true;
+            if (DateTime.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTimeValue))
+                return new IndexValue(dateTimeValue);
+            return null;
         }
-        public override void ConvertToTermValue(IQueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            value.Set(((DateTime)value.InputObject).Ticks);
+            return new IndexValue(((DateTime)value));
         }
         public DateTime GetBack(string lucFieldValue)
         {
@@ -697,7 +655,7 @@ namespace SenseNet.Search.Indexing
                     throw new SnNotSupportedException("Unknown DateTimePrecision: " + precision.Value);
             }
         }
-        public override IEnumerable<string> GetParsableValues(ISnField snField)
+        public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
             var data = ((SnCR.Field)snField).GetData();
             try
@@ -715,24 +673,20 @@ namespace SenseNet.Search.Indexing
     }
     public class LongTextIndexHandler : FieldIndexHandler, IIndexValueConverter<string>, IIndexValueConverter
     {
-        public override string GetDefaultAnalyzerName() { return typeof(StandardAnalyzer).FullName; }
-        public override IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(ISnField snField, out string textExtract)
+        public override IndexFieldAnalyzer GetDefaultAnalyzer() { return IndexFieldAnalyzer.Standard; }
+        public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
             var data = snField.GetData() as string;
-            textExtract = data == null ? String.Empty : data.ToLowerInvariant();
-            return CreateFieldInfo(snField.Name, textExtract);
+            textExtract = data == null ? string.Empty : data.ToLowerInvariant();
+            return CreateField(snField.Name, textExtract);
         }
-        public override bool TryParseAndSet(IQueryFieldValue value)
+        public override IndexValue Parse(string text)
         {
-            value.Set(value.StringValue.ToLowerInvariant());
-            return true;
+            return new IndexValue(text.ToLowerInvariant());
         }
-        public override void ConvertToTermValue(IQueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            if (value.InputObject == null)
-                value.Set(String.Empty);
-            else
-                value.Set(((string)value.InputObject).ToLowerInvariant());
+            return value == null ? new IndexValue(string.Empty) : new IndexValue(((string)value).ToLowerInvariant());
         }
         public string GetBack(string lucFieldValue)
         {
@@ -742,58 +696,50 @@ namespace SenseNet.Search.Indexing
         {
             return GetBack(lucFieldValue);
         }
-        public override IEnumerable<string> GetParsableValues(ISnField snField)
+        public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
             var data = ((SnCR.Field)snField).GetData() as string;
-            return new[] { data == null ? String.Empty : data.ToString().ToLowerInvariant() };
+            return new[] { data == null ? string.Empty : data.ToString().ToLowerInvariant() };
         }
     }
-    public class ReferenceIndexHandler : FieldIndexHandler, IIndexValueConverter<Int32>, IIndexValueConverter
+    public class ReferenceIndexHandler : FieldIndexHandler, IIndexValueConverter<int>, IIndexValueConverter
     {
-        public override int SortingType { get { return Lucene.Net.Search.SortField.STRING; } }
-
-        public override IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(ISnField snField, out string textExtract)
+        public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
-            textExtract = String.Empty;
+            textExtract = string.Empty;
             var data = snField.GetData();
             var node = data as Node;
             if (node != null)
-                return CreateFieldInfo(snField.Name, node.Id.ToString());
+                return CreateField(snField.Name, node.Id.ToString());
             var nodes = data as System.Collections.IEnumerable;
             if (nodes != null)
-                return CreateFieldInfo(snField.Name, nodes.Cast<Node>().Select(n => n.Id.ToString()));
-            return CreateFieldInfo(snField.Name, LucQuery.NullReferenceValue);
+                return CreateField(snField.Name, nodes.Cast<Node>().Select(n => n.Id.ToString()));
+            return CreateField(snField.Name, SnQuery.NullReferenceValue);
         }
-        public override bool TryParseAndSet(IQueryFieldValue value)
+        public override IndexValue Parse(string text)
         {
             int intValue;
-            if (Int32.TryParse(value.StringValue, out intValue))
-                value.Set(intValue.ToString());
-            else
-                value.Set(LucQuery.NullReferenceValue);
-            return true;
+            if (int.TryParse(text, out intValue))
+                return new IndexValue(intValue);
+            return new IndexValue(SnQuery.NullReferenceValue);
         }
-        public override void ConvertToTermValue(IQueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            if (value.InputObject == null)
-            {
-                value.Set(LucQuery.NullReferenceValue);
-                return;
-            }
-            var node = value.InputObject as Node;
+            if (value == null)
+                return new IndexValue(SnQuery.NullReferenceValue);
+
+            var node = value as Node;
             if (node != null)
-            {
-                value.Set(node.Id.ToString());
-                return;
-            }
+                return new IndexValue(node.Id);
+
             var enumerable = value as System.Collections.IEnumerable;
             if (enumerable != null)
                 throw new SnNotSupportedException("ReferenceIndexHandler.ConvertToTermValue() isn't implemented when value is IEnumerable.");
-            throw new NotSupportedException(String.Format("Type {0} is not supported as value of ReferenceField",value.InputObject.GetType().ToString()));
+            throw new NotSupportedException($"Type {value.GetType()} is not supported as value of ReferenceField");
         }
-        public Int32 GetBack(string lucFieldValue)
+        public int GetBack(string lucFieldValue)
         {
-            if (lucFieldValue == LucQuery.NullReferenceValue)
+            if (lucFieldValue == SnQuery.NullReferenceValue)
                 return 0;
             Int32 singleRef;
             if (Int32.TryParse(lucFieldValue, out singleRef))
@@ -804,7 +750,7 @@ namespace SenseNet.Search.Indexing
         {
             return GetBack(lucFieldValue);
         }
-        public override IEnumerable<string> GetParsableValues(ISnField snField)
+        public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
             var data = ((SnCR.Field)snField).GetData();
             var node = data as Node;
@@ -818,27 +764,23 @@ namespace SenseNet.Search.Indexing
     }
     public class ExclusiveTypeIndexHandler : FieldIndexHandler, IIndexValueConverter<ContentType>, IIndexValueConverter
     {
-        public override bool TryParseAndSet(IQueryFieldValue value)
+        public override IndexValue Parse(string text)
         {
-            value.Set(value.StringValue.ToLowerInvariant());
-            return true;
+            return new IndexValue(text.ToLowerInvariant());
         }
-        public override void ConvertToTermValue(IQueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            if (value.InputObject == null)
-                value.Set(String.Empty);
-            else
-                value.Set(((string)value.InputObject).ToLowerInvariant());
+            return value == null ? new IndexValue(string.Empty) : new IndexValue(((string)value).ToLowerInvariant());
         }
-        public override IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(ISnField snField, out string textExtract)
+        public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
             var nodeTypeName = ((SnCR.Field)snField).Content.ContentHandler.NodeType.Name.ToLowerInvariant();
             textExtract = nodeTypeName;
-            return CreateFieldInfo(snField.Name, nodeTypeName);
+            return CreateField(snField.Name, nodeTypeName);
         }
         public ContentType GetBack(string lucFieldValue)
         {
-            if (String.IsNullOrEmpty(lucFieldValue))
+            if (string.IsNullOrEmpty(lucFieldValue))
                 return null;
             return ContentType.GetByName(lucFieldValue);
         }
@@ -846,33 +788,33 @@ namespace SenseNet.Search.Indexing
         {
             return GetBack(lucFieldValue);
         }
-        public override IEnumerable<string> GetParsableValues(ISnField snField)
+        public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
             throw new SnNotSupportedException();
         }
     }
     public class InFolderIndexHandler : FieldIndexHandler, IIndexValueConverter<string>, IIndexValueConverter
     {
-        public override IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(ISnField snField, out string textExtract)
+        public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
-            var value = (string)snField.GetData() ?? String.Empty;
+            var value = (string)snField.GetData() ?? string.Empty;
             textExtract = value.ToLowerInvariant();
             var parentPath = RepositoryPath.GetParentPath(textExtract) ?? "/";
-            return CreateFieldInfo(snField.Name, parentPath);
+            return CreateField(snField.Name, parentPath);
         }
-        public override bool TryParseAndSet(IQueryFieldValue value)
+        public override IndexValue Parse(string text)
         {
-            value.Set(value.StringValue.ToLowerInvariant());
-            if (value.StringValue.StartsWith("/root"))
-                return true;
-            return false;
+            var stringValue = text.ToLowerInvariant();
+            if (stringValue.StartsWith("/root"))
+                return new IndexValue(stringValue);
+            return null;
         }
-        public override void ConvertToTermValue(IQueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            var path = ((string)value.InputObject).ToLowerInvariant();
+            var path = ((string)value).ToLowerInvariant();
             if (!path.StartsWith("/root"))
-                throw new ApplicationException(String.Concat("Invalid path: '", path, "'. It must be absolute: '/root' or '/root/...'."));
-            value.Set(path);
+                throw new ApplicationException(string.Concat("Invalid path: '", path, "'. It must be absolute: '/root' or '/root/...'."));
+            return new IndexValue(path);
         }
         public string GetBack(string lucFieldValue)
         {
@@ -882,32 +824,31 @@ namespace SenseNet.Search.Indexing
         {
             return GetBack(lucFieldValue);
         }
-        public override IEnumerable<string> GetParsableValues(ISnField snField)
+        public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
-            var value = (string)((SnCR.Field)snField).GetData() ?? String.Empty;
+            var value = (string)((SnCR.Field)snField).GetData() ?? string.Empty;
             var parentPath = RepositoryPath.GetParentPath(value.ToLowerInvariant()) ?? "/";
             return new[] { parentPath.ToLowerInvariant() };
         }
     }
     public class InTreeIndexHandler : FieldIndexHandler, IIndexValueConverter<string>, IIndexValueConverter
     {
-        public override IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(ISnField snField, out string textExtract)
+        public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
-            textExtract = String.Empty;
-            var value = (string)snField.GetData() ?? String.Empty;
-            return CreateFieldInfo(snField.Name, value.ToLowerInvariant());
+            textExtract = string.Empty;
+            var value = (string)snField.GetData() ?? string.Empty;
+            return CreateField(snField.Name, value.ToLowerInvariant());
         }
-        public override bool TryParseAndSet(IQueryFieldValue value)
+        public override IndexValue Parse(string text)
         {
-            value.Set(value.StringValue.ToLowerInvariant());
-            return true;
+            return new IndexValue(text.ToLowerInvariant());
         }
-        public override void ConvertToTermValue(IQueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            var path = ((string)value.InputObject).ToLowerInvariant();
+            var path = ((string)value).ToLowerInvariant();
             if (!path.StartsWith("/root"))
-                throw new ApplicationException(String.Concat("Invalid path: '", path, "'. It must be absolute: '/root' or '/root/...'."));
-            value.Set(path);
+                throw new ApplicationException(string.Concat("Invalid path: '", path, "'. It must be absolute: '/root' or '/root/...'."));
+            return new IndexValue(path);
         }
         public string GetBack(string lucFieldValue)
         {
@@ -917,9 +858,9 @@ namespace SenseNet.Search.Indexing
         {
             return GetBack(lucFieldValue);
         }
-        public override IEnumerable<string> GetParsableValues(ISnField snField)
+        public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
-            var path = (string)((SnCR.Field)snField).GetData() ?? String.Empty;
+            var path = (string)((SnCR.Field)snField).GetData() ?? string.Empty;
             var separator = "/";
             string[] fragments = path.ToLowerInvariant().Split(separator.ToCharArray(), StringSplitOptions.None);
             string[] pathSteps = new string[fragments.Length];
@@ -931,15 +872,15 @@ namespace SenseNet.Search.Indexing
     public class TagIndexHandler : FieldIndexHandler, IIndexValueConverter<string>, IIndexValueConverter
     {
         // IndexHandler for comma or semicolon separated strings (e.g. Red,Green,Blue) used in tagging fields
-        public override IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(ISnField snField, out string textExtract)
+        public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
             // Ensure initial textExtract for out parameter. It is used if the field value is null or empty.
-            textExtract = String.Empty;
+            textExtract = string.Empty;
             // Get the value. A field type is indexable with this handler that provides a string value
             // but ShortText and LongText are recommended.
             var snFieldValue = (string)snField.GetData();
             // Return null if the value is not indexable. Lucene field and text extract won't be created.
-            if (String.IsNullOrEmpty(snFieldValue))
+            if (string.IsNullOrEmpty(snFieldValue))
                 return null;
             // Convert to lowercase for case insensitive index handling
             snFieldValue = snFieldValue.ToLowerInvariant();
@@ -947,23 +888,17 @@ namespace SenseNet.Search.Indexing
             var terms = snFieldValue.Split(",;".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
                 .Select(w => w.Trim()).ToArray();
             // Concatenate the words with space separator for text extract.
-            textExtract = String.Join(" ", terms);
+            textExtract = string.Join(" ", terms);
             // Produce the lucene multiterm field with a base's tool and return with it.
-            return CreateFieldInfo(snField.Name, terms);
+            return CreateField(snField.Name, terms);
         }
-        public override bool TryParseAndSet(IQueryFieldValue value)
+        public override IndexValue Parse(string text)
         {
-            // Set the parsed value.
-            value.Set(value.StringValue.ToLowerInvariant());
-            // Successful.
-            return true;
+            return new IndexValue(text.ToLowerInvariant());
         }
-        public override void ConvertToTermValue(IQueryFieldValue value)
+        public override IndexValue ConvertToTermValue(object value)
         {
-            if (value.InputObject == null)
-                value.Set(String.Empty);
-            else
-                value.Set(((string)value.InputObject).ToLowerInvariant());
+            return value == null ? new IndexValue(string.Empty) : new IndexValue(((string)value).ToLowerInvariant());
         }
         public string GetBack(string lucFieldValue)
         {
@@ -973,10 +908,10 @@ namespace SenseNet.Search.Indexing
         {
             return GetBack(lucFieldValue);
         }
-        public override IEnumerable<string> GetParsableValues(ISnField snField)
+        public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
             var snFieldValue = (string)((SnCR.Field)snField).GetData();
-            if (String.IsNullOrEmpty(snFieldValue))
+            if (string.IsNullOrEmpty(snFieldValue))
                 return null;
             snFieldValue = snFieldValue.ToLowerInvariant();
             var terms = snFieldValue.Split(",;".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Select(w => w.Trim()).ToArray();
@@ -984,38 +919,19 @@ namespace SenseNet.Search.Indexing
         }
     }
 
-    // Inherited IIndexValueConverters.
-    [Obsolete("After V6.5 PATCH 7: Use Node.GetDepth(string) method. This class is unnecessary.", true)]
-    public class DepthIndexHandler : IntegerIndexHandler
-    {
-        public override IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(ISnField snField, out string textExtract)
-        {
-            textExtract = String.Empty;
-            return CreateFieldInfo(snField.Name, Node.GetDepth(((SnCR.Field)snField).Content.Path));
-        }
-        public override IEnumerable<string> GetParsableValues(ISnField snField)
-        {
-            var depth = Node.GetDepth(((SnCR.Field) snField).Content.Path);
-            return new[] {depth.ToString()};
-        }
-    }
-
-
     // Not finalized feature. After finalizing make public.
     internal class SystemContentIndexHandler : BooleanIndexHandler
     {
-        public override IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(ISnField snField, out string textExtract)
+        public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
-            textExtract = String.Empty;
+            textExtract = string.Empty;
 
             var content = ((SnCR.Field)snField).Content;
-            var boolValue = false;
 
             // Do not index documents sent to the trash as system content, because when
             // restored (moved back to the original location) they will not be re-indexed
             // and would remain system content. Only the container TrashBags are system content.
-            if (content.ContentHandler is TrashBag)
-                boolValue = true;
+            bool boolValue = content.ContentHandler is TrashBag;
 
             // check SystemFile
             if (!boolValue)
@@ -1044,9 +960,9 @@ namespace SenseNet.Search.Indexing
                 }
             }
 
-            return CreateFieldInfo(snField.Name, boolValue ? BooleanIndexHandler.YES : BooleanIndexHandler.NO);
+            return CreateField(snField.Name, boolValue);
         }
-        public override IEnumerable<string> GetParsableValues(ISnField snField)
+        public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
             var content = ((SnCR.Field)snField).Content;
             var boolValue = false;
@@ -1082,7 +998,7 @@ namespace SenseNet.Search.Indexing
                 }
             }
 
-            return new[] { boolValue ? BooleanIndexHandler.YES : BooleanIndexHandler.NO };
+            return new[] { boolValue ? SnTerm.Yes : SnTerm.No };
         }
     }
 }

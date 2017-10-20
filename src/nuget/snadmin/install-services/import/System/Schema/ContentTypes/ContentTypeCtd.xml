@@ -70,7 +70,7 @@
       <DisplayName>$Ctd-ContentType,Name-DisplayName</DisplayName>
       <Indexing>
         <Store>Yes</Store>
-        <Analyzer>Lucene.Net.Analysis.KeywordAnalyzer</Analyzer>
+        <Analyzer>Keyword</Analyzer>
       </Indexing>
       <Configuration>
         <Compulsory>true</Compulsory>
@@ -133,7 +133,7 @@
     <Field name="InTree" type="ShortText">
       <Bind property="Path"/>
       <Indexing>
-        <Analyzer>Lucene.Net.Analysis.KeywordAnalyzer</Analyzer>
+        <Analyzer>Keyword</Analyzer>
         <IndexHandler>SenseNet.Search.Indexing.InTreeIndexHandler</IndexHandler>
       </Indexing>
       <Configuration>
@@ -146,7 +146,7 @@
     <Field name="InFolder" type="ShortText">
       <Bind property="Path"/>
       <Indexing>
-        <Analyzer>Lucene.Net.Analysis.KeywordAnalyzer</Analyzer>
+        <Analyzer>Keyword</Analyzer>
         <IndexHandler>SenseNet.Search.Indexing.InFolderIndexHandler</IndexHandler>
       </Indexing>
       <Configuration>
@@ -184,7 +184,7 @@
 			<DisplayName>$Ctd-ContentType,Description-DisplayName</DisplayName>
 			<Description>$Ctd-ContentType,Description-Description</Description>
       <Indexing>
-        <Analyzer>Lucene.Net.Analysis.Standard.StandardAnalyzer</Analyzer>
+        <Analyzer>Standard</Analyzer>
       </Indexing>
     </Field>
 		<Field name="Icon" type="ShortText">

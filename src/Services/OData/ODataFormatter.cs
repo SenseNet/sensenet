@@ -151,8 +151,7 @@ namespace SenseNet.Portal.OData
             var chdef = content.ChildrenDefinition;
             if (req.HasContentQuery)
             {
-                chdef.ContentQuery = ContentQuery.AddClause(req.ContentQueryText, String.Concat("InTree:'", path, "'"),
-                    ContentRepository.Storage.Search.ChainOperator.And);
+                chdef.ContentQuery = ContentQuery.AddClause(req.ContentQueryText, String.Concat("InTree:'", path, "'"), LogicalOperator.And);
 
                 if (req.AutofiltersEnabled != FilterStatus.Default)
                     chdef.EnableAutofilters = req.AutofiltersEnabled;
@@ -172,8 +171,7 @@ namespace SenseNet.Portal.OData
                 chdef.EnableAutofilters = FilterStatus.Disabled;
                 if (string.IsNullOrEmpty(chdef.ContentQuery))
                 {
-                    chdef.ContentQuery = ContentQuery.AddClause(chdef.ContentQuery, String.Concat("InFolder:'", path, "'"),
-                        ContentRepository.Storage.Search.ChainOperator.And);
+                    chdef.ContentQuery = ContentQuery.AddClause(chdef.ContentQuery, String.Concat("InFolder:'", path, "'"), LogicalOperator.And);
                 }
             }
 
@@ -509,32 +507,31 @@ new StackInfo
                 ContentQuery = qdef.ContentQuery,
                 Top = req.Top > 0 ? req.Top : qdef.Top,
                 Skip = req.Skip > 0 ? req.Skip : qdef.Skip,
-                Sort = req.Sort != null && req.Sort.Count() > 0 ? req.Sort : qdef.Sort,
+                Sort = req.Sort != null && req.Sort.Any() ? req.Sort : qdef.Sort,
                 CountAllPages = req.HasInlineCount ? req.InlineCount == InlineCount.AllPages : qdef.CountAllPages,
                 EnableAutofilters = req.AutofiltersEnabled != FilterStatus.Default ? req.AutofiltersEnabled : qdef.EnableAutofilters,
                 EnableLifespanFilter = req.LifespanFilterEnabled != FilterStatus.Default ? req.AutofiltersEnabled : qdef.EnableLifespanFilter,
                 QueryExecutionMode = req.QueryExecutionMode != QueryExecutionMode.Default ? req.QueryExecutionMode : qdef.QueryExecutionMode,
             };
 
-            var lucQuery = SnExpression.BuildQuery(req.Filter, typeof(Content), null, cdef);
+            var snQuery = SnExpression.BuildQuery(req.Filter, typeof(Content), null, cdef);
             if (cdef.EnableAutofilters != FilterStatus.Default)
-                lucQuery.EnableAutofilters = cdef.EnableAutofilters;
+                snQuery.EnableAutofilters = cdef.EnableAutofilters;
             if (cdef.EnableLifespanFilter != FilterStatus.Default)
-                lucQuery.EnableLifespanFilter = cdef.EnableLifespanFilter;
+                snQuery.EnableLifespanFilter = cdef.EnableLifespanFilter;
             if (cdef.QueryExecutionMode != QueryExecutionMode.Default)
-                lucQuery.QueryExecutionMode = cdef.QueryExecutionMode;
+                snQuery.QueryExecutionMode = cdef.QueryExecutionMode;
 
-            var result = lucQuery.Execute();
-            var idResult = result.Select(x => x.NodeId);
+            var result = snQuery.Execute(new SnQueryContext(null, User.Current.Id));
             // for optimization purposes this combined condition is examined separately
             if (req.InlineCount == InlineCount.AllPages && req.CountOnly)
             {
-                count = lucQuery.TotalCount;
+                count = result.TotalCount;
                 return null;
             }
 
-            var ids = idResult.ToArray();
-            count = req.InlineCount == InlineCount.AllPages ? lucQuery.TotalCount : ids.Length;
+            var ids = result.Hits.ToArray();
+            count = req.InlineCount == InlineCount.AllPages ? result.TotalCount : ids.Length;
             if (req.CountOnly)
             {
                 return null;

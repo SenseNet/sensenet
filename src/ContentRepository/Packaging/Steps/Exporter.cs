@@ -226,7 +226,7 @@ namespace SenseNet.Packaging.Steps
         private static void ExportByFilterText(ExportContext context, string fsRoot, string queryText)
         {
             var query = ContentQuery.CreateQuery(queryText);
-            query.AddClause(@"InTree:""" + context.SourceFsPath + @"""", ChainOperator.And);
+            query.AddClause(@"InTree:""" + context.SourceFsPath + @"""", LogicalOperator.And);
             var result = query.Execute();
             var maxCount = result.Count;
             var count = 0;

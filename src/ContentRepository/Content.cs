@@ -25,8 +25,8 @@ using System.Collections;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Linq;
+using SenseNet.ContentRepository.Search;
 using SenseNet.Tools;
-using ContentQuery = SenseNet.Search.ContentQuery;
 
 namespace SenseNet.ContentRepository
 {
@@ -1408,7 +1408,7 @@ namespace SenseNet.ContentRepository
         /// <param name="rebuildLevel">The algorithm selector. Value can be <value>IndexOnly</value> or <value>DatabaseAndIndex</value>. Default: <value>IndexOnly</value></param>
         public void RebuildIndex(bool recursive = false, IndexRebuildLevel rebuildLevel = IndexRebuildLevel.IndexOnly)
         {
-            StorageContext.Search.SearchEngine.GetPopulator().RebuildIndex(this.ContentHandler, recursive, rebuildLevel);
+            SearchManager.ContentRepository.GetIndexPopulator().RebuildIndex(this.ContentHandler, recursive, rebuildLevel);
         }
 
         /*-------------------------------------------------------------------------- SnLinq */

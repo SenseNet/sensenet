@@ -95,8 +95,8 @@
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="SenseNet.Security, Version=2.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SenseNet.Security.2.3.0.0\lib\net45\SenseNet.Security.dll</HintPath>
+    <Reference Include="SenseNet.Security, Version=2.3.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SenseNet.Security.2.3.1\lib\net45\SenseNet.Security.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="SenseNet.TaskManagement.Core, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -359,6 +359,10 @@
     <ProjectReference Include="..\ContentRepository\ContentRepository.csproj">
       <Project>{786E6165-CA02-45A9-BF58-207A45D7D6DF}</Project>
       <Name>ContentRepository</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SearchImpl\SearchImpl.csproj">
+      <Project>{ff0b1af9-753b-4660-8bd0-b84492321808}</Project>
+      <Name>SearchImpl</Name>
     </ProjectReference>
     <ProjectReference Include="..\Search\Search.csproj">
       <Project>{0279705B-779D-485D-86B9-F7AB3DD1F2C3}</Project>

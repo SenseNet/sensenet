@@ -8,6 +8,8 @@ using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search;
 using SenseNet.Communication.Messaging;
+using SenseNet.ContentRepository.Search;
+using SafeQueries = SenseNet.ContentRepository.SafeQueries;
 
 namespace SenseNet.ApplicationModel
 {
@@ -93,7 +95,7 @@ namespace SenseNet.ApplicationModel
             List<Device> devices;
             var sorted = new List<Device>();
 
-            if (RepositoryInstance.ContentQueryIsAllowed)
+            if (SearchManager.ContentQueryIsAllowed)
             {
                 var result = ContentQuery.Query(SafeQueries.AllDevices);
                 devices = result.Nodes.Cast<Device>().ToList();

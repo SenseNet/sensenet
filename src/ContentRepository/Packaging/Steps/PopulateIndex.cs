@@ -1,5 +1,6 @@
 ﻿using System;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Search;
@@ -11,8 +12,6 @@ namespace SenseNet.Packaging.Steps
         [DefaultProperty]
         [Annotation("Optional path of the subtree to populate. Default: /Root.")]
         public string Path { get; set; }
-        [Annotation("Whether to make a backup of the index to the database at the end. Default is TRUE.")]
-        public bool Backup { get; set; } = true;
 
         private long _count;
         private long _versionCount;
@@ -33,17 +32,15 @@ namespace SenseNet.Packaging.Steps
             var savedMode = RepositoryEnvironment.WorkingMode.Populating;
             RepositoryEnvironment.WorkingMode.Populating = true;
 
-            var populator = StorageContext.Search.SearchEngine.GetPopulator();
+            var populator = SearchManager.ContentRepository.GetIndexPopulator();
             populator.NodeIndexed += Populator_NodeIndexed;
 
             try
             {
                 if (string.IsNullOrEmpty(path))
                 {
-                    var withOrWithout = Backup ? "WITH" : "without";
-
-                    Logger.LogMessage($"Populating index of the whole Content Repository {withOrWithout} backup...");
-                    populator.ClearAndPopulateAll(Backup, context.Console);
+                    Logger.LogMessage($"Populating index of the whole Content Repository...");
+                    populator.ClearAndPopulateAll(context.Console);
                 }
                 else
                 {

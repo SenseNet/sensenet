@@ -106,8 +106,8 @@
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="SenseNet.Security, Version=2.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SenseNet.Security.2.3.0.0\lib\net45\SenseNet.Security.dll</HintPath>
+    <Reference Include="SenseNet.Security, Version=2.3.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SenseNet.Security.2.3.1\lib\net45\SenseNet.Security.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="SenseNet.Security.EF6SecurityStore, Version=2.3.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -171,12 +171,16 @@
     <Compile Include="ContentNotFoundException.cs" />
     <Compile Include="CounterManager.cs" />
     <Compile Include="Data\BlobStorage.cs" />
+    <Compile Include="Data\IndexDocumentData.cs" />
     <Compile Include="Data\IPackageStorageProvider.cs" />
+    <Compile Include="Data\QueryPropertyData.cs" />
     <Compile Include="Data\SnMaintenance.cs" />
-    <Compile Include="Data\IndexBackup.cs" />
-    <Compile Include="Data\IndexBackupProgress.cs" />
     <Compile Include="Data\RepositoryPathTooLongException.cs" />
     <Compile Include="Data\SqlClient\DataReaderExtensions.cs" />
+    <Compile Include="Data\SqlClient\SnLucToSqlCompiler.cs" />
+    <Compile Include="Data\SqlClient\SqlQueryEngine.cs" />
+    <Compile Include="Data\SqlClient\SqlQueryExecutor.cs" />
+    <Compile Include="Data\SqlClient\SqlQueryFieldInfo.cs" />
     <Compile Include="Data\SqlClient\TextPropertyWriter.cs" />
     <Compile Include="Data\SqlClient\TraceSqlProvider.cs" />
     <Compile Include="Data\StorageDataReaderExtensions.cs" />
@@ -217,7 +221,6 @@
     <Compile Include="Caching\ICache.cs" />
     <Compile Include="Diagnostics\TimeboxedActivity.cs" />
     <Compile Include="DistributedApplication\Messaging\MsmqChannel.cs" />
-    <Compile Include="IContentQuery.cs" />
     <Compile Include="DataBackingStore.cs" />
     <Compile Include="Data\ConfigurationException.cs" />
     <Compile Include="Data\INodeWriter.cs" />
@@ -238,8 +241,8 @@
     <Compile Include="Package.cs" />
     <Compile Include="PreviewProvider.cs" />
     <Compile Include="QueryResult.cs" />
-    <Compile Include="QuerySettings.cs" />
     <Compile Include="Retrier.cs" />
+    <Compile Include="SearchManager.cs" />
     <Compile Include="Search\IIndexPopulator.cs" />
     <Compile Include="Instrumentation\TraceFrame.cs" />
     <Compile Include="Instrumentation\TraceFrameEventType.cs" />
@@ -280,10 +283,10 @@
     <Compile Include="Events\NodeOperationEventArgs.cs" />
     <Compile Include="IContentList.cs" />
     <Compile Include="Search\DateTimeParser.cs" />
-    <Compile Include="Search\ISearchEngine.cs" />
+    <Compile Include="Search\Interfaces.cs" />
     <Compile Include="Search\Internal\Operator.cs" />
     <Compile Include="Search\ISearchEngineSupport.cs" />
-    <Compile Include="Search\NodeQueryResult.cs" />
+    <Compile Include="Search\SnPermissionFilterFactory.cs" />
     <Compile Include="Security\BCrypt.cs" />
     <Compile Include="Security\Extensions.cs" />
     <Compile Include="Security\PermissionType.cs" />
@@ -329,7 +332,6 @@
     <Compile Include="Schema\SchemaItem.cs" />
     <Compile Include="Schema\SchemaRoot.cs" />
     <Compile Include="Schema\TypeCollection.cs" />
-    <Compile Include="Search\SearchOrder.cs" />
     <Compile Include="Security\AccessProvider.cs" />
     <Compile Include="Security\IGroup.cs" />
     <Compile Include="Security\LockHandler.cs" />
@@ -413,6 +415,10 @@
     <ProjectReference Include="..\Common\Common.csproj">
       <Project>{A453E920-29C0-45CD-984C-0D8E3631B1E3}</Project>
       <Name>Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Search\Search.csproj">
+      <Project>{0279705b-779d-485d-86b9-f7ab3dd1f2c3}</Project>
+      <Name>Search</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

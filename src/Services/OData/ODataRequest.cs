@@ -354,7 +354,7 @@ namespace SenseNet.Portal.OData
                     else if (sa[1] != "asc")
                         throw new ODataException(SNSR.Exceptions.OData.InvalidOrderByOption, ODataExceptionCode.InvalidOrderByDirectionParameter);
                 }
-                sort.Add(new SortInfo { FieldName = sa[0].Trim(), Reverse = reverse });
+                sort.Add(new SortInfo(sa[0].Trim(), reverse));
             }
             return sort;
         }

@@ -15,6 +15,7 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using Newtonsoft.Json;
 using SenseNet.Configuration;
+using SenseNet.Search;
 using SenseNet.TokenAuthentication;
 
 namespace SenseNet.Portal.Virtualization

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Web.UI;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Search;
 
@@ -26,7 +27,7 @@ namespace SenseNet.ContentRepository
         {
             base.OnCreating(sender, e);
 
-            if (!RepositoryInstance.ContentQueryIsAllowed)
+            if (!SearchManager.ContentQueryIsAllowed)
                 return;
 
             var parent = e.SourceNode.Parent;

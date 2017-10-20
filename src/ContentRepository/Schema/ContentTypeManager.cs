@@ -7,6 +7,8 @@ using System.Reflection;
 using System.Text;
 using System.Xml.XPath;
 using SenseNet.Communication.Messaging;
+using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Search;
@@ -38,27 +40,31 @@ namespace SenseNet.ContentRepository.Schema
 
         private static bool _initializing = false;
 
-        private static ContentTypeManager _current;
-        public static ContentTypeManager Current
+        private const string ContentTypeManagerProviderKey = "ContentTypeManager";
+
+        [Obsolete("Use Instace instead.")]
+        public static ContentTypeManager Current => Instance;
+
+        public static ContentTypeManager Instance
         {
             get
             {
-                if (_current == null)
+                if (Providers.Instance.GetProvider<ContentTypeManager>(ContentTypeManagerProviderKey) == null)
                 {
                     lock (_syncRoot)
                     {
-                        if (_current == null)
+                        if (Providers.Instance.GetProvider<ContentTypeManager>(ContentTypeManagerProviderKey) == null)
                         {
                             _initializing = true;
                             var current = new ContentTypeManager();
                             current.Initialize();
                             _initializing = false;
-                            _current = current;
-                            SnLog.WriteInformation("ContentTypeManager created. Content types: " + _current._contentTypes.Count);
+                            Providers.Instance.SetProvider(ContentTypeManagerProviderKey, current);
+                            SnLog.WriteInformation("ContentTypeManager created. Content types: " + current._contentTypes.Count);
                         }
                     }
                 }
-                return _current;
+                return Providers.Instance.GetProvider<ContentTypeManager>(ContentTypeManagerProviderKey);
             }
         }
 
@@ -167,8 +173,8 @@ namespace SenseNet.ContentRepository.Schema
                    properties: new Dictionary<string, object> { { "AppDomain", AppDomain.CurrentDomain.FriendlyName } });
 
                 // Do not call ActiveSchema.Reset();
-                _current = null;
-                _indexingInfoTable = new Dictionary<string, PerFieldIndexingInfo>();
+                Providers.Instance.SetProvider(ContentTypeManagerProviderKey, null);
+                _indexingInfoTable = new Dictionary<string, IPerFieldIndexingInfo>();
                 ContentType.OnTypeSystemRestarted();
             }
         }
@@ -638,16 +644,18 @@ namespace SenseNet.ContentRepository.Schema
 
         // ====================================================================== Indexing
 
-        private static Dictionary<string, PerFieldIndexingInfo> _indexingInfoTable = new Dictionary<string, PerFieldIndexingInfo>();
-        internal Dictionary<string, PerFieldIndexingInfo> IndexingInfo { get { return _indexingInfoTable; } }
+        private static IDictionary<string, IPerFieldIndexingInfo> _indexingInfoTable = new Dictionary<string, IPerFieldIndexingInfo>();
+        internal IDictionary<string, IPerFieldIndexingInfo> IndexingInfo { get { return _indexingInfoTable; } }
 
-        internal static Dictionary<string, PerFieldIndexingInfo> GetPerFieldIndexingInfo()
+        internal static IDictionary<string, IPerFieldIndexingInfo> GetPerFieldIndexingInfo()
         {
             return Current.IndexingInfo;
         }
-        internal static PerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
+        internal static IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
         {
-            PerFieldIndexingInfo info = null;
+            var ensureStart = Current;
+
+            IPerFieldIndexingInfo info = null;
             if (fieldName.Contains('.'))
                 info = Aspect.GetPerFieldIndexingInfo(fieldName);
 
@@ -656,9 +664,9 @@ namespace SenseNet.ContentRepository.Schema
 
             return null;
         }
-        internal static void SetPerFieldIndexingInfo(string fieldName, string contentTypeName, PerFieldIndexingInfo indexingInfo)
+        internal static void SetPerFieldIndexingInfo(string fieldName, string contentTypeName, IPerFieldIndexingInfo indexingInfo)
         {
-            PerFieldIndexingInfo origInfo;
+            IPerFieldIndexingInfo origInfo;
 
             if (!_indexingInfoTable.TryGetValue(fieldName, out origInfo))
             {
@@ -687,9 +695,9 @@ namespace SenseNet.ContentRepository.Schema
             else if (indexingInfo.TermVectorStoringMode != IndexTermVector.Default && indexingInfo.TermVectorStoringMode != origInfo.TermVectorStoringMode)
                 throw new ContentRegistrationException("Cannot override TermVectorStoringMode", contentTypeName, fieldName);
 
-            if (String.IsNullOrEmpty(origInfo.Analyzer))
+            if (origInfo.Analyzer == IndexFieldAnalyzer.Default)
                 origInfo.Analyzer = indexingInfo.Analyzer;
-            else if (!String.IsNullOrEmpty(indexingInfo.Analyzer) && indexingInfo.Analyzer != origInfo.Analyzer)
+            else if (indexingInfo.Analyzer != IndexFieldAnalyzer.Default && indexingInfo.Analyzer != origInfo.Analyzer)
                 throw new ContentRegistrationException("Cannot override Analyzer", contentTypeName, fieldName);
         }
 
@@ -714,12 +722,12 @@ namespace SenseNet.ContentRepository.Schema
 
         private void FinalizeIndexingInfo()
         {
-            StorageContext.Search.SearchEngine.SetIndexingInfo(_indexingInfoTable);
+            SearchManager.SearchEngine.SetIndexingInfo(_indexingInfoTable);
         }
 
         public static long _GetTimestamp()
         {
-            if (_current == null)
+            if (Providers.Instance.GetProvider<ContentTypeManager>(ContentTypeManagerProviderKey) == null)
                 return 0L;
             ContentType ct = null;
             Current.ContentTypes.TryGetValue("Automobile", out ct);

@@ -1,20 +1,17 @@
 ﻿using System.Linq;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search;
+using SenseNet.Search.Indexing;
 using SenseNet.Search.Parser;
 
 namespace SenseNet.ContentRepository
 {
     internal class SearchEngineSupport : ISearchEngineSupport
     {
-        public bool RestoreIndexOnstartup()
-        {
-            return RepositoryInstance.RestoreIndexOnStartup();
-        }
-
         public int[] GetNotIndexedNodeTypeIds()
         {
             return new AllContentTypes()
@@ -25,16 +22,12 @@ namespace SenseNet.ContentRepository
 
         public IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
         {
-            var ensureStart = ContentTypeManager.Current;
             return ContentTypeManager.GetPerFieldIndexingInfo(fieldName);
         }
 
         public bool IsContentTypeIndexed(string contentTypeName)
         {
-            var ct = ContentType.GetByName(contentTypeName);
-            if (ct == null)
-                return true;
-            return ct.IndexingEnabled;
+            return ContentType.GetByName(contentTypeName)?.IndexingEnabled ?? true;
         }
 
         public bool TextExtractingWillBePotentiallySlow(IIndexableField field)
@@ -49,12 +42,19 @@ namespace SenseNet.ContentRepository
 
         public T GetSettingsValue<T>(string key, T defaultValue)
         {
-            return Settings.GetValue<T>(IndexingSettings.SETTINGSNAME, key, null, defaultValue);
+            return Settings.GetValue(IndexingSettings.SETTINGSNAME, key, null, defaultValue);
         }
 
         public QueryResult ExecuteContentQuery(string text, QuerySettings settings, params object[] parameters)
         {
             return ContentQuery.Query(text, settings, parameters);
+        }
+
+        public IIndexPopulator GetIndexPopulator()
+        {
+            return SearchManager.IsOuterEngineEnabled
+                ? (IIndexPopulator) new DocumentPopulator()
+                : NullPopulator.Instance;
         }
     }
 }

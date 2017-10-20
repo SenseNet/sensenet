@@ -6,6 +6,7 @@ using SenseNet.ContentRepository.Schema;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using SenseNet.ContentRepository.Storage.Search;
+using SenseNet.Search;
 
 namespace SenseNet.ContentRepository.Schema
 {
@@ -27,7 +28,7 @@ namespace SenseNet.ContentRepository.Schema
         /// <summary>
         /// Fully qualified type name of the associated Analyzer
         /// </summary>
-        public string Analyzer { get; set; }
+        public IndexFieldAnalyzer Analyzer { get; set; }
         /// <summary>
         /// Fully qualified type name of the associated FieldIndexHandler
         /// </summary>

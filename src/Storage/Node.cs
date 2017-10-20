@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Search;
@@ -86,11 +87,6 @@ namespace SenseNet.ContentRepository.Storage
 
         public string NodeOperation { get; set; }
 
-        private static IIndexPopulator Populator
-        {
-            get { return StorageContext.Search.SearchEngine.GetPopulator(); }
-        }
-
         private SecurityHandler _security;
         private LockHandler _lockHandler;
         public bool IsHeadOnly { get; private set; }
@@ -101,7 +97,7 @@ namespace SenseNet.ContentRepository.Storage
         /// but can be overidden in derived classes. Determines whether an indexing activity and index
         /// document will be created for this content.
         /// </summary>
-        protected internal virtual bool IsIndexingEnabled { get { return true; } }
+        protected internal virtual bool IsIndexingEnabled => true;
 
         private static readonly List<string> SeeEnabledProperties = new List<string> { "Name", "Path", "Id", "Index", "NodeType", "ContentListId", "ContentListType", "Parent", "IsModified", "IsDeleted", "CreationDate", "ModificationDate", "CreatedBy", "ModifiedBy", "VersionCreationDate", "VersionModificationDate", "VersionCreatedById", "VersionModifiedById", "Aspects", "Icon", "StoredIcon" };
         public bool IsAllowedProperty(string name)
@@ -153,7 +149,7 @@ namespace SenseNet.ContentRepository.Storage
             return NodeQuery.QueryChildren(this.Id);
         }
 
-        public virtual int NodesInTree => StorageContext.Search.ContentRepository.ExecuteContentQuery(
+        public virtual int NodesInTree => SearchManager.ContentRepository.ExecuteContentQuery(
                 "+InTree:@0",
                 QuerySettings.AdminSettings,
                 this.Path)
@@ -2041,7 +2037,7 @@ namespace SenseNet.ContentRepository.Storage
                 var thisPath = RepositoryPath.Combine(parentPath, this.Name);
 
                 // save
-                DataBackingStore.SaveNodeData(this, settings, Populator, thisPath, thisPath);
+                DataBackingStore.SaveNodeData(this, settings, SearchManager.ContentRepository.GetIndexPopulator(), thisPath, thisPath);
 
                 // <L2Cache>
                 StorageContext.L2Cache.Clear();
@@ -2111,8 +2107,6 @@ namespace SenseNet.ContentRepository.Storage
 
             if (_data != null)
                 _data.SavingTimer.Restart();
-
-            StorageContext.Search.SearchEngine.WaitIfIndexingPaused();
 
             var lockBefore = this.Version == null ? false : this.Version.Status == VersionStatus.Locked;
             if (isNew)
@@ -2275,7 +2269,7 @@ namespace SenseNet.ContentRepository.Storage
                     try
                     {
                         this.Data.PreloadTextProperties();
-                        DataBackingStore.SaveNodeData(this, settings, Populator, originalPath, newPath);
+                        DataBackingStore.SaveNodeData(this, settings, SearchManager.ContentRepository.GetIndexPopulator(), originalPath, newPath);
                     }
                     finally
                     {
@@ -2373,7 +2367,7 @@ namespace SenseNet.ContentRepository.Storage
                     ExpectedVersionId = this.VersionId,
                     MultistepSaving = false
                 };
-                DataBackingStore.SaveNodeData(this, settings, Populator, Path, Path);
+                DataBackingStore.SaveNodeData(this, settings, SearchManager.ContentRepository.GetIndexPopulator(), Path, Path);
 
                 // events
                 if (this.Version.Status != VersionStatus.Locked)
@@ -2566,8 +2560,6 @@ namespace SenseNet.ContentRepository.Storage
         }
         private void MoveTo(Node target, long sourceTimestamp, long targetTimestamp)
         {
-            StorageContext.Search.SearchEngine.WaitIfIndexingPaused();
-
             this.AssertLock();
 
             if (target == null)
@@ -2626,7 +2618,8 @@ namespace SenseNet.ContentRepository.Storage
                     PathDependency.FireChanged(pathToInvalidate);
                     PathDependency.FireChanged(this.Path);
 
-                    Populator.DeleteTree(this.Path, this.Id, true);
+                    var populator = SearchManager.ContentRepository.GetIndexPopulator();
+                    populator.DeleteTree(this.Path, this.Id);
 
                     // <L2Cache>
                     StorageContext.L2Cache.Clear();
@@ -2649,7 +2642,7 @@ namespace SenseNet.ContentRepository.Storage
                     }
 
                     using (new SystemAccount())
-                        Populator.PopulateTree(targetPath, this.Id);
+                        populator.PopulateTree(targetPath, this.Id);
 
                 } // end lock
 
@@ -2726,8 +2719,6 @@ namespace SenseNet.ContentRepository.Storage
         }
         private static void CopyMoreInternal(IEnumerable<int> nodeList, string targetNodePath, ref List<Exception> errors)
         {
-            StorageContext.Search.SearchEngine.WaitIfIndexingPaused();
-
             var col2 = new List<Node>();
 
             var targetNode = LoadNode(targetNodePath);
@@ -2834,8 +2825,6 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public virtual void CopyTo(Node target, string newName)
         {
-            StorageContext.Search.SearchEngine.WaitIfIndexingPaused();
-
             using (var op = SnTrace.ContentOperation.StartOperation("Node.SaveCopied"))
             {
                 if (target == null)
@@ -3084,8 +3073,6 @@ namespace SenseNet.ContentRepository.Storage
         {
             using (var op = SnTrace.ContentOperation.StartOperation("Node.ForceDelete: Id:{0}, Path:{1}", Id, Path))
             {
-                StorageContext.Search.SearchEngine.WaitIfIndexingPaused();
-
                 this.Security.AssertSubtree(PermissionType.Delete);
 
                 this.AssertLock();
@@ -3152,7 +3139,7 @@ namespace SenseNet.ContentRepository.Storage
                     if (this.Id > 0)
                         SecurityHandler.DeleteEntity(this.Id);
 
-                    Populator.DeleteTree(myPath, this.Id, false);
+                    SearchManager.ContentRepository.GetIndexPopulator().DeleteTree(myPath, this.Id);
 
                     if (hadContentList)
                         FireAnyContentListDeleted();
@@ -3238,8 +3225,6 @@ namespace SenseNet.ContentRepository.Storage
         // TODO: need to consider> method based upon the original DeleteInternal, this contains duplicated source code
         private static void DeleteMoreInternal(ICollection<Int32> nodeList, ref List<Exception> errors)
         {
-            StorageContext.Search.SearchEngine.WaitIfIndexingPaused();
-
             if (nodeList == null)
                 throw new ArgumentNullException("nodeList");
             if (nodeList.Count == 0)
@@ -3320,7 +3305,7 @@ namespace SenseNet.ContentRepository.Storage
             }
             try
             {
-                Populator.DeleteForest(ids, false);
+                SearchManager.ContentRepository.GetIndexPopulator().DeleteForest(ids);
             }
             catch (Exception e)
             {

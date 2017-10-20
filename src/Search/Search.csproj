@@ -34,15 +34,12 @@
     <Reference Include="Ionic.Zip">
       <HintPath>..\References\Ionic.Zip.dll</HintPath>
     </Reference>
-    <Reference Include="Lucene.Net">
-      <HintPath>..\References\Lucene.Net.dll</HintPath>
-    </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="SenseNet.Security, Version=2.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SenseNet.Security.2.3.0.0\lib\net45\SenseNet.Security.dll</HintPath>
+    <Reference Include="SenseNet.Security, Version=2.3.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SenseNet.Security.2.3.1\lib\net45\SenseNet.Security.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="SenseNet.Tools, Version=2.1.1.0, Culture=neutral, processorArchitecture=MSIL">
@@ -59,76 +56,43 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Configuration\Querying.cs" />
-    <Compile Include="ContentQuery.cs" />
-    <Compile Include="Indexing\EnumConverter.cs" />
+    <Compile Include="LogicalOperator.cs" />
+    <Compile Include="Cql.cs" />
+    <Compile Include="ExecutionHint.cs" />
+    <Compile Include="FilterStatus.cs" />
+    <Compile Include="IndexDocument.cs" />
+    <Compile Include="IIndexingEngine.cs" />
+    <Compile Include="IndexField.cs" />
     <Compile Include="IndexFieldName.cs" />
-    <Compile Include="Indexing\Activities\AddDocumentActivity.cs" />
-    <Compile Include="Indexing\Activities\AddTreeActivity.cs" />
-    <Compile Include="Indexing\Activities\BackupActivity.cs" />
-    <Compile Include="Indexing\Activities\DistributedLuceneActivity.cs" />
-    <Compile Include="Indexing\Activities\LuceneDocumentActivity.cs" />
-    <Compile Include="Indexing\Activities\LuceneIndexingActivity.cs" />
-    <Compile Include="Indexing\Activities\LuceneTreeActivity.cs" />
-    <Compile Include="Indexing\Activities\RebuildActivity.cs" />
-    <Compile Include="Indexing\Activities\RemoveDocumentActivity.cs" />
-    <Compile Include="Indexing\Activities\RemoveTreeActivity.cs" />
-    <Compile Include="Indexing\Activities\UpdateDocumentActivity.cs" />
-    <Compile Include="Indexing\BackupTools.cs" />
-    <Compile Include="Indexing\DocumentPopulator.cs" />
-    <Compile Include="Indexing\ExplicitPerFieldIndexingInfo.cs" />
-    <Compile Include="Indexing\IndexDocumentInfo.cs" />
-    <Compile Include="Indexing\IndexFieldInfo.cs" />
-    <Compile Include="Indexing\IndexHealthMonitor.cs" />
-    <Compile Include="Indexing\IndexingActivityFactory.cs" />
-    <Compile Include="Indexing\IndexingActivityQueue.cs" />
-    <Compile Include="Indexing\IndexingTools.cs" />
-    <Compile Include="Indexing\IndexReaderFrame.cs" />
-    <Compile Include="Indexing\IndexWriterFrame.cs" />
-    <Compile Include="Indexing\IntegrityChecker.cs" />
-    <Compile Include="Indexing\LuceneManager.cs" />
-    <Compile Include="Indexing\PerFieldIndexingInfo.cs" />
-    <Compile Include="Indexing\SnPerFieldAnalyzerWrapper.cs" />
-    <Compile Include="IndexManager.cs" />
-    <Compile Include="InvalidContentQueryException.cs" />
-    <Compile Include="LuceneSearchEngine.cs" />
-    <Compile Include="LucObject.cs" />
-    <Compile Include="LucQuery.cs" />
-    <Compile Include="Parser\DumpVisitor.cs" />
-    <Compile Include="Parser\FieldNameVisitor.cs" />
+    <Compile Include="IndexValue.cs" />
+    <Compile Include="Interfaces.cs" />
+    <Compile Include="ISearchEngine.cs" />
+    <Compile Include="Parser\CompilerException.cs" />
+    <Compile Include="Parser\EmptyPredicateVisitor.cs" />
+    <Compile Include="Parser\Predicates\LogicalClause.cs" />
+    <Compile Include="Parser\Predicates\LogicalPredicate.cs" />
+    <Compile Include="IQueryContext.cs" />
+    <Compile Include="Parser\Predicates\RangePredicate.cs" />
+    <Compile Include="Parser\SnQueryPredicate.cs" />
+    <Compile Include="Parser\CqlLexer.cs" />
     <Compile Include="Parser\LineInfo.cs" />
-    <Compile Include="Parser\LucQueryVisitor.cs" />
     <Compile Include="Parser\ParserException.cs" />
-    <Compile Include="Parser\QueryClassifier.cs" />
-    <Compile Include="Parser\SnLucLexer.cs" />
-    <Compile Include="Parser\SnLucParser.cs" />
-    <Compile Include="Parser\SnLucToSqlCompiler.cs" />
-    <Compile Include="Parser\SqlQueryFieldInfo.cs" />
+    <Compile Include="Parser\Predicates\SimplePredicate.cs" />
+    <Compile Include="Parser\SnQueryVisitor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="QueryExecutors\IQueryExecutor.cs" />
-    <Compile Include="QueryExecutors\LuceneQueryExecutor.cs" />
-    <Compile Include="QueryExecutors\PermissionChecker.cs" />
-    <Compile Include="QueryExecutors\QueryExecutor20131012.cs" />
-    <Compile Include="QueryExecutors\QueryExecutor20131012CountOnly.cs" />
-    <Compile Include="QueryExecutors\SqlQueryExecutor.cs" />
-    <Compile Include="RichTextStripper.cs" />
-    <Compile Include="SearchProvider.cs" />
-    <Compile Include="SnCollector.cs" />
-    <Compile Include="SnIFilter.cs" />
-    <Compile Include="TextSplitter.cs" />
+    <Compile Include="SnQueryClassifier.cs" />
+    <Compile Include="QueryExecutionMode.cs" />
+    <Compile Include="QuerySettings.cs" />
+    <Compile Include="SnQuery.cs" />
+    <Compile Include="QueryResult.cs" />
+    <Compile Include="SnQueryController.cs" />
+    <Compile Include="Parser\CqlParser.cs" />
+    <Compile Include="SnQueryToStringVisitor.cs" />
+    <Compile Include="SnTerm.cs" />
+    <Compile Include="SortInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Common\Common.csproj">
-      <Project>{a453e920-29c0-45cd-984c-0d8e3631b1e3}</Project>
-      <Name>Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Storage\Storage.csproj">
-      <Project>{5db4ddba-81f6-4d81-943a-18f3178b3355}</Project>
-      <Name>Storage</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Indexing\Activities\IndexingActivities.cd" />
+    <None Include="Api.cd" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

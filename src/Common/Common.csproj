@@ -70,7 +70,6 @@
     <Compile Include="Storage\Data\ITransactionProvider.cs" />
     <Compile Include="Storage\Data\SnTransaction.cs" />
     <Compile Include="Storage\Data\SqlClient\SqlProcedure.cs" />
-    <Compile Include="Storage\Data\SqlClient\SqlTransactionFactory.cs" />
     <Compile Include="Storage\Data\SqlClient\Transaction.cs" />
     <Compile Include="Storage\Data\TransactionQueue.cs" />
     <Compile Include="Storage\ITransactionParticipant.cs" />

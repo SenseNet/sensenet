@@ -12,6 +12,7 @@ using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ApplicationModel;
+using SenseNet.Search.Lucene29;
 
 namespace SenseNet.Portal
 {
@@ -165,7 +166,7 @@ namespace SenseNet.Portal
             try
             {
                 // We need to validate the query to avoid saving unknown texts.
-                LucQuery.Parse(query);
+                SnQuery.Parse(query, new SnQueryContext(QuerySettings.Default, User.Current.Id));
             }
             catch (Exception ex)
             {

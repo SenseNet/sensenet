@@ -9,9 +9,11 @@ namespace SenseNet.ContentRepository.Linq
         private ContentSet<T> _queryable;
         private IEnumerable<T> _result;
         private IEnumerator<T> _resultEnumerator;
-        private LucQuery _query;
+        private SnQuery _query;
+        private IQueryContext _queryContext;
         private bool _isContent;
 
+        private IQueryContext QueryContext => _queryContext ?? (_queryContext = SnQueryContext.CreateDefault());
 
         public LinqContentEnumerator(ContentSet<T> queryable)
         {
@@ -32,6 +34,7 @@ namespace SenseNet.ContentRepository.Linq
         }
         public void Reset()
         {
+            _queryContext = null;
             _resultEnumerator.Reset();
         }
         public bool MoveNext()
@@ -39,11 +42,11 @@ namespace SenseNet.ContentRepository.Linq
             if (_result == null)
             {
                 Compile();
-                var qresult = _query.Execute();
+                var qresult = _query.Execute(QueryContext);
 
-                var nresult = new Storage.NodeList<Storage.Node>(qresult.Select(x => x.NodeId).ToArray());
+                var nresult = new Storage.NodeList<Storage.Node>(qresult.Hits.ToArray());
                 if (_isContent)
-                    _result = (IEnumerable<T>)nresult.Where(n => n != null).Select(n => Content.Create(n));
+                    _result = (IEnumerable<T>)nresult.Where(n => n != null).Select(Content.Create);
                 else
                     _result = nresult.Where(n => n != null).Cast<T>();
 

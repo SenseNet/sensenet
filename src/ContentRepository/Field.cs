@@ -41,7 +41,7 @@ namespace SenseNet.ContentRepository
     /// By defining a new <c>Field</c> class a system-wide usable atomic data type is defined.
     /// This kind of extension is usually done when having a need of a more complex or different type than ones already defined in the system.
     /// </remarks>
-	public abstract partial class Field : IIndexableField, ISnField //UNDONE: Racionalize these interfaces
+	public abstract partial class Field : IIndexableField
     {
         private object __value;
         private bool _changed;
@@ -405,7 +405,7 @@ namespace SenseNet.ContentRepository
 
         public bool IsBinaryField => this is BinaryField;
 
-        public string GetIndexFieldInfoErrorLog(string message, FieldSetting fieldSetting, PerFieldIndexingInfo indexingInfo)
+        public string GetIndexFieldInfoErrorLog(string message, FieldSetting fieldSetting, IPerFieldIndexingInfo indexingInfo)
         {
             return message +
                 " (Field name: " + this.Name +
@@ -416,7 +416,8 @@ namespace SenseNet.ContentRepository
                 (indexingInfo == null ? string.Empty : ", IndexingInfo IsInIndex: " + indexingInfo.IsInIndex.ToString()) +
                 ")";
         }
-        public virtual IEnumerable<IIndexFieldInfo> GetIndexFieldInfos(out string textExtract)
+
+        public virtual IEnumerable<IndexField> GetIndexFields(out string textExtract)
         {
             var fieldSetting = this.FieldSetting;
             if (fieldSetting == null)
@@ -430,7 +431,7 @@ namespace SenseNet.ContentRepository
             if (indexFieldHandler == null)
                 throw new InvalidOperationException(GetIndexFieldInfoErrorLog("IndexFieldHandler cannot be null.", fieldSetting, indexingInfo));
 
-            return indexFieldHandler.GetIndexFieldInfos(this, out textExtract);
+            return indexFieldHandler.GetIndexFields(this, out textExtract);
         }
 
         // ========================================================================= Conversions

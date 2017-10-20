@@ -18,6 +18,7 @@ using SenseNet.Portal.Virtualization;
 using SenseNet.Search;
 using SenseNet.ContentRepository.Linq;
 using System.Linq.Expressions;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.Tools;
 
@@ -653,8 +654,9 @@ namespace SenseNet.Portal.OData
         /// <returns>An OData path.</returns>
         public static string GetODataPath(string path)
         {
-            if (String.Compare(path, Repository.Root.Path, true) == 0)
+            if (string.Compare(path, Identifiers.RootPath, StringComparison.OrdinalIgnoreCase) == 0)
                 return string.Empty;
+
             return GetODataPath(RepositoryPath.GetParentPath(path), RepositoryPath.GetFileName(path));
         }
         /// <summary>

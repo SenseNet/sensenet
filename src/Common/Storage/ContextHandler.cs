@@ -66,5 +66,12 @@ namespace SenseNet.ContentRepository.Storage
         {
 			SetObject(TransactionQueueIdent, queue);
         }
+
+        public static void Reset()
+        {
+            SetObject(TransactionIdent, null);
+            SetObject(TransactionQueueIdent, null);
+        }
+
     }
 }
