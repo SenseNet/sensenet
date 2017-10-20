@@ -63,7 +63,7 @@ namespace SenseNet.Search.IntegrationTests
 
             public void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates, IEnumerable<IndexDocument> addition)
             {
-                var distributed = Environment.StackTrace.Contains(typeof(IndexingActivityQueue).FullName) ? "DISTRIBUTED" : "";
+                var distributed = Environment.StackTrace.Contains(typeof(DistributedIndexingActivityQueue).FullName) ? "DISTRIBUTED" : "";
                 var centralized = Environment.StackTrace.Contains(typeof(CentralizedIndexingActivityQueue).FullName) ? "CENTRALIZED" : "";
                 _log.AppendLine($"{centralized}{distributed}. deletions: {deletions?.Count() ?? 0}, updates: {updates?.Count() ?? 0}, addition: {addition?.Count() ?? 0}");
             }

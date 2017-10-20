@@ -74,7 +74,7 @@
     <Compile Include="Indexing\CommitManager.cs" />
     <Compile Include="Indexing\CustomIndexFieldManager.cs" />
     <Compile Include="Indexing\IndexDocumentProvider.cs" />
-    <Compile Include="Indexing\IndexingActivityQueue.cs" />
+    <Compile Include="Indexing\DistributedIndexingActivityQueue.cs" />
     <Compile Include="Indexing\DocumentPopulator.cs" />
     <Compile Include="Lucene29\EnumConverter.cs" />
     <Compile Include="Indexing\IndexHealthMonitor.cs" />

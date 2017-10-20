@@ -22,7 +22,7 @@ namespace SenseNet.Search.Indexing.Activities
                 {
                     // We can drop activities here because the queue will load these from the database
                     // anyway when it processed all the previous activities.
-                    if (IndexingActivityQueue.IsOverloaded())
+                    if (DistributedIndexingActivityQueue.IsOverloaded())
                     {
                         SnTrace.Index.Write("IAQ OVERLOAD drop activity FromReceiver A:" + luceneIndexingActivity.Id);
                         return;
@@ -30,7 +30,7 @@ namespace SenseNet.Search.Indexing.Activities
 
                     luceneIndexingActivity.FromReceiver = true;
 
-                    IndexingActivityQueue.ExecuteActivity(luceneIndexingActivity);
+                    DistributedIndexingActivityQueue.ExecuteActivity(luceneIndexingActivity);
                 }
                 else
                 {
@@ -97,7 +97,7 @@ namespace SenseNet.Search.Indexing.Activities
 
                     if (indexingActivity != null)
                         message = string.Format("IndexingActivity is timed out. Id: {0}, Type: {1}. Max task id and exceptions: {2}"
-                            , indexingActivity.Id, indexingActivity.ActivityType, IndexingActivityQueue.GetCurrentCompletionState());
+                            , indexingActivity.Id, indexingActivity.ActivityType, DistributedIndexingActivityQueue.GetCurrentCompletionState());
                     else
                         message = "Activity is not finishing on a timely manner";
 

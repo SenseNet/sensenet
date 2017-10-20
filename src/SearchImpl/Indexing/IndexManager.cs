@@ -35,7 +35,7 @@ namespace SenseNet.Search.Indexing
             if (IndexingEngine.IndexIsCentralized)
                 CentralizedIndexingActivityQueue.Startup(consoleOut);
             else
-                IndexingActivityQueue.Startup(consoleOut);
+                DistributedIndexingActivityQueue.Startup(consoleOut);
         }
 
         public static void ShutDown()
@@ -44,9 +44,9 @@ namespace SenseNet.Search.Indexing
             if (IndexingEngine.IndexIsCentralized)
                 CentralizedIndexingActivityQueue.ShutDown();
             else
-                IndexingActivityQueue.ShutDown();
+                DistributedIndexingActivityQueue.ShutDown();
             IndexingEngine.ShutDown();
-            SnLog.WriteInformation("Indexing engine has stopped. Max task id and exceptions: " + IndexingActivityQueue.GetCurrentCompletionState());
+            SnLog.WriteInformation("Indexing engine has stopped. Max task id and exceptions: " + DistributedIndexingActivityQueue.GetCurrentCompletionState());
         }
 
         public static void ClearIndex()
@@ -84,14 +84,14 @@ namespace SenseNet.Search.Indexing
             // data of the activity to prevent memory overflow. We still have to wait for the 
             // activity to finish, but the inner data can (and will) be loaded from the db when 
             // the time comes for this activity to be executed.
-            if (IndexingActivityQueue.IsOverloaded())
+            if (DistributedIndexingActivityQueue.IsOverloaded())
             {
                 SnTrace.Index.Write("IAQ OVERLOAD drop activity FromPopulator A:" + activity.Id);
                 activity.IndexDocumentData = null;
             }
 
             // all activities must be executed through the activity queue's API
-            IndexingActivityQueue.ExecuteActivity(activity);
+            DistributedIndexingActivityQueue.ExecuteActivity(activity);
 
             activity.WaitForComplete();
         }
@@ -108,7 +108,7 @@ namespace SenseNet.Search.Indexing
 
         public static IndexingActivityStatus GetCurrentIndexingActivityStatus()
         {
-            return IndexingActivityQueue.GetCurrentCompletionState();
+            return DistributedIndexingActivityQueue.GetCurrentCompletionState();
         }
 
         /*========================================================================================== Commit */

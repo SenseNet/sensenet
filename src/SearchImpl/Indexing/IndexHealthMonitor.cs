@@ -47,7 +47,7 @@ namespace SenseNet.Search.Indexing
                 _timer.Enabled = false;
                 try
                 {
-                    IndexingActivityQueue.HealthCheck();
+                    DistributedIndexingActivityQueue.HealthCheck();
                 }
                 catch (Exception ex) // logged
                 {
