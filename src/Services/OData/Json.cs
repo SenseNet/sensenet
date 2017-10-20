@@ -63,6 +63,7 @@ namespace SenseNet.Portal.OData
             return new ODataMultipleContent { Contents = dict };
         }
     }
+
     internal class ODataReference
     {
         [JsonProperty(PropertyName = "__deferred", Order = 1)]
@@ -108,6 +109,9 @@ namespace SenseNet.Portal.OData
         public string Url { get; set; }
         public int IncludeBackUrl { get; set; }
         public bool ClientAction { get; set; }
+        public bool IsODataAction { get; set; }
+        public string[] ActionParameters { get; set; }
+        public string[] Scenarios { get; set; }
         public bool Forbidden { get; set; }
     }
 

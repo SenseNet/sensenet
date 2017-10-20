@@ -114,7 +114,7 @@ namespace SenseNet.Portal.OData
 
         protected ODataActionItem[] GetActions(Content content)
         {
-            return ODataTools.GetHtmlActionItems(content, this.Request).ToArray();
+            return ODataTools.GetActionItems(content, this.Request).ToArray();
         }
     }
 }

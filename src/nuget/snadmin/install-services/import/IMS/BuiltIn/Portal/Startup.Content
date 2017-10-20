@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>User</ContentType>
+  <ContentName>Startup</ContentName>
+  <Fields>
+    <Enabled>true</Enabled>
+    <FullName>Startup User</FullName>
+    <LoginName>Startup</LoginName>
+    <Password>
+      <Text>startup</Text>
+    </Password>
+  </Fields>
+  <Permissions>
+    <Identity path="/Root/IMS/BuiltIn/Portal/Administrators">
+      <Delete>Deny</Delete>
+    </Identity>
+    <Identity path="/Root/IMS/BuiltIn/Portal/HR">
+      <Delete>Deny</Delete>
+    </Identity>
+    <Identity path="/Root/IMS/BuiltIn/Portal/Owners">
+      <Delete>Deny</Delete>
+    </Identity>
+  </Permissions>
+</ContentMetaData>

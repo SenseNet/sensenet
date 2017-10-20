@@ -9,7 +9,7 @@ namespace SenseNet.ContentRepository.Storage.Security
 {
     internal sealed class StartupUser : IUser
     {
-
+     
         // ================================================================================================== IUser Members
 
         public bool Enabled
@@ -30,7 +30,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         }
         public string FullName
         {
-            get { return "STARTUP"; }
+            get { return "Startup User"; }
             set { throw new InvalidOperationException("You cannot set a property of the STARTUP user."); }
         }
         public string Password
@@ -45,7 +45,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "value", Justification = "Interface implementation")]
         public string Username
         {
-            get { return "STARTUP"; }
+            get { return "Startup"; }
             set { throw new InvalidOperationException("You cannot set a property of the STARTUP user."); }
         }
         public bool IsInGroup(IGroup group)
@@ -71,10 +71,7 @@ namespace SenseNet.ContentRepository.Storage.Security
 
         public int Id => Identifiers.StartupUserId;
 
-        public string Path
-        {
-            get { throw new InvalidOperationException("You cannot get the Path property of the STARTUP user."); }
-        }
+        public string Path => $"/Root/IMS/{IdentityManagement.BuiltInDomainName}/Portal/{Name}";
 
         // ================================================================================================== IIdentity Members
 
@@ -86,10 +83,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         {
             get { return true; }
         }
-        public string Name
-        {
-            get { return "STARTUP"; }
-        }
+        public string Name => "Startup";
 
         // ================================================================================================== SenseNet.Security.ISecurityUser
 

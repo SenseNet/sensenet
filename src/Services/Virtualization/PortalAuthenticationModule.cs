@@ -90,10 +90,10 @@ namespace SenseNet.Portal.Virtualization
             bool anonymAuthenticated;
             var basicAuthenticated = DispatchBasicAuthentication(context, out anonymAuthenticated);
 
-            new TokenAuthentication().Authenticate(application, basicAuthenticated, anonymAuthenticated);
+            var tokenAuthenticated = new TokenAuthentication().Authenticate(application, basicAuthenticated, anonymAuthenticated);
 
-            // if it is a simple basic authentication case
-            if (basicAuthenticated)
+            // if it is a simple basic authentication case or authenticated with a token
+            if (basicAuthenticated || tokenAuthenticated)
             {
                 return;
             }
