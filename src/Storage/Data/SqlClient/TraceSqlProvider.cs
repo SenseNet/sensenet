@@ -219,10 +219,10 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             WriteLog(MethodBase.GetCurrentMethod());
             return base.GetIdsOfNodesThatDoNotHaveIndexDocument(fromId, toId);
         }
-        public override int GetLastActivityId()
+        public override int GetLastIndexingActivityId()
         {
             WriteLog(MethodBase.GetCurrentMethod());
-            return base.GetLastActivityId();
+            return base.GetLastIndexingActivityId();
         }
         public override IDataProcedure GetTimestampDataForOneNodeIntegrityCheck(string path, int[] excludedNodeTypeIds)
         {

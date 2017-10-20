@@ -90,7 +90,10 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         public override void DeleteAllIndexingActivities()
         {
-            _db.IndexingActivity.Clear();
+            lock (_db.IndexingActivities)
+            {
+                _db.IndexingActivities.Clear();
+            }
         }
 
         #region NOT IMPLEMENTED
@@ -107,9 +110,12 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         #endregion
 
-        public override int GetLastActivityId()
+        public override int GetLastIndexingActivityId()
         {
-            return _db.IndexingActivity.Count == 0 ? 0 : _db.IndexingActivity.Max(r => r.IndexingActivityId);
+            lock (_db.IndexingActivities)
+            {
+                return _db.IndexingActivities.Count == 0 ? 0 : _db.IndexingActivities.Max(r => r.IndexingActivityId);
+            }
         }
 
         #region NOT IMPLEMENTED
@@ -141,7 +147,18 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         public override IIndexingActivity[] LoadIndexingActivities(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
         {
-            throw new NotImplementedException();
+            var result = new List<IIndexingActivity>();
+            lock (_db.IndexingActivities)
+            {
+                var activities = _db.IndexingActivities.Where(r => gaps.Contains(r.IndexingActivityId)).ToArray();
+                foreach (var activityRecord in activities)
+                {
+                    var activity = LoadFullIndexingActivity(activityRecord, executingUnprocessedActivities, activityFactory);
+                    if (activity != null)
+                        result.Add(activity);
+                }
+            }
+            return result.ToArray();
         }
 
         #endregion
@@ -149,44 +166,15 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         public override IIndexingActivity[] LoadIndexingActivities(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
         {
             var result = new List<IIndexingActivity>();
-
-            var activities = _db.IndexingActivity.Where(r => r.IndexingActivityId >= fromId && r.IndexingActivityId <= toId).Take(count).ToArray();
-            foreach (var activityRecord in activities)
+            lock (_db.IndexingActivities)
             {
-                var nodeRecord = _db.Nodes.FirstOrDefault(r => r.NodeId == activityRecord.NodeId);
-                var versionRecord = _db.Versions.FirstOrDefault(r => r.VersionId == activityRecord.VersionId);
-                var activity = activityFactory.CreateActivity(activityRecord.ActivityType);
-
-                activity.Id = activityRecord.IndexingActivityId;
-                activity.ActivityType = activityRecord.ActivityType;
-                activity.CreationDate = activityRecord.CreationDate;
-                activity.RunningState = activityRecord.RunningState;
-                activity.StartDate = activityRecord.StartDate;
-                activity.NodeId = activityRecord.NodeId;
-                activity.VersionId = activityRecord.VersionId;
-                activity.Path = activityRecord.Path;
-                activity.FromDatabase = true;
-                activity.IsUnprocessedActivity = executingUnprocessedActivities;
-                activity.Extension = activityRecord.Extension;
-
-                if (versionRecord?.IndexDocument != null && nodeRecord != null)
+                var activities = _db.IndexingActivities.Where(r => r.IndexingActivityId >= fromId && r.IndexingActivityId <= toId).Take(count).ToArray();
+                foreach (var activityRecord in activities)
                 {
-                    activity.IndexDocumentData = new IndexDocumentData(null, versionRecord.IndexDocument)
-                    {
-                        NodeTypeId = nodeRecord.NodeTypeId,
-                        VersionId = activity.VersionId,
-                        NodeId = activity.NodeId,
-                        ParentId = nodeRecord.ParentNodeId,
-                        Path = activity.Path,
-                        IsSystem = nodeRecord.IsSystem,
-                        IsLastDraft = nodeRecord.LastMinorVersionId == activity.VersionId,
-                        IsLastPublic = versionRecord.Version.Status == VersionStatus.Approved && nodeRecord.LastMajorVersionId == activity.VersionId
-                        //NodeTimestamp = nodeTimeStamp,
-                        //VersionTimestamp = versionTimestamp,
-                    };
+                    var activity = LoadFullIndexingActivity(activityRecord, executingUnprocessedActivities, activityFactory);
+                    if (activity != null)
+                        result.Add(activity);
                 }
-
-                result.Add(activity);
             }
             return result.ToArray();
         }
@@ -212,34 +200,142 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         public override void RegisterIndexingActivity(IIndexingActivity activity)
         {
-            var newId = _db.IndexingActivity.Count == 0 ? 1 : _db.IndexingActivity.Max(r => r.IndexingActivityId) + 1;
-
-            _db.IndexingActivity.Add(new IndexingActivityRecord
+            lock (_db.IndexingActivities)
             {
-                IndexingActivityId = newId,
-                ActivityType = activity.ActivityType,
-                CreationDate = DateTime.UtcNow,
-                RunningState = activity.RunningState,
-                StartDate = activity.StartDate,
-                NodeId = activity.NodeId,
-                VersionId = activity.VersionId,
-                Path = activity.Path,
-                Extension = activity.Extension
-            });
+                var newId = _db.IndexingActivities.Count == 0 ? 1 : _db.IndexingActivities.Max(r => r.IndexingActivityId) + 1;
 
-            activity.Id = newId;
+                _db.IndexingActivities.Add(new IndexingActivityRecord
+                {
+                    IndexingActivityId = newId,
+                    ActivityType = activity.ActivityType,
+                    CreationDate = DateTime.UtcNow,
+                    RunningState = activity.RunningState,
+                    LockTime = activity.LockTime,
+                    NodeId = activity.NodeId,
+                    VersionId = activity.VersionId,
+                    Path = activity.Path,
+                    Extension = activity.Extension
+                });
+
+                activity.Id = newId;
+            }
         }
 
         public override void UpdateIndexingActivityRunningState(int indexingActivityId, IndexingActivityRunningState runningState)
         {
-            var activity = _db.IndexingActivity.Where(r => r.IndexingActivityId == indexingActivityId).FirstOrDefault();
-            if (activity != null)
-                activity.RunningState = runningState;
+            lock (_db.IndexingActivities)
+            {
+                var activity = _db.IndexingActivities.Where(r => r.IndexingActivityId == indexingActivityId).FirstOrDefault();
+                if (activity != null)
+                    activity.RunningState = runningState;
+            }
+        }
+        public override void RefreshIndexingActivityLockTime(int[] waitingIds)
+        {
+            lock (_db.IndexingActivities)
+            {
+                var now = DateTime.UtcNow;
+                foreach (var waitingId in waitingIds)
+                {
+                    var activity = _db.IndexingActivities.Where(r => r.IndexingActivityId == waitingId).FirstOrDefault();
+                    if (activity != null)
+                        activity.LockTime = now;
+                }
+            }
         }
 
-        public override IIndexingActivity[] StartIndexingActivities(int maxCount, int runningTimeoutInSeconds, IIndexingActivityFactory activityFactory)
+        public override IIndexingActivity[] LoadExecutableIndexingActivities(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds)
         {
-            throw new NotImplementedException(); //TODO: StartIndexingActivities is not implemented
+            var output = new List<IIndexingActivity>();
+            var recordsToStart = new List<IndexingActivityRecord>();
+            var timeLimit = DateTime.UtcNow.AddSeconds(-runningTimeoutInSeconds);
+            lock (_db.IndexingActivities)
+            {
+                foreach (var @new in _db.IndexingActivities
+                                        .Where(x => x.RunningState == IndexingActivityRunningState.Waiting || (x.RunningState == IndexingActivityRunningState.Running && x.LockTime < timeLimit))
+                                        .OrderBy(x => x.IndexingActivityId))
+                {
+                    if (!_db.IndexingActivities.Any(@old =>
+                         (@old.IndexingActivityId < @new.IndexingActivityId) &&
+                         (
+                             (@old.RunningState == IndexingActivityRunningState.Waiting || old.RunningState == IndexingActivityRunningState.Running) &&
+                             (
+                                 @new.NodeId == @old.NodeId ||
+                                 (@new.VersionId != 0 && @new.VersionId == @old.VersionId) ||
+                                 @new.Path.StartsWith(@old.Path + "/", StringComparison.OrdinalIgnoreCase) ||
+                                 @old.Path.StartsWith(@new.Path + "/", StringComparison.OrdinalIgnoreCase)
+                             )
+                         )
+                    ))
+                        recordsToStart.Add(@new);
+                }
+
+                foreach (var record in recordsToStart.Take(maxCount))
+                {
+                    record.RunningState = IndexingActivityRunningState.Running;
+                    record.LockTime = DateTime.UtcNow;
+
+                    var activity = LoadFullIndexingActivity(record, false, activityFactory);
+                    if (activity != null)
+                        output.Add(activity);
+                }
+            }
+            return output.ToArray();
+        }
+        public override IIndexingActivity[] LoadExecutableIndexingActivities(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds, out int[] finishedActivitiyIds)
+        {
+            var activities = LoadExecutableIndexingActivities(activityFactory, maxCount, runningTimeoutInSeconds);
+            lock (_db.IndexingActivities)
+            {
+                finishedActivitiyIds = _db.IndexingActivities
+                    .Where(x => waitingActivityIds.Contains(x.IndexingActivityId) && x.RunningState == IndexingActivityRunningState.Done)
+                    .Select(x=>x.IndexingActivityId)
+                    .ToArray();
+            }
+            return activities;
+        }
+        private IIndexingActivity LoadFullIndexingActivity(IndexingActivityRecord activityRecord, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
+        {
+            var nodeRecord = _db.Nodes.FirstOrDefault(r => r.NodeId == activityRecord.NodeId);
+            var versionRecord = _db.Versions.FirstOrDefault(r => r.VersionId == activityRecord.VersionId);
+            var activity = activityFactory.CreateActivity(activityRecord.ActivityType);
+
+            activity.Id = activityRecord.IndexingActivityId;
+            activity.ActivityType = activityRecord.ActivityType;
+            activity.CreationDate = activityRecord.CreationDate;
+            activity.RunningState = activityRecord.RunningState;
+            activity.LockTime = activityRecord.LockTime;
+            activity.NodeId = activityRecord.NodeId;
+            activity.VersionId = activityRecord.VersionId;
+            activity.Path = activityRecord.Path;
+            activity.FromDatabase = true;
+            activity.IsUnprocessedActivity = executingUnprocessedActivities;
+            activity.Extension = activityRecord.Extension;
+
+            if (versionRecord?.IndexDocument != null && nodeRecord != null)
+            {
+                activity.IndexDocumentData = new IndexDocumentData(null, versionRecord.IndexDocument)
+                {
+                    NodeTypeId = nodeRecord.NodeTypeId,
+                    VersionId = activity.VersionId,
+                    NodeId = activity.NodeId,
+                    ParentId = nodeRecord.ParentNodeId,
+                    Path = activity.Path,
+                    IsSystem = nodeRecord.IsSystem,
+                    IsLastDraft = nodeRecord.LastMinorVersionId == activity.VersionId,
+                    IsLastPublic = versionRecord.Version.Status == VersionStatus.Approved && nodeRecord.LastMajorVersionId == activity.VersionId
+                    //NodeTimestamp = nodeTimeStamp,
+                    //VersionTimestamp = versionTimestamp,
+                };
+            }
+
+            return activity;
+        }
+
+        public override void DeleteFinishedIndexingActivities()
+        {
+            lock (_db.IndexingActivities)
+                _db.IndexingActivities.RemoveAll(x=>x.RunningState == IndexingActivityRunningState.Done);
         }
 
         public override DateTime RoundDateTime(DateTime d)
@@ -527,10 +623,9 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             // To avoid accessing to blob provider, read data here, else set rawData to null
             byte[] rawData = fileRec.Stream;
 
-            var provider = BlobStorageBase.GetProvider(null);
+            IBlobProvider provider = null; //BlobStorageBase.GetProvider(null);
             var context = new BlobStorageContext(provider) { VersionId = nodeVersionId, PropertyTypeId = propertyTypeId, FileId = fileId, Length = length, UseFileStream = false };
-            if (provider == BlobStorageBase.BuiltInProvider)
-                context.BlobProviderData = new BuiltinBlobProviderData { FileStreamData = null };
+            context.BlobProviderData = new BuiltinBlobProviderData { FileStreamData = null };
 
             return new BinaryCacheEntity
             {
@@ -1301,7 +1396,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             public List<TextPropertyRecord> TextProperties;
             public List<FlatPropertyRow> FlatProperties;
             public List<ReferencePropertyRow> ReferenceProperties;
-            public List<IndexingActivityRecord> IndexingActivity = new List<IndexingActivityRecord>();
+            public List<IndexingActivityRecord> IndexingActivities = new List<IndexingActivityRecord>();
             public List<TreeLockRow> TreeLocks = new List<TreeLockRow>();
         }
         private class InMemoryNodeWriter : INodeWriter
@@ -1791,7 +1886,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             public IndexingActivityType ActivityType;
             public DateTime CreationDate;
             public IndexingActivityRunningState RunningState;
-            public DateTime? StartDate;
+            public DateTime? LockTime;
             public int NodeId;
             public int VersionId;
             public string Path;

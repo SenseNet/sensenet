@@ -23,6 +23,11 @@ namespace SenseNet.Search.Indexing
                 return;
             consoleOut.WriteLine("IndexHealthMonitor started. Frequency: {0} s", SenseNet.Configuration.Indexing.IndexHealthMonitorRunningPeriod);
         }
+        internal static void ShutDown()
+        {
+            _timer.Enabled = false;
+            _timer.Dispose();
+        }
 
         private static void Timer_Disposed(object sender, EventArgs e)
         {
@@ -42,7 +47,7 @@ namespace SenseNet.Search.Indexing
                 _timer.Enabled = false;
                 try
                 {
-                    IndexingActivityQueue.HealthCheck();
+                    DistributedIndexingActivityQueue.HealthCheck();
                 }
                 catch (Exception ex) // logged
                 {

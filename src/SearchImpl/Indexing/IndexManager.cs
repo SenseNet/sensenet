@@ -15,7 +15,7 @@ namespace SenseNet.Search.Indexing
         #region /* ==================================================================== Managing index */
 
         internal static IIndexingEngine IndexingEngine => SearchManager.SearchEngine.IndexingEngine;
-        internal static ICommitManager CommitManager { get; } = new NoDelayCommitManager();
+        internal static ICommitManager CommitManager { get; private set; }
 
         public static bool Running => IndexingEngine.Running;
 
@@ -27,14 +27,26 @@ namespace SenseNet.Search.Indexing
         public static void Start(TextWriter consoleOut)
         {
             IndexingEngine.Start(consoleOut);
+
+            CommitManager = IndexingEngine.IndexIsCentralized ? (ICommitManager)new NoDelayCommitManager() : new NearRealTimeCommitManager();
+            SnTrace.Index.Write("LM: {0} created.", CommitManager.GetType().Name);
             CommitManager.Start();
+
+            if (IndexingEngine.IndexIsCentralized)
+                CentralizedIndexingActivityQueue.Startup(consoleOut);
+            else
+                DistributedIndexingActivityQueue.Startup(consoleOut);
         }
 
         public static void ShutDown()
         {
             CommitManager.ShutDown();
+            if (IndexingEngine.IndexIsCentralized)
+                CentralizedIndexingActivityQueue.ShutDown();
+            else
+                DistributedIndexingActivityQueue.ShutDown();
             IndexingEngine.ShutDown();
-            SnLog.WriteInformation("Indexing engine has stopped. Max task id and exceptions: " + IndexingActivityQueue.GetCurrentCompletionState());
+            SnLog.WriteInformation("Indexing engine has stopped. Max task id and exceptions: " + DistributedIndexingActivityQueue.GetCurrentCompletionState());
         }
 
         public static void ClearIndex()
@@ -49,31 +61,44 @@ namespace SenseNet.Search.Indexing
             DataProvider.Current.RegisterIndexingActivity(activity);
         }
 
-        public static void ExecuteActivity(IndexingActivityBase activity, bool waitForComplete, bool distribute)
+        public static void ExecuteActivity(IndexingActivityBase activity)
         {
-            if (distribute)
-                activity.Distribute();
+            if (SearchManager.SearchEngine.IndexingEngine.IndexIsCentralized)
+                ExecuteCentralizedActivity(activity);
+            else
+                ExecuteDistributedActivity(activity);
+        }
+        private static void ExecuteCentralizedActivity(IndexingActivityBase activity)
+        {
+            SnTrace.Index.Write("ExecuteCentralizedActivity: #{0}", activity.Id);
+            CentralizedIndexingActivityQueue.ExecuteActivity(activity);
+
+            activity.WaitForComplete();
+        }
+        private static void ExecuteDistributedActivity(IndexingActivityBase activity)
+        {
+            SnTrace.Index.Write("ExecuteDistributedActivity: #{0}", activity.Id);
+            activity.Distribute();
 
             // If there are too many activities in the queue, we have to drop at least the inner
             // data of the activity to prevent memory overflow. We still have to wait for the 
             // activity to finish, but the inner data can (and will) be loaded from the db when 
             // the time comes for this activity to be executed.
-            if (IndexingActivityQueue.IsOverloaded())
+            if (DistributedIndexingActivityQueue.IsOverloaded())
             {
                 SnTrace.Index.Write("IAQ OVERLOAD drop activity FromPopulator A:" + activity.Id);
                 activity.IndexDocumentData = null;
             }
 
             // all activities must be executed through the activity queue's API
-            IndexingActivityQueue.ExecuteActivity(activity);
+            DistributedIndexingActivityQueue.ExecuteActivity(activity);
 
-            if (waitForComplete)
-                activity.WaitForComplete();
+            activity.WaitForComplete();
         }
 
         public static int GetLastStoredIndexingActivityId()
         {
-            return DataProvider.Current.GetLastActivityId();
+            return DataProvider.Current.GetLastIndexingActivityId();
         }
 
         internal static void DeleteAllIndexingActivities()
@@ -81,15 +106,31 @@ namespace SenseNet.Search.Indexing
             DataProvider.Current.DeleteAllIndexingActivities();
         }
 
+        public static IndexingActivityStatus GetCurrentIndexingActivityStatus()
+        {
+            return DistributedIndexingActivityQueue.GetCurrentCompletionState();
+        }
+
         /*========================================================================================== Commit */
 
+        // called from activity
         internal static void ActivityFinished(int activityId, bool executingUnprocessedActivities)
         {
+            //SnTrace.Index.Write("LM: ActivityFinished: {0}", activityId);
+            //CommitManager.ActivityFinished();
+        }
+        // called from activity queue
+        internal static void ActivityFinished(int activityId)
+        {
+            SnTrace.Index.Write("LM: ActivityFinished: {0}", activityId);
             CommitManager.ActivityFinished();
         }
+
         internal static void Commit()
         {
-            IndexingEngine.WriteActivityStatusToIndex(CompletionState.GetCurrent());
+            var state = GetCurrentIndexingActivityStatus();
+            SnTrace.Index.Write("LM: WriteActivityStatusToIndex: {0}", state);
+            IndexingEngine.WriteActivityStatusToIndex(state);
         }
 
         #endregion

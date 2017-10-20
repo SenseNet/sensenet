@@ -18,7 +18,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SenseNet.Search.Indexing
 {
-    internal static class IndexingActivityQueue
+    internal static class DistributedIndexingActivityQueue
     {
         internal static int IndexingActivityLoadingBufferSize = 200;
         internal static int IndexingOverloadWaitingTime = 100;
@@ -46,7 +46,7 @@ namespace SenseNet.Search.Indexing
                 foreach (IndexingActivityBase activity in new IndexingActivityLoader(state.Gaps, false))
                 {
                     WaitIfOverloaded();
-                    IndexingActivityQueue.ExecuteActivity(activity);
+                    DistributedIndexingActivityQueue.ExecuteActivity(activity);
                 }
             }
 
@@ -61,7 +61,7 @@ namespace SenseNet.Search.Indexing
                 foreach (IndexingActivityBase activity in new IndexingActivityLoader(lastId + 1, lastDbId, false))
                 {
                     WaitIfOverloaded();
-                    IndexingActivityQueue.ExecuteActivity(activity);
+                    DistributedIndexingActivityQueue.ExecuteActivity(activity);
                 }
             }
         }
@@ -72,7 +72,7 @@ namespace SenseNet.Search.Indexing
             // keep in memory. This method waits for the queue to be able to process
             // new activities.
             var logCount = 1;
-            while (IndexingActivityQueue.IsOverloaded())
+            while (DistributedIndexingActivityQueue.IsOverloaded())
             {
                 // In case of startup, we have to start processing activities that are
                 // already in the queue so that new ones can be added later.
@@ -97,8 +97,8 @@ namespace SenseNet.Search.Indexing
             // or the waiting set contains too many elements. In the future
             // this algorithm may be changed to a different one based on
             // activity size instead of count.
-            return DependencyManager.WaitingSetLength >= SenseNet.Configuration.Indexing.LuceneActivityQueueMaxLength ||
-                Serializer.QueueLength >= SenseNet.Configuration.Indexing.LuceneActivityQueueMaxLength;
+            return DependencyManager.WaitingSetLength >= SenseNet.Configuration.Indexing.IndexingActivityQueueMaxLength ||
+                Serializer.QueueLength >= SenseNet.Configuration.Indexing.IndexingActivityQueueMaxLength;
         }
 
         public static void Startup(System.IO.TextWriter consoleOut)
@@ -117,6 +117,8 @@ namespace SenseNet.Search.Indexing
 
                 op.Successful = true;
             }
+
+            IndexHealthMonitor.Start(consoleOut);
         }
         private static void Startup(int lastDatabaseId, int lastExecutedId, int[] gaps, System.IO.TextWriter consoleOut)
         {
@@ -127,7 +129,14 @@ namespace SenseNet.Search.Indexing
             IndexingActivityHistory.Reset();
         }
 
-        public static CompletionState GetCurrentCompletionState()
+        public static void ShutDown()
+        {
+            SnTrace.IndexQueue.Write("Shutting down IndexingActivityQueue.");
+            Serializer.ShutDown();
+            IndexHealthMonitor.ShutDown();
+        }
+
+        public static IndexingActivityStatus GetCurrentCompletionState()
         {
             return TerminationHistory.GetCurrentState();
         }
@@ -147,7 +156,7 @@ namespace SenseNet.Search.Indexing
         }
 
         /// <summary>Only for tests</summary>
-        internal static void _setCurrentExecutionState(CompletionState state)
+        internal static void _setCurrentExecutionState(IndexingActivityStatus state)
         {
             Serializer.Reset(state.LastActivityId);
             DependencyManager.Reset();
@@ -247,6 +256,11 @@ namespace SenseNet.Search.Indexing
                 }
 
                 SnLog.WriteInformation($"Executing unprocessed activities ({count}) finished.", EventId.RepositoryLifecycle);
+            }
+            internal static void ShutDown()
+            {
+                Reset(int.MaxValue);
+                DependencyManager.ShutDown();
             }
 
             internal static bool IsEmpty
@@ -379,6 +393,10 @@ namespace SenseNet.Search.Indexing
             {
                 lock (_waitingSetLock)
                     _waitingSet.Clear();
+            }
+            internal static void ShutDown()
+            {
+                Reset();
             }
             internal static bool IsEmpty
             {
@@ -557,10 +575,10 @@ namespace SenseNet.Search.Indexing
             {
                 return _lastId;
             }
-            public static CompletionState GetCurrentState()
+            public static IndexingActivityStatus GetCurrentState()
             {
                 lock (_gapsLock)
-                    return new CompletionState { LastActivityId = _lastId, Gaps = _gaps.ToArray() };
+                    return new IndexingActivityStatus { LastActivityId = _lastId, Gaps = _gaps.ToArray() };
             }
         }
 
@@ -578,210 +596,212 @@ namespace SenseNet.Search.Indexing
                     }
                     catch (Exception e)
                     {
+                        //UNDONE:||||| Error logging is not implemented. WARNING Do not fill the event log with repetitive messages.
                         SnTrace.Index.WriteError("IAQ: A{0} EXECUTION ERROR: {1}", activity.Id, e);
                         IndexingActivityHistory.Error(activity.Id, e);
                     }
                     finally
                     {
                         DependencyManager.Finish(activity);
+                        IndexManager.ActivityFinished(activity.Id);
                     }
                     op.Successful = true;
                 }
             }
         }
-    }
 
-    internal class IndexingActivityLoader : IEnumerable<IIndexingActivity>
-    {
-        private bool gapLoader;
+        private class IndexingActivityLoader : IEnumerable<IIndexingActivity>
+        {
+            private bool gapLoader;
 
-        private int from;
-        private int to;
-        private int pageSize;
-        private int[] gaps;
-        private bool executingUnprocessedActivities;
-
-        public IndexingActivityLoader(int from, int to, bool executingUnprocessedActivities)
-        {
-            gapLoader = false;
-            this.from = from;
-            this.to = to;
-            this.executingUnprocessedActivities = executingUnprocessedActivities;
-            this.pageSize = IndexingActivityQueue.IndexingActivityLoadingBufferSize;
-        }
-        public IndexingActivityLoader(int[] gaps, bool executingUnprocessedActivities)
-        {
-            this.gapLoader = true;
-            this.gaps = gaps;
-            this.pageSize = IndexingActivityQueue.IndexingActivityLoadingBufferSize;
-        }
-
-        public IEnumerator<IIndexingActivity> GetEnumerator()
-        {
-            if (gapLoader)
-                return new GapLoader(this.gaps, this.pageSize, this.executingUnprocessedActivities);
-            return new SectionLoader(this.from, this.to, this.pageSize, this.executingUnprocessedActivities);
-        }
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        private class SectionLoader : IEnumerator<IIndexingActivity>
-        {
             private int from;
             private int to;
             private int pageSize;
-
-            private IIndexingActivity[] buffer;
-            private int pointer;
-            private bool isLastPage;
-            private int loadedPageSize;
+            private int[] gaps;
             private bool executingUnprocessedActivities;
 
-            public SectionLoader(int from, int to, int pageSize, bool executingUnprocessedActivities)
+            public IndexingActivityLoader(int from, int to, bool executingUnprocessedActivities)
             {
+                gapLoader = false;
                 this.from = from;
                 this.to = to;
-                this.pageSize = pageSize;
                 this.executingUnprocessedActivities = executingUnprocessedActivities;
-
-                this.buffer = new IndexingActivityBase[pageSize];
-                this.loadedPageSize = this.buffer.Length;
-                this.pointer = this.buffer.Length - 1;
+                this.pageSize = DistributedIndexingActivityQueue.IndexingActivityLoadingBufferSize;
             }
-
-            public IIndexingActivity Current
+            public IndexingActivityLoader(int[] gaps, bool executingUnprocessedActivities)
             {
-                get { return this.buffer[this.pointer]; }
-            }
-            object System.Collections.IEnumerator.Current
-            {
-                get { return Current; }
-            }
-            public void Reset()
-            {
-                throw new NotSupportedException();
-            }
-            public void Dispose()
-            {
-                // does nothing
-            }
-
-            public bool MoveNext()
-            {
-                if (++this.pointer >= this.loadedPageSize)
-                {
-                    if (this.isLastPage)
-                        return false;
-
-                    LoadNextPage(this.buffer, out this.isLastPage, out this.loadedPageSize);
-                    if (this.isLastPage && this.loadedPageSize == 0)
-                        return false;
-
-                    this.pointer = 0;
-                }
-                return true;
-            }
-            private void LoadNextPage(IIndexingActivity[] buffer, out bool isLast, out int count)
-            {
-                count = 0;
-
-                foreach (var item in LoadSegment(from, to, pageSize))
-                    buffer[count++] = item;
-
-                if (count < 1)
-                {
-                    isLast = true;
-                    return;
-                }
-
-                var last = buffer[count - 1];
-                from = last.Id + 1;
-
-                isLast = last.Id >= to;
-            }
-            private IEnumerable<IIndexingActivity> LoadSegment(int from, int to, int count)
-            {
-
-                SnTrace.IndexQueue.Write("IAQ: Loading segment: from: {0}, to: {1}, count: {2}.", from, to, count);
-
-                var segment = DataProvider.Current.LoadIndexingActivities(from, to, count, executingUnprocessedActivities, IndexingActivityFactory.Instance);
-
-                SnTrace.IndexQueue.Write("IAQ: Loaded segment: {0}", String.Join(",", segment.Select(x => x.Id)));
-
-                return segment;
-            }
-
-        }
-        private class GapLoader : IEnumerator<IIndexingActivity>
-        {
-            private int[] gaps;
-            private int gapIndex = 0;
-            private List<IIndexingActivity> buffer = new List<IIndexingActivity>();
-            private int bufferIndex = -1;
-            private int pageSize;
-            private bool executingUnprocessedActivities;
-
-            public GapLoader(int[] gaps, int pageSize, bool executingUnprocessedActivities)
-            {
+                this.gapLoader = true;
                 this.gaps = gaps;
-                this.pageSize = pageSize;
-                this.bufferIndex = pageSize;
-                this.executingUnprocessedActivities = executingUnprocessedActivities;
+                this.pageSize = DistributedIndexingActivityQueue.IndexingActivityLoadingBufferSize;
             }
 
-            public IIndexingActivity Current
+            public IEnumerator<IIndexingActivity> GetEnumerator()
             {
-                get { return this.buffer[this.bufferIndex]; }
+                if (gapLoader)
+                    return new GapLoader(this.gaps, this.pageSize, this.executingUnprocessedActivities);
+                return new SectionLoader(this.from, this.to, this.pageSize, this.executingUnprocessedActivities);
             }
-            object System.Collections.IEnumerator.Current
+            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             {
-                get { return Current; }
-            }
-            public void Reset()
-            {
-                throw new NotSupportedException();
-            }
-            public void Dispose()
-            {
-                // does nothing
+                return GetEnumerator();
             }
 
-            public bool MoveNext()
+            private class SectionLoader : IEnumerator<IIndexingActivity>
             {
-                this.bufferIndex++;
-                if (this.bufferIndex >= this.buffer.Count)
+                private int from;
+                private int to;
+                private int pageSize;
+
+                private IIndexingActivity[] buffer;
+                private int pointer;
+                private bool isLastPage;
+                private int loadedPageSize;
+                private bool executingUnprocessedActivities;
+
+                public SectionLoader(int from, int to, int pageSize, bool executingUnprocessedActivities)
                 {
-                    LoadNextBuffer();
-                    if (this.buffer.Count == 0 && this.gapIndex >= this.gaps.Length)
-                        return false;
-                    this.bufferIndex = 0;
+                    this.from = from;
+                    this.to = to;
+                    this.pageSize = pageSize;
+                    this.executingUnprocessedActivities = executingUnprocessedActivities;
+
+                    this.buffer = new IndexingActivityBase[pageSize];
+                    this.loadedPageSize = this.buffer.Length;
+                    this.pointer = this.buffer.Length - 1;
                 }
-                return true;
-            }
-            private void LoadNextBuffer()
-            {
-                this.buffer.Clear();
-                while (true)
+
+                public IIndexingActivity Current
                 {
-                    if (this.gapIndex >= this.gaps.Length)
-                        break;
-                    var gapPage = this.gaps.Skip(gapIndex).Take(pageSize).ToArray();
-                    this.buffer.AddRange(LoadGaps(gapPage));
-                    this.gapIndex += pageSize;
-                    if (this.buffer.Count >= this.pageSize)
-                        break;
+                    get { return this.buffer[this.pointer]; }
                 }
+                object System.Collections.IEnumerator.Current
+                {
+                    get { return Current; }
+                }
+                public void Reset()
+                {
+                    throw new NotSupportedException();
+                }
+                public void Dispose()
+                {
+                    // does nothing
+                }
+
+                public bool MoveNext()
+                {
+                    if (++this.pointer >= this.loadedPageSize)
+                    {
+                        if (this.isLastPage)
+                            return false;
+
+                        LoadNextPage(this.buffer, out this.isLastPage, out this.loadedPageSize);
+                        if (this.isLastPage && this.loadedPageSize == 0)
+                            return false;
+
+                        this.pointer = 0;
+                    }
+                    return true;
+                }
+                private void LoadNextPage(IIndexingActivity[] buffer, out bool isLast, out int count)
+                {
+                    count = 0;
+
+                    foreach (var item in LoadSegment(from, to, pageSize))
+                        buffer[count++] = item;
+
+                    if (count < 1)
+                    {
+                        isLast = true;
+                        return;
+                    }
+
+                    var last = buffer[count - 1];
+                    from = last.Id + 1;
+
+                    isLast = last.Id >= to;
+                }
+                private IEnumerable<IIndexingActivity> LoadSegment(int from, int to, int count)
+                {
+
+                    SnTrace.IndexQueue.Write("IAQ: Loading segment: from: {0}, to: {1}, count: {2}.", from, to, count);
+
+                    var segment = DataProvider.Current.LoadIndexingActivities(from, to, count, executingUnprocessedActivities, IndexingActivityFactory.Instance);
+
+                    SnTrace.IndexQueue.Write("IAQ: Loaded segment: {0}", String.Join(",", segment.Select(x => x.Id)));
+
+                    return segment;
+                }
+
             }
-            private IEnumerable<IIndexingActivity> LoadGaps(int[] gaps)
+            private class GapLoader : IEnumerator<IIndexingActivity>
             {
+                private int[] gaps;
+                private int gapIndex = 0;
+                private List<IIndexingActivity> buffer = new List<IIndexingActivity>();
+                private int bufferIndex = -1;
+                private int pageSize;
+                private bool executingUnprocessedActivities;
 
-                SnTrace.IndexQueue.Write("IAQ: Loading gaps (count: {0}): [{1}]", gaps.Length, String.Join(", ", gaps));
+                public GapLoader(int[] gaps, int pageSize, bool executingUnprocessedActivities)
+                {
+                    this.gaps = gaps;
+                    this.pageSize = pageSize;
+                    this.bufferIndex = pageSize;
+                    this.executingUnprocessedActivities = executingUnprocessedActivities;
+                }
 
-                return DataProvider.Current.LoadIndexingActivities(gaps, executingUnprocessedActivities, IndexingActivityFactory.Instance);
+                public IIndexingActivity Current
+                {
+                    get { return this.buffer[this.bufferIndex]; }
+                }
+                object System.Collections.IEnumerator.Current
+                {
+                    get { return Current; }
+                }
+                public void Reset()
+                {
+                    throw new NotSupportedException();
+                }
+                public void Dispose()
+                {
+                    // does nothing
+                }
+
+                public bool MoveNext()
+                {
+                    this.bufferIndex++;
+                    if (this.bufferIndex >= this.buffer.Count)
+                    {
+                        LoadNextBuffer();
+                        if (this.buffer.Count == 0 && this.gapIndex >= this.gaps.Length)
+                            return false;
+                        this.bufferIndex = 0;
+                    }
+                    return true;
+                }
+                private void LoadNextBuffer()
+                {
+                    this.buffer.Clear();
+                    while (true)
+                    {
+                        if (this.gapIndex >= this.gaps.Length)
+                            break;
+                        var gapPage = this.gaps.Skip(gapIndex).Take(pageSize).ToArray();
+                        this.buffer.AddRange(LoadGaps(gapPage));
+                        this.gapIndex += pageSize;
+                        if (this.buffer.Count >= this.pageSize)
+                            break;
+                    }
+                }
+                private IEnumerable<IIndexingActivity> LoadGaps(int[] gaps)
+                {
+
+                    SnTrace.IndexQueue.Write("IAQ: Loading gaps (count: {0}): [{1}]", gaps.Length, String.Join(", ", gaps));
+
+                    return DataProvider.Current.LoadIndexingActivities(gaps, executingUnprocessedActivities, IndexingActivityFactory.Instance);
+                }
+
             }
-
         }
     }
 
@@ -796,66 +816,11 @@ namespace SenseNet.Search.Indexing
         public int WaitingSetLength { get { return WaitingSet == null ? 0 : WaitingSet.Length; } }
         public int[] WaitingSet { get; set; }
     }
-    public class CompletionState : IndexingActivityStatus
-    {
-        private const string LastActivityIdKey = "LastActivityId";
-        private const string GapsKey = "Gaps";
-
-        public CompletionState()
-        {
-            Gaps = new int[0];
-        }
-
-        internal static CompletionState GetCurrent()
-        {
-            return IndexingActivityQueue.GetCurrentCompletionState();
-        }
-
-        internal static CompletionState ParseFromReader(Lucene.Net.Index.IndexReader reader)
-        {
-            return ParseFromReader(reader.GetCommitUserData());
-        }
-        internal static CompletionState ParseFromReader(IDictionary<string, string> commitUserData)
-        {
-            var result = new CompletionState();
-            if (commitUserData != null)
-            {
-                string value;
-
-                int lastActivityId;
-                if (commitUserData.TryGetValue(CompletionState.LastActivityIdKey, out value))
-                    if (!string.IsNullOrEmpty(value))
-                        if (int.TryParse(value, out lastActivityId))
-                            result.LastActivityId = lastActivityId;
-
-                if (commitUserData.TryGetValue(GapsKey, out value))
-                    if (!string.IsNullOrEmpty(value))
-                        result.Gaps = value
-                            .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                            .Select(s => { int i; return int.TryParse(s, out i) ? i : 0;})
-                            .Where(i => i > 0)
-                            .ToArray();
-            }
-            return result;
-        }
-
-        internal static Dictionary<string, string> GetCommitUserData(IndexingActivityStatus data)
-        {
-            return GetCommitUserData(data.LastActivityId, data.Gaps);
-        }
-        internal static Dictionary<string, string> GetCommitUserData(int lastActivityId, int[] gaps = null)
-        {
-            var data = new Dictionary<string, string> {{CompletionState.LastActivityIdKey, lastActivityId.ToString()}};
-            if (gaps != null && gaps.Length > 0)
-                data.Add(GapsKey, string.Join(",", gaps));
-            return data;
-        }
-    }
     public class IndexingActivityQueueState
     {
         public IndexingActivitySerializerState Serializer { get; set; }
         public IndexingActivityDependencyState DependencyManager { get; set; }
-        public CompletionState Termination { get; set; }
+        public IndexingActivityStatus Termination { get; set; }
     }
 
     public class IndexingActivityHistoryItem
@@ -920,7 +885,7 @@ namespace SenseNet.Search.Indexing
 
                 result = new IndexingActivityHistory()
                 {
-                    State = IndexingActivityQueue.GetCurrentState(),
+                    State = DistributedIndexingActivityQueue.GetCurrentState(),
                     Recent = list.ToArray()
                 };
             }
@@ -939,7 +904,7 @@ namespace SenseNet.Search.Indexing
 
                 result = new IndexingActivityHistory()
                 {
-                    State = IndexingActivityQueue.GetCurrentState(),
+                    State = DistributedIndexingActivityQueue.GetCurrentState(),
                     Recent = new IndexingActivityHistoryItem[0]
                 };
             }

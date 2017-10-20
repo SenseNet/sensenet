@@ -8,41 +8,20 @@ using SenseNet.ContentRepository.Storage;
 using System.Linq;
 using System.Threading;
 using System.Collections.Generic;
+using SenseNet.Configuration;
+using SenseNet.ContentRepository.Tests.Implementations;
 
 namespace SenseNet.Search.IntegrationTests
 {
     [TestClass]
-    public class IndexingActivitySqlTests : TestBase
+    public class CentralizedIndexingInMemorylTests : TestBase
     {
-        private static string _connectionString = @"Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=sn7tests;Data Source=.\SQL2016";
-
-        [ClassInitialize]
-        public static void InitializeClass(TestContext context)
-        {
-            CleanupIndexingActivitiesTable();
-        }
-        public static void CleanupIndexingActivitiesTable()
-        {
-            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
-            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
-            try
-            {
-                DataProvider.Current.DeleteAllIndexingActivities();
-            }
-            finally
-            {
-                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
-            }
-        }
-
         [TestMethod, TestCategory("IR")]
-        public void IndexingSql_RegisterAndReload()
+        public void Indexing_Centralized_InMemory_RegisterAndReload()
         {
-            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
-            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
-            try
+            using (new ContentRepository.Tests.Tools.DataProviderSwindler(new InMemoryDataProvider()))
             {
-                var lastActivityIdBefore = DataProvider.Current.GetLastActivityId();
+                var lastActivityIdBefore = DataProvider.Current.GetLastIndexingActivityId();
 
                 var timeAtStart = DateTime.UtcNow;
 
@@ -68,7 +47,7 @@ namespace SenseNet.Search.IntegrationTests
 
                 var timeAtEnd = DateTime.UtcNow;
 
-                var lastActivityIdAfter = DataProvider.Current.GetLastActivityId();
+                var lastActivityIdAfter = DataProvider.Current.GetLastIndexingActivityId();
                 Assert.AreEqual(lastActivityIdBefore + 5, lastActivityIdAfter);
 
                 var factory = new IndexingActivityFactory();
@@ -95,7 +74,7 @@ namespace SenseNet.Search.IntegrationTests
                     Assert.IsTrue(timeAtStart <= unprocessedActivities[i].CreationDate && unprocessedActivities[i].CreationDate <= timeAtEnd);
                     Assert.IsTrue(unprocessedActivities[i].IsUnprocessedActivity);
                     Assert.AreEqual(IndexingActivityRunningState.Waiting, unprocessedActivities[i].RunningState);
-                    Assert.IsNull(unprocessedActivities[i].StartDate);
+                    Assert.IsNull(unprocessedActivities[i].LockTime);
                 }
 
                 // ---- simulating runtime maintenance
@@ -120,7 +99,7 @@ namespace SenseNet.Search.IntegrationTests
                     Assert.IsTrue(timeAtStart <= loadedActivities[i].CreationDate && loadedActivities[i].CreationDate <= timeAtEnd);
                     Assert.IsFalse(loadedActivities[i].IsUnprocessedActivity);
                     Assert.AreEqual(IndexingActivityRunningState.Waiting, unprocessedActivities[i].RunningState);
-                    Assert.IsNull(unprocessedActivities[i].StartDate);
+                    Assert.IsNull(unprocessedActivities[i].LockTime);
                 }
 
                 var gaps = new[] { lastActivityIdBefore + 1, lastActivityIdBefore + 2 };
@@ -141,24 +120,18 @@ namespace SenseNet.Search.IntegrationTests
                    $"False, False",
                    string.Join(", ", loadedActivitiesFromGaps.Select(x => x.IsUnprocessedActivity.ToString()).ToArray()));
             }
-            finally
-            {
-                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
-            }
         }
 
         [TestMethod, TestCategory("IR")]
-        public void IndexingSql_UpdateStateToDone()
+        public void Indexing_Centralized_InMemory_UpdateStateToDone()
         {
-            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
-            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
-            try
+            using (new ContentRepository.Tests.Tools.DataProviderSwindler(new InMemoryDataProvider()))
             {
-                var lastActivityIdBefore = DataProvider.Current.GetLastActivityId();
+                var lastActivityIdBefore = DataProvider.Current.GetLastIndexingActivityId();
                 DataProvider.Current.RegisterIndexingActivity(
                     CreateActivity(
-                        IndexingActivityType.AddDocument, "/Root/IndexingSql_UpdateStateToDone", 42, 42, 99999999, null));
-                var lastActivityIdAfter = DataProvider.Current.GetLastActivityId();
+                        IndexingActivityType.AddDocument, "/Root/Indexing_Centralized_InMemory_UpdateStateToDone", 42, 42, 99999999, null));
+                var lastActivityIdAfter = DataProvider.Current.GetLastIndexingActivityId();
 
                 var factory = new IndexingActivityFactory();
                 var loadedActivities = DataProvider.Current.LoadIndexingActivities(lastActivityIdBefore + 1, lastActivityIdAfter, 1000, false, factory).ToArray();
@@ -174,26 +147,19 @@ namespace SenseNet.Search.IntegrationTests
                 DataProvider.Current.UpdateIndexingActivityRunningState(loadedActivity.Id, IndexingActivityRunningState.Done);
 
                 // check
-                var lastActivityIdAfterUpdate = DataProvider.Current.GetLastActivityId();
+                var lastActivityIdAfterUpdate = DataProvider.Current.GetLastIndexingActivityId();
                 Assert.AreEqual(lastActivityIdAfter, lastActivityIdAfterUpdate);
 
                 loadedActivity = DataProvider.Current.LoadIndexingActivities(lastActivityIdBefore + 1, lastActivityIdAfter, 1000, false, factory).First();
                 Assert.AreEqual(IndexingActivityRunningState.Done, loadedActivity.RunningState);
             }
-            finally
-            {
-                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
-            }
         }
 
         [TestMethod, TestCategory("IR")]
-        public void IndexingSql_Allocate01_SelectWaiting()
+        public void Indexing_Centralized_InMemory_Allocate01_SelectWaiting()
         {
-            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
-            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
-            try
+            using (new ContentRepository.Tests.Tools.DataProviderSwindler(new InMemoryDataProvider()))
             {
-                CleanupIndexingActivitiesTable();
                 var start = new[]
                 {
                     RegisterActivity(IndexingActivityType.AddDocument, IndexingActivityRunningState.Done, 1, 1, "/Root/Path1"),
@@ -201,24 +167,17 @@ namespace SenseNet.Search.IntegrationTests
                     RegisterActivity(IndexingActivityType.AddDocument, IndexingActivityRunningState.Waiting, 3, 3, "/Root/Path3"),
                 };
 
-                var allocated =  DataProvider.Current.StartIndexingActivities(10, 60, new IndexingActivityFactory());
+                var allocated =  DataProvider.Current.LoadExecutableIndexingActivities(new IndexingActivityFactory(), 10, 60);
 
                 Assert.AreEqual(1, allocated.Length);
                 Assert.AreEqual(start[2].Id, allocated[0].Id);
             }
-            finally
-            {
-                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
-            }
         }
         [TestMethod, TestCategory("IR")]
-        public void IndexingSql_Allocate02_IdDependency()
+        public void Indexing_Centralized_InMemory_Allocate02_IdDependency()
         {
-            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
-            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
-            try
+            using (new ContentRepository.Tests.Tools.DataProviderSwindler(new InMemoryDataProvider()))
             {
-                CleanupIndexingActivitiesTable();
                 var start = new[]
                 {
                     RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Waiting, 1, 1, "/Root/Path1"),
@@ -226,24 +185,37 @@ namespace SenseNet.Search.IntegrationTests
                     RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 1, 1, "/Root/Path1"),
                 };
 
-                var allocated =  DataProvider.Current.StartIndexingActivities(10, 60, new IndexingActivityFactory());
+                var allocated = DataProvider.Current.LoadExecutableIndexingActivities(new IndexingActivityFactory(), 10, 60);
 
                 Assert.AreEqual(1, allocated.Length);
                 Assert.AreEqual(start[0].Id, allocated[0].Id);
             }
-            finally
+        }
+        [TestMethod, TestCategory("IR")]
+        public void Indexing_Centralized_InMemory_Allocate02_IdDependency_VersionId0()
+        {
+            using (new ContentRepository.Tests.Tools.DataProviderSwindler(new InMemoryDataProvider()))
             {
-                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+                var start = new[]
+                {
+                    RegisterActivity(IndexingActivityType.Rebuild, IndexingActivityRunningState.Waiting, 1, 0, "/Root/Path1"),
+                    RegisterActivity(IndexingActivityType.Rebuild, IndexingActivityRunningState.Waiting, 2, 0, "/Root/Path2"),
+                    RegisterActivity(IndexingActivityType.Rebuild, IndexingActivityRunningState.Waiting, 3, 0, "/Root/Path3"),
+                };
+
+                var allocated = DataProvider.Current.LoadExecutableIndexingActivities(new IndexingActivityFactory(), 10, 60);
+
+                Assert.AreEqual(3, allocated.Length);
+                Assert.AreEqual(start[0].Id, allocated[0].Id);
+                Assert.AreEqual(start[1].Id, allocated[1].Id);
+                Assert.AreEqual(start[2].Id, allocated[2].Id);
             }
         }
         [TestMethod, TestCategory("IR")]
-        public void IndexingSql_Allocate03_InactiveDependency()
+        public void Indexing_Centralized_InMemory_Allocate03_InactiveDependency()
         {
-            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
-            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
-            try
+            using (new ContentRepository.Tests.Tools.DataProviderSwindler(new InMemoryDataProvider()))
             {
-                CleanupIndexingActivitiesTable();
                 var start = new[]
                 {
                     RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Done,    1, 1, "/Root/Path1"),
@@ -253,24 +225,17 @@ namespace SenseNet.Search.IntegrationTests
                     RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 2, 2, "/Root/Path2"),
                 };
 
-                var allocated =  DataProvider.Current.StartIndexingActivities(10, 60, new IndexingActivityFactory());
+                var allocated =  DataProvider.Current.LoadExecutableIndexingActivities(new IndexingActivityFactory(), 10, 60);
 
                 Assert.AreEqual(1, allocated.Length);
                 Assert.AreEqual(start[2].Id, allocated[0].Id);
             }
-            finally
-            {
-                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
-            }
         }
         [TestMethod, TestCategory("IR")]
-        public void IndexingSql_Allocate04_SelectMore()
+        public void Indexing_Centralized_InMemory_Allocate04_SelectMore()
         {
-            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
-            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
-            try
+            using (new ContentRepository.Tests.Tools.DataProviderSwindler(new InMemoryDataProvider()))
             {
-                CleanupIndexingActivitiesTable();
                 var start = new[]
                 {
                     RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Done,    1, 1, "/Root/Path1"), //   0
@@ -284,26 +249,19 @@ namespace SenseNet.Search.IntegrationTests
                     RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 4, 4, "/Root/Path4"), //   8
                 };
 
-                var allocated =  DataProvider.Current.StartIndexingActivities(10, 60, new IndexingActivityFactory());
+                var allocated =  DataProvider.Current.LoadExecutableIndexingActivities(new IndexingActivityFactory(), 10, 60);
 
                 Assert.AreEqual(3, allocated.Length);
                 Assert.AreEqual(start[2].Id, allocated[0].Id);
                 Assert.AreEqual(start[5].Id, allocated[1].Id);
                 Assert.AreEqual(start[7].Id, allocated[2].Id);
             }
-            finally
-            {
-                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
-            }
         }
         [TestMethod, TestCategory("IR")]
-        public void IndexingSql_Allocate05_PathDependency()
+        public void Indexing_Centralized_InMemory_Allocate05_PathDependency()
         {
-            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
-            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
-            try
+            using (new ContentRepository.Tests.Tools.DataProviderSwindler(new InMemoryDataProvider()))
             {
-                CleanupIndexingActivitiesTable();
                 var start = new[]
                 {
                     RegisterActivity(IndexingActivityType.AddTree,        IndexingActivityRunningState.Waiting, 1, 1, "/Root/Path1"),     // 0
@@ -316,7 +274,7 @@ namespace SenseNet.Search.IntegrationTests
                     RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Waiting, 7, 7, "/Root/Path4"),     // 7
                 };
 
-                var allocated =  DataProvider.Current.StartIndexingActivities(10, 60, new IndexingActivityFactory());
+                var allocated =  DataProvider.Current.LoadExecutableIndexingActivities(new IndexingActivityFactory(), 10, 60);
 
                 Assert.AreEqual(4, allocated.Length);
                 Assert.AreEqual(start[0].Id, allocated[0].Id);
@@ -324,19 +282,12 @@ namespace SenseNet.Search.IntegrationTests
                 Assert.AreEqual(start[5].Id, allocated[2].Id);
                 Assert.AreEqual(start[7].Id, allocated[3].Id);
             }
-            finally
-            {
-                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
-            }
         }
         [TestMethod, TestCategory("IR")]
-        public void IndexingSql_Allocate06_Timeout()
+        public void Indexing_Centralized_InMemory_Allocate06_Timeout()
         {
-            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
-            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
-            try
+            using (new ContentRepository.Tests.Tools.DataProviderSwindler(new InMemoryDataProvider()))
             {
-                CleanupIndexingActivitiesTable();
                 var start = new[]
                 {
                     RegisterActivity(IndexingActivityType.AddDocument, IndexingActivityRunningState.Done, DateTime.UtcNow.AddSeconds(-75), 1, 1, "/Root/Path1"),        //   0
@@ -355,7 +306,7 @@ namespace SenseNet.Search.IntegrationTests
                     RegisterActivity(IndexingActivityType.AddDocument, IndexingActivityRunningState.Waiting, DateTime.UtcNow,                 13, 13, "/Root/Path13"),   // 11
                 };
 
-                var allocated =  DataProvider.Current.StartIndexingActivities(10, 60, new IndexingActivityFactory());
+                var allocated =  DataProvider.Current.LoadExecutableIndexingActivities(new IndexingActivityFactory(), 10, 60);
 
                 Assert.AreEqual(6, allocated.Length);
                 Assert.AreEqual(start[4].Id, allocated[0].Id);
@@ -365,44 +316,30 @@ namespace SenseNet.Search.IntegrationTests
                 Assert.AreEqual(start[10].Id, allocated[4].Id);
                 Assert.AreEqual(start[11].Id, allocated[5].Id);
             }
-            finally
-            {
-                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
-            }
         }
         [TestMethod, TestCategory("IR")]
-        public void IndexingSql_Allocate07_MaxRecords()
+        public void Indexing_Centralized_InMemory_Allocate07_MaxRecords()
         {
-            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
-            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
-            try
+            using (new ContentRepository.Tests.Tools.DataProviderSwindler(new InMemoryDataProvider()))
             {
-                CleanupIndexingActivitiesTable();
                 var start = new IIndexingActivity[15];
                 for (int i = 1; i <= start.Length; i++)
                 {
                     start[i - 1] = RegisterActivity(IndexingActivityType.AddDocument, IndexingActivityRunningState.Waiting, i, i, $"/Root/Path0{i}");
                 }
 
-                var allocated =  DataProvider.Current.StartIndexingActivities(10, 60, new IndexingActivityFactory());
+                var allocated =  DataProvider.Current.LoadExecutableIndexingActivities(new IndexingActivityFactory(), 10, 60);
 
                 Assert.AreEqual(10, allocated.Length);
                 for (var i = 0; i < 10; i++)
                     Assert.AreEqual(start[i].Id, allocated[i].Id);
             }
-            finally
-            {
-                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
-            }
         }
         [TestMethod, TestCategory("IR")]
-        public void IndexingSql_Allocate08_StateUpdated()
+        public void Indexing_Centralized_InMemory_Allocate08_StateUpdated()
         {
-            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
-            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
-            try
+            using (new ContentRepository.Tests.Tools.DataProviderSwindler(new InMemoryDataProvider()))
             {
-                CleanupIndexingActivitiesTable();
                 var start = new[]
                 {
                     RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Waiting, 1, 1, "/Root/Path1"),
@@ -411,7 +348,7 @@ namespace SenseNet.Search.IntegrationTests
                     RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 2, 2, "/Root/Path2"),         
                 };
 
-                var allocated =  DataProvider.Current.StartIndexingActivities(10, 60, new IndexingActivityFactory());
+                var allocated =  DataProvider.Current.LoadExecutableIndexingActivities(new IndexingActivityFactory(), 10, 60);
 
                 Assert.AreEqual(2, allocated.Length);
                 Assert.AreEqual(start[0].Id, allocated[0].Id);
@@ -419,11 +356,97 @@ namespace SenseNet.Search.IntegrationTests
                 Assert.AreEqual(IndexingActivityRunningState.Running, allocated[0].RunningState);
                 Assert.AreEqual(IndexingActivityRunningState.Running, allocated[1].RunningState);
             }
-            finally
+        }
+
+        [TestMethod, TestCategory("IR")]
+        public void Indexing_Centralized_InMemory_AllocateAndState()
+        {
+            using (new ContentRepository.Tests.Tools.DataProviderSwindler(new InMemoryDataProvider()))
             {
-                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+                var start = new[]
+                {
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Done, 1, 1, "/Root/Path1"),
+                    RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 1, 1, "/Root/Path1"),
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Running, 2, 2, "/Root/Path2"),
+                    RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 2, 2, "/Root/Path2"),
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Waiting, 3, 3, "/Root/Path3"),
+                    RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 3, 3, "/Root/Path3"),
+                };
+
+                var waitingIds = new[] { start[0].Id, start[2].Id };
+
+                var allocated = DataProvider.Current.LoadExecutableIndexingActivities(new IndexingActivityFactory(), 10, 60, waitingIds, out int[] finishetIds);
+
+                Assert.AreEqual(1, finishetIds.Length);
+                Assert.AreEqual(start[0].Id, finishetIds[0]);
+
+                Assert.AreEqual(2, allocated.Length);
+                Assert.AreEqual(start[1].Id, allocated[0].Id);
+                Assert.AreEqual(start[4].Id, allocated[1].Id);
+                Assert.AreEqual(IndexingActivityRunningState.Running, allocated[0].RunningState);
+                Assert.AreEqual(IndexingActivityRunningState.Running, allocated[1].RunningState);
             }
         }
+        [TestMethod, TestCategory("IR")]
+        public void Indexing_Centralized_InMemory_RefreshLock()
+        {
+            using (new ContentRepository.Tests.Tools.DataProviderSwindler(new InMemoryDataProvider()))
+            {
+                var now = DateTime.UtcNow;
+                var time1 = now.AddSeconds(-60 * 6);
+                var time2 = now.AddSeconds(-60 * 5);
+                var time3 = now.AddSeconds(-60 * 4);
+                var time4 = now.AddSeconds(-60 * 3);
+                var start = new[]
+                {
+                    RegisterActivity(IndexingActivityType.Rebuild, IndexingActivityRunningState.Waiting, time1, 1, 1, "/Root/Path1"),
+                    RegisterActivity(IndexingActivityType.Rebuild, IndexingActivityRunningState.Waiting, time2, 2, 2, "/Root/Path2"),
+                    RegisterActivity(IndexingActivityType.Rebuild, IndexingActivityRunningState.Waiting, time3, 3, 3, "/Root/Path3"),
+                    RegisterActivity(IndexingActivityType.Rebuild, IndexingActivityRunningState.Waiting, time4, 4, 4, "/Root/Path4"),
+                };
+                var startIds = start.Select(x => x.Id).ToArray();
+
+                var waitingIds = new[] { start[1].Id, start[2].Id };
+                DataProvider.Current.RefreshIndexingActivityLockTime(waitingIds);
+
+                var activities = DataProvider.Current.LoadIndexingActivities(startIds, false, IndexingActivityFactory.Instance);
+
+                Assert.AreEqual(4, activities.Length);
+
+                Assert.IsTrue(time1 == activities[0].LockTime);
+                Assert.IsTrue(now <= activities[1].LockTime);
+                Assert.IsTrue(now <= activities[2].LockTime);
+                Assert.IsTrue(time4 == activities[3].LockTime);
+            }
+        }
+        [TestMethod, TestCategory("IR")]
+        public void Indexing_Centralized_InMemory_DeleteFinished()
+        {
+            using (new ContentRepository.Tests.Tools.DataProviderSwindler(new InMemoryDataProvider()))
+            {
+                var start = new[]
+                {
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Done,    1, 1, "/Root/Path1"),
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Done,    2, 2, "/Root/Path2"),
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Running, 3, 3, "/Root/Path3"),
+                    RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 3, 3, "/Root/Path3"),
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Done,    4, 4, "/Root/Path4"),
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Waiting, 5, 5, "/Root/Path5"),
+                };
+
+                DataProvider.Current.DeleteFinishedIndexingActivities();
+
+                var loaded = DataProvider.Current.LoadIndexingActivities(0, int.MaxValue, 9999, false, IndexingActivityFactory.Instance);
+
+                Assert.AreEqual(3, loaded.Length);
+
+                Assert.AreEqual(start[2].Id, loaded[0].Id);
+                Assert.AreEqual(start[3].Id, loaded[1].Id);
+                Assert.AreEqual(start[5].Id, loaded[2].Id);
+            }
+        }
+
+        /* ====================================================================================== */
 
         private IIndexingActivity RegisterActivity(IndexingActivityType type, IndexingActivityRunningState state, int nodeId, int versionId, string path)
         {
@@ -438,7 +461,7 @@ namespace SenseNet.Search.IntegrationTests
 
             return activity;
         }
-        private IIndexingActivity RegisterActivity(IndexingActivityType type, IndexingActivityRunningState state, DateTime startDate, int nodeId, int versionId, string path)
+        private IIndexingActivity RegisterActivity(IndexingActivityType type, IndexingActivityRunningState state, DateTime lockTime, int nodeId, int versionId, string path)
         {
             IndexingActivityBase activity;
             if (type == IndexingActivityType.AddTree || type == IndexingActivityType.RemoveTree)
@@ -447,14 +470,12 @@ namespace SenseNet.Search.IntegrationTests
                 activity = CreateActivity(type, path, nodeId, versionId, 9999, null);
 
             activity.RunningState = state;
-            activity.StartDate = startDate;
+            activity.LockTime = lockTime;
 
             DataProvider.Current.RegisterIndexingActivity(activity);
 
             return activity;
         }
-
-        // ======================================================================================
 
         private static IndexingActivityBase CreateActivity(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp, IndexDocumentData indexDocumentData)
         {

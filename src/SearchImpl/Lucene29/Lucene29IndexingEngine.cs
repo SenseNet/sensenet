@@ -211,11 +211,7 @@ namespace SenseNet.Search.Lucene29
 
             CreateWriterAndReader();
 
-            IndexingActivityQueue.Startup(consoleOut);
-
             Warmup();
-
-            IndexHealthMonitor.Start(consoleOut);
         }
 
         private void Warmup()
@@ -271,7 +267,7 @@ namespace SenseNet.Search.Lucene29
         public IndexingActivityStatus ReadActivityStatusFromIndex()
         {
             using (var readerFrame = GetIndexReaderFrame())
-                return CompletionState.ParseFromReader(readerFrame.IndexReader);
+                return ParseFromReader(readerFrame.IndexReader);
         }
 
         public void WriteActivityStatusToIndex(IndexingActivityStatus state)
@@ -577,7 +573,7 @@ namespace SenseNet.Search.Lucene29
             {
                 using (var wrFrame = IndexWriterFrame.Get(!reopenReader)) // // Commit
                 {
-                    var commitState = state ?? CompletionState.GetCurrent();
+                    var commitState = state ?? IndexManager.GetCurrentIndexingActivityStatus();
                     var commitStateMessage = commitState.ToString();
 
                     SnTrace.Index.Write("LM: Committing_writer. commitState: " + commitStateMessage);
@@ -585,7 +581,7 @@ namespace SenseNet.Search.Lucene29
                     // Write a fake document to make sure that the index changes are written to the file system.
                     wrFrame.IndexWriter.UpdateDocument(new Term(COMMITFIELDNAME, COMMITFIELDNAME), GetFakeDocument());
 
-                    wrFrame.IndexWriter.Commit(CompletionState.GetCommitUserData(commitState));
+                    wrFrame.IndexWriter.Commit(GetCommitUserData(commitState));
 
                     if (reopenReader)
                         ReopenReader();
@@ -594,6 +590,7 @@ namespace SenseNet.Search.Lucene29
                 op.Successful = true;
             }
         }
+
 
         private void ReopenReader()
         {
@@ -628,6 +625,43 @@ namespace SenseNet.Search.Lucene29
             }
         }
 
+        /* ============================================================================= IndexingActivityStatus */
+
+        private const string LastActivityIdKey = "LastActivityId";
+        private const string GapsKey = "Gaps";
+        private static Dictionary<string, string> GetCommitUserData(IndexingActivityStatus status)
+        {
+            var result = new Dictionary<string, string> { { LastActivityIdKey, status.LastActivityId.ToString() } };
+            var gaps = status.Gaps;
+            if (gaps != null && gaps.Length > 0)
+                result.Add(GapsKey, string.Join(",", gaps));
+            return result;
+        }
+        private static IndexingActivityStatus ParseFromReader(IndexReader reader)
+        {
+            var commitUserData = reader.GetCommitUserData();
+            var result = new IndexingActivityStatus();
+            if (commitUserData != null)
+            {
+                string value;
+
+                int lastActivityId;
+                if (commitUserData.TryGetValue(LastActivityIdKey, out value))
+                    if (!string.IsNullOrEmpty(value))
+                        if (int.TryParse(value, out lastActivityId))
+                            result.LastActivityId = lastActivityId;
+
+                if (commitUserData.TryGetValue(GapsKey, out value))
+                    if (!string.IsNullOrEmpty(value))
+                        result.Gaps = value
+                            .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                            .Select(s => { int i; return int.TryParse(s, out i) ? i : 0; })
+                            .Where(i => i > 0)
+                            .ToArray();
+            }
+            return result;
+        }
+
         /* ==================================================================================================== */
 
         private const string COMMITFIELDNAME = "$#COMMIT";
@@ -657,6 +691,8 @@ namespace SenseNet.Search.Lucene29
         }
 
         public DateTime IndexReopenedAt { get; private set; }
+
+        public bool IndexIsCentralized => false;
 
         public IndexReaderFrame GetIndexReaderFrame(bool dirty = false)
         {

@@ -23,6 +23,7 @@ using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Lucene29;
 using SenseNet.SearchImpl.Tests.Implementations;
+using System.Threading;
 
 namespace SenseNet.SearchImpl.Tests
 {
@@ -54,7 +55,7 @@ namespace SenseNet.SearchImpl.Tests
 
             var indxDir =((Lucene29IndexingEngine)engine).IndexDirectory.CurrentDirectory;
             Assert.IsNotNull(indxDir);
-            Assert.IsTrue(indxDir.EndsWith(MethodBase.GetCurrentMethod().Name));
+            Assert.IsTrue(indxDir.Contains(MethodBase.GetCurrentMethod().Name));
             Assert.IsTrue(console.Contains(indxDir));
         }
 
@@ -77,7 +78,7 @@ namespace SenseNet.SearchImpl.Tests
 
                 // load last indexing activity
                 var db = DataProvider.Current;
-                var activityId = db.GetLastActivityId();
+                var activityId = db.GetLastIndexingActivityId();
                 activities = db.LoadIndexingActivities(1, activityId, 10000, false, IndexingActivityFactory.Instance);
 
                 int[] nodeIds, versionIds;
@@ -378,7 +379,6 @@ namespace SenseNet.SearchImpl.Tests
         [TestMethod, TestCategory("IR, L29")]
         public void L29_ActivityStatus_WithSave()
         {
-            Assert.Inconclusive(); 
             var result = L29Test(s =>
             {
                 var searchEngine = SearchManager.SearchEngine;
@@ -387,9 +387,6 @@ namespace SenseNet.SearchImpl.Tests
                 var node = new SystemFolder(Repository.Root) { Name = "L29_ActivityStatus_WithSave" };
                 using (new SystemAccount())
                     node.Save();
-
-                //UNDONE:|||||| COMMIT/INDEXING STATUS: this should work without an explicit commit
-                //IndexManager.Commit();
 
                 var updatedStatus = searchEngine.IndexingEngine.ReadActivityStatusFromIndex();
 
@@ -426,7 +423,7 @@ namespace SenseNet.SearchImpl.Tests
         {
             var dataProvider = new InMemoryDataProvider();
             var securityDataProvider = GetSecurityDataProvider(dataProvider);
-            var indexFolderName = "Test_" + memberName;
+            var indexFolderName = $"Test_{memberName}_{Guid.NewGuid()}";
             var indexingEngine = new Lucene29IndexingEngine(new IndexDirectory(indexFolderName));
             var searchEngine = new Lucene29SearchEngine
             {
