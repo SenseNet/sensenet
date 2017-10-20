@@ -149,7 +149,7 @@ namespace SenseNet.Search.Indexing
         }
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            if (_uncommittedActivityCount > 0)
+            if (_uncommittedActivityCount > 0 && DateTime.UtcNow - _lastCommitTime > MaxWaitTime)
                 Commit();
         }
 
