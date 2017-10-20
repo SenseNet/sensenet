@@ -15,7 +15,7 @@ namespace SenseNet.Search.Indexing
         #region /* ==================================================================== Managing index */
 
         internal static IIndexingEngine IndexingEngine => SearchManager.SearchEngine.IndexingEngine;
-        internal static ICommitManager CommitManager { get; } = new NoDelayCommitManager();
+        internal static ICommitManager CommitManager { get; private set; }
 
         public static bool Running => IndexingEngine.Running;
 
@@ -27,6 +27,9 @@ namespace SenseNet.Search.Indexing
         public static void Start(TextWriter consoleOut)
         {
             IndexingEngine.Start(consoleOut);
+
+            CommitManager = IndexingEngine.IndexIsCentralized ? (ICommitManager)new NoDelayCommitManager() : new NearRealTimeCommitManager();
+            SnTrace.Index.Write("LM: {0} created.", CommitManager.GetType().Name);
             CommitManager.Start();
 
             if (IndexingEngine.IndexIsCentralized)
@@ -105,13 +108,24 @@ namespace SenseNet.Search.Indexing
 
         /*========================================================================================== Commit */
 
+        // called from activity
         internal static void ActivityFinished(int activityId, bool executingUnprocessedActivities)
         {
+            //SnTrace.Index.Write("LM: ActivityFinished: {0}", activityId);
+            //CommitManager.ActivityFinished();
+        }
+        // called from activity queue
+        internal static void ActivityFinished(int activityId)
+        {
+            SnTrace.Index.Write("LM: ActivityFinished: {0}", activityId);
             CommitManager.ActivityFinished();
         }
+
         internal static void Commit()
         {
-            IndexingEngine.WriteActivityStatusToIndex(CompletionState.GetCurrent());
+            var state = CompletionState.GetCurrent();
+            SnTrace.Index.Write("LM: WriteActivityStatusToIndex: {0}", state);
+            IndexingEngine.WriteActivityStatusToIndex(state);
         }
 
         #endregion

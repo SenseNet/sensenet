@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.Search.Indexing
@@ -31,6 +32,7 @@ namespace SenseNet.Search.Indexing
         }
     }
 
+    [Obsolete("", true)]
     internal class NRTCommitManager : ICommitManager
     {
         private volatile int _uncommittedActivityCount;          // committer thread sets 0 other threads increment
@@ -118,5 +120,59 @@ namespace SenseNet.Search.Indexing
             }
         }
 
+    }
+
+    internal class NearRealTimeCommitManager : ICommitManager
+    {
+        private static readonly TimeSpan MaxWaitTime = TimeSpan.FromSeconds(10);
+        private DateTime _lastCommitTime;
+        private int _uncommittedActivityCount;
+
+        private static System.Timers.Timer _timer;
+        private static readonly int HearthBeatMilliseconds = 1000;
+
+        public void Start()
+        {
+            _lastCommitTime = DateTime.UtcNow;
+            _uncommittedActivityCount = 0;
+
+            _timer = new System.Timers.Timer(HearthBeatMilliseconds);
+            _timer.Elapsed += new System.Timers.ElapsedEventHandler(Timer_Elapsed);
+            _timer.Disposed += new EventHandler(Timer_Disposed);
+            _timer.Enabled = true;
+
+        }
+        private void Timer_Disposed(object sender, EventArgs e)
+        {
+            _timer.Elapsed -= new System.Timers.ElapsedEventHandler(Timer_Elapsed);
+            _timer.Disposed -= new EventHandler(Timer_Disposed);
+        }
+        private void Timer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            if (_uncommittedActivityCount > 0)
+                Commit();
+        }
+
+        public void ShutDown()
+        {
+            _timer.Enabled = false;
+            _timer.Dispose();
+        }
+
+        public void ActivityFinished()
+        {
+            Interlocked.Increment(ref _uncommittedActivityCount);
+
+            if (_uncommittedActivityCount == 1 || DateTime.UtcNow - _lastCommitTime > MaxWaitTime)
+                Commit();
+        }
+
+
+        private void Commit()
+        {
+            IndexManager.Commit();
+            Interlocked.Exchange(ref _uncommittedActivityCount, 0);
+            _lastCommitTime = DateTime.UtcNow;
+        }
     }
 }

@@ -602,6 +602,7 @@ namespace SenseNet.Search.Indexing
                     finally
                     {
                         DependencyManager.Finish(activity);
+                        IndexManager.ActivityFinished(activity.Id);
                     }
                     op.Successful = true;
                 }
