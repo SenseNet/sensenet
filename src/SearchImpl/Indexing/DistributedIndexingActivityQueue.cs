@@ -97,8 +97,8 @@ namespace SenseNet.Search.Indexing
             // or the waiting set contains too many elements. In the future
             // this algorithm may be changed to a different one based on
             // activity size instead of count.
-            return DependencyManager.WaitingSetLength >= SenseNet.Configuration.Indexing.LuceneActivityQueueMaxLength ||
-                Serializer.QueueLength >= SenseNet.Configuration.Indexing.LuceneActivityQueueMaxLength;
+            return DependencyManager.WaitingSetLength >= SenseNet.Configuration.Indexing.IndexingActivityQueueMaxLength ||
+                Serializer.QueueLength >= SenseNet.Configuration.Indexing.IndexingActivityQueueMaxLength;
         }
 
         public static void Startup(System.IO.TextWriter consoleOut)

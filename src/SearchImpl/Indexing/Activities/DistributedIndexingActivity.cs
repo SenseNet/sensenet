@@ -91,7 +91,7 @@ namespace SenseNet.Search.Indexing.Activities
             }
             else
             {
-                if (!_finishSignal.WaitOne(SenseNet.Configuration.Indexing.LuceneActivityTimeoutInSeconds * 1000, false))
+                if (!_finishSignal.WaitOne(SenseNet.Configuration.Indexing.IndexingActivityTimeoutInSeconds * 1000, false))
                 {
                     string message;
 

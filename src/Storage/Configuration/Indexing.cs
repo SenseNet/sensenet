@@ -60,8 +60,8 @@ namespace SenseNet.Configuration
         public static int DelayedCommitCycleMaxCount { get; internal set; } = GetInt(SectionName, "DelayedCommitCycleMaxCount", 10);
 
         public static int IndexingPausedTimeout { get; internal set; } = GetInt(SectionName, "IndexingPausedTimeout", 60);
-        public static int LuceneActivityTimeoutInSeconds { get; internal set; } = GetInt(SectionName, "LuceneActivityTimeoutInSeconds", 120);
-        public static int LuceneActivityQueueMaxLength { get; internal set; } = GetInt(SectionName, "LuceneActivityQueueMaxLength", 500);
+        public static int IndexingActivityTimeoutInSeconds { get; internal set; } = GetInt(SectionName, "IndexingActivityTimeoutInSeconds", 120);
+        public static int IndexingActivityQueueMaxLength { get; internal set; } = GetInt(SectionName, "IndexingActivityQueueMaxLength", 500);
         public static int TextExtractTimeout { get; internal set; } = GetInt(SectionName, "TextExtractTimeout", 300);
 
         private static bool? GetNullableBool(string key)
