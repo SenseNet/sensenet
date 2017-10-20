@@ -136,7 +136,7 @@ namespace SenseNet.Search.Indexing
             IndexHealthMonitor.ShutDown();
         }
 
-        public static CompletionState GetCurrentCompletionState()
+        public static IndexingActivityStatus GetCurrentCompletionState()
         {
             return TerminationHistory.GetCurrentState();
         }
@@ -156,7 +156,7 @@ namespace SenseNet.Search.Indexing
         }
 
         /// <summary>Only for tests</summary>
-        internal static void _setCurrentExecutionState(CompletionState state)
+        internal static void _setCurrentExecutionState(IndexingActivityStatus state)
         {
             Serializer.Reset(state.LastActivityId);
             DependencyManager.Reset();
@@ -575,10 +575,10 @@ namespace SenseNet.Search.Indexing
             {
                 return _lastId;
             }
-            public static CompletionState GetCurrentState()
+            public static IndexingActivityStatus GetCurrentState()
             {
                 lock (_gapsLock)
-                    return new CompletionState { LastActivityId = _lastId, Gaps = _gaps.ToArray() };
+                    return new IndexingActivityStatus { LastActivityId = _lastId, Gaps = _gaps.ToArray() };
             }
         }
 
@@ -816,66 +816,11 @@ namespace SenseNet.Search.Indexing
         public int WaitingSetLength { get { return WaitingSet == null ? 0 : WaitingSet.Length; } }
         public int[] WaitingSet { get; set; }
     }
-    public class CompletionState : IndexingActivityStatus
-    {
-        private const string LastActivityIdKey = "LastActivityId";
-        private const string GapsKey = "Gaps";
-
-        public CompletionState()
-        {
-            Gaps = new int[0];
-        }
-
-        internal static CompletionState GetCurrent()
-        {
-            return IndexingActivityQueue.GetCurrentCompletionState();
-        }
-
-        internal static CompletionState ParseFromReader(Lucene.Net.Index.IndexReader reader)
-        {
-            return ParseFromReader(reader.GetCommitUserData());
-        }
-        internal static CompletionState ParseFromReader(IDictionary<string, string> commitUserData)
-        {
-            var result = new CompletionState();
-            if (commitUserData != null)
-            {
-                string value;
-
-                int lastActivityId;
-                if (commitUserData.TryGetValue(CompletionState.LastActivityIdKey, out value))
-                    if (!string.IsNullOrEmpty(value))
-                        if (int.TryParse(value, out lastActivityId))
-                            result.LastActivityId = lastActivityId;
-
-                if (commitUserData.TryGetValue(GapsKey, out value))
-                    if (!string.IsNullOrEmpty(value))
-                        result.Gaps = value
-                            .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                            .Select(s => { int i; return int.TryParse(s, out i) ? i : 0;})
-                            .Where(i => i > 0)
-                            .ToArray();
-            }
-            return result;
-        }
-
-        internal static Dictionary<string, string> GetCommitUserData(IndexingActivityStatus data)
-        {
-            return GetCommitUserData(data.LastActivityId, data.Gaps);
-        }
-        internal static Dictionary<string, string> GetCommitUserData(int lastActivityId, int[] gaps = null)
-        {
-            var data = new Dictionary<string, string> {{CompletionState.LastActivityIdKey, lastActivityId.ToString()}};
-            if (gaps != null && gaps.Length > 0)
-                data.Add(GapsKey, string.Join(",", gaps));
-            return data;
-        }
-    }
     public class IndexingActivityQueueState
     {
         public IndexingActivitySerializerState Serializer { get; set; }
         public IndexingActivityDependencyState DependencyManager { get; set; }
-        public CompletionState Termination { get; set; }
+        public IndexingActivityStatus Termination { get; set; }
     }
 
     public class IndexingActivityHistoryItem

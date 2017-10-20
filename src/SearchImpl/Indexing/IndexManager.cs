@@ -106,6 +106,11 @@ namespace SenseNet.Search.Indexing
             DataProvider.Current.DeleteAllIndexingActivities();
         }
 
+        public static IndexingActivityStatus GetCurrentIndexingActivityStatus()
+        {
+            return IndexingActivityQueue.GetCurrentCompletionState();
+        }
+
         /*========================================================================================== Commit */
 
         // called from activity
@@ -123,7 +128,7 @@ namespace SenseNet.Search.Indexing
 
         internal static void Commit()
         {
-            var state = CompletionState.GetCurrent();
+            var state = GetCurrentIndexingActivityStatus();
             SnTrace.Index.Write("LM: WriteActivityStatusToIndex: {0}", state);
             IndexingEngine.WriteActivityStatusToIndex(state);
         }

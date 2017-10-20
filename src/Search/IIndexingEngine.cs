@@ -5,16 +5,11 @@ using System.Linq;
 
 namespace SenseNet.Search
 {
-    //public interface IIndexingActivityStatus
-    //{
-    //    int LastActivityId { get; set; }
-    //    int[] Gaps { get; set; }
-    //}
-    public class IndexingActivityStatus //: IIndexingActivityStatus
+    public class IndexingActivityStatus
     {
         public static IndexingActivityStatus Startup => new IndexingActivityStatus { Gaps = new int[0], LastActivityId = 0 };
         public int LastActivityId { get; set; }
-        public int[] Gaps { get; set; }
+        public int[] Gaps { get; set; } = new int[0];
 
         public override string ToString()
         {

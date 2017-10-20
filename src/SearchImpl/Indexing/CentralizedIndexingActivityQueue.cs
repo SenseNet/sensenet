@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 
 namespace SenseNet.Search.Indexing
 {
-    //UNDONE:||||| Use async keyword in the whole class.
     internal static class CentralizedIndexingActivityQueue
     {
         private static readonly int MaxCount = 10;
