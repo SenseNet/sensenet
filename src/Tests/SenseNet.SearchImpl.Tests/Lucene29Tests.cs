@@ -23,6 +23,7 @@ using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Lucene29;
 using SenseNet.SearchImpl.Tests.Implementations;
+using System.Threading;
 
 namespace SenseNet.SearchImpl.Tests
 {
@@ -378,7 +379,6 @@ namespace SenseNet.SearchImpl.Tests
         [TestMethod, TestCategory("IR, L29")]
         public void L29_ActivityStatus_WithSave()
         {
-            Assert.Inconclusive(); 
             var result = L29Test(s =>
             {
                 var searchEngine = SearchManager.SearchEngine;
@@ -387,6 +387,8 @@ namespace SenseNet.SearchImpl.Tests
                 var node = new SystemFolder(Repository.Root) { Name = "L29_ActivityStatus_WithSave" };
                 using (new SystemAccount())
                     node.Save();
+
+                //Thread.Sleep(3000);
 
                 //UNDONE:|||||| COMMIT/INDEXING STATUS: this should work without an explicit commit
                 //IndexManager.Commit();
@@ -426,7 +428,7 @@ namespace SenseNet.SearchImpl.Tests
         {
             var dataProvider = new InMemoryDataProvider();
             var securityDataProvider = GetSecurityDataProvider(dataProvider);
-            var indexFolderName = "Test_" + memberName;
+            var indexFolderName = $"Test_{memberName}_{Guid.NewGuid()}";
             var indexingEngine = new Lucene29IndexingEngine(new IndexDirectory(indexFolderName));
             var searchEngine = new Lucene29SearchEngine
             {
