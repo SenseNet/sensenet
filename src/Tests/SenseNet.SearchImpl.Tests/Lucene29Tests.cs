@@ -55,7 +55,7 @@ namespace SenseNet.SearchImpl.Tests
 
             var indxDir =((Lucene29IndexingEngine)engine).IndexDirectory.CurrentDirectory;
             Assert.IsNotNull(indxDir);
-            Assert.IsTrue(indxDir.EndsWith(MethodBase.GetCurrentMethod().Name));
+            Assert.IsTrue(indxDir.Contains(MethodBase.GetCurrentMethod().Name));
             Assert.IsTrue(console.Contains(indxDir));
         }
 
