@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using SenseNet.ContentRepository.Schema.Metadata;
@@ -12,11 +13,11 @@ namespace SenseNet.Portal.OData.Typescript
         protected override IMetaNode VisitSchema(ContentRepository.Schema.Metadata.Schema schema)
         {
             _writer.WriteLine(@"/**
- * 
+ *
  * @module ContentTypes
  * @preferred
- * 
- * 
+ *
+ *
  * @description The Content Repository contains many different types of ```Content```. ```Content``` vary in structure and even in function. Different types of content contain different fields,
  * are displayed with different views, and may also implement different business logic. The fields, views and business logic of a content is defined by its type - the Content Type.
  *
@@ -25,18 +26,16 @@ namespace SenseNet.Portal.OData.Typescript
  * This module represents the above mentioned type hierarchy by Typescript classes with the Content Types' Fields as properties. With Typescript classes we can derive types from another
  * inheriting its properties just like Content Types in the Content Repository. This module provides us to create an objects with a type so that we can validate on its properties by their
  * types or check the required ones.
- * 
+ *
  *//** */
-import { Content, IContentOptions } from './Content';
-import { Enums, FieldSettings, ComplexTypes } from './SN';
-import { BaseRepository } from './Repository';
+import { Enums, ComplexTypes } from './SN';
+import { ContentListReferenceField, ContentReferenceField } from './ContentReferences';
+
 
 ");
 
             // Do not call base because only classes will be read.
-            _indentCount++;
             Visit(schema.Classes);
-            _indentCount--;
 
             return schema;
         }
@@ -50,44 +49,31 @@ import { BaseRepository } from './Repository';
             }
 
             var type = @class.Name;
-            var parentName = @class.BaseClassName ?? "Content";
+            var parentName = @class.BaseClassName;
             WriteLine($"/**");
             WriteLine($" * Class representing a {type}");
             WriteLine($" * @class {type}");
-            WriteLine($" * @extends {{@link {parentName}" + "}");
+            if (!string.IsNullOrWhiteSpace(parentName))
+            {
+                WriteLine($" * @extends {{@link {parentName}" + "}");
+            }
             WriteLine($" */");
-            WriteLine($"export class {type} extends {parentName} {{");
+            if (!string.IsNullOrWhiteSpace(parentName))
+            {
+                WriteLine($"export class {type} extends {parentName} {{");
+            }
+            else
+            {
+                WriteLine($"export class {type} {{");
+            }
+            
             _indentCount++;
             foreach (var propertyLine in propertyLines)
                 WriteLine(propertyLine);
             WriteLine();
-
-            WriteLine($"/**");
-            WriteLine($" * @constructs {type}");
-            WriteLine($" * @param options {{object}} An object implementing {{@link I{type}Options" + "} interface");
-            WriteLine($" */");
-            WriteLine($"constructor(public readonly options: I{type}Options, repository: BaseRepository) {{");
-            WriteLine($"    super(options, repository);");
-
-            _indentCount++;
-            _indentCount--;
-            WriteLine("}");
-            WriteLine();
             _indentCount--;
             WriteLine("}");
 
-            WriteLine($"/**");
-            WriteLine($" * Interface for classes that represent a {type}.");
-            WriteLine($" * @interface I{type}Options");
-            WriteLine($" * @extends {{@link I{parentName}Options" + "}");
-            WriteLine($" */");
-            WriteLine($"export interface I{type}Options extends I{parentName}Options {{");
-            _indentCount++;
-            foreach (var propertyLine in propertyLines)
-                WriteLine(propertyLine);
-            _indentCount--;
-
-            WriteLine("}");
             WriteLine();
 
             if (@class.Properties == visitedProperties)
