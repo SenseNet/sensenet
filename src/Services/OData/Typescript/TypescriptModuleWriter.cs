@@ -161,7 +161,19 @@ namespace SenseNet.Portal.OData.Typescript
         }
         protected string GetPropertyTypeName(ReferenceType referenceType)
         {
-            return DeferredObject;
+            ReferenceFieldSetting settings = referenceType.FieldSetting as ReferenceFieldSetting;
+            var allowMultiple = settings?.AllowMultiple != null && settings.AllowMultiple.Value;
+            var allowedTypes = "GenericContent";
+            if (settings?.AllowedTypes?.Count > 0)
+            {
+                allowedTypes = string.Join(" | ", settings?.AllowedTypes);
+            }
+            
+            if (allowMultiple)
+            {
+                return $"ContentListReferenceField<{allowedTypes}>";
+            }
+            return $"ContentReferenceField<{allowedTypes}>";
         }
         protected string GetPropertyTypeName(ComplexType complexType)
         {
