@@ -1,0 +1,414 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="FullSignature">
+  <Class Name="SenseNet.Search.Parser.Predicates.LogicalClause">
+    <Position X="0.5" Y="34.25" Width="4" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAEAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Parser\Predicates\LogicalClause.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.Parser.Predicates.RangePredicate">
+    <Position X="6" Y="30.25" Width="6.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAABAAAAAAEAAAAAAAAACAAAAIAAAAAAgAAAA=</HashCode>
+      <FileName>Parser\Predicates\RangePredicate.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.Parser.Predicates.SimplePredicate">
+    <Position X="0.5" Y="30.25" Width="5.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAABAAAAAAACAAAAAAAAgAAAAAAA=</HashCode>
+      <FileName>Parser\Predicates\SimplePredicate.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.Parser.CompilerException">
+    <Position X="5.25" Y="24.25" Width="4.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Parser\CompilerException.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.Parser.CqlLexer">
+    <Position X="14.25" Y="21.5" Width="6.5" />
+    <NestedTypes>
+      <Class Name="SenseNet.Search.Parser.CqlLexer.Keywords" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Parser\CqlLexer.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Enum Name="SenseNet.Search.Parser.CqlLexer.Token" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Parser\CqlLexer.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+      <Enum Name="SenseNet.Search.Parser.CqlLexer.CharType" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Parser\CqlLexer.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>CkIAAIgAQhAAIAAQIBgAAAASAAYAAABggQAAAAIAIgQ=</HashCode>
+      <FileName>Parser\CqlLexer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.Parser.CqlParser">
+    <Position X="0.5" Y="11" Width="9.25" />
+    <NestedTypes>
+      <Enum Name="SenseNet.Search.Parser.CqlParser.DefaultOperator" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Parser\CqlParser.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+      <Class Name="SenseNet.Search.Parser.CqlParser.QueryControlParam" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Parser\CqlParser.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Class Name="SenseNet.Search.Parser.CqlParser.FieldInfo" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Parser\CqlParser.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAo8FgCgCAUAfAQAKAFEAE4CCgBGKIqRKAUAAAiAggA=</HashCode>
+      <FileName>Parser\CqlParser.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.Parser.EmptyPredicateVisitor">
+    <Position X="12.75" Y="35.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAgACAAAAAAAAAAAAAAAAAAAAEAAAAAAAEAAAAAAAA=</HashCode>
+      <FileName>Parser\EmptyPredicateVisitor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.Parser.LineInfo">
+    <Position X="0.5" Y="27" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAEAABAAAAAAAAAAAAAAAAAAAABAAA=</HashCode>
+      <FileName>Parser\LineInfo.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.Parser.ParserException">
+    <Position X="0.5" Y="24.25" Width="4.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAEAAAAAAAAAA=</HashCode>
+      <FileName>Parser\ParserException.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.Parser.SnQueryPredicate">
+    <Position X="8" Y="28.25" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Parser\SnQueryPredicate.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.Parser.SnQueryVisitor">
+    <Position X="15.5" Y="32.75" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAgACAAAAAAAAQAAAAAAAAAAAEAAAAAAAEAAAAAEAA=</HashCode>
+      <FileName>Parser\SnQueryVisitor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.Parser.SnQueryInfo">
+    <Position X="10.5" Y="17" Width="3" />
+    <TypeIdentifier>
+      <HashCode>AQAAEAiAAoAAABwEABAAAAEABIAIBggAAIAAAEAgEAA=</HashCode>
+      <FileName>SnQueryClassifier.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.Parser.SnQueryClassifier">
+    <Position X="18.25" Y="35.5" Width="2" />
+    <NestedTypes>
+      <Class Name="SenseNet.Search.Parser.SnQueryClassifier.QueryClassifierVisitor" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>SnQueryClassifier.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>SnQueryClassifier.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.Cql">
+    <Position X="11" Y="11" Width="2.25" />
+    <Compartments>
+      <Compartment Name="Nested Types" Collapsed="false" />
+    </Compartments>
+    <NestedTypes>
+      <Class Name="SenseNet.Search.Cql.Keyword">
+        <TypeIdentifier>
+          <NewMemberFileName>Cql.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Cql.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.IndexingActivityStatus">
+    <Position X="36.75" Y="12" Width="4" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAEAAAAAAgAAAAgIAAAAAAAAAAAIAA=</HashCode>
+      <FileName>IIndexingEngine.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.DocumentUpdate">
+    <Position X="37.75" Y="9.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAQAAAAAAAAAAAAAAAAAAACAAAAAAAAAAA=</HashCode>
+      <FileName>IndexDocument.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.NotIndexedIndexDocument">
+    <Position X="33.5" Y="18.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>IndexDocument.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.IndexDocument">
+    <Position X="33.5" Y="12" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>IAIAAAAAAAACABAAQASQRAAAAgBgBACEAGAAAAAQEgA=</HashCode>
+      <FileName>IndexDocument.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="SenseNet.Search.IndexField">
+    <Position X="28.5" Y="21.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAIAAAAAAAAAAAAACAAAAAAAAAAAAAQAAAAA=</HashCode>
+      <FileName>IndexField.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.IndexFieldName">
+    <Position X="30.75" Y="12" Width="2" />
+    <TypeIdentifier>
+      <HashCode>YAAAEAIqAKAASAMTkAAQAAWAkGAAABBwA0EEATQACAA=</HashCode>
+      <FileName>IndexFieldName.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.IndexValue">
+    <Position X="28.5" Y="12" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAQAAAAAAQAAkAAACgAAEAgAQAAAAQgAAA=</HashCode>
+      <FileName>IndexValue.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.QueryFieldValue">
+    <Position X="4.75" Y="34.25" Width="3.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAUAABAAAAAAAAAAAAgAAAAAAAAAAA=</HashCode>
+      <FileName>IndexValue.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.QueryResult&lt;T&gt;" BaseTypeListCollapsed="true">
+    <Position X="7" Y="36.75" Width="3.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAABAAAAAIABAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>QueryResult.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="SenseNet.Search.QuerySettings">
+    <Position X="2.5" Y="36.75" Width="3.75" />
+    <TypeIdentifier>
+      <HashCode>IAAAAAgAAAAAAAAAAAAQICCAAAAIAAACAAAAAAAAEAA=</HashCode>
+      <FileName>QuerySettings.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.SnQuery">
+    <Position X="14.25" Y="11" Width="7.75" />
+    <TypeIdentifier>
+      <HashCode>AYigQAgBAIACQAQEEAAQgSjBAQgIAEwSAEBABJIQEIA=</HashCode>
+      <FileName>SnQuery.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.SnQueryToStringVisitor">
+    <Position X="15.5" Y="35.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>BAAgACAAAIAAAABAAAAIgAAAABEAAAAAAAEACAAAEAA=</HashCode>
+      <FileName>SnQueryToStringVisitor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.SnTerm">
+    <Position X="28.5" Y="18" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>SnTerm.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.SortInfo">
+    <Position X="8.5" Y="34.25" Width="3.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAEAAAAAAAAAACAAAAAAAACAAAAAAA=</HashCode>
+      <FileName>SortInfo.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.Parser.Predicates.LogicalPredicate">
+    <Position X="12.75" Y="30.25" Width="3.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEA=</HashCode>
+      <FileName>Parser\Predicates\LogicalPredicate.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Interface Name="SenseNet.Search.IIndexingEngine">
+    <Position X="28.5" Y="3.25" Width="8.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAICAAAAAAAAAABAAAAEAAABAIAAAAAQAAAQA=</HashCode>
+      <FileName>IIndexingEngine.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="SenseNet.Search.IIndexableField">
+    <Position X="34.5" Y="6.25" Width="4.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAEAAAQAAACAAAAAQAAAAAAAAAAAAAAQAAAAA=</HashCode>
+      <FileName>Interfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="SenseNet.Search.IFieldIndexHandler">
+    <Position X="28.5" Y="6.25" Width="5.5" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAIIAAABAABACICAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Interfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="SenseNet.Search.IPerFieldIndexingInfo">
+    <Position X="39.25" Y="6.25" Width="3.75" />
+    <TypeIdentifier>
+      <HashCode>AAEAAAACAAEAAAAAAAAIIAAAAAAAAAAAACAAAQAAAAA=</HashCode>
+      <FileName>Interfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="SenseNet.Search.IQueryEngine">
+    <Position X="15" Y="3.25" Width="7" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Interfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="SenseNet.Search.IMetaQueryEngine">
+    <Position X="7" Y="5" Width="7" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAEAA=</HashCode>
+      <FileName>Interfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="SenseNet.Search.IPermissionFilter">
+    <Position X="14.25" Y="5" Width="3.75" />
+    <TypeIdentifier>
+      <HashCode>AACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Interfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="SenseNet.Search.IPermissionFilterFactory">
+    <Position X="18.25" Y="5" Width="3.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAA=</HashCode>
+      <FileName>Interfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="SenseNet.Search.IQueryResult&lt;T&gt;">
+    <Position X="4.5" Y="5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAABAAAAAAABAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Interfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="SenseNet.Search.IQueryContext">
+    <Position X="0.5" Y="5" Width="3.75" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAAAAAAAAAAgAAAAEAAAAgAAAAAgAAAA=</HashCode>
+      <FileName>IQueryContext.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="SenseNet.Search.ISearchEngine">
+    <Position X="23" Y="0.5" Width="5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAgACAAAAAAAAAAAAAAAAAAAAAgIAAA=</HashCode>
+      <FileName>ISearchEngine.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Enum Name="SenseNet.Search.Parser.Predicates.Occurence">
+    <Position X="3.25" Y="7.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAABAAAEABAAAAAAIAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Parser\Predicates\LogicalClause.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="SenseNet.Search.ExecutionHint">
+    <Position X="9.25" Y="7.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAEAAAAAAAAAAAAABAAAAAAAAAAEAAAA=</HashCode>
+      <FileName>ExecutionHint.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="SenseNet.Search.FilterStatus">
+    <Position X="5.25" Y="7.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAIAAAACAIAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>FilterStatus.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="SenseNet.Search.IndexValueType">
+    <Position X="15.25" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAEAAAAAAAAgQAAAAAgAAAACAAQAAAAAAAAgACA=</HashCode>
+      <FileName>IndexValue.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="SenseNet.Search.IndexingMode">
+    <Position X="32.5" Y="9.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAgQAAKAAAACABAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Interfaces.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="SenseNet.Search.IndexStoringMode">
+    <Position X="28.5" Y="9.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAQAAAAAAAAIAAAACAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Interfaces.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="SenseNet.Search.IndexTermVector">
+    <Position X="30.5" Y="9.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAQCAAAAAAAIAAAACAAAEAAAAAAAAACAAA=</HashCode>
+      <FileName>Interfaces.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="SenseNet.Search.IndexFieldAnalyzer">
+    <Position X="34.5" Y="9.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAIAAAAIAAAQAAAQAAAAAAAAA=</HashCode>
+      <FileName>Interfaces.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="SenseNet.Search.QueryFieldLevel">
+    <Position X="7.25" Y="7.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAQAAAAAAAAAAAAAAAIAAAAAAAAAAAAgAgAAA=</HashCode>
+      <FileName>Interfaces.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="SenseNet.Search.LogicalOperator">
+    <Position X="13.25" Y="7.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>IAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAA=</HashCode>
+      <FileName>LogicalOperator.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="SenseNet.Search.QueryExecutionMode">
+    <Position X="11.25" Y="7.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAIgAAAAAAAAAAAAAAQAAAAAA=</HashCode>
+      <FileName>QueryExecutionMode.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

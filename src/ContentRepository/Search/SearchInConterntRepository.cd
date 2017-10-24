@@ -1,0 +1,321 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="FullSignature">
+  <Class Name="SenseNet.Search.Indexing.Configuration.RepositoryIndexBehaviorSection">
+    <Position X="25" Y="6.5" Width="3.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAACkAAAAQAAAEQACAAgAEAAAAAAAAAAAAAAAAAIA=</HashCode>
+      <FileName>Search\Indexing\Configuration\RepositoryIndexBehaviorSection.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.Indexing.ExplicitPerFieldIndexingInfo">
+    <Position X="30" Y="3.75" Width="3" />
+    <TypeIdentifier>
+      <HashCode>AABAAABAgAEAAAAAEACKIAAAAACAAAAAACAAAAAAAAA=</HashCode>
+      <FileName>Search\Indexing\ExplicitPerFieldIndexingInfo.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.Indexing.FieldIndexHandler">
+    <Position X="53.75" Y="13.75" Width="6" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAIIAAABAAhACICAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Search\Indexing\FieldIndexHandler.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="SenseNet.Search.Indexing.NotIndexedIndexFieldHandler">
+    <Position X="99.5" Y="18.5" Width="5.5" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAAIAAAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Search\Indexing\FieldIndexHandler.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.Indexing.BinaryIndexHandler">
+    <Position X="8.5" Y="18.5" Width="5.75" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAAIAAABAABACAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Search\Indexing\FieldIndexHandler.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.Indexing.TypeTreeIndexHandler">
+    <Position X="54" Y="18.5" Width="5.75" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAAIAAAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Search\Indexing\FieldIndexHandler.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.Indexing.HyperLinkIndexHandler">
+    <Position X="93" Y="18.5" Width="5.75" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAAIAAAAAABACAABAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Search\Indexing\FieldIndexHandler.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="SenseNet.Search.Indexing.ChoiceIndexHandler">
+    <Position X="21.5" Y="18.5" Width="5.75" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAIIAAAAAABACAABAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Search\Indexing\FieldIndexHandler.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="SenseNet.Search.Indexing.PermissionChoiceIndexHandler">
+    <Position X="47.5" Y="18.5" Width="5.75" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAAIAAAAAABACAABAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Search\Indexing\FieldIndexHandler.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="SenseNet.Search.Indexing.LowerStringIndexHandler">
+    <Position X="73.5" Y="18.5" Width="5.75" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAAIAAAAAABACAABAAAAAAAAAAAAAAAIAAAAAAA=</HashCode>
+      <FileName>Search\Indexing\FieldIndexHandler.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="SenseNet.Search.Indexing.BooleanIndexHandler">
+    <Position X="105.75" Y="18.5" Width="5.75" />
+    <TypeIdentifier>
+      <HashCode>AIAgAAIIAAAAAABACAABAAAAAAgAAAAAAAAIAAAAAAA=</HashCode>
+      <FileName>Search\Indexing\FieldIndexHandler.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="SenseNet.Search.Indexing.IntegerIndexHandler">
+    <Position X="28" Y="18.5" Width="5.75" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAAIAAAAAABACACBAAAAAAgAAAAAAAAIAAAAAAA=</HashCode>
+      <FileName>Search\Indexing\FieldIndexHandler.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="SenseNet.Search.Indexing.NumberIndexHandler">
+    <Position X="67" Y="18.5" Width="5.75" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAAIAAAAAABACACBAAAAAAAAAAAAAAAIAAAAAAA=</HashCode>
+      <FileName>Search\Indexing\FieldIndexHandler.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="SenseNet.Search.Indexing.DateTimeIndexHandler">
+    <Position X="2" Y="18.5" Width="5.75" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAAIAAAAAABACACBAAAAAQAAAAAAAAAIAAAAAAA=</HashCode>
+      <FileName>Search\Indexing\FieldIndexHandler.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="SenseNet.Search.Indexing.LongTextIndexHandler">
+    <Position X="34.5" Y="18.5" Width="5.75" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAAIAAABAABACAABAAAAAAAAAAAAAAAIAAAAAAA=</HashCode>
+      <FileName>Search\Indexing\FieldIndexHandler.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="SenseNet.Search.Indexing.ReferenceIndexHandler">
+    <Position X="60.5" Y="18.5" Width="5.75" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAAIAAAAAABACAABAAAAAAAAAAAAAAAIAAAAAAA=</HashCode>
+      <FileName>Search\Indexing\FieldIndexHandler.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="SenseNet.Search.Indexing.ExclusiveTypeIndexHandler">
+    <Position X="86.5" Y="18.5" Width="5.75" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAAIAAAAAABACAABAAAAAAAAAAAAAAAIAAAAAAA=</HashCode>
+      <FileName>Search\Indexing\FieldIndexHandler.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="SenseNet.Search.Indexing.InFolderIndexHandler">
+    <Position X="15" Y="18.5" Width="5.75" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAAIAAAAAABACAABAAAAAAAAAAAAAAAIAAAAAAA=</HashCode>
+      <FileName>Search\Indexing\FieldIndexHandler.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="SenseNet.Search.Indexing.InTreeIndexHandler">
+    <Position X="41" Y="18.5" Width="5.75" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAAIAAAAAABACAABAAAAAAAAAAAAAAAIAAAAAAA=</HashCode>
+      <FileName>Search\Indexing\FieldIndexHandler.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="SenseNet.Search.Indexing.TagIndexHandler">
+    <Position X="80" Y="18.5" Width="5.75" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAAIAAAAAABACAABAAAAAAAAAAAAAAAIAAAAAAA=</HashCode>
+      <FileName>Search\Indexing\FieldIndexHandler.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="SenseNet.Search.Indexing.SystemContentIndexHandler">
+    <Position X="105.75" Y="22.25" Width="5.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAIAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Search\Indexing\FieldIndexHandler.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.Indexing.IndexingTools">
+    <Position X="19.75" Y="3.75" Width="6.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAQAAAAAAAAgAAAAAAAAAAAAgAA=</HashCode>
+      <FileName>Search\Indexing\IndexingTools.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.Parser.ContentQueryTemplateReplacer">
+    <Position X="6.75" Y="3.75" Width="6.5" />
+    <NestedTypes>
+      <Class Name="SenseNet.Search.Parser.ContentQueryTemplateReplacer.DefaultUnits" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Search\Parser\ContentQueryTemplateReplacer.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAIAAAgAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Search\Parser\ContentQueryTemplateReplacer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.Parser.LucQueryTemplateReplacer">
+    <Position X="6.75" Y="6.25" Width="5" />
+    <TypeIdentifier>
+      <HashCode>AACAAAACABAASAAQAAAAAAAAQAAAAAEAAAAAAABAAAA=</HashCode>
+      <FileName>Search\Parser\LucQueryTemplateReplacer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.Parser.RepositoryLucQueryTemplateReplacer">
+    <Position X="12.75" Y="6.5" Width="4.75" />
+    <TypeIdentifier>
+      <HashCode>EAAAAAACAAAAQAAAAAAAAAAAAAAAAAAAAAAAAABAAAA=</HashCode>
+      <FileName>Search\Parser\RepositoryLucQueryTemplateReplacer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.IndexingSettings">
+    <Position X="19.75" Y="6" Width="4.75" />
+    <TypeIdentifier>
+      <HashCode>EAAAAAACAoAQgAAAQAAQAAAAAAEAAACAAFAAAAAAAAA=</HashCode>
+      <FileName>Search\IndexingSettings.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.TextExtractorsField">
+    <Position X="84" Y="4" Width="4.25" />
+    <TypeIdentifier>
+      <HashCode>AAABAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Search\IndexingSettings.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.TextExtractorContext">
+    <Position X="88.75" Y="4" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAA=</HashCode>
+      <FileName>Search\TextExtractor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.TextExtractor">
+    <Position X="78.75" Y="4" Width="4.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAQAAAQEAAIAAAAAQCgAAADAAAAAAAAAA=</HashCode>
+      <FileName>Search\TextExtractor.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="SenseNet.Search.DocxTextExtractor">
+    <Position X="72" Y="7.75" Width="4" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Search\TextExtractor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.XlsxTextExtractor">
+    <Position X="91" Y="7.75" Width="4" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Search\TextExtractor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.PptxTextExtractor">
+    <Position X="57.75" Y="7.75" Width="4" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Search\TextExtractor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.PdfTextExtractor">
+    <Position X="76.75" Y="7.75" Width="4" />
+    <TypeIdentifier>
+      <HashCode>AAAQAAAAAAAAQAAAAAAAAAAAAAAAABAAAAAAAAAAAAA=</HashCode>
+      <FileName>Search\TextExtractor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.XmlTextExtractor">
+    <Position X="95.75" Y="7.75" Width="4" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAACAAAAAAAAAA=</HashCode>
+      <FileName>Search\TextExtractor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.DocTextExtractor">
+    <Position X="53" Y="7.75" Width="4" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Search\TextExtractor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.XlsTextExtractor">
+    <Position X="62.5" Y="7.75" Width="4" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Search\TextExtractor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.XlbTextExtractor">
+    <Position X="81.5" Y="7.75" Width="4" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Search\TextExtractor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.MsgTextExtractor">
+    <Position X="100.5" Y="7.75" Width="4" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Search\TextExtractor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.PlainTextExtractor">
+    <Position X="67.25" Y="7.75" Width="4" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAACAAAAAAAAAA=</HashCode>
+      <FileName>Search\TextExtractor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.RtfTextExtractor">
+    <Position X="86.25" Y="7.75" Width="4" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAACAAAAAAAAAA=</HashCode>
+      <FileName>Search\TextExtractor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.Search.NullTextExtractor">
+    <Position X="105.25" Y="7.75" Width="4" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAACAAAAAAAAAA=</HashCode>
+      <FileName>Search\TextExtractor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Interface Name="SenseNet.Search.ITextExtractor">
+    <Position X="74" Y="4" Width="4" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAACAAAAAAAAAA=</HashCode>
+      <FileName>Search\TextExtractor.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

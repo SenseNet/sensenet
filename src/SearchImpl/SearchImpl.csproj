@@ -84,7 +84,7 @@
     <Compile Include="Lucene29\IntegrityChecker.cs" />
     <Compile Include="Indexing\IndexManager.cs" />
     <Compile Include="Indexing\PerFieldIndexingInfo.cs" />
-    <Compile Include="Indexing\SnPerFieldAnalyzerWrapper.cs" />
+    <Compile Include="Lucene29\SnPerFieldAnalyzerWrapper.cs" />
     <Compile Include="Lucene29\Lucene29Compiler.cs" />
     <Compile Include="Lucene29\Lucene29IndexingEngine.cs" />
     <Compile Include="Lucene29\Lucene29QueryEngine.cs" />
@@ -110,6 +110,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="SearchInSearchImpl.cd" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj">

@@ -12,7 +12,6 @@ using Lucene.Net.Store;
 using Lucene.Net.Util;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
 
@@ -732,7 +731,7 @@ namespace SenseNet.Search.Lucene29
         internal static Analyzer GetAnalyzer()
         {
             var defaultAnalyzer = new KeywordAnalyzer();
-            var analyzer = new Indexing.SnPerFieldAnalyzerWrapper();
+            var analyzer = new SnPerFieldAnalyzerWrapper();
 
             return analyzer;
         }

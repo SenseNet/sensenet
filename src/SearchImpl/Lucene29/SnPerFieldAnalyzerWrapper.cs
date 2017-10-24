@@ -7,7 +7,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.Search.Lucene29;
 using SenseNet.Tools;
 
-namespace SenseNet.Search.Indexing
+namespace SenseNet.Search.Lucene29
 {
     /// <summary>
     /// Sense/Net specific Lucene analyzer, equivalent of Lucene's PerFieldAnalyzerWrapper.

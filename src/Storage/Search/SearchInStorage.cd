@@ -1,0 +1,142 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="SenseNet.ContentRepository.Storage.Search.DateTimeParser">
+    <Position X="6.75" Y="8.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAIAAAIAAAAAACAAAAABCAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Search\DateTimeParser.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.ContentRepository.Storage.Search.NodeIndexedEvenArgs">
+    <Position X="4.25" Y="5.25" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Search\IIndexPopulator.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.ContentRepository.Storage.Search.InternalSearchEngine" BaseTypeListCollapsed="true">
+    <Position X="4.25" Y="7.5" Width="1.75" />
+    <NestedTypes>
+      <Class Name="SenseNet.ContentRepository.Storage.Search.InternalSearchEngine.InternalIndexingEngine" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Search\Interfaces.cs</NewMemberFileName>
+        </TypeIdentifier>
+        <Lollipop Position="0.2" />
+      </Class>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAgACAAAAAAAAAAAAAAAQAAAAAgIAAA=</HashCode>
+      <FileName>Search\Interfaces.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="SenseNet.ContentRepository.Storage.Search.NodeQueryParameter">
+    <Position X="11" Y="5.25" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAgAAAAAAA=</HashCode>
+      <FileName>Search\NodeQuery.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.ContentRepository.Storage.Search.NodeQuery">
+    <Position X="6.75" Y="5.25" Width="3.75" />
+    <TypeIdentifier>
+      <HashCode>BAAAAAAAAAIAAABAAAQAAAABBAAAQAAAAICAAEAAAAA=</HashCode>
+      <FileName>Search\NodeQuery.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SenseNet.ContentRepository.Storage.Search.SnPermissionFilterFactory" BaseTypeListCollapsed="true">
+    <Position X="1.25" Y="5.25" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAA=</HashCode>
+      <FileName>Search\SnPermissionFilterFactory.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="SenseNet.ContentRepository.Storage.Search.PermissionChecker" BaseTypeListCollapsed="true">
+    <Position X="1.25" Y="6.75" Width="2.5" />
+    <Compartments>
+      <Compartment Name="Nested Types" Collapsed="false" />
+    </Compartments>
+    <NestedTypes>
+      <Enum Name="SenseNet.ContentRepository.Storage.Search.PermissionChecker.DocumentOpenLevel">
+        <TypeIdentifier>
+          <NewMemberFileName>Search\SnPermissionFilterFactory.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+      <Class Name="SenseNet.ContentRepository.Storage.Search.PermissionChecker.FieldNameVisitor">
+        <TypeIdentifier>
+          <NewMemberFileName>Search\SnPermissionFilterFactory.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AACAAAABAAAAAAAAAAAAAAAAAAEAEIAIAAAAAAAECAA=</HashCode>
+      <FileName>Search\SnPermissionFilterFactory.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Interface Name="SenseNet.ContentRepository.Storage.Search.IIndexPopulator">
+    <Position X="4.25" Y="1.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAIAAAABAAAAAAIAIECAABAAAAAEAAAAQAAAAAAA=</HashCode>
+      <FileName>Search\IIndexPopulator.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="SenseNet.ContentRepository.Storage.Search.IIndexableDocument">
+    <Position X="9" Y="1.25" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI=</HashCode>
+      <FileName>Search\Interfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="SenseNet.ContentRepository.Storage.Search.IIndexValueConverter&lt;T&gt;">
+    <Position X="6.75" Y="2.75" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Search\Interfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="SenseNet.ContentRepository.Storage.Search.IIndexValueConverter">
+    <Position X="9" Y="2.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Search\Interfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="SenseNet.ContentRepository.Storage.Search.IIndexDocumentProvider">
+    <Position X="6.75" Y="1.25" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAUAAAAAAAAAAAAA=</HashCode>
+      <FileName>Search\Interfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="SenseNet.ContentRepository.Storage.Search.ISearchEngineSupport">
+    <Position X="1.25" Y="1.25" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAgAAAgAACAAAAAAAAAAAAQQEAAAAAEAAAAAAAAg=</HashCode>
+      <FileName>Search\ISearchEngineSupport.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Enum Name="SenseNet.ContentRepository.Storage.Search.Internal.Operator">
+    <Position X="12" Y="2.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>ACCAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAQRYACA=</HashCode>
+      <FileName>Search\Internal\Operator.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="SenseNet.ContentRepository.Storage.Search.NodeAttribute">
+    <Position X="14" Y="1.25" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>QBACCAKoACYAAAMTkAAAQAQAEEAAACAAAgEEASAACAE=</HashCode>
+      <FileName>Search\Enums.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="SenseNet.ContentRepository.Storage.Search.IndexRebuildLevel">
+    <Position X="12" Y="1.25" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAABAAAAAAAAABAAAAAAAAAAAA=</HashCode>
+      <FileName>Search\Interfaces.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
