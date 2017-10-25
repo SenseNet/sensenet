@@ -917,7 +917,7 @@ namespace SenseNet.Search.Parser
             var parser = context.GetPerFieldIndexingInfo(fieldName);
             var parsed = parser.IndexFieldHandler.Parse(value.StringValue);
             if(parsed == null)
-                throw new ParserException($"Cannot parse the value. FieldName {fieldName}, Parser: {parser.GetType().Name}", _lexer.CreateLastLineInfo());
+                throw new ParserException($"Cannot parse the value. FieldName {fieldName}, Parser: {parser.IndexFieldHandler.GetType().Name}", _lexer.CreateLastLineInfo());
 
             return parsed;
         }
