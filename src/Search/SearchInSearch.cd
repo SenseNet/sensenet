@@ -105,7 +105,7 @@
     </TypeIdentifier>
   </Class>
   <Class Name="SenseNet.Search.Parser.SnQueryVisitor">
-    <Position X="15.5" Y="32.75" Width="2" />
+    <Position X="14" Y="32.75" Width="5" />
     <TypeIdentifier>
       <HashCode>AAAgACAAAAAAAAQAAAAAAAAAAAEAAAAAAAEAAAAAEAA=</HashCode>
       <FileName>Parser\SnQueryVisitor.cs</FileName>
@@ -115,7 +115,7 @@
     <Position X="10.5" Y="17" Width="3" />
     <TypeIdentifier>
       <HashCode>AQAAEAiAAoAAABwEABAAAAEABIAIBggAAIAAAEAgEAA=</HashCode>
-      <FileName>SnQueryClassifier.cs</FileName>
+      <FileName>Parser\SnQueryInfo.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="SenseNet.Search.Parser.SnQueryClassifier">
@@ -129,7 +129,7 @@
     </NestedTypes>
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>SnQueryClassifier.cs</FileName>
+      <FileName>Parser\SnQueryClassifier.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="SenseNet.Search.Cql">
@@ -153,7 +153,7 @@
     <Position X="36.75" Y="12" Width="4" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAEAAAAAAgAAAAgIAAAAAAAAAAAIAA=</HashCode>
-      <FileName>IIndexingEngine.cs</FileName>
+      <FileName>IndexingActivityStatus.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="SenseNet.Search.DocumentUpdate">
@@ -357,7 +357,7 @@
   <Enum Name="SenseNet.Search.IndexValueType">
     <Position X="15.25" Y="7.75" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAEAAAAAAAAgQAAAAAgAAAACAAQAAAAAAAAgACA=</HashCode>
+      <HashCode>AAAAAAEAAAAAAAAgwAAAAAAAAAACAAQAAAAAAAAgACA=</HashCode>
       <FileName>IndexValue.cs</FileName>
     </TypeIdentifier>
   </Enum>

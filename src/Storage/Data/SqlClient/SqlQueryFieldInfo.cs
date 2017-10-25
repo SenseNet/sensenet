@@ -6,7 +6,7 @@ using SenseNet.ContentRepository.Search;
 
 namespace SenseNet.Search.Parser
 {
-    //UNDONE:| SQL: SqlQueryFieldInfo in the SnQuery to SQL query compilation.
+    //TODO: Part of 'CQL to SQL compiler' for future use.
     internal abstract class SqlQueryFieldInfo
     {
         public string SqlName;

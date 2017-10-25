@@ -26,7 +26,7 @@ namespace SenseNet.Search
         {
             var permissionFilter = _permissionFilterFactory.Create(this, context);
             PrepareQuery(this, context);
-            //UNDONE:| SQL: ContentQueryExecutionAlgorithm
+            //TODO: Part of 'CQL to SQL compiler' for future use.
             return TryExecuteQuery(this, permissionFilter, context)
                    ?? context.QueryEngine.ExecuteQuery(this, permissionFilter, context);
         }
@@ -40,7 +40,7 @@ namespace SenseNet.Search
         {
             var permissionFilter = _permissionFilterFactory.Create(this, context);
             PrepareQuery(this, context);
-            //UNDONE:| SQL: ContentQueryExecutionAlgorithm
+            //TODO: Part of 'CQL to SQL compiler' for future use.
             return TryExecuteQueryAndProject(this, permissionFilter, context)
                    ?? context.QueryEngine.ExecuteQueryAndProject(this, permissionFilter, context);
         }
@@ -156,7 +156,7 @@ namespace SenseNet.Search
             }
         }
 
-        //UNDONE:| SQL: Develop query validation
+        //TODO: Part of 'CQL to SQL compiler' for future use.
         //private static void ValidateQuery<T>(IQueryResult<T> x, IQueryResult<T> y)
         //{
         //    executor = SearchProvider.GetExecutor(this);
