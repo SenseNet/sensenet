@@ -134,7 +134,7 @@ namespace SenseNet.ContentRepository
         /// Sets trace categories that should be enabled when the repository starts. This will
         /// override both startup and runtime categories, but will not switch any category off.
         /// </summary> 
-        public RepositoryBuilder UseTraceCategories(string[] categoryNames)
+        public RepositoryBuilder UseTraceCategories(params string[] categoryNames)
         {
             this.TraceCategories = categoryNames;
             return this;
