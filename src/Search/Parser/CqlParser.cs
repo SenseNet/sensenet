@@ -892,6 +892,11 @@ namespace SenseNet.Search.Parser
             var currentField = _currentField.Peek();
             var fieldName = currentField.Name;
 
+            if (value.StringValue == SnQuery.EmptyText)
+                return new SimplePredicate(currentField.Name, new IndexValue(value.StringValue));
+            if (value.StringValue == SnQuery.EmptyInnerQueryText)
+                return new SimplePredicate(IndexFieldName.NodeId, new IndexValue(0));
+
             var parsedValue = ParseValue(fieldName, value, _context);
 
             if (parsedValue.Type == IndexValueType.String)
@@ -901,6 +906,7 @@ namespace SenseNet.Search.Parser
                 if (parsedValue.StringValue == SnQuery.EmptyInnerQueryText)
                     return new SimplePredicate(IndexFieldName.NodeId, new IndexValue(0));
             }
+
             return new SimplePredicate(currentField.Name, parsedValue, value.FuzzyValue);
         }
         private IndexValue ParseValue(string fieldName, QueryFieldValue value, IQueryContext context, bool throwIfError = true)
