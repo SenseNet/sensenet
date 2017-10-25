@@ -35,22 +35,63 @@ namespace SenseNet.ContentRepository.Tests
             SnTrace.Flush();
         }
 
+        protected void Test(Action callback)
+        {
+            DistributedApplication.Cache.Reset();
+            ContentTypeManager.Reset();
+
+            var builder = CreateRepositoryBuilderForTest();
+
+            Indexing.IsOuterSearchEngineEnabled = true;
+            using (Repository.Start(builder))
+            using (new SystemAccount())
+            {
+                callback();
+            }
+        }
+        protected void Test(Action<RepositoryBuilder> initialize, Action callback)
+        {
+            DistributedApplication.Cache.Reset();
+            ContentTypeManager.Reset();
+
+            var builder = CreateRepositoryBuilderForTest();
+            initialize(builder);
+
+            Indexing.IsOuterSearchEngineEnabled = true;
+            using (Repository.Start(builder))
+            using (new SystemAccount())
+            {
+                callback();
+            }
+        }
+        protected void Test(bool useCurrentUser, Action<RepositoryBuilder> initialize, Action callback)
+        {
+            DistributedApplication.Cache.Reset();
+            ContentTypeManager.Reset();
+
+            var builder = CreateRepositoryBuilderForTest();
+            initialize(builder);
+
+            Indexing.IsOuterSearchEngineEnabled = true;
+            using (Repository.Start(builder))
+            {
+                if(useCurrentUser)
+                    callback();
+                else
+                    using (new SystemAccount())
+                        callback();
+            }
+        }
+
         protected T Test<T>(Func<T> callback)
         {
             DistributedApplication.Cache.Reset();
             ContentTypeManager.Reset();
 
+            var builder = CreateRepositoryBuilderForTest();
+
             Indexing.IsOuterSearchEngineEnabled = true;
-            using (Repository.Start(new RepositoryBuilder()
-                .UseDataProvider(new InMemoryDataProvider())
-                .UseSearchEngine(new InMemorySearchEngine())
-                .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
-                .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
-                .UseCacheProvider(new EmptyCache())
-                .StartWorkflowEngine(false)
-                .DisableNodeObservers()
-                .EnableNodeObservers(typeof(SettingsCache))
-                .UseTraceCategories(new[] { "Test", "Event", "System", "Repository" })))
+            using (Repository.Start(builder))
             using (new SystemAccount())
             {
                 return callback();
@@ -61,17 +102,7 @@ namespace SenseNet.ContentRepository.Tests
             DistributedApplication.Cache.Reset();
             ContentTypeManager.Reset();
 
-            var builder = new RepositoryBuilder()
-                .UseDataProvider(new InMemoryDataProvider())
-                .UseSearchEngine(new InMemorySearchEngine())
-                .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
-                .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
-                .UseCacheProvider(new EmptyCache())
-                .StartWorkflowEngine(false)
-                .DisableNodeObservers()
-                .EnableNodeObservers(typeof(SettingsCache))
-                .UseTraceCategories(new[] {"Test", "Event", "System", "Repository"});
-
+            var builder = CreateRepositoryBuilderForTest();
             initialize(builder);
 
             Indexing.IsOuterSearchEngineEnabled = true;
@@ -81,7 +112,38 @@ namespace SenseNet.ContentRepository.Tests
                 return callback();
             }
         }
+        protected T Test<T>(bool useCurrentUser, Action<RepositoryBuilder> initialize, Func<T> callback)
+        {
+            DistributedApplication.Cache.Reset();
+            ContentTypeManager.Reset();
 
+            var builder = CreateRepositoryBuilderForTest();
+            initialize(builder);
+
+            Indexing.IsOuterSearchEngineEnabled = true;
+            using (Repository.Start(builder))
+            {
+                if (useCurrentUser)
+                    return callback();
+                else
+                    using (new SystemAccount())
+                        return callback();
+            }
+        }
+
+        protected RepositoryBuilder CreateRepositoryBuilderForTest()
+        {
+            return new RepositoryBuilder()
+                .UseDataProvider(new InMemoryDataProvider())
+                .UseSearchEngine(new InMemorySearchEngine())
+                .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
+                .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
+                .UseCacheProvider(new EmptyCache())
+                .StartWorkflowEngine(false)
+                .DisableNodeObservers()
+                .EnableNodeObservers(typeof(SettingsCache))
+                .UseTraceCategories("Test", "Event", "System", "Repository");
+        }
 
         protected static ISecurityDataProvider GetSecurityDataProvider(InMemoryDataProvider repo)
         {
