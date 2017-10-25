@@ -1026,17 +1026,17 @@ namespace SenseNet.SearchImpl.Tests
 
             private class IndexingEngineForNestedQueryTests : IIndexingEngine
             {
-                public bool Running { get { return true; } }
+                public bool Running { get; private set; }
 
                 public bool IndexIsCentralized => false;
 
                 public void Start(TextWriter consoleOut)
                 {
-                    // do nothing
+                    Running = true;
                 }
                 public void ShutDown()
                 {
-                    // do nothing
+                    Running = false;
                 }
                 public void ClearIndex()
                 {
@@ -1044,7 +1044,7 @@ namespace SenseNet.SearchImpl.Tests
                 }
                 public IndexingActivityStatus ReadActivityStatusFromIndex()
                 {
-                    throw new NotImplementedException();
+                    return IndexingActivityStatus.Startup;
                 }
                 public void WriteActivityStatusToIndex(IndexingActivityStatus state)
                 {

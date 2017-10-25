@@ -4,6 +4,8 @@ using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using ContentType = SenseNet.ContentRepository.Schema.ContentType;
+using SenseNet.ContentRepository;
+using SenseNet.Search.Parser;
 
 namespace SenseNet.SearchImpl.Tests.Implementations
 {
@@ -39,7 +41,7 @@ namespace SenseNet.SearchImpl.Tests.Implementations
 
         public string ReplaceQueryTemplates(string queryText)
         {
-            throw new NotSupportedException();
+            return TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), queryText);
         }
 
         public T GetSettingsValue<T>(string key, T defaultValue)
