@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using SenseNet.ContentRepository;
-using System.Configuration;
 using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.Packaging.Steps
 {
@@ -44,7 +39,7 @@ namespace SenseNet.Packaging.Steps
                 indexPath = Configuration.Indexing.IndexDirectoryPath;
                 if (string.IsNullOrEmpty(indexPath))
                 {
-                    indexPath = System.IO.Path.Combine(context.TargetPath, "App_Data\\LuceneIndex"); //UNDONE:||||||||| tusmester API: we does not know this stuff: "App_Data\LuceneIndex"
+                    indexPath = System.IO.Path.Combine(context.TargetPath, Configuration.Indexing.DefaultLocalIndexDirectory);
                 }
                 else
                 {
