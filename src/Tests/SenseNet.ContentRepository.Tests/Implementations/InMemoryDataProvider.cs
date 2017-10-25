@@ -1162,7 +1162,9 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                         Path = record[9],
                         NodeCreatedById = 1,
                         NodeModifiedById = 1,
-                        OwnerId = 1
+                        OwnerId = 1,
+                        NodeCreationDate = DateTime.UtcNow,
+                        NodeModificationDate = DateTime.UtcNow,
                     };
                 }).ToList();
         }
@@ -1174,7 +1176,9 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 NodeId = n.NodeId,
                 Version = VersionNumber.Parse("1.0.A"),
                 CreatedById = 1,
-                ModifiedById = 1
+                ModifiedById = 1,
+                CreationDate = DateTime.UtcNow,
+                ModificationDate = DateTime.UtcNow,
             }).ToList();
         }
         private List<BinaryPropertyRecord> GetInitialBinaryProperties()
