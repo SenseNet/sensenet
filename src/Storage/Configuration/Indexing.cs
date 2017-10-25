@@ -4,6 +4,7 @@ namespace SenseNet.Configuration
 {
     public class Indexing : SnConfig
     {
+        public static readonly string DefaultLocalIndexDirectory = "App_Data\\LocalIndex";
         private const string SectionName = "sensenet/indexing";
 
         private static string _indexDirectoryPath;
@@ -16,7 +17,7 @@ namespace SenseNet.Configuration
             {
                 if (_indexDirectoryPath == null)
                 {
-                    var configValue = GetString(SectionName, "IndexDirectoryPath", "..\\App_Data\\LuceneIndex");
+                    var configValue = GetString(SectionName, "IndexDirectoryPath", $"..\\{DefaultLocalIndexDirectory}");
                     var assemblyPath = System.Reflection.Assembly.GetExecutingAssembly().CodeBase
                         .Replace("file:///", "")
                         .Replace("file://", "//")

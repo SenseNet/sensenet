@@ -20,18 +20,9 @@ namespace SenseNet.ContentRepository.Search
         private string __indexDirectoryPath;
         private string IndexDirectoryPathPrivate
         {
-            get
-            {
-                if (__indexDirectoryPath == null)
-                    __indexDirectoryPath = Indexing.IndexDirectoryFullPath;
-                return __indexDirectoryPath;
-            }
-            set
-            {
-                __indexDirectoryPath = value;
-            }
+            get => __indexDirectoryPath ?? (__indexDirectoryPath = Indexing.IndexDirectoryFullPath);
+            set => __indexDirectoryPath = value;
         }
-
 
         public static readonly List<string> YesList = new List<string>(new[] { "1", "true", "y", SnTerm.Yes });
         public static readonly List<string> NoList = new List<string>(new[] { "0", "false", "n", SnTerm.No });
@@ -45,14 +36,9 @@ namespace SenseNet.ContentRepository.Search
         public static bool ContentQueryIsAllowed => Indexing.IsOuterSearchEngineEnabled &&
                                                     SearchEngine != InternalSearchEngine.Instance;
 
-        public static bool IsOuterEngineEnabled
-        {
-            get { return Indexing.IsOuterSearchEngineEnabled; }
-        }
-        public static string IndexDirectoryPath
-        {
-            get { return Instance.IndexDirectoryPathPrivate; }
-        }
+        public static bool IsOuterEngineEnabled => Indexing.IsOuterSearchEngineEnabled;
+        public static string IndexDirectoryPath => Instance.IndexDirectoryPathPrivate;
+
         public static void EnableOuterEngine()
         {
             if (false == Indexing.IsOuterSearchEngineEnabled)
