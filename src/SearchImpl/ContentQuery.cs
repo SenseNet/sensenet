@@ -8,6 +8,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Parser;
+using SenseNet.ContentRepository.Search;
 
 namespace SenseNet.Search
 {
@@ -311,14 +312,16 @@ namespace SenseNet.Search
             QueryResult result;
             using (var op = SnTrace.Query.StartOperation("ContentQuery: {0} | Top:{1} Skip:{2} Sort:{3} Mode:{4} AllVersions:{5}", queryText, _settings.Top, _settings.Skip, _settings.Sort, _settings.QueryExecutionMode, _settings.AllVersions))
             {
-                if (!queryText.Contains("}}"))
+                var query = SearchManager.ContentRepository.ReplaceQueryTemplates(queryText);
+
+                if (!query.Contains("}}"))
                 {
-                    var snQueryResultresult = SnQuery.Query(queryText, new SnQueryContext(Settings, userId));
+                    var snQueryResultresult = SnQuery.Query(query, new SnQueryContext(Settings, userId));
                     result = new QueryResult(snQueryResultresult.Hits, snQueryResultresult.TotalCount);
                 }
                 else
                 {
-                    result = RecursiveExecutor.ExecuteRecursive(queryText, Settings, userId);
+                    result = RecursiveExecutor.ExecuteRecursive(query, Settings, userId);
                 }
                 op.Successful = true;
             }

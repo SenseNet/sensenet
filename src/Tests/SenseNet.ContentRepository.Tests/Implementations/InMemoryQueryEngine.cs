@@ -5,10 +5,11 @@ using System.Linq;
 using SenseNet.Search;
 using SenseNet.Search.Parser;
 using SenseNet.Search.Parser.Predicates;
+using System.Text;
 
 namespace SenseNet.ContentRepository.Tests.Implementations
 {
-    internal class InMemoryQueryEngine : IQueryEngine
+    public class InMemoryQueryEngine : IQueryEngine
     {
         private class Hit
         {
@@ -54,6 +55,8 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         public IQueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
+            _log.AppendLine($"ExecuteQuery: {query}");
+
             var interpreter = new SnQueryInterpreter(_index);
             int totalCount;
             var result = interpreter.Execute(query, filter, out totalCount);
@@ -62,9 +65,10 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             var queryResult = new QueryResult<int>(nodeIds, totalCount);
             return queryResult;
         }
-
         public IQueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
+            _log.AppendLine($"ExecuteQueryAndProject: {query}");
+
             var interpreter = new SnQueryInterpreter(_index);
             int totalCount;
             var result = interpreter.Execute(query, filter, out totalCount);
@@ -72,6 +76,16 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             var projectedValues = result.Select(h => h.ValueForProject).Distinct().ToArray();
             var queryResult = new QueryResult<string>(projectedValues, totalCount);
             return queryResult;
+        }
+
+        private StringBuilder _log = new StringBuilder();
+        internal string GetLog()
+        {
+            return _log.ToString();
+        }
+        internal void ClearLog()
+        {
+            _log.Clear();
         }
 
         private class SnQueryInterpreter : SnQueryVisitor

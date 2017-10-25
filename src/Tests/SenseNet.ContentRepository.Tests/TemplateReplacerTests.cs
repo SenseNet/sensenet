@@ -15,39 +15,14 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Tests.Implementations;
+using SenseNet.Search;
+using SenseNet.ContentRepository.Search;
 
 namespace SenseNet.ContentRepository.Tests
 {
     [TestClass]
     public class TemplateReplacerTests : TestBase
     {
-        //private TestContext testContextInstance;
-        //public override TestContext TestContext
-        //{
-        //    get { return testContextInstance; }
-        //    set { testContextInstance = value; }
-        //}
-
-        private const string TestSiteName = "TempRepTestSite";
-
-        private static string TestSitePath
-        {
-            get { return RepositoryPath.Combine("/Root", TestSiteName); }
-        }
-
-        /* ================================================== Test infrastructure */
-
-        //[ClassCleanup]
-        //public static void RemoveSite()
-        //{
-        //    CleanupTestSite();
-        //}
-
-
-        /* ================================================== Test methods */
-
-        /*private static readonly string DateFormat = "yyyy-MM-dd HH:mm:ss";*/
-
         [TestMethod]
         public void ContentQueryTemplateReplacer_CurrentUser()
         {
@@ -79,7 +54,6 @@ namespace SenseNet.ContentRepository.Tests
             var text = "@@CurrentDate@@";
             AssertDate(text, DateTime.UtcNow.Date, "CurrentDate is invalid.");
         }
-
         [TestMethod]
         public void ContentQueryTemplateReplacer_3()
         {
@@ -97,8 +71,7 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.AreEqual(expected, TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), text));
                 });
         }
-
-    [TestMethod]
+        [TestMethod]
         public void ContentQueryTemplateReplacer_DateWithModifier()
         {
             // short syntax-------------------------------------------------------------
@@ -165,7 +138,6 @@ namespace SenseNet.ContentRepository.Tests
             AssertDate("@@CurrentMonth.Add(3)@@", new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1).AddMonths(3), "Month.Add is incorrect.");
             AssertDate("@@CurrentYear.Add(2)@@", new DateTime(DateTime.UtcNow.Year + 2, 1, 1), "Year.Add is incorrect.");
         }
-
         [TestMethod]
         public void ContentQueryTemplateReplacer_DateTemplates()
         {
@@ -199,47 +171,94 @@ namespace SenseNet.ContentRepository.Tests
             AssertDate("@@NextWorkday+12h@@", DateTime.UtcNow.Date.AddWorkdays(1).AddHours(12), "NextWorkday+ is incorrect.");
             AssertDate("@@CurrentDate+5workdays@@", DateTime.UtcNow.Date.AddWorkdays(5), "+workdays is incorrect.");
         }
-
         [TestMethod]
         public void ContentQueryTemplateReplacer_Properties()
         {
             Test(
-             true,
-             builder => { builder.UseTraceCategories("Query"); },
-             () =>
-             {
-                 using (new SystemAccount())
-                 {
-                     SecurityHandler.CreateAclEditor()
-                        .Allow(Identifiers.PortalRootId, User.Administrator.Id, false, PermissionType.PermissionTypes)
-                        .Apply();
-                     User.Administrator.CreationDate = new DateTime(2001, 01, 01);
-                 }
+                true,
+                builder => { builder.UseTraceCategories("Query"); },
+                () =>
+                {
+                    AddRootAccessibilityToAdmin();
 
-                 var node = Repository.Root;
+                    var node = Repository.Root;
 
-                 //var date1 = ((User)User.Current).CreationDate;
-                 var date1 = node.CreationDate;
+                    //var date1 = ((User)User.Current).CreationDate;
+                    var date1 = node.CreationDate;
 
-                 AssertDate("@@CurrentUser.CreationDate@@", date1, "CU.CreationDate is incorrect.");
-                 AssertDate("@@CurrentUser.CreationDate+3minutes@@", date1.AddMinutes(3), "CU.CreationDate is incorrect.");
+                    AssertDate("@@CurrentUser.CreationDate@@", date1, "CU.CreationDate is incorrect.");
+                    AssertDate("@@CurrentUser.CreationDate+3minutes@@", date1.AddMinutes(3), "CU.CreationDate is incorrect.");
 
-                 date1 = node.Owner.CreationDate;
-                 AssertDate("@@CurrentUser.Owner.CreationDate@@", date1, "CU.Owner.CreationDate is incorrect.");
-                 AssertDate("@@CurrentUser.Owner.CreationDate-3days@@", date1.AddDays(-3), "CU.Owner.CreationDate is incorrect.");
+                    date1 = node.Owner.CreationDate;
+                    AssertDate("@@CurrentUser.Owner.CreationDate@@", date1, "CU.Owner.CreationDate is incorrect.");
+                    AssertDate("@@CurrentUser.Owner.CreationDate-3days@@", date1.AddDays(-3), "CU.Owner.CreationDate is incorrect.");
 
-                 var index = ((User)User.Current).Index;
-                 Assert.AreEqual(index.ToString(), TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), "@@CurrentUser.Index@@"), "Index is incorrect.");
-                 Assert.AreEqual((index + 5).ToString(), TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), "@@CurrentUser.Index+5@@"), "Index+ is incorrect.");
-                 Assert.AreEqual((index + 5).ToString(), TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), "@@CurrentUser.Index.Add(5)@@"), "Index.Add is incorrect.");
+                    var index = ((User)User.Current).Index;
+                    Assert.AreEqual(index.ToString(), TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), "@@CurrentUser.Index@@"), "Index is incorrect.");
+                    Assert.AreEqual((index + 5).ToString(), TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), "@@CurrentUser.Index+5@@"), "Index+ is incorrect.");
+                    Assert.AreEqual((index + 5).ToString(), TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), "@@CurrentUser.Index.Add(5)@@"), "Index.Add is incorrect.");
 
-                 // method syntax------------------------------------------------------------
+                    // method syntax------------------------------------------------------------
 
-                 date1 = node.Owner.CreationDate;
-                 AssertDate("@@CurrentUser.Owner.CreationDate.AddMonths(3)@@", date1.AddMonths(3), "CU.Owner.AddMonths is incorrect.");
-                 AssertDate("@@CurrentUser.Owner.CreationDate.SubtractDays(3)@@", date1.AddDays(-3), "CU.Owner.CreationDate.SubtractDays is incorrect.");
-                 AssertDate("@@CurrentUser.Owner.CreationDate.AddDays(-3)@@", date1.AddDays(-3), "CU.Owner.CreationDate.AddDays(-) is incorrect.");
-             });
+                    date1 = node.Owner.CreationDate;
+                    AssertDate("@@CurrentUser.Owner.CreationDate.AddMonths(3)@@", date1.AddMonths(3), "CU.Owner.AddMonths is incorrect.");
+                    AssertDate("@@CurrentUser.Owner.CreationDate.SubtractDays(3)@@", date1.AddDays(-3), "CU.Owner.CreationDate.SubtractDays is incorrect.");
+                    AssertDate("@@CurrentUser.Owner.CreationDate.AddDays(-3)@@", date1.AddDays(-3), "CU.Owner.CreationDate.AddDays(-) is incorrect.");
+                });
+        }
+
+        [TestMethod]
+        public void ContentQueryTemplateReplacer_QueryIntegration()
+        {
+            Test(
+                true,
+                builder => { builder.UseTraceCategories("Query"); },
+                () =>
+                {
+                    AddRootAccessibilityToAdmin();
+                    var queryEngine = (InMemoryQueryEngine)SearchManager.SearchEngine.QueryEngine;
+
+                    queryEngine.ClearLog();
+                    var expected = $"ExecuteQuery: Id:{User.Current.Id} .AUTOFILTERS:OFF";
+
+                    ContentQuery.Query("Id:@@CurrentUser@@", QuerySettings.AdminSettings);
+
+                    var actual = queryEngine.GetLog().Trim();
+                    Assert.AreEqual(expected, actual);
+                });
+        }
+        [TestMethod]
+        public void ContentQueryTemplateReplacer_RecursiveQueryIntegration()
+        {
+            Test(
+                true,
+                builder => { builder.UseTraceCategories("Query"); },
+                () =>
+                {
+                    AddRootAccessibilityToAdmin();
+                    var queryEngine = (InMemoryQueryEngine)SearchManager.SearchEngine.QueryEngine;
+
+                    queryEngine.ClearLog();
+                    var expected = $"ExecuteQueryAndProject: Id:{User.Current.Id} .AUTOFILTERS:OFF";
+
+                    ContentQuery.Query("Id:{{Id:@@CurrentUser.Id@@}}", QuerySettings.AdminSettings);
+
+                    var actual = queryEngine.GetLog().Split('\r', '\n').First();
+                    Assert.AreEqual(expected, actual);
+                });
+        }
+
+        /* ================================================== Helper methods */
+
+        private void AddRootAccessibilityToAdmin()
+        {
+            using (new SystemAccount())
+            {
+                SecurityHandler.CreateAclEditor()
+                   .Allow(Identifiers.PortalRootId, User.Administrator.Id, false, PermissionType.PermissionTypes)
+                   .Apply();
+                User.Administrator.CreationDate = new DateTime(2001, 01, 01);
+            }
         }
 
         private static void AssertDate(string text, DateTime expectedDate, string message)
@@ -247,44 +266,6 @@ namespace SenseNet.ContentRepository.Tests
             var expected = "'" + expectedDate.ToString(CultureInfo.InvariantCulture) + "'";
             Assert.AreEqual(expected, TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), text), message);
         }
-
-        /* ================================================== Helper methods */
-
-        //private static void CreatePortalContext()
-        //{
-        //    CreateTestSite();
-
-        //    const string pagePath = "/fakesiteforms/Root/System/alma.jpg/";
-
-        //    var simulatedOutput = new System.IO.StringWriter();
-        //    var simulatedWorkerRequest = new SimulatedHttpRequest(@"\", @"C:\Inetpub\wwwroot", pagePath, "", simulatedOutput, "localhost");
-        //    var simulatedHttpContext = new HttpContext(simulatedWorkerRequest);
-        //    var portalContext = PortalContext.Create(simulatedHttpContext);
-        //}
-
-        //private static void CreateTestSite()
-        //{
-        //    var node = Node.LoadNode(TestSitePath);
-        //    if (node != null)
-        //        return;
-
-        //    var site = new Site(Repository.Root) { Name = TestSiteName };
-        //    var urlList = new Dictionary<string, string>(3)
-        //                      {
-        //                          {"localhost/fakesiteforms", "Forms"},
-        //                          {"localhost/fakesitewindows", "Windows"},
-        //                          {"localhost/fakesitenone", "None"}
-        //                      };
-        //    site.UrlList = urlList;
-        //    site.Save();
-        //}
-
-        //private static void CleanupTestSite()
-        //{
-        //    var node = Node.LoadNode(TestSitePath);
-        //    if (node != null)
-        //        node.ForceDelete();
-        //}
 
         private static DateTime GetStartOfWeek(DateTime date)
         {
