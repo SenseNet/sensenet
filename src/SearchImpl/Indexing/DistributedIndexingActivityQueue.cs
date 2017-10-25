@@ -596,7 +596,8 @@ namespace SenseNet.Search.Indexing
                     }
                     catch (Exception e)
                     {
-                        //UNDONE:||||| Error logging is not implemented. WARNING Do not fill the event log with repetitive messages.
+                        //TODO: WARNING Do not fill the event log with repetitive messages.
+                        SnLog.WriteException(e, $"Indexing activity execution error. Activity: #{activity.Id} ({activity.ActivityType})");
                         SnTrace.Index.WriteError("IAQ: A{0} EXECUTION ERROR: {1}", activity.Id, e);
                         IndexingActivityHistory.Error(activity.Id, e);
                     }
