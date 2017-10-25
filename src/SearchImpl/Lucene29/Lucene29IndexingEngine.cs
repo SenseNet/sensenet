@@ -215,7 +215,7 @@ namespace SenseNet.Search.Lucene29
 
         private void Warmup()
         {
-            var result = ContentQuery.Query(SafeQueriesInternal.ContentById, QuerySettings.AdminSettings, 1);
+            var result = SnQuery.Query("+Id:1", SnQueryContext.CreateDefault());
         }
 
         public void ShutDown()

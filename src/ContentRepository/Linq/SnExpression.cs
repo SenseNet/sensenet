@@ -6,7 +6,6 @@ using SenseNet.Search;
 using System.Collections;
 using System.Linq.Expressions;
 using SenseNet.ContentRepository.Schema;
-using SenseNet.Search.Lucene29;
 using SenseNet.Search.Parser;
 using SenseNet.Search.Parser.Predicates;
 

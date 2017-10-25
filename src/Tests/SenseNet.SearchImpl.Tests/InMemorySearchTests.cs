@@ -893,7 +893,7 @@ namespace SenseNet.SearchImpl.Tests
                 {"F2:(v1a v1b v1c) F3:v4 .SELECT:P2", new [] {"v2a", "v2b", "v2c"}},
                 {"F6:v6 .SELECT:P6", new [] {"v3a", "v3b", "v3c"}}
             };
-            var indexingInfo = new Lucene.Net.Support.Dictionary<string, IPerFieldIndexingInfo>
+            var indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
             {
                 {"_Text", new TestPerfieldIndexingInfoString()},
                 {"F1", new TestPerfieldIndexingInfoString()},

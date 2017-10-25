@@ -60,7 +60,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration\Querying.cs" />
-    <Compile Include="ContentQuery.cs" />
     <Compile Include="Indexing\Activities\AddDocumentActivity.cs" />
     <Compile Include="Indexing\Activities\AddTreeActivity.cs" />
     <Compile Include="Indexing\Activities\DistributedIndexingActivity.cs" />

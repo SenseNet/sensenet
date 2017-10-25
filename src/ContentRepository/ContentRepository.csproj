@@ -238,6 +238,7 @@
     <Compile Include="Schema\Metadata\MetaCollectionEnumerable.cs" />
     <Compile Include="Schema\Metadata\SchemaVisitor.cs" />
     <Compile Include="SearchEngineSupport.cs" />
+    <Compile Include="Search\ContentQuery.cs" />
     <Compile Include="Search\Indexing\ExplicitPerFieldIndexingInfo.cs" />
     <Compile Include="Search\Indexing\IndexingTools.cs" />
     <Compile Include="Search\Parser\ContentQueryTemplateReplacer.cs" />

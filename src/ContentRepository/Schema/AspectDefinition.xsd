@@ -138,7 +138,7 @@
       <xs:element name="Analyzer" type="xs:string" minOccurs="0">
         <xs:annotation>
           <xs:documentation>
-            Specifies a Lucene Analyzer for indexing.
+            Specifies an analyzer for indexing. Valid values are: Default, Keyword, Standard, Whitespace
           </xs:documentation>
         </xs:annotation>
       </xs:element>
