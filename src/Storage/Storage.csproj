@@ -172,6 +172,7 @@
     <Compile Include="CounterManager.cs" />
     <Compile Include="Data\BlobStorage.cs" />
     <Compile Include="Data\IndexDocumentData.cs" />
+    <Compile Include="Data\IndexIntegrityCheckerItem.cs" />
     <Compile Include="Data\IPackageStorageProvider.cs" />
     <Compile Include="Data\QueryPropertyData.cs" />
     <Compile Include="Data\SnMaintenance.cs" />

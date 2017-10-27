@@ -479,8 +479,8 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         // ====================================================== Checking  index integrity
 
-        public abstract IDataProcedure GetTimestampDataForOneNodeIntegrityCheck(string path, int[] excludedNodeTypeIds);
-        public abstract IDataProcedure GetTimestampDataForRecursiveIntegrityCheck(string path, int[] excludedNodeTypeIds);
+        public abstract IEnumerable<IndexIntegrityCheckerItem> GetTimestampDataForOneNodeIntegrityCheck(string path, int[] excludedNodeTypeIds);
+        public abstract IEnumerable<IndexIntegrityCheckerItem> GetTimestampDataForRecursiveIntegrityCheck(string path, int[] excludedNodeTypeIds);
 
         // ====================================================== Database backup / restore operations
 

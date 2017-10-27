@@ -419,6 +419,35 @@ namespace SenseNet.SearchImpl.Tests
 
         /* ======================================================================================= */
 
+        [TestMethod, TestCategory("IR, L29")]
+        public void L29_IntegrityChecker()
+        {
+            var result = L29Test(s =>
+            {
+                SaveInitialIndexDocuments();
+                var populator = SearchManager.ContentRepository.GetIndexPopulator();
+                populator.ClearAndPopulateAll();
+
+                var node = new SystemFolder(Repository.Root) { Name = "L29_IntegrityChecker" };
+                using (new SystemAccount())
+                    node.Save();
+
+                return new Tuple<object, Difference[]>(
+                    IntegrityChecker.CheckIndexIntegrity("/Root", true),
+                    IntegrityChecker.Check("/Root", true).ToArray());
+            });
+            var checkerResult = result.Item1;
+            var diffs = result.Item2;
+
+            Assert.AreEqual(1, diffs.Length);
+            Assert.AreEqual(IndexDifferenceKind.NotInDatabase, diffs[0].Kind);
+            Assert.AreEqual(-1, diffs[0].NodeId);
+            Assert.AreEqual(-1, diffs[0].VersionId);
+            Assert.AreEqual(null, diffs[0].Path);
+        }
+
+        /* ======================================================================================= */
+
         protected T L29Test<T>(Func<string, T> callback, [CallerMemberName]string memberName = "")
         {
             var dataProvider = new InMemoryDataProvider();

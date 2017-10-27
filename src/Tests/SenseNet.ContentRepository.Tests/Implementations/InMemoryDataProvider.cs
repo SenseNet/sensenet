@@ -129,16 +129,49 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+        #endregion
 
-        public override IDataProcedure GetTimestampDataForOneNodeIntegrityCheck(string path, int[] excludedNodeTypeIds)
+        public override IEnumerable<IndexIntegrityCheckerItem> GetTimestampDataForOneNodeIntegrityCheck(string path, int[] excludedNodeTypeIds)
         {
-            throw new NotImplementedException();
+            if (path == null)
+                path = "/Root";
+
+            return _db.Versions.SelectMany(v => _db.Nodes.Where(n => n.NodeId == v.NodeId
+                                                                     && !excludedNodeTypeIds.Contains(n.NodeTypeId)
+                                                                     && string.Equals(path, n.Path, StringComparison.OrdinalIgnoreCase)),
+                (v, n) => new IndexIntegrityCheckerItem
+                {
+                    VersionId = v.VersionId,
+                    VersionTimestamp = v.VersionTimestamp,
+                    NodeId = n.NodeId,
+                    NodeTimestamp = n.NodeTimestamp,
+                    LastMajorVersionId = n.LastMajorVersionId,
+                    LastMinorVersionId = n.LastMinorVersionId
+                });
         }
 
-        public override IDataProcedure GetTimestampDataForRecursiveIntegrityCheck(string path, int[] excludedNodeTypeIds)
+        public override IEnumerable<IndexIntegrityCheckerItem> GetTimestampDataForRecursiveIntegrityCheck(string path, int[] excludedNodeTypeIds)
         {
-            throw new NotImplementedException();
+            if (path == null)
+                path = "/Root";
+
+            return _db.Versions.SelectMany(v => _db.Nodes.Where(n => n.NodeId == v.NodeId
+                                                                && !excludedNodeTypeIds.Contains(n.NodeTypeId)
+                                                                && (string.Equals(path, n.Path, StringComparison.OrdinalIgnoreCase)
+                                                                    || n.Path.StartsWith(path + "/", StringComparison.OrdinalIgnoreCase)
+                                                                )),
+                (v, n) => new IndexIntegrityCheckerItem
+                {
+                    VersionId = v.VersionId,
+                    VersionTimestamp = v.VersionTimestamp,
+                    NodeId = n.NodeId,
+                    NodeTimestamp = n.NodeTimestamp,
+                    LastMajorVersionId = n.LastMajorVersionId,
+                    LastMinorVersionId = n.LastMinorVersionId
+                });
         }
+
+        #region NOT IMPLEMENTED
 
         public override bool IsPackageExist(string componentId, PackageType packageType, Version version)
         {
@@ -742,9 +775,9 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 Path = node.Path,
                 IsSystem = node.IsSystem,
                 IsLastDraft = node.LastMinorVersionId == version.VersionId,
-                IsLastPublic = approved && isLastMajor
-                //NodeTimestamp = node.Timestamp,
-                //VersionTimestamp = version.Timestamp,
+                IsLastPublic = approved && isLastMajor,
+                NodeTimestamp = node.NodeTimestamp,
+                VersionTimestamp = version.VersionTimestamp,
             };
         }
 
@@ -1030,6 +1063,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             if (versionRow == null)
                 return;
             versionRow.IndexDocument = indexDocumentBytes;
+            nodeData.VersionTimestamp = versionRow.VersionTimestamp;
         }
 
         protected override int VersionCount(string path)
@@ -1429,9 +1463,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 var newVersionId = _db.Versions.Max(r => r.NodeId) + 1;
                 lastMinorVersionId = newVersionId;
                 lastMajorVersionId = nodeData.Version.IsMajor ? newVersionId : 0;
-                var nodeTimeStamp = 0L; //TODO: InMemoryDataProvider: timestamp not supported
-                var versionTimestamp = 0L; //TODO: InMemoryDataProvider: timestamp not supported
-                _db.Nodes.Add(new NodeRecord
+                var nodeRecord = new NodeRecord
                 {
                     NodeId = newNodeId,
                     NodeTypeId = nodeData.NodeTypeId,
@@ -1461,9 +1493,8 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                     IsSystem = nodeData.IsSystem,
                     OwnerId = nodeData.OwnerId,
                     SavingState = nodeData.SavingState,
-                    NodeTimestamp = nodeTimeStamp
-                });
-                _db.Versions.Add(new VersionRecord
+                };
+                var versionRecord = new VersionRecord
                 {
                     VersionId = newVersionId,
                     NodeId = newNodeId,
@@ -1473,12 +1504,16 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                     ModificationDate = nodeData.VersionModificationDate,
                     ModifiedById = nodeData.VersionModifiedById,
                     ChangedData = nodeData.ChangedData,
-                    VersionTimestamp = versionTimestamp
-                });
+                };
+
+
+                _db.Nodes.Add(nodeRecord);
+                _db.Versions.Add(versionRecord);
+
                 nodeData.Id = newNodeId;
                 nodeData.VersionId = newVersionId;
-                nodeData.NodeTimestamp = nodeTimeStamp;
-                nodeData.VersionTimestamp = versionTimestamp;
+                nodeData.NodeTimestamp = nodeRecord.NodeTimestamp;
+                nodeData.VersionTimestamp = versionRecord.VersionTimestamp;
             }
 
             public void UpdateSubTreePath(string oldPath, string newPath)
@@ -1800,49 +1835,173 @@ namespace SenseNet.ContentRepository.Tests.Implementations
         #region Data classes
         private class NodeRecord
         {
-            public int NodeId;
-            public int NodeTypeId;
-            public int ContentListTypeId;
-            public int ContentListId;
-            public bool CreatingInProgress;
-            public bool IsDeleted;
-            //public bool IsInherited; 
-            public int ParentNodeId;
-            public string Name;
-            public string DisplayName;
-            public string Path;
-            public int Index;
-            public bool Locked;
-            public int LockedById;
-            public string ETag;
-            public int LockType;
-            public int LockTimeout;
-            public DateTime LockDate;
-            public string LockToken;
-            public DateTime LastLockUpdate;
-            public int LastMinorVersionId;
-            public int LastMajorVersionId;
-            public DateTime NodeCreationDate;
-            public int NodeCreatedById;
-            public DateTime NodeModificationDate;
-            public int NodeModifiedById;
-            public bool IsSystem;
-            public int OwnerId;
-            public ContentSavingState SavingState;
-            public long NodeTimestamp;
+            private int _nodeId;
+            private int _nodeTypeId;
+            private int _contentListTypeId;
+            private int _contentListId;
+            private bool _creatingInProgress;
+            private bool _isDeleted;
+            private int _parentNodeId;
+            private string _name;
+            private string _displayName;
+            private string _path;
+            private int _index;
+            private bool _locked;
+            private int _lockedById;
+            private string _eTag;
+            private int _lockType;
+            private int _lockTimeout;
+            private DateTime _lockDate;
+            private string _lockToken;
+            private DateTime _lastLockUpdate;
+            private int _lastMinorVersionId;
+            private int _lastMajorVersionId;
+            private DateTime _nodeCreationDate;
+            private int _nodeCreatedById;
+            private DateTime _nodeModificationDate;
+            private int _nodeModifiedById;
+            private bool _isSystem;
+            private int _ownerId;
+            private ContentSavingState _savingState;
+            private long _nodeTimestamp;
+
+            public int NodeId
+            {
+                get => _nodeId;
+                set => _nodeId = value;
+            }
+            public int NodeTypeId { get => _nodeTypeId; set { _nodeTypeId = value; SetTimestamp(); } }
+            public int ContentListTypeId { get => _contentListTypeId; set { _contentListTypeId = value; SetTimestamp(); } }
+            public int ContentListId { get => _contentListId; set { _contentListId = value; SetTimestamp(); } }
+            public bool CreatingInProgress { get => _creatingInProgress; set { _creatingInProgress = value; SetTimestamp(); } }
+            public bool IsDeleted { get => _isDeleted; set { _isDeleted = value; SetTimestamp(); } }
+            public int ParentNodeId { get => _parentNodeId; set { _parentNodeId = value; SetTimestamp(); } }
+            public string Name { get => _name; set { _name = value; SetTimestamp(); } }
+            public string DisplayName { get => _displayName; set { _displayName = value; SetTimestamp(); } }
+            public string Path { get => _path; set { _path = value; SetTimestamp(); } }
+            public int Index { get => _index; set { _index = value; SetTimestamp(); } }
+            public bool Locked { get => _locked; set { _locked = value; SetTimestamp(); } }
+            public int LockedById { get => _lockedById; set { _lockedById = value; SetTimestamp(); } }
+            public string ETag { get => _eTag; set { _eTag = value; SetTimestamp(); } }
+            public int LockType { get => _lockType; set { _lockType = value; SetTimestamp(); } }
+            public int LockTimeout { get => _lockTimeout; set { _lockTimeout = value; SetTimestamp(); } }
+            public DateTime LockDate { get => _lockDate; set { _lockDate = value; SetTimestamp(); } }
+            public string LockToken { get => _lockToken; set { _lockToken = value; SetTimestamp(); } }
+            public DateTime LastLockUpdate { get => _lastLockUpdate; set { _lastLockUpdate = value; SetTimestamp(); } }
+            public int LastMinorVersionId { get => _lastMinorVersionId; set { _lastMinorVersionId = value; SetTimestamp(); } }
+            public int LastMajorVersionId { get => _lastMajorVersionId; set { _lastMajorVersionId = value; SetTimestamp(); } }
+            public DateTime NodeCreationDate { get => _nodeCreationDate; set { _nodeCreationDate = value; SetTimestamp(); } }
+            public int NodeCreatedById { get => _nodeCreatedById; set { _nodeCreatedById = value; SetTimestamp(); } }
+            public DateTime NodeModificationDate { get => _nodeModificationDate; set { _nodeModificationDate = value; SetTimestamp(); } }
+            public int NodeModifiedById { get => _nodeModifiedById; set { _nodeModifiedById = value; SetTimestamp(); } }
+            public bool IsSystem { get => _isSystem; set { _isSystem = value; SetTimestamp(); } }
+            public int OwnerId { get => _ownerId; set { _ownerId = value; SetTimestamp(); } }
+            public ContentSavingState SavingState { get => _savingState; set { _savingState = value; SetTimestamp(); } }
+            public long NodeTimestamp => _nodeTimestamp;
+
+            private static long _lastTimestamp;
+            private void SetTimestamp()
+            {
+                _nodeTimestamp = Interlocked.Increment(ref _lastTimestamp);
+            }
         }
         private class VersionRecord
         {
-            public int VersionId;
-            public int NodeId;
-            public VersionNumber Version;
-            public DateTime CreationDate;
-            public int CreatedById;
-            public DateTime ModificationDate;
-            public int ModifiedById;
-            public byte[] IndexDocument;
-            public IEnumerable<ChangedData> ChangedData;
-            public long VersionTimestamp;
+            private int _versionId;
+            private int _nodeId;
+            private VersionNumber _version;
+            private DateTime _creationDate;
+            private int _createdById;
+            private DateTime _modificationDate;
+            private int _modifiedById;
+            private byte[] _indexDocument;
+            private IEnumerable<ChangedData> _changedData;
+            private long _versionTimestamp;
+
+            public int VersionId
+            {
+                get => _versionId;
+                set => _versionId = value;
+            }
+            public int NodeId
+            {
+                get => _nodeId;
+                set
+                {
+                    _nodeId = value;
+                    SetTimestamp();
+                }
+            }
+            public VersionNumber Version
+            {
+                get => _version;
+                set
+                {
+                    _version = value;
+                    SetTimestamp();
+                }
+            }
+            public DateTime CreationDate
+            {
+                get => _creationDate;
+                set
+                {
+                    _creationDate = value;
+                    SetTimestamp();
+                }
+            }
+            public int CreatedById
+            {
+                get => _createdById;
+                set
+                {
+                    _createdById = value;
+                    SetTimestamp();
+                }
+            }
+            public DateTime ModificationDate
+            {
+                get => _modificationDate;
+                set
+                {
+                    _modificationDate = value;
+                    SetTimestamp();
+                }
+            }
+            public int ModifiedById
+            {
+                get => _modifiedById;
+                set
+                {
+                    _modifiedById = value;
+                    SetTimestamp();
+                }
+            }
+            public byte[] IndexDocument
+            {
+                get => _indexDocument;
+                set
+                {
+                    _indexDocument = value;
+                    SetTimestamp();
+                }
+            }
+            public IEnumerable<ChangedData> ChangedData
+            {
+                get => _changedData;
+                set
+                {
+                    _changedData = value;
+                    SetTimestamp();
+                }
+            }
+            public long VersionTimestamp => _versionTimestamp;
+
+            private static long _lastTimestamp;
+            private void SetTimestamp()
+            {
+                _versionTimestamp = Interlocked.Increment(ref _lastTimestamp);
+            }
         }
         private class BinaryPropertyRecord
         {

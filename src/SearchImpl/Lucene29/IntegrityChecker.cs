@@ -9,10 +9,13 @@ using Lucene.Net.Documents;
 using Lucene.Net.Search;
 using Lucene.Net.Index;
 using System.Data.Common;
+using System.Runtime.InteropServices;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Lucene29;
 
@@ -140,342 +143,339 @@ namespace SenseNet.Search.Lucene29
         }
         public static IEnumerable<Difference> Check(string path, bool recurse)
         {
-            //if (recurse)
-            //{
-            //    if (path != null)
-            //        if (path.ToLower() == "/root")
-            //            path = null;
-            //    return new IntegrityChecker().CheckRecurse(path);
-            //}
-            //return new IntegrityChecker().CheckNode(path ?? "/Root");
-            throw new NotImplementedException(); //UNDONE:||| INTEGRITYCHECKER: IntegrityChecker.Check is not implemented
+            if (recurse)
+            {
+                if (path != null)
+                    if (path.ToLowerInvariant() == "/root")
+                        path = null;
+                return new IntegrityChecker().CheckRecurse(path);
+            }
+            return new IntegrityChecker().CheckNode(path ?? "/Root");
         }
 
-        /*==================================================================================== Instance part */
+        /* ==================================================================================== Instance part */
 
-        /* DO NOT DELETE THIS SECTION BEFORE IMPLEMENTATION */
-        #region code base to implementation
-        //private IEnumerable<Difference> CheckNode(string path)
-        //{
-        //    var result = new List<Difference>();
-        //    using (var readerFrame = IndexReaderFrame.GetReaderFrame())
-        //    {
-        //        var ixreader = readerFrame.IndexReader;
-        //        var docids = new List<int>();
-        //        var proc = DataProvider.Current.GetTimestampDataForOneNodeIntegrityCheck(path, GetExcludedNodeTypeIds());
-        //        using (var dbreader = proc.ExecuteReader())
-        //        {
-        //            while (dbreader.Read())
-        //            {
-        //                var docid = CheckDbAndIndex(dbreader, ixreader, result);
-        //                if (docid >= 0)
-        //                    docids.Add(docid);
-        //            }
-        //        }
-        //        var scoredocs = GetDocsUnderTree(path, false);
-        //        foreach (var scoredoc in scoredocs)
-        //        {
-        //            var docid = scoredoc.Doc;
-        //            var doc = ixreader.Document(docid);
-        //            if (!docids.Contains(docid))
-        //            {
-        //                result.Add(new Difference(IndexDifferenceKind.NotInDatabase)
-        //                {
-        //                    DocId = scoredoc.Doc,
-        //                    VersionId = ParseInt(doc.Get(IndexFieldName.VersionId)),
-        //                    NodeId = ParseInt(doc.Get(IndexFieldName.NodeId)),
-        //                    Path = path,
-        //                    Version = doc.Get(IndexFieldName.Version),
-        //                    IxNodeTimestamp = ParseLong(doc.Get(IndexFieldName.NodeTimestamp)),
-        //                    IxVersionTimestamp = ParseLong(doc.Get(IndexFieldName.VersionTimestamp))
-        //                });
-        //            }
-        //        }
-        //    }
-        //    return result;
-        //}
+        private IEnumerable<Difference> CheckNode(string path)
+        {
+            var result = new List<Difference>();
+            using (var readerFrame = IndexReaderFrame.GetReaderFrame())
+            {
+                var ixreader = readerFrame.IndexReader;
+                var docids = new List<int>();
 
-        //private int intsize = sizeof(int) * 8;
-        //private int numdocs;
-        //private int[] docbits;
-        //private IEnumerable<Difference> CheckRecurse(string path)
-        //{
-        //    var result = new List<Difference>();
+                var items = DataProvider.Current.GetTimestampDataForOneNodeIntegrityCheck(path, GetExcludedNodeTypeIds());
+                foreach (var item in items)
+                {
+                    var docid = CheckDbAndIndex(item, ixreader, result);
+                    if (docid >= 0)
+                        docids.Add(docid);
+                }
 
-        //    using (var op = SnTrace.Index.StartOperation("Index Integrity Checker: CheckRecurse {0}", path))
-        //    {
-        //        using (var readerFrame = IndexReaderFrame.GetReaderFrame())
-        //        {
-        //            var ixreader = readerFrame.IndexReader;
-        //            numdocs = ixreader.NumDocs() + ixreader.NumDeletedDocs();
-        //            var x = numdocs / intsize;
-        //            var y = numdocs % intsize;
-        //            docbits = new int[x + (y > 0 ? 1 : 0)];
-        //            if (path == null)
-        //            {
-        //                if (y > 0)
-        //                {
-        //                    var q = 0;
-        //                    for (int i = 0; i < y; i++)
-        //                        q += 1 << i;
-        //                    docbits[docbits.Length - 1] = q ^ (-1);
-        //                }
-        //            }
-        //            else
-        //            {
-        //                for (int i = 0; i < docbits.Length; i++)
-        //                    docbits[i] = -1;
-        //                var scoredocs = GetDocsUnderTree(path, true);
-        //                for (int i = 0; i < scoredocs.Length; i++)
-        //                {
-        //                    var docid = scoredocs[i].Doc;
-        //                    docbits[docid / intsize] ^= 1 << docid % intsize;
-        //                }
-        //            }
-        //            var proc = DataProvider.Current.GetTimestampDataForRecursiveIntegrityCheck(path, GetExcludedNodeTypeIds());
-        //            var progress = 0;
-        //            using (var dbreader = proc.ExecuteReader())
-        //            {
-        //                while (dbreader.Read())
-        //                {
-        //                    if ((++progress % 10000) == 0)
-        //                        SnTrace.Index.Write("Index Integrity Checker: CheckDbAndIndex: progress={0}/{1}, diffs:{2}", progress, numdocs, result.Count);
+                var scoredocs = GetDocsUnderTree(path, false);
+                foreach (var scoredoc in scoredocs)
+                {
+                    var docid = scoredoc.Doc;
+                    var doc = ixreader.Document(docid);
+                    if (!docids.Contains(docid))
+                    {
+                        result.Add(new Difference(IndexDifferenceKind.NotInDatabase)
+                        {
+                            DocId = scoredoc.Doc,
+                            VersionId = ParseInt(doc.Get(IndexFieldName.VersionId)),
+                            NodeId = ParseInt(doc.Get(IndexFieldName.NodeId)),
+                            Path = path,
+                            Version = doc.Get(IndexFieldName.Version),
+                            IxNodeTimestamp = ParseLong(doc.Get(IndexFieldName.NodeTimestamp)),
+                            IxVersionTimestamp = ParseLong(doc.Get(IndexFieldName.VersionTimestamp))
+                        });
+                    }
+                }
+            }
+            return result;
+        }
 
-        //                    var docid = CheckDbAndIndex(dbreader, ixreader, result);
-        //                    if (docid > -1)
-        //                        docbits[docid / intsize] |= 1 << docid % intsize;
-        //                }
-        //            }
-        //            SnTrace.Index.Write("Index Integrity Checker: CheckDbAndIndex finished. Progress={0}/{1}, diffs:{2}", progress, numdocs, result.Count);
-        //            for (int i = 0; i < docbits.Length; i++)
-        //            {
-        //                if (docbits[i] != -1)
-        //                {
-        //                    var bits = docbits[i];
-        //                    for (int j = 0; j < intsize; j++)
-        //                    {
-        //                        if ((bits & (1 << j)) == 0)
-        //                        {
-        //                            var docid = i * intsize + j;
-        //                            if (docid >= numdocs)
-        //                                break;
-        //                            if (!ixreader.IsDeleted(docid))
-        //                            {
-        //                                var doc = ixreader.Document(docid);
-        //                                result.Add(new Difference(IndexDifferenceKind.NotInDatabase)
-        //                                {
-        //                                    DocId = docid,
-        //                                    VersionId = ParseInt(doc.Get(IndexFieldName.VersionId)),
-        //                                    NodeId = ParseInt(doc.Get(IndexFieldName.NodeId)),
-        //                                    Path = doc.Get(IndexFieldName.Path),
-        //                                    Version = doc.Get(IndexFieldName.Version),
-        //                                    IxNodeTimestamp = ParseLong(doc.Get(IndexFieldName.NodeTimestamp)),
-        //                                    IxVersionTimestamp = ParseLong(doc.Get(IndexFieldName.VersionTimestamp))
-        //                                });
-        //                            }
-        //                        }
-        //                    }
-        //                }
-        //            }
-        //        }
-        //        op.Successful = true;
-        //    }
-        //    return result.ToArray();
-        //}
-        //private int CheckDbAndIndex(DbDataReader dbreader, IndexReader ixreader, List<Difference> result)
-        //{
-        //    var nodeIdFromDb = dbreader.GetInt32(0);
-        //    var versionId = dbreader.GetInt32(1);
-        //    var dbNodeTimestamp = dbreader.GetInt64(2);
-        //    var dbVersionTimestamp = dbreader.GetInt64(3);
-        //    var lastMajorVersionId = dbreader.IsDBNull(4) ? 0 : dbreader.GetInt32(4);
-        //    var lastMinorVersionId = dbreader.IsDBNull(5) ? 0 : dbreader.GetInt32(5);
+        private int intsize = sizeof(int) * 8;
+        private int numdocs;
+        private int[] docbits;
+        private IEnumerable<Difference> CheckRecurse(string path)
+        {
+            var result = new List<Difference>();
 
-        //    var termDocs = ixreader.TermDocs(new Lucene.Net.Index.Term(IndexFieldName.VersionId, Lucene.Net.Util.NumericUtils.IntToPrefixCoded(versionId)));
-        //    Lucene.Net.Documents.Document doc = null;
-        //    int docid = -1;
-        //    if (termDocs.Next())
-        //    {
-        //        docid = termDocs.Doc();
-        //        doc = ixreader.Document(docid);
-        //        var indexNodeTimestamp = ParseLong(doc.Get(IndexFieldName.NodeTimestamp));
-        //        var indexVersionTimestamp = ParseLong(doc.Get(IndexFieldName.VersionTimestamp));
-        //        var nodeId = ParseInt(doc.Get(IndexFieldName.NodeId));
-        //        var version = doc.Get(IndexFieldName.Version);
-        //        var p = doc.Get(IndexFieldName.Path);
-        //        if (termDocs.Next())
-        //        {
-        //            result.Add(new Difference(IndexDifferenceKind.MoreDocument)
-        //                {
-        //                    DocId = docid,
-        //                    NodeId = nodeId,
-        //                    VersionId = versionId,
-        //                    Version = version,
-        //                    Path = p,
-        //                    DbNodeTimestamp = dbNodeTimestamp,
-        //                    DbVersionTimestamp = dbVersionTimestamp,
-        //                    IxNodeTimestamp = indexNodeTimestamp,
-        //                    IxVersionTimestamp = indexVersionTimestamp,
-        //                });
-        //        }
-        //        if (dbVersionTimestamp != indexVersionTimestamp)
-        //        {
-        //            result.Add(new Difference(IndexDifferenceKind.DifferentVersionTimestamp)
-        //            {
-        //                DocId = docid,
-        //                VersionId = versionId,
-        //                DbNodeTimestamp = dbNodeTimestamp,
-        //                DbVersionTimestamp = dbVersionTimestamp,
-        //                IxNodeTimestamp = indexNodeTimestamp,
-        //                IxVersionTimestamp = indexVersionTimestamp,
-        //                NodeId = nodeId,
-        //                Version = version,
-        //                Path = p
-        //            });
-        //        }
+            using (var op = SnTrace.Index.StartOperation("Index Integrity Checker: CheckRecurse {0}", path))
+            {
+                using (var readerFrame = IndexReaderFrame.GetReaderFrame())
+                {
+                    var ixreader = readerFrame.IndexReader;
+                    numdocs = ixreader.NumDocs() + ixreader.NumDeletedDocs();
+                    var x = numdocs / intsize;
+                    var y = numdocs % intsize;
+                    docbits = new int[x + (y > 0 ? 1 : 0)];
+                    if (path == null)
+                    {
+                        if (y > 0)
+                        {
+                            var q = 0;
+                            for (int i = 0; i < y; i++)
+                                q += 1 << i;
+                            docbits[docbits.Length - 1] = q ^ (-1);
+                        }
+                    }
+                    else
+                    {
+                        for (int i = 0; i < docbits.Length; i++)
+                            docbits[i] = -1;
+                        var scoredocs = GetDocsUnderTree(path, true);
+                        for (int i = 0; i < scoredocs.Length; i++)
+                        {
+                            var docid = scoredocs[i].Doc;
+                            docbits[docid / intsize] ^= 1 << docid % intsize;
+                        }
+                    }
 
-        //        // Check version flags by comparing them to the db: we assume that the last
-        //        // major and minor version ids in the Nodes table is the correct one.
-        //        var isLastPublic = doc.Get(IndexFieldName.IsLastPublic);
-        //        var isLastDraft = doc.Get(IndexFieldName.IsLastDraft);
-        //        var isLastPublicInDb = versionId == lastMajorVersionId;
-        //        var isLastDraftInDb = versionId == lastMinorVersionId;
-        //        var isLastPublicInIndex = isLastPublic == SnTerm.Yes;
-        //        var isLastDraftInIndex = isLastDraft == SnTerm.Yes;
+                    var progress = 0;
+                    var items = DataProvider.Current.GetTimestampDataForRecursiveIntegrityCheck(path, GetExcludedNodeTypeIds());
+                    foreach (var item in items)
+                    {
+                        if (++progress % 10000 == 0)
+                            SnTrace.Index.Write("Index Integrity Checker: CheckDbAndIndex: progress={0}/{1}, diffs:{2}",
+                                progress, numdocs, result.Count);
 
-        //        if (isLastPublicInDb != isLastPublicInIndex)
-        //        {
-        //            result.Add(new Difference(IndexDifferenceKind.DifferentLastPublicFlag)
-        //            {
-        //                DocId = docid,
-        //                VersionId = versionId,
-        //                DbNodeTimestamp = dbNodeTimestamp,
-        //                DbVersionTimestamp = dbVersionTimestamp,
-        //                IxNodeTimestamp = indexNodeTimestamp,
-        //                IxVersionTimestamp = indexVersionTimestamp,
-        //                NodeId = nodeId,
-        //                Version = version,
-        //                Path = p,
-        //                IsLastPublic = isLastPublicInIndex,
-        //                IsLastDraft = isLastDraftInIndex
-        //            });
-        //        }
-        //        if (isLastDraftInDb != isLastDraftInIndex)
-        //        {
-        //            result.Add(new Difference(IndexDifferenceKind.DifferentLastDraftFlag)
-        //            {
-        //                DocId = docid,
-        //                VersionId = versionId,
-        //                DbNodeTimestamp = dbNodeTimestamp,
-        //                DbVersionTimestamp = dbVersionTimestamp,
-        //                IxNodeTimestamp = indexNodeTimestamp,
-        //                IxVersionTimestamp = indexVersionTimestamp,
-        //                NodeId = nodeId,
-        //                Version = version,
-        //                Path = p,
-        //                IsLastPublic = isLastPublicInIndex,
-        //                IsLastDraft = isLastDraftInIndex
-        //            });
-        //        }
+                        var docid = CheckDbAndIndex(item, ixreader, result);
+                        if (docid > -1)
+                            docbits[docid / intsize] |= 1 << docid % intsize;
+                    }
 
-        //        if (dbNodeTimestamp != indexNodeTimestamp)
-        //        {
-        //            var ok = false;
-        //            if (isLastDraft != SnTerm.Yes)
-        //            {
-        //                var latestDocs = ixreader.TermDocs(new Lucene.Net.Index.Term(IndexFieldName.NodeId, Lucene.Net.Util.NumericUtils.IntToPrefixCoded(nodeId)));
-        //                Lucene.Net.Documents.Document latestDoc = null;
-        //                while (latestDocs.Next())
-        //                {
-        //                    var latestdocid = latestDocs.Doc();
-        //                    var d = ixreader.Document(latestdocid);
-        //                    if (d.Get(IndexFieldName.IsLastDraft) != SnTerm.Yes)
-        //                        continue;
-        //                    latestDoc = d;
-        //                    break;
-        //                }
-        //                var latestPath = latestDoc.Get(IndexFieldName.Path);
-        //                if (latestPath == p)
-        //                    ok = true;
-        //            }
-        //            if (!ok)
-        //            {
-        //                result.Add(new Difference(IndexDifferenceKind.DifferentNodeTimestamp)
-        //                {
-        //                    DocId = docid,
-        //                    VersionId = versionId,
-        //                    DbNodeTimestamp = dbNodeTimestamp,
-        //                    DbVersionTimestamp = dbVersionTimestamp,
-        //                    IxNodeTimestamp = indexNodeTimestamp,
-        //                    IxVersionTimestamp = indexVersionTimestamp,
-        //                    NodeId = nodeId,
-        //                    Version = version,
-        //                    Path = p
-        //                });
-        //            }
-        //        }
-        //    }
-        //    else
-        //    {
-        //        result.Add(new Difference(IndexDifferenceKind.NotInIndex)
-        //        {
-        //            DocId = docid,
-        //            VersionId = versionId,
-        //            DbNodeTimestamp = dbNodeTimestamp,
-        //            DbVersionTimestamp = dbVersionTimestamp,
-        //            NodeId = nodeIdFromDb
-        //        });
-        //    }
-        //    return docid;
-        //}
-        //private ScoreDoc[] GetDocsUnderTree(string path, bool recurse)
-        //{
-        //    var field = recurse ? "InTree" : "Path";
-        //    var lq = LucQuery.Parse(String.Format("{0}:'{1}'", field, path.ToLower()));
+                    SnTrace.Index.Write("Index Integrity Checker: CheckDbAndIndex finished. Progress={0}/{1}, diffs:{2}", progress, numdocs, result.Count);
+                    for (int i = 0; i < docbits.Length; i++)
+                    {
+                        if (docbits[i] != -1)
+                        {
+                            var bits = docbits[i];
+                            for (int j = 0; j < intsize; j++)
+                            {
+                                if ((bits & (1 << j)) == 0)
+                                {
+                                    var docid = i * intsize + j;
+                                    if (docid >= numdocs)
+                                        break;
+                                    if (!ixreader.IsDeleted(docid))
+                                    {
+                                        var doc = ixreader.Document(docid);
+                                        result.Add(new Difference(IndexDifferenceKind.NotInDatabase)
+                                        {
+                                            DocId = docid,
+                                            VersionId = ParseInt(doc.Get(IndexFieldName.VersionId)),
+                                            NodeId = ParseInt(doc.Get(IndexFieldName.NodeId)),
+                                            Path = doc.Get(IndexFieldName.Path),
+                                            Version = doc.Get(IndexFieldName.Version),
+                                            IxNodeTimestamp = ParseLong(doc.Get(IndexFieldName.NodeTimestamp)),
+                                            IxVersionTimestamp = ParseLong(doc.Get(IndexFieldName.VersionTimestamp))
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                op.Successful = true;
+            }
+            return result.ToArray();
+        }
+        private int CheckDbAndIndex(IndexIntegrityCheckerItem checkerItem, IndexReader ixreader, List<Difference> result)
+        {
+            var nodeIdFromDb = checkerItem.NodeId;
+            var versionId = checkerItem.VersionId;
+            var dbNodeTimestamp = checkerItem.NodeTimestamp;
+            var dbVersionTimestamp = checkerItem.VersionTimestamp;
+            var lastMajorVersionId = checkerItem.LastMajorVersionId;
+            var lastMinorVersionId = checkerItem.LastMinorVersionId;
 
-        //    using (var readerFrame = IndexReaderFrame.GetReaderFrame())
-        //    {
-        //        var idxReader = readerFrame.IndexReader;
-        //        var searcher = new IndexSearcher(idxReader);
-        //        var numDocs = idxReader.NumDocs();
-        //        try
-        //        {
-        //            var collector = TopScoreDocCollector.Create(numDocs, false);
-        //            searcher.Search(lq.Query, collector);
-        //            var topDocs = collector.TopDocs(0, numDocs);
-        //            return topDocs.ScoreDocs;
-        //        }
-        //        finally
-        //        {
-        //            if (searcher != null)
-        //                searcher.Close();
-        //            searcher = null;
-        //        }
-        //    }
-        //}
+            var termDocs = ixreader.TermDocs(new Lucene.Net.Index.Term(IndexFieldName.VersionId, Lucene.Net.Util.NumericUtils.IntToPrefixCoded(versionId)));
+            Lucene.Net.Documents.Document doc = null;
+            int docid = -1;
+            if (termDocs.Next())
+            {
+                docid = termDocs.Doc();
+                doc = ixreader.Document(docid);
+                var indexNodeTimestamp = ParseLong(doc.Get(IndexFieldName.NodeTimestamp));
+                var indexVersionTimestamp = ParseLong(doc.Get(IndexFieldName.VersionTimestamp));
+                var nodeId = ParseInt(doc.Get(IndexFieldName.NodeId));
+                var version = doc.Get(IndexFieldName.Version);
+                var p = doc.Get(IndexFieldName.Path);
+                if (termDocs.Next())
+                {
+                    result.Add(new Difference(IndexDifferenceKind.MoreDocument)
+                    {
+                        DocId = docid,
+                        NodeId = nodeId,
+                        VersionId = versionId,
+                        Version = version,
+                        Path = p,
+                        DbNodeTimestamp = dbNodeTimestamp,
+                        DbVersionTimestamp = dbVersionTimestamp,
+                        IxNodeTimestamp = indexNodeTimestamp,
+                        IxVersionTimestamp = indexVersionTimestamp,
+                    });
+                }
+                if (dbVersionTimestamp != indexVersionTimestamp)
+                {
+                    result.Add(new Difference(IndexDifferenceKind.DifferentVersionTimestamp)
+                    {
+                        DocId = docid,
+                        VersionId = versionId,
+                        DbNodeTimestamp = dbNodeTimestamp,
+                        DbVersionTimestamp = dbVersionTimestamp,
+                        IxNodeTimestamp = indexNodeTimestamp,
+                        IxVersionTimestamp = indexVersionTimestamp,
+                        NodeId = nodeId,
+                        Version = version,
+                        Path = p
+                    });
+                }
 
-        //private static int[] GetExcludedNodeTypeIds()
-        //{
-        //    // We must exclude those content types from the integrity check
-        //    // where indexing is completely switched OFF, because otherwise
-        //    // these kinds of content would appear as missing items.
-        //    return SearchManager.ContentRepository.GetNotIndexedNodeTypeIds();
-        //}
+                // Check version flags by comparing them to the db: we assume that the last
+                // major and minor version ids in the Nodes table is the correct one.
+                var isLastPublic = doc.Get(IndexFieldName.IsLastPublic);
+                var isLastDraft = doc.Get(IndexFieldName.IsLastDraft);
+                var isLastPublicInDb = versionId == lastMajorVersionId;
+                var isLastDraftInDb = versionId == lastMinorVersionId;
+                var isLastPublicInIndex = isLastPublic == SnTerm.Yes;
+                var isLastDraftInIndex = isLastDraft == SnTerm.Yes;
 
-        //private static int ParseInt(string data)
-        //{
-        //    Int32 result;
-        //    if (Int32.TryParse(data, out result))
-        //        return result;
-        //    return -1;
-        //}
-        //private static long ParseLong(string data)
-        //{
-        //    Int64 result;
-        //    if (Int64.TryParse(data, out result))
-        //        return result;
-        //    return -1;
-        //}
-        #endregion
+                if (isLastPublicInDb != isLastPublicInIndex)
+                {
+                    result.Add(new Difference(IndexDifferenceKind.DifferentLastPublicFlag)
+                    {
+                        DocId = docid,
+                        VersionId = versionId,
+                        DbNodeTimestamp = dbNodeTimestamp,
+                        DbVersionTimestamp = dbVersionTimestamp,
+                        IxNodeTimestamp = indexNodeTimestamp,
+                        IxVersionTimestamp = indexVersionTimestamp,
+                        NodeId = nodeId,
+                        Version = version,
+                        Path = p,
+                        IsLastPublic = isLastPublicInIndex,
+                        IsLastDraft = isLastDraftInIndex
+                    });
+                }
+                if (isLastDraftInDb != isLastDraftInIndex)
+                {
+                    result.Add(new Difference(IndexDifferenceKind.DifferentLastDraftFlag)
+                    {
+                        DocId = docid,
+                        VersionId = versionId,
+                        DbNodeTimestamp = dbNodeTimestamp,
+                        DbVersionTimestamp = dbVersionTimestamp,
+                        IxNodeTimestamp = indexNodeTimestamp,
+                        IxVersionTimestamp = indexVersionTimestamp,
+                        NodeId = nodeId,
+                        Version = version,
+                        Path = p,
+                        IsLastPublic = isLastPublicInIndex,
+                        IsLastDraft = isLastDraftInIndex
+                    });
+                }
+
+                if (dbNodeTimestamp != indexNodeTimestamp)
+                {
+                    var ok = false;
+                    if (isLastDraft != SnTerm.Yes)
+                    {
+                        var latestDocs = ixreader.TermDocs(new Lucene.Net.Index.Term(IndexFieldName.NodeId, Lucene.Net.Util.NumericUtils.IntToPrefixCoded(nodeId)));
+                        Lucene.Net.Documents.Document latestDoc = null;
+                        while (latestDocs.Next())
+                        {
+                            var latestdocid = latestDocs.Doc();
+                            var d = ixreader.Document(latestdocid);
+                            if (d.Get(IndexFieldName.IsLastDraft) != SnTerm.Yes)
+                                continue;
+                            latestDoc = d;
+                            break;
+                        }
+                        var latestPath = latestDoc.Get(IndexFieldName.Path);
+                        if (latestPath == p)
+                            ok = true;
+                    }
+                    if (!ok)
+                    {
+                        result.Add(new Difference(IndexDifferenceKind.DifferentNodeTimestamp)
+                        {
+                            DocId = docid,
+                            VersionId = versionId,
+                            DbNodeTimestamp = dbNodeTimestamp,
+                            DbVersionTimestamp = dbVersionTimestamp,
+                            IxNodeTimestamp = indexNodeTimestamp,
+                            IxVersionTimestamp = indexVersionTimestamp,
+                            NodeId = nodeId,
+                            Version = version,
+                            Path = p
+                        });
+                    }
+                }
+            }
+            else
+            {
+                result.Add(new Difference(IndexDifferenceKind.NotInIndex)
+                {
+                    DocId = docid,
+                    VersionId = versionId,
+                    DbNodeTimestamp = dbNodeTimestamp,
+                    DbVersionTimestamp = dbVersionTimestamp,
+                    NodeId = nodeIdFromDb
+                });
+            }
+            return docid;
+        }
+        private ScoreDoc[] GetDocsUnderTree(string path, bool recurse)
+        {
+            var ctx = new SnQueryContext(QuerySettings.AdminSettings, AccessProvider.Current.GetCurrentUser().Id);
+            var field = recurse ? "InTree" : "Path";
+            var snQuery = SnQuery.Parse($"{field}:'{path.ToLower()}'", ctx);
+            var lq = new Lucene29Compiler().Compile(snQuery, ctx);
+
+            using (var readerFrame = IndexReaderFrame.GetReaderFrame())
+            {
+                var idxReader = readerFrame.IndexReader;
+                var searcher = new IndexSearcher(idxReader);
+                var numDocs = idxReader.NumDocs();
+                try
+                {
+                    var collector = TopScoreDocCollector.Create(numDocs, false);
+                    searcher.Search(lq.Query, collector);
+                    var topDocs = collector.TopDocs(0, numDocs);
+                    return topDocs.ScoreDocs;
+                }
+                finally
+                {
+                    if (searcher != null)
+                        searcher.Close();
+                    searcher = null;
+                }
+            }
+        }
+
+        private static int[] GetExcludedNodeTypeIds()
+        {
+            // We must exclude those content types from the integrity check
+            // where indexing is completely switched OFF, because otherwise
+            // these kinds of content would appear as missing items.
+            return SearchManager.ContentRepository.GetNotIndexedNodeTypeIds();
+        }
+
+        private static int ParseInt(string data)
+        {
+            Int32 result;
+            if (Int32.TryParse(data, out result))
+                return result;
+            return -1;
+        }
+        private static long ParseLong(string data)
+        {
+            Int64 result;
+            if (Int64.TryParse(data, out result))
+                return result;
+            return -1;
+        }
     }
 }

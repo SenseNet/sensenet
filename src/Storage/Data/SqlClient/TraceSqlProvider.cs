@@ -224,12 +224,12 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             WriteLog(MethodBase.GetCurrentMethod());
             return base.GetLastIndexingActivityId();
         }
-        public override IDataProcedure GetTimestampDataForOneNodeIntegrityCheck(string path, int[] excludedNodeTypeIds)
+        public override IEnumerable<IndexIntegrityCheckerItem> GetTimestampDataForOneNodeIntegrityCheck(string path, int[] excludedNodeTypeIds)
         {
             WriteLog(MethodBase.GetCurrentMethod(), path);
             return base.GetTimestampDataForOneNodeIntegrityCheck(path, excludedNodeTypeIds);
         }
-        public override IDataProcedure GetTimestampDataForRecursiveIntegrityCheck(string path, int[] excludedNodeTypeIds)
+        public override IEnumerable<IndexIntegrityCheckerItem> GetTimestampDataForRecursiveIntegrityCheck(string path, int[] excludedNodeTypeIds)
         {
             WriteLog(MethodBase.GetCurrentMethod(), path);
             return base.GetTimestampDataForRecursiveIntegrityCheck(path, excludedNodeTypeIds);
