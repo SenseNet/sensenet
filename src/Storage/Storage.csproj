@@ -283,9 +283,8 @@
     <Compile Include="Events\NodeObserver.cs" />
     <Compile Include="Events\NodeOperationEventArgs.cs" />
     <Compile Include="IContentList.cs" />
-    <Compile Include="Search\DateTimeParser.cs" />
     <Compile Include="Search\Interfaces.cs" />
-    <Compile Include="Search\Internal\Operator.cs" />
+    <Compile Include="Search\Operator.cs" />
     <Compile Include="Search\ISearchEngineSupport.cs" />
     <Compile Include="Search\SnPermissionFilterFactory.cs" />
     <Compile Include="Security\BCrypt.cs" />
@@ -318,7 +317,6 @@
     <Compile Include="Scripting\Evaluator.cs" />
     <Compile Include="Scripting\IEvaluator.cs" />
     <Compile Include="Scripting\ScriptTagNameAttribute.cs" />
-    <Compile Include="Search\Internal\PropertyLiteral.cs" />
     <Compile Include="Security\LockedNodeException.cs" />
     <Compile Include="Security\SystemUser.cs" />
     <Compile Include="InvalidPathException.cs" />
@@ -340,7 +338,6 @@
     <Compile Include="Schema\NodeTypeManager.cs" />
     <Compile Include="Schema\PropertyType.cs" />
     <Compile Include="Search\NodeQuery.cs" />
-    <Compile Include="Search\Enums.cs" />
     <Compile Include="Security\SenseNetSecurityException.cs" />
     <Compile Include="Security\IUser.cs" />
     <Compile Include="SR.cs" />
