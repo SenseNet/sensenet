@@ -242,8 +242,6 @@
     <Compile Include="Search\Indexing\ExplicitPerFieldIndexingInfo.cs" />
     <Compile Include="Search\Indexing\IndexingTools.cs" />
     <Compile Include="Search\Parser\ContentQueryTemplateReplacer.cs" />
-    <Compile Include="Search\Parser\LucQueryTemplateReplacer.cs" />
-    <Compile Include="Search\Parser\RepositoryLucQueryTemplateReplacer.cs" />
     <Compile Include="Search\TextExtractor.cs" />
     <Compile Include="Setting\UserProfileSettings.cs" />
     <Compile Include="ContentNamingHelper.cs" />

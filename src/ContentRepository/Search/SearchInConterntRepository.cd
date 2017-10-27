@@ -183,20 +183,6 @@
       <FileName>Search\Parser\ContentQueryTemplateReplacer.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="SenseNet.Search.Parser.LucQueryTemplateReplacer">
-    <Position X="6.75" Y="6.25" Width="5" />
-    <TypeIdentifier>
-      <HashCode>AACAAAACABAASAAQAAAAAAAAQAAAAAEAAAAAAABAAAA=</HashCode>
-      <FileName>Search\Parser\LucQueryTemplateReplacer.cs</FileName>
-    </TypeIdentifier>
-  </Class>
-  <Class Name="SenseNet.Search.Parser.RepositoryLucQueryTemplateReplacer">
-    <Position X="12.75" Y="6.5" Width="4.75" />
-    <TypeIdentifier>
-      <HashCode>EAAAAAACAAAAQAAAAAAAAAAAAAAAAAAAAAAAAABAAAA=</HashCode>
-      <FileName>Search\Parser\RepositoryLucQueryTemplateReplacer.cs</FileName>
-    </TypeIdentifier>
-  </Class>
   <Class Name="SenseNet.Search.IndexingSettings">
     <Position X="19.75" Y="6" Width="4.75" />
     <TypeIdentifier>
