@@ -492,7 +492,6 @@
       <DependentUpon>ContentListDefinition.xsd</DependentUpon>
     </None>
     <None Include="Search\SearchInConterntRepository.cd" />
-    <None Include="Search.dgml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Schema\ContentListDefinitionSample.xml" />

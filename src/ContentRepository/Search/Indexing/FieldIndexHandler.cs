@@ -211,7 +211,7 @@ namespace SenseNet.Search.Indexing
         {
             return value == null ? new IndexValue(string.Empty) : new IndexValue(((string)value).ToLowerInvariant());
         }
-        public object GetBack(string lucFieldValue)
+        public object GetBack(string indexFieldValue)
         {
             throw new SnNotSupportedException();
         }
@@ -344,7 +344,7 @@ namespace SenseNet.Search.Indexing
         {
             return value == null ? new IndexValue(string.Empty) : new IndexValue(((string)value).ToLowerInvariant());
         }
-        public object GetBack(string lucFieldValue)
+        public object GetBack(string indexFieldValue)
         {
             throw new SnNotSupportedException();
         }
@@ -390,7 +390,7 @@ namespace SenseNet.Search.Indexing
         {
             return value == null ? new IndexValue(string.Empty) : new IndexValue(((string)value).ToLowerInvariant());
         }
-        public object GetBack(string lucFieldValue)
+        public object GetBack(string indexFieldValue)
         {
             throw new SnNotSupportedException();
         }
@@ -444,13 +444,13 @@ namespace SenseNet.Search.Indexing
         {
             return value == null ? new IndexValue(string.Empty) : new IndexValue(((string)value).ToLowerInvariant());
         }
-        public string GetBack(string lucFieldValue)
+        public string GetBack(string indexFieldValue)
         {
-            return lucFieldValue;
+            return indexFieldValue;
         }
-        object IIndexValueConverter.GetBack(string lucFieldValue)
+        object IIndexValueConverter.GetBack(string indexFieldValue)
         {
-            return GetBack(lucFieldValue);
+            return GetBack(indexFieldValue);
         }
         public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
@@ -485,18 +485,18 @@ namespace SenseNet.Search.Indexing
         {
             return new IndexValue((bool) value);
         }
-        public bool GetBack(string lucFieldValue)
+        public bool GetBack(string indexFieldValue)
         {
-            return ConvertBack(lucFieldValue);
+            return ConvertBack(indexFieldValue);
         }
-        object IIndexValueConverter.GetBack(string lucFieldValue)
+        object IIndexValueConverter.GetBack(string indexFieldValue)
         {
-            return GetBack(lucFieldValue);
+            return GetBack(indexFieldValue);
         }
 
-        public static bool ConvertBack(string lucFieldValue)
+        public static bool ConvertBack(string indexFieldValue)
         {
-            return lucFieldValue == SnTerm.Yes;
+            return indexFieldValue == SnTerm.Yes;
         }
         public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
@@ -536,19 +536,19 @@ namespace SenseNet.Search.Indexing
         {
             return new IndexValue((int)value);
         }
-        public Int32 GetBack(string lucFieldValue)
+        public Int32 GetBack(string indexFieldValue)
         {
-            return ConvertBack(lucFieldValue);
+            return ConvertBack(indexFieldValue);
         }
-        object IIndexValueConverter.GetBack(string lucFieldValue)
+        object IIndexValueConverter.GetBack(string indexFieldValue)
         {
-            return GetBack(lucFieldValue);
+            return GetBack(indexFieldValue);
         }
 
-        public static Int32 ConvertBack(string lucFieldValue)
+        public static Int32 ConvertBack(string indexFieldValue)
         {
             Int32 intValue;
-            if (Int32.TryParse(lucFieldValue, out intValue))
+            if (Int32.TryParse(indexFieldValue, out intValue))
                 return intValue;
             return 0;
         }
@@ -583,13 +583,13 @@ namespace SenseNet.Search.Indexing
             var doubleValue = Convert.ToDouble(value);
             return new IndexValue(doubleValue);
         }
-        public Decimal GetBack(string lucFieldValue)
+        public Decimal GetBack(string indexFieldValue)
         {
-            return Convert.ToDecimal(lucFieldValue, System.Globalization.CultureInfo.InvariantCulture);
+            return Convert.ToDecimal(indexFieldValue, System.Globalization.CultureInfo.InvariantCulture);
         }
-        object IIndexValueConverter.GetBack(string lucFieldValue)
+        object IIndexValueConverter.GetBack(string indexFieldValue)
         {
-            return GetBack(lucFieldValue);
+            return GetBack(indexFieldValue);
         }
         public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
@@ -621,13 +621,13 @@ namespace SenseNet.Search.Indexing
         {
             return new IndexValue(((DateTime)value));
         }
-        public DateTime GetBack(string lucFieldValue)
+        public DateTime GetBack(string indexFieldValue)
         {
-            return new DateTime(Int64.Parse(lucFieldValue));
+            return new DateTime(Int64.Parse(indexFieldValue));
         }
-        object IIndexValueConverter.GetBack(string lucFieldValue)
+        object IIndexValueConverter.GetBack(string indexFieldValue)
         {
-            return GetBack(lucFieldValue);
+            return GetBack(indexFieldValue);
         }
 
         private long SetPrecision(SnCR.Field snField, long ticks)
@@ -688,13 +688,13 @@ namespace SenseNet.Search.Indexing
         {
             return value == null ? new IndexValue(string.Empty) : new IndexValue(((string)value).ToLowerInvariant());
         }
-        public string GetBack(string lucFieldValue)
+        public string GetBack(string indexFieldValue)
         {
             throw new NotSupportedException();
         }
-        object IIndexValueConverter.GetBack(string lucFieldValue)
+        object IIndexValueConverter.GetBack(string indexFieldValue)
         {
-            return GetBack(lucFieldValue);
+            return GetBack(indexFieldValue);
         }
         public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
@@ -737,18 +737,18 @@ namespace SenseNet.Search.Indexing
                 throw new SnNotSupportedException("ReferenceIndexHandler.ConvertToTermValue() isn't implemented when value is IEnumerable.");
             throw new NotSupportedException($"Type {value.GetType()} is not supported as value of ReferenceField");
         }
-        public int GetBack(string lucFieldValue)
+        public int GetBack(string indexFieldValue)
         {
-            if (lucFieldValue == SnQuery.NullReferenceValue)
+            if (indexFieldValue == SnQuery.NullReferenceValue)
                 return 0;
             Int32 singleRef;
-            if (Int32.TryParse(lucFieldValue, out singleRef))
+            if (Int32.TryParse(indexFieldValue, out singleRef))
                 return singleRef;
             return 0;
         }
-        object IIndexValueConverter.GetBack(string lucFieldValue)
+        object IIndexValueConverter.GetBack(string indexFieldValue)
         {
-            return GetBack(lucFieldValue);
+            return GetBack(indexFieldValue);
         }
         public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
@@ -778,15 +778,15 @@ namespace SenseNet.Search.Indexing
             textExtract = nodeTypeName;
             return CreateField(snField.Name, nodeTypeName);
         }
-        public ContentType GetBack(string lucFieldValue)
+        public ContentType GetBack(string indexFieldValue)
         {
-            if (string.IsNullOrEmpty(lucFieldValue))
+            if (string.IsNullOrEmpty(indexFieldValue))
                 return null;
-            return ContentType.GetByName(lucFieldValue);
+            return ContentType.GetByName(indexFieldValue);
         }
-        object IIndexValueConverter.GetBack(string lucFieldValue)
+        object IIndexValueConverter.GetBack(string indexFieldValue)
         {
-            return GetBack(lucFieldValue);
+            return GetBack(indexFieldValue);
         }
         public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
@@ -816,13 +816,13 @@ namespace SenseNet.Search.Indexing
                 throw new ApplicationException(string.Concat("Invalid path: '", path, "'. It must be absolute: '/root' or '/root/...'."));
             return new IndexValue(path);
         }
-        public string GetBack(string lucFieldValue)
+        public string GetBack(string indexFieldValue)
         {
-            return lucFieldValue;
+            return indexFieldValue;
         }
-        object IIndexValueConverter.GetBack(string lucFieldValue)
+        object IIndexValueConverter.GetBack(string indexFieldValue)
         {
-            return GetBack(lucFieldValue);
+            return GetBack(indexFieldValue);
         }
         public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
@@ -850,13 +850,13 @@ namespace SenseNet.Search.Indexing
                 throw new ApplicationException(string.Concat("Invalid path: '", path, "'. It must be absolute: '/root' or '/root/...'."));
             return new IndexValue(path);
         }
-        public string GetBack(string lucFieldValue)
+        public string GetBack(string indexFieldValue)
         {
             throw new NotSupportedException();
         }
-        object IIndexValueConverter.GetBack(string lucFieldValue)
+        object IIndexValueConverter.GetBack(string indexFieldValue)
         {
-            return GetBack(lucFieldValue);
+            return GetBack(indexFieldValue);
         }
         public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
@@ -879,7 +879,7 @@ namespace SenseNet.Search.Indexing
             // Get the value. A field type is indexable with this handler that provides a string value
             // but ShortText and LongText are recommended.
             var snFieldValue = (string)snField.GetData();
-            // Return null if the value is not indexable. Lucene field and text extract won't be created.
+            // Return null if the value is not indexable. Index field and text extract won't be created.
             if (string.IsNullOrEmpty(snFieldValue))
                 return null;
             // Convert to lowercase for case insensitive index handling
@@ -889,7 +889,7 @@ namespace SenseNet.Search.Indexing
                 .Select(w => w.Trim()).ToArray();
             // Concatenate the words with space separator for text extract.
             textExtract = string.Join(" ", terms);
-            // Produce the lucene multiterm field with a base's tool and return with it.
+            // Produce a multiterm field with a base's tool and return with it.
             return CreateField(snField.Name, terms);
         }
         public override IndexValue Parse(string text)
@@ -900,13 +900,13 @@ namespace SenseNet.Search.Indexing
         {
             return value == null ? new IndexValue(string.Empty) : new IndexValue(((string)value).ToLowerInvariant());
         }
-        public string GetBack(string lucFieldValue)
+        public string GetBack(string indexFieldValue)
         {
-            return lucFieldValue;
+            return indexFieldValue;
         }
-        object IIndexValueConverter.GetBack(string lucFieldValue)
+        object IIndexValueConverter.GetBack(string indexFieldValue)
         {
-            return GetBack(lucFieldValue);
+            return GetBack(indexFieldValue);
         }
         public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {

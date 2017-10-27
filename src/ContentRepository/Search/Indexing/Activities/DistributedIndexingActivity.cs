@@ -17,20 +17,20 @@ namespace SenseNet.Search.Indexing.Activities
             if (onRemote && !isFromMe)
             {
                 //TODO: Remove unnecessary inheritance steps.
-                var luceneIndexingActivity = this as IndexingActivityBase;
-                if (luceneIndexingActivity != null)
+                var indexingActivity = this as IndexingActivityBase;
+                if (indexingActivity != null)
                 {
                     // We can drop activities here because the queue will load these from the database
                     // anyway when it processed all the previous activities.
                     if (DistributedIndexingActivityQueue.IsOverloaded())
                     {
-                        SnTrace.Index.Write("IAQ OVERLOAD drop activity FromReceiver A:" + luceneIndexingActivity.Id);
+                        SnTrace.Index.Write("IAQ OVERLOAD drop activity FromReceiver A:" + indexingActivity.Id);
                         return;
                     }
 
-                    luceneIndexingActivity.FromReceiver = true;
+                    indexingActivity.FromReceiver = true;
 
-                    DistributedIndexingActivityQueue.ExecuteActivity(luceneIndexingActivity);
+                    DistributedIndexingActivityQueue.ExecuteActivity(indexingActivity);
                 }
                 else
                 {

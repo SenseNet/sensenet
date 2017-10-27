@@ -137,12 +137,12 @@ namespace SenseNet.ContentRepository
         public static class Operations
         {
             /// <summary>
-            /// Rebuilds the Lucene index document of a content and optionally of all documents in the whole subtree. 
+            /// Rebuilds the index document of a content and optionally of all documents in the whole subtree. 
             /// In case the value of <value>rebuildLevel</value> is <value>IndexOnly</value> the index document is refreshed 
             /// based on the already existing extracted data stored in the database. This is a significantly faster method 
             /// and it is designed for cases when only the place of the content in the tree has changed or the index got corrupted.
-            /// The <value>DatabaseAndIndex</value> algorithm will reindex the full content than update the Lucene index in the
-            /// file system the same way as the light-weight algorithm.
+            /// The <value>DatabaseAndIndex</value> algorithm will reindex the full content than update the index in the
+            /// external index provider the same way as the light-weight algorithm.
             /// </summary>
             /// <param name="content">The content provided by the infrastructure.</param>
             /// <param name="recursive">Whether child content should be reindexed or not. Default: false.</param>
@@ -1397,12 +1397,12 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Rebuilds the Lucene index document of a content and optionally of all documents in the whole subtree. 
+        /// Rebuilds the index document of a content and optionally of all documents in the whole subtree. 
         /// In case the value of <value>rebuildLevel</value> is <value>IndexOnly</value> the index document is refreshed 
         /// based on the already existing extracted data stored in the database. This is a significantly faster method 
         /// and it is designed for cases when only the place of the content in the tree has changed or the index got corrupted.
-        /// The <value>DatabaseAndIndex</value> algorithm will reindex the full content than update the Lucene index in the
-        /// file system the same way as the light-weight algorithm.
+        /// The <value>DatabaseAndIndex</value> algorithm will reindex the full content than update the index in the
+        /// external index provider the same way as the light-weight algorithm.
         /// </summary>
         /// <param name="recursive">Whether child content should be reindexed or not. Default: false.</param>
         /// <param name="rebuildLevel">The algorithm selector. Value can be <value>IndexOnly</value> or <value>DatabaseAndIndex</value>. Default: <value>IndexOnly</value></param>

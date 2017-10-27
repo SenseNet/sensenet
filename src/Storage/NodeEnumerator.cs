@@ -144,17 +144,17 @@ namespace SenseNet.ContentRepository.Storage
             {
                 case ExecutionHint.None:
                     return SearchManager.ContentQueryIsAllowed
-                        ? QueryChildrenFromLucene(thisId)
+                        ? QueryChildrenFromIndex(thisId)
                         : QueryChildrenFromDatabase(thisId);
                 case ExecutionHint.ForceRelationalEngine:
                     return QueryChildrenFromDatabase(thisId);
                 case ExecutionHint.ForceIndexedEngine:
-                    return QueryChildrenFromLucene(thisId);
+                    return QueryChildrenFromIndex(thisId);
                 default:
                     throw new SnNotSupportedException();
             }
         }
-        protected virtual QueryResult QueryChildrenFromLucene(int thisId)
+        protected virtual QueryResult QueryChildrenFromIndex(int thisId)
         {
             var q = $"ParentId:{thisId}";
             if (_filter != null)

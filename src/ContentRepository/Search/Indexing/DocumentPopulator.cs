@@ -272,9 +272,9 @@ namespace SenseNet.Search.Indexing
 
             if (indexDocumentData != null)
             {
-                var lucDocAct = activity as DocumentIndexingActivity;
-                if (lucDocAct != null)
-                    lucDocAct.IndexDocumentData = indexDocumentData;
+                var docAct = activity as DocumentIndexingActivity;
+                if (docAct != null)
+                    docAct.IndexDocumentData = indexDocumentData;
             }
 
             var documentActivity = activity as DocumentIndexingActivity;
@@ -291,9 +291,9 @@ namespace SenseNet.Search.Indexing
 
             if (indexDocumentData != null)
             {
-                var lucDocAct = activity as DocumentIndexingActivity;
-                if (lucDocAct != null)
-                    lucDocAct.IndexDocumentData = indexDocumentData;
+                var docAct = activity as DocumentIndexingActivity;
+                if (docAct != null)
+                    docAct.IndexDocumentData = indexDocumentData;
             }
 
             return activity;

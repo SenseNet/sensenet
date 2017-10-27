@@ -37,7 +37,7 @@ namespace SenseNet.Search.Indexing
             // 4: distributed cache invalidation because of version timestamp.
             DataBackingStore.RemoveNodeDataFromCacheByVersionId(versionId);
 
-            // 5: distributed lucene index update.
+            // 5: index update.
             var node = Node.LoadNodeByVersionId(versionId);
             if (node != null)
                 SearchManager.ContentRepository.GetIndexPopulator().RebuildIndex(node);

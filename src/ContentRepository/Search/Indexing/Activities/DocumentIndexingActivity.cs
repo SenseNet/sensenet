@@ -68,7 +68,7 @@ namespace SenseNet.Search.Indexing.Activities
 
         public virtual IndexDocument CreateDocument()
         {
-            using (var op = SnTrace.Index.StartOperation("LM: LuceneDocumentActivity.CreateDocument (VersionId:{0})", VersionId))
+            using (var op = SnTrace.Index.StartOperation("LM: DocumentIndexingActivity.CreateDocument (VersionId:{0})", VersionId))
             {
                 IndexDocument doc;
                 if (IndexDocumentData != null)
@@ -78,7 +78,7 @@ namespace SenseNet.Search.Indexing.Activities
                     doc = IndexManager.CompleteIndexDocument(IndexDocumentData);
 
                     if (doc == null)
-                        SnTrace.Index.Write("LM: LuceneDocumentActivity.CreateDocument (VersionId:{0}): Document is NULL from QUEUE", VersionId);
+                        SnTrace.Index.Write("LM: DocumentIndexingActivity.CreateDocument (VersionId:{0}): Document is NULL from QUEUE", VersionId);
                 }
                 else
                 {
@@ -86,7 +86,7 @@ namespace SenseNet.Search.Indexing.Activities
                     doc = IndexManager.LoadIndexDocumentByVersionId(this.VersionId);
 
                     if (doc == null)
-                        SnTrace.Index.Write("LM: LuceneDocumentActivity.CreateDocument (VersionId:{0}): Document is NULL from DB.", VersionId);
+                        SnTrace.Index.Write("LM: DocumentIndexingActivity.CreateDocument (VersionId:{0}): Document is NULL from DB.", VersionId);
                 }
                 op.Successful = true;
                 return doc;

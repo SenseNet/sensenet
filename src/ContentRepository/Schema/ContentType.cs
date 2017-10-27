@@ -145,7 +145,7 @@ namespace  SenseNet.ContentRepository.Schema
         }
 
         /// <summary>
-        /// Allows or disallows the indexing in Lucene for this content type.
+        /// Allows or disallows the indexing for this content type.
         /// </summary>
         public bool IndexingEnabled
         {

@@ -219,7 +219,7 @@ namespace SenseNet.ContentRepository
         public static Aspect LoadAspectByName(string name)
         {
             // IMPORTANT:
-            // We can't use Lucene query here because this method is called during indexing!
+            // We can't use external query here because this method is called during indexing!
             // It would mean trying to query the index while writing to it, which would result in a deadlock.
             // For this reason, this method uses its own cache for finding aspects.
 

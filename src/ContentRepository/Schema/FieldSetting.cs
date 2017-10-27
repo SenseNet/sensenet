@@ -1273,15 +1273,6 @@ namespace SenseNet.ContentRepository.Schema
 
             if (!string.IsNullOrEmpty(descriptor.IndexingMode))
             {
-                //switch (descriptor.IndexingMode)
-                //{
-                //    case "Analyzed": indexingInfo.IndexingMode = LucField.Index.ANALYZED; break;
-                //    case "AnalyzedNoNorms": indexingInfo.IndexingMode = LucField.Index.ANALYZED_NO_NORMS; break;
-                //    case "No": indexingInfo.IndexingMode = LucField.Index.NO; break;
-                //    case "NotAnalyzed": indexingInfo.IndexingMode = LucField.Index.NOT_ANALYZED; break;
-                //    case "NotAnalyzedNoNorms": indexingInfo.IndexingMode = LucField.Index.NOT_ANALYZED_NO_NORMS; break;
-                //    default: throw new ContentRegistrationException("Invalid IndexingMode: " + descriptor.IndexingMode, descriptor.Owner.Name, descriptor.FieldName);
-                //}
                 IndexingMode mode;
                 if (Enum.TryParse(descriptor.IndexingMode, true, out mode))
                     indexingInfo.IndexingMode = mode;
@@ -1290,12 +1281,6 @@ namespace SenseNet.ContentRepository.Schema
             }
             if (!string.IsNullOrEmpty(descriptor.IndexStoringMode))
             {
-                //switch (descriptor.IndexStoringMode)
-                //{
-                //    case "No": indexingInfo.IndexStoringMode = LucField.Store.NO; break;
-                //    case "Yes": indexingInfo.IndexStoringMode = LucField.Store.YES; break;
-                //    default: throw new ContentRegistrationException("Invalid IndexStoringMode: " + descriptor.IndexStoringMode, descriptor.Owner.Name, descriptor.FieldName);
-                //}
                 IndexStoringMode mode;
                 if (Enum.TryParse(descriptor.IndexStoringMode, true, out mode))
                     indexingInfo.IndexStoringMode = mode;
@@ -1304,15 +1289,6 @@ namespace SenseNet.ContentRepository.Schema
             }
             if (!String.IsNullOrEmpty(descriptor.IndexingTermVector))
             {
-                //switch (descriptor.IndexingTermVector)
-                //{
-                //    case "No": indexingInfo.TermVectorStoringMode = LucField.TermVector.NO; break;
-                //    case "WithOffsets": indexingInfo.TermVectorStoringMode = LucField.TermVector.WITH_OFFSETS; break;
-                //    case "WithPositions": indexingInfo.TermVectorStoringMode = LucField.TermVector.WITH_POSITIONS; break;
-                //    case "WithPositionsOffsets": indexingInfo.TermVectorStoringMode = LucField.TermVector.WITH_POSITIONS_OFFSETS; break;
-                //    case "Yes": indexingInfo.TermVectorStoringMode = LucField.TermVector.YES; break;
-                //    default: throw new ContentRegistrationException("Invalid IndexingTermVector: " + descriptor.IndexingTermVector, descriptor.Owner.Name, descriptor.FieldName);
-                //}
                 IndexTermVector mode;
                 if (Enum.TryParse(descriptor.IndexingTermVector, true, out mode))
                     indexingInfo.TermVectorStoringMode = mode;
