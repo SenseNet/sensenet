@@ -1,8 +1,6 @@
 ﻿using System;
 using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
-using SenseNet.Search.Lucene29;
 
 namespace SenseNet.Search.Indexing
 {

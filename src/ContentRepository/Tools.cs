@@ -1,4 +1,5 @@
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
@@ -21,7 +22,6 @@ using System.Diagnostics;
 using SenseNet.BackgroundOperations;
 using SenseNet.Configuration;
 using SenseNet.Search.Indexing;
-using SenseNet.Search.Lucene29;
 using SenseNet.TaskManagement.Core;
 
 namespace SenseNet.ContentRepository
@@ -567,7 +567,9 @@ namespace SenseNet.ContentRepository
         [ODataFunction]
         public static object CheckIndexIntegrity(Content content, bool recurse)
         {
-            return IntegrityChecker.CheckIndexIntegrity(content?.Path, recurse);
+            //UNDONE: ODataFunction: CheckIndexIntegrity(Content content, bool recurse)
+            throw new SnNotSupportedException();
+            //return IntegrityChecker.CheckIndexIntegrity(content?.Path, recurse);
         }
         [ODataFunction]
         public static SecurityConsistencyResult CheckSecurityConsistency(Content content)

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using SenseNet.ContentRepository.Storage.Search;
-using SenseNet.Search.Indexing;
-using SenseNet.Tools;
+﻿using System.Collections.Generic;
 
 namespace SenseNet.Search.Lucene29
 {

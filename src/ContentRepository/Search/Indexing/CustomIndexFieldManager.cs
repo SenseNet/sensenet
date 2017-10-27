@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Lucene.Net.Documents;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Tools;
 

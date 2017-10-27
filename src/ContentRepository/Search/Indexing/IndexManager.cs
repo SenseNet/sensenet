@@ -14,7 +14,7 @@ namespace SenseNet.Search.Indexing
     {
         #region /* ==================================================================== Managing index */
 
-        internal static IIndexingEngine IndexingEngine => SearchManager.SearchEngine.IndexingEngine;
+        public static IIndexingEngine IndexingEngine => SearchManager.SearchEngine.IndexingEngine;
         internal static ICommitManager CommitManager { get; private set; }
 
         public static bool Running => IndexingEngine.Running;

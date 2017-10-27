@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Lucene.Net.Documents;
 using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Search;
-using SenseNet.Search.Indexing;
 
 namespace SenseNet.Search.Lucene29
 {

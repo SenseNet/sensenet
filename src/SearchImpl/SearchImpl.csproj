@@ -60,29 +60,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration\Querying.cs" />
-    <Compile Include="Indexing\Activities\AddDocumentActivity.cs" />
-    <Compile Include="Indexing\Activities\AddTreeActivity.cs" />
-    <Compile Include="Indexing\Activities\DistributedIndexingActivity.cs" />
-    <Compile Include="Indexing\Activities\DocumentIndexingActivity.cs" />
-    <Compile Include="Indexing\Activities\IndexingActivityBase.cs" />
-    <Compile Include="Indexing\Activities\TreeIndexingActivity.cs" />
-    <Compile Include="Indexing\Activities\RebuildActivity.cs" />
-    <Compile Include="Indexing\Activities\RemoveTreeActivity.cs" />
-    <Compile Include="Indexing\Activities\UpdateDocumentActivity.cs" />
-    <Compile Include="Indexing\CentralizedIndexingActivityQueue.cs" />
-    <Compile Include="Indexing\CommitManager.cs" />
-    <Compile Include="Indexing\CustomIndexFieldManager.cs" />
-    <Compile Include="Indexing\IndexDocumentProvider.cs" />
-    <Compile Include="Indexing\DistributedIndexingActivityQueue.cs" />
-    <Compile Include="Indexing\DocumentPopulator.cs" />
+    <Compile Include="Packaging\CheckIndexIntegrity.cs" />
     <Compile Include="Lucene29\EnumConverter.cs" />
-    <Compile Include="Indexing\IndexHealthMonitor.cs" />
-    <Compile Include="Indexing\IndexingActivityFactory.cs" />
     <Compile Include="Lucene29\IndexDirectory.cs" />
     <Compile Include="Lucene29\IndexReaderFrame.cs" />
     <Compile Include="Lucene29\IntegrityChecker.cs" />
-    <Compile Include="Indexing\IndexManager.cs" />
-    <Compile Include="Indexing\PerFieldIndexingInfo.cs" />
     <Compile Include="Lucene29\SnPerFieldAnalyzerWrapper.cs" />
     <Compile Include="Lucene29\Lucene29Compiler.cs" />
     <Compile Include="Lucene29\Lucene29IndexingEngine.cs" />
@@ -99,10 +81,8 @@
     <Compile Include="Lucene29\QueryExecutors\LuceneQueryExecutor.cs" />
     <Compile Include="Lucene29\QueryExecutors\QueryExecutor20131012.cs" />
     <Compile Include="Lucene29\QueryExecutors\QueryExecutor20131012CountOnly.cs" />
-    <Compile Include="SafeQueries.cs" />
     <Compile Include="SafeQueriesInternal.cs" />
     <Compile Include="Lucene29\SnCollector.cs" />
-    <Compile Include="SnQueryContext.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -112,6 +92,10 @@
     <ProjectReference Include="..\Common\Common.csproj">
       <Project>{a453e920-29c0-45cd-984c-0d8e3631b1e3}</Project>
       <Name>Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ContentRepository\ContentRepository.csproj">
+      <Project>{786e6165-ca02-45a9-bf58-207a45d7d6df}</Project>
+      <Name>ContentRepository</Name>
     </ProjectReference>
     <ProjectReference Include="..\Search\Search.csproj">
       <Project>{0279705b-779d-485d-86b9-f7ab3dd1f2c3}</Project>

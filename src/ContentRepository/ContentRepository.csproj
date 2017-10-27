@@ -191,7 +191,6 @@
     <Compile Include="Packaging\Steps\ChangeContentType.cs" />
     <Compile Include="Packaging\Steps\ChangeFieldType.cs" />
     <Compile Include="Packaging\Steps\ChangeFieldTypeInCTD.cs" />
-    <Compile Include="Packaging\Steps\CheckIndexIntegrity.cs" />
     <Compile Include="Packaging\Steps\ConditionalStep.cs" />
     <Compile Include="Packaging\Steps\Copy.cs" />
     <Compile Include="Packaging\Steps\DefaultPropertyAttribute.cs" />
@@ -239,11 +238,32 @@
     <Compile Include="Schema\Metadata\SchemaVisitor.cs" />
     <Compile Include="SearchEngineSupport.cs" />
     <Compile Include="Search\ContentQuery.cs" />
+    <Compile Include="Search\Indexing\Activities\AddDocumentActivity.cs" />
+    <Compile Include="Search\Indexing\Activities\AddTreeActivity.cs" />
+    <Compile Include="Search\Indexing\Activities\DistributedIndexingActivity.cs" />
+    <Compile Include="Search\Indexing\Activities\DocumentIndexingActivity.cs" />
+    <Compile Include="Search\Indexing\Activities\IndexingActivityBase.cs" />
+    <Compile Include="Search\Indexing\Activities\RebuildActivity.cs" />
+    <Compile Include="Search\Indexing\Activities\RemoveTreeActivity.cs" />
+    <Compile Include="Search\Indexing\Activities\TreeIndexingActivity.cs" />
+    <Compile Include="Search\Indexing\Activities\UpdateDocumentActivity.cs" />
+    <Compile Include="Search\Indexing\CentralizedIndexingActivityQueue.cs" />
+    <Compile Include="Search\Indexing\CommitManager.cs" />
+    <Compile Include="Search\Indexing\CustomIndexFieldManager.cs" />
+    <Compile Include="Search\Indexing\DistributedIndexingActivityQueue.cs" />
+    <Compile Include="Search\Indexing\DocumentPopulator.cs" />
     <Compile Include="Search\Indexing\ExplicitPerFieldIndexingInfo.cs" />
+    <Compile Include="Search\Indexing\IndexDocumentProvider.cs" />
+    <Compile Include="Search\Indexing\IndexHealthMonitor.cs" />
+    <Compile Include="Search\Indexing\IndexingActivityFactory.cs" />
     <Compile Include="Search\Indexing\IndexingTools.cs" />
+    <Compile Include="Search\Indexing\IndexManager.cs" />
+    <Compile Include="Search\Indexing\PerFieldIndexingInfo.cs" />
     <Compile Include="Search\Parser\ContentQueryTemplateReplacer.cs" />
     <Compile Include="Search\RichTextStripper.cs" />
+    <Compile Include="Search\SafeQueries.cs" />
     <Compile Include="Search\SnIFilter.cs" />
+    <Compile Include="Search\SnQueryContext.cs" />
     <Compile Include="Search\TextExtractor.cs" />
     <Compile Include="Search\TextSplitter.cs" />
     <Compile Include="Setting\UserProfileSettings.cs" />
@@ -508,10 +528,6 @@
     <ProjectReference Include="..\Common\Common.csproj">
       <Project>{A453E920-29C0-45CD-984C-0D8E3631B1E3}</Project>
       <Name>Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\SearchImpl\SearchImpl.csproj">
-      <Project>{ff0b1af9-753b-4660-8bd0-b84492321808}</Project>
-      <Name>SearchImpl</Name>
     </ProjectReference>
     <ProjectReference Include="..\Search\Search.csproj">
       <Project>{0279705b-779d-485d-86b9-f7ab3dd1f2c3}</Project>

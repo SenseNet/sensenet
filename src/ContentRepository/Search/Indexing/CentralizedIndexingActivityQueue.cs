@@ -16,7 +16,7 @@ namespace SenseNet.Search.Indexing
     internal static class CentralizedIndexingActivityQueue
     {
         private static readonly int MaxCount = 10;
-        private static readonly int RunningTimeoutInSeconds = Configuration.Indexing.IndexingActivityTimeoutInSeconds;
+        private static readonly int RunningTimeoutInSeconds = SenseNet.Configuration.Indexing.IndexingActivityTimeoutInSeconds;
         private static readonly int LockRefreshPeriodInMilliseconds = RunningTimeoutInSeconds * 3000 / 4;
         private static readonly int HearthBeatMilliseconds = 1000;
 

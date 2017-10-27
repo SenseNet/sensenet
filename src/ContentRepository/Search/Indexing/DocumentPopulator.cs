@@ -6,10 +6,8 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search.Indexing.Activities;
 using System.IO;
-using Lucene.Net.Index;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.Search.Lucene29;
 
 namespace SenseNet.Search.Indexing
 {
