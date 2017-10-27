@@ -1,4 +1,4 @@
-﻿using SenseNet.ContentRepository.Storage.Search.Internal;
+﻿using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {

@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Data.Common;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Storage.Search.Internal;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
 using SenseNet.Search;

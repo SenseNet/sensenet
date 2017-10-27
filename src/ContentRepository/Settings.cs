@@ -18,8 +18,6 @@ using SenseNet.ContentRepository.Json;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Search.Internal;
-using SenseNet.Search.Indexing;
 
 namespace SenseNet.ContentRepository
 {

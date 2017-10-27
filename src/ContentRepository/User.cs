@@ -1,7 +1,5 @@
 using System;
-using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
@@ -9,7 +7,6 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
-using System.Text;
 using SenseNet.ContentRepository.Security.ADSync;
 using System.Collections.Generic;
 using SenseNet.Diagnostics;
@@ -20,11 +17,8 @@ using SenseNet.Search;
 using System.Xml.Serialization;
 using System.IO;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Setting;
-using SenseNet.ContentRepository.Storage.Search.Internal;
-using SenseNet.Security;
 using SenseNet.Tools;
 using Retrier = SenseNet.ContentRepository.Storage.Retrier;
 
