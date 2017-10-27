@@ -99,13 +99,10 @@
     <Compile Include="Lucene29\QueryExecutors\LuceneQueryExecutor.cs" />
     <Compile Include="Lucene29\QueryExecutors\QueryExecutor20131012.cs" />
     <Compile Include="Lucene29\QueryExecutors\QueryExecutor20131012CountOnly.cs" />
-    <Compile Include="RichTextStripper.cs" />
     <Compile Include="SafeQueries.cs" />
     <Compile Include="SafeQueriesInternal.cs" />
     <Compile Include="Lucene29\SnCollector.cs" />
-    <Compile Include="SnIFilter.cs" />
     <Compile Include="SnQueryContext.cs" />
-    <Compile Include="TextSplitter.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
