@@ -14,6 +14,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
@@ -460,7 +461,10 @@ namespace SenseNet.Search.Lucene29
             // We must exclude those content types from the integrity check
             // where indexing is completely switched OFF, because otherwise
             // these kinds of content would appear as missing items.
-            return SearchManager.ContentRepository.GetNotIndexedNodeTypeIds();
+            return new AllContentTypes()
+                .Where(c => !c.IndexingEnabled)
+                .Select(c => ContentRepository.Storage.Schema.NodeType.GetByName(c.Name).Id)
+                .ToArray();
         }
 
         private static int ParseInt(string data)

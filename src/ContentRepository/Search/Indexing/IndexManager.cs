@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage;
@@ -21,7 +22,10 @@ namespace SenseNet.Search.Indexing
 
         public static int[] GetNotIndexedNodeTypes()
         {
-            return SearchManager.ContentRepository.GetNotIndexedNodeTypeIds();
+            return new AllContentTypes()
+                .Where(c => !c.IndexingEnabled)
+                .Select(c => ContentRepository.Storage.Schema.NodeType.GetByName(c.Name).Id)
+                .ToArray();
         }
 
         public static void Start(TextWriter consoleOut)

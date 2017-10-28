@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Parser;
@@ -312,7 +313,7 @@ namespace SenseNet.Search
             QueryResult result;
             using (var op = SnTrace.Query.StartOperation("ContentQuery: {0} | Top:{1} Skip:{2} Sort:{3} Mode:{4} AllVersions:{5}", queryText, _settings.Top, _settings.Skip, _settings.Sort, _settings.QueryExecutionMode, _settings.AllVersions))
             {
-                var query = SearchManager.ContentRepository.ReplaceQueryTemplates(queryText);
+                var query = TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), queryText);
 
                 if (!query.Contains("}}"))
                 {
