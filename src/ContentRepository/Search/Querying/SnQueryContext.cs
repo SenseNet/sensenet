@@ -3,9 +3,8 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search.Indexing;
-using SenseNet.Search.Querying;
 
-namespace SenseNet.Search
+namespace SenseNet.Search.Querying
 {
     public class SnQueryContext : IQueryContext
     {

@@ -259,11 +259,11 @@
     <Compile Include="Search\Indexing\IndexingTools.cs" />
     <Compile Include="Search\Indexing\IndexManager.cs" />
     <Compile Include="Search\Indexing\PerFieldIndexingInfo.cs" />
-    <Compile Include="Search\Parser\ContentQueryTemplateReplacer.cs" />
+    <Compile Include="Search\ContentQueryTemplateReplacer.cs" />
     <Compile Include="Search\Indexing\RichTextStripper.cs" />
     <Compile Include="Search\SafeQueries.cs" />
     <Compile Include="Search\Indexing\SnIFilter.cs" />
-    <Compile Include="Search\SnQueryContext.cs" />
+    <Compile Include="Search\Querying\SnQueryContext.cs" />
     <Compile Include="Search\Indexing\TextExtractor.cs" />
     <Compile Include="Search\Indexing\TextSplitter.cs" />
     <Compile Include="Setting\UserProfileSettings.cs" />
