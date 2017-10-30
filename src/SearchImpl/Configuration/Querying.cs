@@ -6,6 +6,7 @@ using SenseNet.Search.Lucene29;
 // ReSharper disable RedundantTypeArgumentsOfMethod
 namespace SenseNet.Configuration
 {
+    //UNDONE: name of: SenseNet.Configuration.Querying
     public class Querying : SnConfig
     {
         private const string SectionName = "sensenet/querying";

@@ -23,11 +23,11 @@ using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Lucene29
 {
-    public enum IndexDifferenceKind { NotInIndex, NotInDatabase, MoreDocument, DifferentNodeTimestamp, DifferentVersionTimestamp, DifferentLastPublicFlag, DifferentLastDraftFlag }
+    internal enum IndexDifferenceKind { NotInIndex, NotInDatabase, MoreDocument, DifferentNodeTimestamp, DifferentVersionTimestamp, DifferentLastPublicFlag, DifferentLastDraftFlag }
 
     [DebuggerDisplay("{Kind} VersionId: {VersionId}, DocId: {DocId}")]
     [Serializable]
-    public class Difference
+    internal class Difference
     {
         public Difference(IndexDifferenceKind kind)
         {
@@ -115,7 +115,7 @@ namespace SenseNet.Search.Lucene29
         }
     }
 
-    public class IntegrityChecker
+    internal class IntegrityChecker
     {
         public static object CheckIndexIntegrity(string contentPath, bool recurse)
         {

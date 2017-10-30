@@ -8,7 +8,7 @@ using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Lucene29
 {
-    public class LucObject
+    internal class LucObject
     {
         private Dictionary<string, string> data = new Dictionary<string, string>();
         

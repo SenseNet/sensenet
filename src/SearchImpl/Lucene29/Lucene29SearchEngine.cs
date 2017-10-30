@@ -4,7 +4,7 @@ using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Lucene29
 {
-    public class Lucene29SearchEngine : ISearchEngine
+    internal class Lucene29SearchEngine : ISearchEngine
     {
         public static readonly Lucene.Net.Util.Version LuceneVersion = Lucene.Net.Util.Version.LUCENE_29;
 

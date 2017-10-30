@@ -4,7 +4,7 @@ using SenseNet.Search.Indexing;
 
 namespace SenseNet.Search.Lucene29
 {
-    public class IndexReaderFrame : IDisposable
+    internal class IndexReaderFrame : IDisposable
     {
         private readonly IndexReader _reader;
         public IndexReader IndexReader => _reader;

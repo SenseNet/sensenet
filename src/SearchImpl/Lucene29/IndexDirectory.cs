@@ -8,7 +8,7 @@ using SenseNet.Diagnostics;
 
 namespace SenseNet.Search.Lucene29
 {
-    public class IndexDirectory
+    internal class IndexDirectory
     {
         private static readonly string DEFAULTDIRECTORYNAME = "0";
 
