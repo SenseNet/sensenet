@@ -8,9 +8,10 @@ using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Util;
 using SenseNet.Search.Parser;
-using SenseNet.Search.Parser.Predicates;
 using SenseNet.Search.Querying;
-using LogicalClause = SenseNet.Search.Parser.Predicates.LogicalClause;
+using SenseNet.Search.Querying.Parser;
+using SenseNet.Search.Querying.Parser.Predicates;
+using LogicalClause = SenseNet.Search.Querying.Parser.Predicates.LogicalClause;
 
 namespace SenseNet.Search.Lucene29
 {

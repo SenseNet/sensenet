@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace SenseNet.Search.Parser
+namespace SenseNet.Search.Querying.Parser
 {
 	[global::System.Serializable]
 	public class ParserException : Exception

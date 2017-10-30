@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data.Odbc;
+using System.Globalization;
 using System.Linq;
 using System.Text;
-using System.Globalization;
-using SenseNet.Search.Querying;
 
-namespace SenseNet.Search.Parser
+namespace SenseNet.Search.Querying.Parser
 {
     internal class CqlLexer
     {

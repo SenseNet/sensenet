@@ -7,8 +7,9 @@ using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Parser;
-using SenseNet.Search.Parser.Predicates;
 using SenseNet.Search.Querying;
+using SenseNet.Search.Querying.Parser;
+using SenseNet.Search.Querying.Parser.Predicates;
 using SenseNet.Security;
 
 namespace SenseNet.ContentRepository.Storage.Search

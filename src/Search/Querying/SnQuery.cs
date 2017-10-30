@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using SenseNet.Search.Parser;
+using SenseNet.Search.Querying.Parser.Predicates;
 
 namespace SenseNet.Search.Querying
 {

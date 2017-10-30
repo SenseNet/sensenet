@@ -7,9 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Search.Indexing;
-using SenseNet.Search.Parser;
-using SenseNet.Search.Parser.Predicates;
 using SenseNet.Search.Querying;
+using SenseNet.Search.Querying.Parser;
+using SenseNet.Search.Querying.Parser.Predicates;
 using SenseNet.Search.Tests.Implementations;
 
 namespace SenseNet.Search.Tests

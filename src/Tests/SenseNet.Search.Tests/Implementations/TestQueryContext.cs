@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SenseNet.Search.Indexing;
-using SenseNet.Search.Parser;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Tests.Implementations

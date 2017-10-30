@@ -4,10 +4,11 @@ using System.Globalization;
 using System.Linq;
 using SenseNet.Search;
 using SenseNet.Search.Parser;
-using SenseNet.Search.Parser.Predicates;
 using System.Text;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
+using SenseNet.Search.Querying.Parser;
+using SenseNet.Search.Querying.Parser.Predicates;
 
 namespace SenseNet.ContentRepository.Tests.Implementations
 {

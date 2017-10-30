@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using SenseNet.Search.Indexing;
-using SenseNet.Search.Parser.Predicates;
-using SenseNet.Search.Querying;
+using SenseNet.Search.Querying.Parser.Predicates;
 
-namespace SenseNet.Search.Parser
+namespace SenseNet.Search.Querying.Parser
 {
     internal class CqlParser
     {

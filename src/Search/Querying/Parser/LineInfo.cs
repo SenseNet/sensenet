@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Diagnostics;
 
-namespace SenseNet.Search.Parser
+namespace SenseNet.Search.Querying.Parser
 {
 	[DebuggerDisplay("[Line: {Line}, Col: {Column}]")]
 	public class LineInfo

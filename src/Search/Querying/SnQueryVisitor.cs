@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using SenseNet.Search.Parser.Predicates;
+using SenseNet.Search.Querying.Parser.Predicates;
 
-namespace SenseNet.Search.Parser
+namespace SenseNet.Search.Querying
 {
     public abstract class SnQueryVisitor
     {

@@ -2,8 +2,8 @@
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
-using SenseNet.Search.Parser;
-using SenseNet.Search.Parser.Predicates;
+using SenseNet.Search.Querying.Parser;
+using SenseNet.Search.Querying.Parser.Predicates;
 
 namespace SenseNet.Search.Querying
 {

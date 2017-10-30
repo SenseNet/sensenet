@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text;
-using SenseNet.Search.Querying;
 
-namespace SenseNet.Search.Parser
+namespace SenseNet.Search.Querying
 {
     public class SnQueryInfo
     {
