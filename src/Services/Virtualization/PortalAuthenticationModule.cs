@@ -16,6 +16,7 @@ using SenseNet.Diagnostics;
 using Newtonsoft.Json;
 using SenseNet.Configuration;
 using SenseNet.Search;
+using SenseNet.Search.Querying;
 using SenseNet.TokenAuthentication;
 
 namespace SenseNet.Portal.Virtualization

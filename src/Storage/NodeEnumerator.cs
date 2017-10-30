@@ -7,6 +7,7 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
+using SenseNet.Search.Querying;
 
 namespace SenseNet.ContentRepository.Storage
 {

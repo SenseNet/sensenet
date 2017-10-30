@@ -26,6 +26,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Linq;
 using SenseNet.ContentRepository.Search;
+using SenseNet.Search.Querying;
 using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository

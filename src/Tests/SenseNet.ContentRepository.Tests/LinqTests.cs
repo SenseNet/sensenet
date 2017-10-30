@@ -13,6 +13,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Search;
+using SenseNet.Search.Querying;
 
 namespace SenseNet.ContentRepository.Tests
 {

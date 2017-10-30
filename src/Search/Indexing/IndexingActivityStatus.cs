@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 
-namespace SenseNet.Search
+namespace SenseNet.Search.Indexing
 {
     public class IndexingActivityStatus
     {

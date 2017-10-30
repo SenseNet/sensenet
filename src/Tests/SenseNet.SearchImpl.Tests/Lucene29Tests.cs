@@ -23,6 +23,7 @@ using SenseNet.Search.Indexing;
 using SenseNet.Search.Lucene29;
 using SenseNet.SearchImpl.Tests.Implementations;
 using System.Threading;
+using SenseNet.Search.Querying;
 
 namespace SenseNet.SearchImpl.Tests
 {

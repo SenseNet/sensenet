@@ -16,6 +16,7 @@ using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
+using SenseNet.Search.Querying;
 using SenseNet.Security;
 
 namespace SenseNet.ContentRepository.Storage

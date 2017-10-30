@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SenseNet.Search
+namespace SenseNet.ContentRepository.Storage.Search
 {
     //TODO: Part of 'CQL to SQL compiler' for future use.
     internal class SqlQueryExecutor

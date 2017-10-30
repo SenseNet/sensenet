@@ -19,6 +19,7 @@ using System.IO;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Setting;
+using SenseNet.Search.Querying;
 using SenseNet.Tools;
 using Retrier = SenseNet.ContentRepository.Storage.Retrier;
 

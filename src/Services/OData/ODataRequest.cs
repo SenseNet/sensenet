@@ -12,6 +12,7 @@ using SenseNet.ContentRepository.Storage;
 using System.Text.RegularExpressions;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Search.Querying;
 
 namespace SenseNet.Portal.OData
 {
