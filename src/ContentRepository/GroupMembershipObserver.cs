@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search;

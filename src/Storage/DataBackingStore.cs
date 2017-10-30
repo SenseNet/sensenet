@@ -10,6 +10,7 @@ using System.Diagnostics;
 using SenseNet.ContentRepository.Storage.Security;
 using System.Globalization;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search;

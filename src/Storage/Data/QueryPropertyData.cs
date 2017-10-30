@@ -1,4 +1,5 @@
-﻿using SenseNet.ContentRepository.Storage.Search;
+﻿using SenseNet.ContentRepository.Search.Querying;
+using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
@@ -7,11 +8,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         public string PropertyName { get; set; }
         public object Value { get; set; }
 
-        private Operator _queryOperator = Operator.Equal;
-        public Operator QueryOperator
-        {
-            get { return _queryOperator; }
-            set { _queryOperator = value; }
-        }
+        public Operator QueryOperator { get; set; } = Operator.Equal;
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search;
@@ -21,34 +22,34 @@ namespace SenseNet.ContentRepository.Search
         private string __indexDirectoryPath;
         private string IndexDirectoryPathPrivate
         {
-            get => __indexDirectoryPath ?? (__indexDirectoryPath = Indexing.IndexDirectoryFullPath);
+            get => __indexDirectoryPath ?? (__indexDirectoryPath = Configuration.Indexing.IndexDirectoryFullPath);
             set => __indexDirectoryPath = value;
         }
 
-        public static readonly List<string> YesList = new List<string>(new[] { "1", "true", "y", SnTerm.Yes });
-        public static readonly List<string> NoList = new List<string>(new[] { "0", "false", "n", SnTerm.No });
+        public static readonly List<string> YesList = new List<string>(new[] { "1", "true", "y", IndexValue.Yes });
+        public static readonly List<string> NoList = new List<string>(new[] { "0", "false", "n", IndexValue.No });
 
-        public static ISearchEngine SearchEngine => !Indexing.IsOuterSearchEngineEnabled
+        public static ISearchEngine SearchEngine => !Configuration.Indexing.IsOuterSearchEngineEnabled
             ? InternalSearchEngine.Instance
             : Providers.Instance.SearchEngine;
 
         public static ISearchEngineSupport ContentRepository { get; set; }
 
-        public static bool ContentQueryIsAllowed => Indexing.IsOuterSearchEngineEnabled &&
+        public static bool ContentQueryIsAllowed => Configuration.Indexing.IsOuterSearchEngineEnabled &&
                                                     SearchEngine != InternalSearchEngine.Instance;
 
-        public static bool IsOuterEngineEnabled => Indexing.IsOuterSearchEngineEnabled;
+        public static bool IsOuterEngineEnabled => Configuration.Indexing.IsOuterSearchEngineEnabled;
         public static string IndexDirectoryPath => Instance.IndexDirectoryPathPrivate;
 
         public static void EnableOuterEngine()
         {
-            if (false == Indexing.IsOuterSearchEngineEnabled)
+            if (false == Configuration.Indexing.IsOuterSearchEngineEnabled)
                 throw new InvalidOperationException("Indexing is not allowed in the configuration");
-            Indexing.IsOuterSearchEngineEnabled = true;
+            Configuration.Indexing.IsOuterSearchEngineEnabled = true;
         }
         public static void DisableOuterEngine()
         {
-            Indexing.IsOuterSearchEngineEnabled = false;
+            Configuration.Indexing.IsOuterSearchEngineEnabled = false;
         }
 
         public static void SetIndexDirectoryPath(string path)

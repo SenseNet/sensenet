@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search.Querying;
 

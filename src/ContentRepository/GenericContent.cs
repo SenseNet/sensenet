@@ -16,6 +16,8 @@ using SenseNet.Search.Indexing;
 using System.Diagnostics;
 using SenseNet.ContentRepository.Linq;
 using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Indexing;
+using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.Preview;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Search.Querying;

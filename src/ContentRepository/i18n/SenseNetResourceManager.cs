@@ -12,6 +12,7 @@ using SenseNet.ContentRepository.Storage;
 using System.Xml;
 using SenseNet.Communication.Messaging;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.Search;
 
 namespace SenseNet.ContentRepository.i18n

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Search;

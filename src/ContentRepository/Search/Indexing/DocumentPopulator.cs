@@ -7,6 +7,8 @@ using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search.Indexing.Activities;
 using System.IO;
 using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Indexing;
+using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Search.Querying;
 

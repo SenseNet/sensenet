@@ -15,6 +15,8 @@ using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.ContentRepository.Linq;
 using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Indexing;
+using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.Tools;
 
 namespace  SenseNet.ContentRepository.Schema

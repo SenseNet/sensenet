@@ -19,6 +19,7 @@ using System.Diagnostics;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.Search;
 using SenseNet.Tools;
 

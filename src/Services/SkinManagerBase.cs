@@ -8,6 +8,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.Portal.Virtualization;
 using System.Threading;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.Diagnostics;
 using SenseNet.Tools;
 

@@ -18,6 +18,7 @@ using System.Xml.Serialization;
 using System.IO;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Setting;
 using SenseNet.Search.Querying;
 using SenseNet.Tools;

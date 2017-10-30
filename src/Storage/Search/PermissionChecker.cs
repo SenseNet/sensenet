@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
@@ -12,7 +13,7 @@ using SenseNet.Search.Querying.Parser;
 using SenseNet.Search.Querying.Parser.Predicates;
 using SenseNet.Security;
 
-namespace SenseNet.ContentRepository.Storage.Search
+namespace SenseNet.ContentRepository.Search.Querying
 {
     public enum QueryFieldLevel { NotDefined = 0, HeadOnly = 1, NoBinaryOrFullText = 2, BinaryOrFullText = 3 }
 
@@ -107,7 +108,7 @@ namespace SenseNet.ContentRepository.Storage.Search
                     case DocumentOpenLevel.Denied:
                         return false;
                     default:
-                        throw new SnNotSupportedException("##Unknown DocumentOpenLevel");
+                        throw new SnNotSupportedException("Unknown DocumentOpenLevel: " + docLevel);
                 }
             }
         }

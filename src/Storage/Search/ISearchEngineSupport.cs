@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 
-namespace SenseNet.ContentRepository.Storage.Search
+namespace SenseNet.ContentRepository.Search
 {
+    //UNDONE: Delete if possible.
     public interface ISearchEngineSupport
     {
         IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName);

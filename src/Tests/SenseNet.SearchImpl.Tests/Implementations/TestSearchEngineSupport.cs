@@ -5,6 +5,8 @@ using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using ContentType = SenseNet.ContentRepository.Schema.ContentType;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.Search.Parser;
 
 namespace SenseNet.SearchImpl.Tests.Implementations

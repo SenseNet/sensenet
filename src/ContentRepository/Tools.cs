@@ -21,6 +21,8 @@ using SenseNet.Search;
 using System.Diagnostics;
 using SenseNet.BackgroundOperations;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search.Querying;
+using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.TaskManagement.Core;
 
@@ -574,10 +576,10 @@ namespace SenseNet.ContentRepository
         [ODataFunction]
         public static SecurityConsistencyResult CheckSecurityConsistency(Content content)
         {
-            var groups = SenseNet.ContentRepository.Storage.Search.NodeQuery.QueryNodesByType(NodeType.GetByName("Group"), false).Identifiers;
-            var ous = SenseNet.ContentRepository.Storage.Search.NodeQuery.QueryNodesByType(NodeType.GetByName("OrganizationalUnit"), false).Identifiers;
+            var groups = NodeQuery.QueryNodesByType(NodeType.GetByName("Group"), false).Identifiers;
+            var ous = NodeQuery.QueryNodesByType(NodeType.GetByName("OrganizationalUnit"), false).Identifiers;
             var allGroups = groups.Union(ous).ToArray();
-            var allIds = SenseNet.ContentRepository.Storage.Search.NodeQuery.QueryNodesByPath("/", false).Identifiers;
+            var allIds = NodeQuery.QueryNodesByPath("/", false).Identifiers;
 
             return CheckSecurityConsistency(allIds, allGroups);
         }

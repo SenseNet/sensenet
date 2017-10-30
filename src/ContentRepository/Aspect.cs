@@ -12,6 +12,7 @@ using System.Xml;
 using SenseNet.ContentRepository.Storage.Events;
 using System.Reflection;
 using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Search;

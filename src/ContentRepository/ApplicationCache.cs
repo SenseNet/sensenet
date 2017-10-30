@@ -8,6 +8,7 @@ using System.Reflection;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Search.Querying;
 
 namespace SenseNet.ContentRepository
 {

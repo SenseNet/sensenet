@@ -23,6 +23,7 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.BackgroundOperations;
 using Newtonsoft.Json.Converters;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.TaskManagement.Core;
 using SenseNet.Tools;
 using Retrier = SenseNet.ContentRepository.Storage.Retrier;

@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.Diagnostics;
+using SenseNet.ContentRepository.Storage.Search;
 
-namespace SenseNet.ContentRepository.Storage.Search
+namespace SenseNet.ContentRepository.Search.Indexing
 {
     public interface IIndexPopulator
     {

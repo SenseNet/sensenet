@@ -10,6 +10,7 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search.Querying;
 

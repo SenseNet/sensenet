@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using SenseNet.Search.Querying;
 
-namespace SenseNet.ContentRepository.Storage.Search
+namespace SenseNet.ContentRepository.Search.Querying
 {
     internal class SnPermissionFilterFactory : IPermissionFilterFactory
     {

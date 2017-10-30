@@ -284,6 +284,7 @@
     <Compile Include="Events\NodeOperationEventArgs.cs" />
     <Compile Include="IContentList.cs" />
     <Compile Include="Search\Interfaces.cs" />
+    <Compile Include="Search\InternalSearchEngine.cs" />
     <Compile Include="Search\Operator.cs" />
     <Compile Include="Search\ISearchEngineSupport.cs" />
     <Compile Include="Search\PermissionChecker.cs" />
