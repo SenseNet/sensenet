@@ -38,6 +38,7 @@
     <file src="bin\Release\Microsoft.Practices.Unity.*" target="lib\net451" />
     <file src="bin\Release\SenseNet.Configuration.*" target="lib\net451" />
     <file src="bin\Release\SenseNet.ContentRepository.*" target="lib\net451" />
+    <file src="bin\Release\SenseNet.Search.*" target="lib\net451" />
     <file src="bin\Release\SenseNet.Services.*" target="lib\net451" />
     <file src="bin\Release\SenseNet.Storage.*" target="lib\net451" />
     <file src="bin\Release\SenseNet.TokenAuthentication.*" target="lib\net451" />
