@@ -5,7 +5,9 @@ using System.Linq;
 using System.Text;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Search;
+using SenseNet.Search.Indexing;
 using SenseNet.Search.Parser;
+using SenseNet.Search.Querying;
 
 namespace SenseNet.ContentRepository.Storage.Search
 {

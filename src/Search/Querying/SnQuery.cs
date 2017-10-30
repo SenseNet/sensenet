@@ -2,7 +2,7 @@
 using System.Linq;
 using SenseNet.Search.Parser;
 
-namespace SenseNet.Search
+namespace SenseNet.Search.Querying
 {
     public partial class SnQuery
     {

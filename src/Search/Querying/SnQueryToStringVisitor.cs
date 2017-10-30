@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using SenseNet.Search.Parser;
 using SenseNet.Search.Parser.Predicates;
 
-namespace SenseNet.Search
+namespace SenseNet.Search.Querying
 {
     public sealed class SnQueryToStringVisitor : SnQueryVisitor
     {

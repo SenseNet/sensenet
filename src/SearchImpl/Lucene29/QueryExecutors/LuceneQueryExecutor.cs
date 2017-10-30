@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
 using SenseNet.Diagnostics;
+using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Lucene29.QueryExecutors
 {

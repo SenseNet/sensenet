@@ -11,6 +11,7 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Search;
+using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Indexing
 {
@@ -141,7 +142,7 @@ namespace SenseNet.Search.Indexing
         public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
         {
             var data = snField.GetData() as SenseNet.ContentRepository.Storage.BinaryData;
-            textExtract = data == null ? string.Empty : SenseNet.Search.TextExtractor.GetExtract(data, ((SnCR.Field)snField).Content.ContentHandler);
+            textExtract = data == null ? string.Empty : TextExtractor.GetExtract(data, ((SnCR.Field)snField).Content.ContentHandler);
             return CreateField(snField.Name, textExtract);
         }
         public override IndexValue Parse(string text)

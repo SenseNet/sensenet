@@ -5,6 +5,7 @@ using System.Text;
 using System.Xml.XPath;
 using System.Xml;
 using SenseNet.Search;
+using SenseNet.Search.Indexing;
 
 namespace SenseNet.ContentRepository.Schema
 {

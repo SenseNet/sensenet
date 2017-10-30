@@ -9,6 +9,7 @@ using System.Web;
 using System.Linq;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search;
+using SenseNet.Search.Indexing;
 
 namespace SenseNet.ContentRepository.Fields
 {

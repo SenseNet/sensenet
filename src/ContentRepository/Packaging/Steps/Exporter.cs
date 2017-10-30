@@ -7,8 +7,9 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using System.Xml;
 using SenseNet.ContentRepository.Schema;
-using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search;
+using SenseNet.Search.Querying;
+
 namespace SenseNet.Packaging.Steps
 {
     internal static class Exporter

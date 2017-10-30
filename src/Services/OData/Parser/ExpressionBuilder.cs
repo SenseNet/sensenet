@@ -206,7 +206,7 @@ namespace SenseNet.Portal.OData.Parser
         }
         private static Type GetGenericParamType(string fieldName)
         {
-            var fieldIndexingInfo = SenseNet.ContentRepository.Schema.ContentType.GetPerfieldIndexingInfo(fieldName);
+            var fieldIndexingInfo = ContentRepository.Schema.ContentType.GetPerfieldIndexingInfo(fieldName);
             if (fieldIndexingInfo != null)
                 return fieldIndexingInfo.FieldDataType;
             return null;

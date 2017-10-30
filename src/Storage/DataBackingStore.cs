@@ -13,6 +13,7 @@ using SenseNet.Configuration;
 using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search;
+using SenseNet.Search.Indexing;
 using SenseNet.Security;
 using SenseNet.Tools;
 

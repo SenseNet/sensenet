@@ -15,6 +15,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Search;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
+using SenseNet.Search.Querying;
 using Field = Lucene.Net.Documents.Field;
 
 namespace SenseNet.Search.Lucene29

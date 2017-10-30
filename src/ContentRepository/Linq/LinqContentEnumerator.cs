@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using SenseNet.Search;
+using SenseNet.Search.Querying;
 
 namespace SenseNet.ContentRepository.Linq
 {

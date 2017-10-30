@@ -16,6 +16,7 @@ using System.Collections;
 using System.Linq.Expressions;
 using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Search.Querying;
 using SenseNet.Tools;
 using Utility = SenseNet.Tools.Utility;
 

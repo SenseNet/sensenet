@@ -1,4 +1,4 @@
-﻿namespace SenseNet.Search
+﻿namespace SenseNet.Search.Querying
 {
     public enum LogicalOperator
     {

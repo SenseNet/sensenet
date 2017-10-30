@@ -3,7 +3,7 @@ using System.Text;
 using SenseNet.Search.Parser;
 using SenseNet.Search.Parser.Predicates;
 
-namespace SenseNet.Search
+namespace SenseNet.Search.Querying
 {
     public partial class SnQuery
     {

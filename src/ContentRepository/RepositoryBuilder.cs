@@ -10,6 +10,7 @@ using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
+using SenseNet.Search.Querying;
 using SenseNet.Security;
 using SenseNet.Security.Messaging;
 

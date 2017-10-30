@@ -286,6 +286,7 @@
     <Compile Include="Search\Interfaces.cs" />
     <Compile Include="Search\Operator.cs" />
     <Compile Include="Search\ISearchEngineSupport.cs" />
+    <Compile Include="Search\PermissionChecker.cs" />
     <Compile Include="Search\SnPermissionFilterFactory.cs" />
     <Compile Include="Security\BCrypt.cs" />
     <Compile Include="Security\Extensions.cs" />

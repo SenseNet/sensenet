@@ -8,6 +8,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
+using SenseNet.Search.Querying;
 using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Storage.Data

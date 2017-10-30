@@ -12,6 +12,7 @@ using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ApplicationModel;
+using SenseNet.Search.Querying;
 
 namespace SenseNet.Portal
 {

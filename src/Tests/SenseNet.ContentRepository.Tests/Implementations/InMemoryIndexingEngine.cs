@@ -8,6 +8,7 @@ using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Diagnostics;
 using System.Collections.Concurrent;
+using SenseNet.Search.Querying;
 
 namespace SenseNet.ContentRepository.Tests.Implementations
 {

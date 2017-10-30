@@ -8,6 +8,7 @@ using SenseNet.Search.Indexing.Activities;
 using System.IO;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Indexing
 {

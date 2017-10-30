@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using SenseNet.Search.Parser.Predicates;
+using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Parser
 {

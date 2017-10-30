@@ -15,6 +15,7 @@ using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
+using SenseNet.Search.Querying;
 using SenseNet.Security;
 
 namespace SenseNet.ContentRepository.Tests.Implementations

@@ -8,6 +8,7 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Diagnostics;
+using SenseNet.Search.Indexing;
 using SenseNet.Tools;
 
 namespace SenseNet.Search

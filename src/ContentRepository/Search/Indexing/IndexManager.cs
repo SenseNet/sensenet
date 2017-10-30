@@ -8,6 +8,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing.Activities;
+using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Indexing
 {

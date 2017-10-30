@@ -7,6 +7,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search;
+using SenseNet.Search.Indexing;
 
 namespace SenseNet.SearchImpl.Tests.Implementations
 {

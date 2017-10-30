@@ -12,6 +12,7 @@ using SenseNet.ContentRepository.Storage;
 using System.IO;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search;
+using SenseNet.Search.Indexing;
 using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Fields

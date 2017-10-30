@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using SenseNet.Search.Querying;
 
-namespace SenseNet.Search
+namespace SenseNet.Search.Indexing
 {
     public interface IIndexingEngine
     {

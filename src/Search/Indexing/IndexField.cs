@@ -1,8 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
+using SenseNet.Search.Querying;
 
-namespace SenseNet.Search
+namespace SenseNet.Search.Indexing
 {
+    public enum IndexingMode { Default, Analyzed, AnalyzedNoNorms, No, NotAnalyzed, NotAnalyzedNoNorms }
+    public enum IndexStoringMode { Default, No, Yes }
+    public enum IndexTermVector { Default, No, WithOffsets, WithPositions, WithPositionsOffsets, Yes }
+
     [Serializable]
     [DebuggerDisplay("{Name}:{ValueAsString}:{Type}, Mode:{Mode}, Store:{Store}, TermVector:{TermVector}")]
     public class IndexField : SnTerm

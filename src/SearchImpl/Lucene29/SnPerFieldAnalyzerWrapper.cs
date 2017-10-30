@@ -4,6 +4,7 @@ using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.Search.Indexing;
 using SenseNet.Search.Lucene29;
 using SenseNet.Tools;
 

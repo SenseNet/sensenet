@@ -4,6 +4,7 @@ using System.Data.Odbc;
 using System.Linq;
 using System.Text;
 using System.Globalization;
+using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Parser
 {

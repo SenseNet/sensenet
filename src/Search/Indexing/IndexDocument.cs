@@ -4,8 +4,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
+using SenseNet.Search.Querying;
 
-namespace SenseNet.Search
+namespace SenseNet.Search.Indexing
 {
     public class DocumentUpdate
     {

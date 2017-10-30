@@ -57,22 +57,28 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IndexingActivityStatus.cs" />
-    <Compile Include="LogicalOperator.cs" />
-    <Compile Include="Cql.cs" />
+    <Compile Include="Indexing\IFieldIndexHandler.cs" />
+    <Compile Include="Indexing\IIndexableField.cs" />
+    <Compile Include="Indexing\IndexFieldAnalyzer.cs" />
+    <Compile Include="Indexing\IPerFieldIndexingInfo.cs" />
+    <Compile Include="Querying\IMetaQueryEngine.cs" />
+    <Compile Include="Querying\IPermissionFilter.cs" />
+    <Compile Include="Querying\IQueryEngine.cs" />
+    <Compile Include="Querying\LogicalOperator.cs" />
+    <Compile Include="Querying\Cql.cs" />
     <Compile Include="ExecutionHint.cs" />
     <Compile Include="FilterStatus.cs" />
-    <Compile Include="IndexDocument.cs" />
-    <Compile Include="IIndexingEngine.cs" />
-    <Compile Include="IndexField.cs" />
+    <Compile Include="Indexing\IndexDocument.cs" />
+    <Compile Include="Indexing\IIndexingEngine.cs" />
+    <Compile Include="Indexing\IndexField.cs" />
     <Compile Include="IndexFieldName.cs" />
     <Compile Include="IndexValue.cs" />
-    <Compile Include="Interfaces.cs" />
     <Compile Include="ISearchEngine.cs" />
     <Compile Include="Parser\CompilerException.cs" />
     <Compile Include="Parser\EmptyPredicateVisitor.cs" />
     <Compile Include="Parser\Predicates\LogicalClause.cs" />
     <Compile Include="Parser\Predicates\LogicalPredicate.cs" />
-    <Compile Include="IQueryContext.cs" />
+    <Compile Include="Querying\IQueryContext.cs" />
     <Compile Include="Parser\Predicates\RangePredicate.cs" />
     <Compile Include="Parser\SnQueryInfo.cs" />
     <Compile Include="Parser\SnQueryPredicate.cs" />
@@ -85,12 +91,12 @@
     <Compile Include="Parser\SnQueryClassifier.cs" />
     <Compile Include="QueryExecutionMode.cs" />
     <Compile Include="QuerySettings.cs" />
-    <Compile Include="SnQuery.cs" />
-    <Compile Include="QueryResult.cs" />
-    <Compile Include="SnQueryController.cs" />
+    <Compile Include="Querying\SnQuery.cs" />
+    <Compile Include="Querying\QueryResult.cs" />
+    <Compile Include="Querying\SnQueryController.cs" />
     <Compile Include="Parser\CqlParser.cs" />
-    <Compile Include="SnQueryToStringVisitor.cs" />
-    <Compile Include="SnTerm.cs" />
+    <Compile Include="Querying\SnQueryToStringVisitor.cs" />
+    <Compile Include="Querying\SnTerm.cs" />
     <Compile Include="SortInfo.cs" />
   </ItemGroup>
   <ItemGroup>

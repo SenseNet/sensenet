@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace SenseNet.Search
+namespace SenseNet.Search.Querying
 {
     [Serializable]
     [DebuggerDisplay("{Name}:{ValueAsString}:{Type}")]

@@ -1,4 +1,6 @@
-﻿namespace SenseNet.Search.Lucene29
+﻿using SenseNet.Search.Querying;
+
+namespace SenseNet.Search.Lucene29
 {
     internal class Lucene29Compiler
     {

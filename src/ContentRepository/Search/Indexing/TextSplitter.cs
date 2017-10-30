@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using SenseNet.ContentRepository.Search;
 
-namespace SenseNet.Search
+namespace SenseNet.Search.Indexing
 {
     internal class TextSplitter
     {

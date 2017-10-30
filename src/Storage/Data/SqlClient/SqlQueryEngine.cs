@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SenseNet.Diagnostics;
-using SenseNet.Search;
-using SenseNet.Search.Parser;
+﻿using SenseNet.Search;
+using SenseNet.Search.Querying;
 
 namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 {

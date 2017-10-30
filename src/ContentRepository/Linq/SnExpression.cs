@@ -8,6 +8,7 @@ using System.Linq.Expressions;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.Search.Parser;
 using SenseNet.Search.Parser.Predicates;
+using SenseNet.Search.Querying;
 
 namespace SenseNet.ContentRepository.Linq
 {

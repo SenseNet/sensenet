@@ -5,8 +5,10 @@ using Lucene.Net.Support;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Search;
+using SenseNet.Search.Indexing;
 using SenseNet.Search.Lucene29;
 using SenseNet.Search.Parser;
+using SenseNet.Search.Querying;
 using SenseNet.Search.Tests.Implementations;
 using SenseNet.SearchImpl.Tests.Implementations;
 

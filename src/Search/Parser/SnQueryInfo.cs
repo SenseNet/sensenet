@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Text;
+using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Parser
 {

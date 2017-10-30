@@ -1,4 +1,5 @@
 ﻿using SenseNet.Search;
+using SenseNet.Search.Querying;
 
 namespace SenseNet.SearchImpl.Tests.Implementations
 {

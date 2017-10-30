@@ -6,6 +6,8 @@ using SenseNet.Search;
 using SenseNet.Search.Parser;
 using SenseNet.Search.Parser.Predicates;
 using System.Text;
+using SenseNet.Search.Indexing;
+using SenseNet.Search.Querying;
 
 namespace SenseNet.ContentRepository.Tests.Implementations
 {

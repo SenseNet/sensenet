@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 
-namespace SenseNet.Search
+namespace SenseNet.Search.Indexing
 {
     public class SnIFilter
     {

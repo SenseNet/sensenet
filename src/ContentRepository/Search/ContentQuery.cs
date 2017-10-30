@@ -10,6 +10,7 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Parser;
 using SenseNet.ContentRepository.Search;
+using SenseNet.Search.Querying;
 
 namespace SenseNet.Search
 {
@@ -234,9 +235,9 @@ namespace SenseNet.Search
         public static string AddClause(string originalText, string addition, LogicalOperator logicalOp)
         {
             if (addition == null)
-                throw new ArgumentNullException("addition");
+                throw new ArgumentNullException(nameof(addition));
             if (addition.Length == 0)
-                throw new ArgumentException("Clause cannot be empty", "addition");
+                throw new ArgumentException("Clause cannot be empty", nameof(addition));
 
             if (string.IsNullOrEmpty(originalText))
                 return addition;

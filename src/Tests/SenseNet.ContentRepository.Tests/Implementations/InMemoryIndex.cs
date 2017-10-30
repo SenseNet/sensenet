@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using SenseNet.Search;
+using SenseNet.Search.Indexing;
+using SenseNet.Search.Querying;
 
 namespace SenseNet.ContentRepository.Tests.Implementations
 {

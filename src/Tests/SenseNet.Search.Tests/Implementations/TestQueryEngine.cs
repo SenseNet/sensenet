@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Tests.Implementations
 {

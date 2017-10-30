@@ -19,6 +19,7 @@ using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Lucene29;
+using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Lucene29
 {

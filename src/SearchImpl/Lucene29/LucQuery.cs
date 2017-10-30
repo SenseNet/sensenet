@@ -7,9 +7,11 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using System.Diagnostics;
 using SenseNet.ContentRepository.Search;
-using SenseNet.Search.Parser;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Search;
+using SenseNet.Search.Indexing;
 using SenseNet.Search.Lucene29.QueryExecutors;
+using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Lucene29
 {

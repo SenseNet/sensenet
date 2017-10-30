@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using SenseNet.Search.Indexing;
+using SenseNet.Search.Querying;
 
 namespace SenseNet.Search
 {

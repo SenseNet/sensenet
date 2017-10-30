@@ -11,6 +11,7 @@ using Lucene.Net.Util;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Search;
+using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Lucene29
 {

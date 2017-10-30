@@ -16,6 +16,7 @@ using SenseNet.ContentRepository.Tests;
 using SenseNet.ContentRepository.Tests.Implementations;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
+using SenseNet.Search.Querying;
 using SenseNet.Search.Tests.Implementations;
 using SenseNet.SearchImpl.Tests.Implementations;
 using SenseNet.Security.Data;

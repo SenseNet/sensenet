@@ -260,12 +260,12 @@
     <Compile Include="Search\Indexing\IndexManager.cs" />
     <Compile Include="Search\Indexing\PerFieldIndexingInfo.cs" />
     <Compile Include="Search\Parser\ContentQueryTemplateReplacer.cs" />
-    <Compile Include="Search\RichTextStripper.cs" />
+    <Compile Include="Search\Indexing\RichTextStripper.cs" />
     <Compile Include="Search\SafeQueries.cs" />
-    <Compile Include="Search\SnIFilter.cs" />
+    <Compile Include="Search\Indexing\SnIFilter.cs" />
     <Compile Include="Search\SnQueryContext.cs" />
-    <Compile Include="Search\TextExtractor.cs" />
-    <Compile Include="Search\TextSplitter.cs" />
+    <Compile Include="Search\Indexing\TextExtractor.cs" />
+    <Compile Include="Search\Indexing\TextSplitter.cs" />
     <Compile Include="Setting\UserProfileSettings.cs" />
     <Compile Include="ContentNamingHelper.cs" />
     <Compile Include="ContentNamingProvider.cs" />
