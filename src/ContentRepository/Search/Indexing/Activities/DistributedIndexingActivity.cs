@@ -1,11 +1,10 @@
 ﻿using System;
-using SenseNet.Communication.Messaging;
 using System.Diagnostics;
 using System.Threading;
-using SenseNet.ContentRepository.Search.Indexing;
+using SenseNet.Communication.Messaging;
 using SenseNet.Diagnostics;
 
-namespace SenseNet.Search.Indexing.Activities
+namespace SenseNet.ContentRepository.Search.Indexing.Activities
 {
     [Serializable]
     public abstract class DistributedIndexingActivity : DistributedAction

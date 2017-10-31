@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using SenseNet.ContentRepository.Search.Indexing.Activities;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
-using SenseNet.Search.Indexing.Activities;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.ContentRepository.Search.Indexing

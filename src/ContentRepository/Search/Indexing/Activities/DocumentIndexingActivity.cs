@@ -1,10 +1,10 @@
 ﻿using System;
-using SenseNet.Diagnostics;
 using Newtonsoft.Json;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Search.Indexing;
+using SenseNet.Diagnostics;
+using SenseNet.Search.Indexing;
 
-namespace SenseNet.Search.Indexing.Activities
+namespace SenseNet.ContentRepository.Search.Indexing.Activities
 {
     [Serializable]
     internal class VersioningInfo

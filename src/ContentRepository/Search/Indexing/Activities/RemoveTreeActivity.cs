@@ -1,8 +1,8 @@
 ﻿using System;
-using SenseNet.ContentRepository.Search.Indexing;
+using SenseNet.Search;
 using SenseNet.Search.Querying;
 
-namespace SenseNet.Search.Indexing.Activities
+namespace SenseNet.ContentRepository.Search.Indexing.Activities
 {
     [Serializable]
     internal class RemoveTreeActivity : TreeIndexingActivity

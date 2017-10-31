@@ -1,10 +1,10 @@
-﻿using SenseNet.ContentRepository.Storage;
-using System;
+﻿using System;
 using System.Linq;
-using SenseNet.ContentRepository.Search.Indexing;
+using SenseNet.ContentRepository.Storage;
+using SenseNet.Search;
 using SenseNet.Search.Querying;
 
-namespace SenseNet.Search.Indexing.Activities
+namespace SenseNet.ContentRepository.Search.Indexing.Activities
 {
     [Serializable]
     internal class RebuildActivity : IndexingActivityBase

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SenseNet.Search.Indexing.Activities
+namespace SenseNet.ContentRepository.Search.Indexing.Activities
 {
     [Serializable]
     internal abstract class TreeIndexingActivity : IndexingActivityBase

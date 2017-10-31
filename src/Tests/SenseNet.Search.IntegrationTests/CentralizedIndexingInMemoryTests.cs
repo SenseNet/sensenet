@@ -3,13 +3,13 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Tests;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Search.Indexing;
-using SenseNet.Search.Indexing.Activities;
 using SenseNet.ContentRepository.Storage;
 using System.Linq;
 using System.Threading;
 using System.Collections.Generic;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
+using SenseNet.ContentRepository.Search.Indexing.Activities;
 using SenseNet.ContentRepository.Tests.Implementations;
 
 namespace SenseNet.Search.IntegrationTests

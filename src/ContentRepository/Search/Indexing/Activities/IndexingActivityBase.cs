@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using SenseNet.ContentRepository.Search.Indexing;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
-using SenseNet.ContentRepository.Storage;
 
-namespace SenseNet.Search.Indexing.Activities
+namespace SenseNet.ContentRepository.Search.Indexing.Activities
 {
     [Serializable]
     public abstract class IndexingActivityBase : DistributedIndexingActivity, IIndexingActivity, System.Runtime.Serialization.IDeserializationCallback
