@@ -1,5 +1,8 @@
 ﻿// ReSharper disable once CheckNamespace
 // ReSharper disable RedundantTypeArgumentsOfMethod
+
+using System;
+
 namespace SenseNet.Configuration
 {
     public class Indexing : SnConfig
@@ -36,16 +39,26 @@ namespace SenseNet.Configuration
         /// Do not use this property directly. Use SearchManager.IsOuterEngineEnabled instead.
         /// </summary>
         internal static bool IsOuterSearchEngineEnabled { get; set; } = GetValue<bool>(SectionName, "EnableOuterSearchEngine", true);
-        public static int LuceneMergeFactor { get; internal set; } = GetInt(SectionName, "LuceneMergeFactor", 10);
-        public static double LuceneRAMBufferSizeMB { get; internal set; } = GetDouble(SectionName, "LuceneRAMBufferSizeMB", 16.0);
-        public static int LuceneMaxMergeDocs { get; internal set; } = GetInt(SectionName, "LuceneMaxMergeDocs", int.MaxValue);
 
+        #region Moved to Lucene29 configuration
+
+        [Obsolete("Use properties in the Lucene29 configuration class instead.", true)]
+        public static int LuceneMergeFactor { get; internal set; }
+        [Obsolete("Use properties in the Lucene29 configuration class instead.", true)]
+        public static double LuceneRAMBufferSizeMB { get; internal set; }
+        [Obsolete("Use properties in the Lucene29 configuration class instead.", true)]
+        public static int LuceneMaxMergeDocs { get; internal set; }
+        [Obsolete("Use properties in the Lucene29 configuration class instead.", true)]
         public static int LuceneLockDeleteRetryInterval { get; internal set; } =
             GetInt(SectionName, "LuceneLockDeleteRetryInterval", 60);
+        [Obsolete("Use properties in the Lucene29 configuration class instead.", true)]
         public static int IndexLockFileWaitForRemovedTimeout { get; internal set; } =
             GetInt(SectionName, "IndexLockFileWaitForRemovedTimeout", 120);
+        [Obsolete("Use properties in the Lucene29 configuration class instead.", true)]
         public static string IndexLockFileRemovedNotificationEmail { get; internal set; } = GetString(SectionName, 
             "IndexLockFileRemovedNotificationEmail", string.Empty);
+
+        #endregion
 
         /// <summary>
         /// Periodicity of executing lost indexing tasks in seconds. Default: 60 (1 minutes), minimum: 1.

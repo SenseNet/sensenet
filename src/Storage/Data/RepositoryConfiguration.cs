@@ -7,33 +7,33 @@ using SenseNet.Configuration;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
-    [Obsolete("After V6.5 PATCH 9: Look for the values in the SenseNet.Configuration namespace instead.")]
+    [Obsolete("Look for the values in the SenseNet.Configuration namespace instead.")]
     public static class RepositoryConfiguration
     {
         #region SECTION: BlobStorage, data, common
 
-        [Obsolete("After V6.5 PATCH 9: Use Configuration.BlobStorage.FileStreamEnabled instead.")]
+        [Obsolete("Use Configuration.BlobStorage.FileStreamEnabled instead.")]
         public static bool FileStreamEnabled => Configuration.BlobStorage.FileStreamEnabled;
-        [Obsolete("After V6.5 PATCH 9: Use Configuration.BlobStorage.MinimumSizeForFileStreamInBytes instead.")]
+        [Obsolete("Use Configuration.BlobStorage.MinimumSizeForFileStreamInBytes instead.")]
         public static int MinimumSizeForFileStreamInBytes => Configuration.BlobStorage.MinimumSizeForFileStreamInBytes;
-        [Obsolete("After V6.5 PATCH 9: Use Configuration.BlobStorage.MinimumSizeForBlobProviderInBytes instead.")]
+        [Obsolete("Use Configuration.BlobStorage.MinimumSizeForBlobProviderInBytes instead.")]
         public static int MinimumSizeForBlobProviderInBytes => Configuration.BlobStorage.MinimumSizeForBlobProviderInBytes;
 
-        [Obsolete("After V6.5 PATCH 9: Use Configuration.Common.IsWebEnvironment instead.")]
+        [Obsolete("Use Configuration.Common.IsWebEnvironment instead.")]
         public static bool IsWebEnvironment => Configuration.Common.IsWebEnvironment;
 
-        [Obsolete("After V6.5 PATCH 9: Use Configuration.Data.SqlCommandTimeout instead.")]
+        [Obsolete("Use Configuration.Data.SqlCommandTimeout instead.")]
         public static int SqlCommandTimeout => Configuration.Data.SqlCommandTimeout;
-        [Obsolete("After V6.5 PATCH 9: Use Configuration.Data.TransactionTimeout instead.")]
+        [Obsolete("Use Configuration.Data.TransactionTimeout instead.")]
         public static double TransactionTimeout => Configuration.Data.TransactionTimeout;
-        [Obsolete("After V6.5 PATCH 9: Use Configuration.Data.LongTransactionTimeout instead.")]
+        [Obsolete("Use Configuration.Data.LongTransactionTimeout instead.")]
         public static double LongTransactionTimeout => Configuration.Data.LongTransactionTimeout;
 
-        [Obsolete("After V6.5 PATCH 9: Use Configuration.BlobStorage.BinaryBufferSize instead.")]
+        [Obsolete("Use Configuration.BlobStorage.BinaryBufferSize instead.")]
         public static int BinaryBufferSize => Configuration.BlobStorage.BinaryBufferSize;
-        [Obsolete("After V6.5 PATCH 9: Use Configuration.BlobStorage.BinaryChunkSize instead.")]
+        [Obsolete("Use Configuration.BlobStorage.BinaryChunkSize instead.")]
         public static int BinaryChunkSize => Configuration.BlobStorage.BinaryChunkSize;
-        [Obsolete("After V6.5 PATCH 9: Use Configuration.BlobStorage.BinaryCacheSize instead.")]
+        [Obsolete("Use Configuration.BlobStorage.BinaryCacheSize instead.")]
         public static int BinaryCacheSize => Configuration.BlobStorage.BinaryCacheSize;
 
         #endregion
@@ -54,7 +54,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public const int MaximumPathLength = 450;
 
-        [Obsolete("After V6.5 PATCH 9: Use Constants.SpecialGroupPaths instead.")]
+        [Obsolete("Use Identifiers.SpecialGroupPaths instead.")]
         public static string[] SpecialGroupPaths => Identifiers.SpecialGroupPaths;
 
         #endregion
@@ -97,13 +97,18 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         #region SECTION: Indexing MOVED
 
-        public static int LuceneMergeFactor => Indexing.LuceneMergeFactor;
-        public static double LuceneRAMBufferSizeMB => Indexing.LuceneRAMBufferSizeMB;
-        public static int LuceneMaxMergeDocs => Indexing.LuceneMaxMergeDocs;
-
-        public static int LuceneLockDeleteRetryInterval => Indexing.LuceneLockDeleteRetryInterval;
-        public static int IndexLockFileWaitForRemovedTimeout => Indexing.IndexLockFileWaitForRemovedTimeout;
-        public static string IndexLockFileRemovedNotificationEmail => Indexing.IndexLockFileRemovedNotificationEmail;
+        [Obsolete("Use properties in the Lucene29 configuration class instead.", true)]
+        public static int LuceneMergeFactor { get; }
+        [Obsolete("Use properties in the Lucene29 configuration class instead.", true)]
+        public static double LuceneRAMBufferSizeMB { get; }
+        [Obsolete("Use properties in the Lucene29 configuration class instead.", true)]
+        public static int LuceneMaxMergeDocs { get; }
+        [Obsolete("Use properties in the Lucene29 configuration class instead.", true)]
+        public static int LuceneLockDeleteRetryInterval { get; }
+        [Obsolete("Use properties in the Lucene29 configuration class instead.", true)]
+        public static int IndexLockFileWaitForRemovedTimeout { get; }
+        [Obsolete("Use properties in the Lucene29 configuration class instead.", true)]
+        public static string IndexLockFileRemovedNotificationEmail { get; }
 
         public static int IndexHealthMonitorRunningPeriod => Indexing.IndexHealthMonitorRunningPeriod;
 
@@ -193,7 +198,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             return configValue ?? defaultValue;
         }
 
-        [Obsolete("After V6.5 PATCH 9: Use the SnConfig API instead.", true)]
+        [Obsolete("Use the SnConfig API instead.", true)]
         public static T GetValue<T>(string sectionName, string key, T defaultValue = default(T))
         {
             var configString = GetStringValue(sectionName, key);

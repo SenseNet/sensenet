@@ -19,7 +19,7 @@ namespace SenseNet.Search.Lucene29.QueryExecutors
             SearchResult r = null;
             SearchResult r1 = null;
 
-            var howManyList = new List<int>(Configuration.Querying.DefaultTopAndGrowth);
+            var howManyList = new List<int>(Configuration.Lucene29.DefaultTopAndGrowth);
             if (howManyList[howManyList.Count - 1] == 0)
                 howManyList[howManyList.Count - 1] = int.MaxValue;
 

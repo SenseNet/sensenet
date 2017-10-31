@@ -1,22 +1,19 @@
 ﻿using System;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.Search;
 using SenseNet.Search.Lucene29;
 
 // ReSharper disable RedundantTypeArgumentsOfMethod
 namespace SenseNet.Configuration
 {
-    //UNDONE: name of: SenseNet.Configuration.Querying
-    public class Querying : SnConfig
+    public class Lucene29 : SnConfig
     {
-        private const string SectionName = "sensenet/querying";
+        private const string SectionName = "sensenet/lucene29";
 
         internal static LucQuery.ContentQueryExecutionAlgorithm ContentQueryExecutionAlgorithm { get; set; } =
             GetValue<LucQuery.ContentQueryExecutionAlgorithm>(SectionName, "ContentQueryExecutionAlgorithm");
 
         public static int[] DefaultTopAndGrowth { get; internal set; } =
             ParseDefaultTopAndGrowth(GetValue<string>(SectionName, "DefaultTopAndGrowth", "100,1000,10000,0"));
-
         private static int[] ParseDefaultTopAndGrowth(string configValue)
         {
             var items = configValue.Split(new [] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
@@ -48,5 +45,15 @@ namespace SenseNet.Configuration
             }
             return values;
         }
+
+        public static int LuceneMergeFactor { get; internal set; } = GetInt(SectionName, "LuceneMergeFactor", 10);
+        public static double LuceneRAMBufferSizeMB { get; internal set; } = GetDouble(SectionName, "LuceneRAMBufferSizeMB", 16.0);
+        public static int LuceneMaxMergeDocs { get; internal set; } = GetInt(SectionName, "LuceneMaxMergeDocs", int.MaxValue);
+        public static int LuceneLockDeleteRetryInterval { get; internal set; } =
+            GetInt(SectionName, "LuceneLockDeleteRetryInterval", 60);
+        public static int IndexLockFileWaitForRemovedTimeout { get; internal set; } =
+            GetInt(SectionName, "IndexLockFileWaitForRemovedTimeout", 120);
+        public static string IndexLockFileRemovedNotificationEmail { get; internal set; } = GetString(SectionName,
+            "IndexLockFileRemovedNotificationEmail", string.Empty);
     }
 }
