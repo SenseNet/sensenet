@@ -253,6 +253,8 @@
     <Compile Include="Search\Indexing\DistributedIndexingActivityQueue.cs" />
     <Compile Include="Search\Indexing\DocumentPopulator.cs" />
     <Compile Include="Search\Indexing\ExplicitPerFieldIndexingInfo.cs" />
+    <Compile Include="Search\Indexing\IIndexableDocument.cs" />
+    <Compile Include="Search\Indexing\IIndexValueConverter.cs" />
     <Compile Include="Search\Indexing\IndexDocumentProvider.cs" />
     <Compile Include="Search\Indexing\IndexHealthMonitor.cs" />
     <Compile Include="Search\Indexing\IndexingActivityFactory.cs" />

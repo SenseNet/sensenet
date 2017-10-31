@@ -7,6 +7,8 @@ using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
+    public enum IndexRebuildLevel { IndexOnly, DatabaseAndIndex };
+
     public interface IIndexPopulator
     {
         void ClearAndPopulateAll(TextWriter consoleWriter = null);

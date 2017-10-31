@@ -244,6 +244,7 @@
     <Compile Include="QueryResult.cs" />
     <Compile Include="Retrier.cs" />
     <Compile Include="SearchManager.cs" />
+    <Compile Include="Search\IIndexDocumentProvider.cs" />
     <Compile Include="Search\IIndexPopulator.cs" />
     <Compile Include="Instrumentation\TraceFrame.cs" />
     <Compile Include="Instrumentation\TraceFrameEventType.cs" />
@@ -283,7 +284,6 @@
     <Compile Include="Events\NodeObserver.cs" />
     <Compile Include="Events\NodeOperationEventArgs.cs" />
     <Compile Include="IContentList.cs" />
-    <Compile Include="Search\Interfaces.cs" />
     <Compile Include="Search\InternalSearchEngine.cs" />
     <Compile Include="Search\Operator.cs" />
     <Compile Include="Search\ISearchEngineSupport.cs" />
