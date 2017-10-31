@@ -11,6 +11,7 @@ using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Tests.Implementations;
 using SenseNet.Diagnostics;
+using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Security.Data;
 

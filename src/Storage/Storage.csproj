@@ -194,7 +194,6 @@
     <Compile Include="Events\PermissionChangedEventArgs.cs" />
     <Compile Include="Events\CancellablePermissionChangingEventArgs.cs" />
     <Compile Include="IFolder.cs" />
-    <Compile Include="IIndexingActivity.cs" />
     <Compile Include="InvalidContentException.cs" />
     <Compile Include="IResourceManager.cs" />
     <Compile Include="ISnService.cs" />
@@ -245,6 +244,8 @@
     <Compile Include="Retrier.cs" />
     <Compile Include="SearchManager.cs" />
     <Compile Include="Search\IIndexDocumentProvider.cs" />
+    <Compile Include="Search\IIndexingActivity.cs" />
+    <Compile Include="Search\IIndexingActivityFactory.cs" />
     <Compile Include="Search\IIndexPopulator.cs" />
     <Compile Include="Instrumentation\TraceFrame.cs" />
     <Compile Include="Instrumentation\TraceFrameEventType.cs" />

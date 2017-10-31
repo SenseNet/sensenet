@@ -5,7 +5,7 @@ using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 
-namespace SenseNet.ContentRepository.Search.Indexing
+namespace SenseNet.Search
 {
     internal class InternalSearchEngine : ISearchEngine
     {
