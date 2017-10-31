@@ -2,6 +2,7 @@
 using SenseNet.Diagnostics;
 using Newtonsoft.Json;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search.Indexing;
 
 namespace SenseNet.Search.Indexing.Activities
 {

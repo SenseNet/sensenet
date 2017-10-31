@@ -1,12 +1,8 @@
-﻿using SenseNet.ContentRepository.Storage;
+﻿using System;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.Search.Indexing.Activities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace SenseNet.Search.Indexing
+namespace SenseNet.ContentRepository.Search.Indexing
 {
     public class IndexingActivityFactory : IIndexingActivityFactory
     {

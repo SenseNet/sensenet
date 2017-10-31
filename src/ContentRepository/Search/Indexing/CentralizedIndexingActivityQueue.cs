@@ -1,17 +1,15 @@
-﻿using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.Diagnostics;
-using SenseNet.Search.Indexing.Activities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.Diagnostics;
+using SenseNet.Search.Indexing;
+using SenseNet.Search.Indexing.Activities;
 
-namespace SenseNet.Search.Indexing
+namespace SenseNet.ContentRepository.Search.Indexing
 {
     internal static class CentralizedIndexingActivityQueue
     {
@@ -235,10 +233,10 @@ namespace SenseNet.Search.Indexing
 
                 if (waitingActivity == null)
                     // polling branch
-                    Task.Run(() => Execute(loadedActivity));
+                    System.Threading.Tasks.Task.Run(() => Execute(loadedActivity));
                 else
                     // UI branch: pay attention to executing waiting instance, because that is needed to be released (loaded one can be dropped).
-                    Task.Run(() => Execute(loadedActivity.Id == waitingActivity.Id ? waitingActivity : loadedActivity));
+                    System.Threading.Tasks.Task.Run(() => Execute(loadedActivity.Id == waitingActivity.Id ? waitingActivity : loadedActivity));
             }
 
             // memorize last running time

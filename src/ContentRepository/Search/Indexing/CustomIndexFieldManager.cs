@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.Search.Indexing;
 using SenseNet.Tools;
 
-namespace SenseNet.Search.Indexing
+namespace SenseNet.ContentRepository.Search.Indexing
 {
     public interface IHasCustomIndexField { }
     public interface ICustomIndexFieldProvider

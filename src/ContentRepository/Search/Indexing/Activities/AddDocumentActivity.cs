@@ -1,4 +1,5 @@
 ﻿using System;
+using SenseNet.ContentRepository.Search.Indexing;
 
 namespace SenseNet.Search.Indexing.Activities
 {

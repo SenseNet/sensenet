@@ -1,22 +1,16 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
+using Newtonsoft.Json;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
-using SenseNet.Search.Indexing.Activities;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.Common;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using SenseNet.ContentRepository;
 using SenseNet.Search.Indexing;
-using Task = System.Threading.Tasks.Task;
+using SenseNet.Search.Indexing.Activities;
 
-namespace SenseNet.Search.Indexing
+namespace SenseNet.ContentRepository.Search.Indexing
 {
     internal static class DistributedIndexingActivityQueue
     {
@@ -416,7 +410,7 @@ namespace SenseNet.Search.Indexing
                 if (_run)
                     return;
                 _run = true;
-                var x = Task.Run(() => ProcessActivities());
+                var x = System.Threading.Tasks.Task.Run(() => ProcessActivities());
             }
 
             private static void ProcessActivities()
@@ -451,7 +445,7 @@ namespace SenseNet.Search.Indexing
                     _waitingSet.Add(newerActivity);
 
                     if (newerActivity.WaitingFor.Count == 0)
-                        Task.Run(() => Executor.Execute(newerActivity));
+                        System.Threading.Tasks.Task.Run(() => Executor.Execute(newerActivity));
                 }
             }
             private static bool MustWait(IndexingActivityBase newerActivity, IndexingActivityBase olderActivity)
@@ -496,7 +490,7 @@ namespace SenseNet.Search.Indexing
                     {
                         dependentItem.FinishWaiting(activity);
                         if (dependentItem.WaitingFor.Count == 0)
-                            Task.Run(() => Executor.Execute(dependentItem));
+                            System.Threading.Tasks.Task.Run(() => Executor.Execute(dependentItem));
                     }
                 }
             }

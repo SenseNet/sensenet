@@ -1,8 +1,7 @@
 ﻿using System;
-using SenseNet.ContentRepository.Search;
 using SenseNet.Diagnostics;
 
-namespace SenseNet.Search.Indexing
+namespace SenseNet.ContentRepository.Search.Indexing
 {
     internal static class IndexHealthMonitor
     {

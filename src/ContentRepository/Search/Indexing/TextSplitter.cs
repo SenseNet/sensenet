@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using SenseNet.ContentRepository.Search;
+using SenseNet.Search;
+using SenseNet.Search.Indexing;
 
-namespace SenseNet.Search.Indexing
+namespace SenseNet.ContentRepository.Search.Indexing
 {
     internal class TextSplitter
     {

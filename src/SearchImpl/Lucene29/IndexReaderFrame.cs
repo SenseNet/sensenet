@@ -1,5 +1,6 @@
 ﻿using System;
 using Lucene.Net.Index;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.Search.Indexing;
 
 namespace SenseNet.Search.Lucene29

@@ -1,6 +1,7 @@
 ﻿using SenseNet.ContentRepository.Storage;
 using System;
 using System.Linq;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Indexing.Activities

@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
+using SenseNet.Search;
+using SenseNet.Search.Indexing;
 using SenseNet.Search.Indexing.Activities;
 using SenseNet.Search.Querying;
 
-namespace SenseNet.Search.Indexing
+namespace SenseNet.ContentRepository.Search.Indexing
 {
     public static class IndexManager // alias LuceneManager
     {

@@ -16,6 +16,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Lucene29;

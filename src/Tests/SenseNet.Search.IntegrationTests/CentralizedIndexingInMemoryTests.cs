@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Collections.Generic;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Tests.Implementations;
 
 namespace SenseNet.Search.IntegrationTests

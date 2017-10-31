@@ -1,19 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Web;
-using Ionic.Zip;
+using System.Xml;
 using iTextSharp.text.pdf;
-using SenseNet.ContentRepository;
+using Ionic.Zip;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
-using System.Xml;
-using System.Diagnostics;
+using SenseNet.Search;
+using SenseNet.Search.Indexing;
 
-namespace SenseNet.Search.Indexing
+namespace SenseNet.ContentRepository.Search.Indexing
 {
     public class TextExtractorContext
     {

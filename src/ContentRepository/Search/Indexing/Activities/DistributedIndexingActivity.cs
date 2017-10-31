@@ -2,6 +2,7 @@
 using SenseNet.Communication.Messaging;
 using System.Diagnostics;
 using System.Threading;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.Search.Indexing.Activities

@@ -19,6 +19,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.IntegrationTests

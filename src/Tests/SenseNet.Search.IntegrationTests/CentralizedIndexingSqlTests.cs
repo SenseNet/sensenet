@@ -8,6 +8,7 @@ using SenseNet.ContentRepository.Storage;
 using System.Linq;
 using System.Threading;
 using System.Collections.Generic;
+using SenseNet.ContentRepository.Search.Indexing;
 
 namespace SenseNet.Search.IntegrationTests
 {

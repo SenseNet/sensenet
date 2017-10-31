@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Search;
-using SenseNet.ContentRepository.Schema;
-using SenseNet.ContentRepository;
+using SenseNet.Search;
+using SenseNet.Search.Indexing;
 
-namespace SenseNet.Search.Indexing
+namespace SenseNet.ContentRepository.Search.Indexing
 {
     /// <summary>
     /// Provides information about indexing.

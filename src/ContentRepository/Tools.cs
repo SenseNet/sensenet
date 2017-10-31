@@ -21,6 +21,7 @@ using SenseNet.Search;
 using System.Diagnostics;
 using SenseNet.BackgroundOperations;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search.Indexing;
