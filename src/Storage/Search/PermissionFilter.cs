@@ -13,11 +13,11 @@ using SenseNet.Search.Querying.Parser;
 using SenseNet.Search.Querying.Parser.Predicates;
 using SenseNet.Security;
 
-namespace SenseNet.ContentRepository.Search.Querying
+namespace SenseNet.Search.Querying
 {
     public enum QueryFieldLevel { NotDefined = 0, HeadOnly = 1, NoBinaryOrFullText = 2, BinaryOrFullText = 3 }
 
-    internal class PermissionChecker : IPermissionFilter
+    internal class PermissionFilter : IPermissionFilter
     {
         private enum DocumentOpenLevel { Denied, See, Preview, Open, OpenMinor }
 
@@ -51,14 +51,14 @@ namespace SenseNet.ContentRepository.Search.Querying
         private readonly bool _allVersions;
 
         [Obsolete("", true)]
-        public PermissionChecker(IUser user, QueryFieldLevel queryFieldLevel, bool allVersions)
+        public PermissionFilter(IUser user, QueryFieldLevel queryFieldLevel, bool allVersions)
         {
             _userId = user.Id;
             _user = user;
             _queryFieldLevel = queryFieldLevel;
             _allVersions = allVersions;
         }
-        public PermissionChecker(SnQuery query, IQueryContext context)
+        public PermissionFilter(SnQuery query, IQueryContext context)
         {
             _userId = context.UserId;
             _user = Node.LoadNode(_userId) as IUser;

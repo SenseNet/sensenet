@@ -239,7 +239,7 @@ namespace SenseNet.Configuration
         #region private Lazy<IPermissionFilterFactory> _permissionFilterFactory = new Lazy<IPermissionFilterFactory>
         private Lazy<IPermissionFilterFactory> _permissionFilterFactory = new Lazy<IPermissionFilterFactory>(() =>
         {
-            return new SnPermissionFilterFactory();
+            return new PermissionFilterFactory();
         });
         public virtual IPermissionFilterFactory PermissionFilterFactory
         {

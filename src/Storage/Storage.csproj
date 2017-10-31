@@ -288,8 +288,8 @@
     <Compile Include="Search\InternalSearchEngine.cs" />
     <Compile Include="Search\Operator.cs" />
     <Compile Include="Search\ISearchEngineSupport.cs" />
-    <Compile Include="Search\PermissionChecker.cs" />
-    <Compile Include="Search\SnPermissionFilterFactory.cs" />
+    <Compile Include="Search\PermissionFilter.cs" />
+    <Compile Include="Search\PermissionFilterFactory.cs" />
     <Compile Include="Security\BCrypt.cs" />
     <Compile Include="Security\Extensions.cs" />
     <Compile Include="Security\PermissionType.cs" />
