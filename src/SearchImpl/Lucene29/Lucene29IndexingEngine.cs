@@ -305,7 +305,7 @@ namespace SenseNet.Search.Lucene29
                 // onstart -> notify operator and start repository anyway
                 // onend -> log error, and continue
                 var template = waitType == WaitForLockFileType.OnEnd ? WRITELOCKREMOVEERRORONENDTEMPLATESTR : WRITELOCKREMOVEERRORTEMPLATESTR;
-                SnLog.WriteError(string.Format(template, Configuration.Indexing.IndexLockFileWaitForRemovedTimeout,
+                SnLog.WriteError(string.Format(template, Configuration.Lucene29.IndexLockFileWaitForRemovedTimeout,
                     AppDomain.CurrentDomain.FriendlyName, AppDomain.CurrentDomain.BaseDirectory));
 
                 if (waitType == WaitForLockFileType.OnStart)
@@ -314,18 +314,18 @@ namespace SenseNet.Search.Lucene29
         }
         private static void SendWaitForLockErrorMail()
         {
-            if (!String.IsNullOrEmpty(Notification.NotificationSender) && !String.IsNullOrEmpty(Configuration.Indexing.IndexLockFileRemovedNotificationEmail))
+            if (!String.IsNullOrEmpty(Notification.NotificationSender) && !String.IsNullOrEmpty(Configuration.Lucene29.IndexLockFileRemovedNotificationEmail))
             {
                 try
                 {
                     var smtpClient = new SmtpClient();
                     var msgstr = String.Format(WRITELOCKREMOVEERRORTEMPLATESTR,
-                        Configuration.Indexing.IndexLockFileWaitForRemovedTimeout,
+                        Configuration.Lucene29.IndexLockFileWaitForRemovedTimeout,
                         AppDomain.CurrentDomain.FriendlyName,
                         AppDomain.CurrentDomain.BaseDirectory);
                     var msg = new MailMessage(
                         Notification.NotificationSender,
-                        Configuration.Indexing.IndexLockFileRemovedNotificationEmail.Replace(';', ','),
+                        Configuration.Lucene29.IndexLockFileRemovedNotificationEmail.Replace(';', ','),
                         WRITELOCKREMOVEERRORSUBJECTSTR,
                         msgstr);
                     smtpClient.Send(msg);
@@ -357,7 +357,7 @@ namespace SenseNet.Search.Lucene29
         /// <returns>Returns true if the lock was released. Returns false if the time has expired.</returns>
         public static bool WaitForWriterLockFileIsReleased(string indexDirectory)
         {
-            return WaitForWriterLockFileIsReleased(indexDirectory, Configuration.Indexing.IndexLockFileWaitForRemovedTimeout);
+            return WaitForWriterLockFileIsReleased(indexDirectory, Configuration.Lucene29.IndexLockFileWaitForRemovedTimeout);
         }
         /// <summary>
         /// Waits for releasing index writer lock file in the specified directory and timeout.
@@ -407,7 +407,7 @@ namespace SenseNet.Search.Lucene29
 
             if (System.IO.File.Exists(lockFilePath))
             {
-                var endRetry = DateTime.UtcNow.AddSeconds(Configuration.Indexing.LuceneLockDeleteRetryInterval);
+                var endRetry = DateTime.UtcNow.AddSeconds(Configuration.Lucene29.LuceneLockDeleteRetryInterval);
                 consoleOut.WriteLine("Index directory is read only.");
 
                 // retry write.lock for a given period of time
@@ -716,9 +716,9 @@ namespace SenseNet.Search.Lucene29
 
             _writer = new IndexWriter(directory, GetAnalyzer(), false, IndexWriter.MaxFieldLength.LIMITED);
 
-            _writer.SetMaxMergeDocs(SenseNet.Configuration.Indexing.LuceneMaxMergeDocs);
-            _writer.SetMergeFactor(SenseNet.Configuration.Indexing.LuceneMergeFactor);
-            _writer.SetRAMBufferSizeMB(SenseNet.Configuration.Indexing.LuceneRAMBufferSizeMB);
+            _writer.SetMaxMergeDocs(Configuration.Lucene29.LuceneMaxMergeDocs);
+            _writer.SetMergeFactor(Configuration.Lucene29.LuceneMergeFactor);
+            _writer.SetRAMBufferSizeMB(Configuration.Lucene29.LuceneRAMBufferSizeMB);
             _reader = _writer.GetReader();
         }
         private void EnsureIndex(string path)

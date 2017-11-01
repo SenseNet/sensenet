@@ -59,7 +59,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Configuration\Querying.cs" />
+    <Compile Include="Configuration\Lucene29.cs" />
     <Compile Include="Packaging\CheckIndexIntegrity.cs" />
     <Compile Include="Lucene29\EnumConverter.cs" />
     <Compile Include="Lucene29\IndexDirectory.cs" />
