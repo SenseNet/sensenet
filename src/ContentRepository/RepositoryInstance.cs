@@ -439,8 +439,10 @@ namespace SenseNet.ContentRepository
                 if (_instance == null)
                     throw new NotSupportedException("Querying running state of IndexingEngine is not supported when RepositoryInstance is not created.");
                 return IndexManager.Running;
+            }
         }
-        }
+        [Obsolete("Use SearchManager.ContentQueryIsAllowed instead.")]
+        public static bool ContentQueryIsAllowed => SearchManager.ContentQueryIsAllowed;
 
         // ======================================== IDisposable
         private bool _disposed;
