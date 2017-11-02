@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search;
@@ -69,5 +70,38 @@ namespace SenseNet.ContentRepository.Search
         {
             return DataProvider.LoadIndexDocument(path, excludedNodeTypes);
         }
+
+        public static readonly FilterStatus EnableAutofiltersDefaultValue = FilterStatus.Enabled;
+        public static readonly FilterStatus EnableLifespanFilterDefaultValue = FilterStatus.Disabled;
+
+        public static bool IsAutofilterEnabled(FilterStatus value)
+        {
+            switch (value)
+            {
+                case FilterStatus.Default:
+                    return EnableAutofiltersDefaultValue == FilterStatus.Enabled;
+                case FilterStatus.Enabled:
+                    return true;
+                case FilterStatus.Disabled:
+                    return false;
+                default:
+                    throw new SnNotSupportedException("Unknown FilterStatus: " + value);
+            }
+        }
+        public static bool IsLifespanFilterEnabled(FilterStatus value)
+        {
+            switch (value)
+            {
+                case FilterStatus.Default:
+                    return EnableLifespanFilterDefaultValue == FilterStatus.Enabled;
+                case FilterStatus.Enabled:
+                    return true;
+                case FilterStatus.Disabled:
+                    return false;
+                default:
+                    throw new SnNotSupportedException("Unknown FilterStatus: " + value);
+            }
+        }
+
     }
 }

@@ -61,7 +61,9 @@ namespace SenseNet.Search.Lucene29
         public QueryExecutionMode QueryExecutionMode { get; set; }
         public FilterStatus EnableAutofilters { get; set; }
         public FilterStatus EnableLifespanFilter { get; set; }
+        [Obsolete("Use SearchManager.EnableAutofiltersDefaultValue")]
         public static readonly FilterStatus EnableAutofilters_DefaultValue = FilterStatus.Enabled;
+        [Obsolete("Use SearchManager.EnableLifespanFilterDefaultValue")]
         public static readonly FilterStatus EnableLifespanFilter_DefaultValue = FilterStatus.Disabled;
         public bool ThrowIfEmpty { get; set; }  // only carries: linq visitor sets, executor reads
         public bool ExistenceOnly { get; set; } // only carries: linq visitor sets, executor reads
@@ -118,33 +120,15 @@ namespace SenseNet.Search.Lucene29
             return new SortField(fieldName, sortType, reverse);
         }
 
+        [Obsolete("Use SearchManager.IsAutofilterEnabled")]
         public static bool IsAutofilterEnabled(FilterStatus value)
         {
-            switch (value)
-            {
-                case FilterStatus.Default:
-                    return EnableAutofilters_DefaultValue == FilterStatus.Enabled;
-                case FilterStatus.Enabled:
-                    return true;
-                case FilterStatus.Disabled:
-                    return false;
-                default:
-                    throw new SnNotSupportedException("Unknown FilterStatus: " + value);
-            }
+            return SearchManager.IsAutofilterEnabled(value);
         }
+        [Obsolete("Use SearchManager.IsLifespanFilterEnabled")]
         public static bool IsLifespanFilterEnabled(FilterStatus value)
         {
-            switch (value)
-            {
-                case FilterStatus.Default:
-                    return EnableLifespanFilter_DefaultValue == FilterStatus.Enabled;
-                case FilterStatus.Enabled:
-                    return true;
-                case FilterStatus.Disabled:
-                    return false;
-                default:
-                    throw new SnNotSupportedException("Unknown FilterStatus: " + value);
-            }
+            return SearchManager.IsLifespanFilterEnabled(value);
         }
 
         // ========================================================================================
@@ -240,10 +224,10 @@ namespace SenseNet.Search.Lucene29
                     else
                         result.Append(" ").Append(Cql.Keyword.Sort).Append(":").Append(sortField.GetField());
             }
-            if (EnableAutofilters != FilterStatus.Default && EnableAutofilters != EnableAutofilters_DefaultValue)
-                result.Append(" ").Append(Cql.Keyword.Autofilters).Append(":").Append(EnableAutofilters_DefaultValue == FilterStatus.Enabled ? Cql.Keyword.Off : Cql.Keyword.On);
-            if (EnableLifespanFilter != FilterStatus.Default && EnableLifespanFilter != EnableLifespanFilter_DefaultValue)
-                result.Append(" ").Append(Cql.Keyword.Lifespan).Append(":").Append(EnableLifespanFilter_DefaultValue == FilterStatus.Enabled ? Cql.Keyword.Off : Cql.Keyword.On);
+            if (EnableAutofilters != FilterStatus.Default && EnableAutofilters != SearchManager.EnableAutofiltersDefaultValue)
+                result.Append(" ").Append(Cql.Keyword.Autofilters).Append(":").Append(SearchManager.EnableAutofiltersDefaultValue == FilterStatus.Enabled ? Cql.Keyword.Off : Cql.Keyword.On);
+            if (EnableLifespanFilter != FilterStatus.Default && EnableLifespanFilter != SearchManager.EnableLifespanFilterDefaultValue)
+                result.Append(" ").Append(Cql.Keyword.Lifespan).Append(":").Append(SearchManager.EnableLifespanFilterDefaultValue == FilterStatus.Enabled ? Cql.Keyword.Off : Cql.Keyword.On);
             if (QueryExecutionMode == QueryExecutionMode.Quick)
                 result.Append(" ").Append(Cql.Keyword.Quick);
             return result.ToString();
