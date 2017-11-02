@@ -212,6 +212,11 @@ namespace SenseNet.Packaging.Steps
             return doc.SelectNodes(xpath, nsmgr);
         }
 
+        protected XmlNode SelectXmlNode(XmlDocument doc, string xpath)
+        {
+            return SelectXmlNodes(doc, xpath)?.Cast<XmlNode>().FirstOrDefault();
+        }
+
         #region =========================================================== Public instance part ===========================================================  
         /// <summary>Returns the XML name of the step element in the manifest. Default: simple or fully qualified name of the class.</summary>
         public virtual string ElementName { get { return this.GetType().Name; } }
