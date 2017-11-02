@@ -140,8 +140,9 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         private static void RefreshLocks()
         {
-            if (DateTime.UtcNow.AddMilliseconds(LockRefreshPeriodInMilliseconds) > _lastLockRefreshTime)
+            if (_lastLockRefreshTime.AddMilliseconds(LockRefreshPeriodInMilliseconds) > DateTime.UtcNow)
                 return;
+
             _lastLockRefreshTime = DateTime.UtcNow;
 
             int[] waitingIds;
@@ -150,6 +151,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             if (waitingIds.Length == 0)
                 return;
+
+            SnTrace.IndexQueue.Write($"CIAQ: Refreshing indexing activity locks: {string.Join(", ", waitingIds)}");
 
             DataProvider.Current.RefreshIndexingActivityLockTime(waitingIds);
         }
