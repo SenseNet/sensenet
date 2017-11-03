@@ -488,25 +488,25 @@ namespace SenseNet.ContentRepository
                 base.Save(settings);
             }
 
-            // Find all settings that inherit from this setting and remove their cached data
-
+            // Find all settings that inherit from this setting and remove their cached data.
             if (RepositoryInstance.IndexingEngineIsRunning && !RepositoryEnvironment.WorkingMode.Importing)
             {
-                string contextPath = null;
+                var contextPath = this.ParentPath.StartsWith(SETTINGSCONTAINERPATH, true,
+                    System.Globalization.CultureInfo.InvariantCulture)
+                    ? Identifiers.RootPath
+                    : GetParentContextPath(this.Path);
 
-                if (this.ParentPath.StartsWith(SETTINGSCONTAINERPATH, true, System.Globalization.CultureInfo.InvariantCulture))
-                    contextPath = "/Root";
-                else
-                    contextPath = GetParentContextPath(this.Path);
-                if (contextPath == null)
-
-                using (new SystemAccount())
+                if (contextPath != null)
                 {
-                    var q = ContentQuery.Query(SafeQueries.InTreeAndTypeIsAndName,
-                         new QuerySettings { EnableAutofilters = FilterStatus.Disabled },
-                         contextPath, typeof(Settings).Name, this.Name);
-                    foreach (var id in q.Identifiers)
-                        NodeIdDependency.FireChanged(id);
+                    using (new SystemAccount())
+                    {
+                        var q = ContentQuery.Query(SafeQueries.InTreeAndTypeIsAndName,
+                            new QuerySettings {EnableAutofilters = FilterStatus.Disabled},
+                            contextPath, typeof(Settings).Name, this.Name);
+
+                        foreach (var id in q.Identifiers)
+                            NodeIdDependency.FireChanged(id);
+                    }
                 }
             }
         }
