@@ -396,19 +396,19 @@ namespace SenseNet.Search.Lucene29
         /// <summary>
         /// Used in startup
         /// </summary>
-        private void RemoveIndexWriterLockFile(System.IO.TextWriter consoleOut)
+        private void RemoveIndexWriterLockFile(TextWriter consoleOut)
         {
             // delete write.lock if necessary
             var lockFilePath = IndexDirectory.IndexLockFilePath;
             if (lockFilePath == null)
                 return;
 
-            consoleOut.WriteLine($"Index directory: {IndexDirectory.CurrentDirectory}");
+            consoleOut?.WriteLine($"Index directory: {IndexDirectory.CurrentDirectory}");
 
             if (System.IO.File.Exists(lockFilePath))
             {
                 var endRetry = DateTime.UtcNow.AddSeconds(Configuration.Lucene29.LuceneLockDeleteRetryInterval);
-                consoleOut.WriteLine("Index directory is read only.");
+                consoleOut?.WriteLine("Index directory is read only.");
 
                 // retry write.lock for a given period of time
                 while (true)
@@ -416,7 +416,7 @@ namespace SenseNet.Search.Lucene29
                     try
                     {
                         System.IO.File.Delete(lockFilePath);
-                        consoleOut.WriteLine("Index directory lock removed.");
+                        consoleOut?.WriteLine("Index directory lock removed.");
                         break;
                     }
                     catch (Exception ex)
@@ -429,7 +429,7 @@ namespace SenseNet.Search.Lucene29
             }
             else
             {
-                consoleOut.WriteLine("Index directory is read/write.");
+                consoleOut?.WriteLine("Index directory is read/write.");
             }
         }
 

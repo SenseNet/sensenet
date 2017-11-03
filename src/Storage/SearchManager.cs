@@ -37,7 +37,8 @@ namespace SenseNet.ContentRepository.Search
         public static ISearchEngineSupport ContentRepository { get; set; }
 
         public static bool ContentQueryIsAllowed => Configuration.Indexing.IsOuterSearchEngineEnabled &&
-                                                    SearchEngine != InternalSearchEngine.Instance;
+                                                    SearchEngine != InternalSearchEngine.Instance &&
+                                                    (SearchEngine?.IndexingEngine?.Running ?? false);
 
         public static bool IsOuterEngineEnabled => Configuration.Indexing.IsOuterSearchEngineEnabled;
         public static string IndexDirectoryPath => Instance.IndexDirectoryPathPrivate;

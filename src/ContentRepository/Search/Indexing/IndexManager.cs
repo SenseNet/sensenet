@@ -19,7 +19,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         public static IIndexingEngine IndexingEngine => SearchManager.SearchEngine.IndexingEngine;
         internal static ICommitManager CommitManager { get; private set; }
 
-        public static bool Running => IndexingEngine.Running;
+        public static bool Running => IndexingEngine?.Running ?? false;
 
         public static int[] GetNotIndexedNodeTypes()
         {
@@ -45,11 +45,16 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         public static void ShutDown()
         {
-            CommitManager.ShutDown();
+            CommitManager?.ShutDown();
+
+            if (IndexingEngine == null)
+                return;
+
             if (IndexingEngine.IndexIsCentralized)
                 CentralizedIndexingActivityQueue.ShutDown();
             else
                 DistributedIndexingActivityQueue.ShutDown();
+
             IndexingEngine.ShutDown();
             SnLog.WriteInformation("Indexing engine has stopped. Max task id and exceptions: " + DistributedIndexingActivityQueue.GetCurrentCompletionState());
         }

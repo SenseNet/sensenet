@@ -12,12 +12,12 @@ namespace SenseNet.Packaging.Steps
         [Obsolete("Use the StartIndexingEngine property instead.")]
         public bool StartLuceneManager
         {
-            get { return StartIndexingEngine; }
-            set { StartIndexingEngine = value; }
+            get => StartIndexingEngine;
+            set => StartIndexingEngine = value;
         }
         public bool StartIndexingEngine
         {
-            get { return _startIndexingEngine; }
+            get => _startIndexingEngine;
             set
             {
                 _startIndexingEngine = value;
@@ -31,7 +31,7 @@ namespace SenseNet.Packaging.Steps
 
         public override void Execute(ExecutionContext context)
         {
-            context.Console.Write("Starting ... ");
+            context.Console.WriteLine("Starting ... ");
 
             var indexPath = IndexPath;
             if (IndexPath == null)
@@ -49,15 +49,16 @@ namespace SenseNet.Packaging.Steps
             }
             var startIndexingEngine = _startIndexingEngineChanged ? StartIndexingEngine : SearchManager.IsOuterEngineEnabled;
 
-            context.Console.WriteLine("startIndexingEngine: " + startIndexingEngine);
-            context.Console.WriteLine("indexPath: " + indexPath);
+            Logger.LogMessage("startIndexingEngine: " + startIndexingEngine);
+            Logger.LogMessage("indexPath: " + indexPath);
 
             Repository.Start(new RepositoryStartSettings
             {
                 StartIndexingEngine = startIndexingEngine,
                 PluginsPath = PluginsPath ?? context.SandboxPath,
                 IndexPath = indexPath,
-                StartWorkflowEngine = StartWorkflowEngine
+                StartWorkflowEngine = StartWorkflowEngine,
+                Console = context.Console
             });
 
             context.Console.WriteLine("Ok.");
