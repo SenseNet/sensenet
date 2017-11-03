@@ -8,14 +8,14 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
-using SenseNet.Search.Parser;
-using SenseNet.ContentRepository.Search;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.Search
 {
     public class ContentQuery
     {
+        public static string EmptyText => SnQuery.EmptyText;
+
         private static readonly string[] QuerySettingParts = new[] { "SKIP", "TOP", "SORT", "REVERSESORT", "AUTOFILTERS", "LIFESPAN", "COUNTONLY" };
         private static readonly string RegexKeywordsAndComments = "//|/\\*|(\\.(?<keyword>[A-Z]+)(([ ]*:[ ]*[#]?\\w+(\\.\\w+)?)|([\\) $\\r\\n]+)))";
         private static readonly string RegexCommentEndSingle = "$";
