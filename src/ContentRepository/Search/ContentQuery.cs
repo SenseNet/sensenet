@@ -6,9 +6,11 @@ using System.Text;
 using System.Text.RegularExpressions;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Querying;
+using SenseNet.Search.Querying.Parser;
 
 namespace SenseNet.Search
 {
@@ -38,6 +40,16 @@ namespace SenseNet.Search
         }
 
         public bool IsSafe { get; private set; }
+
+        private static readonly Regex EscaperRegex;
+        static ContentQuery()
+        {
+            var pattern = new StringBuilder("[");
+            foreach (var c in Cql.StringTerminatorChars.ToCharArray())
+                pattern.Append("\\" + c);
+            pattern.Append("]");
+            EscaperRegex = new Regex(pattern.ToString());
+        }
 
         public static QueryResult Query(string text)
         {
@@ -318,8 +330,7 @@ namespace SenseNet.Search
 
                 if (!query.Contains("}}"))
                 {
-                    var snQueryResultresult = SnQuery.Query(query, new SnQueryContext(Settings, userId));
-                    result = new QueryResult(snQueryResultresult.Hits, snQueryResultresult.TotalCount);
+                    result = Execute(query, new SnQueryContext(Settings, userId));
                 }
                 else
                 {
@@ -328,6 +339,34 @@ namespace SenseNet.Search
                 op.Successful = true;
             }
             return result;
+        }
+
+        private static QueryResult Execute(string query, SnQueryContext context)
+        {
+            try
+            {
+                var snQueryResultresult = SnQuery.Query(query, context);
+                return new QueryResult(snQueryResultresult.Hits, snQueryResultresult.TotalCount);
+            }
+            catch (ParserException ex)
+            {
+                throw new InvalidContentQueryException(query, innerException: ex);
+            }
+        }
+        private static string[] ExecuteAndProject(string query, SnQueryContext context)
+        {
+            try
+            {
+                var snQueryresult = SnQuery.QueryAndProject(query, context);
+                return snQueryresult.Hits
+                    .Where(s => !string.IsNullOrEmpty(s))
+                    .Select(s => EscaperRegex.IsMatch(s) ? string.Concat("'", s, "'") : s)
+                    .ToArray();
+            }
+            catch (ParserException ex)
+            {
+                throw new InvalidContentQueryException(query, innerException: ex);
+            }
         }
 
         // ================================================================== Recursive executor class
@@ -376,12 +415,7 @@ namespace SenseNet.Search
 
                         // execute inner query
                         var subQuery = innerScript.Substring(2, innerScript.Length - 4);
-                        var snQueryresult = SnQuery.QueryAndProject(subQuery, recursiveQueryContext);
-                        var innerResult = snQueryresult.Hits
-                                .Where(s => !string.IsNullOrEmpty(s))
-                                .Select(EscapeForQuery)
-                                .ToArray();
-
+                        var innerResult = ExecuteAndProject(subQuery, recursiveQueryContext);
 
                         // process inner query result
                         switch (innerResult.Length)
@@ -403,8 +437,7 @@ namespace SenseNet.Search
                     else
                     {
                         // execute and process top level query
-                        var snQueryresult = SnQuery.Query(src, new SnQueryContext(querySettings, userId));
-                        result = new QueryResult(snQueryresult.Hits.ToArray(), snQueryresult.TotalCount);
+                        result = Execute(src, new SnQueryContext(querySettings, userId));
                         break;
                     }
                 }
@@ -473,12 +506,6 @@ namespace SenseNet.Search
                 start = p0;
                 var ss = src.Substring(p0, p1 - p0 + 2);
                 return ss;
-            }
-            private static string EscapeForQuery(string value)
-            {
-                if (EscaperRegex.IsMatch(value))
-                    return string.Concat("'", value, "'");
-                return value;
             }
         }
     }

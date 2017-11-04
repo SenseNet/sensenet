@@ -641,11 +641,14 @@ namespace SenseNet.Search.Querying.Parser
             {
                 var name = _lexer.StringValue;
                 if (IndexDocument.ForbiddenFields.Contains(name))
-                    throw new InvalidOperationException("Cannot search by '" + name + "' field name");
+                    throw ParserError($"Cannot search by '{name}' field name");
 
 
-                fieldInfo = new FieldInfo { Name = name };
-                fieldInfo.OperatorToken = _lexer.CurrentToken;
+                fieldInfo = new FieldInfo
+                {
+                    Name = name,
+                    OperatorToken = _lexer.CurrentToken
+                };
 
                 //if (!_usedFieldNames.Contains(name))
                 //    _usedFieldNames.Add(name);
@@ -917,7 +920,7 @@ namespace SenseNet.Search.Querying.Parser
             var parser = context.GetPerFieldIndexingInfo(fieldName);
             var parsed = parser.IndexFieldHandler.Parse(value.StringValue);
             if(parsed == null)
-                throw new ParserException($"Cannot parse the value. FieldName {fieldName}, Parser: {parser.IndexFieldHandler.GetType().Name}", _lexer.CreateLastLineInfo());
+                throw ParserError($"Cannot parse the value. FieldName {fieldName}, Parser: {parser.IndexFieldHandler.GetType().Name}");
 
             return parsed;
         }
