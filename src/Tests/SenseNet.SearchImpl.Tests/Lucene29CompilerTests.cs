@@ -3,6 +3,7 @@ using System.Globalization;
 using Lucene.Net.Search;
 using Lucene.Net.Support;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
@@ -152,7 +153,8 @@ namespace SenseNet.SearchImpl.Tests
                 {"DoubleField1", new TestPerfieldIndexingInfoDouble()},
             };
 
-            using (new ContentRepository.Tests.Tools.RepositorySupportSwindler(new TestSearchEngineSupport(indexingInfo)))
+            //using (new ContentRepository.Tests.Tools.RepositorySupportSwindler(new TestSearchEngineSupport(indexingInfo)))
+            using (ContentRepository.Tests.Tools.Swindle(typeof(SearchManager), "_searchEngineSupport", new TestSearchEngineSupport(indexingInfo)))
             {
                 var queryContext = new TestQueryContext(QuerySettings.Default, 0, indexingInfo);
                 var parser = new CqlParser();

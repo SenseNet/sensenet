@@ -255,7 +255,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             get
             {
                 if (__nameFieldIndexingInfo == null)
-                    __nameFieldIndexingInfo = SearchManager.ContentRepository.GetPerFieldIndexingInfo(IndexFieldName.Name);
+                    __nameFieldIndexingInfo = SearchManager.GetPerFieldIndexingInfo(IndexFieldName.Name);
                 return __nameFieldIndexingInfo;
             }
         }
@@ -264,7 +264,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             get
             {
                 if (__pathFieldIndexingInfo == null)
-                    __pathFieldIndexingInfo = SearchManager.ContentRepository.GetPerFieldIndexingInfo(IndexFieldName.Path);
+                    __pathFieldIndexingInfo = SearchManager.GetPerFieldIndexingInfo(IndexFieldName.Path);
                 return __pathFieldIndexingInfo;
             }
         }
@@ -273,7 +273,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             get
             {
                 if (__inTreeFieldIndexingInfo == null)
-                    __inTreeFieldIndexingInfo = SearchManager.ContentRepository.GetPerFieldIndexingInfo(IndexFieldName.InTree);
+                    __inTreeFieldIndexingInfo = SearchManager.GetPerFieldIndexingInfo(IndexFieldName.InTree);
                 return __inTreeFieldIndexingInfo;
             }
         }
@@ -282,7 +282,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             get
             {
                 if (__inFolderFieldIndexingInfo == null)
-                    __inFolderFieldIndexingInfo = SearchManager.ContentRepository.GetPerFieldIndexingInfo(IndexFieldName.InFolder);
+                    __inFolderFieldIndexingInfo = SearchManager.GetPerFieldIndexingInfo(IndexFieldName.InFolder);
                 return __inFolderFieldIndexingInfo;
             }
         }

@@ -124,7 +124,7 @@ namespace SenseNet.ContentRepository
             
             TypeHandler.Initialize(_settings.Providers);
 
-            SearchManager.ContentRepository = new SearchEngineSupport();
+            SearchManager.SetSearchEngineSupport(new SearchEngineSupport());
 
             InitializeLogger();
 

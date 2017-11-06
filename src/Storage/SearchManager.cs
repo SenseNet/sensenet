@@ -6,6 +6,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search;
+using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.ContentRepository.Search
@@ -34,7 +35,24 @@ namespace SenseNet.ContentRepository.Search
             ? InternalSearchEngine.Instance
             : Providers.Instance.SearchEngine;
 
-        public static ISearchEngineSupport ContentRepository { get; set; }
+        private static ISearchEngineSupport _searchEngineSupport;
+        public static void SetSearchEngineSupport(ISearchEngineSupport searchEngineSupport)
+        {
+            _searchEngineSupport = searchEngineSupport;
+        }
+        public static QueryResult ExecuteContentQuery(string text, QuerySettings settings, params object[] parameters)
+        {
+            return _searchEngineSupport.ExecuteContentQuery(text, settings, parameters);
+        }
+        public static IIndexPopulator GetIndexPopulator()
+        {
+            return _searchEngineSupport.GetIndexPopulator();
+        }
+        public static IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
+        {
+            return _searchEngineSupport.GetPerFieldIndexingInfo(fieldName);
+        }
+
 
         public static bool ContentQueryIsAllowed => Configuration.Indexing.IsOuterSearchEngineEnabled &&
                                                     SearchEngine != InternalSearchEngine.Instance &&

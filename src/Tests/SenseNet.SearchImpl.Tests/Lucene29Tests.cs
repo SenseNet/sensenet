@@ -70,7 +70,7 @@ namespace SenseNet.SearchImpl.Tests
                 SaveInitialIndexDocuments();
 
                 var paths = new List<string>();
-                var populator = SearchManager.ContentRepository.GetIndexPopulator();
+                var populator = SearchManager.GetIndexPopulator();
                 populator.NodeIndexed += (sender, e) => { paths.Add(e.Path); };
 
                 // ACTION
@@ -114,7 +114,7 @@ namespace SenseNet.SearchImpl.Tests
             var result =
                 L29Test(console =>
                 {
-                    var indexPopulator = SearchManager.ContentRepository.GetIndexPopulator();
+                    var indexPopulator = SearchManager.GetIndexPopulator();
 
                     var root = Repository.Root;
                     indexPopulator.RebuildIndex(root, false, IndexRebuildLevel.DatabaseAndIndex);
@@ -157,7 +157,7 @@ namespace SenseNet.SearchImpl.Tests
             var result =
                 L29Test(console =>
                 {
-                    var indexPopulator = SearchManager.ContentRepository.GetIndexPopulator();
+                    var indexPopulator = SearchManager.GetIndexPopulator();
 
                     var root = Repository.Root;
                     indexPopulator.RebuildIndex(root, false, IndexRebuildLevel.DatabaseAndIndex);
@@ -426,7 +426,7 @@ namespace SenseNet.SearchImpl.Tests
             var result = L29Test(s =>
             {
                 SaveInitialIndexDocuments();
-                var populator = SearchManager.ContentRepository.GetIndexPopulator();
+                var populator = SearchManager.GetIndexPopulator();
                 populator.ClearAndPopulateAll();
 
                 var node = new SystemFolder(Repository.Root) { Name = "L29_IntegrityChecker" };
@@ -485,7 +485,7 @@ namespace SenseNet.SearchImpl.Tests
                 //IndexDirectory.CreateNew();
                 //IndexDirectory.Reset();
 
-                using (ContentRepository.Tests.Tools.Swindle(typeof(SearchManager), "ContentRepository", new SearchEngineSupport()))
+                using (ContentRepository.Tests.Tools.Swindle(typeof(SearchManager), "_searchEngineSupport", new SearchEngineSupport()))
                     //using (new SystemAccount())
                 {
                     //EnsureEmptyIndexDirectory();

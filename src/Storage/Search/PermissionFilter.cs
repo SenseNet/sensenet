@@ -181,7 +181,7 @@ namespace SenseNet.Search.Querying
             var fieldLevel = QueryFieldLevel.NotDefined;
             foreach (var fieldName in fieldNames)
             {
-                var indexingInfo = SearchManager.ContentRepository.GetPerFieldIndexingInfo(fieldName);
+                var indexingInfo = SearchManager.GetPerFieldIndexingInfo(fieldName);
                 var level = GetFieldLevel(fieldName, indexingInfo);
                 fieldLevel = level > fieldLevel ? level : fieldLevel;
             }

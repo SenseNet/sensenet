@@ -37,7 +37,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             // 5: index update.
             var node = Node.LoadNodeByVersionId(versionId);
             if (node != null)
-                SearchManager.ContentRepository.GetIndexPopulator().RebuildIndex(node);
+                SearchManager.GetIndexPopulator().RebuildIndex(node);
         }
 
         /// <summary>

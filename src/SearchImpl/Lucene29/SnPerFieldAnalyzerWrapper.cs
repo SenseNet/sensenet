@@ -31,7 +31,7 @@ namespace SenseNet.Search.Lucene29
                 return _analyzers[IndexFieldAnalyzer.Standard];
 
             // For everything else, ask the ContentTypeManager
-            var pfii = SearchManager.ContentRepository.GetPerFieldIndexingInfo(fieldName);
+            var pfii = SearchManager.GetPerFieldIndexingInfo(fieldName);
 
             // Return with analyzer by indexing info  or the default analyzer if indexing info was not found.
             return pfii == null ? _defaultAnalyzer : GetAnalyzer(pfii);

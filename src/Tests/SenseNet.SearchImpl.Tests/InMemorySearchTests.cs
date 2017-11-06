@@ -472,7 +472,7 @@ namespace SenseNet.SearchImpl.Tests
 
                 // ACTION
                 using (var console = new StringWriter(sb))
-                    SearchManager.ContentRepository.GetIndexPopulator().ClearAndPopulateAll(console);
+                    SearchManager.GetIndexPopulator().ClearAndPopulateAll(console);
 
                 // load last indexing activity
                 var db = DataProvider.Current;
@@ -916,7 +916,8 @@ namespace SenseNet.SearchImpl.Tests
                 .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartWorkflowEngine(false)))
-            using(new ContentRepository.Tests.Tools.RepositorySupportSwindler(new TestSearchEngineSupport(indexingInfo)))
+            //using (new ContentRepository.Tests.Tools.RepositorySupportSwindler(new TestSearchEngineSupport(indexingInfo)))
+            using (ContentRepository.Tests.Tools.Swindle(typeof(SearchManager), "_searchEngineSupport", new TestSearchEngineSupport(indexingInfo)))
             using (new SystemAccount())
             {
                 var cquery = ContentQuery.CreateQuery(qtext, QuerySettings.AdminSettings);

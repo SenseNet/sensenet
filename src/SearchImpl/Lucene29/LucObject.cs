@@ -36,7 +36,7 @@ namespace SenseNet.Search.Lucene29
         }
         public T Get<T>(string fieldName)
         {
-            var info = SearchManager.ContentRepository.GetPerFieldIndexingInfo(fieldName);
+            var info = SearchManager.GetPerFieldIndexingInfo(fieldName);
             var converter = info.IndexFieldHandler as IIndexValueConverter<T>;
             if (converter == null)
                 return default(T);
@@ -45,7 +45,7 @@ namespace SenseNet.Search.Lucene29
         }
         public object Get(string fieldName)
         {
-            var info = SearchManager.ContentRepository.GetPerFieldIndexingInfo(fieldName);
+            var info = SearchManager.GetPerFieldIndexingInfo(fieldName);
             var converter = info.IndexFieldHandler as IIndexValueConverter;
             if (converter == null)
                 return null;

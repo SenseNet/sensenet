@@ -84,7 +84,7 @@ namespace SenseNet.Search.Lucene29
 
         public static SortField CreateSortField(string fieldName, bool reverse)
         {
-            var info = SearchManager.ContentRepository.GetPerFieldIndexingInfo(fieldName);
+            var info = SearchManager.GetPerFieldIndexingInfo(fieldName);
             var sortType = SortField.STRING;
             if (info != null)
             {
@@ -181,7 +181,7 @@ namespace SenseNet.Search.Lucene29
             var fieldLevel = QueryFieldLevel.NotDefined;
             foreach (var fieldName in fieldNames)
             {
-                var indexingInfo = SearchManager.ContentRepository.GetPerFieldIndexingInfo(fieldName);
+                var indexingInfo = SearchManager.GetPerFieldIndexingInfo(fieldName);
                 var level = GetFieldLevel(fieldName, indexingInfo);
                 fieldLevel = level > fieldLevel ? level : fieldLevel;
             }

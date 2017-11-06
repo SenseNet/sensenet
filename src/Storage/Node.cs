@@ -151,7 +151,7 @@ namespace SenseNet.ContentRepository.Storage
             return NodeQuery.QueryChildren(this.Id);
         }
 
-        public virtual int NodesInTree => SearchManager.ContentRepository.ExecuteContentQuery(
+        public virtual int NodesInTree => SearchManager.ExecuteContentQuery(
                 "+InTree:@0",
                 QuerySettings.AdminSettings,
                 this.Path)
@@ -2039,7 +2039,7 @@ namespace SenseNet.ContentRepository.Storage
                 var thisPath = RepositoryPath.Combine(parentPath, this.Name);
 
                 // save
-                DataBackingStore.SaveNodeData(this, settings, SearchManager.ContentRepository.GetIndexPopulator(), thisPath, thisPath);
+                DataBackingStore.SaveNodeData(this, settings, SearchManager.GetIndexPopulator(), thisPath, thisPath);
 
                 // <L2Cache>
                 StorageContext.L2Cache.Clear();
@@ -2271,7 +2271,7 @@ namespace SenseNet.ContentRepository.Storage
                     try
                     {
                         this.Data.PreloadTextProperties();
-                        DataBackingStore.SaveNodeData(this, settings, SearchManager.ContentRepository.GetIndexPopulator(), originalPath, newPath);
+                        DataBackingStore.SaveNodeData(this, settings, SearchManager.GetIndexPopulator(), originalPath, newPath);
                     }
                     finally
                     {
@@ -2369,7 +2369,7 @@ namespace SenseNet.ContentRepository.Storage
                     ExpectedVersionId = this.VersionId,
                     MultistepSaving = false
                 };
-                DataBackingStore.SaveNodeData(this, settings, SearchManager.ContentRepository.GetIndexPopulator(), Path, Path);
+                DataBackingStore.SaveNodeData(this, settings, SearchManager.GetIndexPopulator(), Path, Path);
 
                 // events
                 if (this.Version.Status != VersionStatus.Locked)
@@ -2620,7 +2620,7 @@ namespace SenseNet.ContentRepository.Storage
                     PathDependency.FireChanged(pathToInvalidate);
                     PathDependency.FireChanged(this.Path);
 
-                    var populator = SearchManager.ContentRepository.GetIndexPopulator();
+                    var populator = SearchManager.GetIndexPopulator();
                     populator.DeleteTree(this.Path, this.Id);
 
                     // <L2Cache>
@@ -3166,7 +3166,7 @@ namespace SenseNet.ContentRepository.Storage
                     if (this.Id > 0)
                         SecurityHandler.DeleteEntity(this.Id);
 
-                    SearchManager.ContentRepository.GetIndexPopulator().DeleteTree(myPath, this.Id);
+                    SearchManager.GetIndexPopulator().DeleteTree(myPath, this.Id);
 
                     if (hadContentList)
                         FireAnyContentListDeleted();
@@ -3332,7 +3332,7 @@ namespace SenseNet.ContentRepository.Storage
             }
             try
             {
-                SearchManager.ContentRepository.GetIndexPopulator().DeleteForest(ids);
+                SearchManager.GetIndexPopulator().DeleteForest(ids);
             }
             catch (Exception e)
             {

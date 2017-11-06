@@ -184,7 +184,7 @@ namespace SenseNet.ContentRepository.Tests
                 {
                     Assert.IsFalse(SearchManager.IsOuterEngineEnabled);
                     Assert.AreEqual(typeof(InternalSearchEngine), SearchManager.SearchEngine.GetType());
-                    var populator = SearchManager.ContentRepository.GetIndexPopulator();
+                    var populator = SearchManager.GetIndexPopulator();
                     Assert.AreEqual(typeof(NullPopulator), populator.GetType());
                 }
             }

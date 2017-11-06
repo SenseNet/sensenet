@@ -214,7 +214,7 @@ namespace SenseNet.Search.IntegrationTests
 
             using (Repository.Start(repoBuilder))
             {
-                using (ContentRepository.Tests.Tools.Swindle(typeof(SearchManager), "ContentRepository", new SearchEngineSupport()))
+                using (ContentRepository.Tests.Tools.Swindle(typeof(SearchManager), "_searchEngineSupport", new SearchEngineSupport()))
                 {
                     callback(indxManConsole.ToString());
                 }

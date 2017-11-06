@@ -445,7 +445,7 @@ namespace SenseNet.Search.Lucene29
             if (fieldText == null)
                 return null;
 
-            var info = SearchManager.ContentRepository.GetPerFieldIndexingInfo(fieldName);
+            var info = SearchManager.GetPerFieldIndexingInfo(fieldName);
             if (info == null)
             {
                 var c = fieldText.ToCharArray();

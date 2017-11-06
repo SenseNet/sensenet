@@ -59,19 +59,6 @@ namespace SenseNet.ContentRepository.Tests
             }
         }
 
-        public class RepositorySupportSwindler : IDisposable
-        {
-            private readonly ISearchEngineSupport _savedSearchEngineSupport;
-            public RepositorySupportSwindler(ISearchEngineSupport cheat)
-            {
-                _savedSearchEngineSupport = SearchManager.ContentRepository;
-                SearchManager.ContentRepository = cheat;
-            }
-            public void Dispose()
-            {
-                SearchManager.ContentRepository = _savedSearchEngineSupport;
-            }
-        }
         public class DataProviderSwindler : IDisposable
         {
             DataProvider _providerInstanceBackup;

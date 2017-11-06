@@ -20,35 +20,10 @@ namespace SenseNet.SearchImpl.Tests.Implementations
             _indexingInfos = indexingInfos;
         }
 
-        public int[] GetNotIndexedNodeTypeIds()
-        {
-            throw new NotSupportedException();
-        }
-
         public IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
         {
             IPerFieldIndexingInfo indexingInfo;
             return _indexingInfos.TryGetValue(fieldName, out indexingInfo) ? indexingInfo : null;
-        }
-
-        public bool IsContentTypeIndexed(string contentTypeName)
-        {
-            return ContentType.GetByName(contentTypeName)?.IndexingEnabled ?? true;
-        }
-
-        public bool TextExtractingWillBePotentiallySlow(IIndexableField field)
-        {
-            throw new NotSupportedException();
-        }
-
-        public string ReplaceQueryTemplates(string queryText)
-        {
-            return TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), queryText);
-        }
-
-        public T GetSettingsValue<T>(string key, T defaultValue)
-        {
-            throw new NotSupportedException();
         }
 
         public QueryResult ExecuteContentQuery(string text, QuerySettings settings, params object[] parameters)

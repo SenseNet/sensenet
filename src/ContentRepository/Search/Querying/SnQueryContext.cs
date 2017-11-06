@@ -21,7 +21,7 @@ namespace SenseNet.Search.Querying
 
         public IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
         {
-            return SearchManager.ContentRepository.GetPerFieldIndexingInfo(fieldName);
+            return SearchManager.GetPerFieldIndexingInfo(fieldName);
         }
 
         public static IQueryContext CreateDefault()
