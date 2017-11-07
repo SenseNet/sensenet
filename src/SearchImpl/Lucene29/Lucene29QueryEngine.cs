@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Lucene.Net.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search.Querying;
@@ -49,7 +50,7 @@ namespace SenseNet.Search.Lucene29
             var result = LucQuery.Create(visitor.Result);
             result.Skip = query.Skip;
             result.Top = query.Top;
-            result.SortFields = query.Sort.Select(s => LucQuery.CreateSortField(s.FieldName, s.Reverse)).ToArray();
+            result.SortFields = query.Sort?.Select(s => LucQuery.CreateSortField(s.FieldName, s.Reverse)).ToArray() ?? new SortField[0];
             result.EnableAutofilters = query.EnableAutofilters;
             result.EnableLifespanFilter = query.EnableLifespanFilter;
             result.QueryExecutionMode = query.QueryExecutionMode;
