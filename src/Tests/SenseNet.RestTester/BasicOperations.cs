@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Client;
 
@@ -21,7 +18,10 @@ namespace SenseNet.RestTester
         public void LoadChildrenOfRoot()
         {
             var topLevelCollection = Content.LoadCollectionAsync("/Root").Result;
-            var topLevelNames = topLevelCollection.Select(c => c.Name).ToArray();
+            var topLevelNames = topLevelCollection
+                .Where(c => !c.Name.StartsWith("Test"))
+                .Select(c => c.Name)
+                .ToArray();
 
             var actual = string.Join(", ", topLevelNames);
             var expected = "(apps), IMS, Localization, System, Trash";
@@ -65,5 +65,33 @@ namespace SenseNet.RestTester
             Assert.AreEqual(contentId, foundContent.Id);
             Assert.AreEqual(contentName, foundContent.Name);
         }
+        [TestMethod]
+        public void UpdateAndQuery()
+        {
+            var contentName = $"Test_{Guid.NewGuid()}";
+            var displayNameBefore = Guid.NewGuid().ToString();
+            var displayNameAfter = Guid.NewGuid().ToString();
+
+            // Create and save a new content
+            var content = Content.CreateNew("/Root", "SystemFolder", contentName);
+            content["DisplayName"] = displayNameBefore;
+            content.SaveAsync().Wait();
+            var contentId = content.Id;
+            Assert.IsTrue(0 < contentId);
+
+            // Query for displayname of the content
+            var foundContents = Content.QueryForAdminAsync($"DisplayName:'{displayNameBefore}'").Result.ToArray();
+            Assert.AreEqual(1, foundContents.Length);
+
+            // Load back the newly created content
+            var updatedContent = foundContents[0];
+            updatedContent["DisplayName"] = displayNameAfter;
+            updatedContent.SaveAsync().Wait();
+
+            // Query for updated displayname of the content
+            var foundUpdatedContents = Content.QueryForAdminAsync($"DisplayName:'{displayNameAfter}'").Result.ToArray();
+            Assert.AreEqual(1, foundUpdatedContents.Length);
+        }
+
     }
 }
