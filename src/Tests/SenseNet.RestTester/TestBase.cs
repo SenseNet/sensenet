@@ -35,9 +35,7 @@ namespace SenseNet.RestTester
 
         private static void CleanupRootFolder()
         {
-            var contents = Content.QueryForAdminAsync("Name:CreateContent*").Result
-                .Union(Content.QueryForAdminAsync("Name:Test*").Result)
-                .ToArray();
+            var contents = Content.QueryForAdminAsync("+InFolder:/Root +(Name:CreateContent* Name:Test*)").Result;
             Task.WaitAll(contents.Select(c => c.DeleteAsync()).ToArray());
         }
     }

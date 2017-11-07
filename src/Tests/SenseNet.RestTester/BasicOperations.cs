@@ -11,6 +11,7 @@ namespace SenseNet.RestTester
         public void LoadRoot()
         {
             var root = Content.LoadAsync("/Root").Result;
+
             Assert.AreEqual(2, root.Id);
             Assert.AreEqual("/Root", root.Path);
         }
@@ -18,6 +19,7 @@ namespace SenseNet.RestTester
         public void LoadChildrenOfRoot()
         {
             var topLevelCollection = Content.LoadCollectionAsync("/Root").Result;
+
             var topLevelNames = topLevelCollection
                 .Where(c => !c.Name.StartsWith("Test"))
                 .Select(c => c.Name)
@@ -92,6 +94,5 @@ namespace SenseNet.RestTester
             var foundUpdatedContents = Content.QueryForAdminAsync($"DisplayName:'{displayNameAfter}'").Result.ToArray();
             Assert.AreEqual(1, foundUpdatedContents.Length);
         }
-
     }
 }
