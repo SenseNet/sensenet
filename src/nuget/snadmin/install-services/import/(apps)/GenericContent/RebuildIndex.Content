@@ -7,7 +7,7 @@
     <MethodName><![CDATA[RebuildIndex]]></MethodName>
     <Parameters><![CDATA[
 	  bool recursive, 
-	  SenseNet.ContentRepository.Storage.Search.IndexRebuildLevel rebuildLevel
+	  SenseNet.ContentRepository.Search.Indexing.IndexRebuildLevel rebuildLevel
     ]]></Parameters>
     <DisplayName><![CDATA[RebuildIndex]]></DisplayName>
     <ActionTypeName><![CDATA[GenericODataOperation]]></ActionTypeName>
