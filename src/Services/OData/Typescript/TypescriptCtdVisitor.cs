@@ -26,29 +26,27 @@ namespace SenseNet.Portal.OData.Typescript
  * The ```Schema``` class represents an object that holds the basic information about the Content Type (name, icon, ect.) and an array of its ```FieldSettings``` and their full configuration.
  */ /** */
 
-import { FieldSettings, Content, ContentTypes } from './SN';
+import * as FieldSettings from './FieldSettings';
 
-    /**
-     * Class that represents a Schema.
-     *
-     * It represents an object that holds the basic information about the Content Type (name, icon, ect.) and an array of its ```FieldSettings``` and their full configuration.
-     */
-    export class Schema<TContentType extends Content> {
-        ContentType: {new(...args): TContentType}
-        Icon: string;
-        DisplayName: string;
-        Description: string;
-        AllowIndexing: boolean;
-        AllowIncrementalNaming: boolean;
-        AllowedChildTypes: string[];
-        FieldSettings: FieldSettings.FieldSetting[];
+/**
+ * Class that represents a Schema.
+ *
+ * It represents an object that holds the basic information about the Content Type (name, icon, ect.) and an array of its ```FieldSettings``` and their full configuration.
+ */
+export class Schema {
+    public ContentTypeName: string;
+    public ParentTypeName?: string;
 
-        constructor(schema: Partial<Schema<TContentType>>){
-            Object.assign(this, schema);
-        }
-    }
+    public Icon: string;
+    public DisplayName: string;
+    public Description: string;
+    public AllowIndexing: boolean;
+    public AllowIncrementalNaming: boolean;
+    public AllowedChildTypes: string[];
+    public FieldSettings: FieldSettings.FieldSetting[];
+}
 
-    export const SchemaStore: Schema<Content>[] = [
+export const SchemaStore: Schema[] = [
 ");
             #endregion
 
@@ -67,27 +65,25 @@ import { FieldSettings, Content, ContentTypes } from './SN';
             var allowedChildTypes = string.Join("', '", contentType.AllowedChildTypeNames);
             if (allowedChildTypes.Length > 0)
                 allowedChildTypes = "'" + allowedChildTypes + "'";
-
-            WriteLine("/**");
-            WriteLine($" * Method that returns the Content Type Definition of the {contentType.Name}");
-            WriteLine(" * @returns {Schema}");
-            WriteLine(" */");
-            WriteLine($"new Schema({{");
+            WriteLine("{");
             _indentCount++;
-
-            WriteLine($"    ContentType: ContentTypes.{contentType.Name},");
-            WriteLine($"    DisplayName: '{contentType.DisplayName}',");
-            WriteLine($"    Description: '{contentType.Description}',");
-            WriteLine($"    Icon: '{contentType.Icon}',");
-            WriteLine($"    AllowIndexing: {contentType.IndexingEnabled.ToString().ToLowerInvariant()},");
-            WriteLine($"    AllowIncrementalNaming: {contentType.AllowIncrementalNaming.ToString().ToLowerInvariant()},");
-            WriteLine($"    AllowedChildTypes: [{allowedChildTypes}],");
-            WriteLine($"    FieldSettings: [");
+            WriteLine($"ContentTypeName: '{contentType.Name}',");
+            if (!string.IsNullOrWhiteSpace(contentType.ParentTypeName))
+            {
+                WriteLine($"ParentTypeName: '{contentType.ParentTypeName}',");
+            }
+            WriteLine($"DisplayName: '{contentType.DisplayName}',");
+            WriteLine($"Description: '{contentType.Description}',");
+            WriteLine($"Icon: '{contentType.Icon}',");
+            WriteLine($"AllowIndexing: {contentType.IndexingEnabled.ToString().ToLowerInvariant()},");
+            WriteLine($"AllowIncrementalNaming: {contentType.AllowIncrementalNaming.ToString().ToLowerInvariant()},");
+            WriteLine($"AllowedChildTypes: [{allowedChildTypes}],");
+            WriteLine($"FieldSettings: [");
 
             var visitedClass = base.VisitClass(@class);
 
             WriteLine($"]");
-            WriteLine($"}}),");
+            WriteLine($"}},");
             WriteLine();
 
             _indentCount--;
@@ -110,18 +106,19 @@ import { FieldSettings, Content, ContentTypes } from './SN';
                 var name = propertyInfo.Name;
                 var value = GetPropertyValue(property.FieldSetting, propertyInfo);
                 if (value != null)
-                    propertyLines.Add(name.ToCamelCase() + ": " + value);
+                    propertyLines.Add($"{name}: {value}");
             }
             _indentCount++;
-            WriteLine($"new FieldSettings.{property.FieldSetting.GetType().Name}({{");
+            WriteLine("{");
             _indentCount++;
+            WriteLine($"Type: '{property.FieldSetting.GetType().Name}',");
             for (int i = 0; i < propertyLines.Count; i++)
             {
                 var comma = i < propertyLines.Count - 1 ? "," : "";
                 WriteLine($"{propertyLines[i]}{comma}");
             }
             _indentCount--;
-            WriteLine("}),");
+            WriteLine($"}} as FieldSettings.{property.FieldSetting.GetType().Name},");
             _indentCount--;
             return base.VisitProperty(property);
         }
