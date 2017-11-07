@@ -25,7 +25,7 @@ namespace SenseNet.RestTester
             var topLevelCollectionNames = topLevelCollection.Select(c => c.Name).ToArray();
 
             var actual = string.Join(", ", topLevelCollectionNames);
-            var expected = "asdf, qwer";
+            var expected = "(apps), IMS, Localization, System, Trash";
             AssertAreEqual(expected, actual);
         }
 
