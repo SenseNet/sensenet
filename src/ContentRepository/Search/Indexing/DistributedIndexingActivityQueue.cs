@@ -33,10 +33,18 @@ namespace SenseNet.ContentRepository.Search.Indexing
             {
                 SnTrace.IndexQueue.Write("IAQ: Health checker is processing {0} gap{1}.", gapsLength, gapsLength > 1 ? "s" : "");
 
+                var notLoadedIds = state.Gaps.ToList();
                 foreach (IndexingActivityBase activity in new IndexingActivityLoader(state.Gaps, false))
                 {
                     WaitIfOverloaded();
                     ExecuteActivity(activity);
+                    notLoadedIds.Remove(activity.Id);
+                }
+
+                if (notLoadedIds.Count > 0)
+                {
+                    TerminationHistory.RemoveGaps(notLoadedIds);
+                    SnTrace.IndexQueue.Write("IAQ: Health checker ignores the following activity ids after processing the gaps: {0}", notLoadedIds);
                 }
             }
 
