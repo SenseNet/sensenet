@@ -106,14 +106,14 @@ namespace SenseNet.Search.Tests
         public void SnQuery_Parser_AstToString_EmptyQueries()
         {
             var empty = SnQuery.EmptyText;
-            Test($"+(+F1:{empty} +F2:aaa*) +F3:bbb", $"+(+F1:{empty} +F2:aaa*) +F3:bbb");
-            Test($"+(+F1:{empty} +(F2:V2 F3:V3)) +F3:bbb", $"+(+F1:{empty} +(F2:v2 F3:v3)) +F3:bbb");
-            Test($"+(+F1:{empty} +F2:{empty}) +F3:bbb", $"+(+F1:{empty} +F2:{empty}) +F3:bbb");
+            Test($"+(+F1:{empty} +F2:aaa*) +F3:bbb", "+(+F2:aaa*) +F3:bbb");
+            Test($"+(+F1:{empty} +(F2:V2 F3:V3)) +F3:bbb", "+(+(F2:v2 F3:v3)) +F3:bbb");
+            Test($"+(+F1:{empty} +F2:{empty}) +F3:bbb", "+F3:bbb");
 
             Test($"F1:[{empty} TO max]", "F1:<=max");
             Test($"F1:[min TO {empty}]", "F1:>=min");
-            Test($"F1:[{empty} TO ]", $"F1:{empty}");
-            Test($"F1:[ TO {empty}]", $"F1:{empty}");
+            Test($"F1:[{empty} TO ]", string.Empty);
+            Test($"F1:[ TO {empty}]", string.Empty);
             Test($"F1:[\"{empty}\" TO max]", "F1:<=max");
             Test($"F1:[min TO \"{empty}\"]", "F1:>=min");
 
