@@ -29,18 +29,24 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             SnTrace.Index.Write("IAQ: Health check triggered.");
 
-
             var state = TerminationHistory.GetCurrentState();
             var gapsLength = state.Gaps.Length;
             if (gapsLength > 0)
             {
-
                 SnTrace.IndexQueue.Write("IAQ: Health checker is processing {0} gap{1}.", gapsLength, gapsLength > 1 ? "s" : "");
 
+                var notLoadedIds = state.Gaps.ToList();
                 foreach (IndexingActivityBase activity in new IndexingActivityLoader(state.Gaps, false))
                 {
                     WaitIfOverloaded();
                     DistributedIndexingActivityQueue.ExecuteActivity(activity);
+                    notLoadedIds.Remove(activity.Id);
+                }
+
+                if (notLoadedIds.Count > 0)
+                {
+                    TerminationHistory.RemoveGaps(notLoadedIds);
+                    SnTrace.IndexQueue.Write("IAQ: Health checker ignores the following activity ids after processing the gaps: {0}", notLoadedIds);
                 }
             }
 
@@ -49,7 +55,6 @@ namespace SenseNet.ContentRepository.Search.Indexing
             var newerCount = lastDbId - lastId;
             if (lastId < lastDbId)
             {
-
                 SnTrace.IndexQueue.Write("IAQ: Health checker is processing activities from {0} to {1}", (lastId + 1), lastDbId);
 
                 foreach (IndexingActivityBase activity in new IndexingActivityLoader(lastId + 1, lastDbId, false))
