@@ -15,7 +15,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
         public int[] Delete;
         public int[] Reindex;
 
-        private static JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
+        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
         {
             NullValueHandling = NullValueHandling.Ignore,
             MissingMemberHandling = MissingMemberHandling.Ignore,
@@ -75,7 +75,6 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
                 if (IndexDocumentData != null)
                 {
                     // create document from indexdocumentdata if it has been supplied (eg via MSMQ if it was small enough to send it over)
-                    doc = IndexDocumentData.IndexDocument;
                     doc = IndexManager.CompleteIndexDocument(IndexDocumentData);
 
                     if (doc == null)

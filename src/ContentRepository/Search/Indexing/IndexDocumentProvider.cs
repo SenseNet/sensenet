@@ -13,7 +13,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 {
     public class IndexDocumentProvider : IIndexDocumentProvider
     {
-        private static List<string> SkippedMultistepFields = new List<string>(new[] { "Size" });
+        private static readonly List<string> SkippedMultistepFields = new List<string>(new[] { "Size" });
 
         public IndexDocument GetIndexDocument(Node node, bool skipBinaries, bool isNew, out bool hasBinary)
         {
@@ -27,6 +27,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             var textEtract = new StringBuilder();
 
+            // ReSharper disable once SuspiciousTypeConversion.Global 
+            // There may be external implementations.
             var doc = new IndexDocument {HasCustomField = node is IHasCustomIndexField}; //TODO: TEST: Unit test IHasCustomIndexField feature
             var ixnode = node as IIndexableDocument;
             var faultedFieldNames = new List<string>();
@@ -126,8 +128,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             var textEtract = new StringBuilder(baseDocument.GetStringValue(IndexFieldName.AllText));
 
             var faultedFieldNames = new List<string>();
-            var ixnode = node as IIndexableDocument;
-            if (ixnode != null)
+            if (node is IIndexableDocument ixnode)
             {
                 foreach (var field in ixnode.GetIndexableFields())
                 {

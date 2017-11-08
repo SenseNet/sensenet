@@ -5,11 +5,7 @@ using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
-using SenseNet.Search;
 using SenseNet.Search.Indexing;
-using SenseNet.Search.Parser;
-using SenseNet.Search.Querying;
-using SenseNet.Search.Querying.Parser;
 using SenseNet.Search.Querying.Parser.Predicates;
 using SenseNet.Security;
 
@@ -24,8 +20,8 @@ namespace SenseNet.Search.Querying
         #region  private class FieldNameVisitor : SnQueryVisitor
         private class FieldNameVisitor : SnQueryVisitor
         {
-            private List<string> _fieldNames = new List<string>();
-            public IEnumerable<string> FieldNames { get { return _fieldNames; } }
+            private readonly List<string> _fieldNames = new List<string>();
+            public IEnumerable<string> FieldNames => _fieldNames;
 
             public override SnQueryPredicate VisitRangePredicate(RangePredicate range)
             {
@@ -46,7 +42,7 @@ namespace SenseNet.Search.Querying
         #endregion
 
         private readonly int _userId;
-        private IUser _user;
+        private readonly IUser _user;
         private readonly QueryFieldLevel _queryFieldLevel;
         private readonly bool _allVersions;
 

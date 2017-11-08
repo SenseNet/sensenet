@@ -59,7 +59,7 @@ namespace SenseNet.Packaging.Steps
 
             Logger.LogMessage("...finished: " + _count + " items indexed.");
         }
-        private void Populator_NodeIndexed(object sender, NodeIndexedEvenArgs e)
+        private void Populator_NodeIndexed(object sender, NodeIndexedEventArgs e)
         {
             _count++;
 

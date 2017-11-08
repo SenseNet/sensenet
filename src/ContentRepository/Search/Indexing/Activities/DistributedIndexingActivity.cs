@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Threading;
 using SenseNet.Communication.Messaging;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Search.Indexing.Activities
@@ -17,8 +18,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
             if (onRemote && !isFromMe)
             {
                 //TODO: Remove unnecessary inheritance steps.
-                var indexingActivity = this as IndexingActivityBase;
-                if (indexingActivity != null)
+                if (this is IndexingActivityBase indexingActivity)
                 {
                     // We can drop activities here because the queue will load these from the database
                     // anyway when it processed all the previous activities.
@@ -42,7 +42,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
         // ----------------------------------------------------------------------- 
 
         [NonSerialized]
-        private AutoResetEvent _finishSignal = new AutoResetEvent(false);
+        private readonly AutoResetEvent _finishSignal = new AutoResetEvent(false);
         [NonSerialized]
         private bool _finished;
         [NonSerialized]
@@ -52,12 +52,16 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
         {
             try
             {
-                var persistentActivity = this as IndexingActivityBase;
-                var id = persistentActivity == null ? "" : ", ActivityId: " + persistentActivity.Id;
+                var id = !(this is IndexingActivityBase persistentActivity)
+                    ? string.Empty
+                    : persistentActivity.Id.ToString();
+
                 using (var op = SnTrace.Index.StartOperation("IndexingActivity execution: type:{0} id:{1}", this.GetType().Name, id))
                 {
-                    using (new ContentRepository.Storage.Security.SystemAccount())
+                    using (new SystemAccount())
+                    {
                         ExecuteIndexingActivity();
+                    }
 
                     op.Successful = true;
                 }
@@ -83,7 +87,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
 
             var indexingActivity = this as IndexingActivityBase;
 
-            SnTrace.IndexQueue.Write("IAQ: A{0} blocks the T{1}", indexingActivity.Id, _waitingThreadId);
+            SnTrace.IndexQueue.Write("IAQ: A{0} blocks the T{1}", indexingActivity?.Id, _waitingThreadId);
 
             if (Debugger.IsAttached)
             {
@@ -91,15 +95,11 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
             }
             else
             {
-                if (!_finishSignal.WaitOne(SenseNet.Configuration.Indexing.IndexingActivityTimeoutInSeconds * 1000, false))
+                if (!_finishSignal.WaitOne(Configuration.Indexing.IndexingActivityTimeoutInSeconds * 1000, false))
                 {
-                    string message;
-
-                    if (indexingActivity != null)
-                        message = string.Format("IndexingActivity is timed out. Id: {0}, Type: {1}. Max task id and exceptions: {2}"
-                            , indexingActivity.Id, indexingActivity.ActivityType, DistributedIndexingActivityQueue.GetCurrentCompletionState());
-                    else
-                        message = "Activity is not finishing on a timely manner";
+                    var message = indexingActivity != null
+                        ? $"IndexingActivity is timed out. Id: {indexingActivity.Id}, Type: {indexingActivity.ActivityType}. Max task id and exceptions: {DistributedIndexingActivityQueue.GetCurrentCompletionState()}"
+                        : "Activity is not finishing on a timely manner";
 
                     throw new ApplicationException(message);
                 }
@@ -119,6 +119,5 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
                     SnTrace.IndexQueue.Write("IAQ: waiting resource released T{0}.", _waitingThreadId);
             }
         }
-
     }
 }

@@ -2,10 +2,10 @@
 
 namespace SenseNet.Search.Querying.Parser
 {
-	[global::System.Serializable]
+	[Serializable]
 	public class ParserException : Exception
 	{
-		public LineInfo LineInfo { get; private set; }
+		public LineInfo LineInfo { get; }
 
 		public ParserException(LineInfo lineInfo) : base(MessageHelper(null, lineInfo))
 		{
@@ -26,7 +26,7 @@ namespace SenseNet.Search.Querying.Parser
 
         private static string MessageHelper(string message, LineInfo lineInfo)
         {
-            return String.Concat(message ?? "Unknown parser error.", " ", lineInfo ?? LineInfo.NullValue);
+            return string.Concat(message ?? "Unknown parser error.", " ", lineInfo ?? LineInfo.NullValue);
         }
 	}
 }

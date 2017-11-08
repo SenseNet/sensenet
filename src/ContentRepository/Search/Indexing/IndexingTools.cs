@@ -72,9 +72,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 xml.Load(contentType.Binary.GetStream());
                 foreach (System.Xml.XmlElement fieldElement in xml.SelectNodes("/x:ContentType/x:Fields/x:Field", nsmgr))
                 {
-                    var typeAttr = fieldElement.Attributes["type"];
-                    if (typeAttr == null)
-                        typeAttr = fieldElement.Attributes["handler"];
+                    var typeAttr = fieldElement.Attributes["type"] ?? fieldElement.Attributes["handler"];
 
                     var info = new ExplicitPerFieldIndexingInfo
                     {

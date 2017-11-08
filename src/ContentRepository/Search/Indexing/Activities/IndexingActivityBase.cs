@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 
@@ -23,8 +22,8 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
 
         public string Extension
         {
-            get { return GetExtension(); }
-            set { SetExtension(value); }
+            get => GetExtension();
+            set => SetExtension(value);
         }
 
         protected abstract string GetExtension();
@@ -38,32 +37,32 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
         private bool _isUnprocessedActivity;
         public bool IsUnprocessedActivity
         {
-            get { return _isUnprocessedActivity; }
-            set { _isUnprocessedActivity = value; }
+            get => _isUnprocessedActivity;
+            set => _isUnprocessedActivity = value;
         }
 
         [NonSerialized]
         private bool _fromReceiver;
         public bool FromReceiver
         {
-            get { return _fromReceiver; }
-            set { _fromReceiver = value; }
+            get => _fromReceiver;
+            set => _fromReceiver = value;
         }
 
         [NonSerialized]
         private bool _fromDatabase;
         public bool FromDatabase
         {
-            get { return _fromDatabase; }
-            set { _fromDatabase = value; }
+            get => _fromDatabase;
+            set => _fromDatabase = value;
         }
 
         [NonSerialized]
         private bool _executed;
         internal bool Executed
         {
-            get { return _executed; }
-            set { _executed = value; }
+            get => _executed;
+            set => _executed = value;
         }
 
 
@@ -89,14 +88,18 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
             // if not running or paused, skip execution except executing unprocessed activities
             return IsUnprocessedActivity || IndexManager.Running;
         }
-
-
+        
         protected abstract bool ProtectedExecute();
-
-
+        
         [NonSerialized]
         private IndexingActivityBase _attachedActivity;
-        internal IndexingActivityBase AttachedActivity { get { return _attachedActivity; } private set { _attachedActivity = value; } }
+
+        internal IndexingActivityBase AttachedActivity
+        {
+            get => _attachedActivity;
+            private set => _attachedActivity = value;
+        }
+
         /// <summary>
         /// When an activity gets executed and needs to be finalized, all activity objects that have
         /// the same id need to be finalized too. The Attach methods puts all activities with the
@@ -145,12 +148,12 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
 
 
         [NonSerialized]
-        private List<IndexingActivityBase> _waitingFor = new List<IndexingActivityBase>();
-        public List<IndexingActivityBase> WaitingFor { get { return _waitingFor; } }
+        private List<IndexingActivityBase> _waitingFor;
+        public List<IndexingActivityBase> WaitingFor => _waitingFor;
 
         [NonSerialized]
         private List<IndexingActivityBase> _waitingForMe;
-        public List<IndexingActivityBase> WaitingForMe { get { return _waitingForMe; } }
+        public List<IndexingActivityBase> WaitingForMe => _waitingForMe;
 
 
         internal void WaitFor(IndexingActivityBase olderActivity)
@@ -178,6 +181,5 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
         {
             return this.Path.StartsWith(newerActivity.Path, StringComparison.OrdinalIgnoreCase);
         }
-
     }
 }

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
@@ -23,12 +22,6 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         void RebuildIndex(Node node, bool recursive = false, IndexRebuildLevel rebuildLevel = IndexRebuildLevel.IndexOnly);
 
-        event EventHandler<NodeIndexedEvenArgs> NodeIndexed;
-    }
-
-    public class NodeIndexedEvenArgs : EventArgs
-    {
-        public string Path { get; private set; }
-        public NodeIndexedEvenArgs(string path) { Path = path; }
+        event EventHandler<NodeIndexedEventArgs> NodeIndexed;
     }
 }

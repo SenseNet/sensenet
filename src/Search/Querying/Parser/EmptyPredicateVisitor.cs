@@ -39,8 +39,9 @@ namespace SenseNet.Search.Querying.Parser
         }
         public override SnQueryPredicate VisitTextPredicate(SimplePredicate simplePredicate)
         {
-            return simplePredicate.Value.Equals(SnQuery.EmptyText) ? null : base.VisitTextPredicate(simplePredicate);
+            return (simplePredicate.Value.ValueAsString?.Equals(SnQuery.EmptyText) ?? false)
+                ? null
+                : base.VisitTextPredicate(simplePredicate);
         }
-
     }
 }

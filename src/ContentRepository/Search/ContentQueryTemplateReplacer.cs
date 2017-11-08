@@ -6,13 +6,12 @@ namespace SenseNet.Search
 {
     public class ContentQueryTemplateReplacer : TemplateReplacerBase
     {
-        public override IEnumerable<string> TemplateNames
+        public override IEnumerable<string> TemplateNames => new[]
         {
-            get { return new[] { "currentuser", "currentdate", "currentday", "today", "currenttime", "currentmonth", "currentweek", 
-                "currentyear", "yesterday", "tomorrow", "nextworkday", "nextweek", "nextmonth", "nextyear", "previousworkday", 
-                "previousweek", "previousmonth", "previousyear" };
-            }
-        }
+            "currentuser", "currentdate", "currentday", "today", "currenttime", "currentmonth", "currentweek",
+            "currentyear", "yesterday", "tomorrow", "nextworkday", "nextweek", "nextmonth", "nextyear",
+            "previousworkday", "previousweek", "previousmonth", "previousyear"
+        };
 
         public override string EvaluateTemplate(string templateName, string templateExpression, object templatingContext)
         {

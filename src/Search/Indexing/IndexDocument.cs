@@ -23,10 +23,10 @@ namespace SenseNet.Search.Indexing
         [NonSerialized]
         public static readonly IndexDocument NotIndexedDocument = new NotIndexedIndexDocument();
 
-        [NonSerialized]
-        public static List<string> PostponedFields = new List<string>(new [] {
-            IndexFieldName.Name, IndexFieldName.Path, IndexFieldName.InTree, IndexFieldName.InFolder, IndexFieldName.Depth, IndexFieldName.ParentId,
-            IndexFieldName.IsSystem
+        [NonSerialized] public static List<string> PostponedFields = new List<string>(new[]
+        {
+            IndexFieldName.Name, IndexFieldName.Path, IndexFieldName.InTree, IndexFieldName.InFolder,
+            IndexFieldName.Depth, IndexFieldName.ParentId, IndexFieldName.IsSystem
         });
 
         [NonSerialized]
@@ -48,8 +48,7 @@ namespace SenseNet.Search.Indexing
 
         public string GetStringValue(string fieldName)
         {
-            IndexField field;
-            if (!_fields.TryGetValue(fieldName, out field))
+            if (!_fields.TryGetValue(fieldName, out var field))
                 return default(string);
 
             if (field.Type == IndexValueType.String)
@@ -62,8 +61,7 @@ namespace SenseNet.Search.Indexing
         }
         public string[] GetStringArrayValue(string fieldName)
         {
-            IndexField field;
-            if (!_fields.TryGetValue(fieldName, out field))
+            if (!_fields.TryGetValue(fieldName, out var field))
                 return default(string[]);
 
             if (field.Type == IndexValueType.String)
@@ -76,8 +74,7 @@ namespace SenseNet.Search.Indexing
         }
         public bool GetBooleanValue(string fieldName)
         {
-            IndexField field;
-            if (!_fields.TryGetValue(fieldName, out field))
+            if (!_fields.TryGetValue(fieldName, out var field))
                 return default(bool);
 
             if (field.Type == IndexValueType.Bool)
@@ -87,8 +84,7 @@ namespace SenseNet.Search.Indexing
         }
         public int GetIntegerValue(string fieldName)
         {
-            IndexField field;
-            if (!_fields.TryGetValue(fieldName, out field))
+            if (!_fields.TryGetValue(fieldName, out var field))
                 return default(int);
 
             if (field.Type == IndexValueType.Int)
@@ -98,8 +94,7 @@ namespace SenseNet.Search.Indexing
         }
         public long GetLongValue(string fieldName)
         {
-            IndexField field;
-            if (!_fields.TryGetValue(fieldName, out field))
+            if (!_fields.TryGetValue(fieldName, out var field))
                 return default(long);
 
             if (field.Type == IndexValueType.Long)
@@ -109,8 +104,7 @@ namespace SenseNet.Search.Indexing
         }
         public float GetSingleValue(string fieldName)
         {
-            IndexField field;
-            if (!_fields.TryGetValue(fieldName, out field))
+            if (!_fields.TryGetValue(fieldName, out var field))
                 return default(float);
 
             if (field.Type == IndexValueType.Float)
@@ -120,8 +114,7 @@ namespace SenseNet.Search.Indexing
         }
         public double GetDoubleValue(string fieldName)
         {
-            IndexField field;
-            if (!_fields.TryGetValue(fieldName, out field))
+            if (!_fields.TryGetValue(fieldName, out var field))
                 return default(double);
 
             if (field.Type == IndexValueType.Double)
@@ -131,8 +124,7 @@ namespace SenseNet.Search.Indexing
         }
         public DateTime GetDateTimeValue(string fieldName)
         {
-            IndexField field;
-            if (!_fields.TryGetValue(fieldName, out field))
+            if (!_fields.TryGetValue(fieldName, out var field))
                 return default(DateTime);
 
             if (field.Type == IndexValueType.DateTime)

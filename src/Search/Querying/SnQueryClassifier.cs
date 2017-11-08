@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using SenseNet.Search.Querying.Parser;
 using SenseNet.Search.Querying.Parser.Predicates;
 
 namespace SenseNet.Search.Querying
@@ -89,8 +88,6 @@ namespace SenseNet.Search.Querying
 
             public override LogicalClause VisitLogicalClause(LogicalClause clause)
             {
-                var occur = clause.Occur;
-
                 switch (clause.Occur)
                 {
                     case Occurence.Default:

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.Search
@@ -20,21 +16,12 @@ namespace SenseNet.Search
 
         public bool AllVersions { get; set; }
 
-        public static QuerySettings AdminSettings
+        public static QuerySettings AdminSettings => new QuerySettings
         {
-            get
-            {
-                return new QuerySettings
-                {
-                    EnableLifespanFilter = FilterStatus.Disabled,
-                    EnableAutofilters = FilterStatus.Disabled
-                };
-            }
-        }
+            EnableLifespanFilter = FilterStatus.Disabled,
+            EnableAutofilters = FilterStatus.Disabled
+        };
 
-        public static QuerySettings Default
-        {
-            get { return new QuerySettings(); }
-        }
+        public static QuerySettings Default => new QuerySettings();
     }
 }

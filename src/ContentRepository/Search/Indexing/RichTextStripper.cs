@@ -17,8 +17,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
     {
         private class StackEntry
         {
-            public int NumberOfCharactersToSkip { get; set; }
-            public bool Ignorable { get; set; }
+            public int NumberOfCharactersToSkip { get; }
+            public bool Ignorable { get; }
 
             public StackEntry(int numberOfCharactersToSkip, bool ignorable)
             {

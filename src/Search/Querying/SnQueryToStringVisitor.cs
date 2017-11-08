@@ -9,7 +9,7 @@ namespace SenseNet.Search.Querying
 {
     public sealed class SnQueryToStringVisitor : SnQueryVisitor
     {
-        private StringBuilder _output = new StringBuilder();
+        private readonly StringBuilder _output = new StringBuilder();
         public string Output => _output.ToString();
 
         private readonly Regex _escaperRegex;

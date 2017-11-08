@@ -64,6 +64,5 @@ namespace SenseNet.ContentRepository.Search.Indexing
             }
             return fields.Count == 0 ? null : fields;
         }
-
     }
 }

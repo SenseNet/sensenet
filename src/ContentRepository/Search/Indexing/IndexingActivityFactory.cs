@@ -1,6 +1,5 @@
 ﻿using System;
 using SenseNet.ContentRepository.Search.Indexing.Activities;
-using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {

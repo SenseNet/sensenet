@@ -12,7 +12,6 @@ using Ionic.Zip;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
-using SenseNet.Search.Indexing;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
@@ -23,7 +22,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             this.VersionId = versionId;
         }
 
-        public int VersionId { get; private set; }
+        public int VersionId { get; }
     }
 
     public interface ITextExtractor
@@ -46,7 +45,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
     public abstract class TextExtractor : ITextExtractor
     {
         public abstract string Extract(Stream stream, TextExtractorContext context);
-        public virtual bool IsSlow { get { return true; } }
+        public virtual bool IsSlow => true;
 
         private static ITextExtractor ResolveExtractor(BinaryData binaryData)
         {
@@ -56,7 +55,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             if (string.IsNullOrEmpty(fname))
                 return null;
             var ext = fname.Extension;
-            if (String.IsNullOrEmpty(ext))
+            if (string.IsNullOrEmpty(ext))
                 return null;
 
             return ResolveExtractor(ext);
@@ -67,14 +66,13 @@ namespace SenseNet.ContentRepository.Search.Indexing
             if (string.IsNullOrEmpty(name))
                 return null;
 
-            ITextExtractor extractor;
             var extractors = Settings.GetValue<ReadOnlyDictionary<string, ITextExtractor>>(
                 IndexingSettings.SETTINGSNAME, IndexingSettings.TEXTEXTRACTORS_PROPERTYNAME);
 
             if (extractors == null)
                 return null;
 
-            if (extractors.TryGetValue(name.ToLower(), out extractor))
+            if (extractors.TryGetValue(name.ToLower(), out var extractor))
                 return extractor;
 
             return null;
@@ -98,7 +96,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     if (stream == null || stream.Length == 0)
                     {
                         op.Successful = true;
-                        return String.Empty;
+                        return string.Empty;
                     }
 
                     try
@@ -112,20 +110,22 @@ namespace SenseNet.ContentRepository.Search.Indexing
                             activity.OutArgument = extract;
                         };
 
-                        var act = new TimeboxedActivity();
-                        act.InArgument = stream;
-                        act.Activity = timeboxedFunctionCall;
-                        act.Context = HttpContext.Current;
+                        var act = new TimeboxedActivity
+                        {
+                            InArgument = stream,
+                            Activity = timeboxedFunctionCall,
+                            Context = HttpContext.Current
+                        };
 
-                        var finishedWithinTime = act.ExecuteAndWait(SenseNet.Configuration.Indexing.TextExtractTimeout * 1000);
+                        var finishedWithinTime = act.ExecuteAndWait(Configuration.Indexing.TextExtractTimeout * 1000);
                         if (!finishedWithinTime)
                         {
                             act.Abort();
-                            var msg = String.Format("Text extracting timeout. Version: {0}, path: {1}", node.Version, node.Path);
+                            var msg = $"Text extracting timeout. Version: {node.Version}, path: {node.Path}";
                             SnTrace.Index.Write(msg);
                             SnLog.WriteWarning(msg);
                             op.Successful = true;
-                            return String.Empty;
+                            return string.Empty;
                         }
                         else if (act.ExecutionException != null)
                         {
@@ -199,7 +199,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         var extractor = ResolveExtractor("xml");
                         var extractedText = extractor == null ? null : extractor.Extract(zipStream, context);
 
-                        if (String.IsNullOrEmpty(extractedText))
+                        if (string.IsNullOrEmpty(extractedText))
                         {
                             zipStream.Close();
                             continue;
@@ -220,9 +220,9 @@ namespace SenseNet.ContentRepository.Search.Indexing
         protected static byte[] GetBytesFromStream(Stream stream)
         {
             byte[] fileData;
-            if (stream is MemoryStream)
+            if (stream is MemoryStream memoryStream)
             {
-                fileData = ((MemoryStream)stream).ToArray();
+                fileData = memoryStream.ToArray();
             }
             else
             {
@@ -241,21 +241,21 @@ namespace SenseNet.ContentRepository.Search.Indexing
     {
         public override string Extract(Stream stream, TextExtractorContext context)
         {
-            return base.GetOpenXmlText(stream, context);
+            return GetOpenXmlText(stream, context);
         }
     }
     internal sealed class XlsxTextExtractor : TextExtractor
     {
         public override string Extract(Stream stream, TextExtractorContext context)
         {
-            return base.GetOpenXmlText(stream, context);
+            return GetOpenXmlText(stream, context);
         }
     }
     internal sealed class PptxTextExtractor : TextExtractor
     {
         public override string Extract(Stream stream, TextExtractorContext context)
         {
-            return base.GetOpenXmlText(stream, context);
+            return GetOpenXmlText(stream, context);
         }
     }
     internal sealed class PdfTextExtractor : TextExtractor
@@ -361,7 +361,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
     }
     internal sealed class XmlTextExtractor : TextExtractor
     {
-        public override bool IsSlow { get { return false; } }
+        public override bool IsSlow => false;
+
         public override string Extract(Stream stream, TextExtractorContext context)
         {
             // IMPORTANT: as this extractor is used for extracting text from inner
@@ -453,7 +454,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
     }
     internal sealed class PlainTextExtractor : TextExtractor
     {
-        public override bool IsSlow { get { return false; } }
+        public override bool IsSlow => false;
+
         public override string Extract(Stream stream, TextExtractorContext context)
         {
             return RepositoryTools.GetStreamString(stream);
@@ -461,7 +463,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
     }
     internal sealed class RtfTextExtractor : TextExtractor
     {
-        public override bool IsSlow { get { return false; } }
+        public override bool IsSlow => false;
+
         public override string Extract(Stream stream, TextExtractorContext context)
         {
             return RichTextStripper.StripRichTextFormat(RepositoryTools.GetStreamString(stream));
@@ -475,7 +478,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
     /// </summary>
     internal sealed class NullTextExtractor : TextExtractor
     {
-        public override bool IsSlow { get { return false; } }
+        public override bool IsSlow => false;
+
         public override string Extract(Stream stream, TextExtractorContext context)
         {
             return string.Empty;

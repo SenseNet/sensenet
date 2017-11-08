@@ -17,10 +17,9 @@ namespace SenseNet.ContentRepository.Search.Indexing
         }
         internal static string[] SplitText(string fieldName, string text, IDictionary<string, IndexFieldAnalyzer> analyzers)
         {
-            if (String.IsNullOrEmpty(fieldName))
+            if (string.IsNullOrEmpty(fieldName))
                 fieldName = IndexFieldName.AllText;
-            IndexFieldAnalyzer analyzerType;
-            if (!analyzers.TryGetValue(fieldName, out analyzerType) && fieldName != IndexFieldName.AllText)
+            if (!analyzers.TryGetValue(fieldName, out var analyzerType) && fieldName != IndexFieldName.AllText)
                 analyzerType = IndexFieldAnalyzer.Keyword;
 
             string[] words;

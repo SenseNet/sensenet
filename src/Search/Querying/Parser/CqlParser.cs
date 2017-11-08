@@ -17,7 +17,12 @@ namespace SenseNet.Search.Querying.Parser
         }
         private class FieldInfo
         {
-            public static readonly FieldInfo Default = new FieldInfo { Name = IndexFieldName.AllText, OperatorToken = CqlLexer.Token.Colon, IsBinary = false };
+            public static readonly FieldInfo Default = new FieldInfo
+            {
+                Name = IndexFieldName.AllText,
+                OperatorToken = CqlLexer.Token.Colon,
+                IsBinary = false
+            };
             public string Name { get; set; }
             public CqlLexer.Token OperatorToken { get; set; }
             public bool IsBinary { get; set; }
@@ -29,7 +34,6 @@ namespace SenseNet.Search.Querying.Parser
         private CqlLexer _lexer;
         private readonly Stack<FieldInfo> _currentField = new Stack<FieldInfo>();
         private readonly List<QueryControlParam> _controls = new List<QueryControlParam>();
-        //private readonly List<string> _usedFieldNames = new List<string>();
         private bool _hasEmptyQuery;
 
         public SnQuery Parse(string queryText, IQueryContext context)
@@ -172,8 +176,7 @@ namespace SenseNet.Search.Querying.Parser
         private SnQueryPredicate ParseBinaryOr()
         {
             // BinaryOr        ==>  BinaryAnd | BinaryOr OR BinaryAnd
-            var queries = new List<SnQueryPredicate>();
-            queries.Add(ParseBinaryAnd());
+            var queries = new List<SnQueryPredicate> {ParseBinaryAnd()};
             while (_lexer.CurrentToken == CqlLexer.Token.Or)
             {
                 _lexer.NextToken();
@@ -189,8 +192,7 @@ namespace SenseNet.Search.Querying.Parser
         private SnQueryPredicate ParseBinaryAnd()
         {
             // BinaryAnd       ==>  UnaryNot | BinaryAnd AND UnaryNot
-            var queries = new List<SnQueryPredicate>();
-            queries.Add(ParseUnaryNot());
+            var queries = new List<SnQueryPredicate> {ParseUnaryNot()};
             while (_lexer.CurrentToken == CqlLexer.Token.And)
             {
                 _lexer.NextToken();
@@ -390,13 +392,11 @@ namespace SenseNet.Search.Querying.Parser
         {
             // ValueExpList      ==>  ValueExp | ValueExpList ValueExp
 
-            LogicalPredicate boolQuery;
             var first = ParseValueExp();
-
             if (_lexer.CurrentToken == CqlLexer.Token.RParen)
                 return first;
 
-            boolQuery = new LogicalPredicate();
+            var boolQuery = new LogicalPredicate();
             AddBooleanClause(boolQuery, first, Occurence.Default);
 
             while (!IsEof() && _lexer.CurrentToken != CqlLexer.Token.RParen)
@@ -415,8 +415,7 @@ namespace SenseNet.Search.Querying.Parser
         private SnQueryPredicate ParseValueBinaryOr()
         {
             // ValueBinaryOr     ==>  ValueBinaryAnd | ValueBinaryOr OR ValueBinaryAnd
-            var queries = new List<SnQueryPredicate>();
-            queries.Add(ParseValueBinaryAnd());
+            var queries = new List<SnQueryPredicate> {ParseValueBinaryAnd()};
             while (_lexer.CurrentToken == CqlLexer.Token.Or)
             {
                 _lexer.NextToken();
@@ -432,8 +431,7 @@ namespace SenseNet.Search.Querying.Parser
         private SnQueryPredicate ParseValueBinaryAnd()
         {
             // ValueBinaryAnd    ==>  ValueUnaryNot | ValueBinaryAnd AND ValueUnaryNot
-            var queries = new List<SnQueryPredicate>();
-            queries.Add(ParseValueUnaryNot());
+            var queries = new List<SnQueryPredicate> {ParseValueUnaryNot()};
             while (_lexer.CurrentToken == CqlLexer.Token.And)
             {
                 _lexer.NextToken();
@@ -642,23 +640,19 @@ namespace SenseNet.Search.Querying.Parser
                 var name = _lexer.StringValue;
                 if (IndexDocument.ForbiddenFields.Contains(name))
                     throw ParserError($"Cannot search by '{name}' field name");
-
-
+                
                 fieldInfo = new FieldInfo
                 {
                     Name = name,
                     OperatorToken = _lexer.CurrentToken
                 };
 
-                //if (!_usedFieldNames.Contains(name))
-                //    _usedFieldNames.Add(name);
-
                 _lexer.NextToken();
                 if (_lexer.CurrentToken != CqlLexer.Token.Colon)
                     throw ParserError("Missing field name.");
-
-
+                
                 _lexer.NextToken();
+
                 switch (_lexer.CurrentToken)
                 {
                     case CqlLexer.Token.NEQ:
@@ -817,8 +811,7 @@ namespace SenseNet.Search.Querying.Parser
 
         private void AddBooleanClause(LogicalPredicate boolNode, SnQueryPredicate query, Occurence occur)
         {
-            var boolQ = query as LogicalPredicate;
-            if (boolQ == null)
+            if (!(query is LogicalPredicate boolQ))
             {
                 boolNode.Clauses.Add(new LogicalClause(query, occur));
                 return;
@@ -964,6 +957,5 @@ namespace SenseNet.Search.Querying.Parser
         {
             return new ParserException($"{msg}, (query: \"{_lexer.Source}\")", _lexer.CreateLastLineInfo());
         }
-
     }
 }

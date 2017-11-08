@@ -28,6 +28,7 @@ namespace SenseNet.Search.Querying.Parser
                 if (text == Cql.Keyword.Select || text == Cql.Keyword.Skip || text == Cql.Keyword.Top || text == Cql.Keyword.Sort || text == Cql.Keyword.ReverseSort ||
                     text == Cql.Keyword.Autofilters || text == Cql.Keyword.Lifespan || text == Cql.Keyword.CountOnly || text == Cql.Keyword.Quick || text == Cql.Keyword.AllVersions)
                     return Token.ControlKeyword;
+
                 throw new ParserException("Unknown control keyword: " + text, line);
             }
         }
@@ -81,7 +82,7 @@ namespace SenseNet.Search.Querying.Parser
             Eof
         }
 
-        public string Source { get; private set; }
+        public string Source { get; }
         public int SourceIndex { get; private set; }
         public char CurrentChar { get; private set; }
         public CharType CurrentCharType { get; private set; }
@@ -162,9 +163,7 @@ namespace SenseNet.Search.Querying.Parser
         public bool NextToken()
         {
             bool hasWildcard;
-            bool isPhrase;
             bool field;
-            bool keyword;
 
             SkipWhiteSpaces();
             SaveLineInfo();
@@ -188,7 +187,7 @@ namespace SenseNet.Search.Querying.Parser
                 case '!': this.CurrentToken = Token.Not; this.StringValue = this.CurrentChar.ToString(); NextChar(); break;
                 case '"':
                 case '\'':
-                    this.StringValue = this.ScanQuotedString(out hasWildcard, out field, out isPhrase);
+                    this.StringValue = this.ScanQuotedString(out hasWildcard, out field, out var isPhrase);
                     this.CurrentToken = hasWildcard ? Token.WildcardString : field ? Token.Field : Token.String;
                     this.IsPhrase = isPhrase;
                     break;
@@ -254,9 +253,7 @@ namespace SenseNet.Search.Querying.Parser
                 default:
                     if (this.CurrentCharType == CharType.Digit)
                     {
-                        double numberValue;
-                        string stringValue;
-                        if (this.ScanNumber(out numberValue, out stringValue, out hasWildcard, out field))
+                        if (this.ScanNumber(out var numberValue, out var stringValue, out hasWildcard, out field))
                         {
                             this.CurrentToken = Token.Number;
                             this.StringValue = stringValue;
@@ -270,7 +267,7 @@ namespace SenseNet.Search.Querying.Parser
                     }
                     else
                     {
-                        this.StringValue = this.ScanNonQuotedString(out hasWildcard, out field, out keyword);
+                        this.StringValue = this.ScanNonQuotedString(out hasWildcard, out field, out var keyword);
                         if (keyword)
                             this.CurrentToken = Keywords.ScanControl(this.StringValue, CreateLastLineInfo());
                         else if (hasWildcard)
@@ -363,8 +360,7 @@ namespace SenseNet.Search.Querying.Parser
             }
             numberValue = 0.0;
             var s0 = this.Source.Substring(startIndex, length);
-            bool keyword;
-            var s1 = ScanNonQuotedString(out hasWildcard, out field, out keyword);
+            var s1 = ScanNonQuotedString(out hasWildcard, out field, out _);
             stringValue = s0 + s1;
 
             return false;
@@ -372,7 +368,7 @@ namespace SenseNet.Search.Querying.Parser
         private string ScanQuotedString(out bool hasWildcard, out bool field, out bool isPhrase)
         {
             SaveLineInfo();
-            char stringDelimiter = this.CurrentChar;
+            var stringDelimiter = this.CurrentChar;
             NextChar();
             hasWildcard = false;
             field = false;

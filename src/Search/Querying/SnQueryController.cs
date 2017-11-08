@@ -15,8 +15,7 @@ namespace SenseNet.Search.Querying
 
         internal bool FiltersPrepared { get; private set; }
         public static SnQueryPredicate FullSetPredicate { get; } = new RangePredicate("Id", new IndexValue(0), null, true, false);
-
-
+        
         public static IQueryResult<int> Query(string queryText, IQueryContext context)
         {
             var query = new CqlParser().Parse(queryText, context);
@@ -209,10 +208,12 @@ namespace SenseNet.Search.Querying
             if (HasSort)
             {
                 foreach (var sortInfo in Sort)
+                {
                     if (sortInfo.Reverse)
                         sb.Append(" ").Append(Cql.Keyword.ReverseSort).Append(":").Append(sortInfo.FieldName);
                     else
                         sb.Append(" ").Append(Cql.Keyword.Sort).Append(":").Append(sortInfo.FieldName);
+                }
             }
             if (EnableAutofilters != FilterStatus.Default && EnableAutofilters != EnableAutofiltersDefaultValue)
                 sb.Append(" ").Append(Cql.Keyword.Autofilters).Append(":").Append(EnableAutofiltersDefaultValue == FilterStatus.Enabled ? Cql.Keyword.Off : Cql.Keyword.On);

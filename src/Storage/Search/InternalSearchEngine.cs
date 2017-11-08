@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 
@@ -13,10 +12,7 @@ namespace SenseNet.Search
 
         public IIndexingEngine IndexingEngine => InternalIndexingEngine.Instance;
 
-        public IQueryEngine QueryEngine
-        {
-            get { throw new SnNotSupportedException(); }
-        }
+        public IQueryEngine QueryEngine => throw new SnNotSupportedException();
 
         public IDictionary<string, IndexFieldAnalyzer> GetAnalyzers()
         {

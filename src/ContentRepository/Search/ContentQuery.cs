@@ -18,7 +18,7 @@ namespace SenseNet.Search
     {
         public static string EmptyText => SnQuery.EmptyText;
 
-        private static readonly string[] QuerySettingParts = new[] { "SKIP", "TOP", "SORT", "REVERSESORT", "AUTOFILTERS", "LIFESPAN", "COUNTONLY" };
+        private static readonly string[] QuerySettingParts = { "SKIP", "TOP", "SORT", "REVERSESORT", "AUTOFILTERS", "LIFESPAN", "COUNTONLY" };
         private static readonly string RegexKeywordsAndComments = "//|/\\*|(\\.(?<keyword>[A-Z]+)(([ ]*:[ ]*[#]?\\w+(\\.\\w+)?)|([\\) $\\r\\n]+)))";
         private static readonly string RegexCommentEndSingle = "$";
         private static readonly string RegexCommentEndMulti = "\\*/|\\z";
@@ -28,15 +28,15 @@ namespace SenseNet.Search
         private string _text;
         public string Text
         {
-            get { return _text; }
-            set { _text = FixMultilineComment(value); }
+            get => _text;
+            set => _text = FixMultilineComment(value);
         }
 
         private QuerySettings _settings = new QuerySettings();
         public QuerySettings Settings
         {
-            get { return _settings; }
-            set { _settings = value ?? new QuerySettings(); }
+            get => _settings;
+            set => _settings = value ?? new QuerySettings();
         }
 
         public bool IsSafe { get; private set; }
@@ -118,8 +118,7 @@ namespace SenseNet.Search
         }
         private static string EscapeParameter(object value)
         {
-            var enumerableValue = value as IEnumerable;
-            if (!(value is string) && enumerableValue != null)
+            if (!(value is string) && value is IEnumerable enumerableValue)
             {
                 var escaped = new List<string>();
                 foreach (var x in enumerableValue)
@@ -130,29 +129,27 @@ namespace SenseNet.Search
                     return joined;
                 return "(" + joined + ")";
             }
-            else
-            {
-                var stringValue = value.ToString();
-                var neeqQuot = false;
-                foreach (var c in stringValue)
-                {
-                    if (Char.IsWhiteSpace(c))
-                    {
-                        neeqQuot = true;
-                        break;
-                    }
-                    if (c == '\'' || c == '"' || c == '\\' || c == '+' || c == '-' || c == '&' || c == '|' || c == '!' || c == '(' || c == ')'
-                         || c == '{' || c == '}' || c == '[' || c == ']' || c == '^' || c == '~' || c == '*' || c == '?' || c == ':' || c == '/' || c == '.')
-                    {
-                        neeqQuot = true;
-                        break;
-                    }
-                }
-                if (neeqQuot)
-                    stringValue = "\"" + stringValue.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"";
 
-                return stringValue;
+            var stringValue = value.ToString();
+            var neeqQuot = false;
+            foreach (var c in stringValue)
+            {
+                if (Char.IsWhiteSpace(c))
+                {
+                    neeqQuot = true;
+                    break;
+                }
+                if (c == '\'' || c == '"' || c == '\\' || c == '+' || c == '-' || c == '&' || c == '|' || c == '!' || c == '(' || c == ')'
+                    || c == '{' || c == '}' || c == '[' || c == ']' || c == '^' || c == '~' || c == '*' || c == '?' || c == ':' || c == '/' || c == '.')
+                {
+                    neeqQuot = true;
+                    break;
+                }
             }
+            if (neeqQuot)
+                stringValue = "\"" + stringValue.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"";
+
+            return stringValue;
         }
 
         public void AddClause(string text)
@@ -174,9 +171,9 @@ namespace SenseNet.Search
         private void AddClausePrivate(string text, LogicalOperator logicalOp)
         {
             if (text == null)
-                throw new ArgumentNullException("text");
+                throw new ArgumentNullException(nameof(text));
             if (text.Length == 0)
-                throw new ArgumentException("Clause cannot be empty", "text");
+                throw new ArgumentException("Clause cannot be empty", nameof(text));
 
             if (string.IsNullOrEmpty(this.Text))
             {
@@ -328,14 +325,10 @@ namespace SenseNet.Search
             {
                 var query = TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), queryText);
 
-                if (!query.Contains("}}"))
-                {
-                    result = Execute(query, new SnQueryContext(Settings, userId));
-                }
-                else
-                {
-                    result = RecursiveExecutor.ExecuteRecursive(query, Settings, userId);
-                }
+                result = query.Contains("}}")
+                    ? RecursiveExecutor.ExecuteRecursive(query, Settings, userId)
+                    : Execute(query, new SnQueryContext(Settings, userId));
+
                 op.Successful = true;
             }
             return result;
@@ -373,16 +366,6 @@ namespace SenseNet.Search
 
         private static class RecursiveExecutor
         {
-            private static readonly Regex EscaperRegex;
-            static RecursiveExecutor()
-            {
-                var pattern = new StringBuilder("[");
-                foreach (var c in Cql.StringTerminatorChars.ToCharArray())
-                    pattern.Append("\\" + c);
-                pattern.Append("]");
-                EscaperRegex = new Regex(pattern.ToString());
-            }
-
             public static QueryResult ExecuteRecursive(string queryText, QuerySettings querySettings, int userId)
             {
                 QueryResult result;
@@ -404,8 +387,7 @@ namespace SenseNet.Search
 
                 while (true)
                 {
-                    int start;
-                    var innerScript = GetInnerScript(src, control, out start);
+                    var innerScript = GetInnerScript(src, control, out var start);
                     var end = innerScript == string.Empty;
 
                     if (!end)
@@ -469,14 +451,14 @@ namespace SenseNet.Search
                             if (instr)
                             {
                                 if (c == strlimit)
-                                    instr = !instr;
+                                    instr = false;
                                 @out.Append('_');
                             }
                             else
                             {
                                 if (c == '\'' || c == '"')
                                 {
-                                    instr = !instr;
+                                    instr = true;
                                     strlimit = c;
                                     @out.Append('_');
                                 }
@@ -488,9 +470,6 @@ namespace SenseNet.Search
                         }
                     }
                 }
-
-                var l0 = src.Length;
-                var l1 = @out.Length;
 
                 return @out.ToString();
             }

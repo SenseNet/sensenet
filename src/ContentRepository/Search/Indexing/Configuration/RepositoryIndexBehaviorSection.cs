@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Configuration;
+﻿using System.Configuration;
 
 namespace SenseNet.Search.Indexing.Configuration
 {
-
+    //UNDONE: remove RepositoryIndexBehaviorSection class
     public class RepositoryIndexBehaviorSection : ConfigurationSection
     {
         private const string EnableWriteBehindName = "enableWriteBehind";
@@ -15,72 +11,53 @@ namespace SenseNet.Search.Indexing.Configuration
         private const string NearRealtimeSearchName = "nearRealtimeSearch";
 
 
-        [ConfigurationProperty(RepositoryIndexBehaviorSection.NearRealtimeSearchName, DefaultValue = "true")]
+        [ConfigurationProperty(NearRealtimeSearchName, DefaultValue = "true")]
         public bool NearRealtimeSearch
         {
-            get
-            {
-                return (Boolean)this[RepositoryIndexBehaviorSection.NearRealtimeSearchName];
-            }
-            set
-            {
-                this[RepositoryIndexBehaviorSection.NearRealtimeSearchName] = value;
-            }
+            get => (bool)this[NearRealtimeSearchName];
+            set => this[NearRealtimeSearchName] = value;
         }
 
 
-        [ConfigurationProperty(RepositoryIndexBehaviorSection.EnableWriteBehindName, DefaultValue = "false")]
+        [ConfigurationProperty(EnableWriteBehindName, DefaultValue = "false")]
         public bool EnableWriteBehind
         {
-            get
-            {
-                return (Boolean)this[RepositoryIndexBehaviorSection.EnableWriteBehindName];
-            }
-            set
-            {
-                this[RepositoryIndexBehaviorSection.EnableWriteBehindName] = value;
-            }
+            get => (bool)this[EnableWriteBehindName];
+            set => this[EnableWriteBehindName] = value;
         }
 
-        [ConfigurationProperty(RepositoryIndexBehaviorSection.CommitIntervalName, DefaultValue = 10)]
+        [ConfigurationProperty(CommitIntervalName, DefaultValue = 10)]
         public int CommitInterval
         {
-            get
-            {
-                return (int)this[RepositoryIndexBehaviorSection.CommitIntervalName];
-            }
-            set
-            {
-                this[RepositoryIndexBehaviorSection.CommitIntervalName] = value;
-            }
+            get => (int)this[CommitIntervalName];
+            set => this[CommitIntervalName] = value;
         }
 
-        [ConfigurationProperty(RepositoryIndexBehaviorSection.MaxUncommitedChangesName, DefaultValue = 100)]
+        [ConfigurationProperty(MaxUncommitedChangesName, DefaultValue = 100)]
         public int MaxUncommitedChanges
         {
-            get
-            {
-                return (int)this[RepositoryIndexBehaviorSection.MaxUncommitedChangesName];
-            }
-            set
-            {
-                this[RepositoryIndexBehaviorSection.MaxUncommitedChangesName] = value;
-            }
+            get => (int)this[MaxUncommitedChangesName];
+            set => this[MaxUncommitedChangesName] = value;
         }
-
-
+        
         private const string RepositoryIndexBehaviorSectionName = "sensenet/repositoryIndexBehavior";
 
         public static RepositoryIndexBehaviorSection Current
         {
             get
             {
-                var section = (RepositoryIndexBehaviorSection)ConfigurationManager.GetSection(RepositoryIndexBehaviorSectionName);
-                if (section == null)
-                    section = new RepositoryIndexBehaviorSection() { MaxUncommitedChanges = 100, EnableWriteBehind = false, NearRealtimeSearch = true, CommitInterval = 10 };
+                var section =
+                    (RepositoryIndexBehaviorSection) ConfigurationManager.GetSection(
+                        RepositoryIndexBehaviorSectionName) ??
+                    new RepositoryIndexBehaviorSection
+                    {
+                        MaxUncommitedChanges = 100,
+                        EnableWriteBehind = false,
+                        NearRealtimeSearch = true,
+                        CommitInterval = 10
+                    };
                 return section;
             }
         }
-
     }
 }

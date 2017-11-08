@@ -8,7 +8,6 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
-using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.ContentRepository.Search.Indexing
@@ -23,11 +22,6 @@ namespace SenseNet.ContentRepository.Search.Indexing
             internal string OriginalPath { get; set; }
             internal string NewPath { get; set; }
             internal bool IsNewNode { get; set; }
-        }
-        private class DeleteVersionPopulatorData
-        {
-            internal Node OldVersion { get; set; }
-            internal Node LastDraftAfterDelete { get; set; }
         }
 
         /*======================================================================================================= IIndexPopulator Members */
@@ -98,8 +92,6 @@ namespace SenseNet.ContentRepository.Search.Indexing
         {
             var state = (DocumentPopulatorData)data;
             var versioningInfo = GetVersioningInfo(state);
-
-            var settings = state.Settings;
 
             using (var op = SnTrace.Index.StartOperation("DocumentPopulator.CommitPopulateNode. Version: {0}, VersionId: {1}, Path: {2}", state.Node.Version, state.Node.VersionId, state.Node.Path))
             {
@@ -182,7 +174,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         {
             using (var op = SnTrace.Index.StartOperation("DocumentPopulator.RefreshIndex. Version: {0}, VersionId: {1}, recursive: {2}, level: {3}", node.Version, node.VersionId, recursive, rebuildLevel))
             {
-                using (new SenseNet.ContentRepository.Storage.Security.SystemAccount())
+                using (new Storage.Security.SystemAccount())
                 {
                     var databaseAndIndex = rebuildLevel == IndexRebuildLevel.DatabaseAndIndex;
                     if (recursive)
@@ -198,10 +190,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
             TreeLock.AssertFree(node.Path);
 
             var head = NodeHead.Get(node.Id);
-            bool hasBinary;
             if (databaseAndIndex)
+            {
                 foreach (var version in head.Versions.Select(v => Node.LoadNodeByVersionId(v.VersionId)))
-                    DataBackingStore.SaveIndexDocument(version, false, false, out hasBinary);
+                    DataBackingStore.SaveIndexDocument(version, false, false, out _);
+            }
 
             var versioningInfo = new VersioningInfo
             {
@@ -216,24 +209,26 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         private void RebuildIndex_Recursive(Node node, bool databaseAndIndex)
         {
-            bool hasBinary;
             using (TreeLock.Acquire(node.Path))
             {
                 DeleteTree(node.Path, node.Id);
                 if (databaseAndIndex)
+                {
                     foreach (var n in NodeQuery.QueryNodesByPath(node.Path, true).Nodes)
-                        DataBackingStore.SaveIndexDocument(n, false, false, out hasBinary);
+                        DataBackingStore.SaveIndexDocument(n, false, false, out _);
+                }
+
                 PopulateTree(node.Path, node.Id);
             }
         }
 
 
-        public event EventHandler<NodeIndexedEvenArgs> NodeIndexed;
+        public event EventHandler<NodeIndexedEventArgs> NodeIndexed;
         protected void OnNodeIndexed(string path)
         {
             if (NodeIndexed == null)
                 return;
-            NodeIndexed(null, new NodeIndexedEvenArgs(path));
+            NodeIndexed(null, new NodeIndexedEventArgs(path));
         }
 
 
@@ -330,7 +325,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         public void DeleteTree(string path, int nodeId) { }
 #pragma warning disable 0067
         // suppressed because it is not used but the interface declares.
-        public event EventHandler<NodeIndexedEvenArgs> NodeIndexed;
+        public event EventHandler<NodeIndexedEventArgs> NodeIndexed;
 #pragma warning restore 0067
         public void DeleteForest(IEnumerable<int> idSet) { }
         public void DeleteForest(IEnumerable<string> pathSet) { }
@@ -342,27 +337,24 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             using (var op = SnTrace.Index.StartOperation("NullPopulator.RefreshIndex. Version: {0}, VersionId: {1}, recursive: {2}, level: {3}", node.Version, node.VersionId, recursive, rebuildLevel))
             {
-                bool hasBinary;
-                using (new SenseNet.ContentRepository.Storage.Security.SystemAccount())
+                using (new Storage.Security.SystemAccount())
                 {
                     if (recursive)
                     {
-                        using (SenseNet.ContentRepository.Storage.TreeLock.Acquire(node.Path))
+                        using (TreeLock.Acquire(node.Path))
                         {
                             foreach (var n in NodeEnumerator.GetNodes(node.Path))
-                                DataBackingStore.SaveIndexDocument(n, false, false, out hasBinary);
+                                DataBackingStore.SaveIndexDocument(n, false, false, out _);
                         }
                     }
                     else
                     {
-                        SenseNet.ContentRepository.Storage.TreeLock.AssertFree(node.Path);
-                        DataBackingStore.SaveIndexDocument(node, false, false, out hasBinary);
+                        TreeLock.AssertFree(node.Path);
+                        DataBackingStore.SaveIndexDocument(node, false, false, out _);
                     }
                 }
                 op.Successful = true;
             }
         }
-
     }
-
 }

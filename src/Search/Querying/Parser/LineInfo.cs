@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace SenseNet.Search.Querying.Parser
 {
@@ -7,8 +6,8 @@ namespace SenseNet.Search.Querying.Parser
 	public class LineInfo
 	{
 		internal static LineInfo NullValue = new LineInfo(0, 0);
-		public int Line { get; private set; }
-		public int Column { get; private set; }
+		public int Line { get; }
+		public int Column { get; }
 
 		internal LineInfo(int line, int column)
 		{
@@ -18,7 +17,7 @@ namespace SenseNet.Search.Querying.Parser
 
         public override string ToString()
         {
-            return String.Format("[Line: {0}, Col: {1}]", Line + 1, Column + 1);
+            return $"[Line: {Line + 1}, Col: {Column + 1}]";
         }
 	}
 }

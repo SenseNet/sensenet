@@ -25,7 +25,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         {
             return new AllContentTypes()
                 .Where(c => !c.IndexingEnabled)
-                .Select(c => ContentRepository.Storage.Schema.NodeType.GetByName(c.Name).Id)
+                .Select(c => Storage.Schema.NodeType.GetByName(c.Name).Id)
                 .ToArray();
         }
 
@@ -33,8 +33,12 @@ namespace SenseNet.ContentRepository.Search.Indexing
         {
             IndexingEngine.Start(consoleOut);
 
-            CommitManager = IndexingEngine.IndexIsCentralized ? (ICommitManager)new NoDelayCommitManager() : new NearRealTimeCommitManager();
+            CommitManager = IndexingEngine.IndexIsCentralized
+                ? (ICommitManager) new NoDelayCommitManager()
+                : new NearRealTimeCommitManager();
+
             SnTrace.Index.Write("LM: {0} created.", CommitManager.GetType().Name);
+
             CommitManager.Start();
 
             if (IndexingEngine.IndexIsCentralized)

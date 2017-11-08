@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using SenseNet.ContentRepository.Search.Indexing;
+﻿using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 

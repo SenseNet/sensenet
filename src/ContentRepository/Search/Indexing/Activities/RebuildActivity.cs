@@ -33,7 +33,6 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
             return true;
         }
 
-
         protected override string GetExtension()
         {
             return null;
@@ -42,6 +41,5 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
         {
             // do nothing
         }
-
     }
 }

@@ -8,12 +8,17 @@ namespace SenseNet.Search.Querying
     {
         public virtual SnQueryPredicate Visit(SnQueryPredicate predicate)
         {
-            if (predicate == null)
-                return null;
-
-            var text  = predicate as SimplePredicate;    if (text != null)  return VisitTextPredicate    (text);
-            var range = predicate as RangePredicate;   if (range != null) return VisitRangePredicate   (range);
-            var logic = predicate as LogicalPredicate; if (logic != null) return VisitLogicalPredicate (logic);
+            switch (predicate)
+            {
+                case null:
+                    return null;
+                case SimplePredicate text:
+                    return VisitTextPredicate(text);
+                case RangePredicate range:
+                    return VisitRangePredicate(range);
+                case LogicalPredicate logic:
+                    return VisitLogicalPredicate(logic);
+            }
 
             throw new NotSupportedException("Unknown predicate type: " + predicate.GetType().FullName);
         }
@@ -52,7 +57,7 @@ namespace SenseNet.Search.Querying
                 else if (visitedClause != clauses[index])
                 {
                     rewritten = new List<LogicalClause>();
-                    for (int i = 0; i < index; i++)
+                    for (var i = 0; i < index; i++)
                         rewritten.Add(clauses[i]);
                     rewritten.Add(visitedClause);
                 }

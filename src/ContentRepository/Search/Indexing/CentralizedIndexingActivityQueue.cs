@@ -4,17 +4,15 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using SenseNet.ContentRepository.Search.Indexing.Activities;
-using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
-using SenseNet.Search.Indexing;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
     internal static class CentralizedIndexingActivityQueue
     {
         private static readonly int MaxCount = 10;
-        private static readonly int RunningTimeoutInSeconds = SenseNet.Configuration.Indexing.IndexingActivityTimeoutInSeconds;
+        private static readonly int RunningTimeoutInSeconds = Configuration.Indexing.IndexingActivityTimeoutInSeconds;
         private static readonly int LockRefreshPeriodInMilliseconds = RunningTimeoutInSeconds * 3000 / 4;
         private static readonly int HearthBeatMilliseconds = 1000;
 
@@ -30,7 +28,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         private static volatile int _activeTasks;
         private static int _pollingBlockerCounter;
 
-        private static readonly object _waitingActivitiesSync = new object();
+        private static readonly object WaitingActivitiesSync = new object();
         private static readonly Dictionary<int, IndexingActivityBase> _waitingActivities = new Dictionary<int, IndexingActivityBase>();
 
         public static void Startup(TextWriter consoleOut)
@@ -63,8 +61,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 _lastDeleteFinishedTime = DateTime.UtcNow;
 
                 _timer = new System.Timers.Timer(HearthBeatMilliseconds);
-                _timer.Elapsed += new System.Timers.ElapsedEventHandler(Timer_Elapsed);
-                _timer.Disposed += new EventHandler(Timer_Disposed);
+                _timer.Elapsed += Timer_Elapsed;
+                _timer.Disposed += Timer_Disposed;
                 // awakening (this is the judgement day)
                 _timer.Enabled = true;
 
@@ -84,8 +82,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         private static void Timer_Disposed(object sender, EventArgs e)
         {
-            _timer.Elapsed -= new System.Timers.ElapsedEventHandler(Timer_Elapsed);
-            _timer.Disposed -= new EventHandler(Timer_Disposed);
+            _timer.Elapsed -= Timer_Elapsed;
+            _timer.Disposed -= Timer_Disposed;
         }
         private static void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
@@ -119,7 +117,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 return;
 
             int waitingListLength;
-            lock (_waitingActivitiesSync)
+            lock (WaitingActivitiesSync)
                 waitingListLength = _waitingActivities.Count;
             var timeLimit = waitingListLength > 0 ? _waitingPollingPeriod : _healthCheckPeriod;
 
@@ -146,7 +144,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             _lastLockRefreshTime = DateTime.UtcNow;
 
             int[] waitingIds;
-            lock (_waitingActivitiesSync)
+            lock (WaitingActivitiesSync)
                 waitingIds = _waitingActivities.Keys.ToArray();
 
             if (waitingIds.Length == 0)
@@ -185,7 +183,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         private static int ExecuteActivities(IndexingActivityBase waitingActivity, bool systemStart)
         {
             int[] waitingActivityIds;
-            lock (_waitingActivitiesSync)
+            lock (WaitingActivitiesSync)
             {
                 if (waitingActivity != null)
                 {
@@ -209,13 +207,14 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 MaxCount,
                 RunningTimeoutInSeconds,
                 waitingActivityIds,
-                out int[] finishedActivitiyIds);
-            SnTrace.IndexQueue.Write("CIAQ: loaded: {0}, waiting: {1}, finished: {2}, tasks: {3}", loadedActivities.Length, _waitingActivities.Count, finishedActivitiyIds.Length, _activeTasks);
+                out var finishedActivitiyIds);
+
+            SnTrace.IndexQueue.Write("CIAQ: loaded: {0}, waiting: {1}, finished: {2}, tasks: {3}", loadedActivities.Length, waitingActivityIds.Length, finishedActivitiyIds.Length, _activeTasks);
 
             // release finished activities
             if (finishedActivitiyIds.Length > 0)
             {
-                lock (_waitingActivitiesSync)
+                lock (WaitingActivitiesSync)
                 {
                     foreach (var finishedActivitiyId in finishedActivitiyIds)
                     {
@@ -264,7 +263,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     _activeTasks++;
 
                     // execute synchronously
-                    using (new SenseNet.ContentRepository.Storage.Security.SystemAccount())
+                    using (new Storage.Security.SystemAccount())
                         act.ExecuteIndexingActivity();
 
                     // publish the finishing state
@@ -279,7 +278,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 finally
                 {
                     // release the waiting thread and remove from the waiting list
-                    lock (_waitingActivitiesSync)
+                    lock (WaitingActivitiesSync)
                     {
                         act.Finish();
                         _waitingActivities.Remove(act.Id);

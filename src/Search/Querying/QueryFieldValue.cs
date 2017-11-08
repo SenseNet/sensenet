@@ -3,7 +3,7 @@
     public class QueryFieldValue
     {
         public string StringValue { get; }
-        internal bool IsPhrase { get; private set; }
+        internal bool IsPhrase { get; }
         internal double? FuzzyValue { get; set; }
 
         internal QueryFieldValue(string stringValue, bool isPhrase)
@@ -16,6 +16,5 @@
         {
             return string.Concat(StringValue, FuzzyValue == null ? "" : ":" + FuzzyValue);
         }
-
     }
 }

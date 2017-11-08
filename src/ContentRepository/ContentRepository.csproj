@@ -269,6 +269,7 @@
     <Compile Include="Search\Querying\SnQueryContext.cs" />
     <Compile Include="Search\Indexing\TextExtractor.cs" />
     <Compile Include="Search\Indexing\TextSplitter.cs" />
+    <Compile Include="Search\TextExtractorsField.cs" />
     <Compile Include="Setting\UserProfileSettings.cs" />
     <Compile Include="ContentNamingHelper.cs" />
     <Compile Include="ContentNamingProvider.cs" />
