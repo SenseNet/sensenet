@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace SenseNet.ContentRepository.Linq
 {
     internal class SetExecVisitor : ExpressionVisitor
     {
-        private Dictionary<Expression, SnExpr> _expressions = new Dictionary<Expression, SnExpr>();
-        private Stack<SnExpr> _parentChain = new Stack<SnExpr>();
-        private SnExpr _rootExpr;
+        private readonly Dictionary<Expression, SnExpr> _expressions = new Dictionary<Expression, SnExpr>();
+        private readonly Stack<SnExpr> _parentChain = new Stack<SnExpr>();
+        private SnExpr _rootExpr; //UNDONE: check why this variable is only assigned but not used
         private SnExpr _currentExpr;
 
         internal bool HasParameter { get; private set; }

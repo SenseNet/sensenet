@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using SenseNet.ContentRepository.Storage;
 using System.Linq.Expressions;
 
@@ -10,11 +8,11 @@ namespace SenseNet.ContentRepository.Linq
 {
     public class FilteredEnumerable : IEnumerable<Node>
     {
-        private IEnumerable _enumerable;
-        private int _top;
-        private int _skip;
+        private readonly IEnumerable _enumerable;
+        private readonly int _top;
+        private readonly int _skip;
 
-        private Func<Content, bool> _isOk;
+        private readonly Func<Content, bool> _isOk;
 
         public int AllCount { get; private set; }
 

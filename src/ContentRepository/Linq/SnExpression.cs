@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using SenseNet.Search;
-using System.Collections;
 using System.Linq.Expressions;
 using SenseNet.ContentRepository.Schema;
-using SenseNet.Search.Parser;
 using SenseNet.Search.Querying;
 using SenseNet.Search.Querying.Parser.Predicates;
 
@@ -55,13 +51,12 @@ namespace SenseNet.ContentRepository.Linq
 
             // #2 combining with additional query clause
             SnQuery lq = null;
-            if (!string.IsNullOrEmpty(childrenDef.ContentQuery))
+            if (!string.IsNullOrEmpty(childrenDef?.ContentQuery))
             {
                 lq = SnQuery.Parse(childrenDef.ContentQuery, new SnQueryContext(QuerySettings.Default, User.Current.Id));
-                if (q0 == null)
-                    q0 = lq.QueryTree;
-                else
-                    q0 = CombineQueries(q0, lq.QueryTree);
+                q0 = q0 == null 
+                    ? lq.QueryTree 
+                    : CombineQueries(q0, lq.QueryTree);
             }
 
             // #3 combining with context path
@@ -138,8 +133,7 @@ namespace SenseNet.ContentRepository.Linq
         {
             var v = new OptimizeBooleansVisitor();
             var optimizedPredicate = v.Visit(predicate);
-            var logicalPredicate = optimizedPredicate as LogicalPredicate;
-            if (logicalPredicate == null)
+            if (!(optimizedPredicate is LogicalPredicate logicalPredicate))
                 return optimizedPredicate;
             var clauses = logicalPredicate.Clauses;
             if (clauses.Count != 1)

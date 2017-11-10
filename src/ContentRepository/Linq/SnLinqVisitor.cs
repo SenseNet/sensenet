@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Linq.Expressions;
 using System.Diagnostics;
 using SenseNet.Search;
-using SenseNet.Search.Parser;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.Search.Querying.Parser.Predicates;
@@ -16,7 +15,6 @@ namespace SenseNet.ContentRepository.Linq
     internal class SnLinqVisitor : ExpressionVisitor
     {
         #region ContentHandlerGetTypePredicate, BooleanMemberPredicate
-
         private class ContentHandlerGetTypePredicate : SnQueryPredicate
         {
             public override string ToString()
@@ -52,8 +50,7 @@ namespace SenseNet.ContentRepository.Linq
                 return null;
             if (_predicates.Count > 1)
                 CombineAllPredicatesOnStack();
-            var bmq = _predicates.Peek() as BooleanMemberPredicate;
-            if (bmq != null)
+            if (_predicates.Peek() is BooleanMemberPredicate bmq)
             {
                 _predicates.Pop();
                 _predicates.Push(CreateTextPredicate(bmq.FieldName, bmq.Value));
@@ -272,8 +269,7 @@ namespace SenseNet.ContentRepository.Linq
         {
             Trace(MethodBase.GetCurrentMethod(), node);
             var visited = base.VisitMethodCall(node);
-            var methodCallExpr = visited as MethodCallExpression;
-            if (methodCallExpr == null)
+            if (!(visited is MethodCallExpression methodCallExpr))
                 throw new NotSupportedException("#VisitMethodCall if visited is not null");
             switch (methodCallExpr.Method.Name)
             {
@@ -318,8 +314,7 @@ namespace SenseNet.ContentRepository.Linq
                     break;
                 case "Contains":
                     var arg0 = methodCallExpr.Arguments[0];
-                    var constantExpr = arg0 as ConstantExpression;
-                    if (constantExpr != null)
+                    if (arg0 is ConstantExpression constantExpr)
                     {
                         if (constantExpr.Type != typeof(string))
                             throw new NotSupportedException(
@@ -328,13 +323,11 @@ namespace SenseNet.ContentRepository.Linq
                         BuildWildcardPredicate(GetPropertyName(methodCallExpr.Object), WildcardPosition.AtStartAndEnd, containsArg);
                         break;
                     }
-                    var memberExpr = arg0 as MemberExpression;
-                    if (memberExpr != null)
+                    if (arg0 is MemberExpression memberExpr)
                     {
                         if (memberExpr.Type != typeof(IEnumerable<Node>))
                             throw NotSupportedException(node, "#2");
-                        var rightConstant = methodCallExpr.Arguments[1] as ConstantExpression;
-                        if (rightConstant == null)
+                        if (!(methodCallExpr.Arguments[1] is ConstantExpression rightConstant))
                             throw NotSupportedException(node, "#1");
                         var nodeValue = (Node)rightConstant.Value;
                         BuildTextPredicate(memberExpr.Member.Name, nodeValue);
@@ -372,8 +365,7 @@ namespace SenseNet.ContentRepository.Linq
                     BuildTextPredicate("TypeIs", (string)(typeIsExpr).Value);
                     break;
                 case "get_Item":
-                    var typedParamExpr = methodCallExpr.Object as ParameterExpression;
-                    if (typedParamExpr == null)
+                    if (!(methodCallExpr.Object is ParameterExpression))
                         throw new NotSupportedException("#get_Item");
                     break;
                 case "startswith":
@@ -422,8 +414,7 @@ namespace SenseNet.ContentRepository.Linq
                     }
                 case "GetType":
                     {
-                        var member = methodCallExpr.Object as MemberExpression;
-                        if (member != null && member.Member == typeof(Content).GetProperty("ContentHandler"))
+                        if (methodCallExpr.Object is MemberExpression member && member.Member == typeof(Content).GetProperty("ContentHandler"))
                             _predicates.Push(new ContentHandlerGetTypePredicate());
                         else
                             throw new NotSupportedException("GetType method is not supported: " + node);
@@ -431,16 +422,14 @@ namespace SenseNet.ContentRepository.Linq
                     }
                 case "IsAssignableFrom":
                     {
-                        var member = methodCallExpr.Object as ConstantExpression;
-                        if (member == null)
+                        if (!(methodCallExpr.Object is ConstantExpression member))
                             throw new NotSupportedException("IsAssignableFrom method is not supported: " + node);
                         var type = member.Value as Type;
                         if (type == null)
                             throw new NotSupportedException("IsAssignableFrom method is not supported" + node);
                         if (_predicates.Count == 0)
                             throw new NotSupportedException("IsAssignableFrom method is not supported" + node);
-                        var q = _predicates.Pop() as ContentHandlerGetTypePredicate;
-                        if (q == null)
+                        if (!(_predicates.Pop() is ContentHandlerGetTypePredicate))
                             throw new NotSupportedException("IsAssignableFrom method is not supported" + node);
                         _predicates.Push(CreateTypeIsPredicate(type));
 
@@ -497,13 +486,11 @@ namespace SenseNet.ContentRepository.Linq
                 {
                     var visited = Visit(unary.Operand);
                     string name = null;
-                    var callExpr = visited as MethodCallExpression;
-                    if (callExpr != null)
+                    if (visited is MethodCallExpression callExpr)
                     {
                         if (callExpr.Method.Name == "get_Item" && callExpr.Arguments.Count == 1 && callExpr.Arguments[0].Type == typeof(string))
                         {
-                            var constExpr = callExpr.Arguments[0] as ConstantExpression;
-                            if (constExpr == null)
+                            if (!(callExpr.Arguments[0] is ConstantExpression constExpr))
                                 throw NotSupportedException(node, "#4");
                             name = constExpr.Value as string;
                             if (string.IsNullOrEmpty(name))
@@ -512,8 +499,7 @@ namespace SenseNet.ContentRepository.Linq
                     }
                     else
                     {
-                        var memberExpr = visited as MemberExpression;
-                        if (memberExpr != null)
+                        if (visited is MemberExpression memberExpr)
                             name = memberExpr.Member.Name;
                         else
                             throw NotSupportedException(node, "#5");
@@ -524,8 +510,7 @@ namespace SenseNet.ContentRepository.Linq
             else if (unary.NodeType == ExpressionType.Not)
             {
                 var predicate = _predicates.Peek();
-                var bmq = predicate as BooleanMemberPredicate;
-                if (bmq != null)
+                if (predicate is BooleanMemberPredicate bmq)
                 {
                     bmq.Value = !bmq.Value;
                 }
@@ -561,8 +546,7 @@ namespace SenseNet.ContentRepository.Linq
             for (var i = 0; i < count; i++)
             {
                 var predicate = _predicates.Pop();
-                var bmp = predicate as BooleanMemberPredicate;
-                if (bmp != null)
+                if (predicate is BooleanMemberPredicate bmp)
                     predicate = CreateTextPredicate(bmp.FieldName, bmp.Value);
                 clauses.Add(new LogicalClause(predicate, Occurence.Must));
             }
@@ -582,12 +566,10 @@ namespace SenseNet.ContentRepository.Linq
             if (_predicates.Count == 0)
                 return false;
 
-            var bmq = predicate as BooleanMemberPredicate;
-            if (bmq == null)
+            if (!(predicate is BooleanMemberPredicate bmq))
                 return false;
 
-            var topBmq = _predicates.Peek() as BooleanMemberPredicate;
-            if (topBmq == null)
+            if (!(_predicates.Peek() is BooleanMemberPredicate topBmq))
                 return false;
 
             if (topBmq.FieldName != bmq.FieldName)
@@ -597,7 +579,7 @@ namespace SenseNet.ContentRepository.Linq
             return true;
         }
 
-        private readonly string[] _enabledCanonicalFunctionNames = new[] { "startswith", "endswith", "substringof", "isof" };
+        private readonly string[] _enabledCanonicalFunctionNames = { "startswith", "endswith", "substringof", "isof" };
         private void BuildFieldExpr(BinaryExpression node)
         {
             // normalizing sides: constant must be on the right side
@@ -614,21 +596,18 @@ namespace SenseNet.ContentRepository.Linq
             }
 
             // getting field name
-            string name;
             string fieldName;
-            if (IsIndexerAccess(left, out name))
+            if (IsIndexerAccess(left, out var name))
             {
                 fieldName = name;
             }
             else if (left.NodeType == ExpressionType.MemberAccess && right.NodeType == ExpressionType.Constant)
             {
-                var leftAsMemberExpr = left as MemberExpression;
-                if (leftAsMemberExpr == null)
+                if (!(left is MemberExpression leftAsMemberExpr))
                     throw new NotSupportedException();
 
                 var parentExpr = leftAsMemberExpr.Expression;
-                var parentAsParameter = parentExpr as ParameterExpression;
-                if (parentAsParameter != null)
+                if (parentExpr is ParameterExpression parentAsParameter)
                 {
                     if (IsValidType(parentAsParameter.Type))
                         fieldName = leftAsMemberExpr.Member.Name;
@@ -637,11 +616,12 @@ namespace SenseNet.ContentRepository.Linq
                 }
                 else
                 {
-                    var parentAsMemberExpr = parentExpr as MemberExpression;
-                    if (parentAsMemberExpr != null)
+                    if (parentExpr is MemberExpression parentAsMemberExpr)
                     {
-                        var parentParentAsParameter = parentAsMemberExpr.Expression as ParameterExpression;
-                        if (parentParentAsParameter != null && IsValidType(parentParentAsParameter.Type) && parentAsMemberExpr.Member.Name == "ContentType" && leftAsMemberExpr.Member.Name == "Name")
+                        if (parentAsMemberExpr.Expression is ParameterExpression parentParentAsParameter 
+                            && IsValidType(parentParentAsParameter.Type) 
+                            && parentAsMemberExpr.Member.Name == "ContentType" 
+                            && leftAsMemberExpr.Member.Name == "Name")
                             fieldName = "Type";
                         else
                             throw new NotSupportedException("Cannot parse an expression #1: " + parentAsMemberExpr);
@@ -654,7 +634,8 @@ namespace SenseNet.ContentRepository.Linq
                             if (typeof(Node).IsAssignableFrom(unary.Type))
                                 fieldName = leftAsMemberExpr.Member.Name;
                             else
-                                throw new NotSupportedException("Cannot a member expression where object is: " + unary.Type.FullName);
+                                throw new NotSupportedException(
+                                    "Cannot a member expression where object is: " + unary.Type.FullName);
                         }
                         else
                         {
@@ -686,16 +667,14 @@ namespace SenseNet.ContentRepository.Linq
             var value = ((ConstantExpression)right).Value;
 
             // content type hack
-            var contentTypeValue = value as ContentType;
-            if (contentTypeValue != null && fieldName == "ContentType")
+            if (value is ContentType contentTypeValue && fieldName == "ContentType")
             {
                 fieldName = "Type";
                 value = contentTypeValue.Name;
             }
 
             // converting
-            Type fieldDatatype;
-            var indexValue = ConvertValue(fieldName, value, out fieldDatatype);
+            var indexValue = ConvertValue(fieldName, value, out var fieldDatatype);
 
             // creating product
             SnQueryPredicate predicate;
@@ -735,8 +714,7 @@ namespace SenseNet.ContentRepository.Linq
         }
         internal static SimplePredicate CreateTextPredicate(string fieldName, object value)
         {
-            var indexValue = value as IndexValue;
-            if (indexValue == null)
+            if (!(value is IndexValue indexValue))
                 indexValue = ConvertValue(fieldName, value);
             return new SimplePredicate(fieldName, indexValue);
         }
@@ -790,13 +768,11 @@ namespace SenseNet.ContentRepository.Linq
 
         private static IndexValue ConvertValue(string name, object value)
         {
-            Type fieldDataType;
-            return ConvertValue(name, value, out fieldDataType);
+            return ConvertValue(name, value, out _);
         }
         private static IndexValue ConvertValue(string name, object value, out Type fieldDataType)
         {
-            var contentTypeValue = value as ContentType;
-            if (contentTypeValue != null && name == "ContentType")
+            if (value is ContentType contentTypeValue && name == "ContentType")
             {
                 name = "TypeIs";
                 value = contentTypeValue.Name.ToLowerInvariant();
@@ -820,20 +796,16 @@ namespace SenseNet.ContentRepository.Linq
 
         private SortInfo CreateSortInfoFromExpr(MethodCallExpression node, bool reverse)
         {
-            var unaryExpr = node.Arguments[1] as UnaryExpression;
-            if (unaryExpr == null)
+            if (!(node.Arguments[1] is UnaryExpression unaryExpr))
                 throw new Exception("Invalid sort: " + node);
 
-            var operand = unaryExpr.Operand as LambdaExpression;
-            if (operand == null)
+            if (!(unaryExpr.Operand is LambdaExpression operand))
                 throw new Exception("Invalid sort: " + node);
 
-            var memberExpr = operand.Body as MemberExpression;
-            if (memberExpr != null)
+            if (operand.Body is MemberExpression memberExpr)
                 return new SortInfo(memberExpr.Member.Name, reverse);
 
-            var methodCallExpr = operand.Body as MethodCallExpression;
-            if (methodCallExpr == null)
+            if (!(operand.Body is MethodCallExpression methodCallExpr))
                 throw new Exception("Invalid sort: " + node);
 
             if (methodCallExpr.Method.Name != "get_Item")
@@ -842,8 +814,7 @@ namespace SenseNet.ContentRepository.Linq
             if (methodCallExpr.Arguments.Count != 1)
                 throw new Exception("Invalid sort: " + node);
 
-            var nameExpr = methodCallExpr.Arguments[0] as ConstantExpression;
-            if (nameExpr == null)
+            if (!(methodCallExpr.Arguments[0] is ConstantExpression nameExpr))
                 throw new Exception("Invalid sort: " + node);
 
             return new SortInfo((string)nameExpr.Value, reverse);
@@ -870,24 +841,20 @@ namespace SenseNet.ContentRepository.Linq
 
         private string GetPropertyName(Expression expr)
         {
-            var memberExpr = expr as MemberExpression;
-            if (memberExpr != null)
+            if (expr is MemberExpression memberExpr)
                 return memberExpr.Member.Name;
 
-            var unaryExpr = expr as UnaryExpression;
-            if (unaryExpr != null)
+            if (expr is UnaryExpression unaryExpr)
                 return GetPropertyName(unaryExpr.Operand);
 
-            var methodCallExpr = expr as MethodCallExpression;
-            if (methodCallExpr == null)
+            if (!(expr is MethodCallExpression methodCallExpr))
                 throw new SnNotSupportedException("SnLinq: GetPropertyName from Expression");
 
-            if (methodCallExpr.Method.Name != "get_Item" || methodCallExpr.Object.Type != typeof(Content))
+            if (methodCallExpr.Method.Name != "get_Item" || methodCallExpr.Object?.Type != typeof(Content))
                 throw new SnNotSupportedException("SnLinq: GetPropertyName from MethodCallExpression");
             // content indexer --> return with field name
 
-            var constantArgumentExpr = methodCallExpr.Arguments[0] as ConstantExpression;
-            if (constantArgumentExpr == null)
+            if (!(methodCallExpr.Arguments[0] is ConstantExpression constantArgumentExpr))
                 throw new SnNotSupportedException("SnLinq: GetPropertyName from Content indexer expression");
             return (string)constantArgumentExpr.Value;
         }
@@ -901,22 +868,19 @@ namespace SenseNet.ContentRepository.Linq
         private static string GetPath(object folder, string methodName)
         {
             string path;
-            var str = folder as string;
-            if (str != null)
+            if (folder is string str)
             {
                 path = str;
             }
             else
             {
-                var content = folder as Content;
-                if (content != null)
+                if (folder is Content content)
                 {
                     path = content.Path;
                 }
                 else
                 {
-                    var fldr = folder as Node;
-                    if (fldr != null)
+                    if (folder is Node fldr)
                     {
                         path = fldr.Path;
                     }
@@ -934,8 +898,7 @@ namespace SenseNet.ContentRepository.Linq
         }
         private ConstantExpression GetArgumentAsConstant(MethodCallExpression methodCallExpr, int argumentIndex)
         {
-            var constantExpr = methodCallExpr.Arguments[argumentIndex] as ConstantExpression;
-            if (constantExpr == null)
+            if (!(methodCallExpr.Arguments[argumentIndex] is ConstantExpression constantExpr))
                 throw new NotSupportedException(
                     $"Argument {argumentIndex} is invalid in a method call. Argument must be constant or transformable to constant. {methodCallExpr}");
             return constantExpr;

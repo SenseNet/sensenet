@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
-using SenseNet.Search.Parser;
 using SenseNet.Search.Querying;
-using SenseNet.Search.Querying.Parser;
 using SenseNet.Search.Querying.Parser.Predicates;
 
 namespace SenseNet.ContentRepository.Linq
@@ -10,8 +8,7 @@ namespace SenseNet.ContentRepository.Linq
     {
         public override SnQueryPredicate Visit(SnQueryPredicate predicate)
         {
-            var boolMemberPredicate = predicate as SnLinqVisitor.BooleanMemberPredicate;
-            if (boolMemberPredicate != null)
+            if (predicate is SnLinqVisitor.BooleanMemberPredicate boolMemberPredicate)
                 return VisitBooleanMemberQuery(boolMemberPredicate);
             return base.Visit(predicate);
         }
@@ -30,8 +27,7 @@ namespace SenseNet.ContentRepository.Linq
             var changed = false;
             foreach (var clause in visitedClauses)
             {
-                var lp = clause.Predicate as LogicalPredicate;
-                if (lp == null)
+                if (!(clause.Predicate is LogicalPredicate lp))
                 {
                     newClauses.Add(clause);
                 }
@@ -95,6 +91,5 @@ namespace SenseNet.ContentRepository.Linq
                 newClauses.Add(oldClause);
             }
         }
-
     }
 }

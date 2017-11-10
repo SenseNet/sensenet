@@ -1,18 +1,17 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using SenseNet.Search;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.ContentRepository.Linq
 {
     public class LinqChildrenEnumerator<T> : IEnumerator<T>
     {
-        private ChildrenContentSet<T> _queryable;
+        private readonly ChildrenContentSet<T> _queryable;
         private IEnumerable<T> _result;
         private IEnumerator<T> _resultEnumerator;
         private SnQuery _query;
         private IQueryContext _queryContext;
-        private bool _isContent;
+        private readonly bool _isContent;
 
         private IQueryContext QueryContext => _queryContext ?? (_queryContext = SnQueryContext.CreateDefault());
 
@@ -25,14 +24,10 @@ namespace SenseNet.ContentRepository.Linq
         public void Dispose()
         {
         }
-        public T Current
-        {
-            get { return _resultEnumerator.Current; }
-        }
-        object System.Collections.IEnumerator.Current
-        {
-            get { return Current; }
-        }
+        public T Current => _resultEnumerator.Current;
+
+        object System.Collections.IEnumerator.Current => Current;
+
         public void Reset()
         {
             _queryContext = null;
@@ -66,6 +61,5 @@ namespace SenseNet.ContentRepository.Linq
             Compile();
             return _query.ToString();
         }
-
     }
 }
