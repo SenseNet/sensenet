@@ -11,26 +11,15 @@ namespace SenseNet.Packaging.Steps
     [Annotation("Checks the index integrity by comparation the index and database.")]
     public class CheckIndexIntegrity : Step
     {
-        private bool _recursive = true;
-        private int _outputLimit = 1000;
-
         [DefaultProperty]
         [Annotation("Defines the integrity check's scope if there is. If empty, the whole repository tree will be checked.")]
         public string Path { get; set; }
 
         [Annotation("Defines whether check only one content or the whole tree or subtree. Default: true.")]
-        public bool Recursive
-        {
-            get { return _recursive; }
-            set { _recursive = value; }
-        }
+        public bool Recursive { get; set; } = true;
 
         [Annotation("Limits the output line count. 0 means all lines. Default: 1000.")]
-        public int OutputLimit
-        {
-            get { return _outputLimit; }
-            set { _outputLimit = value; }
-        }
+        public int OutputLimit { get; set; } = 1000;
 
         public override void Execute(ExecutionContext context)
         {
@@ -42,8 +31,8 @@ namespace SenseNet.Packaging.Steps
 
             Logger.LogMessage((Recursive ? "Recursive integrity check. Scope: " : "Integrity check on: ") + (path ?? "/Root"));
 
-            var diff = IntegrityChecker.Check(path, Recursive);
-            Logger.LogMessage("Integrity check finished. Count of differences: " + diff.Count());
+            var diff = IntegrityChecker.Check(path, Recursive).ToArray();
+            Logger.LogMessage("Integrity check finished. Count of differences: " + diff.Length);
 
             var outputLimit = OutputLimit == 0 ? int.MaxValue : OutputLimit;
             var lines = 0;
