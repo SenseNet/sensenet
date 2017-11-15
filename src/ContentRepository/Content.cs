@@ -432,7 +432,7 @@ namespace SenseNet.ContentRepository
                         extendedHandler.ResetDynamicFields();
 
                         // re-generate extended content type
-                        var contentType = ContentTypeManager.Current.GetContentTypeByHandler(this.ContentHandler);
+                        var contentType = ContentTypeManager.Instance.GetContentTypeByHandler(this.ContentHandler);
                         if (contentType != null)
                         {
                             contentType = ExtendContentType(extendedHandler, contentType);
@@ -714,20 +714,18 @@ namespace SenseNet.ContentRepository
         public static Content Create<T>(Node contentHandler) where T : Content, new()
         {
             if (contentHandler == null)
-                throw new ArgumentNullException("contentHandler");
-            ContentType contentType = ContentTypeManager.Current.GetContentTypeByHandler(contentHandler);
+                throw new ArgumentNullException(nameof(contentHandler));
+            var contentType = ContentTypeManager.Instance.GetContentTypeByHandler(contentHandler);
             if (contentType == null)
             {
-                var rtch = contentHandler as RuntimeContentHandler;
-                if (rtch != null)
+                if (contentHandler is RuntimeContentHandler rtch)
                     return new Content(rtch, rtch.ContentType);
                 if (contentHandler.Name == typeof(ContentType).Name)
                     contentType = contentHandler as ContentType;
                 if (contentType == null)
                     throw new ApplicationException(String.Concat(SR.Exceptions.Content.Msg_UnknownContentType, ": ", contentHandler.NodeType.Name));
             }
-            var extendedHandler = contentHandler as ISupportsDynamicFields;
-            if (extendedHandler != null)
+            if (contentHandler is ISupportsDynamicFields extendedHandler)
                 contentType = ExtendContentType(extendedHandler, contentType);
             var result = new T();
             result.InitializeInstance(contentHandler, contentType);
@@ -749,7 +747,7 @@ namespace SenseNet.ContentRepository
         /// Fully qualified type name is contained by the <see cref="SenseNet.ContentRepository.Schema.ContentType">ContentType</see> named this parameter's value.
         /// </param>
         /// <param name="parent"><see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> instance as a parent in the big tree.</param>
-        /// <param name="name">The expected name of the new <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see>.</param>
+        /// <param name="nameBase">The expected name of the new <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see>.</param>
         /// <param name="args">Additional parameters required by the expected constructor of <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see>.
         /// In this version neither argument can be null.</param>
         /// <returns>An instantiated <see cref="SenseNet.ContentRepository.Storage.Node">ContentHandler</see> wrapped by a <c>Content</c>.</returns>
@@ -761,7 +759,7 @@ namespace SenseNet.ContentRepository
                 if (args == null)
                     args = new object[0];
 
-                ContentType contentType = ContentTypeManager.Current.GetContentTypeByName(contentTypeName);
+                var contentType = ContentTypeManager.Instance.GetContentTypeByName(contentTypeName);
                 if (contentType == null)
                     throw new ApplicationException(String.Concat(SR.Exceptions.Content.Msg_UnknownContentType, ": ", contentTypeName));
                 Type type = TypeResolver.GetType(contentType.HandlerName);
@@ -870,7 +868,7 @@ namespace SenseNet.ContentRepository
         /// </summary>
         public static string[] GetContentTypeNames()
         {
-            Dictionary<string, ContentType> contentTypes = ContentTypeManager.Current.ContentTypes;
+            Dictionary<string, ContentType> contentTypes = ContentTypeManager.Instance.ContentTypes;
             string[] names = new string[contentTypes.Count];
             contentTypes.Keys.CopyTo(names, 0);
             return names;
@@ -1294,11 +1292,10 @@ namespace SenseNet.ContentRepository
             SaveFields(false);
 
             // Find the content type of this instance
-            ContentType contentType = ContentTypeManager.Current.GetContentTypeByHandler(this.ContentHandler);
+            ContentType contentType = ContentTypeManager.Instance.GetContentTypeByHandler(this.ContentHandler);
             if (contentType == null)
             {
-                var rtch = this.ContentHandler as RuntimeContentHandler;
-                if (rtch != null)
+                if (this.ContentHandler is RuntimeContentHandler rtch)
                     contentType = rtch.ContentType;
                 if (this.ContentHandler.Name == typeof(ContentType).Name)
                     contentType = this.ContentHandler as ContentType;
@@ -1306,8 +1303,7 @@ namespace SenseNet.ContentRepository
                     throw new ApplicationException(String.Concat(SR.Exceptions.Content.Msg_UnknownContentType, ": ", this.ContentHandler.NodeType.Name));
             }
 
-            var extendedHandler = this.ContentHandler as ISupportsDynamicFields;
-            if (extendedHandler != null)
+            if (this.ContentHandler is ISupportsDynamicFields extendedHandler)
                 contentType = ExtendContentType(extendedHandler, contentType);
 
             // Re-initialize this Content instance
@@ -2323,9 +2319,8 @@ namespace SenseNet.ContentRepository
         }
         private IEnumerable<string> GetFieldNamesInTable(Node content)
         {
-            var allNames = ContentTypeManager.Current.AllFieldNames;
-            var gc = content as GenericContent;
-            if (gc == null)
+            var allNames = ContentTypeManager.Instance.AllFieldNames;
+            if (!(content is GenericContent gc))
             {
                 if (content is ContentType)
                     return ContentType.GetByName("ContentType").FieldSettings.Select(f => f.Name).ToArray();
@@ -2333,7 +2328,7 @@ namespace SenseNet.ContentRepository
             }
 
             var types = gc.GetAllowedChildTypes();
-            if (types.Count() == 0)
+            if (!types.Any())
             {
                 return allNames;
             }

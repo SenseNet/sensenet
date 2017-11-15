@@ -83,7 +83,7 @@ namespace SenseNet.ContentRepository.Schema
         private Dictionary<Type, NodeType> _contentTypeNamesByType;
         public static string GetContentTypeNameByType(Type t)
         {
-            if (Current._contentTypeNamesByType == null)
+            if (Instance._contentTypeNamesByType == null)
             {
                 var contentTypeNamesByType = new Dictionary<Type, NodeType>();
                 foreach (var nt in ActiveSchema.NodeTypes)
@@ -101,10 +101,10 @@ namespace SenseNet.ContentRepository.Schema
                         if (prevNt.IsInstaceOfOrDerivedFrom(nt))
                         contentTypeNamesByType[type] = nt;
                 }
-                Current._contentTypeNamesByType = contentTypeNamesByType;
+                Instance._contentTypeNamesByType = contentTypeNamesByType;
             }
             NodeType nodeType;
-            if (Current._contentTypeNamesByType.TryGetValue(t, out nodeType))
+            if (Instance._contentTypeNamesByType.TryGetValue(t, out nodeType))
                 return nodeType.Name;
             return null;
         }
@@ -157,7 +157,7 @@ namespace SenseNet.ContentRepository.Schema
         {
             if (_initializing)
                 return;
-            ContentTypeManager m = Current;
+            var m = Instance;
         }
         internal static void Reset()
         {
@@ -183,7 +183,7 @@ namespace SenseNet.ContentRepository.Schema
         internal static void Reload()
         {
             ResetPrivate();
-            var c = Current;
+            var c = Instance;
         }
 
         internal ContentType GetContentTypeByHandler(Node contentHandler)
@@ -270,7 +270,7 @@ namespace SenseNet.ContentRepository.Schema
             string parentTypeName = nav.GetAttribute("parentType", "");
 
             // #2 Load ContentType
-            ContentType contentType = ContentTypeManager.Current.GetContentTypeByName(name);
+            ContentType contentType = Instance.GetContentTypeByName(name);
 
             // #3 Parent Node: if it is loaded yet use it (ReferenceEqals)
             Node parentNode;
@@ -280,7 +280,7 @@ namespace SenseNet.ContentRepository.Schema
             }
             else
             {
-                parentNode = ContentTypeManager.Current.GetContentTypeByName(parentTypeName);
+                parentNode = Instance.GetContentTypeByName(parentTypeName);
                 if (parentNode == null)
                     throw new ApplicationException(String.Concat(SR.Exceptions.Content.Msg_UnknownContentType, ": ", parentTypeName));
             }
@@ -650,17 +650,17 @@ namespace SenseNet.ContentRepository.Schema
 
         internal static IDictionary<string, IPerFieldIndexingInfo> GetPerFieldIndexingInfo()
         {
-            return Current.IndexingInfo;
+            return Instance.IndexingInfo;
         }
         internal static IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
         {
-            var ensureStart = Current;
+            var ensureStart = Instance;
 
             IPerFieldIndexingInfo info = null;
             if (fieldName.Contains('.'))
                 info = Aspect.GetPerFieldIndexingInfo(fieldName);
 
-            if (info != null || Current.IndexingInfo.TryGetValue(fieldName, out info))
+            if (info != null || Instance.IndexingInfo.TryGetValue(fieldName, out info))
                 return info;
 
             return null;
@@ -731,7 +731,7 @@ namespace SenseNet.ContentRepository.Schema
             if (Providers.Instance.GetProvider<ContentTypeManager>(ContentTypeManagerProviderKey) == null)
                 return 0L;
             ContentType ct = null;
-            Current.ContentTypes.TryGetValue("Automobile", out ct);
+            Instance.ContentTypes.TryGetValue("Automobile", out ct);
             if (ct == null)
                 return -1;
             return ct.NodeTimestamp;
