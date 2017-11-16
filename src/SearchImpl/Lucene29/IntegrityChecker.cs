@@ -19,6 +19,7 @@ using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
+using SenseNet.LuceneSearch;
 using SenseNet.Search.Lucene29;
 using SenseNet.Search.Querying;
 
@@ -161,7 +162,7 @@ namespace SenseNet.Search.Lucene29
         private IEnumerable<Difference> CheckNode(string path)
         {
             var result = new List<Difference>();
-            using (var readerFrame = IndexReaderFrame.GetReaderFrame())
+            using (var readerFrame = Lucene29IndexingEngine.GetReaderFrame())
             {
                 var ixreader = readerFrame.IndexReader;
                 var docids = new List<int>();
@@ -206,7 +207,7 @@ namespace SenseNet.Search.Lucene29
 
             using (var op = SnTrace.Index.StartOperation("Index Integrity Checker: CheckRecurse {0}", path))
             {
-                using (var readerFrame = IndexReaderFrame.GetReaderFrame())
+                using (var readerFrame = Lucene29IndexingEngine.GetReaderFrame())
                 {
                     var ixreader = readerFrame.IndexReader;
                     numdocs = ixreader.NumDocs() + ixreader.NumDeletedDocs();
@@ -437,7 +438,7 @@ namespace SenseNet.Search.Lucene29
             var snQuery = SnQuery.Parse($"{field}:'{path.ToLower()}'", ctx);
             var lq = new Lucene29Compiler().Compile(snQuery, ctx);
 
-            using (var readerFrame = IndexReaderFrame.GetReaderFrame())
+            using (var readerFrame = Lucene29IndexingEngine.GetReaderFrame())
             {
                 var idxReader = readerFrame.IndexReader;
                 var searcher = new IndexSearcher(idxReader);

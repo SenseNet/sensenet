@@ -2,25 +2,21 @@
 using System.Collections.Generic;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
-using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Storage;
 using SenseNet.Search.Indexing;
-using SenseNet.Search.Lucene29;
-using SenseNet.Tools;
 
-namespace SenseNet.Search.Lucene29
+namespace SenseNet.LuceneSearch
 {
     /// <summary>
     /// Sense/Net specific Lucene analyzer, equivalent of Lucene's PerFieldAnalyzerWrapper.
     /// </summary>
-    internal class SnPerFieldAnalyzerWrapper : Analyzer
+    public class SnPerFieldAnalyzerWrapper : Analyzer
     {
         private readonly Analyzer _defaultAnalyzer = new KeywordAnalyzer();
 
         private readonly Dictionary<IndexFieldAnalyzer, Analyzer> _analyzers = new Dictionary<IndexFieldAnalyzer, Analyzer>
         {
             {IndexFieldAnalyzer.Keyword, new KeywordAnalyzer()},
-            {IndexFieldAnalyzer.Standard, new StandardAnalyzer(Lucene29SearchEngine.LuceneVersion)},
+            {IndexFieldAnalyzer.Standard, new StandardAnalyzer(LuceneSearchManager.LuceneVersion)},
             {IndexFieldAnalyzer.Whitespace, new WhitespaceAnalyzer()}
         };
 
@@ -31,7 +27,7 @@ namespace SenseNet.Search.Lucene29
                 return _analyzers[IndexFieldAnalyzer.Standard];
 
             // For everything else, ask the ContentTypeManager
-            var pfii = SearchManager.GetPerFieldIndexingInfo(fieldName);
+            var pfii = IndexingInfo.GetPerFieldIndexingInfo(fieldName);
 
             // Return with analyzer by indexing info  or the default analyzer if indexing info was not found.
             return pfii == null ? _defaultAnalyzer : GetAnalyzer(pfii);
@@ -44,7 +40,7 @@ namespace SenseNet.Search.Lucene29
             switch (analyzerToken)
             {
                 case IndexFieldAnalyzer.Keyword: return new KeywordAnalyzer();
-                case IndexFieldAnalyzer.Standard: return new StandardAnalyzer(Lucene29SearchEngine.LuceneVersion);
+                case IndexFieldAnalyzer.Standard: return new StandardAnalyzer(LuceneSearchManager.LuceneVersion);
                 case IndexFieldAnalyzer.Whitespace:return new WhitespaceAnalyzer();
                 default:
                     throw new ArgumentOutOfRangeException();

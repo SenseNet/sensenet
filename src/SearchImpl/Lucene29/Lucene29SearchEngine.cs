@@ -6,8 +6,6 @@ namespace SenseNet.Search.Lucene29
 {
     internal class Lucene29SearchEngine : ISearchEngine
     {
-        public static readonly Lucene.Net.Util.Version LuceneVersion = Lucene.Net.Util.Version.LUCENE_29;
-
         public IIndexingEngine IndexingEngine { get; internal set; } = new Lucene29IndexingEngine();
 
         public IQueryEngine QueryEngine { get; } = new Lucene29QueryEngine();

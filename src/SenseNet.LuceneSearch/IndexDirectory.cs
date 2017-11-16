@@ -2,15 +2,37 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.Search.Lucene29
 {
-    internal class IndexDirectory
+    public class IndexDirectory
     {
         private static readonly string DEFAULTDIRECTORYNAME = "0";
+
+        //UNDONE: set index directory path from outside (e.g. because of tests)
+        private static string _indexDirectoryPath;
+        internal static string IndexDirectoryPath
+        {
+            get
+            {
+                if (_indexDirectoryPath == null)
+                {
+                    //UNDONE: use AppDomain.CurrentDomain.BaseDirectory instead
+                    var configValue = $"..\\{Configuration.Lucene29.DefaultLocalIndexDirectory}";
+                    var assemblyPath = System.Reflection.Assembly.GetExecutingAssembly().CodeBase
+                        .Replace("file:///", "")
+                        .Replace("file://", "//")
+                        .Replace("/", "\\");
+                    var directoryPath = Path.GetDirectoryName(assemblyPath) ?? string.Empty;
+
+                    _indexDirectoryPath = Path.GetFullPath(Path.Combine(directoryPath, configValue));
+                }
+
+                return _indexDirectoryPath;
+            }
+            set => _indexDirectoryPath = value;
+        }
 
         //================================================================================== Instance API
 
@@ -24,7 +46,7 @@ namespace SenseNet.Search.Lucene29
         
         public static void RemoveUnnecessaryDirectories()
         {
-            var root = SearchManager.IndexDirectoryPath;
+            var root = IndexDirectoryPath;
             if (!Directory.Exists(root))
                 return;
             var unnecessaryDirs = Directory.GetDirectories(root)
@@ -52,7 +74,7 @@ namespace SenseNet.Search.Lucene29
 
         //================================================================================== Construction
 
-        internal IndexDirectory(string name = null)
+        public IndexDirectory(string name = null)
         {
             Name = name;
             _currentDirectory = new Lazy<string>(GetCurrentDirectory);
@@ -63,7 +85,7 @@ namespace SenseNet.Search.Lucene29
         private string CreateNew()
         {
             var name = Name ?? DateTime.UtcNow.ToString("yyyyMMddHHmmss");
-            var path = Path.Combine(SearchManager.IndexDirectoryPath, name);
+            var path = Path.Combine(IndexDirectoryPath, name);
 
             Directory.CreateDirectory(path);
             SnTrace.Index.Write("New index directory: {0}", path);
@@ -72,7 +94,7 @@ namespace SenseNet.Search.Lucene29
         }
         private string GetCurrentDirectory()
         {
-            var root = SearchManager.IndexDirectoryPath;
+            var root = IndexDirectoryPath;
             EnsureFirstDirectory(root);
 
             if (!string.IsNullOrEmpty(Name))

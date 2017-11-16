@@ -36,7 +36,7 @@ namespace SenseNet.Search.Lucene29.QueryExecutors
                 if (top == 0)
                     top = int.MaxValue;
 
-                using (var readerFrame = IndexReaderFrame.GetReaderFrame(this.LucQuery.QueryExecutionMode == QueryExecutionMode.Quick))
+                using (var readerFrame = Lucene29IndexingEngine.GetReaderFrame(this.LucQuery.QueryExecutionMode == QueryExecutionMode.Quick))
                 {
                     var idxReader = readerFrame.IndexReader;
                     var searcher = new IndexSearcher(idxReader);

@@ -24,6 +24,7 @@ using SenseNet.Search.Lucene29;
 using SenseNet.SearchImpl.Tests.Implementations;
 using System.Threading;
 using SenseNet.ContentRepository.Search.Indexing;
+using SenseNet.LuceneSearch;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.SearchImpl.Tests
@@ -501,7 +502,7 @@ namespace SenseNet.SearchImpl.Tests
         {
             var nodeIdList = new List<int>();
             var versionIdLists = new List<int>();
-            using (var rf = IndexReaderFrame.GetReaderFrame())
+            using (var rf = Lucene29IndexingEngine.GetReaderFrame())
             {
                 var reader = rf.IndexReader;
                 for (var d = 0; d < reader.NumDocs(); d++)

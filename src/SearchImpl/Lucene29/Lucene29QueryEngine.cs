@@ -2,7 +2,6 @@
 using System.Linq;
 using Lucene.Net.Search;
 using SenseNet.ContentRepository.Search.Indexing;
-using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Lucene29

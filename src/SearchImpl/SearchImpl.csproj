@@ -59,13 +59,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Configuration\Lucene29.cs" />
     <Compile Include="Packaging\CheckIndexIntegrity.cs" />
-    <Compile Include="Lucene29\EnumConverter.cs" />
-    <Compile Include="Lucene29\IndexDirectory.cs" />
-    <Compile Include="Lucene29\IndexReaderFrame.cs" />
     <Compile Include="Lucene29\IntegrityChecker.cs" />
-    <Compile Include="Lucene29\SnPerFieldAnalyzerWrapper.cs" />
     <Compile Include="Lucene29\Lucene29Compiler.cs" />
     <Compile Include="Lucene29\Lucene29IndexingEngine.cs" />
     <Compile Include="Lucene29\Lucene29QueryEngine.cs" />
@@ -100,6 +95,10 @@
     <ProjectReference Include="..\Search\Search.csproj">
       <Project>{0279705b-779d-485d-86b9-f7ab3dd1f2c3}</Project>
       <Name>Search</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SenseNet.LuceneSearch\SenseNet.LuceneSearch.csproj">
+      <Project>{9e776eda-681a-4330-8632-9ed0b67ed5a6}</Project>
+      <Name>SenseNet.LuceneSearch</Name>
     </ProjectReference>
     <ProjectReference Include="..\Storage\Storage.csproj">
       <Project>{5db4ddba-81f6-4d81-943a-18f3178b3355}</Project>
