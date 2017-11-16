@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace SenseNet.Search.Indexing
 {
@@ -24,7 +25,10 @@ namespace SenseNet.Search.Indexing
         /// </summary>
         IndexFieldAnalyzer GetDefaultAnalyzer();
 
-        //UNDONE:! delete or rename this: GetParsableValues
+        /// <summary>
+        /// Returns with field value's string representation that can be inserted into a CQL as a valid term value.
+        /// </summary>
+        [Obsolete("This method will be removed in the next release.")]
         IEnumerable<string> GetParsableValues(IIndexableField field);
 
         /// <summary>

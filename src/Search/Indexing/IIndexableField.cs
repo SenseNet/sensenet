@@ -12,7 +12,7 @@ namespace SenseNet.Search.Indexing
         /// </summary>
         string Name { get; }
 
-        //UNDONE:! parameterless method is the correct in this scenario.
+        //UNDONE:! parameterless method is the correct in this scenario. OK
         object GetData(bool localized = true);
 
         /// <summary>

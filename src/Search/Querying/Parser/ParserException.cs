@@ -2,7 +2,10 @@
 
 namespace SenseNet.Search.Querying.Parser
 {
-	[Serializable]
+    /// <summary>
+    /// Defines an exception class for any CQL query parsing error.
+    /// </summary>
+    [Serializable]
 	public class ParserException : Exception
 	{
 		public LineInfo LineInfo { get; }
