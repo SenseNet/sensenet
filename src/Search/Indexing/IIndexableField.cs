@@ -12,8 +12,10 @@ namespace SenseNet.Search.Indexing
         /// </summary>
         string Name { get; }
 
-        //UNDONE:! parameterless method is the correct in this scenario. OK
-        object GetData(bool localized = true);
+        /// <summary>
+        /// Gets the field's value.
+        /// </summary>
+        object GetData();
 
         /// <summary>
         /// Gets a value that is true if the field need to be indexed otherwise false.
