@@ -8,20 +8,36 @@ namespace SenseNet.Search.Querying.Parser
     [Serializable]
 	public class ParserException : Exception
 	{
+        /// <summary>
+        /// Gets the query position information where the exception was caused.
+        /// </summary>
 		public LineInfo LineInfo { get; }
 
-		public ParserException(LineInfo lineInfo) : base(MessageHelper(null, lineInfo))
+        /// <summary>
+        /// Initializes a new instance of the ParserException with the relevant query position information.
+        /// </summary>
+	    public ParserException(LineInfo lineInfo) : base(MessageHelper(null, lineInfo))
 		{
 			LineInfo = lineInfo;
 		}
-		public ParserException(string message, LineInfo lineInfo) : base(MessageHelper(message, lineInfo))
+
+	    /// <summary>
+	    /// Initializes a new instance of the ParserException with a message and the relevant query position information.
+	    /// </summary>
+        public ParserException(string message, LineInfo lineInfo) : base(MessageHelper(message, lineInfo))
 		{
 			LineInfo = lineInfo;
 		}
-		public ParserException(string message, Exception inner, LineInfo lineInfo) : base(MessageHelper(message, lineInfo), inner)
+
+	    /// <summary>
+	    /// Initializes a new instance of the ParserException with a message, the inner exception and the relevant query position information.
+	    /// </summary>
+        public ParserException(string message, Exception inner, LineInfo lineInfo) : base(MessageHelper(message, lineInfo), inner)
 		{
 			LineInfo = lineInfo;
 		}
+
+	    /// <inheritdoc />
 		protected ParserException(
 		  System.Runtime.Serialization.SerializationInfo info,
 		  System.Runtime.Serialization.StreamingContext context)
