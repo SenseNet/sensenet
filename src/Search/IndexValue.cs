@@ -45,7 +45,7 @@ namespace SenseNet.Search
 
 
         /// <summary>
-        /// Initializes an instance of the IndexValue with a System.String value
+        /// Initializes an instance of the IndexValue with a System.String value.
         /// </summary>
         /// <param name="value">System.String value</param>
         public IndexValue(string value) { Type = IndexValueType.String; StringValue = value; ValueAsString = value; }
@@ -57,37 +57,37 @@ namespace SenseNet.Search
         public IndexValue(string[] value) { Type = IndexValueType.StringArray; StringArrayValue = value; ValueAsString = string.Join(",", value); }
 
         /// <summary>
-        /// Initializes an instance of the IndexValue with a System.Boolean value
+        /// Initializes an instance of the IndexValue with a System.Boolean value.
         /// </summary>
         /// <param name="value">System.Boolean value</param>
         public IndexValue(bool value) { Type = IndexValueType.Bool; BooleanValue = value; ValueAsString = value ? Yes : No; }
 
         /// <summary>
-        /// Initializes an instance of the IndexValue with a System.Int32 value
+        /// Initializes an instance of the IndexValue with a System.Int32 value.
         /// </summary>
         /// <param name="value">System.Int32 value</param>
         public IndexValue(int value) { Type = IndexValueType.Int; IntegerValue = value; ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
 
         /// <summary>
-        /// Initializes an instance of the IndexValue with a System.Int64 value
+        /// Initializes an instance of the IndexValue with a System.Int64 value.
         /// </summary>
         /// <param name="value">System.Int64 value</param>
         public IndexValue(long value) { Type = IndexValueType.Long; LongValue = value; ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
 
         /// <summary>
-        /// Initializes an instance of the IndexValue with a System.Single value
+        /// Initializes an instance of the IndexValue with a System.Single value.
         /// </summary>
         /// <param name="value">System.Single value</param>
         public IndexValue(float value) { Type = IndexValueType.Float; SingleValue = value; ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
 
         /// <summary>
-        /// Initializes an instance of the IndexValue with a System.Double value
+        /// Initializes an instance of the IndexValue with a System.Double value.
         /// </summary>
         /// <param name="value">System.Double value</param>
         public IndexValue(double value) { Type = IndexValueType.Double; DoubleValue = value; ValueAsString = value.ToString(CultureInfo.InvariantCulture); }
 
         /// <summary>
-        /// Initializes an instance of the IndexValue with a System.DateTime value
+        /// Initializes an instance of the IndexValue with a System.DateTime value.
         /// </summary>
         /// <param name="value">System.DateTime value</param>
         public IndexValue(DateTime value) { Type = IndexValueType.DateTime; DateTimeValue = value; ValueAsString = value.ToString("yyyy-MM-dd HH:mm:ss.ffff"); }
