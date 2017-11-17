@@ -1,6 +1,6 @@
 ﻿namespace SenseNet.Search.Querying
 {
-    public class QueryFieldValue
+    internal class QueryFieldValue
     {
         public string StringValue { get; }
         internal bool IsPhrase { get; }
