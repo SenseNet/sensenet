@@ -7,7 +7,7 @@ using SenseNet.Search.Querying.Parser.Predicates;
 
 namespace SenseNet.Search.Querying
 {
-    public sealed class SnQueryToStringVisitor : SnQueryVisitor
+    internal sealed class SnQueryToStringVisitor : SnQueryVisitor
     {
         private readonly StringBuilder _output = new StringBuilder();
         public string Output => _output.ToString();
