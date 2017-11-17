@@ -13,7 +13,7 @@ namespace SenseNet.Search.Querying
                 case null:
                     return null;
                 case SimplePredicate text:
-                    return VisitTextPredicate(text);
+                    return VisitTextPredicate(text); //UNDONE:!! Rename to VisitSimplePredicate(simple)
                 case RangePredicate range:
                     return VisitRangePredicate(range);
                 case LogicalPredicate logic:

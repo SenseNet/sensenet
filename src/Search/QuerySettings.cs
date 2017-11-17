@@ -9,7 +9,7 @@ namespace SenseNet.Search
     public class QuerySettings
     {
         /// <summary>
-        /// Gets or sets the maximum count of the query re4sult.
+        /// Gets or sets the maximum count of the query result.
         /// </summary>
         public int Top { get; set; }
         /// <summary>

@@ -5,8 +5,17 @@ using SenseNet.Search.Querying.Parser.Predicates;
 
 namespace SenseNet.Search.Querying
 {
+    /// <summary>
+    /// Defines a method that analyzes a SnQuery.
+    /// For future usage only. This class is not used in this release.
+    /// </summary>
     public class SnQueryClassifier : SnQueryVisitor
     {
+        /// <summary>
+        /// Analyzes a parsed SnQuery.
+        /// </summary>
+        /// <param name="query">The input query object</param>
+        /// <returns>An SnQueryInfo instance as a result of the analysis.</returns>
         public static SnQueryInfo Classify(SnQuery query)
         {
             var sortfieldNames = query.Sort?.Select(x => x.FieldName).ToList() ?? new List<string>();
