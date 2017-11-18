@@ -49,7 +49,7 @@ namespace SenseNet.Search.Tests
         [TestMethod, TestCategory("IR")]
         public void SnQuery_Result_Int()
         {
-            var intResults = new Dictionary<string, IQueryResult<int>> { { "asdf", new QueryResult<int>(new[] { 1, 2, 3 }, 4) } };
+            var intResults = new Dictionary<string, QueryResult<int>> { { "asdf", new QueryResult<int>(new[] { 1, 2, 3 }, 4) } };
             var context = new TestQueryContext(QuerySettings.AdminSettings, 0, _indexingInfo, new TestQueryEngine(intResults, null));
             using (Tools.Swindle(typeof(SnQuery), "_permissionFilterFactory", new EverythingAllowedPermissionFilterFactory()))
             {
@@ -67,7 +67,7 @@ namespace SenseNet.Search.Tests
         [TestMethod, TestCategory("IR")]
         public void SnQuery_Result_String()
         {
-            var stringResults = new Dictionary<string, IQueryResult<string>>
+            var stringResults = new Dictionary<string, QueryResult<string>>
             {
                 {"asdf", new QueryResult<string>(new[] {"1", "2", "3"}, 4)}
             };

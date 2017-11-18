@@ -56,7 +56,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             _index = index;
         }
 
-        public IQueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
+        public QueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
             _log.AppendLine($"ExecuteQuery: {query}");
 
@@ -68,7 +68,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             var queryResult = new QueryResult<int>(nodeIds, totalCount);
             return queryResult;
         }
-        public IQueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
+        public QueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
             _log.AppendLine($"ExecuteQueryAndProject: {query}");
 

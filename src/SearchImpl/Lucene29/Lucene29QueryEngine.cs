@@ -9,7 +9,7 @@ namespace SenseNet.Search.Lucene29
 {
     internal class Lucene29QueryEngine : IQueryEngine
     {
-        public IQueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
+        public QueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
             var lucQuery = Compile(query, context);
 
@@ -19,7 +19,7 @@ namespace SenseNet.Search.Lucene29
             return new QueryResult<int>(hits, lucQuery.TotalCount);
         }
 
-        public IQueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
+        public QueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
             var lucQuery = Compile(query, context);
 
