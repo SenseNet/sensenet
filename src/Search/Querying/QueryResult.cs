@@ -2,6 +2,10 @@
 
 namespace SenseNet.Search.Querying
 {
+    /// <summary>
+    /// Represens a result of the SnQuery execution.
+    /// </summary>
+    /// <typeparam name="T">Can be int or string.</typeparam>
     public class QueryResult<T>
     {
         /// <summary>
