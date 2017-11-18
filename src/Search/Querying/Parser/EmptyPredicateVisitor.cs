@@ -37,11 +37,11 @@ namespace SenseNet.Search.Querying.Parser
                 return clause;
             return new LogicalClause(visited, clause.Occur);
         }
-        public override SnQueryPredicate VisitTextPredicate(SimplePredicate simplePredicate)
+        public override SnQueryPredicate VisitSimplePredicate(SimplePredicate simplePredicate)
         {
             return (simplePredicate.Value.ValueAsString?.Equals(SnQuery.EmptyText) ?? false)
                 ? null
-                : base.VisitTextPredicate(simplePredicate);
+                : base.VisitSimplePredicate(simplePredicate);
         }
     }
 }

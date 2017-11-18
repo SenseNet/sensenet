@@ -12,7 +12,7 @@ namespace SenseNet.Search.Tests
     {
         private class TestVisitor : SnQueryVisitor
         {
-            public override SnQueryPredicate VisitTextPredicate(SimplePredicate simplePredicate)
+            public override SnQueryPredicate VisitSimplePredicate(SimplePredicate simplePredicate)
             {
                 if (simplePredicate.Value.ValueAsString != "V2")
                     return simplePredicate;

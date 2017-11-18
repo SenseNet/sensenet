@@ -12,8 +12,8 @@ namespace SenseNet.Search.Querying
             {
                 case null:
                     return null;
-                case SimplePredicate text:
-                    return VisitTextPredicate(text);
+                case SimplePredicate simple:
+                    return VisitSimplePredicate(simple);
                 case RangePredicate range:
                     return VisitRangePredicate(range);
                 case LogicalPredicate logic:
@@ -23,7 +23,7 @@ namespace SenseNet.Search.Querying
             throw new NotSupportedException("Unknown predicate type: " + predicate.GetType().FullName);
         }
 
-        public virtual SnQueryPredicate VisitTextPredicate(SimplePredicate simplePredicate)
+        public virtual SnQueryPredicate VisitSimplePredicate(SimplePredicate simplePredicate)
         {
             return simplePredicate;
         }

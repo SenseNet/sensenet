@@ -192,7 +192,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
             // ========================================================================================
 
-            public override SnQueryPredicate VisitTextPredicate(SimplePredicate simplePredicate)
+            public override SnQueryPredicate VisitSimplePredicate(SimplePredicate simplePredicate)
             {
                 var result = new List<int>();
 
