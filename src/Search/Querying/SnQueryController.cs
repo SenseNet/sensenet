@@ -8,19 +8,34 @@ namespace SenseNet.Search.Querying
     public partial class SnQuery
     {
         private static IPermissionFilterFactory _permissionFilterFactory;
+        /// <summary>
+        /// Receives an IPermissionFilterFactory implementation instance in the startup process.
+        /// This instance will be used in calling Execute method of the concrete IQueryEngine implementation.
+        /// </summary>
         public static void SetPermissionFilterFactory(IPermissionFilterFactory factory)
         {
             _permissionFilterFactory = factory;
         }
 
         internal bool FiltersPrepared { get; private set; }
+
+        /// <summary>
+        /// Defines a query predicate that represents all index documents.
+        /// </summary>
         public static SnQueryPredicate FullSetPredicate { get; } = new RangePredicate("Id", new IndexValue(0), null, true, false);
-        
+
+        /// <summary>
+        /// Executes a CQL query and returns with a QueryResult&lt;int&gt; instance containing id set and count
+        /// </summary>
         public static IQueryResult<int> Query(string queryText, IQueryContext context)
         {
             var query = new CqlParser().Parse(queryText, context);
             return query.Execute(context);
         }
+
+        /// <summary>
+        /// Executes the represented query and returns with a QueryResult&lt;int&gt; instance containing id set and count
+        /// </summary>
         public IQueryResult<int> Execute(IQueryContext context)
         {
             var permissionFilter = _permissionFilterFactory.Create(this, context);
@@ -30,11 +45,17 @@ namespace SenseNet.Search.Querying
                    ?? context.QueryEngine.ExecuteQuery(this, permissionFilter, context);
         }
 
+        /// <summary>
+        /// Executes a CQL query and returns with a QueryResult&lt;string&gt; instance containing set of projected values and its count.
+        /// </summary>
         public static IQueryResult<string> QueryAndProject(string queryText, IQueryContext context)
         {
             var query = new CqlParser().Parse(queryText, context);
             return query.ExecuteAndProject(context);
         }
+        /// <summary>
+        /// Executes the represented query and returns with a QueryResult&lt;string&gt; instance containing set of projected values and its count.
+        /// </summary>
         public IQueryResult<string> ExecuteAndProject(IQueryContext context)
         {
             var permissionFilter = _permissionFilterFactory.Create(this, context);
@@ -44,19 +65,34 @@ namespace SenseNet.Search.Querying
                    ?? context.QueryEngine.ExecuteQueryAndProject(this, permissionFilter, context);
         }
 
+        /// <summary>
+        /// Replaces the top level predicate to a new LogicalPredicate that
+        ///  contains the original top level predicate and a given predicate
+        ///  encapsulated by two individual LogicalClause with "Must" occurence.
+        /// </summary>
         public void AddAndClause(SnQueryPredicate clause)
         {
             AddClause(clause, Occurence.Must);
         }
+        /// <summary>
+        /// Replaces the top level predicate to a new LogicalPredicate that
+        ///  contains the original top level predicate and a given predicate
+        ///  encapsulated by two individual LogicalClause with "Should" occurence.
+        /// </summary>
         public void AddOrClause(SnQueryPredicate clause)
         {
             AddClause(clause, Occurence.Should);
         }
+        /// <summary>
+        /// Replaces the top level predicate to a new LogicalPredicate that
+        ///  contains the original top level predicate and a given predicate
+        ///  encapsulated by two individual LogicalClause with the given occurence.
+        /// </summary>
         public void AddClause(SnQueryPredicate clause, Occurence occurence)
         {
             QueryTree = new LogicalPredicate(new[]
             {
-                new LogicalClause(this.QueryTree, occurence),
+                new LogicalClause(QueryTree, occurence),
                 new LogicalClause(clause, occurence),
             });
         }
@@ -181,20 +217,36 @@ namespace SenseNet.Search.Querying
         //    }
         //}
 
+
+        /// <summary>
+        /// Creates a new SnQuery instance by parsing the given CQL query
+        ///  and context containing query settings.
+        /// </summary>
+        /// <param name="queryText"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public static SnQuery Parse(string queryText, IQueryContext context)
         {
             return new CqlParser().Parse(queryText, context);
         }
 
+        /// <summary>
+        /// Creates an SnQuery instance from the given predicate.
+        /// </summary>
         public static SnQuery Create(SnQueryPredicate predicate)
         {
             return new SnQuery {QueryTree = predicate};
         }
 
+        /// <summary>
+        /// Returns with string representation of the query.
+        /// Contains the whole CQL query with predicates and extensions.
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             var visitor = new SnQueryToStringVisitor();
-            visitor.Visit(this.QueryTree);
+            visitor.Visit(QueryTree);
             var sb = new StringBuilder(visitor.Output);
 
             if (AllVersions)
