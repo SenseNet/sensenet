@@ -79,12 +79,12 @@ namespace SenseNet.Search.IntegrationTests
 
         private class QueryEngineForActivityQueueSelectorTests : IQueryEngine
         {
-            public IQueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
+            public QueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
             {
                 throw new NotImplementedException();
             }
 
-            public IQueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
+            public QueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
             {
                 throw new NotImplementedException();
             }

@@ -27,7 +27,7 @@ namespace SenseNet.Search.Querying
         /// <summary>
         /// Executes a CQL query and returns with a QueryResult&lt;int&gt; instance containing id set and count
         /// </summary>
-        public static IQueryResult<int> Query(string queryText, IQueryContext context)
+        public static QueryResult<int> Query(string queryText, IQueryContext context)
         {
             var query = new CqlParser().Parse(queryText, context);
             return query.Execute(context);
@@ -36,7 +36,7 @@ namespace SenseNet.Search.Querying
         /// <summary>
         /// Executes the represented query and returns with a QueryResult&lt;int&gt; instance containing id set and count
         /// </summary>
-        public IQueryResult<int> Execute(IQueryContext context)
+        public QueryResult<int> Execute(IQueryContext context)
         {
             var permissionFilter = _permissionFilterFactory.Create(this, context);
             PrepareQuery(this, context);
@@ -48,7 +48,7 @@ namespace SenseNet.Search.Querying
         /// <summary>
         /// Executes a CQL query and returns with a QueryResult&lt;string&gt; instance containing set of projected values and its count.
         /// </summary>
-        public static IQueryResult<string> QueryAndProject(string queryText, IQueryContext context)
+        public static QueryResult<string> QueryAndProject(string queryText, IQueryContext context)
         {
             var query = new CqlParser().Parse(queryText, context);
             return query.ExecuteAndProject(context);
@@ -56,7 +56,7 @@ namespace SenseNet.Search.Querying
         /// <summary>
         /// Executes the represented query and returns with a QueryResult&lt;string&gt; instance containing set of projected values and its count.
         /// </summary>
-        public IQueryResult<string> ExecuteAndProject(IQueryContext context)
+        public QueryResult<string> ExecuteAndProject(IQueryContext context)
         {
             var permissionFilter = _permissionFilterFactory.Create(this, context);
             PrepareQuery(this, context);
@@ -168,7 +168,7 @@ namespace SenseNet.Search.Querying
             return clause;
         }
 
-        private static IQueryResult<int> TryExecuteQuery(SnQuery query, IPermissionFilter permissionFilter, IQueryContext context)
+        private static QueryResult<int> TryExecuteQuery(SnQuery query, IPermissionFilter permissionFilter, IQueryContext context)
         {
             try
             {
@@ -179,7 +179,7 @@ namespace SenseNet.Search.Querying
                 return null;
             }
         }
-        private static IQueryResult<string> TryExecuteQueryAndProject(SnQuery query, IPermissionFilter permissionFilter, IQueryContext context)
+        private static QueryResult<string> TryExecuteQueryAndProject(SnQuery query, IPermissionFilter permissionFilter, IQueryContext context)
         {
             try
             {

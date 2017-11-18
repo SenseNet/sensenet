@@ -6,7 +6,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
     internal class SqlQueryEngine : IMetaQueryEngine
     {
         //TODO: Part of 'CQL to SQL compiler' for future use.
-        public IQueryResult<int> TryExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
+        public QueryResult<int> TryExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
             //var queryInfo = SnQueryClassifier.Classify(query, context.AllVersions);
             //if (SnLucToSqlCompiler.TryCompile(QueryInfo.Query.QueryTree, QueryInfo.Top, QueryInfo.Skip,
@@ -16,7 +16,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         }
 
         //TODO: Part of 'CQL to SQL compiler' for future use.
-        public IQueryResult<string> TryExecuteQueryAndProject(SnQuery query, IPermissionFilter filter,
+        public QueryResult<string> TryExecuteQueryAndProject(SnQuery query, IPermissionFilter filter,
             IQueryContext context)
         {
             return null; // means: cannot execute

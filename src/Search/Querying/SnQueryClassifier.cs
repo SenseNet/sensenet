@@ -46,7 +46,7 @@ namespace SenseNet.Search.Querying
                 _queryInfo = queryInfo;
             }
 
-            public override SnQueryPredicate VisitTextPredicate(SimplePredicate simplePredicate)
+            public override SnQueryPredicate VisitSimplePredicate(SimplePredicate simplePredicate)
             {
                 if (!_queryInfo.QueryFieldNames.Contains(simplePredicate.FieldName))
                     _queryInfo.QueryFieldNames.Add(simplePredicate.FieldName);
@@ -74,7 +74,7 @@ namespace SenseNet.Search.Querying
                     _queryInfo.TermQueries++;
                 }
 
-                return base.VisitTextPredicate(simplePredicate);
+                return base.VisitSimplePredicate(simplePredicate);
             }
 
             public override SnQueryPredicate VisitRangePredicate(RangePredicate range)

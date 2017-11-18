@@ -39,7 +39,7 @@ namespace SenseNet.Search.Lucene29
             _context = context;
         }
 
-        public override SnQueryPredicate VisitTextPredicate(SimplePredicate simplePredicate)
+        public override SnQueryPredicate VisitSimplePredicate(SimplePredicate simplePredicate)
         {
             var query = CreateStringValueQuery(simplePredicate.FieldName, simplePredicate.Value, simplePredicate.FuzzyValue );
             if(simplePredicate.Boost.HasValue)

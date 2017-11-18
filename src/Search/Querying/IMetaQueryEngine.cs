@@ -18,7 +18,7 @@
         /// TotalCount: if the CountAllPages of the query is false, the TotalCount need to be the count of Hits
         /// otherwise the count of hits without skip and top restrictions.
         /// </returns>
-        IQueryResult<int> TryExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context);
+        QueryResult<int> TryExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context);
         /// <summary>
         /// Returns with the permitted hit collection defined in the query.
         /// Every hit is the matched content's field defined in the query's Projection property.
@@ -35,6 +35,6 @@
         /// TotalCount: if the CountAllPages of the query is false, the TotalCount need to be the count of Hits
         /// otherwise the count of hits without skip and top restrictions.
         /// </returns>
-        IQueryResult<string> TryExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context);
+        QueryResult<string> TryExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context);
     }
 }

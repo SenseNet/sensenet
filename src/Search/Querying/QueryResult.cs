@@ -2,17 +2,7 @@
 
 namespace SenseNet.Search.Querying
 {
-    public interface IQueryResult<out T>
-    {
-        IEnumerable<T> Hits { get; }
-        int TotalCount { get; }
-    }
-
-    /// <summary>
-    /// Represens a result of the SnQuery execution.
-    /// </summary>
-    /// <typeparam name="T">Can be int or string.</typeparam>
-    public class QueryResult<T> : IQueryResult<T>
+    public class QueryResult<T>
     {
         /// <summary>
         /// Represents the empty result.
