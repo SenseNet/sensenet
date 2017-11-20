@@ -9,11 +9,19 @@ using SenseNet.Search.Indexing;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
+    /// <summary>
+    /// Represents a class that encapsulates the persistent mutation of the indexing document.
+    /// </summary>
     [Serializable]
     public class IndexDocumentData
     {
         [NonSerialized]
         private IndexDocument _indexDocument;
+
+        /// <summary>
+        /// Gets the index document. If this instance is initialized with the
+        /// serialized version, the deserialization will be executed.
+        /// </summary>
         public IndexDocument IndexDocument
         {
             get
@@ -25,6 +33,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
 
         private byte[] _serializedIndexDocument;
+        /// <summary>
+        /// Gets the serialized index document. If this instance is initialized with an
+        /// IndexDocument instance or invalidated, the serialization will be executed.
+        /// </summary>
         public byte[] SerializedIndexDocument
         {
             get
@@ -36,14 +48,17 @@ namespace SenseNet.ContentRepository.Storage.Data
                         var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
                         formatter.Serialize(docStream, _indexDocument);
                         docStream.Flush();
-                        IndexDocumentSize = docStream.Length;
                         _serializedIndexDocument = docStream.GetBuffer();
                     }
                 }
                 return _serializedIndexDocument;
             }
         }
-        public long? IndexDocumentSize { get; set; }
+
+        /// <summary>
+        /// Gets the size of the serialized version if there is, otherwise null. 
+        /// </summary>
+        public long? IndexDocumentSize => SerializedIndexDocument?.LongLength;
 
         public int NodeTypeId { get; set; }
         public int VersionId { get; set; }
@@ -56,12 +71,21 @@ namespace SenseNet.ContentRepository.Storage.Data
         public long NodeTimestamp { get; set; }
         public long VersionTimestamp { get; set; }
 
+        /// <summary>
+        /// Initialites a new instance of the IndexDocumentData with one of the possible parameters.
+        /// Both parameters cannot be null at one time.
+        /// </summary>
+        /// <param name="indexDocument">The index document.</param>
+        /// <param name="indexDocumentBytes">Serialized data from the database.</param>
         public IndexDocumentData(IndexDocument indexDocument, byte[] indexDocumentBytes)
         {
             _indexDocument = indexDocument;
             _serializedIndexDocument = indexDocumentBytes;
         }
 
+        /// <summary>
+        /// Invalidates the serialized document when any data changed.
+        /// </summary>
         public void IndexDocumentChanged()
         {
             _serializedIndexDocument = null;
