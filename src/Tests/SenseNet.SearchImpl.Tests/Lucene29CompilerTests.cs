@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Globalization;
+using System.Linq;
 using Lucene.Net.Search;
 using Lucene.Net.Support;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Storage;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Lucene29;
-using SenseNet.Search.Parser;
 using SenseNet.Search.Querying;
 using SenseNet.Search.Querying.Parser;
 using SenseNet.Search.Tests.Implementations;
@@ -163,7 +162,15 @@ namespace SenseNet.SearchImpl.Tests
                 var compiler = new Lucene29Compiler();
                 var lucQuery = compiler.Compile(snQuery, queryContext);
 
-                var lqVisitor = new LucQueryToStringVisitor();
+                var analyzers = indexingInfo.ToDictionary(kvp => kvp.Key, kvp => Lucene29IndexingEngine.GetAnalyzer(kvp.Value));
+                var indexFieldTypes = indexingInfo.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.IndexFieldHandler.IndexFieldType);
+
+                // This is a non-functional object that's only purpose is 
+                // to hold the indexing info for the visitor to work. 
+                var sm = new LuceneSearchManager(new IndexDirectory());
+                sm.SetIndexingInfo(analyzers, indexFieldTypes);
+
+                var lqVisitor = new LucQueryToStringVisitor(sm);
                 lqVisitor.Visit(lucQuery.Query);
                 var actual = lqVisitor.ToString();
 

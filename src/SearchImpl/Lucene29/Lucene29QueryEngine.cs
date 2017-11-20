@@ -3,6 +3,7 @@ using System.Linq;
 using Lucene.Net.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.Search.Querying;
+using SenseNet.ContentRepository.Search;
 
 namespace SenseNet.Search.Lucene29
 {
@@ -42,14 +43,15 @@ namespace SenseNet.Search.Lucene29
 
         private LucQuery Compile(SnQuery query, IQueryContext context)
         {
-            var analyzer = ((Lucene29IndexingEngine)IndexManager.IndexingEngine).GetAnalyzer();
+            var indexingEngine = (Lucene29IndexingEngine) IndexManager.IndexingEngine;
+            var analyzer = indexingEngine.GetAnalyzer();
             var visitor = new SnQueryToLucQueryVisitor(analyzer, context);
             visitor.Visit(query.QueryTree);
 
-            var result = LucQuery.Create(visitor.Result);
+            var result = LucQuery.Create(visitor.Result, indexingEngine.LuceneSearchManager);
             result.Skip = query.Skip;
             result.Top = query.Top;
-            result.SortFields = query.Sort?.Select(s => LucQuery.CreateSortField(s.FieldName, s.Reverse)).ToArray() ?? new SortField[0];
+            result.SortFields = query.Sort?.Select(s => CreateSortField(s.FieldName, s.Reverse)).ToArray() ?? new SortField[0];
             result.EnableAutofilters = query.EnableAutofilters;
             result.EnableLifespanFilter = query.EnableLifespanFilter;
             result.QueryExecutionMode = query.QueryExecutionMode;
@@ -57,6 +59,43 @@ namespace SenseNet.Search.Lucene29
             result.CountAllPages = query.CountAllPages;
 
             return result;
+        }
+        private static SortField CreateSortField(string fieldName, bool reverse)
+        {
+            var info = SearchManager.GetPerFieldIndexingInfo(fieldName);
+            var sortType = SortField.STRING;
+            if (info != null)
+            {
+                fieldName = info.IndexFieldHandler.GetSortFieldName(fieldName);
+
+                switch (info.IndexFieldHandler.IndexFieldType)
+                {
+                    case IndexValueType.Bool:
+                    case IndexValueType.String:
+                    case IndexValueType.StringArray:
+                        sortType = SortField.STRING;
+                        break;
+                    case IndexValueType.Int:
+                        sortType = SortField.INT;
+                        break;
+                    case IndexValueType.DateTime:
+                    case IndexValueType.Long:
+                        sortType = SortField.LONG;
+                        break;
+                    case IndexValueType.Float:
+                        sortType = SortField.FLOAT;
+                        break;
+                    case IndexValueType.Double:
+                        sortType = SortField.DOUBLE;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+
+            if (sortType == SortField.STRING)
+                return new SortField(fieldName, System.Threading.Thread.CurrentThread.CurrentCulture, reverse);
+            return new SortField(fieldName, sortType, reverse);
         }
     }
 }

@@ -2,14 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using Lucene.Net.Documents;
-using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Search.Indexing;
-using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Lucene29
 {
-    internal class LucObject
+    public class LucObject
     {
         private Dictionary<string, string> data = new Dictionary<string, string>();
         
@@ -34,24 +31,27 @@ namespace SenseNet.Search.Lucene29
             foreach (Field field in doc.GetFields())
                 this[field.Name()] = doc.Get(field.Name());
         }
-        public T Get<T>(string fieldName)
-        {
-            var info = SearchManager.GetPerFieldIndexingInfo(fieldName);
-            var converter = info.IndexFieldHandler as IIndexValueConverter<T>;
-            if (converter == null)
-                return default(T);
-            var value = converter.GetBack(data[fieldName]);
-            return value;
-        }
-        public object Get(string fieldName)
-        {
-            var info = SearchManager.GetPerFieldIndexingInfo(fieldName);
-            var converter = info.IndexFieldHandler as IIndexValueConverter;
-            if (converter == null)
-                return null;
-            var value = converter.GetBack(data[fieldName]);
-            return value;
-        }
+
+        //UNDONE: IIndexValueConverter is not accessible in this layer
+
+        //public T Get<T>(string fieldName)
+        //{
+        //    var info = SearchManager.GetPerFieldIndexingInfo(fieldName);
+        //    var converter = info.IndexFieldHandler as IIndexValueConverter<T>;
+        //    if (converter == null)
+        //        return default(T);
+        //    var value = converter.GetBack(data[fieldName]);
+        //    return value;
+        //}
+        //public object Get(string fieldName)
+        //{
+        //    var info = SearchManager.GetPerFieldIndexingInfo(fieldName);
+        //    var converter = info.IndexFieldHandler as IIndexValueConverter;
+        //    if (converter == null)
+        //        return null;
+        //    var value = converter.GetBack(data[fieldName]);
+        //    return value;
+        //}
 
         public virtual IEnumerable<string> Names { get { return data.Keys.ToList().AsReadOnly(); } }
         public virtual string this[string name]

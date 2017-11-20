@@ -10,7 +10,10 @@ namespace SenseNet.Search.Lucene29
             var masterAnalyzer = ((Lucene29IndexingEngine) IndexManager.IndexingEngine).GetAnalyzer();
             var visitor = new SnQueryToLucQueryVisitor(masterAnalyzer, context);
             visitor.Visit(snQuery.QueryTree);
-            return LucQuery.Create(visitor.Result);
+
+            var searchManager = ((Lucene29IndexingEngine) IndexManager.IndexingEngine).LuceneSearchManager;
+
+            return LucQuery.Create(visitor.Result, searchManager);
         }
     }
 }

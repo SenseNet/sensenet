@@ -11,7 +11,7 @@ namespace SenseNet.Search.Lucene29
     /// </summary>
     public class SnPerFieldAnalyzerWrapper : Analyzer
     {
-        private IDictionary<string, IPerFieldIndexingInfo> IndexingInfo { get; }
+        private IDictionary<string, Analyzer> AnalyzerInfo { get; }
 
         private readonly Analyzer _defaultAnalyzer = new KeywordAnalyzer();
         private readonly Dictionary<IndexFieldAnalyzer, Analyzer> _analyzers = new Dictionary<IndexFieldAnalyzer, Analyzer>
@@ -21,9 +21,9 @@ namespace SenseNet.Search.Lucene29
             {IndexFieldAnalyzer.Whitespace, new WhitespaceAnalyzer()}
         };
 
-        internal SnPerFieldAnalyzerWrapper(IDictionary<string, IPerFieldIndexingInfo> indexingInfo)
+        internal SnPerFieldAnalyzerWrapper(IDictionary<string, Analyzer> analyzerInfo)
         {
-            IndexingInfo = indexingInfo;
+            AnalyzerInfo = analyzerInfo;
         }
 
         private Analyzer GetAnalyzer(string fieldName)
@@ -33,27 +33,13 @@ namespace SenseNet.Search.Lucene29
                 return _analyzers[IndexFieldAnalyzer.Standard];
 
             // For everything else, ask the ContentTypeManager
-            IPerFieldIndexingInfo pfii = null;
-            IndexingInfo?.TryGetValue(fieldName, out pfii);
+            Analyzer analyzer = null;
+            AnalyzerInfo?.TryGetValue(fieldName, out analyzer);
 
             // Return with analyzer by indexing info  or the default analyzer if indexing info was not found.
-            return pfii == null ? _defaultAnalyzer : GetAnalyzer(pfii);
+            return analyzer ?? _defaultAnalyzer;
         }
-        private Analyzer GetAnalyzer(IPerFieldIndexingInfo pfii)
-        {
-            var analyzerToken = pfii.Analyzer == IndexFieldAnalyzer.Default ? pfii.IndexFieldHandler.GetDefaultAnalyzer() : pfii.Analyzer;
-
-            // ReSharper disable once SwitchStatementMissingSomeCases
-            switch (analyzerToken)
-            {
-                case IndexFieldAnalyzer.Keyword: return new KeywordAnalyzer();
-                case IndexFieldAnalyzer.Standard: return new StandardAnalyzer(LuceneSearchManager.LuceneVersion);
-                case IndexFieldAnalyzer.Whitespace:return new WhitespaceAnalyzer();
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-
+        
         //========================================================================================== Analyzer API implementation
 
         public override TokenStream TokenStream(string fieldName, System.IO.TextReader reader)

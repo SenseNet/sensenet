@@ -66,18 +66,9 @@
     <Compile Include="Lucene29\Lucene29QueryEngine.cs" />
     <Compile Include="Lucene29\SnQueryToLucQueryVisitor.cs" />
     <Compile Include="Lucene29\Lucene29SearchEngine.cs" />
-    <Compile Include="Lucene29\LucObject.cs" />
-    <Compile Include="Lucene29\LucQuery.cs" />
     <Compile Include="Lucene29\DumpVisitor.cs" />
-    <Compile Include="Lucene29\FieldNameVisitor.cs" />
-    <Compile Include="Lucene29\LucQueryVisitor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Lucene29\QueryExecutors\IQueryExecutor.cs" />
-    <Compile Include="Lucene29\QueryExecutors\LuceneQueryExecutor.cs" />
-    <Compile Include="Lucene29\QueryExecutors\QueryExecutor20131012.cs" />
-    <Compile Include="Lucene29\QueryExecutors\QueryExecutor20131012CountOnly.cs" />
     <Compile Include="SafeQueriesInternal.cs" />
-    <Compile Include="Lucene29\SnCollector.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

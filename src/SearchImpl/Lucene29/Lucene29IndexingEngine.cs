@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Lucene.Net.Analysis;
+using Lucene.Net.Analysis.Standard;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
@@ -14,7 +16,7 @@ namespace SenseNet.Search.Lucene29
     {
         internal IndexDirectory IndexDirectory => LuceneSearchManager.IndexDirectory;
 
-        private LuceneSearchManager LuceneSearchManager { get; }
+        internal LuceneSearchManager LuceneSearchManager { get; }
 
         //===================================================================================== Constructors
 
@@ -115,10 +117,30 @@ namespace SenseNet.Search.Lucene29
 
         public void SetIndexingInfo(IDictionary<string, IPerFieldIndexingInfo> indexingInfo)
         {
-            LuceneSearchManager.IndexingInfo = indexingInfo;
+            var analyzers = indexingInfo.ToDictionary(kvp => kvp.Key, kvp => GetAnalyzer(kvp.Value));
+            var indexFieldTypes = indexingInfo.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.IndexFieldHandler.IndexFieldType);
+
+            LuceneSearchManager.SetIndexingInfo(analyzers, indexFieldTypes);
         }
 
         //===================================================================================== Helper methods
+
+        internal static Analyzer GetAnalyzer(IPerFieldIndexingInfo pfii)
+        {
+            var analyzerToken = pfii.Analyzer == IndexFieldAnalyzer.Default
+                ? pfii.IndexFieldHandler.GetDefaultAnalyzer()
+                : pfii.Analyzer;
+
+            // ReSharper disable once SwitchStatementMissingSomeCases
+            switch (analyzerToken)
+            {
+                case IndexFieldAnalyzer.Keyword: return new KeywordAnalyzer();
+                case IndexFieldAnalyzer.Standard: return new StandardAnalyzer(LuceneSearchManager.LuceneVersion);
+                case IndexFieldAnalyzer.Whitespace: return new WhitespaceAnalyzer();
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
 
         private static void StartMessaging()
         {

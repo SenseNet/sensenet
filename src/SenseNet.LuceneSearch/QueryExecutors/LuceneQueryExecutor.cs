@@ -11,6 +11,7 @@ namespace SenseNet.Search.Lucene29.QueryExecutors
     {
         public IPermissionFilter PermissionChecker { get; private set; }
         public LucQuery LucQuery { get; private set; }
+        private LuceneSearchManager LuceneSearchManager => LucQuery.LuceneSearchManager;
 
         public void Initialize(LucQuery lucQuery, IPermissionFilter permissionChecker)
         {
@@ -36,7 +37,7 @@ namespace SenseNet.Search.Lucene29.QueryExecutors
                 if (top == 0)
                     top = int.MaxValue;
 
-                using (var readerFrame = Lucene29IndexingEngine.GetReaderFrame(this.LucQuery.QueryExecutionMode == QueryExecutionMode.Quick))
+                using (var readerFrame = LuceneSearchManager.GetIndexReaderFrame(this.LucQuery.QueryExecutionMode == QueryExecutionMode.Quick))
                 {
                     var idxReader = readerFrame.IndexReader;
                     var searcher = new IndexSearcher(idxReader);

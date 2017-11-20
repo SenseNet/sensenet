@@ -50,12 +50,21 @@
   <ItemGroup>
     <Compile Include="Configuration\Lucene29.cs" />
     <Compile Include="EnumConverter.cs" />
+    <Compile Include="FieldNameVisitor.cs" />
     <Compile Include="IndexDirectory.cs" />
     <Compile Include="IndexingInfo.cs" />
     <Compile Include="IndexReaderFrame.cs" />
     <Compile Include="IndexWriterFrame.cs" />
     <Compile Include="LuceneSearchManager.cs" />
+    <Compile Include="LucObject.cs" />
+    <Compile Include="LucQuery.cs" />
+    <Compile Include="LucQueryVisitor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QueryExecutors\IQueryExecutor.cs" />
+    <Compile Include="QueryExecutors\LuceneQueryExecutor.cs" />
+    <Compile Include="QueryExecutors\QueryExecutor20131012.cs" />
+    <Compile Include="QueryExecutors\QueryExecutor20131012CountOnly.cs" />
+    <Compile Include="SnCollector.cs" />
     <Compile Include="SnPerFieldAnalyzerWrapper.cs" />
   </ItemGroup>
   <ItemGroup>

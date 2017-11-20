@@ -8,14 +8,12 @@ using Lucene.Net.Search.Spans;
 using Lucene.Net.Index;
 using System.Globalization;
 using Lucene.Net.Util;
-using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Search;
+using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Lucene29
 {
-    internal abstract class LucQueryVisitor
+    public abstract class LucQueryVisitor
     {
         public virtual Query Visit(Query q)
         {
@@ -49,7 +47,7 @@ namespace SenseNet.Search.Lucene29
             var numericRangeq = q as NumericRangeQuery; if (numericRangeq != null) return VisitNumericRangeQuery(numericRangeq);
             // </V2.9.2>
 
-            throw new SnNotSupportedException("Unknown query type: " + q.GetType().FullName);
+            throw new NotSupportedException("Unknown query type: " + q.GetType().FullName);
         }
 
         public virtual Query VisitBooleanQuery(BooleanQuery booleanq)
@@ -89,12 +87,12 @@ namespace SenseNet.Search.Lucene29
             }
             return newList != null ? newList.ToArray() : clauses;
         }
-        public virtual Query VisitConstantScoreQuery(ConstantScoreQuery constantScoreq) { throw new SnNotSupportedException(); }
-        public virtual Query VisitCustomScoreQuery(CustomScoreQuery customScoreq) { throw new SnNotSupportedException(); }
-        public virtual Query VisitDisjunctionMaxQuery(DisjunctionMaxQuery disjunctionMaxq) { throw new SnNotSupportedException(); }
-        public virtual Query VisitFilteredQuery(FilteredQuery filteredq) { throw new SnNotSupportedException(); }
-        public virtual Query VisitMatchAllDocsQuery(MatchAllDocsQuery matchAllDocsq) { throw new SnNotSupportedException(); }
-        public virtual Query VisitMultiPhraseQuery(MultiPhraseQuery multiPhraseq) { throw new SnNotSupportedException(); }
+        public virtual Query VisitConstantScoreQuery(ConstantScoreQuery constantScoreq) { throw new NotSupportedException(); }
+        public virtual Query VisitCustomScoreQuery(CustomScoreQuery customScoreq) { throw new NotSupportedException(); }
+        public virtual Query VisitDisjunctionMaxQuery(DisjunctionMaxQuery disjunctionMaxq) { throw new NotSupportedException(); }
+        public virtual Query VisitFilteredQuery(FilteredQuery filteredq) { throw new NotSupportedException(); }
+        public virtual Query VisitMatchAllDocsQuery(MatchAllDocsQuery matchAllDocsq) { throw new NotSupportedException(); }
+        public virtual Query VisitMultiPhraseQuery(MultiPhraseQuery multiPhraseq) { throw new NotSupportedException(); }
         public virtual Query VisitFuzzyQuery(FuzzyQuery fuzzyq)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -150,11 +148,11 @@ namespace SenseNet.Search.Lucene29
                 return prefixq;
             return new WildcardQuery(visited);
         }
-        public virtual Query VisitSpanFirstQuery(SpanFirstQuery spanFirstq) { throw new SnNotSupportedException(); }
-        public virtual Query VisitSpanNearQuery(SpanNearQuery spanNearq) { throw new SnNotSupportedException(); }
-        public virtual Query VisitSpanNotQuery(SpanNotQuery spanNotq) { throw new SnNotSupportedException(); }
-        public virtual Query VisitSpanOrQuery(SpanOrQuery spanOrq) { throw new SnNotSupportedException(); }
-        public virtual Query VisitSpanTermQuery(SpanTermQuery spanTermq) { throw new SnNotSupportedException(); }
+        public virtual Query VisitSpanFirstQuery(SpanFirstQuery spanFirstq) { throw new NotSupportedException(); }
+        public virtual Query VisitSpanNearQuery(SpanNearQuery spanNearq) { throw new NotSupportedException(); }
+        public virtual Query VisitSpanNotQuery(SpanNotQuery spanNotq) { throw new NotSupportedException(); }
+        public virtual Query VisitSpanOrQuery(SpanOrQuery spanOrq) { throw new NotSupportedException(); }
+        public virtual Query VisitSpanTermQuery(SpanTermQuery spanTermq) { throw new NotSupportedException(); }
         public virtual Query VisitTermQuery(TermQuery termq)
         {
             var term = termq.GetTerm();
@@ -163,8 +161,8 @@ namespace SenseNet.Search.Lucene29
                 return termq;
             return new TermQuery(visited);
         }
-        public virtual Query VisitValueSourceQuery(ValueSourceQuery valueSourceq) { throw new SnNotSupportedException(); }
-        public virtual Query VisitFieldScoreQuery(FieldScoreQuery fieldScoreq) { throw new SnNotSupportedException(); }
+        public virtual Query VisitValueSourceQuery(ValueSourceQuery valueSourceq) { throw new NotSupportedException(); }
+        public virtual Query VisitFieldScoreQuery(FieldScoreQuery fieldScoreq) { throw new NotSupportedException(); }
         // <V2.9.2>
         public virtual Query VisitTermRangeQuery(TermRangeQuery termRangeq)
         {
@@ -191,7 +189,7 @@ namespace SenseNet.Search.Lucene29
             if (min is Double)
                 return NumericRangeQuery.NewDoubleRange(visitedField, (Double)numericRangeq.GetMin(), (Double)numericRangeq.GetMax(), numericRangeq.IncludesMin(), numericRangeq.IncludesMax());
 
-            throw new SnNotSupportedException(String.Format("VisitNumericRangeQuery with {0} minvalue is not supported.", min.GetType().Name));
+            throw new NotSupportedException(String.Format("VisitNumericRangeQuery with {0} minvalue is not supported.", min.GetType().Name));
         }
         // </V2.9.2>
         public virtual BooleanClause VisitBooleanClause(BooleanClause clause)
@@ -226,6 +224,13 @@ namespace SenseNet.Search.Lucene29
 
     internal class LucQueryToStringVisitor : LucQueryVisitor
     {
+        private LuceneSearchManager LuceneSearchManager { get; }
+
+        public LucQueryToStringVisitor(LuceneSearchManager searchManager)
+        {
+            LuceneSearchManager = searchManager;
+        }
+
         private StringBuilder _text = new StringBuilder();
         public override string ToString()
         {
@@ -445,8 +450,9 @@ namespace SenseNet.Search.Lucene29
             if (fieldText == null)
                 return null;
 
-            var info = SearchManager.GetPerFieldIndexingInfo(fieldName);
-            if (info == null)
+            var fieldType = default(IndexValueType);
+
+            if (!(LuceneSearchManager?.IndexFieldTypeInfo?.TryGetValue(fieldName, out fieldType) ?? false))
             {
                 var c = fieldText.ToCharArray();
                 for (int i = 0; i < c.Length; i++)
@@ -454,8 +460,8 @@ namespace SenseNet.Search.Lucene29
                         c[i] = '.';
                 return new String(c);
             }
-            var fieldHandler = info.IndexFieldHandler;
-            switch (fieldHandler.IndexFieldType)
+
+            switch (fieldType)
             {
                 case IndexValueType.Bool:
                 case IndexValueType.String:
@@ -477,7 +483,7 @@ namespace SenseNet.Search.Lucene29
                         return GetTermText(d.ToString("yyyy-MM-dd HH:mm"));
                     return GetTermText(d.ToString("yyyy-MM-dd HH:mm:ss"));
                 default:
-                    throw new SnNotSupportedException("Unknown IndexFieldType: " + fieldHandler.IndexFieldType);
+                    throw new NotSupportedException("Unknown IndexFieldType: " + fieldType);
             }
         }
         private string GetTermText(string text)

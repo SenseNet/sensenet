@@ -3,22 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Lucene.Net.Search;
-using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using System.Diagnostics;
-using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Search.Querying;
-using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Lucene29.QueryExecutors;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Lucene29
 {
-    internal class LucQuery
+    public class LucQuery
     {
-        private static readonly string[] HeadOnlyFields = Node.GetHeadOnlyProperties();
+        //UNDONE: hardcoded headonly field names
+        //private static readonly string[] HeadOnlyFields = Node.GetHeadOnlyProperties();
+        private static readonly string[] HeadOnlyFields =
+        {
+            "Name", "Path", "Id", "Index", "NodeType", "ContentListId", "ContentListType", "Parent", "IsModified",
+            "IsDeleted", "CreationDate", "ModificationDate", "CreatedBy", "ModifiedBy", "VersionCreationDate",
+            "VersionModificationDate", "VersionCreatedById", "VersionModifiedById", "Aspects", "Icon", "StoredIcon"
+        };
 
         public static Query FullSetQuery = NumericRangeQuery.NewIntRange("Id", 0, null, false, false); // MachAllDocsQuery in 3.0.3
         //public static readonly string NullReferenceValue = "null";
@@ -31,10 +33,11 @@ namespace SenseNet.Search.Lucene29
         }
         public string QueryText => QueryToString(Query);
 
-        [Obsolete("", true)]
-        internal QueryFieldLevel FieldLevel { get; set; }
+        internal LuceneSearchManager LuceneSearchManager { get; private set; }
 
-        public IUser User { get; set; }
+        //UNDONE: IUser is defined in the Storage layer
+        //public IUser User { get; set; }
+
         public SortField[] SortFields { get; set; }
         public bool HasSort => SortFields != null && SortFields.Length > 0;
         public string Projection { get; private set; }
@@ -77,58 +80,64 @@ namespace SenseNet.Search.Lucene29
             if (propertyName == "NodeId") return "Id";
             return propertyName;
         }
-        public static LucQuery Create(Query luceneQuery)
+        public static LucQuery Create(Query luceneQuery, LuceneSearchManager searchManager)
         {
-            return new LucQuery { Query = luceneQuery };
-        }
-
-        public static SortField CreateSortField(string fieldName, bool reverse)
-        {
-            var info = SearchManager.GetPerFieldIndexingInfo(fieldName);
-            var sortType = SortField.STRING;
-            if (info != null)
+            return new LucQuery
             {
-                fieldName = info.IndexFieldHandler.GetSortFieldName(fieldName);
-
-                switch (info.IndexFieldHandler.IndexFieldType)
-                {
-                    case IndexValueType.Bool:
-                    case IndexValueType.String:
-                    case IndexValueType.StringArray:
-                        sortType = SortField.STRING;
-                        break;
-                    case IndexValueType.Int:
-                        sortType = SortField.INT;
-                        break;
-                    case IndexValueType.DateTime:
-                    case IndexValueType.Long:
-                        sortType = SortField.LONG;
-                        break;
-                    case IndexValueType.Float:
-                        sortType = SortField.FLOAT;
-                     break;
-                    case IndexValueType.Double:
-                        sortType = SortField.DOUBLE;
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            }
-
-            if (sortType == SortField.STRING)
-                return new SortField(fieldName, System.Threading.Thread.CurrentThread.CurrentCulture, reverse);
-            return new SortField(fieldName, sortType, reverse);
+                Query = luceneQuery,
+                LuceneSearchManager = searchManager
+            };
         }
 
-        [Obsolete("Use SearchManager.IsAutofilterEnabled")]
+        //UNDONE: CreateSortField has been moved up to the query engine
+
+        //public static SortField CreateSortField(string fieldName, bool reverse)
+        //{
+        //    var info = SearchManager.GetPerFieldIndexingInfo(fieldName);
+        //    var sortType = SortField.STRING;
+        //    if (info != null)
+        //    {
+        //        fieldName = info.IndexFieldHandler.GetSortFieldName(fieldName);
+
+        //        switch (info.IndexFieldHandler.IndexFieldType)
+        //        {
+        //            case IndexValueType.Bool:
+        //            case IndexValueType.String:
+        //            case IndexValueType.StringArray:
+        //                sortType = SortField.STRING;
+        //                break;
+        //            case IndexValueType.Int:
+        //                sortType = SortField.INT;
+        //                break;
+        //            case IndexValueType.DateTime:
+        //            case IndexValueType.Long:
+        //                sortType = SortField.LONG;
+        //                break;
+        //            case IndexValueType.Float:
+        //                sortType = SortField.FLOAT;
+        //             break;
+        //            case IndexValueType.Double:
+        //                sortType = SortField.DOUBLE;
+        //                break;
+        //            default:
+        //                throw new ArgumentOutOfRangeException();
+        //        }
+        //    }
+
+        //    if (sortType == SortField.STRING)
+        //        return new SortField(fieldName, System.Threading.Thread.CurrentThread.CurrentCulture, reverse);
+        //    return new SortField(fieldName, sortType, reverse);
+        //}
+
+        [Obsolete("Use SearchManager.IsAutofilterEnabled", true)]
         public static bool IsAutofilterEnabled(FilterStatus value)
         {
-            return SearchManager.IsAutofilterEnabled(value);
+            throw new InvalidOperationException();
         }
-        [Obsolete("Use SearchManager.IsLifespanFilterEnabled")]
+        [Obsolete("Use SearchManager.IsLifespanFilterEnabled", true)]
         public static bool IsLifespanFilterEnabled(FilterStatus value)
         {
-            return SearchManager.IsLifespanFilterEnabled(value);
+            throw new InvalidOperationException();
         }
 
         // ========================================================================================
@@ -170,42 +179,43 @@ namespace SenseNet.Search.Lucene29
             }
         }
 
-        private QueryFieldLevel GetFieldLevel()
-        {
-            var v = new FieldNameVisitor();
-            v.Visit(this.Query);
-            return GetFieldLevel(v.FieldNames);
-        }
-        internal static QueryFieldLevel GetFieldLevel(IEnumerable<string> fieldNames)
-        {
-            var fieldLevel = QueryFieldLevel.NotDefined;
-            foreach (var fieldName in fieldNames)
-            {
-                var indexingInfo = SearchManager.GetPerFieldIndexingInfo(fieldName);
-                var level = GetFieldLevel(fieldName, indexingInfo);
-                fieldLevel = level > fieldLevel ? level : fieldLevel;
-            }
-            return fieldLevel;
-        }
-        internal static QueryFieldLevel GetFieldLevel(string fieldName, IPerFieldIndexingInfo indexingInfo)
-        {
-            QueryFieldLevel level;
+        //UNDONE: is GetFieldLevel used here?
+        //private QueryFieldLevel GetFieldLevel()
+        //{
+        //    var v = new FieldNameVisitor();
+        //    v.Visit(this.Query);
+        //    return GetFieldLevel(v.FieldNames);
+        //}
+        //internal static QueryFieldLevel GetFieldLevel(IEnumerable<string> fieldNames)
+        //{
+        //    var fieldLevel = QueryFieldLevel.NotDefined;
+        //    foreach (var fieldName in fieldNames)
+        //    {
+        //        var indexingInfo = SearchManager.GetPerFieldIndexingInfo(fieldName);
+        //        var level = GetFieldLevel(fieldName, indexingInfo);
+        //        fieldLevel = level > fieldLevel ? level : fieldLevel;
+        //    }
+        //    return fieldLevel;
+        //}
+        //internal static QueryFieldLevel GetFieldLevel(string fieldName, IPerFieldIndexingInfo indexingInfo)
+        //{
+        //    QueryFieldLevel level;
 
-            if (fieldName == IndexFieldName.AllText)
-                level = QueryFieldLevel.BinaryOrFullText;
-            else if (indexingInfo == null)
-                level = QueryFieldLevel.BinaryOrFullText;
-            else if (indexingInfo.FieldDataType == typeof(SenseNet.ContentRepository.Storage.BinaryData))
-                level = QueryFieldLevel.BinaryOrFullText;
-            else if (fieldName == IndexFieldName.InFolder || fieldName == IndexFieldName.InTree
-                || fieldName == IndexFieldName.Type || fieldName == IndexFieldName.TypeIs
-                || HeadOnlyFields.Contains(fieldName))
-                level = QueryFieldLevel.HeadOnly;
-            else
-                level = QueryFieldLevel.NoBinaryOrFullText;
+        //    if (fieldName == IndexFieldName.AllText)
+        //        level = QueryFieldLevel.BinaryOrFullText;
+        //    else if (indexingInfo == null)
+        //        level = QueryFieldLevel.BinaryOrFullText;
+        //    else if (indexingInfo.FieldDataType == typeof(SenseNet.ContentRepository.Storage.BinaryData))
+        //        level = QueryFieldLevel.BinaryOrFullText;
+        //    else if (fieldName == IndexFieldName.InFolder || fieldName == IndexFieldName.InTree
+        //        || fieldName == IndexFieldName.Type || fieldName == IndexFieldName.TypeIs
+        //        || HeadOnlyFields.Contains(fieldName))
+        //        level = QueryFieldLevel.HeadOnly;
+        //    else
+        //        level = QueryFieldLevel.NoBinaryOrFullText;
 
-            return level;
-        }
+        //    return level;
+        //}
 
         public override string ToString()
         {
@@ -224,10 +234,10 @@ namespace SenseNet.Search.Lucene29
                     else
                         result.Append(" ").Append(Cql.Keyword.Sort).Append(":").Append(sortField.GetField());
             }
-            if (EnableAutofilters != FilterStatus.Default && EnableAutofilters != SearchManager.EnableAutofiltersDefaultValue)
-                result.Append(" ").Append(Cql.Keyword.Autofilters).Append(":").Append(SearchManager.EnableAutofiltersDefaultValue == FilterStatus.Enabled ? Cql.Keyword.Off : Cql.Keyword.On);
-            if (EnableLifespanFilter != FilterStatus.Default && EnableLifespanFilter != SearchManager.EnableLifespanFilterDefaultValue)
-                result.Append(" ").Append(Cql.Keyword.Lifespan).Append(":").Append(SearchManager.EnableLifespanFilterDefaultValue == FilterStatus.Enabled ? Cql.Keyword.Off : Cql.Keyword.On);
+            if (EnableAutofilters != FilterStatus.Default && EnableAutofilters != EnableAutofilters_DefaultValue)
+                result.Append(" ").Append(Cql.Keyword.Autofilters).Append(":").Append(EnableAutofilters_DefaultValue == FilterStatus.Enabled ? Cql.Keyword.Off : Cql.Keyword.On);
+            if (EnableLifespanFilter != FilterStatus.Default && EnableLifespanFilter != EnableLifespanFilter_DefaultValue)
+                result.Append(" ").Append(Cql.Keyword.Lifespan).Append(":").Append(EnableLifespanFilter_DefaultValue == FilterStatus.Enabled ? Cql.Keyword.Off : Cql.Keyword.On);
             if (QueryExecutionMode == QueryExecutionMode.Quick)
                 result.Append(" ").Append(Cql.Keyword.Quick);
             return result.ToString();
@@ -236,7 +246,7 @@ namespace SenseNet.Search.Lucene29
         {
             try
             {
-                var visitor = new LucQueryToStringVisitor();
+                var visitor = new LucQueryToStringVisitor(LuceneSearchManager);
                 visitor.Visit(query);
                 return visitor.ToString();
             }
@@ -254,11 +264,14 @@ namespace SenseNet.Search.Lucene29
 
         public void SetSort(IEnumerable<SortInfo> sort)
         {
-            var sortFields = new List<SortField>();
-            if (sort != null)
-                foreach (var field in sort)
-                    sortFields.Add(CreateSortField(field.FieldName, field.Reverse));
-            this.SortFields = sortFields.ToArray();
+            //UNDONE: CreateSortField has been moved up to the query engine
+            throw new NotImplementedException();
+
+            //var sortFields = new List<SortField>();
+            //if (sort != null)
+            //    foreach (var field in sort)
+            //        sortFields.Add(CreateSortField(field.FieldName, field.Reverse));
+            //this.SortFields = sortFields.ToArray();
         }
 
         public void AddAndClause(LucQuery q2)

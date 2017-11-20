@@ -26,9 +26,10 @@ namespace SenseNet.Search.Lucene29
         public static readonly Lucene.Net.Util.Version LuceneVersion = Lucene.Net.Util.Version.LUCENE_29;
 
         public bool Running { get; set; }
-        public IndexDirectory IndexDirectory { get; set; }
+        public IndexDirectory IndexDirectory { get; }
 
-        public IDictionary<string, IPerFieldIndexingInfo> IndexingInfo { get; set; }
+        public IDictionary<string, Analyzer> AnalyzerInfo { get; private set; }
+        public IDictionary<string, IndexValueType> IndexFieldTypeInfo { get; private set; }
 
         private DateTime IndexReopenedAt { get; set; }
 
@@ -602,8 +603,15 @@ namespace SenseNet.Search.Lucene29
 
         public Analyzer GetAnalyzer()
         {
-            return new SnPerFieldAnalyzerWrapper(IndexingInfo);
+            return new SnPerFieldAnalyzerWrapper(AnalyzerInfo);
         }
+
+        public void SetIndexingInfo(IDictionary<string, Analyzer> analyzerInfo, IDictionary<string, IndexValueType> indexFieldTypeInfo)
+        {
+            AnalyzerInfo = analyzerInfo;
+            IndexFieldTypeInfo = indexFieldTypeInfo;
+        }
+
         private Document GetFakeDocument()
         {
             var value = Guid.NewGuid().ToString();
