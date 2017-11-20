@@ -60,8 +60,10 @@ namespace SenseNet.ContentRepository.Search.Indexing
         {
             using (var op = SnTrace.Index.StartOperation("IndexPopulator RepopulateTree"))
             {
-                IndexManager.IndexingEngine.WriteIndex(new[] { new SnTerm(IndexFieldName.InTree, path) }, null
-,                    addition: SearchManager.LoadIndexDocumentsByPath(path, IndexManager.GetNotIndexedNodeTypes())
+                IndexManager.IndexingEngine.WriteIndex(
+                    new[] { new SnTerm(IndexFieldName.InTree, path) },
+                    null,
+                    SearchManager.LoadIndexDocumentsByPath(path, IndexManager.GetNotIndexedNodeTypes())
                         .Select(IndexManager.CompleteIndexDocument));
                 op.Successful = true;
             }
@@ -77,6 +79,15 @@ namespace SenseNet.ContentRepository.Search.Indexing
         // caller: Node.Save, Node.SaveCopied
         public object BeginPopulateNode(Node node, NodeSaveSettings settings, string originalPath, string newPath)
         {
+            if (node == null)
+                throw new ArgumentNullException(nameof(node));
+            if (settings == null)
+                throw new ArgumentNullException(nameof(settings));
+            if (originalPath == null)
+                throw new ArgumentNullException(nameof(originalPath));
+            if (newPath == null)
+                throw new ArgumentNullException(nameof(newPath));
+
             var populatorData = new DocumentPopulatorData
             {
                 Node = node,
@@ -153,19 +164,24 @@ namespace SenseNet.ContentRepository.Search.Indexing
         // caller: CommitPopulateNode (rename), Node.MoveTo, Node.ForceDelete
         public void DeleteTree(string path, int nodeId)
         {
-            // add new tree
             CreateTreeActivityAndExecute(IndexingActivityType.RemoveTree, path, nodeId, null);
         }
 
         // caller: Node.DeleteMoreInternal
         public void DeleteForest(IEnumerable<Int32> idSet)
         {
+            if (idSet == null)
+                throw new ArgumentNullException(nameof(idSet));
+
             foreach (var head in NodeHead.Get(idSet))
                 DeleteTree(head.Path, head.Id);
         }
         // caller: Node.MoveMoreInternal
         public void DeleteForest(IEnumerable<string> pathSet)
         {
+            if (pathSet == null)
+                throw new ArgumentNullException(nameof(pathSet));
+
             foreach (var head in NodeHead.Get(pathSet))
                 DeleteTree(head.Path, head.Id);
         }
