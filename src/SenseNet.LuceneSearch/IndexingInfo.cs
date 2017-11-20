@@ -11,12 +11,5 @@ namespace SenseNet.Search.Lucene29
         public static readonly IndexingMode DefaultIndexingMode = IndexingMode.Analyzed;
         public static readonly IndexStoringMode DefaultIndexStoringMode = IndexStoringMode.No;
         public static readonly IndexTermVector DefaultTermVectorStoringMode = IndexTermVector.No;
-
-        //UNDONE: make sure GetPerFieldIndexingInfo is not needed
-        public static IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
-        {
-            //UNDONE: implement a local indexing info store that is refreshed when a CTD changes
-            throw new NotImplementedException();
-        }
     }
 }

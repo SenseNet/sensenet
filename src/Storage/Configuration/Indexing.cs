@@ -21,11 +21,7 @@ namespace SenseNet.Configuration
                 if (_indexDirectoryPath == null)
                 {
                     var configValue = GetString(SectionName, "IndexDirectoryPath", $"..\\{DefaultLocalIndexDirectory}");
-                    var assemblyPath = System.Reflection.Assembly.GetExecutingAssembly().CodeBase
-                        .Replace("file:///", "")
-                        .Replace("file://", "//")
-                        .Replace("/", "\\");
-                    var directoryPath = System.IO.Path.GetDirectoryName(assemblyPath) ?? string.Empty;
+                    var directoryPath = AppDomain.CurrentDomain.BaseDirectory;
 
                     _indexDirectoryPath = System.IO.Path.GetFullPath(System.IO.Path.Combine(directoryPath, configValue));
                 }

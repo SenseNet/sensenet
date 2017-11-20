@@ -159,9 +159,6 @@ namespace SenseNet.SearchImpl.Tests
                 var parser = new CqlParser();
                 var snQuery = parser.Parse(queryText, queryContext);
 
-                var compiler = new Lucene29Compiler();
-                var lucQuery = compiler.Compile(snQuery, queryContext);
-
                 var analyzers = indexingInfo.ToDictionary(kvp => kvp.Key, kvp => Lucene29IndexingEngine.GetAnalyzer(kvp.Value));
                 var indexFieldTypes = indexingInfo.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.IndexFieldHandler.IndexFieldType);
 
@@ -169,6 +166,9 @@ namespace SenseNet.SearchImpl.Tests
                 // to hold the indexing info for the visitor to work. 
                 var sm = new LuceneSearchManager(new IndexDirectory());
                 sm.SetIndexingInfo(analyzers, indexFieldTypes);
+
+                var compiler = new Lucene29Compiler(sm.GetAnalyzer());
+                var lucQuery = compiler.Compile(snQuery, queryContext);
 
                 var lqVisitor = new LucQueryToStringVisitor(sm);
                 lqVisitor.Visit(lucQuery.Query);
