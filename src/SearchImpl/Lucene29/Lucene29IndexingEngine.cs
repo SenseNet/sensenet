@@ -5,7 +5,6 @@ using Lucene.Net.Analysis;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
-using SenseNet.LuceneSearch;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 

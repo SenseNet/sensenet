@@ -3,24 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
-using SenseNet.Search.Indexing;
-using SenseNet.Search;
-using Lucene.Net.Documents;
 using Lucene.Net.Search;
 using Lucene.Net.Index;
-using System.Data.Common;
-using System.Runtime.InteropServices;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
-using SenseNet.LuceneSearch;
-using SenseNet.Search.Lucene29;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Lucene29

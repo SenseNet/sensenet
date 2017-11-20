@@ -96,9 +96,9 @@
       <Project>{0279705b-779d-485d-86b9-f7ab3dd1f2c3}</Project>
       <Name>Search</Name>
     </ProjectReference>
-    <ProjectReference Include="..\SenseNet.LuceneSearch\SenseNet.LuceneSearch.csproj">
+    <ProjectReference Include="..\SenseNet.LuceneSearch\SenseNet.Search.Lucene29.csproj">
       <Project>{9e776eda-681a-4330-8632-9ed0b67ed5a6}</Project>
-      <Name>SenseNet.LuceneSearch</Name>
+      <Name>SenseNet.Search.Lucene29</Name>
     </ProjectReference>
     <ProjectReference Include="..\Storage\Storage.csproj">
       <Project>{5db4ddba-81f6-4d81-943a-18f3178b3355}</Project>

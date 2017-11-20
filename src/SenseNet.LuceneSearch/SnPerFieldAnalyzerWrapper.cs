@@ -4,7 +4,7 @@ using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using SenseNet.Search.Indexing;
 
-namespace SenseNet.LuceneSearch
+namespace SenseNet.Search.Lucene29
 {
     /// <summary>
     /// sensenet ECM specific Lucene analyzer, equivalent of Lucene's PerFieldAnalyzerWrapper.

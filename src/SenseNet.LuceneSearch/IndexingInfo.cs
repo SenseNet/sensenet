@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SenseNet.Search.Indexing;
 
-namespace SenseNet.LuceneSearch
+namespace SenseNet.Search.Lucene29
 {
     /// <summary>
     /// Local helper class for indexinginfo-related constants.

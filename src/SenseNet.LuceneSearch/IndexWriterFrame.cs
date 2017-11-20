@@ -2,7 +2,7 @@
 using System.Threading;
 using Lucene.Net.Index;
 
-namespace SenseNet.LuceneSearch
+namespace SenseNet.Search.Lucene29
 {
     public class IndexWriterFrame : IDisposable
     {

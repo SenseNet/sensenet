@@ -1,5 +1,4 @@
 ﻿using SenseNet.ContentRepository.Search.Indexing;
-using SenseNet.LuceneSearch;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Lucene29

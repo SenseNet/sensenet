@@ -2,7 +2,7 @@
 using SenseNet.Search.Indexing;
 using LucField = Lucene.Net.Documents.Field;
 
-namespace SenseNet.LuceneSearch
+namespace SenseNet.Search.Lucene29
 {
     internal class EnumConverter
     {

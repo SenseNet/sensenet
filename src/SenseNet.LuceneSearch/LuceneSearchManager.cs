@@ -19,7 +19,7 @@ using SenseNet.Search.Indexing;
 using SenseNet.Search.Lucene29;
 using SenseNet.Search.Querying;
 
-namespace SenseNet.LuceneSearch
+namespace SenseNet.Search.Lucene29
 {
     public class LuceneSearchManager
     {

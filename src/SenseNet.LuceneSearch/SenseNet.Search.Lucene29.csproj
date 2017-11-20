@@ -7,8 +7,8 @@
     <ProjectGuid>{9E776EDA-681A-4330-8632-9ED0B67ED5A6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SenseNet.LuceneSearch</RootNamespace>
-    <AssemblyName>SenseNet.LuceneSearch</AssemblyName>
+    <RootNamespace>SenseNet.Search.Lucene29</RootNamespace>
+    <AssemblyName>SenseNet.Search.Lucene29</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />

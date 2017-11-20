@@ -25,7 +25,6 @@ using SenseNet.SearchImpl.Tests.Implementations;
 using System.Threading;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing;
-using SenseNet.LuceneSearch;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.SearchImpl.Tests
