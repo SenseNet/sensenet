@@ -12,7 +12,7 @@ using SenseNet.Search.Querying;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
-    public class DocumentPopulator : IIndexPopulator
+    internal class DocumentPopulator : IIndexPopulator
     {
         private class DocumentPopulatorData
         {
@@ -250,13 +250,6 @@ namespace SenseNet.ContentRepository.Search.Indexing
             CreateActivityAndExecute(IndexingActivityType.UpdateDocument, state.OriginalPath, state.Node.Id, state.Node.VersionId, state.Node.VersionTimestamp, versioningInfo, indexDocumentData);
         }
 
-        // caller: ClearAndPopulateAll, RepopulateTree
-        private static IEnumerable<Node> GetVersions(Node node)
-        {
-            var versionNumbers = Node.GetVersionNumbers(node.Id);
-            var versions = from versionNumber in versionNumbers select Node.LoadNode(node.Id, versionNumber);
-            return versions.ToArray();
-        }
         /*================================================================================================================================*/
 
         private static IndexingActivityBase CreateActivity(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData)
@@ -310,7 +303,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         }
     }
 
-    public class NullPopulator : IIndexPopulator
+    internal class NullPopulator : IIndexPopulator
     {
         public static NullPopulator Instance = new NullPopulator();
 
