@@ -2644,7 +2644,7 @@ namespace SenseNet.ContentRepository.Storage
                     }
 
                     using (new SystemAccount())
-                        populator.PopulateTree(targetPath, this.Id);
+                        populator.AddTree(targetPath, this.Id);
 
                 } // end lock
 

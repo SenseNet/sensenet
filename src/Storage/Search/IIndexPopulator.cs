@@ -34,10 +34,18 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// <param name="consoleWriter">TextWriter instance for writing progress.</param>
         void ClearAndPopulateAll(TextWriter consoleWriter = null);
 
-        //UNDONE:!!! Consolidate this API
-        void RepopulateTree(string newPath);
-        //UNDONE:!!! Consolidate this API
-        void PopulateTree(string newPath, int nodeId);
+        /// <summary>
+        /// Refreshes the index of the give subtree directly. Designed for offline usage e.g. any step of SnAdmin package.
+        /// Does not notify any other webservers and does not register any activity.
+        /// Note: 
+        /// </summary>
+        void RebuildIndexDirectly(string path);
+        /// <summary>
+        /// Adds a brand new subtree to the index.
+        /// </summary>
+        /// <param name="path">The Path of the root node of the subtree.</param>
+        /// <param name="nodeId">The Id of the root node of the subtree.</param>
+        void AddTree(string path, int nodeId);
         /// <summary>
         /// Creates a snapshot object before saving the node.
         /// This snapshot helps to perform the correct indexing operation.
@@ -77,7 +85,12 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// </summary>
         void DeleteForest(IEnumerable<string> pathSet);
 
-        //UNDONE:!!! Consolidate this API
+        /// <summary>
+        /// Rebuilds the index of a node or a subtree.
+        /// </summary>
+        /// <param name="node">The root node of the subtree.</param>
+        /// <param name="recursive">True if the reindexes the whole subtree.</param>
+        /// <param name="rebuildLevel">IndexRebuildLevel option.</param>
         void RebuildIndex(Node node, bool recursive = false, IndexRebuildLevel rebuildLevel = IndexRebuildLevel.IndexOnly);
 
         /// <summary>

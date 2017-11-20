@@ -56,7 +56,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         }
 
         // caller: IndexPopulator.Populator
-        public void RepopulateTree(string path)
+        public void RebuildIndexDirectly(string path)
         {
             using (var op = SnTrace.Index.StartOperation("IndexPopulator RepopulateTree"))
             {
@@ -70,7 +70,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         }
 
         // caller: CommitPopulateNode (rename), Node.MoveTo, Node.MoveMoreInternal
-        public void PopulateTree(string path, int nodeId)
+        public void AddTree(string path, int nodeId)
         {
             // add new tree
             CreateTreeActivityAndExecute(IndexingActivityType.AddTree, path, nodeId, null);
@@ -109,7 +109,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 if (!state.OriginalPath.Equals(state.NewPath, StringComparison.InvariantCultureIgnoreCase))
                 {
                     DeleteTree(state.OriginalPath, state.Node.Id);
-                    PopulateTree(state.NewPath, state.Node.Id);
+                    AddTree(state.NewPath, state.Node.Id);
                 }
                 else if (state.IsNewNode)
                 {
@@ -234,7 +234,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         DataBackingStore.SaveIndexDocument(n, false, false, out _);
                 }
 
-                PopulateTree(node.Path, node.Id);
+                AddTree(node.Path, node.Id);
             }
         }
 
@@ -326,8 +326,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
         private static readonly object PopulatorData = new object();
 
         public void ClearAndPopulateAll(TextWriter consoleWriter = null) { }
-        public void RepopulateTree(string newPath) { }
-        public void PopulateTree(string newPath, int nodeId) { }
+        public void RebuildIndexDirectly(string path) { }
+        public void AddTree(string path, int nodeId) { }
         public object BeginPopulateNode(Node node, NodeSaveSettings settings, string originalPath, string newPath) { return PopulatorData; }
         public void CommitPopulateNode(object data, IndexDocumentData indexDocument) { }
         public void FinalizeTextExtracting(object data, IndexDocumentData indexDocument) { }
