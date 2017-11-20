@@ -9,9 +9,31 @@ using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying.Parser.Predicates;
 using SenseNet.Security;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.Search.Querying
 {
-    public enum QueryFieldLevel { NotDefined = 0, HeadOnly = 1, NoBinaryOrFullText = 2, BinaryOrFullText = 3 }
+    /// <summary>
+    /// Defines a constant tha describes a level of a field for permission filtering.
+    /// </summary>
+    public enum QueryFieldLevel
+    {
+        /// <summary>
+        /// Default value. Means: cannot be used, It is necessary to specify exactly for using it in permission filtering.
+        /// </summary>
+        NotDefined = 0,
+        /// <summary>
+        /// Minimum See permission is required.
+        /// </summary>
+        HeadOnly = 1,
+        /// <summary>
+        /// Minimum Preview permission is required.
+        /// </summary>
+        NoBinaryOrFullText = 2,
+        /// <summary>
+        /// Minimum Open permission is required.
+        /// </summary>
+        BinaryOrFullText = 3
+    }
 
     internal class PermissionFilter : IPermissionFilter
     {

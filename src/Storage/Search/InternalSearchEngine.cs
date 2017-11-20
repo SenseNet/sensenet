@@ -4,13 +4,15 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.Search
 {
     internal class InternalSearchEngine : ISearchEngine
     {
         public static InternalSearchEngine Instance = new InternalSearchEngine();
+        private static readonly IIndexingEngine IndexingEngineInstance = new InternalIndexingEngine();
 
-        public IIndexingEngine IndexingEngine => InternalIndexingEngine.Instance;
+        public IIndexingEngine IndexingEngine => IndexingEngineInstance;
 
         public IQueryEngine QueryEngine => throw new SnNotSupportedException();
 
@@ -25,8 +27,6 @@ namespace SenseNet.Search
 
         private class InternalIndexingEngine : IIndexingEngine
         {
-            public static IIndexingEngine Instance = new InternalIndexingEngine();
-
             public bool Running => false;
 
             public bool IndexIsCentralized => false;
