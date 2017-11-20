@@ -23,6 +23,7 @@ using SenseNet.Search.Indexing;
 using SenseNet.Search.Lucene29;
 using SenseNet.SearchImpl.Tests.Implementations;
 using System.Threading;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.LuceneSearch;
 using SenseNet.Search.Querying;
@@ -405,8 +406,9 @@ namespace SenseNet.SearchImpl.Tests
             {
                 var searchEngine = SearchManager.SearchEngine;
                 var analyzers = searchEngine.GetAnalyzers();
+                var indexingEngine = (Lucene29IndexingEngine) searchEngine.IndexingEngine;
 
-                var masterAnalyzerAcc = new PrivateObject(new SnPerFieldAnalyzerWrapper());
+                var masterAnalyzerAcc = new PrivateObject(indexingEngine.GetAnalyzer());
 
                 Assert.AreEqual(typeof(StandardAnalyzer).FullName, ((Analyzer)masterAnalyzerAcc.Invoke("GetAnalyzer", IndexFieldName.AllText)).GetType().FullName);
                 Assert.AreEqual(typeof(KeywordAnalyzer).FullName, ((Analyzer)masterAnalyzerAcc.Invoke("GetAnalyzer", IndexFieldName.NodeId)).GetType().FullName);
@@ -464,6 +466,7 @@ namespace SenseNet.SearchImpl.Tests
             Indexing.IsOuterSearchEngineEnabled = true;
             CommonComponents.TransactionFactory = dataProvider;
             DistributedApplication.Cache.Reset();
+            ContentTypeManager.Reset();
 
             var indxManConsole = new StringWriter();
             var repoBuilder = new RepositoryBuilder()

@@ -7,18 +7,24 @@ using SenseNet.Search.Indexing;
 namespace SenseNet.LuceneSearch
 {
     /// <summary>
-    /// Sense/Net specific Lucene analyzer, equivalent of Lucene's PerFieldAnalyzerWrapper.
+    /// sensenet ECM specific Lucene analyzer, equivalent of Lucene's PerFieldAnalyzerWrapper.
     /// </summary>
     public class SnPerFieldAnalyzerWrapper : Analyzer
     {
-        private readonly Analyzer _defaultAnalyzer = new KeywordAnalyzer();
+        private IDictionary<string, IPerFieldIndexingInfo> IndexingInfo { get; }
 
+        private readonly Analyzer _defaultAnalyzer = new KeywordAnalyzer();
         private readonly Dictionary<IndexFieldAnalyzer, Analyzer> _analyzers = new Dictionary<IndexFieldAnalyzer, Analyzer>
         {
             {IndexFieldAnalyzer.Keyword, new KeywordAnalyzer()},
             {IndexFieldAnalyzer.Standard, new StandardAnalyzer(LuceneSearchManager.LuceneVersion)},
             {IndexFieldAnalyzer.Whitespace, new WhitespaceAnalyzer()}
         };
+
+        internal SnPerFieldAnalyzerWrapper(IDictionary<string, IPerFieldIndexingInfo> indexingInfo)
+        {
+            IndexingInfo = indexingInfo;
+        }
 
         private Analyzer GetAnalyzer(string fieldName)
         {
@@ -27,7 +33,8 @@ namespace SenseNet.LuceneSearch
                 return _analyzers[IndexFieldAnalyzer.Standard];
 
             // For everything else, ask the ContentTypeManager
-            var pfii = IndexingInfo.GetPerFieldIndexingInfo(fieldName);
+            IPerFieldIndexingInfo pfii = null;
+            IndexingInfo?.TryGetValue(fieldName, out pfii);
 
             // Return with analyzer by indexing info  or the default analyzer if indexing info was not found.
             return pfii == null ? _defaultAnalyzer : GetAnalyzer(pfii);
@@ -47,14 +54,15 @@ namespace SenseNet.LuceneSearch
             }
         }
 
+        //========================================================================================== Analyzer API implementation
 
-        public override TokenStream TokenStream(System.String fieldName, System.IO.TextReader reader)
+        public override TokenStream TokenStream(string fieldName, System.IO.TextReader reader)
         {
             var analyzer = GetAnalyzer(fieldName);
             return analyzer.TokenStream(fieldName, reader);
         }
 
-        public override TokenStream ReusableTokenStream(System.String fieldName, System.IO.TextReader reader)
+        public override TokenStream ReusableTokenStream(string fieldName, System.IO.TextReader reader)
         {
             if (overridesTokenStreamMethod)
             {
@@ -69,7 +77,7 @@ namespace SenseNet.LuceneSearch
         }
 
         /// <summary>Returns the positionIncrementGap from the analyzer assigned to fieldName </summary>
-        public override int GetPositionIncrementGap(System.String fieldName)
+        public override int GetPositionIncrementGap(string fieldName)
         {
             var analyzer = GetAnalyzer(fieldName);
             return analyzer.GetPositionIncrementGap(fieldName);
@@ -82,10 +90,10 @@ namespace SenseNet.LuceneSearch
             return analyzer.GetOffsetGap(field);
         }
 
-        public override System.String ToString()
+        public override string ToString()
         {
             // {{Aroush-2.9}} will 'analyzerMap.ToString()' work in the same way as Java's java.util.HashMap.toString()? 
-            return "SnPerFieldAnalyzerWrapper(" + _analyzers.ToString() + ", default=" + _defaultAnalyzer + ")";
+            return "SnPerFieldAnalyzerWrapper(" + _analyzers + ", default=" + _defaultAnalyzer + ")";
         }
     }
 }

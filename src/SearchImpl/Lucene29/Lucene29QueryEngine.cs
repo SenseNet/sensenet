@@ -42,7 +42,7 @@ namespace SenseNet.Search.Lucene29
 
         private LucQuery Compile(SnQuery query, IQueryContext context)
         {
-            var analyzer = Lucene29IndexingEngine.GetAnalyzer();
+            var analyzer = ((Lucene29IndexingEngine)IndexManager.IndexingEngine).GetAnalyzer();
             var visitor = new SnQueryToLucQueryVisitor(analyzer, context);
             visitor.Visit(query.QueryTree);
 

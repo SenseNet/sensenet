@@ -36,6 +36,10 @@ namespace SenseNet.Search.Lucene29
             }
 
             _analyzers = analyzerTypes;
+
+            // Indexing info is stored in memory in the indexing engine
+            // and should be refreshed when the list changes.
+            ((Lucene29IndexingEngine)IndexingEngine).SetIndexingInfo(indexingInfo);
         }
     }
 }

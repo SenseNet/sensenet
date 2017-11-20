@@ -1,4 +1,5 @@
-﻿using SenseNet.LuceneSearch;
+﻿using SenseNet.ContentRepository.Search.Indexing;
+using SenseNet.LuceneSearch;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Lucene29
@@ -7,7 +8,7 @@ namespace SenseNet.Search.Lucene29
     {
         public LucQuery Compile(SnQuery snQuery, IQueryContext context)
         {
-            var masterAnalyzer = new SnPerFieldAnalyzerWrapper();
+            var masterAnalyzer = ((Lucene29IndexingEngine) IndexManager.IndexingEngine).GetAnalyzer();
             var visitor = new SnQueryToLucQueryVisitor(masterAnalyzer, context);
             visitor.Visit(snQuery.QueryTree);
             return LucQuery.Create(visitor.Result);

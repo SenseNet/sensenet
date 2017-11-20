@@ -10,7 +10,6 @@ namespace SenseNet.Search.Lucene29
     {
         private static readonly string DEFAULTDIRECTORYNAME = "0";
 
-        //UNDONE: set index directory path from outside (e.g. because of tests)
         private static string _indexDirectoryPath;
         internal static string IndexDirectoryPath
         {
@@ -74,9 +73,10 @@ namespace SenseNet.Search.Lucene29
 
         //================================================================================== Construction
 
-        public IndexDirectory(string name = null)
+        public IndexDirectory(string name = null, string indexDirectoryPath = null)
         {
             Name = name;
+            _indexDirectoryPath = indexDirectoryPath;
             _currentDirectory = new Lazy<string>(GetCurrentDirectory);
         }
 

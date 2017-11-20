@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 
 // ReSharper disable RedundantTypeArgumentsOfMethod
 namespace SenseNet.Configuration
@@ -7,7 +8,7 @@ namespace SenseNet.Configuration
     {
         private const string SectionName = "sensenet/lucene29";
 
-        //UNDONE: removed because of the missing back-reference. Used by the temporarily switched of SQL query compiler.
+        //TODO: removed because of the missing back-reference. Used by the temporarily switched off SQL query compiler.
         //internal static LucQuery.ContentQueryExecutionAlgorithm ContentQueryExecutionAlgorithm { get; set; } =
         //    GetValue<LucQuery.ContentQueryExecutionAlgorithm>(SectionName, "ContentQueryExecutionAlgorithm");
 
@@ -23,33 +24,25 @@ namespace SenseNet.Configuration
             for (var i = 0; i < items.Length; i++)
             {
                 var last = i == items.Length - 1;
-                int parsedInt;
 
-                if (int.TryParse(items[i], out parsedInt))
+                if (int.TryParse(items[i], out var parsedInt))
                     values[i] = parsedInt;
                 else
-                    //UNDONE: ConfigurationException class is in the Storage layer
-                    //throw new ConfigurationException("Invalid sequence in the value of 'DefaultTopAndGrowth'. Every value can be positive integer except last, it can be positive integer or zero.");
-                    throw new Exception("Invalid sequence in the value of 'DefaultTopAndGrowth'. Every value can be positive integer except last, it can be positive integer or zero.");
+                    throw new ConfigurationErrorsException("Invalid sequence in the value of 'DefaultTopAndGrowth'. Every value can be positive integer except last, it can be positive integer or zero.");
+                
 
                 if (parsedInt < 0)
-                    //UNDONE: ConfigurationException class is in the Storage layer
-                    //throw new ConfigurationException("Invalid sequence in the value of 'DefaultTopAndGrowth'. A value cannot less than 0.");
-                    throw new Exception("Invalid sequence in the value of 'DefaultTopAndGrowth'. A value cannot less than 0.");
+                    throw new ConfigurationErrorsException("Invalid sequence in the value of 'DefaultTopAndGrowth'. A value cannot less than 0.");
 
                 if (parsedInt == 0)
                 {
                     if (!last)
-                        //UNDONE: ConfigurationException class is in the Storage layer
-                        //throw new ConfigurationException("Invalid sequence in the value of 'DefaultTopAndGrowth'. Only the last value can be 0.");
-                        throw new Exception("Invalid sequence in the value of 'DefaultTopAndGrowth'. Only the last value can be 0.");
+                        throw new ConfigurationErrorsException("Invalid sequence in the value of 'DefaultTopAndGrowth'. Only the last value can be 0.");
                 }
                 else
                 {
                     if (i > 0 && parsedInt <= values[i - 1])
-                        //UNDONE: ConfigurationException class is in the Storage layer
-                        //throw new ConfigurationException("Invalid sequence in the value of 'DefaultTopAndGrowth'. The sequence must be monotonically increasing. Last value can be greater than any other or zero.");
-                        throw new Exception("Invalid sequence in the value of 'DefaultTopAndGrowth'. The sequence must be monotonically increasing. Last value can be greater than any other or zero.");
+                        throw new ConfigurationErrorsException("Invalid sequence in the value of 'DefaultTopAndGrowth'. The sequence must be monotonically increasing. Last value can be greater than any other or zero.");
                 }
             }
             return values;

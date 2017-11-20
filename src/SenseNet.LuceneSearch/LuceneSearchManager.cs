@@ -28,6 +28,8 @@ namespace SenseNet.LuceneSearch
         public bool Running { get; set; }
         public IndexDirectory IndexDirectory { get; set; }
 
+        public IDictionary<string, IPerFieldIndexingInfo> IndexingInfo { get; set; }
+
         private DateTime IndexReopenedAt { get; set; }
 
         private TimeSpan _forceReopenFrequency;
@@ -48,15 +50,13 @@ namespace SenseNet.LuceneSearch
 
         //================================================================================== Constructor
 
-        public LuceneSearchManager(IndexDirectory indexDirectory = null)
+        public LuceneSearchManager(IndexDirectory indexDirectory)
         {
-            //UNDONE: maybe make indexDirectory parameter mandatory
-            IndexDirectory = indexDirectory ?? new IndexDirectory();
+            IndexDirectory = indexDirectory;
         }
 
         //================================================================================== Startup/Shutdown
 
-        public event Action<TextWriter> OnStarting;
         public event Action<TextWriter> OnStarted;
         public event Action OnLockFileRemoved;
 
@@ -69,7 +69,6 @@ namespace SenseNet.LuceneSearch
                 {
                     if (!Running)
                     {
-                        OnStarting?.Invoke(consoleOut);
                         Startup(consoleOut);
                         OnStarted?.Invoke(consoleOut);
                         Running = true;
@@ -457,16 +456,20 @@ namespace SenseNet.LuceneSearch
             {
                 using (var wrFrame = IndexWriterFrame.Get(_writer, _writerRestartLock, !reopenReader)) // // Commit
                 {
-                    //UNDONE: IndexManager is not accessible here, get the status somehow
+                    //UNDONE: CommitState: write the status only if it is provided?
+                    //UNDONE: CommitState: cleanup commitState if null
                     var commitState = state ?? null; //IndexManager.GetCurrentIndexingActivityStatus();
-                    var commitStateMessage = commitState.ToString();
+                    var commitStateMessage = commitState?.ToString();
 
                     SnTrace.Index.Write("LM: Committing_writer. commitState: " + commitStateMessage);
 
                     // Write a fake document to make sure that the index changes are written to the file system.
                     wrFrame.IndexWriter.UpdateDocument(new Term(COMMITFIELDNAME, COMMITFIELDNAME), GetFakeDocument());
 
-                    wrFrame.IndexWriter.Commit(GetCommitUserData(commitState));
+                    if (commitState != null)
+                        wrFrame.IndexWriter.Commit(GetCommitUserData(commitState));
+                    else
+                        wrFrame.IndexWriter.Commit();
 
                     if (reopenReader)
                         ReopenReader();
@@ -597,9 +600,9 @@ namespace SenseNet.LuceneSearch
             writer.Close();
         }
 
-        public static Analyzer GetAnalyzer()
+        public Analyzer GetAnalyzer()
         {
-            return new SnPerFieldAnalyzerWrapper();
+            return new SnPerFieldAnalyzerWrapper(IndexingInfo);
         }
         private Document GetFakeDocument()
         {

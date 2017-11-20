@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Lucene.Net.Analysis;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.LuceneSearch;
 using SenseNet.Search.Indexing;
@@ -20,15 +21,30 @@ namespace SenseNet.Search.Lucene29
 
         public Lucene29IndexingEngine(IndexDirectory indexDirectory = null)
         {
-            //UNDONE: initialize/startup LuceneSearchManager
-            LuceneSearchManager = new LuceneSearchManager(indexDirectory);
-            LuceneSearchManager.OnStarted += Startup;
-            LuceneSearchManager.OnLockFileRemoved += StartMessaging;
+            var indexDir = indexDirectory ?? new IndexDirectory(null, SearchManager.IndexDirectoryPath);
+
+            LuceneSearchManager = new LuceneSearchManager(indexDir);
+
+            SetEventhandlers();
         }
+
+        //UNDONE: find usages
         public Lucene29IndexingEngine(TimeSpan forceReopenFrequency)
         {
+            var indexDirectory = new IndexDirectory(null, SearchManager.IndexDirectoryPath);
+
             //UNDONE: maybe set force reopen sequency in the constructor
-            LuceneSearchManager = new LuceneSearchManager {ForceReopenFrequency = forceReopenFrequency};
+            LuceneSearchManager = new LuceneSearchManager(indexDirectory)
+            {
+                ForceReopenFrequency = forceReopenFrequency
+            };
+
+            SetEventhandlers();
+        }
+
+        private void SetEventhandlers()
+        {
+            // set up event handlers
             LuceneSearchManager.OnStarted += Startup;
             LuceneSearchManager.OnLockFileRemoved += StartMessaging;
         }
@@ -44,14 +60,21 @@ namespace SenseNet.Search.Lucene29
 
         public void Start(TextWriter consoleOut)
         {
-            //UNDONE: search engine-level start operations? Start messaging?
             LuceneSearchManager.Start(consoleOut);
         }
 
+        /// <summary>
+        /// Derived classes may add custom logic here that will be executed at the end
+        /// of the start process, but before the Running switch is set to True.
+        /// </summary>
+        /// <param name="consoleOut"></param>
         protected virtual void Startup(TextWriter consoleOut) { }
 
         public void ShutDown()
         {
+            //UNDONE: CommitState: write the indexing status before shutdown?
+            // IndexManager.GetCurrentIndexingActivityStatus()
+            // WriteActivityStatusToIndex
             LuceneSearchManager.ShutDown();
         }
 
@@ -77,7 +100,7 @@ namespace SenseNet.Search.Lucene29
 
         //===================================================================================== IndexReader
 
-        public IndexReaderFrame GetIndexReaderFrame(bool dirty)
+        private IndexReaderFrame GetIndexReaderFrame(bool dirty)
         {
             return LuceneSearchManager.GetIndexReaderFrame(dirty);
         }
@@ -86,14 +109,19 @@ namespace SenseNet.Search.Lucene29
             return ((Lucene29IndexingEngine)IndexManager.IndexingEngine).GetIndexReaderFrame(dirty);
         }
 
-        public static Analyzer GetAnalyzer()
+        public Analyzer GetAnalyzer()
         {
             return LuceneSearchManager.GetAnalyzer();
         }
 
+        public void SetIndexingInfo(IDictionary<string, IPerFieldIndexingInfo> indexingInfo)
+        {
+            LuceneSearchManager.IndexingInfo = indexingInfo;
+        }
+
         //===================================================================================== Helper methods
 
-        private void StartMessaging()
+        private static void StartMessaging()
         {
             // we have to start the message cluster here
             var dummy = DistributedApplication.Cache.Count;
