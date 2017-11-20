@@ -1014,12 +1014,12 @@ namespace SenseNet.SearchImpl.Tests
                     _log = log;
                 }
 
-                public IQueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
+                public QueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
                 {
                     _log.Add(query.Querytext);
                     return new QueryResult<int>(new [] {42}, 42);
                 }
-                public IQueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
+                public QueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
                 {
                     var strings = _mockResultsPerQueries[query.Querytext];
                     _log.Add(query.Querytext);
