@@ -3395,8 +3395,12 @@ namespace SenseNet.ContentRepository.Storage
         public event EventHandler<NodeOperationEventArgs> Moved;
         public event CancellableNodeOperationEventHandler Copying;
         public event EventHandler<NodeOperationEventArgs> Copied;
+#pragma warning disable 67
         public event CancellableNodeEventHandler PermissionChanging;
+#pragma warning restore 67
+#pragma warning disable 67
         public event EventHandler<PermissionChangedEventArgs> PermissionChanged;
+#pragma warning restore 67
 
         //TODO: public event EventHandler Undeleted;
         //TODO: public event EventHandler Locked;
