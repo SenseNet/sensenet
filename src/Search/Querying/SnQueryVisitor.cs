@@ -4,6 +4,9 @@ using SenseNet.Search.Querying.Parser.Predicates;
 
 namespace SenseNet.Search.Querying
 {
+    /// <summary>
+    /// Represents a visitor or rewriter for SnQueryPredicate trees.
+    /// </summary>
     public abstract class SnQueryVisitor
     {
         /// <summary>

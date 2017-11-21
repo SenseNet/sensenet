@@ -6,50 +6,63 @@ using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Search.Indexing.Activities
 {
-    //UNDONE:!!!! XMLDOC ContentRepository
+    /// <summary>
+    /// Defines a base class of the indexing activities for storage layer.
+    /// </summary>
     [Serializable]
     public abstract class IndexingActivityBase : DistributedIndexingActivity, IIndexingActivity, System.Runtime.Serialization.IDeserializationCallback
     {
-        // stored properties
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /* ====================================================== stored properties */
+
+        /// <inheritdoc cref="IIndexingActivity.Id"/>
         public int Id { get; set; }
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <inheritdoc cref="IIndexingActivity.ActivityType"/>
         public IndexingActivityType ActivityType { get; set; }
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <inheritdoc cref="IIndexingActivity.CreationDate"/>
         public DateTime CreationDate { get; set; }
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <inheritdoc cref="IIndexingActivity.RunningState"/>
         public IndexingActivityRunningState RunningState { get; set; }
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <inheritdoc cref="IIndexingActivity.LockTime"/>
         public DateTime? LockTime { get; set; }
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <inheritdoc cref="IIndexingActivity.NodeId"/>
         public int NodeId { get; set; }
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <inheritdoc cref="IIndexingActivity.VersionId"/>
         public int VersionId { get; set; }
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <inheritdoc cref="IIndexingActivity.Path"/>
         public string Path { get; set; }
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <inheritdoc cref="IIndexingActivity.VersionTimestamp"/>
         public long? VersionTimestamp { get; set; }
 
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <inheritdoc cref="IIndexingActivity.Extension"/>
         public string Extension
         {
             get => GetExtension();
             set => SetExtension(value);
         }
 
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Returns with the loaded extension data.
+        /// The data is not interpreted, serialized string.
+        /// </summary>
+        /// <returns></returns>
         protected abstract string GetExtension();
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Sets an extension data to save.
+        /// The data is not interpreted, serialized string.
+        /// </summary>
         protected abstract void SetExtension(string value);
 
-        // not stored properties
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /* ====================================================== not stored properties */
+
+        /// <summary>
+        /// Gets or sets the <see cref="IndexDocumentData"/> which the activity applies.
+        /// </summary>
         public IndexDocumentData IndexDocumentData { get; set; }
 
 
         [NonSerialized]
         private bool _isUnprocessedActivity;
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <inheritdoc cref="IIndexingActivity.IsUnprocessedActivity"/>
         public bool IsUnprocessedActivity
         {
             get => _isUnprocessedActivity;
@@ -58,7 +71,9 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
 
         [NonSerialized]
         private bool _fromReceiver;
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Gets or sets a value that is true if the activity is received from a messaging channel.
+        /// </summary>
         public bool FromReceiver
         {
             get => _fromReceiver;
@@ -67,7 +82,9 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
 
         [NonSerialized]
         private bool _fromDatabase;
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Gets or sets a value that is true if the activity is loaded from the database.
+        /// </summary>
         public bool FromDatabase
         {
             get => _fromDatabase;
@@ -106,7 +123,10 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
             return IsUnprocessedActivity || IndexManager.Running;
         }
 
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Defines the customizable method to reach the activity's main goal.
+        /// </summary>
+        /// <returns></returns>
         protected abstract bool ProtectedExecute();
         
         [NonSerialized]
@@ -152,14 +172,18 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
 
         // ================================================= AQ16
 
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Initializes a new IndexingActivityBase instance.
+        /// </summary>
         public IndexingActivityBase()
         {
             _waitingFor = new List<IndexingActivityBase>();
             _waitingForMe = new List<IndexingActivityBase>();
         }
 
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Constructor for deserialization.
+        /// </summary>
         public void OnDeserialization(object sender)
         {
             _waitingFor = new List<IndexingActivityBase>();
@@ -169,12 +193,18 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
 
         [NonSerialized]
         private List<IndexingActivityBase> _waitingFor;
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Gets the indexing activities that block this instance.
+        /// Used when the current indexing engine uses local index.
+        /// </summary>
         public List<IndexingActivityBase> WaitingFor => _waitingFor;
 
         [NonSerialized]
         private List<IndexingActivityBase> _waitingForMe;
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Gets the indexing activities that are blocked by this instance.
+        /// Used when the current indexing engine uses local index.
+        /// </summary>
         public List<IndexingActivityBase> WaitingForMe => _waitingForMe;
 
 
