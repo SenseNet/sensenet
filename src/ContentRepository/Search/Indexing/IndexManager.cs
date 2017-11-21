@@ -5,6 +5,7 @@ using System.Linq;
 using SenseNet.ContentRepository.Search.Indexing.Activities;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
@@ -12,19 +13,27 @@ using SenseNet.Search.Querying;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
-    //UNDONE:!!!! XMLDOC ContentRepository
+    /// <summary>
+    /// Provides methods for managing indexes.
+    /// </summary>
     public static class IndexManager // alias LuceneManager
     {
         #region /* ==================================================================== Managing index */
 
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Gets the current <see cref="IIndexingEngine"/> implementation.
+        /// </summary>
         public static IIndexingEngine IndexingEngine => SearchManager.SearchEngine.IndexingEngine;
         internal static ICommitManager CommitManager { get; private set; }
 
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Gets a value that is true if the current indexing engine is running.
+        /// </summary>
         public static bool Running => IndexingEngine?.Running ?? false;
 
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Gets the ids of the not indexed <see cref="NodeType"/>s.
+        /// </summary>
         public static int[] GetNotIndexedNodeTypes()
         {
             return new AllContentTypes()
@@ -33,7 +42,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 .ToArray();
         }
 
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Initializes the indexing feature: starts the IndexingEngine, CommitManager and indexing activity organizator.
+        /// If "consoleOut" is not null, writes progress and debug messages into it.
+        /// </summary>
+        /// <param name="consoleOut">A <see cref="TextWriter"/> instance or null.</param>
         public static void Start(TextWriter consoleOut)
         {
             IndexingEngine.Start(consoleOut);
@@ -52,7 +65,9 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 DistributedIndexingActivityQueue.Startup(consoleOut);
         }
 
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Shuts down the indexing feature: stops CommitManager, indexing activity organizator and IndexingEngine.
+        /// </summary>
         public static void ShutDown()
         {
             CommitManager?.ShutDown();
@@ -69,7 +84,9 @@ namespace SenseNet.ContentRepository.Search.Indexing
             SnLog.WriteInformation("Indexing engine has stopped. Max task id and exceptions: " + DistributedIndexingActivityQueue.GetCurrentCompletionState());
         }
 
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Deletes the existing index. Called before making a brand new index.
+        /// </summary>
         public static void ClearIndex()
         {
             IndexingEngine.ClearIndex();
@@ -77,13 +94,20 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         /* ========================================================================================== Activity */
 
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Registers an indexing aztivity in the database.
+        /// </summary>
         public static void RegisterActivity(IndexingActivityBase activity)
         {
             DataProvider.Current.RegisterIndexingActivity(activity);
         }
 
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Executes an indexing activity taking into account the dependencies.
+        /// The execution is immediately (ie parallelized) when possible but the
+        /// dependent activities are executed in the order of registration.
+        /// Dependent activity execution starts after the blocker activity is completed.
+        /// </summary>
         public static void ExecuteActivity(IndexingActivityBase activity)
         {
             if (SearchManager.SearchEngine.IndexingEngine.IndexIsCentralized)
@@ -119,7 +143,9 @@ namespace SenseNet.ContentRepository.Search.Indexing
             activity.WaitForComplete();
         }
 
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Returns with the Id of the last registered indexing activity.
+        /// </summary>
         public static int GetLastStoredIndexingActivityId()
         {
             return DataProvider.Current.GetLastIndexingActivityId();
@@ -130,7 +156,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
             DataProvider.Current.DeleteAllIndexingActivities();
         }
 
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Returns with the current <see cref="IndexingActivityStatus"/> instance
+        /// containing the last executed indexing activity id and ids if missing indexing activities.
+        /// </summary>
+        /// <returns></returns>
         public static IndexingActivityStatus GetCurrentIndexingActivityStatus()
         {
             return DistributedIndexingActivityQueue.GetCurrentCompletionState();

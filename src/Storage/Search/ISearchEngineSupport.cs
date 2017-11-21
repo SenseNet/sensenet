@@ -15,7 +15,13 @@ namespace SenseNet.ContentRepository.Search
         /// </summary>
         IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName);
 
-        //UNDONE:!!! XMLDOC: ExecuteContentQuery
+        /// <summary>
+        /// Returns with the <see cref="QueryResult"/> of the given CQL query.
+        /// </summary>
+        /// <param name="text">CQL query text.</param>
+        /// <param name="settings"><see cref="QuerySettings"/> that extends the query.</param>
+        /// <param name="parameters">Values to substitute the parameters of the CQL query text.</param>
+        /// <returns></returns>
         QueryResult ExecuteContentQuery(string text, QuerySettings settings, params object[] parameters);
 
         /// <summary>

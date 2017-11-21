@@ -10,19 +10,32 @@ using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Diagnostics;
 using SenseNet.Tools;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.Search
 {
-    //UNDONE:!!!! XMLDOC ContentRepository
+    /// <summary>
+    /// Content handler class of the IndexingSettings.
+    /// </summary>
     [ContentHandler]
     public class IndexingSettings : Settings
     {
         // ================================================================================= Constructors
 
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Initializes a new instance of the IndexingSettings.
+        /// </summary>
+        /// <param name="parent">Existing parent <see cref="Node"/> of the new instance.</param>
         public IndexingSettings(Node parent) : this(parent, null) { }
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Initializes a new instance of the IndexingSettings.
+        /// </summary>
+        /// <param name="parent">Existing parent <see cref="Node"/> of the new instance.</param>
+        /// <param name="nodeTypeName">TypeName of the inherited class if it has not it own content handler class.</param>
         public IndexingSettings(Node parent, string nodeTypeName) : base(parent, nodeTypeName) {}
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Initializes a new instance of the IndexingSettings.
+        /// This constructor is used for instantiate the saved instance.
+        /// </summary>
         protected IndexingSettings(NodeToken nt) : base(nt) { }
 
         // ================================================================================= Properties
@@ -33,7 +46,9 @@ namespace SenseNet.Search
 
         private static readonly object ExtractorLock = new object();
         private ReadOnlyDictionary<string, ITextExtractor> _textExtractors;
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Gets the dictionary of the known text extractors.
+        /// </summary>
         public ReadOnlyDictionary<string, ITextExtractor> TextExtractorInstances
         {
             get
@@ -107,7 +122,9 @@ namespace SenseNet.Search
 
         // ================================================================================= Overrides
 
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Returns a value of the property by the given name.
+        /// </summary>
         public override object GetProperty(string name)
         {
             switch (name)
@@ -119,7 +136,9 @@ namespace SenseNet.Search
             }
         }
 
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Sets the value of the property by the given name and object.
+        /// </summary>
         public override void SetProperty(string name, object value)
         {
             switch (name)
@@ -137,7 +156,9 @@ namespace SenseNet.Search
 
         private const string TEXTEXTRACTORS_CACHEKEY = "CachedTextExtractors";
 
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Restores the cached data if there is.
+        /// </summary>
         protected override void OnLoaded(object sender, NodeEventArgs e)
         {
             base.OnLoaded(sender, e);
