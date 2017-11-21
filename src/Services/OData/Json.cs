@@ -63,6 +63,7 @@ namespace SenseNet.Portal.OData
             return new ODataMultipleContent { Contents = dict };
         }
     }
+
     internal class ODataReference
     {
         [JsonProperty(PropertyName = "__deferred", Order = 1)]

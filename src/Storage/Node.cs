@@ -2677,7 +2677,6 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
-
         public static void MoveMore(List<Int32> nodeList, string targetPath, ref List<Exception> errors)
         {
             MoveMoreInternal2(new NodeList<Node>(nodeList), Node.LoadNode(targetPath), ref errors);
@@ -2839,48 +2838,65 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// Copies the Node instance to another loacation. The new location is a Node instance which will be parent node.
+        /// Copies the Node instance to another location. The new location is a Node instance which will be parent node.
         /// </summary>
         public virtual void CopyTo(Node target)
         {
             CopyTo(target, this.Name);
         }
         /// <summary>
-        /// Copies the Node instance to another loacation. The new location is a Node instance which will be parent node.
+        /// Copies the Node instance to another location. The new location is a Node instance which will be parent node.
         /// </summary>
         public virtual void CopyTo(Node target, string newName)
+        {
+            CopyToAndGetCopy(target, newName);
+        }
+
+        /// <summary>
+        /// Copies the Node instance to another location. The new location is a Node instance which will be parent node.
+        /// </summary>
+        public Node CopyToAndGetCopy(Node target)
+        {
+            return CopyToAndGetCopy(target, this.Name);
+        }
+        /// <summary>
+        /// Copies the Node instance to another location. The new location is a Node instance which will be parent node.
+        /// </summary>
+        public Node CopyToAndGetCopy(Node target, string newName)
         {
             StorageContext.Search.SearchEngine.WaitIfIndexingPaused();
 
             using (var op = SnTrace.ContentOperation.StartOperation("Node.SaveCopied"))
             {
                 if (target == null)
+                {
                     throw new ArgumentNullException("target");
-
+                }
                 string msg = CheckListAndItemCopyingConditions(target);
                 if (msg != null)
+                {
                     throw new InvalidOperationException(msg);
-
+                }
                 var originalPath = this.Path;
                 string newPath;
                 var correctTargetPath = RepositoryPath.Combine(target.Path, RepositoryPath.PathSeparator);
                 var correctCurrentPath = RepositoryPath.Combine(this.Path, RepositoryPath.PathSeparator);
 
                 if (correctTargetPath.IndexOf(correctCurrentPath) != -1)
+                {
                     throw new InvalidOperationException("Node cannot be copied under itself.");
-
+                }
                 target.AssertLock();
 
                 var args = new CancellableNodeOperationEventArgs(this, target, CancellableNodeEvent.Copying);
                 FireOnCopying(args);
 
                 if (args.Cancel)
+                {
                     throw new CancelNodeEventException(args.CancelMessage, args.EventType, this);
-
+                }
                 var customData = args.CustomData;
-
                 var targetName = newName;
-
                 int i = 0;
                 var nodeList = target.GetChildren();
                 while (NameExists(nodeList, targetName))
@@ -2889,17 +2905,17 @@ namespace SenseNet.ContentRepository.Storage
                         throw new NodeAlreadyExistsException(String.Concat("Cannot copy the content because the target folder already contains a content named '", this.Name, "'."));
                     targetName = GenerateCopyName(i++);
                 }
-
                 newPath = correctTargetPath + targetName;
-                DoCopy(newPath, targetName);
+
+                var copyOfSource = DoCopyAndGetCopy(newPath, targetName);
 
                 SnTrace.ContentOperation.Write($"Node copied. NodeId:{this.Id}, Path:{this.Path}, OriginalPath:{originalPath}, NewPath:{newPath}");
-
                 FireOnCopied(target, customData);
-
                 op.Successful = true;
+                return copyOfSource;
             }
         }
+
         private string CheckListAndItemCopyingConditions(Node target)
         {
             string msg = null;
@@ -2943,8 +2959,14 @@ namespace SenseNet.ContentRepository.Storage
         }
         private void DoCopy(string targetPath, string newName)
         {
+            DoCopyAndGetCopy(targetPath, newName);
+        }
+
+        private Node DoCopyAndGetCopy(string targetPath, string newName)
+        {
             bool first = true;
             var sourcePath = this.Path;
+            Node copyOfSource = null;
             if (!Node.Exists(sourcePath))
                 throw new ContentNotFoundException(sourcePath);
             foreach (var sourceNode in NodeEnumerator.GetNodes(sourcePath, ExecutionHint.ForceRelationalEngine))
@@ -2957,11 +2979,14 @@ namespace SenseNet.ContentRepository.Storage
                 CopyExplicitPermissionsTo(sourceNode, copy);
                 if (first)
                 {
+                    copyOfSource = copy;
                     newName = null;
                     first = false;
                 }
             }
+            return copyOfSource;
         }
+
         private void CopyExplicitPermissionsTo(Node sourceNode, Node targetNode)
         {
             AccessProvider.ChangeToSystemAccount();

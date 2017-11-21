@@ -30,7 +30,8 @@ namespace SenseNet.Portal.Virtualization
         {
             "X-Authentication-Type",
             "X-Refresh-Data", "X-Access-Data",
-            "X-Requested-With", "Authorization", "Content-Type"
+            "X-Requested-With", "Authorization", "Content-Type",
+            "Content-Range", "Content-Disposition"
         };
 
         private delegate void PurgeDelegate(IEnumerable<string> urls);
