@@ -5,14 +5,22 @@ using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
-    //UNDONE:!!!! XMLDOC ContentRepository
+    /// <summary>
+    /// Defines an interface for a singleton implementation that can manage index commits with various algorithms.
+    /// </summary>
     public interface ICommitManager
     {
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Initializes the instance.
+        /// </summary>
         void Start();
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Stops the instance. Designed for the last index commit of the repository's lifecycle.
+        /// </summary>
         void ShutDown();
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Called by the indexing activity manager after execution of every activity.
+        /// </summary>
         void ActivityFinished();
     }
 

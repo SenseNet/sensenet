@@ -2,29 +2,37 @@
 
 namespace SenseNet.Search.Indexing
 {
-    //UNDONE:!!!! XMLDOC ContentRepository
+    /// <summary>
+    /// Implements the metadata for indexing a field.
+    /// </summary>
     public class PerFieldIndexingInfo : IPerFieldIndexingInfo
     {
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Default value of the <see cref="IndexingMode"/>.
+        /// </summary>
         public static readonly IndexingMode DefaultIndexingMode = IndexingMode.Analyzed;
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Default value of the <see cref="IndexStoringMode"/>.
+        /// </summary>
         public static readonly IndexStoringMode DefaultIndexStoringMode = IndexStoringMode.No;
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Default value of the <see cref="IndexTermVector"/>.
+        /// </summary>
         public static readonly IndexTermVector DefaultTermVectorStoringMode = IndexTermVector.No;
 
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <inheritdoc />
         public IndexFieldAnalyzer Analyzer { get; set; }
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <inheritdoc />
         public IFieldIndexHandler IndexFieldHandler { get; set; }
 
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <inheritdoc />
         public IndexingMode IndexingMode { get; set; }
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <inheritdoc />
         public IndexStoringMode IndexStoringMode { get; set; }
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <inheritdoc />
         public IndexTermVector TermVectorStoringMode { get; set; }
 
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <inheritdoc />
         public bool IsInIndex
         {
             get
@@ -36,7 +44,7 @@ namespace SenseNet.Search.Indexing
             }
         }
 
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <inheritdoc />
         public Type FieldDataType { get; set; }
     }
 }

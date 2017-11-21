@@ -10,10 +10,14 @@ using SenseNet.Search.Indexing;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
-    //UNDONE:!!!! XMLDOC ContentRepository
+    /// <summary>
+    /// Provides information about indexing. Provides a method for outer component to extend a Content version with text extract.
+    /// </summary>
     public static class IndexingTools
     {
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Extends a Content version with text extract.
+        /// </summary>
         public static void AddTextExtract(int versionId, string textExtract)
         {
             // 1: load indexDocument.

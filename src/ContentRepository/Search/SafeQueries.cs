@@ -24,7 +24,9 @@ namespace SenseNet.Search
     /// </example>
     public interface ISafeQueryHolder { }
 
-    //UNDONE:!!!! XMLDOC ContentRepository
+    /// <summary>
+    /// Provides a method for check safety of a CQL query.
+    /// </summary>
     public class SafeQueries
     {
         private static readonly string[] _safeQueries;
@@ -42,7 +44,9 @@ namespace SenseNet.Search
             _safeQueries = genuineQueries.ToArray();
         }
 
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Returns with true if the given CQL query is safe.
+        /// </summary>
         public static bool IsSafe(string queryText)
         {
             return _safeQueries.Contains(queryText);

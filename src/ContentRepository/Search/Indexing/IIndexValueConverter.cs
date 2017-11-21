@@ -1,15 +1,23 @@
 ﻿namespace SenseNet.ContentRepository.Search.Indexing
 {
-    //UNDONE:!!!! XMLDOC ContentRepository
+    /// <summary>
+    /// Defines a generic interface for a converter that can decode the value stored in the index.
+    /// </summary>
     public interface IIndexValueConverter<T>
     {
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Returns withe the decoded value that stored in the index.
+        /// </summary>
         T GetBack(string fieldValue);
     }
-    //UNDONE:!!!! XMLDOC ContentRepository
+    /// <summary>
+    /// Defines an interface for a converter that can decode the value stored in the index.
+    /// </summary>
     public interface IIndexValueConverter
     {
-        //UNDONE:!!!! XMLDOC ContentRepository
+        /// <summary>
+        /// Returns withe the decoded value that stored in the index.
+        /// </summary>
         object GetBack(string fieldValue);
     }
 }
