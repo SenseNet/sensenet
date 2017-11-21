@@ -1,14 +1,19 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Net;
-using SenseNet.Services.Virtualization;
 using System.Web;
 using Newtonsoft.Json;
+using SenseNet.ContentRepository.Security;
 
 namespace SenseNet.OAuth.Google
 {
     public class GoogleOAuthProvider : OAuthProvider
     {
+        private const string GoogleApiTokenInfoUrl = "https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=";
+
         public override string IdentifierFieldName { get; } = "GoogleUserId";
+        public override string ProviderName { get; } = "google";
+
         public override IOAuthIdentity GetUserData(object tokenData)
         {
             return tokenData as OAuthIdentity;
@@ -16,7 +21,16 @@ namespace SenseNet.OAuth.Google
 
         public override string VerifyToken(HttpRequestBase request, out object tokenData)
         {
-            var userData = GetUserDataFromToken(request);
+            dynamic userData;
+
+            try
+            {
+                userData = GetUserDataFromToken(request);
+            }
+            catch (Exception)
+            {
+                throw new InvalidOperationException("Google OAuth error: cannot parse user data from the request.");
+            }
 
             tokenData = new OAuthIdentity
             {
@@ -40,8 +54,8 @@ namespace SenseNet.OAuth.Google
             dynamic requestBody = JsonConvert.DeserializeObject(body);
             string token = requestBody.token;
 
-            //UNDONE: verify and extract token data locally, not using the rest api
-            var url = "https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=" + token;
+            //TODO: verify and extract token data locally, not using the rest api
+            var url = GoogleApiTokenInfoUrl + token;
             var gRequest = (HttpWebRequest)WebRequest.Create(url);
             gRequest.Method = "GET";
             gRequest.KeepAlive = true;
@@ -49,7 +63,7 @@ namespace SenseNet.OAuth.Google
 
             var response = (HttpWebResponse)gRequest.GetResponse();
             string myResponse;
-            using (var sr = new StreamReader(response.GetResponseStream()))
+            using (var sr = new StreamReader(response.GetResponseStream() ?? throw new InvalidOperationException("Empty response from Google API.")))
             {
                 myResponse = sr.ReadToEnd();
             }

@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{875EF569-4684-473D-A2D4-A35B20B4A07C}"
 EndProject
@@ -43,7 +43,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnAdminRuntime.Tests", "Tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.ContentRepository.Tests", "Tests\SenseNet.ContentRepository.Tests\SenseNet.ContentRepository.Tests.csproj", "{7DE6A7E8-5738-4436-9646-9C1179F752EA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OAuth.Google", "OAuth.Google\OAuth.Google.csproj", "{94BD999E-119F-45BD-A9C2-E542D7DBAE9A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.OAuth.Google", "OAuth.Google\SenseNet.OAuth.Google.csproj", "{94BD999E-119F-45BD-A9C2-E542D7DBAE9A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -297,6 +297,9 @@ Global
 		{ECA9A043-5B86-445C-B70E-843573AAF72E} = {C68D256D-7D40-4E33-8A2B-B1625538B138}
 		{7DE6A7E8-5738-4436-9646-9C1179F752EA} = {C68D256D-7D40-4E33-8A2B-B1625538B138}
 		{94BD999E-119F-45BD-A9C2-E542D7DBAE9A} = {2997D17C-A736-43E5-B3DD-11D11AC7DF17}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7D903DEB-CA0B-43D8-BD9D-820BB1453C4C}
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = sensenet.vsmdi

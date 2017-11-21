@@ -324,9 +324,7 @@
     <Compile Include="Virtualization\GenericApi.cs" />
     <Compile Include="Virtualization\HashCodeCombiner.cs" />
     <Compile Include="Virtualization\HttpHeaderTools.cs" />
-    <Compile Include="Virtualization\IOAuthIdentity.cs" />
     <Compile Include="Virtualization\OAuthManager.cs" />
-    <Compile Include="Virtualization\OAuthProvider.cs" />
     <Compile Include="Virtualization\PortalAuthenticationModule.cs" />
     <Compile Include="Virtualization\PortalContext.cs" />
     <Compile Include="Virtualization\PortalContextModule.cs" />

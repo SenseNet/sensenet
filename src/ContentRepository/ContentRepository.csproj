@@ -242,6 +242,8 @@
     <Compile Include="Schema\Metadata\IMetaNode.cs" />
     <Compile Include="Schema\Metadata\MetaCollectionEnumerable.cs" />
     <Compile Include="Schema\Metadata\SchemaVisitor.cs" />
+    <Compile Include="Security\IOAuthIdentity.cs" />
+    <Compile Include="Security\OAuthProvider.cs" />
     <Compile Include="Setting\UserProfileSettings.cs" />
     <Compile Include="ContentNamingHelper.cs" />
     <Compile Include="ContentNamingProvider.cs" />

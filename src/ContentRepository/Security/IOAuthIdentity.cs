@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Linq;
-using System.Security.Principal;
-using System.Text;
-using System.Threading.Tasks;
-using SenseNet.ContentRepository.Storage;
-
-namespace SenseNet.Services.Virtualization
+﻿namespace SenseNet.ContentRepository.Security
 {
     public interface IOAuthIdentity
     {
