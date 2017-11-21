@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
@@ -13,13 +12,17 @@ using SenseNet.Tools;
 
 namespace SenseNet.Search
 {
+    //UNDONE:!!!! XMLDOC ContentRepository
     [ContentHandler]
     public class IndexingSettings : Settings
     {
         // ================================================================================= Constructors
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public IndexingSettings(Node parent) : this(parent, null) { }
+        //UNDONE:!!!! XMLDOC ContentRepository
         public IndexingSettings(Node parent, string nodeTypeName) : base(parent, nodeTypeName) {}
+        //UNDONE:!!!! XMLDOC ContentRepository
         protected IndexingSettings(NodeToken nt) : base(nt) { }
 
         // ================================================================================= Properties
@@ -30,6 +33,7 @@ namespace SenseNet.Search
 
         private static readonly object ExtractorLock = new object();
         private ReadOnlyDictionary<string, ITextExtractor> _textExtractors;
+        //UNDONE:!!!! XMLDOC ContentRepository
         public ReadOnlyDictionary<string, ITextExtractor> TextExtractorInstances
         {
             get
@@ -103,6 +107,7 @@ namespace SenseNet.Search
 
         // ================================================================================= Overrides
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public override object GetProperty(string name)
         {
             switch (name)
@@ -114,6 +119,7 @@ namespace SenseNet.Search
             }
         }
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public override void SetProperty(string name, object value)
         {
             switch (name)
@@ -131,6 +137,7 @@ namespace SenseNet.Search
 
         private const string TEXTEXTRACTORS_CACHEKEY = "CachedTextExtractors";
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         protected override void OnLoaded(object sender, NodeEventArgs e)
         {
             base.OnLoaded(sender, e);

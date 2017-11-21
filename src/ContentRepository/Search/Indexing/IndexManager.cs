@@ -12,15 +12,19 @@ using SenseNet.Search.Querying;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
+    //UNDONE:!!!! XMLDOC ContentRepository
     public static class IndexManager // alias LuceneManager
     {
         #region /* ==================================================================== Managing index */
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public static IIndexingEngine IndexingEngine => SearchManager.SearchEngine.IndexingEngine;
         internal static ICommitManager CommitManager { get; private set; }
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public static bool Running => IndexingEngine?.Running ?? false;
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public static int[] GetNotIndexedNodeTypes()
         {
             return new AllContentTypes()
@@ -29,6 +33,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 .ToArray();
         }
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public static void Start(TextWriter consoleOut)
         {
             IndexingEngine.Start(consoleOut);
@@ -47,6 +52,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 DistributedIndexingActivityQueue.Startup(consoleOut);
         }
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public static void ShutDown()
         {
             CommitManager?.ShutDown();
@@ -63,6 +69,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             SnLog.WriteInformation("Indexing engine has stopped. Max task id and exceptions: " + DistributedIndexingActivityQueue.GetCurrentCompletionState());
         }
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public static void ClearIndex()
         {
             IndexingEngine.ClearIndex();
@@ -70,11 +77,13 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         /* ========================================================================================== Activity */
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public static void RegisterActivity(IndexingActivityBase activity)
         {
             DataProvider.Current.RegisterIndexingActivity(activity);
         }
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public static void ExecuteActivity(IndexingActivityBase activity)
         {
             if (SearchManager.SearchEngine.IndexingEngine.IndexIsCentralized)
@@ -110,6 +119,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             activity.WaitForComplete();
         }
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public static int GetLastStoredIndexingActivityId()
         {
             return DataProvider.Current.GetLastIndexingActivityId();
@@ -120,6 +130,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             DataProvider.Current.DeleteAllIndexingActivities();
         }
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public static IndexingActivityStatus GetCurrentIndexingActivityStatus()
         {
             return DistributedIndexingActivityQueue.GetCurrentCompletionState();

@@ -11,10 +11,12 @@ using SenseNet.Search.Indexing;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
+    //UNDONE:!!!! XMLDOC ContentRepository
     public class IndexDocumentProvider : IIndexDocumentProvider
     {
         private static readonly List<string> SkippedMultistepFields = new List<string>(new[] { "Size" });
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public IndexDocument GetIndexDocument(Node node, bool skipBinaries, bool isNew, out bool hasBinary)
         {
             if (node == null)
@@ -120,6 +122,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             return doc;
         }
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public IndexDocument CompleteIndexDocument(Node node, IndexDocument baseDocument)
         {
             if (node == null)

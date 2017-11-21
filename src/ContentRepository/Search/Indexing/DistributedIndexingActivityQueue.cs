@@ -779,45 +779,75 @@ namespace SenseNet.ContentRepository.Search.Indexing
         }
     }
 
+    //UNDONE:!!!! XMLDOC ContentRepository
     public class IndexingActivitySerializerState
     {
+        //UNDONE:!!!! XMLDOC ContentRepository
         public int LastQueued { get; set; }
+        //UNDONE:!!!! XMLDOC ContentRepository
         public int QueueLength => Queue?.Length ?? 0;
+        //UNDONE:!!!! XMLDOC ContentRepository
         public int[] Queue { get; set; }
     }
+    //UNDONE:!!!! XMLDOC ContentRepository
     public class IndexingActivityDependencyState
     {
+        //UNDONE:!!!! XMLDOC ContentRepository
         public int WaitingSetLength => WaitingSet?.Length ?? 0;
+        //UNDONE:!!!! XMLDOC ContentRepository
         public int[] WaitingSet { get; set; }
     }
+    //UNDONE:!!!! XMLDOC ContentRepository
     public class IndexingActivityQueueState
     {
+        //UNDONE:!!!! XMLDOC ContentRepository
         public IndexingActivitySerializerState Serializer { get; set; }
+        //UNDONE:!!!! XMLDOC ContentRepository
         public IndexingActivityDependencyState DependencyManager { get; set; }
+        //UNDONE:!!!! XMLDOC ContentRepository
         public IndexingActivityStatus Termination { get; set; }
     }
 
+    //UNDONE:!!!! XMLDOC ContentRepository
     public class IndexingActivityHistoryItem
     {
+        //UNDONE:!!!! XMLDOC ContentRepository
         public int Id { get; set; }
+        //UNDONE:!!!! XMLDOC ContentRepository
         public string TypeName { get; set; }
+        //UNDONE:!!!! XMLDOC ContentRepository
         public bool FromReceiver { get; set; }
+        //UNDONE:!!!! XMLDOC ContentRepository
         public bool FromDb { get; set; }
+        //UNDONE:!!!! XMLDOC ContentRepository
         public bool IsStartup { get; set; }
+        //UNDONE:!!!! XMLDOC ContentRepository
         public string Error { get; set; }
+        //UNDONE:!!!! XMLDOC ContentRepository
         public int[] WaitedFor { get; set; }
+        //UNDONE:!!!! XMLDOC ContentRepository
         public DateTime ArrivedAt { get; set; }
+        //UNDONE:!!!! XMLDOC ContentRepository
         public DateTime StartedAt { get; set; }
+        //UNDONE:!!!! XMLDOC ContentRepository
         public DateTime FinishedAt { get; set; }
+        //UNDONE:!!!! XMLDOC ContentRepository
         public TimeSpan WaitTime => StartedAt - ArrivedAt;
+        //UNDONE:!!!! XMLDOC ContentRepository
         public TimeSpan ExecTime => FinishedAt - StartedAt;
+        //UNDONE:!!!! XMLDOC ContentRepository
         public TimeSpan FullTime => FinishedAt - ArrivedAt;
     }
+    //UNDONE:!!!! XMLDOC ContentRepository
     public class IndexingActivityHistory
     {
+        //UNDONE:!!!! XMLDOC ContentRepository
         public IndexingActivityQueueState State { get; private set; }
+        //UNDONE:!!!! XMLDOC ContentRepository
         public string Message => _unfinished < 1 ? null : ("RECENT ARRAY TOO SHORT. Cannot registrate full activity lifecycle. Unfinished items: " + _unfinished);
+        //UNDONE:!!!! XMLDOC ContentRepository
         public int RecentLength => Recent?.Length ?? 0;
+        //UNDONE:!!!! XMLDOC ContentRepository
         public IndexingActivityHistoryItem[] Recent { get; private set; }
 
         private IndexingActivityHistory() { }
@@ -844,6 +874,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             .Serialize(writer, this);
         }
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public static IndexingActivityHistory GetHistory()
         {
             IndexingActivityHistory result;
@@ -865,6 +896,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             }
             return result;
         }
+        //UNDONE:!!!! XMLDOC ContentRepository
         public static IndexingActivityHistory Reset()
         {
             IndexingActivityHistory result;

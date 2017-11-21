@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using SenseNet.Tools;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.Search
 {
     /// <summary>
@@ -23,6 +24,7 @@ namespace SenseNet.Search
     /// </example>
     public interface ISafeQueryHolder { }
 
+    //UNDONE:!!!! XMLDOC ContentRepository
     public class SafeQueries
     {
         private static readonly string[] _safeQueries;
@@ -40,6 +42,7 @@ namespace SenseNet.Search
             _safeQueries = genuineQueries.ToArray();
         }
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public static bool IsSafe(string queryText)
         {
             return _safeQueries.Contains(queryText);

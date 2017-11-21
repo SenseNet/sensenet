@@ -4,8 +4,10 @@ using SenseNet.ContentRepository;
 
 namespace SenseNet.Search
 {
+    //UNDONE:!!!! XMLDOC ContentRepository
     public class ContentQueryTemplateReplacer : TemplateReplacerBase
     {
+        //UNDONE:!!!! XMLDOC ContentRepository
         public override IEnumerable<string> TemplateNames => new[]
         {
             "currentuser", "currentdate", "currentday", "today", "currenttime", "currentmonth", "currentweek",
@@ -13,6 +15,7 @@ namespace SenseNet.Search
             "previousworkday", "previousweek", "previousmonth", "previousyear"
         };
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public override string EvaluateTemplate(string templateName, string templateExpression, object templatingContext)
         {
             switch (templateName)
@@ -55,7 +58,8 @@ namespace SenseNet.Search
                     return base.EvaluateTemplate(templateName, templateExpression, templatingContext);
             }
         }
-        
+
+        //UNDONE:!!!! XMLDOC ContentRepository
         protected static class DefaultUnits
         {
             public static readonly string Seconds = "seconds";

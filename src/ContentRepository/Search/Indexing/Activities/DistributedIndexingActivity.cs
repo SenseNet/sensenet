@@ -7,9 +7,11 @@ using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Search.Indexing.Activities
 {
+    //UNDONE:!!!! XMLDOC ContentRepository
     [Serializable]
     public abstract class DistributedIndexingActivity : DistributedAction
     {
+        //UNDONE:!!!! XMLDOC ContentRepository
         public override void DoAction(bool onRemote, bool isFromMe)
         {
             if (!IndexManager.Running)

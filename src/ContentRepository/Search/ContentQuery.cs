@@ -14,8 +14,10 @@ using SenseNet.Search.Querying.Parser;
 
 namespace SenseNet.Search
 {
+    //UNDONE:!!!! XMLDOC ContentRepository
     public class ContentQuery
     {
+        //UNDONE:!!!! XMLDOC ContentRepository
         public static string EmptyText => SnQuery.EmptyText;
 
         private static readonly string[] QuerySettingParts = { "SKIP", "TOP", "SORT", "REVERSESORT", "AUTOFILTERS", "LIFESPAN", "COUNTONLY" };
@@ -26,6 +28,7 @@ namespace SenseNet.Search
         private static readonly string MultilineCommentEnd = "*/";
 
         private string _text;
+        //UNDONE:!!!! XMLDOC ContentRepository
         public string Text
         {
             get => _text;
@@ -33,12 +36,14 @@ namespace SenseNet.Search
         }
 
         private QuerySettings _settings = new QuerySettings();
+        //UNDONE:!!!! XMLDOC ContentRepository
         public QuerySettings Settings
         {
             get => _settings;
             set => _settings = value ?? new QuerySettings();
         }
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public bool IsSafe { get; private set; }
 
         private static readonly Regex EscaperRegex;
@@ -51,19 +56,23 @@ namespace SenseNet.Search
             EscaperRegex = new Regex(pattern.ToString());
         }
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public static QueryResult Query(string text)
         {
             return Query(text, null, null);
         }
+        //UNDONE:!!!! XMLDOC ContentRepository
         public static QueryResult Query(string text, QuerySettings settings, params object[] parameters)
         {
             return CreateQuery(text, settings, parameters).Execute();
         }
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public static ContentQuery CreateQuery(string text)
         {
             return CreateQuery(text, null, null);
         }
+        //UNDONE:!!!! XMLDOC ContentRepository
         public static ContentQuery CreateQuery(string text, QuerySettings settings, params object[] parameters)
         {
             var isSafe = IsSafeQuery(text);
@@ -152,14 +161,17 @@ namespace SenseNet.Search
             return stringValue;
         }
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public void AddClause(string text)
         {
             AddClause(text, LogicalOperator.And);
         }
+        //UNDONE:!!!! XMLDOC ContentRepository
         public void AddClause(string text, LogicalOperator logicalOp)
         {
             AddClause(text, logicalOp, null);
         }
+        //UNDONE:!!!! XMLDOC ContentRepository
         public void AddClause(string text, LogicalOperator logicalOp, params object[] parameters)
         {
             var isSafe = this.IsSafe && IsSafeQuery(text);
@@ -241,6 +253,7 @@ namespace SenseNet.Search
             return string.Concat(queryText, backParts);
         }
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public static string AddClause(string originalText, string addition, LogicalOperator logicalOp)
         {
             if (addition == null)
@@ -303,6 +316,7 @@ namespace SenseNet.Search
             return queryText.Length;
         }
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public QueryResult Execute()
         {
             var queryText = Text;

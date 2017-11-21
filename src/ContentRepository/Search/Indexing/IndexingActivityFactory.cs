@@ -3,10 +3,13 @@ using SenseNet.ContentRepository.Search.Indexing.Activities;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
+    //UNDONE:!!!! XMLDOC ContentRepository
     public class IndexingActivityFactory : IIndexingActivityFactory
     {
+        //UNDONE:!!!! XMLDOC ContentRepository
         public static IndexingActivityFactory Instance = new IndexingActivityFactory();
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public IIndexingActivity CreateActivity(IndexingActivityType activityType)
         {
             IIndexingActivity activity = null;

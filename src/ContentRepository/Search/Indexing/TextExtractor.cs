@@ -15,16 +15,20 @@ using SenseNet.Search;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
+    //UNDONE:!!!! XMLDOC ContentRepository
     public class TextExtractorContext
     {
+        //UNDONE:!!!! XMLDOC ContentRepository
         public TextExtractorContext(int versionId)
         {
             this.VersionId = versionId;
         }
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public int VersionId { get; }
     }
 
+    //UNDONE:!!!! XMLDOC ContentRepository
     public interface ITextExtractor
     {
         /// <summary>
@@ -42,9 +46,12 @@ namespace SenseNet.ContentRepository.Search.Indexing
         bool IsSlow { get; }
     }
 
+    //UNDONE:!!!! XMLDOC ContentRepository
     public abstract class TextExtractor : ITextExtractor
     {
+        //UNDONE:!!!! XMLDOC ContentRepository
         public abstract string Extract(Stream stream, TextExtractorContext context);
+        //UNDONE:!!!! XMLDOC ContentRepository
         public virtual bool IsSlow => true;
 
         private static ITextExtractor ResolveExtractor(BinaryData binaryData)
@@ -78,6 +85,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             return null;
         }
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public static string GetExtract(BinaryData binaryData, Node node)
         {
             using (var op = SnTrace.Index.StartOperation("Getting text extract, VId:{0}, Path:{1}", node.VersionId, node.Path))
@@ -156,7 +164,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 return result;
             }
         }
-        
+
+        //UNDONE:!!!! XMLDOC ContentRepository
         public static bool TextExtractingWillBePotentiallySlow(BinaryData binaryData)
         {
             var extractor = ResolveExtractor(binaryData);
@@ -182,6 +191,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             }
         }
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         protected string GetOpenXmlText(Stream stream, TextExtractorContext context)
         {
             var result = new StringBuilder();
@@ -213,10 +223,12 @@ namespace SenseNet.ContentRepository.Search.Indexing
             return result.ToString();
         }
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         protected static void WriteElapsedLog(Stopwatch sw, string message, long length)
         {
         }
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         protected static byte[] GetBytesFromStream(Stream stream)
         {
             byte[] fileData;

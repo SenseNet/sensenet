@@ -6,7 +6,8 @@ using System.Diagnostics;
 
 namespace SenseNet.Search
 {
-    public class QueryResult
+    //UNDONE:!!!!! XMLDOC Storage
+    public class QueryResult //UNDONE:! Move to Search directory
     {
         private class _NodeResolver : INodeResolver<Node>
         {
@@ -50,12 +51,14 @@ namespace SenseNet.Search
             }
         }
 
+        //UNDONE:!!!!! XMLDOC Storage
         public static readonly QueryResult Empty = new QueryResult(new int[0]);
 
         private INodeResolver<Node> _result;
 
-        // =========================================== 
+        /* =========================================== */
 
+        //UNDONE:!!!!! XMLDOC Storage
         /// <summary>
         /// For full id list
         /// </summary>
@@ -66,6 +69,7 @@ namespace SenseNet.Search
             Count = _result.IdCount;
         }
 
+        //UNDONE:!!!!! XMLDOC Storage
         /// <summary>
         /// For query
         /// </summary>
@@ -77,6 +81,7 @@ namespace SenseNet.Search
             Count = totalCount;
         }
 
+        //UNDONE:!!!!! XMLDOC Storage
         /// <summary>
         /// For dynamic contents
         /// </summary>
@@ -88,13 +93,16 @@ namespace SenseNet.Search
 
         // =========================================== Properties
 
+        //UNDONE:!!!!! XMLDOC Storage
         public IEnumerable<int> Identifiers
         {
             get { return _result.GetIdentifiers(); }
         }
 
+        //UNDONE:!!!!! XMLDOC Storage
         public IEnumerable<Node> Nodes { get { return _result; } }
 
+        //UNDONE:!!!!! XMLDOC Storage
         /// <summary>
         /// Total count of contents
         /// </summary>

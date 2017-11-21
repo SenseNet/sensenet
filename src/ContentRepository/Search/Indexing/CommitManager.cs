@@ -5,10 +5,14 @@ using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
+    //UNDONE:!!!! XMLDOC ContentRepository
     public interface ICommitManager
     {
+        //UNDONE:!!!! XMLDOC ContentRepository
         void Start();
+        //UNDONE:!!!! XMLDOC ContentRepository
         void ShutDown();
+        //UNDONE:!!!! XMLDOC ContentRepository
         void ActivityFinished();
     }
 

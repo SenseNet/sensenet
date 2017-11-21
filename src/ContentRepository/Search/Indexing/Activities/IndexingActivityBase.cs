@@ -6,35 +6,50 @@ using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Search.Indexing.Activities
 {
+    //UNDONE:!!!! XMLDOC ContentRepository
     [Serializable]
     public abstract class IndexingActivityBase : DistributedIndexingActivity, IIndexingActivity, System.Runtime.Serialization.IDeserializationCallback
     {
         // stored properties
+        //UNDONE:!!!! XMLDOC ContentRepository
         public int Id { get; set; }
+        //UNDONE:!!!! XMLDOC ContentRepository
         public IndexingActivityType ActivityType { get; set; }
+        //UNDONE:!!!! XMLDOC ContentRepository
         public DateTime CreationDate { get; set; }
+        //UNDONE:!!!! XMLDOC ContentRepository
         public IndexingActivityRunningState RunningState { get; set; }
+        //UNDONE:!!!! XMLDOC ContentRepository
         public DateTime? LockTime { get; set; }
+        //UNDONE:!!!! XMLDOC ContentRepository
         public int NodeId { get; set; }
+        //UNDONE:!!!! XMLDOC ContentRepository
         public int VersionId { get; set; }
+        //UNDONE:!!!! XMLDOC ContentRepository
         public string Path { get; set; }
+        //UNDONE:!!!! XMLDOC ContentRepository
         public long? VersionTimestamp { get; set; }
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public string Extension
         {
             get => GetExtension();
             set => SetExtension(value);
         }
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         protected abstract string GetExtension();
+        //UNDONE:!!!! XMLDOC ContentRepository
         protected abstract void SetExtension(string value);
 
         // not stored properties
+        //UNDONE:!!!! XMLDOC ContentRepository
         public IndexDocumentData IndexDocumentData { get; set; }
 
 
         [NonSerialized]
         private bool _isUnprocessedActivity;
+        //UNDONE:!!!! XMLDOC ContentRepository
         public bool IsUnprocessedActivity
         {
             get => _isUnprocessedActivity;
@@ -43,6 +58,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
 
         [NonSerialized]
         private bool _fromReceiver;
+        //UNDONE:!!!! XMLDOC ContentRepository
         public bool FromReceiver
         {
             get => _fromReceiver;
@@ -51,6 +67,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
 
         [NonSerialized]
         private bool _fromDatabase;
+        //UNDONE:!!!! XMLDOC ContentRepository
         public bool FromDatabase
         {
             get => _fromDatabase;
@@ -88,7 +105,8 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
             // if not running or paused, skip execution except executing unprocessed activities
             return IsUnprocessedActivity || IndexManager.Running;
         }
-        
+
+        //UNDONE:!!!! XMLDOC ContentRepository
         protected abstract bool ProtectedExecute();
         
         [NonSerialized]
@@ -134,12 +152,14 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
 
         // ================================================= AQ16
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public IndexingActivityBase()
         {
             _waitingFor = new List<IndexingActivityBase>();
             _waitingForMe = new List<IndexingActivityBase>();
         }
 
+        //UNDONE:!!!! XMLDOC ContentRepository
         public void OnDeserialization(object sender)
         {
             _waitingFor = new List<IndexingActivityBase>();
@@ -149,10 +169,12 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
 
         [NonSerialized]
         private List<IndexingActivityBase> _waitingFor;
+        //UNDONE:!!!! XMLDOC ContentRepository
         public List<IndexingActivityBase> WaitingFor => _waitingFor;
 
         [NonSerialized]
         private List<IndexingActivityBase> _waitingForMe;
+        //UNDONE:!!!! XMLDOC ContentRepository
         public List<IndexingActivityBase> WaitingForMe => _waitingForMe;
 
 
