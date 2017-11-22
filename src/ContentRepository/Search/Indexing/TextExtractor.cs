@@ -246,7 +246,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             return result.ToString();
         }
 
-        //UNDONE: XMLDOC ContentRepository
+        //UNDONE: XMLDOC or delete unused WriteElapsedLog
         protected static void WriteElapsedLog(Stopwatch sw, string message, long length)
         {
         }
