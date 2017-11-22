@@ -17,20 +17,41 @@ namespace SenseNet.ContentRepository.Search
     /// </summary>
     public class SearchManager
     {
-        // ========================================================================== Singleton model
+        /* ========================================================================== Singleton model */
 
         private static SearchManager Instance = new SearchManager();
 
         private SearchManager() { }
 
-        // ========================================================================== Private interface
+        /* ========================================================================== Private instance interface */
 
+        // ReSharper disable once InconsistentNaming
         private string __indexDirectoryPath;
         private string IndexDirectoryPathPrivate
         {
             get => __indexDirectoryPath ?? (__indexDirectoryPath = Configuration.Indexing.IndexDirectoryFullPath);
             set => __indexDirectoryPath = value;
         }
+
+        // ReSharper disable once InconsistentNaming
+        private bool? __isOuterSearchEngineEnabled;
+        private bool IsOuterSearchEngineEnabled
+        {
+            get
+            {
+                if(__isOuterSearchEngineEnabled == null)
+                    return Configuration.Indexing.IsOuterSearchEngineEnabled;
+                return __isOuterSearchEngineEnabled.Value;
+            }
+            set
+            {
+                if (false == Configuration.Indexing.IsOuterSearchEngineEnabled)
+                    throw new InvalidOperationException("Indexing is not allowed in the configuration");
+                __isOuterSearchEngineEnabled = value; 
+            }
+        }
+
+        /* ========================================================================== Public static interface */
 
         /// <summary>
         /// Contains all values that mean "true". These are: "1", "true", "y" and "yes"
@@ -86,30 +107,40 @@ namespace SenseNet.ContentRepository.Search
         }
 
 
-        //UNDONE:! XMLDOC Storage
-        public static bool ContentQueryIsAllowed => Configuration.Indexing.IsOuterSearchEngineEnabled &&
+        /// <summary>
+        /// Gets a value that is true if the content query can run in the configured outer query engine.
+        /// </summary>
+        public static bool ContentQueryIsAllowed => Instance.IsOuterSearchEngineEnabled &&
                                                     SearchEngine != InternalSearchEngine.Instance &&
                                                     (SearchEngine?.IndexingEngine?.Running ?? false);
 
-        //UNDONE:! XMLDOC Storage
-        public static bool IsOuterEngineEnabled => Configuration.Indexing.IsOuterSearchEngineEnabled;
-        //UNDONE:! XMLDOC Storage
+        /// <summary>
+        /// Gets a value that is true if the outer search engine is enabled.
+        /// </summary>
+        public static bool IsOuterEngineEnabled => Instance.IsOuterSearchEngineEnabled;
+        //UNDONE: XMLDOC: IndexDirectoryPath
         public static string IndexDirectoryPath => Instance.IndexDirectoryPathPrivate;
 
-        //UNDONE:! XMLDOC Storage
+        /// <summary>
+        /// Enables the outer search engine.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when the outer indexing engine is disabled in the configuration.
+        /// The examined value: SenseNet.Configuration.Indexing.IsOuterSearchEngineEnabled.
+        /// </exception>
         public static void EnableOuterEngine()
         {
-            if (false == Configuration.Indexing.IsOuterSearchEngineEnabled)
-                throw new InvalidOperationException("Indexing is not allowed in the configuration");
-            Configuration.Indexing.IsOuterSearchEngineEnabled = true;
+            Instance.IsOuterSearchEngineEnabled = true;
         }
-        //UNDONE:! XMLDOC Storage
+        /// <summary>
+        /// Disables the outer search engine.
+        /// </summary>
         public static void DisableOuterEngine()
         {
-            Configuration.Indexing.IsOuterSearchEngineEnabled = false;
+            Instance.IsOuterSearchEngineEnabled = false;
         }
 
-        //UNDONE:!!!!! XMLDOC Storage
+        //UNDONE: XMLDOC: IndexDirectoryPath
         public static void SetIndexDirectoryPath(string path)
         {
             Instance.IndexDirectoryPathPrivate = path;
