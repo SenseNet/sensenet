@@ -17,7 +17,7 @@ namespace SenseNet.Services.Virtualization
         public static string UsersByOAuthId => "+TypeIs:User +@0:@1";
     }
 
-    public class OAuthManager
+    internal class OAuthManager
     {
         private const string OAuthPathLogin = "/sn-oauth/login";
         private const string OAuthPathCallback = "/sn-oauth/callback";
@@ -25,7 +25,7 @@ namespace SenseNet.Services.Virtualization
         private const string UserTypeSettingName = "UserType";
         private const string DomainSettingName = "Domain";
 
-        public static OAuthManager Instance = new OAuthManager();
+        internal static OAuthManager Instance = new OAuthManager();
 
         /// <summary>
         /// Derived classes may override this method and serve providers from a 
@@ -37,8 +37,8 @@ namespace SenseNet.Services.Virtualization
         {
             return Providers.Instance.GetProvider<OAuthProvider>(OAuthProvider.GetProviderRegistrationName(providerName));
         }
-    
-        public bool Authenticate(HttpApplication application)
+
+        internal bool Authenticate(HttpApplication application)
         {
             var request = AuthenticationHelper.GetRequest(application);
             var isLoginRequest = IsLoginRequest(request);

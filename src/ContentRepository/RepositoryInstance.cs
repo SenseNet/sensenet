@@ -338,7 +338,7 @@ namespace SenseNet.ContentRepository
                 }
 
                 Providers.Instance.SetProvider(provider.GetProviderRegistrationName(), provider);
-                providerTypeNames.Add(providerType.FullName);
+                providerTypeNames.Add($"{providerType.FullName} ({provider.ProviderName})");
             }
 
             if (providerTypeNames.Any())
