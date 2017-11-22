@@ -874,22 +874,27 @@ namespace SenseNet.ContentRepository.Tests
             {
                 ContentSet<Content>[] contentSets =
                 {
-                    (ContentSet<Content>) Content.All.Where(c => c.Id < 6),
-                    (ContentSet<Content>) Content.All.EnableAutofilters().Where(c => c.Id < 6),
-                    (ContentSet<Content>) Content.All.DisableAutofilters().Where(c => c.Id < 6),
-                    (ContentSet<Content>) Content.All.EnableLifespan().Where(c => c.Id < 6),
-                    (ContentSet<Content>) Content.All.DisableLifespan().Where(c => c.Id < 6),
-                    (ContentSet<Content>) Content.All.EnableAutofilters().EnableLifespan().Where(c => c.Id < 6),
-                    (ContentSet<Content>) Content.All.EnableAutofilters().DisableLifespan().Where(c => c.Id < 6),
-                    (ContentSet<Content>) Content.All.DisableAutofilters().EnableLifespan().Where(c => c.Id < 6),
-                    (ContentSet<Content>) Content.All.DisableAutofilters().DisableLifespan().Where(c => c.Id < 6),
-                    (ContentSet<Content>) Content.All.EnableLifespan().EnableAutofilters().Where(c => c.Id < 6),
-                    (ContentSet<Content>) Content.All.DisableLifespan().EnableAutofilters().Where(c => c.Id < 6),
-                    (ContentSet<Content>) Content.All.EnableLifespan().DisableAutofilters().Where(c => c.Id < 6),
-                    (ContentSet<Content>) Content.All.DisableLifespan().DisableAutofilters().Where(c => c.Id < 6),
-                    (ContentSet<Content>) Content.All.SetExecutionMode(QueryExecutionMode.Default).Where(c => c.Id < 42),
-                    (ContentSet<Content>) Content.All.SetExecutionMode(QueryExecutionMode.Strict).Where(c => c.Id < 42),
-                    (ContentSet<Content>) Content.All.SetExecutionMode(QueryExecutionMode.Quick).Where(c => c.Id < 42),
+                    (ContentSet<Content>) Content.All.Where(c => c.Id == 2),
+                    (ContentSet<Content>) Content.All.Where(c => c.Id == 2).Skip(5),
+                    (ContentSet<Content>) Content.All.Where(c => c.Id == 2).Take(5),
+                    (ContentSet<Content>) Content.All.Where(c => c.Id == 2).OrderBy(c => c.Name),
+                    (ContentSet<Content>) Content.All.Where(c => c.Id == 2).OrderByDescending(c => c.Name),
+                    (ContentSet<Content>) Content.All.Where(c => c.Id == 2).OrderBy(c => c.Name).ThenBy(c => c.Id),
+                    (ContentSet<Content>) Content.All.EnableAutofilters().Where(c => c.Id == 2),
+                    (ContentSet<Content>) Content.All.DisableAutofilters().Where(c => c.Id == 2),
+                    (ContentSet<Content>) Content.All.EnableLifespan().Where(c => c.Id == 2),
+                    (ContentSet<Content>) Content.All.DisableLifespan().Where(c => c.Id == 2),
+                    (ContentSet<Content>) Content.All.EnableAutofilters().EnableLifespan().Where(c => c.Id == 2),
+                    (ContentSet<Content>) Content.All.EnableAutofilters().DisableLifespan().Where(c => c.Id == 2),
+                    (ContentSet<Content>) Content.All.DisableAutofilters().EnableLifespan().Where(c => c.Id == 2),
+                    (ContentSet<Content>) Content.All.DisableAutofilters().DisableLifespan().Where(c => c.Id == 2),
+                    (ContentSet<Content>) Content.All.EnableLifespan().EnableAutofilters().Where(c => c.Id == 2),
+                    (ContentSet<Content>) Content.All.DisableLifespan().EnableAutofilters().Where(c => c.Id == 2),
+                    (ContentSet<Content>) Content.All.EnableLifespan().DisableAutofilters().Where(c => c.Id == 2),
+                    (ContentSet<Content>) Content.All.DisableLifespan().DisableAutofilters().Where(c => c.Id == 2),
+                    (ContentSet<Content>) Content.All.SetExecutionMode(QueryExecutionMode.Default).Where(c => c.Id == 2),
+                    (ContentSet<Content>) Content.All.SetExecutionMode(QueryExecutionMode.Strict).Where(c => c.Id == 2),
+                    (ContentSet<Content>) Content.All.SetExecutionMode(QueryExecutionMode.Quick).Where(c => c.Id == 2),
                 };
                 var queries = new string[contentSets.Length];
                 for (var i = 0; i < contentSets.Length; i++)
@@ -897,22 +902,27 @@ namespace SenseNet.ContentRepository.Tests
                         SnExpression.BuildQuery(contentSets[i].Expression, typeof(Content), contentSets[i].ContextPath,
                             contentSets[i].ChildrenDefinition).ToString();
 
-                var expected = @"Id:<6
-Id:<6
-Id:<6 .AUTOFILTERS:OFF
-Id:<6 .LIFESPAN:ON
-Id:<6
-Id:<6 .LIFESPAN:ON
-Id:<6
-Id:<6 .AUTOFILTERS:OFF .LIFESPAN:ON
-Id:<6 .AUTOFILTERS:OFF
-Id:<6 .LIFESPAN:ON
-Id:<6
-Id:<6 .AUTOFILTERS:OFF .LIFESPAN:ON
-Id:<6 .AUTOFILTERS:OFF
-Id:<42
-Id:<42
-Id:<42 .QUICK";
+                var expected = @"Id:2
+Id:2 .SKIP:5
+Id:2 .TOP:5
+Id:2 .SORT:Name
+Id:2 .REVERSESORT:Name
+Id:2 .SORT:Name .SORT:Id
+Id:2
+Id:2 .AUTOFILTERS:OFF
+Id:2 .LIFESPAN:ON
+Id:2
+Id:2 .LIFESPAN:ON
+Id:2
+Id:2 .AUTOFILTERS:OFF .LIFESPAN:ON
+Id:2 .AUTOFILTERS:OFF
+Id:2 .LIFESPAN:ON
+Id:2
+Id:2 .AUTOFILTERS:OFF .LIFESPAN:ON
+Id:2 .AUTOFILTERS:OFF
+Id:2
+Id:2
+Id:2 .QUICK";
 
                 var actual = String.Join("\r\n", queries);
                 Assert.AreEqual(expected, actual);
