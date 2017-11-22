@@ -246,11 +246,6 @@ namespace SenseNet.ContentRepository.Search.Indexing
             return result.ToString();
         }
 
-        //UNDONE: XMLDOC or delete unused WriteElapsedLog
-        protected static void WriteElapsedLog(Stopwatch sw, string message, long length)
-        {
-        }
-
         /// <summary>
         /// Reads the whole given stream into a byte[] buffer and returns with it.
         /// </summary>

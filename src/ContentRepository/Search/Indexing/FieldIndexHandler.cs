@@ -64,7 +64,10 @@ namespace SenseNet.Search.Indexing
                     OwnerIndexingInfo.IndexStoringMode,
                     OwnerIndexingInfo.TermVectorStoringMode)
             };
-        //UNDONE: XMLDOC what is sortTerm?
+        /// <summary>
+        /// Creates IndexFields from a given name and a IEnumerable&lt;string&gt; value.
+        /// Creates an additional IndexField for the value that will be used in sorting.
+        /// </summary>
         protected IEnumerable<IndexField> CreateField(string name, IEnumerable<string> value, string sortTerm) => new[]
             {
                 new IndexField(name, value.ToArray(),
@@ -364,6 +367,7 @@ namespace SenseNet.Search.Indexing
                 var sortTerm = string.Join("-", sortList);
                 textExtract = string.Join(" ", localizedWords);
                 wordList.AddRange(localizedWords);
+                SnTrace.Test.Write(">>>>>>>>>>>>> {0}:'{1}' (sort by: {2})", snField.Name, wordList, sortTerm);
                 return CreateField(snField.Name, wordList, sortTerm);
             }
 
