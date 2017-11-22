@@ -10,7 +10,7 @@ using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 
 // ReSharper disable once CheckNamespace
-namespace SenseNet.ContentRepository.Search //UNDONE:! move to Search directory
+namespace SenseNet.ContentRepository.Search
 {
     /// <summary>
     /// Provides indexing and querying related management elements for all service layers. 
