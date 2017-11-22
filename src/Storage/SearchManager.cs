@@ -9,9 +9,12 @@ using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 
-//UNDONE:!!!!! XMLDOC Storage
+// ReSharper disable once CheckNamespace
 namespace SenseNet.ContentRepository.Search //UNDONE:! move to Search directory
 {
+    /// <summary>
+    /// Provides indexing and querying related management elements for all service layers. 
+    /// </summary>
     public class SearchManager
     {
         // ========================================================================== Singleton model
@@ -38,52 +41,69 @@ namespace SenseNet.ContentRepository.Search //UNDONE:! move to Search directory
         /// </summary>
         public static readonly List<string> NoList = new List<string>(new[] { "0", "false", "n", IndexValue.No });
 
-        //UNDONE:!!!!! XMLDOC Storage
+        /// <summary>
+        /// Gets the implementation onstance of the current <see cref="ISearchEngine"/>.
+        /// The value depends on the value of the Configuration.Indexing.IsOuterSearchEngineEnabled setting.
+        /// If this value is true, returns with the Providers.Instance.SearchEngine, otherwise with the InternalSearchEngine.Instance.
+        /// </summary>
         public static ISearchEngine SearchEngine => !Configuration.Indexing.IsOuterSearchEngineEnabled
             ? InternalSearchEngine.Instance
             : Providers.Instance.SearchEngine;
 
         private static ISearchEngineSupport _searchEngineSupport;
-        //UNDONE:!!!!! XMLDOC Storage
+        /// <summary>
+        /// Stores the given reference of the <see cref="ISearchEngineSupport"/> implementation instance
+        /// that allows access to methods implemented in the higher service level.
+        /// </summary>
+        /// <param name="searchEngineSupport"></param>
         public static void SetSearchEngineSupport(ISearchEngineSupport searchEngineSupport)
         {
             _searchEngineSupport = searchEngineSupport;
         }
-        //UNDONE:!!!!! XMLDOC Storage
+        /// <summary>
+        /// Returns with the <see cref="QueryResult"/> of the given CQL query.
+        /// </summary>
+        /// <param name="text">CQL query text.</param>
+        /// <param name="settings"><see cref="QuerySettings"/> that extends the query.</param>
+        /// <param name="parameters">Values to substitute the parameters of the CQL query text.</param>
         public static QueryResult ExecuteContentQuery(string text, QuerySettings settings, params object[] parameters)
         {
             return _searchEngineSupport.ExecuteContentQuery(text, settings, parameters);
         }
-        //UNDONE:!!!!! XMLDOC Storage
+        /// <summary>
+        /// Returns an <see cref="IIndexPopulator"/> implementation instance.
+        /// </summary>
         public static IIndexPopulator GetIndexPopulator()
         {
             return _searchEngineSupport.GetIndexPopulator();
         }
-        //UNDONE:!!!!! XMLDOC Storage
+        /// <summary>
+        /// Gets indexing metadata descriptor instance by fieldName
+        /// </summary>
         public static IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
         {
             return _searchEngineSupport.GetPerFieldIndexingInfo(fieldName);
         }
 
 
-        //UNDONE:!!!!! XMLDOC Storage
+        //UNDONE:! XMLDOC Storage
         public static bool ContentQueryIsAllowed => Configuration.Indexing.IsOuterSearchEngineEnabled &&
                                                     SearchEngine != InternalSearchEngine.Instance &&
                                                     (SearchEngine?.IndexingEngine?.Running ?? false);
 
-        //UNDONE:!!!!! XMLDOC Storage
+        //UNDONE:! XMLDOC Storage
         public static bool IsOuterEngineEnabled => Configuration.Indexing.IsOuterSearchEngineEnabled;
-        //UNDONE:!!!!! XMLDOC Storage
+        //UNDONE:! XMLDOC Storage
         public static string IndexDirectoryPath => Instance.IndexDirectoryPathPrivate;
 
-        //UNDONE:!!!!! XMLDOC Storage
+        //UNDONE:! XMLDOC Storage
         public static void EnableOuterEngine()
         {
             if (false == Configuration.Indexing.IsOuterSearchEngineEnabled)
                 throw new InvalidOperationException("Indexing is not allowed in the configuration");
             Configuration.Indexing.IsOuterSearchEngineEnabled = true;
         }
-        //UNDONE:!!!!! XMLDOC Storage
+        //UNDONE:! XMLDOC Storage
         public static void DisableOuterEngine()
         {
             Configuration.Indexing.IsOuterSearchEngineEnabled = false;
@@ -95,28 +115,41 @@ namespace SenseNet.ContentRepository.Search //UNDONE:! move to Search directory
             Instance.IndexDirectoryPathPrivate = path;
         }
 
-        //UNDONE:!!!!! XMLDOC Storage
+        /// <summary>
+        /// Returns with the <see cref="IndexDocumentData"/> of the version identified by the given versionId.
+        /// </summary>
         public static IndexDocumentData LoadIndexDocumentByVersionId(int versionId)
         {
             return DataProvider.LoadIndexDocument(versionId);
         }
-        //UNDONE:!!!!! XMLDOC Storage
+        /// <summary>
+        /// Returns with the <see cref="IEnumerable&lt;IndexDocumentData&gt;"/> of the versions identified by the given versionIds.
+        /// </summary>
         public static IEnumerable<IndexDocumentData> LoadIndexDocumentByVersionId(IEnumerable<int> versionId)
         {
             return DataProvider.LoadIndexDocument(versionId);
         }
-        //UNDONE:!!!!! XMLDOC Storage
+        /// <summary>
+        /// Returns with the <see cref="IEnumerable&lt;IndexDocumentData&gt;"/> of all version of the node identified by the given path.
+        /// </summary>
         public static IEnumerable<IndexDocumentData> LoadIndexDocumentsByPath(string path, int[] excludedNodeTypes)
         {
             return DataProvider.LoadIndexDocument(path, excludedNodeTypes);
         }
 
-        //UNDONE:!!!!! XMLDOC Storage
-        public static readonly FilterStatus EnableAutofiltersDefaultValue = FilterStatus.Enabled;
-        //UNDONE:!!!!! XMLDOC Storage
-        public static readonly FilterStatus EnableLifespanFilterDefaultValue = FilterStatus.Disabled;
+        /// <summary>
+        /// Constant value of the default auto filter status. The value is FilterStatus.Enabled.
+        /// </summary>
+        public static FilterStatus EnableAutofiltersDefaultValue => SnQuery.EnableAutofiltersDefaultValue;
+        /// <summary>
+        /// Constant value of the default lifespan filter status. The value is FilterStatus.Disabled.
+        /// </summary>
+        public static FilterStatus EnableLifespanFilterDefaultValue = SnQuery.EnableLifespanFilterDefaultValue;
 
-        //UNDONE:!!!!! XMLDOC Storage
+        /// <summary>
+        /// Returns with true id the value is "Enabled".
+        /// Takes into account the EnableAutofiltersDefaultValue actual value.
+        /// </summary>
         public static bool IsAutofilterEnabled(FilterStatus value)
         {
             switch (value)
@@ -131,7 +164,10 @@ namespace SenseNet.ContentRepository.Search //UNDONE:! move to Search directory
                     throw new SnNotSupportedException("Unknown FilterStatus: " + value);
             }
         }
-        //UNDONE:!!!!! XMLDOC Storage
+        /// <summary>
+        /// Returns with true id the value is "Enabled".
+        /// Takes into account the EnableLifespanFilterDefaultValue actual value.
+        /// </summary>
         public static bool IsLifespanFilterEnabled(FilterStatus value)
         {
             switch (value)

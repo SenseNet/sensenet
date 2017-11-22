@@ -6,14 +6,16 @@ using System.Diagnostics;
 
 namespace SenseNet.Search
 {
-    //UNDONE:!!!!! XMLDOC Storage
+    /// <summary>
+    /// Defines a class for result of content queries.
+    /// </summary>
     public class QueryResult //UNDONE:! Move to Search directory
     {
-        private class _NodeResolver : INodeResolver<Node>
+        private class NodeResolver : INodeResolver<Node>
         {
             private Node[] _nodes;
 
-            public _NodeResolver(IEnumerable<Node> nodes)
+            public NodeResolver(IEnumerable<Node> nodes)
             {
                 _nodes = nodes.ToArray();
             }
@@ -51,60 +53,61 @@ namespace SenseNet.Search
             }
         }
 
-        //UNDONE:!!!!! XMLDOC Storage
+        /// <summary>
+        /// Represents empty result.
+        /// </summary>
         public static readonly QueryResult Empty = new QueryResult(new int[0]);
 
-        private INodeResolver<Node> _result;
+        private readonly INodeResolver<Node> _result;
 
         /* =========================================== */
 
-        //UNDONE:!!!!! XMLDOC Storage
         /// <summary>
-        /// For full id list
+        /// Initializes a new instance of the QueryResult with identifiers as hit collection.
         /// </summary>
-        /// <param name="result"></param>
+        /// <param name="result">The IEnumerable&lt;int&gt; that contains ids of hits.</param>
         public QueryResult(IEnumerable<int> result)
         {
             _result = new NodeList<Node>(result);
             Count = _result.IdCount;
         }
 
-        //UNDONE:!!!!! XMLDOC Storage
         /// <summary>
-        /// For query
+        /// Initializes a new instance of the QueryResult with
+        /// identifiers as hit collection and it's count.
         /// </summary>
-        /// <param name="result"></param>
-        /// <param name="totalCount"></param>
+        /// <param name="result">The IEnumerable&lt;int&gt; that contains ids of hits.</param>
+        /// <param name="totalCount">Count os items.</param>
         public QueryResult(IEnumerable<int> result, int totalCount)
         {
             _result = new NodeList<Node>(result);
             Count = totalCount;
         }
 
-        //UNDONE:!!!!! XMLDOC Storage
         /// <summary>
-        /// For dynamic contents
+        /// Initializes a new instance of the QueryResult with
+        /// a prepared hit collection.
         /// </summary>
-        /// <param name="nodes"></param>
+        /// <param name="nodes">The <see cref="IEnumerable&lt;Node&gt;"/> that contains hits.</param>
         public QueryResult(IEnumerable<Node> nodes)
         {
-            _result = new _NodeResolver(nodes);
+            _result = new NodeResolver(nodes);
         }
 
         // =========================================== Properties
 
-        //UNDONE:!!!!! XMLDOC Storage
-        public IEnumerable<int> Identifiers
-        {
-            get { return _result.GetIdentifiers(); }
-        }
-
-        //UNDONE:!!!!! XMLDOC Storage
-        public IEnumerable<Node> Nodes { get { return _result; } }
-
-        //UNDONE:!!!!! XMLDOC Storage
         /// <summary>
-        /// Total count of contents
+        /// Gets the identifiers of found nodes.
+        /// </summary>
+        public IEnumerable<int> Identifiers => _result.GetIdentifiers();
+
+        /// <summary>
+        /// Gets the found nodes.
+        /// </summary>
+        public IEnumerable<Node> Nodes => _result;
+
+        /// <summary>
+        /// Gets the count of items.
         /// </summary>
         public int Count { get; private set; }
     }

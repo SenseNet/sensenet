@@ -19,7 +19,7 @@ namespace SenseNet.Search.Querying
         public IEnumerable<T> Hits { get; }
 
         /// <summary>
-        /// Gets the total count if items.
+        /// Gets the total count of items.
         /// </summary>
         public int TotalCount { get; }
 

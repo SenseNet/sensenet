@@ -6,7 +6,7 @@ using SenseNet.Search.Indexing;
 namespace SenseNet.ContentRepository.Search
 {
     /// <summary>
-    /// Defines methods that helps acces to functionality in the higher component level.
+    /// Defines methods that helps acces to functionality in the higher service level.
     /// </summary>
     public interface ISearchEngineSupport
     {
@@ -21,13 +21,11 @@ namespace SenseNet.ContentRepository.Search
         /// <param name="text">CQL query text.</param>
         /// <param name="settings"><see cref="QuerySettings"/> that extends the query.</param>
         /// <param name="parameters">Values to substitute the parameters of the CQL query text.</param>
-        /// <returns></returns>
         QueryResult ExecuteContentQuery(string text, QuerySettings settings, params object[] parameters);
 
         /// <summary>
-        /// Returns an IIndexPopulator implementation instance.
+        /// Returns an <see cref="IIndexPopulator"/> implementation instance.
         /// </summary>
-        /// <returns></returns>
         IIndexPopulator GetIndexPopulator();
     }
 }
