@@ -6,10 +6,10 @@ using System.Text;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
-    //UNDONE:!!!! XMLDOC ContentRepository
+    //UNDONE: XMLDOC SnIFilter
     public class SnIFilter
     {
-        //UNDONE:!!!! XMLDOC ContentRepository
+        //UNDONE: XMLDOC SnIFilter
         public static string GetText(Stream stream, string extension)
         {
             return LoadAndInitIFilterAndReadAll(stream, extension);
@@ -132,34 +132,34 @@ namespace SenseNet.ContentRepository.Search.Indexing
         public static extern int CreateStreamOnHGlobal(IntPtr hGlobal, bool fDeleteOnRelease, out IStream ppstm);
     }
 
-    //UNDONE:!!!! XMLDOC ContentRepository
+    //UNDONE: XMLDOC SnIFilter
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("0000010c-0000-0000-C000-000000000046")]
     public interface IPersist
     {
-        //UNDONE:!!!! XMLDOC ContentRepository
+        //UNDONE: XMLDOC SnIFilter
         void GetClassID(out Guid pClassID);
     }
 
-    //UNDONE:!!!! XMLDOC ContentRepository
+    //UNDONE: XMLDOC SnIFilter
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("00000109-0000-0000-C000-000000000046")]
     public interface IPersistStream : IPersist
     {
-        //UNDONE:!!!! XMLDOC ContentRepository
+        //UNDONE: XMLDOC SnIFilter
         new void GetClassID(out Guid pClassID);
 
-        //UNDONE:!!!! XMLDOC ContentRepository
+        //UNDONE: XMLDOC SnIFilter
         [PreserveSig]
         int IsDirty();
 
-        //UNDONE:!!!! XMLDOC ContentRepository
+        //UNDONE: XMLDOC SnIFilter
         void Load([In] IStream pStm);
 
-        //UNDONE:!!!! XMLDOC ContentRepository
+        //UNDONE: XMLDOC SnIFilter
         void Save(
             [In] IStream pStm,
             [In, MarshalAs(UnmanagedType.Bool)] bool fClearDirty);
 
-        //UNDONE:!!!! XMLDOC ContentRepository
+        //UNDONE: XMLDOC SnIFilter
         void GetSizeMax(out long pcbSize);
     }
 

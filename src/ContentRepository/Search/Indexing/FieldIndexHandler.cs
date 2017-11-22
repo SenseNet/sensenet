@@ -64,7 +64,7 @@ namespace SenseNet.Search.Indexing
                     OwnerIndexingInfo.IndexStoringMode,
                     OwnerIndexingInfo.TermVectorStoringMode)
             };
-        //UNDONE:!!!! XMLDOC ContentRepository: what is sortTerm?
+        //UNDONE: XMLDOC what is sortTerm?
         protected IEnumerable<IndexField> CreateField(string name, IEnumerable<string> value, string sortTerm) => new[]
             {
                 new IndexField(name, value.ToArray(),

@@ -8,12 +8,12 @@ using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
-    //UNDONE:!!!! XMLDOC ContentRepository
+    //UNDONE: XMLDOC CustomIndexField
     public interface IHasCustomIndexField { }
-    //UNDONE:!!!! XMLDOC ContentRepository
+    //UNDONE: XMLDOC CustomIndexField
     public interface ICustomIndexFieldProvider
     {
-        //UNDONE:!!!! XMLDOC ContentRepository
+        //UNDONE: XMLDOC CustomIndexField
         IEnumerable<IndexField> GetFields(IndexDocumentData docData);
     }
     internal class CustomIndexFieldManager

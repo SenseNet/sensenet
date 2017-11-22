@@ -88,7 +88,7 @@ namespace SenseNet.Search.Querying
         /// </summary>
         public bool AllVersions { get; set; }
 
-        //UNDONE:! CountAllPages doc??
+        //UNDONE: XMLDOC CountAllPages
         public bool CountAllPages { get; set; }
 
         /// <summary>

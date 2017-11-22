@@ -58,7 +58,7 @@ namespace SenseNet.Search.Indexing
 
         private readonly Dictionary<string, IndexField> _fields = new Dictionary<string, IndexField>();
 
-        //UNDONE:! HasCustomField doc??
+        //UNDONE: XMLDOC CustomIndexField
         public bool HasCustomField { get; set; }
 
         /// <summary>

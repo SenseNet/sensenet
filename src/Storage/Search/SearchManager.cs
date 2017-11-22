@@ -118,7 +118,7 @@ namespace SenseNet.ContentRepository.Search
         /// Gets a value that is true if the outer search engine is enabled.
         /// </summary>
         public static bool IsOuterEngineEnabled => Instance.IsOuterSearchEngineEnabled;
-        //UNDONE: XMLDOC: IndexDirectoryPath
+        //UNDONE: XMLDOC IndexDirectoryPath
         public static string IndexDirectoryPath => Instance.IndexDirectoryPathPrivate;
 
         /// <summary>
@@ -140,7 +140,7 @@ namespace SenseNet.ContentRepository.Search
             Instance.IsOuterSearchEngineEnabled = false;
         }
 
-        //UNDONE: XMLDOC: IndexDirectoryPath
+        //UNDONE: XMLDOC IndexDirectoryPath
         public static void SetIndexDirectoryPath(string path)
         {
             Instance.IndexDirectoryPathPrivate = path;
