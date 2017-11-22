@@ -33,7 +33,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             // ReSharper disable once SuspiciousTypeConversion.Global 
             // There may be external implementations.
-            var doc = new IndexDocument {HasCustomField = node is IHasCustomIndexField}; //TODO: TEST: Unit test IHasCustomIndexField feature
+            var doc = new IndexDocument();
             var ixnode = node as IIndexableDocument;
             var faultedFieldNames = new List<string>();
 

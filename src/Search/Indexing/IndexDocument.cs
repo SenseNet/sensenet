@@ -58,9 +58,6 @@ namespace SenseNet.Search.Indexing
 
         private readonly Dictionary<string, IndexField> _fields = new Dictionary<string, IndexField>();
 
-        //UNDONE: XMLDOC CustomIndexField
-        public bool HasCustomField { get; set; }
-
         /// <summary>
         /// Returns with VersionId. Shortcut of the following call: GetIntegerValue(IndexFieldName.VersionId);
         /// </summary>

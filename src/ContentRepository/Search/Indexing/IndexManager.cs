@@ -380,15 +380,6 @@ namespace SenseNet.ContentRepository.Search.Indexing
             doc.Add(new IndexField(IndexFieldName.NodeTimestamp, docData.NodeTimestamp, IndexingMode.AnalyzedNoNorms, IndexStoringMode.Yes, IndexTermVector.No));
             doc.Add(new IndexField(IndexFieldName.VersionTimestamp, docData.VersionTimestamp, IndexingMode.AnalyzedNoNorms, IndexStoringMode.Yes, IndexTermVector.No));
 
-            // custom fields
-            if (doc.HasCustomField)
-            {
-                var customFields = CustomIndexFieldManager.GetFields(doc, docData);
-                if (customFields != null)
-                    foreach (var field in customFields)
-                        doc.Add(field);
-            }
-
             return doc;
         }
         private static string[] GetParentPaths(string lowerCasePath)
