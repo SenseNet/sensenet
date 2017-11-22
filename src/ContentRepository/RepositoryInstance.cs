@@ -337,7 +337,7 @@ namespace SenseNet.ContentRepository
                     continue;
                 }
 
-                Providers.Instance.SetProvider("oauth-" + provider.ProviderName, provider);
+                Providers.Instance.SetProvider(provider.GetProviderRegistrationName(), provider);
                 providerTypeNames.Add(providerType.FullName);
             }
 

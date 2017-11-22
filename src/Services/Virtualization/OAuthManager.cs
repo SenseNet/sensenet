@@ -35,7 +35,7 @@ namespace SenseNet.Services.Virtualization
         /// <returns></returns>
         protected virtual OAuthProvider GetProvider(string providerName)
         {
-            return Providers.Instance.GetProvider<OAuthProvider>("oauth-" + providerName);
+            return Providers.Instance.GetProvider<OAuthProvider>(OAuthProvider.GetProviderRegistrationName(providerName));
         }
     
         public bool Authenticate(HttpApplication application)
