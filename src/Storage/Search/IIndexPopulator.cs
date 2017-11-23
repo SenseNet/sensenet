@@ -35,7 +35,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         void ClearAndPopulateAll(TextWriter consoleWriter = null);
 
         /// <summary>
-        /// Refreshes the index of the give subtree directly. Designed for offline usage e.g. any step of SnAdmin package.
+        /// Refreshes the index of the given subtree directly. Designed for offline usage e.g. any step of SnAdmin package.
         /// Does not notify any other webservers and does not register any activity.
         /// Note: 
         /// </summary>
@@ -51,7 +51,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// This snapshot helps to perform the correct indexing operation.
         /// </summary>
         /// <param name="node">The node before save.</param>
-        /// <param name="settings">The currend saving algorithm.</param>
+        /// <param name="settings">The current saving algorithm.</param>
         /// <param name="originalPath">The path of the node before save. Required.</param>
         /// <param name="newPath">The path of the node after save. Required.</param>
         /// <returns></returns>
@@ -89,12 +89,12 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// Rebuilds the index of a node or a subtree.
         /// </summary>
         /// <param name="node">The root node of the subtree.</param>
-        /// <param name="recursive">True if the reindexes the whole subtree.</param>
+        /// <param name="recursive">True if the intention is to reindex the whole subtree.</param>
         /// <param name="rebuildLevel">IndexRebuildLevel option.</param>
         void RebuildIndex(Node node, bool recursive = false, IndexRebuildLevel rebuildLevel = IndexRebuildLevel.IndexOnly);
 
         /// <summary>
-        /// Defines an event that occurs when a node just jas been indexed.
+        /// Defines an event that occurs when a node has just been indexed.
         /// </summary>
         event EventHandler<NodeIndexedEventArgs> NodeIndexed;
     }
