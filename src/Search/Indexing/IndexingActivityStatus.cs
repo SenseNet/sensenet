@@ -8,7 +8,7 @@ namespace SenseNet.Search.Indexing
     public class IndexingActivityStatus
     {
         /// <summary>
-        /// Shortcut of the empty index state.
+        /// Shortcut for empty indexing state.
         /// </summary>
         public static IndexingActivityStatus Startup => new IndexingActivityStatus { Gaps = new int[0], LastActivityId = 0 };
 
