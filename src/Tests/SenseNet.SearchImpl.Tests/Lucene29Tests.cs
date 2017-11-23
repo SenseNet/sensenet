@@ -144,6 +144,25 @@ namespace SenseNet.SearchImpl.Tests
             Assert.AreEqual(0, queryResult2.Identifiers.FirstOrDefault());
         }
 
+        [TestMethod, TestCategory("IR, L29")]
+        public void L29_Query_TopSkipResultCount()
+        {
+            L29Test(console =>
+            {
+                var indexPopulator = SearchManager.GetIndexPopulator();
+
+                var root = Repository.Root;
+                indexPopulator.RebuildIndex(root, true, IndexRebuildLevel.DatabaseAndIndex);
+
+                var queryResult = CreateSafeContentQuery("Id:>1 .TOP:10 .SKIP:20 .AUTOFILTERS:OFF").Execute();
+                var identifiers = queryResult.Identifiers.ToArray();
+                Assert.IsTrue(identifiers.Length > 0);
+                Assert.IsTrue(queryResult.Count > identifiers.Length);
+
+                return true;
+            });
+        }
+
         [ClassCleanup]
         public static void ClassCleanup()
         {

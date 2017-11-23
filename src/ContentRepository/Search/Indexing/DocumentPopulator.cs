@@ -230,6 +230,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 DeleteTree(node.Path, node.Id);
                 if (databaseAndIndex)
                 {
+                    DataBackingStore.SaveIndexDocument(node, false, false, out _);
                     foreach (var n in NodeQuery.QueryNodesByPath(node.Path, true).Nodes)
                         DataBackingStore.SaveIndexDocument(n, false, false, out _);
                 }

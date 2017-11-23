@@ -968,7 +968,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
 
         protected internal override IEnumerable<int> QueryNodesByPath(string pathStart, bool orderByPath)
         {
-            throw new NotImplementedException();
+            return QueryNodesByTypeAndPath(null, pathStart, orderByPath);
         }
 
         protected internal override IEnumerable<int> QueryNodesByReferenceAndType(string referenceName, int referredNodeId, int[] allowedTypeIds)
@@ -1006,9 +1006,12 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                     .ToList();
 
             if (pathStart != null)
+            {
+                var paths = pathStart.Select(p => p.EndsWith("/") ? p : p + "/").ToArray();
                 nodes = nodes
-                    .Where(n => pathStart.Any(p => n.Path.StartsWith(p, StringComparison.InvariantCultureIgnoreCase)))
+                    .Where(n => paths.Any(p => n.Path.StartsWith(p, StringComparison.InvariantCultureIgnoreCase)))
                     .ToList();
+            }
 
             if (orderByPath)
                 nodes = nodes
