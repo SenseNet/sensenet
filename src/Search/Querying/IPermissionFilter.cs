@@ -18,7 +18,7 @@
     {
         /// <summary>
         /// Returns with any implementation instance of the IPermissionFilterFactory.
-        /// Parameters are help to decide any creation options.
+        /// Parameters help to choose creation options.
         /// Called in every query execution.
         /// </summary>
         IPermissionFilter Create(SnQuery query, IQueryContext context);
