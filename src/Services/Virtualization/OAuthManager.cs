@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Net;
 using System.Web;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -38,7 +39,7 @@ namespace SenseNet.Services.Virtualization
             return Providers.Instance.GetProvider<OAuthProvider>(OAuthProvider.GetProviderRegistrationName(providerName));
         }
 
-        internal bool Authenticate(HttpApplication application)
+        internal bool Authenticate(HttpApplication application, Portal.Virtualization.TokenAuthentication tokenAuthentication)
         {
             var request = AuthenticationHelper.GetRequest(application);
             var isLoginRequest = IsLoginRequest(request);
@@ -115,6 +116,25 @@ namespace SenseNet.Services.Virtualization
             }
 
             application.Context.User = new PortalPrincipal(user);
+
+            var context = AuthenticationHelper.GetContext(application); //HttpContext.Current;
+            
+            try
+            {
+                tokenAuthentication.TokenLogin(context, application);
+            }
+            catch (Exception ex)
+            {
+                SnLog.WriteException(ex);
+                context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                return false;
+            }
+            finally
+            {
+                context.Response.Flush();
+                application.CompleteRequest();
+            }
+
             return true;
         }
 

@@ -187,26 +187,10 @@ namespace SenseNet.Portal.Virtualization
         /// </summary>
         internal void TokenLogin(HttpContextBase context, HttpApplication application)
         {
-            try
-            {
-                var validFrom = DateTime.UtcNow;
-                var tokenManager = GetTokenManager(validFrom);
+            var validFrom = DateTime.UtcNow;
+            var tokenManager = GetTokenManager(validFrom);
 
-                TokenLogin(true, validFrom, tokenManager, context);
-            }
-            catch (Exception ex)
-            {
-                SnLog.WriteException(ex);
-                context.Response.StatusCode = HttpResponseStatusCode.Unauthorized;
-            }
-            finally
-            {
-                context.Response.Flush();
-                if (application?.Context != null)
-                {
-                    application.CompleteRequest();
-                }
-            }
+            TokenLogin(true, validFrom, tokenManager, context);
         }
 
         private TokenManager GetTokenManager(DateTime validFrom)

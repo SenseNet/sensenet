@@ -89,16 +89,12 @@ namespace SenseNet.Portal.Virtualization
             var context = AuthenticationHelper.GetContext(sender); //HttpContext.Current;
             var basicAuthenticated = DispatchBasicAuthentication(context, out var anonymAuthenticated);
 
-            var tokenAuth = new TokenAuthentication();
-            var tokenAuthenticated = tokenAuth.Authenticate(application, basicAuthenticated, anonymAuthenticated);
+            var tokenAuthentication = new TokenAuthentication();
+            var tokenAuthenticated = tokenAuthentication.Authenticate(application, basicAuthenticated, anonymAuthenticated);
 
             if (!tokenAuthenticated)
             {
-                tokenAuthenticated = OAuthManager.Instance.Authenticate(application);
-                if (tokenAuthenticated)
-                {
-                    tokenAuth.TokenLogin(context, application);
-                }
+                tokenAuthenticated = OAuthManager.Instance.Authenticate(application, tokenAuthentication);
             }
 
             // if it is a simple basic authentication case or authenticated with a token
