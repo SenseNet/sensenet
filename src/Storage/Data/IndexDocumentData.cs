@@ -72,7 +72,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public long VersionTimestamp { get; set; }
 
         /// <summary>
-        /// Initialites a new instance of the IndexDocumentData with one of the possible parameters.
+        /// Initialites a new instance of IndexDocumentData with one of the possible parameters.
         /// Both parameters cannot be null at one time.
         /// </summary>
         /// <param name="indexDocument">The index document.</param>
