@@ -6,9 +6,9 @@
     public static class Cql
     {
         /// <summary>
-        /// A System.String that contains all string-end characters.
-        /// If a string value contains any characters from these, 
-        /// the value should enveloped by the quotation marks or apostrophes.
+        /// A System.String that contains all string escape characters.
+        /// If a string value contains any of these characters, 
+        /// the value should be wrapped in quotation marks or apostrophes.
         /// </summary>
         public const string StringTerminatorChars = "\":+-&|!(){}[]^~";
 
