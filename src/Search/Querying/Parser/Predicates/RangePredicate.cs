@@ -31,7 +31,7 @@
         public bool MaxExclusive { get; }
 
         /// <summary>
-        /// Initializes a new instance of the RangePredicate.
+        /// Initializes a new instance of RangePredicate.
         /// </summary>
         public RangePredicate(string fieldName, IndexValue min, IndexValue max, bool minExclusive, bool maxExclusive)
         {
