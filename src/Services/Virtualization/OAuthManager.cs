@@ -27,18 +27,7 @@ namespace SenseNet.Services.Virtualization
         private const string DomainSettingName = "Domain";
 
         internal static OAuthManager Instance = new OAuthManager();
-
-        /// <summary>
-        /// Derived classes may override this method and serve providers from a 
-        /// different location - e.g. for testing purposes.
-        /// </summary>
-        /// <param name="providerName"></param>
-        /// <returns></returns>
-        protected virtual OAuthProvider GetProvider(string providerName)
-        {
-            return Providers.Instance.GetProvider<OAuthProvider>(OAuthProvider.GetProviderRegistrationName(providerName));
-        }
-
+        
         internal bool Authenticate(HttpApplication application, Portal.Virtualization.TokenAuthentication tokenAuthentication)
         {
             var request = AuthenticationHelper.GetRequest(application);
@@ -55,34 +44,11 @@ namespace SenseNet.Services.Virtualization
             if (string.IsNullOrEmpty(providerName))
                 throw new InvalidOperationException("Provider parameter is missing from the request.");
 
-            var provider = GetProvider(providerName);
-            if (provider == null)
-                throw new InvalidOperationException("OAuth provider not found: " + providerName);
-
-            string userId;
-            object tokenData;
-
-            try
-            {
-                userId = provider.VerifyToken(request, out tokenData);
-            }
-            catch (Exception ex)
-            {
-                SnTrace.Security.Write($"Unsuccessful OAuth token verification. Provider: {providerName}. Error: {ex.Message}");
+            // Verify the token with the selected provider, and load or create 
+            // the user in the repository if the token is valid.
+            var user = VerifyUser(providerName, request);
+            if (user == null)
                 return false;
-            }
-
-            if (string.IsNullOrEmpty(userId))
-                return false;
-
-            var fieldName = provider.IdentifierFieldName;
-            User user;
-            
-            using (new SystemAccount())
-            {
-                user = ContentQuery.Query(SafeQueries.UsersByOAuthId, QuerySettings.AdminSettings, fieldName, userId)
-                           .Nodes.FirstOrDefault() as User ?? CreateUser(provider, tokenData, userId);
-            }
 
             application.Context.User = new PortalPrincipal(user);
 
@@ -90,6 +56,7 @@ namespace SenseNet.Services.Virtualization
             
             try
             {
+                // set the necessary JWT cookies and tokens
                 tokenAuthentication.TokenLogin(context, application);
             }
             catch (Exception ex)
@@ -106,7 +73,42 @@ namespace SenseNet.Services.Virtualization
 
             return true;
         }
-        
+
+        internal IUser VerifyUser(string providerName, HttpRequestBase request)
+        {
+            var provider = GetProvider(providerName);
+            if (provider == null)
+                throw new InvalidOperationException("OAuth provider not found: " + providerName);
+
+            string userId;
+            object tokenData;
+
+            try
+            {
+                userId = provider.VerifyToken(request, out tokenData);
+            }
+            catch (Exception ex)
+            {
+                SnTrace.Security.Write($"Unsuccessful OAuth token verification. Provider: {providerName}. Error: {ex.Message}");
+                return null;
+            }
+
+            return string.IsNullOrEmpty(userId) ? null : LoadOrCreateUser(provider, tokenData, userId);
+        }
+
+        /// <summary>
+        /// Derived classes may override this property and serve providers from a 
+        /// different location - e.g. for testing purposes.
+        /// </summary>
+        internal Func<string, OAuthProvider> GetProvider { get; set; } = providerName => Providers.Instance.GetProvider<OAuthProvider>(
+            OAuthProvider.GetProviderRegistrationName(providerName));
+        /// <summary>
+        /// Derived classes may override this property for testing purposes.
+        /// </summary>
+        internal Func<OAuthProvider, object, string, IUser> LoadOrCreateUser { get; set; } = LoadOrCreateUserPrivate;
+
+        //========================================================================================== Helper methods
+
         private static bool IsLoginRequest(HttpRequestBase request)
         {
             var uri = request?.Url?.AbsolutePath;
@@ -122,7 +124,19 @@ namespace SenseNet.Services.Virtualization
         {
             return request?["provider"] ?? string.Empty;
         }
+        
+        private static IUser LoadOrCreateUserPrivate(OAuthProvider provider, object tokenData, string userId)
+        {
+            User user;
 
+            using (new SystemAccount())
+            {
+                user = ContentQuery.Query(SafeQueries.UsersByOAuthId, QuerySettings.AdminSettings, provider.IdentifierFieldName, userId)
+                           .Nodes.FirstOrDefault() as User ?? CreateUser(provider, tokenData, userId);
+            }
+
+            return user;
+        }
         private static User CreateUser(OAuthProvider provider, object tokenData, string userId)
         {
             var userData = provider.GetUserData(tokenData);
@@ -152,7 +166,6 @@ namespace SenseNet.Services.Virtualization
 
             return userContent.ContentHandler as User;
         }
-
         private static Node LoadOrCreateUserParent(string providerName)
         {
             // E.g. /Root/IMS/Public/facebook
