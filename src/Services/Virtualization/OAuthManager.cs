@@ -81,38 +81,7 @@ namespace SenseNet.Services.Virtualization
             using (new SystemAccount())
             {
                 user = ContentQuery.Query(SafeQueries.UsersByOAuthId, QuerySettings.AdminSettings, fieldName, userId)
-                    .Nodes.FirstOrDefault() as User;
-
-                if (user == null)
-                {
-                    // create user
-                    var userData = provider.GetUserData(tokenData);
-                    var parent = LoadOrCreateUserParent(providerName);
-
-                    var userContentType = Settings.GetValue(SettingsName, UserTypeSettingName, null, "User");
-                    var userContent = Content.CreateNew(userContentType, parent, userData.Username);
-
-                    if (!userContent.Fields.ContainsKey(fieldName))
-                    {
-                        var message = $"The {userContent.ContentType.Name} content type does not contain a field named {fieldName}. " + 
-                            $"Please register this field before using the {providerName} OAuth provider.";
-                        throw new InvalidOperationException(message);
-                    }
-
-                    userContent["LoginName"] = userData.Username;
-                    userContent[fieldName] = userId;
-                    userContent["Enabled"] = true;
-                    userContent["FullName"] = userData.FullName ?? userData.Username;
-
-                    if (!string.IsNullOrEmpty(userData.Email))
-                        userContent["Email"] = userData.Email;
-
-                    // If a user with the same name already exists, this will throw an exception
-                    // so that the caller knows that the registration could not be completed.
-                    userContent.Save();
-
-                    user = userContent.ContentHandler as User;
-                }
+                           .Nodes.FirstOrDefault() as User ?? CreateUser(provider, tokenData, userId);
             }
 
             application.Context.User = new PortalPrincipal(user);
@@ -137,7 +106,7 @@ namespace SenseNet.Services.Virtualization
 
             return true;
         }
-
+        
         private static bool IsLoginRequest(HttpRequestBase request)
         {
             var uri = request?.Url?.AbsolutePath;
@@ -152,6 +121,36 @@ namespace SenseNet.Services.Virtualization
         private static string GetProviderName(HttpRequestBase request)
         {
             return request?["provider"] ?? string.Empty;
+        }
+
+        private static User CreateUser(OAuthProvider provider, object tokenData, string userId)
+        {
+            var userData = provider.GetUserData(tokenData);
+            var parent = LoadOrCreateUserParent(provider.ProviderName);
+
+            var userContentType = Settings.GetValue(SettingsName, UserTypeSettingName, null, "User");
+            var userContent = Content.CreateNew(userContentType, parent, userData.Username);
+
+            if (!userContent.Fields.ContainsKey(provider.IdentifierFieldName))
+            {
+                var message = $"The {userContent.ContentType.Name} content type does not contain a field named {provider.IdentifierFieldName}. " +
+                              $"Please register this field before using the {provider.ProviderName} OAuth provider.";
+                throw new InvalidOperationException(message);
+            }
+
+            userContent["LoginName"] = userData.Username;
+            userContent[provider.IdentifierFieldName] = userId;
+            userContent["Enabled"] = true;
+            userContent["FullName"] = userData.FullName ?? userData.Username;
+
+            if (!string.IsNullOrEmpty(userData.Email))
+                userContent["Email"] = userData.Email;
+
+            // If a user with the same name already exists, this will throw an exception
+            // so that the caller knows that the registration could not be completed.
+            userContent.Save();
+
+            return userContent.ContentHandler as User;
         }
 
         private static Node LoadOrCreateUserParent(string providerName)
