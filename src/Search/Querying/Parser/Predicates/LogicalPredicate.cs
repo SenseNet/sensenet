@@ -13,12 +13,12 @@ namespace SenseNet.Search.Querying.Parser.Predicates
         public List<LogicalClause> Clauses { get; } = new List<LogicalClause>();
 
         /// <summary>
-        /// Initializes a new instance of the LogicalPredicate with empty clause list.
+        /// Initializes a new instance of LogicalPredicate with empty clause list.
         /// </summary>
         public LogicalPredicate() { }
 
         /// <summary>
-        /// Initializes a new instance of the LogicalPredicate with an initial clause list.
+        /// Initializes a new instance of LogicalPredicate with an initial clause list.
         /// </summary>
         public LogicalPredicate(IEnumerable<LogicalClause> clauses)
         {
