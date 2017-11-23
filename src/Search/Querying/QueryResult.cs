@@ -19,7 +19,7 @@ namespace SenseNet.Search.Querying
         public IEnumerable<T> Hits { get; }
 
         /// <summary>
-        /// Gets the total count of items.
+        /// Gets the total count of permitted items without top and skip restrictions.
         /// </summary>
         public int TotalCount { get; }
 

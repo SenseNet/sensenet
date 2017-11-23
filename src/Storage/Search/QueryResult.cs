@@ -108,8 +108,11 @@ namespace SenseNet.Search
         public IEnumerable<Node> Nodes => _result;
 
         /// <summary>
-        /// Gets the count of items.
+        /// Gets the total count of permitted items without top and skip
+        /// restrictions. The actual count is available on the Nodes and
+        /// Identifiers properties but due to performance considerations,
+        /// it is strongly recommended to use only Identifiers.Count().
         /// </summary>
-        public int Count { get; private set; }
+        public int Count { get; }
     }
 }
