@@ -88,7 +88,10 @@ namespace SenseNet.Search.Querying
         /// </summary>
         public bool AllVersions { get; set; }
 
-        //UNDONE: XMLDOC CountAllPages
+        /// <summary>
+        /// Gets or sets a value that is true if the query result need to contain all count
+        /// without "top" and "skip" restrictions.
+        /// </summary>
         public bool CountAllPages { get; set; }
 
         /// <summary>
