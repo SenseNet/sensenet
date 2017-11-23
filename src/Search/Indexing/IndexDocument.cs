@@ -69,7 +69,7 @@ namespace SenseNet.Search.Indexing
         public string Version => GetStringValue(IndexFieldName.Version);
 
         /// <summary>
-        /// Return with the System.String value of the existing named field.
+        /// Returns with the System.String value of the existing named field.
         /// If the field does not exist in the document, returns with null.
         /// If the IndexValueType of the existing field is not String or StringArray, an ApplicationException will be thrown.
         /// If the IndexValueType of the existing field is StringArray, returns with the first value of the array.
@@ -88,7 +88,7 @@ namespace SenseNet.Search.Indexing
             throw TypeError(fieldName, field.Type);
         }
         /// <summary>
-        /// Return with the array of System.String value of the existing named field.
+        /// Returns with the array of System.String value of the existing named field.
         /// If the field does not exist in the document, returns with null.
         /// If the IndexValueType of the existing field is not String or StringArray, an ApplicationException will be thrown.
         /// If the IndexValueType of the existing field is String, returns with an one element array.
@@ -107,7 +107,7 @@ namespace SenseNet.Search.Indexing
             throw TypeError(fieldName, field.Type);
         }
         /// <summary>
-        /// Return with the System.Boolean value of the existing named field.
+        /// Returns with the System.Boolean value of the existing named field.
         /// If the field does not exist in the document, returns with false.
         /// If the IndexValueType of the existing field is not Bool, an ApplicationException will be thrown.
         /// </summary>
@@ -122,7 +122,7 @@ namespace SenseNet.Search.Indexing
             throw TypeError(fieldName, field.Type);
         }
         /// <summary>
-        /// Return with the System.Int32 value of the existing named field.
+        /// Returns with the System.Int32 value of the existing named field.
         /// If the field does not exist in the document, returns with 0.
         /// If the IndexValueType of the existing field is not Int, an ApplicationException will be thrown.
         /// </summary>
@@ -137,7 +137,7 @@ namespace SenseNet.Search.Indexing
             throw TypeError(fieldName, field.Type);
         }
         /// <summary>
-        /// Return with the System.Int64 value of the existing named field.
+        /// Returns with the System.Int64 value of the existing named field.
         /// If the field does not exist in the document, returns with 0l.
         /// If the IndexValueType of the existing field is not Long, an ApplicationException will be thrown.
         /// </summary>
@@ -152,7 +152,7 @@ namespace SenseNet.Search.Indexing
             throw TypeError(fieldName, field.Type);
         }
         /// <summary>
-        /// Return with the System.Single value of the existing named field.
+        /// Returns with the System.Single value of the existing named field.
         /// If the field does not exist in the document, returns with 0f.
         /// If the IndexValueType of the existing field is not Float, an ApplicationException will be thrown.
         /// </summary>
@@ -167,7 +167,7 @@ namespace SenseNet.Search.Indexing
             throw TypeError(fieldName, field.Type);
         }
         /// <summary>
-        /// Return with the System.Double value of the existing named field.
+        /// Returns with the System.Double value of the existing named field.
         /// If the field does not exist in the document, returns with 0d.
         /// If the IndexValueType of the existing field is not Double, an ApplicationException will be thrown.
         /// </summary>
@@ -182,7 +182,7 @@ namespace SenseNet.Search.Indexing
             throw TypeError(fieldName, field.Type);
         }
         /// <summary>
-        /// Return with the System.DateTime value of the existing named field.
+        /// Returns with the System.DateTime value of the existing named field.
         /// If the field does not exist in the document, returns with DateTime.MinValue.
         /// If the IndexValueType of the existing field is not DateTime, an ApplicationException will be thrown.
         /// </summary>
@@ -218,7 +218,7 @@ namespace SenseNet.Search.Indexing
         }
 
         /// <summary>
-        /// Retuns with true if the document contains the field with the given field name.
+        /// Returns with true if the document contains the field with the given field name.
         /// </summary>
         /// <param name="fieldName"></param>
         /// <returns></returns>
