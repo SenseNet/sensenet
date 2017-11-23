@@ -56,7 +56,7 @@ namespace SenseNet.Search
                 throw new SnNotSupportedException();
             }
 
-            public void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates, IEnumerable<IndexDocument> addition)
+            public void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates, IEnumerable<IndexDocument> additions)
             {
                 throw new SnNotSupportedException();
             }

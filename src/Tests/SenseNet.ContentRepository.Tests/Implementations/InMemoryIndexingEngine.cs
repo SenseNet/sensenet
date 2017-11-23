@@ -45,7 +45,7 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             Index.WriteActivityStatus(state);
         }
 
-        public void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates, IEnumerable<IndexDocument> addition)
+        public void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates, IEnumerable<IndexDocument> additions)
         {
             if (deletions != null)
                 foreach (var term in deletions)
@@ -55,8 +55,8 @@ namespace SenseNet.ContentRepository.Tests.Implementations
                 foreach (var update in updates)
                     Index.Update(update.UpdateTerm, (IndexDocument)update.Document);
 
-            if (addition != null)
-                foreach(var doc in addition)
+            if (additions != null)
+                foreach(var doc in additions)
                     Index.AddDocument(doc);
         }
     }

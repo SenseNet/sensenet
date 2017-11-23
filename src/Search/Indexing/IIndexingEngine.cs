@@ -61,7 +61,7 @@ namespace SenseNet.Search.Indexing
         /// </summary>
         /// <param name="deletions">Contains terms that define the documents to delete. Can be null or empty.</param>
         /// <param name="updates">Contains term-document pairs that define the refreshed items. Can be null or empty.</param>
-        /// <param name="addition">Contains documents to add to index.</param>
-        void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates, IEnumerable<IndexDocument> addition);
+        /// <param name="additions">Contains documents to add to index.</param>
+        void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates, IEnumerable<IndexDocument> additions);
     }
 }
