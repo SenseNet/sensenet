@@ -17,6 +17,7 @@ using SenseNet.ContentRepository.Storage.Diagnostics;
 using SenseNet.TaskManagement.Core;
 using SenseNet.BackgroundOperations;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Security;
 using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository
@@ -152,6 +153,8 @@ namespace SenseNet.ContentRepository
                 StartManagers();
 
             LoggingSettings.SnTraceConfigurator.UpdateCategories();
+
+            InitializeOAuthProviders();
 
             ConsoleWriteLine();
             ConsoleWriteLine("Repository has started.");
@@ -312,6 +315,38 @@ namespace SenseNet.ContentRepository
         }
 
         private List<ISnService> serviceInstances;
+
+        private static void InitializeOAuthProviders()
+        {
+            var providerTypeNames = new List<string>();
+
+            foreach (var providerType in TypeResolver.GetTypesByBaseType(typeof(OAuthProvider)).Where(t => !t.IsAbstract))
+            {
+                var provider = TypeResolver.CreateInstance(providerType.FullName) as OAuthProvider;
+                if (provider == null)
+                    continue;
+
+                if (string.IsNullOrEmpty(provider.ProviderName))
+                {
+                    SnLog.WriteWarning($"OAuth provider type {providerType.FullName} does not expose a valid ProviderName value, therefore cannot be initialized.");
+                    continue;
+                }
+                if (string.IsNullOrEmpty(provider.IdentifierFieldName))
+                {
+                    SnLog.WriteWarning($"OAuth provider type {providerType.FullName} does not expose a valid IdentifierFieldName value, therefore cannot be initialized.");
+                    continue;
+                }
+
+                Providers.Instance.SetProvider(provider.GetProviderRegistrationName(), provider);
+                providerTypeNames.Add($"{providerType.FullName} ({provider.ProviderName})");
+            }
+
+            if (providerTypeNames.Any())
+            {
+                SnLog.WriteInformation("OAuth providers registered: " + Environment.NewLine +
+                                       string.Join(Environment.NewLine, providerTypeNames));
+            }
+        }
 
         private static void InitializeLogger()
         {

@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{875EF569-4684-473D-A2D4-A35B20B4A07C}"
 EndProject
@@ -278,6 +278,9 @@ Global
 		{CF049086-0872-4F55-AF6D-6177245CC59E} = {C68D256D-7D40-4E33-8A2B-B1625538B138}
 		{ECA9A043-5B86-445C-B70E-843573AAF72E} = {C68D256D-7D40-4E33-8A2B-B1625538B138}
 		{7DE6A7E8-5738-4436-9646-9C1179F752EA} = {C68D256D-7D40-4E33-8A2B-B1625538B138}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7D903DEB-CA0B-43D8-BD9D-820BB1453C4C}
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = sensenet.vsmdi
