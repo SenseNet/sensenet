@@ -51,7 +51,7 @@ namespace SenseNet.Search
         };
         /// <summary>
         /// Returns a new QuerySettings instance. All property values are default.
-        /// This is a shotcut of the "QuerySettings for general purposes".
+        /// This is a shotcut for "QuerySettings for general purposes".
         /// </summary>
         public static QuerySettings Default => new QuerySettings();
     }
