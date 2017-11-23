@@ -19,7 +19,7 @@
         /// </summary>
         Standard,
         /// <summary>
-        /// Defines a text analyzer that can split more terms along the whitespaces.
+        /// Defines a text analyzer that can split more terms along whitespaces.
         /// </summary>
         Whitespace
     }
