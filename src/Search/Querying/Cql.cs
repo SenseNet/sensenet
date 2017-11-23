@@ -13,7 +13,7 @@
         public const string StringTerminatorChars = "\":+-&|!(){}[]^~";
 
         /// <summary>
-        /// Defines constants for keywords of the Contnt Query Language
+        /// Defines constants for keywords of the Content Query Language
         /// </summary>
         public static class Keyword
         {
