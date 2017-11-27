@@ -39,7 +39,7 @@ namespace SenseNet.Portal.OData.Parser
         /// <param name="message">The message of the error.</param>
         /// <param name="line">The line number of the error position in the source. </param>
         /// <param name="column">The column number of the error position in the source. </param>
-        /// <param name="inner">The original exception that is wrapped by.</param>
+        /// <param name="inner">The original exception that is wrapped by this instance.</param>
         public ODataParserException(string message, int line, int column, Exception inner) : base(message, inner) { Line = line; Column = column; }
 
         /// <inheritdoc />

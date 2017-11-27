@@ -291,7 +291,7 @@ namespace SenseNet.Portal.OData
         /// Writes the given Content list to the webresponse.
         /// </summary>
         /// <param name="portalContext">The current <see cref="PortalContext"/> instance containing the current webresponse.</param>
-        /// <param name="contents"></param>
+        /// <param name="contents">A List&lt;Dictionary&lt;string, object&gt;&gt; that will be written.</param>
         /// <param name="count">Count of contents. This value can be different from the count of the written content list if the request has restrictions in connection with cardinality (e.g. "$top=10") but specifies the total count of the collection ("$inlinecount=allpages").</param>
         protected abstract void WriteMultipleContent(PortalContext portalContext, List<Dictionary<string, object>> contents, int count);
         /// <summary>

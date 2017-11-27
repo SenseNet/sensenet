@@ -47,7 +47,7 @@ namespace SenseNet.Portal.OData
         /// </summary>
         Minimal,
         /// <summary>
-        /// Writint the whole metadata. This is the default value.
+        /// Writing the whole metadata. This is the default value.
         /// </summary>
         Full
     }
@@ -71,12 +71,12 @@ namespace SenseNet.Portal.OData
         public string PropertyName { get; private set; }
         /// <summary>
         /// Gets the value of the "query" webrequest's parameter 
-        /// if there is. Otherwise returns with null.
+        /// if there is one. Otherwise returns with null.
         /// </summary>
         public string ContentQueryText { get; private set; }
         /// <summary>
         /// Gets the value of the "scenario" webrequest's parameter 
-        /// if there is. Otherwise returns with null.
+        /// if there is one. Otherwise returns with null.
         /// </summary>
         public string Scenario { get; private set; }
 

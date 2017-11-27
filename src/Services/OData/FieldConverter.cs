@@ -22,7 +22,7 @@ namespace SenseNet.Portal.OData
         /// </summary>
         public abstract Type TargetType { get; }
         /// <summary>
-        /// Returns true this instance can transform the value of the <see cref="Field"/>
+        /// Returns true whether this instance can transform the value of the <see cref="Field"/>
         /// configured by the given <see cref="FieldSetting"/>
         /// </summary>
         public abstract bool CanConvert(FieldSetting fieldSetting);
