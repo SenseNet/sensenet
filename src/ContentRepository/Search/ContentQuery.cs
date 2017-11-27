@@ -14,8 +14,14 @@ using SenseNet.Search.Querying.Parser;
 
 namespace SenseNet.Search
 {
+    /// <summary>
+    /// Represents a content query and encapsulates the content query related operations.
+    /// </summary>
     public class ContentQuery
     {
+        /// <summary>
+        /// Gets the empty text representation in a simple predicate.
+        /// </summary>
         public static string EmptyText => SnQuery.EmptyText;
 
         private static readonly string[] QuerySettingParts = { "SKIP", "TOP", "SORT", "REVERSESORT", "AUTOFILTERS", "LIFESPAN", "COUNTONLY" };
@@ -26,6 +32,9 @@ namespace SenseNet.Search
         private static readonly string MultilineCommentEnd = "*/";
 
         private string _text;
+        /// <summary>
+        /// Gets or sets the CQL query text.
+        /// </summary>
         public string Text
         {
             get => _text;
@@ -33,12 +42,18 @@ namespace SenseNet.Search
         }
 
         private QuerySettings _settings = new QuerySettings();
+        /// <summary>
+        /// Gets or sets an instance of the <see cref="QuerySettings"/> that is the extension of the represented query.
+        /// </summary>
         public QuerySettings Settings
         {
             get => _settings;
             set => _settings = value ?? new QuerySettings();
         }
 
+        /// <summary>
+        /// Gets a value that is "true" if the query is safe.
+        /// </summary>
         public bool IsSafe { get; private set; }
 
         private static readonly Regex EscaperRegex;
@@ -51,19 +66,41 @@ namespace SenseNet.Search
             EscaperRegex = new Regex(pattern.ToString());
         }
 
+        /// <summary>
+        /// Returns with the <see cref="QueryResult"/> of the given CQL query.
+        /// </summary>
+        /// <param name="text">CQL query text.</param>
         public static QueryResult Query(string text)
         {
             return Query(text, null, null);
         }
+        /// <summary>
+        /// Returns with the <see cref="QueryResult"/> of the given CQL query.
+        /// </summary>
+        /// <param name="text">CQL query text.</param>
+        /// <param name="settings"><see cref="QuerySettings"/> that extends the query.</param>
+        /// <param name="parameters">Values to substitute the parameters of the CQL query text.</param>
+        /// <returns></returns>
         public static QueryResult Query(string text, QuerySettings settings, params object[] parameters)
         {
             return CreateQuery(text, settings, parameters).Execute();
         }
 
+        /// <summary>
+        /// Returns with a new instance of the ContentQuery.
+        /// </summary>
+        /// <param name="text">CQL text of the query.</param>
         public static ContentQuery CreateQuery(string text)
         {
             return CreateQuery(text, null, null);
         }
+        /// <summary>
+        /// Returns with a new instance of the ContentQuery.
+        /// </summary>
+        /// <param name="text">CQL text of the query.</param>
+        /// <param name="settings"><see cref="QuerySettings"/> that extends the query.</param>
+        /// <param name="parameters">Values to substitute the parameters of the CQL query text.</param>
+        /// <returns></returns>
         public static ContentQuery CreateQuery(string text, QuerySettings settings, params object[] parameters)
         {
             var isSafe = IsSafeQuery(text);
@@ -152,14 +189,29 @@ namespace SenseNet.Search
             return stringValue;
         }
 
+        /// <summary>
+        /// Extends the Text property with the given additional clause. Uses AND relation.
+        /// </summary>
+        /// <param name="text">The additional clause.</param>
         public void AddClause(string text)
         {
             AddClause(text, LogicalOperator.And);
         }
+        /// <summary>
+        /// Extends the Text property with the given additional clause.
+        /// </summary>
+        /// <param name="text">The additional clause.</param>
+        /// <param name="logicalOp">The operator in the concatenation. Can be AND / OR.</param>
         public void AddClause(string text, LogicalOperator logicalOp)
         {
             AddClause(text, logicalOp, null);
         }
+        /// <summary>
+        /// Extends the Text property with the given additional clause.
+        /// </summary>
+        /// <param name="text">The additional clause.</param>
+        /// <param name="logicalOp">The operator in the concatenation. Can be AND / OR.</param>
+        /// <param name="parameters">Values to substitute the parameters of the additional clause.</param>
         public void AddClause(string text, LogicalOperator logicalOp, params object[] parameters)
         {
             var isSafe = this.IsSafe && IsSafeQuery(text);
@@ -241,6 +293,9 @@ namespace SenseNet.Search
             return string.Concat(queryText, backParts);
         }
 
+        /// <summary>
+        /// Returns with a combination of a valid CQL query and an additional clause.
+        /// </summary>
         public static string AddClause(string originalText, string addition, LogicalOperator logicalOp)
         {
             if (addition == null)
@@ -303,6 +358,9 @@ namespace SenseNet.Search
             return queryText.Length;
         }
 
+        /// <summary>
+        /// Executes the represented query and returns with the QueryResult.
+        /// </summary>
         public QueryResult Execute()
         {
             var queryText = Text;

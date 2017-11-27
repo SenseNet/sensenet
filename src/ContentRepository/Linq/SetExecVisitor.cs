@@ -7,7 +7,6 @@ namespace SenseNet.ContentRepository.Linq
     {
         private readonly Dictionary<Expression, SnExpr> _expressions = new Dictionary<Expression, SnExpr>();
         private readonly Stack<SnExpr> _parentChain = new Stack<SnExpr>();
-        private SnExpr _rootExpr; //UNDONE: check why this variable is only assigned but not used
         private SnExpr _currentExpr;
 
         internal bool HasParameter { get; private set; }
@@ -24,10 +23,7 @@ namespace SenseNet.ContentRepository.Linq
                 _expressions[node] = _currentExpr;
                 var parent = _parentChain.Count == 0 ? null : _parentChain.Peek();
                 _currentExpr.Parent = parent;
-                if (parent == null)
-                    _rootExpr = _currentExpr;
-                else
-                    parent.Children.Add(_currentExpr);
+                parent?.Children.Add(_currentExpr);
                 _parentChain.Push(_currentExpr);
             }
 

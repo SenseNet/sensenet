@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using SenseNet.Tools;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.Search
 {
     /// <summary>
@@ -23,6 +24,9 @@ namespace SenseNet.Search
     /// </example>
     public interface ISafeQueryHolder { }
 
+    /// <summary>
+    /// Provides a method for check safety of a CQL query.
+    /// </summary>
     public class SafeQueries
     {
         private static readonly string[] _safeQueries;
@@ -40,6 +44,9 @@ namespace SenseNet.Search
             _safeQueries = genuineQueries.ToArray();
         }
 
+        /// <summary>
+        /// Returns with true if the given CQL query is safe.
+        /// </summary>
         public static bool IsSafe(string queryText)
         {
             return _safeQueries.Contains(queryText);

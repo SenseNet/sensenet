@@ -249,7 +249,6 @@
     <Compile Include="Search\Indexing\Activities\UpdateDocumentActivity.cs" />
     <Compile Include="Search\Indexing\CentralizedIndexingActivityQueue.cs" />
     <Compile Include="Search\Indexing\CommitManager.cs" />
-    <Compile Include="Search\Indexing\CustomIndexFieldManager.cs" />
     <Compile Include="Search\Indexing\DistributedIndexingActivityQueue.cs" />
     <Compile Include="Search\Indexing\DocumentPopulator.cs" />
     <Compile Include="Search\Indexing\ExplicitPerFieldIndexingInfo.cs" />

@@ -255,20 +255,25 @@ namespace SenseNet.ContentRepository
 
         /// <summary>
         /// Returns object data which is a transfer object.
+        /// The return value is localized if it contains a resource key.
         /// </summary>
-        public virtual object GetData(bool localized = true)
+        public virtual object GetData()
+        {
+            return GetData(true);
+        }
+        /// <summary>
+        /// Returns object data which is a transfer object.
+        /// </summary>
+        public virtual object GetData(bool localized)
         {
             if (!LocalizationEnabled || !localized || !SenseNetResourceManager.Running)
                 return Value;
-            var stringData = Value as string;
-            if (stringData == null)
+            if (!(Value is string stringData))
                 return Value;
 
-            string className, name;
-            if (SenseNetResourceManager.ParseResourceKey(stringData, out className, out name))
-                return SenseNetResourceManager.Current.GetString(className, name);
-
-            return Value;
+            return SenseNetResourceManager.ParseResourceKey(stringData, out var className, out var name) 
+                ? SenseNetResourceManager.Current.GetString(className, name) 
+                : Value;
         }
 
         /// <summary>

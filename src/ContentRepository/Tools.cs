@@ -566,13 +566,11 @@ namespace SenseNet.ContentRepository
             return IndexingActivityHistory.Reset();
         }
 
-
+        [Obsolete("Use an offline solution of this problem.")]
         [ODataFunction]
         public static object CheckIndexIntegrity(Content content, bool recurse)
         {
-            //UNDONE: ODataFunction: CheckIndexIntegrity(Content content, bool recurse)
-            throw new SnNotSupportedException();
-            //return IntegrityChecker.CheckIndexIntegrity(content?.Path, recurse);
+            throw new SnNotSupportedException("Checking index integrity online is not supported anymore.");
         }
         [ODataFunction]
         public static SecurityConsistencyResult CheckSecurityConsistency(Content content)

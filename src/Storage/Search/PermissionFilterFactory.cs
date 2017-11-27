@@ -1,4 +1,5 @@
-﻿namespace SenseNet.Search.Querying
+﻿// ReSharper disable once CheckNamespace
+namespace SenseNet.Search.Querying
 {
     internal class PermissionFilterFactory : IPermissionFilterFactory
     {

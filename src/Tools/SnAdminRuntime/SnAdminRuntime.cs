@@ -253,7 +253,7 @@ namespace SenseNet.Tools.SnAdmin
             {
                 xml = Disk.LoadManifest(files[0]);
             }
-            catch (Exception e)
+            catch
             {
                 return null;
             }

@@ -317,7 +317,7 @@ namespace SenseNet.Search.Lucene29
 
         /* ============================================================================================= Document Operations */
 
-        public void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates, IEnumerable<IndexDocument> addition)
+        public void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates, IEnumerable<IndexDocument> additions)
         {
             using (var wrFrame = IndexWriterFrame.Get(_writer, _writerRestartLock, false)) // // AddTree
             {
@@ -333,9 +333,9 @@ namespace SenseNet.Search.Lucene29
                     }
                 }
 
-                if (addition != null)
+                if (additions != null)
                 {
-                    foreach (var snDoc in addition)
+                    foreach (var snDoc in additions)
                     {
                         if (snDoc != null)
                         {

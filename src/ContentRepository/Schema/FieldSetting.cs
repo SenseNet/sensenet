@@ -1381,7 +1381,7 @@ namespace SenseNet.ContentRepository.Schema
                 this.Aspect.SetPerFieldIndexingInfo(this.Name, indexingInfo);
         }
 
-
+        [Obsolete("This method will be removed in the next release.")]
         public IEnumerable<string> GetValueForQuery(Field field)
         {
             return IndexingInfo.IndexFieldHandler.GetParsableValues(field);

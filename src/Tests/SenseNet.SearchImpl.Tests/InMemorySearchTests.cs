@@ -1053,7 +1053,7 @@ namespace SenseNet.SearchImpl.Tests
                 {
                     throw new NotImplementedException();
                 }
-                public void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates, IEnumerable<IndexDocument> addition)
+                public void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates, IEnumerable<IndexDocument> additions)
                 {
                     throw new NotImplementedException();
                 }

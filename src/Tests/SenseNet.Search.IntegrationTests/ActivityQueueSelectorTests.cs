@@ -63,11 +63,11 @@ namespace SenseNet.Search.IntegrationTests
             {
             }
 
-            public void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates, IEnumerable<IndexDocument> addition)
+            public void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates, IEnumerable<IndexDocument> additions)
             {
                 var distributed = Environment.StackTrace.Contains(typeof(DistributedIndexingActivityQueue).FullName) ? "DISTRIBUTED" : "";
                 var centralized = Environment.StackTrace.Contains(typeof(CentralizedIndexingActivityQueue).FullName) ? "CENTRALIZED" : "";
-                _log.AppendLine($"{centralized}{distributed}. deletions: {deletions?.Count() ?? 0}, updates: {updates?.Count() ?? 0}, addition: {addition?.Count() ?? 0}");
+                _log.AppendLine($"{centralized}{distributed}. deletions: {deletions?.Count() ?? 0}, updates: {updates?.Count() ?? 0}, addition: {additions?.Count() ?? 0}");
             }
 
             StringBuilder _log = new StringBuilder();
@@ -251,20 +251,15 @@ namespace SenseNet.Search.IntegrationTests
         }
         private IndexingActivityBase CreateActivity(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp)
         {
-            var flags = BindingFlags.Instance | BindingFlags.NonPublic;
-
             var activity = (IndexingActivityBase)IndexingActivityFactory.Instance.CreateActivity(type);
             activity.Path = path.ToLowerInvariant();
             activity.NodeId = nodeId;
             activity.VersionId = versionId;
             activity.VersionTimestamp = versionTimestamp;
 
-            var docAct = activity as DocumentIndexingActivity;
-            if (docAct != null)
-                docAct.SetDocument(new IndexDocument());
-
-            var documentActivity = activity as DocumentIndexingActivity;
-            if (documentActivity != null)
+            if (activity is DocumentIndexingActivity documentActivity)
+            {
+                documentActivity.SetDocument(new IndexDocument());
                 documentActivity.Versioning = new VersioningInfo
                 {
                     Delete = new int[0],
@@ -272,6 +267,7 @@ namespace SenseNet.Search.IntegrationTests
                     LastDraftVersionId = versionId,
                     LastPublicVersionId = versionId
                 };
+            }
 
             return activity;
         }

@@ -11,10 +11,14 @@ using SenseNet.Search.Indexing;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
+    /// <summary>
+    /// Implements operations for creating index document from a node.
+    /// </summary>
     public class IndexDocumentProvider : IIndexDocumentProvider
     {
         private static readonly List<string> SkippedMultistepFields = new List<string>(new[] { "Size" });
 
+        /// <inheritdoc />
         public IndexDocument GetIndexDocument(Node node, bool skipBinaries, bool isNew, out bool hasBinary)
         {
             if (node == null)
@@ -29,7 +33,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             // ReSharper disable once SuspiciousTypeConversion.Global 
             // There may be external implementations.
-            var doc = new IndexDocument {HasCustomField = node is IHasCustomIndexField}; //TODO: TEST: Unit test IHasCustomIndexField feature
+            var doc = new IndexDocument();
             var ixnode = node as IIndexableDocument;
             var faultedFieldNames = new List<string>();
 
@@ -120,6 +124,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             return doc;
         }
 
+        /// <inheritdoc />
         public IndexDocument CompleteIndexDocument(Node node, IndexDocument baseDocument)
         {
             if (node == null)

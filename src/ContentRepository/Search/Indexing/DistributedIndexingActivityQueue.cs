@@ -779,45 +779,136 @@ namespace SenseNet.ContentRepository.Search.Indexing
         }
     }
 
+    /// <summary>
+    /// Defines a data class that provides information about the activity execution serialization in the population of the local index.
+    /// </summary>
     public class IndexingActivitySerializerState
     {
+        /// <summary>
+        /// Gets or sets the Id of the last queued indexing activity.
+        /// </summary>
         public int LastQueued { get; set; }
+        /// <summary>
+        /// Gets the length of the arrival queue of the indexing activities.
+        /// </summary>
         public int QueueLength => Queue?.Length ?? 0;
+        /// <summary>
+        /// Gets the Ids of the activities in the arrival queue.
+        /// </summary>
         public int[] Queue { get; set; }
     }
+    /// <summary>
+    /// Defines a data class that provides information about the waiting activities in the population of the local index.
+    /// </summary>
     public class IndexingActivityDependencyState
     {
+        /// <summary>
+        /// Gets the length of list that contains waiting indexing activities.
+        /// </summary>
         public int WaitingSetLength => WaitingSet?.Length ?? 0;
+        /// <summary>
+        /// Gets the Ids of the waiting indexing activities.
+        /// </summary>
         public int[] WaitingSet { get; set; }
     }
+    /// <summary>
+    /// Defines a data class that provides information about the indeing activity organizer in the population of the local index.
+    /// </summary>
     public class IndexingActivityQueueState
     {
+        /// <summary>
+        /// Gets or sets the state of the indexing activity serializer.
+        /// </summary>
         public IndexingActivitySerializerState Serializer { get; set; }
+        /// <summary>
+        /// Gets or sets the state of the indexing activity dependency manager.
+        /// </summary>
         public IndexingActivityDependencyState DependencyManager { get; set; }
+        /// <summary>
+        /// Gets or sets the state of the executed indexing activities.
+        /// </summary>
         public IndexingActivityStatus Termination { get; set; }
     }
 
+    /// <summary>
+    /// Defines a data class that represents an item in the short history of the indexing activity execution in the population of the local index.
+    /// </summary>
     public class IndexingActivityHistoryItem
     {
+        /// <summary>
+        /// Gets or sets the Id of the indexing activity.
+        /// </summary>
         public int Id { get; set; }
+        /// <summary>
+        /// Gets or sets the type name of the indexing activity.
+        /// </summary>
         public string TypeName { get; set; }
+        /// <summary>
+        /// Gets or sets a value that is true if the indexing activity is received from a messaging channel.
+        /// </summary>
         public bool FromReceiver { get; set; }
+        /// <summary>
+        /// Gets or sets a value that is true if the indexing activity is loaded from the database.
+        /// </summary>
         public bool FromDb { get; set; }
+        /// <summary>
+        /// Gets or sets a value that is true if the indexing activity is executed in the system startup sequence.
+        /// </summary>
         public bool IsStartup { get; set; }
+        /// <summary>
+        /// Gets or sets a value that is true if any error occured in the execution of the indexing activity.
+        /// </summary>
         public string Error { get; set; }
+        /// <summary>
+        /// Gets or sets an Id array of the indexing activities that are blocked the current activity's execution.
+        /// </summary>
         public int[] WaitedFor { get; set; }
+        /// <summary>
+        /// Gets or sets the arrival time of the indexing activity.
+        /// </summary>
         public DateTime ArrivedAt { get; set; }
+        /// <summary>
+        /// Gets or sets the starting time of the indexing activity execution.
+        /// </summary>
         public DateTime StartedAt { get; set; }
+        /// <summary>
+        /// Gets or sets the finishing time of the indexing activity execution.
+        /// </summary>
         public DateTime FinishedAt { get; set; }
+        /// <summary>
+        /// Gets the waiting time of the indexing activity.
+        /// </summary>
         public TimeSpan WaitTime => StartedAt - ArrivedAt;
+        /// <summary>
+        /// Gets the execution time of the indexing activity.
+        /// </summary>
         public TimeSpan ExecTime => FinishedAt - StartedAt;
+        /// <summary>
+        /// Gets the full time of the indexing activity.
+        /// </summary>
         public TimeSpan FullTime => FinishedAt - ArrivedAt;
     }
+    /// <summary>
+    /// Defines a data class that provides information about the short history of the indexing activity execution in the population of the local index.
+    /// </summary>
     public class IndexingActivityHistory
     {
+        /// <summary>
+        /// Gets or sets the state of the indexing activity organizer.
+        /// </summary>
         public IndexingActivityQueueState State { get; private set; }
+        /// <summary>
+        /// Gets a message that occurs when there are one or more unfinished history item.
+        /// This is happens tipically in case of the webserver's heavy load.
+        /// </summary>
         public string Message => _unfinished < 1 ? null : ("RECENT ARRAY TOO SHORT. Cannot registrate full activity lifecycle. Unfinished items: " + _unfinished);
+        /// <summary>
+        /// Gets the length of the recent list.
+        /// </summary>
         public int RecentLength => Recent?.Length ?? 0;
+        /// <summary>
+        /// Gets the last relevant items in the history.
+        /// </summary>
         public IndexingActivityHistoryItem[] Recent { get; private set; }
 
         private IndexingActivityHistory() { }
@@ -844,6 +935,10 @@ namespace SenseNet.ContentRepository.Search.Indexing
             .Serialize(writer, this);
         }
 
+        /// <summary>
+        /// Generates a history from the recent items.
+        /// </summary>
+        /// <returns></returns>
         public static IndexingActivityHistory GetHistory()
         {
             IndexingActivityHistory result;
@@ -865,6 +960,9 @@ namespace SenseNet.ContentRepository.Search.Indexing
             }
             return result;
         }
+        /// <summary>
+        /// Resets the history and returns with the starting state.
+        /// </summary>
         public static IndexingActivityHistory Reset()
         {
             IndexingActivityHistory result;

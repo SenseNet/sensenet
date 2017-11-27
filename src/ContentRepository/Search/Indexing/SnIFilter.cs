@@ -6,8 +6,10 @@ using System.Text;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
+    //UNDONE: XMLDOC SnIFilter
     public class SnIFilter
     {
+        //UNDONE: XMLDOC SnIFilter
         public static string GetText(Stream stream, string extension)
         {
             return LoadAndInitIFilterAndReadAll(stream, extension);
@@ -129,27 +131,35 @@ namespace SenseNet.ContentRepository.Search.Indexing
         [DllImport("ole32.dll")]
         public static extern int CreateStreamOnHGlobal(IntPtr hGlobal, bool fDeleteOnRelease, out IStream ppstm);
     }
-    
+
+    //UNDONE: XMLDOC SnIFilter
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("0000010c-0000-0000-C000-000000000046")]
     public interface IPersist
     {
+        //UNDONE: XMLDOC SnIFilter
         void GetClassID(out Guid pClassID);
     }
 
+    //UNDONE: XMLDOC SnIFilter
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("00000109-0000-0000-C000-000000000046")]
     public interface IPersistStream : IPersist
     {
+        //UNDONE: XMLDOC SnIFilter
         new void GetClassID(out Guid pClassID);
 
+        //UNDONE: XMLDOC SnIFilter
         [PreserveSig]
         int IsDirty();
 
+        //UNDONE: XMLDOC SnIFilter
         void Load([In] IStream pStm);
 
+        //UNDONE: XMLDOC SnIFilter
         void Save(
             [In] IStream pStm,
             [In, MarshalAs(UnmanagedType.Bool)] bool fClearDirty);
 
+        //UNDONE: XMLDOC SnIFilter
         void GetSizeMax(out long pcbSize);
     }
 

@@ -3,10 +3,17 @@ using SenseNet.ContentRepository.Search.Indexing.Activities;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
+    /// <summary>
+    /// Provides an interchangeable <see cref="IIndexingActivityFactory"/> implementation.
+    /// </summary>
     public class IndexingActivityFactory : IIndexingActivityFactory
     {
+        /// <summary>
+        /// Singleton of the <see cref="IndexingActivityFactory"/> instance.
+        /// </summary>
         public static IndexingActivityFactory Instance = new IndexingActivityFactory();
 
+        /// <inheritdoc />
         public IIndexingActivity CreateActivity(IndexingActivityType activityType)
         {
             IIndexingActivity activity = null;

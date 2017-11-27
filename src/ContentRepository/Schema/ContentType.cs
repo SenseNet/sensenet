@@ -633,7 +633,7 @@ namespace  SenseNet.ContentRepository.Schema
                 return;
             }
 
-            if (!Object.ReferenceEquals(this, ContentTypeManager.Current.GetContentTypeByName(this.Name)))
+            if (!Object.ReferenceEquals(this, ContentTypeManager.Instance.GetContentTypeByName(this.Name)))
             {
                 string src = this.ToXml();
                 ContentTypeManager.LoadOrCreateNew(src);
@@ -656,7 +656,7 @@ namespace  SenseNet.ContentRepository.Schema
             }
             ContentTypeManager.ApplyChanges(this);
             base.Save();
-            ContentTypeManager.Current.AddContentType(this);
+            ContentTypeManager.Instance.AddContentType(this);
         }
         public override void Save(NodeSaveSettings settings)
         {
@@ -667,12 +667,12 @@ namespace  SenseNet.ContentRepository.Schema
         {
             if (this.Path.StartsWith(Repository.ContentTypesFolderPath))
             {
-                ContentType contentTypeToDelete = ContentTypeManager.Current.GetContentTypeByName(this.Name);
+                ContentType contentTypeToDelete = ContentTypeManager.Instance.GetContentTypeByName(this.Name);
                 if (contentTypeToDelete != null)
                 {
                     if (!IsDeletable(contentTypeToDelete))
                         throw new ApplicationException(String.Concat("Cannot delete ContentType '", this.Name, "' because one or more Content use this type or any descendant type."));
-                    ContentTypeManager.Current.RemoveContentType(contentTypeToDelete.Name);
+                    ContentTypeManager.Instance.RemoveContentType(contentTypeToDelete.Name);
                 }
             }
             base.Delete();
@@ -891,7 +891,7 @@ namespace  SenseNet.ContentRepository.Schema
         /// <returns><see cref="SenseNet.ContentRepository.Schema.ContentType">ContentType</see></returns>
         public static ContentType GetByName(string contentTypeName)
         {
-            return ContentTypeManager.Current.GetContentTypeByName(contentTypeName);
+            return ContentTypeManager.Instance.GetContentTypeByName(contentTypeName);
         }
 
         /// <summary>
@@ -901,7 +901,7 @@ namespace  SenseNet.ContentRepository.Schema
         /// <returns><see cref="SenseNet.ContentRepository.Schema.ContentType">ContentType</see> array</returns>
         public static ContentType[] GetRootTypes()
         {
-            return ContentTypeManager.Current.GetRootTypes();
+            return ContentTypeManager.Instance.GetRootTypes();
         }
         /// <summary>
         /// Returns an array of <see cref="SenseNet.ContentRepository.Schema.ContentType">ContentType</see> names
@@ -910,7 +910,7 @@ namespace  SenseNet.ContentRepository.Schema
         /// <returns><see cref="System.String">String</see> array</returns>
         public static string[] GetRootTypeNames()
         {
-            return ContentTypeManager.Current.GetRootTypeNames();
+            return ContentTypeManager.Instance.GetRootTypeNames();
         }
         /// <summary>
         /// Returns an array of every <see cref="SenseNet.ContentRepository.Schema.ContentType">ContentTypes</see> 
@@ -918,7 +918,7 @@ namespace  SenseNet.ContentRepository.Schema
         /// <returns><see cref="SenseNet.ContentRepository.Schema.ContentType">ContentType</see> array</returns>
         public static ContentType[] GetContentTypes()
         {
-            return ContentTypeManager.Current.GetContentTypes();
+            return ContentTypeManager.Instance.GetContentTypes();
         }
         /// <summary>
         /// Returns an array of every <see cref="SenseNet.ContentRepository.Schema.ContentType">ContentType</see> names
@@ -926,7 +926,7 @@ namespace  SenseNet.ContentRepository.Schema
         /// <returns><see cref="System.String">String</see> array</returns>
         public static string[] GetContentTypeNames()
         {
-            return ContentTypeManager.Current.GetContentTypeNames();
+            return ContentTypeManager.Instance.GetContentTypeNames();
         }
 
         /// <summary>
@@ -952,7 +952,7 @@ namespace  SenseNet.ContentRepository.Schema
 
         public static string TraceContentSchema()
         {
-            return ContentTypeManager.Current.TraceContentSchema();
+            return ContentTypeManager.Instance.TraceContentSchema();
         }
 
         public static IPerFieldIndexingInfo GetPerfieldIndexingInfo(string fieldName)
@@ -1032,7 +1032,7 @@ namespace  SenseNet.ContentRepository.Schema
                 if(!newFieldNames.Contains(baseField.Name))
                     baseFields.Add(baseField);
             contentType.FieldSettings.InsertRange(0, baseFields);
-            contentType.FinalizeAllowedChildTypes(ContentTypeManager.Current.ContentTypes, ContentTypeManager.Current.AllFieldNames);
+            contentType.FinalizeAllowedChildTypes(ContentTypeManager.Instance.ContentTypes, ContentTypeManager.Instance.AllFieldNames);
 
             return contentType;
         }

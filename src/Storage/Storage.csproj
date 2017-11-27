@@ -240,9 +240,9 @@
     <Compile Include="NodeSaveSettings.cs" />
     <Compile Include="Package.cs" />
     <Compile Include="PreviewProvider.cs" />
-    <Compile Include="QueryResult.cs" />
+    <Compile Include="Search\QueryResult.cs" />
     <Compile Include="Retrier.cs" />
-    <Compile Include="SearchManager.cs" />
+    <Compile Include="Search\SearchManager.cs" />
     <Compile Include="Search\IIndexDocumentProvider.cs" />
     <Compile Include="Search\IIndexingActivity.cs" />
     <Compile Include="Search\IIndexingActivityFactory.cs" />

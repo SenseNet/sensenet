@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -15,16 +16,29 @@ using SenseNet.Search;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
+    /// <summary>
+    /// Defines a context sensitive object for text extracting operations.
+    /// </summary>
     public class TextExtractorContext
     {
+        /// <summary>
+        /// Initialize a new instance of the TextExtractorContext.
+        /// </summary>
+        /// <param name="versionId"></param>
         public TextExtractorContext(int versionId)
         {
             this.VersionId = versionId;
         }
 
+        /// <summary>
+        /// Gets the VersionId of the context.
+        /// </summary>
         public int VersionId { get; }
     }
 
+    /// <summary>
+    /// Defines a text extractor interface.
+    /// </summary>
     public interface ITextExtractor
     {
         /// <summary>
@@ -42,9 +56,14 @@ namespace SenseNet.ContentRepository.Search.Indexing
         bool IsSlow { get; }
     }
 
+    /// <summary>
+    /// Implements the <see cref="ITextExtractor"/> for text extracting operations.
+    /// </summary>
     public abstract class TextExtractor : ITextExtractor
     {
+        /// <inheritdoc />
         public abstract string Extract(Stream stream, TextExtractorContext context);
+        /// <inheritdoc />
         public virtual bool IsSlow => true;
 
         private static ITextExtractor ResolveExtractor(BinaryData binaryData)
@@ -78,6 +97,12 @@ namespace SenseNet.ContentRepository.Search.Indexing
             return null;
         }
 
+        /// <summary>
+        /// Returns with the text extract of the given binaryData of the node.
+        /// </summary>
+        /// <param name="binaryData"><see cref="BinaryData"/> that will be extracted.</param>
+        /// <param name="node">Owner <see cref="Node"/>.</param>
+        /// <returns></returns>
         public static string GetExtract(BinaryData binaryData, Node node)
         {
             using (var op = SnTrace.Index.StartOperation("Getting text extract, VId:{0}, Path:{1}", node.VersionId, node.Path))
@@ -156,7 +181,12 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 return result;
             }
         }
-        
+
+        /// <summary>
+        /// Returns true if the text extraction maybe slow.
+        /// </summary>
+        /// <param name="binaryData"></param>
+        /// <returns></returns>
         public static bool TextExtractingWillBePotentiallySlow(BinaryData binaryData)
         {
             var extractor = ResolveExtractor(binaryData);
@@ -182,6 +212,9 @@ namespace SenseNet.ContentRepository.Search.Indexing
             }
         }
 
+        /// <summary>
+        /// Extracts text from the given stream that contains the content of the open xml file.
+        /// </summary>
         protected string GetOpenXmlText(Stream stream, TextExtractorContext context)
         {
             var result = new StringBuilder();
@@ -213,10 +246,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
             return result.ToString();
         }
 
-        protected static void WriteElapsedLog(Stopwatch sw, string message, long length)
-        {
-        }
-
+        /// <summary>
+        /// Reads the whole given stream into a byte[] buffer and returns with it.
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
         protected static byte[] GetBytesFromStream(Stream stream)
         {
             byte[] fileData;

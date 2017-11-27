@@ -100,7 +100,7 @@ namespace SenseNet.ContentRepository
     {
         public int Count()
         {
-            return ContentTypeManager.Current.ContentTypes.Count;
+            return ContentTypeManager.Instance.ContentTypes.Count;
         }
         public bool Contains(ContentType item)
         {
@@ -108,7 +108,7 @@ namespace SenseNet.ContentRepository
         }
         public IEnumerator<ContentType> GetEnumerator()
         {
-            return ContentTypeManager.Current.ContentTypes.Values.GetEnumerator();
+            return ContentTypeManager.Instance.ContentTypes.Values.GetEnumerator();
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
@@ -120,7 +120,7 @@ namespace SenseNet.ContentRepository
     {
         public int Count()
         {
-            return ContentTypeManager.Current.ContentTypes.Count;
+            return ContentTypeManager.Instance.ContentTypes.Count;
         }
         public bool Contains(ContentType item)
         {
@@ -128,7 +128,7 @@ namespace SenseNet.ContentRepository
         }
         public IEnumerator<string> GetEnumerator()
         {
-            return ContentTypeManager.Current.ContentTypes.Keys.GetEnumerator();
+            return ContentTypeManager.Instance.ContentTypes.Keys.GetEnumerator();
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()

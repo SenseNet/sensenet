@@ -7,9 +7,18 @@ using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Search.Indexing.Activities
 {
+    /// <summary>
+    /// Represents an indexing activity that can be sent or received through an inter-server communication channel.
+    /// Used when the current indexing engine handles local indexes.
+    /// </summary>
     [Serializable]
     public abstract class DistributedIndexingActivity : DistributedAction
     {
+        /// <summary>
+        /// Executes the activity's main action.
+        /// </summary>
+        /// <param name="onRemote">True if the caller is a message receiver.</param>
+        /// <param name="isFromMe">True if the source of the activity is in the current appDomain.</param>
         public override void DoAction(bool onRemote, bool isFromMe)
         {
             if (!IndexManager.Running)

@@ -94,9 +94,9 @@ namespace SenseNet.Search.Lucene29
             LuceneSearchManager.WriteActivityStatusToIndex(state);
         }
 
-        public void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates, IEnumerable<IndexDocument> addition)
+        public void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates, IEnumerable<IndexDocument> additions)
         {
-            LuceneSearchManager.WriteIndex(deletions, updates, addition);
+            LuceneSearchManager.WriteIndex(deletions, updates, additions);
         }
 
         //===================================================================================== IndexReader

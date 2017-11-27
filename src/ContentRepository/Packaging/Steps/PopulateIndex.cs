@@ -46,7 +46,7 @@ namespace SenseNet.Packaging.Steps
                 else
                 {
                     Logger.LogMessage($"Populating index for {path}...");
-                    populator.RepopulateTree(path);
+                    populator.RebuildIndexDirectly(path);
                 }
             }
             finally

@@ -2,10 +2,17 @@
 using System.Collections.Generic;
 using SenseNet.ContentRepository;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.Search
 {
+    /// <summary>
+    /// Provides methods to resolve templates for ContentQuery.
+    /// </summary>
     public class ContentQueryTemplateReplacer : TemplateReplacerBase
     {
+        /// <summary>
+        /// Gets the array of supported template names.
+        /// </summary>
         public override IEnumerable<string> TemplateNames => new[]
         {
             "currentuser", "currentdate", "currentday", "today", "currenttime", "currentmonth", "currentweek",
@@ -13,6 +20,9 @@ namespace SenseNet.Search
             "previousworkday", "previousweek", "previousmonth", "previousyear"
         };
 
+        /// <summary>
+        /// Resolve a named template in the given expression.
+        /// </summary>
         public override string EvaluateTemplate(string templateName, string templateExpression, object templatingContext)
         {
             switch (templateName)
@@ -55,15 +65,25 @@ namespace SenseNet.Search
                     return base.EvaluateTemplate(templateName, templateExpression, templatingContext);
             }
         }
-        
+
+        /// <summary>
+        /// Defines constants for units used in templates.
+        /// </summary>
         protected static class DefaultUnits
         {
+            /// <summary>Value: "seconds".</summary>
             public static readonly string Seconds = "seconds";
+            /// <summary>Value: "minutes".</summary>
             public static readonly string Minutes = "minutes";
+            /// <summary>Value: "days".</summary>
             public static readonly string Days = "days";
+            /// <summary>Value: "workdays".</summary>
             public static readonly string Workdays = "workdays";
+            /// <summary>Value: "weeks".</summary>
             public static readonly string Weeks = "weeks";
+            /// <summary>Value: "months".</summary>
             public static readonly string Months = "months";
+            /// <summary>Value: "years".</summary>
             public static readonly string Years = "years";
         }
     }
