@@ -274,7 +274,7 @@ namespace SenseNet.Portal.OData
 
             if (propertyName == ODataHandler.PROPERTY_ACTIONS)
             {
-                WriteActionsProperty(portalContext, ODataTools.GetActionItems(content, req).ToArray(), rawValue);
+                WriteActionsProperty(portalContext, ODataTools.GetHtmlActionItems(content, req).ToArray(), rawValue);
                 return;
             }
 
