@@ -5,7 +5,7 @@ using System.Text;
 
 namespace SenseNet.Portal.OData.Parser
 {
-    public class ODataPoint
+    internal class ODataPoint
     {
         public double X { get; set; }
         public double Y { get; set; }

@@ -18,11 +18,15 @@ using SenseNet.Portal.Virtualization;
 using SenseNet.Search;
 using SenseNet.ContentRepository.Linq;
 using System.Linq.Expressions;
+using System.Net.Http;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.Tools;
 
 namespace SenseNet.Portal.OData
 {
+    /// <summary>
+    /// An <see cref="IHttpHandler"/> implementation to process the OData requests.
+    /// </summary>
     public class ODataHandler : IHttpHandler
     {
         internal static IActionResolver ActionResolver { get; private set; }
@@ -59,6 +63,8 @@ namespace SenseNet.Portal.OData
         internal const string PROPERTY_BINARY = "Binary";
         internal const int EXPANSIONLIMIT = Int32.MaxValue;
 
+        /// <inheritdoc select="summary" />
+        /// <remarks>Returns with false in this implementation.</remarks>
         public bool IsReusable
         {
             get { return false; }
@@ -66,10 +72,20 @@ namespace SenseNet.Portal.OData
 
         internal ODataRequest ODataRequest { get; private set; }
 
+        /// <inheritdoc />
+        /// <summary>
+        /// Processes the OData web request.
+        /// </summary>
         public void ProcessRequest(HttpContext context)
         {
             ProcessRequest(context, context.Request.HttpMethod.ToUpper(), context.Request.InputStream);
         }
+        /// <summary>
+        /// Processes the OData web request. Designed for test purposes.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="httpMethod">HTTP protocol method.</param>
+        /// <param name="inputStream">Request stream containing the posted JSON object.</param>
         public void ProcessRequest(HttpContext context, string httpMethod, Stream inputStream)
         {
             ODataRequest odataReq = null;
@@ -300,6 +316,11 @@ namespace SenseNet.Portal.OData
             
             return Read(models);
         }
+        /// <summary>
+        /// Helper method for deserializing the given string representation.
+        /// </summary>
+        /// <param name="models">JSON object that will be deserialized.</param>
+        /// <returns>Deserialized JObject instance.</returns>
         public static JObject Read(string models)
         {
             if (string.IsNullOrEmpty(models))
@@ -527,8 +548,16 @@ namespace SenseNet.Portal.OData
             else
                 content.Save();
         }
+        /// <summary>
+        /// Helper method for updating the given <see cref="Content"/> with a model represented by JObject.
+        /// The <see cref="Content"/> will not be saved.
+        /// </summary>
+        /// <param name="content">The <see cref="Content"/> that will be modified. Cannot be null.</param>
+        /// <param name="model">The modifier JObject instance. Cannot be null.</param>
         public static void UpdateFields(Content content, JObject model)
         {
+            //UNDONE: ArgumentNullException: content
+            //UNDONE: ArgumentNullException: model
             Field field;
             var isNew = content.Id == 0;
             foreach (var prop in model.Properties())
@@ -649,7 +678,7 @@ namespace SenseNet.Portal.OData
         /// Returns an OData path that can request the entity identified by the given path. This path is part of the OData entity request. For example
         /// "/Root/MyFolder/MyDocument.doc" will be transformed to "/Root/MyFolder('MyDocument.doc')"
         /// </summary>
-        /// <param name="path">This path will be transformed</param>
+        /// <param name="path">This path will be transformed.</param>
         /// <returns>An OData path.</returns>
         public static string GetODataPath(string path)
         {
@@ -659,10 +688,10 @@ namespace SenseNet.Portal.OData
         }
         /// <summary>
         /// Returns an OData path that can request the entity identified by the given path plus name. This path is part of the OData entity request. For example
-        /// path = "/Root/MyFolder" and name = "MyDocument.doc" will be transformed to "/Root/MyFolder('MyDocument.doc')"
+        /// path = "/Root/MyFolder" and name = "MyDocument.doc" will be transformed to "/Root/MyFolder('MyDocument.doc')".
         /// </summary>
-        /// <param name="parentPath">A container path</param>
-        /// <param name="name">Content's name in the given container</param>
+        /// <param name="parentPath">A container path.</param>
+        /// <param name="name">Content's name in the given container.</param>
         /// <returns>An OData path.</returns>
         public static string GetODataPath(string parentPath, string name)
         {
