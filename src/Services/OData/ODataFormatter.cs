@@ -43,26 +43,26 @@ namespace SenseNet.Portal.OData
 
         private static object _formatterTypeLock = new object();
         private static Dictionary<string, Type> _formatterTypes;
-        internal static Dictionary<string, Type> FormatterTypes 
-        { 
-            get 
+        internal static Dictionary<string, Type> FormatterTypes
+        {
+            get
             {
                 if (_formatterTypes == null)
-                { 
+                {
                     lock(_formatterTypeLock)
                     {
                         if (_formatterTypes == null)
                         {
                             _formatterTypes = LoadFormatterTypes();
 
-                            SnLog.WriteInformation("OData formatter types loaded: " + 
+                            SnLog.WriteInformation("OData formatter types loaded: " +
                                 string.Join(", ", _formatterTypes.Values.Select(t => t.FullName)));
                         }
                     }
                 }
 
                 return _formatterTypes;
-            } 
+            }
         }
 
         private static Dictionary<string, Type> LoadFormatterTypes()
@@ -99,7 +99,7 @@ namespace SenseNet.Portal.OData
             formatter.PortalContext = portalContext;
             return formatter;
         }
-        
+
         internal void Initialize(ODataRequest odataRequest)
         {
             this.ODataRequest = odataRequest;
@@ -224,7 +224,7 @@ namespace SenseNet.Portal.OData
                 {
                     var contents = new List<Dictionary<string, object>>();
                     //TODO: ODATA: multiref item: get available types from reference property
-                    contents.Add(CreateFieldDictionary(Content.Create(node), portalContext, projector)); 
+                    contents.Add(CreateFieldDictionary(Content.Create(node), portalContext, projector));
                     WriteMultipleContent(portalContext, contents, 1);
                 }
                 else

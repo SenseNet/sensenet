@@ -242,7 +242,7 @@ namespace SenseNet.Portal.OData
             // check if this is an id request instead of a path request
             var match = new Regex(IDREQUEST_REGEX, RegexOptions.IgnoreCase).Match(path);
             if (match.Success)
-            { 
+            {
                 var idString = match.Groups["id"].Value;
                 var nodeId = 0;
                 if (int.TryParse(idString, out nodeId))
@@ -252,7 +252,7 @@ namespace SenseNet.Portal.OData
                         return nodeHead.Path;
                 }
             }
-            
+
             // remove everything after item request characters (property accessor or action/function name)
             var itemLastIndex = path.LastIndexOf("')");
             if (itemLastIndex > 0 && path.Length > itemLastIndex + 2)
@@ -425,7 +425,8 @@ namespace SenseNet.Portal.OData
                 var x = Enum.TryParse<InlineCount>(inlineCountStr, true, out ic);
                 if (!x || ic < 0 || (int)ic > 1)
                     throw new ODataException(SNSR.Exceptions.OData.InvalidInlineCountOption, ODataExceptionCode.InvalidInlineCountParameter);
-            } InlineCount = ic;
+            }
+            InlineCount = ic;
 
             // --------------------------------------------------------------- $select
             var selectStr = req["$select"];

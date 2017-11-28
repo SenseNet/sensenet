@@ -311,7 +311,7 @@ namespace SenseNet.Portal.OData
                 return null;
             using (var reader = new StreamReader(inputStream))
                 models = reader.ReadToEnd();
-            
+
             return Read(models);
         }
         /// <summary>
@@ -372,7 +372,7 @@ namespace SenseNet.Portal.OData
             {
                 var sitePath = PortalContext.Current.Site?.Path;
                 if (!string.IsNullOrEmpty(sitePath) &&
-                    path.StartsWith(sitePath, StringComparison.OrdinalIgnoreCase) && 
+                    path.StartsWith(sitePath, StringComparison.OrdinalIgnoreCase) &&
                     !sitePath.Equals(path, StringComparison.OrdinalIgnoreCase))
                     path = path.Substring(sitePath.Length);
             }
@@ -469,7 +469,7 @@ namespace SenseNet.Portal.OData
                 var templated = ContentTemplate.CreateFromTemplate(parent, template, name);
                 content = Content.Create(templated);
             }
-            
+
 
             UpdateFields(content, model);
 
@@ -593,8 +593,8 @@ namespace SenseNet.Portal.OData
                             }
                             if (field is ReferenceField && jvalue.Value != null)
                             {
-                                var refNode = jvalue.Type == JTokenType.Integer 
-                                    ? Node.LoadNode(Convert.ToInt32(jvalue.Value)) 
+                                var refNode = jvalue.Type == JTokenType.Integer
+                                    ? Node.LoadNode(Convert.ToInt32(jvalue.Value))
                                     : Node.LoadNode(jvalue.Value.ToString());
 
                                 field.SetData(refNode);
