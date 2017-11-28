@@ -141,9 +141,9 @@ namespace SenseNet.Portal.OData
         /// </summary>
         public string[] ActionParameters { get; set; }
         /// <summary>
-        /// Gets or sets the scenarios when the Action can be applied.
+        /// Gets or sets the scenario in which the Action was found.
         /// </summary>
-        public string[] Scenarios { get; set; }
+        public string Scenario { get; set; }
         /// <summary>
         /// Gets or sets a value that is true if the Action is
         /// visible but not executable for the current user.

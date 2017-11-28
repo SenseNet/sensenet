@@ -158,7 +158,7 @@ namespace SenseNet.ApplicationModel
 
         public static IEnumerable<ActionBase> GetActions(Content context)
         {
-            return GetActions(context, default(string), null);
+            return GetActions(context, null, null);
         }
 
         public static IEnumerable<ActionBase> GetActions(Content context, string scenario, string scenarioParameters)
@@ -180,24 +180,6 @@ namespace SenseNet.ApplicationModel
                 }
             }
             return GetActionsFromContentRepository(context, scenario, backUri);
-        }
-
-        public static IEnumerable<ActionBase> GetActions(Content context, string[] scenarios, string backUri)
-        {
-            if (scenarios != null && scenarios.Length>0)
-            {
-                var actions = new List<ActionBase>();
-                foreach (var scenario in scenarios)
-                {
-                    var sc = ScenarioManager.GetScenario(scenario, null);
-                    if (sc != null)
-                    {
-                        actions.AddRange(sc.GetActions(context, backUri).Where(a => !actions.Exists(ba => ba.Name == a.Name)));
-                    }
-                }
-                return actions;
-            }
-            return GetActionsFromContentRepository(context, null, backUri);
         }
 
         public static IEnumerable<ActionBase> GetActionsFromContentRepository(Content context, string scenario, string backUri)
