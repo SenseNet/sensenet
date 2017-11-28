@@ -92,7 +92,7 @@ namespace SenseNet.Portal.OData
                 Index = a.Index,
                 Url = a.Uri,
                 IncludeBackUrl = a.GetApplication() == null ? 0 : (int)a.GetApplication().IncludeBackUrl,
-                ClientAction = a is ClientAction && !string.IsNullOrEmpty(((ClientAction)a).Callback),
+                ClientAction = !string.IsNullOrEmpty((a as ClientAction)?.Callback),
                 Forbidden = a.Forbidden
             });
         }
@@ -137,19 +137,14 @@ namespace SenseNet.Portal.OData
                 backUrl = HttpContext.Current.Request.UrlReferrer.ToString();
             }
 
-            var scenarioActions = new List<ScenarioAction>();
             var scenario = request?.Scenario;
             var actions = ActionFramework.GetActions(content, scenario, string.IsNullOrEmpty(backUrl) ? null : backUrl);
-            foreach (var action in actions)
-            {
-                scenarioActions.Add(new ScenarioAction
-                {
-                    Action = action,
-                    Scenario = scenario
-                });
-            }
-            return scenarioActions;
-        }
 
+            return actions.Select(action => new ScenarioAction
+            {
+                Action = action,
+                Scenario = scenario
+            });
+        }
     }
 }
