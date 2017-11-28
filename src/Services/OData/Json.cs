@@ -115,7 +115,7 @@ namespace SenseNet.Portal.OData
         /// </summary>
         public string DisplayName { get; set; }
         /// <summary>
-        /// Gets os sets the value that helps to sorting the items.
+        /// Gets os sets the value that helps sorting the items.
         /// </summary>
         public int Index { get; set; }
         /// <summary>
@@ -127,7 +127,7 @@ namespace SenseNet.Portal.OData
         /// </summary>
         public string Url { get; set; }
         /// <summary>
-        /// Gets or sets a value that is true if the URL contains a back URL.
+        /// Gets or sets a value that is true when the back URL argument is provided.
         /// </summary>
         public int IncludeBackUrl { get; set; }
         //UNDONE: XMLDOC: ODataActionItem.ClientAction

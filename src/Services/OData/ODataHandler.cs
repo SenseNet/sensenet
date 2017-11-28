@@ -73,9 +73,7 @@ namespace SenseNet.Portal.OData
         internal ODataRequest ODataRequest { get; private set; }
 
         /// <inheritdoc />
-        /// <summary>
-        /// Processes the OData web request.
-        /// </summary>
+        /// <remarks>Processes the OData web request.</remarks>
         public void ProcessRequest(HttpContext context)
         {
             ProcessRequest(context, context.Request.HttpMethod.ToUpper(), context.Request.InputStream);
@@ -83,7 +81,7 @@ namespace SenseNet.Portal.OData
         /// <summary>
         /// Processes the OData web request. Designed for test purposes.
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="context">An <see cref="HttpContext" /> object that provides references to the intrinsic server objects (for example, <see langword="Request" />, <see langword="Response" />, <see langword="Session" />, and <see langword="Server" />) used to service HTTP requests. </param>
         /// <param name="httpMethod">HTTP protocol method.</param>
         /// <param name="inputStream">Request stream containing the posted JSON object.</param>
         public void ProcessRequest(HttpContext context, string httpMethod, Stream inputStream)
