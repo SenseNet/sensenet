@@ -21,36 +21,48 @@ using Utility = SenseNet.Tools.Utility;
 
 namespace SenseNet.Portal.OData
 {
+    /// <summary>
+    /// Defines a base class for serializing the OData response object to various formats.
+    /// </summary>
     public abstract class ODataFormatter
     {
+        /// <summary>
+        /// Gets the name of the format that is used in the "$format" parameter of the OData webrequest.
+        /// </summary>
         public abstract string FormatName { get; }
+        /// <summary>
+        /// Gets the mime type of the converted object.
+        /// </summary>
         public abstract string MimeType { get; }
 
         internal ODataRequest ODataRequest { get; private set; }
-        internal protected PortalContext PortalContext { get; protected set; }
+        /// <summary>
+        /// Gets the current <see cref="PortalContext"/> instance.
+        /// </summary>
+        protected internal PortalContext PortalContext { get; protected set; }
 
         private static object _formatterTypeLock = new object();
         private static Dictionary<string, Type> _formatterTypes;
-        internal static Dictionary<string, Type> FormatterTypes 
-        { 
-            get 
+        internal static Dictionary<string, Type> FormatterTypes
+        {
+            get
             {
                 if (_formatterTypes == null)
-                { 
+                {
                     lock(_formatterTypeLock)
                     {
                         if (_formatterTypes == null)
                         {
                             _formatterTypes = LoadFormatterTypes();
 
-                            SnLog.WriteInformation("OData formatter types loaded: " + 
+                            SnLog.WriteInformation("OData formatter types loaded: " +
                                 string.Join(", ", _formatterTypes.Values.Select(t => t.FullName)));
                         }
                     }
                 }
 
                 return _formatterTypes;
-            } 
+            }
         }
 
         private static Dictionary<string, Type> LoadFormatterTypes()
@@ -87,7 +99,7 @@ namespace SenseNet.Portal.OData
             formatter.PortalContext = portalContext;
             return formatter;
         }
-        
+
         internal void Initialize(ODataRequest odataRequest)
         {
             this.ODataRequest = odataRequest;
@@ -109,6 +121,11 @@ namespace SenseNet.Portal.OData
             return site?.Children.Select(n => n.Name).ToArray()
                    ?? new[] {Repository.RootName};
         }
+        /// <summary>
+        /// Writes the OData service document with the given root names to the webresponse.
+        /// </summary>
+        /// <param name="portalContext">The current <see cref="PortalContext"/> instance containing the current webresponse.</param>
+        /// <param name="names">Root names.</param>
         protected abstract void WriteServiceDocument(PortalContext portalContext, IEnumerable<string> names);
 
         internal void WriteMetadata(HttpContext context, ODataRequest req)
@@ -129,6 +146,11 @@ namespace SenseNet.Portal.OData
         {
             WriteMetadata(writer, edmx);
         }
+        /// <summary>
+        /// Writes the OData service metadata to the given text writer
+        /// </summary>
+        /// <param name="writer">Output writer.</param>
+        /// <param name="edmx">Metadata that will be written.</param>
         protected abstract void WriteMetadata(TextWriter writer, Metadata.Edmx edmx);
 
         // --------------------------------------------------------------------------------------------------------------- contents
@@ -143,6 +165,11 @@ namespace SenseNet.Portal.OData
             var fields = CreateFieldDictionary(content, portalContext, false);
             WriteSingleContent(portalContext, fields);
         }
+        /// <summary>
+        /// Writes the given fields of a Content to the webresponse.
+        /// </summary>
+        /// <param name="portalContext">The current <see cref="PortalContext"/> instance containing the current webresponse.</param>
+        /// <param name="fields">A Dictionary&lt;string, object&gt; that will be written.</param>
         protected abstract void WriteSingleContent(PortalContext portalContext, Dictionary<string, object> fields);
 
         internal void WriteChildrenCollection(String path, PortalContext portalContext, ODataRequest req)
@@ -197,7 +224,7 @@ namespace SenseNet.Portal.OData
                 {
                     var contents = new List<Dictionary<string, object>>();
                     //TODO: ODATA: multiref item: get available types from reference property
-                    contents.Add(CreateFieldDictionary(Content.Create(node), portalContext, projector)); 
+                    contents.Add(CreateFieldDictionary(Content.Create(node), portalContext, projector));
                     WriteMultipleContent(portalContext, contents, 1);
                 }
                 else
@@ -260,7 +287,19 @@ namespace SenseNet.Portal.OData
                 }
             }
         }
+        /// <summary>
+        /// Writes the given Content list to the webresponse.
+        /// </summary>
+        /// <param name="portalContext">The current <see cref="PortalContext"/> instance containing the current webresponse.</param>
+        /// <param name="contents">A List&lt;Dictionary&lt;string, object&gt;&gt; that will be written.</param>
+        /// <param name="count">Count of contents. This value can be different from the count of the written content list if the request has restrictions in connection with cardinality (e.g. "$top=10") but specifies the total count of the collection ("$inlinecount=allpages").</param>
         protected abstract void WriteMultipleContent(PortalContext portalContext, List<Dictionary<string, object>> contents, int count);
+        /// <summary>
+        /// Writes only the count of the requested resource to the webresponse.
+        /// Activated if the URI of the requested resource contains the "$count" segment.
+        /// </summary>
+        /// <param name="portalContext">The current <see cref="PortalContext"/> instance containing the current webresponse.</param>
+        /// <param name="count"></param>
         protected abstract void WriteCount(PortalContext portalContext, int count);
 
         internal void WriteContentProperty(String path, string propertyName, bool rawValue, PortalContext portalContext, ODataRequest req)
@@ -316,6 +355,12 @@ namespace SenseNet.Portal.OData
                 WriteOperationResult(portalContext, req);
             }
         }
+        /// <summary>
+        /// Writes the available actions of the current <see cref="Content"/> to the webresponse.
+        /// </summary>
+        /// <param name="portalContext">The current <see cref="PortalContext"/> instance containing the current webresponse.</param>
+        /// <param name="actions">Array of <see cref="ODataActionItem"/> that will be written.</param>
+        /// <param name="raw"></param>
         protected abstract void WriteActionsProperty(PortalContext portalContext, ODataActionItem[] actions, bool raw);
 
 
@@ -349,6 +394,11 @@ new StackInfo
             context.Response.TrySkipIisCustomErrors = true;
 
         }
+        /// <summary>
+        /// Writes the given <see cref="Error"/> instance to the webresponse.
+        /// </summary>
+        /// <param name="context">The current <see cref="HttpContext"/> instance.</param>
+        /// <param name="error">The <see cref="Error"/> instance that will be written.</param>
         protected abstract void WriteError(HttpContext context, Error error);
 
         // --------------------------------------------------------------------------------------------------------------- operations
@@ -454,6 +504,13 @@ new StackInfo
 
             WriteOperationCustomResult(portalContext, result, odataReq.InlineCount == InlineCount.AllPages ? allCount : (int?)null);
         }
+        /// <summary>
+        /// Writes a custom operations's result object to the webresponse.
+        /// </summary>
+        /// <param name="portalContext">The current <see cref="PortalContext"/> instance containing the current webresponse.</param>
+        /// <param name="result">The object that will be written.</param>
+        /// <param name="allCount">A nullable int that contains the count of items in the result object 
+        /// if the request specifies the total count of the collection ("$inlinecount=allpages"), otherwise the value is null.</param>
         protected abstract void WriteOperationCustomResult(PortalContext portalContext, object result, int? allCount);
 
         private object ProcessOperationResponse(object response, PortalContext portalContext, ODataRequest odataReq, out int count)
@@ -888,6 +945,11 @@ new StackInfo
             return data;
         }
 
+        /// <summary>
+        /// Writes an object to the webresponse.
+        /// </summary>
+        /// <param name="response">The object that will be written.</param>
+        /// <param name="portalContext">The current <see cref="PortalContext"/> instance containing the current webresponse.</param>
         protected void Write(object response, PortalContext portalContext)
         {
             var resp = portalContext.OwnerHttpContext.Response;
@@ -914,6 +976,11 @@ new StackInfo
             serializer.Serialize(portalContext.OwnerHttpContext.Response.Output, response);
             resp.ContentType = "application/json;odata=verbose;charset=utf-8";
         }
+        /// <summary>
+        /// Writes an object to the webresponse. Tipically used for writing a simple object (e.g. <see cref="Field"/> values).
+        /// </summary>
+        /// <param name="response">The object that will be written.</param>
+        /// <param name="portalContext">The current <see cref="PortalContext"/> instance containing the current webresponse.</param>
         protected void WriteRaw(object response, PortalContext portalContext)
         {
             var resp = portalContext.OwnerHttpContext.Response;
