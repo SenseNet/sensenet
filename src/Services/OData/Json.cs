@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
+
 //TODO: Rename Json.cs to more generalized name
 namespace SenseNet.Portal.OData
 {
@@ -100,54 +101,125 @@ namespace SenseNet.Portal.OData
         public string MediaETag { get; set; }
     }
 
+    /// <summary>
+    /// Represents an item in the Actions list of the OData Content metadata.
+    /// </summary>
     public class ODataActionItem
     {
+        /// <summary>
+        /// Gets or sets the name of the Action.
+        /// </summary>
         public string Name { get; set; }
+        /// <summary>
+        /// Gets or sets the human readable name of the Action.
+        /// </summary>
         public string DisplayName { get; set; }
+        /// <summary>
+        /// Gets os sets the value that helps sorting the items.
+        /// </summary>
         public int Index { get; set; }
+        /// <summary>
+        /// Gets or sets the icon name of the Action.
+        /// </summary>
         public string Icon { get; set; }
+        /// <summary>
+        /// Gets or sets the URL of the Action.
+        /// </summary>
         public string Url { get; set; }
+        /// <summary>
+        /// Gets or sets a value that is true when the back URL argument is provided.
+        /// </summary>
         public int IncludeBackUrl { get; set; }
+        //UNDONE: XMLDOC: ODataActionItem.ClientAction
         public bool ClientAction { get; set; }
+        /// <summary>
+        /// Gets or sets a value that is true if the Action is an <see cref="ODataOperation"/>.
+        /// </summary>
         public bool IsODataAction { get; set; }
+        /// <summary>
+        /// Gets or sets the parameter names of the Action.
+        /// </summary>
         public string[] ActionParameters { get; set; }
+        /// <summary>
+        /// Gets or sets the scenario in which the Action was found.
+        /// </summary>
         public string Scenario { get; set; }
+        /// <summary>
+        /// Gets or sets a value that is true if the Action is
+        /// visible but not executable for the current user.
+        /// </summary>
         public bool Forbidden { get; set; }
     }
 
+    /// <summary>
+    /// Represents a JSON-serializable OData error.
+    /// </summary>
+    /// <example>
+    /// The general message format is the following (JSON):
+    /// <code>
+    /// {
+    ///    "error": {
+    ///        "code": "NotSpecified",
+    ///        "exceptiontype": "SenseNetSecurityException",
+    ///        "message": {
+    ///            "lang": "en-us",
+    ///            "value": "Access denied. Path: /Root/...
+    ///        },
+    ///        "innererror": {
+    ///            "trace": "ODataException: Access denied. Path: /Root/...
+    ///        }
+    ///    }
+    /// }
+    /// </code>
+    /// </example>
     public class Error
     {
-        // {
-        //    "error": {
-        //        "code": "NotSpecified",
-        //        "exceptiontype": "SenseNetSecurityException",
-        //        "message": {
-        //            "lang": "en-us",
-        //            "value": "Access denied. Path: /Root/Sites/Default_Site/workspaces/Document/londondocumentworkspace PermissionType: RecallOldVersion User: BuiltIn\Visitor UserId: 6"
-        //        },
-        //        "innererror": {
-        //            "trace": "ODataException: Access denied. Path: /Root/Sites/Default_Site/workspaces/Document/londondocumentworkspace PermissionType: RecallOldVersion User: BuiltIn\\Visitor UserId: 6\\n\\n---- Inner Exception:\\nSenseNetSecurityException: Access denied. Path: /Root/Sites/Default_Site/workspaces/Document/londondocumentworkspace PermissionType: RecallOldVersion User: BuiltIn\\Visitor UserId: 6\\n   at SenseNet.ContentRepository.Storage.Security.SecurityHandler.GetAccessDeniedException(String path, Int32 creatorId, Int32 lastModifierId, String message, PermissionType[] permissionTypes, IUser user) in C:\\Dev10\\SenseNet\\Development\\Budapest\\Source\\SenseNet\\Storage\\Security\\SecurityHandler.cs:line 1055\\n   at SenseNet.ContentRepository.Storage.Security.SecurityHandler.Assert(String path, Int32 creatorId, Int32 lastModifierId, String message, PermissionType[] permissionTypes) in C:\\Dev10\\SenseNet\\Development\\Budapest\\Source\\SenseNet\\Storage\\Security\\SecurityHandler.cs:line 383\\n   at SenseNet.ContentRepository.Storage.Security.SecurityHandler.Assert(Node node, PermissionType[] permissionTypes) in C:\\Dev10\\SenseNet\\Development\\Budapest\\Source\\SenseNet\\Storage\\Security\\SecurityHandler.cs:line 353\\n   at SenseNet.ContentRepository.Storage.Security.SecurityHandler.Assert(PermissionType[] permissionTypes) in C:\\Dev10\\SenseNet\\Development\\Budapest\\Source\\SenseNet\\Storage\\Security\\SecurityHandler.cs:line 343\\n   at SenseNet.ContentRepository.Storage.Node.LoadVersions() in C:\\Dev10\\SenseNet\\Development\\Budapest\\Source\\SenseNet\\Storage\\Node.cs:line 1772\\n   at SenseNet.ContentRepository.GenericContent.get_Versions() in C:\\Dev10\\SenseNet\\Development\\Budapest\\Source\\SenseNet\\ContentRepository\\GenericContent.cs:line 1237\\n   at SenseNet.ContentRepository.GenericContent.GetProperty(String name) in C:\\Dev10\\SenseNet\\Development\\Budapest\\Source\\SenseNet\\ContentRepository\\GenericContent.cs:line 579\\n   at SenseNet.ContentRepository.Folder.GetProperty(String name) in C:\\Dev10\\SenseNet\\Development\\Budapest\\Source\\SenseNet\\ContentRepository\\Folder.cs:line 51\\n   at SenseNet.ContentRepository.Workspaces.Workspace.GetProperty(String name) in C:\\Dev10\\SenseNet\\Development\\Budapest\\Source\\SenseNet\\ContentRepository\\Workspaces\\Workspace.cs:line 118\\n   at SenseNet.ContentRepository.Field.ReadProperty(String propertyName) in C:\\Dev10\\SenseNet\\Development\\Budapest\\Source\\SenseNet\\ContentRepository\\Field.cs:line 194\\n   at SenseNet.ContentRepository.Field.ReadProperties() in C:\\Dev10\\SenseNet\\Development\\Budapest\\Source\\SenseNet\\ContentRepository\\Field.cs:line 181\\n   at SenseNet.ContentRepository.Field.get_Value() in C:\\Dev10\\SenseNet\\Development\\Budapest\\Source\\SenseNet\\ContentRepository\\Field.cs:line 136\\n   at SenseNet.ContentRepository.Field.GetData(Boolean localized) in C:\\Dev10\\SenseNet\\Development\\Budapest\\Source\\SenseNet\\ContentRepository\\Field.cs:line 260\\n   at SenseNet.Portal.OData.ODataFormatter.WriteContentProperty(String path, String propertyName, Boolean rawValue, PortalContext portalContext, ODataRequest req) in C:\\Dev10\\SenseNet\\Development\\Budapest\\Source\\SenseNet\\Portal\\OData\\ODataFormatter.cs:line 271\\n   at SenseNet.Portal.OData.ODataHandler.ProcessRequest(HttpContext context, String httpMethod, Stream inputStream) in C:\\Dev10\\SenseNet\\Development\\Budapest\\Source\\SenseNet\\Portal\\OData\\ODataHandler.cs:line 116\\n=====================\\n"
-        //        }
-        //    }
-        // }
+        /// <summary>
+        /// Gets or sets the code of the error.
+        /// </summary>
         [JsonProperty(PropertyName="code", Order=1)]
         public string Code { get; set; }
+        /// <summary>
+        /// Gets or sets the (not fully qualified) type name of the exception.
+        /// </summary>
         [JsonProperty(PropertyName = "exceptiontype", Order = 2)]
         public string ExceptionType { get; set; }
+        /// <summary>
+        /// Gets or sets the message of the OData error.
+        /// </summary>
         [JsonProperty(PropertyName = "message", Order = 3)]
         public ErrorMessage Message { get; set; }
+        /// <summary>
+        /// Gets or sets all information for debugger users.
+        /// Contains the whole exception chain with messages and stack traces.
+        /// </summary>
         [JsonProperty(PropertyName = "innererror", Order = 4)]
         public StackInfo InnerError { get; set; }
     }
+    /// <summary>
+    /// Represents the message of the OData error.
+    /// </summary>
     public class ErrorMessage
     {
+        /// <summary>
+        /// Gets or sets the language code of the message (e.g. en-us).
+        /// </summary>
         [JsonProperty(PropertyName = "lang", Order = 1)]
         public string Lang { get; set; }
+        /// <summary>
+        /// Gets or sets the message of the OData error.
+        /// </summary>
         [JsonProperty(PropertyName = "value", Order = 1)]
         public string Value { get; set; }
     }
+    /// <summary>
+    /// Represents a stack trace information of the OData error.
+    /// </summary>
     public class StackInfo
     {
+        /// <summary>
+        /// Gets or sets the stack trace information of an OData error.
+        /// </summary>
         [JsonProperty(PropertyName = "trace", Order = 1)]
         public string Trace { get; set; }
     }

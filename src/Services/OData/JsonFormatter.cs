@@ -8,33 +8,57 @@ using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.Portal.OData
 {
+    /// <summary>
+    /// Defines an inherited <see cref="ODataFormatter"/> class for writing OData metadata in XML format.
+    /// </summary>
     public class XmlFormatter : ODataFormatter
     {
+        /// <inheritdoc />
+        /// <remarks>Returns with "xml" in this case.</remarks>
         public override string FormatName { get { return "xml"; } }
+        /// <inheritdoc />
+        /// <remarks>Returns with "application/xml" in this case.</remarks>
         public override string MimeType { get { return "application/xml"; } }
+        /// <inheritdoc />
         protected override void WriteMetadata(System.IO.TextWriter writer, Metadata.Edmx edmx)
         {
             edmx.WriteXml(writer);
         }
+        /// <summary>This method is not supported in this formatter.</summary>
         protected override void WriteServiceDocument(PortalContext portalContext, IEnumerable<string> names) { throw new SnNotSupportedException(); }
+        /// <summary>This method is not supported in this formatter.</summary>
         protected override void WriteSingleContent(PortalContext portalContext, Dictionary<string, object> fields) { throw new SnNotSupportedException(); }
+        /// <summary>This method is not supported in this formatter.</summary>
         protected override void WriteActionsProperty(PortalContext portalContext, ODataActionItem[] actions, bool raw) { throw new SnNotSupportedException(); }
+        /// <summary>This method is not supported in this formatter.</summary>
         protected override void WriteError(HttpContext context, Error error) { throw new SnNotSupportedException(); }
+        /// <summary>This method is not supported in this formatter.</summary>
         protected override void WriteOperationCustomResult(PortalContext portalContext, object result, int? allCount) { throw new SnNotSupportedException(); }
+        /// <summary>This method is not supported in this formatter.</summary>
         protected override void WriteMultipleContent(PortalContext portalContext, List<Dictionary<string, object>> contents, int count) { throw new SnNotSupportedException(); }
+        /// <inheritdoc />
         protected override void WriteCount(PortalContext portalContext, int count)
         {
             WriteRaw(count, portalContext);
         }
     }
+    /// <summary>
+    /// Defines an inherited <see cref="ODataFormatter"/> class for writing any OData response in JSON format.
+    /// </summary>
     public class JsonFormatter : ODataFormatter
     {
+        /// <inheritdoc />
+        /// <remarks>Returns with "json" in this case.</remarks>
         public override string FormatName { get { return "json"; } }
+        /// <inheritdoc />
+        /// <remarks>Returns with "application/json" in this case.</remarks>
         public override string MimeType { get { return "application/json"; } }
+        /// <inheritdoc />
         protected override void WriteMetadata(System.IO.TextWriter writer, Metadata.Edmx edmx)
         {
             edmx.WriteJson(writer);
         }
+        /// <inheritdoc />
         protected override void WriteServiceDocument(PortalContext portalContext, IEnumerable<string> names)
         {
             var resp = portalContext.OwnerHttpContext.Response;
@@ -43,14 +67,17 @@ namespace SenseNet.Portal.OData
             Newtonsoft.Json.JsonSerializer.Create(new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore })
                 .Serialize(resp.Output, x);
         }
+        /// <inheritdoc />
         protected override void WriteSingleContent(PortalContext portalContext, Dictionary<string, object> fields)
         {
             Write(new ODataSingleContent { FieldData = fields }, portalContext);
         }
+        /// <inheritdoc />
         protected override void WriteMultipleContent(PortalContext portalContext, List<Dictionary<string, object>> contents, int count)
         {
             Write(ODataMultipleContent.Create(contents, count), portalContext);
         }
+        /// <inheritdoc />
         protected override void WriteActionsProperty(PortalContext portalContext, ODataActionItem[] actions, bool raw)
         {
             if(raw)
@@ -58,6 +85,7 @@ namespace SenseNet.Portal.OData
             else
                 Write(new ODataSingleContent { FieldData = new Dictionary<string, object> { { ODataHandler.PROPERTY_ACTIONS, actions } } }, portalContext);
         }
+        /// <inheritdoc />
         protected override void WriteOperationCustomResult(PortalContext portalContext, object result, int? allCount)
         {
             var dictionaryList = result as List<Dictionary<string, object>>;
@@ -68,10 +96,12 @@ namespace SenseNet.Portal.OData
             }
             Write(result, portalContext);
         }
+        /// <inheritdoc />
         protected override void WriteCount(PortalContext portalContext, int count)
         {
             WriteRaw(count, portalContext);
         }
+        /// <inheritdoc />
         protected override void WriteError(HttpContext context, Error error)
         {
             var settings = new JsonSerializerSettings
@@ -86,19 +116,36 @@ namespace SenseNet.Portal.OData
             context.Response.ContentType = "application/json;odata=verbose;charset=utf-8";
         }
     }
+    /// <summary>
+    /// Defines an inherited <see cref="ODataFormatter"/> class for writing any OData response in verbose JSON format.
+    /// </summary>
     public class VerbodeJsonFormatter : JsonFormatter
     {
+        /// <inheritdoc />
+        /// <remarks>Returns with "verbosejson" in this case.</remarks>
         public override string FormatName { get { return "verbosejson"; } }
+        /// <inheritdoc />
+        /// <remarks>Returns with "application/json;odata=verbose" in this case.</remarks>
         public override string MimeType { get { return "application/json;odata=verbose"; } }
     }
+    /// <summary>
+    /// Defines an inherited <see cref="ODataFormatter"/> class for writing OData objects in a simple HTML TABLE format.
+    /// Designed for debug and test purposes only.
+    /// </summary>
     public class TableFormatter : ODataFormatter
     {
+        /// <inheritdoc />
+        /// <remarks>Returns with "table" in this case.</remarks>
         public override string FormatName { get { return "table"; } }
+        /// <inheritdoc />
+        /// <remarks>Returns with "application/html" in this case.</remarks>
         public override string MimeType { get { return "text/html"; } }
+        /// <summary>This method is not supported in this formatter.</summary>
         protected override void WriteMetadata(System.IO.TextWriter writer, Metadata.Edmx edmx)
         {
             throw new SnNotSupportedException("Table formatter does not support metadata writing.");
         }
+        /// <inheritdoc />
         protected override void WriteServiceDocument(PortalContext portalContext, IEnumerable<string> names)
         {
             var resp = portalContext.OwnerHttpContext.Response;
@@ -113,6 +160,7 @@ namespace SenseNet.Portal.OData
             }
             WriteEnd(resp);
         }
+        /// <inheritdoc />
         protected override void WriteSingleContent(PortalContext portalContext, Dictionary<string, object> fields)
         {
             var resp = portalContext.OwnerHttpContext.Response;
@@ -159,6 +207,7 @@ namespace SenseNet.Portal.OData
             }
             WriteEnd(resp);
         }
+        /// <inheritdoc />
         protected override void WriteMultipleContent(PortalContext portalContext, List<Dictionary<string, object>> contents, int count)
         {
             var resp = portalContext.OwnerHttpContext.Response;
@@ -254,6 +303,7 @@ namespace SenseNet.Portal.OData
             resp.Write("</body>\n");
             resp.Write("</html>\n");
         }
+        /// <inheritdoc />
         protected override void WriteActionsProperty(PortalContext portalContext, ODataActionItem[] actions, bool raw)
         {
             // raw parameter isn't used
@@ -270,14 +320,17 @@ namespace SenseNet.Portal.OData
 
             WriteMultipleContent(portalContext, data, actions.Length);
         }
+        /// <summary>This method is not supported in this formatter.</summary>
         protected override void WriteOperationCustomResult(PortalContext portalContext, object result, int? allCount)
         {
             throw new NotSupportedException("TableFormatter supports only a Content or an IEnumerable<Content> as an operation result.");
         }
+        /// <inheritdoc />
         protected override void WriteCount(PortalContext portalContext, int count)
         {
             WriteRaw(count, portalContext);
         }
+        /// <inheritdoc />
         protected override void WriteError(HttpContext context, Error error)
         {
             var resp = context.Response;

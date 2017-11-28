@@ -10,11 +10,19 @@ using SenseNet.Portal.Virtualization;
 
 namespace SenseNet.Portal.OData.Typescript
 {
+    /// <summary>
+    /// Defines an inherited <see cref="ODataFormatter"/> class for writing OData metadata in TypeScript format.
+    /// </summary>
     public class TypescriptFormatter : JsonFormatter
     {
+        /// <inheritdoc />
+        /// <remarks>Returns with "typescript" in this case.</remarks>
         public override string FormatName { get { return "typescript"; } }
+        /// <inheritdoc />
+        /// <remarks>Returns with "text/x-typescript" in this case.</remarks>
         public override string MimeType { get { return "text/x-typescript"; } }
 
+        /// <inheritdoc />
         protected override void WriteMetadata(System.IO.TextWriter writer, Metadata.Edmx edmx)
         {
             var requestedModule = HttpContext.Current.Request["module"]?.ToLowerInvariant();
@@ -50,11 +58,17 @@ namespace SenseNet.Portal.OData.Typescript
                         + ". Valid names: enums, complextypes, contenttypes, resources, schemas, fieldsettings.");
             }
         }
+        /// <summary>This method is not supported in this formatter.</summary>
         protected override void WriteServiceDocument(PortalContext portalContext, IEnumerable<string> names) { throw new SnNotSupportedException(); }
+        /// <summary>This method is not supported in this formatter.</summary>
         protected override void WriteSingleContent(PortalContext portalContext, Dictionary<string, object> fields) { throw new SnNotSupportedException(); }
+        /// <summary>This method is not supported in this formatter.</summary>
         protected override void WriteActionsProperty(PortalContext portalContext, ODataActionItem[] actions, bool raw) { throw new SnNotSupportedException(); }
+        /// <summary>This method is not supported in this formatter.</summary>
         protected override void WriteOperationCustomResult(PortalContext portalContext, object result, int? allCount) { throw new SnNotSupportedException(); }
+        /// <summary>This method is not supported in this formatter.</summary>
         protected override void WriteMultipleContent(PortalContext portalContext, List<Dictionary<string, object>> contents, int count) { throw new SnNotSupportedException(); }
+        /// <inheritdoc />
         protected override void WriteCount(PortalContext portalContext, int count)
         {
             WriteRaw(count, portalContext);
