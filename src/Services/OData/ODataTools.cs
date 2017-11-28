@@ -101,17 +101,17 @@ namespace SenseNet.Portal.OData
         {
             return GetActionsWithScenario(content, request).Select(a => new ODataActionItem
             {
-                Name = a.Key,
-                DisplayName = SNSR.GetString(a.Value.Action.Text),
-                Icon = a.Value.Action.Icon,
-                Index = a.Value.Action.Index,
-                Url = a.Value.Action.Uri,
-                IncludeBackUrl = a.Value.Action.GetApplication() == null ? 0 : (int)a.Value.Action.GetApplication().IncludeBackUrl,
-                ClientAction = !string.IsNullOrEmpty((a.Value.Action as ClientAction)?.Callback),
-                Forbidden = a.Value.Action.Forbidden,
-                IsODataAction = a.Value.Action.IsODataOperation,
-                ActionParameters = a.Value.Action.ActionParameters.Select(p => p.Name).ToArray(),
-                Scenario = a.Value.Scenario
+                Name = a.Action.Name,
+                DisplayName = SNSR.GetString(a.Action.Text),
+                Icon = a.Action.Icon,
+                Index = a.Action.Index,
+                Url = a.Action.Uri,
+                IncludeBackUrl = a.Action.GetApplication() == null ? 0 : (int)a.Action.GetApplication().IncludeBackUrl,
+                ClientAction = !string.IsNullOrEmpty((a.Action as ClientAction)?.Callback),
+                Forbidden = a.Action.Forbidden,
+                IsODataAction = a.Action.IsODataOperation,
+                ActionParameters = a.Action.ActionParameters.Select(p => p.Name).ToArray(),
+                Scenario = a.Scenario
             });
         }
 
@@ -121,7 +121,7 @@ namespace SenseNet.Portal.OData
             public string Scenario { get; set; }
         }
 
-        private static IDictionary<string, ScenarioAction> GetActionsWithScenario(Content content, ODataRequest request)
+        private static IEnumerable<ScenarioAction> GetActionsWithScenario(Content content, ODataRequest request)
         {
             // Use the back url provided by the client. If it is empty, use
             // the url of the caller page (the referrer provided by ASP.NET).
@@ -137,12 +137,12 @@ namespace SenseNet.Portal.OData
                 backUrl = HttpContext.Current.Request.UrlReferrer.ToString();
             }
 
-            var scenarioActions = new Dictionary<string, ScenarioAction>();
+            var scenarioActions = new List<ScenarioAction>();
             var scenario = request?.Scenario;
             var actions = ActionFramework.GetActions(content, scenario, string.IsNullOrEmpty(backUrl) ? null : backUrl);
             foreach (var action in actions)
             {
-                scenarioActions.Add(action.Name, new ScenarioAction
+                scenarioActions.Add(new ScenarioAction
                 {
                     Action = action,
                     Scenario = scenario
