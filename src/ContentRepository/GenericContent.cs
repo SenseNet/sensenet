@@ -21,27 +21,112 @@ using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository
 {
-    public enum SavingMode { RaiseVersion, RaiseVersionAndLock, KeepVersion, KeepVersionAndLock, StartMultistepSave }
-    public enum CheckInCommentsMode { None, Recommended, Compulsory }
+    /// <summary>
+    /// Defines constants for content-saving algorithm selection.
+    /// </summary>
+    public enum SavingMode
+    {
+        /// <summary>After saving, the content will have a new higher version.
+        /// The value of the new version is depends from the current VersioningMode.</summary>
+        RaiseVersion,
+        /// <summary>After saving, the content will have a new higher version and will be locked for the current user.
+        /// The value of the new version is depends from the current VersioningMode.</summary>
+        RaiseVersionAndLock,
+        /// <summary>After saving, the content's version will not be changed.</summary>
+        KeepVersion,
+        /// <summary>After saving, the content's version will not be changed but will be locked for the current user.</summary>
+        KeepVersionAndLock,
+        /// <summary>After saving, the content will be in multistep saving state.</summary>
+        StartMultistepSave
+    }
 
-    public enum PathUsageMode { InFolderAnd, InTreeAnd, InFolderOr, InTreeOr, NotUsed };
+    /// <summary>
+    /// Defines constants for the checkin comment policy of the current content during execution of the CheckiIn action.
+    /// </summary>
+    public enum CheckInCommentsMode
+    {
+        /// <summary>The policy is not defined.</summary>
+        None,
+        /// <summary>The checkin comment is not required but recommended.</summary>
+        Recommended,
+        /// <summary>The checkin comment is required.</summary>
+        Compulsory
+    }
+
+    /// <summary>
+    /// Defines constants for the Path interpretation mode in the programmed content queries.
+    /// </summary>
+    public enum PathUsageMode
+    {
+        /// <summary>Shallow search concatenated with AND operator. Pattern: ({original query}) AND InFolder:{Path}.</summary>
+        InFolderAnd,
+        /// <summary>Deep search concatenated with AND operator. Pattern: ({original query}) AND InTree:{Path}.</summary>
+        InTreeAnd,
+        /// <summary>Shallow search concatenated with OR operator. Pattern: ({original query}) OR InFolder:{Path}.</summary>
+        InFolderOr,
+        /// <summary>Deep search concatenated with OR operator. Pattern: ({original query}) OR InTree:{Path}.</summary>
+        InTreeOr,
+        /// <summary>Not defined</summary>
+        NotUsed
+    }
+
+    /// <summary>
+    /// Represents an abstraction of the current content's children collection.
+    /// </summary>
     public class ChildrenDefinition
     {
+        /// <summary>
+        /// Shortcut for general usage.
+        /// </summary>
         public static ChildrenDefinition Default { get { return new ChildrenDefinition { PathUsage = PathUsageMode.InFolderAnd }; } }
+
+        /// <summary>
+        /// Gets or sets the value of the owner content's path interpretation mode.
+        /// </summary>
         public PathUsageMode PathUsage { get; set; }
+        /// <summary>
+        /// Gets or sets the CQL text if the children are produced by a content query.
+        /// Not affected if the BaseCollection property is not null.
+        /// </summary>
         public string ContentQuery { get; set; }
+
+        /// <summary>
+        /// Gets or sets a predefined children collection.
+        /// Eliminates the ContentQuery property if the value is not null.
+        /// </summary>
         public IEnumerable<Node> BaseCollection { get; set; }
 
+        /// <summary>
+        /// Gets or sets the extension value of the query result maximization for the Content Query property.
+        /// </summary>
         public int Top { get; set; }
+        /// <summary>
+        /// Gets or sets the extension value of the skipped items for the Content Query property.
+        /// </summary>
         public int Skip { get; set; }
+        /// <summary>
+        /// Gets or sets the sorting extension for the Content Query property.
+        /// </summary>
         public IEnumerable<SortInfo> Sort { get; set; }
+        /// <summary>
+        /// Gets or sets the value for the ContentQuery property that is true if the Count property of the query result contains the total count of hits.
+        /// </summary>
         public bool? CountAllPages { get; set; }
+        /// <summary>
+        /// Gets or sets the auto filter extension value for the Content Query property. See: <see cref="FilterStatus"/>.
+        /// </summary>
         public FilterStatus EnableAutofilters { get; set; }
+        /// <summary>
+        /// Gets or sets the lifespan filter extension value for the Content Query property. See: <see cref="FilterStatus"/>.
+        /// </summary>
         public FilterStatus EnableLifespanFilter { get; set; }
+        /// <summary>
+        /// Gets or sets the <see cref="SenseNet.Search.QueryExecutionMode"/> extension value for the Content Query property.
+        /// </summary>
         public QueryExecutionMode QueryExecutionMode { get; set; }
 
         /// <summary>
-        /// Calculated property: true if PathUsage is InTreeAnd or InTreeOr
+        /// Gets or sets the value that is true if the value of the PathUsage property is InTreeAnd or InTreeOr.
         /// </summary>
         public bool AllChildren
         {
@@ -92,16 +177,29 @@ namespace SenseNet.ContentRepository
         }
     }
 
+    /// <summary>
+    /// Represents a collection of all <see cref="ContentType"/>s.
+    /// </summary>
     public class AllContentTypes : IEnumerable<ContentType>
     {
+        /// <summary>
+        /// Returns count of all <see cref="ContentType"/>s.
+        /// </summary>
+        /// <returns></returns>
         public int Count()
         {
             return ContentTypeManager.Current.ContentTypes.Count;
         }
+        /// <summary>
+        /// Returns with true.
+        /// </summary>
         public bool Contains(ContentType item)
         {
             return true;
         }
+        /// <summary>
+        /// Returns an enumerator that iterates through the collection.
+        /// </summary>
         public IEnumerator<ContentType> GetEnumerator()
         {
             return ContentTypeManager.Current.ContentTypes.Values.GetEnumerator();
@@ -112,16 +210,30 @@ namespace SenseNet.ContentRepository
             return GetEnumerator();
         }
     }
+
+    /// <summary>
+    /// Represents a collection of all <see cref="ContentType"/> names.
+    /// </summary>
     public class AllContentTypeNames : IEnumerable<string>
     {
+        /// <summary>
+        /// Returns count of all <see cref="ContentType"/>s.
+        /// </summary>
+        /// <returns></returns>
         public int Count()
         {
             return ContentTypeManager.Current.ContentTypes.Count;
         }
+        /// <summary>
+        /// Returns with true.
+        /// </summary>
         public bool Contains(ContentType item)
         {
             return true;
         }
+        /// <summary>
+        /// Returns an enumerator that iterates through the collection.
+        /// </summary>
         public IEnumerator<string> GetEnumerator()
         {
             return ContentTypeManager.Current.ContentTypes.Keys.GetEnumerator();
@@ -133,6 +245,9 @@ namespace SenseNet.ContentRepository
         }
     }
 
+    /// <summary>
+    /// Defines a class that can handle all types of content (except <see cref="Schema.ContentType"/>) in the sensenet content repository.
+    /// </summary>
     [ContentHandler]
     public class GenericContent : Node, IIndexableDocument
     {
