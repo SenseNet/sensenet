@@ -1873,6 +1873,14 @@ namespace SenseNet.ContentRepository.Storage
             return new List<VersionNumber>(DataProvider.Current.GetVersionNumbers(path));
         }
 
+        /// <summary>
+        /// Returns collection of all permitted versions of this node identified by Id.
+        /// The current user need to have minimum <see cref="PermissionType.Open"/> and 
+        /// <see cref="PermissionType.RecallOldVersion"/> permission. In this case the collection
+        /// contains the all public versions. If the <see cref="PermissionType.OpenMinor"/> also 
+        /// permitted, the all versions will be returned. If the user does not have the minimal
+        /// permissions, a <see cref="SenseNetSecurityException"/> will be thrown. 
+        /// </summary>
         public IEnumerable<Node> LoadVersions()
         {
             Security.Assert(PermissionType.RecallOldVersion, PermissionType.Open);
