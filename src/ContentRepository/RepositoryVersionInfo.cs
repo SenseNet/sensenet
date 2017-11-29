@@ -6,6 +6,7 @@ using SenseNet.ContentRepository.Storage;
 using System.Reflection;
 using SenseNet.Communication.Messaging;
 using SenseNet.Packaging;
+using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository
 {
@@ -121,6 +122,54 @@ namespace SenseNet.ContentRepository
                     return;
                 RepositoryVersionInfo.ResetPrivate();
             }
+        }
+
+        //UNDONE: call this when the repository starts
+        // (or during site start?)
+        public static void CheckAssemblyVersions()
+        {
+            foreach (var versionCheckerType in TypeResolver.GetTypesByInterface(typeof(IVersionChecker)))
+            {
+                var versionChecker = TypeResolver.CreateInstance(versionCheckerType.FullName) as IVersionChecker;
+                if (versionChecker?.IsComponentAllowed() ?? true)
+                    continue;
+
+                throw new ApplicationException($"Component and assembly version mismatch. Component {versionChecker.ComponentId} is not allowed to run. Please check the available ugrades before starting the repository.");
+            }
+        }
+    }
+
+    //UNDONE: move this to a separate file
+    public interface IVersionChecker
+    {
+        string ComponentId { get; }
+        bool IsComponentAllowed();
+    }
+    
+    //UNDONE: move this to the Services library
+    public class ServicesVersionChecker : IVersionChecker
+    {
+        public string ComponentId => "SenseNet.Services";
+        public bool IsComponentAllowed()
+        {
+            //var repoAssembly = RepositoryVersionInfo.Instance.Assemblies.SenseNet.FirstOrDefault(a =>
+            //    a.Name.StartsWith("SenseNet.ContentRepository, "));
+            //if (repoAssembly == null)
+            //    throw new InvalidOperationException("ContentRepository assembly not found.");
+            //var version = repoAssembly.Version.Substring()
+            
+            var assemblyVersion = TypeHandler.GetVersion(Assembly.GetExecutingAssembly());
+            var componentVersion = RepositoryVersionInfo.Instance.Components
+                .FirstOrDefault(c => c.ComponentId == ComponentId)?.Version;
+
+            //TODO: compare versions. Important: library version may be different from the component version (?).
+            // Need to come up with a correct decision-making algorithm here, this may be too restrictive.
+
+            // For example: this is in the source code. The assembly knows perfectly well the component
+            // version that it is compatible with. Maybe we should say here 'allowed if component version if bigger than xxxxxxx'.
+            // Otherwise we would have to keep dll and snadmin manifest version in sync (which may be a good thing, dunno).
+
+            return componentVersion == assemblyVersion;
         }
     }
 }
