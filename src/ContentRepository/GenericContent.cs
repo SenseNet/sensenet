@@ -1575,7 +1575,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Moves this Content to the Trash if possible, otherwise deletes it physically.
+        /// Moves this Content and the whole subtree to the Trash if possible, otherwise deletes it physically.
         /// </summary>
         public override void Delete()
         {
@@ -1583,7 +1583,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Moves this Content to the Trash if possible, otherwise deletes it physically.
+        /// Moves this Content and the whole subtree to the Trash if possible, otherwise deletes it physically.
         /// </summary>
         /// <param name="bypassTrash">Specifies whether the moving to Trash should be tried or not.</param>
         public virtual void Delete(bool bypassTrash)
