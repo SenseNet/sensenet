@@ -81,18 +81,18 @@ namespace SenseNet.ContentRepository
         // ================================================================================= Construction
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ContentType"/> class.
+        /// Initializes a new instance of the <see cref="Aspect"/> class.
         /// </summary>
         /// <param name="parent">The parent.</param>
         public Aspect(Node parent) : this(parent, null) { }
         /// <summary>
-        /// Initializes a new instance of the <see cref="GenericContent"/> class.
+        /// Initializes a new instance of the <see cref="Aspect"/> class.
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <param name="nodeTypeName">Name of the node type.</param>
         public Aspect(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
         /// <summary>
-        /// Initializes a new instance of the <see cref="GenericContent"/> class in the loading procedure.
+        /// Initializes a new instance of the <see cref="Aspect"/> class in the loading procedure.
         /// Do not use this constructor directly from your code.
         /// </summary>
         protected Aspect(NodeToken nt) : base(nt) { }

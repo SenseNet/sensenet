@@ -54,7 +54,7 @@ namespace  SenseNet.ContentRepository.Schema
         /// <param name="parent">The parent.</param>
         public ContentType(Node parent) : this(parent, null) { }
         /// <summary>
-        /// Initializes a new instance of the <see cref="GenericContent"/> class.
+        /// Initializes a new instance of the <see cref="ContentType"/> class.
         /// Do not use this constructor directly from your code.
         /// </summary>
         /// <param name="parent">The parent.</param>
@@ -64,7 +64,7 @@ namespace  SenseNet.ContentRepository.Schema
             Initialize();
         }
         /// <summary>
-        /// Initializes a new instance of the <see cref="GenericContent"/> class in the loading procedure.
+        /// Initializes a new instance of the <see cref="ContentType"/> class in the loading procedure.
         /// Do not use this constructor directly from your code.
         /// </summary>
         protected ContentType(NodeToken nt) : base(nt)
@@ -933,22 +933,13 @@ namespace  SenseNet.ContentRepository.Schema
             get { return base.GetChildCount(); }
         }
 
-        /// <summary>
-        /// Returns query result of this Content's children.
-        /// </summary>
-        /// <param name="settings">A <see cref="QuerySettings"/> that extends the base query.</param>
-        /// <returns>The <see cref="QueryResult"/> instance.</returns>
+        /// <inheritdoc />
         public virtual QueryResult GetChildren(QuerySettings settings)
         {
             return GetChildren(string.Empty, settings);
         }
 
-        /// <summary>
-        /// Returns query result of this Content's children.
-        /// </summary>
-        /// <param name="text">An additional filter clause.</param>
-        /// <param name="settings">A <see cref="QuerySettings"/> that extends the base query.</param>
-        /// <returns>The <see cref="QueryResult"/> instance.</returns>
+        /// <inheritdoc />
         public virtual QueryResult GetChildren(string text, QuerySettings settings)
         {
             return GetChildren(text, settings, false);
