@@ -1065,8 +1065,11 @@ namespace  SenseNet.ContentRepository.Schema
             return this.Name;
         }
 
-        //UNDONE:! XMLDOC:
-        public static string TraceContentSchema()
+        /// <summary>
+        /// Provides information about <see cref="ContentType"/> 
+        /// inheritance hierarchy for debugger users only.
+        /// </summary>
+        public static string TraceContentSchema() //UNDONE: Be private or internal.
         {
             return ContentTypeManager.Current.TraceContentSchema();
         }
