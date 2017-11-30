@@ -1342,7 +1342,12 @@ namespace SenseNet.ContentRepository
             return String.Empty;
         }
 
-        //UNDONE:! XMLDOC:
+        /// <summary>
+        /// Tool method that returns information about inconsistent elements in this subtree.
+        /// Checks whether every Content in this subtree meets the allowed child types.
+        /// Every difference is recorded in a tab separated table.
+        /// </summary>
+        /// <returns>String containing a tab separated table of the inconsistent elements.</returns>
         public string CheckChildrenTypeConsistence()
         {
             var result = new StringBuilder();
@@ -1366,13 +1371,22 @@ namespace SenseNet.ContentRepository
 
         // =============================================================================================
 
-        //UNDONE:! XMLDOC:
+        /// <summary>
+        /// Returns the list of all <see cref="FieldSetting"/>s by this Content's allowed child types.
+        /// Every <see cref="FieldSetting"/>'s root version of the inheritance chain is the relevant.
+        /// </summary>
+        /// <returns>The collected list of <see cref="FieldSetting"/>s</returns>
         public virtual List<FieldSetting> GetAvailableFields()
         {
             return GetAvailableFields(true);
         }
 
-        //UNDONE:! XMLDOC:
+        /// <summary>
+        /// Returns the list of all <see cref="FieldSetting"/>s by this Content's allowed child types.
+        /// </summary>
+        /// <param name="rootFields">Boolean value that specifies whether the currently overridden <see cref="FieldSetting"/>
+        /// or root version of the inheritance chain is the relevant.</param>
+        /// <returns>The collected list of <see cref="FieldSetting"/>s</returns>
         public virtual List<FieldSetting> GetAvailableFields(bool rootFields)
         {
             var availableFields = new List<FieldSetting>();
@@ -1382,13 +1396,22 @@ namespace SenseNet.ContentRepository
             return availableFields;
         }
 
-        //UNDONE:! XMLDOC:
+        /// <summary>
+        /// Collects all <see cref="FieldSetting"/>s by this Content's allowed child types.
+        /// Every <see cref="FieldSetting"/>'s root version of the inheritance chain is the relevant.
+        /// </summary>
+        /// <param name="availableFields">Output collection of <see cref="FieldSetting"/>s. Does not contain duplicates.</param>
         protected void GetAvailableContentTypeFields(ICollection<FieldSetting> availableFields)
         {
             GetAvailableContentTypeFields(availableFields, true);
         }
 
-        //UNDONE:! XMLDOC:
+        /// <summary>
+        /// Collects all <see cref="FieldSetting"/>s by this Content's allowed child types.
+        /// </summary>
+        /// <param name="availableFields">Output collection of <see cref="FieldSetting"/>s. Does not contain duplicates.</param>
+        /// <param name="rootFields">Boolean value that specifies whether the currently overridden <see cref="FieldSetting"/>
+        /// or root version of the inheritance chain is the relevant.</param>
         protected void GetAvailableContentTypeFields(ICollection<FieldSetting> availableFields, bool rootFields)
         {
             var contentTypes = this.GetAllowedChildTypes().ToArray();
@@ -1403,7 +1426,13 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        //UNDONE:! XMLDOC:
+        /// <summary>
+        /// Collects all <see cref="FieldSetting"/>s of the given <see cref="Schema.ContentType"/>.
+        /// </summary>
+        /// <param name="contentType">The <see cref="Schema.ContentType"/> whose <see cref="FieldSetting"/>s will be collected.</param>
+        /// <param name="availableFields">Output collection of <see cref="FieldSetting"/>s. Does not contain duplicates.</param>
+        /// <param name="rootFields">Boolean value that specifies whether the currently overridden <see cref="FieldSetting"/>
+        /// or root version of the inheritance chain is the relevant.</param>
         protected static void GetFields(ContentType contentType, ICollection<FieldSetting> availableFields, bool rootFields)
         {
             foreach (var fieldSetting in contentType.FieldSettings)
