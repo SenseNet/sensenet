@@ -27,10 +27,10 @@ namespace SenseNet.ContentRepository
     public enum SavingMode
     {
         /// <summary>After saving, the Content will have a new higher version.
-        /// The value of the new version is depends from the current VersioningMode.</summary>
+        /// The value of the new version depends on the current VersioningMode.</summary>
         RaiseVersion,
         /// <summary>After saving, the Content will have a new higher version and will be locked for the current user.
-        /// The value of the new version is depends from the current VersioningMode.</summary>
+        /// The value of the new version depends on the current VersioningMode.</summary>
         RaiseVersionAndLock,
         /// <summary>After saving, the Content's version will not be changed.</summary>
         KeepVersion,
@@ -41,7 +41,7 @@ namespace SenseNet.ContentRepository
     }
 
     /// <summary>
-    /// Defines constants for the checkin comment policy of the current Content during execution of the CheckiIn action.
+    /// Defines constants for the checkin comment policy of the current Content during execution of the CheckIn action.
     /// </summary>
     public enum CheckInCommentsMode
     {
@@ -54,7 +54,7 @@ namespace SenseNet.ContentRepository
     }
 
     /// <summary>
-    /// Defines constants for the Path interpretation mode in the programmed Content queries.
+    /// Defines constants for the Path interpretation mode in programmed Content queries.
     /// </summary>
     public enum PathUsageMode
     {
@@ -86,18 +86,20 @@ namespace SenseNet.ContentRepository
         public PathUsageMode PathUsage { get; set; }
         /// <summary>
         /// Gets or sets the CQL text if the children are produced by a Content query.
-        /// Not affected if the BaseCollection property is not null.
+        /// Not used if the BaseCollection property is not null.
         /// </summary>
         public string ContentQuery { get; set; }
 
         /// <summary>
         /// Gets or sets a predefined children collection.
-        /// Eliminates the ContentQuery property if the value is not null.
+        /// If provided, this collection will be used as child items instead of 
+        /// executing a query in the ContentQuery property.
         /// </summary>
         public IEnumerable<Node> BaseCollection { get; set; }
 
         /// <summary>
-        /// Gets or sets the extension value of the query result maximization for the Content Query property.
+        /// Gets or sets the extension value of the query result maximization for 
+        /// the Content Query property.
         /// </summary>
         public int Top { get; set; }
         /// <summary>
@@ -109,7 +111,8 @@ namespace SenseNet.ContentRepository
         /// </summary>
         public IEnumerable<SortInfo> Sort { get; set; }
         /// <summary>
-        /// Gets or sets the value for the ContentQuery property that is true if the Count property of the query result contains the total count of hits.
+        /// Gets or sets the value for the ContentQuery property that is true if the 
+        /// Count property of the query result should contain the total count of hits.
         /// </summary>
         public bool? CountAllPages { get; set; }
         /// <summary>
@@ -126,7 +129,9 @@ namespace SenseNet.ContentRepository
         public QueryExecutionMode QueryExecutionMode { get; set; }
 
         /// <summary>
-        /// Gets or sets the value that is true if the value of the PathUsage property is InTreeAnd or InTreeOr.
+        /// Gets or sets the value that determines if the query should be executed only on direct children 
+        /// or on the whole subtree (the value is true if the PathUsage property is InTreeAnd or InTreeOr, 
+        /// otherwise false).
         /// </summary>
         public bool AllChildren
         {
@@ -246,7 +251,9 @@ namespace SenseNet.ContentRepository
     }
 
     /// <summary>
-    /// Defines a class that can handle all types of Content (except <see cref="Schema.ContentType"/>) in the sensenet Content repository.
+    /// Defines a class that can handle all types of Content (except <see cref="Schema.ContentType"/>) 
+    /// in the sensenet Content Repository. Custom content handlers should inherit from this or
+    /// one of its derived classes (e.g. <see cref="Folder"/> or <see cref="Workspaces.Workspace"/>).
     /// </summary>
     [ContentHandler]
     public class GenericContent : Node, IIndexableDocument
@@ -273,8 +280,8 @@ namespace SenseNet.ContentRepository
             Initialize();
         }
         /// <summary>
-        /// Initializes a new instance of the <see cref="GenericContent"/> class in the loading procedure.
-        /// Do not use this constructor directly from your code.
+        /// Initializes a new instance of the <see cref="GenericContent"/> class during the loading process.
+        /// Do not use this constructor directly in your code.
         /// </summary>
         protected GenericContent(NodeToken nt)
             : base(nt)
@@ -292,7 +299,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Initializes the default field values if the instance is a new one.
+        /// Initializes default field values in case of a new instance that is not yet saved to the database.
         /// </summary>
         protected virtual void Initialize()
         {
@@ -315,7 +322,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Gets the <see cref="SenseNet.ContentRepository.Schema.ContentType"/> of this instance.
+        /// Gets the <see cref="Schema.ContentType"/> of this instance.
         /// </summary>
         public ContentType ContentType
         {
@@ -323,14 +330,14 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Gets whether this class is <see cref="SenseNet.ContentRepository.Schema.ContentType"/>.
-        /// The value is false in this case.
+        /// Gets whether this class is <see cref="Schema.ContentType"/>.
+        /// The value should be false in case of this and all derived classes.
         /// </summary>
         public override bool IsContentType { get { return false; } }
 
         /// <summary>
         /// Gets or sets the user friendly name of this instance.
-        /// The value in each version is the same.
+        /// The value is the same for every version of this content.
         /// </summary>
         public override string DisplayName
         {
@@ -404,7 +411,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Gets or sets the versioning mode of the new child Content.
+        /// Gets or sets the versioning mode of child Content items in this container.
         /// See the <see cref="VersioningType"/> enumeration.
         /// Persisted as <see cref="RepositoryDataType.Int"/>.
         /// </summary>
@@ -468,7 +475,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Gets or sets the approving mode of of the new child Content.
+        /// Gets or sets the approving mode of child Content items of this container.
         /// See the <see cref="ApprovingType"/> enumeration.
         /// Persisted as <see cref="RepositoryDataType.Int"/>.
         /// </summary>
@@ -502,9 +509,9 @@ namespace SenseNet.ContentRepository
         /// </summary>
         public const string ALLOWEDCHILDTYPES = "AllowedChildTypes";
         /// <summary>
-        /// Gets or sets the collection of the allowed <see cref="Schema.ContentType"/>.
-        /// The type inheritance is ignored in this case, all affected exact types have to be in the collection.
-        /// The <see cref="Schema.ContentType"/> of a new child Content need to be in the collection.
+        /// Gets or sets the collection of allowed <see cref="Schema.ContentType"/>.
+        /// The type inheritance is ignored in this case, all necessary exact types have to be in the collection.
+        /// The <see cref="Schema.ContentType"/> of a new child Content needs to be in the collection.
         /// Persisted as <see cref="RepositoryDataType.Text"/>.
         /// </summary>
         [RepositoryProperty(ALLOWEDCHILDTYPES, RepositoryDataType.Text)]
@@ -531,10 +538,13 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Gets the effective collection of the allowed <see cref="Schema.ContentType"/>.
+        /// Gets the effective collection of the allowed <see cref="Schema.ContentType"/>. Folders and
+        /// Pages will inherit their list from their parents.
         /// Contains all allowed types except that id permitted for the current user.
-        /// The type inheritance is ignored in this case, all affected exact types have to be in the collection.
+        /// The type inheritance is ignored in this case, all necessary exact types have to be in the collection.
         /// The <see cref="Schema.ContentType"/> of a new child Content need to be in the collection.
+        /// To modify this list please either modify it on the Content Type Definition globally,
+        /// or locally using the <see cref="AllowedChildTypes"/> field on this instance.
         /// </summary>
         public virtual IEnumerable<ContentType> EffectiveAllowedChildTypes
         {
@@ -631,8 +641,8 @@ namespace SenseNet.ContentRepository
 
         private GenericContent _workspace;
         /// <summary>
-        /// Gets the nearest Content in the parent chain that's ContentType is "Workspace" or inherited from it.
-        /// Returns null if there is no any Workspace in the parent chain.
+        /// Gets the nearest Content in the parent chain that is a Workspace.
+        /// Returns null if there is no Workspace in the parent chain.
         /// </summary>
         public GenericContent Workspace
         {
@@ -672,7 +682,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Gets or sets a value that is true if this Content can be moved to the Trash or not.
+        /// Gets or sets a value that is true if this Content instance cannot be moved to the Trash.
         /// Persisted as <see cref="RepositoryDataType.Int"/>.
         /// </summary>
         [RepositoryProperty("TrashDisabled", RepositoryDataType.Int)]
@@ -687,7 +697,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Gets or sets whether this instance under lifespan control or not.
+        /// Gets or sets whether this instance is under lifespan control or not.
         /// Persisted as <see cref="RepositoryDataType.Int"/>.
         /// </summary>
         [RepositoryProperty("EnableLifespan", RepositoryDataType.Int)]
@@ -698,7 +708,9 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Gets or sets the DateTime of the start of  this instance's lifespan.
+        /// Gets or sets the DateTime of the start of  this instance's lifespan. 
+        /// If <see cref="EnableLifespan"/> is set to true, this content will appear 
+        /// in query results only after the date set here.
         /// Persisted as <see cref="RepositoryDataType.DateTime"/>.
         /// </summary>
         [RepositoryProperty("ValidFrom", RepositoryDataType.DateTime)]
@@ -710,6 +722,8 @@ namespace SenseNet.ContentRepository
 
         /// <summary>
         /// Gets or sets the DateTime of the end of  this instance's lifespan.
+        /// If <see cref="EnableLifespan"/> is set to true, this content will appear 
+        /// in query results only before the date set here.
         /// Persisted as <see cref="RepositoryDataType.DateTime"/>.
         /// </summary>
         [RepositoryProperty("ValidTill", RepositoryDataType.DateTime)]
@@ -738,7 +752,7 @@ namespace SenseNet.ContentRepository
         /// </summary>
         public const string ASPECTDATA = "AspectData";
         /// <summary>
-        /// Gets or sets the all field values of all associated <see cref="Aspect"/>s.
+        /// Gets or sets all field values of all associated <see cref="Aspect"/>s.
         /// Persisted as <see cref="RepositoryDataType.Text"/>.
         /// </summary>
         [RepositoryProperty(ASPECTDATA, RepositoryDataType.Text)]
@@ -749,7 +763,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Gets true if the inherited class implements the <see cref="IFolder"/> interface.
+        /// Returns true if the current class implements the <see cref="IFolder"/> interface.
         /// </summary>
         public bool IsFolder
         {
@@ -781,8 +795,9 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Gets true if this instance is enabled to indexing.
-        /// This is shortcut of similar property of the current ContentType.
+        /// Returns true if indexing is enabled on this instance.
+        /// This is a shortcut for a similar property of the current ContentType. 
+        /// Inherited content handlers may customize this value.
         /// </summary>
         protected override bool IsIndexingEnabled
         {
@@ -794,7 +809,9 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Returns a property value by name. Well known and dynamic properties also can accessed.
+        /// Returns a property value by name. Well-known and dynamic properties can also be accessed here.
+        /// In derived content handlers this should be overridden and in case of local strongly typed
+        /// properties return their value - otherwise call the base implementation.
         /// </summary>
         public virtual object GetProperty(string name)
         {
@@ -859,7 +876,9 @@ namespace SenseNet.ContentRepository
             }
         }
         /// <summary>
-        /// Assigns the given value to the named property. Well known and dynamic properties also can accessed.
+        /// Assigns the given value to the named property. Well-known and dynamic properties can also be set.
+        /// In derived content handlers this should be overridden and in case of local strongly typed
+        /// properties set their value - otherwise call the base implementation.
         /// </summary>
         public virtual void SetProperty(string name, object value)
         {
@@ -915,13 +934,13 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Returns the collection of the referrers from the following properties:
+        /// Returns Content items that refer this instance in one of the following properties:
         /// CreatedById, ModifiedById, VersionCreatedById, VersionModifiedById, LockedById.
-        /// The collection does not contain any referrers in the dynamic reference properties.
+        /// The collection does not contain any referrers in dynamic reference properties.
         /// This Content is also excluded from the collection.
         /// </summary>
         /// <param name="top">Maximum count of the collection</param>
-        /// <param name="totalCount">Output value of the total count of the referrers regardless the value of the "top" parameter.</param>
+        /// <param name="totalCount">Output value of the total count of referrers regardless the value of the "top" parameter.</param>
         /// <returns>An IEnumerable&lt;<see cref="Node"/>&gt;</returns>
         protected override IEnumerable<Node> GetReferrers(int top, out int totalCount)
         {
@@ -936,8 +955,8 @@ namespace SenseNet.ContentRepository
 
         /// <summary>
         /// Returns the effective collection of the allowed <see cref="Schema.ContentType"/> names.
-        /// Contains all allowed type names except that are not permitted for the current user.
-        /// The type inheritance is ignored in this case, all affected exact types have to be in the collection.
+        /// Contains all allowed type names except the ones that are not permitted for the current user.
+        /// The type inheritance is ignored in this case, all necessary exact types have to be in the collection.
         /// The <see cref="Schema.ContentType"/> of a new child Content need to be in the collection.
         /// </summary>
         public IEnumerable<string> GetAllowedChildTypeNames()
@@ -993,9 +1012,10 @@ namespace SenseNet.ContentRepository
             return names;
         }
         /// <summary>
-        /// Returns the effective collection of the allowed <see cref="Schema.ContentType"/>.
-        /// Contains all allowed types except that are not permitted for the current user.
-        /// The type inheritance is ignored in this case, all affected exact types have to be in the collection.
+        /// Returns the effective collection of the allowed <see cref="Schema.ContentType"/>. Folders and
+        /// Pages will inherit their list from their parents.
+        /// Contains all allowed types except the ones that are not permitted for the current user.
+        /// The type inheritance is ignored in this case, all necessary exact types have to be in the collection.
         /// The <see cref="Schema.ContentType"/> of a new child Content need to be in the collection.
         /// </summary>
         public IEnumerable<ContentType> GetAllowedChildTypes()
@@ -1046,7 +1066,8 @@ namespace SenseNet.ContentRepository
             return types;
         }
         /// <summary>
-        /// Returns true if the current user can create a Content by the given <see cref="Schema.ContentType"/> name.
+        /// Returns true if the current user can create a Content by the given <see cref="Schema.ContentType"/> name 
+        /// under this container.
         /// </summary>
         public bool IsAllowedChildType(string contentTypeName)
         {
@@ -1056,7 +1077,8 @@ namespace SenseNet.ContentRepository
             return list.Contains(contentTypeName);
         }
         /// <summary>
-        /// Returns true if the current user can create a Content by the given <see cref="Schema.ContentType"/>.
+        /// Returns true if the current user can create a Content by the given <see cref="Schema.ContentType"/>
+        /// under this container.
         /// </summary>
         public bool IsAllowedChildType(ContentType contentType)
         {
@@ -1064,7 +1086,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Defines constans for the verification of the child type.
+        /// Defines constants for the verification of the child type.
         /// </summary>
         public enum TypeAllow //UNDONE: Make obsolete. Be private.
         {
@@ -1172,14 +1194,14 @@ namespace SenseNet.ContentRepository
             }
         }
         /// <summary>
-        /// Allow type of children by the given parameters.
-        /// The original list will be expanded to the given <see cref="SenseNet.ContentRepository.Schema.ContentType"/>>.
+        /// Allow a child type by the given parameters.
+        /// The original list will be extended by the given <see cref="Schema.ContentType"/>>.
         /// </summary>
         /// <param name="contentTypeName">The name of the allowed <see cref="Schema.ContentType"/>.</param>
-        /// <param name="setOnAncestorIfInherits">Optional parameter.
-        /// If true, inherited types of the "contentType" also added to allowed list.
-        /// Default: false.</param>
-        /// <param name="throwOnError">Specifies whether an error will be thrown when the operation is unsuccessful. Optional, default: true.</param>
+        /// <param name="setOnAncestorIfInherits">If set to true and the current Content is a Folder or Page (meaning the allowed type list is inherited),
+        /// the provided content type will be added to the parent's list.
+        /// Optional parameter. Default: false.</param>
+        /// <param name="throwOnError">Specifies whether an error should be thrown when the operation is unsuccessful. Optional, default: true.</param>
         /// <param name="save">Optional parameter that is true if the Content will be saved automatically after setting the new collection.
         /// Default: false</param>
         public void AllowChildType(string contentTypeName, bool setOnAncestorIfInherits = false, bool throwOnError = true, bool save = false)
@@ -1187,14 +1209,14 @@ namespace SenseNet.ContentRepository
             AllowChildTypes(new[] { contentTypeName }, setOnAncestorIfInherits, throwOnError, save);
         }
         /// <summary>
-        /// Allow type of children by the given parameters.
-        /// The original list will be expanded to the given <see cref="SenseNet.ContentRepository.Schema.ContentType"/>>.
+        /// Allow a child type by the given parameters.
+        /// The original list will be extended by the given <see cref="Schema.ContentType"/>>.
         /// </summary>
         /// <param name="contentType">The allowed <see cref="Schema.ContentType"/>.</param>
-        /// <param name="setOnAncestorIfInherits">Optional parameter.
-        /// If true, inherited types of the "contentType" also added to allowed list.
-        /// Default: false.</param>
-        /// <param name="throwOnError">Specifies whether an error will be thrown when the operation is unsuccessful. Optional, default: true.</param>
+        /// <param name="setOnAncestorIfInherits">If set to true and the current Content is a Folder or Page (meaning the allowed type list is inherited),
+        /// the provided content type will be added to the parent's list.
+        /// Optional parameter. Default: false.</param>
+        /// <param name="throwOnError">Specifies whether an error should be thrown when the operation is unsuccessful. Optional, default: true.</param>
         /// <param name="save">Optional parameter that is true if the Content will be saved automatically after setting the new collection.
         /// Default: false</param>
         public void AllowChildType(ContentType contentType, bool setOnAncestorIfInherits = false, bool throwOnError = true, bool save = false)
@@ -1202,14 +1224,14 @@ namespace SenseNet.ContentRepository
             AllowChildTypes(new[] { contentType }, setOnAncestorIfInherits, throwOnError, save);
         }
         /// <summary>
-        /// Allow types of children by the given parameters.
-        /// The original list will be expanded to the given collection.
+        /// Allow child types by the given parameters.
+        /// The original list will be extended by the given collection.
         /// </summary>
         /// <param name="contentTypeNames">The name collection of the allowed <see cref="Schema.ContentType"/>s.</param>
-        /// <param name="setOnAncestorIfInherits">Optional parameter.
-        /// If true, all inherited types of the items in "contentType" collection also added to allowed list.
-        /// Default: false.</param>
-        /// <param name="throwOnError">Specifies whether an error will be thrown when the operation is unsuccessful. Optional, default: true.</param>
+        /// <param name="setOnAncestorIfInherits">If set to true and the current Content is a Folder or Page (meaning the allowed type list is inherited),
+        /// the provided content types will be added to the parent's list.
+        /// Optional parameter. Default: false.</param>
+        /// <param name="throwOnError">Specifies whether an error should be thrown when the operation is unsuccessful. Optional, default: true.</param>
         /// <param name="save">Optional parameter that is true if the Content will be saved automatically after setting the new collection.
         /// Default: false</param>
         public void AllowChildTypes(IEnumerable<string> contentTypeNames, bool setOnAncestorIfInherits = false, bool throwOnError = true, bool save = false)
@@ -1218,13 +1240,13 @@ namespace SenseNet.ContentRepository
         }
         /// <summary>
         /// Allow types of children by the given parameters.
-        /// The original list will be expanded to the given collection.
+        /// The original list will be extended by the given collection.
         /// </summary>
         /// <param name="contentTypes">The new collection of the allowed <see cref="Schema.ContentType"/>.</param>
-        /// <param name="setOnAncestorIfInherits">Optional parameter.
-        /// If true, all inherited types of the items in "contentType" collection also added to allowed list.
-        /// Default: false.</param>
-        /// <param name="throwOnError">Specifies whether an error will be thrown when the operation is unsuccessful. Optional, default: true.</param>
+        /// <param name="setOnAncestorIfInherits">If set to true and the current Content is a Folder or Page (meaning the allowed type list is inherited),
+        /// the provided content types will be added to the parent's list.
+        /// Optional parameter. Default: false.</param>
+        /// <param name="throwOnError">Specifies whether an error should be thrown when the operation is unsuccessful. Optional, default: true.</param>
         /// <param name="save">Optional parameter that is true if the Content will be saved automatically after setting the new collection.
         /// Default: false</param>
         public void AllowChildTypes(IEnumerable<ContentType> contentTypes, bool setOnAncestorIfInherits = false, bool throwOnError = true, bool save = false)
@@ -1291,7 +1313,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Extends the given Content's AllowedChildTypes collection with the specified Content types.
+        /// Extends the Content's AllowedChildTypes collection with the provided Content types.
         /// The Content will be saved after the operation.
         /// This is an <see cref="ODataAction"/>. 
         /// </summary>
@@ -1344,7 +1366,7 @@ namespace SenseNet.ContentRepository
 
         /// <summary>
         /// Tool method that returns information about inconsistent elements in this subtree.
-        /// Checks whether every Content in this subtree meets the allowed child types.
+        /// Checks whether every Content in this subtree meets the allowed child types rules.
         /// Every difference is recorded in a tab separated table.
         /// </summary>
         /// <returns>String containing a tab separated table of the inconsistent elements.</returns>
@@ -1372,8 +1394,8 @@ namespace SenseNet.ContentRepository
         // =============================================================================================
 
         /// <summary>
-        /// Returns the list of all <see cref="FieldSetting"/>s by this Content's allowed child types.
-        /// Every <see cref="FieldSetting"/>'s root version of the inheritance chain is the relevant.
+        /// Returns the list of all <see cref="FieldSetting"/>s in this Content's allowed child types.
+        /// Every <see cref="FieldSetting"/>'s root version of the inheritance chain is included.
         /// </summary>
         /// <returns>The collected list of <see cref="FieldSetting"/>s</returns>
         public virtual List<FieldSetting> GetAvailableFields()
@@ -1382,10 +1404,10 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Returns the list of all <see cref="FieldSetting"/>s by this Content's allowed child types.
+        /// Returns the list of all <see cref="FieldSetting"/>s in this Content's allowed child types.
         /// </summary>
         /// <param name="rootFields">Boolean value that specifies whether the currently overridden <see cref="FieldSetting"/>
-        /// or root version of the inheritance chain is the relevant.</param>
+        /// or root version of the inheritance chain should be included.</param>
         /// <returns>The collected list of <see cref="FieldSetting"/>s</returns>
         public virtual List<FieldSetting> GetAvailableFields(bool rootFields)
         {
@@ -1397,8 +1419,8 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Collects all <see cref="FieldSetting"/>s by this Content's allowed child types.
-        /// Every <see cref="FieldSetting"/>'s root version of the inheritance chain is the relevant.
+        /// Collects all <see cref="FieldSetting"/>s int this Content's allowed child types.
+        /// Every <see cref="FieldSetting"/>'s root version of the inheritance chain is included.
         /// </summary>
         /// <param name="availableFields">Output collection of <see cref="FieldSetting"/>s. Does not contain duplicates.</param>
         protected void GetAvailableContentTypeFields(ICollection<FieldSetting> availableFields)
@@ -1407,11 +1429,11 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Collects all <see cref="FieldSetting"/>s by this Content's allowed child types.
+        /// Collects all <see cref="FieldSetting"/>s in this Content's allowed child types.
         /// </summary>
         /// <param name="availableFields">Output collection of <see cref="FieldSetting"/>s. Does not contain duplicates.</param>
         /// <param name="rootFields">Boolean value that specifies whether the currently overridden <see cref="FieldSetting"/>
-        /// or root version of the inheritance chain is the relevant.</param>
+        /// or root version of the inheritance chain should be included.</param>
         protected void GetAvailableContentTypeFields(ICollection<FieldSetting> availableFields, bool rootFields)
         {
             var contentTypes = this.GetAllowedChildTypes().ToArray();
@@ -1429,10 +1451,10 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Collects all <see cref="FieldSetting"/>s of the given <see cref="Schema.ContentType"/>.
         /// </summary>
-        /// <param name="contentType">The <see cref="Schema.ContentType"/> whose <see cref="FieldSetting"/>s will be collected.</param>
+        /// <param name="contentType">The <see cref="Schema.ContentType"/> thats <see cref="FieldSetting"/>s will be collected.</param>
         /// <param name="availableFields">Output collection of <see cref="FieldSetting"/>s. Does not contain duplicates.</param>
         /// <param name="rootFields">Boolean value that specifies whether the currently overridden <see cref="FieldSetting"/>
-        /// or root version of the inheritance chain is the relevant.</param>
+        /// or root version of the inheritance chain should be included.</param>
         protected static void GetFields(ContentType contentType, ICollection<FieldSetting> availableFields, bool rootFields)
         {
             foreach (var fieldSetting in contentType.FieldSettings)
@@ -1447,7 +1469,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Moves this Content under the given target <see cref="Node"/>.
         /// If the target is <see cref="GenericContent"/>, the AllowedChildTypes collections need to be compatible. 
-        /// It means that Content's AllowedChildTypes cannot contain any element that is not allowed on the
+        /// It means that the current Content's AllowedChildTypes cannot contain any element that is not allowed on the
         /// target <see cref="Node"/> otherwise an InvalidOperationException will be thrown.
         /// </summary>
         /// <param name="target">The target <see cref="Node"/> that will be the parent of this Content.</param>
@@ -1471,8 +1493,8 @@ namespace SenseNet.ContentRepository
         /// Copies this Content under the given target <see cref="Node"/>.
         /// </summary>
         /// <param name="target">The parent <see cref="Node"/> of the new instance.</param>
-        /// <param name="newName">String value of the new name or null if it is not changed.</param>
-        /// <returns></returns>
+        /// <param name="newName">String value of the new name or null if it should not be changed.</param>
+        /// <returns>The new instance.</returns>
         public override Node MakeCopy(Node target, string newName)
         {
             var copy = base.MakeCopy(target, newName);
@@ -1561,7 +1583,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Gets the total count of contents in the subtree whose root is this Content.
+        /// Gets the total count of contents in the subtree under this Content.
         /// </summary>
         public override int NodesInTree
         {
@@ -1585,7 +1607,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Moves this Content and the whole subtree to the Trash if possible, otherwise deletes it physically.
         /// </summary>
-        /// <param name="bypassTrash">Specifies whether the moving to Trash should be tried or not.</param>
+        /// <param name="bypassTrash">Specifies whether the content should be deleted physically or only to the Trash.</param>
         public virtual void Delete(bool bypassTrash)
         {
             using (var op = SnTrace.ContentOperation.StartOperation("GC.Delete: VId:{0}, Path:{1}", this.VersionId, this.Path))
@@ -1623,7 +1645,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Returns the <see cref="SenseNet.ContentRepository.Schema.ContentType"/> of this instance.
+        /// Returns the <see cref="Schema.ContentType"/> of this instance.
         /// </summary>
         public ContentType GetContentType()
         {
@@ -1631,9 +1653,9 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Gets or sets the icon name in the inherited classes.
-        /// In this class returns the value if the Icon property of the instance's <see cref="Schema.ContentType"/>.
-        /// The setter throws a SnNotSupportedException in this class.
+        /// Gets or sets the icon name for this Content. Inherited classes may customize this value.
+        /// By default the value of the Icon property of the instance's <see cref="Schema.ContentType"/> is returned.
+        /// The setter throws an SnNotSupportedException in this class.
         /// </summary>
         public virtual string Icon
         {
@@ -1648,7 +1670,8 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Returns <see cref="NodeHead"/> of the application representer Content specified by the given action name.
+        /// Returns the <see cref="NodeHead"/> of the application Content specified by the given action name.
+        /// In the default implementation this always returns the Browse application if specified, otherwise null.
         /// </summary>
         /// <param name="actionName">The name of the action (e.g. "Browse").</param>
         /// <returns>The <see cref="NodeHead"/> or null if it does not exist.</returns>
@@ -1667,7 +1690,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Gets or sets the "Browse" application's Content if it is assigned explicitly.
+        /// Gets or sets the "Browse" application of this Content explicitly.
         /// Persisted as <see cref="RepositoryDataType.Reference"/>.
         /// </summary>
         [RepositoryProperty("BrowseApplication", RepositoryDataType.Reference)]
@@ -1693,6 +1716,8 @@ namespace SenseNet.ContentRepository
 
         /// <summary>
         /// Persist this Content's changes.
+        /// In derived classes to modify or extend the general persistence mechanism of a content, please
+        /// override the <see cref="Save(NodeSaveSettings)"/> method instead, to avoid duplicate Save calls.
         /// </summary>
         public override void Save()
         {
@@ -1715,8 +1740,10 @@ namespace SenseNet.ContentRepository
         private bool _savingExplicitVersion;
         /// <summary>
         /// Persist this Content's changes by the given mode.
+        /// In derived classes to modify or extend the general persistence mechanism of a content, please
+        /// override the <see cref="Save(NodeSaveSettings)"/> method instead, to avoid duplicate Save calls.
         /// </summary>
-        /// <param name="mode"><see cref="SavingMode"/> that controls the versioning.</param>
+        /// <param name="mode"><see cref="SavingMode"/> that controls versioning.</param>
         public virtual void Save(SavingMode mode)
         {
             using (var op = SnTrace.ContentOperation.StartOperation("GC.Save: Mode:{0}, VId:{1}, Path:{2}", mode, this.VersionId, this.Path))
@@ -1760,7 +1787,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Persist this Content's changes by the given settings.
         /// </summary>
-        /// <param name="settings"><see cref="NodeSaveSettings"/> that contains algorithm of the persistence.</param>
+        /// <param name="settings"><see cref="NodeSaveSettings"/> that contains the algorithm of the persistence.</param>
         public override void Save(NodeSaveSettings settings)
         {
             base.Save(settings);
@@ -1824,7 +1851,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Check this Content out. Enables modifications for the currently logged in user exclusively.
         /// Enables other users to access it but only for reading.
-        /// After this operation the version of Content always raised even if the versioning mode is "off".
+        /// After this operation the version of the Content is always raised even if the versioning mode is "off".
         /// </summary>
         public virtual void CheckOut()
         {
@@ -1844,7 +1871,7 @@ namespace SenseNet.ContentRepository
             }
         }
         /// <summary>
-        /// Commits the modifications of the checked out Content.
+        /// Commits the modifications of the checked out Content and releases the lock.
         /// </summary>
         public virtual void CheckIn()
         {
@@ -1858,7 +1885,7 @@ namespace SenseNet.ContentRepository
             }
         }
         /// <summary>
-        /// Reverts the Content to the state before you checked it out and reloads it.
+        /// Reverts the Content to the state before the user checked it out and reloads it.
         /// </summary>
         public virtual void UndoCheckOut()
         {
@@ -1866,7 +1893,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Reverts the Content to the state before you checked it out.
+        /// Reverts the Content to the state before the user checked it out.
         /// If the "'forceRefresh" parameter is true, the Content will be reloaded.
         /// </summary>
         /// <param name="forceRefresh">Optional boolean value that specifies
@@ -1888,7 +1915,8 @@ namespace SenseNet.ContentRepository
 
         /// <summary>
         /// Publishes the Content. Depending on the versioning workflow, the version
-        /// will be the next public with Approved state or remains the same but the versioning state changed to Pending.
+        /// will be the next public version with Approved state or remains the same but the 
+        /// versioning state will be changed to Pending.
         /// </summary>
         public virtual void Publish()
         {
@@ -1922,7 +1950,7 @@ namespace SenseNet.ContentRepository
         }
         /// <summary>
         /// Rejects the approvable Content. After this action the Content's version number
-        /// remains the same but the versioning state of the Content is changed to Rejected.
+        /// remains the same but the versioning state of the Content will be changed to Rejected.
         /// </summary>
         public virtual void Reject()
         {
@@ -1989,7 +2017,7 @@ namespace SenseNet.ContentRepository
 
         /// <summary>
         /// Gets the boolean value that describes whether the Content versioning
-        /// workflow and current user's permissions enable the Approve function.
+        /// workflow and the current user's permissions enable the Approve function.
         /// </summary>
         public bool Approvable
         {
@@ -2003,7 +2031,7 @@ namespace SenseNet.ContentRepository
         }
         /// <summary>
         /// Gets the boolean value that describes whether the Content versioning
-        /// workflow and current user's permissions enable the Publish function.
+        /// workflow and the current user's permissions enable the Publish function.
         /// </summary>
         public bool Publishable
         {
@@ -2070,11 +2098,12 @@ namespace SenseNet.ContentRepository
         // ==================================================== Children
 
         /// <summary>
-        /// Protected member that allow accessing for the raw value of the ChildrenDefinition property.
+        /// Protected member that gives access to the raw value of the ChildrenDefinition property.
         /// </summary>
         protected ChildrenDefinition _childrenDefinition;
         /// <summary>
-        /// Gets or sets the children representation of this Content.
+        /// Gets or sets the children definition of this Content. This can be a static list of
+        /// child items or a Content Query with settings that define a query for child items.
         /// </summary>
         public virtual ChildrenDefinition ChildrenDefinition
         {
@@ -2095,9 +2124,9 @@ namespace SenseNet.ContentRepository
         // ==================================================== IIndexable Members
 
         /// <summary>
-        /// Returns collection of the <see cref="Field"/> that will be indexed for this Content.
+        /// Returns a collection of <see cref="Field"/>s that will be indexed for this Content.
         /// </summary>
-        /// <remarks>The fields are accessed through the wrapper <see cref="SenseNet.ContentRepository.Content"/> of this instance.</remarks>
+        /// <remarks>The fields are accessed through the wrapper <see cref="ContentRepository.Content"/> of this instance.</remarks>
         public virtual IEnumerable<IIndexableField> GetIndexableFields()
         {
             var content = Content.Create(this); //UNDONE:? use this.Content
