@@ -29,11 +29,18 @@ using Retrier = SenseNet.ContentRepository.Storage.Retrier;
 
 namespace SenseNet.ContentRepository
 {
+    /// <summary>
+    /// Represents a class that encapsulates metadata and functionality of the sensenet repository's users.
+    /// </summary>
     [ContentHandler]
     public class User : GenericContent, IUser, IADSyncable, SenseNet.Security.ISecurityUser
     {
         private const string Profiles = "Profiles";
 
+        /// <summary>
+        /// Gets the Administrator user.
+        /// Note that always returns with the new instance.
+        /// </summary>
         public static User Administrator
         {
             get
@@ -49,6 +56,9 @@ namespace SenseNet.ContentRepository
 
         private static User _visitor;
         private static object _visitorLock = new object();
+        /// <summary>
+        /// Gets the Visitor user.
+        /// </summary>
         public static User Visitor
         {
             get
@@ -73,6 +83,9 @@ namespace SenseNet.ContentRepository
 
         private static User _somebody;
         private static object _somebodyLock = new object();
+        /// <summary>
+        /// Gets the Somebody user. This user substitutes such user who is not allowed to visible for the logged-in user.
+        /// </summary>
         public static User Somebody
         {
             get
@@ -95,7 +108,9 @@ namespace SenseNet.ContentRepository
             }
         }
 
-
+        /// <summary>
+        /// Gets or sets the current user.
+        /// </summary>
         public static IUser Current
         {
             get
@@ -112,6 +127,10 @@ namespace SenseNet.ContentRepository
                 AccessProvider.Current.SetCurrentUser(value);
             }
         }
+
+        /// <summary>
+        /// Gets the actual logged-in user.
+        /// </summary>
         public static IUser LoggedInUser
         {
             get { return AccessProvider.Current.GetOriginalUser(); }
@@ -124,12 +143,17 @@ namespace SenseNet.ContentRepository
 
 
         private WindowsIdentity _windowsIdentity;
+        /// <summary>
+        /// Gets or sets the <see cref="WindowsIdentity"/> of the represented user if she is identified with windows authentication.
+        /// </summary>
         public WindowsIdentity WindowsIdentity
         {
             get { return _windowsIdentity; }
             set { _windowsIdentity = value; }
         }
 
+        /// <inheritdoc />
+        /// <remarks>Persisted as <see cref="RepositoryDataType.Int"/>.</remarks>>
         [RepositoryProperty("Enabled", RepositoryDataType.Int)]
         public bool Enabled
         {
@@ -137,7 +161,8 @@ namespace SenseNet.ContentRepository
             set { this["Enabled"] = value ? 1 : 0; }
         }
 
-
+        /// <inheritdoc />
+        /// <remarks>Persisted as <see cref="RepositoryDataType.String"/>.</remarks>>
         [RepositoryProperty("Domain", RepositoryDataType.String)]
         public string Domain
         {
@@ -145,12 +170,16 @@ namespace SenseNet.ContentRepository
             private set { this["Domain"] = value; }
         }
 
+        /// <inheritdoc />
+        /// <remarks>Persisted as <see cref="RepositoryDataType.String"/>.</remarks>>
         [RepositoryProperty("Email")]
         public string Email
         {
             get { return this.GetProperty<string>("Email"); }
             set { this["Email"] = value; }
         }
+        /// <inheritdoc />
+        /// <remarks>Persisted as <see cref="RepositoryDataType.String"/>.</remarks>>
         [RepositoryProperty("FullName")]
         public virtual string FullName
         {
@@ -159,6 +188,11 @@ namespace SenseNet.ContentRepository
         }
 
         private const string OLDPASSWORDS = "OldPasswords";
+        /// <summary>
+        /// Gets or sets a serialized object that is the data store of the "old passwords" feature.
+        /// Persisted as <see cref="RepositoryDataType.Text"/>.
+        /// 
+        /// </summary>
         [RepositoryProperty(OLDPASSWORDS, RepositoryDataType.Text)]
         public string OldPasswords
         {
@@ -193,6 +227,8 @@ namespace SenseNet.ContentRepository
         }
 
         // user's fullname is displayed on UI wherever it is filled. This display logic is used by content picker, label picker and explore lists.
+        /// <inheritdoc />
+        /// <remarks>This property is routed to FullName property</remarks>
         public override string DisplayName
         {
             get
@@ -205,6 +241,9 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        /// <summary>
+        /// Gets the URL of the avatar image.
+        /// </summary>
         public virtual string AvatarUrl
         {
             get
@@ -225,6 +264,8 @@ namespace SenseNet.ContentRepository
                 return imageUrl;
             }
         }
+        /// <inheritdoc />
+        /// <remarks>Persisted as <see cref="RepositoryDataType.String"/>.</remarks>>
         [RepositoryProperty("PasswordHash")]
         public string PasswordHash
         {
@@ -232,6 +273,9 @@ namespace SenseNet.ContentRepository
             set { this["PasswordHash"] = value; }
         }
 
+        /// <inheritdoc />
+        /// <remarks>The value depends on some property values by the following pattern:
+        /// {Domain}\{LoginName | Name}</remarks>
         public string Username
         {
             get
@@ -245,6 +289,7 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        /// <inheritdoc />
         public override string Name
         {
             get
@@ -263,6 +308,11 @@ namespace SenseNet.ContentRepository
         }
 
         private const string LOGINNAME = "LoginName";
+        /// <summary>
+        /// Gets or sets the overridden login name of theis user.
+        /// If this value is null, the value of the Name need to be used.
+        /// Persisted as <see cref="RepositoryDataType.String"/>.
+        /// </summary>
         [RepositoryProperty(LOGINNAME)]
         public virtual string LoginName
         {
@@ -271,6 +321,10 @@ namespace SenseNet.ContentRepository
         }
 
         private const string PROFILE = "Profile";
+        /// <summary>
+        /// Gets or sets the <see cref="UserProfile"/> structure of this user.
+        /// Persisted as <see cref="RepositoryDataType.Reference"/>.
+        /// </summary>
         [RepositoryProperty(PROFILE, RepositoryDataType.Reference)]
         public UserProfile Profile
         {
@@ -279,9 +333,16 @@ namespace SenseNet.ContentRepository
         }
 
         private const string PROFILEPATH = "ProfilePath";
+        /// <summary>
+        /// Gets the path of the profile.
+        /// </summary>
         public string ProfilePath => Profile == null ? GetProfilePath() : Profile.Path;
 
         private const string LANGUAGE = "Language";
+
+        /// <summary>
+        /// Gets or sets the code of the current user's preferred language.
+        /// </summary>
         [RepositoryProperty(LANGUAGE)]
         public string Language
         {
@@ -290,6 +351,9 @@ namespace SenseNet.ContentRepository
         }
 
         private const string FOLLOWEDWORKSPACES = "FollowedWorkspaces";
+        /// <summary>
+        /// Gets or sets the collection of <see cref="Node"/>s that represents the workspaces to follow selected by this user.
+        /// </summary>
         [RepositoryProperty(FOLLOWEDWORKSPACES, RepositoryDataType.Reference)]
         public IEnumerable<Node> FollowedWorkspaces
         {
@@ -300,12 +364,29 @@ namespace SenseNet.ContentRepository
 
         // =================================================================================== Construction
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="User"/> class.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
         public User(Node parent) : this(parent, null) { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="User"/> class.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="nodeTypeName">Name of the node type.</param>
         public User(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="User"/> class during the loading process.
+        /// Do not use this constructor directly from your code.
+        /// </summary>
         protected User(NodeToken token) : base(token) { }
 
         // =================================================================================== Methods
 
+        /// <summary>
+        /// Returns existing <see cref="User"/> loaded by the login name in following pattern: {Domain}\\{LoginName}
+        /// </summary>
+        /// <param name="domainUserName">Login name of the user.</param>
         public static User Load(string domainUserName)
         {
             int slashIndex = domainUserName.IndexOf('\\');
@@ -324,11 +405,24 @@ namespace SenseNet.ContentRepository
             return Load(domain, username);
         }
 
+        /// <summary>
+        /// Returns existing <see cref="User"/> loaded by the given domain and name.
+        /// </summary>
+        /// <param name="domain">The name of the domain.</param>
+        /// <param name="name">The Name or LoginName of the user.</param>
+        /// <returns></returns>
         public static User Load(string domain, string name)
         {
             return Load(domain, name, ExecutionHint.None);
         }
 
+        /// <summary>
+        /// Returns existing <see cref="User"/> loaded by the given domain and name.
+        /// </summary>
+        /// <param name="domain">The name of the domain.</param>
+        /// <param name="name">The Name or LoginName of the user.</param>
+        /// <param name="hint">Internal or external search engine can be forced with this valule.</param>
+        /// <returns></returns>
         public static User Load(string domain, string name, ExecutionHint hint)
         {
             domain = string.IsNullOrWhiteSpace(domain) ? IdentityManagement.DefaultDomain : domain;
@@ -414,11 +508,25 @@ namespace SenseNet.ContentRepository
             return string.Format("user-{0}-{1}", domain.Trim('\\').ToLower(), name.Trim('\\').ToLower());
         }
 
+        /// <summary>
+        /// Checks the given password and returns an instance of <see cref="PasswordCheckResult"/> that is a result of the inspection.
+        /// </summary>
+        /// <param name="password">Password that will be checked.</param>
+        /// <param name="oldPasswords">Old password hashes in a list of <see cref="PasswordField.OldPasswordData"/>.</param>
+        /// <returns></returns>
         public virtual PasswordCheckResult CheckPassword(string password, List<PasswordField.OldPasswordData> oldPasswords)
         {
             return CheckPassword(this.GetContentType(), "Password", password, oldPasswords);
         }
 
+        /// <summary>
+        /// Checks the given password and returns an instance of <see cref="PasswordCheckResult"/> that is a result of the inspection.
+        /// </summary>
+        /// <param name="contentType">The <see cref="ContentType"/> that has tester <see cref="FieldSetting"/>.</param>
+        /// <param name="fieldName">The name of the field that's <see cref="FieldSetting"/> controls the inspection.</param>
+        /// <param name="password">Password that will be checked.</param>
+        /// <param name="oldPasswords">Old password hashes in a list of <see cref="PasswordField.OldPasswordData"/>.</param>
+        /// <returns></returns>
         public PasswordCheckResult CheckPassword(ContentType contentType, string fieldName, string password, List<PasswordField.OldPasswordData> oldPasswords)
         {
             var pwFieldSetting = contentType.GetFieldSettingByName(fieldName) as PasswordFieldSetting;
@@ -427,6 +535,10 @@ namespace SenseNet.ContentRepository
             return pwFieldSetting.CheckPassword(PasswordField.EncodePassword(password, this), oldPasswords);
         }
 
+        /// <summary>
+        /// Verifies whether the plain password matches the stored hash. Returns true if matches otherwise false.
+        /// </summary>
+        /// <param name="passwordInClearText">The user-entered password.</param>
         public bool CheckPasswordMatch(string passwordInClearText)
         {
             var match = false;
@@ -464,11 +576,15 @@ namespace SenseNet.ContentRepository
             return true;
         }
 
-        public static void Reset()
+        /// <summary>
+        /// Invalidates the 
+        /// </summary>
+        public static void Reset() //UNDONE: Make obsolete, internal.
         {
             _visitor = null;
         }
 
+        //UNDONE:! XMLDOC:
         public static User RegisterUser(string fullUserName)
         {
             if (string.IsNullOrEmpty(fullUserName))
@@ -555,6 +671,9 @@ namespace SenseNet.ContentRepository
             return this.Name;
         }
 
+        /// <summary>
+        /// Returns path of the profile structure of this user.
+        /// </summary>
         public string GetProfilePath()
         {
             return GetProfilePath(GetProfileName());
@@ -565,6 +684,12 @@ namespace SenseNet.ContentRepository
             return RepositoryPath.Combine(GetProfileParentPath(), profileName);
         }
 
+        /// <summary>
+        /// Creates the profile structure of this user. Does nothing if the profile already exists.
+        /// The structure tenplate can be specified.
+        /// The default template is the "UserProfile" <see cref="ContentTemplate"/>.
+        /// </summary>
+        /// <param name="template">Optional <see cref="Node"/> parameter of the overridden template.</param>
         public void CreateProfile(Node template = null)
         {
             if (!IdentityManagement.UserProfilesEnabled)
@@ -654,6 +779,9 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        /// <summary>
+        /// Returns true if the profile already exists.
+        /// </summary>
         public bool IsProfileExist()
         {
             return IdentityManagement.UserProfilesEnabled && Node.Exists(GetProfilePath());
@@ -681,35 +809,47 @@ namespace SenseNet.ContentRepository
 
         // =================================================================================== IUser Members
 
+        /// <inheritdoc />
         public bool IsInGroup(IGroup group)
         {
             return SecurityHandler.IsInGroup(this.Id, group.Id);
         }
+        /// <inheritdoc />
         public bool IsInOrganizationalUnit(IOrganizationalUnit orgUnit)
         {
             return SecurityHandler.IsInGroup(this.Id, orgUnit.Id);
         }
+        /// <inheritdoc />
         public bool IsInContainer(ISecurityContainer container)
         {
             return SecurityHandler.IsInGroup(this.Id, container.Id);
         }
 
+        /// <summary>
+        /// This method is obsolete. Use  GetGroups() instead.
+        /// </summary>
         [Obsolete("Use IsInGroup instead.", false)]
         public bool IsInRole(int securityGroupId)
         {
             return IsInGroup(securityGroupId);
         }
+        /// <inheritdoc />
         public bool IsInGroup(int securityGroupId)
         {
             return SecurityHandler.IsInGroup(this.Id, securityGroupId);
         }
 
+        /// <inheritdoc />
         public string Password
         {
             set { _password = value; }
         }
 
         private const string MEMBERSHIPEXTENSIONKEY = "ExtendedMemberships";
+        /// <summary>
+        /// Gets or sets the <see cref="SenseNet.ContentRepository.Storage.Security.MembershipExtension"/> instance
+        /// that can customize the membership of this user.
+        /// </summary>
         public MembershipExtension MembershipExtension
         {
             get
@@ -727,16 +867,26 @@ namespace SenseNet.ContentRepository
 
         // =================================================================================== 
 
+        /// <summary>
+        /// This method is obsolete. Use  GetGroups() instead.
+        /// </summary>
         [Obsolete("Use GetGroups() instead.", true)]
         public List<int> GetPrincipals()
         {
             return GetGroups();
         }
+        /// <summary>
+        /// This method is obsolete. Use  GetGroups() instead.
+        /// </summary>
         [Obsolete("Use GetGroups() instead.", false)]
         public List<int> GetRoles()
         {
             return GetGroups();
         }
+        /// <summary>
+        /// Gets the ids of all the groups that contain the current or provided user as a member, even through other groups,
+        /// plus Everyone (except in case of a visitor) and the optional dynamic groups provided by the membership extender.
+        /// </summary>
         public List<int> GetGroups()
         {
             return SecurityHandler.GetGroups(this);
@@ -790,6 +940,7 @@ namespace SenseNet.ContentRepository
 
         }
 
+        /// <inheritdoc />
         public override void Save(NodeSaveSettings settings)
         {
             // Check uniqueness first
@@ -953,6 +1104,8 @@ namespace SenseNet.ContentRepository
             return new InvalidOperationException(message);
         }
 
+        /// <inheritdoc />
+        /// <remarks>Synchronizes the removed object via the current <see cref="DirectoryProvider"/>.</remarks>
         public override void ForceDelete()
         {
             base.ForceDelete();
@@ -965,6 +1118,8 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        /// <inheritdoc />
+        /// <remarks>In this case returns false.</remarks>
         public override bool IsTrashable
         {
             get
@@ -973,6 +1128,8 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        /// <inheritdoc />
+        /// <remarks>Synchronizes the updates via the current <see cref="DirectoryProvider"/>.</remarks>
         public override void MoveTo(Node target)
         {
             base.MoveTo(target);
@@ -987,6 +1144,9 @@ namespace SenseNet.ContentRepository
 
         // ================================================================================================== SenseNet.Security.ISecurityUser
 
+        /// <summary>
+        /// Returns ids of the dynamic groups that added by the current <see cref="MembershipExtension"/>.
+        /// </summary>
         public virtual IEnumerable<int> GetDynamicGroups(int entityId)
         {
             if (this.MembershipExtension == null)
@@ -995,6 +1155,12 @@ namespace SenseNet.ContentRepository
         }
 
         // =================================================================================== Events
+
+        /// <summary>
+        /// Checks whether the Move operation is acceptable to the current <see cref="DirectoryProvider"/> and
+        /// The operation will be cancelled if it is prohibited.
+        /// Do not use this method directly from your code.
+        /// </summary>
         protected override void OnMoving(object sender, CancellableNodeOperationEventArgs e)
         {
             // AD Sync check
@@ -1013,6 +1179,10 @@ namespace SenseNet.ContentRepository
             base.OnMoving(sender, e);
         }
 
+        /// <summary>
+        /// After modification renames the represented user's profile if its name was changed.
+        /// Do not use this method directly from your code.
+        /// </summary>
         protected override void OnModified(object sender, NodeEventArgs e)
         {
             base.OnModified(sender, e);
@@ -1022,6 +1192,10 @@ namespace SenseNet.ContentRepository
                 RenameProfile(nameData.Original.ToString());
         }
 
+        /// <summary>
+        /// After creation adds this user to the nearest parent <see cref="OrganizationalUnit"/> as a member.
+        /// Do not use this method directly from your code.
+        /// </summary>
         protected override void OnCreated(object sender, NodeEventArgs e)
         {
             base.OnCreated(sender, e);
@@ -1035,6 +1209,11 @@ namespace SenseNet.ContentRepository
         }
 
         // =================================================================================== IADSyncable Members
+
+        /// <summary>
+        /// Updates the last sync id of this object.
+        /// </summary>
+        /// <param name="guid">A nullable GUID as sync id.</param>
         public void UpdateLastSync(Guid? guid)
         {
             if (guid.HasValue)
@@ -1049,6 +1228,7 @@ namespace SenseNet.ContentRepository
 
         // =================================================================================== Generic Property handlers
 
+        /// <inheritdoc />
         public override object GetProperty(string name)
         {
             switch (name)
@@ -1077,6 +1257,7 @@ namespace SenseNet.ContentRepository
                     return base.GetProperty(name);
             }
         }
+        /// <inheritdoc />
         public override void SetProperty(string name, object value)
         {
             switch (name)
