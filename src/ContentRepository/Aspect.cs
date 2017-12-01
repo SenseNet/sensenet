@@ -56,7 +56,7 @@ namespace SenseNet.ContentRepository
         /// </summary>
         public const string ASPECTDEFINITION = "AspectDefinition";
         /// <summary>
-        /// Gets or sets the XML source code of the AspectDefinition.
+        /// Gets or sets the XML source code of the AspectDefinition. Persisted as <see cref="RepositoryDataType.Text"/>.
         /// </summary>
         [RepositoryProperty(ASPECTDEFINITION, RepositoryDataType.Text)]
         public string AspectDefinition

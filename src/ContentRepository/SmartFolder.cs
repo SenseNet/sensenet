@@ -8,17 +8,36 @@ using System;
 
 namespace SenseNet.ContentRepository
 {
+    /// <summary>
+    /// Defines a Content handler class that can support a children Content collection produced by a Content Query.
+    /// </summary>
     [ContentHandler]
     public class SmartFolder : Folder
     {
         // ===================================================================================== Construction
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SmartFolder"/> class.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
         public SmartFolder(Node parent) : this(parent, null) { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SmartFolder"/> class.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="nodeTypeName">Name of the node type.</param>
         public SmartFolder(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SmartFolder"/> class in the loading procedure.
+        /// Do not use this constructor directly from your code.
+        /// </summary>
         protected SmartFolder(NodeToken nt) : base(nt) { }
 
         // ===================================================================================== Properties
 
+        /// <summary>
+        /// Gets or sets the CQL query that defines the children collection. Persisted as <see cref="RepositoryDataType.Text"/>.
+        /// </summary>
         [RepositoryProperty("Query", RepositoryDataType.Text)]
         public string Query
         {
@@ -26,6 +45,10 @@ namespace SenseNet.ContentRepository
             set { this["Query"] = value; }
         }
 
+        /// <summary>
+        /// Gets or sets a <see cref="FilterStatus"/> value that specifies whether the value of the Query will be extended with
+        /// auto-filters or not. Persisted as <see cref="RepositoryDataType.String"/>.
+        /// </summary>
         [RepositoryProperty("EnableAutofilters", RepositoryDataType.String)]
         public virtual FilterStatus EnableAutofilters
         {
@@ -43,6 +66,10 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        /// <summary>
+        /// Gets or sets a <see cref="FilterStatus"/> value that specifies whether the value of the Query will be extended with
+        /// lifespan-filters or not. Persisted as <see cref="RepositoryDataType.String"/>.
+        /// </summary>
         [RepositoryProperty("EnableLifespanFilter", RepositoryDataType.String)]
         public virtual FilterStatus EnableLifespanFilter
         {
@@ -60,6 +87,11 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        /// <summary>
+        /// Gets or sets the abstraction of the children Coontent collection.
+        /// In default it is based on the values of Query, EnableAutofilters and EnableLifespanFilter properties.
+        /// This property is not persisted so the effect of overriding the default behavior is temporary.
+        /// </summary>
         public override ChildrenDefinition ChildrenDefinition
         {
             get
@@ -84,6 +116,7 @@ namespace SenseNet.ContentRepository
 
         // =====================================================================================
 
+        /// <inheritdoc />
         public override object GetProperty(string name)
         {
             switch (name)
@@ -98,6 +131,7 @@ namespace SenseNet.ContentRepository
                     return base.GetProperty(name);
             }
         }
+        /// <inheritdoc />
         public override void SetProperty(string name, object value)
         {
             switch (name)
@@ -119,6 +153,11 @@ namespace SenseNet.ContentRepository
 
         // ===================================================================================== Public interface
 
+        /// <summary>
+        /// Returns an one-use and not-saved <see cref="SmartFolder"/>.
+        /// Designed for handling virtual containers in various business processes.
+        /// </summary>
+        /// <returns></returns>
         public static SmartFolder GetRuntimeQueryFolder()
         {
             // elevation is needed because the /Root/System folder may be inaccessible for some users

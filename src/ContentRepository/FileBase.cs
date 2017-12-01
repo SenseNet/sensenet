@@ -11,22 +11,43 @@ using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.ContentRepository
 {
+    /// <summary>
+    /// Defines a base class for handling Content instances with a primary blob.
+    /// </summary>
 	public abstract class FileBase : GenericContent, IFile
 	{
         // ================================================================================ Construction
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileBase"/> class.
+        /// Do not use this constructor directly from your code.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
         public FileBase(Node parent) : base(parent) { }
-		public FileBase(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileBase"/> class.
+        /// Do not use this constructor directly from your code.
+	    /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="nodeTypeName">Name of the node type.</param>
+        public FileBase(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileBase"/> class during the loading process.
+        /// Do not use this constructor directly from your code.
+	    /// </summary>
         protected FileBase(NodeToken nt) : base(nt) { }
 
         // ================================================================================= IFile Members
 
+        /// <inheritdoc />
+        /// <remarks>Persisted as <see cref="RepositoryDataType.Binary"/>.</remarks>>
 		[RepositoryProperty("Binary", RepositoryDataType.Binary)]
 		public virtual BinaryData Binary
 		{
 			get { return this.GetBinary("Binary"); }
 			set { this.SetBinary("Binary", value); }
 		}
+	    /// <inheritdoc />
         public long Size
         {
 			get
@@ -38,7 +59,7 @@ namespace SenseNet.ContentRepository
 			    return this.GetBinary("Binary").Size;
 			}
         }
-        public long FullSize
+        public long FullSize //UNDONE: Make obsolete
         {
             //TODO: Create logic to calculate the sum size of all versions
             get { return -1; }
@@ -46,6 +67,8 @@ namespace SenseNet.ContentRepository
 
         // ================================================================================= Overrides
 
+        /// <inheritdoc />
+        /// <remarks>Before saving, checks the type-consistency of executable file, if this instance is a new one.</remarks>>
 	    public override void Save(NodeSaveSettings settings)
 	    {
             // check new content here for speedup reasons
@@ -55,6 +78,11 @@ namespace SenseNet.ContentRepository
 	        base.Save(settings);
 	    }
 
+	    /// <summary>
+	    /// Overrides the base class behavior. Triggers the validation of the executable file's type-consistency.
+	    /// For example after renaming a file with .cshtml extension must be an "ExecutableFile" or its any derived one.
+	    /// Do not use this method directly from your code.
+	    /// </summary>
 	    protected override void OnModifying(object sender, CancellableNodeEventArgs e)
 	    {
             // check type in case of the name has changed
@@ -64,9 +92,10 @@ namespace SenseNet.ContentRepository
 	        base.OnModifying(sender, e);
 	    }
 
-	    // ================================================================================= Generic Property handling
+        // ================================================================================= Generic Property handling
 
-		public override object GetProperty(string name)
+	    /// <inheritdoc/>
+        public override object GetProperty(string name)
 		{
 			switch (name)
 			{
@@ -80,6 +109,7 @@ namespace SenseNet.ContentRepository
 					return base.GetProperty(name);
 			}
 		}
+	    /// <inheritdoc/>
 		public override void SetProperty(string name, object value)
 		{
 			switch (name)
