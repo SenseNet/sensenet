@@ -584,7 +584,7 @@ namespace SenseNet.ContentRepository
             _visitor = null;
         }
 
-        //UNDONE:! XMLDOC:
+        //UNDONE:! XMLDOC: or make private: RegisterUser
         public static User RegisterUser(string fullUserName)
         {
             if (string.IsNullOrEmpty(fullUserName))
