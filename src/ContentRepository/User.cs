@@ -941,6 +941,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <inheritdoc />
+        /// <remarks>Synchronizes the modifications via the current <see cref="DirectoryProvider"/>.</remarks>
         public override void Save(NodeSaveSettings settings)
         {
             // Check uniqueness first
