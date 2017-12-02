@@ -333,6 +333,15 @@ If the Path is a Content Repository path, than you can define a Field (optionall
 
 You can define either the *Template* or the *Regex* property for searching replaceable text, but **not both of them**.
 
+### SetUrl
+- Full name: `SenseNet.Packaging.Steps.SetUrl`
+- Default property: `Url`
+- Additional properties: `Site, AuthenticationType` 
+
+Sets a url on a site content in the Content Repository. If the url is already assigned to another site, this step will fail.
+
+>Please make sure that a **StartRepository** step precedes this one to make sure that the repository is started.
+
 ## JSON text
 ### EditJson
 - Full name: `SenseNet.Packaging.Steps.EditJson`
@@ -472,6 +481,76 @@ Target XML after execution:
 <testxml>
   <element attr="Forty two"/>
   <element attr="43"/>
+</testxml>
+```
+
+### MoveXmlElement
+- Full name: `SenseNet.Packaging.Steps.MoveXmlElement`
+- Default property: -
+- Additional properties: `Xpath, TargetXpath, TargetParentXpath, TargetName, File, Content, Field`
+
+Moves the given xml elements (selected by the Xpath property) as child elements under the xml element determined by the TargetXpath property. The xml can be in the file system (usually a .config file) or in the Content Repository (a field value of a content).
+
+If the target element does not exist, you can configure this step to create it by providing an xpath value of the *parent* element of the target (using the TargetParentXpath property) and the name of the target (TargetName property).
+
+>If the target is a content, please make sure that a **StartRepository** step precedes this one to make sure that the repository is started.
+
+For example we want to modify the “test.xml” file in the App\_Data directory. First here is the package step:
+``` xml
+<MoveXmlElement file="App_Data\test.xml" xpath="/testxml/oldsection/myElement" targetXpath="/testxml/target" />
+```
+The target XML before execution:
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<testxml>
+  <target></target>
+  <oldsection>
+    <myElement key="abc" />
+    <nestedElement />
+  </oldsection>
+</testxml>
+```
+Target XML after execution:
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<testxml>
+  <target>
+    <myElement key="abc" />
+  </target>
+  <oldsection>
+    <nestedElement />
+  </oldsection>
+</testxml>
+```
+
+Moving multiple elements to a new section:
+``` xml
+<MoveXmlElement file="App_Data\test.xml" xpath="/testxml/oldsection/myElement[contains(@key, 'abc')]" targetXpath="/testxml/target" targetParentXpath="/testxml" targetName="target" />
+```
+The target XML before execution:
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<testxml>
+  <oldsection>
+    <myElement key="abc1" />
+    <myElement key="abc2" />
+    <myElement key="def" />
+    <nestedElement />
+  </oldsection>
+</testxml>
+```
+Target XML after execution:
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<testxml>
+  <oldsection>
+    <myElement key="def" />
+    <nestedElement />
+  </oldsection>
+  <target>
+    <myElement key="abc1" />
+    <myElement key="abc2" />
+  </target>
 </testxml>
 ```
 
@@ -1131,7 +1210,7 @@ In the opposite case, when an error is detected in the environment and any furth
 ```
 
 ### CreateEventLog
-- Full name: `vSenseNet.Packaging.Steps.CreateEventLog`
+- Full name: `SenseNet.Packaging.Steps.CreateEventLog`
 - Default property: -
 - Additional properties: `LogName, Machine, Sources`
 
@@ -1142,8 +1221,8 @@ System step for creating the provided log and source in Windows Event log.
 ```xml
 <CreateEventLog LogName="@logName" Machine="@machine" Sources="@sources" />
 ```
-##x DeleteEventLog
-- Full name: `SenseNet.Packaging.Steps.CreateEventLog`
+### DeleteEventLog
+- Full name: `SenseNet.Packaging.Steps.DeleteEventLog`
 - Default property: -
 - Additional properties: `LogName, Machine, Sources`
 

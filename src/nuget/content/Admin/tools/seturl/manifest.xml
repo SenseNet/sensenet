@@ -1,0 +1,19 @@
+<Package type='Tool'>
+  <Id>SenseNet.SetUrl</Id>
+  <ReleaseDate>2017-04-05</ReleaseDate>
+  <Version>7.0.0</Version>
+  <Dependencies>
+    <Dependency id='SenseNet.Services' minVersion='7.0.0' />
+  </Dependencies>
+  <Parameters>
+	<Parameter name="@site" description="Site name">Default_Site</Parameter>
+	<Parameter name="@url" description="Url to set, without schema. May include port number." />
+	<Parameter name="@authenticationType" description="Authentication type.">Forms</Parameter>
+  </Parameters>
+  <Steps>
+    <Phase>
+      <StartRepository />
+	    <SetUrl site="@site" authenticationType="@authenticationType">@url</SetUrl>
+    </Phase>
+  </Steps>
+</Package>

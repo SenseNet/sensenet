@@ -10,6 +10,9 @@ using SenseNet.Tools;
 
 namespace SenseNet.Portal.OData
 {
+    /// <summary>
+    /// Provides helper methods for serializing OData response objects to JSON format.
+    /// </summary>
     public static class SnJsonConverter
     {
         private static List<JsonConverter> _jsonConverters;

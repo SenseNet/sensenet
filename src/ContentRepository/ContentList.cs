@@ -1073,12 +1073,12 @@ namespace SenseNet.ContentRepository
             }
 
             // reflection: because we do not have access to the workflow engine here
-            var t = TypeResolver.GetType("SenseNet.Workflow.InstanceManager");
-            if (t != null)
-            {
-                var m = t.GetMethod("Start", BindingFlags.Static | BindingFlags.Public);
-                m.Invoke(null, new object[] { workflowC.ContentHandler });
-            }
+            var t = TypeResolver.GetType("SenseNet.Workflow.InstanceManager", false);
+            if (t == null)
+                return;
+
+            var m = t.GetMethod("Start", BindingFlags.Static | BindingFlags.Public);
+            m.Invoke(null, new object[] { workflowC.ContentHandler });
         }
 
         private static Node GetMailProcessorWorkflowContainer(Node contextNode)

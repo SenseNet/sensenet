@@ -119,6 +119,7 @@ EXEC dbo.xCreateNode 'Group',              3,     '/Root/IMS/BuiltIn/Portal',   
 EXEC dbo.xCreateNode 'Group',              5,     '/Root/IMS/BuiltIn/Portal',        'Owners'          -- NodeId: 9
 EXEC dbo.xCreateNode 'User',               6,     '/Root/IMS/BuiltIn/Portal',        'Somebody'        -- NodeId: 10
 EXEC dbo.xCreateNode 'Group',              7,     '/Root/IMS/BuiltIn/Portal',        'Operators'       -- NodeId: 11
+EXEC dbo.xCreateNode 'User',               8,     '/Root/IMS/BuiltIn/Portal',        'Startup'         -- NodeId: 12
 GO
 --==== create NodeId gap for future extensions
 

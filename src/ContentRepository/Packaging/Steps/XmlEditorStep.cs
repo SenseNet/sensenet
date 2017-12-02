@@ -89,7 +89,14 @@ namespace SenseNet.Packaging.Steps
                 if (!EditXml(doc, path))
                     return;
 
-                using (var writer = XmlWriter.Create(path, new XmlWriterSettings { Indent = true, OmitXmlDeclaration = omitXmlDeclaration }))
+                var settings = new XmlWriterSettings
+                {
+                    Indent = true,
+                    OmitXmlDeclaration = omitXmlDeclaration,
+                    CloseOutput = true
+                };
+
+                using (var writer = XmlWriter.Create(path, settings))
                     doc.Save(writer);
             }
         }
@@ -292,4 +299,48 @@ namespace SenseNet.Packaging.Steps
         }
     }
 
+    public class MoveXmlElement : XmlEditorStep
+    {
+        public string TargetXpath { get; set; }
+        public string TargetParentXpath { get; set; }
+        public string TargetName { get; set; }
+
+        protected override bool EditXml(XmlDocument doc, string path)
+        {
+            var target = SelectXmlNode(doc, TargetXpath);
+            if (target == null)
+            {
+                if (string.IsNullOrEmpty(TargetParentXpath) || string.IsNullOrEmpty(TargetName))
+                {
+                    throw new InvalidStepParameterException(
+                        "Target xml node does not exist. If you want it to be created, please provide the TargetParentXpath and TargetName properties.");
+                }
+
+                var targetParent = SelectXmlNode(doc, TargetParentXpath);
+                if (targetParent == null)
+                    throw new InvalidStepParameterException("Parent of target xml node does not exist.");
+
+                target = doc.CreateElement(TargetName);
+                targetParent.AppendChild(target);
+            }
+
+            var moveCount = 0;
+
+            foreach (XmlNode node in SelectXmlNodes(doc, this.Xpath))
+            {
+                // this will move the element from its original place to the new parent
+                target.AppendChild(node);
+                moveCount++;
+            }
+
+            switch (moveCount)
+            {
+                case 0: Logger.LogMessage("Nothing to move."); break;
+                case 1: Logger.LogMessage("Moving 1 element."); break;
+                default: Logger.LogMessage("Moving {0} elements.", moveCount); break;
+            }
+
+            return moveCount > 0;
+        }
+    }
 }

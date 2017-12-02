@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using SenseNet.Configuration;
-using SenseNet.Preview;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
@@ -11,6 +10,7 @@ using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Fields;
+using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Security;
 using SenseNet.Tools;
 
@@ -18,7 +18,9 @@ namespace SenseNet.ContentRepository
 {
     public sealed class ContentTemplate
     {
-        public static readonly string NOTIFOBSERVERNAME = "SenseNet.Messaging.NotificationObserver";
+        [Obsolete("Use the SenseNet.ContentRepository.Storage.Events.NodeObserverNames class instead.", true)]
+        public static readonly string NOTIFOBSERVERNAME = "SenseNet.Notification.NotificationObserver";
+        [Obsolete("Use the SenseNet.ContentRepository.Storage.Events.NodeObserverNames class instead.", true)]
         public static readonly string WFOBSERVERNAME = "SenseNet.Workflow.WorkflowNotificationObserver";
 
         /// <summary>
@@ -525,9 +527,9 @@ namespace SenseNet.ContentRepository
                         continue;
 
                     content.ContentHandler.NodeOperation = NodeOperation.TemplateCreation;
-                    content.ContentHandler.DisableObserver(typeof(DocumentPreviewObserver));
-                    content.ContentHandler.DisableObserver(TypeResolver.GetType(WFOBSERVERNAME));
-                    content.ContentHandler.DisableObserver(TypeResolver.GetType(NOTIFOBSERVERNAME));
+                    content.ContentHandler.DisableObserver(TypeResolver.GetType(NodeObserverNames.DOCUMENTPREVIEW, false));
+                    content.ContentHandler.DisableObserver(TypeResolver.GetType(NodeObserverNames.WORKFLOWNOTIFICATION, false));
+                    content.ContentHandler.DisableObserver(TypeResolver.GetType(NodeObserverNames.NOTIFICATION, false));
 
                     content.SaveSameVersion();
                 }

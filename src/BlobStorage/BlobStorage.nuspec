@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>SenseNet.BlobStorage</id>
-    <version>7.0.0-beta2</version>
+    <version>7.0.0</version>
     <title>sensenet ECM BlobStorage library</title>
     <authors>kavics,aniko,laci,borsi,lajos,tusmester</authors>
     <owners>Sense/Net</owners>
@@ -11,12 +11,12 @@
     <iconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>BlobStorage library for the sensenet ECM platform containing the base API for handling binaries directly.</description>
-    <releaseNotes>Initial release.</releaseNotes>
+    <releaseNotes>First stable release.</releaseNotes>
     <copyright>Copyright © Sense/Net Inc.</copyright>
     <tags>sensenet ecm ecms</tags>
     <dependencies>
       <dependency id="SenseNet.Tools" version="2.1.1" />
-      <dependency id="SenseNet.Common" version="7.0.0-beta2" />
+      <dependency id="SenseNet.Common" version="7.0.0" />
     </dependencies>
   </metadata>
   <files>

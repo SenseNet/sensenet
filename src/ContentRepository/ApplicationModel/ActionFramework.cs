@@ -175,9 +175,10 @@ namespace SenseNet.ApplicationModel
                 // if the scenario name is given, try to load actions in that scenario
                 var sc = ScenarioManager.GetScenario(scenario, scenarioParameters);
                 if (sc != null)
+                {
                     return sc.GetActions(context, backUri);
+                }
             }
-
             return GetActionsFromContentRepository(context, scenario, backUri);
         }
 
