@@ -14,13 +14,34 @@ using SenseNet.Security;
 
 namespace SenseNet.ContentRepository
 {
+    /// <summary>
+    /// Defines a content handler class for representation an unit of organization to model organizational hierarchy 
+    /// and to define custom permission levels in the sensenet repository.
+    /// Contains all related <see cref="Group"/> and <see cref="User"/>s and additional <see cref="OrganizationalUnit"/>s.
+    /// </summary>
 	[ContentHandler]
     public class OrganizationalUnit : Folder, IOrganizationalUnit, IADSyncable
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OrganizationalUnit"/> class.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
         public OrganizationalUnit(Node parent) : this(parent, null) { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OrganizationalUnit"/> class.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="nodeTypeName">Name of the node type.</param>
 		public OrganizationalUnit(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OrganizationalUnit"/> class during the loading process.
+        /// Do not use this constructor directly from your code.
+        /// </summary>
 		protected OrganizationalUnit(NodeToken token) : base(token) { }
 
+        /// <summary>
+        /// Returns the predefined <see cref="OrganizationalUnit"/> called "Portal".
+        /// </summary>
         public static OrganizationalUnit Portal
         {
             get { return (OrganizationalUnit)Node.LoadNode(Identifiers.PortalOrgUnitId); }
@@ -28,6 +49,8 @@ namespace SenseNet.ContentRepository
 
         private bool _syncObject = true;
 
+        /// <inheritdoc />
+        /// <remarks>Synchronizes the modifications via the current <see cref="DirectoryProvider"/>.</remarks>
         public override void Save(SavingMode mode)
         {
             var originalId = this.Id;
@@ -43,6 +66,8 @@ namespace SenseNet.ContentRepository
             _syncObject = true;
         }
 
+        /// <inheritdoc />
+        /// <remarks>Synchronizes the modifications via the current <see cref="DirectoryProvider"/>.</remarks>
 	    public override void ForceDelete()
         {
             base.ForceDelete();
@@ -55,6 +80,8 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        /// <inheritdoc />
+        /// <remarks>In this case returns false.</remarks>
         public override bool IsTrashable
         {
             get
@@ -63,6 +90,8 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        /// <inheritdoc />
+        /// <remarks>Synchronizes the updates via the current <see cref="DirectoryProvider"/>.</remarks>
         public override void MoveTo(Node target)
         {
             base.MoveTo(target);
@@ -77,6 +106,12 @@ namespace SenseNet.ContentRepository
         }
 
         // =================================================================================== Events
+
+        /// <summary>
+        /// Checks whether the Move operation is acceptable to the current <see cref="DirectoryProvider"/> and
+        /// The operation will be cancelled if it is prohibited.
+        /// Do not use this method directly from your code.
+        /// </summary>
         protected override void OnMoving(object sender, CancellableNodeOperationEventArgs e)
         {
             // AD Sync check
@@ -95,6 +130,10 @@ namespace SenseNet.ContentRepository
             base.OnMoving(sender, e);
         }
 
+        /// <summary>
+        /// After creation adds this group to the nearest parent <see cref="OrganizationalUnit"/> as a member.
+        /// Do not use this method directly from your code.
+        /// </summary>
         protected override void OnCreated(object sender, NodeEventArgs e)
         {
             base.OnCreated(sender, e);
@@ -108,7 +147,12 @@ namespace SenseNet.ContentRepository
             }
         }
 
-	    // =================================================================================== IADSyncable Members
+        // =================================================================================== IADSyncable Members
+
+        /// <summary>
+        /// Writes back the given sync-id to the database.
+        /// </summary>
+        /// <param name="guid"></param>
         public void UpdateLastSync(System.Guid? guid)
         {
             if (guid.HasValue)
@@ -123,7 +167,10 @@ namespace SenseNet.ContentRepository
 
         // =================================================================================== ISecurityContainer members
 
-        [Obsolete("Use User.IsInGroup instead.", false)]
+        /// <summary>
+        /// This method is obsolete. Use <see cref="IUser.IsInOrganizationalUnit"/> method instead.
+        /// </summary>
+        [Obsolete("Use User.IsInOrganizationalUnit instead.", false)]
         public bool IsMember(IUser user)
         {
             return user.IsInOrganizationalUnit(this);
@@ -131,11 +178,21 @@ namespace SenseNet.ContentRepository
 
         // =================================================================================== ISecurityMember
 
+        /// <summary>
+        /// This method is obsolete. Use <see cref="Group.IsInGroup"/> method instead.
+        /// </summary>
+        /// <param name="securityGroupId">Id of the container group.</param>
 	    [Obsolete("Use IsInGroup instead.", false)]
 	    public bool IsInRole(int securityGroupId)
 	    {
             return IsInGroup(securityGroupId);
 	    }
+        /// <summary>
+        /// Returns true if this instance is a member of an <see cref="OrganizationalUnit"/> identidied by the given groupId.
+        /// This method is transitive, meaning it will look for relations in the whole group graph, not 
+        /// only direct memberships.
+        /// </summary>
+        /// <param name="securityGroupId">Id of the container group.</param>
         public bool IsInGroup(int securityGroupId)
         {
             return SecurityHandler.IsInGroup(this.Id, securityGroupId);
