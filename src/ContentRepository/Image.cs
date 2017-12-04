@@ -13,18 +13,41 @@ using System.Collections.Generic;
 
 namespace SenseNet.ContentRepository
 {
+    /// <summary>
+    /// Defines a content handler for storing images in the sensenet repository. Inherited from the <see cref="File"/>.
+    /// The represented image is stored in the Binary property as a blob.
+    /// </summary>
     [ContentHandler]
     public class Image : File, IHttpHandler
     {
         private static readonly string SETDIMENSION_KEYNAME = "SetDimension";
 
         // ================================================================================= Constructors
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Image"/> class.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
         public Image(Node parent) : this(parent, null) { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Image"/> class.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="nodeTypeName">Name of the node type.</param>
         public Image(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Image"/> class during the loading process.
+        /// Do not use this constructor directly in your code.
+        /// </summary>
         protected Image(NodeToken nt) : base(nt) { }
 
 
         // ================================================================================= Properties
+
+        /// <summary>
+        /// Gets the extension part of the Name property.
+        /// Note that the "jpg" is converted to "jpeg".
+        /// </summary>
         public string Extension
         {
             get
@@ -38,6 +61,9 @@ namespace SenseNet.ContentRepository
         }
 
         private const string WIDTH_PROPERTY = "Width";
+        /// <summary>
+        /// Gets or sets the width of the represented image. Persisted as <see cref="RepositoryDataType.Int"/>.
+        /// </summary>
         [RepositoryProperty(WIDTH_PROPERTY, RepositoryDataType.Int)]
         public int Width
         {
@@ -46,6 +72,9 @@ namespace SenseNet.ContentRepository
         }
 
         private const string HEIGHT_PROPERTY = "Height";
+        /// <summary>
+        /// Gets or sets the height of the represented image. Persisted as <see cref="RepositoryDataType.Int"/>.
+        /// </summary>
         [RepositoryProperty(HEIGHT_PROPERTY, RepositoryDataType.Int)]
         public int Height
         {
@@ -54,6 +83,13 @@ namespace SenseNet.ContentRepository
         }
 
         // ================================================================================= Methods
+
+        /// <summary>
+        /// Returns with a <see cref="System.Drawing.Imaging.ImageFormat"/> value converted from the given string value.
+        /// Note that the "gif" is converted to ImageFormat.Png.
+        /// </summary>
+        /// <param name="contentType"></param>
+        /// <returns></returns>
         public static System.Drawing.Imaging.ImageFormat getImageFormat(string contentType)
         {
             var lowerContentType = contentType.ToLower();
@@ -81,7 +117,14 @@ namespace SenseNet.ContentRepository
 
             return System.Drawing.Imaging.ImageFormat.Jpeg;
         }
-        public static new Image CreateByBinary(IFolder parent, BinaryData binaryData)
+        /// <summary>
+        /// Returens new <see cref="Image"/> instance created from the given <see cref="BinaryData"/> 
+        /// under the specified <see cref="IFolder"/> instance. The Content has not been saved yet.
+        /// </summary>
+        /// <param name="parent">An existing <see cref="IFolder"/> instance.</param>
+        /// <param name="binaryData">The <see cref="BinaryData"/> instance that is the data source of the creation.</param>
+        /// <returns></returns>
+        public new static Image CreateByBinary(IFolder parent, BinaryData binaryData)
         {
             if (parent == null)
                 throw new ArgumentNullException("parent");
@@ -103,14 +146,36 @@ namespace SenseNet.ContentRepository
 
             return image;
         }
+        /// <summary>
+        /// Returns <see cref="Stream"/> of the dynamically generated thumbnail image.
+        /// </summary>
+        /// <param name="width">Desired width of the thumbnail image.</param>
+        /// <param name="height">Desired height of the thumbnail image.</param>
+        /// <param name="contentType">Image format specifier. The value can be:
+        /// png, bmp, jpeg, jpg, gif, tiff, wmf, emf, exif. Note thet the gif will be converted to png.</param>
         public Stream GetDynamicThumbnailStream(int width, int height, string contentType)
         {
             return ImageResizer.CreateResizedImageFile(Binary.GetStream(), width, height, 80, getImageFormat(contentType));
         }
+        /// <summary>
+        /// Returns <see cref="Stream"/> of the resized version of the represented image.
+        /// </summary>
+        /// <param name="originalStream">The <see cref="Stream"/> of the image to be resized.</param>
+        /// <param name="ext">Not used.</param>
+        /// <param name="x">Desired width of the resized image.</param>
+        /// <param name="y">Desired height of the resized image.</param>
+        /// <param name="q">Not used.</param>
+        /// <param name="contentType">Image format specifier. The value can be:
+        /// png, bmp, jpeg, jpg, gif, tiff, wmf, emf, exif. Note thet the gif will be converted to png.</param>
         public static Stream CreateResizedImageFile(Stream originalStream, string ext, double x, double y, double q, string contentType)
         {
             return ImageResizer.CreateResizedImageFile(originalStream, x, y, q, getImageFormat(contentType));
         }
+
+        /// <summary>
+        /// Finalizes the object creation.
+        /// Do not use this method directly in your code.
+        /// </summary>
         protected override void OnCreated(object sender, SenseNet.ContentRepository.Storage.Events.NodeEventArgs e)
         {
             var image = sender as Image;
@@ -144,6 +209,10 @@ namespace SenseNet.ContentRepository
                 image.Save(SavingMode.KeepVersion);
             }
         }
+        /// <summary>
+        /// Finalizes the object creation.
+        /// Do not use this method directly in your code.
+        /// </summary>
         protected override void OnCreating(object sender, Storage.Events.CancellableNodeEventArgs e)
         {
             base.OnCreating(sender, e);
@@ -164,6 +233,10 @@ namespace SenseNet.ContentRepository
                 }
             }
         }
+        /// <summary>
+        /// Finalizes the object modification.
+        /// Do not use this method directly in your code.
+        /// </summary>
         protected override void OnModified(object sender, Storage.Events.NodeEventArgs e)
         {
             base.OnModified(sender, e);
@@ -178,6 +251,10 @@ namespace SenseNet.ContentRepository
                 image.Save(SavingMode.KeepVersion);
             }
         }
+        /// <summary>
+        /// Finalizes the object modification.
+        /// Do not use this method directly in your code.
+        /// </summary>
         protected override void OnModifying(object sender, Storage.Events.CancellableNodeEventArgs e)
         {
             base.OnModifying(sender, e);
@@ -199,6 +276,7 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        /// <inheritdoc />
         public override void FinalizeContent()
         {
             base.FinalizeContent();
@@ -208,6 +286,7 @@ namespace SenseNet.ContentRepository
                 this.Save(SavingMode.KeepVersion);
         }
 
+        /// <inheritdoc />
         public override object GetProperty(string name)
         {
             switch (name)
@@ -220,6 +299,7 @@ namespace SenseNet.ContentRepository
                     return base.GetProperty(name);
             }
         }
+        /// <inheritdoc />
         public override void SetProperty(string name, object value)
         {
             switch (name)

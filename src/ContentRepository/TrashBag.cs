@@ -12,13 +12,32 @@ using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.ContentRepository
 {
+    /// <summary>
+    /// Defines a content handler that can wrap the temporarily deleted Content and its subtree.
+    /// </summary>
     [ContentHandler]
     public class TrashBag : Folder
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TrashBag"/> class.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
         public TrashBag(Node parent) : this(parent, null) { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TrashBag"/> class.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="nodeTypeName">Name of the node type.</param>
         public TrashBag(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TrashBag"/> class during the loading process.
+        /// Do not use this constructor directly from your code.
+        /// </summary>
         protected TrashBag(NodeToken tk) : base(tk) { }
 
+        /// <summary>
+        /// Gets or sets the time as long as the item can not be deleted.
+        /// </summary>
         [RepositoryProperty("KeepUntil", RepositoryDataType.DateTime)]
         public DateTime KeepUntil
         {
@@ -26,6 +45,10 @@ namespace SenseNet.ContentRepository
             set { this["KeepUntil"] = value; }
         }
 
+        /// <summary>
+        /// Gets or sets the original path of the wrapped Content.
+        /// Persisted as <see cref="RepositoryDataType.String"/>.
+        /// </summary>
         [RepositoryProperty("OriginalPath", RepositoryDataType.String)]
         public string OriginalPath
         {
@@ -34,6 +57,10 @@ namespace SenseNet.ContentRepository
         }
 
         private const string WORKSPACEIDPROPERTY = "WorkspaceId";
+        /// <summary>
+        /// Gets or sets the Id of the owner Workspace of the wrapped Content. 
+        /// Persisted as <see cref="RepositoryDataType.Int"/>.
+        /// </summary>
         [RepositoryProperty(WORKSPACEIDPROPERTY, RepositoryDataType.Int)]
         public int WorkspaceId
         {
@@ -42,6 +69,10 @@ namespace SenseNet.ContentRepository
         }
 
         private const string WORKSPACERELATIVEPATHPROPERTY = "WorkspaceRelativePath";
+        /// <summary>
+        /// Gets or sets the relative path of the wrapped Content in the owner Workspace.
+        /// Persisted as <see cref="RepositoryDataType.String"/>.
+        /// </summary>
         [RepositoryProperty(WORKSPACERELATIVEPATHPROPERTY, RepositoryDataType.String)]
         public string WorkspaceRelativePath
         {
@@ -49,6 +80,7 @@ namespace SenseNet.ContentRepository
             set { this[WORKSPACERELATIVEPATHPROPERTY] = value; }
         }
 
+        /// <inheritdoc />
         public override object GetProperty(string name)
         {
             switch (name)
@@ -68,6 +100,7 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        /// <inheritdoc />
         public override void SetProperty(string name, object value)
         {
             switch (name)
@@ -93,11 +126,15 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        /// <summary>
+        /// Gets true if this <see cref="TrashBag"/> can be deleted permanently.
+        /// </summary>
         public bool IsPurgeable
         {
             get { return (DateTime.UtcNow > KeepUntil); }
         }
 
+        /// <inheritdoc />
         public override string Icon
         {
             get
@@ -106,6 +143,8 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        /// <inheritdoc />
+        /// <remarks>In this case returns false.</remarks>
         public override bool IsTrashable
         {
             get
@@ -114,6 +153,9 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        /// <inheritdoc />
+        /// <remarks>Cannot be deleted permanently before minimum retention time otherwise 
+        /// an <see cref="ApplicationException"/> will be thrown.</remarks>
         public override void ForceDelete()
         {
             if (!IsPurgeable)
@@ -121,6 +163,7 @@ namespace SenseNet.ContentRepository
             base.ForceDelete();
         }
 
+        /// <inheritdoc />
         public override void Delete()
         {
             ForceDelete();
@@ -135,6 +178,11 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        /// <summary>
+        /// Returns a new <see cref="TrashBag"/> instance that packages the 
+        /// given <see cref="GenericContent"/> instance.
+        /// </summary>
+        /// <param name="node">The <see cref="GenericContent"/> instance that will be wrapped.</param>
         public static TrashBag BagThis(GenericContent node)
         {
             var bin = TrashBin.Instance;
@@ -226,6 +274,9 @@ namespace SenseNet.ContentRepository
         private GenericContent _originalContent;
 
         private const string DELETEDCONTENTROPERTY = "DeletedContent";
+        /// <summary>
+        /// Gets the wrapped <see cref="GenericContent"/> instance.
+        /// </summary>
         public GenericContent DeletedContent
         {
             get

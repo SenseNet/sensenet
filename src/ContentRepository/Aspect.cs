@@ -171,7 +171,7 @@ namespace SenseNet.ContentRepository
         {
             return FieldSetting.Create(fieldInfo, new List<string>(), this);
         }
-        //UNDONE:! XMLDOC:
+        //UNDONE:! XMLDOC: Aspect.SetFieldSlots
         protected virtual void SetFieldSlots() //UNDONE: make internal or private.
         {
             // Field slot indices and readonly.
