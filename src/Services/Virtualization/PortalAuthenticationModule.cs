@@ -300,21 +300,10 @@ namespace SenseNet.Portal.Virtualization
             if (HttpRuntime.UsingIntegratedPipeline)
             {
                 WindowsPrincipal user = null;
-                //if (HttpRuntime.IsOnUNCShare && application.Request.IsAuthenticated)
                 var portalUser = application.Context.User;
                 var portalIdentity = portalUser?.Identity as IUser;
                 if (portalUser == null || portalIdentity != null && (portalIdentity.Id == Identifiers.StartupUserId || portalIdentity.Id == Identifiers.VisitorUserId))
                 {
-                    //var applicationIdentityToken = (IntPtr)typeof(System.Web.Hosting.HostingEnvironment)
-                    //    .GetProperty("ApplicationIdentityToken", BindingFlags.NonPublic | BindingFlags.Static)
-                    //    .GetGetMethod().Invoke(null, null);
-
-                    //var wi = new WindowsIdentity(
-                    //    applicationIdentityToken,
-                    //    application.User.Identity.AuthenticationType,
-                    //    WindowsAccountType.Normal,
-                    //    true);
-                    //var wi = System.DirectoryServices.AccountManagement.UserPrincipal.Current.UserPrincipalName;
                     identity = WindowsIdentity.GetCurrent();
                     user = new WindowsPrincipal(identity);
                 }
@@ -324,16 +313,6 @@ namespace SenseNet.Portal.Virtualization
                     identity = user.Identity as WindowsIdentity;
                 }
 
-                //if (user != null)
-                //{
-                //identity = user.Identity as WindowsIdentity;
-
-                //object[] setPrincipalNoDemandParameters = { null, false };
-                //var setPrincipalNoDemandParameterTypes = new[] { typeof(IPrincipal), typeof(bool) };
-                //var setPrincipalNoDemandMethodInfo = application.Context.GetType().GetMethod("SetPrincipalNoDemand", BindingFlags.Instance | BindingFlags.NonPublic, null, setPrincipalNoDemandParameterTypes, null);
-
-                //setPrincipalNoDemandMethodInfo.Invoke(application.Context, setPrincipalNoDemandParameters);
-                //}
                 var context = AuthenticationHelper.GetContext(application);
                 context.User = user;
             }
