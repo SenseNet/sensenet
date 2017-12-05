@@ -22,6 +22,9 @@ using SenseNet.Search.Indexing;
 
 namespace SenseNet.ContentRepository
 {
+    /// <summary>
+    /// Defines a content handler base class for managing any feature dependent, local or global setting.
+    /// </summary>
     [ContentHandler]
     public class Settings : File, ISupportsDynamicFields, ISupportsAddingFieldsOnTheFly
     {
@@ -46,18 +49,52 @@ namespace SenseNet.ContentRepository
         internal static readonly string SETTINGSCONTAINERNAME = Repository.SettingsFolderName; // "Settings";
         private static readonly string SETTINGSCONTAINERNAMEPART = "/" + SETTINGSCONTAINERNAME + "/";
         internal static readonly string EXTENSION = "settings";
+        /// <summary>
+        /// Define a constant for cache key of XML data.
+        /// </summary>
         protected static readonly string BINARYXMLKEY = "CachedBinaryXml";
+        /// <summary>
+        /// Define a constant for cache key of JSON data.
+        /// </summary>
         protected static readonly string BINARYJSONKEY = "CachedBinaryJson";
+        /// <summary>
+        /// Define a constant for cache key of interpreted data.
+        /// </summary>
         protected static readonly string SETTINGVALUESKEY = "CachedValues";
+        /// <summary>
+        /// Define a constant for cache key of dynamic metadata.
+        /// </summary>
         protected static readonly string DYNAMICMETADATA_CACHEKEY = "CachedDynamicMetadata";
+        /// <summary>
+        /// Define a constant for element name in the XML data.
+        /// </summary>
         protected static readonly string XML_DEFAULT_NODE_NAME = "add";
+        /// <summary>
+        /// Define a constant for "key" attrivute name in the XML data.
+        /// </summary>
         protected static readonly string XML_DEFAULT_KEYATTRIBUTE_NAME = "key";
+        /// <summary>
+        /// Define a constant for "value" attrivute name in the XML data.
+        /// </summary>
         protected static readonly string XML_DEFAULT_VALUEATTRIBUTE_NAME = "value";
 
         // ================================================================================= Constructors
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Settings"/> class.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
         public Settings(Node parent) : this(parent, null) { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Settings"/> class.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="nodeTypeName">Name of the node type.</param>
         public Settings(Node parent, string nodeTypeName) : base(parent, nodeTypeName) {}
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Settings"/> class during the loading process.
+        /// Do not use this constructor directly in your code.
+        /// </summary>
         protected Settings(NodeToken nt) : base(nt) {}
 
         // ================================================================================= Properties
@@ -65,8 +102,12 @@ namespace SenseNet.ContentRepository
         private IDictionary<string, FieldMetadata> _dynamicFieldMetadata = null;
         private bool _dynamicFieldsChanged = false;
 
-        protected bool _xmlIsLoaded;
+        //UNDONE: XMLDOC: Settings._xmlIsLoaded
+        protected bool _xmlIsLoaded; //UNDONE: be private
         private XmlDocument _binaryAsXml;
+        /// <summary>
+        /// Gets data as an <see cref="XmlDocument"/> if it can be parsed, or null.
+        /// </summary>
         protected XmlDocument BinaryAsXml
         {
             get
@@ -110,6 +151,9 @@ namespace SenseNet.ContentRepository
 
         private bool _jsonIsLoaded;
         private JObject _binaryAsJObject;
+        /// <summary>
+        /// Gets data as an <see cref="JObject"/> if it can be parsed, or null.
+        /// </summary>
         protected JObject BinaryAsJObject
         {
             get
@@ -141,7 +185,9 @@ namespace SenseNet.ContentRepository
         private Dictionary<string, object> _settingValues;
 
         /// <summary>
-        /// This property holds the real values for settings that were successfuly parsed from the binary. This is stored in the node cache.
+        /// Gets the interpreted values as a Dictionary&lt;string, object&gt; instance.
+        /// This property holds the real values for settings that were successfuly parsed from the binary. 
+        /// This is stored in the node cache.
         /// </summary>
         protected Dictionary<string, object> SettingValues
         {
@@ -220,6 +266,13 @@ namespace SenseNet.ContentRepository
             return settingsList;
         }
 
+        /// <summary>
+        /// Returns input object converted to the desired type. If input was null, the defaultValue will be returned.
+        /// </summary>
+        /// <typeparam name="T">Type of the return value</typeparam>
+        /// <param name="value">Input raw value</param>
+        /// <param name="defaultValue">Actual value if the "value" is null.</param>
+        /// <returns></returns>
         protected static T ConvertSettingValue<T>(object value, T defaultValue)
         {
             if (value == null)
@@ -232,6 +285,15 @@ namespace SenseNet.ContentRepository
                 return (T)Convert.ChangeType(value, typeof(T));
         }
 
+        /// <summary>
+        /// Returns value by the given key of the specified <see cref="Settings"/>.
+        /// </summary>
+        /// <typeparam name="T">Type of the return value</typeparam>
+        /// <param name="settingsName">Name of the <see cref="Settings"/> file.</param>
+        /// <param name="key">The name of the requested value</param>
+        /// <param name="contextPath">Path of the focused Content. The requested value belongs to it.</param>
+        /// <param name="defaultValue">Value if the "value" is null.</param>
+        /// <returns></returns>
         public static T GetValue<T>(string settingsName, string key, string contextPath = null, T defaultValue = default(T))
         {
             using (new SystemAccount())
@@ -289,6 +351,13 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        /// <summary>
+        /// Returns closest <see cref="Settings"/> on the parent chain with same name.
+        /// </summary>
+        /// <remarks>Note that the <see cref="Settings"/> is a context object with a special container.
+        /// Every Content can have settings under it's "/Settings/[settingname]" structure.
+        /// Searching the parent <see cref="Settings"/> is based on this structure.</remarks>
+        /// <returns></returns>
         protected Settings FindClosestInheritedSettingsFile()
         {
             if (this.ParentPath.StartsWith(SETTINGSCONTAINERPATH, true, System.Globalization.CultureInfo.InvariantCulture))
@@ -380,6 +449,10 @@ namespace SenseNet.ContentRepository
             return null;
         }
 
+        /// <summary>
+        /// Returns deserialized JObject or null, if the deserializing was unsuccessful.
+        /// </summary>
+        /// <param name="stream">The input <see cref="Stream"/>.</param>
         public static JObject DeserializeToJObject(Stream stream)
         {
             JObject joe = null;
@@ -417,6 +490,9 @@ namespace SenseNet.ContentRepository
 
         // ================================================================================= Overrides
 
+        /// <inheritdoc />
+        /// <remarks>Looks for dynamic properties by the given name. If it was not found, continues the search 
+        /// in the appropriate setting files on the parent chain.</remarks>
         public override object GetProperty(string name)
         {
             if (this.HasProperty(name))
@@ -446,6 +522,8 @@ namespace SenseNet.ContentRepository
                 return null;
         }
 
+        /// <inheritdoc />
+        /// <remarks>Sets or overrides any dynamic property.</remarks>
         public override void SetProperty(string name, object value)
         {
             if (this.HasProperty(name))
@@ -468,6 +546,7 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        /// <inheritdoc />
         public override void Save(NodeSaveSettings settings)
         {
             AssertSettings();
@@ -510,12 +589,17 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        /// <inheritdoc />
         public override void MoveTo(Node target)
         {
             AssertSettingsPath(RepositoryPath.Combine(target.Path, this.Name), this.Name, this.Id);
             base.MoveTo(target);
         }
 
+        /// <summary>
+        /// Overrides the base class behavior. Triggers the building internal structures.
+        /// Do not use this method directly from your code.
+        /// </summary>
         protected override void OnLoaded(object sender, NodeEventArgs e)
         {
             base.OnLoaded(sender, e);
@@ -730,6 +814,10 @@ namespace SenseNet.ContentRepository
             return attr != null ? attr.Value : xmlNode.InnerText;
         }
 
+        /// <summary>
+        /// Returns name if this instance without file name extension.
+        /// </summary>
+        /// <returns></returns>
         protected string GetSettingName()
         {
             if (this.IsNew)
@@ -751,6 +839,11 @@ namespace SenseNet.ContentRepository
             return result;
         }
 
+        /// <summary>
+        /// Overrides the base class behavior.
+        /// In this case disables the indexing of the dynamic fields.
+        /// Do not use this method directly from your code.
+        /// </summary>
         public override IEnumerable<IIndexableField> GetIndexableFields()
         {
             // NOTE:

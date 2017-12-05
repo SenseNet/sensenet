@@ -3,19 +3,39 @@ using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.ContentRepository
 {
+    /// <summary>
+    /// Defines a content handler for root node of an <see cref="User"/>'s profile structure.
+    /// </summary>
     [ContentHandler]
     public class UserProfile : Workspaces.Workspace
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UserProfile"/> class.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
         public UserProfile(Node parent) : this(parent, null) { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UserProfile"/> class.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="nodeTypeName">Name of the node type.</param>
 		public UserProfile(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UserProfile"/> class during the loading process.
+        /// Do not use this constructor directly in your code.
+        /// </summary>
         protected UserProfile(NodeToken nt) : base(nt) { }
 
         private User _user;
+        /// <summary>
+        /// Gets back reference of the owner <see cref="User"/> of this <see cref="UserProfile"/> instance.
+        /// </summary>
         public User User
         {
             get { return _user ?? (_user = User.Load(this.ParentName, this.Name)); }
         }
 
+        /// <inheritdoc />
         public override object GetProperty(string name)
         {
             switch (name)
@@ -27,6 +47,7 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        /// <inheritdoc />
         public override void SetProperty(string name, object value)
         {
             switch (name)
@@ -39,6 +60,7 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        /// <inheritdoc />
         public override void Save(NodeSaveSettings settings)
         {
             var thisUser = this.User;

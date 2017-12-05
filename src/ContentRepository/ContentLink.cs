@@ -9,15 +9,34 @@ using SenseNet.ContentRepository.Storage.Schema;
 
 namespace SenseNet.ContentRepository
 {
+    /// <summary>
+    /// Defines a content handler that can show another content in the place of the link.
+    /// </summary>
     [ContentHandler]
     public class ContentLink : GenericContent
     {
         private static readonly List<string> _notLinkedFields = new List<string>(new[] { "Id", "ParentId", "VersionId", "Name", "Path", "Index", "InTree", "InFolder", "Depth", "Type", "TypeIs", "Version" });
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ContentLink"/> class.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
         public ContentLink(Node parent) : this(parent, null) { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ContentLink"/> class.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="nodeTypeName">Name of the node type.</param>
         public ContentLink(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ContentLink"/> class during the loading process.
+        /// Do not use this constructor directly in your code.
+        /// </summary>
         protected ContentLink(NodeToken tk) : base(tk) { }
 
+        /// <summary>
+        /// Gets a list of field names that are not transferred.
+        /// </summary>
         public virtual List<string> NotLinkedFields
         {
             get
@@ -27,6 +46,9 @@ namespace SenseNet.ContentRepository
         }
 
         private bool? _isAlive;
+        /// <summary>
+        /// Gets true if the linked content exists and current <see cref="User"/> has enough permission to open it (<see cref="PermissionType.Open"/>).
+        /// </summary>
         public bool IsAlive
         {
             get
@@ -45,6 +67,12 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        /// <summary>
+        /// Gets or sets the persistent linked <see cref="Node"/> instance.
+        /// Persisted as <see cref="RepositoryDataType.Reference"/>.
+        /// This property is not used if the linked content is resolved dinamically.
+        /// For business purposes use the LinkedContent property instead.
+        /// </summary>
         [RepositoryProperty("Link", RepositoryDataType.Reference)]
         public Node Link
         {
@@ -57,6 +85,7 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        /// <inheritdoc />
         public override object GetProperty(string name)
         {
             switch (name)
@@ -67,6 +96,7 @@ namespace SenseNet.ContentRepository
                     return base.GetProperty(name);
             }
         }
+        /// <inheritdoc />
         public override void SetProperty(string name, object value)
         {
             switch (name)
@@ -82,6 +112,9 @@ namespace SenseNet.ContentRepository
 
         private bool _resolved;
         private GenericContent _linkedContent;
+        /// <summary>
+        /// Gets the linked <see cref="GenericContent"/> instance.
+        /// </summary>
         public GenericContent LinkedContent
         {
             get
@@ -96,11 +129,17 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        /// <summary>
+        /// Customizable method that resolves the linked <see cref="GenericContent"/> instance.
+        /// </summary>
         protected virtual GenericContent ResolveLinkedContent()
         {
             return Link as GenericContent;
         }
 
+        /// <summary>
+        /// Gets value of the linked content'"s Icon property.
+        /// </summary>
         public override string Icon
         {
             get
