@@ -1,7 +1,16 @@
+---
+title:  "Configuration of Web Token Authentication"
+source_url: 'https://github.com/SenseNet/sensenet/blob/jwt/docs/web-token-authentication.md'
+category: Development
+version: v7.0.0
+tags: webtoken jwt authentication sn7
+description: Configuration of Web Token Authentication
+---
+
 # Configuration of Web Token Authentication #
 
-In a sensenet ECM web application (on all instances) you need to configure the token authentication in the _web.config_ file.
-Find the _SymmetricKeySecret_ parameter in the `tokenAuthentication` section of the sensenet section group. Give it a value of random string (16 - 64 in length) in order to make the authentication work.
+In a sensenet ECM web application (on all instances) you need to configure the token authentication in the `web.config` file.
+Find the `SymmetricKeySecret` parameter in the `tokenAuthentication` section of the sensenet section group. Give it a value of random string (16 - 64 in length) in order to make the authentication work.
 
 All your instances in the NLB should have the same value as their SymmetricKeySecret. Without this your authentication wouldn't work. Also very important to keep this random string a secret, otherwise someone can exploit it as a security breach. It is a good practice to encrypt the whole tokenAuthentication section in the web.config file.
 
@@ -30,20 +39,12 @@ There are a few other parameters in the tokenAuthentication section that you can
 **_Audience, Issuer, Subject_**: environment constants to include in the token (further information at the end of the Token Authentication Protocol part)  
 **_AccessLifeTimeInMinutes_**: the time span within the access token is valid from its creation  
 **_RefreshLifeTimeInMinutes_**: the time span within the refresh token is valid from its creation  
-**_ClockSkewInMinutes_**: the possible maximum difference in actual times between to servers
+**_ClockSkewInMinutes_**: the possible maximum difference in actual times between servers
 
 ## Web Token Authentication Protocol ##
 ### Protocol overview ### 
 
-The token authentication needs a username and password pair for its first move. After it was 
-given and the user was successfully identified, the service generates an access token and a 
-refresh token and sends it to the client. The client can use the access token to get to the 
-content allowed only for authenticated users. Every token has its expiration time, so when 
-the access token is expired the client cannot access protected content. The same applies after 
-a client issued a successful logout request. The client has to use the refresh token to obtain 
-a new access token. When it is received, the client can use it to 
-access content again. The refresh token could be expired too. In that case the client has to 
-re-authenticate with a username and password and regain access to protected content.
+The token authentication needs a username and password pair for its first move. After it was given and the user was successfully identified, the service generates an access token and a refresh token and sends it to the client. The client can use the access token to get to the content allowed only for authenticated users. Every token has its expiration time, so when the access token is expired the client cannot access protected content. The client has to use the refresh token to obtain a new access token. When it is received, the client can use it to access content again. The refresh token could be expired too. In that case the client has to re-authenticate with a username and password and regain access to protected content.
 
 ### Protocol use cases in detail ###
 
@@ -59,137 +60,159 @@ _Steps of a token refresh process from the clients' point of view:_
 
 All the communication are sent through SSL (https). The used cookies are all HtmlOnly and Secure. There are two types of communication: header marked and uri marked (without header mark). Either of them can be choosen freely by a client developer. However the two could be mixed, but we advice to choose one and stick to it.
 
-![web token authentication protocol](images/SensenetTokenAuthentication.png) _figure 1: web token authentication protocol_
+![web token authentication protocol](images/SensenetTokenAuthentication.png)
+_figure 1:web token authentication protocol_
 
 **LoginRequest with header mark:**  
 _uri:_  
-```https://<yourhost>/<indifferentpath>```  
+`https://<yourhost>/<indifferentpath>`  
 _headers:_  
-X-Authentication-Type: Token  
-Authorization: Basic ```<base64CodedCredentials>```
+X-Authentication-Action: TokenLogin  
+Authorization: Basic `<base64CodedCredentials>`
 
 **LoginRequest with uri mark:**   
 _uri:_  
-```https://<yourhost>/sn-token/login```  
+`https://<yourhost>/sn-token/login`   
 _headers:_  
-Authorization: Basic ```<base64CodedCredentials>```
+Authorization: Basic `<base64CodedCredentials>`
 
 **LoginResponse:**  
 _cookies:_  
-Set-Cookie: rs=```<refreshSignature>```  
-Set-Cookie: ahp=```<accessHeadAndPayload>```  
-Set-Cookie: as=```<accessSignature>```  
+Set-Cookie: rs=`<refreshSignature>`  
+Set-Cookie: as=`<accessSignature>`  
 _body:_  
 ```json 
 {"access":"<accessHeadAndPayload>", "refresh":"<refreshHeadAndPayload>"}
 ```
-***LogoutRequest with header mark:***  
-_uri:_   
-```https://<yourhost>/<indifferentpath>```  
-_headers:_  
-X-Authentication-Action: ```TokenLogout```  
-X-Access-Data: ```<accessHeadAndPayload>```  
-_cookies:_  
-Cookie: as=```<accessSignature> ```  
-Cookie: ahp=```<accessHeadAndPayload>```  
-Cookie: rs=```<refreshSignature>``` 
 
-***LogoutRequest with uri mark:***  
+**LogoutRequest with header mark:**  
 _uri:_  
-```https://<yourhost>//sn-token/logout```  
+`https://<yourhost>/<indifferentpath>`  
+_headers:_  
+X-Authentication-Action: TokenLogout  
+X-Access-Data: `<accessHeadAndPayload>`  
+_cookies:_  
+Cookie: as=`<accessSignature>`  
+Cookie: ahp=`<accessHeadAndPayload>`  
+Cookie: rs=`<refreshSignature>`
+
+**LogoutRequest with uri mark:**   
+_uri:_  
+`https://<yourhost>/sn-token/logout`  
 _headers:_  
 _cookies:_  
-Cookie: as=```<accessSignature>```  
-Cookie: ahp=```<accessHeadAndPayload>```  
-Cookie: rs=```<refreshSignature>```  
+Cookie: as=`<accessSignature>`  
+Cookie: ahp=`<accessHeadAndPayload>`  
+Cookie: rs=`<refreshSignature>`
+
 
 **AuthenticatedServiceRequest with header mark:**  
 _uri:_  
-```https://<yourhost>/<contentpath>```  
+`https://<yourhost>/<contentpath>`  
 headers:  
-X-Authentication-Action: ```TokenAccess```  
-X-Access-Data: ```<accessHeadAndPayload>```  
+`X-Authentication-Action: TokenAccess`  
+`X-Access-Data: <accessHeadAndPayload>`  
 _cookies:_  
-Cookie: as=```<accessSignature>```  
-Cookie: ahp=```<accessHeadAndPayload>```  
-Cookie: rs=```<refreshSignature>```
+Cookie: as=`<accessSignature>`
+Cookie: ahp=`<accessHeadAndPayload>`  
+Cookie: rs=`<refreshSignature>`  
 
 **AuthenticatedServiceRequest without header mark:**  
 _uri:_  
-```https://<yourhost>/<contentpath>```  
+`https://<yourhost>/<contentpath>`  
 _headers:_  
+`X-Access-Data: <accessHeadAndPayload>`  
 _cookies:_  
-Cookie: as=```<accessSignature>```  
-Cookie: ahp=```<accessHeadAndPayload>```  
-Cookie: rs=```<refreshSignature>```
+Cookie: rs=`<refreshSignature>`  
+Cookie: ahp=`<accessHeadAndPayload>`  
+Cookie: as=`<accessSignature>`
 
-**UnauthenticatedServiceRequest:**  
+**UnauthenticatedServiceRequest with header mark:**  
 _uri:_   
-```https://<yourhost>/<contentpath>```  
+`https://<yourhost>/<contentpath>`  
+_headers:_  
+`X-Authentication-Action: TokenAccess`  
+`X-Access-Data: <expiredAccessHeadAndPayload>`  
+_cookies:_  
+Cookie: as=`<expiredAccessSignature>`  
+Cookie: ahp=`<expiredAccessHeadAndPayload>`  
+Cookie: rs=`<refreshSignature>`  
+
+**UnauthenticatedServiceRequest without header mark:**  
+_uri:_   
+`https://<yourhost>/<contentpath>`  
 _headers:_  
 _cookies:_  
-Cookie: as=```<accessSignature>```  
-Cookie: ahp=```<expiredAccessHeadAndPayload>```  
-Cookie: rs=```<refreshSignature>```
+Cookie: as=`<expiredAccessSignature>`  
+Cookie: ahp=`<expiredAccessHeadAndPayload>`  
+Cookie: rs=`<refreshSignature>`  
 
 **ServiceResponse:**  
 _body:_  
-```<contentData>```
+`<contentData>`
 
 **RefreshRequest with header mark:**  
 _uri:_  
-```https://<yourhost>/<indifferentpath>```  
+`https://<yourhost>/<indifferentpath>`  
 _headers:_  
-X-Authentication-Action: ```TokenRefresh```  
-X-Refresh-Data: ```<refreshHeadAndPayload>```  
+X-Authentication-Action: TokenRefresh    
+X-Refresh-Data: `<refreshHeadAndPayload>`  
 _cookies:_  
-Cookie: as=```<accessSignature>```  
-Cookie: ahp=```<accessHeadAndPayload>```  
-Cookie: rs=```<refreshSignature>```
+Cookie: as=`<expiredAccessSignature>`  
+Cookie: ahp=`<expiredAccessHeadAndPayload>`  
+Cookie: rs=`<refreshSignature>`  
 
 **RefreshRequest with uri mark:**  
 _uri:_  
-```https://<yourhost>/sn-token/refresh```  
+`https://<yourhost>/sn-token/refresh`  
 _headers:_  
-X-Refresh-Data: ```<refreshHeadAndPayload>```  
+X-Refresh-Data: `<refreshHeadAndPayload>`  
 _cookies:_  
-Cookie: as=```<accessSignature>```  
-Cookie: ahp=```<accessHeadAndPayload>```  
-Cookie: rs=```<refreshSignature>```
+Cookie: as=`<expiredAccessSignature>`  
+Cookie: ahp=`<expiredAccessHeadAndPayload>`  
+Cookie: rs=`<refreshSignature>`  
 
 **RefreshResponse:**  
 _cookies:_  
-Set-Cookie: as=```<accessSignature>```  
-Set-Cookie: ahp=```<accessHeadAndPayload>```  
+Set-Cookie: as=`<accessSignature>`  
+Set-Cookie: ahp=`<accessHeadAndPayload>`  
 _body:_  
 ```json 
 {"access":"<accessHeadAndPayload>"}
 ```
 
 **<200>:**  
-HTTP response with status 200 (OK). On the diagram it is used to sign an empty response in case of a not authenticated request. It is important that SenseNet does not throw an exception here.
+HTTP response with status 200 (OK). On the diagram it is used to sign an empty response in case of a not authenticated request. It is important that sensenet ECM does not throw an exception here.
 
 **<401>:**  
-HTTP response with status 401 (Unauthorized). On the diagram it is used to sign a response to an unsuccessful login or refresh request.
+HTTP response with status 401 (Unauthorized). On the diagram it is used to sign a response to an unsuccessful login, logout or refresh request.
 
 ### The used headers in detail ###  
 **_Authorization_**: this header is a standard HTTP header and tells the service, that a client would like to authenticate. Its value always begins with "Basic ", that signes a basic type authentication requires a valid username and password.  
 **_X-Access-Data_**: this header tells the service, that a client tries to access a content with a token. Its value is an access token head and payload.  
-**_X-Authentication-Action_**: this header tells the service in case of header marked communication, that a token authentication action is requested. Its value can be "TokenLogin", "TokenLogout", "TokenAccess", "TokenRefresh".  
+**_X-Authentication-Action_**: this header tells the service in case of header marked communication, that a token authentication action is requested. Its value can be `TokenLogin`, `TokenLogout`, `TokenAccess`, `TokenRefresh`.  
 **_X-Refresh-Data_**: this header tells the service, that a client tries to refresh its expired access token. Its value is a refresh token head and payload.
 
 ### The used cookies ###  
 **_as, ahp, rs_**: technical HttpOnly and Secure cookies for token authentication. They are emitted by token authentication service. The client does not need them and they are not subjects of change.
 
-```<refreshSignature>, <accessSignature>```: signature strings used by the authentication service.  
-```<accessHeadAndPayload>, <refreshHeadAndPayload>```: base64 and URL encoded strings.
+`<refreshSignature>, <accessSignature>`: signature strings used by the authentication service.  
+`<accessHeadAndPayload>, <refreshHeadAndPayload>`: base64 and URL encoded strings.
 
 The access head and payload are the public part of a token, that consists of two parts separated by a full stop.
-The first one is a technical like header that you do not have to care about. The second one - the payload - contains claims about the authenticated user and about some authentication concerning data. Once the payload has been decoded from base64 it will be a string representation of a JSON object, so it can be easily used in Javascript.
+The first one is a technical like header that you do not have to care about. The second one - the payload - contains claims about the authenticated user and about some authentication concerning data. Once the payload has been decoded from base64 it will be a string representation of a JSON object, so it can be easily use in Javascript.
 
 **Example of a typical payload:**  
 ```json
-{"iss":"sensenet-token-service","sub":"sensenet","aud":"client","exp":1490577801,"iat":1490577501,"nbf":1490577501,"name":"Joe"}
+{
+  "iss":"sensenet-token-service",
+  "sub":"sensenet",
+  "aud":"client",
+  "exp":1490577801,
+  "iat":1490577501,
+  "nbf":1490577501,
+  "name":"Joe"
+}
 ```
 
 ### The used claims in the sensenet ECM tokens:
@@ -201,27 +224,10 @@ The first one is a technical like header that you do not have to care about. The
 **_nbf_**: `not before` identifies the time before that the token can not be accepted  
 **_name_**: `name` identifies the name of the user whom the token was issued to
 
-The _iss, sub, aud_ claims can be configured and remains the same unless you change them in the web.config. The other claims dinamically change on new token creation.
+The `iss, sub, aud` claims can be configured and remains the same unless you change them in the web.config. The other claims dinamically change on new token creation.
 
 ## Considerations for client developers ##
 
-Once the client application has got the access token and the refresh token, 
-it has to persist them preferably in some local browser storage for later usage. 
-(The access token will have any use if the client applies header mark communication.) 
-However the refresh token also contains the same claims as the access token, its claims - 
-at least _iat, nbf_ and _exp_ - have different values. It happens because of their different 
-use. An access token will be immediately valid and accepted after its creation, but the 
-refresh token is not. The refresh token will be valid and accepted by the service only when 
-the access token is expired. Therefore the client should extract the expiration time of the 
-tokens into an application lifetime variable and constantly check it when the client tries to 
-access a content. Content access request have to include the access token into the according 
-HTTP header (specified as _AuthenticatedServiceRequest_ earlier). In case when the access 
-tokens expiration check results true the client must check the refresh token's expiration. 
-If this results false, the client have to send a _RefreshRequest_ (specified earlier) to the 
-service. A _RefreshRequest_ will reply with a new access token, that must replace the old one. 
-If the check results true, the client cannot access protected content unless sending a new 
-_LoginRequest_ to the service with the username and password of the user. Because of the 
-sensitive nature of user's credentials, we do not recommend the client to persist them. 
-As the lifetime of both tokens can be changed in the service's configuration, it is very 
-important to choose them wisely to support the fluent communication between the two part. 
-Wrong settings can disrupt efficiency of turn arounds and slow down the whole system.
+Once the client application has got the access token and the refresh token, it has to persist them preferably in some local browser storage for later usage. However the refresh token also contains the same claims as the access token, its claims - at least `iat, nbf` and `exp` - have different values. It happens because of their different use. An access token will be immediately valid and accepted after its creation, but the refresh token is not. The refresh token will be valid and accepted by the service only when the access token is expired. Therefore the client should extract the expiration time of the tokens into an application lifetime variable and constantly check it when the client try to access a content. Content access request have to include the access token into the according HTTP header (specified as `AuthenticatedServiceRequest` earlier). In case when the access tokens expiration check results true the client must check the refresh token's expiration. If this results false, the client have to send a `RefreshRequest` (specified earlier) to the service. A `RefreshRequest` will reply with a new access token, that must replace the old one. If the check results true, the client cannot access protected content unless sending a new `LoginRequest` to the service with the username and password of the user. Because of the sensitive nature of user's credentials, we do not recommend the client to persist them. When the client wants to log out, a `LogoutRequest` must be sent and if it responds in a status 200 the client stored credentials should be deleted. As the lifetime of both the access and refresh tokens can be changed in the service's configuration, it is very important to choose them wisely to support the fluent communication between the two part. Wrong settings can disrupt efficiency of turn arounds and slow down the whole system.
+
+You can learn more about how you can use Web Token Authentication in sn-client-js from the [following tutorial](/docs/tutorials/how-to-use-jwt-in-sn-client-js.md).
