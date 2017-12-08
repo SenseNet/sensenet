@@ -9,24 +9,24 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void VersionChecker_Repository_Correct()
         {
-            var rvc = new RepositoryVersionChecker();
-            var av = rvc.GetType().Assembly.GetName().Version;
+            var av = new Version(3, 3, 3, 3);
+            var rvc = new RepositoryVersionChecker {AssemblyVersion = av};
 
-            var cv1 = new Version(av.Major, av.Minor, av.Build + 1);
-            var cv2 = new Version(av.Major, av.Minor + 1, av.Build);
-            var cv3 = new Version(av.Major + 1, av.Minor, av.Build);
-            var cv4 = new Version(av.Major - 1, av.Minor, av.Build);
-            
-            Assert.IsTrue(rvc.IsComponentAllowed(cv1));
-            Assert.IsTrue(rvc.IsComponentAllowed(cv2));
-            Assert.IsTrue(rvc.IsComponentAllowed(cv3));
-            Assert.IsFalse(rvc.IsComponentAllowed(cv4));
+            Assert.IsTrue(rvc.IsComponentAllowed(av));
 
-            // Unfortunately we cannot test for that important edge case when the assembly version's 
-            // _revision_ number (the 4th one) is higher than the component version, because we cannot
-            // set a testable assembly version for the Services component here.
+            // it is allowed to have a component with a higher version than the assembly
+            Assert.IsTrue(rvc.IsComponentAllowed(new Version(av.Major, av.Minor, av.Build, av.Revision + 1)));
+            Assert.IsTrue(rvc.IsComponentAllowed(new Version(av.Major, av.Minor, av.Build + 1, av.Revision)));
+            Assert.IsTrue(rvc.IsComponentAllowed(new Version(av.Major, av.Minor + 1, av.Build, av.Revision)));
+            Assert.IsTrue(rvc.IsComponentAllowed(new Version(av.Major + 1, av.Minor, av.Build, av.Revision)));
 
-            //UNDONE: put assembly version into an internal property modifiable by tests
+            // This is the edge case where the assembly version's _revision_ number (the 4th one) 
+            // is higher than the component version, which is allowed.
+            Assert.IsTrue(rvc.IsComponentAllowed(new Version(av.Major, av.Minor, av.Build, av.Revision - 1)));
+
+            Assert.IsFalse(rvc.IsComponentAllowed(new Version(av.Major, av.Minor, av.Build - 1)));
+            Assert.IsFalse(rvc.IsComponentAllowed(new Version(av.Major, av.Minor - 1, av.Build)));
+            Assert.IsFalse(rvc.IsComponentAllowed(new Version(av.Major - 1, av.Minor, av.Build)));
         }
 
         [TestMethod]

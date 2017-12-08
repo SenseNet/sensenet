@@ -127,9 +127,9 @@ namespace SenseNet.ContentRepository
 
         public static void CheckComponentVersions()
         {
-            foreach (var versionCheckerType in TypeResolver.GetTypesByInterface(typeof(IVersionChecker)))
+            foreach (var versionCheckerType in TypeResolver.GetTypesByBaseType(typeof(VersionCheckerBase)).Where(vct => !vct.IsAbstract))
             {
-                var versionChecker = TypeResolver.CreateInstance(versionCheckerType.FullName) as IVersionChecker;
+                var versionChecker = TypeResolver.CreateInstance(versionCheckerType.FullName) as VersionCheckerBase;
                 if (versionChecker == null)
                     continue;
 

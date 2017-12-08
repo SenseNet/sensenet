@@ -168,7 +168,7 @@
     <Compile Include="Configuration\RepositoryStructure.cs" />
     <Compile Include="Configuration\Services.cs" />
     <Compile Include="Configuration\Versioning.cs" />
-    <Compile Include="IVersionChecker.cs" />
+    <Compile Include="VersionCheckerBase.cs" />
     <Compile Include="Linq\CaseInsensitiveFilterVisitor.cs" />
     <Compile Include="Packaging\Dependency.cs" />
     <Compile Include="Packaging\ExecutionContext.cs" />
