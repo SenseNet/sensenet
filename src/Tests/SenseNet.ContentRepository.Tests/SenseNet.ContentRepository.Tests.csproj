@@ -64,6 +64,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="ComponentVersionTests.cs" />
     <Compile Include="ProvidersTests.cs" />
     <Compile Include="RepositoryStartTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
