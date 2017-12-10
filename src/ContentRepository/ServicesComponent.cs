@@ -1,6 +1,6 @@
 ﻿namespace SenseNet.ContentRepository
 {
-    internal class ServicesComponent : SnComponentBase
+    internal class ServicesComponent : SnComponent
     {
         public override string ComponentId => "SenseNet.Services";
     }

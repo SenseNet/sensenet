@@ -6,7 +6,7 @@ namespace SenseNet.ContentRepository
     /// <summary>
     /// Defines a base class for sensenet ECM components. 
     /// </summary>
-    public abstract class SnComponentBase : ISnComponent
+    public abstract class SnComponent : ISnComponent
     {
         /// <inheritdoc />
         public abstract string ComponentId { get; }

@@ -18,7 +18,7 @@ namespace SenseNet.ContentRepository
         /// is able to work with a currently available library version. In most cases this will mean 
         /// that if the library version is higher than the component's version, the system must not 
         /// start until the admin updates that component. This default behavior is implemented 
-        /// in the <see cref="SnComponentBase"/> base class, derived classes in most cases will 
+        /// in the <see cref="SnComponent"/> base class, derived classes in most cases will 
         /// only have to provide the component id, nothing else.
         /// </summary>
         /// <param name="componentVersion">The currently installed version of the component.</param>

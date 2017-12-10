@@ -129,7 +129,7 @@ namespace SenseNet.ContentRepository
         {
             //TODO: have a pinned list of components in the Providers class
             // so that the instances can be replaced by tests.
-            foreach (var componentType in TypeResolver.GetTypesByBaseType(typeof(ISnComponent)).Where(vct => !vct.IsAbstract))
+            foreach (var componentType in TypeResolver.GetTypesByInterface(typeof(ISnComponent)).Where(vct => !vct.IsAbstract))
             {
                 var component = TypeResolver.CreateInstance(componentType.FullName) as ISnComponent;
                 if (component == null)
@@ -142,11 +142,14 @@ namespace SenseNet.ContentRepository
                 }
 
                 var componentVersion = Instance.Components.FirstOrDefault(c => c.ComponentId == component.ComponentId)?.Version;
-                
-                if (component.IsComponentAllowed(componentVersion))
-                    continue;
 
-                throw new ApplicationException($"Component and assembly version mismatch. Component {component.ComponentId} is not allowed to run. Please check the available ugrades before starting the repository.");
+                if (component.IsComponentAllowed(componentVersion))
+                {
+                    SnTrace.System.Write($"Component {component.ComponentId} is allowed to run (version: {componentVersion})");
+                    continue;
+                }
+
+                throw new ApplicationException($"Component and assembly version mismatch. Component {component.ComponentId} (version: {componentVersion}) is not allowed to run. Please check assembly versions and available ugrades before starting the repository.");
             }
         }
     }   
