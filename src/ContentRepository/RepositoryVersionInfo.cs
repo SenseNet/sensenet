@@ -127,24 +127,26 @@ namespace SenseNet.ContentRepository
 
         public static void CheckComponentVersions()
         {
-            foreach (var versionCheckerType in TypeResolver.GetTypesByBaseType(typeof(VersionCheckerBase)).Where(vct => !vct.IsAbstract))
+            //TODO: have a pinned list of components in the Providers class
+            // so that the instances can be replaced by tests.
+            foreach (var componentType in TypeResolver.GetTypesByBaseType(typeof(ISnComponent)).Where(vct => !vct.IsAbstract))
             {
-                var versionChecker = TypeResolver.CreateInstance(versionCheckerType.FullName) as VersionCheckerBase;
-                if (versionChecker == null)
+                var component = TypeResolver.CreateInstance(componentType.FullName) as ISnComponent;
+                if (component == null)
                     continue;
 
-                if (string.IsNullOrEmpty(versionChecker.ComponentId))
+                if (string.IsNullOrEmpty(component.ComponentId))
                 {
-                    SnLog.WriteWarning($"Version checker {versionChecker.GetType().FullName} is invalid, it does not provide a ComponentId.");
+                    SnLog.WriteWarning($"Component class {component.GetType().FullName} is invalid, it does not provide a ComponentId.");
                     continue;
                 }
 
-                var componentVersion = Instance.Components.FirstOrDefault(c => c.ComponentId == versionChecker.ComponentId)?.Version;
+                var componentVersion = Instance.Components.FirstOrDefault(c => c.ComponentId == component.ComponentId)?.Version;
                 
-                if (versionChecker.IsComponentAllowed(componentVersion))
+                if (component.IsComponentAllowed(componentVersion))
                     continue;
 
-                throw new ApplicationException($"Component and assembly version mismatch. Component {versionChecker.ComponentId} is not allowed to run. Please check the available ugrades before starting the repository.");
+                throw new ApplicationException($"Component and assembly version mismatch. Component {component.ComponentId} is not allowed to run. Please check the available ugrades before starting the repository.");
             }
         }
     }   

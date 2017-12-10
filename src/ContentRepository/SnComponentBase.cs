@@ -4,18 +4,11 @@ using SenseNet.ContentRepository.Storage;
 namespace SenseNet.ContentRepository
 {
     /// <summary>
-    /// Defines a base class for component version checking. Derived classes will make sure
-    /// that a component that is installed into the repository is able to work with a currently 
-    /// available library version. In most cases this will mean that if the library version is
-    /// higher than the component's version, the system must not start until the admin updates
-    /// that component. This default behavior is implemented in this base class, derived 
-    /// classes in most cases will only have to provide the component id, nothing else.
+    /// Defines a base class for sensenet ECM components. 
     /// </summary>
-    public abstract class VersionCheckerBase
+    public abstract class SnComponentBase : ISnComponent
     {
-        /// <summary>
-        /// Identifier of the component that this version checker is implemented for.
-        /// </summary>
+        /// <inheritdoc />
         public abstract string ComponentId { get; }
 
         /// <summary>
@@ -25,11 +18,7 @@ namespace SenseNet.ContentRepository
         /// </summary>
         internal Version AssemblyVersion { get; set; }
 
-        /// <summary>
-        /// Checks whether this component is able to work with the available version of the assembly.
-        /// </summary>
-        /// <param name="componentVersion">The currently installed version of the component.</param>
-        /// <returns>True if the assembly and component versions are compatible.</returns>
+        /// <inheritdoc />
         public virtual bool IsComponentAllowed(Version componentVersion)
         {
             if (componentVersion == null)

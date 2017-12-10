@@ -1,6 +1,6 @@
 ﻿namespace SenseNet.ContentRepository
 {
-    internal class RepositoryVersionChecker : VersionCheckerBase
+    internal class ServicesComponent : SnComponentBase
     {
         public override string ComponentId => "SenseNet.Services";
     }

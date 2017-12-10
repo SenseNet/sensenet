@@ -168,7 +168,8 @@
     <Compile Include="Configuration\RepositoryStructure.cs" />
     <Compile Include="Configuration\Services.cs" />
     <Compile Include="Configuration\Versioning.cs" />
-    <Compile Include="VersionCheckerBase.cs" />
+    <Compile Include="ISnComponent.cs" />
+    <Compile Include="SnComponentBase.cs" />
     <Compile Include="Linq\CaseInsensitiveFilterVisitor.cs" />
     <Compile Include="Packaging\Dependency.cs" />
     <Compile Include="Packaging\ExecutionContext.cs" />
@@ -240,7 +241,7 @@
     <Compile Include="Packaging\Steps\XmlEditorStep.cs" />
     <Compile Include="Packaging\ZipUnpacker.cs" />
     <Compile Include="RepositoryBuilder.cs" />
-    <Compile Include="RepositoryVersionChecker.cs" />
+    <Compile Include="ServicesComponent.cs" />
     <Compile Include="Schema\Metadata\IMetaNode.cs" />
     <Compile Include="Schema\Metadata\MetaCollectionEnumerable.cs" />
     <Compile Include="Schema\Metadata\SchemaVisitor.cs" />
