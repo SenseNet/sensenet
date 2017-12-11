@@ -5,7 +5,7 @@ The first Open Source Enterprise Content Management platform for .NET!
 
 [![Join the chat at https://gitter.im/SenseNet/sensenet](https://badges.gitter.im/SenseNet/sensenet.svg)](https://gitter.im/SenseNet/sensenet?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-> **sensenet Services 7.0 beta** is out! Jump to the [Getting started](#GettingStarted) section below to start experimenting right away!
+> **sensenet Services 7.0 stable** is out! Jump to the [Getting started](#GettingStarted) section below to start experimenting right away!
 
 If you need...
 - a **Content Repository** with a powerful query engine (built on [Lucene.Net](https://lucenenet.apache.org)) for storing *millions* of documents,
@@ -46,7 +46,7 @@ Whether you're a community member or enterprise customer, feel free to visit our
 ## Getting started
 Currently we offer two different versions of sensenet ECM. We recommend version 7.0 for new projects as it is more lightweight and flexible.
 
-### sensenet ECM 7.0 (beta)
+### sensenet ECM 7.0
 A modern ECM platform that can be integrated into existing or new web applications. We modularized sensenet ECM so that you can install only the parts you need. Take a look at the currently published [core components](/docs/sensenet-components.md)!
 
 There is also a number of other built-in and 3rd party [components and plugins](https://github.com/SenseNet/awesome-sensenet) that are built on this platform either by us or the community.

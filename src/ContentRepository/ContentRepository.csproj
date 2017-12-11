@@ -98,8 +98,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="SenseNet.Preview, Version=7.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SenseNet.Preview.7.0.0-beta2\lib\net451\SenseNet.Preview.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\SenseNet.Preview.7.0.0\lib\net451\SenseNet.Preview.dll</HintPath>
     </Reference>
     <Reference Include="SenseNet.Security, Version=2.3.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\SenseNet.Security.2.3.0.0\lib\net45\SenseNet.Security.dll</HintPath>
@@ -517,7 +516,9 @@
     <EmbeddedResource Include="Schema\AspectDefinition.xsd">
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Schema\ContentTypeDefinition.xsx">
       <DependentUpon>ContentTypeDefinition.xsd</DependentUpon>
     </None>

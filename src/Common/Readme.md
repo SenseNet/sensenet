@@ -1,3 +1,3 @@
-﻿# Markdown file
+﻿# Common library
 
-Sense/Net Product level common knowledge strictly.
+A library containing sensenet ECM product-level common knowledge.
