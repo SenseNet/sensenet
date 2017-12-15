@@ -300,21 +300,20 @@ namespace SenseNet.Portal.Virtualization
             if (HttpRuntime.UsingIntegratedPipeline)
             {
                 WindowsPrincipal user = null;
-                var portalUser = application.Context.User;
-                var portalIdentity = portalUser?.Identity as IUser;
-                if (portalUser == null || portalIdentity != null && (portalIdentity.Id == Identifiers.StartupUserId || portalIdentity.Id == Identifiers.VisitorUserId))
+                var context = AuthenticationHelper.GetContext(application);
+                if(HttpRuntime.IsOnUNCShare && context.Request.IsAuthenticated)
                 {
-                    identity = WindowsIdentity.GetCurrent();
                     user = new WindowsPrincipal(identity);
                 }
                 else
                 {
                     user = application.Context.User as WindowsPrincipal;
+                }
+                if (user != null)
+                {
                     identity = user.Identity as WindowsIdentity;
                 }
-
-                var context = AuthenticationHelper.GetContext(application);
-                context.User = user;
+                //context.User = user;
             }
             else
             {
