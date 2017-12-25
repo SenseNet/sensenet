@@ -23,19 +23,20 @@ using SenseNet.ContentRepository.Storage.Security;
 namespace SenseNet.ContentRepository
 {
     /// <summary>
-    /// Provides definitions of additional field set for an individual <see cref="Content"/>.
+    /// Provides an additional field set for an individual <see cref="Content"/> in XML 
+    /// format similar to a ContentType definition.
     /// </summary>
     [ContentHandler]
     public class Aspect : GenericContent
     {
         /// <summary>
-        /// Defines a constant for the XML namespace of the AspectDefinition.
+        /// Defines the XML namespace of the AspectDefinition schema.
         /// The value is: "http://schemas.sensenet.com/SenseNet/ContentRepository/AspectDefinition"
         /// </summary>
         public static readonly string AspectDefinitionXmlNamespace = "http://schemas.sensenet.com/SenseNet/ContentRepository/AspectDefinition";
         private static string AspectDefinitionSchemaManifestResourceName = "SenseNet.ContentRepository.Schema.AspectDefinition.xsd";
         /// <summary>
-        /// Defines a constant for the empty AspectDefinition.
+        /// Defines an empty AspectDefinition.
         /// </summary>
         public static readonly string DefaultAspectDefinition = String.Concat("<AspectDefinition xmlns='", AspectDefinitionXmlNamespace, "'><Fields /></AspectDefinition>");
 
@@ -44,7 +45,7 @@ namespace SenseNet.ContentRepository
         private string _icon;
 
         /// <summary>
-        /// Protected member that allow accessing for the raw value of the FieldSettings property.
+        /// Protected member that lets inheriting types access the raw value of the FieldSettings property.
         /// </summary>
         protected List<FieldSetting> _fieldSettings = new List<FieldSetting>();
         private Dictionary<string, PerFieldIndexingInfo> _indexingInfo = new Dictionary<string, PerFieldIndexingInfo>();
@@ -56,7 +57,7 @@ namespace SenseNet.ContentRepository
         /// </summary>
         public const string ASPECTDEFINITION = "AspectDefinition";
         /// <summary>
-        /// Gets or sets the XML source code of the AspectDefinition. Persisted as <see cref="RepositoryDataType.Text"/>.
+        /// Gets or sets the XML source of the AspectDefinition. Persisted as <see cref="RepositoryDataType.Text"/>.
         /// </summary>
         [RepositoryProperty(ASPECTDEFINITION, RepositoryDataType.Text)]
         public string AspectDefinition
@@ -71,7 +72,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Gets the list of interpreted <see cref="FieldSetting"/> that is defined in the AspectDefinition.
+        /// Gets the list of <see cref="FieldSetting"/>s defined by the AspectDefinition xml.
         /// </summary>
         public List<FieldSetting> FieldSettings
         {
@@ -236,7 +237,7 @@ namespace SenseNet.ContentRepository
         private static readonly char[] AspectFieldSeparatorSplitter = ASPECTFIELDSEPARATOR.ToCharArray();
 
         /// <summary>
-        /// Returns the specified <see cref="FieldSettings"/> by the given fieldName.
+        /// Returns the <see cref="FieldSettings"/> specified by the given fieldName.
         /// Return value is null if the <see cref="FieldSettings"/> does not exist.
         /// The fieldName structure: {AspectName}.{FieldSettingName}
         /// </summary>
@@ -251,9 +252,10 @@ namespace SenseNet.ContentRepository
             return fieldSetting;
         }
         /// <summary>
-        /// Returns existing <see cref="Aspect"/> that loaded by the given full name in this format: {AspectName}.{FieldSettingName}.
-        /// The Aspect name will be extracted from the full name.
-        /// If the <see cref="Aspect"/> does not found, returns with null.
+        /// Returns an existing <see cref="Aspect"/> by the given full name. If the <see cref="Aspect"/> 
+        /// does not exist, returns null.
+        /// The Aspect name will be removed from the full name and the remainder will be
+        /// returned as the real field name output argument.
         /// </summary>
         /// <param name="fieldName">Full name of the field: {AspectName}.{FieldSettingName}</param>
         /// <param name="realFieldName">Output value of the FieldSettingName part of the given fieldName.</param>
@@ -267,8 +269,8 @@ namespace SenseNet.ContentRepository
             return LoadAspectByName(sa[0]);
         }
         /// <summary>
-        /// Returns existing <see cref="Aspect"/> that loaded by the given name.
-        /// If it does not found, returns with null.
+        /// Returns an existing <see cref="Aspect"/> by the given name.
+        /// If it is not found, returns null.
         /// </summary>
         /// <param name="name">Name of the <see cref="Aspect"/>.</param>
         public static Aspect LoadAspectByName(string name)
@@ -301,8 +303,8 @@ namespace SenseNet.ContentRepository
             return aspect;
         }
         /// <summary>
-        /// Returns existing <see cref="Aspect"/> that loaded by the given parameter.
-        /// If it does not found, returns with null.
+        /// Returns an existing <see cref="Aspect"/> by the given parameter.
+        /// If it is not found, returns null.
         /// </summary>
         /// <param name="pathOrName">Path or name of the <see cref="Aspect"/>.</param>
         public static Aspect LoadAspectByPathOrName(string pathOrName)
@@ -324,7 +326,7 @@ namespace SenseNet.ContentRepository
         /// Persists the modifications of this Content.
         /// Do not use this method directly from your code.
         /// If the AspectDefinition is invalid, <see cref="InvalidContentException"/> will be thrown.
-        /// Also thrown an <see cref="InvalidContentException"/> if the Path of the instance is not under the Aspect container.
+        /// Also throws an <see cref="InvalidContentException"/> if the Path of the instance is not under the Aspects container.
         /// </summary>
         public override void Save(SavingMode mode)
         {
@@ -356,7 +358,7 @@ namespace SenseNet.ContentRepository
         /// Persist this Content's changes by the given settings.
         /// Do not use this method directly from your code.
         /// </summary>
-        /// <param name="settings"><see cref="NodeSaveSettings"/> that contains algorithm of the persistence.</param>
+        /// <param name="settings"><see cref="NodeSaveSettings"/> that contains the persistence algorithm.</param>
         public override void Save(NodeSaveSettings settings)
         {
             if (this.IsNew)
@@ -383,8 +385,8 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Deletes this Content of <see cref="Aspect"/> physically.
-        /// The logged-in user need to have PermissionType.ManageListsAndWorkspaces permission,
+        /// Deletes this <see cref="Aspect"/> permanently.
+        /// The logged-in user need to have ManageListsAndWorkspaces permission,
         /// otherwise <see cref="SenseNetSecurityException"/> will be thrown.
         /// </summary>
         public override void ForceDelete()
@@ -489,9 +491,9 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Adds or replaces one or more new fields to this instance and saves the modifications.
+        /// Adds one or more new fields to this instance or replaces existing ones and saves the modifications.
         /// </summary>
-        /// <param name="fieldInfos">Array of the <see cref="Schema.FieldInfo"/> that will be added.</param>
+        /// <param name="fieldInfos">Array of <see cref="Schema.FieldInfo"/>s that will be added.</param>
         public void AddFields(params SenseNet.ContentRepository.Schema.FieldInfo[] fieldInfos)
         {
             foreach(var fieldInfo in fieldInfos)
@@ -500,7 +502,7 @@ namespace SenseNet.ContentRepository
             Save();
         }
         /// <summary>
-        /// Removes the specified fields of his instance ans saves the modifications.
+        /// Removes the specified fields of his instance and saves the modifications.
         /// </summary>
         /// <param name="fieldNames">Array of the field names that will be removed.</param>
         public void RemoveFields(params string[] fieldNames)
@@ -512,7 +514,7 @@ namespace SenseNet.ContentRepository
             Save();
         }
         /// <summary>
-        /// Empties the field collection of this instance and saves.
+        /// Empties the field collection of this instance and saves it.
         /// </summary>
         public void RemoveAllfields()
         {
@@ -581,7 +583,7 @@ namespace SenseNet.ContentRepository
         private const string FIELDSETTINGSKEY = "FieldSettings";
         private const string INDEXINGINFOKEY = "IndexingInfo";
         /// <summary>
-        /// Overrides the base class behavior. Triggers the building internal structures.
+        /// Overrides the base class behavior. Builds internal structures.
         /// Do not use this method directly from your code.
         /// </summary>
         protected override void OnLoaded(object sender, NodeEventArgs e)
@@ -600,7 +602,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Returns <see cref="PerFieldIndexingInfo"/> of the requested <see cref="FieldSettings"/> by the given fieldName.
+        /// Returns <see cref="PerFieldIndexingInfo"/> of the requested <see cref="FieldSettings"/>.
         /// Return value is null if the <see cref="Aspect"/> or <see cref="FieldSettings"/> does not exist.
         /// The fieldName structure: {AspectName}.{FieldSettingName}
         /// </summary>
@@ -614,7 +616,7 @@ namespace SenseNet.ContentRepository
             return aspect.GetLocalPerFieldIndexingInfo(realFieldName);
         }
         /// <summary>
-        /// Returns <see cref="PerFieldIndexingInfo"/> of the requested <see cref="FieldSettings"/> by the given fieldName.
+        /// Returns <see cref="PerFieldIndexingInfo"/> of the requested <see cref="FieldSettings"/>.
         /// Return value is null if the <see cref="FieldSettings"/> does not exist.
         /// </summary>
         /// <param name="fieldName">Name of the field without aspect specifier.</param>
@@ -629,5 +631,4 @@ namespace SenseNet.ContentRepository
             _indexingInfo[fieldName] = indexingInfo;
         }
     }
-
 }

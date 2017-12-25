@@ -14,8 +14,8 @@ using System.Collections.Generic;
 namespace SenseNet.ContentRepository
 {
     /// <summary>
-    /// Defines a content handler for storing images in the sensenet repository. Inherited from the <see cref="File"/>.
-    /// The represented image is stored in the Binary property as a blob.
+    /// Defines a content handler for storing images in the Content Repository. Inherited from the <see cref="File"/> type.
+    /// The image is stored in the Binary property as a blob.
     /// </summary>
     [ContentHandler]
     public class Image : File, IHttpHandler
@@ -62,7 +62,7 @@ namespace SenseNet.ContentRepository
 
         private const string WIDTH_PROPERTY = "Width";
         /// <summary>
-        /// Gets or sets the width of the represented image. Persisted as <see cref="RepositoryDataType.Int"/>.
+        /// Gets or sets the width of the image. Persisted as <see cref="RepositoryDataType.Int"/>.
         /// </summary>
         [RepositoryProperty(WIDTH_PROPERTY, RepositoryDataType.Int)]
         public int Width
@@ -73,7 +73,7 @@ namespace SenseNet.ContentRepository
 
         private const string HEIGHT_PROPERTY = "Height";
         /// <summary>
-        /// Gets or sets the height of the represented image. Persisted as <see cref="RepositoryDataType.Int"/>.
+        /// Gets or sets the height of the image. Persisted as <see cref="RepositoryDataType.Int"/>.
         /// </summary>
         [RepositoryProperty(HEIGHT_PROPERTY, RepositoryDataType.Int)]
         public int Height
@@ -85,11 +85,10 @@ namespace SenseNet.ContentRepository
         // ================================================================================= Methods
 
         /// <summary>
-        /// Returns with a <see cref="System.Drawing.Imaging.ImageFormat"/> value converted from the given string value.
-        /// Note that the "gif" is converted to ImageFormat.Png.
+        /// Returns an <see cref="System.Drawing.Imaging.ImageFormat"/> value converted from the given string value.
+        /// Note that "gif" is converted to ImageFormat.Png.
         /// </summary>
-        /// <param name="contentType"></param>
-        /// <returns></returns>
+        /// <param name="contentType">String representation of an image format (e.g. png, jpeg) or an image file name.</param>
         public static System.Drawing.Imaging.ImageFormat getImageFormat(string contentType)
         {
             var lowerContentType = contentType.ToLower();
@@ -118,11 +117,11 @@ namespace SenseNet.ContentRepository
             return System.Drawing.Imaging.ImageFormat.Jpeg;
         }
         /// <summary>
-        /// Returens new <see cref="Image"/> instance created from the given <see cref="BinaryData"/> 
-        /// under the specified <see cref="IFolder"/> instance. The Content has not been saved yet.
+        /// Returns a new <see cref="Image"/> instance created from the given <see cref="BinaryData"/> 
+        /// under the specified <see cref="IFolder"/> instance. The Content will not been saved yet.
         /// </summary>
         /// <param name="parent">An existing <see cref="IFolder"/> instance.</param>
-        /// <param name="binaryData">The <see cref="BinaryData"/> instance that is the data source of the creation.</param>
+        /// <param name="binaryData">The <see cref="BinaryData"/> instance that is the data source of the image.</param>
         /// <returns></returns>
         public new static Image CreateByBinary(IFolder parent, BinaryData binaryData)
         {
@@ -152,13 +151,13 @@ namespace SenseNet.ContentRepository
         /// <param name="width">Desired width of the thumbnail image.</param>
         /// <param name="height">Desired height of the thumbnail image.</param>
         /// <param name="contentType">Image format specifier. The value can be:
-        /// png, bmp, jpeg, jpg, gif, tiff, wmf, emf, exif. Note thet the gif will be converted to png.</param>
+        /// png, bmp, jpeg, jpg, gif, tiff, wmf, emf, exif. Note that gif will be converted to png.</param>
         public Stream GetDynamicThumbnailStream(int width, int height, string contentType)
         {
             return ImageResizer.CreateResizedImageFile(Binary.GetStream(), width, height, 80, getImageFormat(contentType));
         }
         /// <summary>
-        /// Returns <see cref="Stream"/> of the resized version of the represented image.
+        /// Returns <see cref="Stream"/> of the resized version of the provided image stream.
         /// </summary>
         /// <param name="originalStream">The <see cref="Stream"/> of the image to be resized.</param>
         /// <param name="ext">Not used.</param>
@@ -166,7 +165,7 @@ namespace SenseNet.ContentRepository
         /// <param name="y">Desired height of the resized image.</param>
         /// <param name="q">Not used.</param>
         /// <param name="contentType">Image format specifier. The value can be:
-        /// png, bmp, jpeg, jpg, gif, tiff, wmf, emf, exif. Note thet the gif will be converted to png.</param>
+        /// png, bmp, jpeg, jpg, gif, tiff, wmf, emf, exif. Note that gif will be converted to png.</param>
         public static Stream CreateResizedImageFile(Stream originalStream, string ext, double x, double y, double q, string contentType)
         {
             return ImageResizer.CreateResizedImageFile(originalStream, x, y, q, getImageFormat(contentType));
