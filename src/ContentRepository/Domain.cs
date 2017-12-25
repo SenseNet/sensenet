@@ -6,7 +6,8 @@ using SenseNet.ContentRepository.Security.ADSync;
 namespace SenseNet.ContentRepository
 {
     /// <summary>
-    /// Defines an Content handler that represents a domain that is the top level element of the identity management.
+    /// Defines an Content handler that represents a domain that is the top level element 
+    /// of the identity management system in the Content Repository.
     /// </summary>
     [ContentHandler]
     public class Domain : Folder, IADSyncable
@@ -31,14 +32,14 @@ namespace SenseNet.ContentRepository
         //////////////////////////////////////// Public Properties ////////////////////////////////////////
 
         /// <summary>
-        /// Returns true if this instance name is "BuiltIn".
+        /// Returns true if the name of this instance is "BuiltIn".
         /// </summary>
         public bool IsBuiltInDomain => Name == IdentityManagement.BuiltInDomainName;
 
         // =================================================================================== IADSyncable Members
 
         /// <summary>
-        /// Writes back the given sync-id to the database.
+        /// Writes the given AD sync-id to the database.
         /// </summary>
         /// <param name="guid"></param>
         public void UpdateLastSync(System.Guid? guid)

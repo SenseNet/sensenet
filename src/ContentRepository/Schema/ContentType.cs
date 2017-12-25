@@ -19,20 +19,20 @@ using SenseNet.Tools;
 namespace  SenseNet.ContentRepository.Schema
 {
     /// <summary>
-    /// Defines a class that can handle a ContentType in the sensenet Content repository.
+    /// Defines a class that can handle a Content type in the sensenet Content Repository.
     /// </summary>
     [ContentHandler]
     public class ContentType : Node, IFolder, IIndexableDocument
     {
         internal static readonly string ContentDefinitionXmlNamespaceOld = "http://schemas.sensenet" + ".hu/SenseNet/ContentRepository/ContentTypeDefinition";
         /// <summary>
-        /// Defines a constant for the XML namespace of the ContentTypeDefinition.
+        /// Defines the XML namespace of the ContentTypeDefinition schema.
         /// The value is: "http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"
         /// </summary>
         public static readonly string ContentDefinitionXmlNamespace = "http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition";
         private static string ContentTypeDefinitionSchemaManifestResourceName = "SenseNet.ContentRepository.Schema.ContentTypeDefinition.xsd";
         /// <summary>
-        /// Defines a constant for the extension of the file that contains a ContentType definition.
+        /// Defines the extension of the file that contains a ContentType definition.
         /// </summary>
         public static readonly string ContentTypeFileNameExtension = "ContentType";
 
@@ -101,18 +101,18 @@ namespace  SenseNet.ContentRepository.Schema
 
         /// <summary>
         /// Gets whether this class is <see cref="ContentType"/>.
-        /// The value is true in this case.
+        /// The value is always true in this case.
         /// </summary>
         public override bool IsContentType { get { return true; } }
 
         /// <summary>
         /// Gets the fully qualified type name of the content handler class.
-        /// This value comes from the 'handler' attribute of ContentTypeDefinition's root element.
+        /// This value comes from the 'handler' attribute of the ContentTypeDefinition xml root element.
         /// </summary>
         public string HandlerName { get; private set; }
         /// <summary>
-        /// Gets the name of parent ContentType in the inheritance tree. The name of root type's parent is null.
-        /// This value comes from the 'parentType' attribute of ContentTypeDefinition's root element.
+        /// Gets the name of the parent ContentType in the inheritance tree. The name of the root type's parent is null.
+        /// This value comes from the 'parentType' attribute of the ContentTypeDefinition xml root element.
         /// </summary>
         public string ParentTypeName { get; private set; }
         /// <summary>
@@ -120,7 +120,7 @@ namespace  SenseNet.ContentRepository.Schema
         /// </summary>
         public ContentType ParentType { get; private set; }
         /// <summary>
-        /// Gets the list of children <see cref="ContentType"/>s.
+        /// Gets the list of child <see cref="ContentType"/>s.
         /// </summary>
         public List<ContentType> ChildTypes { get; private set; }
 
@@ -130,6 +130,7 @@ namespace  SenseNet.ContentRepository.Schema
         public string Description { get; private set; }
         /// <summary>
         /// Gets the icon name of the ContentType. This value comes from the ContentTypeDefinition.
+        /// If that is left empty, the parent value is returned.
         /// </summary>
         public string Icon {
             get
@@ -143,6 +144,7 @@ namespace  SenseNet.ContentRepository.Schema
         }
         /// <summary>
         /// Gets the required name extension for the ContentType. This value comes from the ContentTypeDefinition.
+        /// If that is left empty, the parent value is returned.
         /// </summary>
         public string Extension
         {
@@ -157,8 +159,9 @@ namespace  SenseNet.ContentRepository.Schema
         }
         /// <summary>
         /// Gets a value that specifies whether this ContentType allows or disallows the incremental
-        /// name suffix generation during content creation and another content exists with same name.
+        /// name suffix generation during content creation if another content exists with same name.
         /// This value comes from the ContentTypeDefinition.
+        /// If that is left empty, the parent value is returned.
         /// </summary>
         public new bool AllowIncrementalNaming
         {
@@ -173,8 +176,8 @@ namespace  SenseNet.ContentRepository.Schema
         }
 
         /// <summary>
-        /// Gets a value that specifies whether this ContentType allows or disallows the of preview image generation .
-        /// This value comes from the ContentTypeDefinition.
+        /// Gets a value that specifies whether this ContentType allows or disallows preview image generation.
+        /// This value comes from the ContentTypeDefinition and it is not inherited from the parent.
         /// </summary>
         public bool Preview
         {
@@ -185,7 +188,9 @@ namespace  SenseNet.ContentRepository.Schema
         }
 
         /// <summary>
-        /// Gets a value that specifies whether this ContentType allows or disallows the making index from instances.
+        /// Gets a value that specifies whether this ContentType allows or disallows 
+        /// indexing of Content items of this type.
+        /// If that is left empty, the parent value is returned.
         /// </summary>
         public bool IndexingEnabled
         {
@@ -200,7 +205,7 @@ namespace  SenseNet.ContentRepository.Schema
         }
 
         /// <summary>
-        /// Gets a value that defines whether this Content can contain children Contents.
+        /// Gets a value that defines whether this Content can contain child Content items.
         /// Returns true in this case.
         /// </summary>
         public bool IsFolder { get { return true; } }
@@ -219,7 +224,8 @@ namespace  SenseNet.ContentRepository.Schema
         public IEnumerable<ContentType> AllowedChildTypes { get; private set; }
 
         /// <summary>
-        /// Gets the content of AppInfo element under ContentType element of ContentTypeDefinition XML.
+        /// Gets the content of the AppInfo element under the ContentType element of the ContentTypeDefinition XML.
+        /// If that is left empty, the parent value is returned.
         /// </summary>
         public string AppInfo
         {
@@ -234,7 +240,7 @@ namespace  SenseNet.ContentRepository.Schema
         }
 
         /// <summary>
-        /// Gets a value that specifies whether the lifespan control is enabled for instances of this class not.
+        /// Gets a value that specifies whether the lifespan control is enabled for instances of this class or not.
         /// Returns false in this case.
         /// </summary>
         public bool EnableLifespan
@@ -249,7 +255,7 @@ namespace  SenseNet.ContentRepository.Schema
         internal int[] FieldBits { get; set; }
 
         /// <summary>
-        /// Gets the collection of the virtual <see cref="Node"/>s that represents the <see cref="FieldSetting"/>s of this instance.
+        /// Gets the collection of the virtual <see cref="Node"/>s that represent the <see cref="FieldSetting"/>s of this instance.
         /// </summary>
         public IEnumerable<Node> AllFieldSettingContents
         {
@@ -434,7 +440,7 @@ namespace  SenseNet.ContentRepository.Schema
         }
 
         /// <summary>
-        /// Defines a char[] constant that contains all character that separate items
+        /// Defines a char[] constant that contains all characters that may separate items
         /// in any ContenTypeDefnition's XmlElemet or XmlAttribute.
         /// </summary>
         public static readonly char[] XmlListSeparators = " ,;\t\r\n".ToCharArray();
@@ -739,8 +745,8 @@ namespace  SenseNet.ContentRepository.Schema
             base.Save(settings);
         }
         /// <summary>
-        /// Deletes this Content of <see cref="ContentType"/> and the whole subtree physically.
-        /// The operation is forbidden if any instance exist from these types.
+        /// Deletes this <see cref="ContentType"/> and the whole subtree physically.
+        /// The operation is forbidden if an instance exists of any of these types.
         /// In this case an <see cref="ApplicationException"/> will be thrown.
         /// </summary>
         public override void Delete()
@@ -766,10 +772,9 @@ namespace  SenseNet.ContentRepository.Schema
             return NodeQuery.InstanceCount(nodeType, false) == 0;
         }
         /// <summary>
-        /// Returns true if this <see cref="ContentType"/> is descendant of the given ContentType.
+        /// Returns true if this <see cref="ContentType"/> is a descendant of the given ContentType.
         /// </summary>
         /// <param name="contentTypeName">Name of the ancestor <see cref="ContentType"/>.</param>
-        /// <returns></returns>
         public bool IsInstaceOfOrDerivedFrom(string contentTypeName)
         {
             ContentType currentContentType = this;
@@ -926,7 +931,7 @@ namespace  SenseNet.ContentRepository.Schema
             get { return base.GetChildren(); }
         }
         /// <summary>
-        /// Gets the count of Children property value.
+        /// Gets the count of the Children property value.
         /// </summary>
         public int ChildCount
         {
@@ -946,12 +951,12 @@ namespace  SenseNet.ContentRepository.Schema
         }
 
         /// <summary>
-        /// Returns query result of this Content's children.
+        /// Returns this Content's children as a query result.
         /// </summary>
         /// <param name="text">An additional filter clause.</param>
         /// <param name="settings">A <see cref="QuerySettings"/> that extends the base query.</param>
         /// <param name="getAllChildren">Defines whether all items of the subtree (true)
-        ///  or only the direct children (false) returned.</param>
+        ///  or only the direct children (false) should be returned.</param>
         /// <returns>The <see cref="QueryResult"/> instance.</returns>
         public virtual QueryResult GetChildren(string text, QuerySettings settings, bool getAllChildren)
         {
@@ -972,11 +977,11 @@ namespace  SenseNet.ContentRepository.Schema
         // ---------------------------------------------------- Linq
 
         /// <summary>
-        /// Protected member that allow accessing for the raw value of the ChildrenDefinition property.
+        /// Protected member that lets inherited classes access the raw value of the ChildrenDefinition property.
         /// </summary>
         protected ChildrenDefinition _childrenDefinition;
         /// <summary>
-        /// Gets or sets the children representation of this Content.
+        /// Gets or defines the child collection of this Content.
         /// </summary>
         public virtual ChildrenDefinition ChildrenDefinition
         {
@@ -1005,30 +1010,28 @@ namespace  SenseNet.ContentRepository.Schema
         }
 
         /// <summary>
-        /// Returns an array of <see cref="ContentType"/>s 
-        /// thats have not parent <see cref="ContentType"/>s
+        /// Returns an array of <see cref="ContentType"/>s that does not have a parent <see cref="ContentType"/>.
         /// </summary>
         public static ContentType[] GetRootTypes()
         {
             return ContentTypeManager.Current.GetRootTypes();
         }
         /// <summary>
-        /// Returns an array of <see cref="ContentType"/> names
-        /// thats have not parent <see cref="ContentType"/>.
+        /// Returns an array of <see cref="ContentType"/> names that does not have a parent <see cref="ContentType"/>.
         /// </summary>
         public static string[] GetRootTypeNames()
         {
             return ContentTypeManager.Current.GetRootTypeNames();
         }
         /// <summary>
-        /// Returns an array of every <see cref="ContentType"/>s.
+        /// Returns an array of all <see cref="ContentType"/>s in the system.
         /// </summary>
         public static ContentType[] GetContentTypes()
         {
             return ContentTypeManager.Current.GetContentTypes();
         }
         /// <summary>
-        /// Returns an array of every <see cref="ContentType"/> names.
+        /// Returns an array of all <see cref="ContentType"/> names.
         /// </summary>
         public static string[] GetContentTypeNames()
         {
@@ -1036,7 +1039,7 @@ namespace  SenseNet.ContentRepository.Schema
         }
 
         /// <summary>
-        /// Returns the represented ContentTypeDefinition XML
+        /// Returns the ContentTypeDefinition XML.
         /// </summary>
         public string ToXml()
         {
@@ -1066,7 +1069,7 @@ namespace  SenseNet.ContentRepository.Schema
         }
 
         /// <summary>
-        /// Gets indexing information of the <see cref="Field"/> that identified by the given name.
+        /// Gets indexing information of the <see cref="Field"/> identified by the given name.
         /// </summary>
         /// <returns>An existing <see cref="PerFieldIndexingInfo"/> instance or null.</returns>
         public static PerFieldIndexingInfo GetPerfieldIndexingInfo(string fieldName)
@@ -1077,9 +1080,10 @@ namespace  SenseNet.ContentRepository.Schema
         // ==================================================== IIndexable Members
 
         /// <summary>
-        /// Returns the fields that are in the index of instances of this <see cref="ContentType"/>.
+        /// Returns the fields that can be found in the index of instances of this <see cref="ContentType"/>.
+        /// This list does not contain the fields defined in the ContentTypeDefinition xml, but
+        /// the fields of this Content itself.
         /// </summary>
-        /// <returns></returns>
         public virtual IEnumerable<IIndexableField> GetIndexableFields()
         {
             return Content.Create(this).Fields.Values.Where(f => f.IsInIndex).Cast<IIndexableField>();
@@ -1208,7 +1212,7 @@ namespace  SenseNet.ContentRepository.Schema
         // =======================================================================================================
 
         /// <summary>
-        /// Provides information about indexing of every fields that are configured in ContentTypeDefinitions.
+        /// Provides information about indexing of all the fields that are configured in ContentTypeDefinitions.
         /// </summary>
         /// <returns>String containing a tab separated table of the indexing configurations.</returns>
         public static string TracePerFieldIndexingInfo()

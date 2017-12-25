@@ -15,9 +15,9 @@ using SenseNet.Security;
 namespace SenseNet.ContentRepository
 {
     /// <summary>
-    /// Defines a content handler class for representation an unit of organization to model organizational hierarchy 
-    /// and to define custom permission levels in the sensenet repository.
-    /// Contains all related <see cref="Group"/> and <see cref="User"/>s and additional <see cref="OrganizationalUnit"/>s.
+    /// Defines a content handler class for a unit of organization and a container to model organization hierarchy.
+    /// It is also possible to define permissions for an organizational unit in the sensenet Content Repository.
+    /// May contain <see cref="Group"/>s, <see cref="User"/>s and additional <see cref="OrganizationalUnit"/>s.
     /// </summary>
 	[ContentHandler]
     public class OrganizationalUnit : Folder, IOrganizationalUnit, IADSyncable
@@ -108,7 +108,7 @@ namespace SenseNet.ContentRepository
         // =================================================================================== Events
 
         /// <summary>
-        /// Checks whether the Move operation is acceptable to the current <see cref="DirectoryProvider"/> and
+        /// Checks whether the Move operation is acceptable by the current <see cref="DirectoryProvider"/>.
         /// The operation will be cancelled if it is prohibited.
         /// Do not use this method directly from your code.
         /// </summary>
@@ -131,7 +131,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// After creation adds this group to the nearest parent <see cref="OrganizationalUnit"/> as a member.
+        /// After creation adds this group to the nearest parent <see cref="OrganizationalUnit"/> in the security graph as a member.
         /// Do not use this method directly from your code.
         /// </summary>
         protected override void OnCreated(object sender, NodeEventArgs e)
@@ -150,7 +150,7 @@ namespace SenseNet.ContentRepository
         // =================================================================================== IADSyncable Members
 
         /// <summary>
-        /// Writes back the given sync-id to the database.
+        /// Writes the given AD sync-id to the database.
         /// </summary>
         /// <param name="guid"></param>
         public void UpdateLastSync(System.Guid? guid)
@@ -188,7 +188,7 @@ namespace SenseNet.ContentRepository
             return IsInGroup(securityGroupId);
 	    }
         /// <summary>
-        /// Returns true if this instance is a member of an <see cref="OrganizationalUnit"/> identidied by the given groupId.
+        /// Returns true if this instance is a member of an <see cref="OrganizationalUnit"/> identified by the given groupId.
         /// This method is transitive, meaning it will look for relations in the whole group graph, not 
         /// only direct memberships.
         /// </summary>
