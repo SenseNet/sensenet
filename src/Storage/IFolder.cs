@@ -10,7 +10,7 @@ namespace SenseNet.ContentRepository
     public interface IFolder
     {
         /// <summary>
-        /// Gets the collection of the children <see cref="Node"/>s.
+        /// Gets the collection of child <see cref="Node"/>s.
         /// </summary>
         IEnumerable<Node> Children { get; }
         /// <summary>
@@ -19,17 +19,17 @@ namespace SenseNet.ContentRepository
         int ChildCount { get; }
 
         /// <summary>
-        /// Returns query result of this Content's children.
+        /// Returns a query result of this Content's children.
         /// </summary>
         /// <param name="settings">A <see cref="QuerySettings"/> that extends the base query.</param>
-        /// <returns>The <see cref="QueryResult"/> instance.</returns>
+        /// <returns>The <see cref="QueryResult"/> instance containing child items.</returns>
         QueryResult GetChildren(QuerySettings settings);
         /// <summary>
-        /// Returns query result of this Content's children.
+        /// Returns a query result of this Content's children.
         /// </summary>
         /// <param name="text">An additional filter clause.</param>
         /// <param name="settings">A <see cref="QuerySettings"/> that extends the base query.</param>
-        /// <returns>The <see cref="QueryResult"/> instance.</returns>
+        /// <returns>The <see cref="QueryResult"/> instance containing child items.</returns>
         QueryResult GetChildren(string text, QuerySettings settings);
     }
 }

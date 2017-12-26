@@ -8,7 +8,7 @@ using SenseNet.ContentRepository.Storage;
 namespace SenseNet.ContentRepository
 {
     /// <summary>
-    /// Defines a Content handler class that can contain child Contents.
+    /// A Content handler class that can contain child Contents, usually technical or hidden items.
     /// The instance of this type and all Content under its subree are considered system content.
     /// </summary>
     [ContentHandler]
@@ -34,7 +34,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Sets IsSystem property to true.
         /// Initializes default field values in case of a new instance that is not yet saved to the database.
-        /// If this method is overridden in a derived class, the base.Initialize need to be called.
+        /// If this method is overridden in a derived class, the base.Initialize must be called.
         /// </summary>
         protected override void Initialize()
         {
@@ -43,10 +43,11 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Returns with the nearest Content that is instance or derived from the <see cref="SystemFolder"/>.
-        /// If there is no such Content, returns with null.
+        /// Returns the nearest Content in the parent chain that is an instance of or 
+        /// derived from the <see cref="SystemFolder"/> type.
+        /// If there is no such Content, returns null.
         /// </summary>
-        /// <param name="child">The <see cref="Node"/> whose ancestor is looked for.</param>
+        /// <param name="child">The <see cref="Node"/> to search an ancestor for.</param>
         /// <returns>An instance of <see cref="GenericContent"/> or null.</returns>
         public static GenericContent GetSystemContext(Node child)
         {
@@ -57,6 +58,5 @@ namespace SenseNet.ContentRepository
 
             return (ancestor != null) ? ancestor.Parent as GenericContent : null;
         }
-
     }
 }

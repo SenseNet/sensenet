@@ -9,7 +9,9 @@ using System;
 namespace SenseNet.ContentRepository
 {
     /// <summary>
-    /// Defines a Content handler class that can support a children Content collection produced by a Content Query.
+    /// A container Content handler that provides a custom children Content collection produced by a Content Query.
+    /// Useful for defining content collections containing content items from different parts of the 
+    /// Content Repository tree.
     /// </summary>
     [ContentHandler]
     public class SmartFolder : Folder
@@ -36,7 +38,7 @@ namespace SenseNet.ContentRepository
         // ===================================================================================== Properties
 
         /// <summary>
-        /// Gets or sets the CQL query that defines the children collection. Persisted as <see cref="RepositoryDataType.Text"/>.
+        /// Gets or sets the Content Query that defines the children collection. Persisted as <see cref="RepositoryDataType.Text"/>.
         /// </summary>
         [RepositoryProperty("Query", RepositoryDataType.Text)]
         public string Query
@@ -46,7 +48,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Gets or sets a <see cref="FilterStatus"/> value that specifies whether the value of the Query will be extended with
+        /// Gets or sets a <see cref="FilterStatus"/> value that specifies whether the Content Query should be executed with
         /// auto-filters or not. Persisted as <see cref="RepositoryDataType.String"/>.
         /// </summary>
         [RepositoryProperty("EnableAutofilters", RepositoryDataType.String)]
@@ -67,7 +69,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Gets or sets a <see cref="FilterStatus"/> value that specifies whether the value of the Query will be extended with
+        /// Gets or sets a <see cref="FilterStatus"/> value that specifies whether the Content Query should be executed with
         /// lifespan-filters or not. Persisted as <see cref="RepositoryDataType.String"/>.
         /// </summary>
         [RepositoryProperty("EnableLifespanFilter", RepositoryDataType.String)]
@@ -89,7 +91,7 @@ namespace SenseNet.ContentRepository
 
         /// <summary>
         /// Gets or sets the abstraction of the children Coontent collection.
-        /// In default it is based on the values of Query, EnableAutofilters and EnableLifespanFilter properties.
+        /// By default it is based on the values of Query, EnableAutofilters and EnableLifespanFilter properties.
         /// This property is not persisted so the effect of overriding the default behavior is temporary.
         /// </summary>
         public override ChildrenDefinition ChildrenDefinition
@@ -154,10 +156,9 @@ namespace SenseNet.ContentRepository
         // ===================================================================================== Public interface
 
         /// <summary>
-        /// Returns an one-use and not-saved <see cref="SmartFolder"/>.
+        /// Returns an in-memory and not persisted <see cref="SmartFolder"/>, always a new object.
         /// Designed for handling virtual containers in various business processes.
         /// </summary>
-        /// <returns></returns>
         public static SmartFolder GetRuntimeQueryFolder()
         {
             // elevation is needed because the /Root/System folder may be inaccessible for some users

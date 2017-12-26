@@ -8,7 +8,7 @@ using  SenseNet.ContentRepository.Schema;
 namespace SenseNet.ContentRepository
 {
     /// <summary>
-    /// Defines a Content handler class that can contain child Contents.
+    /// A Content handler class for representing a container for child Content items.
     /// </summary>
 	[ContentHandler]
     public class Folder : GenericContent, IFolder
@@ -31,7 +31,8 @@ namespace SenseNet.ContentRepository
         protected Folder(NodeToken nt) : base(nt) { }
 
 	    /// <inheritdoc select="summary" />
-        /// <remarks>This value cannot be modified if the name of the ContentType is "Folder"</remarks>
+        /// <remarks>This value cannot be modified in case of simple Folders,
+        /// they inherit this list from their parent.</remarks>
         public override IEnumerable<ContentType> AllowedChildTypes
         {
             get { return base.AllowedChildTypes; }
@@ -78,7 +79,5 @@ namespace SenseNet.ContentRepository
                     break;
             }
         }
-
-
     }
 }

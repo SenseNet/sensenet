@@ -7,7 +7,7 @@ using  SenseNet.ContentRepository.Schema;
 namespace SenseNet.ContentRepository
 {
     /// <summary>
-    /// Represents the class for the instance of the sensenet repsitory's root Content.
+    /// Represents the root Content of the sensenet Content Repsitory tree.
     /// </summary>
 	[ContentHandler]
 	public class PortalRoot : Folder
