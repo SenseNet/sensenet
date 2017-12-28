@@ -39,15 +39,19 @@ namespace SenseNet.ContentRepository
 
         // ================================================================================= IFile Members
 
-        /// <inheritdoc />
-        /// <remarks>Persisted as <see cref="RepositoryDataType.Binary"/>.</remarks>>
+        /// <summary>        
+        /// Gets or sets the main binary data of the file.
+        /// Persisted as <see cref="RepositoryDataType.Binary"/>.
+        /// </summary>
 		[RepositoryProperty("Binary", RepositoryDataType.Binary)]
 		public virtual BinaryData Binary
 		{
 			get { return this.GetBinary("Binary"); }
 			set { this.SetBinary("Binary", value); }
 		}
-	    /// <inheritdoc />
+	    /// <summary>        
+        /// Gets the size of the main binary data of the file.
+        /// </summary>
         public long Size
         {
 			get
@@ -68,7 +72,7 @@ namespace SenseNet.ContentRepository
         // ================================================================================= Overrides
 
         /// <inheritdoc />
-        /// <remarks>Before saving, checks the type-consistency of executable file, if this instance is a new one.</remarks>>
+        /// <remarks>Before saving, checks the type-consistency of an executable file, if this instance is a new one.</remarks>>
 	    public override void Save(NodeSaveSettings settings)
 	    {
             // check new content here for speedup reasons
@@ -80,7 +84,7 @@ namespace SenseNet.ContentRepository
 
 	    /// <summary>
 	    /// Overrides the base class behavior. Triggers the validation of the executable file's type-consistency.
-	    /// For example after renaming a file with .cshtml extension must be an "ExecutableFile" or its any derived one.
+	    /// For example after renaming a file to have a .cshtml extension, it must be an "ExecutableFile" or a derived type.
 	    /// Do not use this method directly from your code.
 	    /// </summary>
 	    protected override void OnModifying(object sender, CancellableNodeEventArgs e)

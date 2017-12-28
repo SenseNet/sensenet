@@ -11,8 +11,8 @@ using SenseNet.Tools;
 namespace SenseNet.ContentRepository
 {
     /// <summary>
-    /// Defines a class for handling Content instances with a primary blob.
-    /// Designed for the representation of a filesystem's file in the sensenet repository.
+    /// Content handler for items with a primary blob. Represents a similar Content 
+    /// in the Content Repository as files in the file system.
     /// </summary>
     [ContentHandler]
     public class File : FileBase
@@ -85,7 +85,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Gets the name of the icon
+        /// Gets the name of the icon that represents this file.
         /// </summary>
         public override string Icon
         {
@@ -167,12 +167,11 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Creates a new instance of the <see cref="File"/> or appropriate inherited class by the given 
-        /// <see cref="BinaryData"/> under the <see cref="IFolder"/>. The instance has not been saved yet.
+        /// Creates a new instance of the <see cref="File"/> or the appropriate inherited class by the given 
+        /// <see cref="BinaryData"/> under the provided parent. This method does not save the file.
         /// </summary>
         /// <param name="parent">The parent <see cref="IFolder"/> of the new <see cref="File"/>.</param>
         /// <param name="binaryData">The <see cref="BinaryData"/> that is the base of the creation.</param>
-        /// <returns></returns>
         public static File CreateByBinary(IFolder parent, BinaryData binaryData)
         {
             if (parent == null)

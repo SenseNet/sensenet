@@ -20,5 +20,4 @@ namespace SenseNet.ContentRepository
         long Size { get; }
         long FullSize { get; } //UNDONE: Make obsolete
     }
-
 }
