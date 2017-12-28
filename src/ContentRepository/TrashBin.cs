@@ -12,13 +12,13 @@ using SenseNet.ContentRepository.Storage.Schema;
 namespace SenseNet.ContentRepository
 {
     /// <summary>
-    /// Defines a content handler for a Content that implements Trash Bin functionality.
+    /// A Content handler for a Content that implements the Trash Bin functionality.
     /// </summary>
     [ContentHandler]
     public class TrashBin : Workspace
     {
         /// <summary>
-        /// Defines a constant for the path of the centarlized Trash Bin in the sensenet reposritory.
+        /// Defines a constant for the path of the centralized Trash Bin in the Content Repository.
         /// </summary>
         public const string TrashBinPath = "/Root/Trash";
 
@@ -41,8 +41,8 @@ namespace SenseNet.ContentRepository
         protected TrashBin(NodeToken tk) : base(tk) { }
 
         /// <summary>
-        /// Gets or sets count of days the content should stay in the trash before deleting it permanently.
-        ///  If the value is greater than 0, users (or any automatism) cannot remove the content from the 
+        /// Gets or sets the count of days the content should stay in the trash before deleting it permanently.
+        /// If the value is greater than 0, users (or any automatism) cannot remove the content from the 
         /// trash before the expiration date. Changing this value does not effect previously deleted content.
         /// Persisted as <see cref="RepositoryDataType.Int"/>.
         /// </summary>
@@ -80,7 +80,7 @@ namespace SenseNet.ContentRepository
 
         /// <summary>
         /// Gets the centralized <see cref="TrashBin"/>.
-        /// Note that always returns with the new instance.
+        /// Note that this property always returns a new instance.
         /// </summary>
         public static TrashBin Instance
         {
@@ -160,7 +160,7 @@ namespace SenseNet.ContentRepository
         /// <summary>
         /// Tool method that returns true if the given content is found in the trash bin.
         /// </summary>
-        /// <param name="n">The <see cref="GenericContent"/> instance that is looked for.</param>
+        /// <param name="n">The <see cref="GenericContent"/> instance to check.</param>
         public static bool IsInTrash(GenericContent n)
         {
             // currently this is a simple path check, but
@@ -171,7 +171,7 @@ namespace SenseNet.ContentRepository
 
         /// <summary>
         /// Tool method that deletes the given Content depending on the state of the Trash Bin and Content.
-        /// The Trash Bin is used if the Trash Bin is active, value of the content's IsTrashable is true,
+        /// The Trash Bin is used if the Trash Bin is active, the value of the content's IsTrashable property is true
         /// and the <see cref="TrashBag"/> of the content is not too big (see <see cref="BagCapacity"/> property).
         /// If any condition is false, the Content will be deleted permanently.
         /// </summary>
@@ -213,7 +213,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Undeletes the given <see cref="TrashBag"/>.
+        /// Undeletes the Content in the given <see cref="TrashBag"/>.
         /// </summary>
         /// <param name="trashBag">The <see cref="TrashBag"/> that will be restored.</param>
         public static void Restore(TrashBag trashBag)
@@ -222,8 +222,8 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Undeletes the given <see cref="TrashBag"/> with the specified name.
-        /// Use if the name of the restored item is different from the name when deleted.
+        /// Undeletes the Content in the given <see cref="TrashBag"/> with the specified name.
+        /// Use this if the name of the restored item should be different than the original name.
         /// </summary>
         /// <param name="trashBag">The <see cref="TrashBag"/> that will be restored.</param>
         /// <param name="addNewName">The new name of the restored item.</param>
@@ -233,21 +233,21 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Undeletes the given <see cref="TrashBag"/> into the specified container.
+        /// Undeletes the Content in the given <see cref="TrashBag"/> into the specified container.
         /// </summary>
         /// <param name="trashBag">The <see cref="TrashBag"/> that will be restored.</param>
-        /// <param name="targetPath">The path of the container that will be contain the restored item.</param>
+        /// <param name="targetPath">The path of the container that will contain the restored item.</param>
         public static void Restore(TrashBag trashBag, string targetPath)
         {
             Restore(trashBag, targetPath, false);
         }
 
         /// <summary>
-        /// Undeletes the given <see cref="TrashBag"/> into the specified container.
+        /// Undeletes the Content in the given <see cref="TrashBag"/> into the specified container.
         /// Use if the name of the restored item is different from the name when deleted.
         /// </summary>
         /// <param name="trashBag">The <see cref="TrashBag"/> that will be restored.</param>
-        /// <param name="targetPath">The path of the container that will be contain the restored item.</param>
+        /// <param name="targetPath">The path of the container that will contain the restored item.</param>
         /// <param name="addNewName">The new name of the restored item.</param>
         public static void Restore(TrashBag trashBag, string targetPath, bool addNewName)
         {

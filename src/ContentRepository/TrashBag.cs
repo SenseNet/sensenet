@@ -13,7 +13,7 @@ using SenseNet.ContentRepository.Storage.Security;
 namespace SenseNet.ContentRepository
 {
     /// <summary>
-    /// Defines a content handler that can wrap the temporarily deleted Content and its subtree.
+    /// A Content handler that can wrap a temporarily deleted Content and its subtree.
     /// </summary>
     [ContentHandler]
     public class TrashBag : Folder
@@ -36,7 +36,7 @@ namespace SenseNet.ContentRepository
         protected TrashBag(NodeToken tk) : base(tk) { }
 
         /// <summary>
-        /// Gets or sets the time as long as the item can not be deleted.
+        /// Gets or sets the time until item can not be deleted.
         /// </summary>
         [RepositoryProperty("KeepUntil", RepositoryDataType.DateTime)]
         public DateTime KeepUntil
@@ -58,7 +58,7 @@ namespace SenseNet.ContentRepository
 
         private const string WORKSPACEIDPROPERTY = "WorkspaceId";
         /// <summary>
-        /// Gets or sets the Id of the owner Workspace of the wrapped Content. 
+        /// Gets or sets the Id of the original owner Workspace of the wrapped Content. 
         /// Persisted as <see cref="RepositoryDataType.Int"/>.
         /// </summary>
         [RepositoryProperty(WORKSPACEIDPROPERTY, RepositoryDataType.Int)]
@@ -70,7 +70,7 @@ namespace SenseNet.ContentRepository
 
         private const string WORKSPACERELATIVEPATHPROPERTY = "WorkspaceRelativePath";
         /// <summary>
-        /// Gets or sets the relative path of the wrapped Content in the owner Workspace.
+        /// Gets or sets the relative path of the wrapped Content in the original owner Workspace.
         /// Persisted as <see cref="RepositoryDataType.String"/>.
         /// </summary>
         [RepositoryProperty(WORKSPACERELATIVEPATHPROPERTY, RepositoryDataType.String)]
@@ -127,7 +127,8 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Gets true if this <see cref="TrashBag"/> can be deleted permanently.
+        /// Gets whether this <see cref="TrashBag"/> can be deleted permanently. Returns true in case the time
+        /// stored in the <see cref="KeepUntil"/> property has passed.
         /// </summary>
         public bool IsPurgeable
         {
@@ -144,7 +145,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <inheritdoc />
-        /// <remarks>In this case returns false.</remarks>
+        /// <remarks>In this case returns false: trash bags themselves cannot be moved to the Trash.</remarks>
         public override bool IsTrashable
         {
             get
@@ -154,7 +155,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <inheritdoc />
-        /// <remarks>Cannot be deleted permanently before minimum retention time otherwise 
+        /// <remarks>Cannot be deleted permanently before the minimum retention time - otherwise 
         /// an <see cref="ApplicationException"/> will be thrown.</remarks>
         public override void ForceDelete()
         {

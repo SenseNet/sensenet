@@ -12,7 +12,7 @@ using SenseNet.Search;
 namespace SenseNet.ContentRepository.Workspaces
 {
     /// <summary>
-    /// Defines a class that represents a root Content of a collaborative site in the sensenet repository.
+    /// A Content handler that represents a root Content of a collaborative workspace in the sensenet Content Repository.
     /// </summary>
     [ContentHandler]
     public class Workspace : Folder
@@ -35,25 +35,24 @@ namespace SenseNet.ContentRepository.Workspaces
         protected Workspace(NodeToken nt) : base(nt) { }
 
         /// <summary>
-        /// Define a constant for the name of the local group.
+        /// Defines a constant for the name of the local groups folder.
         /// </summary>
         public const string LocalGroupsFolderName = "Groups";
 
         /// <summary>
         /// Returs a parent <see cref="Workspace"/> of the given <see cref="Node"/> if it is found.
         /// </summary>
-        /// <param name="child">The <see cref="Node"/> instance that's owner workspace is looked for.</param>
-        /// <returns></returns>
+        /// <param name="child">The <see cref="Node"/> instance to find the owner workspace for.</param>
+        /// <returns>The existing <see cref="Workspace"/> instance or null if it was not found.</returns>
         public static Workspace GetWorkspaceForNode(Node child)
         {
             return Node.GetAncestorOfType<Workspace>(child);
         }
 
         /// <summary>
-        /// Finds the given <see cref="Node"/>'s ancestor <see cref="Workspace"/> that supports a wall functionality
-        /// and returns with it.
+        /// Finds the given <see cref="Node"/>'s ancestor <see cref="Workspace"/> that supports a wall functionality.
         /// </summary>
-        /// <param name="child">The <see cref="Node"/> instance that's owner workspace is looked for.</param>
+        /// <param name="child">The <see cref="Node"/> instance to find the owner workspace for.</param>
         /// <returns>The existing <see cref="Workspace"/> instance or null if it was not found.</returns>
         public static Workspace GetWorkspaceWithWallForNode(Node child)
         {
@@ -84,7 +83,10 @@ namespace SenseNet.ContentRepository.Workspaces
             return members.Distinct();
         }
 
-        //UNDONE: XMLDOC: Workspace.IsActive
+        /// <summary>
+        /// Gets or sets whether this workspace is active or not.
+        /// Persisted as <see cref="RepositoryDataType.Int"/>.
+        /// </summary>
         [RepositoryProperty("IsActive", RepositoryDataType.Int)]
         public bool IsActive
         {
@@ -104,7 +106,7 @@ namespace SenseNet.ContentRepository.Workspaces
         }
 
         /// <summary>
-        /// Gets or sets the reference of the skin.
+        /// Gets or sets the custom Skin used under this workspace.
         /// Persisted as <see cref="RepositoryDataType.Reference"/>.
         /// </summary>
         [RepositoryProperty("WorkspaceSkin", RepositoryDataType.Reference)]
@@ -186,6 +188,5 @@ namespace SenseNet.ContentRepository.Workspaces
                     break;
             }
         }
-
     }
 }

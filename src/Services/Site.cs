@@ -17,14 +17,8 @@ using SenseNet.Portal.OData;
 namespace SenseNet.Portal
 {
     /// <summary>
-    /// Represents a web site in the Sense/Net Portal.
+    /// A Content handler that represents a web site in the sensenet Content Repository.
     /// </summary>
-    /// <remarks>
-    /// In the ECMS (Enterprise Content Management) systems all the data and all the objects are handled as contents. 
-    /// Everything (like the web contents, web pages, but the portal users, your business data as well) is an 
-    /// enterprise content, and can be stored in the Sense/Net Content Repository. The Site class represents a web 
-    /// site that is stored in the content repository.
-    /// </remarks>
 	[ContentHandler]
     public class Site : Workspace
     {
@@ -55,7 +49,7 @@ namespace SenseNet.Portal
             set { this["PendingUserLang"] = value; }
         }
         /// <summary>
-        /// Gets or stes the language name of this <see cref="Site"/> (e.g. "en-us").
+        /// Gets or stes the language code of this <see cref="Site"/> (e.g. "en-us").
         /// </summary>
         [RepositoryProperty("Language")]
         public string Language
@@ -65,7 +59,8 @@ namespace SenseNet.Portal
         }
 
         /// <summary>
-        /// Gets or sets a boolean value that represents whether the client's culture info is acceptable or not.
+        /// Gets or sets whether the client's culture info (e.g. a browser setting) can determine the culture info of the response.
+        /// This may determine the language of UI elements such as titles and descriptions.
         /// Persisted as <see cref="RepositoryDataType.Int"/>.
         /// </summary>
         [RepositoryProperty("EnableClientBasedCulture", RepositoryDataType.Int)]
@@ -77,7 +72,8 @@ namespace SenseNet.Portal
 
         private const string ENABLEUSERBASEDCULTURE = "EnableUserBasedCulture";
         /// <summary>
-        /// Gets or sets a boolean value that represents whether the user's culture info is acceptable or not.
+        /// Gets or sets whether the user's culture info can determine the culture info of the response.
+        /// This may determine the language of UI elements such as titles and descriptions.
         /// Persisted as <see cref="RepositoryDataType.Int"/>.
         /// </summary>
         [RepositoryProperty(ENABLEUSERBASEDCULTURE, RepositoryDataType.Int)]
@@ -89,8 +85,8 @@ namespace SenseNet.Portal
 
         /// <summary>
         /// Gets or sets the list of URLs handled by this <see cref="Site"/> instance.
-        /// Represented by a IDictionary&lt;string, string&gt; when the key is the URL without protocol and
-        /// value is the authentication mode (can be "None", "Forms" or "Windows").
+        /// Represented by a IDictionary&lt;string, string&gt; when the key is the URL without protocol (e.g. example.com or adminsite:1234)
+        /// and value is the authentication mode (can be "None", "Forms" or "Windows").
         /// Persisted as an XML fragment in a <see cref="RepositoryDataType.Text"/> field.
         /// </summary>
         [RepositoryProperty("UrlList", RepositoryDataType.Text)]
@@ -138,7 +134,9 @@ namespace SenseNet.Portal
 
         private const string DENYCROSSSITEACCESSPROPERTY = "DenyCrossSiteAccess";
         /// <summary>
-        /// Gets or sets "true" if this <see cref="Site"/> instance denies the cross site access.
+        /// Gets or sets whether this <see cref="Site"/> instance denies cross site access, meaning if 
+        /// Content items stored under this site can be accessed when the user visits the portal
+        /// through another Site.
         /// </summary>
         [RepositoryProperty(DENYCROSSSITEACCESSPROPERTY, RepositoryDataType.Int)]
         public bool DenyCrossSiteAccess
@@ -148,7 +146,7 @@ namespace SenseNet.Portal
         }
 
         /// <summary>
-        /// Returns <see cref="Site"/> instance that belongs to the current web request.
+        /// Returns a <see cref="Site"/> instance that belongs to the current web request.
         /// </summary>
         public static Site Current => PortalContext.Current?.Site;
 
@@ -245,25 +243,25 @@ namespace SenseNet.Portal
         }
 
         /// <summary>
-        /// Returns ancestor <see cref="Site"/> instance of the given source <see cref="Node"/>.
+        /// Returns the ancestor <see cref="Site"/> instance of the given source <see cref="Node"/>.
         /// </summary>
-        /// <param name="source">The <see cref="Node"/> whose ancestor <see cref="Site"/> is looked for.</param>
+        /// <param name="source">The <see cref="Node"/> to return the ancestor <see cref="Site"/> for.</param>
         public static Site GetSiteByNode(Node source)
         {
             return GetSiteByNodePath(source.Path);
         }
 
         /// <summary>
-        /// Returns ancestor <see cref="Site"/> instance of the given path.
+        /// Returns the ancestor <see cref="Site"/> instance of the given path.
         /// </summary>
-        /// <param name="path">The path of the <see cref="Node"/> whose ancestor <see cref="Site"/> is looked for.</param>
+        /// <param name="path">The path of the <see cref="Node"/> to return the ancestor <see cref="Site"/> for.</param>
         public static Site GetSiteByNodePath(string path)
         {
             return PortalContext.GetSiteByNodePath(path);
         }
 
         /// <summary>
-        /// Returns authentication type of the given URI
+        /// Returns the authentication type of the given URI (based on the <see cref="UrlList"/> property) or null.
         /// </summary>
         public string GetAuthenticationType(Uri uri)
         {
@@ -276,7 +274,7 @@ namespace SenseNet.Portal
             return null;
         }
         /// <summary>
-        /// Returns parsed data of the given URL list that can be JSON or XML fragment.
+        /// Returns parsed data of the given URL list that can be a JSON or an XML fragment.
         /// For exmple:
         ///   &lt;Url authType="Forms"&gt;localhost:1315/&lt;/Url&gt;
         ///   &lt;Url authType="Windows"&gt;name.server.xy&lt;/Url&gt;
@@ -284,7 +282,7 @@ namespace SenseNet.Portal
         ///   [ { SiteName: "localhost:1315", AuthenticationType: "Forms" },
         ///     { SiteName: "name.server.xy", AuthenticationType: "Windows" } ]
         /// </summary>
-        /// <param name="urlSrc">Source that will be parsed.</param>
+        /// <param name="urlSrc">A url-authenticationtype dictionary string that will be parsed.</param>
         public static IDictionary<string, string> ParseUrlList(string urlSrc)
         {
 
@@ -331,11 +329,12 @@ namespace SenseNet.Portal
             return urlList;
         }
         /// <summary>
-        /// Returns XML fragment representation of the given URL list.
+        /// Returns the XML representation of the given URL list.
         /// For exmple:
         ///   &lt;Url authType="Forms"&gt;localhost:1315/&lt;/Url&gt;
         ///   &lt;Url authType="Windows"&gt;name.server.xy&lt;/Url&gt;
         /// </summary>
+        /// <param name="urlList">A url-authenticationtype dictionary.</param>
         public static string UrlListToString(IDictionary<string, string> urlList)
         {
             if (urlList == null)
@@ -356,13 +355,11 @@ namespace SenseNet.Portal
         }
 
         /// <summary>
-        /// Returns XML fragment representation of the given URL list.
-        /// or JSON:
+        /// Returns the JSON representation of the given URL list.
         ///   [ { SiteName: "localhost:1315", AuthenticationType: "Forms" },
         ///     { SiteName: "name.server.xy", AuthenticationType: "Windows" } ]
         /// </summary>
-        /// <param name="urlList"></param>
-        /// <returns></returns>
+        /// <param name="urlList">A url-authenticationtype dictionary.</param>
         public static string UrlListToJson(IDictionary<string, string> urlList)
         {
             if (urlList == null)
@@ -372,7 +369,7 @@ namespace SenseNet.Portal
         }
 
         /// <summary>
-        /// Returns URL of the specified repository path by the <see cref="Site"/> that belongs to the given URL.
+        /// Returns the URL of the specified repository path by the <see cref="Site"/> that belongs to the given URL.
         /// For example: be the input URL: "http://mysite.com/something" and repositoryPath: "/Root/Sites/MySite/MyFolder/MyDoc"
         /// First step is identifying the <see cref="Site"/> instance by the URL. In the example it is "/Root/Sites/MySite"
         /// that has this URL: "mysite.com".
@@ -383,14 +380,13 @@ namespace SenseNet.Portal
         /// </summary>
         /// <param name="url">The URL that identifies the <see cref="Site"/> instance.</param>
         /// <param name="repositoryPath">The path that will be normalized by the identified <see cref="Site"/> instance.</param>
-        /// <returns></returns>
         public static string GetUrlByRepositoryPath(string url, string repositoryPath)
         {
             return PortalContext.GetUrlByRepositoryPath(url, repositoryPath);
         }
 
         /// <summary>
-        /// Returns list of all available <see cref="ChoiceOption"/> configured in the Language field of the 
+        /// Returns a list of all available <see cref="ChoiceOption"/>s configured for the Language field of the 
         /// Site ContentTypeDefinition.
         /// </summary>
         public static IEnumerable<ChoiceOption> GetAllLanguages()

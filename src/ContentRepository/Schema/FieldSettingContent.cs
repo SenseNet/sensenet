@@ -9,7 +9,7 @@ using SenseNet.Tools;
 namespace SenseNet.ContentRepository.Schema
 {
     /// <summary>
-    /// Defines a content handler that represents a <see cref="Schema.FieldSetting"/> as a Content.
+    /// A Content handler that represents a <see cref="Schema.FieldSetting"/> as a Content.
     /// </summary>
     [ContentHandler]
     public class FieldSettingContent : GenericContent, ISupportsDynamicFields
@@ -41,7 +41,7 @@ namespace SenseNet.ContentRepository.Schema
         /// specified <see cref="Schema.FieldSetting"/> for the given <see cref="ContentRepository.ContentList"/>.
         /// </summary>
         /// <param name="fieldSetting">The represented <see cref="Schema.FieldSetting"/> instance.</param>
-        /// <param name="contentList">The <see cref="ContentRepository.ContentList"/> thet is owner of the 
+        /// <param name="contentList">The <see cref="ContentRepository.ContentList"/> that is owner of the 
         /// represented <see cref="Schema.FieldSetting"/> instance.</param>
         public FieldSettingContent(FieldSetting fieldSetting, ContentList contentList) :
             this(contentList ?? Repository.Root as Node, GetNodeTypeName(fieldSetting))
@@ -59,7 +59,7 @@ namespace SenseNet.ContentRepository.Schema
         /// specified <see cref="Schema.FieldSetting"/> for the given <see cref="Schema.ContentType"/>.
         /// </summary>
         /// <param name="fieldSetting">The represented <see cref="Schema.FieldSetting"/> instance.</param>
-        /// <param name="contentType">The <see cref="Schema.ContentType"/> thet is owner of the 
+        /// <param name="contentType">The <see cref="Schema.ContentType"/> that is owner of the 
         /// represented <see cref="Schema.FieldSetting"/> instance.</param>
         public FieldSettingContent(FieldSetting fieldSetting, ContentType contentType) :
             this(Repository.Root, GetNodeTypeName(fieldSetting))
@@ -130,8 +130,8 @@ namespace SenseNet.ContentRepository.Schema
         // ====================================================================== Properties
 
         /// <summary>
-        /// Gets or sets the order of the field that is based on the represented <see cref="Schema.FieldSetting"/> instance.
-        /// If it is currently null, returns with null and assign is ineffective.
+        /// Gets or sets the order of the field based on the represented <see cref="Schema.FieldSetting"/> instance.
+        /// If it is currently null, returns null. Assign is ineffective in that case.
         /// </summary>
         public int? FieldIndex
         {
@@ -148,13 +148,20 @@ namespace SenseNet.ContentRepository.Schema
 
         // ================================================================= Node methods
 
-        //UNDONE: XMLDOC: FieldSettingContent.Save
+        /// <summary>
+        /// Saves the <see cref="Schema.FieldSetting"/> data to the Content List definition xml. This method
+        /// does not call the base Save implementation, no standalone field setting content is saved into the
+        /// Content Repository.
+        /// </summary>
         public override void Save(SavingMode mode)
         {
             SaveFieldSetting();
         }
 
-        //UNDONE: XMLDOC: FieldSettingContent.Delete
+        /// <summary>
+        /// Deletes the <see cref="Schema.FieldSetting"/> data from the Content List definition xml. This method
+        /// does not call the base Delete implementation.
+        /// </summary>
         public override void Delete()
         {
             // remove column from views

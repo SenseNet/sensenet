@@ -8,7 +8,7 @@ using SenseNet.ContentRepository.Schema;
 namespace SenseNet.ContentRepository.Security.ADSync
 {
     /// <summary>
-    /// Defines a content handler for representation of a synchronized container in the domain network.
+    /// A Content handler for representing a synchronized container in the domain network.
     /// </summary>
     [ContentHandler]
     public class ADFolder : Folder, IADSyncable
@@ -68,7 +68,7 @@ namespace SenseNet.ContentRepository.Security.ADSync
         }
 
         /// <inheritdoc />
-        /// <remarks>In this case returns false.</remarks>
+        /// <remarks>In this case returns false: AD folders cannot be moved to the Trash.</remarks>
         public override bool IsTrashable
         {
             get
@@ -95,7 +95,7 @@ namespace SenseNet.ContentRepository.Security.ADSync
         /*=================================================================================== Events */
 
         /// <summary>
-        /// Checks whether the Move operation is acceptable to the current <see cref="DirectoryProvider"/> and
+        /// Checks whether the Move operation is acceptable for the current <see cref="DirectoryProvider"/>.
         /// The operation will be cancelled if it is prohibited.
         /// Do not use this method directly from your code.
         /// </summary>
@@ -140,7 +140,7 @@ namespace SenseNet.ContentRepository.Security.ADSync
         /*=================================================================================== IADSyncable Members */
 
         /// <summary>
-        /// Updates the last sync id of this object.
+        /// Updates the last AD sync id of this object.
         /// </summary>
         /// <param name="guid">A nullable GUID as sync id.</param>
         public void UpdateLastSync(Guid? guid)

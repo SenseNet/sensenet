@@ -11,17 +11,17 @@ namespace SenseNet.ContentRepository.Schema
     public interface ISupportsDynamicFields
     {
         /// <summary>
-        /// Returns dictionary that contains all dynamic field's descriptor. The keys are their names.
+        /// Returns a dictionary that contains the dynamic fields' descriptors. The keys are their names.
         /// </summary>
         IDictionary<string, FieldMetadata> GetDynamicFieldMetadata();
         /// <summary>
-        /// Returns a property value by name. Well-known and dynamic properties can also be accessed here.
+        /// Returns a well-known or dynamic property value by name.
         /// In derived content handlers this should be overridden and in case of local strongly typed
         /// properties return their value - otherwise call the base implementation.
         /// </summary>
         object GetProperty(string name);
         /// <summary>
-        /// Assigns the given value to the named property. Well-known and dynamic properties can also be set.
+        /// Assigns the given value to a well-known or dynamic property.
         /// In derived content handlers this should be overridden and in case of local strongly typed
         /// properties set their value - otherwise call the base implementation.
         /// </summary>
@@ -31,7 +31,7 @@ namespace SenseNet.ContentRepository.Schema
         /// </summary>
         bool IsNewContent { get; }
         /// <summary>
-        /// Clears any computed cached data.
+        /// Clears any computed cached data related to dynamic fields.
         /// </summary>
         void ResetDynamicFields();
     }
