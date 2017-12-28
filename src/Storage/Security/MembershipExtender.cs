@@ -7,7 +7,7 @@ namespace SenseNet.ContentRepository.Storage.Security
 {
     /// <summary>
     /// Defines a class that contains a list of group ids for extending the membership of a user.
-    /// The user will temporarily member of these groups.
+    /// The user will be a member of these groups temporarily, for the lifetime of the request.
     /// </summary>
     public class MembershipExtension
     {
@@ -16,21 +16,21 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Initializes a new instance of the <see cref="MembershipExtension"/>.
         /// </summary>
-        /// <param name="extension">The collection of groups that extends the membership of an user.</param>
+        /// <param name="extension">The collection of groups that extends the membership of a user.</param>
         public MembershipExtension(IEnumerable<ISecurityContainer> extension)
         {
             _extensionIds = extension == null ? new int[0] : extension.Select(x => x.Id).ToArray();
         }
 
         /// <summary>
-        /// Gets the collection of group ids that extends the membership of an user whom applied to.
+        /// Gets the collection of group ids that extends the membership of a user.
         /// </summary>
         public IEnumerable<int> ExtensionIds { get { return _extensionIds; } }
     }
 
     /// <summary>
-    /// Defines a base class for extending users's membership.
-    /// Inherited classes can customize the algorithm of selection of additional groups.
+    /// Defines a base class for extending a users's membership.
+    /// Inherited classes can customize the algorithm of selecting additional groups.
     /// </summary>
     public class MembershipExtenderBase
     {
@@ -66,11 +66,10 @@ namespace SenseNet.ContentRepository.Storage.Security
         }
 
         /// <summary>
-        /// Produces a <see cref="MembershipExtension"/> instance for the given user and returns it.
+        /// Produces a <see cref="MembershipExtension"/> instance for the given user.
         /// The return value can be assigned to the given <see cref="IUser"/>'s MembershipExtension property.
         /// </summary>
-        /// <param name="user">The <see cref="IUser"/> instance that's <see cref="MembershipExtension"/> will be produced.</param>
-        /// <returns></returns>
+        /// <param name="user">The <see cref="IUser"/> instance that's <see cref="MembershipExtension"/> will be created.</param>
         public virtual MembershipExtension GetExtension(IUser user)
         {
             return EmptyExtension;
@@ -78,8 +77,8 @@ namespace SenseNet.ContentRepository.Storage.Security
     }
 
     /// <summary>
-    /// Implements the default class of the <see cref="MembershipExtenderBase"/>.
-    /// This class cannot be inherites.
+    /// Implements the default class inheriting <see cref="MembershipExtenderBase"/>.
+    /// This class cannot be inherited.
     /// </summary>
     public sealed class DefaultMembershipExtender : MembershipExtenderBase
     {
@@ -91,5 +90,4 @@ namespace SenseNet.ContentRepository.Storage.Security
             return MembershipExtenderBase.EmptyExtension;
         }
     }
-
 }

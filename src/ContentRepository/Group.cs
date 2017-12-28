@@ -13,7 +13,7 @@ using SenseNet.ContentRepository.Storage.Events;
 namespace SenseNet.ContentRepository
 {
     /// <summary>
-    /// Defines an Content handler that represents a group of users or additional groups.
+    /// A Content handler that represents a group in the Content Repository. May contain users or other groups as members.
     /// </summary>
     [ContentHandler]
     public class Group : GenericContent, IGroup, IADSyncable
@@ -50,7 +50,7 @@ namespace SenseNet.ContentRepository
             set { this.SetReferences(MEMBERS, value); }
         }
         /// <summary>
-        /// Gets te list of <see cref="Group"/> from the Members property.
+        /// Gets te list of <see cref="Group"/>s from the Members property.
         /// </summary>
         public List<Group> Groups
         {
@@ -64,7 +64,7 @@ namespace SenseNet.ContentRepository
             }
         }
         /// <summary>
-        /// Gets te list of <see cref="User"/> from the Members property.
+        /// Gets te list of <see cref="User"/>s from the Members property.
         /// </summary>
         public List<User> Users
         {
@@ -95,7 +95,7 @@ namespace SenseNet.ContentRepository
 
         /// <summary>
         /// Gets the Administrators group.
-        /// Note that always returns with the new instance.
+        /// Note that this property always returns a new instance.
         /// </summary>
         public static Group Administrators
         {
@@ -103,7 +103,7 @@ namespace SenseNet.ContentRepository
         }
         /// <summary>
         /// Gets the Everyone group.
-        /// Note that always returns with the new instance.
+        /// Note that this property always returns a new instance.
         /// </summary>
         public static Group Everyone
         {
@@ -111,7 +111,7 @@ namespace SenseNet.ContentRepository
         }
         /// <summary>
         /// Gets the RegisteredUsers group.
-        /// Note that always returns with the new instance.
+        /// Note that this property always returns a new instance.
         /// </summary>
         public static Group RegisteredUsers
         {
@@ -119,7 +119,7 @@ namespace SenseNet.ContentRepository
         }
         /// <summary>
         /// Gets the Operators group.
-        /// Note that always returns with the new instance.
+        /// Note that this property always returns a new instance.
         /// </summary>
         public static Group Operators
         {
@@ -127,7 +127,7 @@ namespace SenseNet.ContentRepository
         }
         /// <summary>
         /// Gets the Owners group.
-        /// Note that always returns with the new instance.
+        /// Note that this property always returns a new instance.
         /// </summary>
         public static Group Owners
         {
@@ -160,7 +160,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Returns a list of <see cref="IUser"/>s that are direct members of this instance.
+        /// Returns a list of <see cref="IUser"/>s that are direct members of this group.
         /// </summary>
         public List<IUser> GetMemberUsers()
         {
@@ -174,7 +174,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Returns a list of <see cref="IGroup"/>s that are direct members of this instance.
+        /// Returns a list of <see cref="IGroup"/>s that are direct members of this group.
         /// </summary>
         public List<IGroup> GetMemberGroups()
         {
@@ -188,7 +188,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Returns a list of all <see cref="IUser"/>s recursive.
+        /// Returns all <see cref="IUser"/>s that are members of this group recursively.
         /// </summary>
         public List<IUser> GetAllMemberUsers()
         {
@@ -200,7 +200,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Returns a list of all <see cref="IGroup"/>s recursive.
+        /// Returns all <see cref="IGroup"/>s that are members of this group recursively.
         /// </summary>
         public List<IGroup> GetAllMemberGroups()
         {
@@ -244,7 +244,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// This method is obsolete. Use <see cref="Group.IsInGroup"/> method instead.
+        /// This method is obsolete. Use <see cref="Group.IsInGroup"/> instead.
         /// </summary>
         /// <param name="securityGroupId">Id of the container group.</param>
         [Obsolete("Use IsInGroup instead.", false)]
@@ -253,7 +253,7 @@ namespace SenseNet.ContentRepository
             return IsInGroup(securityGroupId);
         }
         /// <summary>
-        /// Returns true if this group is a member of a group identidied by the given groupId.
+        /// Returns true if this group is a member of a group identified by the given groupId.
         /// This method is transitive, meaning it will look for relations in the whole group graph, not 
         /// only direct memberships.
         /// </summary>
@@ -264,7 +264,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Adds the given group to the memvbers.
+        /// Adds the given group to the members list and saves the group.
         /// </summary>
         /// <param name="group">An <see cref="IGroup"/> instance that will be added to members.</param>
         public void AddMember(IGroup group)
@@ -284,7 +284,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Adds the given user to the memvbers.
+        /// Adds the given user to the members list and saves the group.
         /// </summary>
         /// <param name="user">An <see cref="IUser"/> instance that will be added to members.</param>
         public void AddMember(IUser user)
@@ -304,7 +304,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Removes the given group from the members if exists.
+        /// Removes the given group from the members list if it is there and saves the group.
         /// </summary>
         /// <param name="group">An <see cref="IGroup"/> instance that will be removed fromthe members.</param>
         public void RemoveMember(IGroup group)
@@ -324,7 +324,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Removes the given user from the members if exists.
+        /// Removes the given user from the members list if it is there and saves the group.
         /// </summary>
         /// <param name="user">An <see cref="IGroup"/> instance that will be removed fromthe members.</param>
         public void RemoveMember(IUser user)
@@ -385,7 +385,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <inheritdoc />
-        /// <remarks>In this case returns false.</remarks>
+        /// <remarks>In this case returns false: groups cannot be put into the Trash.</remarks>
         public override bool IsTrashable
         {
             get
@@ -409,10 +409,11 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Does checks members before save.
-        /// If this instance is a the special group (e.g. Everyone) and the Members contains any items,
-        /// an <see cref="InvalidOperationException"/> will be thrown.
-        /// If this instance contains itself in the Members, an <see cref="InvalidOperationException"/> will be thrown.
+        /// Checks members before saving the group.
+        /// If this instance is a special group (e.g. Everyone) and the Members contains items,
+        /// an <see cref="InvalidOperationException"/> will be thrown, because the membership of
+        /// special groups cannot be edited.
+        /// If this instance contains itself in the Members list, an <see cref="InvalidOperationException"/> will be thrown.
         /// </summary>
         protected void AssertValidMembers()
         {
@@ -428,17 +429,17 @@ namespace SenseNet.ContentRepository
 
             if (this.Members.OfType<Group>().Any(@group => @group.Id == this.Id))
             {
-                    throw new InvalidOperationException(string.Format("Group cannot contain itself as a member. Please remove {0} from the Members list.", this.DisplayName));
+                throw new InvalidOperationException(string.Format("Group cannot contain itself as a member. Please remove {0} from the Members list.", this.DisplayName));
             }
         }
 
         // =================================================================================== OData API
 
         /// <summary>
-        /// Adds the specified items to the members of the given group that represented as a <see cref="Content"/>.
+        /// Adds the specified items to the members list of the given group <see cref="Content"/>.
         /// If the content is not a <see cref="Group"/>, an <see cref="InvalidOperationException"/> will be thrown.
         /// </summary>
-        /// <param name="content">A <see cref="Content"/> thats ContentHandler is a <see cref="Group"/>.</param>
+        /// <param name="content">A <see cref="Content"/> that should be a <see cref="Group"/>.</param>
         /// <param name="contentIds">An array of contentIds that represents the new members.</param>
         /// <returns></returns>
         [ODataAction]
@@ -461,9 +462,9 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Removes the specified items from the members of the given group that represented as a <see cref="Content"/>.
+        /// Removes the specified items from the members list of the given group <see cref="Content"/>.
         /// </summary>
-        /// <param name="content">A <see cref="Content"/> thats ContentHandler is a <see cref="Group"/>.</param>
+        /// <param name="content">A <see cref="Content"/> that should be a <see cref="Group"/>.</param>
         /// <param name="contentIds">An array of contentIds that represents the members to remove.</param>
         /// <returns></returns>
         [ODataAction]
@@ -489,7 +490,7 @@ namespace SenseNet.ContentRepository
         // =================================================================================== Events
 
         /// <summary>
-        /// Checks whether the Move operation is acceptable to the current <see cref="DirectoryProvider"/> and
+        /// Checks whether the Move operation is acceptable for the current <see cref="DirectoryProvider"/>.
         /// The operation will be cancelled if it is prohibited.
         /// Do not use this method directly from your code.
         /// </summary>
@@ -535,7 +536,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// After modification updates the membership recursive.
+        /// After modification updates the membership recursively in the security database.
         /// Do not use this method directly from your code.
         /// </summary>
         protected override void OnModified(object sender, NodeEventArgs e)
@@ -600,7 +601,7 @@ namespace SenseNet.ContentRepository
         // =================================================================================== IADSyncable Members
 
         /// <summary>
-        /// Writes back the given sync-id to the database.
+        /// Writes the given AD sync-id to the database.
         /// </summary>
         /// <param name="guid"></param>
         public void UpdateLastSync(Guid? guid)
