@@ -4,7 +4,7 @@ using SenseNet.ContentRepository.Storage;
 namespace SenseNet.ContentRepository
 {
     /// <summary>
-    /// Defines a content handler for root node of an <see cref="User"/>'s profile structure.
+    /// A Content handler for the root node of a <see cref="User"/>'s profile structure.
     /// </summary>
     [ContentHandler]
     public class UserProfile : Workspaces.Workspace
@@ -28,7 +28,7 @@ namespace SenseNet.ContentRepository
 
         private User _user;
         /// <summary>
-        /// Gets back reference of the owner <see cref="User"/> of this <see cref="UserProfile"/> instance.
+        /// Gets the back reference of the owner <see cref="User"/> of this <see cref="UserProfile"/> instance.
         /// </summary>
         public User User
         {

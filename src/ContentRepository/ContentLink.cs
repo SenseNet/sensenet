@@ -10,7 +10,8 @@ using SenseNet.ContentRepository.Storage.Schema;
 namespace SenseNet.ContentRepository
 {
     /// <summary>
-    /// Defines a content handler that can show another content in the place of the link.
+    /// A Content handler that can represent another Content from a different part of the Content Repository.
+    /// Useful when there is a need to display the same content in multiple places - e.g. under different sites.
     /// </summary>
     [ContentHandler]
     public class ContentLink : GenericContent
@@ -35,7 +36,7 @@ namespace SenseNet.ContentRepository
         protected ContentLink(NodeToken tk) : base(tk) { }
 
         /// <summary>
-        /// Gets a list of field names that are not transferred.
+        /// Gets a list of field names that are not transferred from the linked Content.
         /// </summary>
         public virtual List<string> NotLinkedFields
         {
@@ -47,7 +48,7 @@ namespace SenseNet.ContentRepository
 
         private bool? _isAlive;
         /// <summary>
-        /// Gets true if the linked content exists and current <see cref="User"/> has enough permission to open it (<see cref="PermissionType.Open"/>).
+        /// Gets true if the linked content exists and the current <see cref="User"/> has enough permissions to open it (<see cref="PermissionType.Open"/>).
         /// </summary>
         public bool IsAlive
         {
@@ -138,7 +139,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Gets value of the linked content'"s Icon property.
+        /// Gets the value of the linked content's Icon property.
         /// </summary>
         public override string Icon
         {

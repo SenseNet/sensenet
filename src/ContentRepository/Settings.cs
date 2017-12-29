@@ -23,7 +23,8 @@ using SenseNet.Search.Indexing;
 namespace SenseNet.ContentRepository
 {
     /// <summary>
-    /// Defines a content handler base class for managing any feature dependent, local or global setting.
+    /// A Content handler base class for managing feature dependent, local or global settings 
+    /// stored in the Content Repository instead of a config file in the file system.
     /// </summary>
     [ContentHandler]
     public class Settings : File, ISupportsDynamicFields, ISupportsAddingFieldsOnTheFly
@@ -50,31 +51,31 @@ namespace SenseNet.ContentRepository
         private static readonly string SETTINGSCONTAINERNAMEPART = "/" + SETTINGSCONTAINERNAME + "/";
         internal static readonly string EXTENSION = "settings";
         /// <summary>
-        /// Define a constant for cache key of XML data.
+        /// Defines a constant for the cache key of XML data.
         /// </summary>
         protected static readonly string BINARYXMLKEY = "CachedBinaryXml";
         /// <summary>
-        /// Define a constant for cache key of JSON data.
+        /// Defines a constant for the cache key of JSON data.
         /// </summary>
         protected static readonly string BINARYJSONKEY = "CachedBinaryJson";
         /// <summary>
-        /// Define a constant for cache key of interpreted data.
+        /// Defines a constant for the cache key of interpreted data.
         /// </summary>
         protected static readonly string SETTINGVALUESKEY = "CachedValues";
         /// <summary>
-        /// Define a constant for cache key of dynamic metadata.
+        /// Defines a constant for the cache key of dynamic metadata.
         /// </summary>
         protected static readonly string DYNAMICMETADATA_CACHEKEY = "CachedDynamicMetadata";
         /// <summary>
-        /// Define a constant for element name in the XML data.
+        /// Defines a constant for the element name in the XML data.
         /// </summary>
         protected static readonly string XML_DEFAULT_NODE_NAME = "add";
         /// <summary>
-        /// Define a constant for "key" attrivute name in the XML data.
+        /// Defines a constant for the "key" attribute name in the XML data.
         /// </summary>
         protected static readonly string XML_DEFAULT_KEYATTRIBUTE_NAME = "key";
         /// <summary>
-        /// Define a constant for "value" attrivute name in the XML data.
+        /// Defines a constant for the "value" attribute name in the XML data.
         /// </summary>
         protected static readonly string XML_DEFAULT_VALUEATTRIBUTE_NAME = "value";
 
@@ -152,7 +153,7 @@ namespace SenseNet.ContentRepository
         private bool _jsonIsLoaded;
         private JObject _binaryAsJObject;
         /// <summary>
-        /// Gets data as an <see cref="JObject"/> if it can be parsed, or null.
+        /// Gets data as a <see cref="JObject"/> if it can be parsed, or null.
         /// </summary>
         protected JObject BinaryAsJObject
         {
@@ -231,7 +232,8 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Loads all settings content with a specified name (or relative path) from the Settings folders up on the parent chain, starting from the provided context path.
+        /// Loads all settings content with a specified name (or relative path) from the Settings folders 
+        /// up on the parent chain, starting from the provided context path.
         /// </summary>
         /// <typeparam name="T">The settings type.</typeparam>
         /// <param name="settingsName">Name or relative path of the settings content.</param>
@@ -267,7 +269,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Returns input object converted to the desired type. If input was null, the defaultValue will be returned.
+        /// Returns the input object converted to the desired type. If the input was null, the defaultValue will be returned.
         /// </summary>
         /// <typeparam name="T">Type of the return value</typeparam>
         /// <param name="value">Input raw value</param>
@@ -286,14 +288,13 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Returns value by the given key of the specified <see cref="Settings"/>.
+        /// Returns a setting value by the given key of the specified <see cref="Settings"/>.
         /// </summary>
         /// <typeparam name="T">Type of the return value</typeparam>
-        /// <param name="settingsName">Name of the <see cref="Settings"/> file.</param>
-        /// <param name="key">The name of the requested value</param>
-        /// <param name="contextPath">Path of the focused Content. The requested value belongs to it.</param>
+        /// <param name="settingsName">Name of the <see cref="Settings"/> (e.g. Indexing or Portal).</param>
+        /// <param name="key">The name of the requested value.</param>
+        /// <param name="contextPath">The content where the search for the settings will start.</param>
         /// <param name="defaultValue">Value if the "value" is null.</param>
-        /// <returns></returns>
         public static T GetValue<T>(string settingsName, string key, string contextPath = null, T defaultValue = default(T))
         {
             using (new SystemAccount())
@@ -352,12 +353,11 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Returns closest <see cref="Settings"/> on the parent chain with same name.
+        /// Returns the closest <see cref="Settings"/> on the parent chain with the same name.
         /// </summary>
         /// <remarks>Note that the <see cref="Settings"/> is a context object with a special container.
         /// Every Content can have settings under it's "/Settings/[settingname]" structure.
         /// Searching the parent <see cref="Settings"/> is based on this structure.</remarks>
-        /// <returns></returns>
         protected Settings FindClosestInheritedSettingsFile()
         {
             if (this.ParentPath.StartsWith(SETTINGSCONTAINERPATH, true, System.Globalization.CultureInfo.InvariantCulture))
@@ -374,8 +374,8 @@ namespace SenseNet.ContentRepository
         // ================================================================================= Settings API (INSTANCE)
 
         /// <summary>
-        /// Gets the setting value by name from the Binary field. In the base implementation 
-        /// it uses XML, derived classes may implement other formats, e.g. JSON.
+        /// Gets the setting value by name from the Binary field. The base implementation is able
+        /// to work with XML and JSON format. Derived classes may understand other formats too.
         /// </summary>
         /// <typeparam name="T">The type of the setting value.</typeparam>
         /// <param name="key">The name of the setting.</param>
@@ -439,7 +439,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Gets the settings value from the found JSON part.
+        /// Gets the settings value from the found JSON property.
         /// </summary>
         /// <param name="token">The JSON value for the setting in the binary field.</param>
         /// <param name="key">The name of the setting.</param>
@@ -523,7 +523,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <inheritdoc />
-        /// <remarks>Sets or overrides any dynamic property.</remarks>
+        /// <remarks>Sets or overrides any dynamic or well-known property.</remarks>
         public override void SetProperty(string name, object value)
         {
             if (this.HasProperty(name))
@@ -597,7 +597,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Overrides the base class behavior. Triggers the building internal structures.
+        /// Overrides the base class behavior. Triggers the building of internal structures.
         /// Do not use this method directly from your code.
         /// </summary>
         protected override void OnLoaded(object sender, NodeEventArgs e)
@@ -815,9 +815,8 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Returns name if this instance without file name extension.
+        /// Returns name of this instance without file name extension.
         /// </summary>
-        /// <returns></returns>
         protected string GetSettingName()
         {
             if (this.IsNew)
@@ -848,7 +847,7 @@ namespace SenseNet.ContentRepository
         {
             // NOTE:
             // A Settings content can contain any user-defined JSON object. The properties of that JSON object will appear as dynamic fields on the Content layer.
-            // The problem is that Sense/Net can't handle two differently typed fields with the same name.
+            // The problem is that sensenet ECM can't handle two differently typed fields with the same name.
             // However, the name of these fields may collide with the name of a CTD field or a name of another dynamic field.
             // ----------
             // For now, the solution is to disable indexing for the dynamic fields on Settings.
