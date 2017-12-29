@@ -31,7 +31,10 @@ namespace SenseNet.ContentRepository.Schema
 
         private bool _isNew = true;
 
-        //UNDONE: XMLDOC: FieldSettingContent.AddToDefaultView
+        /// <summary>
+        /// Gets or sets a value that is true if a new field should be added to the default view
+        /// of the containing Content List.
+        /// </summary>
         public bool AddToDefaultView { get; set; }
 
         // ================================================================= Constructors

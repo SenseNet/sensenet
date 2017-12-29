@@ -585,7 +585,13 @@ namespace SenseNet.ContentRepository
             _visitor = null;
         }
 
-        //UNDONE:! XMLDOC: or make private: RegisterUser
+        //UNDONE: make private: RegisterUser
+        /// <summary>
+        /// Technical method for loading or creating an administrator user.
+        /// Do not use this method from your code directly.
+        /// </summary>
+        /// <param name="fullUserName">A username including the domain.</param>
+        /// <returns>The loaded or newly created user.</returns>
         public static User RegisterUser(string fullUserName)
         {
             if (string.IsNullOrEmpty(fullUserName))

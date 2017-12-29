@@ -192,8 +192,11 @@ namespace SenseNet.ContentRepository
             return true;
         }
 
-        //UNDONE: XMLDOC: TrashBin.ForceDelete
-        public static void ForceDelete(GenericContent n) //UNDONE: unnecessary API. Be obsolete and internal/private.
+        //UNDONE: TrashBin.ForceDelete: make it obsolete or private.
+        /// <summary>
+        /// Deletes the content permanently. This method is obsolete, use node.ForceDelete instead.
+        /// </summary>
+        public static void ForceDelete(GenericContent n)
         {
             SnTrace.Repository.Write("Trashbin: Finally deleting from Repository. NodePath:{0}", n.Path);
             n.ForceDelete();

@@ -41,7 +41,9 @@ namespace SenseNet.Portal
         /// </summary>
         protected Site(NodeToken nt) : base(nt) { }
 
-        //UNDONE: XMLDOC: Site.PendingUserLang
+        /// <summary>
+        /// Gets or stes the temporary language code of this <see cref="Site"/> (e.g. "en-us").
+        /// </summary>
         [RepositoryProperty("PendingUserLang")]
         public string PendingUserLang
         {
@@ -462,8 +464,11 @@ namespace SenseNet.Portal
             }
         }
 
-        //UNDONE: XMLDOC: Site.IsRequested
-        public bool IsRequested(Uri uri) //UNDONE: Obsolete, or delete.
+        //UNDONE: Site.IsRequested: make this obsolete or private.
+        /// <summary>
+        /// Returns true if the provided uri belongs to one of the known sites in the Content Repository.
+        /// </summary>
+        public bool IsRequested(Uri uri)
         {
             string url = uri.GetComponents(UriComponents.HostAndPort | UriComponents.Path, UriFormat.Unescaped);
             foreach (string key in UrlList.Keys)

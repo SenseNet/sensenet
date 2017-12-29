@@ -125,8 +125,11 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public bool? AllowIncrementalNaming;
 
-        //UNDONE: XMLDOC Node.NodeOperation
-        public string NodeOperation { get; set; } //UNDONE: setter be protected.
+        //UNDONE: Node.NodeOperation: setter be protected.
+        /// <summary>
+        /// Gets the currently running node operation (e.g. Undo checkout or Template creation).
+        /// </summary>
+        public string NodeOperation { get; set; } 
 
         private static IIndexPopulator Populator
         {
@@ -617,8 +620,13 @@ namespace SenseNet.ContentRepository.Storage
                 SetCreationDate(value);
             }
         }
-        //UNDONE: XMLDOC Node.AssertUserIsOperator
-        protected void AssertUserIsOperator(string propertyName) //UNDONE: be private or delete
+        //UNDONE: Node.AssertUserIsOperator: make this private or delete
+        /// <summary>
+        /// Checks if the current user is a system user or a member of the Operators group
+        /// and throws a <see cref="NotSupportedException"/> if not.
+        /// </summary>
+        /// <param name="propertyName">The property that the caller tried to access. Used only when throwing an exception.</param>
+        protected void AssertUserIsOperator(string propertyName) 
         {
             var user = AccessProvider.Current.GetCurrentUser();
 
@@ -632,7 +640,10 @@ namespace SenseNet.ContentRepository.Storage
                     throw new NotSupportedException(String.Format(SR.Exceptions.General.Msg_CannotWriteReadOnlyProperty_1, propertyName));
             }
         }
-        //UNDONE: XMLDOC Node.SetCreationDate
+
+        /// <summary>
+        /// Sets the CreationDate of this node to the specified value.
+        /// </summary>
         protected void SetCreationDate(DateTime creation) //UNDONE: Move this code to the setter of the CreationDate
         {
             if (creation < DataProvider.Current.DateTimeMinValue)
@@ -772,7 +783,10 @@ namespace SenseNet.ContentRepository.Storage
                 SetVersionCreationDate(value);
             }
         }
-        //UNDONE: XMLDOC Node.SetVersionCreationDate
+
+        /// <summary>
+        /// Sets the VersionCreationDate of this node version to the specified value.
+        /// </summary>
         protected void SetVersionCreationDate(DateTime creation) //UNDONE: Move this code to the setter of the VersionCreationDate
         {
             if (creation < DataProvider.Current.DateTimeMinValue)
@@ -2905,12 +2919,18 @@ namespace SenseNet.ContentRepository.Storage
 
         #region // ================================================================================================= Move methods
 
-        //UNDONE: XMLDOC Node.GetChildTypesToAllow(int nodeId)
+        //UNDONE: Node.GetChildTypesToAllow(int nodeId): check SQL procedure algorithm
+        /// <summary>
+        /// Gets all the types that can be found in a subtree under a node defined by an Id.
+        /// </summary>
         public static IEnumerable<NodeType> GetChildTypesToAllow(int nodeId)
         {
             return DataProvider.Current.LoadChildTypesToAllow(nodeId);
         }
-        //UNDONE: XMLDOC Node.GetChildTypesToAllow()
+        //UNDONE: Node.GetChildTypesToAllow(): check SQL procedure algorithm
+        /// <summary>
+        /// Gets all the types that can be found in a subtree under the current node.
+        /// </summary>
         public IEnumerable<NodeType> GetChildTypesToAllow()
         {
             return DataProvider.Current.LoadChildTypesToAllow(this.Id);
@@ -3524,8 +3544,11 @@ namespace SenseNet.ContentRepository.Storage
         {
             ForceDelete(this.NodeTimestamp);
         }
-        //UNDONE: XMLDOC Node.ForceDelete(long timestamp)
-        public virtual void ForceDelete(long timestamp) //UNDONE: be obsolete or private
+        //UNDONE: Node.ForceDelete(long timestamp): make this obsolete or private (timestamp parameter is not used).
+        /// <summary>
+        /// This method deletes the <see cref="Node"/> permanently.
+        /// </summary>
+        public virtual void ForceDelete(long timestamp)
         {
             using (var op = SnTrace.ContentOperation.StartOperation("Node.ForceDelete: Id:{0}, Path:{1}", Id, Path))
             {

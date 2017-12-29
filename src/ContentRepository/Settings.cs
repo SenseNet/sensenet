@@ -103,8 +103,11 @@ namespace SenseNet.ContentRepository
         private IDictionary<string, FieldMetadata> _dynamicFieldMetadata = null;
         private bool _dynamicFieldsChanged = false;
 
-        //UNDONE: XMLDOC: Settings._xmlIsLoaded
-        protected bool _xmlIsLoaded; //UNDONE: be private
+        //UNDONE: Settings._xmlIsLoaded: make this private.
+        /// <summary>
+        /// Returns true if the setting binary is already loaded as an xml.
+        /// </summary>
+        protected bool _xmlIsLoaded; 
         private XmlDocument _binaryAsXml;
         /// <summary>
         /// Gets data as an <see cref="XmlDocument"/> if it can be parsed, or null.
