@@ -55,7 +55,8 @@ namespace SenseNet.TokenAuthentication
                     { "exp", numericExpiration},
                     { "iat", numericNow},
                     { "nbf", numericNotBefore},
-                    { "name", name}
+                    { "name", name},
+                    { "jti", Guid.NewGuid().ToString("N")}
                 };
                 if (!string.IsNullOrWhiteSpace(role))
                 {
@@ -79,7 +80,8 @@ namespace SenseNet.TokenAuthentication
                         { "exp", numericExpiration},
                         { "iat", numericNow},
                         { "nbf", numericNotBefore },
-                        { "name", name}
+                        { "name", name},
+                        { "jti", Guid.NewGuid().ToString("N")}
                     };
 
                     var refreshToken = new JwtSecurityToken(header, payload);
