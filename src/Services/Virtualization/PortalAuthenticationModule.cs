@@ -303,8 +303,7 @@ namespace SenseNet.Portal.Virtualization
                 var context = AuthenticationHelper.GetContext(application);
                 if(HttpRuntime.IsOnUNCShare && context.Request.IsAuthenticated)
                 {
-                    identity = WindowsIdentity.GetCurrent();
-                    user = new WindowsPrincipal(identity);
+                    user = new WindowsPrincipal(WindowsIdentity.GetCurrent());
                 }
                 else
                 {
