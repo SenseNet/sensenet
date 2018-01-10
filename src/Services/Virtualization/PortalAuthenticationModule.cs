@@ -300,34 +300,18 @@ namespace SenseNet.Portal.Virtualization
             if (HttpRuntime.UsingIntegratedPipeline)
             {
                 WindowsPrincipal user = null;
-                if (HttpRuntime.IsOnUNCShare && application.Request.IsAuthenticated)
+                var context = AuthenticationHelper.GetContext(application);
+                if(HttpRuntime.IsOnUNCShare && context.Request.IsAuthenticated)
                 {
-                    var applicationIdentityToken = (IntPtr)typeof (System.Web.Hosting.HostingEnvironment)
-                        .GetProperty("ApplicationIdentityToken", BindingFlags.NonPublic | BindingFlags.Static)
-                        .GetGetMethod().Invoke(null, null);
-
-                    var wi = new WindowsIdentity(
-                        applicationIdentityToken, 
-                        application.User.Identity.AuthenticationType,
-                        WindowsAccountType.Normal, 
-                        true);
-
-                    user = new WindowsPrincipal(wi);
+                    user = new WindowsPrincipal(WindowsIdentity.GetCurrent());
                 }
                 else
                 {
                     user = application.Context.User as WindowsPrincipal;
                 }
-
                 if (user != null)
                 {
                     identity = user.Identity as WindowsIdentity;
-
-                    object[] setPrincipalNoDemandParameters = { null, false };
-                    var setPrincipalNoDemandParameterTypes = new[] { typeof(IPrincipal), typeof(bool) };
-                    var setPrincipalNoDemandMethodInfo = application.Context.GetType().GetMethod("SetPrincipalNoDemand", BindingFlags.Instance | BindingFlags.NonPublic, null, setPrincipalNoDemandParameterTypes, null);
-
-                    setPrincipalNoDemandMethodInfo.Invoke(application.Context, setPrincipalNoDemandParameters);
                 }
             }
             else
