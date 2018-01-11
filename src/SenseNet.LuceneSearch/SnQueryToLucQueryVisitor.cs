@@ -7,7 +7,7 @@ using Lucene.Net.Analysis.Tokenattributes;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Util;
-using SenseNet.Search.Parser;
+//using SenseNet.Search.Parser;
 using SenseNet.Search.Querying;
 using SenseNet.Search.Querying.Parser;
 using SenseNet.Search.Querying.Parser.Predicates;
@@ -15,7 +15,7 @@ using LogicalClause = SenseNet.Search.Querying.Parser.Predicates.LogicalClause;
 
 namespace SenseNet.Search.Lucene29
 {
-    internal class SnQueryToLucQueryVisitor : SnQueryVisitor
+    public class SnQueryToLucQueryVisitor : SnQueryVisitor
     {
         public Query Result
         {

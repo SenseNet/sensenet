@@ -7,7 +7,7 @@ using SenseNet.ContentRepository.Search;
 
 namespace SenseNet.Search.Lucene29
 {
-    internal class Lucene29QueryEngine : IQueryEngine
+    public class Lucene29QueryEngine : IQueryEngine
     {
         public QueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {

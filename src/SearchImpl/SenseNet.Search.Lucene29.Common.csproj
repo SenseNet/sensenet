@@ -7,8 +7,8 @@
     <ProjectGuid>{FF0B1AF9-753B-4660-8BD0-B84492321808}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SenseNet.Search</RootNamespace>
-    <AssemblyName>SearchImpl</AssemblyName>
+    <RootNamespace>SenseNet.Search.Lucene29.Common</RootNamespace>
+    <AssemblyName>SenseNet.Search.Lucene29.Common</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -62,11 +62,7 @@
     <Compile Include="Packaging\CheckIndexIntegrity.cs" />
     <Compile Include="Lucene29\IntegrityChecker.cs" />
     <Compile Include="Lucene29\Lucene29Compiler.cs" />
-    <Compile Include="Lucene29\Lucene29IndexingEngine.cs" />
-    <Compile Include="Lucene29\Lucene29QueryEngine.cs" />
-    <Compile Include="Lucene29\SnQueryToLucQueryVisitor.cs" />
     <Compile Include="Lucene29\Lucene29SearchEngine.cs" />
-    <Compile Include="Lucene29\DumpVisitor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SafeQueriesInternal.cs" />
   </ItemGroup>

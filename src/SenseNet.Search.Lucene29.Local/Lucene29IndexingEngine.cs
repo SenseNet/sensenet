@@ -12,11 +12,11 @@ using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Lucene29
 {
-    internal class Lucene29IndexingEngine : IIndexingEngine
+    public class Lucene29IndexingEngine : ILuceneIndexingEngine
     {
         internal IndexDirectory IndexDirectory => LuceneSearchManager.IndexDirectory;
 
-        internal LuceneSearchManager LuceneSearchManager { get; }
+        public LuceneSearchManager LuceneSearchManager { get; }
 
         //===================================================================================== Constructors
 
@@ -29,12 +29,12 @@ namespace SenseNet.Search.Lucene29
             SetEventhandlers();
         }
 
-        //UNDONE: find usages
+        //UNDONE: NOREF: find usages: Lucene29IndexingEngine constructor for forceReopenFrequency.
         public Lucene29IndexingEngine(TimeSpan forceReopenFrequency)
         {
             var indexDirectory = new IndexDirectory(null, SearchManager.IndexDirectoryPath);
 
-            //UNDONE: maybe set force reopen sequency in the constructor
+            //UNDONE: maybe set force reopen frequency in the constructor
             LuceneSearchManager = new LuceneSearchManager(indexDirectory)
             {
                 ForceReopenFrequency = forceReopenFrequency
@@ -110,11 +110,13 @@ namespace SenseNet.Search.Lucene29
             return ((Lucene29IndexingEngine)IndexManager.IndexingEngine).GetIndexReaderFrame(dirty);
         }
 
+        //===================================================================================== ILuceneIndexingEngine implementation
+
         public Analyzer GetAnalyzer()
         {
             return LuceneSearchManager.GetAnalyzer();
         }
-
+        
         public void SetIndexingInfo(IDictionary<string, IPerFieldIndexingInfo> indexingInfo)
         {
             var analyzers = indexingInfo.ToDictionary(kvp => kvp.Key, kvp => GetAnalyzer(kvp.Value));

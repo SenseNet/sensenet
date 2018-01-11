@@ -561,7 +561,7 @@ namespace SenseNet.Search.Lucene29
         private readonly object _commitLock = new object();
 
         private readonly ReaderWriterLockSlim _writerRestartLock = new ReaderWriterLockSlim();
-        private readonly ManualResetEventSlim _indexingSemaphore = new ManualResetEventSlim(true); //UNDONE: indexing semaphore: use it or remove it
+        private readonly ManualResetEventSlim _indexingSemaphore = new ManualResetEventSlim(true); //UNDONE: NOREF: indexing semaphore: use it or remove it. Previously called from PauseIndexing.
         private volatile int _recentlyUsedReaderFrames;
 
         public IndexReaderFrame GetIndexReaderFrame(bool dirty = false)

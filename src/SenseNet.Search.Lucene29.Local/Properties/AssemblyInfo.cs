@@ -2,11 +2,9 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-[assembly: InternalsVisibleTo("SenseNet.ContentRepository.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.SearchImpl.Tests")]
-[assembly: InternalsVisibleTo("SenseNet.Search.IntegrationTests")]
 
-[assembly: AssemblyTitle("SenseNet.Search.Lucene29.Common")]
+[assembly: AssemblyTitle("SenseNet.Search.Lucene29.Local")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Sense/Net Inc.")]
@@ -20,4 +18,4 @@ using System.Runtime.InteropServices;
 
 [assembly: ComVisible(false)]
 
-[assembly: Guid("ff0b1af9-753b-4660-8bd0-b84492321808")]
+[assembly: Guid("ef7844be-e78f-43ce-9cb0-364117228dd7")]

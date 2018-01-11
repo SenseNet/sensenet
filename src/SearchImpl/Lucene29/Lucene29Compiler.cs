@@ -10,7 +10,7 @@ namespace SenseNet.Search.Lucene29
 
         public Lucene29Compiler(Analyzer masterAnalyzer = null)
         {
-            _masterAnalyzer = masterAnalyzer ?? ((Lucene29IndexingEngine)IndexManager.IndexingEngine).GetAnalyzer();
+            _masterAnalyzer = masterAnalyzer ?? ((ILuceneIndexingEngine)IndexManager.IndexingEngine).GetAnalyzer();
         }
 
         public LucQuery Compile(SnQuery snQuery, IQueryContext context)
@@ -18,7 +18,7 @@ namespace SenseNet.Search.Lucene29
             var visitor = new SnQueryToLucQueryVisitor(_masterAnalyzer, context);
             visitor.Visit(snQuery.QueryTree);
 
-            var searchManager = ((Lucene29IndexingEngine) IndexManager.IndexingEngine).LuceneSearchManager;
+            var searchManager = ((ILuceneIndexingEngine) IndexManager.IndexingEngine).LuceneSearchManager;
 
             return LucQuery.Create(visitor.Result, searchManager);
         }

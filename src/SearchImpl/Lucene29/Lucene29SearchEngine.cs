@@ -1,14 +1,42 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
+using SenseNet.Tools;
 
 namespace SenseNet.Search.Lucene29
 {
     internal class Lucene29SearchEngine : ISearchEngine
     {
-        public IIndexingEngine IndexingEngine { get; internal set; } = new Lucene29IndexingEngine();
+        private Lazy<IIndexingEngine> _indexingEngine = new Lazy<IIndexingEngine>(() =>
+        {
+            //UNDONE: get Lucene indexing engine (local or centralized) from configuration.
+            return TypeResolver.CreateInstance("SenseNet.Search.Lucene29.Lucene29IndexingEngine") as IIndexingEngine;
+        });
+        
+        public IIndexingEngine IndexingEngine
+        {
+            get { return _indexingEngine.Value; }
+            internal set
+            {
+                _indexingEngine = new Lazy<IIndexingEngine>(() => value);
+            }
+        }
 
-        public IQueryEngine QueryEngine { get; } = new Lucene29QueryEngine();
+        private Lazy<IQueryEngine> _queryEngine = new Lazy<IQueryEngine>(() =>
+        {
+            //UNDONE: get Lucene query engine (local or centralized) from configuration.
+            return TypeResolver.CreateInstance("SenseNet.Search.Lucene29.Lucene29QueryEngine") as IQueryEngine;
+        });
+
+        public IQueryEngine QueryEngine
+        {
+            get { return _queryEngine.Value; }
+            internal set
+            {
+                _queryEngine = new Lazy<IQueryEngine>(() => value);
+            }
+        }
 
         static Lucene29SearchEngine()
         {
@@ -39,7 +67,7 @@ namespace SenseNet.Search.Lucene29
 
             // Indexing info is stored in memory in the indexing engine
             // and should be refreshed when the list changes.
-            ((Lucene29IndexingEngine)IndexingEngine).SetIndexingInfo(indexingInfo);
+            ((ILuceneIndexingEngine)IndexingEngine).SetIndexingInfo(indexingInfo);
         }
     }
 }

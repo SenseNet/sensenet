@@ -13,7 +13,7 @@ namespace SenseNet.Search.Lucene29
 {
     public class LucQuery
     {
-        //UNDONE: hardcoded headonly field names
+        //UNDONE: hardcoded headonly field names, Node is not accessible here.
         //private static readonly string[] HeadOnlyFields = Node.GetHeadOnlyProperties();
         private static readonly string[] HeadOnlyFields =
         {
@@ -35,7 +35,7 @@ namespace SenseNet.Search.Lucene29
 
         internal LuceneSearchManager LuceneSearchManager { get; private set; }
 
-        //UNDONE: IUser is defined in the Storage layer
+        //UNDONE: NOREF: IUser is defined in the Storage layer. Not referenced, check and remove.
         //public IUser User { get; set; }
 
         public SortField[] SortFields { get; set; }
@@ -89,45 +89,12 @@ namespace SenseNet.Search.Lucene29
             };
         }
 
-        //UNDONE: CreateSortField has been moved up to the query engine
-
-        //public static SortField CreateSortField(string fieldName, bool reverse)
-        //{
-        //    var info = SearchManager.GetPerFieldIndexingInfo(fieldName);
-        //    var sortType = SortField.STRING;
-        //    if (info != null)
-        //    {
-        //        fieldName = info.IndexFieldHandler.GetSortFieldName(fieldName);
-
-        //        switch (info.IndexFieldHandler.IndexFieldType)
-        //        {
-        //            case IndexValueType.Bool:
-        //            case IndexValueType.String:
-        //            case IndexValueType.StringArray:
-        //                sortType = SortField.STRING;
-        //                break;
-        //            case IndexValueType.Int:
-        //                sortType = SortField.INT;
-        //                break;
-        //            case IndexValueType.DateTime:
-        //            case IndexValueType.Long:
-        //                sortType = SortField.LONG;
-        //                break;
-        //            case IndexValueType.Float:
-        //                sortType = SortField.FLOAT;
-        //             break;
-        //            case IndexValueType.Double:
-        //                sortType = SortField.DOUBLE;
-        //                break;
-        //            default:
-        //                throw new ArgumentOutOfRangeException();
-        //        }
-        //    }
-
-        //    if (sortType == SortField.STRING)
-        //        return new SortField(fieldName, System.Threading.Thread.CurrentThread.CurrentCulture, reverse);
-        //    return new SortField(fieldName, sortType, reverse);
-        //}
+        [Obsolete("Use Lucene29QueryEngine.CreateSortField instead.", true)]
+        public static SortField CreateSortField(string fieldName, bool reverse)
+        {
+            // CreateSortField has been moved up to the query engine.
+            throw new NotSupportedException();
+        }
 
         [Obsolete("Use SearchManager.IsAutofilterEnabled", true)]
         public static bool IsAutofilterEnabled(FilterStatus value)
@@ -179,7 +146,7 @@ namespace SenseNet.Search.Lucene29
             }
         }
 
-        //UNDONE: is GetFieldLevel used here?
+        //UNDONE: NOREF: is GetFieldLevel used here? Not referenced, check and remove.
         //private QueryFieldLevel GetFieldLevel()
         //{
         //    var v = new FieldNameVisitor();
@@ -262,16 +229,11 @@ namespace SenseNet.Search.Lucene29
             }
         }
 
+        [Obsolete("SetSort is not supported anymore.", true)]
         public void SetSort(IEnumerable<SortInfo> sort)
         {
-            //UNDONE: CreateSortField has been moved up to the query engine
-            throw new NotImplementedException();
-
-            //var sortFields = new List<SortField>();
-            //if (sort != null)
-            //    foreach (var field in sort)
-            //        sortFields.Add(CreateSortField(field.FieldName, field.Reverse));
-            //this.SortFields = sortFields.ToArray();
+            // SearchManager.GetPerFieldIndexingInfo is not accessible in this layer.
+            throw new NotSupportedException();
         }
 
         public void AddAndClause(LucQuery q2)

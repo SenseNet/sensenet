@@ -91,9 +91,9 @@
       <Project>{786E6165-CA02-45A9-BF58-207A45D7D6DF}</Project>
       <Name>ContentRepository</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\SearchImpl\SearchImpl.csproj">
+    <ProjectReference Include="..\..\SearchImpl\SenseNet.Search.Lucene29.Common.csproj">
       <Project>{ff0b1af9-753b-4660-8bd0-b84492321808}</Project>
-      <Name>SearchImpl</Name>
+      <Name>SenseNet.Search.Lucene29.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Search\Search.csproj">
       <Project>{0279705b-779d-485d-86b9-f7ab3dd1f2c3}</Project>
@@ -102,6 +102,10 @@
     <ProjectReference Include="..\..\SenseNet.LuceneSearch\SenseNet.Search.Lucene29.csproj">
       <Project>{9e776eda-681a-4330-8632-9ed0b67ed5a6}</Project>
       <Name>SenseNet.Search.Lucene29</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\SenseNet.Search.Lucene29.Local\SenseNet.Search.Lucene29.Local.csproj">
+      <Project>{ef7844be-e78f-43ce-9cb0-364117228dd7}</Project>
+      <Name>SenseNet.Search.Lucene29.Local</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Services\Services.csproj">
       <Project>{b72529c8-feb1-49f5-b08b-56055b58f296}</Project>

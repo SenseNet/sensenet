@@ -32,7 +32,7 @@ namespace SenseNet.Search.Lucene29
                 this[field.Name()] = doc.Get(field.Name());
         }
 
-        //UNDONE: IIndexValueConverter is not accessible in this layer
+        //UNDONE: NOREF: IIndexValueConverter is not accessible in this layer. Not referenced, check and remove.
 
         //public T Get<T>(string fieldName)
         //{

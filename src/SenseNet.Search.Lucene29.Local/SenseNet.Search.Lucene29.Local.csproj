@@ -4,12 +4,12 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{9E776EDA-681A-4330-8632-9ED0B67ED5A6}</ProjectGuid>
+    <ProjectGuid>{EF7844BE-E78F-43CE-9CB0-364117228DD7}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SenseNet.Search.Lucene29</RootNamespace>
-    <AssemblyName>SenseNet.Search.Lucene29</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <RootNamespace>SenseNet.Search.Lucene29.Local</RootNamespace>
+    <AssemblyName>SenseNet.Search.Lucene29.Local</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -34,11 +34,13 @@
     <Reference Include="Lucene.Net">
       <HintPath>..\References\Lucene.Net.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="SenseNet.Tools, Version=2.1.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\SenseNet.Tools.2.1.1\lib\net451\SenseNet.Tools.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -48,32 +50,26 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Configuration\Lucene29.cs" />
-    <Compile Include="DumpVisitor.cs" />
-    <Compile Include="EnumConverter.cs" />
-    <Compile Include="FieldNameVisitor.cs" />
-    <Compile Include="ILuceneIndexingEngine.cs" />
-    <Compile Include="IndexDirectory.cs" />
-    <Compile Include="IndexingInfo.cs" />
-    <Compile Include="IndexReaderFrame.cs" />
-    <Compile Include="IndexWriterFrame.cs" />
-    <Compile Include="LuceneSearchManager.cs" />
-    <Compile Include="LucObject.cs" />
-    <Compile Include="LucQuery.cs" />
-    <Compile Include="LucQueryVisitor.cs" />
+    <Compile Include="Lucene29IndexingEngine.cs" />
+    <Compile Include="Lucene29QueryEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="QueryExecutors\IQueryExecutor.cs" />
-    <Compile Include="QueryExecutors\LuceneQueryExecutor.cs" />
-    <Compile Include="QueryExecutors\QueryExecutor20131012.cs" />
-    <Compile Include="QueryExecutors\QueryExecutor20131012CountOnly.cs" />
-    <Compile Include="SnCollector.cs" />
-    <Compile Include="SnPerFieldAnalyzerWrapper.cs" />
-    <Compile Include="SnQueryToLucQueryVisitor.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ContentRepository\ContentRepository.csproj">
+      <Project>{786e6165-ca02-45a9-bf58-207a45d7d6df}</Project>
+      <Name>ContentRepository</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Search\Search.csproj">
       <Project>{0279705b-779d-485d-86b9-f7ab3dd1f2c3}</Project>
       <Name>Search</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SenseNet.LuceneSearch\SenseNet.Search.Lucene29.csproj">
+      <Project>{9e776eda-681a-4330-8632-9ed0b67ed5a6}</Project>
+      <Name>SenseNet.Search.Lucene29</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Storage\Storage.csproj">
+      <Project>{5db4ddba-81f6-4d81-943a-18f3178b3355}</Project>
+      <Name>Storage</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

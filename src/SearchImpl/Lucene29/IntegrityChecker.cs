@@ -154,7 +154,8 @@ namespace SenseNet.Search.Lucene29
         private IEnumerable<Difference> CheckNode(string path)
         {
             var result = new List<Difference>();
-            using (var readerFrame = Lucene29IndexingEngine.GetReaderFrame())
+            
+            using (var readerFrame = GetIndexReaderFrame())
             {
                 var ixreader = readerFrame.IndexReader;
                 var docids = new List<int>();
@@ -199,7 +200,7 @@ namespace SenseNet.Search.Lucene29
 
             using (var op = SnTrace.Index.StartOperation("Index Integrity Checker: CheckRecurse {0}", path))
             {
-                using (var readerFrame = Lucene29IndexingEngine.GetReaderFrame())
+                using (var readerFrame = GetIndexReaderFrame())
                 {
                     var ixreader = readerFrame.IndexReader;
                     numdocs = ixreader.NumDocs() + ixreader.NumDeletedDocs();
@@ -430,7 +431,7 @@ namespace SenseNet.Search.Lucene29
             var snQuery = SnQuery.Parse($"{field}:'{path.ToLower()}'", ctx);
             var lq = new Lucene29Compiler().Compile(snQuery, ctx);
 
-            using (var readerFrame = Lucene29IndexingEngine.GetReaderFrame())
+            using (var readerFrame = GetIndexReaderFrame())
             {
                 var idxReader = readerFrame.IndexReader;
                 var searcher = new IndexSearcher(idxReader);
@@ -475,6 +476,11 @@ namespace SenseNet.Search.Lucene29
             if (Int64.TryParse(data, out result))
                 return result;
             return -1;
+        }
+
+        private static IndexReaderFrame GetIndexReaderFrame()
+        {
+            return ((ILuceneIndexingEngine) IndexManager.IndexingEngine).LuceneSearchManager.GetIndexReaderFrame();
         }
     }
 }
