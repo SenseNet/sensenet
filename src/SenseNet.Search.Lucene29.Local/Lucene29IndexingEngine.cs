@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
@@ -20,11 +21,15 @@ namespace SenseNet.Search.Lucene29
 
         //===================================================================================== Constructors
 
-        public Lucene29IndexingEngine(IndexDirectory indexDirectory = null)
+        public Lucene29IndexingEngine() : this(null)
+        {
+            // default constructor is needed for automatic type loading
+        }
+        public Lucene29IndexingEngine(IndexDirectory indexDirectory)
         {
             var indexDir = indexDirectory ?? new IndexDirectory(null, SearchManager.IndexDirectoryPath);
 
-            LuceneSearchManager = new LuceneSearchManager(indexDir);
+            LuceneSearchManager = new LuceneSearchManager(indexDir, Notification.NotificationSender); 
 
             SetEventhandlers();
         }
@@ -34,8 +39,7 @@ namespace SenseNet.Search.Lucene29
         {
             var indexDirectory = new IndexDirectory(null, SearchManager.IndexDirectoryPath);
 
-            //UNDONE: maybe set force reopen frequency in the constructor
-            LuceneSearchManager = new LuceneSearchManager(indexDirectory)
+            LuceneSearchManager = new LuceneSearchManager(indexDirectory, Notification.NotificationSender)
             {
                 ForceReopenFrequency = forceReopenFrequency
             };

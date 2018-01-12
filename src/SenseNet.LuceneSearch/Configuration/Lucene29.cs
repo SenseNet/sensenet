@@ -48,6 +48,11 @@ namespace SenseNet.Configuration
             return values;
         }
 
+        public static string Lucene29IndexingEngineClassName { get; internal set; } = GetProvider("IndexingEngine",
+            "SenseNet.Search.Lucene29.Lucene29IndexingEngine");
+        public static string Lucene29QueryEngineClassName { get; internal set; } = GetProvider("QueryEngine",
+            "SenseNet.Search.Lucene29.Lucene29QueryEngine");
+
         public static int LuceneMergeFactor { get; internal set; } = GetInt(SectionName, "LuceneMergeFactor", 10);
         public static double LuceneRAMBufferSizeMB { get; internal set; } = GetDouble(SectionName, "LuceneRAMBufferSizeMB", 16.0);
         public static int LuceneMaxMergeDocs { get; internal set; } = GetInt(SectionName, "LuceneMaxMergeDocs", int.MaxValue);
@@ -57,5 +62,10 @@ namespace SenseNet.Configuration
             GetInt(SectionName, "IndexLockFileWaitForRemovedTimeout", 120);
         public static string IndexLockFileRemovedNotificationEmail { get; internal set; } = GetString(SectionName,
             "IndexLockFileRemovedNotificationEmail", string.Empty);
+
+        private static string GetProvider(string key, string defaultValue = null)
+        {
+            return GetString(SectionName, key, defaultValue);
+        }
     }
 }

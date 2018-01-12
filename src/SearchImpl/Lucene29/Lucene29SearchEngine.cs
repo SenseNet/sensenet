@@ -9,33 +9,21 @@ namespace SenseNet.Search.Lucene29
     internal class Lucene29SearchEngine : ISearchEngine
     {
         private Lazy<IIndexingEngine> _indexingEngine = new Lazy<IIndexingEngine>(() =>
-        {
-            //UNDONE: get Lucene indexing engine (local or centralized) from configuration.
-            return TypeResolver.CreateInstance("SenseNet.Search.Lucene29.Lucene29IndexingEngine") as IIndexingEngine;
-        });
+            TypeResolver.CreateInstance(Configuration.Lucene29.Lucene29IndexingEngineClassName) as IIndexingEngine);
         
         public IIndexingEngine IndexingEngine
         {
             get { return _indexingEngine.Value; }
-            internal set
-            {
-                _indexingEngine = new Lazy<IIndexingEngine>(() => value);
-            }
+            internal set { _indexingEngine = new Lazy<IIndexingEngine>(() => value); }
         }
 
         private Lazy<IQueryEngine> _queryEngine = new Lazy<IQueryEngine>(() =>
-        {
-            //UNDONE: get Lucene query engine (local or centralized) from configuration.
-            return TypeResolver.CreateInstance("SenseNet.Search.Lucene29.Lucene29QueryEngine") as IQueryEngine;
-        });
+            TypeResolver.CreateInstance(Configuration.Lucene29.Lucene29QueryEngineClassName) as IQueryEngine);
 
         public IQueryEngine QueryEngine
         {
             get { return _queryEngine.Value; }
-            internal set
-            {
-                _queryEngine = new Lazy<IQueryEngine>(() => value);
-            }
+            internal set { _queryEngine = new Lazy<IQueryEngine>(() => value); }
         }
 
         static Lucene29SearchEngine()

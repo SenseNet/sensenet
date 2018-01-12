@@ -39,21 +39,21 @@ namespace SenseNet.Search.Lucene29
             get
             {
                 if (_forceReopenFrequency == default(TimeSpan))
-                {
-                    //UNDONE: settings? hardcoded property? documentation?
-                    var settings = 0; //Settings.GetValue("Indexing", "ForceReopenFrequencyInSeconds", null, 0); 
-                    _forceReopenFrequency = TimeSpan.FromSeconds(settings == 0 ? 30.0 : settings);
-                }
+                    _forceReopenFrequency = TimeSpan.FromSeconds(30);
+
                 return _forceReopenFrequency;
             }
             set => _forceReopenFrequency = value;
         }
 
+        private string NotificationSender { get; }
+
         //================================================================================== Constructor
 
-        public LuceneSearchManager(IndexDirectory indexDirectory)
+        public LuceneSearchManager(IndexDirectory indexDirectory, string notificationSender = null)
         {
             IndexDirectory = indexDirectory;
+            NotificationSender = notificationSender;
         }
 
         //================================================================================== Startup/Shutdown
@@ -192,11 +192,9 @@ namespace SenseNet.Search.Lucene29
                     SendWaitForLockErrorMail();
             }
         }
-        private static void SendWaitForLockErrorMail()
+        private void SendWaitForLockErrorMail()
         {
-            //UNDONE: get notification sender address (config? init method?)
-            var notificationSender = string.Empty; //Notification.NotificationSender
-            if (!string.IsNullOrEmpty(notificationSender) && !String.IsNullOrEmpty(Configuration.Lucene29.IndexLockFileRemovedNotificationEmail))
+            if (!string.IsNullOrEmpty(NotificationSender) && !String.IsNullOrEmpty(Configuration.Lucene29.IndexLockFileRemovedNotificationEmail))
             {
                 try
                 {
@@ -206,7 +204,7 @@ namespace SenseNet.Search.Lucene29
                         AppDomain.CurrentDomain.FriendlyName,
                         AppDomain.CurrentDomain.BaseDirectory);
                     var msg = new MailMessage(
-                        notificationSender,
+                        NotificationSender,
                         Configuration.Lucene29.IndexLockFileRemovedNotificationEmail.Replace(';', ','),
                         WRITELOCKREMOVEERRORSUBJECTSTR,
                         msgstr);

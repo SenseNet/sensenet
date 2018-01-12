@@ -18,7 +18,11 @@ namespace SenseNet.Search.Lucene29
                 if (_indexDirectoryPath == null)
                 {
                     var configValue = $"..\\{Configuration.Lucene29.DefaultLocalIndexDirectory}";
-                    var directoryPath = AppDomain.CurrentDomain.BaseDirectory;
+                    var assemblyPath = System.Reflection.Assembly.GetExecutingAssembly().CodeBase
+                        .Replace("file:///", "")
+                        .Replace("file://", "//")
+                        .Replace("/", "\\");
+                    var directoryPath = Path.GetDirectoryName(assemblyPath) ?? string.Empty;
 
                     _indexDirectoryPath = Path.GetFullPath(Path.Combine(directoryPath, configValue));
                 }
