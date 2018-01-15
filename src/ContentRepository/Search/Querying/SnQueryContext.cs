@@ -25,7 +25,7 @@ namespace SenseNet.Search.Querying
         /// </summary>
         public SnQueryContext(QuerySettings settings, int userId)
         {
-            Settings = settings;
+            Settings = settings ?? QuerySettings.Default;
             UserId = userId;
         }
 
