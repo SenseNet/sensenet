@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: InternalsVisibleTo("SenseNet.ContentRepository.Tests")]
-[assembly: InternalsVisibleTo("SenseNet.SearchImpl.Tests")]
+[assembly: InternalsVisibleTo("SenseNet.Search.Lucene29.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.Search.IntegrationTests")]
 
 [assembly: AssemblyTitle("SenseNet.Search.Lucene29.Common")]

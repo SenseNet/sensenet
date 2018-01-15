@@ -8,8 +8,6 @@ using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 using SenseNet.Search.Querying.Parser;
 using SenseNet.Search.Tests.Implementations;
-using SenseNet.SearchImpl.Tests;
-using SenseNet.SearchImpl.Tests.Implementations;
 
 namespace SenseNet.Search.Tests
 {

@@ -12,7 +12,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Tests;
 using SenseNet.ContentRepository.Tests.Implementations;
 
-namespace SenseNet.SearchImpl.Tests.DataProviderTests
+namespace SenseNet.Search.Lucene29.Tests.DataProviderTests
 {
     [TestClass]
     public class InMemoryDataProviderTests : TestBase

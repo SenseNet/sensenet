@@ -6,8 +6,8 @@
     <ProjectGuid>{948CE434-4B01-4B5E-8E01-E7661891D159}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SenseNet.SearchImpl.Tests</RootNamespace>
-    <AssemblyName>SenseNet.SearchImpl.Tests</AssemblyName>
+    <RootNamespace>SenseNet.Search.Lucene29.Tests</RootNamespace>
+    <AssemblyName>SenseNet.Search.Lucene29.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -91,7 +91,7 @@
       <Project>{786E6165-CA02-45A9-BF58-207A45D7D6DF}</Project>
       <Name>ContentRepository</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\SearchImpl\SenseNet.Search.Lucene29.Common.csproj">
+    <ProjectReference Include="..\..\SenseNet.Search.Lucene29.Common\SenseNet.Search.Lucene29.Common.csproj">
       <Project>{ff0b1af9-753b-4660-8bd0-b84492321808}</Project>
       <Name>SenseNet.Search.Lucene29.Common</Name>
     </ProjectReference>

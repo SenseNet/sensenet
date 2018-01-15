@@ -9,7 +9,7 @@ using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.Search.Parser;
 
-namespace SenseNet.SearchImpl.Tests.Implementations
+namespace SenseNet.Search.Lucene29.Tests.Implementations
 {
     internal class TestSearchEngineSupport : ISearchEngineSupport
     {

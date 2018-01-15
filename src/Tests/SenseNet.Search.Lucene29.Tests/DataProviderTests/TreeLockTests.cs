@@ -2,7 +2,7 @@
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Tests;
 
-namespace SenseNet.SearchImpl.Tests.DataProviderTests
+namespace SenseNet.Search.Lucene29.Tests.DataProviderTests
 {
     [TestClass]
     public class TreeLockTests : TestBase

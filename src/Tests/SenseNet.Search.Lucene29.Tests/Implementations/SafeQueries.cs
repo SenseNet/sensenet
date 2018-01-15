@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SenseNet.Search;
 
-namespace SenseNet.SearchImpl.Tests.Implementations
+namespace SenseNet.Search.Lucene29.Tests.Implementations
 {
     internal class SafeQueries : ISafeQueryHolder
     {

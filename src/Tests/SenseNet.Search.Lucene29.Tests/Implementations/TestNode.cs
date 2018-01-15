@@ -10,7 +10,7 @@ using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 
-namespace SenseNet.SearchImpl.Tests.Implementations
+namespace SenseNet.Search.Lucene29.Tests.Implementations
 {
     internal class TestNode : Node, IIndexableDocument
     {

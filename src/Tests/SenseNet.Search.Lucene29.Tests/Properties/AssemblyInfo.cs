@@ -2,10 +2,10 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-[assembly: InternalsVisibleTo("SenseNet.Search.Lucene29.Tests")]
-[assembly: InternalsVisibleTo("SenseNet.Search.IntegrationTests")]
-
-[assembly: AssemblyTitle("SenseNet.Search.Lucene29")]
+// General Information about an assembly is controlled through the following 
+// set of attributes. Change these attribute values to modify the information
+// associated with an assembly.
+[assembly: AssemblyTitle("SenseNet.Search.Lucene29.Tests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Sense/Net Inc.")]
@@ -13,11 +13,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyProduct("sensenet ECM")]
 [assembly: AssemblyTrademark("Sense/Net Inc.")]
 [assembly: AssemblyCulture("")]
-[assembly: AssemblyVersion("7.0.0.0")]
-[assembly: AssemblyFileVersion("7.0.0.0")]
-[assembly: AssemblyInformationalVersion("7.0.0-beta46")]
 
 [assembly: ComVisible(false)]
+[assembly: Guid("948ce434-4b01-4b5e-8e01-e7661891d159")]
 
-[assembly: Guid("9e776eda-681a-4330-8632-9ed0b67ed5a6")]
-
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]

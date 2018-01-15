@@ -21,13 +21,14 @@ using SenseNet.ContentRepository.Tests.Implementations;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Lucene29;
-using SenseNet.SearchImpl.Tests.Implementations;
+using SenseNet.Search.Lucene29.Tests.Implementations;
 using System.Threading;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.Search.Querying;
+using SenseNet.Search.Tests.Implementations;
 
-namespace SenseNet.SearchImpl.Tests
+namespace SenseNet.Search.Lucene29.Tests
 {
     /// <summary>
     /// Test indexing engine implementation for throwing an exception during testing.
@@ -287,7 +288,7 @@ namespace SenseNet.SearchImpl.Tests
                 IndexingEngine = indexingEngine
             };
 
-            Indexing.IsOuterSearchEngineEnabled = true;
+            Configuration.Indexing.IsOuterSearchEngineEnabled = true;
             CommonComponents.TransactionFactory = dataProvider;
             DistributedApplication.Cache.Reset();
 
@@ -337,7 +338,7 @@ namespace SenseNet.SearchImpl.Tests
                 IndexingEngine = indexingEngine
             };
 
-            Indexing.IsOuterSearchEngineEnabled = true;
+            Configuration.Indexing.IsOuterSearchEngineEnabled = true;
             CommonComponents.TransactionFactory = dataProvider;
             DistributedApplication.Cache.Reset();
 
@@ -481,7 +482,7 @@ namespace SenseNet.SearchImpl.Tests
                 IndexingEngine = indexingEngine
             };
 
-            Indexing.IsOuterSearchEngineEnabled = true;
+            Configuration.Indexing.IsOuterSearchEngineEnabled = true;
             CommonComponents.TransactionFactory = dataProvider;
             DistributedApplication.Cache.Reset();
             ContentTypeManager.Reset();

@@ -72,7 +72,7 @@
       <Project>{786E6165-CA02-45A9-BF58-207A45D7D6DF}</Project>
       <Name>ContentRepository</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\SearchImpl\SenseNet.Search.Lucene29.Common.csproj">
+    <ProjectReference Include="..\..\SenseNet.Search.Lucene29.Common\SenseNet.Search.Lucene29.Common.csproj">
       <Project>{ff0b1af9-753b-4660-8bd0-b84492321808}</Project>
       <Name>SenseNet.Search.Lucene29.Common</Name>
     </ProjectReference>

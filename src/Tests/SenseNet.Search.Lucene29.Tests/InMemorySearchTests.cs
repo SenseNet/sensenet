@@ -15,15 +15,13 @@ using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Tests;
 using SenseNet.ContentRepository.Tests.Implementations;
-using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 using SenseNet.Search.Tests.Implementations;
-using SenseNet.SearchImpl.Tests.Implementations;
+using SenseNet.Search.Lucene29.Tests.Implementations;
 using SenseNet.Security.Data;
-using SafeQueries = SenseNet.SearchImpl.Tests.Implementations.SafeQueries;
 
-namespace SenseNet.SearchImpl.Tests
+namespace SenseNet.Search.Lucene29.Tests
 {
     [TestClass]
     public class InMemorySearchTests : TestBase
@@ -523,7 +521,7 @@ namespace SenseNet.SearchImpl.Tests
                 node.Save();
 
                 // ACTION
-                var qresult = ContentQuery.Query(SafeQueries.Name, QuerySettings.AdminSettings, "Node1");
+                var qresult = ContentQuery.Query(Implementations.SafeQueries.Name, QuerySettings.AdminSettings, "Node1");
 
                 return new Tuple<int, int[], Node[]>(node.Id, qresult.Identifiers.ToArray(), qresult.Nodes.ToArray());
             });
@@ -576,7 +574,7 @@ namespace SenseNet.SearchImpl.Tests
                 // ACTION
                 var settings = QuerySettings.AdminSettings;
                 settings.Sort = new[] { new SortInfo(IndexFieldName.Index) };
-                var qresult = ContentQuery.Query(SafeQueries.Name, settings, "Node1");
+                var qresult = ContentQuery.Query(Implementations.SafeQueries.Name, settings, "Node1");
 
                 return new Tuple<int[], Node[]>(qresult.Identifiers.ToArray(), qresult.Nodes.ToArray());
             });
@@ -620,7 +618,7 @@ namespace SenseNet.SearchImpl.Tests
                 // ACTION
                 var settings = QuerySettings.AdminSettings;
                 settings.Sort = new[] {new SortInfo(IndexFieldName.DisplayName), new SortInfo(IndexFieldName.Index, true) };
-                var qresult = ContentQuery.Query(SafeQueries.OneTerm, settings, "ParentId", f1.Id.ToString());
+                var qresult = ContentQuery.Query(Implementations.SafeQueries.OneTerm, settings, "ParentId", f1.Id.ToString());
 
                 return new Tuple<int[], Node[]>(qresult.Identifiers.ToArray(), qresult.Nodes.ToArray());
             });
@@ -660,8 +658,8 @@ namespace SenseNet.SearchImpl.Tests
                 // ACTION
                 var settings = QuerySettings.AdminSettings;
                 settings.Sort = new[] { new SortInfo(IndexFieldName.Name) };
-                var qresult1 = ContentQuery.Query(SafeQueries.OneTerm, settings, "Name", "B*");
-                var qresult2 = ContentQuery.Query(SafeQueries.OneTerm, settings, "Name", "*3");
+                var qresult1 = ContentQuery.Query(Implementations.SafeQueries.OneTerm, settings, "Name", "B*");
+                var qresult2 = ContentQuery.Query(Implementations.SafeQueries.OneTerm, settings, "Name", "*3");
 
                 return new Tuple<Node[], Node[]>(qresult1.Nodes.ToArray(), qresult2.Nodes.ToArray());
             });
@@ -700,8 +698,8 @@ namespace SenseNet.SearchImpl.Tests
                 // ACTION
                 var settings = QuerySettings.AdminSettings;
                 settings.Sort = new[] { new SortInfo(IndexFieldName.Name) };
-                var qresult1 = ContentQuery.Query(SafeQueries.OneTerm, settings, "Name", "A*2");
-                var qresult2 = ContentQuery.Query(SafeQueries.OneTerm, settings, "Name", "*y*");
+                var qresult1 = ContentQuery.Query(Implementations.SafeQueries.OneTerm, settings, "Name", "A*2");
+                var qresult2 = ContentQuery.Query(Implementations.SafeQueries.OneTerm, settings, "Name", "*y*");
 
                 return new Tuple<Node[], Node[]>(qresult1.Nodes.ToArray(), qresult2.Nodes.ToArray());
             });
@@ -744,14 +742,14 @@ namespace SenseNet.SearchImpl.Tests
                 settings.Sort = new[] { new SortInfo(IndexFieldName.Name) };
                 string[] results = new[]
                 {
-                    string.Join(", ", ContentQuery.Query(SafeQueries.GT, settings, "Name", "N4").Nodes.Select(n => n.Name).ToArray()),
-                    string.Join(", ", ContentQuery.Query(SafeQueries.GTE, settings, "Name", "N4").Nodes.Select(n => n.Name).ToArray()),
-                    string.Join(", ", ContentQuery.Query(SafeQueries.LT, settings, "Name", "N4").Nodes.Select(n => n.Name).ToArray()),
-                    string.Join(", ", ContentQuery.Query(SafeQueries.LTE, settings, "Name", "N4").Nodes.Select(n => n.Name).ToArray()),
-                    string.Join(", ", ContentQuery.Query(SafeQueries.BracketBracketRange, settings, "Name", "N2", "N7").Nodes.Select(n => n.Name).ToArray()),
-                    string.Join(", ", ContentQuery.Query(SafeQueries.BracketBraceRange, settings, "Name", "N2", "N7").Nodes.Select(n => n.Name).ToArray()),
-                    string.Join(", ", ContentQuery.Query(SafeQueries.BraceBracketRange, settings, "Name", "N2", "N7").Nodes.Select(n => n.Name).ToArray()),
-                    string.Join(", ", ContentQuery.Query(SafeQueries.BraceBraceRange, settings, "Name", "N2", "N7").Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery.Query(Implementations.SafeQueries.GT, settings, "Name", "N4").Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery.Query(Implementations.SafeQueries.GTE, settings, "Name", "N4").Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery.Query(Implementations.SafeQueries.LT, settings, "Name", "N4").Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery.Query(Implementations.SafeQueries.LTE, settings, "Name", "N4").Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery.Query(Implementations.SafeQueries.BracketBracketRange, settings, "Name", "N2", "N7").Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery.Query(Implementations.SafeQueries.BracketBraceRange, settings, "Name", "N2", "N7").Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery.Query(Implementations.SafeQueries.BraceBracketRange, settings, "Name", "N2", "N7").Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery.Query(Implementations.SafeQueries.BraceBraceRange, settings, "Name", "N2", "N7").Nodes.Select(n => n.Name).ToArray()),
                 };
 
                 return results;
@@ -796,9 +794,9 @@ namespace SenseNet.SearchImpl.Tests
                 settings.Sort = new[] { new SortInfo(IndexFieldName.Name) };
                 string[] results = new[]
                 {
-                    string.Join(", ", ContentQuery.Query(SafeQueries.TwoTermsShouldShould, settings, "Name", "A*", "Index", 1).Nodes.Select(n => n.Name).ToArray()),
-                    string.Join(", ", ContentQuery.Query(SafeQueries.TwoTermsMustMust, settings, "Name", "A*", "Index", 1).Nodes.Select(n => n.Name).ToArray()),
-                    string.Join(", ", ContentQuery.Query(SafeQueries.TwoTermsMustNot, settings, "Name", "A*", "Index", 1).Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery.Query(Implementations.SafeQueries.TwoTermsShouldShould, settings, "Name", "A*", "Index", 1).Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery.Query(Implementations.SafeQueries.TwoTermsMustMust, settings, "Name", "A*", "Index", 1).Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery.Query(Implementations.SafeQueries.TwoTermsMustNot, settings, "Name", "A*", "Index", 1).Nodes.Select(n => n.Name).ToArray()),
                 };
 
                 return results;
@@ -838,9 +836,9 @@ namespace SenseNet.SearchImpl.Tests
                 string[] results = new[]
                 {
                     //  (+Name:A* +Index:1) (+Name:B* +Index:2) --> A1, B2
-                    string.Join(", ", ContentQuery.Query(SafeQueries.MultiLevelBool1, settings, "Name", "A*", "Index", 1, "Name", "B*", "Index", 2).Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery.Query(Implementations.SafeQueries.MultiLevelBool1, settings, "Name", "A*", "Index", 1, "Name", "B*", "Index", 2).Nodes.Select(n => n.Name).ToArray()),
                     //  +(Name:A* Index:1) +(Name:B* Index:2) --> +(A0, A1, A2, A3, B1) +(B0, B1, B2, B3, A2) --> A2, B1
-                    string.Join(", ", ContentQuery.Query(SafeQueries.MultiLevelBool2, settings, "Name", "A*", "Index", 1, "Name", "B*", "Index", 2).Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery.Query(Implementations.SafeQueries.MultiLevelBool2, settings, "Name", "A*", "Index", 1, "Name", "B*", "Index", 2).Nodes.Select(n => n.Name).ToArray()),
                 };
 
                 return results;
@@ -861,7 +859,7 @@ namespace SenseNet.SearchImpl.Tests
             var log = new List<string>();
             QueryResult result;
 
-            Indexing.IsOuterSearchEngineEnabled = true;
+            Configuration.Indexing.IsOuterSearchEngineEnabled = true;
             using (Repository.Start(new RepositoryBuilder()
                 .UseDataProvider(new InMemoryDataProvider())
                 .UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log))
@@ -909,7 +907,7 @@ namespace SenseNet.SearchImpl.Tests
             var log = new List<string>();
             QueryResult result;
 
-            Indexing.IsOuterSearchEngineEnabled = true;
+            Configuration.Indexing.IsOuterSearchEngineEnabled = true;
             using (Repository.Start(new RepositoryBuilder()
                 .UseDataProvider(new InMemoryDataProvider())
                 .UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log))

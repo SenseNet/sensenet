@@ -45,11 +45,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.ContentRepository.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Search", "Search\Search.csproj", "{0279705B-779D-485D-86B9-F7AB3DD1F2C3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Search.Lucene29.Common", "SearchImpl\SenseNet.Search.Lucene29.Common.csproj", "{FF0B1AF9-753B-4660-8BD0-B84492321808}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Search.Lucene29.Common", "SenseNet.Search.Lucene29.Common\SenseNet.Search.Lucene29.Common.csproj", "{FF0B1AF9-753B-4660-8BD0-B84492321808}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Search.Tests", "Tests\SenseNet.Search.Tests\SenseNet.Search.Tests.csproj", "{0C78C008-DB1D-4CE6-B081-A04AFDAF5880}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.SearchImpl.Tests", "Tests\SenseNet.SearchImpl.Tests\SenseNet.SearchImpl.Tests.csproj", "{948CE434-4B01-4B5E-8E01-E7661891D159}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Search.Lucene29.Tests", "Tests\SenseNet.Search.Lucene29.Tests\SenseNet.Search.Lucene29.Tests.csproj", "{948CE434-4B01-4B5E-8E01-E7661891D159}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Search.IntegrationTests", "Tests\SenseNet.Search.IntegrationTests\SenseNet.Search.IntegrationTests.csproj", "{A29CB53A-DF6C-487C-9FDC-DC73A5CB2B13}"
 EndProject

@@ -1,7 +1,7 @@
 ﻿using SenseNet.Search;
 using SenseNet.Search.Querying;
 
-namespace SenseNet.SearchImpl.Tests.Implementations
+namespace SenseNet.Search.Tests.Implementations
 {
     public class EverythingAllowedPermissionFilterFactory : IPermissionFilterFactory
     {

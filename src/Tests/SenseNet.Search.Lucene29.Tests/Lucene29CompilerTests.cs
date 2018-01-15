@@ -11,9 +11,9 @@ using SenseNet.Search.Lucene29;
 using SenseNet.Search.Querying;
 using SenseNet.Search.Querying.Parser;
 using SenseNet.Search.Tests.Implementations;
-using SenseNet.SearchImpl.Tests.Implementations;
+using SenseNet.Search.Lucene29.Tests.Implementations;
 
-namespace SenseNet.SearchImpl.Tests
+namespace SenseNet.Search.Lucene29.Tests
 {
     [TestClass]
     public class Lucene29CompilerTests

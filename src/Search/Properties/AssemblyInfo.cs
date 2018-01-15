@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: InternalsVisibleTo("SenseNet.Search.Tests")]
-[assembly: InternalsVisibleTo("SenseNet.SearchImpl.Tests")]
+[assembly: InternalsVisibleTo("SenseNet.Search.Lucene29.Tests")]
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
