@@ -55,7 +55,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Search.Integration
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.RestTester", "Tests\SenseNet.RestTester\SenseNet.RestTester.csproj", "{87F754D3-F098-49A3-975E-82F02B575E7C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Search.Lucene29", "SenseNet.LuceneSearch\SenseNet.Search.Lucene29.csproj", "{9E776EDA-681A-4330-8632-9ED0B67ED5A6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Search.Lucene29", "SenseNet.Search.Lucene29\SenseNet.Search.Lucene29.csproj", "{9E776EDA-681A-4330-8632-9ED0B67ED5A6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Search.Lucene29.Local", "SenseNet.Search.Lucene29.Local\SenseNet.Search.Lucene29.Local.csproj", "{EF7844BE-E78F-43CE-9CB0-364117228DD7}"
 EndProject

@@ -99,7 +99,7 @@
       <Project>{0279705b-779d-485d-86b9-f7ab3dd1f2c3}</Project>
       <Name>Search</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\SenseNet.LuceneSearch\SenseNet.Search.Lucene29.csproj">
+    <ProjectReference Include="..\..\SenseNet.Search.Lucene29\SenseNet.Search.Lucene29.csproj">
       <Project>{9e776eda-681a-4330-8632-9ed0b67ed5a6}</Project>
       <Name>SenseNet.Search.Lucene29</Name>
     </ProjectReference>
