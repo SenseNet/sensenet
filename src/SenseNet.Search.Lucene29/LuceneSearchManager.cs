@@ -93,14 +93,6 @@ namespace SenseNet.Search.Lucene29
             var z = Field.TermVector.NO;
 
             CreateWriterAndReader();
-
-            Warmup();
-        }
-
-        private void Warmup()
-        {
-            //UNDONE: warmup query
-            //var result = SnQuery.Query("+Id:1", SnQueryContext.CreateDefault());
         }
 
         public void ShutDown()
@@ -559,7 +551,6 @@ namespace SenseNet.Search.Lucene29
         private readonly object _commitLock = new object();
 
         private readonly ReaderWriterLockSlim _writerRestartLock = new ReaderWriterLockSlim();
-        private readonly ManualResetEventSlim _indexingSemaphore = new ManualResetEventSlim(true); //UNDONE: NOREF: indexing semaphore: use it or remove it. Previously called from PauseIndexing.
         private volatile int _recentlyUsedReaderFrames;
 
         public IndexReaderFrame GetIndexReaderFrame(bool dirty = false)

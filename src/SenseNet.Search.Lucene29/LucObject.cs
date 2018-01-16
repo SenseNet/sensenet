@@ -31,28 +31,7 @@ namespace SenseNet.Search.Lucene29
             foreach (Field field in doc.GetFields())
                 this[field.Name()] = doc.Get(field.Name());
         }
-
-        //UNDONE: NOREF: IIndexValueConverter is not accessible in this layer. Not referenced, check and remove.
-
-        //public T Get<T>(string fieldName)
-        //{
-        //    var info = SearchManager.GetPerFieldIndexingInfo(fieldName);
-        //    var converter = info.IndexFieldHandler as IIndexValueConverter<T>;
-        //    if (converter == null)
-        //        return default(T);
-        //    var value = converter.GetBack(data[fieldName]);
-        //    return value;
-        //}
-        //public object Get(string fieldName)
-        //{
-        //    var info = SearchManager.GetPerFieldIndexingInfo(fieldName);
-        //    var converter = info.IndexFieldHandler as IIndexValueConverter;
-        //    if (converter == null)
-        //        return null;
-        //    var value = converter.GetBack(data[fieldName]);
-        //    return value;
-        //}
-
+        
         public virtual IEnumerable<string> Names { get { return data.Keys.ToList().AsReadOnly(); } }
         public virtual string this[string name]
         {

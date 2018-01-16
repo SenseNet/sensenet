@@ -13,15 +13,6 @@ namespace SenseNet.Search.Lucene29
 {
     public class LucQuery
     {
-        //UNDONE: hardcoded headonly field names, Node is not accessible here.
-        //private static readonly string[] HeadOnlyFields = Node.GetHeadOnlyProperties();
-        private static readonly string[] HeadOnlyFields =
-        {
-            "Name", "Path", "Id", "Index", "NodeType", "ContentListId", "ContentListType", "Parent", "IsModified",
-            "IsDeleted", "CreationDate", "ModificationDate", "CreatedBy", "ModifiedBy", "VersionCreationDate",
-            "VersionModificationDate", "VersionCreatedById", "VersionModifiedById", "Aspects", "Icon", "StoredIcon"
-        };
-
         public static Query FullSetQuery = NumericRangeQuery.NewIntRange("Id", 0, null, false, false); // MachAllDocsQuery in 3.0.3
         //public static readonly string NullReferenceValue = "null";
 
@@ -34,9 +25,6 @@ namespace SenseNet.Search.Lucene29
         public string QueryText => QueryToString(Query);
 
         internal LuceneSearchManager LuceneSearchManager { get; private set; }
-
-        //UNDONE: NOREF: IUser is defined in the Storage layer. Not referenced, check and remove.
-        //public IUser User { get; set; }
 
         public SortField[] SortFields { get; set; }
         public bool HasSort => SortFields != null && SortFields.Length > 0;
@@ -145,44 +133,6 @@ namespace SenseNet.Search.Lucene29
                 throw new Exception(msg);
             }
         }
-
-        //UNDONE: NOREF: is GetFieldLevel used here? Not referenced, check and remove.
-        //private QueryFieldLevel GetFieldLevel()
-        //{
-        //    var v = new FieldNameVisitor();
-        //    v.Visit(this.Query);
-        //    return GetFieldLevel(v.FieldNames);
-        //}
-        //internal static QueryFieldLevel GetFieldLevel(IEnumerable<string> fieldNames)
-        //{
-        //    var fieldLevel = QueryFieldLevel.NotDefined;
-        //    foreach (var fieldName in fieldNames)
-        //    {
-        //        var indexingInfo = SearchManager.GetPerFieldIndexingInfo(fieldName);
-        //        var level = GetFieldLevel(fieldName, indexingInfo);
-        //        fieldLevel = level > fieldLevel ? level : fieldLevel;
-        //    }
-        //    return fieldLevel;
-        //}
-        //internal static QueryFieldLevel GetFieldLevel(string fieldName, IPerFieldIndexingInfo indexingInfo)
-        //{
-        //    QueryFieldLevel level;
-
-        //    if (fieldName == IndexFieldName.AllText)
-        //        level = QueryFieldLevel.BinaryOrFullText;
-        //    else if (indexingInfo == null)
-        //        level = QueryFieldLevel.BinaryOrFullText;
-        //    else if (indexingInfo.FieldDataType == typeof(SenseNet.ContentRepository.Storage.BinaryData))
-        //        level = QueryFieldLevel.BinaryOrFullText;
-        //    else if (fieldName == IndexFieldName.InFolder || fieldName == IndexFieldName.InTree
-        //        || fieldName == IndexFieldName.Type || fieldName == IndexFieldName.TypeIs
-        //        || HeadOnlyFields.Contains(fieldName))
-        //        level = QueryFieldLevel.HeadOnly;
-        //    else
-        //        level = QueryFieldLevel.NoBinaryOrFullText;
-
-        //    return level;
-        //}
 
         public override string ToString()
         {

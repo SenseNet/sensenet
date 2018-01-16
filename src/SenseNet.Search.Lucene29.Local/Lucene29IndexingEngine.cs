@@ -66,6 +66,9 @@ namespace SenseNet.Search.Lucene29
         public void Start(TextWriter consoleOut)
         {
             LuceneSearchManager.Start(consoleOut);
+
+            // execute a warmup query
+            SnQuery.Query("+Id:1", SnQueryContext.CreateDefault());
         }
 
         /// <summary>
