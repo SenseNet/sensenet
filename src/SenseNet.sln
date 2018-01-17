@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.16
+VisualStudioVersion = 15.0.27004.2002
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{875EF569-4684-473D-A2D4-A35B20B4A07C}"
 EndProject
@@ -45,15 +45,19 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.ContentRepository.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Search", "Search\Search.csproj", "{0279705B-779D-485D-86B9-F7AB3DD1F2C3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SearchImpl", "SearchImpl\SearchImpl.csproj", "{FF0B1AF9-753B-4660-8BD0-B84492321808}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Search.Lucene29.Common", "SenseNet.Search.Lucene29.Common\SenseNet.Search.Lucene29.Common.csproj", "{FF0B1AF9-753B-4660-8BD0-B84492321808}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Search.Tests", "Tests\SenseNet.Search.Tests\SenseNet.Search.Tests.csproj", "{0C78C008-DB1D-4CE6-B081-A04AFDAF5880}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.SearchImpl.Tests", "Tests\SenseNet.SearchImpl.Tests\SenseNet.SearchImpl.Tests.csproj", "{948CE434-4B01-4B5E-8E01-E7661891D159}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Search.Lucene29.Tests", "Tests\SenseNet.Search.Lucene29.Tests\SenseNet.Search.Lucene29.Tests.csproj", "{948CE434-4B01-4B5E-8E01-E7661891D159}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Search.IntegrationTests", "Tests\SenseNet.Search.IntegrationTests\SenseNet.Search.IntegrationTests.csproj", "{A29CB53A-DF6C-487C-9FDC-DC73A5CB2B13}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.RestTester", "Tests\SenseNet.RestTester\SenseNet.RestTester.csproj", "{87F754D3-F098-49A3-975E-82F02B575E7C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Search.Lucene29", "SenseNet.Search.Lucene29\SenseNet.Search.Lucene29.csproj", "{9E776EDA-681A-4330-8632-9ED0B67ED5A6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Search.Lucene29.Local", "SenseNet.Search.Lucene29.Local\SenseNet.Search.Lucene29.Local.csproj", "{EF7844BE-E78F-43CE-9CB0-364117228DD7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -367,6 +371,38 @@ Global
 		{87F754D3-F098-49A3-975E-82F02B575E7C}.Release|x64.Build.0 = Release|Any CPU
 		{87F754D3-F098-49A3-975E-82F02B575E7C}.Release|x86.ActiveCfg = Release|Any CPU
 		{87F754D3-F098-49A3-975E-82F02B575E7C}.Release|x86.Build.0 = Release|Any CPU
+		{9E776EDA-681A-4330-8632-9ED0B67ED5A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E776EDA-681A-4330-8632-9ED0B67ED5A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E776EDA-681A-4330-8632-9ED0B67ED5A6}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{9E776EDA-681A-4330-8632-9ED0B67ED5A6}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{9E776EDA-681A-4330-8632-9ED0B67ED5A6}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9E776EDA-681A-4330-8632-9ED0B67ED5A6}.Debug|x64.Build.0 = Debug|Any CPU
+		{9E776EDA-681A-4330-8632-9ED0B67ED5A6}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9E776EDA-681A-4330-8632-9ED0B67ED5A6}.Debug|x86.Build.0 = Debug|Any CPU
+		{9E776EDA-681A-4330-8632-9ED0B67ED5A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E776EDA-681A-4330-8632-9ED0B67ED5A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E776EDA-681A-4330-8632-9ED0B67ED5A6}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{9E776EDA-681A-4330-8632-9ED0B67ED5A6}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{9E776EDA-681A-4330-8632-9ED0B67ED5A6}.Release|x64.ActiveCfg = Release|Any CPU
+		{9E776EDA-681A-4330-8632-9ED0B67ED5A6}.Release|x64.Build.0 = Release|Any CPU
+		{9E776EDA-681A-4330-8632-9ED0B67ED5A6}.Release|x86.ActiveCfg = Release|Any CPU
+		{9E776EDA-681A-4330-8632-9ED0B67ED5A6}.Release|x86.Build.0 = Release|Any CPU
+		{EF7844BE-E78F-43CE-9CB0-364117228DD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF7844BE-E78F-43CE-9CB0-364117228DD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF7844BE-E78F-43CE-9CB0-364117228DD7}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{EF7844BE-E78F-43CE-9CB0-364117228DD7}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{EF7844BE-E78F-43CE-9CB0-364117228DD7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EF7844BE-E78F-43CE-9CB0-364117228DD7}.Debug|x64.Build.0 = Debug|Any CPU
+		{EF7844BE-E78F-43CE-9CB0-364117228DD7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EF7844BE-E78F-43CE-9CB0-364117228DD7}.Debug|x86.Build.0 = Debug|Any CPU
+		{EF7844BE-E78F-43CE-9CB0-364117228DD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF7844BE-E78F-43CE-9CB0-364117228DD7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF7844BE-E78F-43CE-9CB0-364117228DD7}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{EF7844BE-E78F-43CE-9CB0-364117228DD7}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{EF7844BE-E78F-43CE-9CB0-364117228DD7}.Release|x64.ActiveCfg = Release|Any CPU
+		{EF7844BE-E78F-43CE-9CB0-364117228DD7}.Release|x64.Build.0 = Release|Any CPU
+		{EF7844BE-E78F-43CE-9CB0-364117228DD7}.Release|x86.ActiveCfg = Release|Any CPU
+		{EF7844BE-E78F-43CE-9CB0-364117228DD7}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -392,6 +428,8 @@ Global
 		{948CE434-4B01-4B5E-8E01-E7661891D159} = {C68D256D-7D40-4E33-8A2B-B1625538B138}
 		{A29CB53A-DF6C-487C-9FDC-DC73A5CB2B13} = {C68D256D-7D40-4E33-8A2B-B1625538B138}
 		{87F754D3-F098-49A3-975E-82F02B575E7C} = {C68D256D-7D40-4E33-8A2B-B1625538B138}
+		{9E776EDA-681A-4330-8632-9ED0B67ED5A6} = {2997D17C-A736-43E5-B3DD-11D11AC7DF17}
+		{EF7844BE-E78F-43CE-9CB0-364117228DD7} = {2997D17C-A736-43E5-B3DD-11D11AC7DF17}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {47EACB0A-5F06-4F1F-9AE5-898D661CCDB1}

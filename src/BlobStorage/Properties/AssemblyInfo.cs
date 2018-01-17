@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 [assembly: InternalsVisibleTo("SenseNet.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.ContentRepository.Tests")]
-[assembly: InternalsVisibleTo("SenseNet.SearchImpl.Tests")]
+[assembly: InternalsVisibleTo("SenseNet.Search.Lucene29.Tests")]
 
 #if DEBUG
 [assembly: AssemblyTitle("SenseNet.BlobStorage (Debug)")]

@@ -3,11 +3,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{7DE6A7E8-5738-4436-9646-9C1179F752EA}</ProjectGuid>
+    <ProjectGuid>{948CE434-4B01-4B5E-8E01-E7661891D159}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SenseNet.ContentRepository.Tests</RootNamespace>
-    <AssemblyName>SenseNet.ContentRepository.Tests</AssemblyName>
+    <RootNamespace>SenseNet.Search.Lucene29.Tests</RootNamespace>
+    <AssemblyName>SenseNet.Search.Lucene29.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -35,22 +35,25 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Lucene.Net">
+      <HintPath>..\..\References\Lucene.Net.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="SenseNet.Security, Version=2.3.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\SenseNet.Security.2.3.1\lib\net45\SenseNet.Security.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="SenseNet.Tools, Version=2.1.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\SenseNet.Tools.2.1.1\lib\net451\SenseNet.Tools.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Web" />
-    <Reference Include="System.XML" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <Choose>
     <When Condition="('$(VisualStudioVersion)' == '10.0' or '$(VisualStudioVersion)' == '') and '$(TargetFrameworkVersion)' == 'v3.5'">
@@ -65,22 +68,15 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="ContentTypeTests.cs" />
-    <Compile Include="Implementations\EmptyCache.cs" />
-    <Compile Include="Implementations\EverythingAllowedPermissionFilter.cs" />
-    <Compile Include="Implementations\InMemoryDataProvider.cs" />
-    <Compile Include="Implementations\InMemoryDataProviderData.cs" />
-    <Compile Include="Implementations\InMemoryIndex.cs" />
-    <Compile Include="Implementations\InMemoryIndexingEngine.cs" />
-    <Compile Include="Implementations\InMemoryQueryEngine.cs" />
-    <Compile Include="Implementations\InMemorySearchEngine.cs" />
-    <Compile Include="LinqTests.cs" />
-    <Compile Include="ProvidersTests.cs" />
-    <Compile Include="RepositoryStartTests.cs" />
+    <Compile Include="DataProviderTests\TreeLockTests.cs" />
+    <Compile Include="Implementations\SafeQueries.cs" />
+    <Compile Include="Implementations\TestNode.cs" />
+    <Compile Include="Implementations\TestSearchEngineSupport.cs" />
+    <Compile Include="InMemorySearchTests.cs" />
+    <Compile Include="DataProviderTests\InMemoryDataProviderTests.cs" />
+    <Compile Include="Lucene29Tests.cs" />
+    <Compile Include="Lucene29CompilerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TemplateReplacerTests.cs" />
-    <Compile Include="TestBase.cs" />
-    <Compile Include="Tools.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\BlobStorage\BlobStorage.csproj">
@@ -91,12 +87,8 @@
       <Project>{a453e920-29c0-45cd-984c-0d8e3631b1e3}</Project>
       <Name>Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Configuration\Configuration.csproj">
-      <Project>{a19f707c-b1c3-45c7-ae38-e7b7f30c1161}</Project>
-      <Name>Configuration</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\ContentRepository\ContentRepository.csproj">
-      <Project>{786e6165-ca02-45a9-bf58-207a45d7d6df}</Project>
+      <Project>{786E6165-CA02-45A9-BF58-207A45D7D6DF}</Project>
       <Name>ContentRepository</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\SenseNet.Search.Lucene29.Common\SenseNet.Search.Lucene29.Common.csproj">
@@ -104,20 +96,33 @@
       <Name>SenseNet.Search.Lucene29.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Search\Search.csproj">
-      <Project>{0279705B-779D-485D-86B9-F7AB3DD1F2C3}</Project>
+      <Project>{0279705b-779d-485d-86b9-f7ab3dd1f2c3}</Project>
       <Name>Search</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\SenseNet.Search.Lucene29\SenseNet.Search.Lucene29.csproj">
+      <Project>{9e776eda-681a-4330-8632-9ed0b67ed5a6}</Project>
+      <Name>SenseNet.Search.Lucene29</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\SenseNet.Search.Lucene29.Local\SenseNet.Search.Lucene29.Local.csproj">
+      <Project>{ef7844be-e78f-43ce-9cb0-364117228dd7}</Project>
+      <Name>SenseNet.Search.Lucene29.Local</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Services\Services.csproj">
       <Project>{b72529c8-feb1-49f5-b08b-56055b58f296}</Project>
       <Name>Services</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Storage\Storage.csproj">
-      <Project>{5db4ddba-81f6-4d81-943a-18f3178b3355}</Project>
+      <Project>{5DB4DDBA-81F6-4D81-943A-18F3178B3355}</Project>
       <Name>Storage</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
+    <ProjectReference Include="..\SenseNet.ContentRepository.Tests\SenseNet.ContentRepository.Tests.csproj">
+      <Project>{7DE6A7E8-5738-4436-9646-9C1179F752EA}</Project>
+      <Name>SenseNet.ContentRepository.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SenseNet.Search.Tests\SenseNet.Search.Tests.csproj">
+      <Project>{0c78c008-db1d-4ce6-b081-a04afdaf5880}</Project>
+      <Name>SenseNet.Search.Tests</Name>
+    </ProjectReference>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

@@ -9,7 +9,6 @@ using SenseNet.ContentRepository.Tests;
 using SenseNet.ContentRepository.Tests.Implementations;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
-using SenseNet.SearchImpl.Tests.Implementations;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,6 +20,7 @@ using System.Threading.Tasks;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Search.Indexing.Activities;
 using SenseNet.Search.Querying;
+using SenseNet.Search.Tests.Implementations;
 
 namespace SenseNet.Search.IntegrationTests
 {

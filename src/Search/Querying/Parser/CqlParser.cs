@@ -97,9 +97,15 @@ namespace SenseNet.Search.Querying.Parser
         }
         private static void AggregateSettings(SnQuery query, QuerySettings settings)
         {
+            var settingsTop = settings?.Top ?? int.MaxValue;
+
             query.Top = Math.Min(
-                settings.Top == 0 ? int.MaxValue : settings.Top,
+                settingsTop == 0 ? int.MaxValue : settingsTop,
                 query.Top == 0 ? int.MaxValue : query.Top);
+
+            if (settings == null)
+                return;
+
             if (settings.Skip > 0)
                 query.Skip = settings.Skip;
             if (settings.Sort != null && settings.Sort.Any())
