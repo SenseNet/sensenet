@@ -6,10 +6,15 @@ using System.Text;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
-    //UNDONE: XMLDOC SnIFilter
+    /// <summary>
+    /// Provides methods for working with native IFilters installed in the system.
+    /// </summary>
     public class SnIFilter
     {
-        //UNDONE: XMLDOC SnIFilter
+        /// <summary>
+        /// Loads the appropriate IFilter by the provided extension and extracts text 
+        /// from the specified stream using that IFilter.
+        /// </summary>
         public static string GetText(Stream stream, string extension)
         {
             return LoadAndInitIFilterAndReadAll(stream, extension);
@@ -132,34 +137,51 @@ namespace SenseNet.ContentRepository.Search.Indexing
         public static extern int CreateStreamOnHGlobal(IntPtr hGlobal, bool fDeleteOnRelease, out IStream ppstm);
     }
 
-    //UNDONE: XMLDOC SnIFilter
+    /// <summary>
+    /// Defines methods for file system elements (used with IFilters).
+    /// </summary>
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("0000010c-0000-0000-C000-000000000046")]
     public interface IPersist
     {
-        //UNDONE: XMLDOC SnIFilter
+        /// <summary>
+        /// Gets the class identifier of an object.
+        /// </summary>
         void GetClassID(out Guid pClassID);
     }
 
-    //UNDONE: XMLDOC SnIFilter
+    /// <summary>
+    /// Defines methods for a native stream used with IFilters.
+    /// </summary>
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("00000109-0000-0000-C000-000000000046")]
     public interface IPersistStream : IPersist
     {
-        //UNDONE: XMLDOC SnIFilter
+        /// <summary>
+        /// Gets the class identifier of an object.
+        /// </summary>
         new void GetClassID(out Guid pClassID);
 
-        //UNDONE: XMLDOC SnIFilter
+        /// <summary>
+        /// Checks an object for changes since it was last saved.
+        /// </summary>
         [PreserveSig]
         int IsDirty();
 
-        //UNDONE: XMLDOC SnIFilter
+        /// <summary>
+        /// Loads the specified file.
+        /// </summary>
+        /// <param name="pStm"></param>
         void Load([In] IStream pStm);
 
-        //UNDONE: XMLDOC SnIFilter
+        /// <summary>
+        /// Saves the object into the specified file.
+        /// </summary>
         void Save(
             [In] IStream pStm,
             [In, MarshalAs(UnmanagedType.Bool)] bool fClearDirty);
 
-        //UNDONE: XMLDOC SnIFilter
+        /// <summary>
+        /// Gets the maximum size of the file.
+        /// </summary>
         void GetSizeMax(out long pcbSize);
     }
 

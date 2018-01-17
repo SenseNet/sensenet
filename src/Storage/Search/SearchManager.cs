@@ -118,7 +118,11 @@ namespace SenseNet.ContentRepository.Search
         /// Gets a value that is true if the outer search engine is enabled.
         /// </summary>
         public static bool IsOuterEngineEnabled => Instance.IsOuterSearchEngineEnabled;
-        //UNDONE: XMLDOC IndexDirectoryPath
+        /// <summary>
+        /// Gets the path of the local index in the file system in case of local indexing engines.
+        /// The value can be configured in the Indexing configuration class or set directly
+        /// using the <see cref="SetIndexDirectoryPath"/> method.
+        /// </summary>
         public static string IndexDirectoryPath => Instance.IndexDirectoryPathPrivate;
 
         /// <summary>
@@ -140,7 +144,9 @@ namespace SenseNet.ContentRepository.Search
             Instance.IsOuterSearchEngineEnabled = false;
         }
 
-        //UNDONE: XMLDOC IndexDirectoryPath
+        /// <summary>
+        /// Sets the path of the local index in the file system in case of local indexing engines.
+        /// </summary>
         public static void SetIndexDirectoryPath(string path)
         {
             Instance.IndexDirectoryPathPrivate = path;

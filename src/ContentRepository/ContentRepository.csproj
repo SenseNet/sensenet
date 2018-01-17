@@ -342,7 +342,6 @@
     <Compile Include="Schema\FieldMetadata.cs" />
     <Compile Include="Schema\ISupportsDynamicFields.cs" />
     <Compile Include="Search\IndexingSettings.cs" />
-    <Compile Include="Search\Indexing\Configuration\RepositoryIndexBehaviorSection.cs" />
     <Compile Include="Search\Indexing\FieldIndexHandler.cs" />
     <Compile Include="Security\ADSync\ADFolder.cs" />
     <Compile Include="ApplicationCache.cs" />
