@@ -14,8 +14,7 @@ This is a list of the main components we published so far. To see an expanded, c
 ###### Feature packages
 - [Workspaces](#Workspaces): Workspace-related items (content types and templates, workspace dashboards and views) for sensenet ECM.
 - [Workflow](#Workflow): Windows Workflow Foundation (WWF 4.5) integration into sensenet ECM.
-- Content templates
-- Notification
+- [Notification](#Notification): Email notification component for the sensenet ECM platform.
 - ...and more!
 
 ###### Client SDKs
@@ -78,3 +77,7 @@ The [Workspaces component](https://github.com/SenseNet/sn-workspaces) is useful 
 <a name="Workflow"></a>
 ## Workflow
 Integrating **Windows Workflow Foundation (WWF 4.5)** into sensenet ECM provides many possibilities for creating content-driven workflows. The [Workflow component](https://github.com/SenseNet/sn-workflow) adds a robust and customizable workflow engine to sensenet ECM. 
+
+<a name="Notification"></a>
+## Notification
+[Email notification component](https://github.com/SenseNet/sn-notification) for the sensenet ECM platform. Lets users subscribe to content changes and receive emails either almost immediately or in an aggregated way periodically about changes in the repository.

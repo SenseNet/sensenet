@@ -82,31 +82,46 @@ namespace SenseNet.Portal.OData
                 request != null ? request.Scenario : null,
                 string.IsNullOrEmpty(backUrl) ? null : backUrl);
         }
+        internal static IEnumerable<ODataActionItem> GetHtmlActionItems(Content content, ODataRequest request)
+        {
+            return GetActions(content, request).Where(a => a.IsHtmlOperation).Select(a => new ODataActionItem
+            {
+                Name = a.Name,
+                DisplayName = SNSR.GetString(a.Text),
+                Icon = a.Icon,
+                Index = a.Index,
+                Url = a.Uri,
+                IncludeBackUrl = a.GetApplication() == null ? 0 : (int)a.GetApplication().IncludeBackUrl,
+                ClientAction = !string.IsNullOrEmpty((a as ClientAction)?.Callback),
+                Forbidden = a.Forbidden
+            });
+        }
+
         internal static IEnumerable<ODataActionItem> GetActionItems(Content content, ODataRequest request)
         {
-            return GetActionsGroupedByScenario(content, request).Select(a => new ODataActionItem
+            return GetActionsWithScenario(content, request).Select(a => new ODataActionItem
             {
-                Name = a.Key,
-                DisplayName = SNSR.GetString(a.Value.Action.Text),
-                Icon = a.Value.Action.Icon,
-                Index = a.Value.Action.Index,
-                Url = a.Value.Action.Uri,
-                IncludeBackUrl = a.Value.Action.GetApplication() == null ? 0 : (int)a.Value.Action.GetApplication().IncludeBackUrl,
-                ClientAction = !string.IsNullOrEmpty((a.Value.Action as ClientAction)?.Callback),
-                Forbidden = a.Value.Action.Forbidden,
-                IsODataAction = a.Value.Action.IsODataOperation,
-                ActionParameters = a.Value.Action.ActionParameters.Select(p => p.Name).ToArray(),
-                Scenarios = a.Value.Scenarios.ToArray()
+                Name = a.Action.Name,
+                DisplayName = SNSR.GetString(a.Action.Text),
+                Icon = a.Action.Icon,
+                Index = a.Action.Index,
+                Url = a.Action.Uri,
+                IncludeBackUrl = a.Action.GetApplication() == null ? 0 : (int)a.Action.GetApplication().IncludeBackUrl,
+                ClientAction = !string.IsNullOrEmpty((a.Action as ClientAction)?.Callback),
+                Forbidden = a.Action.Forbidden,
+                IsODataAction = a.Action.IsODataOperation,
+                ActionParameters = a.Action.ActionParameters.Select(p => p.Name).ToArray(),
+                Scenario = a.Scenario
             });
         }
 
         private struct ScenarioAction
         {
             public ActionBase Action { get; set; }
-            public List<string> Scenarios { get; set; }
+            public string Scenario { get; set; }
         }
 
-        private static IDictionary<string, ScenarioAction> GetActionsGroupedByScenario(Content content, ODataRequest request)
+        private static IEnumerable<ScenarioAction> GetActionsWithScenario(Content content, ODataRequest request)
         {
             // Use the back url provided by the client. If it is empty, use
             // the url of the caller page (the referrer provided by ASP.NET).
@@ -116,50 +131,20 @@ namespace SenseNet.Portal.OData
                 ? PortalContext.Current.BackUrl
                 : null;
 
-            if (string.IsNullOrEmpty(backUrl) && (request == null || request.IncludeBackUrl) && 
+            if (string.IsNullOrEmpty(backUrl) && (request == null || request.IncludeBackUrl) &&
                 HttpContext.Current?.Request?.UrlReferrer != null)
-            { 
+            {
                 backUrl = HttpContext.Current.Request.UrlReferrer.ToString();
             }
 
-            var scenarioActions = new Dictionary<string, ScenarioAction>();
-            var scenarios = request?.Scenario?.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries);
-            if (scenarios == null || scenarios.Length == 0)
-            {
-                var actions = ActionFramework.GetActions(content, default(string), string.IsNullOrEmpty(backUrl) ? null : backUrl);
-                foreach (var action in actions)
-                {
-                    scenarioActions.Add(action.Name, new ScenarioAction
-                    {
-                        Action = action,
-                        Scenarios = new List<string>()
-                    });
-                }
-                return scenarioActions;
-            }
+            var scenario = request?.Scenario;
+            var actions = ActionFramework.GetActions(content, scenario, null, string.IsNullOrEmpty(backUrl) ? null : backUrl);
 
-            foreach (var scenario in scenarios)
+            return actions.Select(action => new ScenarioAction
             {
-                var actions = ActionFramework.GetActions(content, scenario, string.IsNullOrEmpty(backUrl) ? null : backUrl);
-                foreach (var action in actions)
-                {
-                    ScenarioAction groupedAction;
-                    if (scenarioActions.TryGetValue(action.Name, out groupedAction))
-                    {
-                        if (!groupedAction.Scenarios.Contains(scenario))
-                            groupedAction.Scenarios.Add(scenario);
-                    }
-                    else
-                    {
-                        scenarioActions.Add(action.Name, new ScenarioAction
-                        {
-                            Action = action,
-                            Scenarios = new[] { scenario }.ToList()
-                        });
-                    }
-                }
-            }
-            return scenarioActions;
+                Action = action,
+                Scenario = scenario
+            });
         }
     }
 }

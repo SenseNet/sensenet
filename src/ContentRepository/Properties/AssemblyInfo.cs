@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: InternalsVisibleTo("SenseNet.Tests")]
+[assembly: InternalsVisibleTo("SenseNet.ContentRepository.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.Packaging.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.Packaging.IntegrationTests")]
 [assembly: InternalsVisibleTo("SenseNet.Search.Lucene29.Tests")]
@@ -23,4 +24,4 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCulture("")]
 [assembly: AssemblyVersion("7.0.0.0")]
 [assembly: AssemblyFileVersion("7.0.0.0")]
-[assembly: AssemblyInformationalVersion("7.0.0-beta46")]
+[assembly: AssemblyInformationalVersion("7.0.0")]

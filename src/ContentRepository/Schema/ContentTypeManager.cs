@@ -609,11 +609,10 @@ namespace SenseNet.ContentRepository.Schema
             bool first = true;
             foreach (ContentType ct in GetRootTypes())
             {
-                if (!first)
-                {
-                    sb.Append(", ");
+                if (first)
                     first = false;
-                }
+                else
+                    sb.Append(", ");
                 TraceContentSchema(sb, ct);
             }
             sb.Append("}");
@@ -627,11 +626,10 @@ namespace SenseNet.ContentRepository.Schema
             bool first = true;
             foreach (ContentType child in root.ChildTypes)
             {
-                if (!first)
-                {
-                    sb.Append(", ");
+                if (first)
                     first = false;
-                }
+                else
+                    sb.Append(", ");
                 TraceContentSchema(sb, child);
             }
             if (root.ChildTypes.Count > 0)

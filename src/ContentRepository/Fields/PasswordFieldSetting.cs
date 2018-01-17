@@ -13,6 +13,9 @@ using SenseNet.Search.Indexing;
 
 namespace SenseNet.ContentRepository.Fields
 {
+    /// <summary>
+    /// Represents a result of password validation.
+    /// </summary>
     public class PasswordCheckResult
     {
         /// <summary>

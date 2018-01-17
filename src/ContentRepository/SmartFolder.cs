@@ -8,17 +8,38 @@ using System;
 
 namespace SenseNet.ContentRepository
 {
+    /// <summary>
+    /// A container Content handler that provides a custom children Content collection produced by a Content Query.
+    /// Useful for defining content collections containing content items from different parts of the 
+    /// Content Repository tree.
+    /// </summary>
     [ContentHandler]
     public class SmartFolder : Folder
     {
         // ===================================================================================== Construction
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SmartFolder"/> class.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
         public SmartFolder(Node parent) : this(parent, null) { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SmartFolder"/> class.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="nodeTypeName">Name of the node type.</param>
         public SmartFolder(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SmartFolder"/> class in the loading procedure.
+        /// Do not use this constructor directly from your code.
+        /// </summary>
         protected SmartFolder(NodeToken nt) : base(nt) { }
 
         // ===================================================================================== Properties
 
+        /// <summary>
+        /// Gets or sets the Content Query that defines the children collection. Persisted as <see cref="RepositoryDataType.Text"/>.
+        /// </summary>
         [RepositoryProperty("Query", RepositoryDataType.Text)]
         public string Query
         {
@@ -26,6 +47,10 @@ namespace SenseNet.ContentRepository
             set { this["Query"] = value; }
         }
 
+        /// <summary>
+        /// Gets or sets a <see cref="FilterStatus"/> value that specifies whether the Content Query should be executed with
+        /// auto-filters or not. Persisted as <see cref="RepositoryDataType.String"/>.
+        /// </summary>
         [RepositoryProperty("EnableAutofilters", RepositoryDataType.String)]
         public virtual FilterStatus EnableAutofilters
         {
@@ -43,6 +68,10 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        /// <summary>
+        /// Gets or sets a <see cref="FilterStatus"/> value that specifies whether the Content Query should be executed with
+        /// lifespan-filters or not. Persisted as <see cref="RepositoryDataType.String"/>.
+        /// </summary>
         [RepositoryProperty("EnableLifespanFilter", RepositoryDataType.String)]
         public virtual FilterStatus EnableLifespanFilter
         {
@@ -60,6 +89,11 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        /// <summary>
+        /// Gets or sets the abstraction of the children Coontent collection.
+        /// By default it is based on the values of Query, EnableAutofilters and EnableLifespanFilter properties.
+        /// This property is not persisted so the effect of overriding the default behavior is temporary.
+        /// </summary>
         public override ChildrenDefinition ChildrenDefinition
         {
             get
@@ -84,6 +118,7 @@ namespace SenseNet.ContentRepository
 
         // =====================================================================================
 
+        /// <inheritdoc />
         public override object GetProperty(string name)
         {
             switch (name)
@@ -98,6 +133,7 @@ namespace SenseNet.ContentRepository
                     return base.GetProperty(name);
             }
         }
+        /// <inheritdoc />
         public override void SetProperty(string name, object value)
         {
             switch (name)
@@ -119,6 +155,10 @@ namespace SenseNet.ContentRepository
 
         // ===================================================================================== Public interface
 
+        /// <summary>
+        /// Returns an in-memory and not persisted <see cref="SmartFolder"/>, always a new object.
+        /// Designed for handling virtual containers in various business processes.
+        /// </summary>
         public static SmartFolder GetRuntimeQueryFolder()
         {
             // elevation is needed because the /Root/System folder may be inaccessible for some users

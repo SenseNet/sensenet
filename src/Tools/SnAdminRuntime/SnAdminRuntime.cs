@@ -9,6 +9,7 @@ using SenseNet.ContentRepository;
 using System.Diagnostics;
 using Ionic.Zip;
 using System.Configuration;
+using System.Security;
 using System.Xml;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Tools.SnAdmin.Testability;
@@ -75,11 +76,40 @@ namespace SenseNet.Tools.SnAdmin
                 return -1;
 
             Logger.PackageName = Path.GetFileName(packagePath);
-
-            Logger.Create(logLevel, logFilePath);
-            Debug.WriteLine("##> " + Logger.Level);
-
-            return ExecutePhase(packagePath, targetDirectory, phase, parameters, logFilePath, help, schema);
+            try
+            {
+                Logger.Create(logLevel, logFilePath);
+                Debug.WriteLine("##> " + Logger.Level);
+                return ExecutePhase(packagePath, targetDirectory, phase, parameters, logFilePath, help, schema);
+            }
+            catch (ReflectionTypeLoadException ex)
+            {
+                List<string> types = new List<string>();
+                if (ex.LoaderExceptions != null)
+                {
+                    foreach (var item in ex.LoaderExceptions)
+                    {
+                        if (item is FileLoadException flo)
+                        {
+                            types.Add(flo.FileName);
+                        }
+                        if (item is FileNotFoundException f)
+                        {
+                            types.Add(f.FileName);
+                        }
+                        if (item is BadImageFormatException b)
+                        {
+                            types.Add(b.FileName);
+                        }
+                        if (item is SecurityException s)
+                        {
+                            types.Add(s.Url);
+                        }
+                    }
+                }
+                throw new Exception(
+                    $"ReflectionTypeLoadException: Could not load types. Affected types: {Environment.NewLine + string.Join(";" + Environment.NewLine, types) + ";" + Environment.NewLine}");
+            }
         }
 
         internal static bool ParseParameters(string[] args, out string packagePath, out string targetDirectory,

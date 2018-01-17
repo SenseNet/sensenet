@@ -46,8 +46,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <RunCodeAnalysis>false</RunCodeAnalysis>
-    <DocumentationFile>
-    </DocumentationFile>
+    <DocumentationFile>bin\Debug\SenseNet.ContentRepository.xml</DocumentationFile>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
@@ -94,8 +93,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="SenseNet.Preview, Version=7.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SenseNet.Preview.7.0.0-beta2\lib\net451\SenseNet.Preview.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\SenseNet.Preview.7.0.0\lib\net451\SenseNet.Preview.dll</HintPath>
     </Reference>
     <Reference Include="SenseNet.Security, Version=2.3.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\SenseNet.Security.2.3.1\lib\net45\SenseNet.Security.dll</HintPath>
@@ -163,6 +161,8 @@
     <Compile Include="Configuration\RepositoryStructure.cs" />
     <Compile Include="Configuration\Services.cs" />
     <Compile Include="Configuration\Versioning.cs" />
+    <Compile Include="ISnComponent.cs" />
+    <Compile Include="SnComponent.cs" />
     <Compile Include="Linq\CaseInsensitiveFilterVisitor.cs" />
     <Compile Include="Packaging\Dependency.cs" />
     <Compile Include="Packaging\ExecutionContext.cs" />
@@ -233,9 +233,12 @@
     <Compile Include="Packaging\Steps\XmlEditorStep.cs" />
     <Compile Include="Packaging\ZipUnpacker.cs" />
     <Compile Include="RepositoryBuilder.cs" />
+    <Compile Include="ServicesComponent.cs" />
     <Compile Include="Schema\Metadata\IMetaNode.cs" />
     <Compile Include="Schema\Metadata\MetaCollectionEnumerable.cs" />
     <Compile Include="Schema\Metadata\SchemaVisitor.cs" />
+    <Compile Include="Security\IOAuthIdentity.cs" />
+    <Compile Include="Security\OAuthProvider.cs" />
     <Compile Include="SearchEngineSupport.cs" />
     <Compile Include="Search\ContentQuery.cs" />
     <Compile Include="Search\Indexing\Activities\AddDocumentActivity.cs" />

@@ -1062,7 +1062,6 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="identityId">Id of the potential member that can be a user or a group.</param>
         /// <param name="groupId">Id of the container group.</param>
-        /// <returns></returns>
         public static bool IsInGroup(int identityId, int groupId)
         {
             return SecurityContext.IsInGroup(identityId, groupId);

@@ -133,23 +133,8 @@ namespace SenseNet.Portal.Virtualization
                     throw new AuthenticationException("Invalid method for token authentication.");
                 }
 
-                var tokenHandler = new JwsSecurityTokenHandler();
                 var validFrom = DateTime.UtcNow;
-
-                ITokenParameters generateTokenParameter = new TokenParameters
-                {
-                    Audience = Configuration.TokenAuthentication.Audience,
-                    Issuer = Configuration.TokenAuthentication.Issuer,
-                    Subject = Configuration.TokenAuthentication.Subject,
-                    EncryptionAlgorithm = Configuration.TokenAuthentication.EncriptionAlgorithm,
-                    AccessLifeTimeInMinutes = Configuration.TokenAuthentication.AccessLifeTimeInMinutes,
-                    RefreshLifeTimeInMinutes = Configuration.TokenAuthentication.RefreshLifeTimeInMinutes,
-                    ClockSkewInMinutes = Configuration.TokenAuthentication.ClockSkewInMinutes,
-                    ValidFrom = validFrom,
-                    ValidateLifeTime = true
-                };
-
-                var tokenManager = new TokenManager(SecurityKey, tokenHandler, generateTokenParameter);
+                var tokenManager = GetTokenManager(validFrom);
 
                 switch (tokenAction)
                 {
@@ -193,6 +178,39 @@ namespace SenseNet.Portal.Virtualization
                     }
                 }
             }
+        }
+
+
+        /// <summary>
+        /// Assembles the necessary artifacts (cookies and response tokens). This should be called only 
+        /// if the user is already authenticated.
+        /// </summary>
+        internal void TokenLogin(HttpContextBase context, HttpApplication application)
+        {
+            var validFrom = DateTime.UtcNow;
+            var tokenManager = GetTokenManager(validFrom);
+
+            TokenLogin(true, validFrom, tokenManager, context);
+        }
+
+        private TokenManager GetTokenManager(DateTime validFrom)
+        {
+            var tokenHandler = new JwsSecurityTokenHandler();
+
+            ITokenParameters generateTokenParameter = new TokenParameters
+            {
+                Audience = Configuration.TokenAuthentication.Audience,
+                Issuer = Configuration.TokenAuthentication.Issuer,
+                Subject = Configuration.TokenAuthentication.Subject,
+                EncryptionAlgorithm = Configuration.TokenAuthentication.EncriptionAlgorithm,
+                AccessLifeTimeInMinutes = Configuration.TokenAuthentication.AccessLifeTimeInMinutes,
+                RefreshLifeTimeInMinutes = Configuration.TokenAuthentication.RefreshLifeTimeInMinutes,
+                ClockSkewInMinutes = Configuration.TokenAuthentication.ClockSkewInMinutes,
+                ValidFrom = validFrom,
+                ValidateLifeTime = true
+            };
+
+            return new TokenManager(SecurityKey, tokenHandler, generateTokenParameter);
         }
 
         private void TokenLogin(bool basicAuthenticated, DateTime validFrom, TokenManager tokenManager, HttpContextBase context)
