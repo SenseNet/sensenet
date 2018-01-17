@@ -6,6 +6,9 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.TokenAuthentication;
 using System.Linq;
+using System.Security.Principal;
+using SenseNet.ContentRepository.Security;
+using SenseNet.Services.Virtualization;
 
 namespace SenseNet.Portal.Virtualization
 {
@@ -32,8 +35,14 @@ namespace SenseNet.Portal.Virtualization
             public static int Ok = 200;
         }
 
+        public TokenAuthentication(IUltimateLogoutProvider logoutProvider = null)
+        {
+            _logoutProvider = logoutProvider;
+        }
+
         private enum TokenAction { TokenLogin, TokenLogout, TokenAccess, TokenRefresh }
         private static ISecurityKey _securityKey;
+        private IUltimateLogoutProvider _logoutProvider;
         private static readonly object _keyLock = new object();
 
         private ISecurityKey SecurityKey
@@ -244,6 +253,18 @@ namespace SenseNet.Portal.Virtualization
                 {
                     throw new UnauthorizedAccessException("Invalid access token.");
                 }
+                if (!bool.TryParse(AuthenticationHelper.GetRequestParameterValue(context, "ultimateLogout"), out var ultimateLogout))
+                {
+                    ultimateLogout = false;
+                }
+                // ultimately log out only if the user has not been logged out already, if he has, just a local logout executes
+                if (ultimateLogout)
+                {
+                    var userName = principal.Identity.Name;
+                    ultimateLogout = !UserHasLoggedOut(tokenManager, userName, accessHeadAndPayload);
+                }
+                _logoutProvider?.UltimateLogout(ultimateLogout);
+                //AuthenticationHelper.Logout(ultimateLogout);
                 CookieHelper.DeleteCookie(context.Response, AccessSignatureCookieName);
                 CookieHelper.DeleteCookie(context.Response, AccessHeadAndPayloadCookieName);
                 CookieHelper.DeleteCookie(context.Response, RefreshSignatureCookieName);
@@ -262,15 +283,22 @@ namespace SenseNet.Portal.Virtualization
                 }
 
                 var accessSignature = authCookie.Value;
-                var principal = tokenManager.ValidateToken(accessHeadAndPayload + "." + accessSignature);
-                if (principal == null)
+                var tokenPrincipal = tokenManager.ValidateToken(accessHeadAndPayload + "." + accessSignature);
+                if (tokenPrincipal == null)
                 {
                     throw new UnauthorizedAccessException("Invalid access token.");
                 }
                 var userName = tokenManager.GetPayLoadValue(accessHeadAndPayload.Split(Convert.ToChar("."))[1], "name");
+                PortalPrincipal portalPrincipal;
                 using (AuthenticationHelper.GetSystemAccount())
                 {
-                    context.User = AuthenticationHelper.LoadUserPrincipal(userName);
+                    portalPrincipal = AuthenticationHelper.LoadPortalPrincipal(userName);
+                }
+                AssertUserHasNotLoggedOut(tokenManager, portalPrincipal, accessHeadAndPayload);
+
+                using (AuthenticationHelper.GetSystemAccount())
+                {
+                    context.User = portalPrincipal;
                 }
             }
         }
@@ -284,13 +312,59 @@ namespace SenseNet.Portal.Virtualization
             }
 
             var refreshSignature = authCookie.Value;
-            var principal = tokenManager.ValidateToken(refreshHeadAndPayload + "." + refreshSignature);
-            var userName = principal.Identity.Name;
-            var roleName = String.Empty;
+            var tokenPrincipal = tokenManager.ValidateToken(refreshHeadAndPayload + "." + refreshSignature);
+            if (tokenPrincipal == null)
+            {
+                throw new UnauthorizedAccessException("Invalid access token.");
+            }
+            var userName = tokenPrincipal.Identity.Name;
 
+            AssertUserHasNotLoggedOut(tokenManager, userName, refreshHeadAndPayload);
+
+            var roleName = String.Empty;
             // emit access token and cookie only
             EmitTokensAndCookies(context, tokenManager, validFrom, userName, roleName, false);
             context.Response.StatusCode = HttpResponseStatusCode.Ok;
+        }
+
+        private void AssertUserHasNotLoggedOut(TokenManager tokenManager, string userName, string tokenheadAndPayload)
+        {
+            PortalPrincipal portalPrincipal;
+            using (AuthenticationHelper.GetSystemAccount())
+            {
+                portalPrincipal = AuthenticationHelper.LoadPortalPrincipal(userName);
+            }
+            AssertUserHasNotLoggedOut(tokenManager, portalPrincipal, tokenheadAndPayload);
+        }
+
+        private void AssertUserHasNotLoggedOut(TokenManager tokenManager, PortalPrincipal portalPrincipal, string tokenheadAndPayload)
+        {
+            if (UserHasLoggedOut(tokenManager, portalPrincipal, tokenheadAndPayload))
+            {
+                throw new UnauthorizedAccessException("Invalid access token.");
+            }
+        }
+
+        private bool UserHasLoggedOut(TokenManager tokenManager, string userName, string tokenheadAndPayload)
+        {
+            PortalPrincipal portalPrincipal;
+            using (AuthenticationHelper.GetSystemAccount())
+            {
+                portalPrincipal = AuthenticationHelper.LoadPortalPrincipal(userName);
+            }
+            return UserHasLoggedOut(tokenManager, portalPrincipal, tokenheadAndPayload);
+        }
+
+        private bool UserHasLoggedOut(TokenManager tokenManager, PortalPrincipal portalPrincipal, string tokenheadAndPayload)
+        {
+            var lastLoggedOut = (portalPrincipal?.Identity as IUser)?.LastLoggedOut;
+            return DateTime.Compare(lastLoggedOut.GetValueOrDefault(), TokenCreationTime(tokenManager, tokenheadAndPayload)) >= 0;
+        }
+
+        private DateTime TokenCreationTime(TokenManager tokenManager, string headAndPayload)
+        {
+            var seconds = int.Parse(tokenManager.GetPayLoadValue(headAndPayload.Split(Convert.ToChar("."))[1], "iat"));
+            return tokenManager.GetDateFromNumericDate(seconds);
         }
 
         private void EmitTokensAndCookies(HttpContextBase context, TokenManager tokenManager, DateTime validFrom, string userName, string roleName, bool refreshTokenAsWell)

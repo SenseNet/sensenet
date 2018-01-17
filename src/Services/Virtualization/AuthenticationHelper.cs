@@ -13,10 +13,11 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using System.Security.Principal;
 using SenseNet.ContentRepository.Security;
+using SenseNet.Services.Virtualization;
 
 namespace SenseNet.Portal.Virtualization
 {
-    public static class AuthenticationHelper
+    public class AuthenticationHelper: IUltimateLogoutProvider
     {
         private static readonly string authHeaderName = "WWW-Authenticate";
 
@@ -113,9 +114,15 @@ namespace SenseNet.Portal.Virtualization
             throw new OData.ODataException(OData.ODataExceptionCode.Forbidden);
         }
 
-        public static void Logout()
+        public void UltimateLogout(bool ultimateLogout)
         {
-            var info = new CancellableLoginInfo { UserName = User.Current.Username };
+            Logout(ultimateLogout);
+        }
+
+        public static void Logout(bool ultimateLogout = false)
+        {
+            var user = User.Current;
+            var info = new CancellableLoginInfo { UserName = user.Username };
             LoginExtender.OnLoggingOut(info);
 
             if (info.Cancel)
@@ -126,11 +133,11 @@ namespace SenseNet.Portal.Virtualization
             SnLog.WriteAudit(AuditEvent.Logout,
                 new Dictionary<string, object>
                 {
-                    {"UserName", User.Current.Username},
+                    {"UserName", user.Username},
                     {"ClientAddress", RepositoryTools.GetClientIpAddress()}
                 });
 
-            LoginExtender.OnLoggedOut(new LoginInfo { UserName = User.Current.Username });
+            LoginExtender.OnLoggedOut(new LoginInfo { UserName = user.Username });
 
             if (HttpContext.Current != null)
             {
@@ -144,6 +151,11 @@ namespace SenseNet.Portal.Virtualization
                 };
 
                 HttpContext.Current.Response.Cookies.Add(sessionCookie);
+                if (ultimateLogout)
+                {
+                    var now = DateTime.Now;
+                    user.LastLoggedOut = user.LastLoggedOut == null ? now : (DateTime.Compare(user.LastLoggedOut.Value, now) > 0 ? user.LastLoggedOut : now);
+                }
             }
         }
 
@@ -153,12 +165,24 @@ namespace SenseNet.Portal.Virtualization
             return sessionStateSection != null ? sessionStateSection.CookieName : string.Empty;
         }
 
+        public static string GetRequestParameterValue(HttpContextBase context, string parameterName)
+        {
+            return GetRequestParameterValue(GetRequest(context), parameterName);
+        }
+
+        public static string GetRequestParameterValue(HttpRequestBase request, string parameterName)
+        {
+            return request.Params == null ? null : request.Params[parameterName];
+            //return request?.Params[parameterName];
+        }
+
         public static Func<object, HttpContextBase> GetContext = sender => new HttpContextWrapper(((HttpApplication)sender).Context);
         public static Func<object, HttpRequestBase> GetRequest = sender => new HttpRequestWrapper(((HttpApplication)sender).Context.Request);
         public static Func<object, HttpResponseBase> GetResponse = sender => new HttpResponseWrapper(((HttpApplication)sender).Context.Response);
 
         public static Func<IPrincipal> GetVisitorPrincipal = () => new PortalPrincipal(User.Visitor);
         public static Func<string, IPrincipal> LoadUserPrincipal = userName => new PortalPrincipal(User.Load(userName));
+        public static Func<string, PortalPrincipal> LoadPortalPrincipal = userName => new PortalPrincipal(User.Load(userName));
 
         public static Func<string, string, bool> IsUserValid = (userName, password) => Membership.ValidateUser(userName, password);
 

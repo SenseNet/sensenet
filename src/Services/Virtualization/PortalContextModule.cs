@@ -108,8 +108,9 @@ namespace SenseNet.Portal.Virtualization
             if (!HttpHeaderTools.TrySetAllowedOriginHeader())
                 AuthenticationHelper.ThrowForbidden("token auth");
 
-            if (request.HttpMethod == "OPTIONS")
-            {
+            //if (request.HttpMethod == "OPTIONS")
+            if (!portalContext.IsWebdavRequest && !portalContext.IsOfficeProtocolRequest && request.HttpMethod == "OPTIONS")
+                {
                 // set allowed methods and headers
                 HttpHeaderTools.SetPreflightResponse();
                 (sender as HttpApplication)?.CompleteRequest();

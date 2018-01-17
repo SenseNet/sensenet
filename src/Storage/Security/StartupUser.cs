@@ -60,6 +60,9 @@ namespace SenseNet.ContentRepository.Storage.Security
         {
             throw new InvalidOperationException("The STARTUP user is not a member of any container (group or organizational unit).");
         }
+
+        public DateTime? LastLoggedOut { get; set; }
+
         public bool IsInGroup(int securityGroupId)
         {
             throw new InvalidOperationException("The STARTUP user is not a member of any role (group or organizational unit).");

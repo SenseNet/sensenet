@@ -80,6 +80,7 @@
   <ItemGroup>
     <Compile Include="HttpHelper.cs" />
     <Compile Include="OAuthAuthenticationTests.cs" />
+    <Compile Include="ServicesTestUser.cs" />
     <Compile Include="TokenAuthenticationTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

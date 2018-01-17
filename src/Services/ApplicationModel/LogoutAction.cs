@@ -24,7 +24,8 @@ namespace SenseNet.ApplicationModel
 
         public override object Execute(Content content, params object[] parameters)
         {
-            AuthenticationHelper.Logout();
+            var ultimateLogout = parameters != null && parameters.Length > 0 && parameters[0] != null && (bool)parameters[0];
+            AuthenticationHelper.Logout(ultimateLogout);
 
             var backUrl = PortalContext.Current.BackUrl;
             var back = string.IsNullOrWhiteSpace(backUrl) ? "/" : backUrl;

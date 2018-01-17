@@ -832,6 +832,12 @@ namespace SenseNet.ContentRepository
             return SecurityHandler.IsInGroup(this.Id, container.Id);
         }
 
+        /// <inheritdoc />
+        public DateTime? LastLoggedOut {
+            get => GetProperty<DateTime?>("LastLoggedOut");
+            set => this["LastLoggedOut"] = value;
+        }
+
         /// <summary>
         /// This method is obsolete. Use IsInGroup() instead.
         /// </summary>
