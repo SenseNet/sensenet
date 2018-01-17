@@ -159,7 +159,7 @@ namespace SenseNet.Search.Lucene29.Tests
                 var parser = new CqlParser();
                 var snQuery = parser.Parse(queryText, queryContext);
 
-                var analyzers = indexingInfo.ToDictionary(kvp => kvp.Key, kvp => Lucene29IndexingEngine.GetAnalyzer(kvp.Value));
+                var analyzers = indexingInfo.ToDictionary(kvp => kvp.Key, kvp => Lucene29LocalIndexingEngine.GetAnalyzer(kvp.Value));
                 var indexFieldTypes = indexingInfo.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.IndexFieldHandler.IndexFieldType);
 
                 // This is a non-functional object that's only purpose is 

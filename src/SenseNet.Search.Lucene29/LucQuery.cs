@@ -77,7 +77,7 @@ namespace SenseNet.Search.Lucene29
             };
         }
 
-        [Obsolete("Use Lucene29QueryEngine.CreateSortField instead.", true)]
+        [Obsolete("Use Lucene29LocalQueryEngine.CreateSortField instead.", true)]
         public static SortField CreateSortField(string fieldName, bool reverse)
         {
             // CreateSortField has been moved up to the query engine.

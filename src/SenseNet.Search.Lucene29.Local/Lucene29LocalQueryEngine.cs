@@ -7,7 +7,7 @@ using SenseNet.ContentRepository.Search;
 
 namespace SenseNet.Search.Lucene29
 {
-    public class Lucene29QueryEngine : IQueryEngine
+    public class Lucene29LocalQueryEngine : IQueryEngine
     {
         public QueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
@@ -43,7 +43,7 @@ namespace SenseNet.Search.Lucene29
 
         private LucQuery Compile(SnQuery query, IQueryContext context)
         {
-            var indexingEngine = (Lucene29IndexingEngine) IndexManager.IndexingEngine;
+            var indexingEngine = (Lucene29LocalIndexingEngine) IndexManager.IndexingEngine;
             var analyzer = indexingEngine.GetAnalyzer();
             var visitor = new SnQueryToLucQueryVisitor(analyzer, context);
             visitor.Visit(query.QueryTree);

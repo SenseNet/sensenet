@@ -49,9 +49,9 @@ namespace SenseNet.Configuration
         }
 
         public static string Lucene29IndexingEngineClassName { get; internal set; } = GetProvider("IndexingEngine",
-            "SenseNet.Search.Lucene29.Lucene29IndexingEngine");
+            "SenseNet.Search.Lucene29.Lucene29LocalIndexingEngine");
         public static string Lucene29QueryEngineClassName { get; internal set; } = GetProvider("QueryEngine",
-            "SenseNet.Search.Lucene29.Lucene29QueryEngine");
+            "SenseNet.Search.Lucene29.Lucene29LocalQueryEngine");
 
         public static int LuceneMergeFactor { get; internal set; } = GetInt(SectionName, "LuceneMergeFactor", 10);
         public static double LuceneRAMBufferSizeMB { get; internal set; } = GetDouble(SectionName, "LuceneRAMBufferSizeMB", 16.0);

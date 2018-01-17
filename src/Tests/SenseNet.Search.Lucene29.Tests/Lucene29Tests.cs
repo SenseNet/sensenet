@@ -33,7 +33,7 @@ namespace SenseNet.Search.Lucene29.Tests
     /// <summary>
     /// Test indexing engine implementation for throwing an exception during testing.
     /// </summary>
-    internal class Lucene29IndexingEngineFailStartup : Lucene29IndexingEngine
+    internal class Lucene29LocalIndexingEngineFailStartup : Lucene29LocalIndexingEngine
     {
         protected override void Startup(TextWriter consoleOut)
         {
@@ -54,9 +54,9 @@ namespace SenseNet.Search.Lucene29.Tests
                         new Tuple<IIndexingEngine, string>(IndexManager.IndexingEngine, s));
             var engine = result.Item1;
             var console = result.Item2;
-            Assert.AreEqual(typeof(Lucene29IndexingEngine).FullName, engine.GetType().FullName);
+            Assert.AreEqual(typeof(Lucene29LocalIndexingEngine).FullName, engine.GetType().FullName);
 
-            var indxDir =((Lucene29IndexingEngine)engine).IndexDirectory.CurrentDirectory;
+            var indxDir =((Lucene29LocalIndexingEngine)engine).IndexDirectory.CurrentDirectory;
             Assert.IsNotNull(indxDir);
             Assert.IsTrue(indxDir.Contains(MethodBase.GetCurrentMethod().Name));
             Assert.IsTrue(console.Contains(indxDir));
@@ -136,8 +136,8 @@ namespace SenseNet.Search.Lucene29.Tests
             queryResult1 = result.Item3;
             queryResult2 = result.Item4;
 
-            Assert.AreEqual(typeof(Lucene29IndexingEngine).FullName, engine.GetType().FullName);
-            var indxDir = ((Lucene29IndexingEngine)engine).IndexDirectory.CurrentDirectory;
+            Assert.AreEqual(typeof(Lucene29LocalIndexingEngine).FullName, engine.GetType().FullName);
+            var indxDir = ((Lucene29LocalIndexingEngine)engine).IndexDirectory.CurrentDirectory;
             Assert.IsNotNull(indxDir);
             Assert.AreEqual(1, user.Id);
             Assert.AreEqual(1, queryResult1.Count);
@@ -221,7 +221,7 @@ namespace SenseNet.Search.Lucene29.Tests
         //    // an exception during startup to test index directory cleanup.
         //    var searchEngine = new Lucene29SearchEngine
         //    {
-        //        IndexingEngine = new Lucene29IndexingEngineFailStartup()
+        //        IndexingEngine = new Lucene29LocalIndexingEngineFailStartup()
         //    };
 
         //    Indexing.IsOuterSearchEngineEnabled = true;
@@ -281,7 +281,7 @@ namespace SenseNet.Search.Lucene29.Tests
         {
             var dataProvider = new InMemoryDataProvider();
             var securityDataProvider = GetSecurityDataProvider(dataProvider);
-            var indexingEngine = new Lucene29IndexingEngine();
+            var indexingEngine = new Lucene29LocalIndexingEngine();
 
             var searchEngine = new Lucene29SearchEngine
             {
@@ -332,7 +332,7 @@ namespace SenseNet.Search.Lucene29.Tests
             var folderName = "Test_" + MethodBase.GetCurrentMethod().Name;
 
             var dataProvider = new InMemoryDataProvider();
-            var indexingEngine = new Lucene29IndexingEngine(new IndexDirectory(folderName));
+            var indexingEngine = new Lucene29LocalIndexingEngine(new IndexDirectory(folderName));
             var searchEngine = new Lucene29SearchEngine
             {
                 IndexingEngine = indexingEngine
@@ -425,7 +425,7 @@ namespace SenseNet.Search.Lucene29.Tests
             {
                 var searchEngine = SearchManager.SearchEngine;
                 var analyzers = searchEngine.GetAnalyzers();
-                var indexingEngine = (Lucene29IndexingEngine) searchEngine.IndexingEngine;
+                var indexingEngine = (Lucene29LocalIndexingEngine) searchEngine.IndexingEngine;
 
                 var masterAnalyzerAcc = new PrivateObject(indexingEngine.GetAnalyzer());
 
@@ -476,7 +476,7 @@ namespace SenseNet.Search.Lucene29.Tests
             var dataProvider = new InMemoryDataProvider();
             var securityDataProvider = GetSecurityDataProvider(dataProvider);
             var indexFolderName = $"Test_{memberName}_{Guid.NewGuid()}";
-            var indexingEngine = new Lucene29IndexingEngine(new IndexDirectory(indexFolderName));
+            var indexingEngine = new Lucene29LocalIndexingEngine(new IndexDirectory(indexFolderName));
             var searchEngine = new Lucene29SearchEngine
             {
                 IndexingEngine = indexingEngine
@@ -524,7 +524,7 @@ namespace SenseNet.Search.Lucene29.Tests
         {
             var nodeIdList = new List<int>();
             var versionIdLists = new List<int>();
-            using (var rf = Lucene29IndexingEngine.GetReaderFrame())
+            using (var rf = Lucene29LocalIndexingEngine.GetReaderFrame())
             {
                 var reader = rf.IndexReader;
                 for (var d = 0; d < reader.NumDocs(); d++)

@@ -50,8 +50,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Lucene29IndexingEngine.cs" />
-    <Compile Include="Lucene29QueryEngine.cs" />
+    <Compile Include="Lucene29LocalIndexingEngine.cs" />
+    <Compile Include="Lucene29LocalQueryEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

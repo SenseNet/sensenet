@@ -13,7 +13,7 @@ using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Lucene29
 {
-    public class Lucene29IndexingEngine : ILuceneIndexingEngine
+    public class Lucene29LocalIndexingEngine : ILuceneIndexingEngine
     {
         internal IndexDirectory IndexDirectory => LuceneSearchManager.IndexDirectory;
 
@@ -21,11 +21,11 @@ namespace SenseNet.Search.Lucene29
 
         //===================================================================================== Constructors
 
-        public Lucene29IndexingEngine() : this(null)
+        public Lucene29LocalIndexingEngine() : this(null)
         {
             // default constructor is needed for automatic type loading
         }
-        public Lucene29IndexingEngine(IndexDirectory indexDirectory)
+        public Lucene29LocalIndexingEngine(IndexDirectory indexDirectory)
         {
             var indexDir = indexDirectory ?? new IndexDirectory(null, SearchManager.IndexDirectoryPath);
 
@@ -34,8 +34,8 @@ namespace SenseNet.Search.Lucene29
             SetEventhandlers();
         }
 
-        //UNDONE: NOREF: find usages: Lucene29IndexingEngine constructor for forceReopenFrequency.
-        public Lucene29IndexingEngine(TimeSpan forceReopenFrequency)
+        //UNDONE: NOREF: find usages: Lucene29LocalIndexingEngine constructor for forceReopenFrequency.
+        public Lucene29LocalIndexingEngine(TimeSpan forceReopenFrequency)
         {
             var indexDirectory = new IndexDirectory(null, SearchManager.IndexDirectoryPath);
 
@@ -114,7 +114,7 @@ namespace SenseNet.Search.Lucene29
         }
         public static IndexReaderFrame GetReaderFrame(bool dirty = false)
         {
-            return ((Lucene29IndexingEngine)IndexManager.IndexingEngine).GetIndexReaderFrame(dirty);
+            return ((Lucene29LocalIndexingEngine)IndexManager.IndexingEngine).GetIndexReaderFrame(dirty);
         }
 
         //===================================================================================== ILuceneIndexingEngine implementation
