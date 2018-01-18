@@ -11,7 +11,7 @@ using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Tests;
 using SenseNet.Tests.Implementations;
 
-namespace SenseNet.Search.Lucene29.Tests.DataProviderTests
+namespace SenseNet.Tests
 {
     [TestClass]
     public class InMemoryDataProviderTests : TestBase

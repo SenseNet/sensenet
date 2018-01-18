@@ -72,6 +72,7 @@
     <Compile Include="RepositoryStartTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TemplateReplacerTests.cs" />
+    <Compile Include="TreeLockTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\BlobStorage\BlobStorage.csproj">

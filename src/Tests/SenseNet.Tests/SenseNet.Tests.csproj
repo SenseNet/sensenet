@@ -67,6 +67,7 @@
     <Compile Include="Implementations\InMemoryIndexingEngine.cs" />
     <Compile Include="Implementations\InMemoryQueryEngine.cs" />
     <Compile Include="Implementations\InMemorySearchEngine.cs" />
+    <Compile Include="InMemoryDataProviderTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestBase.cs" />
     <Compile Include="Tools.cs" />
@@ -90,6 +91,10 @@
     <ProjectReference Include="..\..\Search\Search.csproj">
       <Project>{0279705B-779D-485D-86B9-F7AB3DD1F2C3}</Project>
       <Name>Search</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Services\Services.csproj">
+      <Project>{b72529c8-feb1-49f5-b08b-56055b58f296}</Project>
+      <Name>Services</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Storage\Storage.csproj">
       <Project>{5DB4DDBA-81F6-4D81-943A-18F3178B3355}</Project>
