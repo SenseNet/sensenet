@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using SenseNet.Search;
-using SenseNet.Search.Parser;
 using System.Text;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 using SenseNet.Search.Querying.Parser;
 using SenseNet.Search.Querying.Parser.Predicates;
 
-namespace SenseNet.ContentRepository.Tests.Implementations
+namespace SenseNet.Tests.Implementations
 {
     public class InMemoryQueryEngine : IQueryEngine
     {
@@ -81,12 +80,12 @@ namespace SenseNet.ContentRepository.Tests.Implementations
             return queryResult;
         }
 
-        private StringBuilder _log = new StringBuilder();
-        internal string GetLog()
+        private readonly StringBuilder _log = new StringBuilder();
+        public string GetLog()
         {
             return _log.ToString();
         }
-        internal void ClearLog()
+        public void ClearLog()
         {
             _log.Clear();
         }

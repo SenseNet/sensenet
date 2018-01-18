@@ -7,10 +7,9 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Schema;
-using SenseNet.ContentRepository.Tests;
-using SenseNet.ContentRepository.Tests.Implementations;
+using SenseNet.Tests;
+using SenseNet.Tests.Implementations;
 
 namespace SenseNet.Search.Lucene29.Tests.DataProviderTests
 {

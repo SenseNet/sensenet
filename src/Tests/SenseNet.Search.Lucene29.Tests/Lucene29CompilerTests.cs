@@ -153,7 +153,7 @@ namespace SenseNet.Search.Lucene29.Tests
             };
 
             //using (new ContentRepository.Tests.Tools.RepositorySupportSwindler(new TestSearchEngineSupport(indexingInfo)))
-            using (ContentRepository.Tests.Tools.Swindle(typeof(SearchManager), "_searchEngineSupport", new TestSearchEngineSupport(indexingInfo)))
+            using (SenseNet.Tests.Tools.Swindle(typeof(SearchManager), "_searchEngineSupport", new TestSearchEngineSupport(indexingInfo)))
             {
                 var queryContext = new TestQueryContext(QuerySettings.Default, 0, indexingInfo);
                 var parser = new CqlParser();

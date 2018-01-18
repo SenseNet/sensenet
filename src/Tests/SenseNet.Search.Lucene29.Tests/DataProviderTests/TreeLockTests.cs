@@ -1,6 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Tests;
+using SenseNet.Tests;
 
 namespace SenseNet.Search.Lucene29.Tests.DataProviderTests
 {

@@ -10,16 +10,14 @@ using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Events;
-using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.ContentRepository.Tests;
-using SenseNet.ContentRepository.Tests.Implementations;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 using SenseNet.Search.Tests.Implementations;
 using SenseNet.Search.Lucene29.Tests.Implementations;
 using SenseNet.Security.Data;
+using SenseNet.Tests;
+using SenseNet.Tests.Implementations;
 
 namespace SenseNet.Search.Lucene29.Tests
 {
@@ -915,7 +913,7 @@ namespace SenseNet.Search.Lucene29.Tests
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .StartWorkflowEngine(false)))
             //using (new ContentRepository.Tests.Tools.RepositorySupportSwindler(new TestSearchEngineSupport(indexingInfo)))
-            using (ContentRepository.Tests.Tools.Swindle(typeof(SearchManager), "_searchEngineSupport", new TestSearchEngineSupport(indexingInfo)))
+            using (SenseNet.Tests.Tools.Swindle(typeof(SearchManager), "_searchEngineSupport", new TestSearchEngineSupport(indexingInfo)))
             using (new SystemAccount())
             {
                 var cquery = ContentQuery.CreateQuery(qtext, QuerySettings.AdminSettings);

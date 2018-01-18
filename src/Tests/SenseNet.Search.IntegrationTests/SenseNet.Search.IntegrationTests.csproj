@@ -80,13 +80,17 @@
       <Project>{0279705B-779D-485D-86B9-F7AB3DD1F2C3}</Project>
       <Name>Search</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Services\Services.csproj">
+      <Project>{b72529c8-feb1-49f5-b08b-56055b58f296}</Project>
+      <Name>Services</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Storage\Storage.csproj">
       <Project>{5db4ddba-81f6-4d81-943a-18f3178b3355}</Project>
       <Name>Storage</Name>
     </ProjectReference>
-    <ProjectReference Include="..\SenseNet.ContentRepository.Tests\SenseNet.ContentRepository.Tests.csproj">
-      <Project>{7de6a7e8-5738-4436-9646-9c1179f752ea}</Project>
-      <Name>SenseNet.ContentRepository.Tests</Name>
+    <ProjectReference Include="..\SenseNet.Tests\SenseNet.Tests.csproj">
+      <Project>{4674b8b8-6567-4eb5-b5a8-c838fecce302}</Project>
+      <Name>SenseNet.Tests</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />

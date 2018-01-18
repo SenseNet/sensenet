@@ -115,13 +115,13 @@
       <Project>{5DB4DDBA-81F6-4D81-943A-18F3178B3355}</Project>
       <Name>Storage</Name>
     </ProjectReference>
-    <ProjectReference Include="..\SenseNet.ContentRepository.Tests\SenseNet.ContentRepository.Tests.csproj">
-      <Project>{7DE6A7E8-5738-4436-9646-9C1179F752EA}</Project>
-      <Name>SenseNet.ContentRepository.Tests</Name>
-    </ProjectReference>
     <ProjectReference Include="..\SenseNet.Search.Tests\SenseNet.Search.Tests.csproj">
       <Project>{0c78c008-db1d-4ce6-b081-a04afdaf5880}</Project>
       <Name>SenseNet.Search.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SenseNet.Tests\SenseNet.Tests.csproj">
+      <Project>{4674B8B8-6567-4EB5-B5A8-C838FECCE302}</Project>
+      <Name>SenseNet.Tests</Name>
     </ProjectReference>
   </ItemGroup>
   <Choose>

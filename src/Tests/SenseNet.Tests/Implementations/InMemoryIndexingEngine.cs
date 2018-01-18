@@ -10,7 +10,7 @@ using SenseNet.Diagnostics;
 using System.Collections.Concurrent;
 using SenseNet.Search.Querying;
 
-namespace SenseNet.ContentRepository.Tests.Implementations
+namespace SenseNet.Tests.Implementations
 {
     public class InMemoryIndexingEngine : IIndexingEngine
     {

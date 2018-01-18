@@ -11,7 +11,7 @@ using SenseNet.Search;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Configuration;
 
-namespace SenseNet.ContentRepository.Tests
+namespace SenseNet.Tests
 {
     public class Tools
     {
