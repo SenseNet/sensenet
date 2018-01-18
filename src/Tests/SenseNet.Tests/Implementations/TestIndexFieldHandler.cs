@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using SenseNet.Search;
 using SenseNet.Search.Indexing;
 
-namespace SenseNet.Search.Tests.Implementations
+namespace SenseNet.Tests.Implementations
 {
     public class TestIndexFieldHandlerString : IFieldIndexHandler
     {
@@ -118,7 +119,7 @@ namespace SenseNet.Search.Tests.Implementations
         public IndexValue Parse(string text)
         {
             float converted;
-            if (float.TryParse(text, System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.CultureInfo.InvariantCulture, out converted))
+            if (float.TryParse(text, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out converted))
                 return new IndexValue(converted);
             return null;
         }
@@ -155,7 +156,7 @@ namespace SenseNet.Search.Tests.Implementations
         public IndexValue Parse(string text)
         {
             double converted;
-            if (double.TryParse(text, System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.CultureInfo.InvariantCulture, out converted))
+            if (double.TryParse(text, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out converted))
                 return new IndexValue(converted);
             return null;
         }

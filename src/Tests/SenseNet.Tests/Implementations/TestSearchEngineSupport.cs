@@ -9,9 +9,9 @@ using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.Search.Parser;
 
-namespace SenseNet.Search.Lucene29.Tests.Implementations
+namespace SenseNet.Tests.Implementations
 {
-    internal class TestSearchEngineSupport : ISearchEngineSupport
+    public class TestSearchEngineSupport : ISearchEngineSupport
     {
         private readonly IDictionary<string, IPerFieldIndexingInfo> _indexingInfos;
 

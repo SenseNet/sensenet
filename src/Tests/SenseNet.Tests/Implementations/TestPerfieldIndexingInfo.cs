@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SenseNet.Search.Indexing;
 
-namespace SenseNet.Search.Tests.Implementations
+namespace SenseNet.Tests.Implementations
 {
     public class TestPerfieldIndexingInfoString : IPerFieldIndexingInfo
     {

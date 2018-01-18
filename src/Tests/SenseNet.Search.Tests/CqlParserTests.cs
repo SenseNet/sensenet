@@ -1,16 +1,14 @@
 ﻿using System;
-using System.CodeDom;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 using SenseNet.Search.Querying.Parser;
 using SenseNet.Search.Querying.Parser.Predicates;
 using SenseNet.Search.Tests.Implementations;
+using SenseNet.Tests.Implementations;
 
 namespace SenseNet.Search.Tests
 {

@@ -5,13 +5,11 @@ using Lucene.Net.Search;
 using Lucene.Net.Support;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Search;
-using SenseNet.Search;
 using SenseNet.Search.Indexing;
-using SenseNet.Search.Lucene29;
 using SenseNet.Search.Querying;
 using SenseNet.Search.Querying.Parser;
 using SenseNet.Search.Tests.Implementations;
-using SenseNet.Search.Lucene29.Tests.Implementations;
+using SenseNet.Tests.Implementations;
 
 namespace SenseNet.Search.Lucene29.Tests
 {

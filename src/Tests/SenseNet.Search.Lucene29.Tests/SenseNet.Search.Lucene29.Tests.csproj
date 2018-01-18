@@ -68,10 +68,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="Implementations\SafeQueries.cs" />
     <Compile Include="Implementations\TestNode.cs" />
-    <Compile Include="Implementations\TestSearchEngineSupport.cs" />
-    <Compile Include="InMemorySearchTests.cs" />
     <Compile Include="Lucene29Tests.cs" />
     <Compile Include="Lucene29CompilerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

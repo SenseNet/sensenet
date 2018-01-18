@@ -8,10 +8,9 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
-using SenseNet.Tests;
 using SenseNet.Tests.Implementations;
 
-namespace SenseNet.Tests
+namespace SenseNet.Tests.SelfTest
 {
     [TestClass]
     public class InMemoryDataProviderTests : TestBase
