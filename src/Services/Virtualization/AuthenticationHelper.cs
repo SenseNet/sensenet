@@ -119,6 +119,7 @@ namespace SenseNet.Portal.Virtualization
             Logout(ultimateLogout);
         }
 
+
         public static void Logout(bool ultimateLogout = false)
         {
             var user = User.Current;
@@ -173,7 +174,6 @@ namespace SenseNet.Portal.Virtualization
         public static string GetRequestParameterValue(HttpRequestBase request, string parameterName)
         {
             return request.Params == null ? null : request.Params[parameterName];
-            //return request?.Params[parameterName];
         }
 
         public static Func<object, HttpContextBase> GetContext = sender => new HttpContextWrapper(((HttpApplication)sender).Context);
@@ -183,9 +183,8 @@ namespace SenseNet.Portal.Virtualization
         public static Func<IPrincipal> GetVisitorPrincipal = () => new PortalPrincipal(User.Visitor);
         public static Func<string, IPrincipal> LoadUserPrincipal = userName => new PortalPrincipal(User.Load(userName));
         public static Func<string, PortalPrincipal> LoadPortalPrincipal = userName => new PortalPrincipal(User.Load(userName));
-
+        public Func<string, PortalPrincipal> LoadPortalPrincipalForLogout { get; set; } = userName => LoadPortalPrincipal(userName);
         public static Func<string, string, bool> IsUserValid = (userName, password) => Membership.ValidateUser(userName, password);
-
         public static Func<IDisposable> GetSystemAccount = () => new SystemAccount();
         public static Func<string> GetBasicAuthHeader = () => PortalContext.Current.BasicAuthHeaders;
 

@@ -255,7 +255,7 @@ namespace SenseNet.Portal.Virtualization
                 }
                 if (!bool.TryParse(AuthenticationHelper.GetRequestParameterValue(context, "ultimateLogout"), out var ultimateLogout))
                 {
-                    ultimateLogout = false;
+                    ultimateLogout = Configuration.TokenAuthentication.DefaultUltimateLogout;
                 }
                 // ultimately log out only if the user has not been logged out already, if he has, just a local logout executes
                 if (ultimateLogout)
@@ -332,7 +332,7 @@ namespace SenseNet.Portal.Virtualization
             PortalPrincipal portalPrincipal;
             using (AuthenticationHelper.GetSystemAccount())
             {
-                portalPrincipal = AuthenticationHelper.LoadPortalPrincipal(userName);
+                portalPrincipal = _logoutProvider.LoadPortalPrincipalForLogout(userName);
             }
             AssertUserHasNotLoggedOut(tokenManager, portalPrincipal, tokenheadAndPayload);
         }
@@ -350,7 +350,7 @@ namespace SenseNet.Portal.Virtualization
             PortalPrincipal portalPrincipal;
             using (AuthenticationHelper.GetSystemAccount())
             {
-                portalPrincipal = AuthenticationHelper.LoadPortalPrincipal(userName);
+                portalPrincipal = _logoutProvider.LoadPortalPrincipalForLogout(userName);
             }
             return UserHasLoggedOut(tokenManager, portalPrincipal, tokenheadAndPayload);
         }
@@ -358,7 +358,7 @@ namespace SenseNet.Portal.Virtualization
         private bool UserHasLoggedOut(TokenManager tokenManager, PortalPrincipal portalPrincipal, string tokenheadAndPayload)
         {
             var lastLoggedOut = (portalPrincipal?.Identity as IUser)?.LastLoggedOut;
-            return DateTime.Compare(lastLoggedOut.GetValueOrDefault(), TokenCreationTime(tokenManager, tokenheadAndPayload)) >= 0;
+            return DateTime.Compare(lastLoggedOut.GetValueOrDefault(), TokenCreationTime(tokenManager, tokenheadAndPayload)) <= 0;
         }
 
         private DateTime TokenCreationTime(TokenManager tokenManager, string headAndPayload)
