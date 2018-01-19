@@ -7,7 +7,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
     {
         protected override bool ProtectedExecute()
         {
-            return IndexManager.AddTree(TreeRoot, this.Id, this.IsUnprocessedActivity);
+            return IndexManager.AddTree(TreeRoot, Id, IsUnprocessedActivity);
         }
     }
 }

@@ -83,7 +83,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
                 else
                 {
                     // create document via loading it from db (eg when indexdocumentdata was too large to send over MSMQ)
-                    doc = IndexManager.LoadIndexDocumentByVersionId(this.VersionId);
+                    doc = IndexManager.LoadIndexDocumentByVersionId(VersionId);
 
                     if (doc == null)
                         SnTrace.Index.Write("LM: DocumentIndexingActivity.CreateDocument (VersionId:{0}): Document is NULL from DB.", VersionId);
@@ -101,15 +101,15 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
 
         public override string ToString()
         {
-            return String.Format("{0}: [{1}/{2}], {3}", this.GetType().Name, this.NodeId, this.VersionId, this.Path);
+            return $"{GetType().Name}: [{NodeId}/{VersionId}], {Path}";
         }
 
         public override void Distribute()
         {
             // check doc size before distributing
-            var sendDocOverMSMQ = IndexDocumentData != null && IndexDocumentData.IndexDocumentSize.HasValue && IndexDocumentData.IndexDocumentSize.Value < Messaging.MsmqIndexDocumentSizeLimit;
+            var sendDocOverMsmq = IndexDocumentData?.IndexDocumentSize != null && IndexDocumentData.IndexDocumentSize.Value < Messaging.MsmqIndexDocumentSizeLimit;
 
-            if (sendDocOverMSMQ)
+            if (sendDocOverMsmq)
             {
                 // document is small to send over MSMQ
                 base.Distribute();
@@ -117,7 +117,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
             else
             {
                 // document is too large, send activity without the document
-                SnTrace.Index.Write("Activity is truncated. Id:{0}, Type:{1}", this.Id, this.ActivityType);
+                SnTrace.Index.Write("Activity is truncated. Id:{0}, Type:{1}", Id, ActivityType);
                 var docData = IndexDocumentData;
                 IndexDocumentData = null;
 
