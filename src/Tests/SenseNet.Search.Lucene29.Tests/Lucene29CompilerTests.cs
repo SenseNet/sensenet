@@ -5,13 +5,11 @@ using Lucene.Net.Search;
 using Lucene.Net.Support;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Search;
-using SenseNet.Search;
 using SenseNet.Search.Indexing;
-using SenseNet.Search.Lucene29;
 using SenseNet.Search.Querying;
 using SenseNet.Search.Querying.Parser;
 using SenseNet.Search.Tests.Implementations;
-using SenseNet.Search.Lucene29.Tests.Implementations;
+using SenseNet.Tests.Implementations;
 
 namespace SenseNet.Search.Lucene29.Tests
 {
@@ -153,7 +151,7 @@ namespace SenseNet.Search.Lucene29.Tests
             };
 
             //using (new ContentRepository.Tests.Tools.RepositorySupportSwindler(new TestSearchEngineSupport(indexingInfo)))
-            using (ContentRepository.Tests.Tools.Swindle(typeof(SearchManager), "_searchEngineSupport", new TestSearchEngineSupport(indexingInfo)))
+            using (SenseNet.Tests.Tools.Swindle(typeof(SearchManager), "_searchEngineSupport", new TestSearchEngineSupport(indexingInfo)))
             {
                 var queryContext = new TestQueryContext(QuerySettings.Default, 0, indexingInfo);
                 var parser = new CqlParser();

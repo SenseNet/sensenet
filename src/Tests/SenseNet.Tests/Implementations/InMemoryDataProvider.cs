@@ -19,7 +19,7 @@ using SenseNet.Search;
 using SenseNet.Search.Querying;
 using SenseNet.Security;
 
-namespace SenseNet.ContentRepository.Tests.Implementations
+namespace SenseNet.Tests.Implementations
 {
     public partial class InMemoryDataProvider : DataProvider
     {

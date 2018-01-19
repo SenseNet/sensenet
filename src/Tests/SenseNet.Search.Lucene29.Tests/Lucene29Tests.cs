@@ -12,21 +12,13 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Security;
-using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.ContentRepository.Tests;
-using SenseNet.ContentRepository.Tests.Implementations;
-using SenseNet.Search;
 using SenseNet.Search.Indexing;
-using SenseNet.Search.Lucene29;
-using SenseNet.Search.Lucene29.Tests.Implementations;
-using System.Threading;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing;
-using SenseNet.Search.Querying;
-using SenseNet.Search.Tests.Implementations;
+using SenseNet.Tests;
+using SenseNet.Tests.Implementations;
 
 namespace SenseNet.Search.Lucene29.Tests
 {
@@ -508,7 +500,7 @@ namespace SenseNet.Search.Lucene29.Tests
                 //IndexDirectory.CreateNew();
                 //IndexDirectory.Reset();
 
-                using (ContentRepository.Tests.Tools.Swindle(typeof(SearchManager), "_searchEngineSupport", new SearchEngineSupport()))
+                using (SenseNet.Tests.Tools.Swindle(typeof(SearchManager), "_searchEngineSupport", new SearchEngineSupport()))
                     //using (new SystemAccount())
                 {
                     //EnsureEmptyIndexDirectory();

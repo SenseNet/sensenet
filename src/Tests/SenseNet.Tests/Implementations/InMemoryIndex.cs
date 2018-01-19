@@ -6,7 +6,7 @@ using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 
-namespace SenseNet.ContentRepository.Tests.Implementations
+namespace SenseNet.Tests.Implementations
 {
     public class InMemoryIndex
     {

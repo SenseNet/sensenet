@@ -56,8 +56,6 @@
   </Choose>
   <ItemGroup>
     <Compile Include="CqlParserTests.cs" />
-    <Compile Include="Implementations\TestIndexFieldHandler.cs" />
-    <Compile Include="Implementations\TestPerfieldIndexingInfo.cs" />
     <Compile Include="Implementations\TestQueryEngine.cs" />
     <Compile Include="SnQueryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -70,9 +68,9 @@
       <Project>{0279705b-779d-485d-86b9-f7ab3dd1f2c3}</Project>
       <Name>Search</Name>
     </ProjectReference>
-    <ProjectReference Include="..\SenseNet.ContentRepository.Tests\SenseNet.ContentRepository.Tests.csproj">
-      <Project>{7de6a7e8-5738-4436-9646-9c1179f752ea}</Project>
-      <Name>SenseNet.ContentRepository.Tests</Name>
+    <ProjectReference Include="..\SenseNet.Tests\SenseNet.Tests.csproj">
+      <Project>{4674b8b8-6567-4eb5-b5a8-c838fecce302}</Project>
+      <Name>SenseNet.Tests</Name>
     </ProjectReference>
   </ItemGroup>
   <Choose>

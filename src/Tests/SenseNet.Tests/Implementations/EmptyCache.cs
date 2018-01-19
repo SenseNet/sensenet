@@ -5,7 +5,7 @@ using System.Web.Caching;
 using SenseNet.ContentRepository.Storage.Caching;
 using System.Collections.Generic;
 
-namespace SenseNet.ContentRepository.Tests.Implementations
+namespace SenseNet.Tests.Implementations
 {
     public class EmptyCache : ICache
     {

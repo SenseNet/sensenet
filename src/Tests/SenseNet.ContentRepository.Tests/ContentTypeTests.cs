@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Tests.Implementations;
-using SenseNet.Search;
 using SenseNet.Search.Indexing;
+using SenseNet.Tests;
+using SenseNet.Tests.Implementations;
 
 namespace SenseNet.ContentRepository.Tests
 {
