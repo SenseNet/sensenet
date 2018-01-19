@@ -521,7 +521,7 @@ namespace SenseNet.Search.Indexing
         public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
             var data = ((Field)snField).GetData();
-            return new[] { data == null ? string.Empty : data.ToString().ToLowerInvariant() };
+            return new[] { data?.ToString().ToLowerInvariant() ?? string.Empty };
         }
     }
     /// <summary>
@@ -654,7 +654,7 @@ namespace SenseNet.Search.Indexing
         public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
             var value = ((Field)snField).GetData();
-            var intValue = value == null ? 0 : (int)value;
+            var intValue = (int?) value ?? 0;
             return new[] { intValue.ToString() };
         }
     }

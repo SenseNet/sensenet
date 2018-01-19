@@ -29,7 +29,7 @@ namespace SenseNet.Search
     /// </summary>
     public class SafeQueries
     {
-        private static readonly string[] _safeQueries;
+        private static readonly string[] Queries;
         static SafeQueries()
         {
             var genuineQueries = new List<string>();
@@ -41,7 +41,7 @@ namespace SenseNet.Search
                     .Select(x => x.GetGetMethod(true).Invoke(null, null) as string)
                     .Where(y => y != null).Distinct().ToArray());
             }
-            _safeQueries = genuineQueries.ToArray();
+            Queries = genuineQueries.ToArray();
         }
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace SenseNet.Search
         /// </summary>
         public static bool IsSafe(string queryText)
         {
-            return _safeQueries.Contains(queryText);
+            return Queries.Contains(queryText);
         }
     }
 }

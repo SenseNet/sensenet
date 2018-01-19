@@ -34,8 +34,9 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 SnTrace.IndexQueue.Write("IAQ: Health checker is processing {0} gap{1}.", gapsLength, gapsLength > 1 ? "s" : "");
 
                 var notLoadedIds = state.Gaps.ToList();
-                foreach (IndexingActivityBase activity in new IndexingActivityLoader(state.Gaps, false))
+                foreach (var indexingActivity in new IndexingActivityLoader(state.Gaps, false))
                 {
+                    var activity = (IndexingActivityBase) indexingActivity;
                     WaitIfOverloaded();
                     ExecuteActivity(activity);
                     notLoadedIds.Remove(activity.Id);
@@ -55,8 +56,9 @@ namespace SenseNet.ContentRepository.Search.Indexing
             {
                 SnTrace.IndexQueue.Write("IAQ: Health checker is processing activities from {0} to {1}", (lastId + 1), lastDbId);
 
-                foreach (IndexingActivityBase activity in new IndexingActivityLoader(lastId + 1, lastDbId, false))
+                foreach (var indexingActivity in new IndexingActivityLoader(lastId + 1, lastDbId, false))
                 {
+                    var activity = (IndexingActivityBase) indexingActivity;
                     WaitIfOverloaded();
                     ExecuteActivity(activity);
                 }
@@ -167,13 +169,13 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 lock (ArrivalQueueLock)
                 {
 
-                    if (_arrivalQueue.Count > 0)
-                        SnTrace.IndexQueue.Write("IAQ: RESET: ArrivalQueue.Count: {0}", _arrivalQueue.Count);
+                    if (ArrivalQueue.Count > 0)
+                        SnTrace.IndexQueue.Write("IAQ: RESET: ArrivalQueue.Count: {0}", ArrivalQueue.Count);
                     
-                    foreach (var activity in _arrivalQueue)
+                    foreach (var activity in ArrivalQueue)
                         activity.Finish();
 
-                    _arrivalQueue.Clear();
+                    ArrivalQueue.Clear();
                     _lastQueued = lastQueued;
                 }
             }
@@ -200,15 +202,16 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 if (gaps.Any())
                 {
                     var loadedActivities = new IndexingActivityLoader(gaps, true);
-                    foreach (IndexingActivityBase loadedActivity in loadedActivities)
+                    foreach (var indexingActivity in loadedActivities)
                     {
+                        var loadedActivity = (IndexingActivityBase) indexingActivity;
                         // wait and start processing loaded activities in the meantime
                         WaitIfOverloaded(true);
 
                         SnTrace.IndexQueue.Write("IAQ: Startup: A{0} enqueued from db.", loadedActivity.Id);
 
                         IndexingActivityHistory.Arrive(loadedActivity);
-                        _arrivalQueue.Enqueue(loadedActivity);
+                        ArrivalQueue.Enqueue(loadedActivity);
                         _lastQueued = loadedActivity.Id;
                         count++;
                     }
@@ -216,15 +219,16 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 if (lastExecutedId < lastDatabaseId)
                 {
                     var loadedActivities = new IndexingActivityLoader(lastExecutedId + 1, lastDatabaseId, true);
-                    foreach (IndexingActivityBase loadedActivity in loadedActivities)
+                    foreach (var indexingActivity in loadedActivities)
                     {
+                        var loadedActivity = (IndexingActivityBase) indexingActivity;
                         // wait and start processing loaded activities in the meantime
                         WaitIfOverloaded(true);
 
                         SnTrace.IndexQueue.Write("IAQ: Startup: A{0} enqueued from db.", loadedActivity.Id);
 
                         IndexingActivityHistory.Arrive(loadedActivity);
-                        _arrivalQueue.Enqueue(loadedActivity);
+                        ArrivalQueue.Enqueue(loadedActivity);
                         _lastQueued = loadedActivity.Id;
                         count++;
                     }
@@ -254,19 +258,21 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
                 SnLog.WriteInformation($"Executing unprocessed activities ({count}) finished.", EventId.RepositoryLifecycle);
             }
+
+            // ReSharper disable once MemberHidesStaticFromOuterClass
             internal static void ShutDown()
             {
                 Reset(int.MaxValue);
                 DependencyManager.ShutDown();
             }
 
-            internal static bool IsEmpty => _arrivalQueue.Count == 0;
+            internal static bool IsEmpty => ArrivalQueue.Count == 0;
 
-            internal static int QueueLength => _arrivalQueue.Count;
+            internal static int QueueLength => ArrivalQueue.Count;
 
             private static readonly object ArrivalQueueLock = new object();
             private static int _lastQueued;
-            private static readonly Queue<IndexingActivityBase> _arrivalQueue = new Queue<IndexingActivityBase>();
+            private static readonly Queue<IndexingActivityBase> ArrivalQueue = new Queue<IndexingActivityBase>();
 
             public static void EnqueueActivity(IndexingActivityBase activity)
             {
@@ -279,7 +285,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 {
                     if (activity.Id <= _lastQueued)
                     {
-                        var sameActivity = _arrivalQueue.FirstOrDefault(a => a.Id == activity.Id);
+                        var sameActivity = ArrivalQueue.FirstOrDefault(a => a.Id == activity.Id);
                         if (sameActivity != null)
                         {
                             sameActivity.Attach(activity);
@@ -312,10 +318,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
                                 return r.Count() == expectedCount;
                             });
 
-                        foreach (IndexingActivityBase loadedActivity in loadedActivities)
+                        foreach (var indexingActivity in loadedActivities)
                         {
+                            var loadedActivity = (IndexingActivityBase) indexingActivity;
                             IndexingActivityHistory.Arrive(loadedActivity);
-                            _arrivalQueue.Enqueue(loadedActivity);
+                            ArrivalQueue.Enqueue(loadedActivity);
                             _lastQueued = loadedActivity.Id;
 
                             SnTrace.IndexQueue.Write("IAQ: A{0} enqueued from db.", loadedActivity.Id);
@@ -323,7 +330,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                             DependencyManager.ActivityEnqueued();
                         }
                     }
-                    _arrivalQueue.Enqueue(activity);
+                    ArrivalQueue.Enqueue(activity);
                     _lastQueued = activity.Id;
 
                     SnTrace.IndexQueue.Write("IAQ: A{0} enqueued.", activity.Id);
@@ -335,9 +342,9 @@ namespace SenseNet.ContentRepository.Search.Indexing
             {
                 lock (ArrivalQueueLock)
                 {
-                    if (_arrivalQueue.Count == 0)
+                    if (ArrivalQueue.Count == 0)
                         return null;
-                    var activity = _arrivalQueue.Dequeue();
+                    var activity = ArrivalQueue.Dequeue();
 
                     SnTrace.IndexQueue.Write("IAQ: A{0} dequeued.", activity.Id);
 
@@ -352,13 +359,14 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 return new IndexingActivityLoader(from, to, false);
             }
 
+            // ReSharper disable once MemberHidesStaticFromOuterClass
             internal static IndexingActivitySerializerState GetCurrentState()
             {
                 lock (ArrivalQueueLock)
                     return new IndexingActivitySerializerState
                     {
                         LastQueued = _lastQueued,
-                        Queue = _arrivalQueue.Select(x => x.Id).ToArray()
+                        Queue = ArrivalQueue.Select(x => x.Id).ToArray()
                     };
             }
         }
@@ -370,29 +378,30 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 // Before call ensure that the arrival queue is empty.
                 lock (WaitingSetLock)
                 {
-                    if (_waitingSet.Count > 0)
-                        SnTrace.IndexQueue.Write("IAQ: RESET: WaitingSet.Count: {0}", _waitingSet.Count);
+                    if (WaitingSet.Count > 0)
+                        SnTrace.IndexQueue.Write("IAQ: RESET: WaitingSet.Count: {0}", WaitingSet.Count);
 
-                    foreach (var activity in _waitingSet)
+                    foreach (var activity in WaitingSet)
                         activity.Finish();
-                    _waitingSet.Clear();
+                    WaitingSet.Clear();
                 }
             }
             internal static void Start()
             {
                 lock (WaitingSetLock)
-                    _waitingSet.Clear();
+                    WaitingSet.Clear();
             }
+            // ReSharper disable once MemberHidesStaticFromOuterClass
             internal static void ShutDown()
             {
                 Reset();
             }
-            internal static bool IsEmpty => _waitingSet.Count == 0;
+            internal static bool IsEmpty => WaitingSet.Count == 0;
 
-            internal static int WaitingSetLength => _waitingSet.Count;
+            internal static int WaitingSetLength => WaitingSet.Count;
 
             private static readonly object WaitingSetLock = new object();
-            private static readonly List<IndexingActivityBase> _waitingSet = new List<IndexingActivityBase>();
+            private static readonly List<IndexingActivityBase> WaitingSet = new List<IndexingActivityBase>();
 
             private static bool _run;
             public static void ActivityEnqueued()
@@ -421,7 +430,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             {
                 lock (WaitingSetLock)
                 {
-                    foreach (var olderActivity in _waitingSet)
+                    foreach (var olderActivity in WaitingSet)
                     {
                         if (MustWait(newerActivity, olderActivity))
                         {
@@ -433,7 +442,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         }
                     }
 
-                    _waitingSet.Add(newerActivity);
+                    WaitingSet.Add(newerActivity);
 
                     if (newerActivity.WaitingFor.Count == 0)
                         System.Threading.Tasks.Task.Run(() => Executor.Execute(newerActivity));
@@ -464,7 +473,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 lock (WaitingSetLock)
                 {
                     // activity is done in the ActivityQueue
-                    _waitingSet.Remove(activity);
+                    WaitingSet.Remove(activity);
 
                     // terminate and release waiting threads if there is any.
                     activity.Finish();
@@ -489,7 +498,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             {
                 lock (WaitingSetLock)
                 {
-                    var sameActivity = _waitingSet.FirstOrDefault(a => a.Id == activity.Id);
+                    var sameActivity = WaitingSet.FirstOrDefault(a => a.Id == activity.Id);
                     if (sameActivity != null)
                     {
                         sameActivity.Attach(activity);
@@ -506,10 +515,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             }
 
+            // ReSharper disable once MemberHidesStaticFromOuterClass
             public static IndexingActivityDependencyState GetCurrentState()
             {
                 lock (WaitingSetLock)
-                    return new IndexingActivityDependencyState { WaitingSet = _waitingSet.Select(x => x.Id).ToArray() };
+                    return new IndexingActivityDependencyState { WaitingSet = WaitingSet.Select(x => x.Id).ToArray() };
             }    
         }
 
@@ -517,15 +527,15 @@ namespace SenseNet.ContentRepository.Search.Indexing
         {
             private static readonly object GapsLock = new object();
             private static int _lastId;
-            private static readonly List<int> _gaps = new List<int>();
+            private static readonly List<int> Gaps = new List<int>();
 
             internal static void Reset(int lastId, IEnumerable<int> gaps)
             {
                 lock (GapsLock)
                 {
                     _lastId = lastId;
-                    _gaps.Clear();
-                    _gaps.AddRange(gaps);
+                    Gaps.Clear();
+                    Gaps.AddRange(gaps);
                 }
             }
 
@@ -537,12 +547,12 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     if (id > _lastId)
                     {
                         if (id > _lastId + 1)
-                            _gaps.AddRange(Enumerable.Range(_lastId + 1, id - _lastId - 1));
+                            Gaps.AddRange(Enumerable.Range(_lastId + 1, id - _lastId - 1));
                         _lastId = id;
                     }
                     else
                     {
-                        _gaps.Remove(id);
+                        Gaps.Remove(id);
                     }
 
                     SnTrace.IndexQueue.Write("IAQ: State after finishing A{0}: {1}", id, GetCurrentState());
@@ -553,17 +563,18 @@ namespace SenseNet.ContentRepository.Search.Indexing
             {
                 lock (GapsLock)
                 {
-                    _gaps.RemoveAll(gaps.Contains);
+                    Gaps.RemoveAll(gaps.Contains);
                 }
             }
             public static int GetLastTerminatedId()
             {
                 return _lastId;
             }
+            // ReSharper disable once MemberHidesStaticFromOuterClass
             public static IndexingActivityStatus GetCurrentState()
             {
                 lock (GapsLock)
-                    return new IndexingActivityStatus { LastActivityId = _lastId, Gaps = _gaps.ToArray() };
+                    return new IndexingActivityStatus { LastActivityId = _lastId, Gaps = Gaps.ToArray() };
             }
         }
 
@@ -598,34 +609,36 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         private class IndexingActivityLoader : IEnumerable<IIndexingActivity>
         {
-            private readonly bool gapLoader;
+            private readonly bool _gapLoader;
 
-            private readonly int from;
-            private readonly int to;
-            private readonly int pageSize;
-            private readonly int[] gaps;
-            private readonly bool executingUnprocessedActivities;
+            private readonly int _from;
+            private readonly int _to;
+            private readonly int _pageSize;
+            private readonly int[] _gaps;
+            private readonly bool _executingUnprocessedActivities;
 
             public IndexingActivityLoader(int from, int to, bool executingUnprocessedActivities)
             {
-                gapLoader = false;
-                this.from = from;
-                this.to = to;
-                this.executingUnprocessedActivities = executingUnprocessedActivities;
-                this.pageSize = IndexingActivityLoadingBufferSize;
+                _gapLoader = false;
+                _from = from;
+                _to = to;
+                _executingUnprocessedActivities = executingUnprocessedActivities;
+                _pageSize = IndexingActivityLoadingBufferSize;
             }
+
             public IndexingActivityLoader(int[] gaps, bool executingUnprocessedActivities)
             {
-                this.gapLoader = true;
-                this.gaps = gaps;
-                this.pageSize = IndexingActivityLoadingBufferSize;
+                _gapLoader = true;
+                _gaps = gaps;
+                _executingUnprocessedActivities = executingUnprocessedActivities;
+                _pageSize = IndexingActivityLoadingBufferSize;
             }
 
             public IEnumerator<IIndexingActivity> GetEnumerator()
             {
-                if (gapLoader)
-                    return new GapLoader(this.gaps, this.pageSize, this.executingUnprocessedActivities);
-                return new SectionLoader(this.from, this.to, this.pageSize, this.executingUnprocessedActivities);
+                if (_gapLoader)
+                    return new GapLoader(_gaps, _pageSize, _executingUnprocessedActivities);
+                return new SectionLoader(_from, _to, _pageSize, _executingUnprocessedActivities);
             }
             System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
             {
@@ -634,29 +647,29 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             private class SectionLoader : IEnumerator<IIndexingActivity>
             {
-                private int from;
-                private readonly int to;
-                private readonly int pageSize;
+                private int _from;
+                private readonly int _to;
+                private readonly int _pageSize;
 
-                private readonly IIndexingActivity[] buffer;
-                private int pointer;
-                private bool isLastPage;
-                private int loadedPageSize;
-                private readonly bool executingUnprocessedActivities;
+                private readonly IIndexingActivity[] _buffer;
+                private int _pointer;
+                private bool _isLastPage;
+                private int _loadedPageSize;
+                private readonly bool _executingUnprocessedActivities;
 
                 public SectionLoader(int from, int to, int pageSize, bool executingUnprocessedActivities)
                 {
-                    this.from = from;
-                    this.to = to;
-                    this.pageSize = pageSize;
-                    this.executingUnprocessedActivities = executingUnprocessedActivities;
+                    _from = from;
+                    _to = to;
+                    _pageSize = pageSize;
+                    _executingUnprocessedActivities = executingUnprocessedActivities;
 
-                    this.buffer = new IndexingActivityBase[pageSize];
-                    this.loadedPageSize = this.buffer.Length;
-                    this.pointer = this.buffer.Length - 1;
+                    _buffer = new IIndexingActivity[pageSize];
+                    _loadedPageSize = _buffer.Length;
+                    _pointer = _buffer.Length - 1;
                 }
 
-                public IIndexingActivity Current => this.buffer[this.pointer];
+                public IIndexingActivity Current => _buffer[_pointer];
 
                 object System.Collections.IEnumerator.Current => Current;
 
@@ -671,16 +684,16 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
                 public bool MoveNext()
                 {
-                    if (++this.pointer >= this.loadedPageSize)
+                    if (++_pointer >= _loadedPageSize)
                     {
-                        if (this.isLastPage)
+                        if (_isLastPage)
                             return false;
 
-                        LoadNextPage(this.buffer, out this.isLastPage, out this.loadedPageSize);
-                        if (this.isLastPage && this.loadedPageSize == 0)
+                        LoadNextPage(_buffer, out _isLastPage, out _loadedPageSize);
+                        if (_isLastPage && _loadedPageSize == 0)
                             return false;
 
-                        this.pointer = 0;
+                        _pointer = 0;
                     }
                     return true;
                 }
@@ -688,7 +701,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 {
                     count = 0;
 
-                    foreach (var item in LoadSegment(from, to, pageSize))
+                    foreach (var item in LoadSegment(_from, _to, _pageSize))
                         buffer[count++] = item;
 
                     if (count < 1)
@@ -698,15 +711,15 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     }
 
                     var last = buffer[count - 1];
-                    from = last.Id + 1;
+                    _from = last.Id + 1;
 
-                    isLast = last.Id >= to;
+                    isLast = last.Id >= _to;
                 }
                 private IEnumerable<IIndexingActivity> LoadSegment(int from, int to, int count)
                 {
                     SnTrace.IndexQueue.Write("IAQ: Loading segment: from: {0}, to: {1}, count: {2}.", from, to, count);
 
-                    var segment = DataProvider.Current.LoadIndexingActivities(from, to, count, executingUnprocessedActivities, IndexingActivityFactory.Instance);
+                    var segment = DataProvider.Current.LoadIndexingActivities(from, to, count, _executingUnprocessedActivities, IndexingActivityFactory.Instance);
 
                     SnTrace.IndexQueue.Write("IAQ: Loaded segment: {0}", String.Join(",", segment.Select(x => x.Id)));
 
@@ -715,22 +728,22 @@ namespace SenseNet.ContentRepository.Search.Indexing
             }
             private class GapLoader : IEnumerator<IIndexingActivity>
             {
-                private readonly int[] gaps;
-                private int gapIndex = 0;
-                private readonly List<IIndexingActivity> buffer = new List<IIndexingActivity>();
-                private int bufferIndex = -1;
-                private readonly int pageSize;
-                private readonly bool executingUnprocessedActivities;
+                private readonly int[] _gaps;
+                private int _gapIndex;
+                private readonly List<IIndexingActivity> _buffer = new List<IIndexingActivity>();
+                private int _bufferIndex;
+                private readonly int _pageSize;
+                private readonly bool _executingUnprocessedActivities;
 
                 public GapLoader(int[] gaps, int pageSize, bool executingUnprocessedActivities)
                 {
-                    this.gaps = gaps;
-                    this.pageSize = pageSize;
-                    this.bufferIndex = pageSize;
-                    this.executingUnprocessedActivities = executingUnprocessedActivities;
+                    _gaps = gaps;
+                    _pageSize = pageSize;
+                    _bufferIndex = pageSize;
+                    _executingUnprocessedActivities = executingUnprocessedActivities;
                 }
 
-                public IIndexingActivity Current => this.buffer[this.bufferIndex];
+                public IIndexingActivity Current => _buffer[_bufferIndex];
 
                 object System.Collections.IEnumerator.Current => Current;
 
@@ -745,27 +758,27 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
                 public bool MoveNext()
                 {
-                    this.bufferIndex++;
-                    if (this.bufferIndex >= this.buffer.Count)
+                    _bufferIndex++;
+                    if (_bufferIndex >= _buffer.Count)
                     {
                         LoadNextBuffer();
-                        if (this.buffer.Count == 0 && this.gapIndex >= this.gaps.Length)
+                        if (_buffer.Count == 0 && _gapIndex >= _gaps.Length)
                             return false;
-                        this.bufferIndex = 0;
+                        _bufferIndex = 0;
                     }
                     return true;
                 }
                 private void LoadNextBuffer()
                 {
-                    this.buffer.Clear();
+                    _buffer.Clear();
                     while (true)
                     {
-                        if (this.gapIndex >= this.gaps.Length)
+                        if (_gapIndex >= _gaps.Length)
                             break;
-                        var gapPage = this.gaps.Skip(gapIndex).Take(pageSize).ToArray();
-                        this.buffer.AddRange(LoadGaps(gapPage));
-                        this.gapIndex += pageSize;
-                        if (this.buffer.Count >= this.pageSize)
+                        var gapPage = _gaps.Skip(_gapIndex).Take(_pageSize).ToArray();
+                        _buffer.AddRange(LoadGaps(gapPage));
+                        _gapIndex += _pageSize;
+                        if (_buffer.Count >= _pageSize)
                             break;
                     }
                 }
@@ -773,7 +786,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 {
                     SnTrace.IndexQueue.Write("IAQ: Loading gaps (count: {0}): [{1}]", gaps.Length, String.Join(", ", gaps));
 
-                    return DataProvider.Current.LoadIndexingActivities(gaps, executingUnprocessedActivities, IndexingActivityFactory.Instance);
+                    return DataProvider.Current.LoadIndexingActivities(gaps, _executingUnprocessedActivities, IndexingActivityFactory.Instance);
                 }
             }
         }
@@ -942,15 +955,15 @@ namespace SenseNet.ContentRepository.Search.Indexing
         public static IndexingActivityHistory GetHistory()
         {
             IndexingActivityHistory result;
-            var list = new List<IndexingActivityHistoryItem>(_history.Length);
+            var list = new List<IndexingActivityHistoryItem>(History.Length);
             lock (Lock)
             {
-                for (int i = _position; i < _history.Length; i++)
-                    if (_history[i] != null)
-                        list.Add(_history[i]);
+                for (int i = _position; i < History.Length; i++)
+                    if (History[i] != null)
+                        list.Add(History[i]);
                 for (int i = 0; i < _position; i++)
-                    if (_history[i] != null)
-                        list.Add(_history[i]);
+                    if (History[i] != null)
+                        list.Add(History[i]);
 
                 result = new IndexingActivityHistory()
                 {
@@ -968,8 +981,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
             IndexingActivityHistory result;
             lock (Lock)
             {
-                for (int i = 0; i < _history.Length; i++)
-                    _history[i] = null;
+                for (int i = 0; i < History.Length; i++)
+                    History[i] = null;
 
                 _position = 0;
                 _unfinished = 0;
@@ -985,7 +998,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         private static readonly object Lock = new object();
         private const int HistoryLength = 1023;
-        private static readonly IndexingActivityHistoryItem[] _history = new IndexingActivityHistoryItem[HistoryLength];
+        private static readonly IndexingActivityHistoryItem[] History = new IndexingActivityHistoryItem[HistoryLength];
         private static int _position;
         private static int _unfinished;
 
@@ -994,12 +1007,12 @@ namespace SenseNet.ContentRepository.Search.Indexing
             lock (Lock)
             {
                 // avoiding duplication
-                foreach (var item in _history)
+                foreach (var item in History)
                     if (item != null && item.Id == activity.Id)
                         return;
 
-                var retired = _history[_position];
-                _history[_position] = new IndexingActivityHistoryItem
+                var retired = History[_position];
+                History[_position] = new IndexingActivityHistoryItem
                 {
                     Id = activity.Id,
                     TypeName = activity.ActivityType.ToString(),
@@ -1024,7 +1037,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         {
             lock (Lock)
             {
-                foreach (var item in _history)
+                foreach (var item in History)
                 {
                     if (item != null && item.Id == activity.Id)
                     {
@@ -1038,7 +1051,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         {
             lock (Lock)
             {
-                foreach (var item in _history)
+                foreach (var item in History)
                 {
                     if (item != null && item.Id == activityId)
                     {
@@ -1053,7 +1066,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         {
             lock (Lock)
             {
-                foreach (var item in _history)
+                foreach (var item in History)
                 {
                     if (item != null && item.Id == activityId)
                     {
@@ -1068,7 +1081,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         {
             lock (Lock)
             {
-                foreach (var item in _history)
+                foreach (var item in History)
                 {
                     if (item != null && item.Id == activityId)
                     {

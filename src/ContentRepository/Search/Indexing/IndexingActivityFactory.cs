@@ -16,7 +16,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// <inheritdoc />
         public IIndexingActivity CreateActivity(IndexingActivityType activityType)
         {
-            IIndexingActivity activity = null;
+            IIndexingActivity activity;
             switch (activityType)
             {
                 case IndexingActivityType.AddDocument: activity = new AddDocumentActivity(); break;

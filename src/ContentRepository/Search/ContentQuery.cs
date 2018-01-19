@@ -12,6 +12,7 @@ using SenseNet.Diagnostics;
 using SenseNet.Search.Querying;
 using SenseNet.Search.Querying.Parser;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.Search
 {
     /// <summary>
@@ -214,10 +215,10 @@ namespace SenseNet.Search
         /// <param name="parameters">Values to substitute the parameters of the additional clause.</param>
         public void AddClause(string text, LogicalOperator logicalOp, params object[] parameters)
         {
-            var isSafe = this.IsSafe && IsSafeQuery(text);
+            var isSafe = IsSafe && IsSafeQuery(text);
             if (parameters != null && parameters.Length > 0)
                 text = SubstituteParameters(text, parameters);
-            this.IsSafe = isSafe;
+            IsSafe = isSafe;
             AddClausePrivate(text, logicalOp);
         }
         private void AddClausePrivate(string text, LogicalOperator logicalOp)
@@ -227,9 +228,9 @@ namespace SenseNet.Search
             if (text.Length == 0)
                 throw new ArgumentException("Clause cannot be empty", nameof(text));
 
-            if (string.IsNullOrEmpty(this.Text))
+            if (string.IsNullOrEmpty(Text))
             {
-                this.Text = text;
+                Text = text;
             }
             else
             {
@@ -237,10 +238,10 @@ namespace SenseNet.Search
                 switch (logicalOp)
                 {
                     case LogicalOperator.And:
-                        this._text = MoveSettingsToTheEnd(string.Format("+({0}) +({1})", Text, text)).Trim();
+                        _text = MoveSettingsToTheEnd($"+({Text}) +({text})").Trim();
                         break;
                     case LogicalOperator.Or:
-                        this._text = MoveSettingsToTheEnd(string.Format("({0}) {1}", Text, text));
+                        _text = MoveSettingsToTheEnd($"({Text}) {text}");
                         break;
                 }
             }
@@ -311,10 +312,10 @@ namespace SenseNet.Search
             switch (logicalOp)
             {
                 case LogicalOperator.And:
-                    queryText = MoveSettingsToTheEnd(string.Format("+({0}) +({1})", originalText, addition)).Trim();
+                    queryText = MoveSettingsToTheEnd($"+({originalText}) +({addition})").Trim();
                     break;
                 case LogicalOperator.Or:
-                    queryText = MoveSettingsToTheEnd(string.Format("({0}) {1}", originalText, addition));
+                    queryText = MoveSettingsToTheEnd($"({originalText}) {addition}");
                     break;
             }
 
@@ -369,11 +370,11 @@ namespace SenseNet.Search
                 throw new InvalidOperationException("Cannot execute query with null or empty Text");
 
             var userId = AccessProvider.Current.GetCurrentUser().Id;
-            if (userId == Identifiers.SystemUserId && !this.IsSafe)
+            if (userId == Identifiers.SystemUserId && !IsSafe)
             {
                 var ex = new InvalidOperationException("Cannot execute this query, please convert it to a safe query.");
                 ex.Data.Add("EventId", EventId.Querying);
-                ex.Data.Add("Query", this._text);
+                ex.Data.Add("Query", _text);
 
                 throw ex;
             }
@@ -534,10 +535,10 @@ namespace SenseNet.Search
             private static string GetInnerScript(string src, string control, out int start)
             {
                 start = 0;
-                var p1 = control.IndexOf("}}");
+                var p1 = control.IndexOf("}}", StringComparison.Ordinal);
                 if (p1 < 0)
                     return string.Empty;
-                var p0 = control.LastIndexOf("{{", p1);
+                var p0 = control.LastIndexOf("{{", p1, StringComparison.Ordinal);
                 if (p0 < 0)
                     return string.Empty;
                 start = p0;

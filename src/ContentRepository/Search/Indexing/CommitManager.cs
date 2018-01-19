@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Timers;
-using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {

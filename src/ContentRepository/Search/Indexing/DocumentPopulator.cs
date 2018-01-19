@@ -17,6 +17,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         private class DocumentPopulatorData
         {
             internal Node Node { get; set; }
+            // ReSharper disable once UnusedAutoPropertyAccessor.Local
             internal NodeHead NodeHead { get; set; }
             internal NodeSaveSettings Settings { get; set; }
             internal string OriginalPath { get; set; }
@@ -243,9 +244,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         public event EventHandler<NodeIndexedEventArgs> NodeIndexed;
         protected void OnNodeIndexed(string path)
         {
-            if (NodeIndexed == null)
-                return;
-            NodeIndexed(null, new NodeIndexedEventArgs(path));
+            NodeIndexed?.Invoke(null, new NodeIndexedEventArgs(path));
         }
 
 
@@ -279,13 +278,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             if (indexDocumentData != null)
             {
-                var docAct = activity as DocumentIndexingActivity;
-                if (docAct != null)
+                if (activity is DocumentIndexingActivity docAct)
                     docAct.IndexDocumentData = indexDocumentData;
             }
 
-            var documentActivity = activity as DocumentIndexingActivity;
-            if (documentActivity != null)
+            if (activity is DocumentIndexingActivity documentActivity)
                 documentActivity.Versioning = versioningInfo;
 
             return activity;
@@ -298,8 +295,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             if (indexDocumentData != null)
             {
-                var docAct = activity as DocumentIndexingActivity;
-                if (docAct != null)
+                if (activity is DocumentIndexingActivity docAct)
                     docAct.IndexDocumentData = indexDocumentData;
             }
 

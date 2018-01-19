@@ -40,9 +40,9 @@ namespace SenseNet.Search
 
         // ================================================================================= Properties
 
-        private const string TEXTEXTRACTORS_TEXTFIELDNAME = "TextExtractors";
-        internal const string TEXTEXTRACTORS_PROPERTYNAME = "TextExtractorInstances";
-        internal const string SETTINGSNAME = "Indexing";
+        private const string TextExtractorsTextfieldName = "TextExtractors";
+        internal const string TextExtractorsPropertyName = "TextExtractorInstances";
+        internal const string SettingsName = "Indexing";
 
         private static readonly object ExtractorLock = new object();
         private ReadOnlyDictionary<string, ITextExtractor> _textExtractors;
@@ -61,7 +61,7 @@ namespace SenseNet.Search
                         {
                             _textExtractors = new ReadOnlyDictionary<string, ITextExtractor>(LoadTextExtractors());
 
-                            SetCachedData(TEXTEXTRACTORS_CACHEKEY, _textExtractors);
+                            SetCachedData(TextExtractorsCacheKey, _textExtractors);
 
                             SnLog.WriteInformation("Text extractors were created.", properties: _textExtractors.ToDictionary(t => t.Key, t => (object)t.Value.GetType().FullName));
                         }
@@ -98,7 +98,7 @@ namespace SenseNet.Search
                             };
 
             // load text extractor settings (they may override the defaults listed above)
-            foreach (var field in this.Content.Fields.Values.Where(field => field.Name.StartsWith(TEXTEXTRACTORS_TEXTFIELDNAME + ".")))
+            foreach (var field in Content.Fields.Values.Where(field => field.Name.StartsWith(TextExtractorsTextfieldName + ".")))
             {
                 var extractorName = field.GetData() as string;
                 if (string.IsNullOrEmpty(extractorName))
@@ -129,8 +129,8 @@ namespace SenseNet.Search
         {
             switch (name)
             {
-                case TEXTEXTRACTORS_PROPERTYNAME:
-                    return this.TextExtractorInstances;
+                case TextExtractorsPropertyName:
+                    return TextExtractorInstances;
                 default:
                     return base.GetProperty(name);
             }
@@ -143,7 +143,7 @@ namespace SenseNet.Search
         {
             switch (name)
             {
-                case TEXTEXTRACTORS_PROPERTYNAME:
+                case TextExtractorsPropertyName:
                     // this is a readonly property
                     break;
                 default:
@@ -154,7 +154,7 @@ namespace SenseNet.Search
 
         // ================================================================================= Cached data
 
-        private const string TEXTEXTRACTORS_CACHEKEY = "CachedTextExtractors";
+        private const string TextExtractorsCacheKey = "CachedTextExtractors";
 
         /// <summary>
         /// Restores the cached data if there is.
@@ -163,7 +163,7 @@ namespace SenseNet.Search
         {
             base.OnLoaded(sender, e);
 
-            _textExtractors = (ReadOnlyDictionary<string, ITextExtractor>)GetCachedData(TEXTEXTRACTORS_CACHEKEY);
+            _textExtractors = (ReadOnlyDictionary<string, ITextExtractor>)GetCachedData(TextExtractorsCacheKey);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+// ReSharper disable All
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {

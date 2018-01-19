@@ -3,6 +3,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
+// ReSharper disable All
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
