@@ -30,7 +30,7 @@ namespace SenseNet.Search.Querying.Parser
         public override LogicalClause VisitLogicalClause(LogicalClause clause)
         {
             var predicate = clause.Predicate;
-            var visited = base.Visit(predicate);
+            var visited = Visit(predicate);
             if (visited == null)
                 return null;
             if (predicate == visited)

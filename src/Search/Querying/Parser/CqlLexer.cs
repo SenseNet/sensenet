@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -7,7 +8,7 @@ namespace SenseNet.Search.Querying.Parser
 {
     internal class CqlLexer
     {
-        internal const string STRINGTERMINATORCHARS = "\":+-&|!(){}[]^~";
+        internal const string StringTerminatorChars = "\":+-&|!(){}[]^~";
 
         private static class Keywords
         {
@@ -32,6 +33,7 @@ namespace SenseNet.Search.Querying.Parser
                 throw new ParserException("Unknown control keyword: " + text, line);
             }
         }
+        [SuppressMessage("ReSharper", "InconsistentNaming")]
         public enum Token
         {
             Eof,             // \0
@@ -98,40 +100,40 @@ namespace SenseNet.Search.Querying.Parser
 
         public CqlLexer(string source)
         {
-            this.Source = source;
-            this.CurrentColumn = -1;
+            Source = source;
+            CurrentColumn = -1;
             NextChar();
             NextToken();
         }
 
         private bool NextChar()
         {
-            if (this.SourceIndex < this.Source.Length)
+            if (SourceIndex < Source.Length)
             {
-                if (this.CurrentChar == '\n')
+                if (CurrentChar == '\n')
                 {
-                    this.CurrentLine++;
-                    this.CurrentColumn = -1;
+                    CurrentLine++;
+                    CurrentColumn = -1;
                 }
-                this.CurrentChar = this.Source[this.SourceIndex++];
-                this.CurrentColumn++;
+                CurrentChar = Source[SourceIndex++];
+                CurrentColumn++;
                 SetCharType();
                 return true;
             }
-            this.CurrentChar = '\0';
-            this.CurrentCharType = CharType.Eof;
+            CurrentChar = '\0';
+            CurrentCharType = CharType.Eof;
             return false;
         }
         private char PeekNextChar()
         {
-            if (this.SourceIndex >= this.Source.Length)
+            if (SourceIndex >= Source.Length)
                 return '\0';
-            return this.Source[SourceIndex];
+            return Source[SourceIndex];
         }
 
         private void SetCharType()
         {
-            switch (this.CurrentChar)
+            switch (CurrentChar)
             {
                 case '\\':
                     CurrentCharType = CharType.Escape;
@@ -141,17 +143,17 @@ namespace SenseNet.Search.Querying.Parser
                     CurrentCharType = CharType.Wildcard;
                     break;
                 default:
-                    if (Char.IsWhiteSpace(this.CurrentChar))
+                    if (Char.IsWhiteSpace(CurrentChar))
                     {
                         CurrentCharType = CharType.WhiteSpace;
                         return;
                     }
-                    if (Char.IsDigit(this.CurrentChar))
+                    if (Char.IsDigit(CurrentChar))
                     {
                         CurrentCharType = CharType.Digit;
                         return;
                     }
-                    if (Char.IsLetter(this.CurrentChar))
+                    if (Char.IsLetter(CurrentChar))
                     {
                         CurrentCharType = CharType.Letter;
                         return;
@@ -167,116 +169,116 @@ namespace SenseNet.Search.Querying.Parser
 
             SkipWhiteSpaces();
             SaveLineInfo();
-            this.IsPhrase = false;
-            switch (this.CurrentChar)
+            IsPhrase = false;
+            switch (CurrentChar)
             {
-                case '\0': this.CurrentToken = Token.Eof; this.StringValue = string.Empty; return false;
+                case '\0': CurrentToken = Token.Eof; StringValue = string.Empty; return false;
 
-                case '(': this.CurrentToken = Token.LParen; this.StringValue = this.CurrentChar.ToString(); NextChar(); break;
-                case ')': this.CurrentToken = Token.RParen; this.StringValue = this.CurrentChar.ToString(); NextChar(); break;
-                case '[': this.CurrentToken = Token.LBracket; this.StringValue = this.CurrentChar.ToString(); NextChar(); break;
-                case ']': this.CurrentToken = Token.RBracket; this.StringValue = this.CurrentChar.ToString(); NextChar(); break;
-                case '{': this.CurrentToken = Token.LBrace; this.StringValue = this.CurrentChar.ToString(); NextChar(); break;
-                case '}': this.CurrentToken = Token.RBrace; this.StringValue = this.CurrentChar.ToString(); NextChar(); break;
-                case ',': this.CurrentToken = Token.Comma; this.StringValue = this.CurrentChar.ToString(); NextChar(); break;
-                case ':': this.CurrentToken = Token.Colon; this.StringValue = this.CurrentChar.ToString(); NextChar(); break;
-                case '+': this.CurrentToken = Token.Plus; this.StringValue = this.CurrentChar.ToString(); NextChar(); break;
-                case '-': this.CurrentToken = Token.Minus; this.StringValue = this.CurrentChar.ToString(); NextChar(); break;
-                case '^': this.CurrentToken = Token.Circ; this.StringValue = this.CurrentChar.ToString(); NextChar(); break;
-                case '~': this.CurrentToken = Token.Tilde; this.StringValue = this.CurrentChar.ToString(); NextChar(); break;
-                case '!': this.CurrentToken = Token.Not; this.StringValue = this.CurrentChar.ToString(); NextChar(); break;
+                case '(': CurrentToken = Token.LParen; StringValue = CurrentChar.ToString(); NextChar(); break;
+                case ')': CurrentToken = Token.RParen; StringValue = CurrentChar.ToString(); NextChar(); break;
+                case '[': CurrentToken = Token.LBracket; StringValue = CurrentChar.ToString(); NextChar(); break;
+                case ']': CurrentToken = Token.RBracket; StringValue = CurrentChar.ToString(); NextChar(); break;
+                case '{': CurrentToken = Token.LBrace; StringValue = CurrentChar.ToString(); NextChar(); break;
+                case '}': CurrentToken = Token.RBrace; StringValue = CurrentChar.ToString(); NextChar(); break;
+                case ',': CurrentToken = Token.Comma; StringValue = CurrentChar.ToString(); NextChar(); break;
+                case ':': CurrentToken = Token.Colon; StringValue = CurrentChar.ToString(); NextChar(); break;
+                case '+': CurrentToken = Token.Plus; StringValue = CurrentChar.ToString(); NextChar(); break;
+                case '-': CurrentToken = Token.Minus; StringValue = CurrentChar.ToString(); NextChar(); break;
+                case '^': CurrentToken = Token.Circ; StringValue = CurrentChar.ToString(); NextChar(); break;
+                case '~': CurrentToken = Token.Tilde; StringValue = CurrentChar.ToString(); NextChar(); break;
+                case '!': CurrentToken = Token.Not; StringValue = CurrentChar.ToString(); NextChar(); break;
                 case '"':
                 case '\'':
-                    this.StringValue = this.ScanQuotedString(out hasWildcard, out field, out var isPhrase);
-                    this.CurrentToken = hasWildcard ? Token.WildcardString : field ? Token.Field : Token.String;
-                    this.IsPhrase = isPhrase;
+                    StringValue = ScanQuotedString(out hasWildcard, out field, out var isPhrase);
+                    CurrentToken = hasWildcard ? Token.WildcardString : field ? Token.Field : Token.String;
+                    IsPhrase = isPhrase;
                     break;
 
                 case '&':
-                    this.NextChar();
-                    if (this.CurrentChar != '&')
+                    NextChar();
+                    if (CurrentChar != '&')
                         throw new ParserException("Invalid operator: &", CreateLastLineInfo());
-                    this.CurrentToken = Token.And;
-                    this.StringValue = "&&";
-                    this.NextChar();
-                    this.SkipWhiteSpaces();
+                    CurrentToken = Token.And;
+                    StringValue = "&&";
+                    NextChar();
+                    SkipWhiteSpaces();
                     break;
                 case '|':
-                    this.NextChar();
-                    if (this.CurrentChar != '|')
+                    NextChar();
+                    if (CurrentChar != '|')
                         throw new ParserException("Invalid operator: |", CreateLastLineInfo());
-                    this.CurrentToken = Token.Or;
-                    this.StringValue = "||";
-                    this.NextChar();
-                    this.SkipWhiteSpaces();
+                    CurrentToken = Token.Or;
+                    StringValue = "||";
+                    NextChar();
+                    SkipWhiteSpaces();
                     break;
                 case '<':
-                    this.NextChar();
-                    if (this.CurrentChar == '=')
+                    NextChar();
+                    if (CurrentChar == '=')
                     {
-                        this.CurrentToken = Token.LTE;
-                        this.StringValue = "<=";
+                        CurrentToken = Token.LTE;
+                        StringValue = "<=";
                         NextChar();
-                        this.SkipWhiteSpaces();
+                        SkipWhiteSpaces();
                     }
-                    else if (this.CurrentChar == '>')
+                    else if (CurrentChar == '>')
                     {
-                        this.CurrentToken = Token.NEQ;
-                        this.StringValue = "<>";
+                        CurrentToken = Token.NEQ;
+                        StringValue = "<>";
                         NextChar();
-                        this.SkipWhiteSpaces();
+                        SkipWhiteSpaces();
                     }
                     else
                     {
-                        this.CurrentToken = Token.LT;
-                        this.StringValue = "<";
+                        CurrentToken = Token.LT;
+                        StringValue = "<";
                     }
                     break;
                 case '>':
-                    this.NextChar();
-                    if (this.CurrentChar == '=')
+                    NextChar();
+                    if (CurrentChar == '=')
                     {
-                        this.CurrentToken = Token.GTE;
-                        this.StringValue = ">=";
+                        CurrentToken = Token.GTE;
+                        StringValue = ">=";
                         NextChar();
-                        this.SkipWhiteSpaces();
+                        SkipWhiteSpaces();
                     }
                     else
                     {
-                        this.CurrentToken = Token.GT;
-                        this.StringValue = ">";
+                        CurrentToken = Token.GT;
+                        StringValue = ">";
                     }
                     break;
 
                 // -----------------------------------
 
                 default:
-                    if (this.CurrentCharType == CharType.Digit)
+                    if (CurrentCharType == CharType.Digit)
                     {
-                        if (this.ScanNumber(out var numberValue, out var stringValue, out hasWildcard, out field))
+                        if (ScanNumber(out var numberValue, out var stringValue, out hasWildcard, out field))
                         {
-                            this.CurrentToken = Token.Number;
-                            this.StringValue = stringValue;
-                            this.NumberValue = numberValue;
+                            CurrentToken = Token.Number;
+                            StringValue = stringValue;
+                            NumberValue = numberValue;
                         }
                         else
                         {
-                            this.CurrentToken = hasWildcard ? Token.WildcardString : Token.String;
-                            this.StringValue = stringValue;
+                            CurrentToken = hasWildcard ? Token.WildcardString : Token.String;
+                            StringValue = stringValue;
                         }
                     }
                     else
                     {
-                        this.StringValue = this.ScanNonQuotedString(out hasWildcard, out field, out var keyword);
+                        StringValue = ScanNonQuotedString(out hasWildcard, out field, out var keyword);
                         if (keyword)
-                            this.CurrentToken = Keywords.ScanControl(this.StringValue, CreateLastLineInfo());
+                            CurrentToken = Keywords.ScanControl(StringValue, CreateLastLineInfo());
                         else if (hasWildcard)
-                            this.CurrentToken = Token.WildcardString;
+                            CurrentToken = Token.WildcardString;
                         else if (field)
-                            this.CurrentToken = Token.Field;
+                            CurrentToken = Token.Field;
                         else
-                            this.CurrentToken = Keywords.ScanKeyword(this.StringValue);
-                        this.SkipWhiteSpaces();
+                            CurrentToken = Keywords.ScanKeyword(StringValue);
+                        SkipWhiteSpaces();
                     }
                     break;
             }
@@ -285,7 +287,7 @@ namespace SenseNet.Search.Querying.Parser
 
         private bool ScanComment()
         {
-            if (this.CurrentChar != '/')
+            if (CurrentChar != '/')
                 return false;
 
             var c = PeekNextChar();
@@ -297,9 +299,9 @@ namespace SenseNet.Search.Querying.Parser
                 while (true)
                 {
                     NextChar();
-                    if (this.CurrentChar == '\0')
+                    if (CurrentChar == '\0')
                         return true;
-                    if (this.CurrentChar == '\n')
+                    if (CurrentChar == '\n')
                     {
                         NextChar();
                         return true;
@@ -311,9 +313,9 @@ namespace SenseNet.Search.Querying.Parser
                 while (true)
                 {
                     NextChar();
-                    if (this.CurrentChar == '\0')
+                    if (CurrentChar == '\0')
                         return true;
-                    if (this.CurrentChar == '*' && PeekNextChar() == '/')
+                    if (CurrentChar == '*' && PeekNextChar() == '/')
                     {
                         NextChar();
                         NextChar();
@@ -325,27 +327,27 @@ namespace SenseNet.Search.Querying.Parser
         private bool ScanNumber(out double numberValue, out string stringValue, out bool hasWildcard, out bool field)
         {
             SaveLineInfo();
-            var startIndex = this.SourceIndex - 1;
+            var startIndex = SourceIndex - 1;
             var length = 0;
             hasWildcard = false;
-            while (this.CurrentCharType == CharType.Digit)
+            while (CurrentCharType == CharType.Digit)
             {
                 NextChar();
                 length++;
             }
-            if (this.CurrentChar == '.')
+            if (CurrentChar == '.')
             {
                 NextChar();
                 length++;
-                while (this.CurrentCharType == CharType.Digit)
+                while (CurrentCharType == CharType.Digit)
                 {
                     NextChar();
                     length++;
                 }
             }
-            if (IsStringEndChar(this.CurrentChar))
+            if (IsStringEndChar(CurrentChar))
             {
-                stringValue = this.Source.Substring(startIndex, length);
+                stringValue = Source.Substring(startIndex, length);
                 numberValue = Convert.ToDouble(stringValue, CultureInfo.InvariantCulture);
                 if (CurrentChar == '.')
                 {
@@ -359,7 +361,7 @@ namespace SenseNet.Search.Querying.Parser
                 return true;
             }
             numberValue = 0.0;
-            var s0 = this.Source.Substring(startIndex, length);
+            var s0 = Source.Substring(startIndex, length);
             var s1 = ScanNonQuotedString(out hasWildcard, out field, out _);
             stringValue = s0 + s1;
 
@@ -368,13 +370,13 @@ namespace SenseNet.Search.Querying.Parser
         private string ScanQuotedString(out bool hasWildcard, out bool field, out bool isPhrase)
         {
             SaveLineInfo();
-            var stringDelimiter = this.CurrentChar;
+            var stringDelimiter = CurrentChar;
             NextChar();
             hasWildcard = false;
             field = false;
             isPhrase = false;
             var outstr = new StringBuilder();
-            while (this.CurrentChar != stringDelimiter)
+            while (CurrentChar != stringDelimiter)
             {
                 hasWildcard |= CurrentCharType == CharType.Wildcard;
                 isPhrase |= CurrentCharType == CharType.WhiteSpace;
@@ -409,7 +411,7 @@ namespace SenseNet.Search.Querying.Parser
             var outstr = new StringBuilder();
             keyword = false;
 
-            if (this.CurrentChar == '.')
+            if (CurrentChar == '.')
             {
                 keyword = true;
                 outstr.Append(CurrentChar);
@@ -432,7 +434,7 @@ namespace SenseNet.Search.Querying.Parser
                         outstr.Append(CurrentChar);
                         NextChar();
                     }
-                    else if (!IsStringEndChar(this.CurrentChar))
+                    else if (!IsStringEndChar(CurrentChar))
                     {
                         outstr.Append(CurrentChar);
                         NextChar();
@@ -455,14 +457,14 @@ namespace SenseNet.Search.Querying.Parser
         }
         private bool IsStringEndChar(char c)
         {
-            return (STRINGTERMINATORCHARS.Contains(c)) || (CurrentCharType == CharType.WhiteSpace) || (CurrentCharType == CharType.Eof);
+            return (StringTerminatorChars.Contains(c)) || (CurrentCharType == CharType.WhiteSpace) || (CurrentCharType == CharType.Eof);
         }
 
         private void SkipWhiteSpaces()
         {
             while (true)
             {
-                if (this.CurrentCharType == CharType.WhiteSpace)
+                if (CurrentCharType == CharType.WhiteSpace)
                     NextChar();
                 else
                 {
