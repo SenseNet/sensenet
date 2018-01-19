@@ -1,6 +1,7 @@
 ﻿using System;
+using SenseNet.Search.Indexing;
 
-namespace SenseNet.Search.Indexing
+namespace SenseNet.ContentRepository.Search.Indexing
 {
     /// <summary>
     /// Implements the metadata for indexing a field.
