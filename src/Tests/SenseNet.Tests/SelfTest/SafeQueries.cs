@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SenseNet.Search;
+﻿using SenseNet.Search;
+// ReSharper disable InconsistentNaming
 
-namespace SenseNet.Search.Lucene29.Tests.Implementations
+namespace SenseNet.Tests.SelfTest
 {
     internal class SafeQueries : ISafeQueryHolder
     {

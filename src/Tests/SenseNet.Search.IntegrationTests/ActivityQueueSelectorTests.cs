@@ -2,25 +2,21 @@
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Security;
-using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.ContentRepository.Tests;
-using SenseNet.ContentRepository.Tests.Implementations;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Tasks;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Search.Indexing.Activities;
 using SenseNet.Search.Querying;
-using SenseNet.Search.Tests.Implementations;
+using SenseNet.Tests;
+using SenseNet.Tests.Implementations;
 
 namespace SenseNet.Search.IntegrationTests
 {
@@ -214,7 +210,7 @@ namespace SenseNet.Search.IntegrationTests
 
             using (Repository.Start(repoBuilder))
             {
-                using (ContentRepository.Tests.Tools.Swindle(typeof(SearchManager), "_searchEngineSupport", new SearchEngineSupport()))
+                using (Tests.Tools.Swindle(typeof(SearchManager), "_searchEngineSupport", new SearchEngineSupport()))
                 {
                     callback(indxManConsole.ToString());
                 }

@@ -1,22 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Globalization;
-using SenseNet.ContentRepository.Storage;
-using SenseNet.Portal;
-using SenseNet.Portal.Virtualization;
-using System.Web;
-using SenseNet.Search.Parser;
-using SenseNet.ContentRepository.Schema;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Tests.Implementations;
 using SenseNet.Search;
 using SenseNet.ContentRepository.Search;
+using SenseNet.Tests;
+using SenseNet.Tests.Implementations;
 
 namespace SenseNet.ContentRepository.Tests
 {

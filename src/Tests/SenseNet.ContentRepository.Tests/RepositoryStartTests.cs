@@ -7,13 +7,12 @@ using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Events;
-using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.ContentRepository.Tests.Implementations;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
-using SenseNet.Search.Indexing;
 using SenseNet.Security.Data;
+using SenseNet.Tests;
+using SenseNet.Tests.Implementations;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -43,9 +42,9 @@ namespace SenseNet.ContentRepository.Tests
                 .UseElevatedModificationVisibilityRuleProvider(emvrProvider)
                 .StartIndexingEngine(false)
                 .StartWorkflowEngine(false)
-                .UseTraceCategories(new[] {"Test", "Web", "System"});
+                .UseTraceCategories("Test", "Web", "System");
 
-            using (var repo = Repository.Start(repoBuilder))
+            using (Repository.Start(repoBuilder))
             {
                 Assert.AreEqual(dbProvider, DataProvider.Current);
                 Assert.AreEqual(searchEngine, SearchManager.SearchEngine);
@@ -80,9 +79,9 @@ namespace SenseNet.ContentRepository.Tests
                 .DisableNodeObservers()
                 .StartIndexingEngine(false)
                 .StartWorkflowEngine(false)
-                .UseTraceCategories(new[] { "Test", "Web", "System" });
+                .UseTraceCategories("Test", "Web", "System");
 
-            using (var repo = Repository.Start(repoBuilder))
+            using (Repository.Start(repoBuilder))
             {
                 Assert.IsFalse(Providers.Instance.NodeObservers.Any());
             }
@@ -101,9 +100,9 @@ namespace SenseNet.ContentRepository.Tests
                 .EnableNodeObservers(typeof(TestNodeObserver1))
                 .StartIndexingEngine(false)
                 .StartWorkflowEngine(false)
-                .UseTraceCategories(new[] { "Test", "Web", "System" });
+                .UseTraceCategories("Test", "Web", "System");
 
-            using (var repo = Repository.Start(repoBuilder))
+            using (Repository.Start(repoBuilder))
             {
                 Assert.AreEqual(1, Providers.Instance.NodeObservers.Length);
                 Assert.AreEqual(typeof(TestNodeObserver1), Providers.Instance.NodeObservers[0].GetType());
@@ -123,9 +122,9 @@ namespace SenseNet.ContentRepository.Tests
                 .EnableNodeObservers(typeof(TestNodeObserver1), typeof(TestNodeObserver2))
                 .StartIndexingEngine(false)
                 .StartWorkflowEngine(false)
-                .UseTraceCategories(new[] { "Test", "Web", "System" });
+                .UseTraceCategories("Test", "Web", "System");
 
-            using (var repo = Repository.Start(repoBuilder))
+            using (Repository.Start(repoBuilder))
             {
                 Assert.AreEqual(2, Providers.Instance.NodeObservers.Length);
                 Assert.IsTrue(Providers.Instance.NodeObservers.Any(no => no.GetType() == typeof(TestNodeObserver1)));
@@ -145,9 +144,9 @@ namespace SenseNet.ContentRepository.Tests
                 .DisableNodeObservers(typeof(TestNodeObserver1))
                 .StartIndexingEngine(false)
                 .StartWorkflowEngine(false)
-                .UseTraceCategories(new[] { "Test", "Web", "System" });
+                .UseTraceCategories("Test", "Web", "System");
 
-            using (var repo = Repository.Start(repoBuilder))
+            using (Repository.Start(repoBuilder))
             {
                 Assert.IsFalse(Providers.Instance.NodeObservers.Any(no => no.GetType() == typeof(TestNodeObserver1)));
 
@@ -174,7 +173,7 @@ namespace SenseNet.ContentRepository.Tests
                 .UseElevatedModificationVisibilityRuleProvider(emvrProvider)
                 .StartIndexingEngine(false)
                 .StartWorkflowEngine(false)
-                .UseTraceCategories(new[] {"Test", "Web", "System"});
+                .UseTraceCategories("Test", "Web", "System");
 
             var originalIsOuterSearchEngineEnabled = Indexing.IsOuterSearchEngineEnabled;
             Indexing.IsOuterSearchEngineEnabled = false;

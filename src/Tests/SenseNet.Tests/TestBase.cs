@@ -3,17 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.ContentRepository.Tests.Implementations;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Security.Data;
+using SenseNet.Tests.Implementations;
 
-namespace SenseNet.ContentRepository.Tests
+namespace SenseNet.Tests
 {
     [TestClass]
     public class TestBase
@@ -177,8 +178,8 @@ namespace SenseNet.ContentRepository.Tests
 
             foreach (var node in nodes)
             {
-                bool hasBinary;
-                DataBackingStore.SaveIndexDocument(node, false, false, out hasBinary);
+                // ReSharper disable once UnusedVariable
+                DataBackingStore.SaveIndexDocument(node, false, false, out var hasBinary);
             }
         }
 
