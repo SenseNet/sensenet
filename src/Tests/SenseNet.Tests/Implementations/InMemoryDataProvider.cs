@@ -5,7 +5,6 @@ using System.Data.Common;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Xml;
@@ -15,7 +14,6 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
-using SenseNet.Search;
 using SenseNet.Search.Querying;
 using SenseNet.Security;
 
@@ -23,37 +21,18 @@ namespace SenseNet.Tests.Implementations
 {
     public partial class InMemoryDataProvider : DataProvider
     {
-        public override IMetaQueryEngine MetaQueryEngine { get { return null; } }
+        public override IMetaQueryEngine MetaQueryEngine => null;
 
         #region NOT IMPLEMENTED
 
-        public override System.Collections.Generic.Dictionary<DataType, int> ContentListMappingOffsets
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        public override Dictionary<DataType, int> ContentListMappingOffsets => throw new NotImplementedException();
 
-        public override string DatabaseName
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        public override string DatabaseName => throw new NotImplementedException();
 
         public override IDataProcedureFactory DataProcedureFactory
         {
-            get
-            {
-                throw new NotImplementedException();
-            }
-
-            set
-            {
-                throw new NotImplementedException();
-            }
+            get => throw new NotImplementedException();
+            set => throw new NotImplementedException();
         }
 
         #endregion
@@ -70,13 +49,7 @@ namespace SenseNet.Tests.Implementations
 
         #region NOT IMPLEMENTED
 
-        protected internal override int ContentListStartPage
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        protected internal override int ContentListStartPage => throw new NotImplementedException();
 
         public override void AssertSchemaTimestampAndWriteModificationDate(long timestamp)
         {
@@ -260,7 +233,7 @@ namespace SenseNet.Tests.Implementations
         {
             lock (_db.IndexingActivities)
             {
-                var activity = _db.IndexingActivities.Where(r => r.IndexingActivityId == indexingActivityId).FirstOrDefault();
+                var activity = _db.IndexingActivities.FirstOrDefault(r => r.IndexingActivityId == indexingActivityId);
                 if (activity != null)
                     activity.RunningState = runningState;
             }
@@ -272,7 +245,7 @@ namespace SenseNet.Tests.Implementations
                 var now = DateTime.UtcNow;
                 foreach (var waitingId in waitingIds)
                 {
-                    var activity = _db.IndexingActivities.Where(r => r.IndexingActivityId == waitingId).FirstOrDefault();
+                    var activity = _db.IndexingActivities.FirstOrDefault(r => r.IndexingActivityId == waitingId);
                     if (activity != null)
                         activity.LockTime = now;
                 }
@@ -290,15 +263,15 @@ namespace SenseNet.Tests.Implementations
                                         .Where(x => x.RunningState == IndexingActivityRunningState.Waiting || (x.RunningState == IndexingActivityRunningState.Running && x.LockTime < timeLimit))
                                         .OrderBy(x => x.IndexingActivityId))
                 {
-                    if (!_db.IndexingActivities.Any(@old =>
-                         (@old.IndexingActivityId < @new.IndexingActivityId) &&
+                    if (!_db.IndexingActivities.Any(old =>
+                         (old.IndexingActivityId < @new.IndexingActivityId) &&
                          (
-                             (@old.RunningState == IndexingActivityRunningState.Waiting || old.RunningState == IndexingActivityRunningState.Running) &&
+                             (old.RunningState == IndexingActivityRunningState.Waiting || old.RunningState == IndexingActivityRunningState.Running) &&
                              (
-                                 @new.NodeId == @old.NodeId ||
-                                 (@new.VersionId != 0 && @new.VersionId == @old.VersionId) ||
-                                 @new.Path.StartsWith(@old.Path + "/", StringComparison.OrdinalIgnoreCase) ||
-                                 @old.Path.StartsWith(@new.Path + "/", StringComparison.OrdinalIgnoreCase)
+                                 @new.NodeId == old.NodeId ||
+                                 (@new.VersionId != 0 && @new.VersionId == old.VersionId) ||
+                                 @new.Path.StartsWith(old.Path + "/", StringComparison.OrdinalIgnoreCase) ||
+                                 old.Path.StartsWith(@new.Path + "/", StringComparison.OrdinalIgnoreCase)
                              )
                          )
                     ))
@@ -425,7 +398,7 @@ namespace SenseNet.Tests.Implementations
                           (parentChain.Contains(t.Path) ||
                            t.Path.StartsWith(path + "/", StringComparison.InvariantCultureIgnoreCase)));
         }
-        protected internal override System.Collections.Generic.Dictionary<int, string> LoadAllTreeLocks()
+        protected internal override Dictionary<int, string> LoadAllTreeLocks()
         {
             return _db.TreeLocks.ToDictionary(t => t.TreeLockId, t => t.Path);
         }
@@ -658,9 +631,18 @@ namespace SenseNet.Tests.Implementations
             // To avoid accessing to blob provider, read data here, else set rawData to null
             byte[] rawData = fileRec.Stream;
 
+            //TODO: partially implemented
             IBlobProvider provider = null; //BlobStorageBase.GetProvider(null);
-            var context = new BlobStorageContext(provider) { VersionId = nodeVersionId, PropertyTypeId = propertyTypeId, FileId = fileId, Length = length, UseFileStream = false };
-            context.BlobProviderData = new BuiltinBlobProviderData { FileStreamData = null };
+            // ReSharper disable once ExpressionIsAlwaysNull
+            var context = new BlobStorageContext(provider)
+            {
+                VersionId = nodeVersionId,
+                PropertyTypeId = propertyTypeId,
+                FileId = fileId,
+                Length = length,
+                UseFileStream = false,
+                BlobProviderData = new BuiltinBlobProviderData { FileStreamData = null }
+            };
 
             return new BinaryCacheEntity
             {
@@ -829,7 +811,7 @@ namespace SenseNet.Tests.Implementations
             return _db.Nodes.Where(n => heads.Contains(n.NodeId)).Select(CreateNodeHead);
         }
 
-        protected internal override void LoadNodes(System.Collections.Generic.Dictionary<int, NodeBuilder> buildersByVersionId)
+        protected internal override void LoadNodes(Dictionary<int, NodeBuilder> buildersByVersionId)
         {
             foreach (var versionId in buildersByVersionId.Keys)
             {
@@ -853,8 +835,7 @@ namespace SenseNet.Tests.Implementations
                 {
                     foreach (PropertyType pt in builder.Token.AllPropertyTypes)
                     {
-                        object value;
-                        if(GetDataSlot(flatPropertRow, flatPropertRow.Page, pt, out value))
+                        if(GetDataSlot(flatPropertRow, flatPropertRow.Page, pt, out var value))
                             builder.AddDynamicProperty(pt, value);
                     }
                 }
@@ -862,8 +843,7 @@ namespace SenseNet.Tests.Implementations
                 var referenceCollector = new Dictionary<int, List<int>>();
                 foreach (var row in _db.ReferenceProperties.Where(r => r.VersionId == versionId))
                 {
-                    List<int> refList;
-                    if (!referenceCollector.TryGetValue(row.PropertyTypeId, out refList))
+                    if (!referenceCollector.TryGetValue(row.PropertyTypeId, out var refList))
                         referenceCollector.Add(row.PropertyTypeId, refList = new List<int>());
                     refList.Add(row.ReferredNodeId);
                 }
@@ -933,7 +913,7 @@ namespace SenseNet.Tests.Implementations
             throw new NotImplementedException();
         }
         #endregion
-        protected internal override System.Collections.Generic.Dictionary<int, string> LoadTextPropertyValues(int versionId, int[] propertyTypeIds)
+        protected internal override Dictionary<int, string> LoadTextPropertyValues(int versionId, int[] propertyTypeIds)
         {
             return _db.TextProperties
                 .Where(t => t.VersionId == versionId && propertyTypeIds.Contains(t.PropertyTypeId))
@@ -1123,12 +1103,12 @@ namespace SenseNet.Tests.Implementations
         #region CREATION
 
         // Preloade CTD bytes by name
-        private static readonly System.Collections.Generic.Dictionary<string, byte[]> ContentTypeBytes;
+        private static readonly Dictionary<string, byte[]> ContentTypeBytes;
         static InMemoryDataProvider()
         {
             // Preload CTD bytes from disk to avoid heavy IO charging
 
-            ContentTypeBytes = new System.Collections.Generic.Dictionary<string, byte[]>();
+            ContentTypeBytes = new Dictionary<string, byte[]>();
 
             var ctdDirectory = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                 @"..\..\..\..\nuget\snadmin\install-services\import\System\Schema\ContentTypes"));
@@ -1166,18 +1146,20 @@ namespace SenseNet.Tests.Implementations
 
         public InMemoryDataProvider()
         {
-            _db = new Database();
+            var schema = new XmlDocument();
+            schema.LoadXml(_initialSchema);
 
-            _db.Schema = new XmlDocument();
-            _db.Schema.LoadXml(_initialSchema);
-
-            _db.Nodes = GetInitialNodes();
-            _db.Versions = GetInitialVersions();
-            _db.BinaryProperties = GetInitialBinaryProperties();
-            _db.Files = GetInitialFiles();
-            _db.TextProperties = GetInitialTextProperties();
-            _db.FlatProperties = GetInitialFlatProperties();
-            _db.ReferenceProperties = GetInitialReferencProperties();
+            _db = new Database
+            {
+                Schema = schema,
+                Nodes = GetInitialNodes(),
+                Versions = GetInitialVersions(),
+                BinaryProperties = GetInitialBinaryProperties(),
+                Files = GetInitialFiles(),
+                TextProperties = GetInitialTextProperties(),
+                FlatProperties = GetInitialFlatProperties(),
+                ReferenceProperties = GetInitialReferencProperties()
+            };
         }
         private List<NodeRecord> GetInitialNodes()
         {
@@ -1307,8 +1289,7 @@ namespace SenseNet.Tests.Implementations
                 var id = int.Parse(record[0]);
                 var intValues = record.Skip(3).Select(x => x == "NULL" ? (int?)null : int.Parse(x)).ToArray();
 
-                FlatPropertyRow row;
-                if (!flatRows.TryGetValue(id, out row))
+                if (!flatRows.TryGetValue(id, out var row))
                 {
                     row = new FlatPropertyRow
                     {
@@ -1329,8 +1310,7 @@ namespace SenseNet.Tests.Implementations
                 var id = int.Parse(record[0]);
                 var dateTimeValues = record.Skip(3).Select(x => x == "NULL" ? (DateTime?)null : DateTime.Parse(x)).ToArray();
 
-                FlatPropertyRow row;
-                if (!flatRows.TryGetValue(id, out row))
+                if (!flatRows.TryGetValue(id, out var row))
                 {
                     row = new FlatPropertyRow
                     {
@@ -1351,8 +1331,7 @@ namespace SenseNet.Tests.Implementations
                 var id = int.Parse(record[0]);
                 var decimalValues = record.Skip(3).Select(x => x == "NULL" ? (decimal?)null : decimal.Parse(x, CultureInfo.InvariantCulture)).ToArray();
 
-                FlatPropertyRow row;
-                if (!flatRows.TryGetValue(id, out row))
+                if (!flatRows.TryGetValue(id, out var row))
                 {
                     row = new FlatPropertyRow
                     {
@@ -1430,17 +1409,17 @@ namespace SenseNet.Tests.Implementations
         }
         private class Database
         {
-            public XmlDocument Schema;
+            public XmlDocument Schema { get; set; }
 
-            public List<NodeRecord> Nodes;
-            public List<VersionRecord> Versions;
-            public List<BinaryPropertyRecord> BinaryProperties;
-            public List<FileRecord> Files;
-            public List<TextPropertyRecord> TextProperties;
-            public List<FlatPropertyRow> FlatProperties;
-            public List<ReferencePropertyRow> ReferenceProperties;
-            public List<IndexingActivityRecord> IndexingActivities = new List<IndexingActivityRecord>();
-            public List<TreeLockRow> TreeLocks = new List<TreeLockRow>();
+            public List<NodeRecord> Nodes { get; set; }
+            public List<VersionRecord> Versions { get; set; }
+            public List<BinaryPropertyRecord> BinaryProperties { get; set; }
+            public List<FileRecord> Files { get; set; }
+            public List<TextPropertyRecord> TextProperties { get; set; }
+            public List<FlatPropertyRow> FlatProperties { get; set; }
+            public List<ReferencePropertyRow> ReferenceProperties { get; set; }
+            public List<IndexingActivityRecord> IndexingActivities { get; } = new List<IndexingActivityRecord>();
+            public List<TreeLockRow> TreeLocks { get; } = new List<TreeLockRow>();
         }
         private class InMemoryNodeWriter : INodeWriter
         {
@@ -1619,24 +1598,20 @@ namespace SenseNet.Tests.Implementations
 
             public void SaveStringProperty(int versionId, PropertyType propertyType, string value)
             {
-                int mapping;
-                GetFlatPropertyRow(versionId, propertyType.Mapping, SqlProvider.StringPageSize, out mapping).Strings[mapping] = value;
+                GetFlatPropertyRow(versionId, propertyType.Mapping, SqlProvider.StringPageSize, out var mapping).Strings[mapping] = value;
             }
 
             public void SaveDateTimeProperty(int versionId, PropertyType propertyType, DateTime value)
             {
-                int mapping;
-                GetFlatPropertyRow(versionId, propertyType.Mapping, SqlProvider.DateTimePageSize, out mapping).Datetimes[mapping] = value;
+                GetFlatPropertyRow(versionId, propertyType.Mapping, SqlProvider.DateTimePageSize, out var mapping).Datetimes[mapping] = value;
             }
             public void SaveIntProperty(int versionId, PropertyType propertyType, int value)
             {
-                int mapping;
-                GetFlatPropertyRow(versionId, propertyType.Mapping, SqlProvider.IntPageSize, out mapping).Integers[mapping] = value;
+                GetFlatPropertyRow(versionId, propertyType.Mapping, SqlProvider.IntPageSize, out var mapping).Integers[mapping] = value;
             }
             public void SaveCurrencyProperty(int versionId, PropertyType propertyType, decimal value)
             {
-                int mapping;
-                GetFlatPropertyRow(versionId, propertyType.Mapping, SqlProvider.CurrencyPageSize, out mapping).Decimals[mapping] = value;
+                GetFlatPropertyRow(versionId, propertyType.Mapping, SqlProvider.CurrencyPageSize, out var mapping).Decimals[mapping] = value;
             }
             private FlatPropertyRow GetFlatPropertyRow(int versionId, int mapping, int pageSize, out int propertyIndex)
             {
@@ -1734,9 +1709,9 @@ namespace SenseNet.Tests.Implementations
         }
         private class InMemorySchemaWriter : SchemaWriter
         {
-            private XmlDocument _schemaXml;
-            private string _xmlNamespace = "http://schemas.sensenet.com/SenseNet/ContentRepository/Storage/Schema";
-            private XmlNamespaceManager _nsmgr;
+            private readonly XmlDocument _schemaXml;
+            private readonly string _xmlNamespace = "http://schemas.sensenet.com/SenseNet/ContentRepository/Storage/Schema";
+            private readonly XmlNamespaceManager _nsmgr;
 
             public InMemorySchemaWriter(XmlDocument schemaXml)
             {
@@ -1772,6 +1747,7 @@ namespace SenseNet.Tests.Implementations
                 element.SetAttribute("mapping", mapping.ToString());
 
                 var parentElement = (XmlElement)_schemaXml.SelectSingleNode("/x:StorageSchema/x:UsedPropertyTypes", _nsmgr);
+                // ReSharper disable once PossibleNullReferenceException
                 parentElement.AppendChild(element);
             }
             public override void DeletePropertyType(PropertyType propertyType)
@@ -1790,8 +1766,8 @@ namespace SenseNet.Tests.Implementations
 
             public override void CreateNodeType(NodeType parent, string name, string className)
             {
-                var ids =
-                    _schemaXml.SelectNodes("//x:NodeType/@itemID", _nsmgr)
+                // ReSharper disable once AssignNullToNotNullAttribute
+                var ids = _schemaXml.SelectNodes("//x:NodeType/@itemID", _nsmgr)
                         .OfType<XmlAttribute>().Select(a => int.Parse(a.Value)).ToArray();
                 var id = ids.Max() + 1;
 
@@ -1801,6 +1777,7 @@ namespace SenseNet.Tests.Implementations
                 element.SetAttribute("className", className);
 
                 var parentElement = (XmlElement)_schemaXml.SelectSingleNode($"//x:NodeType[@itemID = '{parent.Id}']", _nsmgr);
+                // ReSharper disable once PossibleNullReferenceException
                 parentElement.AppendChild(element);
             }
             public override void ModifyNodeType(NodeType nodeType, NodeType parent, string className)
@@ -1870,6 +1847,7 @@ namespace SenseNet.Tests.Implementations
             private ContentSavingState _savingState;
             private long _nodeTimestamp;
 
+            // ReSharper disable once ConvertToAutoProperty
             public int NodeId
             {
                 get => _nodeId;
@@ -1923,6 +1901,7 @@ namespace SenseNet.Tests.Implementations
             private IEnumerable<ChangedData> _changedData;
             private long _versionTimestamp;
 
+            // ReSharper disable once ConvertToAutoProperty
             public int VersionId
             {
                 get => _versionId;

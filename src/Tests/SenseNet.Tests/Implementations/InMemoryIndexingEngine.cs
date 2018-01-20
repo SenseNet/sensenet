@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SenseNet.Search;
 using SenseNet.Search.Indexing;
-using SenseNet.Diagnostics;
-using System.Collections.Concurrent;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.Tests.Implementations
@@ -53,7 +46,7 @@ namespace SenseNet.Tests.Implementations
 
             if (updates != null)
                 foreach (var update in updates)
-                    Index.Update(update.UpdateTerm, (IndexDocument)update.Document);
+                    Index.Update(update.UpdateTerm, update.Document);
 
             if (additions != null)
                 foreach(var doc in additions)

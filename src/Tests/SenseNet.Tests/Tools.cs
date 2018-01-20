@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Configuration;
@@ -22,9 +16,9 @@ namespace SenseNet.Tests
 
         private class Swindler : IDisposable
         {
-            private PrivateType _accessor;
-            private string _memberName;
-            private object _originalValue;
+            private readonly PrivateType _accessor;
+            private readonly string _memberName;
+            private readonly object _originalValue;
 
             public Swindler(Type @class, string memberName, object cheat)
             {
@@ -61,7 +55,7 @@ namespace SenseNet.Tests
 
         public class DataProviderSwindler : IDisposable
         {
-            DataProvider _providerInstanceBackup;
+            readonly DataProvider _providerInstanceBackup;
             public DataProviderSwindler(DataProvider providerInstance)
             {
                 _providerInstanceBackup = Providers.Instance.DataProvider;

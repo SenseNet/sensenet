@@ -44,8 +44,7 @@ namespace SenseNet.Tests.Implementations
     {
         public IndexValue Parse(string text)
         {
-            int converted;
-            if (int.TryParse(text, out converted))
+            if (int.TryParse(text, out var converted))
                 return new IndexValue(converted);
             return null;
         }
@@ -81,8 +80,7 @@ namespace SenseNet.Tests.Implementations
     {
         public IndexValue Parse(string text)
         {
-            long converted;
-            if (long.TryParse(text, out converted))
+            if (long.TryParse(text, out var converted))
                 return new IndexValue(converted);
             return null;
         }
@@ -118,8 +116,7 @@ namespace SenseNet.Tests.Implementations
     {
         public IndexValue Parse(string text)
         {
-            float converted;
-            if (float.TryParse(text, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out converted))
+            if (float.TryParse(text, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var converted))
                 return new IndexValue(converted);
             return null;
         }
@@ -155,8 +152,7 @@ namespace SenseNet.Tests.Implementations
     {
         public IndexValue Parse(string text)
         {
-            double converted;
-            if (double.TryParse(text, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out converted))
+            if (double.TryParse(text, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var converted))
                 return new IndexValue(converted);
             return null;
         }
@@ -201,8 +197,7 @@ namespace SenseNet.Tests.Implementations
                 return new IndexValue(true);
             if (NoList.Contains(v))
                 return new IndexValue(false);
-            bool b;
-            if (bool.TryParse(v, out b))
+            if (bool.TryParse(v, out var b))
                 return new IndexValue(b);
             return null;
         }
@@ -238,8 +233,7 @@ namespace SenseNet.Tests.Implementations
     {
         public IndexValue Parse(string text)
         {
-            DateTime dateTimeValue;
-            if (DateTime.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTimeValue))
+            if (DateTime.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTimeValue))
                 return new IndexValue(dateTimeValue);
             return null;
         }

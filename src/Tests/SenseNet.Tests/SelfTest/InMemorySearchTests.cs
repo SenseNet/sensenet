@@ -380,7 +380,7 @@ namespace SenseNet.Tests.SelfTest
             // check untouched tree
             var node5Tree = index.GetStoredFieldsByTerm(new SnTerm(IndexFieldName.InTree, "/root/node5")).ToArray();
             Assert.IsNotNull(node5Tree);
-            Assert.AreEqual(2, node5Tree.Count());
+            Assert.AreEqual(2, node5Tree.Length);
             // check node ids in untouched tree
             ids = string.Join(", ", node5Tree
                 .Select(x => x.Item2.First(y => y.Name == IndexFieldName.NodeId).IntegerValue)
@@ -582,7 +582,7 @@ namespace SenseNet.Tests.SelfTest
             var actualNodeIds = string.Join(", ", nodeIds);
             Assert.AreEqual(expectedNodeIds, actualNodeIds);
 
-            var expectedPaths = $"/Root/F2/Node1, /Root/F1/Node1, /Root/F3/Node1";
+            var expectedPaths = "/Root/F2/Node1, /Root/F1/Node1, /Root/F3/Node1";
             var actualPaths = string.Join(", ", nodes.Select(n => n.Path));
             Assert.AreEqual(expectedPaths, actualPaths);
         }
@@ -855,6 +855,7 @@ namespace SenseNet.Tests.SelfTest
             var log = new List<string>();
             QueryResult result;
 
+            // ReSharper disable once RedundantNameQualifier
             Configuration.Indexing.IsOuterSearchEngineEnabled = true;
             using (Repository.Start(new RepositoryBuilder()
                 .UseDataProvider(new InMemoryDataProvider())
@@ -903,6 +904,7 @@ namespace SenseNet.Tests.SelfTest
             var log = new List<string>();
             QueryResult result;
 
+            // ReSharper disable once RedundantNameQualifier
             Configuration.Indexing.IsOuterSearchEngineEnabled = true;
             using (Repository.Start(new RepositoryBuilder()
                 .UseDataProvider(new InMemoryDataProvider())

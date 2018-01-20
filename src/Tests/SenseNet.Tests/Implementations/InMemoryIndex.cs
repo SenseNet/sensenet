@@ -32,8 +32,7 @@ namespace SenseNet.Tests.Implementations
             {
                 var fieldName = field.Name;
 
-                Dictionary<string, List<int>> existingFieldData;
-                if (!IndexData.TryGetValue(fieldName, out existingFieldData))
+                if (!IndexData.TryGetValue(fieldName, out var existingFieldData))
                 {
                     existingFieldData = new Dictionary<string, List<int>>();
                     IndexData.Add(fieldName, existingFieldData);
@@ -43,8 +42,7 @@ namespace SenseNet.Tests.Implementations
 
                 foreach (var fieldValue in fieldValues)
                 {
-                    List<int> versionIds;
-                    if (!existingFieldData.TryGetValue(fieldValue, out versionIds))
+                    if (!existingFieldData.TryGetValue(fieldValue, out var versionIds))
                     {
                         versionIds = new List<int>();
                         existingFieldData.Add(fieldValue, versionIds);
@@ -60,8 +58,7 @@ namespace SenseNet.Tests.Implementations
             var fieldName = term.Name;
 
             // get category by term name
-            Dictionary<string, List<int>> existingFieldData;
-            if (!IndexData.TryGetValue(fieldName, out existingFieldData))
+            if (!IndexData.TryGetValue(fieldName, out var existingFieldData))
                 return;
 
             var deletableVersionIds = new List<int>();
@@ -69,8 +66,7 @@ namespace SenseNet.Tests.Implementations
             foreach (var fieldValue in fieldValues)
             {
                 // get version id set by term value
-                List<int> versionIds;
-                if (!existingFieldData.TryGetValue(fieldValue, out versionIds))
+                if (!existingFieldData.TryGetValue(fieldValue, out var versionIds))
                     continue;
                 deletableVersionIds.AddRange(versionIds);
             }
@@ -110,13 +106,11 @@ namespace SenseNet.Tests.Implementations
             var fieldValue = fieldValues[0];
 
             // get category by term name
-            Dictionary<string, List<int>> existingFieldData;
-            if (!IndexData.TryGetValue(fieldName, out existingFieldData))
+            if (!IndexData.TryGetValue(fieldName, out var existingFieldData))
                 return null;
 
             // get version id set by term value
-            List<int> versionIds;
-            if (!existingFieldData.TryGetValue(fieldValue, out versionIds))
+            if (!existingFieldData.TryGetValue(fieldValue, out var versionIds))
                 return null;
 
             // return with all stored data by version ids without distinct
@@ -157,8 +151,7 @@ namespace SenseNet.Tests.Implementations
 
         public int GetTermCount(string fieldName)
         {
-            Dictionary<string, List<int>> fieldValues;
-            return IndexData.TryGetValue(fieldName, out fieldValues) ? fieldValues.Count : 0;
+            return IndexData.TryGetValue(fieldName, out var fieldValues) ? fieldValues.Count : 0;
         }
 
         public void Clear()
