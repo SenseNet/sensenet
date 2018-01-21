@@ -17,8 +17,8 @@ namespace SenseNet.Search.IntegrationTests
         [TestMethod, TestCategory("IR")]
         public void Indexing_Centralized_Sql_RegisterAndReload()
         {
-            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
-            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
+            var connectionStringBackup = Configuration.ConnectionStrings.ConnectionString;
+            Configuration.ConnectionStrings.ConnectionString = _connectionString;
             try
             {
                 CleanupIndexingActivitiesTable();
@@ -61,13 +61,13 @@ namespace SenseNet.Search.IntegrationTests
                     $"{IndexingActivityType.AddDocument}, {IndexingActivityType.UpdateDocument}, {IndexingActivityType.AddTree}, {IndexingActivityType.RemoveTree}, {IndexingActivityType.Rebuild}",
                     string.Join(", ", unprocessedActivities.Select(x => x.ActivityType.ToString()).ToArray()));
                 Assert.AreEqual(
-                    $"42, 43, 44, 45, 46",
+                    "42, 43, 44, 45, 46",
                     string.Join(", ", unprocessedActivities.Select(x => x.NodeId.ToString()).ToArray()));
                 Assert.AreEqual(
-                    $"42, 43, 0, 0, 46",
+                    "42, 43, 0, 0, 46",
                     string.Join(", ", unprocessedActivities.Select(x => x.VersionId.ToString()).ToArray()));
                 Assert.AreEqual(
-                    $"/root/42, /root/43, /root/44, /root/45, /root/46",
+                    "/root/42, /root/43, /root/44, /root/45, /root/46",
                     string.Join(", ", unprocessedActivities.Select(x => x.Path)));
 
                 for (int i = 0; i < unprocessedActivities.Length; i++)
@@ -86,13 +86,13 @@ namespace SenseNet.Search.IntegrationTests
                     $"{IndexingActivityType.AddDocument}, {IndexingActivityType.UpdateDocument}, {IndexingActivityType.AddTree}, {IndexingActivityType.RemoveTree}, {IndexingActivityType.Rebuild}",
                     string.Join(", ", loadedActivities.Select(x => x.ActivityType.ToString()).ToArray()));
                 Assert.AreEqual(
-                    $"42, 43, 44, 45, 46",
+                    "42, 43, 44, 45, 46",
                     string.Join(", ", loadedActivities.Select(x => x.NodeId.ToString()).ToArray()));
                 Assert.AreEqual(
-                    $"42, 43, 0, 0, 46",
+                    "42, 43, 0, 0, 46",
                     string.Join(", ", loadedActivities.Select(x => x.VersionId.ToString()).ToArray()));
                 Assert.AreEqual(
-                    $"/root/42, /root/43, /root/44, /root/45, /root/46",
+                    "/root/42, /root/43, /root/44, /root/45, /root/46",
                     string.Join(", ", loadedActivities.Select(x => x.Path)));
 
                 for (int i = 0; i < loadedActivities.Length; i++)
@@ -111,7 +111,7 @@ namespace SenseNet.Search.IntegrationTests
                    $"{lastActivityIdBefore + 1}, {lastActivityIdBefore + 2}",
                    string.Join(", ", unprocessedActivitiesFromGaps.Select(x => x.Id.ToString()).ToArray()));
                 Assert.AreEqual(
-                   $"True, True",
+                   "True, True",
                    string.Join(", ", unprocessedActivitiesFromGaps.Select(x => x.IsUnprocessedActivity.ToString()).ToArray()));
                 // ---- simulating runtime maintenance
                 var loadedActivitiesFromGaps = DataProvider.Current.LoadIndexingActivities(gaps, false, factory);
@@ -119,20 +119,20 @@ namespace SenseNet.Search.IntegrationTests
                    $"{lastActivityIdBefore + 1}, {lastActivityIdBefore + 2}",
                    string.Join(", ", loadedActivitiesFromGaps.Select(x => x.Id.ToString()).ToArray()));
                 Assert.AreEqual(
-                   $"False, False",
+                   "False, False",
                    string.Join(", ", loadedActivitiesFromGaps.Select(x => x.IsUnprocessedActivity.ToString()).ToArray()));
             }
             finally
             {
-                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+                Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
             }
         }
 
         [TestMethod, TestCategory("IR")]
         public void Indexing_Centralized_Sql_UpdateStateToDone()
         {
-            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
-            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
+            var connectionStringBackup = Configuration.ConnectionStrings.ConnectionString;
+            Configuration.ConnectionStrings.ConnectionString = _connectionString;
             try
             {
                 CleanupIndexingActivitiesTable();
@@ -165,15 +165,15 @@ namespace SenseNet.Search.IntegrationTests
             }
             finally
             {
-                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+                Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
             }
         }
 
         [TestMethod, TestCategory("IR")]
         public void Indexing_Centralized_Sql_Allocate01_SelectWaiting()
         {
-            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
-            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
+            var connectionStringBackup = Configuration.ConnectionStrings.ConnectionString;
+            Configuration.ConnectionStrings.ConnectionString = _connectionString;
             try
             {
                 CleanupIndexingActivitiesTable();
@@ -191,14 +191,14 @@ namespace SenseNet.Search.IntegrationTests
             }
             finally
             {
-                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+                Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
             }
         }
         [TestMethod, TestCategory("IR")]
         public void Indexing_Centralized_Sql_Allocate02_IdDependency()
         {
-            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
-            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
+            var connectionStringBackup = Configuration.ConnectionStrings.ConnectionString;
+            Configuration.ConnectionStrings.ConnectionString = _connectionString;
             try
             {
                 CleanupIndexingActivitiesTable();
@@ -216,14 +216,14 @@ namespace SenseNet.Search.IntegrationTests
             }
             finally
             {
-                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+                Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
             }
         }
         [TestMethod, TestCategory("IR")]
         public void Indexing_Centralized_Sql_Allocate02_IdDependency_VersionId0()
         {
-            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
-            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
+            var connectionStringBackup = Configuration.ConnectionStrings.ConnectionString;
+            Configuration.ConnectionStrings.ConnectionString = _connectionString;
             try
             {
                 CleanupIndexingActivitiesTable();
@@ -243,14 +243,14 @@ namespace SenseNet.Search.IntegrationTests
             }
             finally
             {
-                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+                Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
             }
         }
         [TestMethod, TestCategory("IR")]
         public void Indexing_Centralized_Sql_Allocate03_InactiveDependency()
         {
-            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
-            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
+            var connectionStringBackup = Configuration.ConnectionStrings.ConnectionString;
+            Configuration.ConnectionStrings.ConnectionString = _connectionString;
             try
             {
                 CleanupIndexingActivitiesTable();
@@ -270,14 +270,14 @@ namespace SenseNet.Search.IntegrationTests
             }
             finally
             {
-                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+                Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
             }
         }
         [TestMethod, TestCategory("IR")]
         public void Indexing_Centralized_Sql_Allocate04_SelectMore()
         {
-            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
-            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
+            var connectionStringBackup = Configuration.ConnectionStrings.ConnectionString;
+            Configuration.ConnectionStrings.ConnectionString = _connectionString;
             try
             {
                 CleanupIndexingActivitiesTable();
@@ -303,14 +303,14 @@ namespace SenseNet.Search.IntegrationTests
             }
             finally
             {
-                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+                Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
             }
         }
         [TestMethod, TestCategory("IR")]
         public void Indexing_Centralized_Sql_Allocate05_PathDependency()
         {
-            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
-            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
+            var connectionStringBackup = Configuration.ConnectionStrings.ConnectionString;
+            Configuration.ConnectionStrings.ConnectionString = _connectionString;
             try
             {
                 CleanupIndexingActivitiesTable();
@@ -336,14 +336,14 @@ namespace SenseNet.Search.IntegrationTests
             }
             finally
             {
-                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+                Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
             }
         }
         [TestMethod, TestCategory("IR")]
         public void Indexing_Centralized_Sql_Allocate06_Timeout()
         {
-            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
-            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
+            var connectionStringBackup = Configuration.ConnectionStrings.ConnectionString;
+            Configuration.ConnectionStrings.ConnectionString = _connectionString;
             try
             {
                 CleanupIndexingActivitiesTable();
@@ -377,14 +377,14 @@ namespace SenseNet.Search.IntegrationTests
             }
             finally
             {
-                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+                Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
             }
         }
         [TestMethod, TestCategory("IR")]
         public void Indexing_Centralized_Sql_Allocate07_MaxRecords()
         {
-            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
-            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
+            var connectionStringBackup = Configuration.ConnectionStrings.ConnectionString;
+            Configuration.ConnectionStrings.ConnectionString = _connectionString;
             try
             {
                 CleanupIndexingActivitiesTable();
@@ -402,14 +402,14 @@ namespace SenseNet.Search.IntegrationTests
             }
             finally
             {
-                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+                Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
             }
         }
         [TestMethod, TestCategory("IR")]
         public void Indexing_Centralized_Sql_Allocate08_StateUpdated()
         {
-            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
-            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
+            var connectionStringBackup = Configuration.ConnectionStrings.ConnectionString;
+            Configuration.ConnectionStrings.ConnectionString = _connectionString;
             try
             {
                 CleanupIndexingActivitiesTable();
@@ -431,15 +431,15 @@ namespace SenseNet.Search.IntegrationTests
             }
             finally
             {
-                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+                Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
             }
         }
 
         [TestMethod, TestCategory("IR")]
         public void Indexing_Centralized_Sql_AllocateAndState()
         {
-            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
-            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
+            var connectionStringBackup = Configuration.ConnectionStrings.ConnectionString;
+            Configuration.ConnectionStrings.ConnectionString = _connectionString;
             try
             {
                 CleanupIndexingActivitiesTable();
@@ -469,15 +469,15 @@ namespace SenseNet.Search.IntegrationTests
             }
             finally
             {
-                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+                Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
             }
         }
 
         [TestMethod, TestCategory("IR")]
         public void Indexing_Centralized_Sql_RefreshLock()
         {
-            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
-            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
+            var connectionStringBackup = Configuration.ConnectionStrings.ConnectionString;
+            Configuration.ConnectionStrings.ConnectionString = _connectionString;
             try
             {
                 CleanupIndexingActivitiesTable();
@@ -504,21 +504,23 @@ namespace SenseNet.Search.IntegrationTests
                 Assert.AreEqual(4, activities.Length);
 
                 // pay attention to difference due to rounding datetime in the database.
+                // ReSharper disable once PossibleInvalidOperationException
                 Assert.IsTrue(Math.Abs(((TimeSpan)(time1 - activities[0].LockTime)).Ticks) < TimeSpan.FromSeconds(0.01).Ticks);
                 Assert.IsTrue(now <= activities[1].LockTime);
                 Assert.IsTrue(now <= activities[2].LockTime);
+                // ReSharper disable once PossibleInvalidOperationException
                 Assert.IsTrue(Math.Abs(((TimeSpan)(time4 - activities[3].LockTime)).Ticks) < TimeSpan.FromSeconds(0.01).Ticks);
             }
             finally
             {
-                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+                Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
             }
         }
         [TestMethod, TestCategory("IR")]
         public void Indexing_Centralized_Sql_DeleteFinished()
         {
-            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
-            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
+            var connectionStringBackup = Configuration.ConnectionStrings.ConnectionString;
+            Configuration.ConnectionStrings.ConnectionString = _connectionString;
             try
             {
                 CleanupIndexingActivitiesTable();
@@ -545,22 +547,22 @@ namespace SenseNet.Search.IntegrationTests
             }
             finally
             {
-                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+                Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
             }
         }
         /* ====================================================================================== */
 
         public static void CleanupIndexingActivitiesTable()
         {
-            var connectionStringBackup = SenseNet.Configuration.ConnectionStrings.ConnectionString;
-            SenseNet.Configuration.ConnectionStrings.ConnectionString = _connectionString;
+            var connectionStringBackup = Configuration.ConnectionStrings.ConnectionString;
+            Configuration.ConnectionStrings.ConnectionString = _connectionString;
             try
             {
                 DataProvider.Current.DeleteAllIndexingActivities();
             }
             finally
             {
-                SenseNet.Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
+                Configuration.ConnectionStrings.ConnectionString = connectionStringBackup;
             }
         }
 

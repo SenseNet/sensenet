@@ -8,6 +8,7 @@ using SenseNet.Diagnostics;
 using SenseNet.Search.Indexing;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -27,12 +28,11 @@ namespace SenseNet.Search.IntegrationTests
         {
             public bool Running { get; private set; }
 
-            private bool _centralized;
-            public bool IndexIsCentralized => _centralized;
+            public bool IndexIsCentralized { get; }
 
             public IndexingEngineForActivityQueueSelectorTests(bool centralized)
             {
-                _centralized = centralized;
+                IndexIsCentralized = centralized;
             }
 
             public void ClearIndex()
@@ -59,6 +59,7 @@ namespace SenseNet.Search.IntegrationTests
             {
             }
 
+            [SuppressMessage("ReSharper", "AssignNullToNotNullAttribute")]
             public void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates, IEnumerable<IndexDocument> additions)
             {
                 var distributed = Environment.StackTrace.Contains(typeof(DistributedIndexingActivityQueue).FullName) ? "DISTRIBUTED" : "";
@@ -66,7 +67,7 @@ namespace SenseNet.Search.IntegrationTests
                 _log.AppendLine($"{centralized}{distributed}. deletions: {deletions?.Count() ?? 0}, updates: {updates?.Count() ?? 0}, addition: {additions?.Count() ?? 0}");
             }
 
-            StringBuilder _log = new StringBuilder();
+            readonly StringBuilder _log = new StringBuilder();
             public string GetLog()
             {
                 return _log.ToString();
@@ -124,7 +125,7 @@ namespace SenseNet.Search.IntegrationTests
                 using (new SystemAccount())
                     node.Save();
 
-                Assert.AreEqual($"DISTRIBUTED. deletions: 0, updates: 0, addition: 1\r\n", searchEngine.GetIndexingLog());
+                Assert.AreEqual("DISTRIBUTED. deletions: 0, updates: 0, addition: 1\r\n", searchEngine.GetIndexingLog());
             });
         }
         [TestMethod, TestCategory("IR")]
@@ -138,7 +139,7 @@ namespace SenseNet.Search.IntegrationTests
                 using (new SystemAccount())
                     node.Save();
 
-                Assert.AreEqual($"CENTRALIZED. deletions: 0, updates: 0, addition: 1\r\n", searchEngine.GetIndexingLog());
+                Assert.AreEqual("CENTRALIZED. deletions: 0, updates: 0, addition: 1\r\n", searchEngine.GetIndexingLog());
             });
         }
 
@@ -187,7 +188,6 @@ namespace SenseNet.Search.IntegrationTests
             if(dataProvider == null)
                 dataProvider = new InMemoryDataProvider();
             var securityDataProvider = GetSecurityDataProvider(dataProvider);
-            var indexFolderName = "Test_" + memberName;
 
             Configuration.Indexing.IsOuterSearchEngineEnabled = true;
             CommonComponents.TransactionFactory = dataProvider;
@@ -201,7 +201,7 @@ namespace SenseNet.Search.IntegrationTests
                 .UseSearchEngine(searchEngine)
                 .UseSecurityDataProvider(securityDataProvider)
                 .UseCacheProvider(new EmptyCache())
-                .UseTraceCategories(new[] { "ContentOperation", "Event", "Repository", "IndexQueue", "Index", "Query" })
+                .UseTraceCategories("ContentOperation", "Event", "Repository", "IndexQueue", "Index", "Query")
                 .DisableNodeObservers()
                 .EnableNodeObservers(typeof(SettingsCache))
                 .StartWorkflowEngine(false);
@@ -217,33 +217,16 @@ namespace SenseNet.Search.IntegrationTests
             }
         }
 
-        private IIndexingActivity RegisterActivity(IndexingActivityType type, IndexingActivityRunningState state, int nodeId, int versionId, string path)
+        private void RegisterActivity(IndexingActivityType type, IndexingActivityRunningState state, int nodeId, int versionId, string path)
         {
             IndexingActivityBase activity;
             if (type == IndexingActivityType.AddTree || type == IndexingActivityType.RemoveTree)
-                activity = CreateTreeActivity(type, path, nodeId, null);
+                activity = CreateTreeActivity(type, path, nodeId);
             else
                 activity = CreateActivity(type, path, nodeId, versionId, 9999);
             activity.RunningState = state;
 
             DataProvider.Current.RegisterIndexingActivity(activity);
-
-            return activity;
-        }
-        private IIndexingActivity RegisterActivity(IndexingActivityType type, IndexingActivityRunningState state, DateTime lockTime, int nodeId, int versionId, string path)
-        {
-            IndexingActivityBase activity;
-            if (type == IndexingActivityType.AddTree || type == IndexingActivityType.RemoveTree)
-                activity = CreateTreeActivity(type, path, nodeId, null);
-            else
-                activity = CreateActivity(type, path, nodeId, versionId, 9999);
-
-            activity.RunningState = state;
-            activity.LockTime = lockTime;
-
-            DataProvider.Current.RegisterIndexingActivity(activity);
-
-            return activity;
         }
         private IndexingActivityBase CreateActivity(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp)
         {
@@ -268,13 +251,7 @@ namespace SenseNet.Search.IntegrationTests
             return activity;
         }
 
-        private IndexDocumentData CreateFakeIndexDocumentData()
-        {
-            var indexDocument = new IndexDocument();
-            return new IndexDocumentData(indexDocument, null);
-        }
-
-        private IndexingActivityBase CreateTreeActivity(IndexingActivityType type, string path, int nodeId, IndexDocumentData indexDocumentData)
+        private IndexingActivityBase CreateTreeActivity(IndexingActivityType type, string path, int nodeId)
         {
             var activity = (IndexingActivityBase)IndexingActivityFactory.Instance.CreateActivity(type);
             activity.Path = path.ToLowerInvariant();
