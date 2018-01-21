@@ -297,7 +297,7 @@ namespace SenseNet.Tests.Implementations
             {
                 finishedActivitiyIds = _db.IndexingActivities
                     .Where(x => waitingActivityIds.Contains(x.IndexingActivityId) && x.RunningState == IndexingActivityRunningState.Done)
-                    .Select(x=>x.IndexingActivityId)
+                    .Select(x => x.IndexingActivityId)
                     .ToArray();
             }
             return activities;
@@ -343,7 +343,7 @@ namespace SenseNet.Tests.Implementations
         public override void DeleteFinishedIndexingActivities()
         {
             lock (_db.IndexingActivities)
-                _db.IndexingActivities.RemoveAll(x=>x.RunningState == IndexingActivityRunningState.Done);
+                _db.IndexingActivities.RemoveAll(x => x.RunningState == IndexingActivityRunningState.Done);
         }
 
         public override DateTime RoundDateTime(DateTime d)
@@ -376,7 +376,7 @@ namespace SenseNet.Tests.Implementations
                 .Any(t => t.LockedAt > timeMin &&
                           (parentChain.Contains(t.Path) ||
                            t.Path.StartsWith(path + "/", StringComparison.InvariantCultureIgnoreCase))))
-            return 0;
+                return 0;
 
             var newTreeLockId = _db.TreeLocks.Count == 0 ? 1 : _db.TreeLocks.Max(t => t.TreeLockId) + 1;
             _db.TreeLocks.Add(new TreeLockRow
@@ -470,7 +470,7 @@ namespace SenseNet.Tests.Implementations
         protected internal override DataOperationResult DeleteNodeTreePsychical(int nodeId, long timestamp)
         {
             var nodeRec = _db.Nodes.FirstOrDefault(n => n.NodeId == nodeId);
-            if(nodeRec == null)
+            if (nodeRec == null)
                 return DataOperationResult.Successful;
 
             var path = nodeRec.Path;
@@ -545,7 +545,7 @@ namespace SenseNet.Tests.Implementations
         {
             return _db.Versions
                 .Where(v => v.NodeId == nodeId)
-                .Select(v =>new NodeHead.NodeVersion(v.Version, v.VersionId))
+                .Select(v => new NodeHead.NodeVersion(v.Version, v.VersionId))
                 .ToArray();
         }
 
@@ -631,7 +631,7 @@ namespace SenseNet.Tests.Implementations
             // To avoid accessing to blob provider, read data here, else set rawData to null
             byte[] rawData = fileRec.Stream;
 
-            //TODO: partially implemented
+            //TODO: partially implemented: IBlobProvider resolution always null.
             IBlobProvider provider = null; //BlobStorageBase.GetProvider(null);
             // ReSharper disable once ExpressionIsAlwaysNull
             var context = new BlobStorageContext(provider)
@@ -641,7 +641,7 @@ namespace SenseNet.Tests.Implementations
                 FileId = fileId,
                 Length = length,
                 UseFileStream = false,
-                BlobProviderData = new BuiltinBlobProviderData { FileStreamData = null }
+                BlobProviderData = new BuiltinBlobProviderData {FileStreamData = null}
             };
 
             return new BinaryCacheEntity
@@ -835,7 +835,7 @@ namespace SenseNet.Tests.Implementations
                 {
                     foreach (PropertyType pt in builder.Token.AllPropertyTypes)
                     {
-                        if(GetDataSlot(flatPropertRow, flatPropertRow.Page, pt, out var value))
+                        if (GetDataSlot(flatPropertRow, flatPropertRow.Page, pt, out var value))
                             builder.AddDynamicProperty(pt, value);
                     }
                 }
@@ -1057,7 +1057,7 @@ namespace SenseNet.Tests.Implementations
                 return _db.Versions.Count;
 
             var count = _db.Nodes.Join(_db.Versions, n => n.NodeId, v => v.NodeId,
-                    (node, version) => new {Node = node, Version = version})
+                    (node, version) => new { Node = node, Version = version })
                 .Count(
                     x =>
                         x.Node.Path.StartsWith(path + RepositoryPath.PathSeparator,
@@ -1146,20 +1146,19 @@ namespace SenseNet.Tests.Implementations
 
         public InMemoryDataProvider()
         {
-            var schema = new XmlDocument();
-            schema.LoadXml(_initialSchema);
+            // ReSharper disable once UseObjectOrCollectionInitializer
+            _db = new Database();
 
-            _db = new Database
-            {
-                Schema = schema,
-                Nodes = GetInitialNodes(),
-                Versions = GetInitialVersions(),
-                BinaryProperties = GetInitialBinaryProperties(),
-                Files = GetInitialFiles(),
-                TextProperties = GetInitialTextProperties(),
-                FlatProperties = GetInitialFlatProperties(),
-                ReferenceProperties = GetInitialReferencProperties()
-            };
+            _db.Schema = new XmlDocument();
+            _db.Schema.LoadXml(_initialSchema);
+
+            _db.Nodes = GetInitialNodes();
+            _db.Versions = GetInitialVersions();
+            _db.BinaryProperties = GetInitialBinaryProperties();
+            _db.Files = GetInitialFiles();
+            _db.TextProperties = GetInitialTextProperties();
+            _db.FlatProperties = GetInitialFlatProperties();
+            _db.ReferenceProperties = GetInitialReferencProperties();
         }
         private List<NodeRecord> GetInitialNodes()
         {
@@ -1344,7 +1343,7 @@ namespace SenseNet.Tests.Implementations
                 row.Decimals = decimalValues;
             }
 
-           return flatRows.Values.ToList();
+            return flatRows.Values.ToList();
         }
         private List<ReferencePropertyRow> GetInitialReferencProperties()
         {
@@ -1563,7 +1562,7 @@ namespace SenseNet.Tests.Implementations
                 versionRec.ChangedData = nodeData.ChangedData;
 
                 var nodeRec = _db.Nodes.FirstOrDefault(n => n.NodeId == nodeId);
-                if(nodeRec == null)
+                if (nodeRec == null)
                     throw new InvalidOperationException("Node not found. NodeId:" + nodeId);
 
                 if (nodeData.IsPropertyChanged("Version"))
@@ -1650,10 +1649,10 @@ namespace SenseNet.Tests.Implementations
                 foreach (var row in rows)
                     _db.ReferenceProperties.Remove(row);
 
-                foreach(var referredNodeId in value.Distinct())
+                foreach (var referredNodeId in value.Distinct())
                     _db.ReferenceProperties.Add(new ReferencePropertyRow
                     {
-                        ReferencePropertyId = _db.ReferenceProperties.Max(x=>x.ReferencePropertyId) + 1,
+                        ReferencePropertyId = _db.ReferenceProperties.Max(x => x.ReferencePropertyId) + 1,
                         VersionId = versionId,
                         PropertyTypeId = propertyType.Id,
                         ReferredNodeId = referredNodeId
@@ -1731,13 +1730,13 @@ namespace SenseNet.Tests.Implementations
 
             public override void CreatePropertyType(string name, DataType dataType, int mapping, bool isContentListProperty)
             {
-                if(isContentListProperty)
+                if (isContentListProperty)
                     throw new NotImplementedException(); //TODO: ContentListProperty creating is not implemented.
 
                 // ReSharper disable once AssignNullToNotNullAttribute
                 var ids =
                     _schemaXml.SelectNodes("/x:StorageSchema/x:UsedPropertyTypes/x:PropertyType/@itemID", _nsmgr)
-                        .OfType<XmlAttribute>().Select(a=>int.Parse(a.Value)).ToArray();
+                        .OfType<XmlAttribute>().Select(a => int.Parse(a.Value)).ToArray();
                 var id = ids.Max() + 1;
 
                 var element = _schemaXml.CreateElement("PropertyType", _xmlNamespace);
@@ -1768,7 +1767,7 @@ namespace SenseNet.Tests.Implementations
             {
                 // ReSharper disable once AssignNullToNotNullAttribute
                 var ids = _schemaXml.SelectNodes("//x:NodeType/@itemID", _nsmgr)
-                        .OfType<XmlAttribute>().Select(a => int.Parse(a.Value)).ToArray();
+                         .OfType<XmlAttribute>().Select(a => int.Parse(a.Value)).ToArray();
                 var id = ids.Max() + 1;
 
                 var element = _schemaXml.CreateElement("NodeType", _xmlNamespace);
