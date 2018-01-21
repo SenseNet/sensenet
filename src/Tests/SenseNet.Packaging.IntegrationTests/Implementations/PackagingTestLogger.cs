@@ -4,13 +4,16 @@ namespace SenseNet.Packaging.IntegrationTests.Implementations
 {
     public class PackagingTestLogger : IPackagingLogger
     {
-        public LogLevel AcceptedLevel { get { return LogLevel.File; } }
-        private StringBuilder _sb;
+        public LogLevel AcceptedLevel => LogLevel.File;
+        private readonly StringBuilder _sb;
+
+        public string LogFilePath => "[in memory]";
+
         public PackagingTestLogger(StringBuilder sb)
         {
             _sb = sb;
         }
-        public string LogFilePath { get { return "[in memory]"; } }
+
         public void Initialize(LogLevel level, string logFilePath) { }
         public void WriteTitle(string title)
         {
