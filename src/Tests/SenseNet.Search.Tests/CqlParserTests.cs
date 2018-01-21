@@ -15,7 +15,7 @@ namespace SenseNet.Search.Tests
     [TestClass]
     public class CqlParserTests
     {
-        Dictionary<string, IPerFieldIndexingInfo> _indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
+        readonly Dictionary<string, IPerFieldIndexingInfo> _indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
         {
             {"_Text", new TestPerfieldIndexingInfoString()},
             {"#Field1", new TestPerfieldIndexingInfoString()},
@@ -121,8 +121,7 @@ namespace SenseNet.Search.Tests
         [TestMethod, TestCategory("IR")]
         public void SnQuery_Parser_AstToString_PredicateTypes()
         {
-            SnQuery q;
-            q = Test("Name:aaa"); Assert.AreEqual(typeof(SimplePredicate), q.QueryTree.GetType());
+            var q = Test("Name:aaa"); Assert.AreEqual(typeof(SimplePredicate), q.QueryTree.GetType());
             q = Test("Id:1000"); Assert.AreEqual(typeof(SimplePredicate), q.QueryTree.GetType());
             q = Test("DoubleField1:3.14"); Assert.AreEqual(typeof(SimplePredicate), q.QueryTree.GetType());
         }
@@ -130,8 +129,7 @@ namespace SenseNet.Search.Tests
         [TestMethod, TestCategory("IR")]
         public void SnQuery_Parser_AstToString_CqlExtension_Ranges()
         {
-            SnQuery q;
-            q = Test("Name:<aaa"); Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());
+            var q = Test("Name:<aaa"); Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());
             q = Test("Name:>aaa"); Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());
             q = Test("Name:<=aaa"); Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());
             q = Test("Name:>=aaa"); Assert.AreEqual(typeof(RangePredicate), q.QueryTree.GetType());

@@ -15,7 +15,7 @@ namespace SenseNet.Search.Tests
     [TestClass]
     public class SnQueryTests
     {
-        Dictionary<string, IPerFieldIndexingInfo> _indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
+        readonly Dictionary<string, IPerFieldIndexingInfo> _indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
             {
                 {"_Text", new TestPerfieldIndexingInfoString()},
                 {"#Field1", new TestPerfieldIndexingInfoString()},

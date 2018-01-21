@@ -16,8 +16,7 @@ namespace SenseNet.Search.Tests.Implementations
 
         public QueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
-            QueryResult<int> result;
-            if (_intResults.TryGetValue(query.Querytext, out result))
+            if (_intResults.TryGetValue(query.Querytext, out var result))
                 return result;
             return QueryResult<int>.Empty;
         }

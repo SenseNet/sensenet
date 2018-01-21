@@ -1,9 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Search.Querying;
-using SenseNet.Search.Querying.Parser;
 using SenseNet.Search.Querying.Parser.Predicates;
-using SenseNet.Search.Tests.Implementations;
 
 namespace SenseNet.Search.Tests
 {
