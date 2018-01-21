@@ -7,7 +7,7 @@ namespace SenseNet.Packaging.Tests.Implementations
 {
     public class TestDbParameterCollection : DbParameterCollection
     {
-        private List<DbParameter> _parameters = new List<DbParameter>();
+        private readonly List<DbParameter> _parameters = new List<DbParameter>();
 
         public override int Add(object value)
         {
@@ -62,7 +62,7 @@ namespace SenseNet.Packaging.Tests.Implementations
         }
 
         public override int Count => _parameters.Count;
-        public override object SyncRoot { get { return ((ICollection)_parameters).SyncRoot; } }
+        public override object SyncRoot => ((ICollection)_parameters).SyncRoot;
 
         public override int IndexOf(string parameterName)
         {

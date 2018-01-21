@@ -17,7 +17,7 @@ namespace SenseNet.Packaging.Tests
         private static List<TestDataProcedure> Procedures { get; } = new List<TestDataProcedure>();
         private static TestDataProcedureFactory Factory { get; } = new TestDataProcedureFactory(Procedures);
         private static object ExpectedCommandResult {
-            set { Factory.ExpectedCommandResult = value; }
+            set => Factory.ExpectedCommandResult = value;
         }
 
         /* ================================================================================================== Tests */
