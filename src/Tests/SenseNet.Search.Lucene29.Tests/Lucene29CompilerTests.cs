@@ -62,6 +62,7 @@ namespace SenseNet.Search.Lucene29.Tests
         [TestMethod, TestCategory("IR")] // 11 tests
         public void Search_Compiler_Luc29__QueryTypes()
         {
+            // ReSharper disable once JoinDeclarationAndInitializer
             Query q;
             q = Test("Name:aaaaa"); Assert.AreEqual(q.GetType(), typeof(TermQuery));
             q = Test("Id:1 Id:22"); Assert.AreEqual(q.GetType(), typeof(BooleanQuery));
@@ -81,6 +82,7 @@ namespace SenseNet.Search.Lucene29.Tests
         [TestMethod, TestCategory("IR")] // 4 tests
         public void Search_Compiler_Luc29__QueryType_Numeric()
         {
+            // ReSharper disable once JoinDeclarationAndInitializer
             Query q;
             q = Test("Id:42"); Assert.AreEqual(q.GetType(), typeof(TermQuery));
             q = Test($"LongField1:{long.MaxValue}"); Assert.AreEqual(q.GetType(), typeof(TermQuery));
@@ -91,6 +93,7 @@ namespace SenseNet.Search.Lucene29.Tests
         [TestMethod, TestCategory("IR")] // 20 tests
         public void Search_Compiler_Luc29__CqlExtension_Ranges()
         {
+            // ReSharper disable once JoinDeclarationAndInitializer
             Query q;
             q = Test("Name:<aaa"); Assert.IsInstanceOfType(q, typeof(TermRangeQuery));
             q = Test("Name:>aaa"); Assert.IsInstanceOfType(q, typeof(TermRangeQuery));
@@ -182,7 +185,7 @@ namespace SenseNet.Search.Lucene29.Tests
         {
             var nq = q as NumericRangeQuery;
             Assert.IsNotNull(nq, $"The query is {q.GetType().Name} but {type.Name} expected.");
-            var val = (nq.GetMin() ?? nq.GetMax()).GetType();
+            //var val = (nq.GetMin() ?? nq.GetMax()).GetType();
             Assert.AreEqual(type, (nq.GetMin() ?? nq.GetMax()).GetType());
         }
     }
