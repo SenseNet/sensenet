@@ -263,7 +263,7 @@ namespace SenseNet.Portal.Virtualization
                     var userName = principal.Identity.Name;
                     ultimateLogout = !UserHasLoggedOut(tokenManager, userName, accessHeadAndPayload);
                 }
-                _logoutProvider?.UltimateLogout(ultimateLogout);
+                _logoutProvider?.Logout(ultimateLogout);
                 //AuthenticationHelper.Logout(ultimateLogout);
                 CookieHelper.DeleteCookie(context.Response, AccessSignatureCookieName);
                 CookieHelper.DeleteCookie(context.Response, AccessHeadAndPayloadCookieName);
@@ -358,7 +358,7 @@ namespace SenseNet.Portal.Virtualization
         private bool UserHasLoggedOut(TokenManager tokenManager, PortalPrincipal portalPrincipal, string tokenheadAndPayload)
         {
             var lastLoggedOut = (portalPrincipal?.Identity as IUser)?.LastLoggedOut;
-            return DateTime.Compare(lastLoggedOut.GetValueOrDefault(), TokenCreationTime(tokenManager, tokenheadAndPayload)) <= 0;
+            return lastLoggedOut.HasValue && DateTime.Compare(lastLoggedOut.GetValueOrDefault(), TokenCreationTime(tokenManager, tokenheadAndPayload)) <= 0;
         }
 
         private DateTime TokenCreationTime(TokenManager tokenManager, string headAndPayload)

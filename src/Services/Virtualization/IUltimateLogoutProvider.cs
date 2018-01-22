@@ -5,7 +5,7 @@ namespace SenseNet.Services.Virtualization
 {
     public interface IUltimateLogoutProvider
     {
-        void UltimateLogout(bool ultimateLogout);
+        void Logout(bool ultimateLogout);
         Func<string, PortalPrincipal> LoadPortalPrincipalForLogout { get; set; }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using SenseNet.ContentRepository;
 using SenseNet.Portal.Virtualization;
 using System.Web;
+using SenseNet.Services.Virtualization;
 
 namespace SenseNet.ApplicationModel
 {
@@ -12,10 +13,11 @@ namespace SenseNet.ApplicationModel
         public override bool CausesStateChange => false;
         public override bool IsHtmlOperation => false;
 
+        private IUltimateLogoutProvider _logoutProvider;
         public override void Initialize(Content context, string backUri, Application application, object parameters)
         {
             base.Initialize(context, backUri, application, parameters);
-
+            _logoutProvider = new UltimateLogoutProvider();
             if (PortalContext.Current.AuthenticationMode == "Windows" || !User.Current.IsAuthenticated)
             {
                 this.Visible = false;
@@ -25,7 +27,7 @@ namespace SenseNet.ApplicationModel
         public override object Execute(Content content, params object[] parameters)
         {
             var ultimateLogout = parameters != null && parameters.Length > 0 && parameters[0] != null && (bool)parameters[0];
-            AuthenticationHelper.Logout(ultimateLogout);
+            _logoutProvider.Logout(ultimateLogout);
 
             var backUrl = PortalContext.Current.BackUrl;
             var back = string.IsNullOrWhiteSpace(backUrl) ? "/" : backUrl;

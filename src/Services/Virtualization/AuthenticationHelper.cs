@@ -17,7 +17,7 @@ using SenseNet.Services.Virtualization;
 
 namespace SenseNet.Portal.Virtualization
 {
-    public class AuthenticationHelper: IUltimateLogoutProvider
+    public static class AuthenticationHelper
     {
         private static readonly string authHeaderName = "WWW-Authenticate";
 
@@ -114,12 +114,6 @@ namespace SenseNet.Portal.Virtualization
             throw new OData.ODataException(OData.ODataExceptionCode.Forbidden);
         }
 
-        public void UltimateLogout(bool ultimateLogout)
-        {
-            Logout(ultimateLogout);
-        }
-
-
         public static void Logout(bool ultimateLogout = false)
         {
             var user = User.Current;
@@ -152,10 +146,17 @@ namespace SenseNet.Portal.Virtualization
                 };
 
                 HttpContext.Current.Response.Cookies.Add(sessionCookie);
+
                 if (ultimateLogout)
                 {
-                    var now = DateTime.Now;
-                    user.LastLoggedOut = user.LastLoggedOut == null ? now : (DateTime.Compare(user.LastLoggedOut.Value, now) > 0 ? user.LastLoggedOut : now);
+                    using (new SystemAccount())
+                    {
+                        if (user is User userNode)
+                        {
+                            userNode.LastLoggedOut = DateTime.UtcNow;
+                            userNode.Save(SavingMode.KeepVersion);
+                        }
+                    }
                 }
             }
         }
@@ -171,7 +172,7 @@ namespace SenseNet.Portal.Virtualization
             return GetRequestParameterValue(GetRequest(context), parameterName);
         }
 
-        public static string GetRequestParameterValue(HttpRequestBase request, string parameterName)
+        private static string GetRequestParameterValue(HttpRequestBase request, string parameterName)
         {
             return request.Params == null ? null : request.Params[parameterName];
         }
@@ -183,7 +184,6 @@ namespace SenseNet.Portal.Virtualization
         public static Func<IPrincipal> GetVisitorPrincipal = () => new PortalPrincipal(User.Visitor);
         public static Func<string, IPrincipal> LoadUserPrincipal = userName => new PortalPrincipal(User.Load(userName));
         public static Func<string, PortalPrincipal> LoadPortalPrincipal = userName => new PortalPrincipal(User.Load(userName));
-        public Func<string, PortalPrincipal> LoadPortalPrincipalForLogout { get; set; } = userName => LoadPortalPrincipal(userName);
         public static Func<string, string, bool> IsUserValid = (userName, password) => Membership.ValidateUser(userName, password);
         public static Func<IDisposable> GetSystemAccount = () => new SystemAccount();
         public static Func<string> GetBasicAuthHeader = () => PortalContext.Current.BasicAuthHeaders;

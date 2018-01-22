@@ -339,6 +339,7 @@
     <Compile Include="Virtualization\StaticVirtualizedFileHandler.cs" />
     <Compile Include="Virtualization\StaticVirtualizedFileHandlerFactory.cs" />
     <Compile Include="Virtualization\TokenAuthentication.cs" />
+    <Compile Include="Virtualization\UltimateLogoutProvider.cs" />
     <Compile Include="WebDAV\Common.cs" />
     <Compile Include="WebDAV\Delete.cs" />
     <Compile Include="WebDAV\Enums.cs" />

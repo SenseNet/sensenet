@@ -832,8 +832,11 @@ namespace SenseNet.ContentRepository
             return SecurityHandler.IsInGroup(this.Id, container.Id);
         }
 
+        private const string LASTLOGGEDOUT = "LastLoggedOut";
         /// <inheritdoc />
-        public DateTime? LastLoggedOut {
+        [RepositoryProperty("LastLoggedOut", RepositoryDataType.DateTime)]
+        public DateTime? LastLoggedOut
+        {
             get => GetProperty<DateTime?>("LastLoggedOut");
             set => this["LastLoggedOut"] = value;
         }
@@ -962,7 +965,10 @@ namespace SenseNet.ContentRepository
                 CheckUniqueUser();
 
             if (_password != null)
+            {
                 this.PasswordHash = PasswordHashProvider.EncodePassword(_password, this);
+                this.LastLoggedOut = DateTime.UtcNow;
+            }
 
             Domain = GenerateDomain();
 
@@ -1267,6 +1273,8 @@ namespace SenseNet.ContentRepository
                     return this.LoginName;
                 case PROFILEPATH:
                     return this.ProfilePath;
+                case LASTLOGGEDOUT:
+                    return this.LastLoggedOut;
                 default:
                     return base.GetProperty(name);
             }
@@ -1305,6 +1313,9 @@ namespace SenseNet.ContentRepository
                     break;
                 case PROFILEPATH:
                     // this is a readonly property
+                    break;
+                case LASTLOGGEDOUT:
+                    this.LastLoggedOut = (DateTime?)value;
                     break;
                 default:
                     base.SetProperty(name, value);

@@ -321,5 +321,15 @@
         <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
+    <Field name="LastLoggedOut" type="DateTime">
+      <DisplayName>$Ctd-User,LastLoggedOut-DisplayName</DisplayName>
+      <Description>$Ctd-User,LastLoggedOut-Description</Description>
+      <Configuration>
+        <DateTimeMode>DateAndTime</DateTimeMode>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
   </Fields>
 </ContentType>

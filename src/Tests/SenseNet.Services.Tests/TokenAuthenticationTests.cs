@@ -119,7 +119,13 @@ namespace SenseNet.Services.Tests
             mockContext.SetupGet(o => o.User).Returns(principal);
             bool ultimateLogout = false;
             var mockLogoutProvider = new Mock<IUltimateLogoutProvider>();
-            mockLogoutProvider.Setup(o => o.UltimateLogout(It.IsAny<bool>())).Callback((bool u) =>{ultimateLogout = u;});
+            mockLogoutProvider.Setup(o => o.Logout(It.IsAny<bool>())).Callback((bool u) =>{ultimateLogout = u;});
+            mockLogoutProvider.SetupGet(o => o.LoadPortalPrincipalForLogout).Returns( u =>
+            {
+                var user = ServicesTestUser.Create("", u);
+                user.LastLoggedOut = new DateTime(2047,1,1,0,0,0);
+                return new PortalPrincipal(user);
+            });
 
             Configuration.TokenAuthentication.Audience = "audience";
             Configuration.TokenAuthentication.Issuer = "issuer";
@@ -201,7 +207,7 @@ namespace SenseNet.Services.Tests
             user.LastLoggedOut = new DateTime(2017, 1, 1, 0, 0, 0);
             var portalPrincipal = new PortalPrincipal(user);
             var mockLogoutProvider = new Mock<IUltimateLogoutProvider>();
-            mockLogoutProvider.Setup(o => o.UltimateLogout(It.IsAny<bool>())).Callback((bool u) =>{ultimateLogout = u;});
+            mockLogoutProvider.Setup(o => o.Logout(It.IsAny<bool>())).Callback((bool u) =>{ultimateLogout = u;});
             mockLogoutProvider.SetupGet(o => o.LoadPortalPrincipalForLogout).Returns(u => portalPrincipal);
             Configuration.TokenAuthentication.Audience = "audience";
             Configuration.TokenAuthentication.Issuer = "issuer";
@@ -278,7 +284,7 @@ namespace SenseNet.Services.Tests
             mockContext.SetupGet(o => o.User).Returns(principal);
             bool ultimateLogout = false;
             var mockLogoutProvider = new Mock<IUltimateLogoutProvider>();
-            mockLogoutProvider.Setup(o => o.UltimateLogout(It.IsAny<bool>())).Callback((bool u) =>{ultimateLogout = u;});
+            mockLogoutProvider.Setup(o => o.Logout(It.IsAny<bool>())).Callback((bool u) =>{ultimateLogout = u;});
 
             Configuration.TokenAuthentication.Audience = "audience";
             Configuration.TokenAuthentication.Issuer = "issuer";
@@ -867,6 +873,13 @@ namespace SenseNet.Services.Tests
             mockResponse.SetupGet(o => o.Cookies).Returns(cookies);
             mockResponse.Setup(o => o.Write(It.IsAny<string>())).Callback((string t) => { body = t; });
             mockResponse.SetupSet(o => o.StatusCode = It.IsAny<int>()).Callback((int s) => { responseStatus = s; });
+            var mockLogoutProvider = new Mock<IUltimateLogoutProvider>();
+            mockLogoutProvider.SetupGet(o => o.LoadPortalPrincipalForLogout).Returns(u =>
+            {
+                var user = ServicesTestUser.Create("", u);
+                user.LastLoggedOut = new DateTime(2047, 1, 1, 0, 0, 0);
+                return new PortalPrincipal(user);
+            });
 
             var mockContext = new Mock<HttpContextBase>();
             mockContext.SetupGet(o => o.Request).Returns(mockRequest.Object);
@@ -882,7 +895,7 @@ namespace SenseNet.Services.Tests
             var application = new HttpApplication();
             InitDependecies( mockContext, mockRequest, mockResponse);
 
-            new TokenAuthentication().Authenticate(application, false, false);
+            new TokenAuthentication(mockLogoutProvider.Object).Authenticate(application, false, false);
 
             Assert.NotNull(mockResponse.Object.Cookies["as"]);
             Assert.NotNull(mockResponse.Object.Cookies["ahp"]);
@@ -911,6 +924,13 @@ namespace SenseNet.Services.Tests
             mockResponse.SetupGet(o => o.Cookies).Returns(cookies);
             mockResponse.Setup(o => o.Write(It.IsAny<string>())).Callback((string t) => { body = t; });
             mockResponse.SetupSet(o => o.StatusCode = It.IsAny<int>()).Callback((int s) => { responseStatus = s; });
+            var mockLogoutProvider = new Mock<IUltimateLogoutProvider>();
+            mockLogoutProvider.SetupGet(o => o.LoadPortalPrincipalForLogout).Returns(u =>
+            {
+                var user = ServicesTestUser.Create("", u);
+                user.LastLoggedOut = new DateTime(2047, 1, 1, 0, 0, 0);
+                return new PortalPrincipal(user);
+            });
 
             var mockContext = new Mock<HttpContextBase>();
             mockContext.SetupGet(o => o.Request).Returns(mockRequest.Object);
@@ -926,7 +946,7 @@ namespace SenseNet.Services.Tests
             var application = new HttpApplication();
             InitDependecies( mockContext, mockRequest, mockResponse);
 
-            new TokenAuthentication().Authenticate(application, false, false);
+            new TokenAuthentication(mockLogoutProvider.Object).Authenticate(application, false, false);
 
             Assert.NotNull(mockResponse.Object.Cookies["as"]);
             Assert.NotNull(mockResponse.Object.Cookies["ahp"]);
