@@ -169,7 +169,7 @@ namespace SenseNet.Portal.Virtualization
 
         public static string GetRequestParameterValue(HttpContextBase context, string parameterName)
         {
-            return GetRequestParameterValue(GetRequest(context), parameterName);
+            return GetRequestParameterValue(context.Request, parameterName);
         }
 
         private static string GetRequestParameterValue(HttpRequestBase request, string parameterName)

@@ -69,7 +69,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             throw new InvalidOperationException("The SYSTEM user is not a member of any container (group or organizational unit).");
         }
 
-        public DateTime? LastLoggedOut { get; set; }
+        public DateTime LastLoggedOut { get; set; }
 
         public bool IsInGroup(int securityGroupId)
         {

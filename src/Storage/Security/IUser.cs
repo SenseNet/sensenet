@@ -59,7 +59,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Gives the last exact time of the user's ultimate logout
         /// </summary>
-        DateTime? LastLoggedOut { get; set; }
+        DateTime LastLoggedOut { get; set; }
 
         /// <summary>
         /// Gets or sets a <see cref="MembershipExtension"/> instance that can customize the membership of this user. 

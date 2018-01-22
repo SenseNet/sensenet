@@ -44,7 +44,7 @@ namespace SenseNet.Services.Tests
             AuthenticationHelper.LoadPortalPrincipal = (userName) =>
             {
                 var user = ServicesTestUser.Create("", userName);
-                user.LastLoggedOut = null;
+                user.LastLoggedOut = DateTime.MinValue;
                 var principal = new PortalPrincipal(user);
                 return principal;
             };

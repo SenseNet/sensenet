@@ -258,7 +258,12 @@ namespace SenseNet.Portal.Virtualization
                 if (ultimateLogout || Configuration.Security.DefaultUltimateLogout)
                 {
                     var userName = principal.Identity.Name;
-                    ultimateLogout = !UserHasLoggedOut(tokenManager, userName, accessHeadAndPayload);
+                    PortalPrincipal portalPrincipal;
+                    ultimateLogout = !UserHasLoggedOut(tokenManager, userName, accessHeadAndPayload, out portalPrincipal);
+                    using (AuthenticationHelper.GetSystemAccount())
+                    {
+                        context.User = portalPrincipal;
+                    }
                 }
                 _logoutProvider?.Logout(ultimateLogout);
                 //AuthenticationHelper.Logout(ultimateLogout);
@@ -342,9 +347,8 @@ namespace SenseNet.Portal.Virtualization
             }
         }
 
-        private bool UserHasLoggedOut(TokenManager tokenManager, string userName, string tokenheadAndPayload)
+        private bool UserHasLoggedOut(TokenManager tokenManager, string userName, string tokenheadAndPayload, out PortalPrincipal portalPrincipal)
         {
-            PortalPrincipal portalPrincipal;
             using (AuthenticationHelper.GetSystemAccount())
             {
                 portalPrincipal = _logoutProvider.LoadPortalPrincipalForLogout(userName);

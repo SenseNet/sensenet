@@ -835,9 +835,9 @@ namespace SenseNet.ContentRepository
         private const string LASTLOGGEDOUT = "LastLoggedOut";
         /// <inheritdoc />
         [RepositoryProperty("LastLoggedOut", RepositoryDataType.DateTime)]
-        public DateTime? LastLoggedOut
+        public DateTime LastLoggedOut
         {
-            get => GetProperty<DateTime?>("LastLoggedOut");
+            get => GetProperty<DateTime>("LastLoggedOut");
             set => this["LastLoggedOut"] = value;
         }
 
@@ -1315,7 +1315,7 @@ namespace SenseNet.ContentRepository
                     // this is a readonly property
                     break;
                 case LASTLOGGEDOUT:
-                    this.LastLoggedOut = (DateTime?)value;
+                    this.LastLoggedOut = (DateTime)value;
                     break;
                 default:
                     base.SetProperty(name, value);
