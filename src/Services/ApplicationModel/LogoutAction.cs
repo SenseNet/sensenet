@@ -12,6 +12,7 @@ namespace SenseNet.ApplicationModel
         public override bool IsODataOperation => true;
         public override bool CausesStateChange => false;
         public override bool IsHtmlOperation => false;
+        public override ActionParameter[] ActionParameters { get; } = { new ActionParameter("ultimateLogout", typeof(bool), false) };
 
         private IUltimateLogoutProvider _logoutProvider;
         public override void Initialize(Content context, string backUri, Application application, object parameters)
