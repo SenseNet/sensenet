@@ -11,6 +11,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Packaging.Steps;
 using SenseNet.Packaging.Tests.Implementations;
+using SenseNet.Tests;
 
 namespace SenseNet.Packaging.Tests
 {
@@ -27,10 +28,10 @@ namespace SenseNet.Packaging.Tests
     #endregion
 
     [TestClass]
-    public class PackagingTests
+    public class PackagingTests : TestBase
     {
         private static StringBuilder _log;
-
+        private IPackageStorageProviderFactory _packageStorageProviderFactoryBackup;
         [TestInitialize]
         public void PrepareTest()
         {
@@ -41,9 +42,15 @@ namespace SenseNet.Packaging.Tests
             loggerAcc.SetStaticField("_loggers", loggers);
 
             var storage = new TestPackageStorageProvider();
+            _packageStorageProviderFactoryBackup = PackageManager.StorageFactory;
             PackageManager.StorageFactory = new TestPackageStorageProviderFactory(storage);
 
             RepositoryVersionInfo.Reset();
+        }
+        [TestCleanup]
+        public void AfterTest()
+        {
+            PackageManager.StorageFactory = _packageStorageProviderFactoryBackup;
         }
 
         #region // ========================================= Manifest parsing tests
