@@ -253,12 +253,9 @@ namespace SenseNet.Portal.Virtualization
                 {
                     throw new UnauthorizedAccessException("Invalid access token.");
                 }
-                if (!bool.TryParse(AuthenticationHelper.GetRequestParameterValue(context, "ultimateLogout"), out var ultimateLogout))
-                {
-                    ultimateLogout = Configuration.TokenAuthentication.DefaultUltimateLogout;
-                }
+                bool.TryParse(AuthenticationHelper.GetRequestParameterValue(context, "ultimateLogout"), out var ultimateLogout);
                 // ultimately log out only if the user has not been logged out already, if he has, just a local logout executes
-                if (ultimateLogout)
+                if (ultimateLogout || Configuration.Security.DefaultUltimateLogout)
                 {
                     var userName = principal.Identity.Name;
                     ultimateLogout = !UserHasLoggedOut(tokenManager, userName, accessHeadAndPayload);
@@ -358,7 +355,7 @@ namespace SenseNet.Portal.Virtualization
         private bool UserHasLoggedOut(TokenManager tokenManager, PortalPrincipal portalPrincipal, string tokenheadAndPayload)
         {
             var lastLoggedOut = (portalPrincipal?.Identity as IUser)?.LastLoggedOut;
-            return lastLoggedOut.HasValue && DateTime.Compare(lastLoggedOut.GetValueOrDefault(), TokenCreationTime(tokenManager, tokenheadAndPayload)) <= 0;
+            return lastLoggedOut.HasValue && DateTime.Compare(lastLoggedOut.GetValueOrDefault(), TokenCreationTime(tokenManager, tokenheadAndPayload)) > 0;
         }
 
         private DateTime TokenCreationTime(TokenManager tokenManager, string headAndPayload)

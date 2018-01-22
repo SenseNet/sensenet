@@ -12,6 +12,5 @@
         public static int AccessLifeTimeInMinutes { get;  set; } = GetValue<int>(SectionName, "AccessLifeTimeInMinutes", 5);
         public static int RefreshLifeTimeInMinutes { get;  set; } = GetValue<int>(SectionName, "RefreshLifeTimeInMinutes", 1440);
         public static int ClockSkewInMinutes { get;  set; } = GetValue<int>(SectionName, "ClockSkewInMinutes", 1);
-        public static bool DefaultUltimateLogout { get; set; } = GetValue<bool>(SectionName, "DefaultUltimateLogout", false);
     }
 }

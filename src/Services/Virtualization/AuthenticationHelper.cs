@@ -147,7 +147,7 @@ namespace SenseNet.Portal.Virtualization
 
                 HttpContext.Current.Response.Cookies.Add(sessionCookie);
 
-                if (ultimateLogout)
+                if (ultimateLogout || Configuration.Security.DefaultUltimateLogout)
                 {
                     using (new SystemAccount())
                     {

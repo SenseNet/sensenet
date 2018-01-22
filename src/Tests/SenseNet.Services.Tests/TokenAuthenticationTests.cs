@@ -23,10 +23,6 @@ namespace SenseNet.Services.Tests
     public class TokenAuthenticationTests
     {
 
-        public TokenAuthenticationTests()
-        {
-        }
-
         private class Disposable : IDisposable
         {
             public void Dispose(){}
@@ -123,7 +119,7 @@ namespace SenseNet.Services.Tests
             mockLogoutProvider.SetupGet(o => o.LoadPortalPrincipalForLogout).Returns( u =>
             {
                 var user = ServicesTestUser.Create("", u);
-                user.LastLoggedOut = new DateTime(2047,1,1,0,0,0);
+                user.LastLoggedOut = new DateTime(2017,1,1,0,0,0);
                 return new PortalPrincipal(user);
             });
 
@@ -204,7 +200,7 @@ namespace SenseNet.Services.Tests
             mockContext.SetupGet(o => o.User).Returns(principal);
             bool ultimateLogout = false;
             var user = ServicesTestUser.Create("", "userName");
-            user.LastLoggedOut = new DateTime(2017, 1, 1, 0, 0, 0);
+            user.LastLoggedOut = new DateTime(2017, 12, 31, 0, 0, 0);
             var portalPrincipal = new PortalPrincipal(user);
             var mockLogoutProvider = new Mock<IUltimateLogoutProvider>();
             mockLogoutProvider.Setup(o => o.Logout(It.IsAny<bool>())).Callback((bool u) =>{ultimateLogout = u;});
@@ -877,7 +873,7 @@ namespace SenseNet.Services.Tests
             mockLogoutProvider.SetupGet(o => o.LoadPortalPrincipalForLogout).Returns(u =>
             {
                 var user = ServicesTestUser.Create("", u);
-                user.LastLoggedOut = new DateTime(2047, 1, 1, 0, 0, 0);
+                user.LastLoggedOut = new DateTime(2017, 1, 1, 0, 0, 0);
                 return new PortalPrincipal(user);
             });
 
@@ -928,7 +924,7 @@ namespace SenseNet.Services.Tests
             mockLogoutProvider.SetupGet(o => o.LoadPortalPrincipalForLogout).Returns(u =>
             {
                 var user = ServicesTestUser.Create("", u);
-                user.LastLoggedOut = new DateTime(2047, 1, 1, 0, 0, 0);
+                user.LastLoggedOut = new DateTime(2017, 1, 1, 0, 0, 0);
                 return new PortalPrincipal(user);
             });
 
