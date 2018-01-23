@@ -8,7 +8,6 @@ using Lucene.Net.Search.Spans;
 using Lucene.Net.Index;
 using System.Globalization;
 using Lucene.Net.Util;
-using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Lucene29
@@ -20,31 +19,31 @@ namespace SenseNet.Search.Lucene29
             if (q == null)
                 return null;
 
-            var booleanq = q as BooleanQuery; if (booleanq != null) return VisitBooleanQuery(booleanq);
+            if (q is BooleanQuery booleanq) return VisitBooleanQuery(booleanq);
             // SKIPPED: var boostingq = q as BoostingQuery; if (boostingq != null) return VisitBoostingQuery(boostingq);
-            var constantScoreq = q as ConstantScoreQuery; if (constantScoreq != null) return VisitConstantScoreQuery(constantScoreq);
-            var customScoreq = q as CustomScoreQuery; if (customScoreq != null) return VisitCustomScoreQuery(customScoreq);
-            var disjunctionMaxq = q as DisjunctionMaxQuery; if (disjunctionMaxq != null) return VisitDisjunctionMaxQuery(disjunctionMaxq);
-            var filteredq = q as FilteredQuery; if (filteredq != null) return VisitFilteredQuery(filteredq);
+            if (q is ConstantScoreQuery constantScoreq) return VisitConstantScoreQuery(constantScoreq);
+            if (q is CustomScoreQuery customScoreq) return VisitCustomScoreQuery(customScoreq);
+            if (q is DisjunctionMaxQuery disjunctionMaxq) return VisitDisjunctionMaxQuery(disjunctionMaxq);
+            if (q is FilteredQuery filteredq) return VisitFilteredQuery(filteredq);
             // SKIPPED: var fuzzyLikeThisq = q as FuzzyLikeThisQuery; if (fuzzyLikeThisq != null) return VisitFuzzyLikeThisQuery(fuzzyLikeThisq);
-            var matchAllDocsq = q as MatchAllDocsQuery; if (matchAllDocsq != null) return VisitMatchAllDocsQuery(matchAllDocsq);
+            if (q is MatchAllDocsQuery matchAllDocsq) return VisitMatchAllDocsQuery(matchAllDocsq);
             // SKIPPED: var moreLikeThisq = q as MoreLikeThisQuery; if (moreLikeThisq != null) return VisitMoreLikeThisQuery(moreLikeThisq);
-            var multiPhraseq = q as MultiPhraseQuery; if (multiPhraseq != null) return VisitMultiPhraseQuery(multiPhraseq);
-            var fuzzyq = q as FuzzyQuery; if (fuzzyq != null) return VisitFuzzyQuery(fuzzyq);
-            var wildcardq = q as WildcardQuery; if (wildcardq != null) return VisitWildcardQuery(wildcardq);
-            var phraseq = q as PhraseQuery; if (phraseq != null) return VisitPhraseQuery(phraseq);
-            var prefixq = q as PrefixQuery; if (prefixq != null) return VisitPrefixQuery(prefixq);
-            var spanFirstq = q as SpanFirstQuery; if (spanFirstq != null) return VisitSpanFirstQuery(spanFirstq);
-            var spanNearq = q as SpanNearQuery; if (spanNearq != null) return VisitSpanNearQuery(spanNearq);
-            var spanNotq = q as SpanNotQuery; if (spanNotq != null) return VisitSpanNotQuery(spanNotq);
-            var spanOrq = q as SpanOrQuery; if (spanOrq != null) return VisitSpanOrQuery(spanOrq);
-            var spanTermq = q as SpanTermQuery; if (spanTermq != null) return VisitSpanTermQuery(spanTermq);
-            var termq = q as TermQuery; if (termq != null) return VisitTermQuery(termq);
-            var valueSourceq = q as ValueSourceQuery; if (valueSourceq != null) return VisitValueSourceQuery(valueSourceq);
-            var fieldScoreq = q as FieldScoreQuery; if (fieldScoreq != null) return VisitFieldScoreQuery(fieldScoreq);
+            if (q is MultiPhraseQuery multiPhraseq) return VisitMultiPhraseQuery(multiPhraseq);
+            if (q is FuzzyQuery fuzzyq) return VisitFuzzyQuery(fuzzyq);
+            if (q is WildcardQuery wildcardq) return VisitWildcardQuery(wildcardq);
+            if (q is PhraseQuery phraseq) return VisitPhraseQuery(phraseq);
+            if (q is PrefixQuery prefixq) return VisitPrefixQuery(prefixq);
+            if (q is SpanFirstQuery spanFirstq) return VisitSpanFirstQuery(spanFirstq);
+            if (q is SpanNearQuery spanNearq) return VisitSpanNearQuery(spanNearq);
+            if (q is SpanNotQuery spanNotq) return VisitSpanNotQuery(spanNotq);
+            if (q is SpanOrQuery spanOrq) return VisitSpanOrQuery(spanOrq);
+            if (q is SpanTermQuery spanTermq) return VisitSpanTermQuery(spanTermq);
+            if (q is TermQuery termq) return VisitTermQuery(termq);
+            if (q is ValueSourceQuery valueSourceq) return VisitValueSourceQuery(valueSourceq);
+            if (q is FieldScoreQuery fieldScoreq) return VisitFieldScoreQuery(fieldScoreq); //UNDONE: check unreachable code
             // <V2.9.2>
-            var termRangeq = q as TermRangeQuery; if (termRangeq != null) return VisitTermRangeQuery(termRangeq);
-            var numericRangeq = q as NumericRangeQuery; if (numericRangeq != null) return VisitNumericRangeQuery(numericRangeq);
+            if (q is TermRangeQuery termRangeq) return VisitTermRangeQuery(termRangeq);
+            if (q is NumericRangeQuery numericRangeq) return VisitNumericRangeQuery(numericRangeq);
             // </V2.9.2>
 
             throw new NotSupportedException("Unknown query type: " + q.GetType().FullName);
@@ -79,7 +78,7 @@ namespace SenseNet.Search.Lucene29
                 else if (visitedClause != clauses[index])
                 {
                     newList = new List<BooleanClause>();
-                    for (int i = 0; i < index; i++)
+                    for (var i = 0; i < index; i++)
                         newList.Add(clauses[i]);
                     newList.Add(visitedClause);
                 }
@@ -180,16 +179,16 @@ namespace SenseNet.Search.Lucene29
                 return numericRangeq;
 
             var min = numericRangeq.GetMin();
-            if (min is Int32)
+            if (min is int)
                 return NumericRangeQuery.NewIntRange(visitedField, numericRangeq.GetMin(), numericRangeq.GetMax(), numericRangeq.IncludesMin(), numericRangeq.IncludesMax());
-            if (min is Int64)
+            if (min is long)
                 return NumericRangeQuery.NewLongRange(visitedField, numericRangeq.GetMin(), numericRangeq.GetMax(), numericRangeq.IncludesMin(), numericRangeq.IncludesMax());
-            if (min is Single)
-                return NumericRangeQuery.NewFloatRange(visitedField, (Single)numericRangeq.GetMin(), (Single)numericRangeq.GetMax(), numericRangeq.IncludesMin(), numericRangeq.IncludesMax());
-            if (min is Double)
-                return NumericRangeQuery.NewDoubleRange(visitedField, (Double)numericRangeq.GetMin(), (Double)numericRangeq.GetMax(), numericRangeq.IncludesMin(), numericRangeq.IncludesMax());
+            if (min is float)
+                return NumericRangeQuery.NewFloatRange(visitedField, (float)numericRangeq.GetMin(), (float)numericRangeq.GetMax(), numericRangeq.IncludesMin(), numericRangeq.IncludesMax());
+            if (min is double)
+                return NumericRangeQuery.NewDoubleRange(visitedField, (double)numericRangeq.GetMin(), (double)numericRangeq.GetMax(), numericRangeq.IncludesMin(), numericRangeq.IncludesMax());
 
-            throw new NotSupportedException(String.Format("VisitNumericRangeQuery with {0} minvalue is not supported.", min.GetType().Name));
+            throw new NotSupportedException(string.Format("VisitNumericRangeQuery with {0} minvalue is not supported.", min.GetType().Name));
         }
         // </V2.9.2>
         public virtual BooleanClause VisitBooleanClause(BooleanClause clause)
@@ -237,13 +236,13 @@ namespace SenseNet.Search.Lucene29
             return _text.ToString();
         }
 
-        private int booleanCount;
+        private int _booleanCount;
         public override Query VisitBooleanQuery(BooleanQuery booleanq)
         {
-            if (booleanCount++ > 0)
+            if (_booleanCount++ > 0)
                 _text.Append("(");
             var q = base.VisitBooleanQuery(booleanq);
-            if (--booleanCount > 0)
+            if (--_booleanCount > 0)
                 _text.Append(")");
             return q;
         }
@@ -306,25 +305,25 @@ namespace SenseNet.Search.Lucene29
             _text.Append(":\"");
 
             var positions = new int[terms.Length];
-            for (int i = 0; i < positions.Length; i++)
+            for (var i = 0; i < positions.Length; i++)
                 positions[i] = i;
 
             var pieces = new string[terms.Length];
-            for (int i = 0; i < terms.Length; i++)
+            for (var i = 0; i < terms.Length; i++)
             {
-                int pos = ((System.Int32)positions[i]);
-                System.String s = pieces[pos];
+                var pos = positions[i];
+                var s = pieces[pos];
                 if (s == null)
                     s = (terms[i]).Text();
                 else
                     s += "|" + (terms[i]).Text();
                 pieces[pos] = s;
             }
-            for (int i = 0; i < pieces.Length; i++)
+            for (var i = 0; i < pieces.Length; i++)
             {
                 if (i > 0)
                     _text.Append(' ');
-                System.String s = pieces[i];
+                var s = pieces[i];
                 if (s == null)
                     _text.Append('?');
                 else
@@ -458,7 +457,7 @@ namespace SenseNet.Search.Lucene29
                 for (int i = 0; i < c.Length; i++)
                     if (c[i] < ' ')
                         c[i] = '.';
-                return new String(c);
+                return new string(c);
             }
 
             switch (fieldType)
@@ -489,35 +488,35 @@ namespace SenseNet.Search.Lucene29
         private string GetTermText(string text)
         {
             if (text == null)
-                return text;
+                return null;
             if(text.Length==0)
-                return String.Concat("'", text, "'");
+                return string.Concat("'", text, "'");
             if (HasMoreWords(text))
-                return String.Concat("\"", text, "\"");
+                return string.Concat("\"", text, "\"");
             return text;
         }
         private bool HasMoreWords(string text)
         {
-            for (int i = 0; i < text.Length; i++)
+            for (var i = 0; i < text.Length; i++)
                 if (!IsWordChar(text[i]))
                     return true;
             return false;
         }
         private bool IsWordChar(char c)
         {
-            if (Char.IsWhiteSpace(c))
+            if (char.IsWhiteSpace(c))
                 return false;
             return !(Cql.StringTerminatorChars.Contains(c));
         }
         private string BoostToString(float boost)
         {
-            return boost == 1.0f ? String.Empty : "^" + boost.ToString(CultureInfo.InvariantCulture);
+            return boost == 1.0f ? string.Empty : "^" + boost.ToString(CultureInfo.InvariantCulture);
         }
         private string TermToString(Term t)
         {
             var fieldName = t.Field();
             var value = t.Text();
-            return String.Concat(fieldName, ":", value);
+            return string.Concat(fieldName, ":", value);
         }
     }
     
@@ -533,7 +532,7 @@ namespace SenseNet.Search.Lucene29
                 if (visitedClauses == null)
                     return null;
                 newQuery = new BooleanQuery(booleanq.IsCoordDisabled());
-                for (int i = 0; i < visitedClauses.Length; i++)
+                for (var i = 0; i < visitedClauses.Length; i++)
                     newQuery.Add(visitedClauses[i]);
             }
             return newQuery ?? booleanq;
@@ -541,8 +540,8 @@ namespace SenseNet.Search.Lucene29
         public override BooleanClause[] VisitBooleanClauses(BooleanClause[] clauses)
         {
             List<BooleanClause> newList = null;
-            int index = 0;
-            int count = clauses.Length;
+            var index = 0;
+            var count = clauses.Length;
             while (index < count)
             {
                 var visitedClause = VisitBooleanClause(clauses[index]);
@@ -554,7 +553,7 @@ namespace SenseNet.Search.Lucene29
                 else if (visitedClause != clauses[index])
                 {
                     newList = new List<BooleanClause>();
-                    for (int i = 0; i < index; i++)
+                    for (var i = 0; i < index; i++)
                         newList.Add(clauses[i]);
                     if (visitedClause != null)
                         newList.Add(visitedClause);
@@ -607,8 +606,8 @@ namespace SenseNet.Search.Lucene29
             var terms = phraseq.GetTerms();
             PhraseQuery newQuery = null;
 
-            int index = 0;
-            int count = terms.Length;
+            var index = 0;
+            var count = terms.Length;
             while (index < count)
             {
                 var visitedTerm = VisitTerm(terms[index]);
@@ -620,7 +619,7 @@ namespace SenseNet.Search.Lucene29
                 else if (visitedTerm != terms[index])
                 {
                     newQuery = new PhraseQuery();
-                    for (int i = 0; i < index; i++)
+                    for (var i = 0; i < index; i++)
                         newQuery.Add(terms[i]);
                     if (visitedTerm != null)
                         newQuery.Add(visitedTerm);
