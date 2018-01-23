@@ -1596,7 +1596,7 @@ namespace SenseNet.Tests.Implementations
                         .Where(v => v.NodeId == nodeId && v.Version.Minor == 0 && v.Version.Status == VersionStatus.Approved)
                         .OrderByDescending(v => v.Version.Major)
                         .ThenByDescending(v => v.Version.Minor)
-                        .First().VersionId;
+                        .FirstOrDefault()?.VersionId ?? 0;
                 }
 
                 lastMajorVersionId = nodeRec.LastMajorVersionId;
