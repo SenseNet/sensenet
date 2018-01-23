@@ -1105,14 +1105,14 @@ namespace SenseNet.Tests.Implementations
             var nodeRow = db.Nodes.First(n => n.NodeId == nodeId);
             lastMinorVersionId = db.Versions
                 .Where(v => v.NodeId == nodeId)
-                .OrderBy(v => v.Version)
+                .OrderByDescending(v => v.Version)
                 .First()
                 .VersionId;
             nodeRow.LastMinorVersionId = lastMinorVersionId;
 
             lastMajorVersionId = db.Versions
                                      .Where(v => v.NodeId == nodeId && v.Version.Status == VersionStatus.Approved)
-                                     .OrderBy(v => v.Version)
+                                     .OrderByDescending(v => v.Version)
                                      .FirstOrDefault()?
                                      .VersionId ?? 0;
             nodeRow.LastMajorVersionId = lastMajorVersionId;
@@ -1625,18 +1625,18 @@ namespace SenseNet.Tests.Implementations
                 {
                     // Insert version row
                     newVersionId = _db.Versions.Max(r => r.VersionId) + 1;
-                    var versionRow = new VersionRecord
+                    _db.Versions.Add(new VersionRecord
                     {
                         VersionId = newVersionId,
 
                         NodeId = nodeData.Id,
-                        Version = nodeData.Version.Clone(),
+                        Version = nodeData.Version,
                         CreationDate = nodeData.VersionCreationDate,
                         CreatedById = nodeData.VersionCreatedById,
                         ModificationDate = nodeData.VersionModificationDate,
                         ModifiedById = nodeData.VersionModifiedById,
                         ChangedData = nodeData.ChangedData
-                    };
+                    });
                 }
                 else
                 {
@@ -1820,6 +1820,8 @@ namespace SenseNet.Tests.Implementations
             public void DeleteBinaryProperty(int versionId, PropertyType propertyType)
             {
                 //UNDONE:?? throw new NotImplementedException();
+                //UNDONE:?? write in memory IBlobStorageMetaDataProvider implementation
+                //BlobStorage.DeleteBinaryProperty(versionId, propertyType.Id);
             }
         }
         private class InMemorySchemaWriter : SchemaWriter
@@ -2031,12 +2033,15 @@ namespace SenseNet.Tests.Implementations
                     SetTimestamp();
                 }
             }
+            /// <summary>
+            /// Gets or sets the clone of a VersionNumber
+            /// </summary>
             public VersionNumber Version
             {
-                get => _version;
+                get => _version.Clone();
                 set
                 {
-                    _version = value;
+                    _version = value.Clone();
                     SetTimestamp();
                 }
             }

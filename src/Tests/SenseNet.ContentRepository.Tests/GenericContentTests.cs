@@ -18,138 +18,37 @@ namespace SenseNet.ContentRepository.Tests
         //-------------------------------------------------------------------- Save ---------------------
 
         [TestMethod]
-        public void GC_Save_VersioningModeNone_ApprovingFalse()
+        public void GC_Save_VersioningNone_ApprovingFalse()
         {
-            Test(() =>
-            {
-                var file = CreateTestFile();
-                var originalVersion = file.Version;
-                var originalDescription = file.Description;
-
-                file.VersioningMode = VersioningType.None;
-                file.ApprovingMode = ApprovingType.False;
-                file.Description = Guid.NewGuid().ToString();
-
-                file.Save();
-
-                Assert.AreEqual(originalVersion, file.Version);
-                Assert.AreEqual(file.Version.Status, VersionStatus.Approved);
-                Assert.AreNotEqual(originalDescription, file.Description);
-            });
+            VersioningTest(VersioningType.None, ApprovingType.False, "V1.0.A", "V1.0.A");
         }
         [TestMethod]
-        public void GC_Save_VersioningModeMajorOnly_ApprovingFalse()
+        public void GC_Save_VersioningMajorOnly_ApprovingFalse()
         {
-            Test(() =>
-            {
-                var file = CreateTestFile();
-                var originalVersion = file.Version;
-                var originalDescription = file.Description;
-
-                file.VersioningMode = VersioningType.MajorOnly;
-                file.ApprovingMode = ApprovingType.False;
-                file.Description = Guid.NewGuid().ToString();
-
-                file.Save();
-
-                Assert.IsTrue(originalVersion < file.Version, "Original version is not less than the new version.");
-                Assert.AreEqual(VersionStatus.Approved, file.Version.Status);
-                Assert.AreEqual(2, file.Version.Major);
-                Assert.AreEqual(0, file.Version.Minor);
-                Assert.AreNotEqual(originalDescription, file.Description);
-            });
+            VersioningTest(VersioningType.MajorOnly, ApprovingType.False, "V1.0.A", "V2.0.A");
         }
-
-
         [TestMethod]
-        public void GC_Save_VersioningModeMajorAndMinor_ApprovingFalse()
+        public void GC_Save_VersioningMajorAndMinor_ApprovingFalse()
         {
-            Test(() =>
-            {
-                var file = CreateTestFile();
-                var originalVersion = file.Version;
-                var originalDescription = file.Description;
-
-                file.VersioningMode = VersioningType.MajorAndMinor;
-                file.ApprovingMode = ApprovingType.False;
-                file.Description = Guid.NewGuid().ToString();
-
-                file.Save();
-
-                Assert.IsTrue(originalVersion < file.Version, "Original version is not less than the new version.");
-                Assert.AreEqual(VersionStatus.Draft, file.Version.Status);
-                Assert.AreEqual(1, file.Version.Major);
-                Assert.AreEqual(originalVersion.Minor + 1, file.Version.Minor);
-                Assert.AreNotEqual(originalDescription, file.Description);
-            });
+            VersioningTest(VersioningType.MajorAndMinor, ApprovingType.False, "V1.0.A", "V1.1.D");
         }
-
-        //[TestMethod()]
-        //public void GenericContent_Save_VersionModeInherited_ApprovingFalse_Test()
-        //{
-        //    Page parent = CreatePage("GCSaveTestParent");
-        //    parent.InheritableVersioningMode = InheritableVersioningType.MajorOnly;
-        //    parent.Save();
-
-        //    Page test = CreatePage("GCSaveTest", parent);
-
-        //    VersionNumber vn = test.Version;
-        //    string cm = test.CustomMeta;
-
-        //    test.VersioningMode = VersioningType.Inherited;
-        //    test.ApprovingMode = ApprovingType.False;
-
-        //    test.CustomMeta = Guid.NewGuid().ToString();
-
-        //    test.Save();
-
-        //    Assert.IsTrue(vn < test.Version, "#1");
-        //    Assert.IsTrue(test.Version.Status == VersionStatus.Approved, "#2");
-        //    Assert.IsTrue(test.Version.Major == 2 && test.Version.Minor == 0, "#3");
-        //    Assert.AreNotEqual(cm, test.CustomMeta, "#4");
-        //}
-
-        //[TestMethod()]
-        //public void GenericContent_Save_VersionModeNone_ApprovingTrue_Test()
-        //{
-        //    Page test = CreatePage("GCSaveTest");
-
-        //    VersionNumber vn = test.Version;
-        //    string cm = test.CustomMeta;
-
-        //    test.VersioningMode = VersioningType.None;
-        //    test.ApprovingMode = ApprovingType.True;
-
-        //    test.CustomMeta = Guid.NewGuid().ToString();
-
-        //    test.Save();
-
-        //    Assert.IsTrue(vn < test.Version, "#1");
-        //    Assert.IsTrue(test.Version.Status == VersionStatus.Pending, "#2");
-        //    Assert.IsTrue(test.Version.Major == 2 && test.Version.Minor == 0, "#3");
-        //    Assert.AreNotEqual(cm, test.CustomMeta, "#4");
-        //}
-
-        //[TestMethod()]
-        //public void GenericContent_Save_VersionModeMajorOnly_ApprovingTrue_Test()
-        //{
-        //    Page test = CreatePage("GCSaveTest");
-
-        //    VersionNumber vn = test.Version;
-        //    string cm = test.CustomMeta;
-
-        //    test.VersioningMode = VersioningType.MajorOnly;
-        //    test.ApprovingMode = ApprovingType.True;
-
-        //    test.CustomMeta = Guid.NewGuid().ToString();
-
-        //    test.Save();
-
-        //    Assert.IsTrue(vn < test.Version, "#1");
-        //    Assert.IsTrue(test.Version.Status == VersionStatus.Pending, "#2");
-        //    Assert.IsTrue(test.Version.Major == 2 && test.Version.Minor == 0, "#3");
-        //    Assert.AreNotEqual(cm, test.CustomMeta, "#4");
-        //}
+        [TestMethod]
+        public void GC_Save_VersioningInherited_ApprovingFalse()
+        {
+            VersioningTest(InheritableVersioningType.None, ApprovingType.False, "V1.0.A", "V1.0.A");
+            VersioningTest(InheritableVersioningType.MajorOnly, ApprovingType.False, "V1.0.A", "V2.0.A");
+            VersioningTest(InheritableVersioningType.MajorAndMinor, ApprovingType.False, "V0.1.D", "V0.2.D");
+        }
+        [TestMethod]
+        public void GC_Save_VersioningNone_ApprovingTrue()
+        {
+            VersioningTest(VersioningType.None, ApprovingType.True, "V1.0.A", "V2.0.P");
+        }
+        [TestMethod()]
+        public void GC_Save_VersioningMajorOnly_ApprovingTrue()
+        {
+            VersioningTest(VersioningType.MajorOnly, ApprovingType.True, "V1.0.A", "V2.0.P");
+        }
 
         //[TestMethod()]
         //public void GenericContent_Save_VersionModeMajorAndMinor_ApprovingTrue_Test()
@@ -1754,10 +1653,57 @@ namespace SenseNet.ContentRepository.Tests
 
 
 
+        private void VersioningTest(VersioningType versioning, ApprovingType approving, string originalVersion, string expectedVersion)
+        {
+            Test(() =>
+            {
+                var file = CreateTestFile();
+                if (originalVersion != file.Version.ToString())
+                    Assert.Inconclusive();
 
-        //-------------------------------------------------------------------- Helper methods -----------
+                file.VersioningMode = versioning;
+                file.ApprovingMode = approving;
 
-        private Node CreateTestRoot()
+                file.Save();
+
+                Assert.AreEqual(expectedVersion, file.Version.ToString());
+
+                var file1 = Node.Load<File>(file.Id);
+                Assert.AreNotSame(file, file1);
+                Assert.AreEqual(file.Version.ToString(), file1.Version.ToString());
+
+            });
+        }
+        private void VersioningTest(InheritableVersioningType parentVersioning, ApprovingType approving, string originalVersion, string expectedVersion)
+        {
+            Test(() =>
+            {
+                var parent = CreateTestRoot();
+                parent.InheritableVersioningMode = parentVersioning;
+                parent.Save();
+
+                var file = CreateTestFile("GCSaveTest", parent);
+
+                if (originalVersion != file.Version.ToString())
+                    Assert.Inconclusive();
+
+                file.VersioningMode = VersioningType.Inherited;
+                file.ApprovingMode = approving;
+
+                file.Save();
+                Assert.AreEqual(expectedVersion, file.Version.ToString());
+
+                var file1 = Node.Load<File>(file.Id);
+                Assert.AreNotSame(file, file1);
+                Assert.AreEqual(file.Version.ToString(), file1.Version.ToString());
+
+            });
+        }
+
+
+        /* -------------------------------------------------------------------- Helper methods ----------- */
+
+        private GenericContent CreateTestRoot()
         {
             var node = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
             node.Save();
