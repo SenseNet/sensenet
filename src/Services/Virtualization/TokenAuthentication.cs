@@ -404,8 +404,16 @@ namespace SenseNet.Portal.Virtualization
             uri = request.Url.AbsolutePath;
             headerMark = TokenActions.Contains(actionHeader, StringComparer.InvariantCultureIgnoreCase);
             uriMark = TokenPaths.Contains(uri, StringComparer.InvariantCultureIgnoreCase);
-            var cookie = CookieHelper.GetCookie(request, AccessHeadAndPayloadCookieName);
-            headAndPayload = cookie == null ? request.Headers[RefreshHeaderName] : cookie.Value;
+            var refreshHeader = request.Headers[RefreshHeaderName];
+            if (refreshHeader == null)
+            {
+                var cookie = CookieHelper.GetCookie(request, AccessHeadAndPayloadCookieName);
+                headAndPayload = cookie?.Value;
+            }
+            else
+            {
+                headAndPayload = refreshHeader;
+            }
             return request.IsSecureConnection && (headerMark || uriMark || headAndPayload != null);
         }
 
