@@ -1098,6 +1098,26 @@ namespace SenseNet.Tests.Implementations
             get { return _db.Nodes.Max(n => n.NodeId); }
         }
 
+        private static void SetLastVersionSlots(Database db, int nodeId, out int lastMajorVersionId, out int lastMinorVersionId)
+        {
+            // proc_Node_SetLastVersion
+
+            var nodeRow = db.Nodes.First(n => n.NodeId == nodeId);
+            lastMinorVersionId = db.Versions
+                .Where(v => v.NodeId == nodeId)
+                .OrderBy(v => v.Version)
+                .First()
+                .VersionId;
+            nodeRow.LastMinorVersionId = lastMinorVersionId;
+
+            lastMajorVersionId = db.Versions
+                                     .Where(v => v.NodeId == nodeId && v.Version.Status == VersionStatus.Approved)
+                                     .OrderBy(v => v.Version)
+                                     .FirstOrDefault()?
+                                     .VersionId ?? 0;
+            nodeRow.LastMajorVersionId = lastMajorVersionId;
+        }
+
         /* ====================================================================================== Database */
 
         #region CREATION
@@ -1253,7 +1273,7 @@ namespace SenseNet.Tests.Implementations
                     var value = record[3].Replace(@"\n", Environment.NewLine).Replace(@"\t", "\t");
                     return new TextPropertyRecord
                     {
-                        TextPropertyNVarcharId = int.Parse(record[0]),
+                        Id = int.Parse(record[0]),
                         VersionId = int.Parse(record[1]),
                         PropertyTypeId = int.Parse(record[2]),
                         Value = value
@@ -1443,7 +1463,7 @@ namespace SenseNet.Tests.Implementations
             public void InsertNodeAndVersionRows(NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId)
             {
                 var newNodeId = _db.Nodes.Max(r => r.NodeId) + 1;
-                var newVersionId = _db.Versions.Max(r => r.NodeId) + 1;
+                var newVersionId = _db.Versions.Max(r => r.VersionId) + 1;
                 lastMinorVersionId = newVersionId;
                 lastMajorVersionId = nodeData.Version.IsMajor ? newVersionId : 0;
                 var nodeRecord = new NodeRecord
@@ -1585,12 +1605,108 @@ namespace SenseNet.Tests.Implementations
             public void CopyAndUpdateVersion(NodeData nodeData, int previousVersionId, out int lastMajorVersionId,
                 out int lastMinorVersionId)
             {
-                throw new NotImplementedException();
+                CopyAndUpdateVersion(nodeData, previousVersionId, 0, out lastMajorVersionId, out lastMinorVersionId);
             }
             public void CopyAndUpdateVersion(NodeData nodeData, int previousVersionId, int destinationVersionId, out int lastMajorVersionId,
                 out int lastMinorVersionId)
             {
-                throw new NotImplementedException();
+                lastMajorVersionId = 0;
+                lastMinorVersionId = 0;
+
+                // proc_Version_CopyAndUpdate
+
+                int newVersionId;
+
+                // Before inserting set versioning status code from "Locked" to "Draft" on all older versions
+                foreach (var row in _db.Versions.Where(v => v.NodeId == nodeData.Id && v.Version.Status == VersionStatus.Locked))
+                    row.Version = new VersionNumber(row.Version.Major, row.Version.Minor, VersionStatus.Draft);
+
+                if (destinationVersionId == 0)
+                {
+                    // Insert version row
+                    newVersionId = _db.Versions.Max(r => r.VersionId) + 1;
+                    var versionRow = new VersionRecord
+                    {
+                        VersionId = newVersionId,
+
+                        NodeId = nodeData.Id,
+                        Version = nodeData.Version.Clone(),
+                        CreationDate = nodeData.VersionCreationDate,
+                        CreatedById = nodeData.VersionCreatedById,
+                        ModificationDate = nodeData.VersionModificationDate,
+                        ModifiedById = nodeData.VersionModifiedById,
+                        ChangedData = nodeData.ChangedData
+                    };
+                }
+                else
+                {
+                    // Update existing version
+                    newVersionId = destinationVersionId;
+                    var versionRow = _db.Versions.First(v => v.VersionId == newVersionId);
+                    versionRow.NodeId = nodeData.Id;
+                    versionRow.Version = nodeData.Version;
+                    versionRow.CreationDate = nodeData.VersionCreationDate;
+                    versionRow.CreatedById = nodeData.VersionCreatedById;
+                    versionRow.ModificationDate = nodeData.VersionModificationDate;
+                    versionRow.ModifiedById = nodeData.VersionModifiedById;
+                    versionRow.ChangedData = nodeData.ChangedData;
+
+                    // Delete previous property values
+                    _db.BinaryProperties.RemoveAll(r => r.VersionId == newVersionId);
+                    _db.FlatProperties.RemoveAll(r => r.VersionId == newVersionId);
+                    _db.ReferenceProperties.RemoveAll(r => r.VersionId == newVersionId);
+                    _db.TextProperties.RemoveAll(r => r.VersionId == newVersionId);
+                }
+
+                // Copy properties
+                foreach (var binaryPropertyRow in _db.BinaryProperties.Where(r => r.VersionId == previousVersionId).ToArray())
+                    _db.BinaryProperties.Add(new BinaryPropertyRecord
+                    {
+                        BinaryPropertyId = _db.BinaryProperties.Max(r => r.BinaryPropertyId) + 1,
+                        VersionId = newVersionId,
+                        PropertyTypeId = binaryPropertyRow.PropertyTypeId,
+                        FileId = binaryPropertyRow.FileId
+                    });
+                foreach (var flatPropertyRow in _db.FlatProperties.Where(r => r.VersionId == previousVersionId).ToArray())
+                    _db.FlatProperties.Add(new FlatPropertyRow
+                    {
+                        Id = _db.FlatProperties.Max(r => r.Id) + 1,
+                        VersionId = newVersionId,
+                        Page = flatPropertyRow.Page,
+                        Strings = flatPropertyRow.Strings.ToArray(),
+                        Integers = flatPropertyRow.Integers.ToArray(),
+                        Datetimes = flatPropertyRow.Datetimes.ToArray(),
+                        Decimals = flatPropertyRow.Decimals.ToArray()
+                    });
+                foreach (var referencePropertyRow in _db.ReferenceProperties.Where(r => r.VersionId == previousVersionId).ToArray())
+                    _db.ReferenceProperties.Add(new ReferencePropertyRow
+                    {
+                        ReferencePropertyId = _db.ReferenceProperties.Max(r => r.ReferencePropertyId) + 1,
+                        VersionId = newVersionId,
+                        PropertyTypeId = referencePropertyRow.PropertyTypeId,
+                        ReferredNodeId = referencePropertyRow.ReferredNodeId
+                    });
+                foreach (var textPropertyRow in _db.TextProperties.Where(r => r.VersionId == previousVersionId).ToArray())
+                    _db.TextProperties.Add(new TextPropertyRecord
+                    {
+                        Id = _db.TextProperties.Max(r => r.Id) + 1,
+                        VersionId = newVersionId,
+                        PropertyTypeId = textPropertyRow.PropertyTypeId,
+                        Value = textPropertyRow.Value
+                    });
+
+                // Set last version pointers
+                SetLastVersionSlots(_db, nodeData.Id, out lastMajorVersionId, out lastMinorVersionId);
+
+                // update back the given nodeData
+                nodeData.VersionId = newVersionId;
+                nodeData.NodeTimestamp = 0; //TODO: set back the new nodetimestamp
+                nodeData.VersionTimestamp = 0; //TODO: set back the new versiontimestamp
+                foreach (var binaryPropertyRow in _db.BinaryProperties.Where(b => b.VersionId == newVersionId))
+                {
+                    var binaryData = (BinaryDataValue)nodeData.GetDynamicRawData(binaryPropertyRow.PropertyTypeId);
+                    binaryData.Id = binaryPropertyRow.BinaryPropertyId;
+                }
             }
 
             // ============================================================================ Property Insert/Update
@@ -1634,7 +1750,7 @@ namespace SenseNet.Tests.Implementations
                 if (row == null)
                     _db.TextProperties.Add(row = new TextPropertyRecord
                     {
-                        TextPropertyNVarcharId = _db.TextProperties.Max(r => r.TextPropertyNVarcharId) + 1,
+                        Id = _db.TextProperties.Max(r => r.Id) + 1,
                         VersionId = versionId,
                         PropertyTypeId = propertyType.Id
                     });
@@ -1703,7 +1819,7 @@ namespace SenseNet.Tests.Implementations
             }
             public void DeleteBinaryProperty(int versionId, PropertyType propertyType)
             {
-                throw new NotImplementedException();
+                //UNDONE:?? throw new NotImplementedException();
             }
         }
         private class InMemorySchemaWriter : SchemaWriter
@@ -2004,7 +2120,7 @@ namespace SenseNet.Tests.Implementations
         }
         private class TextPropertyRecord
         {
-            public int TextPropertyNVarcharId;
+            public int Id;
             public int VersionId;
             public int PropertyTypeId;
             public string Value;
