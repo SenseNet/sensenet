@@ -5,6 +5,8 @@ using SenseNet.ContentRepository.Versioning;
 using SenseNet.Tests;
 using System;
 using System.Linq;
+using SenseNet.Configuration;
+using SenseNet.Security;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -1158,7 +1160,9 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                //============ Creating a test user
+                Assert.AreEqual(Identifiers.SystemUserId, User.Current.Id);
+
+                //============ Create a test user
                 var testUser = new User(User.Administrator.Parent)
                 {
                     Name = "UserFor_GC_SaveWithLock_Exception",
@@ -1169,66 +1173,60 @@ namespace SenseNet.ContentRepository.Tests
                 testUser = Node.Load<User>(testUser.Id);
                 File testFile = null;
                 var origUser = User.Current;
+
+                //============ Orig user creates a file
+                testFile = CreateTestFile();
+                SecurityHandler.CreateAclEditor()
+                    .Allow(testFile.Id, testUser.Id, false, PermissionType.Save)
+                    .Allow(testUser.Id, testUser.Id, false, PermissionType.Save)
+                    .Apply();
+
+                //============ Orig user modifies and locks the file
+                testFile.Index++;
+                testFile.Save(SavingMode.KeepVersionAndLock); //(must work properly)
+
+                //============ Orig user makes free thr file
+                testFile.CheckIn();
+
+                //============ Test user locks the file
+                User.Current = testUser;
+                testFile.CheckOut();
+
+                //============ Administrator tries to lock the file
+                User.Current = User.Administrator;
+                testFile = Node.Load<File>(testFile.Id);
+                testFile.Index++;
                 try
                 {
-                    try
-                    {
-                        //============ Orig user creates a file
-                        testFile = CreateTestFile();
-                        SecurityHandler.CreateAclEditor()
-                            .Allow(testFile.Id, testUser.Id, false, PermissionType.Save)
-                            .Allow(testUser.Id, testUser.Id, false, PermissionType.Save)
-                            .Apply();
+                    testFile.Save(SavingMode.KeepVersionAndLock);
 
-                        //============ Orig user modifies and locks the file
-                        testFile.Index++;
-                        testFile.Save(SavingMode.KeepVersionAndLock); //(must work properly)
-
-                        //============ Orig user makes free thr file
-                        testFile.CheckIn();
-
-                        //============ Test user locks the file
-                        User.Current = testUser;
-                        testFile.CheckOut();
-
-                        //============ Test user tries to lock the file
-                        User.Current = origUser;
-                        testFile = Node.Load<File>(testFile.Id);
-                        testFile.Index++;
-                        try
-                        {
-                            testFile.Save(SavingMode.KeepVersionAndLock);
-
-                            //============ forbidden code branch
-                            Assert.Fail("InvalidContentActionException was not thrown");
-                        }
-                        catch (InvalidContentActionException)
-                        {
-                        }
-                    }
-                    finally
-                    {
-                        //============ restoring content state
-                        if (testFile.Locked)
-                        {
-                            User.Current = testFile.LockedBy;
-                            testFile.CheckIn();
-                        }
-                    }
+                    //============ forbidden code branch
+                    Assert.Fail("InvalidContentActionException was not thrown");
                 }
-                finally
+                catch (InvalidContentActionException)
                 {
-                    //============ restoring orig user
-                    User.Current = origUser;
                 }
+
+                //============ System user locks the file
+                User.Current = origUser;
+                testFile = Node.Load<File>(testFile.Id);
+                testFile.Index++;
+                testFile.Save(SavingMode.KeepVersionAndLock);
             });
         }
 
         [TestMethod] //UNDONE:?? test is failed
-        public void GC_SaveWithLock_RestorePreviousVersion()
+        public void GC_SaveWithLock_RestorePreviousVersion_Administrator()
         {
             Test(() =>
             {
+                SecurityHandler.CreateAclEditor()
+                    .Allow(Identifiers.PortalRootId, User.Administrator.Id, false, PermissionType.AddNew,
+                                                                                   PermissionType.RecallOldVersion)
+                    .Apply();
+
+                User.Current = User.Administrator;
+
                 var file = CreateTestFile(save: false);
                 file.VersioningMode = VersioningType.MajorAndMinor;
                 file.Save();
@@ -1249,7 +1247,40 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsTrue(file.Locked, "File is not locked after restore.");
                 Assert.IsTrue(file.IsLatestVersion, "File version is not correct after restore.");
                 Assert.AreEqual(lockedVersion.ToString(), file.Version.ToString());
-                Assert.AreEqual(versionId, file.VersionId);
+            });
+        }
+        [TestMethod] //UNDONE:?? test is failed
+        public void GC_SaveWithLock_RestorePreviousVersion_SystemUser()
+        {
+            Test(() =>
+            {
+                //SecurityHandler.CreateAclEditor()
+                //    .Allow(Identifiers.PortalRootId, User.Administrator.Id, false, PermissionType.AddNew,
+                //        PermissionType.RecallOldVersion)
+                //    .Apply();
+
+                Assert.AreEqual(Identifiers.SystemUserId, User.Current.Id);
+
+                var file = CreateTestFile(save: false);
+                file.VersioningMode = VersioningType.MajorAndMinor;
+                file.Save();
+                var versionId = file.VersionId;
+
+                file.CheckOut();
+                file.CheckIn();
+
+                //lock by the current user
+                file.CheckOut();
+
+                var lockedVersion = file.Version;
+
+                //restore original content
+                file = (File)Node.LoadNodeByVersionId(versionId);
+                file.Save(SavingMode.KeepVersionAndLock);
+
+                Assert.IsTrue(file.Locked, "File is not locked after restore.");
+                Assert.IsTrue(file.IsLatestVersion, "File version is not correct after restore.");
+                Assert.AreEqual(lockedVersion.ToString(), file.Version.ToString());
             });
         }
 

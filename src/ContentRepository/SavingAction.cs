@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Versioning;
 using SenseNet.ContentRepository.Storage.Schema;
@@ -354,7 +355,9 @@ namespace SenseNet.ContentRepository
                 // The only use case for this is when the user tries to restore 
                 // an old version of a checked out content, so it must be
                 // checked out by her.
-                if (this.Node.LockedById != 0 && this.Node.LockedById != User.Current.Id)
+                if (User.Current.Id != Identifiers.SystemUserId
+                    && this.Node.LockedById != 0
+                    && this.Node.LockedById != User.Current.Id)
                     throw new InvalidContentActionException(InvalidContentActionReason.CheckedOutToSomeoneElse, this.Node.Path);
 
                 ExpectedVersion = new VersionNumber(LatestVersion.Major, LatestVersion.Minor, VersionStatus.Locked);

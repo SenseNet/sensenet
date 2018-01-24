@@ -2784,7 +2784,9 @@ namespace SenseNet.ContentRepository.Storage
                     else
                     {
                         // RefreshLock
-                        if (!settings.TakingLockOver && this.LockedById != AccessProvider.Current.GetCurrentUser().Id)
+                        if (AccessProvider.Current.GetCurrentUser().Id != Identifiers.SystemUserId
+                            && !settings.TakingLockOver
+                            && this.LockedById != AccessProvider.Current.GetCurrentUser().Id)
                             throw new SenseNetSecurityException(this.Id, "Node is locked by another user");
                         LastLockUpdate = DateTime.UtcNow;
                     }
