@@ -10,14 +10,14 @@ namespace SenseNet.Search.Lucene29
 
     internal class SnTopScoreDocCollector : TopScoreDocCollector, ISnCollector
     {
-        private SearchParams _searchParams;
-        private TopScoreDocCollector _wrapped;
+        private readonly SearchParams _searchParams;
+        private readonly TopScoreDocCollector _wrapped;
         private int _docBase;
 
         public SnTopScoreDocCollector(int size, SearchParams searchParams)
         {
             _searchParams = searchParams;
-            _wrapped = TopScoreDocCollector.Create(size, false);
+            _wrapped = Create(size, false);
         }
 
         public override bool AcceptsDocsOutOfOrder()
@@ -64,14 +64,14 @@ namespace SenseNet.Search.Lucene29
 
     internal class SnTopFieldCollector : TopFieldCollector, ISnCollector
     {
-        private SearchParams _searchParams;
-        private TopFieldCollector _wrapped;
+        private readonly SearchParams _searchParams;
+        private readonly TopFieldCollector _wrapped;
         private int _docBase;
 
         public SnTopFieldCollector(int size, SearchParams searchParams, Sort sort)
         {
             _searchParams = searchParams;
-            _wrapped = TopFieldCollector.Create(sort, size, false, true, false, false);
+            _wrapped = Create(sort, size, false, true, false, false);
         }
 
         public override void SetScorer(Scorer scorer)

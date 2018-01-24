@@ -54,6 +54,7 @@ namespace SenseNet.Configuration
             "SenseNet.Search.Lucene29.Lucene29LocalQueryEngine");
 
         public static int LuceneMergeFactor { get; internal set; } = GetInt(SectionName, "LuceneMergeFactor", 10);
+        // ReSharper disable once InconsistentNaming
         public static double LuceneRAMBufferSizeMB { get; internal set; } = GetDouble(SectionName, "LuceneRAMBufferSizeMB", 16.0);
         public static int LuceneMaxMergeDocs { get; internal set; } = GetInt(SectionName, "LuceneMaxMergeDocs", int.MaxValue);
         public static int LuceneLockDeleteRetryInterval { get; internal set; } =

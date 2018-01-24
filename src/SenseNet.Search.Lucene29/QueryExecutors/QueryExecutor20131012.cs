@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
-using SenseNet.Configuration;
 
 namespace SenseNet.Search.Lucene29.QueryExecutors
 {
@@ -10,14 +9,15 @@ namespace SenseNet.Search.Lucene29.QueryExecutors
     {
         protected override SearchResult DoExecute(SearchParams p)
         {
-            p.skip = this.LucQuery.Skip;
+            p.skip = LucQuery.Skip;
 
             var maxtop = p.numDocs - p.skip;
             if (maxtop < 1)
                 return SearchResult.Empty;
 
+            //TODO: check r and r1 for null below (see hints)
             SearchResult r = null;
-            SearchResult r1 = null;
+            SearchResult r1;
 
             var howManyList = new List<int>(Configuration.Lucene29.DefaultTopAndGrowth);
             if (howManyList[howManyList.Count - 1] == 0)
@@ -49,7 +49,7 @@ namespace SenseNet.Search.Lucene29.QueryExecutors
                 var maxSize = i == 0 ? p.numDocs : r.totalCount;
                 p.collectorSize = Math.Min(defaultTop, maxSize - p.skip) + p.skip;
 
-                r1 = this.Search(p);
+                r1 = Search(p);
 
                 if (i == 0)
                     r = r1;

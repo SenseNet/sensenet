@@ -1,5 +1,4 @@
-﻿using System;
-using SenseNet.Search.Indexing;
+﻿using SenseNet.Search.Indexing;
 
 namespace SenseNet.Search.Lucene29
 {
