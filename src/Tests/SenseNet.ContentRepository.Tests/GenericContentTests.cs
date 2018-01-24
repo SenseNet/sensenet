@@ -367,7 +367,6 @@ namespace SenseNet.ContentRepository.Tests
                 file.ApprovingMode = ApprovingType.False;
 
                 file.CheckOut();
-
                 file.CheckIn();
 
                 Assert.AreEqual("V1.0.A", file.Version.ToString());
@@ -384,7 +383,6 @@ namespace SenseNet.ContentRepository.Tests
                 file.ApprovingMode = ApprovingType.False;
 
                 file.CheckOut();
-
                 file.CheckIn();
 
                 Assert.AreEqual("V2.0.A", file.Version.ToString());
@@ -401,7 +399,6 @@ namespace SenseNet.ContentRepository.Tests
                 file.ApprovingMode = ApprovingType.False;
 
                 file.CheckOut();
-
                 file.CheckIn();
 
                 Assert.AreEqual("V1.1.D", file.Version.ToString());
@@ -418,7 +415,6 @@ namespace SenseNet.ContentRepository.Tests
                 file.ApprovingMode = ApprovingType.True;
 
                 file.CheckOut();
-
                 file.CheckIn();
 
                 Assert.AreEqual("V2.0.P", file.Version.ToString());
@@ -435,7 +431,6 @@ namespace SenseNet.ContentRepository.Tests
                 file.ApprovingMode = ApprovingType.True;
 
                 file.CheckOut();
-
                 file.CheckIn();
 
                 Assert.AreEqual("V2.0.P", file.Version.ToString());
@@ -452,7 +447,6 @@ namespace SenseNet.ContentRepository.Tests
                 file.ApprovingMode = ApprovingType.True;
 
                 file.CheckOut();
-
                 file.CheckIn();
 
                 Assert.AreEqual("V1.1.D", file.Version.ToString());
@@ -460,6 +454,104 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
+        /* ============================================================================================== UndoCheckOut */
+
+        [TestMethod()]
+        public void GC_UndoCheckOut_NoneFalse()
+        {
+            Test(() =>
+            {
+                var test = CreateTestFile();
+                test.VersioningMode = VersioningType.None;
+                test.ApprovingMode = ApprovingType.False;
+
+                test.CheckOut();
+                test.UndoCheckOut();
+
+                Assert.AreEqual("V1.0.A", test.Version.ToString());
+                Assert.AreEqual(1, Node.GetVersionNumbers(test.Id).Count);
+            });
+        }
+        [TestMethod()]
+        public void GC_UndoCheckOut_MajorFalse()
+        {
+            Test(() =>
+            {
+                var test = CreateTestFile();
+                test.VersioningMode = VersioningType.MajorOnly;
+                test.ApprovingMode = ApprovingType.False;
+
+                test.CheckOut();
+                test.UndoCheckOut();
+
+                Assert.AreEqual("V1.0.A", test.Version.ToString());
+                Assert.AreEqual(1, Node.GetVersionNumbers(test.Id).Count);
+            });
+        }
+        [TestMethod()]
+        public void GC_UndoCheckOut_FullFalse()
+        {
+            Test(() =>
+            {
+                var test = CreateTestFile();
+                test.VersioningMode = VersioningType.MajorAndMinor;
+                test.ApprovingMode = ApprovingType.False;
+
+                test.CheckOut();
+                test.UndoCheckOut();
+
+                Assert.AreEqual("V1.0.A", test.Version.ToString());
+                Assert.AreEqual(1, Node.GetVersionNumbers(test.Id).Count);
+            });
+        }
+        [TestMethod()]
+        public void GC_UndoCheckOut_NoneTrue()
+        {
+            Test(() =>
+            {
+                var test = CreateTestFile();
+                test.VersioningMode = VersioningType.None;
+                test.ApprovingMode = ApprovingType.True;
+
+                test.CheckOut();
+                test.UndoCheckOut();
+
+                Assert.AreEqual("V1.0.A", test.Version.ToString());
+                Assert.AreEqual(1, Node.GetVersionNumbers(test.Id).Count);
+            });
+        }
+        [TestMethod()]
+        public void GC_UndoCheckOut_MajorTrue()
+        {
+            Test(() =>
+            {
+                var test = CreateTestFile();
+                test.VersioningMode = VersioningType.MajorOnly;
+                test.ApprovingMode = ApprovingType.True;
+
+                test.CheckOut();
+                test.UndoCheckOut();
+
+                Assert.AreEqual("V1.0.A", test.Version.ToString());
+                Assert.AreEqual(1, Node.GetVersionNumbers(test.Id).Count);
+            });
+        }
+        [TestMethod()]
+        public void GC_UndoCheckOut_FullTrue()
+        {
+            Test(() =>
+            {
+                var test = CreateTestFile();
+                test.VersioningMode = VersioningType.MajorAndMinor;
+                test.ApprovingMode = ApprovingType.True;
+
+                test.CheckOut();
+                test.UndoCheckOut();
+
+                Assert.AreEqual("V1.0.A", test.Version.ToString());
+                Assert.AreEqual(1, Node.GetVersionNumbers(test.Id).Count);
+            });
+        }
 
 
 
@@ -815,157 +907,6 @@ namespace SenseNet.ContentRepository.Tests
             //Assert.AreEqual(ContentSavingState.Finalized, test.SavingState, string.Format("#9 saving state is incorrect."));
         }
 
-
-
-        //-------------------------------------------------------------------- UndoCheckOut -------------
-
-        [TestMethod()]
-        public void GC_UndoCheckOut_VersionModeNone_ApprovingFalse_Test()
-        {
-            Assert.Inconclusive();
-
-            //Page test = CreatePage("GCSaveTest");
-
-            //VersionNumber vn = test.Version;
-            //string cm = test.CustomMeta;
-
-            //test.VersioningMode = VersioningType.None;
-            //test.ApprovingMode = ApprovingType.False;
-
-            //test.CheckOut();
-
-            //test.CustomMeta = Guid.NewGuid().ToString();
-
-            //test.UndoCheckOut();
-
-            //Assert.IsTrue(test.Version.Major == 1 && test.Version.Minor == 0, "#1");
-            //Assert.IsTrue(test.Version.Status == VersionStatus.Approved, "#2");
-            //Assert.AreEqual(test.CustomMeta, cm, "#3");
-
-            //List<VersionNumber> vnList = Node.GetVersionNumbers(test.Id);
-
-            //Assert.IsTrue(vnList.Count == 1, "#4");
-        }
-
-        [TestMethod()]
-        public void GC_UndoCheckOut_VersionModeMajorOnly_ApprovingFalse_Test()
-        {
-            Assert.Inconclusive();
-
-            //Page test = CreatePage("GCSaveTest");
-
-            //VersionNumber vn = test.Version;
-            //string cm = test.CustomMeta;
-
-            //test.VersioningMode = VersioningType.MajorOnly;
-            //test.ApprovingMode = ApprovingType.False;
-
-            //test.CheckOut();
-
-            //test.CustomMeta = Guid.NewGuid().ToString();
-
-            //test.UndoCheckOut();
-
-            //Assert.IsTrue(test.Version.Major == 1 && test.Version.Minor == 0, "#1");
-            //Assert.IsTrue(test.Version.Status == VersionStatus.Approved, "#2");
-            //Assert.AreEqual(test.CustomMeta, cm, "#3");
-        }
-
-        [TestMethod()]
-        public void GC_UndoCheckOut_VersionModeMajorAndMinor_ApprovingFalse_Test()
-        {
-            Assert.Inconclusive();
-
-            //Page test = CreatePage("GCSaveTest");
-
-            //VersionNumber vn = test.Version;
-            //string cm = test.CustomMeta;
-
-            //test.VersioningMode = VersioningType.MajorAndMinor;
-            //test.ApprovingMode = ApprovingType.False;
-
-            //test.CheckOut();
-
-            //test.CustomMeta = Guid.NewGuid().ToString();
-
-            //test.UndoCheckOut();
-
-            //Assert.IsTrue(test.Version.Major == 1 && test.Version.Minor == 0, "#1");
-            //Assert.IsTrue(test.Version.Status == VersionStatus.Approved, "#2");
-            //Assert.AreEqual(test.CustomMeta, cm, "#3");
-        }
-
-        [TestMethod()]
-        public void GC_UndoCheckOut_VersionModeNone_ApprovingTrue_Test()
-        {
-            Assert.Inconclusive();
-
-            //Page test = CreatePage("GCSaveTest");
-
-            //VersionNumber vn = test.Version;
-            //string cm = test.CustomMeta;
-
-            //test.VersioningMode = VersioningType.None;
-            //test.ApprovingMode = ApprovingType.True;
-
-            //test.CheckOut();
-
-            //test.CustomMeta = Guid.NewGuid().ToString();
-
-            //test.UndoCheckOut();
-
-            //Assert.IsTrue(test.Version.Major == 1 && test.Version.Minor == 0, "#1");
-            //Assert.IsTrue(test.Version.Status == VersionStatus.Approved, "#2");
-            //Assert.AreEqual(test.CustomMeta, cm, "#3");
-        }
-
-        [TestMethod()]
-        public void GC_UndoCheckOut_VersionModeMajorOnly_ApprovingTrue_Test()
-        {
-            Assert.Inconclusive();
-
-            //Page test = CreatePage("GCSaveTest");
-
-            //VersionNumber vn = test.Version;
-            //string cm = test.CustomMeta;
-
-            //test.VersioningMode = VersioningType.MajorOnly;
-            //test.ApprovingMode = ApprovingType.True;
-
-            //test.CheckOut();
-
-            //test.CustomMeta = Guid.NewGuid().ToString();
-
-            //test.UndoCheckOut();
-
-            //Assert.IsTrue(test.Version.Major == 1 && test.Version.Minor == 0, "#1");
-            //Assert.IsTrue(test.Version.Status == VersionStatus.Approved, "#2");
-            //Assert.AreEqual(test.CustomMeta, cm, "#3");
-        }
-
-        [TestMethod()]
-        public void GC_UndoCheckOut_VersionModeMajorAndMinor_ApprovingTrue_Test()
-        {
-            Assert.Inconclusive();
-
-            //Page test = CreatePage("GCSaveTest");
-
-            //VersionNumber vn = test.Version;
-            //string cm = test.CustomMeta;
-
-            //test.VersioningMode = VersioningType.MajorAndMinor;
-            //test.ApprovingMode = ApprovingType.True;
-
-            //test.CheckOut();
-
-            //test.CustomMeta = Guid.NewGuid().ToString();
-
-            //test.UndoCheckOut();
-
-            //Assert.IsTrue(test.Version.Major == 1 && test.Version.Minor == 0, "#1");
-            //Assert.IsTrue(test.Version.Status == VersionStatus.Approved, "#2");
-            //Assert.AreEqual(test.CustomMeta, cm, "#3");
-        }
 
         //-------------------------------------------------------------------- Publish ------------------
 
