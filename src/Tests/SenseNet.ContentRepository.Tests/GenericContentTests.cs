@@ -1,15 +1,10 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web.UI;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Versioning;
 using SenseNet.Tests;
+using System;
+using System.Linq;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -110,7 +105,7 @@ namespace SenseNet.ContentRepository.Tests
                 parent.InheritableVersioningMode = parentVersioning;
                 parent.Save();
 
-                var file = CreateTestFile("GCSaveTest", parent);
+                var file = CreateTestFile(parent);
 
                 if (originalVersion != file.Version.ToString())
                     Assert.Inconclusive();
@@ -135,7 +130,7 @@ namespace SenseNet.ContentRepository.Tests
                 parent.InheritableApprovingMode = parentApproving;
                 parent.Save();
 
-                var file = CreateTestFile("GCSaveTest", parent);
+                var file = CreateTestFile(parent);
 
                 Assert.AreEqual(originalVersion, file.Version.ToString());
 
@@ -938,177 +933,298 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        /* ============================================================================= Explicit version */
 
         [TestMethod]
-        public void GC_SaveWithLock_Exception()
+        public void GC_SaveExplicitVersion()
         {
-            Assert.Inconclusive();
-            ////============ Creating a test user
-            //var testUser = new User(User.Administrator.Parent)
-            //{
-            //    Name = "UserFor_GenericContent_SaveWithLock_Exception_Test",
-            //    Email = "userfor_genericcontent_savewithlock_exception_test@example.com",
-            //    Enabled = true
-            //};
-            //testUser.Save();
-            //testUser = Node.Load<User>(testUser.Id);
-            //File testFile = null;
-            //var origUser = User.Current;
-            //try
-            //{
-            //    try
-            //    {
-            //        //============ Orig user creates a file
-            //        testFile = CreateFile(save: true);
-            //        SecurityHandler.CreateAclEditor()
-            //            .Allow(testFile.Id, testUser.Id, false, PermissionType.Save)
-            //            .Apply();
+            Test(() =>
+            {
+                var container = CreateTestRoot();
+                container.InheritableVersioningMode = InheritableVersioningType.MajorAndMinor;
+                container.Save();
 
-            //        //============ Orig user modifies and locks the file
-            //        testFile.Index++;
-            //        testFile.Save(SavingMode.KeepVersionAndLock); //(must work properly)
+                var content = CreateTestFile(container);
+                Assert.AreEqual(VersionNumber.Parse("V0.1.D"), content.Version);
 
-            //        //============ Orig user makes free thr file
-            //        testFile.CheckIn();
+                var versionCount = 0;
+                content = CreateTestFile(container, save: false);
+                content.Version = new VersionNumber(2, 0);
+                content.SaveExplicitVersion(); // must be called
+                versionCount++;
+                content.Version = new VersionNumber(2, 1);
+                content.Save();
+                versionCount++;
+                content.Version = new VersionNumber(2, 2);
+                content.Save();
+                versionCount++;
+                content.Version = new VersionNumber(3, 0);
+                content.Save();
+                versionCount++;
+                content.Version = new VersionNumber(6, 3);
+                content.Save();
+                versionCount++;
+                content.Version = new VersionNumber(42, 0);
+                content.Save();
+                versionCount++;
 
-            //        //============ Test user locks the file
-            //        User.Current = testUser;
-            //        testFile.CheckOut();
+                var expected = "V2.0.A, V2.1.D, V2.2.D, V3.0.A, V6.3.D, V42.0.A";
+                var actual = String.Join(", ", content.Versions.Select(x => x.Version));
+                Assert.AreEqual(expected, actual);
+                Assert.AreEqual(versionCount, NodeHead.Get(content.Id).Versions.Length);
 
-            //        //============ Test user tries to lock the file
-            //        User.Current = origUser;
-            //        testFile = Node.Load<File>(testFile.Id);
-            //        testFile.Index++;
-            //        try
-            //        {
-            //            testFile.Save(SavingMode.KeepVersionAndLock);
+                //------------------------ modify is allowed
+                content.Version = new VersionNumber(42, 0);
+                content.SaveExplicitVersion();
+                Assert.AreEqual(VersionNumber.Parse("V42.0.A"), content.Version);
+                Assert.AreEqual(versionCount, NodeHead.Get(content.Id).Versions.Length);
 
-            //            //============ forbidden code branch
-            //            Assert.Fail("InvalidContentActionException was not thrown");
-            //        }
-            //        catch (InvalidContentActionException)
-            //        {
-            //        }
-            //    }
-            //    finally
-            //    {
-            //        //============ restoring content state
-            //        if (testFile.Locked)
-            //        {
-            //            User.Current = testFile.LockedBy;
-            //            testFile.CheckIn();
-            //        }
-            //    }
-            //}
-            //finally
-            //{
-            //    //============ restoring orig user
-            //    User.Current = origUser;
-            //}
+                //------------------------ modify is allowed (but version will be 42.1.D)
+                content.Version = new VersionNumber(42, 0);
+                content.Save();
+                versionCount++;
+                Assert.AreEqual(VersionNumber.Parse("V42.1.D"), content.Version);
+                Assert.AreEqual(versionCount, NodeHead.Get(content.Id).Versions.Length);
+
+                //------------------------ downgrade is forbidden
+                var thrown = false;
+                try
+                {
+                    content.Version = new VersionNumber(41, 0);
+                    content.Save();
+                }
+                catch (InvalidContentActionException)
+                {
+                    thrown = true;
+                }
+                Assert.IsTrue(thrown);
+
+                thrown = false;
+                try
+                {
+                    content.Version = new VersionNumber(45, 0);
+                    content.Save(SavingMode.KeepVersion);
+                }
+                catch (InvalidContentActionException)
+                {
+                    thrown = true;
+                }
+                Assert.IsTrue(thrown);
+                Assert.AreEqual(versionCount, NodeHead.Get(content.Id).Versions.Length);
+            });
         }
+        [TestMethod]
+        public void GC_SaveExplicitVersion_CheckOut_Publish_Reject()
+        {
+            Test(() =>
+            {
+                var container = CreateTestRoot();
+                container.InheritableVersioningMode = InheritableVersioningType.MajorAndMinor;
+                container.InheritableApprovingMode = ApprovingType.True;
+                container.Save();
+
+                var file = CreateTestFile(container);
+                Assert.AreEqual(VersionNumber.Parse("V0.1.D"), file.Version);
+
+                var thrown = false;
+
+                // cannot save explicit version if the content is locked
+                file.CheckOut();
+                file.Version = new VersionNumber(42, 0);
+                try
+                {
+                    file.Save();
+                }
+                catch (InvalidContentActionException)
+                {
+                    thrown = true;
+                }
+                Assert.IsTrue(thrown);
+
+                // cannot save explicit version if the content is in "pending for approval" state
+                thrown = false;
+                file.Publish();
+                file.Version = new VersionNumber(42, 0);
+                try
+                {
+                    file.Save();
+                }
+                catch (InvalidContentActionException)
+                {
+                    thrown = true;
+                }
+                Assert.IsTrue(thrown);
+
+                // cannot save explicit version if the content is in "rejected" state
+                thrown = false;
+                file = Node.Load<File>(file.Id);
+                file.Reject();
+                file.Version = new VersionNumber(42, 0);
+                try
+                {
+                    file.Save();
+                }
+                catch (InvalidContentActionException)
+                {
+                    thrown = true;
+                }
+                Assert.IsTrue(thrown);
+            });
+        }
+
+        /* ============================================================================= other content workflows */
 
         [TestMethod]
         public void GC_ElevatedSaveWithLock_CheckedOutByAnotherUser()
         {
-            Assert.Inconclusive();
+            Test(() =>
+            {
+                //============ Creating a test user
+                var userName = "UserFor_GC_ElevatedSaveWithLock_CheckedOutByAnotherUser";
+                var testUser = Node.Load<User>(RepositoryPath.Combine(User.Administrator.Parent.Path, userName));
+                if (testUser == null)
+                {
+                    testUser = new User(User.Administrator.Parent)
+                    {
+                        Name = userName,
+                        Email = "UserFor_GC_ElevatedSaveWithLock_CheckedOutByAnotherUser@example.com",
+                        Enabled = true
+                    };
+                    testUser.Save();
+                    testUser = Node.Load<User>(testUser.Id);
+                }
 
-            ////============ Creating a test user
-            //var userName = "GenericContent_ElevatedSaveWithLock_CheckedOutByAnotherUser_Test";
-            //var testUser = Node.Load<User>(RepositoryPath.Combine(User.Administrator.Parent.Path, userName));
-            //if (testUser == null)
-            //{
-            //    testUser = new User(User.Administrator.Parent)
-            //    {
-            //        Name = userName,
-            //        Email = "genericcontent_elevatedsavewithlock_checkedoutbyanotheruser_test@example.com",
-            //        Enabled = true
-            //    };
-            //    testUser.Save();
-            //    testUser = Node.Load<User>(testUser.Id);
-            //}
+                File testFile = null;
+                var modifierIdBefore = 0;
+                var modifierIdAfter = 0;
+                var origUser = User.Current;
+                try
+                {
+                    try
+                    {
+                        //============ Orig user creates a file
+                        testFile = CreateTestFile();
+                        SecurityHandler.CreateAclEditor()
+                            .Allow(testFile.Id, testUser.Id, false, PermissionType.Save)
+                            .Allow(testUser.Id, testUser.Id, false, PermissionType.Save)
+                            .Apply();
 
-            //File testFile = null;
-            //var modifierIdBefore = 0;
-            //var modifierIdAfter = 0;
-            //var origUser = User.Current;
-            //try
-            //{
-            //    try
-            //    {
-            //        //============ Orig user creates a file
-            //        testFile = CreateFile(save: true, name: Guid.NewGuid().ToString());
-            //        SecurityHandler.CreateAclEditor()
-            //            .Allow(testFile.Id, testUser.Id, false, PermissionType.Save)
-            //            .Apply();
+                        Assert.IsTrue(testFile.Security.HasPermission((IUser)testUser, PermissionType.Save));
 
-            //        //============ Orig user modifies and locks the file
-            //        testFile.Index++;
-            //        testFile.Save(SavingMode.KeepVersionAndLock); //(must work properly)
+                        //============ Orig user modifies and locks the file
+                        testFile.Index++;
+                        testFile.Save(SavingMode.KeepVersionAndLock); //(must work properly)
 
-            //        //============ Orig user makes free thr file
-            //        testFile.CheckIn();
+                        //============ Orig user makes free the file
+                        testFile.CheckIn();
 
-            //        //============ Test user locks the file
-            //        User.Current = testUser;
-            //        testFile.CheckOut();
+                        //============ Test user locks the file
+                        User.Current = testUser;
+                        testFile.CheckOut();
 
-            //        //============ Test user tries to lock the file
-            //        User.Current = origUser;
-            //        testFile = Node.Load<File>(testFile.Id);
-            //        testFile.Index++;
+                        //============ Test user tries to lock the file
+                        User.Current = origUser;
+                        testFile = Node.Load<File>(testFile.Id);
+                        testFile.Index++;
 
-            //        //============ System user always can save
-            //        modifierIdBefore = testFile.ModifiedById;
-            //        using (new SystemAccount())
-            //            testFile.Save(SavingMode.KeepVersion);
-            //        modifierIdAfter = testFile.ModifiedById;
-            //    }
-            //    finally
-            //    {
-            //        //============ restoring content state
-            //        if (testFile.Locked)
-            //        {
-            //            User.Current = testFile.LockedBy;
-            //            testFile.CheckIn();
-            //        }
-            //    }
-            //}
-            //finally
-            //{
-            //    //============ restoring orig user
-            //    User.Current = origUser;
-            //}
+                        //============ System user always can save
+                        modifierIdBefore = testFile.ModifiedById;
+                        using (new SystemAccount())
+                            testFile.Save(SavingMode.KeepVersion);
+                        modifierIdAfter = testFile.ModifiedById;
+                    }
+                    finally
+                    {
+                        //============ restoring content state
+                        if (testFile.Locked)
+                        {
+                            User.Current = testFile.LockedBy;
+                            testFile.CheckIn();
+                        }
+                    }
+                }
+                finally
+                {
+                    //============ restoring orig user
+                    User.Current = origUser;
+                }
 
-            //Assert.AreEqual(modifierIdBefore, modifierIdAfter);
+                Assert.AreEqual(modifierIdBefore, modifierIdAfter);
+            });
         }
 
-
         [TestMethod]
+        public void GC_SaveWithLock_Exception()
+        {
+            Test(() =>
+            {
+                //============ Creating a test user
+                var testUser = new User(User.Administrator.Parent)
+                {
+                    Name = "UserFor_GC_SaveWithLock_Exception",
+                    Email = "UserFor_GC_SaveWithLock_Exception@example.com",
+                    Enabled = true
+                };
+                testUser.Save();
+                testUser = Node.Load<User>(testUser.Id);
+                File testFile = null;
+                var origUser = User.Current;
+                try
+                {
+                    try
+                    {
+                        //============ Orig user creates a file
+                        testFile = CreateTestFile();
+                        SecurityHandler.CreateAclEditor()
+                            .Allow(testFile.Id, testUser.Id, false, PermissionType.Save)
+                            .Allow(testUser.Id, testUser.Id, false, PermissionType.Save)
+                            .Apply();
+
+                        //============ Orig user modifies and locks the file
+                        testFile.Index++;
+                        testFile.Save(SavingMode.KeepVersionAndLock); //(must work properly)
+
+                        //============ Orig user makes free thr file
+                        testFile.CheckIn();
+
+                        //============ Test user locks the file
+                        User.Current = testUser;
+                        testFile.CheckOut();
+
+                        //============ Test user tries to lock the file
+                        User.Current = origUser;
+                        testFile = Node.Load<File>(testFile.Id);
+                        testFile.Index++;
+                        try
+                        {
+                            testFile.Save(SavingMode.KeepVersionAndLock);
+
+                            //============ forbidden code branch
+                            Assert.Fail("InvalidContentActionException was not thrown");
+                        }
+                        catch (InvalidContentActionException)
+                        {
+                        }
+                    }
+                    finally
+                    {
+                        //============ restoring content state
+                        if (testFile.Locked)
+                        {
+                            User.Current = testFile.LockedBy;
+                            testFile.CheckIn();
+                        }
+                    }
+                }
+                finally
+                {
+                    //============ restoring orig user
+                    User.Current = origUser;
+                }
+            });
+        }
+
+        [TestMethod] //UNDONE:?? test is failed
         public void GC_SaveWithLock_RestorePreviousVersion()
         {
             Test(() =>
@@ -1137,265 +1253,91 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
-
-
-
-        //-------------------------------------------------------------------- Start multistep save -----------------
-
-        [TestMethod]
-        public void GC_MultistepSave_FullFalse()
-        {
-            Assert.Inconclusive();
-
-            //Page test = CreatePage("GCSaveTest");
-
-            //var vn = test.Version;
-
-            //test.VersioningMode = VersioningType.MajorAndMinor;
-            //test.ApprovingMode = ApprovingType.False;
-
-            //test.CustomMeta = Guid.NewGuid().ToString();
-
-            //test.Save(SavingMode.StartMultistepSave);
-
-            //Assert.IsTrue(vn < test.Version, "#1 version hasn't been raised.");
-            //Assert.IsTrue(test.Version.Status == VersionStatus.Locked, "#2 status is not locked");
-            //Assert.AreEqual(ContentSavingState.Modifying, test.SavingState, string.Format("#3 saving state is incorrect."));
-
-            //test.FinalizeContent();
-
-            //Assert.IsTrue(test.Version.Status == VersionStatus.Draft, "#4 status is not correct");
-            //Assert.AreEqual(ContentSavingState.Finalized, test.SavingState, string.Format("#5 saving state is incorrect."));
-
-            //test.CheckOut();
-
-            //vn = test.Version;
-
-            //test.Save(SavingMode.StartMultistepSave);
-
-            //Assert.AreEqual(vn, test.Version, "#6 version is not correct");
-            //Assert.AreEqual(ContentSavingState.ModifyingLocked, test.SavingState, string.Format("#7 saving state is incorrect."));
-
-            //test.FinalizeContent();
-
-            //Assert.AreEqual(vn, test.Version, "#8 version is not correct");
-            //Assert.AreEqual(ContentSavingState.Finalized, test.SavingState, string.Format("#9 saving state is incorrect."));
-        }
-
-
-        //-------------------------------------------------------------------- Publish ------------------
-
         [TestMethod]
         public void GC_Save_CheckOutIn_None_ApprovingFalse_Bug3167()
         {
-            Assert.Inconclusive();
+            Test(() =>
+            {
+                // action 1
+                var file = CreateTestFile();
 
-            //var page = CreatePage("GCSaveTest");
-            //var pageId = page.Id;
-            //var versionString1 = page.Version.ToString();
-            //page.Binary.SetStream(RepositoryTools.GetStreamFromString("Binary1"));
-            //page.Binary.FileName = "1.html";
-            //page.PersonalizationSettings.SetStream(RepositoryTools.GetStreamFromString("PersonalizationSettings1"));
-            //page.PersonalizationSettings.FileName = "PersonalizationSettings";
-            //page.VersioningMode = VersioningType.None;
-            //page.ApprovingMode = ApprovingType.False;
-            //page.Save();
+                Assert.AreEqual("V1.0.A", file.Version.ToString());
 
-            //page = Node.Load<Page>(pageId);
-            //page.CheckOut();
-            //var versionString2 = page.Version.ToString();
-            //page.Binary.SetStream(RepositoryTools.GetStreamFromString("Binary2"));
-            //page.PersonalizationSettings.SetStream(RepositoryTools.GetStreamFromString("PersonalizationSettings2"));
-            //page.Save();
+                var fileId = file.Id;
+                file.VersioningMode = VersioningType.None;
+                file.ApprovingMode = ApprovingType.False;
 
-            //var versionString3 = page.Version.ToString();
+                // action 2
+                file.Save();
 
-            ////page = Node.Load<Page>(pageId);
+                file = Node.Load<File>(fileId);
 
-            //page.CheckIn();
+                // action 3
+                file.CheckOut();
 
-            //page = Node.Load<Page>(pageId);
+                Assert.AreEqual("V2.0.L", file.Version.ToString());
 
-            //var versionString4 = page.Version.ToString();
-            //var vnList = Node.GetVersionNumbers(page.Id);
-            //var binString = RepositoryTools.GetStreamString(page.Binary.GetStream());
-            //var persString = RepositoryTools.GetStreamString(page.PersonalizationSettings.GetStream());
+                // action 4
+                file.Index++;
+                file.Save();
 
-            //Assert.IsTrue(binString == "Binary2", "#1");
-            //Assert.IsTrue(page.Version.Major == 1 && page.Version.Minor == 0, "#2");
-            //Assert.IsTrue(persString == "PersonalizationSettings2", "#3");
-            //Assert.IsTrue(vnList.Count() == 1, "#3");
-            //Assert.IsTrue(versionString1 == "V1.0.A", "#4");
-            //Assert.IsTrue(versionString2 == "V2.0.L", "#5");
-            //Assert.IsTrue(versionString3 == "V2.0.L", "#6");
-            //Assert.IsTrue(versionString4 == "V1.0.A", "#7");
+                Assert.AreEqual("V2.0.L", file.Version.ToString());
+
+                // action 5
+                file.CheckIn();
+
+                file = Node.Load<File>(fileId);
+                Assert.AreEqual("V1.0.A", file.Version.ToString());
+
+                Assert.AreEqual(1, Node.GetVersionNumbers(file.Id).Count);
+            });
         }
 
+        /* ============================================================================= BinaryData */
 
-        //-------------------------------------------------------------------- Explicit version ----------------
-
-        [TestMethod]
-        public void GC_SaveExplicitVersion()
+        [TestMethod] //UNDONE:?? test is inconclusive
+        public void GC_None_CheckoutSaveCheckin_BinaryData()
         {
             Assert.Inconclusive();
 
-            //SystemFolder container;
-            //GenericContent content;
+            ////--------------------------------------------- prepare
 
-            //container = new SystemFolder(TestRoot) { Name = Guid.NewGuid().ToString(), InheritableVersioningMode = InheritableVersioningType.MajorAndMinor };
-            //container.Save();
-            //content = new GenericContent(container, "HTMLContent") { Name = Guid.NewGuid().ToString() };
-            //content["HTMLFragment"] = "<h1>Testcontent</h1>";
-            //content.Save();
-            //Assert.AreEqual(VersionNumber.Parse("V0.1.D"), content.Version);
+            //var folderContent = Content.CreateNew("Folder", TestRoot, Guid.NewGuid().ToString());
+            //var folder = (Folder)folderContent.ContentHandler;
+            //folder.InheritableVersioningMode = InheritableVersioningType.None;
+            //folder.Save();
 
-            //var versionCount = 0;
-            //content = new GenericContent(container, "HTMLContent") { Name = Guid.NewGuid().ToString() };
-            //content["HTMLFragment"] = "<h1>Testcontent</h1>";
-            //content.Version = new VersionNumber(2, 0);
-            //content.SaveExplicitVersion(); // must be called
-            //versionCount++;
-            //content.Version = new VersionNumber(2, 1);
-            //content.Save();
-            //versionCount++;
-            //content.Version = new VersionNumber(2, 2);
-            //content.Save();
-            //versionCount++;
-            //content.Version = new VersionNumber(3, 0);
-            //content.Save();
-            //versionCount++;
-            //content.Version = new VersionNumber(6, 3);
-            //content.Save();
-            //versionCount++;
-            //content.Version = new VersionNumber(42, 0);
-            //content.Save();
-            //versionCount++;
+            //var fileContent = Content.CreateNew("File", folder, null);
+            //var file = (File)fileContent.ContentHandler;
 
-            //var expected = "V2.0.A, V2.1.D, V2.2.D, V3.0.A, V6.3.D, V42.0.A";
-            //var actual = String.Join(", ", content.Versions.Select(x => x.Version));
-            //Assert.AreEqual(expected, actual);
-            //Assert.AreEqual(versionCount, NodeHead.Get(content.Id).Versions.Length);
+            //var stream = RepositoryTools.GetStreamFromString("asdf qwer yxcv");
+            //var binaryData = new BinaryData { ContentType = "text/plain", FileName = "1.txt", Size = stream.Length };
+            //binaryData.SetStream(stream);
 
-            ////------------------------ modify is allowed
-            //content.Version = new VersionNumber(42, 0);
-            //content["HTMLFragment"] = "<h1>Testcontent (modified)</h1>";
-            //content.SaveExplicitVersion();
-            //Assert.AreEqual(VersionNumber.Parse("V42.0.A"), content.Version);
-            //Assert.AreEqual(versionCount, NodeHead.Get(content.Id).Versions.Length);
+            //file.SetBinary("Binary", binaryData);
+            //file.Save();
 
-            ////------------------------ modify is allowed (but version will be 42.1.D)
-            //content.Version = new VersionNumber(42, 0);
-            //content["HTMLFragment"] = "<h1>Testcontent (modified)</h1>";
-            //content.Save();
-            //versionCount++;
-            //Assert.AreEqual(VersionNumber.Parse("V42.1.D"), content.Version);
-            //Assert.AreEqual(versionCount, NodeHead.Get(content.Id).Versions.Length);
+            //var fileId = file.Id;
 
-            ////------------------------ downgrade is forbidden
-            //var thrown = false;
-            //try
-            //{
-            //    content.Version = new VersionNumber(41, 0);
-            //    content.Save();
-            //    thrown = false;
-            //}
-            //catch (InvalidContentActionException)
-            //{
-            //    thrown = true;
-            //}
-            //Assert.IsTrue(thrown);
+            ////--------------------------------------------- operating
 
-            //thrown = false;
-            //try
-            //{
-            //    content.Version = new VersionNumber(45, 0);
-            //    content.Save(SavingMode.KeepVersion);
-            //}
-            //catch (InvalidContentActionException)
-            //{
-            //    thrown = true;
-            //}
-            //Assert.IsTrue(thrown);
-            //Assert.AreEqual(versionCount, NodeHead.Get(content.Id).Versions.Length);
-        }
-        [TestMethod]
-        public void GC_SaveExplicitVersion_CheckedOut_Pending_Rejected()
-        {
-            Assert.Inconclusive();
+            //file = Node.Load<File>(fileId);
+            //file.CheckOut();
 
-            //var container = new SystemFolder(TestRoot)
-            //{
-            //    Name = Guid.NewGuid().ToString(),
-            //    InheritableVersioningMode = InheritableVersioningType.MajorAndMinor,
-            //    InheritableApprovingMode = ApprovingType.True
-            //};
-            //container.Save();
-            //var content = new GenericContent(container, "HTMLContent") { Name = Guid.NewGuid().ToString() };
-            //content["HTMLFragment"] = "<h1>Testcontent</h1>";
-            //content.Save();
-            //Assert.AreEqual(VersionNumber.Parse("V0.1.D"), content.Version);
+            //file = Node.Load<File>(fileId);
+            //file.Binary.SetStream(RepositoryTools.GetStreamFromString("asdf qwer yxcv 123"));
+            //file.Save();
 
-            //var thrown = false;
+            //file = Node.Load<File>(fileId);
+            //file.CheckIn();
 
-            //// cannot save explicit version if the content is locked
-            //content.CheckOut();
-            //content.Version = new VersionNumber(42, 0);
-            //try
-            //{
-            //    content.Save();
-            //}
-            //catch (InvalidContentActionException)
-            //{
-            //    thrown = true;
-            //}
-            //Assert.IsTrue(thrown);
+            //file = Node.Load<File>(fileId);
+            //var s = RepositoryTools.GetStreamString(file.Binary.GetStream());
 
-            //// cannot save explicit version if the content is in "pending for approval" state
-            //content.Publish();
-            //content.Version = new VersionNumber(42, 0);
-            //try
-            //{
-            //    content.Save();
-            //}
-            //catch (InvalidContentActionException)
-            //{
-            //    thrown = true;
-            //}
-            //Assert.IsTrue(thrown);
-
-            //// cannot save explicit version if the content is in "rejected" state
-            //content = Node.Load<GenericContent>(content.Id);
-            //content.Reject();
-            //content.Version = new VersionNumber(42, 0);
-            //try
-            //{
-            //    content.Save();
-            //}
-            //catch (InvalidContentActionException)
-            //{
-            //    thrown = true;
-            //}
-            //Assert.IsTrue(thrown);
-        }
-        //-------------------------------------------------------------------- Exception ----------------
-
-        [TestMethod]
-        [ExpectedException(typeof(InvalidContentActionException))]
-        public void GC_Exception_NoneFalse()
-        {
-            Assert.Inconclusive();
-
-            //Page test = CreatePage("GCSaveTest");
-
-            //test.VersioningMode = VersioningType.None;
-            //test.ApprovingMode = ApprovingType.False;
-
-            //test.Reject();
+            //Assert.IsTrue(s == "asdf qwer yxcv 123");
         }
 
-        //-------------------------------------------------------------------- Others ----------------
-
-        [TestMethod]
+        [TestMethod] //UNDONE:?? test is inconclusive
         public void GC_MajorAndMinor_CheckoutSaveCheckin_BinaryData()
         {
             Assert.Inconclusive();
@@ -1437,48 +1379,7 @@ namespace SenseNet.ContentRepository.Tests
             //Assert.IsTrue(s == "asdf qwer yxcv 123");
         }
 
-        [TestMethod]
-        public void GC_None_CheckoutSaveCheckin_BinaryData()
-        {
-            Assert.Inconclusive();
-
-            ////--------------------------------------------- prepare
-
-            //var folderContent = Content.CreateNew("Folder", TestRoot, Guid.NewGuid().ToString());
-            //var folder = (Folder)folderContent.ContentHandler;
-            //folder.InheritableVersioningMode = InheritableVersioningType.None;
-            //folder.Save();
-
-            //var fileContent = Content.CreateNew("File", folder, null);
-            //var file = (File)fileContent.ContentHandler;
-
-            //var stream = RepositoryTools.GetStreamFromString("asdf qwer yxcv");
-            //var binaryData = new BinaryData { ContentType = "text/plain", FileName = "1.txt", Size = stream.Length };
-            //binaryData.SetStream(stream);
-
-            //file.SetBinary("Binary", binaryData);
-            //file.Save();
-
-            //var fileId = file.Id;
-
-            ////--------------------------------------------- operating
-
-            //file = Node.Load<File>(fileId);
-            //file.CheckOut();
-
-            //file = Node.Load<File>(fileId);
-            //file.Binary.SetStream(RepositoryTools.GetStreamFromString("asdf qwer yxcv 123"));
-            //file.Save();
-
-            //file = Node.Load<File>(fileId);
-            //file.CheckIn();
-
-            //file = Node.Load<File>(fileId);
-            //var s = RepositoryTools.GetStreamString(file.Binary.GetStream());
-
-            //Assert.IsTrue(s == "asdf qwer yxcv 123");
-        }
-        [TestMethod]
+        [TestMethod] //UNDONE:?? test is inconclusive
         public void GC_None_CheckoutSaveCheckin_BinaryData_OfficeProtocolBug()
         {
             Assert.Inconclusive();
@@ -1534,16 +1435,47 @@ namespace SenseNet.ContentRepository.Tests
             //Assert.IsTrue(s == "asdf qwer yxcv 123", String.Format("content is '{0}'. expected: 'asdf qwer yxcv 123'", s));
         }
 
-        //[TestMethod]
-        //public void LoggedDataProvider_RightWrappingAndRestoring()
-        //{
-        //    var dataProvider = DataProvider.Current;
-        //    using (var loggedDataProvider = new LoggedDataProvider())
-        //    {
-        //        Assert.ReferenceEquals(loggedDataProvider, DataProvider.Current);
-        //    }
-        //    Assert.ReferenceEquals(dataProvider, DataProvider.Current);
-        //}
+        //-------------------------------------------------------------------- Start multistep save -----------------
+
+        [TestMethod] //UNDONE:?? test is inconclusive
+        public void GC_MultistepSave_FullFalse()
+        {
+            Assert.Inconclusive();
+
+            //Page test = CreatePage("GCSaveTest");
+
+            //var vn = test.Version;
+
+            //test.VersioningMode = VersioningType.MajorAndMinor;
+            //test.ApprovingMode = ApprovingType.False;
+
+            //test.CustomMeta = Guid.NewGuid().ToString();
+
+            //test.Save(SavingMode.StartMultistepSave);
+
+            //Assert.IsTrue(vn < test.Version, "#1 version hasn't been raised.");
+            //Assert.IsTrue(test.Version.Status == VersionStatus.Locked, "#2 status is not locked");
+            //Assert.AreEqual(ContentSavingState.Modifying, test.SavingState, string.Format("#3 saving state is incorrect."));
+
+            //test.FinalizeContent();
+
+            //Assert.IsTrue(test.Version.Status == VersionStatus.Draft, "#4 status is not correct");
+            //Assert.AreEqual(ContentSavingState.Finalized, test.SavingState, string.Format("#5 saving state is incorrect."));
+
+            //test.CheckOut();
+
+            //vn = test.Version;
+
+            //test.Save(SavingMode.StartMultistepSave);
+
+            //Assert.AreEqual(vn, test.Version, "#6 version is not correct");
+            //Assert.AreEqual(ContentSavingState.ModifyingLocked, test.SavingState, string.Format("#7 saving state is incorrect."));
+
+            //test.FinalizeContent();
+
+            //Assert.AreEqual(vn, test.Version, "#8 version is not correct");
+            //Assert.AreEqual(ContentSavingState.Finalized, test.SavingState, string.Format("#9 saving state is incorrect."));
+        }
 
 
 
@@ -1553,34 +1485,7 @@ namespace SenseNet.ContentRepository.Tests
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        /* -------------------------------------------------------------------- Helper methods ----------- */
+        /* ============================================================================= helpers */
 
         private GenericContent CreateTestRoot()
         {
@@ -1594,15 +1499,15 @@ namespace SenseNet.ContentRepository.Tests
         /// </summary>
         public File CreateTestFile(string name = null, bool save = true)
         {
-            return CreateTestFile(name ?? Guid.NewGuid().ToString(), CreateTestRoot(), save);
+            return CreateTestFile(CreateTestRoot(), name ?? Guid.NewGuid().ToString(), save);
         }
 
         /// <summary>
         /// Creates a file without binary under the given parent node.
         /// </summary>
-        public static File CreateTestFile(string name, Node parent, bool save = true)
+        public static File CreateTestFile(Node parent, string name = null, bool save = true)
         {
-            var file = new File(parent) { Name = name };
+            var file = new File(parent) { Name = name ?? Guid.NewGuid().ToString() };
             if(save)
                 file.Save();
             return file;

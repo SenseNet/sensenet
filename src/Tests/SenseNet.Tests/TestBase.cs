@@ -134,10 +134,13 @@ namespace SenseNet.Tests
 
         protected RepositoryBuilder CreateRepositoryBuilderForTest()
         {
+            var dataProvider = new InMemoryDataProvider();
+            var securityDataProvider = GetSecurityDataProvider(dataProvider);
+
             return new RepositoryBuilder()
-                .UseDataProvider(new InMemoryDataProvider())
+                .UseDataProvider(dataProvider)
                 .UseSearchEngine(new InMemorySearchEngine())
-                .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
+                .UseSecurityDataProvider(securityDataProvider)
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
                 .UseCacheProvider(new EmptyCache())
                 .StartWorkflowEngine(false)
