@@ -496,12 +496,43 @@ namespace SenseNet.Tests.Implementations
             return DataOperationResult.Successful;
         }
 
-        #region NOT IMPLEMENTED
-
         protected internal override void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId)
         {
-            throw new NotImplementedException();
+            /*
+            DECLARE @NodeId int
+            SELECT @NodeId = NodeId FROM Versions WHERE VersionId = @VersionId
+            DELETE FROM BinaryProperties WHERE VersionId = @VersionId
+            DELETE FROM TextPropertiesNText WHERE VersionId = @VersionId
+            DELETE FROM TextPropertiesNVarchar WHERE VersionId = @VersionId
+            DELETE FROM ReferenceProperties WHERE VersionId = @VersionId
+            DELETE FROM FlatProperties WHERE VersionId = @VersionId
+            UPDATE Nodes SET LastMinorVersionId = NULL, LastMajorVersionId = NULL WHERE NodeId = @NodeId
+            DELETE FROM Versions WHERE VersionId = @VersionId
+            EXEC proc_Node_SetLastVersion @NodeId = @NodeId
+            SELECT [Timestamp] as NodeTimestamp, LastMajorVersionId, LastMinorVersionId FROM Nodes WHERE NodeId = @NodeId
+            */
+            lastMajorVersionId = lastMinorVersionId = 0;
+
+            var versionRow = _db.Versions.FirstOrDefault(r => r.VersionId == versionId);
+            if (versionRow == null)
+                return;
+            var nodeRow = _db.Nodes.FirstOrDefault(r => r.NodeId == versionRow.NodeId);
+
+            _db.BinaryProperties.RemoveAll(r => r.VersionId == versionId);
+            _db.TextProperties.RemoveAll(r => r.VersionId == versionId);
+            _db.ReferenceProperties.RemoveAll(r => r.VersionId == versionId);
+            _db.FlatProperties.RemoveAll(r => r.VersionId == versionId);
+            _db.Versions.Remove(versionRow);
+
+            if (nodeRow == null)
+                return;
+
+            SetLastVersionSlots(_db, nodeRow.NodeId, out lastMajorVersionId, out lastMinorVersionId);
+
+            nodeData.NodeTimestamp = nodeRow.NodeTimestamp; //TODO: nodetimestamp
         }
+
+        #region NOT IMPLEMENTED
 
         protected override string GetAppModelScriptPrivate(IEnumerable<string> paths, bool all, bool resolveChildren)
         {
@@ -578,7 +609,8 @@ namespace SenseNet.Tests.Implementations
 
         protected internal override VersionNumber[] GetVersionNumbers(int nodeId)
         {
-            throw new NotImplementedException();
+            var versions = _db.Versions.Where(r => r.NodeId == nodeId).Select(r => r.Version).ToArray();
+            return versions;
         }
 
         protected internal override bool HasChild(int nodeId)
