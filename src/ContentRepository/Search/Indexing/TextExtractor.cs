@@ -1,8 +1,6 @@
 ﻿using System;
-using System.CodeDom;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -27,7 +25,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// <param name="versionId"></param>
         public TextExtractorContext(int versionId)
         {
-            this.VersionId = versionId;
+            VersionId = versionId;
         }
 
         /// <summary>
@@ -86,7 +84,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 return null;
 
             var extractors = Settings.GetValue<ReadOnlyDictionary<string, ITextExtractor>>(
-                IndexingSettings.SETTINGSNAME, IndexingSettings.TEXTEXTRACTORS_PROPERTYNAME);
+                IndexingSettings.SettingsName, IndexingSettings.TextExtractorsPropertyName);
 
             if (extractors == null)
                 return null;
@@ -128,17 +126,17 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     {
                         var ctx = new TextExtractorContext(node.VersionId);
                         // async
-                        Action<TimeboxedActivity> timeboxedFunctionCall = activity =>
+                        void TimeboxedFunctionCall(TimeboxedActivity activity)
                         {
-                            var x = (Stream)activity.InArgument;
+                            var x = (Stream) activity.InArgument;
                             var extract = extractor.Extract(x, ctx);
                             activity.OutArgument = extract;
-                        };
+                        }
 
                         var act = new TimeboxedActivity
                         {
                             InArgument = stream,
-                            Activity = timeboxedFunctionCall,
+                            Activity = TimeboxedFunctionCall,
                             Context = HttpContext.Current
                         };
 
@@ -202,13 +200,13 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 SnLog.WriteException(e,
                     node != null
                         ? $"An error occured during extracting text. Version: {node.Version}, path: {node.Path}"
-                        : $"An error occured during extracting text.");
+                        : "An error occured during extracting text.");
             }
             else
             {
                 SnLog.WriteError(node != null
                     ? $"An error occured during extracting text. Version: {node.Version}, path: {node.Path}"
-                    : $"An error occured during extracting text.");
+                    : "An error occured during extracting text.");
             }
         }
 
@@ -230,7 +228,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
                         // use the XML extractor for inner entries in OpenXml files
                         var extractor = ResolveExtractor("xml");
-                        var extractedText = extractor == null ? null : extractor.Extract(zipStream, context);
+                        var extractedText = extractor?.Extract(zipStream, context);
 
                         if (string.IsNullOrEmpty(extractedText))
                         {

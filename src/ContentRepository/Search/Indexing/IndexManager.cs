@@ -38,7 +38,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         {
             return new AllContentTypes()
                 .Where(c => !c.IndexingEnabled)
-                .Select(c => Storage.Schema.NodeType.GetByName(c.Name).Id)
+                .Select(c => NodeType.GetByName(c.Name).Id)
                 .ToArray();
         }
 
@@ -281,7 +281,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         {
             var delTerms = executingUnprocessedActivities ? new [] { new SnTerm(IndexFieldName.InTree, treeRoot) } : null;
             var excludedNodeTypes = GetNotIndexedNodeTypes();
-            var docs = SearchManager.LoadIndexDocumentsByPath(treeRoot, excludedNodeTypes).Select(d => CreateIndexDocument(d));
+            var docs = SearchManager.LoadIndexDocumentsByPath(treeRoot, excludedNodeTypes).Select(CreateIndexDocument);
             IndexingEngine.WriteIndex(delTerms, null, docs);
             return true;
         }
@@ -290,47 +290,25 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         #region /* ==================================================================== IndexDocument management */
 
+        // ReSharper disable once InconsistentNaming
         private static IPerFieldIndexingInfo __nameFieldIndexingInfo;
-        private static IPerFieldIndexingInfo __pathFieldIndexingInfo;
-        private static IPerFieldIndexingInfo __inTreeFieldIndexingInfo;
-        private static IPerFieldIndexingInfo __inFolderFieldIndexingInfo;
+        internal static IPerFieldIndexingInfo NameFieldIndexingInfo => __nameFieldIndexingInfo ??
+                                                                       (__nameFieldIndexingInfo = SearchManager.GetPerFieldIndexingInfo(IndexFieldName.Name));
 
-        internal static IPerFieldIndexingInfo NameFieldIndexingInfo
-        {
-            get
-            {
-                if (__nameFieldIndexingInfo == null)
-                    __nameFieldIndexingInfo = SearchManager.GetPerFieldIndexingInfo(IndexFieldName.Name);
-                return __nameFieldIndexingInfo;
-            }
-        }
-        internal static IPerFieldIndexingInfo PathFieldIndexingInfo
-        {
-            get
-            {
-                if (__pathFieldIndexingInfo == null)
-                    __pathFieldIndexingInfo = SearchManager.GetPerFieldIndexingInfo(IndexFieldName.Path);
-                return __pathFieldIndexingInfo;
-            }
-        }
-        internal static IPerFieldIndexingInfo InTreeFieldIndexingInfo
-        {
-            get
-            {
-                if (__inTreeFieldIndexingInfo == null)
-                    __inTreeFieldIndexingInfo = SearchManager.GetPerFieldIndexingInfo(IndexFieldName.InTree);
-                return __inTreeFieldIndexingInfo;
-            }
-        }
-        internal static IPerFieldIndexingInfo InFolderFieldIndexingInfo
-        {
-            get
-            {
-                if (__inFolderFieldIndexingInfo == null)
-                    __inFolderFieldIndexingInfo = SearchManager.GetPerFieldIndexingInfo(IndexFieldName.InFolder);
-                return __inFolderFieldIndexingInfo;
-            }
-        }
+        // ReSharper disable once InconsistentNaming
+        private static IPerFieldIndexingInfo __pathFieldIndexingInfo;
+        internal static IPerFieldIndexingInfo PathFieldIndexingInfo => __pathFieldIndexingInfo ??
+                                                                       (__pathFieldIndexingInfo = SearchManager.GetPerFieldIndexingInfo(IndexFieldName.Path));
+
+        // ReSharper disable once InconsistentNaming
+        private static IPerFieldIndexingInfo __inTreeFieldIndexingInfo;
+        internal static IPerFieldIndexingInfo InTreeFieldIndexingInfo => __inTreeFieldIndexingInfo ?? (__inTreeFieldIndexingInfo =
+                                                                             SearchManager.GetPerFieldIndexingInfo(IndexFieldName.InTree));
+
+        // ReSharper disable once InconsistentNaming
+        private static IPerFieldIndexingInfo __inFolderFieldIndexingInfo;
+        internal static IPerFieldIndexingInfo InFolderFieldIndexingInfo => __inFolderFieldIndexingInfo ?? (__inFolderFieldIndexingInfo =
+                                                                               SearchManager.GetPerFieldIndexingInfo(IndexFieldName.InFolder));
 
         internal static IndexDocument LoadIndexDocumentByVersionId(int versionId)
         {

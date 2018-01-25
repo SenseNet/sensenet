@@ -8,16 +8,17 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.Packaging.Tests.Implementations;
+using SenseNet.Tests;
 
 namespace SenseNet.Packaging.Tests
 {
     [TestClass]
-    public class PackagingStorageTests
+    public class PackagingStorageTests : TestBase
     {
         private static List<TestDataProcedure> Procedures { get; } = new List<TestDataProcedure>();
         private static TestDataProcedureFactory Factory { get; } = new TestDataProcedureFactory(Procedures);
         private static object ExpectedCommandResult {
-            set { Factory.ExpectedCommandResult = value; }
+            set => Factory.ExpectedCommandResult = value;
         }
 
         /* ================================================================================================== Tests */

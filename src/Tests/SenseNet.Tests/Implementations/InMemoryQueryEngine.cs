@@ -16,7 +16,9 @@ namespace SenseNet.Tests.Implementations
         private class Hit
         {
             public int NodeId;
+#pragma warning disable 414
             public int VersionId;
+#pragma warning restore 414
             public bool IsLastPublic;
             public bool IsLastDraft;
             public string ValueForProject;
@@ -25,7 +27,7 @@ namespace SenseNet.Tests.Implementations
 
         private class HitComparer : IComparer<Hit>
         {
-            private SortInfo[] _sort;
+            private readonly SortInfo[] _sort;
 
             public HitComparer(SortInfo[] sort)
             {
@@ -36,8 +38,8 @@ namespace SenseNet.Tests.Implementations
             {
                 for (var i = 0; i < _sort.Length; i++)
                 {
-                    var vx = x.ValuesForSort[i];
-                    var vy = y.ValuesForSort[i];
+                    var vx = x?.ValuesForSort[i];
+                    var vy = y?.ValuesForSort[i];
                     var c = _sort[i].Reverse
                         ? string.Compare(vy, vx, StringComparison.InvariantCultureIgnoreCase)
                         : string.Compare(vx, vy, StringComparison.InvariantCultureIgnoreCase);
@@ -60,8 +62,7 @@ namespace SenseNet.Tests.Implementations
             _log.AppendLine($"ExecuteQuery: {query}");
 
             var interpreter = new SnQueryInterpreter(_index);
-            int totalCount;
-            var result = interpreter.Execute(query, filter, out totalCount);
+            var result = interpreter.Execute(query, filter, out var totalCount);
 
             var nodeIds = result.Select(h => h.NodeId).ToArray();
             var queryResult = new QueryResult<int>(nodeIds, totalCount);
@@ -72,8 +73,7 @@ namespace SenseNet.Tests.Implementations
             _log.AppendLine($"ExecuteQueryAndProject: {query}");
 
             var interpreter = new SnQueryInterpreter(_index);
-            int totalCount;
-            var result = interpreter.Execute(query, filter, out totalCount);
+            var result = interpreter.Execute(query, filter, out var totalCount);
 
             var projectedValues = result.Select(h => h.ValueForProject).Distinct().ToArray();
             var queryResult = new QueryResult<string>(projectedValues, totalCount);
@@ -105,7 +105,7 @@ namespace SenseNet.Tests.Implementations
                 Visit(query.QueryTree);
 
                 if (_hitStack.Count == 0)
-                    throw new CompilerException($"Compiler error: The stack does not contain any elements.");
+                    throw new CompilerException("Compiler error: The stack does not contain any elements.");
                 if (_hitStack.Count != 1)
                     throw new CompilerException($"Compiler error: The stack contains more than one elements ({_hitStack.Count}).");
 
@@ -154,8 +154,7 @@ namespace SenseNet.Tests.Implementations
             {
                 // FieldName => FieldValue => VersionId
                 // Dictionary<string, Dictionary<string, List<int>>>
-                Dictionary<string, List<int>> fieldValues;
-                if (!_index.IndexData.TryGetValue(fieldName, out fieldValues))
+                if (!_index.IndexData.TryGetValue(fieldName, out var fieldValues))
                     return null;
                 var values = fieldValues.Where(v => v.Value.Contains(versionId)).Select(v => v.Key).ToArray();
                 return values.FirstOrDefault();
@@ -196,13 +195,11 @@ namespace SenseNet.Tests.Implementations
                 var result = new List<int>();
 
                 var value = simplePredicate.Value.ValueAsString.ToLowerInvariant();
-                Dictionary<string, List<int>> fieldValues;
-                if (_index.IndexData.TryGetValue(simplePredicate.FieldName, out fieldValues))
+                if (_index.IndexData.TryGetValue(simplePredicate.FieldName, out var fieldValues))
                 {
                     if (!value.Contains("*"))
                     {
-                        List<int> versionIds;
-                        if (fieldValues.TryGetValue(value, out versionIds))
+                        if (fieldValues.TryGetValue(value, out var versionIds))
                             result.AddRange(versionIds);
                     }
                     else
@@ -216,7 +213,7 @@ namespace SenseNet.Tests.Implementations
             private IEnumerable<int> GetVersionIdsByWildcard(Dictionary<string, List<int>> fieldValues, string value)
             {
                 if (value.Contains("?"))
-                    throw new NotSupportedException($"Wildcard '?' not supported.");
+                    throw new NotSupportedException("Wildcard '?' not supported.");
                 if(value.Replace("*", "").Length == 0)
                     throw new NotSupportedException($"Query is not supported for this field value: {value}");
 
@@ -256,8 +253,7 @@ namespace SenseNet.Tests.Implementations
             {
                 var result = new List<int>();
 
-                Dictionary<string, List<int>> fieldValues;
-                if (_index.IndexData.TryGetValue(range.FieldName, out fieldValues))
+                if (_index.IndexData.TryGetValue(range.FieldName, out var fieldValues))
                 {
                     var min = range.Min?.ValueAsString.ToLowerInvariant();
                     var max = range.Max?.ValueAsString.ToLowerInvariant();
@@ -281,17 +277,15 @@ namespace SenseNet.Tests.Implementations
                     }
                     else if (min != null)
                     {
-                        if (!range.MinExclusive)
-                            expression = fieldValues.Where(x => string.Compare(x.Key, min, StringComparison.Ordinal) >= 0);
-                        else
-                            expression = fieldValues.Where(x => string.Compare(x.Key, min, StringComparison.Ordinal) > 0);
+                        expression = !range.MinExclusive
+                            ? fieldValues.Where(x => string.Compare(x.Key, min, StringComparison.Ordinal) >= 0)
+                            : fieldValues.Where(x => string.Compare(x.Key, min, StringComparison.Ordinal) > 0);
                     }
                     else
                     {
-                        if (!range.MaxExclusive)
-                            expression = fieldValues.Where(x => string.Compare(x.Key, max, StringComparison.Ordinal) <= 0);
-                        else
-                            expression = fieldValues.Where(x => string.Compare(x.Key, max, StringComparison.Ordinal) < 0);
+                        expression = !range.MaxExclusive
+                            ? fieldValues.Where(x => string.Compare(x.Key, max, StringComparison.Ordinal) <= 0)
+                            : fieldValues.Where(x => string.Compare(x.Key, max, StringComparison.Ordinal) < 0);
                     }
 
                     var lists = expression.Select(x => x.Value).ToArray();

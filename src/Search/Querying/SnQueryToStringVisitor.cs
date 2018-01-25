@@ -18,7 +18,7 @@ namespace SenseNet.Search.Querying
         {
             var pattern = new StringBuilder("[");
             pattern.Append("\\s");
-            foreach (var c in CqlLexer.STRINGTERMINATORCHARS.ToCharArray())
+            foreach (var c in CqlLexer.StringTerminatorChars.ToCharArray())
                 pattern.Append("\\" + c);
             pattern.Append("]");
             _escaperRegex = new Regex(pattern.ToString());
@@ -44,11 +44,13 @@ namespace SenseNet.Search.Querying
         }
         private void BoostTostring(double? boost)
         {
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
             if (boost.HasValue && boost != SnQuery.DefaultSimilarity)
                 _output.Append("^").Append(boost.Value.ToString(CultureInfo.InvariantCulture));
         }
         private void FuzzyToString(double? fuzzy)
         {
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
             if (fuzzy.HasValue && fuzzy != SnQuery.DefaultFuzzyValue)
                 _output.Append("~").Append(fuzzy.Value.ToString(CultureInfo.InvariantCulture));
         }

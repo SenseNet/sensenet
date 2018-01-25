@@ -5,7 +5,7 @@ using System.Text;
 using Lucene.Net.Search;
 using SenseNet.Diagnostics;
 using System.Diagnostics;
-using SenseNet.Search.Indexing;
+using System.Diagnostics.CodeAnalysis;
 using SenseNet.Search.Lucene29.QueryExecutors;
 using SenseNet.Search.Querying;
 
@@ -16,12 +16,8 @@ namespace SenseNet.Search.Lucene29
         public static Query FullSetQuery = NumericRangeQuery.NewIntRange("Id", 0, null, false, false); // MachAllDocsQuery in 3.0.3
         //public static readonly string NullReferenceValue = "null";
 
-        private Query __query;
-        public Query Query
-        {
-            get { return __query; }
-            private set { __query = value; }
-        }
+        public Query Query { get; private set; }
+
         public string QueryText => QueryToString(Query);
 
         internal LuceneSearchManager LuceneSearchManager { get; private set; }
@@ -52,10 +48,12 @@ namespace SenseNet.Search.Lucene29
         public QueryExecutionMode QueryExecutionMode { get; set; }
         public FilterStatus EnableAutofilters { get; set; }
         public FilterStatus EnableLifespanFilter { get; set; }
-        [Obsolete("Use SearchManager.EnableAutofiltersDefaultValue")]
-        public static readonly FilterStatus EnableAutofilters_DefaultValue = FilterStatus.Enabled;
-        [Obsolete("Use SearchManager.EnableLifespanFilterDefaultValue")]
-        public static readonly FilterStatus EnableLifespanFilter_DefaultValue = FilterStatus.Disabled;
+        [Obsolete("Use SnQuery.EnableAutofiltersDefaultValue")]
+        // ReSharper disable once InconsistentNaming
+        public static readonly FilterStatus EnableAutofilters_DefaultValue = SnQuery.EnableAutofiltersDefaultValue;
+        [Obsolete("Use SnQuery.EnableLifespanFilterDefaultValue")]
+        // ReSharper disable once InconsistentNaming
+        public static readonly FilterStatus EnableLifespanFilter_DefaultValue = SnQuery.EnableLifespanFilterDefaultValue;
         public bool ThrowIfEmpty { get; set; }  // only carries: linq visitor sets, executor reads
         public bool ExistenceOnly { get; set; } // only carries: linq visitor sets, executor reads
 
@@ -63,11 +61,6 @@ namespace SenseNet.Search.Lucene29
 
         private LucQuery() { }
 
-        private static string GetFieldNameByPropertyName(string propertyName)
-        {
-            if (propertyName == "NodeId") return "Id";
-            return propertyName;
-        }
         public static LucQuery Create(Query luceneQuery, LuceneSearchManager searchManager)
         {
             return new LucQuery
@@ -101,16 +94,18 @@ namespace SenseNet.Search.Lucene29
         {
             using (var op = SnTrace.Query.StartOperation("LucQuery: {0}", this))
             {
-                IEnumerable<LucObject> result = null;
-                IQueryExecutor executor = null;
-                if (this.CountOnly)
+                IQueryExecutor executor;
+
+                if (CountOnly)
                     executor = new QueryExecutor20131012CountOnly();
                 else
                     executor = new QueryExecutor20131012();
 
                 executor.Initialize(this, filter);
-                result = executor.Execute();
+
+                var result = executor.Execute();
                 TotalCount = executor.TotalCount;
+
                 SnTrace.Query.Write("LucQuery.Execute total count: {0}", TotalCount);
 
                 op.Successful = true;
@@ -143,20 +138,23 @@ namespace SenseNet.Search.Lucene29
                 result.Append(" ").Append(Cql.Keyword.Top).Append(":").Append(Top);
             if (Skip != 0)
                 result.Append(" ").Append(Cql.Keyword.Skip).Append(":").Append(Skip);
-            if (this.HasSort)
+
+            if (HasSort)
             {
-                foreach (var sortField in this.SortFields)
+                foreach (var sortField in SortFields)
                     if (sortField.GetReverse())
                         result.Append(" ").Append(Cql.Keyword.ReverseSort).Append(":").Append(sortField.GetField());
                     else
                         result.Append(" ").Append(Cql.Keyword.Sort).Append(":").Append(sortField.GetField());
             }
-            if (EnableAutofilters != FilterStatus.Default && EnableAutofilters != EnableAutofilters_DefaultValue)
-                result.Append(" ").Append(Cql.Keyword.Autofilters).Append(":").Append(EnableAutofilters_DefaultValue == FilterStatus.Enabled ? Cql.Keyword.Off : Cql.Keyword.On);
-            if (EnableLifespanFilter != FilterStatus.Default && EnableLifespanFilter != EnableLifespanFilter_DefaultValue)
-                result.Append(" ").Append(Cql.Keyword.Lifespan).Append(":").Append(EnableLifespanFilter_DefaultValue == FilterStatus.Enabled ? Cql.Keyword.Off : Cql.Keyword.On);
+
+            if (EnableAutofilters != FilterStatus.Default && EnableAutofilters != SnQuery.EnableAutofiltersDefaultValue)
+                result.Append(" ").Append(Cql.Keyword.Autofilters).Append(":").Append(SnQuery.EnableAutofiltersDefaultValue == FilterStatus.Enabled ? Cql.Keyword.Off : Cql.Keyword.On);
+            if (EnableLifespanFilter != FilterStatus.Default && EnableLifespanFilter != SnQuery.EnableLifespanFilterDefaultValue)
+                result.Append(" ").Append(Cql.Keyword.Lifespan).Append(":").Append(SnQuery.EnableLifespanFilterDefaultValue == FilterStatus.Enabled ? Cql.Keyword.Off : Cql.Keyword.On);
             if (QueryExecutionMode == QueryExecutionMode.Quick)
                 result.Append(" ").Append(Cql.Keyword.Quick);
+
             return result.ToString();
         }
         private string QueryToString(Query query)
@@ -202,6 +200,7 @@ namespace SenseNet.Search.Lucene29
         }
     }
 
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     internal class SearchParams
     {
         internal int collectorSize;
@@ -215,6 +214,7 @@ namespace SenseNet.Search.Lucene29
         internal LuceneQueryExecutor executor;
     }
 
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     internal class SearchResult
     {
         public static readonly SearchResult Empty;

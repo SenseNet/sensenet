@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
-using ContentType = SenseNet.ContentRepository.Schema.ContentType;
-using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
-using SenseNet.Search.Parser;
 
 namespace SenseNet.Tests.Implementations
 {
@@ -22,8 +18,7 @@ namespace SenseNet.Tests.Implementations
 
         public IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
         {
-            IPerFieldIndexingInfo indexingInfo;
-            return _indexingInfos.TryGetValue(fieldName, out indexingInfo) ? indexingInfo : null;
+            return _indexingInfos.TryGetValue(fieldName, out var indexingInfo) ? indexingInfo : null;
         }
 
         public QueryResult ExecuteContentQuery(string text, QuerySettings settings, params object[] parameters)

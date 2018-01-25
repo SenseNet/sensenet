@@ -43,7 +43,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
                 }
                 else
                 {
-                    this.InternalExecuteIndexingActivity();
+                    InternalExecuteIndexingActivity();
                 }
             }
         }
@@ -65,7 +65,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
                     ? string.Empty
                     : persistentActivity.Id.ToString();
 
-                using (var op = SnTrace.Index.StartOperation("IndexingActivity execution: type:{0} id:{1}", this.GetType().Name, id))
+                using (var op = SnTrace.Index.StartOperation("IndexingActivity execution: type:{0} id:{1}", GetType().Name, id))
                 {
                     using (new SystemAccount())
                     {
@@ -77,7 +77,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
             }
             finally
             {
-                this.Finish();
+                Finish();
             }
         }
 

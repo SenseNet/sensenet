@@ -13,7 +13,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
         protected override bool ProtectedExecute()
         {
             // getting common versioning info
-            var head = NodeHead.Get(this.NodeId);
+            var head = NodeHead.Get(NodeId);
             var versioningInfo = new VersioningInfo
             {
                 Delete = EmptyIntArray,
@@ -23,7 +23,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
             };
 
             // delete documents by NodeId
-            IndexManager.DeleteDocuments(new[] { new SnTerm(IndexFieldName.NodeId, this.NodeId)}, versioningInfo);
+            IndexManager.DeleteDocuments(new[] { new SnTerm(IndexFieldName.NodeId, NodeId)}, versioningInfo);
 
             // add documents of all versions
             var docs = IndexManager.LoadIndexDocumentsByVersionId(head.Versions.Select(v => v.VersionId).ToArray());

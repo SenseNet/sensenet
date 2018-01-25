@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 
@@ -10,7 +6,7 @@ namespace SenseNet.Search.Tests.Implementations
 {
     public class TestQueryContext : IQueryContext
     {
-        private IDictionary<string, IPerFieldIndexingInfo> _indexingInfo;
+        private readonly IDictionary<string, IPerFieldIndexingInfo> _indexingInfo;
 
         public QuerySettings Settings { get; }
         public int UserId { get; }

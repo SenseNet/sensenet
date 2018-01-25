@@ -25,7 +25,7 @@ namespace SenseNet.Search.Lucene29
     {
         public Difference(IndexDifferenceKind kind)
         {
-            this.Kind = kind;
+            Kind = kind;
         }
 
         [JsonConverter(typeof(StringEnumConverter))]
@@ -69,19 +69,19 @@ namespace SenseNet.Search.Lucene29
 
         public override string ToString()
         {
-            if (this.Kind == IndexDifferenceKind.NotInIndex)
+            if (Kind == IndexDifferenceKind.NotInIndex)
             {
-                var head = NodeHead.GetByVersionId(this.VersionId);
+                var head = NodeHead.GetByVersionId(VersionId);
                 if (head != null)
                 {
                     var versionNumber = head.Versions
-                        .Where(x => x.VersionId == this.VersionId)
+                        .Where(x => x.VersionId == VersionId)
                         .Select(x => x.VersionNumber)
                         .FirstOrDefault()
                         ?? new VersionNumber(0, 0);
-                    this.Path = head.Path;
-                    this.NodeId = head.Id;
-                    this.Version = versionNumber.ToString();
+                    Path = head.Path;
+                    NodeId = head.Id;
+                    Version = versionNumber.ToString();
                 }
             }
 
@@ -119,8 +119,8 @@ namespace SenseNet.Search.Lucene29
 
             var lastDatabaseId = IndexManager.GetLastStoredIndexingActivityId();
 
-            var channel = SenseNet.ContentRepository.DistributedApplication.ClusterChannel;
-            var appDomainName = channel == null ? null : channel.ReceiverName;
+            var channel = DistributedApplication.ClusterChannel;
+            var appDomainName = channel?.ReceiverName;
 
             return new
             {
@@ -191,9 +191,9 @@ namespace SenseNet.Search.Lucene29
             return result;
         }
 
-        private int intsize = sizeof(int) * 8;
-        private int numdocs;
-        private int[] docbits;
+        private readonly int intsize = sizeof(int) * 8;
+        private int _numdocs;
+        private int[] _docbits;
         private IEnumerable<Difference> CheckRecurse(string path)
         {
             var result = new List<Difference>();
@@ -203,10 +203,10 @@ namespace SenseNet.Search.Lucene29
                 using (var readerFrame = GetIndexReaderFrame())
                 {
                     var ixreader = readerFrame.IndexReader;
-                    numdocs = ixreader.NumDocs() + ixreader.NumDeletedDocs();
-                    var x = numdocs / intsize;
-                    var y = numdocs % intsize;
-                    docbits = new int[x + (y > 0 ? 1 : 0)];
+                    _numdocs = ixreader.NumDocs() + ixreader.NumDeletedDocs();
+                    var x = _numdocs / intsize;
+                    var y = _numdocs % intsize;
+                    _docbits = new int[x + (y > 0 ? 1 : 0)];
                     if (path == null)
                     {
                         if (y > 0)
@@ -214,18 +214,18 @@ namespace SenseNet.Search.Lucene29
                             var q = 0;
                             for (int i = 0; i < y; i++)
                                 q += 1 << i;
-                            docbits[docbits.Length - 1] = q ^ (-1);
+                            _docbits[_docbits.Length - 1] = q ^ (-1);
                         }
                     }
                     else
                     {
-                        for (int i = 0; i < docbits.Length; i++)
-                            docbits[i] = -1;
+                        for (int i = 0; i < _docbits.Length; i++)
+                            _docbits[i] = -1;
                         var scoredocs = GetDocsUnderTree(path, true);
                         for (int i = 0; i < scoredocs.Length; i++)
                         {
                             var docid = scoredocs[i].Doc;
-                            docbits[docid / intsize] ^= 1 << docid % intsize;
+                            _docbits[docid / intsize] ^= 1 << docid % intsize;
                         }
                     }
 
@@ -235,25 +235,25 @@ namespace SenseNet.Search.Lucene29
                     {
                         if (++progress % 10000 == 0)
                             SnTrace.Index.Write("Index Integrity Checker: CheckDbAndIndex: progress={0}/{1}, diffs:{2}",
-                                progress, numdocs, result.Count);
+                                progress, _numdocs, result.Count);
 
                         var docid = CheckDbAndIndex(item, ixreader, result);
                         if (docid > -1)
-                            docbits[docid / intsize] |= 1 << docid % intsize;
+                            _docbits[docid / intsize] |= 1 << docid % intsize;
                     }
 
-                    SnTrace.Index.Write("Index Integrity Checker: CheckDbAndIndex finished. Progress={0}/{1}, diffs:{2}", progress, numdocs, result.Count);
-                    for (int i = 0; i < docbits.Length; i++)
+                    SnTrace.Index.Write("Index Integrity Checker: CheckDbAndIndex finished. Progress={0}/{1}, diffs:{2}", progress, _numdocs, result.Count);
+                    for (int i = 0; i < _docbits.Length; i++)
                     {
-                        if (docbits[i] != -1)
+                        if (_docbits[i] != -1)
                         {
-                            var bits = docbits[i];
+                            var bits = _docbits[i];
                             for (int j = 0; j < intsize; j++)
                             {
                                 if ((bits & (1 << j)) == 0)
                                 {
                                     var docid = i * intsize + j;
-                                    if (docid >= numdocs)
+                                    if (docid >= _numdocs)
                                         break;
                                     if (!ixreader.IsDeleted(docid))
                                     {
@@ -287,13 +287,13 @@ namespace SenseNet.Search.Lucene29
             var lastMajorVersionId = checkerItem.LastMajorVersionId;
             var lastMinorVersionId = checkerItem.LastMinorVersionId;
 
-            var termDocs = ixreader.TermDocs(new Lucene.Net.Index.Term(IndexFieldName.VersionId, Lucene.Net.Util.NumericUtils.IntToPrefixCoded(versionId)));
-            Lucene.Net.Documents.Document doc = null;
-            int docid = -1;
+            var termDocs = ixreader.TermDocs(new Term(IndexFieldName.VersionId, Lucene.Net.Util.NumericUtils.IntToPrefixCoded(versionId)));
+            var docid = -1;
+
             if (termDocs.Next())
             {
                 docid = termDocs.Doc();
-                doc = ixreader.Document(docid);
+                var doc = ixreader.Document(docid);
                 var indexNodeTimestamp = ParseLong(doc.Get(IndexFieldName.NodeTimestamp));
                 var indexVersionTimestamp = ParseLong(doc.Get(IndexFieldName.VersionTimestamp));
                 var nodeId = ParseInt(doc.Get(IndexFieldName.NodeId));
@@ -336,8 +336,8 @@ namespace SenseNet.Search.Lucene29
                 var isLastDraft = doc.Get(IndexFieldName.IsLastDraft);
                 var isLastPublicInDb = versionId == lastMajorVersionId;
                 var isLastDraftInDb = versionId == lastMinorVersionId;
-                var isLastPublicInIndex = isLastPublic == SnTerm.Yes;
-                var isLastDraftInIndex = isLastDraft == SnTerm.Yes;
+                var isLastPublicInIndex = isLastPublic == IndexValue.Yes;
+                var isLastDraftInIndex = isLastDraft == IndexValue.Yes;
 
                 if (isLastPublicInDb != isLastPublicInIndex)
                 {
@@ -377,15 +377,15 @@ namespace SenseNet.Search.Lucene29
                 if (dbNodeTimestamp != indexNodeTimestamp)
                 {
                     var ok = false;
-                    if (isLastDraft != SnTerm.Yes)
+                    if (isLastDraft != IndexValue.Yes)
                     {
-                        var latestDocs = ixreader.TermDocs(new Lucene.Net.Index.Term(IndexFieldName.NodeId, Lucene.Net.Util.NumericUtils.IntToPrefixCoded(nodeId)));
+                        var latestDocs = ixreader.TermDocs(new Term(IndexFieldName.NodeId, Lucene.Net.Util.NumericUtils.IntToPrefixCoded(nodeId)));
                         Lucene.Net.Documents.Document latestDoc = null;
                         while (latestDocs.Next())
                         {
                             var latestdocid = latestDocs.Doc();
                             var d = ixreader.Document(latestdocid);
-                            if (d.Get(IndexFieldName.IsLastDraft) != SnTerm.Yes)
+                            if (d.Get(IndexFieldName.IsLastDraft) != IndexValue.Yes)
                                 continue;
                             latestDoc = d;
                             break;

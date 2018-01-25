@@ -32,7 +32,7 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.AreEqual(expected, TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), text));
 
                     text = " @@CurrentUser@@ ";
-                    expected = string.Format(" {0} ", User.Current.Id);
+                    expected = $" {User.Current.Id} ";
                     Assert.AreEqual(expected, TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), text));
 
                     text = "@@CurrentUser.Path@@";
@@ -54,11 +54,11 @@ namespace SenseNet.ContentRepository.Tests
                 () =>
                 {
                     var text = "ABC @@CurrentUser@@ DEF";
-                    var expected = string.Format("ABC {0} DEF", User.Current.Id);
+                    var expected = $"ABC {User.Current.Id} DEF";
                     Assert.AreEqual(expected, TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), text));
 
                     text = "ABC @@CurrentUser@@ DEF @@CurrentUser.Path@@ GHI";
-                    expected = string.Format("ABC {0} DEF {1} GHI", User.Current.Id, User.Current.Path);
+                    expected = $"ABC {User.Current.Id} DEF {User.Current.Path} GHI";
                     Assert.AreEqual(expected, TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), text));
                 });
         }
@@ -246,6 +246,7 @@ namespace SenseNet.ContentRepository.Tests
             using (new SystemAccount())
             {
                 SecurityHandler.CreateAclEditor()
+                    // ReSharper disable once CoVariantArrayConversion
                    .Allow(Identifiers.PortalRootId, User.Administrator.Id, false, PermissionType.PermissionTypes)
                    .Apply();
                 User.Administrator.CreationDate = new DateTime(2001, 01, 01);

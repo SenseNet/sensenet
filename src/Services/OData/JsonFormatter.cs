@@ -5,6 +5,7 @@ using System.Web;
 using Newtonsoft.Json;
 using SenseNet.Portal.Virtualization;
 using SenseNet.ContentRepository.Storage;
+// ReSharper disable CheckNamespace
 
 namespace SenseNet.Portal.OData
 {
@@ -15,10 +16,12 @@ namespace SenseNet.Portal.OData
     {
         /// <inheritdoc />
         /// <remarks>Returns with "xml" in this case.</remarks>
-        public override string FormatName { get { return "xml"; } }
+        public override string FormatName => "xml";
+
         /// <inheritdoc />
         /// <remarks>Returns with "application/xml" in this case.</remarks>
-        public override string MimeType { get { return "application/xml"; } }
+        public override string MimeType => "application/xml";
+
         /// <inheritdoc />
         protected override void WriteMetadata(System.IO.TextWriter writer, Metadata.Edmx edmx)
         {
@@ -49,10 +52,12 @@ namespace SenseNet.Portal.OData
     {
         /// <inheritdoc />
         /// <remarks>Returns with "json" in this case.</remarks>
-        public override string FormatName { get { return "json"; } }
+        public override string FormatName => "json";
+
         /// <inheritdoc />
         /// <remarks>Returns with "application/json" in this case.</remarks>
-        public override string MimeType { get { return "application/json"; } }
+        public override string MimeType => "application/json";
+
         /// <inheritdoc />
         protected override void WriteMetadata(System.IO.TextWriter writer, Metadata.Edmx edmx)
         {
@@ -64,7 +69,7 @@ namespace SenseNet.Portal.OData
             var resp = portalContext.OwnerHttpContext.Response;
 
             var x = new { d = new { EntitySets = names } };
-            Newtonsoft.Json.JsonSerializer.Create(new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore })
+            JsonSerializer.Create(new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore })
                 .Serialize(resp.Output, x);
         }
         /// <inheritdoc />
@@ -83,15 +88,14 @@ namespace SenseNet.Portal.OData
             if(raw)
                 Write(actions, portalContext);
             else
-                Write(new ODataSingleContent { FieldData = new Dictionary<string, object> { { ODataHandler.PROPERTY_ACTIONS, actions } } }, portalContext);
+                Write(new ODataSingleContent { FieldData = new Dictionary<string, object> { { ODataHandler.ActionsPropertyName, actions } } }, portalContext);
         }
         /// <inheritdoc />
         protected override void WriteOperationCustomResult(PortalContext portalContext, object result, int? allCount)
         {
-            var dictionaryList = result as List<Dictionary<string, object>>;
-            if (dictionaryList != null)
+            if (result is List<Dictionary<string, object>> dictionaryList)
             {
-                Write(ODataMultipleContent.Create(dictionaryList, allCount.HasValue ? allCount.Value : dictionaryList.Count), portalContext);
+                Write(ODataMultipleContent.Create(dictionaryList, allCount ?? dictionaryList.Count), portalContext);
                 return;
             }
             Write(result, portalContext);
@@ -123,10 +127,11 @@ namespace SenseNet.Portal.OData
     {
         /// <inheritdoc />
         /// <remarks>Returns with "verbosejson" in this case.</remarks>
-        public override string FormatName { get { return "verbosejson"; } }
+        public override string FormatName => "verbosejson";
+
         /// <inheritdoc />
         /// <remarks>Returns with "application/json;odata=verbose" in this case.</remarks>
-        public override string MimeType { get { return "application/json;odata=verbose"; } }
+        public override string MimeType => "application/json;odata=verbose";
     }
     /// <summary>
     /// Defines an inherited <see cref="ODataFormatter"/> class for writing OData objects in a simple HTML TABLE format.
@@ -136,10 +141,12 @@ namespace SenseNet.Portal.OData
     {
         /// <inheritdoc />
         /// <remarks>Returns with "table" in this case.</remarks>
-        public override string FormatName { get { return "table"; } }
+        public override string FormatName => "table";
+
         /// <inheritdoc />
         /// <remarks>Returns with "application/html" in this case.</remarks>
-        public override string MimeType { get { return "text/html"; } }
+        public override string MimeType => "text/html";
+
         /// <summary>This method is not supported in this formatter.</summary>
         protected override void WriteMetadata(System.IO.TextWriter writer, Metadata.Edmx edmx)
         {
@@ -174,8 +181,7 @@ namespace SenseNet.Portal.OData
             {
                 if (item.Key == "__metadata")
                 {
-                    var simpleMeta = item.Value as ODataSimpleMeta;
-                    if (simpleMeta != null)
+                    if (item.Value is ODataSimpleMeta simpleMeta)
                     {
                         resp.Write("      <tr><td>__metadata.Uri</td><td>");
                         resp.Write(simpleMeta.Uri);
@@ -184,8 +190,7 @@ namespace SenseNet.Portal.OData
                         resp.Write(simpleMeta.Type);
                         resp.Write("</td></tr>\n");
 
-                        var fullMeta = simpleMeta as ODataFullMeta;
-                        if (fullMeta != null)
+                        if (simpleMeta is ODataFullMeta fullMeta)
                         {
                             resp.Write("      <tr><td>__metadata.Actions</td><td>");
                             WriteValue(portalContext, fullMeta.Actions.Where(x => !x.Forbidden).Select(x => x.Name));
@@ -211,11 +216,10 @@ namespace SenseNet.Portal.OData
         protected override void WriteMultipleContent(PortalContext portalContext, List<Dictionary<string, object>> contents, int count)
         {
             var resp = portalContext.OwnerHttpContext.Response;
-            var colNames = new List<string>();
-            colNames.Add("Nr.");
+            var colNames = new List<string> {"Nr."};
 
-            ODataSimpleMeta simpleMeta = null;
-            ODataFullMeta fullMeta = null;
+            ODataSimpleMeta simpleMeta;
+            ODataFullMeta fullMeta;
             if (contents != null && contents.Count > 0)
             {
                 var firstContent = contents[0];
@@ -236,10 +240,11 @@ namespace SenseNet.Portal.OData
                 }
             }
 
-            foreach (var content in contents)
-                foreach (var item in content)
-                    if (!colNames.Contains(item.Key) && item.Key != "__metadata")
-                        colNames.Add(item.Key);
+            if (contents != null)
+                foreach (var content in contents)
+                    foreach (var item in content)
+                        if (!colNames.Contains(item.Key) && item.Key != "__metadata")
+                            colNames.Add(item.Key);
 
             WriteStart(resp);
 
@@ -249,56 +254,61 @@ namespace SenseNet.Portal.OData
             resp.Write("</tr>\n");
 
             var localCount = 0;
-            foreach (var content in contents)
+            if (contents != null)
             {
-                var row = new object[colNames.Count];
-                row[0] = ++localCount;
-
-                var colIndex = 0;
-                object meta;
-                if (content.TryGetValue("__metadata", out meta))
+                foreach (var content in contents)
                 {
-                    simpleMeta = meta as ODataSimpleMeta;
-                    if (simpleMeta != null)
+                    var row = new object[colNames.Count];
+                    row[0] = ++localCount;
+
+                    var colIndex = 0;
+                    object meta;
+                    if (content.TryGetValue("__metadata", out meta))
                     {
-                        colIndex = colNames.IndexOf("__metadata.Uri");
-                        if (colIndex >= 0)
-                            row[colIndex] = simpleMeta.Uri;
-                        colIndex = colNames.IndexOf("__metadata.Type");
-                        if (colIndex >= 0)
-                            row[colIndex] = simpleMeta.Type;
-                        fullMeta = simpleMeta as ODataFullMeta;
-                        if (fullMeta != null)
+                        simpleMeta = meta as ODataSimpleMeta;
+                        if (simpleMeta != null)
                         {
-                            colIndex = colNames.IndexOf("__metadata.Actions");
+                            colIndex = colNames.IndexOf("__metadata.Uri");
                             if (colIndex >= 0)
-                                row[colIndex] = FormatValue(fullMeta.Actions.Where(x => !x.Forbidden).Select(x => x.Name));
-                            colIndex = colNames.IndexOf("__metadata.Functions");
+                                row[colIndex] = simpleMeta.Uri;
+                            colIndex = colNames.IndexOf("__metadata.Type");
                             if (colIndex >= 0)
-                                row[colIndex] = FormatValue(fullMeta.Functions.Where(x => !x.Forbidden).Select(x => x.Name));
+                                row[colIndex] = simpleMeta.Type;
+                            fullMeta = simpleMeta as ODataFullMeta;
+                            if (fullMeta != null)
+                            {
+                                colIndex = colNames.IndexOf("__metadata.Actions");
+                                if (colIndex >= 0)
+                                    row[colIndex] =
+                                        FormatValue(fullMeta.Actions.Where(x => !x.Forbidden).Select(x => x.Name));
+                                colIndex = colNames.IndexOf("__metadata.Functions");
+                                if (colIndex >= 0)
+                                    row[colIndex] = FormatValue(fullMeta.Functions.Where(x => !x.Forbidden)
+                                        .Select(x => x.Name));
+                            }
                         }
                     }
-                }
 
-                foreach (var item in content)
-                {
-                    colIndex = colNames.IndexOf(item.Key);
-                    if (colIndex >= 0)
-                        row[colIndex] = item.Value;
-                }
-                resp.Write("      <tr>\n");
+                    foreach (var item in content)
+                    {
+                        colIndex = colNames.IndexOf(item.Key);
+                        if (colIndex >= 0)
+                            row[colIndex] = item.Value;
+                    }
+                    resp.Write("      <tr>\n");
 
-                for (int i = 0; i < row.Length; i++)
-                {
-                    resp.Write("        <td>");
-                    WriteValue(portalContext, row[i]);
-                    resp.Write("</td>\n");
+                    for (var i = 0; i < row.Length; i++)
+                    {
+                        resp.Write("        <td>");
+                        WriteValue(portalContext, row[i]);
+                        resp.Write("</td>\n");
+                    }
+                    resp.Write("      </tr>\n");
                 }
-                resp.Write("      </tr>\n");
             }
             resp.Write("    </table>\n");
             resp.Write("  </div>\n");
-            if (contents.Count != count)
+            if (contents != null && contents.Count != count)
                 resp.Write("  <div>Total count of contents: " + count + "</div>\n");
             resp.Write("</body>\n");
             resp.Write("</html>\n");

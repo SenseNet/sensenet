@@ -1,12 +1,8 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.Search.Indexing;
-using SenseNet.ContentRepository.Storage;
 using System.Linq;
 using System.Threading;
-using System.Collections.Generic;
-using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Search.Indexing.Activities;
 using SenseNet.Tests;
@@ -60,13 +56,13 @@ namespace SenseNet.Search.IntegrationTests
                     $"{IndexingActivityType.AddDocument}, {IndexingActivityType.UpdateDocument}, {IndexingActivityType.AddTree}, {IndexingActivityType.RemoveTree}, {IndexingActivityType.Rebuild}",
                     string.Join(", ", unprocessedActivities.Select(x => x.ActivityType.ToString()).ToArray()));
                 Assert.AreEqual(
-                    $"42, 43, 44, 45, 46",
+                    "42, 43, 44, 45, 46",
                     string.Join(", ", unprocessedActivities.Select(x => x.NodeId.ToString()).ToArray()));
                 Assert.AreEqual(
-                    $"42, 43, 0, 0, 46",
+                    "42, 43, 0, 0, 46",
                     string.Join(", ", unprocessedActivities.Select(x => x.VersionId.ToString()).ToArray()));
                 Assert.AreEqual(
-                    $"/root/42, /root/43, /root/44, /root/45, /root/46",
+                    "/root/42, /root/43, /root/44, /root/45, /root/46",
                     string.Join(", ", unprocessedActivities.Select(x => x.Path)));
 
                 for (int i = 0; i < unprocessedActivities.Length; i++)
@@ -85,13 +81,13 @@ namespace SenseNet.Search.IntegrationTests
                     $"{IndexingActivityType.AddDocument}, {IndexingActivityType.UpdateDocument}, {IndexingActivityType.AddTree}, {IndexingActivityType.RemoveTree}, {IndexingActivityType.Rebuild}",
                     string.Join(", ", loadedActivities.Select(x => x.ActivityType.ToString()).ToArray()));
                 Assert.AreEqual(
-                    $"42, 43, 44, 45, 46",
+                    "42, 43, 44, 45, 46",
                     string.Join(", ", loadedActivities.Select(x => x.NodeId.ToString()).ToArray()));
                 Assert.AreEqual(
-                    $"42, 43, 0, 0, 46",
+                    "42, 43, 0, 0, 46",
                     string.Join(", ", loadedActivities.Select(x => x.VersionId.ToString()).ToArray()));
                 Assert.AreEqual(
-                    $"/root/42, /root/43, /root/44, /root/45, /root/46",
+                    "/root/42, /root/43, /root/44, /root/45, /root/46",
                     string.Join(", ", loadedActivities.Select(x => x.Path)));
 
                 for (int i = 0; i < loadedActivities.Length; i++)
@@ -110,7 +106,7 @@ namespace SenseNet.Search.IntegrationTests
                    $"{lastActivityIdBefore + 1}, {lastActivityIdBefore + 2}",
                    string.Join(", ", unprocessedActivitiesFromGaps.Select(x => x.Id.ToString()).ToArray()));
                 Assert.AreEqual(
-                   $"True, True",
+                   "True, True",
                    string.Join(", ", unprocessedActivitiesFromGaps.Select(x => x.IsUnprocessedActivity.ToString()).ToArray()));
                 // ---- simulating runtime maintenance
                 var loadedActivitiesFromGaps = DataProvider.Current.LoadIndexingActivities(gaps, false, factory);
@@ -118,7 +114,7 @@ namespace SenseNet.Search.IntegrationTests
                    $"{lastActivityIdBefore + 1}, {lastActivityIdBefore + 2}",
                    string.Join(", ", loadedActivitiesFromGaps.Select(x => x.Id.ToString()).ToArray()));
                 Assert.AreEqual(
-                   $"False, False",
+                   "False, False",
                    string.Join(", ", loadedActivitiesFromGaps.Select(x => x.IsUnprocessedActivity.ToString()).ToArray()));
             }
         }

@@ -15,36 +15,33 @@ namespace SenseNet.Search.Lucene29.QueryExecutors
 
         public void Initialize(LucQuery lucQuery, IPermissionFilter permissionChecker)
         {
-            this.LucQuery = lucQuery;
-            this.PermissionChecker = permissionChecker;
+            LucQuery = lucQuery;
+            PermissionChecker = permissionChecker;
         }
 
-        public string QueryString
-        {
-            get { return this.LucQuery.ToString(); }
-        }
+        public string QueryString => LucQuery.ToString();
 
         public int TotalCount { get; internal set; }
 
 
         public IEnumerable<LucObject> Execute()
         {
-            using (var op = SnTrace.Query.StartOperation("LuceneQueryExecutor. CQL:{0}", this.LucQuery))
+            using (var op = SnTrace.Query.StartOperation("LuceneQueryExecutor. CQL:{0}", LucQuery))
             {
-                SearchResult result = null;
+                SearchResult result;
 
-                var top = this.LucQuery.Top != 0 ? this.LucQuery.Top : this.LucQuery.PageSize;
+                var top = LucQuery.Top != 0 ? LucQuery.Top : LucQuery.PageSize;
                 if (top == 0)
                     top = int.MaxValue;
 
-                using (var readerFrame = LuceneSearchManager.GetIndexReaderFrame(this.LucQuery.QueryExecutionMode == QueryExecutionMode.Quick))
+                using (var readerFrame = LuceneSearchManager.GetIndexReaderFrame(LucQuery.QueryExecutionMode == QueryExecutionMode.Quick))
                 {
                     var idxReader = readerFrame.IndexReader;
                     var searcher = new IndexSearcher(idxReader);
 
                     var searchParams = new SearchParams
                     {
-                        query = this.LucQuery.Query,
+                        query = LucQuery.Query,
                         top = top,
                         executor = this,
                         searcher = searcher,
@@ -65,7 +62,7 @@ namespace SenseNet.Search.Lucene29.QueryExecutors
                     }
                 }
 
-                this.TotalCount = result.totalCount;
+                TotalCount = result.totalCount;
 
                 op.Successful = true;
                 return result.result;
@@ -75,8 +72,8 @@ namespace SenseNet.Search.Lucene29.QueryExecutors
         protected internal bool IsPermitted(Document doc)
         {
             var nodeId = Convert.ToInt32(doc.Get(IndexFieldName.NodeId));
-            var isLastPublic = doc.Get(IndexFieldName.IsLastPublic) == SnTerm.Yes;
-            var isLastDraft = doc.Get(IndexFieldName.IsLastDraft) == SnTerm.Yes;
+            var isLastPublic = doc.Get(IndexFieldName.IsLastPublic) == IndexValue.Yes;
+            var isLastDraft = doc.Get(IndexFieldName.IsLastDraft) == IndexValue.Yes;
 
             return PermissionChecker.IsPermitted(nodeId, isLastPublic, isLastDraft);
         }
@@ -99,8 +96,8 @@ namespace SenseNet.Search.Lucene29.QueryExecutors
 
         protected Collector CreateCollector(int size, SearchParams searchParams)
         {
-            if (this.LucQuery.HasSort)
-                return new SnTopFieldCollector(size, searchParams, new Sort(this.LucQuery.SortFields));
+            if (LucQuery.HasSort)
+                return new SnTopFieldCollector(size, searchParams, new Sort(LucQuery.SortFields));
             return new SnTopScoreDocCollector(size, searchParams);
         }
         protected TopDocs GetTopDocs(Collector collector, SearchParams p)

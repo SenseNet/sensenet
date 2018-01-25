@@ -8,7 +8,6 @@ using System.Text;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Security;
@@ -76,8 +75,7 @@ namespace SenseNet.Search.Lucene29.Tests
                 var activityId = db.GetLastIndexingActivityId();
                 activities = db.LoadIndexingActivities(1, activityId, 10000, false, IndexingActivityFactory.Instance);
 
-                int[] nodeIds, versionIds;
-                GetAllIdValuesFromIndex(out nodeIds, out versionIds);
+                GetAllIdValuesFromIndex(out var nodeIds, out var versionIds);
                 return new[]
                 {
                     activities.Length,
@@ -293,7 +291,7 @@ namespace SenseNet.Search.Lucene29.Tests
                 .UseSecurityDataProvider(securityDataProvider)
                 .UseCacheProvider(new EmptyCache())
                 .StartWorkflowEngine(false)
-                .UseTraceCategories(new[] { "Test", "Event", "Repository", "System" });
+                .UseTraceCategories("Test", "Event", "Repository", "System");
 
             repoBuilder.Console = indxManConsole;
 
@@ -343,7 +341,7 @@ namespace SenseNet.Search.Lucene29.Tests
                 .UseSecurityDataProvider(GetSecurityDataProvider(dataProvider))
                 .UseCacheProvider(new EmptyCache())
                 .StartWorkflowEngine(false)
-                .UseTraceCategories(new[] { "Test", "Event", "Repository", "System" });
+                .UseTraceCategories("Test", "Event", "Repository", "System");
 
             repoBuilder.Console = indxManConsole;
 
@@ -416,7 +414,7 @@ namespace SenseNet.Search.Lucene29.Tests
             L29Test(s =>
             {
                 var searchEngine = SearchManager.SearchEngine;
-                var analyzers = searchEngine.GetAnalyzers();
+                //var analyzers = searchEngine.GetAnalyzers();
                 var indexingEngine = (Lucene29LocalIndexingEngine) searchEngine.IndexingEngine;
 
                 var masterAnalyzerAcc = new PrivateObject(indexingEngine.GetAnalyzer());
@@ -451,7 +449,7 @@ namespace SenseNet.Search.Lucene29.Tests
                     IntegrityChecker.CheckIndexIntegrity("/Root", true),
                     IntegrityChecker.Check("/Root", true).ToArray());
             });
-            var checkerResult = result.Item1;
+            //var checkerResult = result.Item1;
             var diffs = result.Item2;
 
             Assert.AreEqual(1, diffs.Length);
@@ -487,7 +485,7 @@ namespace SenseNet.Search.Lucene29.Tests
                 .UseSearchEngine(searchEngine)
                 .UseSecurityDataProvider(securityDataProvider)
                 .UseCacheProvider(new EmptyCache())
-                .UseTraceCategories(new[] {"ContentOperation", "Event", "Repository", "IndexQueue", "Index", "Query"})
+                .UseTraceCategories("ContentOperation", "Event", "Repository", "IndexQueue", "Index", "Query")
                 .DisableNodeObservers()
                 .EnableNodeObservers(typeof(SettingsCache))
           .StartWorkflowEngine(false);

@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using SenseNet.ContentRepository.Storage.Search;
+﻿using System.Collections.Generic;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
-using SenseNet.Tools;
 
 namespace SenseNet.Tests.Implementations
 {

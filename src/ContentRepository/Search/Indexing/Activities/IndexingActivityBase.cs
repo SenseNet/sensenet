@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
+// ReSharper disable ArrangeThisQualifier
 
 namespace SenseNet.ContentRepository.Search.Indexing.Activities
 {
@@ -115,7 +116,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
 
             // ActivityFinished must be called after executing an activity, even if index is not changed
             if (IsExecutable())
-                IndexManager.ActivityFinished(this.Id, this.IsUnprocessedActivity);
+                IndexManager.ActivityFinished(Id, IsUnprocessedActivity);
         }
         private bool IsExecutable()
         {
@@ -166,7 +167,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
                 AttachedActivity.Finish();
             }
             base.Finish();
-            SnTrace.IndexQueue.Write("IndexingActivity A{0} finished.", this.Id);
+            SnTrace.IndexQueue.Write("IndexingActivity A{0} finished.", Id);
         }
 
 
@@ -175,7 +176,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
         /// <summary>
         /// Initializes a new IndexingActivityBase instance.
         /// </summary>
-        public IndexingActivityBase()
+        protected IndexingActivityBase()
         {
             _waitingFor = new List<IndexingActivityBase>();
             _waitingForMe = new List<IndexingActivityBase>();
@@ -211,16 +212,16 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
         internal void WaitFor(IndexingActivityBase olderActivity)
         {
             // this method must called from thread safe block.
-            if (!this.WaitingFor.Any(x => x.Id == olderActivity.Id))
+            if (this.WaitingFor.All(x => x.Id != olderActivity.Id))
                 this.WaitingFor.Add(olderActivity);
-            if (!olderActivity.WaitingForMe.Any(x => x.Id == this.Id))
+            if (olderActivity.WaitingForMe.All(x => x.Id != this.Id))
                 olderActivity.WaitingForMe.Add(this);
         }
 
         internal void FinishWaiting(IndexingActivityBase olderActivity)
         {
             // this method must called from thread safe block.
-            RemoveDependency(this.WaitingFor, olderActivity);
+            RemoveDependency(WaitingFor, olderActivity);
             RemoveDependency(olderActivity.WaitingForMe, this);
         }
         private static void RemoveDependency(List<IndexingActivityBase> dependencyList, IndexingActivityBase activity)
@@ -231,7 +232,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
 
         internal bool IsInTree(IndexingActivityBase newerActivity)
         {
-            return this.Path.StartsWith(newerActivity.Path, StringComparison.OrdinalIgnoreCase);
+            return Path.StartsWith(newerActivity.Path, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

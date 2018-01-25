@@ -5,7 +5,6 @@ using System.Data.Common;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Xml;
@@ -15,7 +14,6 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
-using SenseNet.Search;
 using SenseNet.Search.Querying;
 using SenseNet.Security;
 
@@ -23,37 +21,18 @@ namespace SenseNet.Tests.Implementations
 {
     public partial class InMemoryDataProvider : DataProvider
     {
-        public override IMetaQueryEngine MetaQueryEngine { get { return null; } }
+        public override IMetaQueryEngine MetaQueryEngine => null;
 
         #region NOT IMPLEMENTED
 
-        public override System.Collections.Generic.Dictionary<DataType, int> ContentListMappingOffsets
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        public override Dictionary<DataType, int> ContentListMappingOffsets => throw new NotImplementedException();
 
-        public override string DatabaseName
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        public override string DatabaseName => throw new NotImplementedException();
 
         public override IDataProcedureFactory DataProcedureFactory
         {
-            get
-            {
-                throw new NotImplementedException();
-            }
-
-            set
-            {
-                throw new NotImplementedException();
-            }
+            get => throw new NotImplementedException();
+            set => throw new NotImplementedException();
         }
 
         #endregion
@@ -70,13 +49,7 @@ namespace SenseNet.Tests.Implementations
 
         #region NOT IMPLEMENTED
 
-        protected internal override int ContentListStartPage
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        protected internal override int ContentListStartPage => throw new NotImplementedException();
 
         public override void AssertSchemaTimestampAndWriteModificationDate(long timestamp)
         {
@@ -260,7 +233,7 @@ namespace SenseNet.Tests.Implementations
         {
             lock (_db.IndexingActivities)
             {
-                var activity = _db.IndexingActivities.Where(r => r.IndexingActivityId == indexingActivityId).FirstOrDefault();
+                var activity = _db.IndexingActivities.FirstOrDefault(r => r.IndexingActivityId == indexingActivityId);
                 if (activity != null)
                     activity.RunningState = runningState;
             }
@@ -272,7 +245,7 @@ namespace SenseNet.Tests.Implementations
                 var now = DateTime.UtcNow;
                 foreach (var waitingId in waitingIds)
                 {
-                    var activity = _db.IndexingActivities.Where(r => r.IndexingActivityId == waitingId).FirstOrDefault();
+                    var activity = _db.IndexingActivities.FirstOrDefault(r => r.IndexingActivityId == waitingId);
                     if (activity != null)
                         activity.LockTime = now;
                 }
@@ -290,15 +263,15 @@ namespace SenseNet.Tests.Implementations
                                         .Where(x => x.RunningState == IndexingActivityRunningState.Waiting || (x.RunningState == IndexingActivityRunningState.Running && x.LockTime < timeLimit))
                                         .OrderBy(x => x.IndexingActivityId))
                 {
-                    if (!_db.IndexingActivities.Any(@old =>
-                         (@old.IndexingActivityId < @new.IndexingActivityId) &&
+                    if (!_db.IndexingActivities.Any(old =>
+                         (old.IndexingActivityId < @new.IndexingActivityId) &&
                          (
-                             (@old.RunningState == IndexingActivityRunningState.Waiting || old.RunningState == IndexingActivityRunningState.Running) &&
+                             (old.RunningState == IndexingActivityRunningState.Waiting || old.RunningState == IndexingActivityRunningState.Running) &&
                              (
-                                 @new.NodeId == @old.NodeId ||
-                                 (@new.VersionId != 0 && @new.VersionId == @old.VersionId) ||
-                                 @new.Path.StartsWith(@old.Path + "/", StringComparison.OrdinalIgnoreCase) ||
-                                 @old.Path.StartsWith(@new.Path + "/", StringComparison.OrdinalIgnoreCase)
+                                 @new.NodeId == old.NodeId ||
+                                 (@new.VersionId != 0 && @new.VersionId == old.VersionId) ||
+                                 @new.Path.StartsWith(old.Path + "/", StringComparison.OrdinalIgnoreCase) ||
+                                 old.Path.StartsWith(@new.Path + "/", StringComparison.OrdinalIgnoreCase)
                              )
                          )
                     ))
@@ -324,7 +297,7 @@ namespace SenseNet.Tests.Implementations
             {
                 finishedActivitiyIds = _db.IndexingActivities
                     .Where(x => waitingActivityIds.Contains(x.IndexingActivityId) && x.RunningState == IndexingActivityRunningState.Done)
-                    .Select(x=>x.IndexingActivityId)
+                    .Select(x => x.IndexingActivityId)
                     .ToArray();
             }
             return activities;
@@ -370,7 +343,7 @@ namespace SenseNet.Tests.Implementations
         public override void DeleteFinishedIndexingActivities()
         {
             lock (_db.IndexingActivities)
-                _db.IndexingActivities.RemoveAll(x=>x.RunningState == IndexingActivityRunningState.Done);
+                _db.IndexingActivities.RemoveAll(x => x.RunningState == IndexingActivityRunningState.Done);
         }
 
         public override DateTime RoundDateTime(DateTime d)
@@ -403,7 +376,7 @@ namespace SenseNet.Tests.Implementations
                 .Any(t => t.LockedAt > timeMin &&
                           (parentChain.Contains(t.Path) ||
                            t.Path.StartsWith(path + "/", StringComparison.InvariantCultureIgnoreCase))))
-            return 0;
+                return 0;
 
             var newTreeLockId = _db.TreeLocks.Count == 0 ? 1 : _db.TreeLocks.Max(t => t.TreeLockId) + 1;
             _db.TreeLocks.Add(new TreeLockRow
@@ -425,7 +398,7 @@ namespace SenseNet.Tests.Implementations
                           (parentChain.Contains(t.Path) ||
                            t.Path.StartsWith(path + "/", StringComparison.InvariantCultureIgnoreCase)));
         }
-        protected internal override System.Collections.Generic.Dictionary<int, string> LoadAllTreeLocks()
+        protected internal override Dictionary<int, string> LoadAllTreeLocks()
         {
             return _db.TreeLocks.ToDictionary(t => t.TreeLockId, t => t.Path);
         }
@@ -497,7 +470,7 @@ namespace SenseNet.Tests.Implementations
         protected internal override DataOperationResult DeleteNodeTreePsychical(int nodeId, long timestamp)
         {
             var nodeRec = _db.Nodes.FirstOrDefault(n => n.NodeId == nodeId);
-            if(nodeRec == null)
+            if (nodeRec == null)
                 return DataOperationResult.Successful;
 
             var path = nodeRec.Path;
@@ -523,12 +496,43 @@ namespace SenseNet.Tests.Implementations
             return DataOperationResult.Successful;
         }
 
-        #region NOT IMPLEMENTED
-
         protected internal override void DeleteVersion(int versionId, NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId)
         {
-            throw new NotImplementedException();
+            /*
+            DECLARE @NodeId int
+            SELECT @NodeId = NodeId FROM Versions WHERE VersionId = @VersionId
+            DELETE FROM BinaryProperties WHERE VersionId = @VersionId
+            DELETE FROM TextPropertiesNText WHERE VersionId = @VersionId
+            DELETE FROM TextPropertiesNVarchar WHERE VersionId = @VersionId
+            DELETE FROM ReferenceProperties WHERE VersionId = @VersionId
+            DELETE FROM FlatProperties WHERE VersionId = @VersionId
+            UPDATE Nodes SET LastMinorVersionId = NULL, LastMajorVersionId = NULL WHERE NodeId = @NodeId
+            DELETE FROM Versions WHERE VersionId = @VersionId
+            EXEC proc_Node_SetLastVersion @NodeId = @NodeId
+            SELECT [Timestamp] as NodeTimestamp, LastMajorVersionId, LastMinorVersionId FROM Nodes WHERE NodeId = @NodeId
+            */
+            lastMajorVersionId = lastMinorVersionId = 0;
+
+            var versionRow = _db.Versions.FirstOrDefault(r => r.VersionId == versionId);
+            if (versionRow == null)
+                return;
+            var nodeRow = _db.Nodes.FirstOrDefault(r => r.NodeId == versionRow.NodeId);
+
+            _db.BinaryProperties.RemoveAll(r => r.VersionId == versionId);
+            _db.TextProperties.RemoveAll(r => r.VersionId == versionId);
+            _db.ReferenceProperties.RemoveAll(r => r.VersionId == versionId);
+            _db.FlatProperties.RemoveAll(r => r.VersionId == versionId);
+            _db.Versions.Remove(versionRow);
+
+            if (nodeRow == null)
+                return;
+
+            SetLastVersionSlots(_db, nodeRow.NodeId, out lastMajorVersionId, out lastMinorVersionId);
+
+            nodeData.NodeTimestamp = nodeRow.NodeTimestamp; //TODO: nodetimestamp
         }
+
+        #region NOT IMPLEMENTED
 
         protected override string GetAppModelScriptPrivate(IEnumerable<string> paths, bool all, bool resolveChildren)
         {
@@ -572,7 +576,7 @@ namespace SenseNet.Tests.Implementations
         {
             return _db.Versions
                 .Where(v => v.NodeId == nodeId)
-                .Select(v =>new NodeHead.NodeVersion(v.Version, v.VersionId))
+                .Select(v => new NodeHead.NodeVersion(v.Version, v.VersionId))
                 .ToArray();
         }
 
@@ -605,7 +609,8 @@ namespace SenseNet.Tests.Implementations
 
         protected internal override VersionNumber[] GetVersionNumbers(int nodeId)
         {
-            throw new NotImplementedException();
+            var versions = _db.Versions.Where(r => r.NodeId == nodeId).Select(r => r.Version).ToArray();
+            return versions;
         }
 
         protected internal override bool HasChild(int nodeId)
@@ -658,9 +663,18 @@ namespace SenseNet.Tests.Implementations
             // To avoid accessing to blob provider, read data here, else set rawData to null
             byte[] rawData = fileRec.Stream;
 
+            //TODO: partially implemented: IBlobProvider resolution always null.
             IBlobProvider provider = null; //BlobStorageBase.GetProvider(null);
-            var context = new BlobStorageContext(provider) { VersionId = nodeVersionId, PropertyTypeId = propertyTypeId, FileId = fileId, Length = length, UseFileStream = false };
-            context.BlobProviderData = new BuiltinBlobProviderData { FileStreamData = null };
+            // ReSharper disable once ExpressionIsAlwaysNull
+            var context = new BlobStorageContext(provider)
+            {
+                VersionId = nodeVersionId,
+                PropertyTypeId = propertyTypeId,
+                FileId = fileId,
+                Length = length,
+                UseFileStream = false,
+                BlobProviderData = new BuiltinBlobProviderData {FileStreamData = null}
+            };
 
             return new BinaryCacheEntity
             {
@@ -829,7 +843,7 @@ namespace SenseNet.Tests.Implementations
             return _db.Nodes.Where(n => heads.Contains(n.NodeId)).Select(CreateNodeHead);
         }
 
-        protected internal override void LoadNodes(System.Collections.Generic.Dictionary<int, NodeBuilder> buildersByVersionId)
+        protected internal override void LoadNodes(Dictionary<int, NodeBuilder> buildersByVersionId)
         {
             foreach (var versionId in buildersByVersionId.Keys)
             {
@@ -853,8 +867,7 @@ namespace SenseNet.Tests.Implementations
                 {
                     foreach (PropertyType pt in builder.Token.AllPropertyTypes)
                     {
-                        object value;
-                        if(GetDataSlot(flatPropertRow, flatPropertRow.Page, pt, out value))
+                        if (GetDataSlot(flatPropertRow, flatPropertRow.Page, pt, out var value))
                             builder.AddDynamicProperty(pt, value);
                     }
                 }
@@ -862,8 +875,7 @@ namespace SenseNet.Tests.Implementations
                 var referenceCollector = new Dictionary<int, List<int>>();
                 foreach (var row in _db.ReferenceProperties.Where(r => r.VersionId == versionId))
                 {
-                    List<int> refList;
-                    if (!referenceCollector.TryGetValue(row.PropertyTypeId, out refList))
+                    if (!referenceCollector.TryGetValue(row.PropertyTypeId, out var refList))
                         referenceCollector.Add(row.PropertyTypeId, refList = new List<int>());
                     refList.Add(row.ReferredNodeId);
                 }
@@ -933,7 +945,7 @@ namespace SenseNet.Tests.Implementations
             throw new NotImplementedException();
         }
         #endregion
-        protected internal override System.Collections.Generic.Dictionary<int, string> LoadTextPropertyValues(int versionId, int[] propertyTypeIds)
+        protected internal override Dictionary<int, string> LoadTextPropertyValues(int versionId, int[] propertyTypeIds)
         {
             return _db.TextProperties
                 .Where(t => t.VersionId == versionId && propertyTypeIds.Contains(t.PropertyTypeId))
@@ -1077,7 +1089,7 @@ namespace SenseNet.Tests.Implementations
                 return _db.Versions.Count;
 
             var count = _db.Nodes.Join(_db.Versions, n => n.NodeId, v => v.NodeId,
-                    (node, version) => new {Node = node, Version = version})
+                    (node, version) => new { Node = node, Version = version })
                 .Count(
                     x =>
                         x.Node.Path.StartsWith(path + RepositoryPath.PathSeparator,
@@ -1118,17 +1130,37 @@ namespace SenseNet.Tests.Implementations
             get { return _db.Nodes.Max(n => n.NodeId); }
         }
 
+        private static void SetLastVersionSlots(Database db, int nodeId, out int lastMajorVersionId, out int lastMinorVersionId)
+        {
+            // proc_Node_SetLastVersion
+
+            var nodeRow = db.Nodes.First(n => n.NodeId == nodeId);
+            lastMinorVersionId = db.Versions
+                .Where(v => v.NodeId == nodeId)
+                .OrderByDescending(v => v.Version)
+                .First()
+                .VersionId;
+            nodeRow.LastMinorVersionId = lastMinorVersionId;
+
+            lastMajorVersionId = db.Versions
+                                     .Where(v => v.NodeId == nodeId && v.Version.Status == VersionStatus.Approved)
+                                     .OrderByDescending(v => v.Version)
+                                     .FirstOrDefault()?
+                                     .VersionId ?? 0;
+            nodeRow.LastMajorVersionId = lastMajorVersionId;
+        }
+
         /* ====================================================================================== Database */
 
         #region CREATION
 
         // Preloade CTD bytes by name
-        private static readonly System.Collections.Generic.Dictionary<string, byte[]> ContentTypeBytes;
+        private static readonly Dictionary<string, byte[]> ContentTypeBytes;
         static InMemoryDataProvider()
         {
             // Preload CTD bytes from disk to avoid heavy IO charging
 
-            ContentTypeBytes = new System.Collections.Generic.Dictionary<string, byte[]>();
+            ContentTypeBytes = new Dictionary<string, byte[]>();
 
             var ctdDirectory = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                 @"..\..\..\..\nuget\snadmin\install-services\import\System\Schema\ContentTypes"));
@@ -1166,6 +1198,7 @@ namespace SenseNet.Tests.Implementations
 
         public InMemoryDataProvider()
         {
+            // ReSharper disable once UseObjectOrCollectionInitializer
             _db = new Database();
 
             _db.Schema = new XmlDocument();
@@ -1272,7 +1305,7 @@ namespace SenseNet.Tests.Implementations
                     var value = record[3].Replace(@"\n", Environment.NewLine).Replace(@"\t", "\t");
                     return new TextPropertyRecord
                     {
-                        TextPropertyNVarcharId = int.Parse(record[0]),
+                        Id = int.Parse(record[0]),
                         VersionId = int.Parse(record[1]),
                         PropertyTypeId = int.Parse(record[2]),
                         Value = value
@@ -1307,8 +1340,7 @@ namespace SenseNet.Tests.Implementations
                 var id = int.Parse(record[0]);
                 var intValues = record.Skip(3).Select(x => x == "NULL" ? (int?)null : int.Parse(x)).ToArray();
 
-                FlatPropertyRow row;
-                if (!flatRows.TryGetValue(id, out row))
+                if (!flatRows.TryGetValue(id, out var row))
                 {
                     row = new FlatPropertyRow
                     {
@@ -1329,8 +1361,7 @@ namespace SenseNet.Tests.Implementations
                 var id = int.Parse(record[0]);
                 var dateTimeValues = record.Skip(3).Select(x => x == "NULL" ? (DateTime?)null : DateTime.Parse(x)).ToArray();
 
-                FlatPropertyRow row;
-                if (!flatRows.TryGetValue(id, out row))
+                if (!flatRows.TryGetValue(id, out var row))
                 {
                     row = new FlatPropertyRow
                     {
@@ -1351,8 +1382,7 @@ namespace SenseNet.Tests.Implementations
                 var id = int.Parse(record[0]);
                 var decimalValues = record.Skip(3).Select(x => x == "NULL" ? (decimal?)null : decimal.Parse(x, CultureInfo.InvariantCulture)).ToArray();
 
-                FlatPropertyRow row;
-                if (!flatRows.TryGetValue(id, out row))
+                if (!flatRows.TryGetValue(id, out var row))
                 {
                     row = new FlatPropertyRow
                     {
@@ -1365,7 +1395,7 @@ namespace SenseNet.Tests.Implementations
                 row.Decimals = decimalValues;
             }
 
-           return flatRows.Values.ToList();
+            return flatRows.Values.ToList();
         }
         private List<ReferencePropertyRow> GetInitialReferencProperties()
         {
@@ -1430,17 +1460,17 @@ namespace SenseNet.Tests.Implementations
         }
         private class Database
         {
-            public XmlDocument Schema;
+            public XmlDocument Schema { get; set; }
 
-            public List<NodeRecord> Nodes;
-            public List<VersionRecord> Versions;
-            public List<BinaryPropertyRecord> BinaryProperties;
-            public List<FileRecord> Files;
-            public List<TextPropertyRecord> TextProperties;
-            public List<FlatPropertyRow> FlatProperties;
-            public List<ReferencePropertyRow> ReferenceProperties;
-            public List<IndexingActivityRecord> IndexingActivities = new List<IndexingActivityRecord>();
-            public List<TreeLockRow> TreeLocks = new List<TreeLockRow>();
+            public List<NodeRecord> Nodes { get; set; }
+            public List<VersionRecord> Versions { get; set; }
+            public List<BinaryPropertyRecord> BinaryProperties { get; set; }
+            public List<FileRecord> Files { get; set; }
+            public List<TextPropertyRecord> TextProperties { get; set; }
+            public List<FlatPropertyRow> FlatProperties { get; set; }
+            public List<ReferencePropertyRow> ReferenceProperties { get; set; }
+            public List<IndexingActivityRecord> IndexingActivities { get; } = new List<IndexingActivityRecord>();
+            public List<TreeLockRow> TreeLocks { get; } = new List<TreeLockRow>();
         }
         private class InMemoryNodeWriter : INodeWriter
         {
@@ -1465,7 +1495,7 @@ namespace SenseNet.Tests.Implementations
             public void InsertNodeAndVersionRows(NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId)
             {
                 var newNodeId = _db.Nodes.Max(r => r.NodeId) + 1;
-                var newVersionId = _db.Versions.Max(r => r.NodeId) + 1;
+                var newVersionId = _db.Versions.Max(r => r.VersionId) + 1;
                 lastMinorVersionId = newVersionId;
                 lastMajorVersionId = nodeData.Version.IsMajor ? newVersionId : 0;
                 var nodeRecord = new NodeRecord
@@ -1584,7 +1614,7 @@ namespace SenseNet.Tests.Implementations
                 versionRec.ChangedData = nodeData.ChangedData;
 
                 var nodeRec = _db.Nodes.FirstOrDefault(n => n.NodeId == nodeId);
-                if(nodeRec == null)
+                if (nodeRec == null)
                     throw new InvalidOperationException("Node not found. NodeId:" + nodeId);
 
                 if (nodeData.IsPropertyChanged("Version"))
@@ -1598,7 +1628,7 @@ namespace SenseNet.Tests.Implementations
                         .Where(v => v.NodeId == nodeId && v.Version.Minor == 0 && v.Version.Status == VersionStatus.Approved)
                         .OrderByDescending(v => v.Version.Major)
                         .ThenByDescending(v => v.Version.Minor)
-                        .First().VersionId;
+                        .FirstOrDefault()?.VersionId ?? 0;
                 }
 
                 lastMajorVersionId = nodeRec.LastMajorVersionId;
@@ -1607,36 +1637,128 @@ namespace SenseNet.Tests.Implementations
             public void CopyAndUpdateVersion(NodeData nodeData, int previousVersionId, out int lastMajorVersionId,
                 out int lastMinorVersionId)
             {
-                throw new NotImplementedException();
+                CopyAndUpdateVersion(nodeData, previousVersionId, 0, out lastMajorVersionId, out lastMinorVersionId);
             }
             public void CopyAndUpdateVersion(NodeData nodeData, int previousVersionId, int destinationVersionId, out int lastMajorVersionId,
                 out int lastMinorVersionId)
             {
-                throw new NotImplementedException();
+                lastMajorVersionId = 0;
+                lastMinorVersionId = 0;
+
+                // proc_Version_CopyAndUpdate
+
+                int newVersionId;
+
+                // Before inserting set versioning status code from "Locked" to "Draft" on all older versions
+                foreach (var row in _db.Versions.Where(v => v.NodeId == nodeData.Id && v.Version.Status == VersionStatus.Locked))
+                    row.Version = new VersionNumber(row.Version.Major, row.Version.Minor, VersionStatus.Draft);
+
+                if (destinationVersionId == 0)
+                {
+                    // Insert version row
+                    newVersionId = _db.Versions.Max(r => r.VersionId) + 1;
+                    _db.Versions.Add(new VersionRecord
+                    {
+                        VersionId = newVersionId,
+
+                        NodeId = nodeData.Id,
+                        Version = nodeData.Version,
+                        CreationDate = nodeData.VersionCreationDate,
+                        CreatedById = nodeData.VersionCreatedById,
+                        ModificationDate = nodeData.VersionModificationDate,
+                        ModifiedById = nodeData.VersionModifiedById,
+                        ChangedData = nodeData.ChangedData
+                    });
+                }
+                else
+                {
+                    // Update existing version
+                    newVersionId = destinationVersionId;
+                    var versionRow = _db.Versions.First(v => v.VersionId == newVersionId);
+                    versionRow.NodeId = nodeData.Id;
+                    versionRow.Version = nodeData.Version;
+                    versionRow.CreationDate = nodeData.VersionCreationDate;
+                    versionRow.CreatedById = nodeData.VersionCreatedById;
+                    versionRow.ModificationDate = nodeData.VersionModificationDate;
+                    versionRow.ModifiedById = nodeData.VersionModifiedById;
+                    versionRow.ChangedData = nodeData.ChangedData;
+
+                    // Delete previous property values
+                    _db.BinaryProperties.RemoveAll(r => r.VersionId == newVersionId);
+                    _db.FlatProperties.RemoveAll(r => r.VersionId == newVersionId);
+                    _db.ReferenceProperties.RemoveAll(r => r.VersionId == newVersionId);
+                    _db.TextProperties.RemoveAll(r => r.VersionId == newVersionId);
+                }
+
+                // Copy properties
+                foreach (var binaryPropertyRow in _db.BinaryProperties.Where(r => r.VersionId == previousVersionId).ToArray())
+                    _db.BinaryProperties.Add(new BinaryPropertyRecord
+                    {
+                        BinaryPropertyId = _db.BinaryProperties.Max(r => r.BinaryPropertyId) + 1,
+                        VersionId = newVersionId,
+                        PropertyTypeId = binaryPropertyRow.PropertyTypeId,
+                        FileId = binaryPropertyRow.FileId
+                    });
+                foreach (var flatPropertyRow in _db.FlatProperties.Where(r => r.VersionId == previousVersionId).ToArray())
+                    _db.FlatProperties.Add(new FlatPropertyRow
+                    {
+                        Id = _db.FlatProperties.Max(r => r.Id) + 1,
+                        VersionId = newVersionId,
+                        Page = flatPropertyRow.Page,
+                        Strings = flatPropertyRow.Strings.ToArray(),
+                        Integers = flatPropertyRow.Integers.ToArray(),
+                        Datetimes = flatPropertyRow.Datetimes.ToArray(),
+                        Decimals = flatPropertyRow.Decimals.ToArray()
+                    });
+                foreach (var referencePropertyRow in _db.ReferenceProperties.Where(r => r.VersionId == previousVersionId).ToArray())
+                    _db.ReferenceProperties.Add(new ReferencePropertyRow
+                    {
+                        ReferencePropertyId = _db.ReferenceProperties.Max(r => r.ReferencePropertyId) + 1,
+                        VersionId = newVersionId,
+                        PropertyTypeId = referencePropertyRow.PropertyTypeId,
+                        ReferredNodeId = referencePropertyRow.ReferredNodeId
+                    });
+                foreach (var textPropertyRow in _db.TextProperties.Where(r => r.VersionId == previousVersionId).ToArray())
+                    _db.TextProperties.Add(new TextPropertyRecord
+                    {
+                        Id = _db.TextProperties.Max(r => r.Id) + 1,
+                        VersionId = newVersionId,
+                        PropertyTypeId = textPropertyRow.PropertyTypeId,
+                        Value = textPropertyRow.Value
+                    });
+
+                // Set last version pointers
+                SetLastVersionSlots(_db, nodeData.Id, out lastMajorVersionId, out lastMinorVersionId);
+
+                // update back the given nodeData
+                nodeData.VersionId = newVersionId;
+                nodeData.NodeTimestamp = 0; //TODO: set back the new nodetimestamp
+                nodeData.VersionTimestamp = 0; //TODO: set back the new versiontimestamp
+                foreach (var binaryPropertyRow in _db.BinaryProperties.Where(b => b.VersionId == newVersionId))
+                {
+                    var binaryData = (BinaryDataValue)nodeData.GetDynamicRawData(binaryPropertyRow.PropertyTypeId);
+                    binaryData.Id = binaryPropertyRow.BinaryPropertyId;
+                }
             }
 
             // ============================================================================ Property Insert/Update
 
             public void SaveStringProperty(int versionId, PropertyType propertyType, string value)
             {
-                int mapping;
-                GetFlatPropertyRow(versionId, propertyType.Mapping, SqlProvider.StringPageSize, out mapping).Strings[mapping] = value;
+                GetFlatPropertyRow(versionId, propertyType.Mapping, SqlProvider.StringPageSize, out var mapping).Strings[mapping] = value;
             }
 
             public void SaveDateTimeProperty(int versionId, PropertyType propertyType, DateTime value)
             {
-                int mapping;
-                GetFlatPropertyRow(versionId, propertyType.Mapping, SqlProvider.DateTimePageSize, out mapping).Datetimes[mapping] = value;
+                GetFlatPropertyRow(versionId, propertyType.Mapping, SqlProvider.DateTimePageSize, out var mapping).Datetimes[mapping] = value;
             }
             public void SaveIntProperty(int versionId, PropertyType propertyType, int value)
             {
-                int mapping;
-                GetFlatPropertyRow(versionId, propertyType.Mapping, SqlProvider.IntPageSize, out mapping).Integers[mapping] = value;
+                GetFlatPropertyRow(versionId, propertyType.Mapping, SqlProvider.IntPageSize, out var mapping).Integers[mapping] = value;
             }
             public void SaveCurrencyProperty(int versionId, PropertyType propertyType, decimal value)
             {
-                int mapping;
-                GetFlatPropertyRow(versionId, propertyType.Mapping, SqlProvider.CurrencyPageSize, out mapping).Decimals[mapping] = value;
+                GetFlatPropertyRow(versionId, propertyType.Mapping, SqlProvider.CurrencyPageSize, out var mapping).Decimals[mapping] = value;
             }
             private FlatPropertyRow GetFlatPropertyRow(int versionId, int mapping, int pageSize, out int propertyIndex)
             {
@@ -1660,7 +1782,7 @@ namespace SenseNet.Tests.Implementations
                 if (row == null)
                     _db.TextProperties.Add(row = new TextPropertyRecord
                     {
-                        TextPropertyNVarcharId = _db.TextProperties.Max(r => r.TextPropertyNVarcharId) + 1,
+                        Id = _db.TextProperties.Max(r => r.Id) + 1,
                         VersionId = versionId,
                         PropertyTypeId = propertyType.Id
                     });
@@ -1675,10 +1797,10 @@ namespace SenseNet.Tests.Implementations
                 foreach (var row in rows)
                     _db.ReferenceProperties.Remove(row);
 
-                foreach(var referredNodeId in value.Distinct())
+                foreach (var referredNodeId in value.Distinct())
                     _db.ReferenceProperties.Add(new ReferencePropertyRow
                     {
-                        ReferencePropertyId = _db.ReferenceProperties.Max(x=>x.ReferencePropertyId) + 1,
+                        ReferencePropertyId = _db.ReferenceProperties.Max(x => x.ReferencePropertyId) + 1,
                         VersionId = versionId,
                         PropertyTypeId = propertyType.Id,
                         ReferredNodeId = referredNodeId
@@ -1729,14 +1851,16 @@ namespace SenseNet.Tests.Implementations
             }
             public void DeleteBinaryProperty(int versionId, PropertyType propertyType)
             {
-                throw new NotImplementedException();
+                //TODO: Implement correctly (BlobMetadata + BlobProvider + ProviderSelector + swindles).
+                //throw new NotImplementedException();
+                //BlobStorage.DeleteBinaryProperty(versionId, propertyType.Id);
             }
         }
         private class InMemorySchemaWriter : SchemaWriter
         {
-            private XmlDocument _schemaXml;
-            private string _xmlNamespace = "http://schemas.sensenet.com/SenseNet/ContentRepository/Storage/Schema";
-            private XmlNamespaceManager _nsmgr;
+            private readonly XmlDocument _schemaXml;
+            private readonly string _xmlNamespace = "http://schemas.sensenet.com/SenseNet/ContentRepository/Storage/Schema";
+            private readonly XmlNamespaceManager _nsmgr;
 
             public InMemorySchemaWriter(XmlDocument schemaXml)
             {
@@ -1756,13 +1880,13 @@ namespace SenseNet.Tests.Implementations
 
             public override void CreatePropertyType(string name, DataType dataType, int mapping, bool isContentListProperty)
             {
-                if(isContentListProperty)
+                if (isContentListProperty)
                     throw new NotImplementedException(); //TODO: ContentListProperty creating is not implemented.
 
                 // ReSharper disable once AssignNullToNotNullAttribute
                 var ids =
                     _schemaXml.SelectNodes("/x:StorageSchema/x:UsedPropertyTypes/x:PropertyType/@itemID", _nsmgr)
-                        .OfType<XmlAttribute>().Select(a=>int.Parse(a.Value)).ToArray();
+                        .OfType<XmlAttribute>().Select(a => int.Parse(a.Value)).ToArray();
                 var id = ids.Max() + 1;
 
                 var element = _schemaXml.CreateElement("PropertyType", _xmlNamespace);
@@ -1772,6 +1896,7 @@ namespace SenseNet.Tests.Implementations
                 element.SetAttribute("mapping", mapping.ToString());
 
                 var parentElement = (XmlElement)_schemaXml.SelectSingleNode("/x:StorageSchema/x:UsedPropertyTypes", _nsmgr);
+                // ReSharper disable once PossibleNullReferenceException
                 parentElement.AppendChild(element);
             }
             public override void DeletePropertyType(PropertyType propertyType)
@@ -1790,9 +1915,9 @@ namespace SenseNet.Tests.Implementations
 
             public override void CreateNodeType(NodeType parent, string name, string className)
             {
-                var ids =
-                    _schemaXml.SelectNodes("//x:NodeType/@itemID", _nsmgr)
-                        .OfType<XmlAttribute>().Select(a => int.Parse(a.Value)).ToArray();
+                // ReSharper disable once AssignNullToNotNullAttribute
+                var ids = _schemaXml.SelectNodes("//x:NodeType/@itemID", _nsmgr)
+                         .OfType<XmlAttribute>().Select(a => int.Parse(a.Value)).ToArray();
                 var id = ids.Max() + 1;
 
                 var element = _schemaXml.CreateElement("NodeType", _xmlNamespace);
@@ -1801,6 +1926,7 @@ namespace SenseNet.Tests.Implementations
                 element.SetAttribute("className", className);
 
                 var parentElement = (XmlElement)_schemaXml.SelectSingleNode($"//x:NodeType[@itemID = '{parent.Id}']", _nsmgr);
+                // ReSharper disable once PossibleNullReferenceException
                 parentElement.AppendChild(element);
             }
             public override void ModifyNodeType(NodeType nodeType, NodeType parent, string className)
@@ -1870,6 +1996,7 @@ namespace SenseNet.Tests.Implementations
             private ContentSavingState _savingState;
             private long _nodeTimestamp;
 
+            // ReSharper disable once ConvertToAutoProperty
             public int NodeId
             {
                 get => _nodeId;
@@ -1923,6 +2050,7 @@ namespace SenseNet.Tests.Implementations
             private IEnumerable<ChangedData> _changedData;
             private long _versionTimestamp;
 
+            // ReSharper disable once ConvertToAutoProperty
             public int VersionId
             {
                 get => _versionId;
@@ -1937,12 +2065,15 @@ namespace SenseNet.Tests.Implementations
                     SetTimestamp();
                 }
             }
+            /// <summary>
+            /// Gets or sets the clone of a VersionNumber
+            /// </summary>
             public VersionNumber Version
             {
-                get => _version;
+                get => _version.Clone();
                 set
                 {
-                    _version = value;
+                    _version = value.Clone();
                     SetTimestamp();
                 }
             }
@@ -2026,7 +2157,7 @@ namespace SenseNet.Tests.Implementations
         }
         private class TextPropertyRecord
         {
-            public int TextPropertyNVarcharId;
+            public int Id;
             public int VersionId;
             public int PropertyTypeId;
             public string Value;

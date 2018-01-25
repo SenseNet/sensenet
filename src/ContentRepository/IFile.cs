@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.ContentRepository
@@ -18,6 +16,8 @@ namespace SenseNet.ContentRepository
 	    /// Gets the count of bytes of the blob's stream in the Binary property.
 	    /// </summary>
         long Size { get; }
-        long FullSize { get; } //UNDONE: Make obsolete
+
+	    [Obsolete("This property and content field will be removed in the future.")]
+        long FullSize { get; }
     }
 }

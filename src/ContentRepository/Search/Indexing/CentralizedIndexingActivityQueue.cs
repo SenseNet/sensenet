@@ -16,10 +16,10 @@ namespace SenseNet.ContentRepository.Search.Indexing
         private static readonly int LockRefreshPeriodInMilliseconds = RunningTimeoutInSeconds * 3000 / 4;
         private static readonly int HearthBeatMilliseconds = 1000;
 
-        private static readonly TimeSpan _waitingPollingPeriod = TimeSpan.FromSeconds(2);
-        private static readonly TimeSpan _healthCheckPeriod = TimeSpan.FromMinutes(2);
-        private static readonly TimeSpan _deleteFinishedPeriod = TimeSpan.FromMinutes(23);
-        private static readonly int _activeTaskLimit = 43;
+        private static readonly TimeSpan WaitingPollingPeriod = TimeSpan.FromSeconds(2);
+        private static readonly TimeSpan HealthCheckPeriod = TimeSpan.FromMinutes(2);
+        private static readonly TimeSpan DeleteFinishedPeriod = TimeSpan.FromMinutes(23);
+        private const int ActiveTaskLimit = 43;
 
         private static System.Timers.Timer _timer;
         private static DateTime _lastExecutionTime;
@@ -29,7 +29,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         private static int _pollingBlockerCounter;
 
         private static readonly object WaitingActivitiesSync = new object();
-        private static readonly Dictionary<int, IndexingActivityBase> _waitingActivities = new Dictionary<int, IndexingActivityBase>();
+        private static readonly Dictionary<int, IndexingActivityBase> WaitingActivities = new Dictionary<int, IndexingActivityBase>();
 
         public static void Startup(TextWriter consoleOut)
         {
@@ -40,7 +40,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 while (true)
                 {
                     // execute one charge in async way
-                    if (_activeTasks < _activeTaskLimit)
+                    if (_activeTasks < ActiveTaskLimit)
                         loadedCount = ExecuteActivities(null, true);
 
                     if (loadedCount > 0)
@@ -51,7 +51,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         break;
 
                     // wait a bit in case of too many active tasks
-                    while (_activeTasks > _activeTaskLimit)
+                    while (_activeTasks > ActiveTaskLimit)
                         Thread.Sleep(HearthBeatMilliseconds);
                 }
 
@@ -118,10 +118,10 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             int waitingListLength;
             lock (WaitingActivitiesSync)
-                waitingListLength = _waitingActivities.Count;
-            var timeLimit = waitingListLength > 0 ? _waitingPollingPeriod : _healthCheckPeriod;
+                waitingListLength = WaitingActivities.Count;
+            var timeLimit = waitingListLength > 0 ? WaitingPollingPeriod : HealthCheckPeriod;
 
-            if ((DateTime.UtcNow - _lastExecutionTime) > timeLimit && _activeTasks < _activeTaskLimit)
+            if ((DateTime.UtcNow - _lastExecutionTime) > timeLimit && _activeTasks < ActiveTaskLimit)
             {
                 try
                 {
@@ -145,7 +145,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             int[] waitingIds;
             lock (WaitingActivitiesSync)
-                waitingIds = _waitingActivities.Keys.ToArray();
+                waitingIds = WaitingActivities.Keys.ToArray();
 
             if (waitingIds.Length == 0)
                 return;
@@ -156,7 +156,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         }
         private static void DeleteFinishedActivitiesOccasionally()
         {
-            if (DateTime.UtcNow - _lastDeleteFinishedTime >= _deleteFinishedPeriod)
+            if (DateTime.UtcNow - _lastDeleteFinishedTime >= DeleteFinishedPeriod)
             {
                 DataProvider.Current.DeleteFinishedIndexingActivities();
                 _lastDeleteFinishedTime = DateTime.UtcNow;
@@ -187,7 +187,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
             {
                 if (waitingActivity != null)
                 {
-                    if (_waitingActivities.TryGetValue(waitingActivity.Id, out IndexingActivityBase olderWaitingActivity))
+                    if (WaitingActivities.TryGetValue(waitingActivity.Id, out IndexingActivityBase olderWaitingActivity))
                     {
                         // if exists, attach the current to existing.
                         olderWaitingActivity.Attach(waitingActivity);
@@ -195,10 +195,10 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         return 0;
                     }
                     // add to waiting list
-                    _waitingActivities.Add(waitingActivity.Id, waitingActivity);
+                    WaitingActivities.Add(waitingActivity.Id, waitingActivity);
                 }
                 // get id array of waiting activities
-                waitingActivityIds = _waitingActivities.Keys.ToArray();
+                waitingActivityIds = WaitingActivities.Keys.ToArray();
             }
 
             // load some executable activities and currently finished ones
@@ -218,9 +218,9 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 {
                     foreach (var finishedActivitiyId in finishedActivitiyIds)
                     {
-                        if (_waitingActivities.TryGetValue(finishedActivitiyId, out IndexingActivityBase finishedActivity))
+                        if (WaitingActivities.TryGetValue(finishedActivitiyId, out IndexingActivityBase finishedActivity))
                         {
-                            _waitingActivities.Remove(finishedActivitiyId);
+                            WaitingActivities.Remove(finishedActivitiyId);
                             finishedActivity.Finish();
                         }
                     }
@@ -281,7 +281,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     lock (WaitingActivitiesSync)
                     {
                         act.Finish();
-                        _waitingActivities.Remove(act.Id);
+                        WaitingActivities.Remove(act.Id);
                     }
                     _activeTasks--;
                 }

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SenseNet.Tests.Implementations
+﻿namespace SenseNet.Tests.Implementations
 {
     public partial class InMemoryDataProvider
     {

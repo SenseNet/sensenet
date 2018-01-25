@@ -1,22 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
 using Lucene.Net.Util;
 using SenseNet.Diagnostics;
-using SenseNet.Search;
 using SenseNet.Search.Indexing;
-using SenseNet.Search.Lucene29;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Lucene29
@@ -77,6 +73,7 @@ namespace SenseNet.Search.Lucene29
                 }
             }
         }
+        [SuppressMessage("ReSharper", "UnusedVariable")]
         private void Startup(TextWriter consoleOut)
         {
             WaitForWriterLockFileIsReleased(WaitForLockFileType.OnStart);
@@ -447,9 +444,10 @@ namespace SenseNet.Search.Lucene29
             {
                 using (var wrFrame = IndexWriterFrame.Get(_writer, _writerRestartLock, !reopenReader)) // // Commit
                 {
-                    //UNDONE: CommitState: write the status only if it is provided?
-                    //UNDONE: CommitState: cleanup commitState if null
-                    var commitState = state ?? null; //IndexManager.GetCurrentIndexingActivityStatus();
+                    //TODO: CommitState: cleanup commitState if null if needed in the distributed environment.
+                    //var commitState = state ?? IndexManager.GetCurrentIndexingActivityStatus();
+                    var commitState = state;
+
                     var commitStateMessage = commitState?.ToString();
 
                     SnTrace.Index.Write("LM: Committing_writer. commitState: " + commitStateMessage);
@@ -485,7 +483,9 @@ namespace SenseNet.Search.Lucene29
 
                         _reader = _writer.GetReader();
 
+#pragma warning disable 420
                         var recentlyUsedReaderFrames = Interlocked.Exchange(ref _recentlyUsedReaderFrames, 0);
+#pragma warning restore 420
 
                         op.Successful = true;
                         IndexReopenedAt = DateTime.UtcNow;
@@ -561,7 +561,9 @@ namespace SenseNet.Search.Lucene29
                     using (IndexWriterFrame.Get(_writer, _writerRestartLock, false))
                         ReopenReader();
 
+#pragma warning disable 420
             Interlocked.Increment(ref _recentlyUsedReaderFrames);
+#pragma warning restore 420
 
             return new IndexReaderFrame(_reader);
         }

@@ -10,6 +10,7 @@ using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Search;
 using SenseNet.Search.Querying;
 using SenseNet.Tests;
+// ReSharper disable RedundantBoolCompare
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -50,78 +51,78 @@ namespace SenseNet.ContentRepository.Tests
             [RepositoryProperty("Wife", RepositoryDataType.Reference)]
             public RefTestNode Wife
             {
-                get { return this.GetReference<RefTestNode>("Wife"); }
-                set { this.SetReference("Wife", value); }
+                get => GetReference<RefTestNode>("Wife");
+                set => SetReference("Wife", value);
             }
 
             [RepositoryProperty("Husband", RepositoryDataType.Reference)]
             public RefTestNode Husband
             {
-                get { return this.GetReference<RefTestNode>("Husband"); }
-                set { this.SetReference("Husband", value); }
+                get => GetReference<RefTestNode>("Husband");
+                set => SetReference("Husband", value);
             }
 
             [RepositoryProperty("Mother", RepositoryDataType.Reference)]
             public RefTestNode Mother
             {
-                get { return this.GetReference<RefTestNode>("Mother"); }
-                set { this.SetReference("Mother", value); }
+                get => GetReference<RefTestNode>("Mother");
+                set => SetReference("Mother", value);
             }
 
             [RepositoryProperty("Father", RepositoryDataType.Reference)]
             public RefTestNode Father
             {
-                get { return this.GetReference<RefTestNode>("Father"); }
-                set { this.SetReference("Father", value); }
+                get => GetReference<RefTestNode>("Father");
+                set => SetReference("Father", value);
             }
 
             [RepositoryProperty("Daughter", RepositoryDataType.Reference)]
             public RefTestNode Daughter
             {
-                get { return this.GetReference<RefTestNode>("Daughter"); }
-                set { this.SetReference("Daughter", value); }
+                get => GetReference<RefTestNode>("Daughter");
+                set => SetReference("Daughter", value);
             }
 
             [RepositoryProperty("Son", RepositoryDataType.Reference)]
             public RefTestNode Son
             {
-                get { return this.GetReference<RefTestNode>("Son"); }
-                set { this.SetReference("Son", value); }
+                get => GetReference<RefTestNode>("Son");
+                set => SetReference("Son", value);
             }
 
             [RepositoryProperty("Sister", RepositoryDataType.Reference)]
             public RefTestNode Sister
             {
-                get { return this.GetReference<RefTestNode>("Sister"); }
-                set { this.SetReference("Sister", value); }
+                get => GetReference<RefTestNode>("Sister");
+                set => SetReference("Sister", value);
             }
 
             [RepositoryProperty("Brother", RepositoryDataType.Reference)]
             public RefTestNode Brother
             {
-                get { return this.GetReference<RefTestNode>("Brother"); }
-                set { this.SetReference("Brother", value); }
+                get => GetReference<RefTestNode>("Brother");
+                set => SetReference("Brother", value);
             }
 
             [RepositoryProperty("NickName", RepositoryDataType.String)]
             public string NickName
             {
-                get { return this.GetProperty<string>("NickName"); }
-                set { this["NickName"] = value; }
+                get => GetProperty<string>("NickName");
+                set => this["NickName"] = value;
             }
             [RepositoryProperty("Age", RepositoryDataType.Int)]
             public int Age
             {
-                get { return this.GetProperty<int>("Age"); }
-                set { this["Age"] = value; }
+                get => GetProperty<int>("Age");
+                set => this["Age"] = value;
             }
 
 
             [RepositoryProperty("Neighbors", RepositoryDataType.Reference)]
             public IEnumerable<Node> Neighbors
             {
-                get { return this.GetReferences("Neighbors"); }
-                set { this.SetReferences("Neighbors", value); }
+                get => GetReferences("Neighbors");
+                set => SetReferences("Neighbors", value);
             }
 
             #endregion
@@ -131,25 +132,25 @@ namespace SenseNet.ContentRepository.Tests
                 switch (name)
                 {
                     case "Wife":
-                        return this.Wife;
+                        return Wife;
                     case "Husband":
-                        return this.Husband;
+                        return Husband;
                     case "Mother":
-                        return this.Mother;
+                        return Mother;
                     case "Father":
-                        return this.Father;
+                        return Father;
                     case "Daughter":
-                        return this.Daughter;
+                        return Daughter;
                     case "Son":
-                        return this.Son;
+                        return Son;
                     case "Sister":
-                        return this.Sister;
+                        return Sister;
                     case "Brother":
-                        return this.Brother;
+                        return Brother;
                     case "NickName":
-                        return this.NickName;
+                        return NickName;
                     case "Age":
-                        return this.Age;
+                        return Age;
                     default:
                         return base.GetProperty(name);
                 }
@@ -159,34 +160,34 @@ namespace SenseNet.ContentRepository.Tests
                 switch (name)
                 {
                     case "Wife":
-                        this.Wife = (RefTestNode)value;
+                        Wife = (RefTestNode)value;
                         break;
                     case "Husband":
-                        this.Husband = (RefTestNode)value;
+                        Husband = (RefTestNode)value;
                         break;
                     case "Mother":
-                        this.Mother = (RefTestNode)value;
+                        Mother = (RefTestNode)value;
                         break;
                     case "Father":
-                        this.Father = (RefTestNode)value;
+                        Father = (RefTestNode)value;
                         break;
                     case "Daughter":
-                        this.Daughter = (RefTestNode)value;
+                        Daughter = (RefTestNode)value;
                         break;
                     case "Son":
-                        this.Son = (RefTestNode)value;
+                        Son = (RefTestNode)value;
                         break;
                     case "Sister":
-                        this.Sister = (RefTestNode)value;
+                        Sister = (RefTestNode)value;
                         break;
                     case "Brother":
-                        this.Brother = (RefTestNode)value;
+                        Brother = (RefTestNode)value;
                         break;
                     case "NickName":
-                        this.NickName = (string)value;
+                        NickName = (string)value;
                         break;
                     case "Age":
-                        this.Age = (int)value;
+                        Age = (int)value;
                         break;
                     default:
                         base.SetProperty(name, value);
@@ -196,16 +197,9 @@ namespace SenseNet.ContentRepository.Tests
 
             //================================================ IFolder
 
-            public virtual IEnumerable<Node> Children
-            {
-                get { return this.GetChildren(); }
-            }
+            public virtual IEnumerable<Node> Children => GetChildren();
 
-            public virtual int ChildCount
-            {
-                get { return this.GetChildCount(); }
-            }
-
+            public virtual int ChildCount => GetChildCount();
         }
 
         [TestMethod, TestCategory("IR, LINQ")]
@@ -272,9 +266,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                string expected;
-
-                expected = "Name:admin .SORT:Id";
+                var expected = "Name:admin .SORT:Id";
                 Assert.AreEqual(expected, GetQueryString(Content.All.Where(c => c.Name == "admin").OrderBy(c => c.Id)));
                 Assert.AreEqual(expected, GetQueryString(from c in Content.All where c.Name == "admin" orderby c.Id select c));
 
@@ -362,7 +354,7 @@ namespace SenseNet.ContentRepository.Tests
                 q = GetQueryString(Content.All.Where(c => (bool) c["Hidden"]));
                 Assert.AreEqual("Hidden:yes", q);
 
-                q = GetQueryString(Content.All.OfType<SenseNet.Portal.Site>().Where(c => c.EnableClientBasedCulture));
+                q = GetQueryString(Content.All.OfType<Portal.Site>().Where(c => c.EnableClientBasedCulture));
                 Assert.AreEqual("+TypeIs:site +EnableClientBasedCulture:yes", q);
 
                 return true;
@@ -387,12 +379,12 @@ namespace SenseNet.ContentRepository.Tests
                 q = GetQueryString(Content.All.Where(c => !(bool) c["Hidden"]));
                 Assert.AreEqual("Hidden:no", q);
 
-                q = GetQueryString(Content.All.OfType<SenseNet.Portal.Site>().Where(c => !c.EnableClientBasedCulture));
+                q = GetQueryString(Content.All.OfType<Portal.Site>().Where(c => !c.EnableClientBasedCulture));
                 Assert.AreEqual("+TypeIs:site +EnableClientBasedCulture:no", q);
 
                 q =
                     GetQueryString(
-                        Content.All.Where(c => !((SenseNet.Portal.Site) c.ContentHandler).EnableClientBasedCulture));
+                        Content.All.Where(c => !((Portal.Site) c.ContentHandler).EnableClientBasedCulture));
                 Assert.AreEqual("EnableClientBasedCulture:no", q);
                 return true;
             });
@@ -694,11 +686,11 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 // First operand of the conditional operator is a constant
-                var b = true;
-                Assert.AreEqual("DisplayName:car", GetQueryString(Content.All.Where(c => b ? c.DisplayName == "Car" : c.Index == 42)));
+                var bool1 = true;
+                Assert.AreEqual("DisplayName:car", GetQueryString(Content.All.Where(c => bool1 ? c.DisplayName == "Car" : c.Index == 42)));
 
-                b = false;
-                Assert.AreEqual("Index:42", GetQueryString(Content.All.Where(c => b ? c.DisplayName == "Car" : c.Index == 42)));
+                var bool2 = false;
+                Assert.AreEqual("Index:42", GetQueryString(Content.All.Where(c => bool2 ? c.DisplayName == "Car" : c.Index == 42)));
 
                 // First operand is not a constant
                 Assert.AreEqual("(+Index:85 -Type:car) (+DisplayName:ferrari +Type:car)",
@@ -992,6 +984,7 @@ Id:<42 .QUICK";
         //    }
         //}
         [TestMethod, TestCategory("IR, LINQ")]
+        [SuppressMessage("ReSharper", "UnusedVariable")]
         public void Linq_Error_NotConstants()
         {
             Test(() =>
@@ -1046,8 +1039,11 @@ Id:<42 .QUICK";
 
             Test(() =>
             {
-                var aspect = new Aspect(Repository.AspectsFolder) {Name = aspectName };
-                aspect.AspectDefinition = aspectDefinition;
+                var aspect = new Aspect(Repository.AspectsFolder)
+                {
+                    Name = aspectName,
+                    AspectDefinition = aspectDefinition
+                };
                 aspect.Save();
 
                 Assert.AreEqual($"{aspectName}.{ fieldName}:{ fieldValue}",
@@ -1064,15 +1060,11 @@ Id:<42 .QUICK";
             Test(() =>
             {
                 // +(TypeIs:group TypeIs:user) +InFolder:/root/ims/builtin/demo/managers
-                ChildrenDefinition childrenDef;
-                System.Linq.Expressions.Expression expr;
-                string actual;
-                string expected;
 
-                childrenDef = new ChildrenDefinition {PathUsage = PathUsageMode.InFolderAnd};
-                expr = Content.All.Where(c => c.ContentHandler is Group || c.ContentHandler is User).Expression;
-                actual = SnExpression.BuildQuery(expr, typeof(Content), "/Root/FakePath", childrenDef).ToString();
-                expected = "+(TypeIs:user TypeIs:group) +InFolder:/root/fakepath";
+                var childrenDef = new ChildrenDefinition {PathUsage = PathUsageMode.InFolderAnd};
+                var expr = Content.All.Where(c => c.ContentHandler is Group || c.ContentHandler is User).Expression;
+                var actual = SnExpression.BuildQuery(expr, typeof(Content), "/Root/FakePath", childrenDef).ToString();
+                var expected = "+(TypeIs:user TypeIs:group) +InFolder:/root/fakepath";
                 Assert.AreEqual(expected, actual);
 
                 childrenDef = new ChildrenDefinition {PathUsage = PathUsageMode.InFolderAnd, ContentQuery = "Id:>0"};
@@ -1237,7 +1229,7 @@ Id:<42 .QUICK";
         private string GetQueryString<T>(IQueryable<T> queryable)
         {
             var cs = queryable.Provider as ContentSet<T>;
-            return cs.GetCompiledQuery().ToString();
+            return cs?.GetCompiledQuery().ToString();
         }
 
         private void SaveNode(Node node)

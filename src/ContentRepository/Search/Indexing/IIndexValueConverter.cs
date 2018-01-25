@@ -3,7 +3,7 @@
     /// <summary>
     /// Defines a generic interface for a converter that can decode the value stored in the index.
     /// </summary>
-    public interface IIndexValueConverter<T>
+    public interface IIndexValueConverter<out T>
     {
         /// <summary>
         /// Returns withe the decoded value that stored in the index.

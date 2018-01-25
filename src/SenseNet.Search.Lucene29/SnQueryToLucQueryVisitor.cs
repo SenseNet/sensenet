@@ -30,6 +30,7 @@ namespace SenseNet.Search.Lucene29
         private readonly Stack<Query> _queryTree = new Stack<Query>();
 
         private TermAttribute _termAtt;
+        // ReSharper disable once NotAccessedField.Local
         private readonly IQueryContext _context;
         private readonly Analyzer _masterAnalyzer;
 

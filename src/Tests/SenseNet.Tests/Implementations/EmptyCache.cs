@@ -9,6 +9,7 @@ namespace SenseNet.Tests.Implementations
 {
     public class EmptyCache : ICache
     {
+        // ReSharper disable once CollectionNeverUpdated.Local
         private readonly IDictionary _emptyCache = new Dictionary<string, object>();
 
         public IEnumerator GetEnumerator()
@@ -25,14 +26,8 @@ namespace SenseNet.Tests.Implementations
 
         public object this[string key]
         {
-            get
-            {
-                return null;
-            }
-            set
-            { 
-                // do nothing
-            }
+            get => null;
+            set { /* do nothing */ }
         }
 
         public object Get(string key)

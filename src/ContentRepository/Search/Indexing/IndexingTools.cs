@@ -73,46 +73,65 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
                 nsmgr.AddNamespace("x", ContentType.ContentDefinitionXmlNamespace);
                 xml.Load(contentType.Binary.GetStream());
-                foreach (System.Xml.XmlElement fieldElement in xml.SelectNodes("/x:ContentType/x:Fields/x:Field", nsmgr))
+                var fieldNodes = xml.SelectNodes("/x:ContentType/x:Fields/x:Field", nsmgr);
+                if (fieldNodes != null)
                 {
-                    var typeAttr = fieldElement.Attributes["type"] ?? fieldElement.Attributes["handler"];
-
-                    var info = new ExplicitPerFieldIndexingInfo
+                    foreach (System.Xml.XmlElement fieldElement in fieldNodes)
                     {
-                        ContentTypeName = contentType.Name,
-                        ContentTypePath = contentType.Path.Replace(Repository.ContentTypesFolderPath + "/", String.Empty),
-                        FieldName = fieldElement.Attributes["name"].Value,
-                        FieldType = typeAttr.Value
-                    };
+                        var typeAttr = fieldElement.Attributes["type"] ?? fieldElement.Attributes["handler"];
 
-                    var fieldTitleElement = fieldElement.SelectSingleNode("x:DisplayName", nsmgr);
-                    if (fieldTitleElement != null)
-                        info.FieldTitle = fieldTitleElement.InnerText;
-
-                    var fieldDescElement = fieldElement.SelectSingleNode("x:Description", nsmgr);
-                    if (fieldDescElement != null)
-                        info.FieldDescription = fieldDescElement.InnerText;
-
-                    var hasIndexing = false;
-                    foreach (System.Xml.XmlElement element in fieldElement.SelectNodes("x:Indexing/*", nsmgr))
-                    {
-                        if (!Enum.TryParse(element.InnerText, out IndexFieldAnalyzer analyzer))
-                            analyzer = IndexFieldAnalyzer.Default;
-                        hasIndexing = true;
-                        switch (element.LocalName)
+                        var info = new ExplicitPerFieldIndexingInfo
                         {
-                            case "Analyzer": info.Analyzer = analyzer; break;
-                            case "IndexHandler": info.IndexHandler = element.InnerText.Replace("SenseNet.Search", "."); break;
-                            case "Mode": info.IndexingMode = element.InnerText; break;
-                            case "Store": info.IndexStoringMode = element.InnerText; break;
-                            case "TermVector": info.TermVectorStoringMode = element.InnerText; break;
+                            ContentTypeName = contentType.Name,
+                            ContentTypePath =
+                                contentType.Path.Replace(Repository.ContentTypesFolderPath + "/", String.Empty),
+                            FieldName = fieldElement.Attributes["name"].Value,
+                            FieldType = typeAttr.Value
+                        };
+
+                        var fieldTitleElement = fieldElement.SelectSingleNode("x:DisplayName", nsmgr);
+                        if (fieldTitleElement != null)
+                            info.FieldTitle = fieldTitleElement.InnerText;
+
+                        var fieldDescElement = fieldElement.SelectSingleNode("x:Description", nsmgr);
+                        if (fieldDescElement != null)
+                            info.FieldDescription = fieldDescElement.InnerText;
+
+                        var hasIndexing = false;
+                        var indexingNodes = fieldElement.SelectNodes("x:Indexing/*", nsmgr);
+                        if (indexingNodes != null)
+                        {
+                            foreach (System.Xml.XmlElement element in indexingNodes)
+                            {
+                                if (!Enum.TryParse(element.InnerText, out IndexFieldAnalyzer analyzer))
+                                    analyzer = IndexFieldAnalyzer.Default;
+                                hasIndexing = true;
+                                switch (element.LocalName)
+                                {
+                                    case "Analyzer":
+                                        info.Analyzer = analyzer;
+                                        break;
+                                    case "IndexHandler":
+                                        info.IndexHandler = element.InnerText.Replace("SenseNet.Search", ".");
+                                        break;
+                                    case "Mode":
+                                        info.IndexingMode = element.InnerText;
+                                        break;
+                                    case "Store":
+                                        info.IndexStoringMode = element.InnerText;
+                                        break;
+                                    case "TermVector":
+                                        info.TermVectorStoringMode = element.InnerText;
+                                        break;
+                                }
+                            }
                         }
+
+                        fieldCount++;
+
+                        if (hasIndexing || includeNonIndexedFields)
+                            infoArray.Add(info);
                     }
-
-                    fieldCount++;
-
-                    if (hasIndexing || includeNonIndexedFields)
-                        infoArray.Add(info);
                 }
 
                 // content type without fields

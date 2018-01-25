@@ -911,14 +911,15 @@ namespace SenseNet.Search.Querying.Parser
 
             return new SimplePredicate(currentField.Name, parsedValue, value.FuzzyValue);
         }
-        private IndexValue ParseValue(string fieldName, QueryFieldValue value, IQueryContext context, bool throwIfError = true)
+
+        private IndexValue ParseValue(string fieldName, QueryFieldValue value, IQueryContext context)
         {
             if (value == null)
                 return null;
 
             var parser = context.GetPerFieldIndexingInfo(fieldName);
             var parsed = parser.IndexFieldHandler.Parse(value.StringValue);
-            if(parsed == null)
+            if (parsed == null)
                 throw ParserError($"Cannot parse the value. FieldName {fieldName}, Parser: {parser.IndexFieldHandler.GetType().Name}");
 
             return parsed;

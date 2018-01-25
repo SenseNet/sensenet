@@ -5,11 +5,11 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
     [Serializable]
     internal abstract class TreeIndexingActivity : IndexingActivityBase
     {
-        public string TreeRoot => this.Path;
+        public string TreeRoot => Path;
 
         public override string ToString()
         {
-            return $"{this.GetType().Name}: [{this.NodeId}/{this.VersionId}], {this.Path}";
+            return $"{GetType().Name}: [{NodeId}/{VersionId}], {Path}";
         }
 
         protected override string GetExtension()

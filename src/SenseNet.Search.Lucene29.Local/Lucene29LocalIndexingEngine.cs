@@ -34,19 +34,6 @@ namespace SenseNet.Search.Lucene29
             SetEventhandlers();
         }
 
-        //UNDONE: NOREF: find usages: Lucene29LocalIndexingEngine constructor for forceReopenFrequency.
-        public Lucene29LocalIndexingEngine(TimeSpan forceReopenFrequency)
-        {
-            var indexDirectory = new IndexDirectory(null, SearchManager.IndexDirectoryPath);
-
-            LuceneSearchManager = new LuceneSearchManager(indexDirectory, Notification.NotificationSender)
-            {
-                ForceReopenFrequency = forceReopenFrequency
-            };
-
-            SetEventhandlers();
-        }
-
         private void SetEventhandlers()
         {
             // set up event handlers
@@ -80,7 +67,7 @@ namespace SenseNet.Search.Lucene29
 
         public void ShutDown()
         {
-            //UNDONE: CommitState: write the indexing status before shutdown?
+            //TODO: CommitState: maybe need to write the final state in the distributed environment.
             // IndexManager.GetCurrentIndexingActivityStatus()
             // WriteActivityStatusToIndex
             LuceneSearchManager.ShutDown();

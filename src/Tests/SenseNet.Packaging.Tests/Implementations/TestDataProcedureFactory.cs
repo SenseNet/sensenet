@@ -15,9 +15,11 @@ namespace SenseNet.Packaging.Tests.Implementations
 
         public IDataProcedure CreateProcedure()
         {
-            var proc = new TestDataProcedure();
-            proc.TraceList = Procedures;
-            proc.ExpectedCommandResult = ExpectedCommandResult;
+            var proc = new TestDataProcedure
+            {
+                TraceList = Procedures,
+                ExpectedCommandResult = ExpectedCommandResult
+            };
             return proc;
         }
     }
