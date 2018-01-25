@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Web;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -11,17 +9,14 @@ using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Portal.Virtualization;
-using SenseNet.Search;
-using SenseNet.ContentRepository.Linq;
-using System.Linq.Expressions;
-using System.Net.Http;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.Tools;
+// ReSharper disable CheckNamespace
+// ReSharper disable ArrangeThisQualifier
 
 namespace SenseNet.Portal.OData
 {
@@ -30,46 +25,40 @@ namespace SenseNet.Portal.OData
     /// </summary>
     public class ODataHandler : IHttpHandler
     {
-        internal static IActionResolver ActionResolver { get; private set; }
+        internal static IActionResolver ActionResolver { get; }
 
         internal static readonly string[] HeadFieldNames = new[] { "Id", "Name", "DisplayName", "Icon", "CreationDate", "ModificationDate", "CreatedBy", "ModifiedBy" };
         internal static readonly List<string> DisabledFieldNames = new List<string>(new[] { "TypeIs", "InTree", "InFolder", "NodeType", "Rate"/*, "VersioningMode", "ApprovingMode", "RateAvg", "RateCount"*/ });
         internal static readonly List<string> DeferredFieldNames = new List<string>(new[] { "AllowedChildTypes", "EffectiveAllowedChildTypes" });
         internal static readonly List<string> AllowedMethodNamesWithoutContent = new List<string>(new[] { "PATCH", "PUT", "POST", "DELETE" });
 
-        private static List<JsonConverter> _jsonConverters;
-        internal static List<JsonConverter> JsonConverters { get { return _jsonConverters; } }
-        private static List<FieldConverter> _fieldConverters;
-        internal static List<FieldConverter> FieldConverters { get { return _fieldConverters; } }
+        internal static List<JsonConverter> JsonConverters { get; }
+        internal static List<FieldConverter> FieldConverters { get; }
 
         static ODataHandler()
         {
-            _jsonConverters = new List<JsonConverter>();
-            _jsonConverters.Add(new Newtonsoft.Json.Converters.VersionConverter());
-            _fieldConverters = new List<FieldConverter>();
+            JsonConverters = new List<JsonConverter> {new Newtonsoft.Json.Converters.VersionConverter()};
+            FieldConverters = new List<FieldConverter>();
             var fieldConverterTypes = TypeResolver.GetTypesByBaseType(typeof(FieldConverter));
             foreach (var fieldConverterType in fieldConverterTypes)
             {
                 var fieldConverter = (FieldConverter)Activator.CreateInstance(fieldConverterType);
-                _jsonConverters.Add(fieldConverter);
-                _fieldConverters.Add(fieldConverter);
+                JsonConverters.Add(fieldConverter);
+                FieldConverters.Add(fieldConverter);
             }
 
             ActionResolver = new DefaultActionResolver();
         }
 
-        internal static readonly DateTime BASEDATE = new DateTime(1970, 1, 1);
-        internal const string REQUESTKEY_MODEL = "models";
-        internal const string PROPERTY_ACTIONS = "Actions";
-        internal const string PROPERTY_BINARY = "Binary";
-        internal const int EXPANSIONLIMIT = Int32.MaxValue;
+        internal static readonly DateTime BaseDate = new DateTime(1970, 1, 1);
+        internal const string ModelRequestKeyName = "models";
+        internal const string ActionsPropertyName = "Actions";
+        internal const string BinaryPropertyName = "Binary";
+        internal const int ExpansionLimit = int.MaxValue - 1;
 
         /// <inheritdoc select="summary" />
         /// <remarks>Returns with false in this implementation.</remarks>
-        public bool IsReusable
-        {
-            get { return false; }
-        }
+        public bool IsReusable => false;
 
         internal ODataRequest ODataRequest { get; private set; }
 
@@ -130,7 +119,7 @@ namespace SenseNet.Portal.OData
                     return;
                 }
 
-                JObject model = null;
+                JObject model;
                 switch (httpMethod)
                 {
                     case "GET":
@@ -226,8 +215,7 @@ namespace SenseNet.Portal.OData
                         else
                         {
                             content = LoadContentOrVirtualChild(odataReq);
-                            if (content != null)
-                                content.Delete();
+                            content?.Delete();
                         }
                         break;
                 }
@@ -236,14 +224,14 @@ namespace SenseNet.Portal.OData
             {
                 var oe = new ODataException(ODataExceptionCode.ResourceNotFound, e);
 
-                formatter.WriteErrorResponse(context, oe);
+                formatter?.WriteErrorResponse(context, oe);
             }
             catch (ODataException e)
             {
                 if (e.HttpStatusCode == 500)
                     SnLog.WriteException(e);
 
-                formatter.WriteErrorResponse(context, e);
+                formatter?.WriteErrorResponse(context, e);
             }
             catch (SenseNetSecurityException e)
             {
@@ -265,7 +253,7 @@ namespace SenseNet.Portal.OData
 
                 SnLog.WriteException(oe);
 
-                formatter.WriteErrorResponse(context, oe);
+                formatter?.WriteErrorResponse(context, oe);
             }
             catch (InvalidContentActionException ex)
             {
@@ -274,20 +262,20 @@ namespace SenseNet.Portal.OData
                     oe.ErrorCode = Enum.GetName(typeof(InvalidContentActionReason), ex.Reason);
 
                 // it is unnecessary to log this exception as this is not a real error
-                formatter.WriteErrorResponse(context, oe);
+                formatter?.WriteErrorResponse(context, oe);
             }
             catch (ContentRepository.Storage.Data.NodeAlreadyExistsException nae)
             {
                 var oe = new ODataException(ODataExceptionCode.ContentAlreadyExists, nae);
 
-                formatter.WriteErrorResponse(context, oe);
+                formatter?.WriteErrorResponse(context, oe);
             }
             catch (System.Threading.ThreadAbortException tae)
             {
                 if (!context.Response.IsRequestBeingRedirected)
                 {
                     var oe = new ODataException(ODataExceptionCode.RequestError, tae);
-                    formatter.WriteErrorResponse(context, oe);
+                    formatter?.WriteErrorResponse(context, oe);
                 }
                 // specific redirect response so do nothing
             }
@@ -297,7 +285,7 @@ namespace SenseNet.Portal.OData
 
                 SnLog.WriteException(oe);
 
-                formatter.WriteErrorResponse(context, oe);
+                formatter?.WriteErrorResponse(context, oe);
             }
             finally
             {
@@ -335,11 +323,9 @@ namespace SenseNet.Portal.OData
             var jreader = new JsonTextReader(new StringReader(models));
             var deserialized = serializer.Deserialize(jreader);
 
-            var jObject = deserialized as JObject;
-            if (jObject != null)
+            if (deserialized is JObject jObject)
                 return jObject;
-            var jArray = deserialized as JArray;
-            if (jArray != null)
+            if (deserialized is JArray jArray)
                 return jArray[0] as JObject;
 
             throw new SnNotSupportedException();
@@ -406,17 +392,10 @@ namespace SenseNet.Portal.OData
 
         // ==============================================================================================================
 
-        private static Exception GetInvalidFormatOptionException()
-        {
-            var availableFormatterNames = String.Join(", ", ODataFormatter.FormatterTypes.Keys.Select(s => "\"" + s + "\""));
-            return new ODataException(SNSR.Exceptions.OData.InvalidFormatOption, ODataExceptionCode.InvalidFormatParameter);
-        }
-
         internal static Content LoadContentByVersionRequest(string path)
         {
             // load content by version if the client provided the version string
-            VersionNumber version;
-            return PortalContext.Current != null && !string.IsNullOrEmpty(PortalContext.Current.VersionRequest) && VersionNumber.TryParse(PortalContext.Current.VersionRequest, out version)
+            return PortalContext.Current != null && !string.IsNullOrEmpty(PortalContext.Current.VersionRequest) && VersionNumber.TryParse(PortalContext.Current.VersionRequest, out var version)
                 ? Content.Load(path, version)
                 : Content.Load(path);
         }
@@ -445,14 +424,14 @@ namespace SenseNet.Portal.OData
 
                 if (allowedChildTypeNames is AllContentTypeNames)
                 {
-                    contentTypeName = typeof(SenseNet.ContentRepository.File).Name;
+                    contentTypeName = typeof(ContentRepository.File).Name;
                 }
                 else
                 {
                     var allowedContentTypeNames = parent.GetAllowedChildTypeNames().ToArray();
                     contentTypeName = allowedContentTypeNames.FirstOrDefault();
                     if (string.IsNullOrEmpty(contentTypeName))
-                        contentTypeName = typeof(SenseNet.ContentRepository.File).Name;
+                        contentTypeName = typeof(ContentRepository.File).Name;
                 }
             }
 
@@ -495,8 +474,7 @@ namespace SenseNet.Portal.OData
                 // try to load a virtual content
                 var parentPath = RepositoryPath.GetParentPath(odataReq.RepositoryPath);
                 var name = RepositoryPath.GetFileName(odataReq.RepositoryPath);
-                var vp = Node.LoadNode(parentPath) as ISupportsVirtualChildren;
-                if (vp != null)
+                if (Node.LoadNode(parentPath) is ISupportsVirtualChildren vp)
                     content = vp.GetChild(name);
             }
 
@@ -506,7 +484,7 @@ namespace SenseNet.Portal.OData
         private void ResetContent(Content content)
         {
             // Create "dummy" content
-            var newContent = SystemAccount.Execute(() => { return Content.CreateNew(content.ContentType.Name, content.ContentHandler.Parent, null); });
+            var newContent = SystemAccount.Execute(() => Content.CreateNew(content.ContentType.Name, content.ContentHandler.Parent, null));
 
             Aspect[] aspects = null;
             if (content.ContentHandler.HasProperty(GenericContent.ASPECTS))
@@ -515,8 +493,7 @@ namespace SenseNet.Portal.OData
                 aspects = content.ContentHandler.GetReferences(GenericContent.ASPECTS).Cast<Aspect>().ToArray();
 
                 // Reset aspect fields
-                var gc = content.ContentHandler as GenericContent;
-                if (gc != null)
+                if (content.ContentHandler is GenericContent gc)
                 {
                     content.RemoveAllAspects();
                     gc.AspectData = null;
@@ -579,8 +556,7 @@ namespace SenseNet.Portal.OData
                 {
                     if (!field.ReadOnly)
                     {
-                        var jvalue = prop.Value as JValue;
-                        if (jvalue != null)
+                        if (prop.Value is JValue jvalue)
                         {
                             if (field is IntegerField)
                             {
@@ -613,16 +589,14 @@ namespace SenseNet.Portal.OData
                             continue;
                         }
 
-                        var ovalue = prop.Value as JObject;
-                        if (ovalue != null)
+                        if (prop.Value is JObject)
                         {
                             //TODO: ODATA: setting field when posted value is JObject.
                             // field.SetData(jvalue.Value);
                             continue;
                         }
 
-                        var avalue = prop.Value as JArray;
-                        if (avalue != null)
+                        if (prop.Value is JArray avalue)
                         {
                             if (field is ReferenceField)
                             {
@@ -636,12 +610,11 @@ namespace SenseNet.Portal.OData
                                 var fsetting = field.FieldSetting as ReferenceFieldSetting;
                                 var nodes = refValues.Select(rv => rv.Type == JTokenType.Integer ? Node.LoadNode(Convert.ToInt32(rv.ToString())) : Node.LoadNode(rv.ToString()));
 
-                                if (fsetting.AllowMultiple.HasValue && fsetting.AllowMultiple.Value)
+                                if (fsetting?.AllowMultiple != null && fsetting.AllowMultiple.Value)
                                     field.SetData(nodes);
                                 else
                                     field.SetData(nodes.First());
 
-                                continue;
                             }
                             else if (field is ChoiceField)
                             {
@@ -649,10 +622,11 @@ namespace SenseNet.Portal.OData
                                 var list = new List<string>();
                                 foreach (var token in avalue)
                                 {
-                                    if (token is JValue)
-                                        list.Add(((JValue)token).Value.ToString());
+                                    if (token is JValue value)
+                                        list.Add(value.Value.ToString());
                                     else
-                                        throw new Exception(string.Format("Token type {0} for field {1} (type {2}) is not supported.", token.GetType().Name, field.Name, field.GetType().Name));
+                                        throw new Exception(
+                                            $"Token type {token.GetType().Name} for field {field.Name} (type {field.GetType().Name}) is not supported.");
                                 }
 
                                 field.SetData(list);
@@ -669,8 +643,7 @@ namespace SenseNet.Portal.OData
 
         private T GetPropertyValue<T>(string name, JObject model)
         {
-            var jvalue = model[name] as JValue;
-            if (jvalue != null)
+            if (model[name] is JValue jvalue)
                 return (T)jvalue.Value;
             return default(T);
         }
@@ -697,7 +670,7 @@ namespace SenseNet.Portal.OData
         /// <returns>An OData path.</returns>
         public static string GetODataPath(string parentPath, string name)
         {
-            return string.Format("{0}('{1}')", parentPath, name);
+            return $"{parentPath}('{name}')";
         }
     }
 

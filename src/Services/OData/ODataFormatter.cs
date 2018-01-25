@@ -13,12 +13,15 @@ using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository.Linq;
 using System.Web;
 using System.Collections;
+using System.Diagnostics;
 using System.Linq.Expressions;
 using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search.Querying;
 using SenseNet.Tools;
 using Utility = SenseNet.Tools.Utility;
+// ReSharper disable CheckNamespace
+// ReSharper disable ArrangeThisQualifier
 
 namespace SenseNet.Portal.OData
 {
@@ -42,7 +45,7 @@ namespace SenseNet.Portal.OData
         /// </summary>
         protected internal PortalContext PortalContext { get; protected set; }
 
-        private static object _formatterTypeLock = new object();
+        private static readonly object FormatterTypeLock = new object();
         private static Dictionary<string, Type> _formatterTypes;
         internal static Dictionary<string, Type> FormatterTypes
         {
@@ -50,7 +53,7 @@ namespace SenseNet.Portal.OData
             {
                 if (_formatterTypes == null)
                 {
-                    lock(_formatterTypeLock)
+                    lock(FormatterTypeLock)
                     {
                         if (_formatterTypes == null)
                         {
@@ -85,15 +88,14 @@ namespace SenseNet.Portal.OData
             var formatName = portalContext.OwnerHttpContext.Request["$format"];
             if (string.IsNullOrEmpty(formatName))
                 formatName = odataReq == null ? "json" : odataReq.IsMetadataRequest ? "xml" : "json";
-            else if (formatName != null)
+            else
                 formatName = formatName.ToLower();
 
             return Create(formatName, portalContext);
         }
         internal static ODataFormatter Create(string formatName, PortalContext portalContext)
         {
-            Type formatterType;
-            if (!FormatterTypes.TryGetValue(formatName, out formatterType))
+            if (!FormatterTypes.TryGetValue(formatName, out var formatterType))
                 return null;
 
             var formatter = (ODataFormatter)Activator.CreateInstance(formatterType);
@@ -162,8 +164,7 @@ namespace SenseNet.Portal.OData
         }
         internal void WriteSingleContent(Content content, PortalContext portalContext)
         {
-            var resp = portalContext.OwnerHttpContext.Response;
-            var fields = CreateFieldDictionary(content, portalContext, false);
+            var fields = CreateFieldDictionary(content, false);
             WriteSingleContent(portalContext, fields);
         }
         /// <summary>
@@ -204,8 +205,7 @@ namespace SenseNet.Portal.OData
             }
 
 
-            int count;
-            var contents = ProcessOperationQueryResponse(chdef, portalContext, req, out count);
+            var contents = ProcessOperationQueryResponse(chdef, req, out var count);
             if (req.CountOnly)
                 WriteCount(portalContext, count);
             else
@@ -213,53 +213,52 @@ namespace SenseNet.Portal.OData
         }
         private void WriteMultiRefContents(object references, PortalContext portalContext, ODataRequest req)
         {
-            var resp = portalContext.OwnerHttpContext.Response;
+            if (references == null)
+                return;
 
-            if (references != null)
+            var node = references as Node;
+            var projector = Projector.Create(req, true);
+            if (node != null)
             {
-                Node node = references as Node;
-                var projector = Projector.Create(req, true);
-                if (node != null)
+                var contents = new List<Dictionary<string, object>>
                 {
+                    CreateFieldDictionary(Content.Create(node), projector)
+                };
+                //TODO: ODATA: multiref item: get available types from reference property
+                WriteMultipleContent(portalContext, contents, 1);
+            }
+            else
+            {
+                if (references is IEnumerable enumerable)
+                {
+                    var skipped = 0;
+                    var allcount = 0;
+                    var count = 0;
+                    var realcount = 0;
                     var contents = new List<Dictionary<string, object>>();
-                    //TODO: ODATA: multiref item: get available types from reference property
-                    contents.Add(CreateFieldDictionary(Content.Create(node), portalContext, projector));
-                    WriteMultipleContent(portalContext, contents, 1);
-                }
-                else
-                {
-                    var enumerable = references as System.Collections.IEnumerable;
-                    if (enumerable != null)
+                    if (req.HasFilter)
                     {
-                        var skipped = 0;
-                        var allcount = 0;
-                        var count = 0;
-                        var realcount = 0;
-                        var contents = new List<Dictionary<string, object>>();
-                        if (req.HasFilter)
+                        var filtered = new FilteredEnumerable(enumerable, (LambdaExpression)req.Filter, req.Top, req.Skip);
+                        foreach (Node item in filtered)
+                            contents.Add(CreateFieldDictionary(Content.Create(item), projector));
+                        allcount = filtered.AllCount;
+                        realcount = contents.Count;
+                    }
+                    else
+                    {
+                        foreach (Node item in enumerable)
                         {
-                            var filtered = new FilteredEnumerable(enumerable, (System.Linq.Expressions.LambdaExpression)req.Filter, req.Top, req.Skip);
-                            foreach (Node item in filtered)
-                                contents.Add(CreateFieldDictionary(Content.Create(item), portalContext, projector));
-                            allcount = filtered.AllCount;
-                            realcount = contents.Count;
-                        }
-                        else
-                        {
-                            foreach (Node item in enumerable)
+                            allcount++;
+                            if (skipped++ < req.Skip)
+                                continue;
+                            if (req.Top == 0 || count++ < req.Top)
                             {
-                                allcount++;
-                                if (skipped++ < req.Skip)
-                                    continue;
-                                if (req.Top == 0 || count++ < req.Top)
-                                {
-                                    contents.Add(CreateFieldDictionary(Content.Create(item), portalContext, projector));
-                                    realcount++;
-                                }
+                                contents.Add(CreateFieldDictionary(Content.Create(item), projector));
+                                realcount++;
                             }
                         }
-                        WriteMultipleContent(portalContext, contents, req.InlineCount == InlineCount.AllPages ? allcount : realcount);
                     }
+                    WriteMultipleContent(portalContext, contents, req.InlineCount == InlineCount.AllPages ? allcount : realcount);
                 }
             }
         }
@@ -267,19 +266,17 @@ namespace SenseNet.Portal.OData
         {
             if (references != null)
             {
-                Node node = references as Node;
-                if (node != null)
+                if (references is Node node)
                 {
-                    WriteSingleContent(portalContext, CreateFieldDictionary(Content.Create(node), portalContext, false));
+                    WriteSingleContent(portalContext, CreateFieldDictionary(Content.Create(node), false));
                 }
                 else
                 {
-                    var enumerable = references as System.Collections.IEnumerable;
-                    if (enumerable != null)
+                    if (references is IEnumerable enumerable)
                     {
                         foreach (Node item in enumerable)
                         {
-                            WriteSingleContent(portalContext, CreateFieldDictionary(Content.Create(item), portalContext, false));
+                            WriteSingleContent(portalContext, CreateFieldDictionary(Content.Create(item), false));
                             break;
                         }
                     }
@@ -310,17 +307,15 @@ namespace SenseNet.Portal.OData
                 return;
             }
 
-            if (propertyName == ODataHandler.PROPERTY_ACTIONS)
+            if (propertyName == ODataHandler.ActionsPropertyName)
             {
                 WriteActionsProperty(portalContext, ODataTools.GetActionItems(content, req).ToArray(), rawValue);
                 return;
             }
 
-            Field field;
-            if (content.Fields.TryGetValue(propertyName, out field))
+            if (content.Fields.TryGetValue(propertyName, out var field))
             {
-                var refField = field as ReferenceField;
-                if (refField != null)
+                if (field is ReferenceField refField)
                 {
                     var refFieldSetting = refField.FieldSetting as ReferenceFieldSetting;
                     var isMultiRef = true;
@@ -335,9 +330,8 @@ namespace SenseNet.Portal.OData
                         WriteSingleRefContent(refField.GetData(), portalContext);
                     }
                 }
-                else if (field is AllowedChildTypesField)
+                else if (field is AllowedChildTypesField actField)
                 {
-                    var actField = field as AllowedChildTypesField;
                     WriteMultiRefContents(actField.GetData(), portalContext, req);
                 }
                 else if (!rawValue)
@@ -369,7 +363,7 @@ namespace SenseNet.Portal.OData
             var error = new Error
             {
                 Code = string.IsNullOrEmpty(oe.ErrorCode) ? Enum.GetName(typeof(ODataExceptionCode), oe.ODataExceptionCode) : oe.ErrorCode,
-                ExceptionType = oe.InnerException == null ? oe.GetType().Name : oe.InnerException.GetType().Name,
+                ExceptionType = oe.InnerException?.GetType().Name ?? oe.GetType().Name,
                 Message = new ErrorMessage
                 {
                     Lang = System.Globalization.CultureInfo.CurrentUICulture.Name.ToLower(),
@@ -409,7 +403,6 @@ new StackInfo
         /// <param name="odataReq"></param>
         internal void WriteOperationResult(PortalContext portalContext, ODataRequest odataReq)
         {
-            object response = null;
             var content = ODataHandler.LoadContentByVersionRequest(odataReq.RepositoryPath);
             if (content == null)
                 throw new ContentNotFoundException(string.Format(SNSR.GetString("$Action,ErrorContentNotFound"), odataReq.RepositoryPath));
@@ -432,17 +425,15 @@ new StackInfo
                 throw new InvalidContentActionException("Forbidden action: " + odataReq.PropertyName);
 
             var parameters = GetOperationParameters(action, portalContext.OwnerHttpContext.Request);
-            response = action.Execute(content, parameters);
+            var response = action.Execute(content, parameters);
 
-            var responseAsContent = response as Content;
-            if (responseAsContent != null)
+            if (response is Content responseAsContent)
             {
                 WriteSingleContent(responseAsContent, portalContext);
                 return;
             }
 
-            int count;
-            response = ProcessOperationResponse(response, portalContext, odataReq, out count);
+            response = ProcessOperationResponse(response, odataReq, out var count);
             WriteOperationResult(response, portalContext, odataReq, count);
         }
         /// <summary>
@@ -453,7 +444,6 @@ new StackInfo
         /// <param name="odataReq"></param>
         internal void WriteOperationResult(Stream inputStream, PortalContext portalContext, ODataRequest odataReq)
         {
-            object response = null;
             var content = ODataHandler.LoadContentByVersionRequest(odataReq.RepositoryPath);
 
             if (content == null)
@@ -472,30 +462,26 @@ new StackInfo
                 throw new InvalidContentActionException("Forbidden action: " + odataReq.PropertyName);
 
             var parameters = GetOperationParameters(action, inputStream);
-            response = action.Execute(content, parameters);
+            var response = action.Execute(content, parameters);
 
-            var responseAsContent = response as Content;
-            if (responseAsContent != null)
+            if (response is Content responseAsContent)
             {
                 WriteSingleContent(responseAsContent, portalContext);
                 return;
             }
 
-            int count;
-            response = ProcessOperationResponse(response, portalContext, odataReq, out count);
+            response = ProcessOperationResponse(response, odataReq, out var count);
             WriteOperationResult(response, portalContext, odataReq, count);
         }
         private void WriteOperationResult(object result, PortalContext portalContext, ODataRequest odataReq, int allCount)
         {
-            var content = result as Content;
-            if (content != null)
+            if (result is Content content)
             {
                 WriteSingleContent(content, portalContext);
                 return;
             }
 
-            var enumerable = result as IEnumerable<Content>;
-            if (enumerable != null)
+            if (result is IEnumerable<Content> enumerable)
             {
                 WriteMultiRefContents(enumerable, portalContext, odataReq);
                 return;
@@ -512,36 +498,32 @@ new StackInfo
         /// if the request specifies the total count of the collection ("$inlinecount=allpages"), otherwise the value is null.</param>
         protected abstract void WriteOperationCustomResult(PortalContext portalContext, object result, int? allCount);
 
-        private object ProcessOperationResponse(object response, PortalContext portalContext, ODataRequest odataReq, out int count)
+        private object ProcessOperationResponse(object response, ODataRequest odataReq, out int count)
         {
-            var qdef = response as ChildrenDefinition;
-            if (qdef != null)
-                return ProcessOperationQueryResponse(qdef, portalContext, odataReq, out count);
+            if (response is ChildrenDefinition qdef)
+                return ProcessOperationQueryResponse(qdef, odataReq, out count);
 
-            var coll = response as IEnumerable<Content>;
-            if (coll != null)
-                return ProcessOperationCollectionResponse(coll, portalContext, odataReq, out count);
+            if (response is IEnumerable<Content> coll)
+                return ProcessOperationCollectionResponse(coll, odataReq, out count);
 
-            var dict = response as IDictionary;
-            if (dict != null)
+            if (response is IDictionary dict)
             {
                 count = dict.Count;
                 var targetTypized = new Dictionary<Content, object>();
                 foreach (var item in dict.Keys)
                 {
-                    var content = item as Content;
-                    if (content == null)
+                    if (!(item is Content content))
                         return response;
                     targetTypized.Add(content, dict[content]);
                 }
-                return ProcessOperationDictionaryResponse(targetTypized, portalContext, odataReq, out count);
+                return ProcessOperationDictionaryResponse(targetTypized, odataReq, out count);
             }
 
             // get real count from an enumerable
-            var enumerable = response as IEnumerable;
-            if (enumerable != null)
+            if (response is IEnumerable enumerable)
             {
                 var c = 0;
+                // ReSharper disable once UnusedVariable
                 foreach (var x in enumerable)
                     c++;
                 count = c;
@@ -557,7 +539,7 @@ new StackInfo
                 return false;
             return response;
         }
-        private List<Dictionary<string, object>> ProcessOperationQueryResponse(ChildrenDefinition qdef, PortalContext portalContext, ODataRequest req, out int count)
+        private List<Dictionary<string, object>> ProcessOperationQueryResponse(ChildrenDefinition qdef, ODataRequest req, out int count)
         {
             var cdef = new ChildrenDefinition
             {
@@ -609,7 +591,7 @@ new StackInfo
                     continue;
                 }
 
-                var fields = CreateFieldDictionary(content, portalContext, projector);
+                var fields = CreateFieldDictionary(content, projector);
                 contents.Add(fields);
             }
 
@@ -629,16 +611,15 @@ new StackInfo
 
             return contents;
         }
-        private List<Dictionary<string, object>> ProcessOperationDictionaryResponse(IDictionary<Content, object> input, PortalContext portalContext, ODataRequest req, out int count)
+        private List<Dictionary<string, object>> ProcessOperationDictionaryResponse(IDictionary<Content, object> input, ODataRequest req, out int count)
         {
-            int? totalCount;
-            var x = ProcessODataFilters(input.Keys, portalContext, req, out totalCount);
+            var x = ProcessODataFilters(input.Keys, req, out var totalCount);
 
             var output = new List<Dictionary<string, object>>();
             var projector = Projector.Create(req, true);
             foreach (var content in x)
             {
-                var fields = CreateFieldDictionary(content, portalContext, projector);
+                var fields = CreateFieldDictionary(content, projector);
                 var item = new Dictionary<string, object>
                 {
                     {"key", fields},
@@ -651,16 +632,15 @@ new StackInfo
                 return null;
             return output;
         }
-        private List<Dictionary<string, object>> ProcessOperationCollectionResponse(IEnumerable<Content> inputContents, PortalContext portalContext, ODataRequest req, out int count)
+        private List<Dictionary<string, object>> ProcessOperationCollectionResponse(IEnumerable<Content> inputContents, ODataRequest req, out int count)
         {
-            int? totalCount;
-            var x = ProcessODataFilters(inputContents, portalContext, req, out totalCount);
+            var x = ProcessODataFilters(inputContents, req, out var totalCount);
 
             var outContents = new List<Dictionary<string, object>>();
             var projector = Projector.Create(req, true);
             foreach (var content in x)
             {
-                var fields = CreateFieldDictionary(content, portalContext, projector);
+                var fields = CreateFieldDictionary(content, projector);
                 outContents.Add(fields);
             }
 
@@ -670,13 +650,12 @@ new StackInfo
             return outContents;
         }
 
-        private IEnumerable<Content> ProcessODataFilters(IEnumerable<Content> inputContents, PortalContext portalContext, ODataRequest req, out int? totalCount)
+        private IEnumerable<Content> ProcessODataFilters(IEnumerable<Content> inputContents, ODataRequest req, out int? totalCount)
         {
             var x = inputContents;
             if (req.HasFilter)
             {
-                var y = x as IQueryable<Content>;
-                if (y != null)
+                if (x is IQueryable<Content> y)
                 {
                     x = y.Where((Expression<Func<Content, bool>>)req.Filter);
                 }
@@ -710,21 +689,20 @@ new StackInfo
         private IEnumerable<Content> AddSortToCollectionExpression(IEnumerable<Content> contents, IEnumerable<SortInfo> sort)
         {
             IOrderedEnumerable<Content> sortedContents = null;
+            var contentArray = contents as Content[] ?? contents.ToArray();
             foreach (var sortInfo in sort)
             {
                 if (sortedContents == null)
                 {
-                    if (sortInfo.Reverse)
-                        sortedContents = contents.OrderByDescending(c => c[sortInfo.FieldName]);
-                    else
-                        sortedContents = contents.OrderBy(c => c[sortInfo.FieldName]);
+                    sortedContents = sortInfo.Reverse 
+                        ? contentArray.OrderByDescending(c => c[sortInfo.FieldName])
+                        : contentArray.OrderBy(c => c[sortInfo.FieldName]);
                 }
                 else
                 {
-                    if (sortInfo.Reverse)
-                        sortedContents = sortedContents.ThenByDescending(c => c[sortInfo.FieldName]);
-                    else
-                        sortedContents = sortedContents.ThenBy(c => c[sortInfo.FieldName]);
+                    sortedContents = sortInfo.Reverse
+                        ? sortedContents.ThenByDescending(c => c[sortInfo.FieldName])
+                        : sortedContents.ThenBy(c => c[sortInfo.FieldName]);
                 }
             }
             return sortedContents ?? contents;
@@ -737,6 +715,7 @@ new StackInfo
             if ((action.ActionParameters?.Length ?? 0) == 0)
                 return ActionParameter.EmptyValues;
 
+            Debug.Assert(action.ActionParameters != null, "action.ActionParameters != null");
             var values = new object[action.ActionParameters.Length];
 
             var parameters = action.ActionParameters;
@@ -759,7 +738,7 @@ new StackInfo
                     }
                     else
                     {
-                        var valStr = val.ToString();
+                        var valStr = val;
 
                         if (type == typeof(string))
                         {
@@ -780,6 +759,7 @@ new StackInfo
                             }
                             catch // recompute
                             {
+                                // ignored
                             }
                             if (!parsed)
                             {
@@ -788,7 +768,7 @@ new StackInfo
                                 else if (valStr.StartsWith("\""))
                                     values[i] = GetStringArrayFromString(name, valStr, '"');
                                 else
-                                    values[i] = valStr.Split(',').Select(s => s == null ? s : s.Trim()).ToArray();
+                                    values[i] = valStr.Split(',').Select(s => s?.Trim()).ToArray();
                             }
                         }
                         else
@@ -846,12 +826,14 @@ new StackInfo
                     using (var reader = new StreamReader(inputStream))
                         values[0] = reader.ReadToEnd();
                     if (parameter.Required && values[0] == null)
+                        // ReSharper disable once NotResolvedInText
                         throw new ArgumentNullException("[unnamed]", "Request parameter is required.");
                 }
                 else
                 {
                     values[0] = ODataHandler.Read(inputStream, parameter.Type);
                     if (parameter.Required && values[0] == null)
+                        // ReSharper disable once NotResolvedInText
                         throw new ArgumentNullException("[unnamed]", "Request parameter is required. Type: " + parameter.Type.FullName);
                 }
             }
@@ -863,7 +845,7 @@ new StackInfo
                 {
                     var name = parameter.Name;
                     var type = parameter.Type;
-                    var val = model == null ? null : model[name];
+                    var val = model?[name];
                     if (val == null)
                     {
                         if (parameter.Required)
@@ -895,11 +877,11 @@ new StackInfo
             }
             return values;
         }
-        private Dictionary<string, object> CreateFieldDictionary(Content content, PortalContext portalContext, Projector projector)
+        private Dictionary<string, object> CreateFieldDictionary(Content content, Projector projector)
         {
             return projector.Project(content);
         }
-        private Dictionary<string, object> CreateFieldDictionary(Content content, PortalContext portalContext, bool isCollectionItem)
+        private Dictionary<string, object> CreateFieldDictionary(Content content, bool isCollectionItem)
         {
             var projector = Projector.Create(this.ODataRequest, isCollectionItem, content);
             return projector.Project(content);
@@ -937,8 +919,7 @@ new StackInfo
                 SnTrace.Repository.Write("PERMISSION warning: user {0} does not have access to field '{1}' of {2}.", User.LoggedInUser.Username, field.Name, field.Content.Path);
             }
 
-            var nodeType = data as NodeType;
-            if (nodeType != null)
+            if (data is NodeType nodeType)
                 return nodeType.Name;
             return data;
         }
