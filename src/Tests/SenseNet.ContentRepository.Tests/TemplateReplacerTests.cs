@@ -246,7 +246,8 @@ namespace SenseNet.ContentRepository.Tests
             using (new SystemAccount())
             {
                 SecurityHandler.CreateAclEditor()
-                   .Allow(Identifiers.PortalRootId, User.Administrator.Id, false, PermissionType.PermissionTypes) //UNDONE::() refactor rule?
+                    // ReSharper disable once CoVariantArrayConversion
+                   .Allow(Identifiers.PortalRootId, User.Administrator.Id, false, PermissionType.PermissionTypes)
                    .Apply();
                 User.Administrator.CreationDate = new DateTime(2001, 01, 01);
             }

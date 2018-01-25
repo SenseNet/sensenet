@@ -30,7 +30,8 @@ namespace SenseNet.Search.Lucene29
         private readonly Stack<Query> _queryTree = new Stack<Query>();
 
         private TermAttribute _termAtt;
-        private readonly IQueryContext _context; //UNDONE: check unused variable
+        // ReSharper disable once NotAccessedField.Local
+        private readonly IQueryContext _context;
         private readonly Analyzer _masterAnalyzer;
 
         public SnQueryToLucQueryVisitor(Analyzer masterAnalyzer, IQueryContext context)

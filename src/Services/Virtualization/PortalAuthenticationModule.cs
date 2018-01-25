@@ -217,7 +217,7 @@ namespace SenseNet.Portal.Virtualization
                                 PortalContext.Current.Site != null &&
                                 Group.Administrators.Members.Count() == 1)
                             {
-                                user = User.RegisterUser(fullUsername);
+                                user = RegisterUser(fullUsername);
                             }
                         }
                     }
@@ -273,6 +273,47 @@ namespace SenseNet.Portal.Virtualization
                 var appUser = new PortalPrincipal(user);
                 application.Context.User = appUser;
             }
+        }
+        private static User RegisterUser(string fullUserName)
+        {
+            if (string.IsNullOrEmpty(fullUserName))
+                return null;
+
+            var slashIndex = fullUserName.IndexOf('\\');
+            var domain = fullUserName.Substring(0, slashIndex);
+            var username = fullUserName.Substring(slashIndex + 1);
+
+            var user = User.Load(domain, username);
+
+            if (user != null)
+                return user;
+
+            try
+            {
+                AccessProvider.Current.SetCurrentUser(User.Administrator);
+
+                var dom = Node.Load<Domain>(RepositoryPath.Combine(RepositoryStructure.ImsFolderPath, domain));
+
+                if (dom == null)
+                {
+                    // create domain
+                    dom = new Domain(Repository.ImsFolder) { Name = domain };
+                    dom.Save();
+                }
+
+                // create user
+                user = new User(dom) { Name = username, Enabled = true, FullName = username };
+                user.Save();
+
+                Group.Administrators.AddMember(user);
+            }
+            finally
+            {
+                if (user != null)
+                    AccessProvider.Current.SetCurrentUser(user);
+            }
+
+            return user;
         }
 
         private void OnEndRequest(object sender, EventArgs e)

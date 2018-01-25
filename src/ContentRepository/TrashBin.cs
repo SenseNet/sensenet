@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Workspaces;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
-using SenseNet.ContentRepository.Storage.Schema;
+// ReSharper disable ArrangeStaticMemberQualifier
 
 namespace SenseNet.ContentRepository
 {
@@ -49,8 +47,8 @@ namespace SenseNet.ContentRepository
         [RepositoryProperty("MinRetentionTime", RepositoryDataType.Int)]
         public int MinRetentionTime
         {
-            get { return (int)base.GetProperty("MinRetentionTime"); }
-            set { this["MinRetentionTime"] = value; }
+            get => (int)base.GetProperty("MinRetentionTime");
+            set => this["MinRetentionTime"] = value;
         }
 
         /// <summary>
@@ -62,8 +60,8 @@ namespace SenseNet.ContentRepository
         [RepositoryProperty("SizeQuota", RepositoryDataType.Int)]
         public int SizeQuota
         {
-            get { return (int)base.GetProperty("SizeQuota"); }
-            set { this["SizeQuota"] = value; }
+            get => (int)base.GetProperty("SizeQuota");
+            set => this["SizeQuota"] = value;
         }
 
         /// <summary>
@@ -73,8 +71,8 @@ namespace SenseNet.ContentRepository
         [RepositoryProperty("BagCapacity", RepositoryDataType.Int)]
         public int BagCapacity
         {
-            get { return (int)base.GetProperty("BagCapacity"); }
-            set { this["BagCapacity"] = value; }
+            get => (int)base.GetProperty("BagCapacity");
+            set => this["BagCapacity"] = value;
         }
 
 
@@ -102,11 +100,11 @@ namespace SenseNet.ContentRepository
             switch (name)
             {
                 case "MinRetentionTime":
-                    return this.MinRetentionTime;
+                    return MinRetentionTime;
                 case "SizeQuota":
-                    return this.SizeQuota;
+                    return SizeQuota;
                 case "BagCapacity":
-                    return this.BagCapacity;
+                    return BagCapacity;
                 default:
                     return base.GetProperty(name);
             }
@@ -118,13 +116,13 @@ namespace SenseNet.ContentRepository
             switch (name)
             {
                 case "MinRetentionTime":
-                    this.MinRetentionTime = (int)value;
+                    MinRetentionTime = (int)value;
                     break;
                 case "SizeQuota":
-                    this.SizeQuota = (int)value;
+                    SizeQuota = (int)value;
                     break;
                 case "BagCapacity":
-                    this.BagCapacity = (int)value;
+                    BagCapacity = (int)value;
                     break;
                 default:
                     base.SetProperty(name, value);
@@ -141,13 +139,7 @@ namespace SenseNet.ContentRepository
 
         /// <inheritdoc />
         /// <remarks>In this case returns false.</remarks>
-        public override bool IsTrashable
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public override bool IsTrashable => false;
 
         /// <inheritdoc />
         public override void Delete()
@@ -176,7 +168,7 @@ namespace SenseNet.ContentRepository
         /// If any condition is false, the Content will be deleted permanently.
         /// </summary>
         /// <param name="n">The <see cref="GenericContent"/> instance that will be deleted.</param>
-        public static bool DeleteNode(GenericContent n) //UNDONE: Returns always true.
+        public static bool DeleteNode(GenericContent n)
         {
             if (Instance != null && Instance.IsActive && n.IsTrashable)
             {
@@ -187,15 +179,15 @@ namespace SenseNet.ContentRepository
             }
             else
             {
-                ForceDelete(n);
+                n.ForceDelete();
             }
             return true;
         }
 
-        //UNDONE: TrashBin.ForceDelete: make it obsolete or private.
         /// <summary>
         /// Deletes the content permanently. This method is obsolete, use node.ForceDelete instead.
         /// </summary>
+        [Obsolete("Use ForceDelete method on the given instance.")]
         public static void ForceDelete(GenericContent n)
         {
             SnTrace.Repository.Write("Trashbin: Finally deleting from Repository. NodePath:{0}", n.Path);
@@ -212,7 +204,7 @@ namespace SenseNet.ContentRepository
         public static void Purge()
         {
             foreach (TrashBag b in Instance.Children.OfType<TrashBag>().Where(n => (n.IsPurgeable && n.Security.HasSubTreePermission(PermissionType.Delete))))
-                ForceDelete(b);
+                b.ForceDelete();
         }
 
         /// <summary>
@@ -257,7 +249,7 @@ namespace SenseNet.ContentRepository
             if (trashBag == null || string.IsNullOrEmpty(targetPath))
                 throw new RestoreException(RestoreResultType.Nonedefined);
 
-            targetPath = targetPath.TrimEnd(new [] {'/'});
+            targetPath = targetPath.TrimEnd('/');
 
             var node = trashBag.DeletedContent;
             if (node == null)
@@ -345,22 +337,22 @@ namespace SenseNet.ContentRepository
         private static void AssertRestoreContentType(GenericContent targetParent, Node node)
         {
             if (targetParent == null)
-                throw new ArgumentNullException("targetParent");
+                throw new ArgumentNullException(nameof(targetParent));
             if (node == null)
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
 
             if (!(targetParent is IFolder))
                 throw new RestoreException(RestoreResultType.ForbiddenContentType, targetParent.Path);
 
             var ctNames = targetParent.GetAllowedChildTypeNames().ToArray();
 
-            if (ctNames.Length > 0 && !ctNames.Any(ctName => ctName == node.NodeType.Name))
+            if (ctNames.Length > 0 && ctNames.All(ctName => ctName != node.NodeType.Name))
                 throw new RestoreException(RestoreResultType.ForbiddenContentType, targetParent.Path);
         }
 
         private void AssertTrashBinPath()
         {
-            if (!Name.Equals("Trash") || !this.ParentPath.Equals(Repository.RootPath))
+            if (!Name.Equals("Trash") || !ParentPath.Equals(Repository.RootPath))
                 throw new InvalidOperationException("A TrashBin instance can only be saved under the global location /Root/Trash");
         }
     }

@@ -575,66 +575,25 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Invalidates the pinned visitor user instance.
+        /// Invalidates the pinned instances.
         /// </summary>
-        public static void Reset() //UNDONE: Make obsolete, internal.
+        [Obsolete("Do not use this method anymore.")]
+        public static void Reset()
         {
             _visitor = null;
+            _somebody = null;
         }
 
-        //UNDONE: make private: RegisterUser
         /// <summary>
         /// Technical method for loading or creating an administrator user.
         /// Do not use this method from your code directly.
         /// </summary>
         /// <param name="fullUserName">A username including the domain.</param>
         /// <returns>The loaded or newly created user.</returns>
+        [Obsolete("Do not use this method anymore.", true)]
         public static User RegisterUser(string fullUserName)
         {
-            if (string.IsNullOrEmpty(fullUserName))
-                return null;
-
-            var slashIndex = fullUserName.IndexOf('\\');
-            var domain = fullUserName.Substring(0, slashIndex);
-            var username = fullUserName.Substring(slashIndex + 1);
-
-            var user = User.Load(domain, username);
-
-            if (user != null)
-                return user;
-
-            try
-            {
-                AccessProvider.Current.SetCurrentUser(User.Administrator);
-
-                var dom = Node.Load<Domain>(RepositoryPath.Combine(RepositoryStructure.ImsFolderPath, domain));
-
-                if (dom == null)
-                {
-                    // create domain
-                    dom = new Domain(Repository.ImsFolder) { Name = domain };
-                    dom.Save();
-                }
-
-                // create user
-                user = new User(dom) { Name = username, Enabled = true, FullName = username };
-                user.Save();
-
-                Group.Administrators.AddMember(user);
-            }
-            finally
-            {
-                if (user != null)
-                    AccessProvider.Current.SetCurrentUser(user);
-            }
-
-            return user;
-        }
-
-        // visibility changed
-        internal new void SetCreationDate(DateTime creation)
-        {
-            base.SetCreationDate(creation);
+            throw new NotSupportedException();
         }
 
         // =================================================================================== Profile
