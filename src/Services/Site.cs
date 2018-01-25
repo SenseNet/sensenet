@@ -464,7 +464,6 @@ namespace SenseNet.Portal
             }
         }
 
-        //UNDONE: Site.IsRequested: make this obsolete or private.
         /// <summary>
         /// Returns true if the provided uri belongs to one of the known sites in the Content Repository.
         /// </summary>

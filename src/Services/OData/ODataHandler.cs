@@ -555,17 +555,19 @@ namespace SenseNet.Portal.OData
         /// <param name="model">The modifier JObject instance. Cannot be null.</param>
         public static void UpdateFields(Content content, JObject model)
         {
-            //UNDONE: ArgumentNullException: content
-            //UNDONE: ArgumentNullException: model
-            Field field;
+            if (content == null)
+                throw new ArgumentNullException(nameof(content));
+            if (model == null)
+                throw new ArgumentNullException(nameof(model));
+
             var isNew = content.Id == 0;
             foreach (var prop in model.Properties())
             {
                 if (string.IsNullOrEmpty(prop.Name) || prop.Name == "__ContentType" || prop.Name == "__ContentTemplate" || prop.Name == "Type" || prop.Name == "ContentType")
                     continue;
 
-                var hasField = content.Fields.TryGetValue(prop.Name, out field);
-                if (!hasField && content.SupportsAddingFieldsOnTheFly && prop.Value is JValue && ((JValue)prop.Value).Value != null)
+                var hasField = content.Fields.TryGetValue(prop.Name, out var field);
+                if (!hasField && content.SupportsAddingFieldsOnTheFly && (prop.Value as JValue)?.Value != null)
                 {
                     var value = ((JValue)prop.Value).Value;
                     var fieldSetting = FieldSetting.InferFieldSettingFromType(value.GetType(), prop.Name);

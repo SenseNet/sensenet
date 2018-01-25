@@ -1,13 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
-using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using  SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Events;
-using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
+// ReSharper disable PublicConstructorInAbstractClass
 
 namespace SenseNet.ContentRepository
 {
@@ -46,37 +43,25 @@ namespace SenseNet.ContentRepository
 		[RepositoryProperty("Binary", RepositoryDataType.Binary)]
 		public virtual BinaryData Binary
 		{
-			get { return this.GetBinary("Binary"); }
-			set { this.SetBinary("Binary", value); }
-		}
+			get => GetBinary("Binary");
+            set => SetBinary("Binary", value);
+        }
 	    /// <summary>        
         /// Gets the size of the main binary data of the file.
         /// </summary>
-        public long Size
-        {
-			get
-			{
-                // during the saving process we cannot determine the size of a binary field
-                if (this.SavingState != ContentSavingState.Finalized)
-                    return 0;
+        public long Size => SavingState != ContentSavingState.Finalized ? 0 : GetBinary("Binary").Size;
 
-			    return this.GetBinary("Binary").Size;
-			}
-        }
-        public long FullSize //UNDONE: Make obsolete
-        {
-            //TODO: Create logic to calculate the sum size of all versions
-            get { return -1; }
-		}
+	    [Obsolete("This property and content field will be removed in the future.")]
+        public long FullSize => -1;
 
-        // ================================================================================= Overrides
+	    // ================================================================================= Overrides
 
         /// <inheritdoc />
         /// <remarks>Before saving, checks the type-consistency of an executable file, if this instance is a new one.</remarks>>
 	    public override void Save(NodeSaveSettings settings)
 	    {
             // check new content here for speedup reasons
-            if (this.IsNew)
+            if (IsNew)
 	            AssertExecutableType(this);
 
 	        base.Save(settings);
@@ -104,11 +89,14 @@ namespace SenseNet.ContentRepository
 			switch (name)
 			{
 				case "Binary":
-					return this.Binary;
+					return Binary;
                 case "Size":
-                    return this.Size;
+                    return Size;
                 case "FullSize":
-                    return this.FullSize;
+#pragma warning disable 618
+                    // Need to use even if deprecated because it is protected.
+                    return FullSize;
+#pragma warning restore 618
 				default:
 					return base.GetProperty(name);
 			}
@@ -119,7 +107,7 @@ namespace SenseNet.ContentRepository
 			switch (name)
 			{
 				case "Binary":
-					this.Binary = (BinaryData)value;
+					Binary = (BinaryData)value;
 					break;
 				default:
 					base.SetProperty(name, value);

@@ -21,6 +21,7 @@ namespace SenseNet.Search.Lucene29
                 }
                 return _instance.CreateWriterFrame(writer, writerRestartLock, safe);
             }
+            // ReSharper disable once MemberHidesStaticFromOuterClass
             internal static void WaitForRunOutAllWriters()
             {
                 _instance.WaitForAllReleases();
@@ -31,8 +32,7 @@ namespace SenseNet.Search.Lucene29
                     return;
                 _instance = new FastIndexWriterUsage();
             }
-            //UNDONE: make member or method private if possible
-            internal static void ChangeToSafe()
+            private static void ChangeToSafe()
             {
                 if (_instance is SafeIndexWriterUsage)
                     return;
@@ -42,18 +42,10 @@ namespace SenseNet.Search.Lucene29
             internal abstract IndexWriterFrame CreateWriterFrame(IndexWriter writer, ReaderWriterLockSlim writerRestartLock, bool safe);
             internal abstract void FinalizeFrame(ReaderWriterLockSlim writerRestartLock, bool safe);
             
-            //UNDONE: unused variable?
-            internal bool Waiting;
-
-            //UNDONE: make member or method private if possible
-            internal void WaitForAllReleases()
+            private void WaitForAllReleases()
             {
                 while (RefCount > 0)
-                {
-                    Waiting = true;
                     Signal.WaitOne();
-                }
-                Waiting = false;
             }
         }
         private class FastIndexWriterUsage : IndexWriterUsage

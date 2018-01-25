@@ -1215,7 +1215,7 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
-        [TestMethod] //UNDONE:?? test is failed
+        [TestMethod]
         public void GC_SaveWithLock_RestorePreviousVersion_Administrator()
         {
             Test(() =>
@@ -1249,7 +1249,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(lockedVersion.ToString(), file.Version.ToString());
             });
         }
-        [TestMethod] //UNDONE:?? test is failed
+        [TestMethod]
         public void GC_SaveWithLock_RestorePreviousVersion_SystemUser()
         {
             Test(() =>

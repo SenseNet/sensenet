@@ -129,7 +129,6 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public bool? AllowIncrementalNaming;
 
-        //UNDONE: Node.NodeOperation: setter be protected.
         /// <summary>
         /// Gets the currently running node operation (e.g. Undo checkout or Template creation).
         /// </summary>
@@ -209,7 +208,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Returns the count of children.
         /// </summary>
-        protected int GetChildCount() //UNDONE: Make this obsolete. Use count only query instead.
+        protected int GetChildCount()
         {
             return QueryChildren().Count;
         }
@@ -602,7 +601,6 @@ namespace SenseNet.ContentRepository.Storage
                 SetCreationDate(value);
             }
         }
-        //UNDONE: Node.AssertUserIsOperator: make this private or delete
         /// <summary>
         /// Checks if the current user is a system user or a member of the Operators group
         /// and throws a <see cref="NotSupportedException"/> if not.
@@ -626,7 +624,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Sets the CreationDate of this node to the specified value.
         /// </summary>
-        protected void SetCreationDate(DateTime creation) //UNDONE: Move this code to the setter of the CreationDate
+        private void SetCreationDate(DateTime creation)
         {
             if (creation < DataProvider.Current.DateTimeMinValue)
                 throw SR.Exceptions.General.Exc_LessThanDateTimeMinValue();
@@ -769,7 +767,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Sets the VersionCreationDate of this node version to the specified value.
         /// </summary>
-        protected void SetVersionCreationDate(DateTime creation) //UNDONE: Move this code to the setter of the VersionCreationDate
+        private void SetVersionCreationDate(DateTime creation)
         {
             if (creation < DataProvider.Current.DateTimeMinValue)
                 throw SR.Exceptions.General.Exc_LessThanDateTimeMinValue();
@@ -3520,14 +3518,6 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public virtual void ForceDelete()
         {
-            ForceDelete(this.NodeTimestamp);
-        }
-        //UNDONE: Node.ForceDelete(long timestamp): make this obsolete or private (timestamp parameter is not used).
-        /// <summary>
-        /// This method deletes the <see cref="Node"/> permanently.
-        /// </summary>
-        public virtual void ForceDelete(long timestamp)
-        {
             using (var op = SnTrace.ContentOperation.StartOperation("Node.ForceDelete: Id:{0}, Path:{1}", Id, Path))
             {
                 this.Security.AssertSubtree(PermissionType.Delete);
@@ -3610,6 +3600,14 @@ namespace SenseNet.ContentRepository.Storage
                 }
                 op.Successful = true;
             }
+        }
+        /// <summary>
+        /// This method deletes the <see cref="Node"/> permanently.
+        /// </summary>
+        [Obsolete("Use parameterless ForceDelete method.")]
+        public virtual void ForceDelete(long timestamp)
+        {
+            ForceDelete();
         }
         /// <summary>
         /// Provides a customizable base method for querying all referrers.
@@ -3879,13 +3877,15 @@ namespace SenseNet.ContentRepository.Storage
         /// Occurs before this <see cref="Node"/> instance's permision setting is changed.
         /// </summary>
 #pragma warning disable 67
-        public event CancellableNodeEventHandler PermissionChanging; //UNDONE: Never invoked: Node.PermissionChanging.
+        [Obsolete("Do not use this event anymore.")]
+        public event CancellableNodeEventHandler PermissionChanging;
 #pragma warning restore 67
         /// <summary>
         /// Occurs after this <see cref="Node"/> instance's permision setting is changed.
         /// </summary>
 #pragma warning disable 67
-        public event EventHandler<PermissionChangedEventArgs> PermissionChanged; //UNDONE: Never invoked: Node.PermissionChanged.
+        [Obsolete("Do not use this event anymore.")]
+        public event EventHandler<PermissionChangedEventArgs> PermissionChanged;
 #pragma warning restore 67
 
         //TODO: public event EventHandler Undeleted;

@@ -104,11 +104,10 @@ namespace SenseNet.ContentRepository
         private IDictionary<string, FieldMetadata> _dynamicFieldMetadata = null;
         private bool _dynamicFieldsChanged = false;
 
-        //UNDONE: Settings._xmlIsLoaded: make this private.
         /// <summary>
         /// Returns true if the setting binary is already loaded as an xml.
         /// </summary>
-        protected bool _xmlIsLoaded; 
+        protected bool XmlIsLoaded { get; set; } 
         private XmlDocument _binaryAsXml;
         /// <summary>
         /// Gets data as an <see cref="XmlDocument"/> if it can be parsed, or null.
@@ -117,7 +116,7 @@ namespace SenseNet.ContentRepository
         {
             get
             {
-                if (_binaryAsXml == null && !_xmlIsLoaded)
+                if (_binaryAsXml == null && !XmlIsLoaded)
                 {
                     if (this.Binary.Size > 0)
                     {
@@ -147,7 +146,7 @@ namespace SenseNet.ContentRepository
                         }
                     }
 
-                    _xmlIsLoaded = true;
+                    XmlIsLoaded = true;
                 }
 
                 return _binaryAsXml;
@@ -611,7 +610,7 @@ namespace SenseNet.ContentRepository
             // load cached xml if exists
             _binaryAsXml = (XmlDocument)base.GetCachedData(BINARYXMLKEY);
             if (_binaryAsXml != null)
-                _xmlIsLoaded = true;
+                XmlIsLoaded = true;
 
             // load cached json if exists
             _binaryAsJObject = (JObject)base.GetCachedData(BINARYJSONKEY);
