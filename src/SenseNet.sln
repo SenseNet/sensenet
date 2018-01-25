@@ -453,6 +453,9 @@ Global
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {47EACB0A-5F06-4F1F-9AE5-898D661CCDB1}
 	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7D903DEB-CA0B-43D8-BD9D-820BB1453C4C}
+	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = sensenet.vsmdi
 	EndGlobalSection
