@@ -39,8 +39,8 @@ namespace SenseNet.Search.Lucene29
             if (q is SpanOrQuery spanOrq) return VisitSpanOrQuery(spanOrq);
             if (q is SpanTermQuery spanTermq) return VisitSpanTermQuery(spanTermq);
             if (q is TermQuery termq) return VisitTermQuery(termq);
+            if (q is FieldScoreQuery fieldScoreq) return VisitFieldScoreQuery(fieldScoreq);
             if (q is ValueSourceQuery valueSourceq) return VisitValueSourceQuery(valueSourceq);
-            if (q is FieldScoreQuery fieldScoreq) return VisitFieldScoreQuery(fieldScoreq); //UNDONE: check unreachable code
             // <V2.9.2>
             if (q is TermRangeQuery termRangeq) return VisitTermRangeQuery(termRangeq);
             if (q is NumericRangeQuery numericRangeq) return VisitNumericRangeQuery(numericRangeq);

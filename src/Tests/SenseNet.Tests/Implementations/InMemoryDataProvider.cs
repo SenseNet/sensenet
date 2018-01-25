@@ -1851,8 +1851,8 @@ namespace SenseNet.Tests.Implementations
             }
             public void DeleteBinaryProperty(int versionId, PropertyType propertyType)
             {
-                //UNDONE:?? throw new NotImplementedException();
-                //UNDONE:?? write in memory IBlobStorageMetaDataProvider implementation
+                //TODO: Implement correctly (BlobMetadata + BlobProvider + ProviderSelector + swindles).
+                //throw new NotImplementedException();
                 //BlobStorage.DeleteBinaryProperty(versionId, propertyType.Id);
             }
         }

@@ -62,7 +62,7 @@ namespace  SenseNet.ContentRepository.Schema
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <param name="nodeTypeName">Name of the node type.</param>
-        public ContentType(Node parent, string nodeTypeName) : base(parent, nodeTypeName) //UNDONE: be private
+        public ContentType(Node parent, string nodeTypeName) : base(parent, nodeTypeName)
         {
             Initialize();
         }
@@ -1054,7 +1054,7 @@ namespace  SenseNet.ContentRepository.Schema
         /// Provides information about <see cref="ContentType"/> 
         /// inheritance hierarchy for debugger users only.
         /// </summary>
-        public static string TraceContentSchema() //UNDONE: Be private or internal.
+        internal static string TraceContentSchema()
         {
             return ContentTypeManager.Instance.TraceContentSchema();
         }

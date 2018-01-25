@@ -1326,7 +1326,7 @@ namespace SenseNet.ContentRepository.Tests
 
         /* ============================================================================= BinaryData */
 
-        [TestMethod] //UNDONE:?? test is inconclusive
+        //[TestMethod]
         public void GC_None_CheckoutSaveCheckin_BinaryData()
         {
             Assert.Inconclusive();
@@ -1368,7 +1368,7 @@ namespace SenseNet.ContentRepository.Tests
             //Assert.IsTrue(s == "asdf qwer yxcv 123");
         }
 
-        [TestMethod] //UNDONE:?? test is inconclusive
+        //[TestMethod]
         public void GC_MajorAndMinor_CheckoutSaveCheckin_BinaryData()
         {
             Assert.Inconclusive();
@@ -1410,7 +1410,7 @@ namespace SenseNet.ContentRepository.Tests
             //Assert.IsTrue(s == "asdf qwer yxcv 123");
         }
 
-        [TestMethod] //UNDONE:?? test is inconclusive
+        //[TestMethod]
         public void GC_None_CheckoutSaveCheckin_BinaryData_OfficeProtocolBug()
         {
             Assert.Inconclusive();
@@ -1468,7 +1468,7 @@ namespace SenseNet.ContentRepository.Tests
 
         //-------------------------------------------------------------------- Start multistep save -----------------
 
-        [TestMethod] //UNDONE:?? test is inconclusive
+        //[TestMethod]
         public void GC_MultistepSave_FullFalse()
         {
             Assert.Inconclusive();

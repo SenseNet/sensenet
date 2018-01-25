@@ -187,10 +187,8 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Gets the collection of child <see cref="Node"/>s. The current user needs to have See permission for every instance.
         /// </summary>
-        public IEnumerable<Node> PhysicalChildArray //UNDONE: Be obsolete or remove.
-        {
-            get { return this.GetChildren(); }
-        }
+        [Obsolete("Use GetChildren() method instead.")]
+        public IEnumerable<Node> PhysicalChildArray => this.GetChildren();
 
         /// <summary>
         /// Gets the collection of child <see cref="Node"/>s. The current user need to have See permission for every instance.
@@ -1671,7 +1669,8 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Refreshes the IsLastPublicVersion and IsLastVersion property values.
         /// </summary>
-        public void RefreshVersionInfo() //UNDONE: be obsolete or delete now.
+        [Obsolete("This method will be deleted in the future.")]
+        public void RefreshVersionInfo()
         {
             SetVersionInfo(NodeHead.Get(this.Id));
         }
@@ -2899,7 +2898,7 @@ namespace SenseNet.ContentRepository.Storage
 
         #region // ================================================================================================= Move methods
 
-        //UNDONE: Node.GetChildTypesToAllow(int nodeId): check SQL procedure algorithm
+        //TODO: Node.GetChildTypesToAllow(int nodeId): check SQL procedure algorithm. See issue #259
         /// <summary>
         /// Gets all the types that can be found in a subtree under a node defined by an Id.
         /// </summary>
@@ -2907,7 +2906,7 @@ namespace SenseNet.ContentRepository.Storage
         {
             return DataProvider.Current.LoadChildTypesToAllow(nodeId);
         }
-        //UNDONE: Node.GetChildTypesToAllow(): check SQL procedure algorithm
+        //TODO: Node.GetChildTypesToAllow(): check SQL procedure algorithm. See issue #259
         /// <summary>
         /// Gets all the types that can be found in a subtree under the current node.
         /// </summary>

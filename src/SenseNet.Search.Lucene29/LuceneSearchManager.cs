@@ -444,9 +444,10 @@ namespace SenseNet.Search.Lucene29
             {
                 using (var wrFrame = IndexWriterFrame.Get(_writer, _writerRestartLock, !reopenReader)) // // Commit
                 {
-                    //UNDONE: CommitState: write the status only if it is provided?
-                    //UNDONE: CommitState: cleanup commitState if null
-                    var commitState = state ?? null; //IndexManager.GetCurrentIndexingActivityStatus();
+                    //TODO: CommitState: cleanup commitState if null if needed in the distributed environment.
+                    //var commitState = state ?? IndexManager.GetCurrentIndexingActivityStatus();
+                    var commitState = state;
+
                     var commitStateMessage = commitState?.ToString();
 
                     SnTrace.Index.Write("LM: Committing_writer. commitState: " + commitStateMessage);
