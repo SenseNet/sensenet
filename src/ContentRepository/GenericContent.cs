@@ -517,7 +517,7 @@ namespace SenseNet.ContentRepository
             }
             set
             {
-                var names = value == null ? null : String.Join(" ", value.Select(x => x.Name));
+                var names = value == null ? null : string.Join(" ", value.Select(x => x.Name));
                 this[ALLOWEDCHILDTYPES] = names;
             }
         }
@@ -1094,7 +1094,7 @@ namespace SenseNet.ContentRepository
             }
 
             var contentTypeName = node.NodeType.Name;
-            var nodePath = String.Concat(node.ParentPath, "/", node.Name);
+            var nodePath = string.Concat(node.ParentPath, "/", node.Name);
 
             return new InvalidOperationException(
                 $"Cannot save the content '{nodePath}' because its ancestor does not allow the type '{contentTypeName}'." +
@@ -1118,7 +1118,7 @@ namespace SenseNet.ContentRepository
                 return new InvalidOperationException(
                     $"Cannot move the content '{node.Path}' to '{target.Path}' because target's ancestor " +
                     $"does not allow the type '{contentTypeName}'. Ancestor: {ancestor.Path} ({ancestor.NodeType.Name}). " +
-                    $"Allowed types: {String.Join(", ", target.GetAllowedChildTypeNames())}");
+                    $"Allowed types: {string.Join(", ", target.GetAllowedChildTypeNames())}");
             }
         }
         /// <summary>
@@ -1291,7 +1291,7 @@ namespace SenseNet.ContentRepository
             gc.AllowedChildTypes = remainingTypes;
             gc.Save();
 
-            return String.Empty;
+            return string.Empty;
         }
 
         /// <summary>
