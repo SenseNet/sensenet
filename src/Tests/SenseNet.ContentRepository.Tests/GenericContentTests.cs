@@ -1326,46 +1326,43 @@ namespace SenseNet.ContentRepository.Tests
 
         /* ============================================================================= BinaryData */
 
-        //[TestMethod]
+        [TestMethod]
         public void GC_None_CheckoutSaveCheckin_BinaryData()
         {
-            Assert.Inconclusive();
+            TestWithBlobs(() =>
+            {
+                var container = CreateTestRoot(save: false);
+                container.InheritableVersioningMode = InheritableVersioningType.None;
+                container.Save();
 
-            ////--------------------------------------------- prepare
+                var file = CreateTestFile(container, save: false);
+                var stream = RepositoryTools.GetStreamFromString("asdf qwer yxcv");
+                var binaryData = new BinaryData { ContentType = "text/plain", FileName = "1.txt", Size = stream.Length };
+                binaryData.SetStream(stream);
+                file.SetBinary("Binary", binaryData);
+                file.Save();
 
-            //var folderContent = Content.CreateNew("Folder", TestRoot, Guid.NewGuid().ToString());
-            //var folder = (Folder)folderContent.ContentHandler;
-            //folder.InheritableVersioningMode = InheritableVersioningType.None;
-            //folder.Save();
+                var fileId = file.Id;
 
-            //var fileContent = Content.CreateNew("File", folder, null);
-            //var file = (File)fileContent.ContentHandler;
+                // operation
 
-            //var stream = RepositoryTools.GetStreamFromString("asdf qwer yxcv");
-            //var binaryData = new BinaryData { ContentType = "text/plain", FileName = "1.txt", Size = stream.Length };
-            //binaryData.SetStream(stream);
+                file = Node.Load<File>(fileId);
+                file.CheckOut();
 
-            //file.SetBinary("Binary", binaryData);
-            //file.Save();
+                file = Node.Load<File>(fileId);
+                file.Binary.SetStream(RepositoryTools.GetStreamFromString("asdf qwer yxcv 123"));
+                file.Save();
 
-            //var fileId = file.Id;
+                file = Node.Load<File>(fileId);
+                file.CheckIn();
 
-            ////--------------------------------------------- operating
+                // assertion
 
-            //file = Node.Load<File>(fileId);
-            //file.CheckOut();
+                file = Node.Load<File>(fileId);
+                var s = RepositoryTools.GetStreamString(file.Binary.GetStream());
 
-            //file = Node.Load<File>(fileId);
-            //file.Binary.SetStream(RepositoryTools.GetStreamFromString("asdf qwer yxcv 123"));
-            //file.Save();
-
-            //file = Node.Load<File>(fileId);
-            //file.CheckIn();
-
-            //file = Node.Load<File>(fileId);
-            //var s = RepositoryTools.GetStreamString(file.Binary.GetStream());
-
-            //Assert.IsTrue(s == "asdf qwer yxcv 123");
+                Assert.IsTrue(s == "asdf qwer yxcv 123");
+            });
         }
 
         //[TestMethod]
@@ -1518,10 +1515,11 @@ namespace SenseNet.ContentRepository.Tests
 
         /* ============================================================================= helpers */
 
-        private GenericContent CreateTestRoot()
+        private GenericContent CreateTestRoot(bool save = true)
         {
             var node = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
-            node.Save();
+            if (save)
+                node.Save();
             return node;
         }
 

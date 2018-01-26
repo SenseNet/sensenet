@@ -132,6 +132,29 @@ namespace SenseNet.Tests
             }
         }
 
+        protected void TestWithBlobs(Action callback)
+        {
+            DistributedApplication.Cache.Reset();
+            ContentTypeManager.Reset();
+
+            var builder = CreateRepositoryBuilderForTest();
+
+            Indexing.IsOuterSearchEngineEnabled = true;
+
+            var dataProvider = Configuration.Providers.Instance.DataProvider;
+            var blobStorageMetaDataProvider = new InMemoryBlobStorageMetaDataProvider(dataProvider);
+            var blobProvider = new InMemoryBlobProvider(dataProvider);
+            var blobProviderSelector = new InMemoryBlobProviderSelector(blobProvider);
+            using (Tools.Swindle(typeof(BlobStorageComponents), "DataProvider", blobStorageMetaDataProvider))
+            using (Tools.Swindle(typeof(BlobStorageBase), "ProviderSelector", blobProviderSelector))
+
+            using (Repository.Start(builder))
+            using (new SystemAccount())
+            {
+                callback();
+            }
+        }
+
         protected RepositoryBuilder CreateRepositoryBuilderForTest()
         {
             var dataProvider = new InMemoryDataProvider();

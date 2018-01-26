@@ -1809,6 +1809,9 @@ namespace SenseNet.Tests.Implementations
 
             public void InsertBinaryProperty(BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
             {
+                BlobStorage.InsertBinaryProperty(value, versionId, propertyTypeId, isNewNode);
+                return;
+
                 if (isNewNode)
                     _db.BinaryProperties.RemoveAll(r => r.VersionId == versionId && r.PropertyTypeId == propertyTypeId);
 
@@ -1847,13 +1850,11 @@ namespace SenseNet.Tests.Implementations
 
             public void UpdateBinaryProperty(BinaryDataValue value)
             {
-                throw new NotImplementedException();
+                BlobStorage.UpdateBinaryProperty(value);
             }
             public void DeleteBinaryProperty(int versionId, PropertyType propertyType)
             {
-                //TODO: Implement correctly (BlobMetadata + BlobProvider + ProviderSelector + swindles).
-                //throw new NotImplementedException();
-                //BlobStorage.DeleteBinaryProperty(versionId, propertyType.Id);
+                BlobStorage.DeleteBinaryProperty(versionId, propertyType.Id);
             }
         }
         private class InMemorySchemaWriter : SchemaWriter

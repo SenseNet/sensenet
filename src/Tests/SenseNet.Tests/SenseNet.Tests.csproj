@@ -61,6 +61,7 @@
   <ItemGroup>
     <Compile Include="Implementations\EmptyCache.cs" />
     <Compile Include="Implementations\EverythingAllowedPermissionFilter.cs" />
+    <Compile Include="Implementations\InMemoryBlobProvider.cs" />
     <Compile Include="Implementations\InMemoryDataProvider.cs" />
     <Compile Include="Implementations\InMemoryDataProviderData.cs" />
     <Compile Include="Implementations\InMemoryIndex.cs" />

@@ -369,7 +369,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             BuiltInProvider = new BuiltInBlobProvider();
         }
 
-        private static readonly IBlobProviderSelector ProviderSelector = new BuiltInBlobProviderSelector();
+        private static IBlobProviderSelector ProviderSelector = new BuiltInBlobProviderSelector();
 
         /// <summary>
         /// Gets a provider based on the binary size and the available blob providers in the system.
