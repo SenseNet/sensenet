@@ -35,9 +35,6 @@
     </DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Ionic.Zip">
-      <HintPath>..\References\Ionic.Zip.dll</HintPath>
-    </Reference>
     <Reference Include="Lucene.Net">
       <HintPath>..\References\Lucene.Net.dll</HintPath>
     </Reference>
@@ -72,6 +69,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="SenseNet.Search.Lucene29.Common.nuspec" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj">

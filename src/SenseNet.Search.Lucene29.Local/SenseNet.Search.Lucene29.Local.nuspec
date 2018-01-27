@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>SenseNet.Search.Lucene29.Local</id>
+    <version>0.1</version>
+    <title>sensenet ECM Lucene29 Local library</title>
+    <authors>kavics,laci,tusmester</authors>
+    <owners>Sense/Net</owners>
+    <licenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/SenseNet/sn-search-lucene29</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Lucene29 Local library for the sensenet ECM platform containing the Lucene-based local indexing and query engine implementations.</description>
+    <releaseNotes>See release notes on GitHub.</releaseNotes>
+    <copyright>Copyright © Sense/Net Inc.</copyright>
+    <tags>sensenet ecm ecms indexing lucene</tags>
+    <dependencies>
+      <dependency id="SenseNet.Services" version="7.0.0" />
+      <dependency id="SenseNet.Search.Lucene29" version="0.1" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="bin\Release\SenseNet.Search.Lucene29.Local.*" target="lib\net451" />
+  </files>
+</package>
