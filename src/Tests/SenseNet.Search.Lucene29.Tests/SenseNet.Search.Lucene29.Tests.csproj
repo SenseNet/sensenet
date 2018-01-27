@@ -42,6 +42,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="SenseNet.Search, Version=0.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\SenseNet.Search.0.1.0\lib\net451\SenseNet.Search.dll</HintPath>
+    </Reference>
     <Reference Include="SenseNet.Security, Version=2.3.1.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\SenseNet.Security.2.3.1\lib\net45\SenseNet.Security.dll</HintPath>
@@ -90,10 +93,6 @@
       <Project>{ff0b1af9-753b-4660-8bd0-b84492321808}</Project>
       <Name>SenseNet.Search.Lucene29.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Search\Search.csproj">
-      <Project>{0279705b-779d-485d-86b9-f7ab3dd1f2c3}</Project>
-      <Name>Search</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\SenseNet.Search.Lucene29\SenseNet.Search.Lucene29.csproj">
       <Project>{9e776eda-681a-4330-8632-9ed0b67ed5a6}</Project>
       <Name>SenseNet.Search.Lucene29</Name>
@@ -118,6 +117,9 @@
       <Project>{4674B8B8-6567-4EB5-B5A8-C838FECCE302}</Project>
       <Name>SenseNet.Tests</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

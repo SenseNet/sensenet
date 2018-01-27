@@ -39,6 +39,9 @@
       <HintPath>..\..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="SenseNet.Search, Version=0.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\SenseNet.Search.0.1.0\lib\net451\SenseNet.Search.dll</HintPath>
+    </Reference>
     <Reference Include="SenseNet.Security, Version=2.3.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\SenseNet.Security.2.3.1\lib\net45\SenseNet.Security.dll</HintPath>
       <Private>True</Private>
@@ -96,10 +99,6 @@
       <Project>{ff0b1af9-753b-4660-8bd0-b84492321808}</Project>
       <Name>SenseNet.Search.Lucene29.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Search\Search.csproj">
-      <Project>{0279705B-779D-485D-86B9-F7AB3DD1F2C3}</Project>
-      <Name>Search</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Services\Services.csproj">
       <Project>{b72529c8-feb1-49f5-b08b-56055b58f296}</Project>
       <Name>Services</Name>
@@ -114,7 +113,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

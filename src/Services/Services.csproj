@@ -97,6 +97,9 @@
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="SenseNet.Search, Version=0.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SenseNet.Search.0.1.0\lib\net451\SenseNet.Search.dll</HintPath>
+    </Reference>
     <Reference Include="SenseNet.Security, Version=2.3.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\SenseNet.Security.2.3.1\lib\net45\SenseNet.Security.dll</HintPath>
       <Private>True</Private>
@@ -368,10 +371,6 @@
     <ProjectReference Include="..\SenseNet.Search.Lucene29.Common\SenseNet.Search.Lucene29.Common.csproj">
       <Project>{ff0b1af9-753b-4660-8bd0-b84492321808}</Project>
       <Name>SenseNet.Search.Lucene29.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Search\Search.csproj">
-      <Project>{0279705B-779D-485D-86B9-F7AB3DD1F2C3}</Project>
-      <Name>Search</Name>
     </ProjectReference>
     <ProjectReference Include="..\TokenAuthentication\SenseNet.TokenAuthentication.csproj">
       <Project>{78febd73-8bc4-45b9-9b31-d512e1afad60}</Project>
