@@ -17,6 +17,11 @@ using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Lucene29
 {
+    /// <summary>
+    /// Encapsulates all low-level Lucene indexing operations. Has direct Lucene29 references. Create a single instance
+    /// of this class when creating a Lucene29 indexing engine implementation in the app domain where the actual index
+    /// folder is stored.
+    /// </summary>
     public class LuceneSearchManager
     {
         public static readonly Lucene.Net.Util.Version LuceneVersion = Lucene.Net.Util.Version.LUCENE_29;

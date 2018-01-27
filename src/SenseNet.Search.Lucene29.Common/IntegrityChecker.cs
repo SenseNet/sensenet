@@ -109,6 +109,9 @@ namespace SenseNet.Search.Lucene29
         }
     }
 
+    /// <summary>
+    /// Checks the integritiy and consistency of the index and the database. It is able to work with a local indexing engine only.
+    /// </summary>
     internal class IntegrityChecker
     {
         public static object CheckIndexIntegrity(string contentPath, bool recurse)

@@ -13,18 +13,32 @@ using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Lucene29
 {
+    /// <summary>
+    /// Lucene29 indexing engine for a local environment. Works with a Lucene index stored in the file system.
+    /// </summary>
     public class Lucene29LocalIndexingEngine : ILuceneIndexingEngine
     {
         internal IndexDirectory IndexDirectory => LuceneSearchManager.IndexDirectory;
 
+        /// <summary>
+        /// Gets the Lucene search manager instance that is responsible for indexing operations.
+        /// </summary>
         public LuceneSearchManager LuceneSearchManager { get; }
 
         //===================================================================================== Constructors
 
+        /// <summary>
+        /// Initializes an instance of the Lucene29LocalIndexingEngine class. Needed for automatic type loading.
+        /// </summary>
         public Lucene29LocalIndexingEngine() : this(null)
         {
             // default constructor is needed for automatic type loading
         }
+        /// <summary>
+        /// Initializes an instance of the Lucene29LocalIndexingEngine class.
+        /// </summary>
+        /// <param name="indexDirectory">File system directory for storing the index. 
+        /// If not provided, <see cref="SearchManager.IndexDirectoryPath"/> will be used.</param>
         public Lucene29LocalIndexingEngine(IndexDirectory indexDirectory)
         {
             var indexDir = indexDirectory ?? new IndexDirectory(null, SearchManager.IndexDirectoryPath);
@@ -43,13 +57,23 @@ namespace SenseNet.Search.Lucene29
 
         //===================================================================================== IIndexingEngine implementation
 
+        /// <summary>
+        /// Returns false, because this is a local indexing engine.
+        /// </summary>
         public bool IndexIsCentralized => false;
+        /// <summary>
+        /// Gets a value indicating whether the underlying Lucene search manager is running.
+        /// </summary>
         public bool Running
         {
             get => LuceneSearchManager.Running;
             internal set => LuceneSearchManager.Running = value;
         }
 
+        /// <inheritdoc />
+        /// <summary>
+        /// Starts the underlying Lucene search manager.
+        /// </summary>
         public void Start(TextWriter consoleOut)
         {
             LuceneSearchManager.Start(consoleOut);
@@ -65,6 +89,10 @@ namespace SenseNet.Search.Lucene29
         /// <param name="consoleOut"></param>
         protected virtual void Startup(TextWriter consoleOut) { }
 
+        /// <inheritdoc />
+        /// <summary>
+        /// Stops the underlying Lucene search manager.
+        /// </summary>
         public void ShutDown()
         {
             //TODO: CommitState: maybe need to write the final state in the distributed environment.
@@ -73,21 +101,25 @@ namespace SenseNet.Search.Lucene29
             LuceneSearchManager.ShutDown();
         }
 
+        /// <inheritdoc />
         public void ClearIndex()
         {
             LuceneSearchManager.ClearIndex();
         }
 
+        /// <inheritdoc />
         public IndexingActivityStatus ReadActivityStatusFromIndex()
         {
             return LuceneSearchManager.ReadActivityStatusFromIndex();
         }
 
+        /// <inheritdoc />
         public void WriteActivityStatusToIndex(IndexingActivityStatus state)
         {
             LuceneSearchManager.WriteActivityStatusToIndex(state);
         }
 
+        /// <inheritdoc />
         public void WriteIndex(IEnumerable<SnTerm> deletions, IEnumerable<DocumentUpdate> updates, IEnumerable<IndexDocument> additions)
         {
             LuceneSearchManager.WriteIndex(deletions, updates, additions);
@@ -99,6 +131,10 @@ namespace SenseNet.Search.Lucene29
         {
             return LuceneSearchManager.GetIndexReaderFrame(dirty);
         }
+        /// <summary>
+        /// Gets an <see cref="IndexReaderFrame"/> from the indexing engine.
+        /// </summary>
+        /// <param name="dirty">Whether the reader should be reopened from the writer. Default is false.</param>
         public static IndexReaderFrame GetReaderFrame(bool dirty = false)
         {
             return ((Lucene29LocalIndexingEngine)IndexManager.IndexingEngine).GetIndexReaderFrame(dirty);
@@ -106,11 +142,13 @@ namespace SenseNet.Search.Lucene29
 
         //===================================================================================== ILuceneIndexingEngine implementation
 
+        /// <inheritdoc />
         public Analyzer GetAnalyzer()
         {
             return LuceneSearchManager.GetAnalyzer();
         }
-        
+
+        /// <inheritdoc />
         public void SetIndexingInfo(IDictionary<string, IPerFieldIndexingInfo> indexingInfo)
         {
             var analyzers = indexingInfo.ToDictionary(kvp => kvp.Key, kvp => GetAnalyzer(kvp.Value));

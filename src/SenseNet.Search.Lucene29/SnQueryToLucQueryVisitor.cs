@@ -7,7 +7,6 @@ using Lucene.Net.Analysis.Tokenattributes;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Util;
-//using SenseNet.Search.Parser;
 using SenseNet.Search.Querying;
 using SenseNet.Search.Querying.Parser;
 using SenseNet.Search.Querying.Parser.Predicates;
@@ -209,8 +208,7 @@ namespace SenseNet.Search.Lucene29
         }
 
         // ======================================================================
-
-
+        
         private BooleanClause.Occur CompileOccur(Occurence occur)
         {
             switch (occur)

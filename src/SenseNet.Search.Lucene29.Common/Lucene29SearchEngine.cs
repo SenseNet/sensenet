@@ -6,11 +6,17 @@ using SenseNet.Tools;
 
 namespace SenseNet.Search.Lucene29
 {
+    /// <summary>
+    /// Lucene29 search engine implementation. Loads the configured Lucene-specific query and indexing engines.
+    /// </summary>
     internal class Lucene29SearchEngine : ISearchEngine
     {
         private Lazy<IIndexingEngine> _indexingEngine = new Lazy<IIndexingEngine>(() =>
             TypeResolver.CreateInstance(Configuration.Lucene29.Lucene29IndexingEngineClassName) as IIndexingEngine);
         
+        /// <summary>
+        /// Gets or sets the current indexing engine. Default value is determined by configuration.
+        /// </summary>
         public IIndexingEngine IndexingEngine
         {
             get { return _indexingEngine.Value; }
@@ -20,6 +26,9 @@ namespace SenseNet.Search.Lucene29
         private Lazy<IQueryEngine> _queryEngine = new Lazy<IQueryEngine>(() =>
             TypeResolver.CreateInstance(Configuration.Lucene29.Lucene29QueryEngineClassName) as IQueryEngine);
 
+        /// <summary>
+        /// Gets or sets the current query engine. Default value is determined by configuration.
+        /// </summary>
         public IQueryEngine QueryEngine
         {
             get { return _queryEngine.Value; }
@@ -32,11 +41,18 @@ namespace SenseNet.Search.Lucene29
         }
 
         private IDictionary<string, IndexFieldAnalyzer> _analyzers = new Dictionary<string, IndexFieldAnalyzer>();
+
+        /// <inheritdoc/>
+        /// <summary>
+        /// Returns the analyzers that were previously stored by the <see cref="SetIndexingInfo"/> method.
+        /// </summary>
         public IDictionary<string, IndexFieldAnalyzer> GetAnalyzers()
         {
             return _analyzers;
         }
 
+        /// <inheritdoc />
+        /// <remarks>Passes indexinginfo to the underlying ILuceneIndexingEngine instance.</remarks>
         public void SetIndexingInfo(IDictionary<string, IPerFieldIndexingInfo> indexingInfo)
         {
             var analyzerTypes = new Dictionary<string, IndexFieldAnalyzer>();

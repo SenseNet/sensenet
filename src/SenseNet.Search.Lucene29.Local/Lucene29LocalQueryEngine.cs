@@ -7,8 +7,16 @@ using SenseNet.ContentRepository.Search;
 
 namespace SenseNet.Search.Lucene29
 {
+    /// <summary>
+    /// Lucene29 query engine for a local environment.
+    /// </summary>
     public class Lucene29LocalQueryEngine : IQueryEngine
     {
+        /// <inheritdoc />
+        /// <summary>
+        /// Executes the provided <see cref="T:SenseNet.Search.Querying.SnQuery" /> on the local Lucene index and returns results
+        /// permitted by the provided permission filter.
+        /// </summary>
         public QueryResult<int> ExecuteQuery(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
             var lucQuery = Compile(query, context);
@@ -19,6 +27,7 @@ namespace SenseNet.Search.Lucene29
             return new QueryResult<int>(hits, lucQuery.TotalCount);
         }
 
+        /// <inheritdoc />
         public QueryResult<string> ExecuteQueryAndProject(SnQuery query, IPermissionFilter filter, IQueryContext context)
         {
             var lucQuery = Compile(query, context);

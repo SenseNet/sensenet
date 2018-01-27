@@ -4,6 +4,9 @@ using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Lucene29
 {
+    /// <summary>
+    /// <see cref="SnQuery"/> to <see cref="LucQuery"/> compiler.
+    /// </summary>
     internal class Lucene29Compiler
     {
         private readonly Analyzer _masterAnalyzer;
@@ -13,6 +16,9 @@ namespace SenseNet.Search.Lucene29
             _masterAnalyzer = masterAnalyzer ?? ((ILuceneIndexingEngine)IndexManager.IndexingEngine).GetAnalyzer();
         }
 
+        /// <summary>
+        /// Compiles an <see cref="SnQuery"/> to <see cref="LucQuery"/>.
+        /// </summary>
         public LucQuery Compile(SnQuery snQuery, IQueryContext context)
         {
             var visitor = new SnQueryToLucQueryVisitor(_masterAnalyzer, context);

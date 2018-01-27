@@ -12,7 +12,13 @@ namespace SenseNet.Search.Lucene29
     {
         LuceneSearchManager LuceneSearchManager { get; }
 
+        /// <summary>
+        /// Keeps index descriptors up to date.
+        /// </summary>
         void SetIndexingInfo(IDictionary<string, IPerFieldIndexingInfo> indexingInfo);
+        /// <summary>
+        /// Returns an <see cref="SnPerFieldAnalyzerWrapper"/> containing the data set by the <see cref="SetIndexingInfo"/> method.
+        /// </summary>
         Analyzer GetAnalyzer();
     }
 }

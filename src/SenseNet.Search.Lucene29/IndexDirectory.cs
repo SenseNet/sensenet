@@ -6,6 +6,11 @@ using SenseNet.Diagnostics;
 
 namespace SenseNet.Search.Lucene29
 {
+    /// <summary>
+    /// Represents a folder in the file system where physical index files are stored. The default place is
+    /// a folder in the parent directory of the current assembly with the name determined by the
+    /// <see cref="Configuration.Lucene29.DefaultLocalIndexDirectory"/> value.
+    /// </summary>
     public class IndexDirectory
     {
         private static readonly string DEFAULTDIRECTORYNAME = "0";
