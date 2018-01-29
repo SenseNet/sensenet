@@ -358,7 +358,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void GC_CheckOut_None_False()
         {
-            Test(() =>
+            TestWithBlobs(() =>
             {
                 var file = CreateTestFile();
                 file.VersioningMode = VersioningType.None;

@@ -641,6 +641,7 @@ namespace SenseNet.Tests.Implementations
 
         protected internal override BinaryCacheEntity LoadBinaryCacheEntity(int nodeVersionId, int propertyTypeId)
         {
+            return BlobStorage.LoadBinaryCacheEntity(nodeVersionId, propertyTypeId);
 
             // SELECT F.Size, B.BinaryPropertyId, F.FileId, F.BlobProvider, F.BlobProviderData,
             //        CASE WHEN F.Size < 1048576 THEN F.Stream ELSE null END AS Stream
@@ -1195,6 +1196,7 @@ namespace SenseNet.Tests.Implementations
         }
 
         private readonly Database _db;
+        public Database DB => _db;
 
         public InMemoryDataProvider()
         {
@@ -1458,7 +1460,7 @@ namespace SenseNet.Tests.Implementations
                 throw new NotSupportedException();
             }
         }
-        private class Database
+        public class Database
         {
             public XmlDocument Schema { get; set; }
 
@@ -1965,7 +1967,7 @@ namespace SenseNet.Tests.Implementations
         #endregion
 
         #region Data classes
-        private class NodeRecord
+        public class NodeRecord
         {
             private int _nodeId;
             private int _nodeTypeId;
@@ -2038,7 +2040,7 @@ namespace SenseNet.Tests.Implementations
                 _nodeTimestamp = Interlocked.Increment(ref _lastTimestamp);
             }
         }
-        private class VersionRecord
+        public class VersionRecord
         {
             private int _versionId;
             private int _nodeId;
@@ -2140,14 +2142,14 @@ namespace SenseNet.Tests.Implementations
                 _versionTimestamp = Interlocked.Increment(ref _lastTimestamp);
             }
         }
-        private class BinaryPropertyRecord
+        public class BinaryPropertyRecord
         {
             public int BinaryPropertyId;
             public int VersionId;
             public int PropertyTypeId;
             public int FileId;
         }
-        private class FileRecord
+        public class FileRecord
         {
             public int FileId;
             public string ContentType;
@@ -2155,15 +2157,23 @@ namespace SenseNet.Tests.Implementations
             public string Extension;
             public long Size;
             public byte[] Stream;
+
+            public DateTime CreationDate;
+            public bool Staging;
+            public int StagingVersionId;
+            public int StagingPropertyTypeId;
+            public bool IsDeleted;
+            public string BlobProvider;
+            public string BlobProviderData;
         }
-        private class TextPropertyRecord
+        public class TextPropertyRecord
         {
             public int Id;
             public int VersionId;
             public int PropertyTypeId;
             public string Value;
         }
-        private class FlatPropertyRow
+        public class FlatPropertyRow
         {
             public int Id;
             public int VersionId;
@@ -2173,14 +2183,14 @@ namespace SenseNet.Tests.Implementations
             public DateTime?[] Datetimes = new DateTime?[25];
             public decimal?[] Decimals = new decimal?[15];
         }
-        private class ReferencePropertyRow
+        public class ReferencePropertyRow
         {
             public int ReferencePropertyId;
             public int VersionId;
             public int PropertyTypeId;
             public int ReferredNodeId;
         }
-        private class IndexingActivityRecord
+        public class IndexingActivityRecord
         {
             public int IndexingActivityId;
             public IndexingActivityType ActivityType;
@@ -2192,7 +2202,7 @@ namespace SenseNet.Tests.Implementations
             public string Path;
             public string Extension;
         }
-        private class TreeLockRow
+        public class TreeLockRow
         {
             public int TreeLockId;
             public string Path;

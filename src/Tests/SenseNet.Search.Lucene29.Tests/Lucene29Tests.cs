@@ -37,7 +37,7 @@ namespace SenseNet.Search.Lucene29.Tests
     [TestClass]
     public class Lucene29Tests : TestBase
     {
-        [TestMethod, TestCategory("IR, L29")]
+        [TestMethod, TestCategory("BUG SQLProvider, IR, L29")]
         public void L29_BasicConditions()
         {
             var result =
@@ -53,7 +53,7 @@ namespace SenseNet.Search.Lucene29.Tests
             Assert.IsTrue(console.Contains(indxDir));
         }
 
-        [TestMethod, TestCategory("IR, L29")]
+        [TestMethod, TestCategory("BUG SQLProvider, IR, L29")]
         public void L29_ClearAndPopulateAll()
         {
             var sb = new StringBuilder();
@@ -99,7 +99,7 @@ namespace SenseNet.Search.Lucene29.Tests
             Assert.AreEqual(versionCount, pathCount);
         }
 
-        [TestMethod, TestCategory("IR, L29")]
+        [TestMethod, TestCategory("BUG SQLProvider, IR, L29")]
         public void L29_Query()
         {
             QueryResult queryResult1, queryResult2;
@@ -136,7 +136,7 @@ namespace SenseNet.Search.Lucene29.Tests
             Assert.AreEqual(0, queryResult2.Identifiers.FirstOrDefault());
         }
 
-        [TestMethod, TestCategory("IR, L29")]
+        [TestMethod, TestCategory("BUG SQLProvider, IR, L29")]
         public void L29_Query_TopSkipResultCount()
         {
             L29Test(console =>
@@ -161,7 +161,7 @@ namespace SenseNet.Search.Lucene29.Tests
             DeleteIndexDirectories();
         }
 
-        [TestMethod, TestCategory("IR, L29")]
+        [TestMethod, TestCategory("BUG SQLProvider, IR, L29")]
         public void L29_SaveAndQuery()
         {
             QueryResult queryResultBefore, queryResultAfter;
@@ -266,7 +266,7 @@ namespace SenseNet.Search.Lucene29.Tests
         //    }
         //}
 
-        [TestMethod, TestCategory("IR, L29")]
+        [TestMethod, TestCategory("BUG SQLProvider, IR, L29")]
         public void L29_SwitchOffRunningState()
         {
             var dataProvider = new InMemoryDataProvider();
@@ -316,7 +316,7 @@ namespace SenseNet.Search.Lucene29.Tests
             }
         }
 
-        [TestMethod, TestCategory("IR, L29")]
+        [TestMethod, TestCategory("BUG SQLProvider, IR, L29")]
         public void L29_NamedIndexDirectory()
         {
             var folderName = "Test_" + MethodBase.GetCurrentMethod().Name;
@@ -357,7 +357,7 @@ namespace SenseNet.Search.Lucene29.Tests
             }
         }
 
-        [TestMethod, TestCategory("IR, L29")]
+        [TestMethod, TestCategory("BUG SQLProvider, IR, L29")]
         public void L29_ActivityStatus_WithoutSave()
         {
             var newStatus = new IndexingActivityStatus
@@ -388,7 +388,7 @@ namespace SenseNet.Search.Lucene29.Tests
             Assert.AreEqual(result.Item1.Gaps.Length, 0);
             Assert.AreEqual(newStatus.ToString(), resultStatus.ToString());
         }
-        [TestMethod, TestCategory("IR, L29")]
+        [TestMethod, TestCategory("BUG SQLProvider, IR, L29")]
         public void L29_ActivityStatus_WithSave()
         {
             var result = L29Test(s =>
@@ -408,7 +408,7 @@ namespace SenseNet.Search.Lucene29.Tests
             Assert.AreEqual(result.Item1.LastActivityId + 1, result.Item2.LastActivityId);
         }
 
-        [TestMethod, TestCategory("IR, L29")]
+        [TestMethod, TestCategory("BUG SQLProvider, IR, L29")]
         public void L29_Analyzers()
         {
             L29Test(s =>
@@ -432,7 +432,7 @@ namespace SenseNet.Search.Lucene29.Tests
 
         /* ======================================================================================= */
 
-        [TestMethod, TestCategory("IR, L29")]
+        [TestMethod, TestCategory("BUG SQLProvider, IR, L29")]
         public void L29_IntegrityChecker()
         {
             var result = L29Test(s =>
@@ -480,6 +480,8 @@ namespace SenseNet.Search.Lucene29.Tests
             var indxManConsole = new StringWriter();
             var repoBuilder = new RepositoryBuilder()
                 .UseDataProvider(dataProvider)
+                .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
+                .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UsePermissionFilterFactory(new EverythingAllowedPermissionFilterFactory())
                 .UseSearchEngine(searchEngine)
