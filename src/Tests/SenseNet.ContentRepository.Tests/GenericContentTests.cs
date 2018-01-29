@@ -358,7 +358,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void GC_CheckOut_None_False()
         {
-            TestWithBlobs(() =>
+            Test(() =>
             {
                 var file = CreateTestFile();
                 file.VersioningMode = VersioningType.None;
@@ -1329,7 +1329,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void GC_None_CheckoutSaveCheckin_BinaryData()
         {
-            TestWithBlobs(() =>
+            Test(() =>
             {
                 var container = CreateTestRoot(save: false);
                 container.InheritableVersioningMode = InheritableVersioningType.None;
