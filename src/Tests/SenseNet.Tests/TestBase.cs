@@ -38,54 +38,15 @@ namespace SenseNet.Tests
 
         protected void Test(Action callback)
         {
-            DistributedApplication.Cache.Reset();
-            ContentTypeManager.Reset();
-
-            var builder = CreateRepositoryBuilderForTest();
-
-            Indexing.IsOuterSearchEngineEnabled = true;
-
-            //// >
-            //var dataProvider = Configuration.Providers.Instance.DataProvider;
-            //if (!(dataProvider is InMemoryDataProvider inMemDataProvider))
-            //    throw new NotSupportedException("Only InMemoryDataProvider is allowed here.");
-            //var blobStorageMetaDataProvider = new InMemoryBlobStorageMetaDataProvider(inMemDataProvider);
-            //var blobProviderSelector = new InMemoryBlobProviderSelector();
-            //using (Tools.Swindle(typeof(BlobStorageComponents), "DataProvider", blobStorageMetaDataProvider))
-            //using (Tools.Swindle(typeof(BlobStorageBase), "ProviderSelector", blobProviderSelector))
-            //// <
-
-            using (Repository.Start(builder))
-            using (new SystemAccount())
-            {
-                callback();
-            }
+            Test(false, null, callback);
+        }
+        protected void Test(bool useCurrentUser, Action callback)
+        {
+            Test(useCurrentUser, null, callback);
         }
         protected void Test(Action<RepositoryBuilder> initialize, Action callback)
         {
-            DistributedApplication.Cache.Reset();
-            ContentTypeManager.Reset();
-
-            var builder = CreateRepositoryBuilderForTest();
-            initialize(builder);
-
-            Indexing.IsOuterSearchEngineEnabled = true;
-
-            // >
-            var dataProvider = Configuration.Providers.Instance.DataProvider;
-            if (!(dataProvider is InMemoryDataProvider inMemDataProvider))
-                throw new NotSupportedException("Only InMemoryDataProvider is allowed here.");
-            var blobStorageMetaDataProvider = new InMemoryBlobStorageMetaDataProvider(inMemDataProvider);
-            var blobProviderSelector = new InMemoryBlobProviderSelector();
-            using (Tools.Swindle(typeof(BlobStorageComponents), "DataProvider", blobStorageMetaDataProvider))
-            using (Tools.Swindle(typeof(BlobStorageBase), "ProviderSelector", blobProviderSelector))
-            // <
-
-            using (Repository.Start(builder))
-            using (new SystemAccount())
-            {
-                callback();
-            }
+            Test(false, initialize, callback);
         }
         protected void Test(bool useCurrentUser, Action<RepositoryBuilder> initialize, Action callback)
         {
@@ -93,19 +54,10 @@ namespace SenseNet.Tests
             ContentTypeManager.Reset();
 
             var builder = CreateRepositoryBuilderForTest();
-            initialize(builder);
+
+            initialize?.Invoke(builder);
 
             Indexing.IsOuterSearchEngineEnabled = true;
-
-            //// >
-            //var dataProvider = Configuration.Providers.Instance.DataProvider;
-            //if (!(dataProvider is InMemoryDataProvider inMemDataProvider))
-            //    throw new NotSupportedException("Only InMemoryDataProvider is allowed here.");
-            //var blobStorageMetaDataProvider = new InMemoryBlobStorageMetaDataProvider(inMemDataProvider);
-            //var blobProviderSelector = new InMemoryBlobProviderSelector();
-            //using (Tools.Swindle(typeof(BlobStorageComponents), "DataProvider", blobStorageMetaDataProvider))
-            //using (Tools.Swindle(typeof(BlobStorageBase), "ProviderSelector", blobProviderSelector))
-            //// <
 
             using (Repository.Start(builder))
             {
@@ -119,54 +71,18 @@ namespace SenseNet.Tests
 
         protected T Test<T>(Func<T> callback)
         {
-            DistributedApplication.Cache.Reset();
-            ContentTypeManager.Reset();
+            return Test(false, null, callback);
 
-            var builder = CreateRepositoryBuilderForTest();
+        }
+        protected T Test<T>(bool useCurrentUser, Func<T> callback)
+        {
+            return Test(useCurrentUser, null, callback);
 
-            Indexing.IsOuterSearchEngineEnabled = true;
-
-            //// >
-            //var dataProvider = Configuration.Providers.Instance.DataProvider;
-            //if (!(dataProvider is InMemoryDataProvider inMemDataProvider))
-            //    throw new NotSupportedException("Only InMemoryDataProvider is allowed here.");
-            //var blobStorageMetaDataProvider = new InMemoryBlobStorageMetaDataProvider(inMemDataProvider);
-            //var blobProviderSelector = new InMemoryBlobProviderSelector();
-            //using (Tools.Swindle(typeof(BlobStorageComponents), "DataProvider", blobStorageMetaDataProvider))
-            //using (Tools.Swindle(typeof(BlobStorageBase), "ProviderSelector", blobProviderSelector))
-            //// <
-
-            using (Repository.Start(builder))
-            using (new SystemAccount())
-            {
-                return callback();
-            }
         }
         protected T Test<T>(Action<RepositoryBuilder> initialize, Func<T> callback)
         {
-            DistributedApplication.Cache.Reset();
-            ContentTypeManager.Reset();
+            return Test(false, initialize, callback);
 
-            var builder = CreateRepositoryBuilderForTest();
-            initialize(builder);
-
-            Indexing.IsOuterSearchEngineEnabled = true;
-
-            //// >
-            //var dataProvider = Configuration.Providers.Instance.DataProvider;
-            //if (!(dataProvider is InMemoryDataProvider inMemDataProvider))
-            //    throw new NotSupportedException("Only InMemoryDataProvider is allowed here.");
-            //var blobStorageMetaDataProvider = new InMemoryBlobStorageMetaDataProvider(inMemDataProvider);
-            //var blobProviderSelector = new InMemoryBlobProviderSelector();
-            //using (Tools.Swindle(typeof(BlobStorageComponents), "DataProvider", blobStorageMetaDataProvider))
-            //using (Tools.Swindle(typeof(BlobStorageBase), "ProviderSelector", blobProviderSelector))
-            //// <
-
-            using (Repository.Start(builder))
-            using (new SystemAccount())
-            {
-                return callback();
-            }
         }
         protected T Test<T>(bool useCurrentUser, Action<RepositoryBuilder> initialize, Func<T> callback)
         {
@@ -174,19 +90,10 @@ namespace SenseNet.Tests
             ContentTypeManager.Reset();
 
             var builder = CreateRepositoryBuilderForTest();
-            initialize(builder);
+
+            initialize?.Invoke(builder);
 
             Indexing.IsOuterSearchEngineEnabled = true;
-
-            // >
-            var dataProvider = Configuration.Providers.Instance.DataProvider;
-            if (!(dataProvider is InMemoryDataProvider inMemDataProvider))
-                throw new NotSupportedException("Only InMemoryDataProvider is allowed here.");
-            var blobStorageMetaDataProvider = new InMemoryBlobStorageMetaDataProvider(inMemDataProvider);
-            var blobProviderSelector = new InMemoryBlobProviderSelector();
-            using (Tools.Swindle(typeof(BlobStorageComponents), "DataProvider", blobStorageMetaDataProvider))
-            using (Tools.Swindle(typeof(BlobStorageBase), "ProviderSelector", blobProviderSelector))
-            // <
 
             using (Repository.Start(builder))
             {
@@ -198,29 +105,6 @@ namespace SenseNet.Tests
             }
         }
 
-        protected void TestWithBlobs(Action callback)
-        {
-            DistributedApplication.Cache.Reset();
-            ContentTypeManager.Reset();
-
-            var builder = CreateRepositoryBuilderForTest();
-
-            Indexing.IsOuterSearchEngineEnabled = true;
-
-            //var dataProvider = Configuration.Providers.Instance.DataProvider;
-            //if(!(dataProvider is InMemoryDataProvider inMemDataProvider))
-            //    throw new NotSupportedException("Only InMemoryDataProvider is allowed here.");
-            //var blobStorageMetaDataProvider = new InMemoryBlobStorageMetaDataProvider(inMemDataProvider);
-            //var blobProviderSelector = new InMemoryBlobProviderSelector();
-            //using (Tools.Swindle(typeof(BlobStorageComponents), "DataProvider", blobStorageMetaDataProvider))
-            //using (Tools.Swindle(typeof(BlobStorageBase), "ProviderSelector", blobProviderSelector))
-
-            using (Repository.Start(builder))
-            using (new SystemAccount())
-            {
-                callback();
-            }
-        }
 
         protected RepositoryBuilder CreateRepositoryBuilderForTest()
         {
