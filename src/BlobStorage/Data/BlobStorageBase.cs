@@ -369,15 +369,13 @@ namespace SenseNet.ContentRepository.Storage.Data
             BuiltInProvider = new BuiltInBlobProvider();
         }
 
-        private static IBlobProviderSelector ProviderSelector = new BuiltInBlobProviderSelector();
-
         /// <summary>
         /// Gets a provider based on the binary size and the available blob providers in the system.
         /// </summary>
         /// <param name="fullSize">Full binary length.</param>
         protected internal static IBlobProvider GetProvider(long fullSize)
         {
-            return ProviderSelector.GetProvider(fullSize, Providers, BuiltInProvider);
+            return BlobStorageComponents.ProviderSelector.GetProvider(fullSize, Providers, BuiltInProvider);
         }
         /// <summary>
         /// Gets the blob provider instance with the specified name. Default is the built-in provider.

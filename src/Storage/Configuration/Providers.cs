@@ -92,6 +92,26 @@ namespace SenseNet.Configuration
         }
         #endregion
 
+        #region private Lazy<IBlobStorageMetaDataProvider> _blobMetaDataProvider = new Lazy<IBlobStorageMetaDataProvider>
+        private Lazy<IBlobStorageMetaDataProvider> _blobMetaDataProvider =
+            new Lazy<IBlobStorageMetaDataProvider>(() => new MsSqlBlobMetaDataProvider());
+        public virtual IBlobStorageMetaDataProvider BlobMetaDataProvider
+        {
+            get { return _blobMetaDataProvider.Value; }
+            set { _blobMetaDataProvider = new Lazy<IBlobStorageMetaDataProvider>(() => value); }
+        }
+        #endregion
+
+        #region private Lazy<IBlobProviderSelector> _blobProviderSelector = new Lazy<IBlobProviderSelector>
+        private Lazy<IBlobProviderSelector> _blobProviderSelector =
+            new Lazy<IBlobProviderSelector>(() => new BuiltInBlobProviderSelector());
+        public virtual IBlobProviderSelector BlobProviderSelector
+        {
+            get { return _blobProviderSelector.Value; }
+            set { _blobProviderSelector = new Lazy<IBlobProviderSelector>(() => value); }
+        }
+        #endregion
+
         #region private Lazy<ISearchEngine> _searchEngine = new Lazy<ISearchEngine>
         private Lazy<ISearchEngine> _searchEngine =
             new Lazy<ISearchEngine>(() => CreateProviderInstance<ISearchEngine>(SearchEngineClassName, "SearchEngine"));

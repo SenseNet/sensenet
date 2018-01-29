@@ -34,6 +34,28 @@ namespace SenseNet.ContentRepository
             return this;
         }
         /// <summary>
+        /// Sets the blob metadata provider.
+        /// </summary>
+        /// <param name="metaDataProvider">IBlobStorageMetaDataProvider instance.</param>
+        public RepositoryBuilder UseBlobMetaDataProvider(IBlobStorageMetaDataProvider metaDataProvider)
+        {
+            Configuration.Providers.Instance.BlobMetaDataProvider = metaDataProvider;
+            WriteLog("BlobMetaDataProvider", metaDataProvider);
+
+            return this;
+        }
+        /// <summary>
+        /// Sets the blob provider selector.
+        /// </summary>
+        /// <param name="selector">IBlobProviderSelector instance.</param>
+        public RepositoryBuilder UseBlobProviderSelector(IBlobProviderSelector selector)
+        {
+            Configuration.Providers.Instance.BlobProviderSelector = selector;
+            WriteLog("BlobProviderSelector", selector);
+
+            return this;
+        }
+        /// <summary>
         /// Sets the access provider responsible for user-related technical operations in the system.
         /// </summary>
         /// <param name="accessProvider">AccessProvider instance.</param>

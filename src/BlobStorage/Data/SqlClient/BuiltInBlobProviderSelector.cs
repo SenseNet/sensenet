@@ -15,7 +15,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
     /// The built-in selector chooses the appropriate blob provider 
     /// based on the size of the file that is being saved.
     /// </summary>
-    internal class BuiltInBlobProviderSelector : IBlobProviderSelector
+    public class BuiltInBlobProviderSelector : IBlobProviderSelector
     {
         protected static IBlobProvider ExternalBlobProvider { get; set; }
 

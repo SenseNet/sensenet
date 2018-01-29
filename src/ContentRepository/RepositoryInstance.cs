@@ -245,6 +245,9 @@ namespace SenseNet.ContentRepository
 
             try
             {
+                BlobStorageComponents.DataProvider = Providers.Instance.BlobMetaDataProvider;
+                BlobStorageComponents.ProviderSelector = Providers.Instance.BlobProviderSelector;
+
                 ConsoleWrite("Initializing cache ... ");
                 dummy = DistributedApplication.Cache.Count;
                 ConsoleWriteLine("ok.");
