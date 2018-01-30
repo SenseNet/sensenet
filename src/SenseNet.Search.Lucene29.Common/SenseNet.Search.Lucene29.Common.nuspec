@@ -15,7 +15,7 @@
     <copyright>Copyright © Sense/Net Inc.</copyright>
     <tags>sensenet ecm ecms indexing lucene</tags>
     <dependencies>
-      <dependency id="SenseNet.Services" version="7.0.0" />
+      <dependency id="SenseNet.Services" version="7.1.0" />
       <dependency id="SenseNet.Search.Lucene29" version="0.1" />
     </dependencies>
   </metadata>

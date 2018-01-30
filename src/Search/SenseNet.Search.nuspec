@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>SenseNet.Search</id>
-    <version>0.1</version>
+    <version>1.0</version>
     <title>sensenet ECM Search library</title>
     <authors>kavics,laci,tusmester</authors>
     <owners>Sense/Net</owners>
