@@ -156,16 +156,16 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                var originalVersion = test.Version;
-                test.VersioningMode = VersioningType.None;
-                test.ApprovingMode = ApprovingType.False;
+                var file = CreateTestFile();
+                var originalVersion = file.Version;
+                file.VersioningMode = VersioningType.None;
+                file.ApprovingMode = ApprovingType.False;
 
-                test.Index = 42;
-                test.Save(SavingMode.KeepVersion);
+                file.Index = 42;
+                file.Save(SavingMode.KeepVersion);
 
-                Assert.AreEqual(originalVersion.ToString(), test.Version.ToString());
-                Assert.AreEqual(VersionStatus.Approved, test.Version.Status);
+                Assert.AreEqual(originalVersion.ToString(), file.Version.ToString());
+                Assert.AreEqual(VersionStatus.Approved, file.Version.Status);
             });
         }
         [TestMethod]
@@ -173,16 +173,16 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                var originalVersion = test.Version;
-                test.VersioningMode = VersioningType.MajorOnly;
-                test.ApprovingMode = ApprovingType.False;
+                var file = CreateTestFile();
+                var originalVersion = file.Version;
+                file.VersioningMode = VersioningType.MajorOnly;
+                file.ApprovingMode = ApprovingType.False;
 
-                test.Index = 42;
-                test.Save(SavingMode.KeepVersion);
+                file.Index = 42;
+                file.Save(SavingMode.KeepVersion);
 
-                Assert.AreEqual(originalVersion.ToString(), test.Version.ToString());
-                Assert.AreEqual(VersionStatus.Approved, test.Version.Status);
+                Assert.AreEqual(originalVersion.ToString(), file.Version.ToString());
+                Assert.AreEqual(VersionStatus.Approved, file.Version.Status);
             });
         }
         [TestMethod]
@@ -190,16 +190,16 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                var originalVersion = test.Version;
-                test.VersioningMode = VersioningType.MajorAndMinor;
-                test.ApprovingMode = ApprovingType.False;
+                var file = CreateTestFile();
+                var originalVersion = file.Version;
+                file.VersioningMode = VersioningType.MajorAndMinor;
+                file.ApprovingMode = ApprovingType.False;
 
-                test.Index = 42;
-                test.Save(SavingMode.KeepVersion);
+                file.Index = 42;
+                file.Save(SavingMode.KeepVersion);
 
-                Assert.AreEqual(originalVersion.ToString(), test.Version.ToString());
-                Assert.AreEqual(VersionStatus.Approved, test.Version.Status);
+                Assert.AreEqual(originalVersion.ToString(), file.Version.ToString());
+                Assert.AreEqual(VersionStatus.Approved, file.Version.Status);
             });
         }
         [TestMethod]
@@ -207,16 +207,16 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                var originalVersion = test.Version;
-                test.VersioningMode = VersioningType.None;
-                test.ApprovingMode = ApprovingType.True;
+                var file = CreateTestFile();
+                var originalVersion = file.Version;
+                file.VersioningMode = VersioningType.None;
+                file.ApprovingMode = ApprovingType.True;
 
-                test.Index = 42;
-                test.Save(SavingMode.KeepVersion);
+                file.Index = 42;
+                file.Save(SavingMode.KeepVersion);
 
-                Assert.AreEqual(originalVersion.ToString(), test.Version.ToString());
-                Assert.AreEqual(VersionStatus.Approved, test.Version.Status);
+                Assert.AreEqual(originalVersion.ToString(), file.Version.ToString());
+                Assert.AreEqual(VersionStatus.Approved, file.Version.Status);
             });
         }
         [TestMethod]
@@ -224,16 +224,16 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                var originalVersion = test.Version;
-                test.VersioningMode = VersioningType.MajorOnly;
-                test.ApprovingMode = ApprovingType.True;
+                var file = CreateTestFile();
+                var originalVersion = file.Version;
+                file.VersioningMode = VersioningType.MajorOnly;
+                file.ApprovingMode = ApprovingType.True;
 
-                test.Index = 42;
-                test.Save(SavingMode.KeepVersion);
+                file.Index = 42;
+                file.Save(SavingMode.KeepVersion);
 
-                Assert.AreEqual(originalVersion.ToString(), test.Version.ToString());
-                Assert.AreEqual(VersionStatus.Approved, test.Version.Status);
+                Assert.AreEqual(originalVersion.ToString(), file.Version.ToString());
+                Assert.AreEqual(VersionStatus.Approved, file.Version.Status);
             });
         }
         [TestMethod]
@@ -241,16 +241,16 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                var originalVersion = test.Version;
-                test.VersioningMode = VersioningType.MajorAndMinor;
-                test.ApprovingMode = ApprovingType.True;
+                var file = CreateTestFile();
+                var originalVersion = file.Version;
+                file.VersioningMode = VersioningType.MajorAndMinor;
+                file.ApprovingMode = ApprovingType.True;
 
-                test.Index = 42;
-                test.Save(SavingMode.KeepVersion);
+                file.Index = 42;
+                file.Save(SavingMode.KeepVersion);
 
-                Assert.AreEqual(originalVersion.ToString(), test.Version.ToString());
-                Assert.AreEqual(VersionStatus.Approved, test.Version.Status);
+                Assert.AreEqual(originalVersion.ToString(), file.Version.ToString());
+                Assert.AreEqual(VersionStatus.Approved, file.Version.Status);
             });
         }
 
@@ -562,15 +562,15 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                test.VersioningMode = VersioningType.None;
-                test.ApprovingMode = ApprovingType.False;
+                var file = CreateTestFile();
+                file.VersioningMode = VersioningType.None;
+                file.ApprovingMode = ApprovingType.False;
 
-                test.CheckOut();
-                test.UndoCheckOut();
+                file.CheckOut();
+                file.UndoCheckOut();
 
-                Assert.AreEqual("V1.0.A", test.Version.ToString());
-                Assert.AreEqual(1, Node.GetVersionNumbers(test.Id).Count);
+                Assert.AreEqual("V1.0.A", file.Version.ToString());
+                Assert.AreEqual(1, Node.GetVersionNumbers(file.Id).Count);
             });
         }
         [TestMethod]
@@ -578,15 +578,15 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                test.VersioningMode = VersioningType.MajorOnly;
-                test.ApprovingMode = ApprovingType.False;
+                var file = CreateTestFile();
+                file.VersioningMode = VersioningType.MajorOnly;
+                file.ApprovingMode = ApprovingType.False;
 
-                test.CheckOut();
-                test.UndoCheckOut();
+                file.CheckOut();
+                file.UndoCheckOut();
 
-                Assert.AreEqual("V1.0.A", test.Version.ToString());
-                Assert.AreEqual(1, Node.GetVersionNumbers(test.Id).Count);
+                Assert.AreEqual("V1.0.A", file.Version.ToString());
+                Assert.AreEqual(1, Node.GetVersionNumbers(file.Id).Count);
             });
         }
         [TestMethod]
@@ -594,15 +594,15 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                test.VersioningMode = VersioningType.MajorAndMinor;
-                test.ApprovingMode = ApprovingType.False;
+                var file = CreateTestFile();
+                file.VersioningMode = VersioningType.MajorAndMinor;
+                file.ApprovingMode = ApprovingType.False;
 
-                test.CheckOut();
-                test.UndoCheckOut();
+                file.CheckOut();
+                file.UndoCheckOut();
 
-                Assert.AreEqual("V1.0.A", test.Version.ToString());
-                Assert.AreEqual(1, Node.GetVersionNumbers(test.Id).Count);
+                Assert.AreEqual("V1.0.A", file.Version.ToString());
+                Assert.AreEqual(1, Node.GetVersionNumbers(file.Id).Count);
             });
         }
         [TestMethod]
@@ -610,15 +610,15 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                test.VersioningMode = VersioningType.None;
-                test.ApprovingMode = ApprovingType.True;
+                var file = CreateTestFile();
+                file.VersioningMode = VersioningType.None;
+                file.ApprovingMode = ApprovingType.True;
 
-                test.CheckOut();
-                test.UndoCheckOut();
+                file.CheckOut();
+                file.UndoCheckOut();
 
-                Assert.AreEqual("V1.0.A", test.Version.ToString());
-                Assert.AreEqual(1, Node.GetVersionNumbers(test.Id).Count);
+                Assert.AreEqual("V1.0.A", file.Version.ToString());
+                Assert.AreEqual(1, Node.GetVersionNumbers(file.Id).Count);
             });
         }
         [TestMethod]
@@ -626,15 +626,15 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                test.VersioningMode = VersioningType.MajorOnly;
-                test.ApprovingMode = ApprovingType.True;
+                var file = CreateTestFile();
+                file.VersioningMode = VersioningType.MajorOnly;
+                file.ApprovingMode = ApprovingType.True;
 
-                test.CheckOut();
-                test.UndoCheckOut();
+                file.CheckOut();
+                file.UndoCheckOut();
 
-                Assert.AreEqual("V1.0.A", test.Version.ToString());
-                Assert.AreEqual(1, Node.GetVersionNumbers(test.Id).Count);
+                Assert.AreEqual("V1.0.A", file.Version.ToString());
+                Assert.AreEqual(1, Node.GetVersionNumbers(file.Id).Count);
             });
         }
         [TestMethod]
@@ -642,15 +642,15 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                test.VersioningMode = VersioningType.MajorAndMinor;
-                test.ApprovingMode = ApprovingType.True;
+                var file = CreateTestFile();
+                file.VersioningMode = VersioningType.MajorAndMinor;
+                file.ApprovingMode = ApprovingType.True;
 
-                test.CheckOut();
-                test.UndoCheckOut();
+                file.CheckOut();
+                file.UndoCheckOut();
 
-                Assert.AreEqual("V1.0.A", test.Version.ToString());
-                Assert.AreEqual(1, Node.GetVersionNumbers(test.Id).Count);
+                Assert.AreEqual("V1.0.A", file.Version.ToString());
+                Assert.AreEqual(1, Node.GetVersionNumbers(file.Id).Count);
             });
         }
 
@@ -662,12 +662,12 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                test.VersioningMode = VersioningType.None;
-                test.ApprovingMode = ApprovingType.False;
+                var file = CreateTestFile();
+                file.VersioningMode = VersioningType.None;
+                file.ApprovingMode = ApprovingType.False;
 
-                test.CheckOut();
-                test.Publish();
+                file.CheckOut();
+                file.Publish();
             });
         }
         [TestMethod]
@@ -676,12 +676,12 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                test.VersioningMode = VersioningType.MajorOnly;
-                test.ApprovingMode = ApprovingType.False;
+                var file = CreateTestFile();
+                file.VersioningMode = VersioningType.MajorOnly;
+                file.ApprovingMode = ApprovingType.False;
 
-                test.CheckOut();
-                test.Publish();
+                file.CheckOut();
+                file.Publish();
             });
         }
         [TestMethod]
@@ -689,15 +689,15 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                test.VersioningMode = VersioningType.MajorAndMinor;
-                test.ApprovingMode = ApprovingType.False;
+                var file = CreateTestFile();
+                file.VersioningMode = VersioningType.MajorAndMinor;
+                file.ApprovingMode = ApprovingType.False;
 
-                test.CheckOut();
-                test.Publish();
+                file.CheckOut();
+                file.Publish();
 
-                Assert.AreEqual("V2.0.A", test.Version.ToString());
-                Assert.AreEqual(2, Node.GetVersionNumbers(test.Id).Count);
+                Assert.AreEqual("V2.0.A", file.Version.ToString());
+                Assert.AreEqual(2, Node.GetVersionNumbers(file.Id).Count);
             });
         }
         [TestMethod]
@@ -706,12 +706,12 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                test.VersioningMode = VersioningType.None;
-                test.ApprovingMode = ApprovingType.True;
+                var file = CreateTestFile();
+                file.VersioningMode = VersioningType.None;
+                file.ApprovingMode = ApprovingType.True;
 
-                test.CheckOut();
-                test.Publish();
+                file.CheckOut();
+                file.Publish();
             });
         }
         [TestMethod]
@@ -720,12 +720,12 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                test.VersioningMode = VersioningType.MajorOnly;
-                test.ApprovingMode = ApprovingType.True;
+                var file = CreateTestFile();
+                file.VersioningMode = VersioningType.MajorOnly;
+                file.ApprovingMode = ApprovingType.True;
 
-                test.CheckOut();
-                test.Publish();
+                file.CheckOut();
+                file.Publish();
             });
         }
         [TestMethod]
@@ -733,15 +733,15 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                test.VersioningMode = VersioningType.MajorAndMinor;
-                test.ApprovingMode = ApprovingType.True;
+                var file = CreateTestFile();
+                file.VersioningMode = VersioningType.MajorAndMinor;
+                file.ApprovingMode = ApprovingType.True;
 
-                test.CheckOut();
-                test.Publish();
+                file.CheckOut();
+                file.Publish();
 
-                Assert.AreEqual("V1.1.P", test.Version.ToString());
-                Assert.AreEqual(2, Node.GetVersionNumbers(test.Id).Count);
+                Assert.AreEqual("V1.1.P", file.Version.ToString());
+                Assert.AreEqual(2, Node.GetVersionNumbers(file.Id).Count);
             });
         }
 
@@ -753,12 +753,12 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                test.VersioningMode = VersioningType.None;
-                test.ApprovingMode = ApprovingType.False;
+                var file = CreateTestFile();
+                file.VersioningMode = VersioningType.None;
+                file.ApprovingMode = ApprovingType.False;
 
-                test.Save();
-                test.Approve();
+                file.Save();
+                file.Approve();
             });
         }
         [TestMethod]
@@ -767,12 +767,12 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                test.VersioningMode = VersioningType.MajorOnly;
-                test.ApprovingMode = ApprovingType.False;
+                var file = CreateTestFile();
+                file.VersioningMode = VersioningType.MajorOnly;
+                file.ApprovingMode = ApprovingType.False;
 
-                test.Save();
-                test.Approve();
+                file.Save();
+                file.Approve();
             });
         }
         [TestMethod]
@@ -781,13 +781,13 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                test.VersioningMode = VersioningType.MajorAndMinor;
-                test.ApprovingMode = ApprovingType.False;
+                var file = CreateTestFile();
+                file.VersioningMode = VersioningType.MajorAndMinor;
+                file.ApprovingMode = ApprovingType.False;
 
-                test.Save();
-                test.Publish();
-                test.Approve();
+                file.Save();
+                file.Publish();
+                file.Approve();
             });
         }
         [TestMethod]
@@ -795,15 +795,15 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                test.VersioningMode = VersioningType.None;
-                test.ApprovingMode = ApprovingType.True;
+                var file = CreateTestFile();
+                file.VersioningMode = VersioningType.None;
+                file.ApprovingMode = ApprovingType.True;
 
-                test.Save();
-                test.Approve();
+                file.Save();
+                file.Approve();
 
-                Assert.AreEqual("V1.0.A", test.Version.ToString());
-                Assert.AreEqual(1, Node.GetVersionNumbers(test.Id).Count);
+                Assert.AreEqual("V1.0.A", file.Version.ToString());
+                Assert.AreEqual(1, Node.GetVersionNumbers(file.Id).Count);
             });
         }
         [TestMethod]
@@ -811,15 +811,15 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                test.VersioningMode = VersioningType.MajorOnly;
-                test.ApprovingMode = ApprovingType.True;
+                var file = CreateTestFile();
+                file.VersioningMode = VersioningType.MajorOnly;
+                file.ApprovingMode = ApprovingType.True;
 
-                test.Save();
-                test.Approve();
+                file.Save();
+                file.Approve();
 
-                Assert.AreEqual("V2.0.A", test.Version.ToString());
-                Assert.AreEqual(2, Node.GetVersionNumbers(test.Id).Count);
+                Assert.AreEqual("V2.0.A", file.Version.ToString());
+                Assert.AreEqual(2, Node.GetVersionNumbers(file.Id).Count);
             });
         }
         [TestMethod]
@@ -827,16 +827,16 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                test.VersioningMode = VersioningType.MajorAndMinor;
-                test.ApprovingMode = ApprovingType.True;
+                var file = CreateTestFile();
+                file.VersioningMode = VersioningType.MajorAndMinor;
+                file.ApprovingMode = ApprovingType.True;
 
-                test.Save();
-                test.Publish();
-                test.Approve();
+                file.Save();
+                file.Publish();
+                file.Approve();
 
-                Assert.AreEqual("V2.0.A", test.Version.ToString());
-                Assert.AreEqual(2, Node.GetVersionNumbers(test.Id).Count);
+                Assert.AreEqual("V2.0.A", file.Version.ToString());
+                Assert.AreEqual(2, Node.GetVersionNumbers(file.Id).Count);
             });
         }
 
@@ -848,12 +848,12 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                test.VersioningMode = VersioningType.None;
-                test.ApprovingMode = ApprovingType.False;
+                var file = CreateTestFile();
+                file.VersioningMode = VersioningType.None;
+                file.ApprovingMode = ApprovingType.False;
 
-                test.Save();
-                test.Reject();
+                file.Save();
+                file.Reject();
             });
         }
         [TestMethod]
@@ -862,12 +862,12 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                test.VersioningMode = VersioningType.MajorOnly;
-                test.ApprovingMode = ApprovingType.False;
+                var file = CreateTestFile();
+                file.VersioningMode = VersioningType.MajorOnly;
+                file.ApprovingMode = ApprovingType.False;
 
-                test.Save();
-                test.Reject();
+                file.Save();
+                file.Reject();
             });
         }
         [TestMethod]
@@ -876,13 +876,13 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                test.VersioningMode = VersioningType.MajorAndMinor;
-                test.ApprovingMode = ApprovingType.False;
+                var file = CreateTestFile();
+                file.VersioningMode = VersioningType.MajorAndMinor;
+                file.ApprovingMode = ApprovingType.False;
 
-                test.Save();
-                test.Publish();
-                test.Reject();
+                file.Save();
+                file.Publish();
+                file.Reject();
             });
         }
         [TestMethod]
@@ -890,15 +890,15 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                test.VersioningMode = VersioningType.None;
-                test.ApprovingMode = ApprovingType.True;
+                var file = CreateTestFile();
+                file.VersioningMode = VersioningType.None;
+                file.ApprovingMode = ApprovingType.True;
 
-                test.Save();
-                test.Reject();
+                file.Save();
+                file.Reject();
 
-                Assert.AreEqual("V2.0.R", test.Version.ToString());
-                Assert.AreEqual(2, Node.GetVersionNumbers(test.Id).Count);
+                Assert.AreEqual("V2.0.R", file.Version.ToString());
+                Assert.AreEqual(2, Node.GetVersionNumbers(file.Id).Count);
             });
         }
         [TestMethod]
@@ -906,15 +906,15 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                test.VersioningMode = VersioningType.MajorOnly;
-                test.ApprovingMode = ApprovingType.True;
+                var file = CreateTestFile();
+                file.VersioningMode = VersioningType.MajorOnly;
+                file.ApprovingMode = ApprovingType.True;
 
-                test.Save();
-                test.Reject();
+                file.Save();
+                file.Reject();
 
-                Assert.AreEqual("V2.0.R", test.Version.ToString());
-                Assert.AreEqual(2, Node.GetVersionNumbers(test.Id).Count);
+                Assert.AreEqual("V2.0.R", file.Version.ToString());
+                Assert.AreEqual(2, Node.GetVersionNumbers(file.Id).Count);
             });
         }
         [TestMethod]
@@ -922,16 +922,16 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                var test = CreateTestFile();
-                test.VersioningMode = VersioningType.MajorAndMinor;
-                test.ApprovingMode = ApprovingType.True;
+                var file = CreateTestFile();
+                file.VersioningMode = VersioningType.MajorAndMinor;
+                file.ApprovingMode = ApprovingType.True;
 
-                test.Save();
-                test.Publish();
-                test.Reject();
+                file.Save();
+                file.Publish();
+                file.Reject();
 
-                Assert.AreEqual("V1.1.R", test.Version.ToString());
-                Assert.AreEqual(2, Node.GetVersionNumbers(test.Id).Count);
+                Assert.AreEqual("V1.1.R", file.Version.ToString());
+                Assert.AreEqual(2, Node.GetVersionNumbers(file.Id).Count);
             });
         }
 

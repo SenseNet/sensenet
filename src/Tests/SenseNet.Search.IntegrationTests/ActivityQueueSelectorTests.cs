@@ -114,7 +114,7 @@ namespace SenseNet.Search.IntegrationTests
             }
         }
 
-        [TestMethod, TestCategory("BUG SQLProvider, IR")]
+        [TestMethod, TestCategory("IR")]
         public void Indexing_ActivitySelector_Distributed()
         {
             var searchEngine = new SearchEngineForActivityQueueSelectorTests(false);
@@ -128,7 +128,7 @@ namespace SenseNet.Search.IntegrationTests
                 Assert.AreEqual("DISTRIBUTED. deletions: 0, updates: 0, addition: 1\r\n", searchEngine.GetIndexingLog());
             });
         }
-        [TestMethod, TestCategory("BUG SQLProvider, IR")]
+        [TestMethod, TestCategory("IR")]
         public void Indexing_ActivitySelector_Centralized()
         {
             var searchEngine = new SearchEngineForActivityQueueSelectorTests(true);
@@ -143,7 +143,7 @@ namespace SenseNet.Search.IntegrationTests
             });
         }
 
-        [TestMethod, TestCategory("BUG SQLProvider, IR")]
+        [TestMethod, TestCategory("IR")]
         public void Indexing_Centralized_InMemory_ExecuteUnprocessed()
         {
             var dataProvider = new InMemoryDataProvider();
