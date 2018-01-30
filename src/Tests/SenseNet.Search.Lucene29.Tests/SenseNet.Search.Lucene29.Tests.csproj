@@ -72,6 +72,8 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Implementations\TestNode.cs" />
+    <Compile Include="Implementations\TestQueryContext.cs" />
+    <Compile Include="Implementations\TestQueryEngine.cs" />
     <Compile Include="Lucene29Tests.cs" />
     <Compile Include="Lucene29CompilerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -108,10 +110,6 @@
     <ProjectReference Include="..\..\Storage\Storage.csproj">
       <Project>{5DB4DDBA-81F6-4D81-943A-18F3178B3355}</Project>
       <Name>Storage</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\SenseNet.Search.Tests\SenseNet.Search.Tests.csproj">
-      <Project>{0c78c008-db1d-4ce6-b081-a04afdaf5880}</Project>
-      <Name>SenseNet.Search.Tests</Name>
     </ProjectReference>
     <ProjectReference Include="..\SenseNet.Tests\SenseNet.Tests.csproj">
       <Project>{4674B8B8-6567-4EB5-B5A8-C838FECCE302}</Project>
