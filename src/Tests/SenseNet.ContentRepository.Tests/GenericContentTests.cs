@@ -1526,7 +1526,7 @@ namespace SenseNet.ContentRepository.Tests
         /// <summary>
         /// Creates a file without binary. Name is a GUID if not passed. Parent is a newly created SystemFolder.
         /// </summary>
-        public File CreateTestFile(string name = null, bool save = true)
+        private File CreateTestFile(string name = null, bool save = true)
         {
             return CreateTestFile(CreateTestRoot(), name ?? Guid.NewGuid().ToString(), save);
         }
@@ -1534,7 +1534,7 @@ namespace SenseNet.ContentRepository.Tests
         /// <summary>
         /// Creates a file without binary under the given parent node.
         /// </summary>
-        public static File CreateTestFile(Node parent, string name = null, bool save = true)
+        private static File CreateTestFile(Node parent, string name = null, bool save = true)
         {
             var file = new File(parent) { Name = name ?? Guid.NewGuid().ToString() };
             if(save)
