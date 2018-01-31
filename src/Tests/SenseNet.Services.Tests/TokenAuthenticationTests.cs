@@ -28,7 +28,8 @@ namespace SenseNet.Services.Tests
             public void Dispose(){}
         }
 
-        private static void InitDependecies( Mock<HttpContextBase> context, Mock<HttpRequestBase> request, Mock<HttpResponseBase> response)
+        private static void InitDependecies(Mock<HttpContextBase> context, Mock<HttpRequestBase> request,
+            Mock<HttpResponseBase> response)
         {
             AuthenticationHelper.GetRequest = (sender) => request.Object;
             AuthenticationHelper.GetResponse = (sender) => response.Object;
@@ -59,7 +60,91 @@ namespace SenseNet.Services.Tests
             AuthenticationHelper.IsUserValid = (userName, password) => true;
             AuthenticationHelper.GetSystemAccount = () => new Disposable();
             AuthenticationHelper.GetBasicAuthHeader = () => null;
-    }
+        }
+
+        [Fact]
+        public void TokenUltimateLogoutUrlTest()
+        {
+            var mockRequest = new Mock<HttpRequestBase>();
+            mockRequest.SetupGet(o => o.Url).Returns(new Uri("https://sensenet.com/sn-token/logout"));
+            mockRequest.SetupGet(o => o.IsSecureConnection).Returns(true);
+            var headers = new NameValueCollection();
+            mockRequest.SetupGet(o => o.Headers).Returns(headers);
+            var requestCookies = new HttpCookieCollection();
+            requestCookies.Add(new HttpCookie("ahp")
+            {
+                Value = "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJpc3N1ZXIiLCJzdWIiOiJzdWJqZWN0IiwiYXVkIjoiYXVkaWVuY2UiLCJleHAiOjIxMzQyMDQzMTgsImlhdCI6MTUwMzQ4NDMxOCwibmJmIjoxNTAzNDg0MzE4LCJuYW1lIjoidXNlcm5hbWUifQ"
+                ,HttpOnly = true
+                ,Secure = true
+                ,Expires = new DateTime(2047,8,23)
+            });
+            requestCookies.Add(new HttpCookie("as")
+            {
+                Value = "4UN3ajbm74CKeTAk3VpiJR2f0VAiKydjZg0BWwpbBcWZM5uqVJ_YbazPboItaAliH5eepgvMfNbwwk9W8UIhEA"
+                ,HttpOnly = true
+                ,Secure = true
+                ,Expires = new DateTime(2047,8,23)
+            });
+            requestCookies.Add(new HttpCookie("rs")
+            {
+                Value = "lL54nsEOfzZVD6vBCwMB4AxO1fwRgXadNBh9XtduaIygv_HJARlOXBISpC-sxG_96RSQ_fbnU-PcxWvj7w67Rg"
+                ,HttpOnly = true
+                ,Secure = true
+                ,Expires = new DateTime(2047,8,24)
+            });
+            mockRequest.SetupGet(o => o.Cookies).Returns(requestCookies);
+            var queryStringCollection = new NameValueCollection();
+            queryStringCollection.Add("ultimateLogout", "true");
+            mockRequest.SetupGet(o => o.Params).Returns(queryStringCollection);
+            var mockResponse = new Mock<HttpResponseBase>();
+            var cookies = new HttpCookieCollection();
+            string body = "";
+            int responseStatus = 0;
+            mockResponse.SetupGet(o => o.Cookies).Returns(cookies);
+            mockResponse.Setup(o => o.Write(It.IsAny<string>())).Callback((string t) => { body = t; });
+            mockResponse.SetupSet(o => o.StatusCode = It.IsAny<int>()).Callback((int s) => { responseStatus = s; });
+            var principal = new ClaimsPrincipal();
+            var claims = new List<Claim>();
+            claims.Add(new Claim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name", "username"));
+            principal.AddIdentity(new ClaimsIdentity(claims));
+
+            var mockContext = new Mock<HttpContextBase>();
+            mockContext.SetupGet(o => o.Request).Returns(mockRequest.Object);
+            mockContext.SetupGet(o => o.Response).Returns(mockResponse.Object);
+            mockContext.SetupGet(o => o.User).Returns(principal);
+            bool ultimateLogout = false;
+            var mockLogoutProvider = new Mock<IUltimateLogoutProvider>();
+            mockLogoutProvider.Setup(o => o.Logout(It.IsAny<bool>())).Callback((bool u) =>{ultimateLogout = u;});
+            mockLogoutProvider.SetupGet(o => o.LoadPortalPrincipalForLogout).Returns( u =>
+            {
+                var user = ServicesTestUser.Create("", u);
+                user.LastLoggedOut = new DateTime(2017,1,1,0,0,0);
+                return new PortalPrincipal(user);
+            });
+
+            Configuration.TokenAuthentication.Audience = "audience";
+            Configuration.TokenAuthentication.Issuer = "issuer";
+            Configuration.TokenAuthentication.Subject = "subject";
+            Configuration.TokenAuthentication.EncriptionAlgorithm = "HS512";
+            Configuration.TokenAuthentication.AccessLifeTimeInMinutes = 5;
+            Configuration.TokenAuthentication.RefreshLifeTimeInMinutes = 1440;
+            Configuration.TokenAuthentication.ClockSkewInMinutes = 5;
+            Configuration.TokenAuthentication.SymmetricKeySecret = "very secrety secret";
+            var application = new HttpApplication();
+            InitDependecies(mockContext, mockRequest, mockResponse);
+
+            new TokenAuthentication(mockLogoutProvider.Object).Authenticate(application, false, false);
+
+            Assert.True(ultimateLogout);
+            Assert.NotNull(mockResponse.Object.Cookies["as"]);
+            Assert.NotNull(mockResponse.Object.Cookies["rs"]);
+            Assert.NotNull(mockResponse.Object.Cookies["ahp"]);
+            Assert.True(mockResponse.Object.Cookies["as"].Expires < DateTime.Today);
+            Assert.True(mockResponse.Object.Cookies["rs"].Expires < DateTime.Today);
+            Assert.True(mockResponse.Object.Cookies["ahp"].Expires < DateTime.Today);
+            Assert.Equal(200, responseStatus);
+        }
+
 
         [Fact]
         public void TokenUltimateLogoutTest()
@@ -137,6 +222,86 @@ namespace SenseNet.Services.Tests
             new TokenAuthentication(mockLogoutProvider.Object).Authenticate(application, false, false);
 
             Assert.True(ultimateLogout);
+            Assert.NotNull(mockResponse.Object.Cookies["as"]);
+            Assert.NotNull(mockResponse.Object.Cookies["rs"]);
+            Assert.NotNull(mockResponse.Object.Cookies["ahp"]);
+            Assert.True(mockResponse.Object.Cookies["as"].Expires < DateTime.Today);
+            Assert.True(mockResponse.Object.Cookies["rs"].Expires < DateTime.Today);
+            Assert.True(mockResponse.Object.Cookies["ahp"].Expires < DateTime.Today);
+            Assert.Equal(200, responseStatus);
+        }
+
+        [Fact]
+        public void TokenUltimateLogoutUrlWithExpiredTokenTest()
+        {
+            var mockRequest = new Mock<HttpRequestBase>();
+            mockRequest.SetupGet(o => o.Url).Returns(new Uri("https://sensenet.com/sn-token/logout"));
+            mockRequest.SetupGet(o => o.IsSecureConnection).Returns(true);
+            var headers = new NameValueCollection();
+            mockRequest.SetupGet(o => o.Headers).Returns(headers);
+            var requestCookies = new HttpCookieCollection();
+            requestCookies.Add(new HttpCookie("ahp")
+            {
+                Value = "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJpc3N1ZXIiLCJzdWIiOiJzdWJqZWN0IiwiYXVkIjoiYXVkaWVuY2UiLCJleHAiOjIxMzQyMDQzMTgsImlhdCI6MTUwMzQ4NDMxOCwibmJmIjoxNTAzNDg0MzE4LCJuYW1lIjoidXNlcm5hbWUifQ"
+                ,HttpOnly = true
+                ,Secure = true
+                ,Expires = new DateTime(2047,8,23)
+            });
+            requestCookies.Add(new HttpCookie("as")
+            {
+                Value = "4UN3ajbm74CKeTAk3VpiJR2f0VAiKydjZg0BWwpbBcWZM5uqVJ_YbazPboItaAliH5eepgvMfNbwwk9W8UIhEA"
+                ,HttpOnly = true
+                ,Secure = true
+                ,Expires = new DateTime(2047,8,23)
+            });
+            requestCookies.Add(new HttpCookie("rs")
+            {
+                Value = "lL54nsEOfzZVD6vBCwMB4AxO1fwRgXadNBh9XtduaIygv_HJARlOXBISpC-sxG_96RSQ_fbnU-PcxWvj7w67Rg"
+                ,HttpOnly = true
+                ,Secure = true
+                ,Expires = new DateTime(2047,8,24)
+            });
+            mockRequest.SetupGet(o => o.Cookies).Returns(requestCookies);
+            var queryStringCollection = new NameValueCollection();
+            queryStringCollection.Add("ultimateLogout", "true");
+            mockRequest.SetupGet(o => o.Params).Returns(queryStringCollection);
+            var mockResponse = new Mock<HttpResponseBase>();
+            var cookies = new HttpCookieCollection();
+            string body = "";
+            int responseStatus = 0;
+            mockResponse.SetupGet(o => o.Cookies).Returns(cookies);
+            mockResponse.Setup(o => o.Write(It.IsAny<string>())).Callback((string t) => { body = t; });
+            mockResponse.SetupSet(o => o.StatusCode = It.IsAny<int>()).Callback((int s) => { responseStatus = s; });
+            var principal = new ClaimsPrincipal();
+            var claims = new List<Claim>();
+            claims.Add(new Claim("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name", "username"));
+            principal.AddIdentity(new ClaimsIdentity(claims));
+
+            var mockContext = new Mock<HttpContextBase>();
+            mockContext.SetupGet(o => o.Request).Returns(mockRequest.Object);
+            mockContext.SetupGet(o => o.Response).Returns(mockResponse.Object);
+            mockContext.SetupGet(o => o.User).Returns(principal);
+            bool ultimateLogout = false;
+            var user = ServicesTestUser.Create("", "userName");
+            user.LastLoggedOut = new DateTime(2017, 12, 31, 0, 0, 0);
+            var portalPrincipal = new PortalPrincipal(user);
+            var mockLogoutProvider = new Mock<IUltimateLogoutProvider>();
+            mockLogoutProvider.Setup(o => o.Logout(It.IsAny<bool>())).Callback((bool u) =>{ultimateLogout = u;});
+            mockLogoutProvider.SetupGet(o => o.LoadPortalPrincipalForLogout).Returns(u => portalPrincipal);
+            Configuration.TokenAuthentication.Audience = "audience";
+            Configuration.TokenAuthentication.Issuer = "issuer";
+            Configuration.TokenAuthentication.Subject = "subject";
+            Configuration.TokenAuthentication.EncriptionAlgorithm = "HS512";
+            Configuration.TokenAuthentication.AccessLifeTimeInMinutes = 5;
+            Configuration.TokenAuthentication.RefreshLifeTimeInMinutes = 1440;
+            Configuration.TokenAuthentication.ClockSkewInMinutes = 5;
+            Configuration.TokenAuthentication.SymmetricKeySecret = "very secrety secret";
+            var application = new HttpApplication();
+            InitDependecies(mockContext, mockRequest, mockResponse);
+
+            new TokenAuthentication(mockLogoutProvider.Object).Authenticate(application, false, false);
+
+            Assert.False(ultimateLogout);
             Assert.NotNull(mockResponse.Object.Cookies["as"]);
             Assert.NotNull(mockResponse.Object.Cookies["rs"]);
             Assert.NotNull(mockResponse.Object.Cookies["ahp"]);
