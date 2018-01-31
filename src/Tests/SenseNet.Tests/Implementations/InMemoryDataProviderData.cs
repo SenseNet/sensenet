@@ -562,7 +562,7 @@
 16	127	70	\n      string username, \n      string password\n    
 17	128	3	
 18	129	3	
-19	131	70	\n      bool recursive, \n      SenseNet.ContentRepository.Storage.Search.IndexRebuildLevel rebuildLevel\n    
+19	131	70	\n      bool recursive, \n      SenseNet.ContentRepository.Search.Indexing.IndexRebuildLevel rebuildLevel\n    
 20	135	70	\n      string level,\n      bool explicitOnly,\n      string member,\n      string[] permissions,\n    
 21	136	3	
 22	137	70	string[] contentTypes

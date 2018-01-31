@@ -5,6 +5,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
@@ -112,6 +114,7 @@ namespace SenseNet.Tests
             var securityDataProvider = GetSecurityDataProvider(dataProvider);
 
             return new RepositoryBuilder()
+                .UseAccessProvider(new DesktopAccessProvider())
                 .UseDataProvider(dataProvider)
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
@@ -149,7 +152,7 @@ namespace SenseNet.Tests
 
         protected void SaveInitialIndexDocuments()
         {
-            var idSet = DataProvider.LoadIdsOfNodesThatDoNotHaveIndexDocument(0, 1100);
+            var idSet = DataProvider.LoadIdsOfNodesThatDoNotHaveIndexDocument(0, 11000);
             var nodes = Node.LoadNodes(idSet);
 
             if (nodes.Count == 0)
@@ -160,6 +163,14 @@ namespace SenseNet.Tests
                 // ReSharper disable once UnusedVariable
                 DataBackingStore.SaveIndexDocument(node, false, false, out var hasBinary);
             }
+        }
+
+        protected void RebuildIndex()
+        {
+            var paths = new List<string>();
+            var populator = SearchManager.GetIndexPopulator();
+            populator.NodeIndexed += (o, e) => { paths.Add(e.Path); };
+            populator.ClearAndPopulateAll();
         }
 
         protected ContentQuery CreateSafeContentQuery(string qtext)

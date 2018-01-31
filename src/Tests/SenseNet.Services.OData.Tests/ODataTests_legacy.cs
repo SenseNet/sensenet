@@ -1,5 +1,4 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
@@ -7,21 +6,21 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.Portal;
 using SenseNet.Portal.ApplicationModel;
 using SenseNet.Portal.OData;
 using SenseNet.Portal.Virtualization;
 using SenseNet.Search;
 using SenseNet.Services.OData.Tests.Results;
-using SenseNet.Tests;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Web;
 using System.Xml;
 using SenseNet.Configuration;
+
+// ReSharper disable InconsistentNaming
+// ReSharper disable ArrangeThisQualifier
 
 namespace SenseNet.Services.OData.Tests
 {
@@ -38,12 +37,14 @@ namespace SenseNet.Services.OData.Tests
 
     internal class ODataFilterTestHelper
     {
-        public static string TestValue { get { return "Administrators"; } }
+        public static string TestValue => "Administrators";
+
         internal class A
         {
             internal class B
             {
-                public static string TestValue { get { return "Administrators"; } }
+                // ReSharper disable once MemberHidesStaticFromOuterClass
+                public static string TestValue { get; } = "Administrators";
             }
         }
     }
@@ -158,36 +159,11 @@ namespace SenseNet.Services.OData.Tests
     {
         #region Playground
 
-        private static string _testRootName = "_ODataTests";
-        private static string _testRootPath = String.Concat("/Root/", _testRootName);
-        /// <summary>
-        /// Do not use. Instead of TestRoot property
-        /// </summary>
-        private static Node __testRoot;
-        public static Node TestRoot
-        {
-            get
-            {
-                if (__testRoot == null)
-                {
-                    __testRoot = Node.LoadNode(_testRootPath);
-                    if (__testRoot == null)
-                    {
-                        Node node = NodeType.CreateInstance("SystemFolder", Node.LoadNode("/Root"));
-                        node.Name = _testRootName;
-                        node.Save();
-                        __testRoot = Node.LoadNode(_testRootPath);
-                    }
-                }
-                return __testRoot;
-            }
-        }
-
         //UNDONE: [ClassInitialize] attribute is commented out
         //[ClassInitialize]
         public static void CreateSandbox(TestContext testContext)
         {
-            InitializePlayground(testContext);
+            InitializePlayground();
 
             var rootAppsFolder = Node.Load<Folder>("/Root/(apps)");
             if (rootAppsFolder == null)
@@ -215,64 +191,445 @@ namespace SenseNet.Services.OData.Tests
             }
         }
 
-        private static void InitializePlayground(TestContext testContext)
+        private static void InitializePlayground()
         {
             EnsureReferenceTestStructure();
 
             var content = Content.Create(User.Administrator);
-            if (((IEnumerable<Node>)content["Manager"]).Count() > 0)
+            if (((IEnumerable<Node>)content["Manager"]).Any())
                 return;
             content["Manager"] = User.Administrator;
             content["Email"] = "anybody@somewhere.com";
             content.Save();
         }
-        //UNDONE: [ClassCleanup] attribute is commented out
-        //[ClassCleanup]
-        public static void DestroyPlayground()
-        {
-            if (Node.Exists(_testRootPath))
-                Node.ForceDelete(_testRootPath);
-        }
-
-        private const string TestSiteName = "ODataTestSite";
-        private static string TestSitePath => RepositoryPath.Combine("/Root/Sites", TestSiteName);
 
         private static void EnsureReferenceTestStructure()
         {
-            if (ContentType.GetByName(typeof(OData_ReferenceTest_ContentHandler).Name) == null)
-                ContentTypeInstaller.InstallContentType(OData_ReferenceTest_ContentHandler.CTD);
+            throw new NotImplementedException();
 
-            if (ContentType.GetByName(typeof(OData_Filter_ThroughReference_ContentHandler).Name) == null)
-                ContentTypeInstaller.InstallContentType(OData_Filter_ThroughReference_ContentHandler.CTD);
+            //if (ContentType.GetByName(typeof(OData_ReferenceTest_ContentHandler).Name) == null)
+            //    ContentTypeInstaller.InstallContentType(OData_ReferenceTest_ContentHandler.CTD);
 
-            var referrercontent = Content.Load(RepositoryPath.Combine(_testRootPath, "Referrer"));
-            if (referrercontent == null)
-            {
-                var nodes = new Node[5];
-                for (int i = 0; i < nodes.Length; i++)
-                {
-                    var content = Content.CreateNew("OData_Filter_ThroughReference_ContentHandler", TestRoot, "Referenced" + i);
-                    content.Index = i + 1;
-                    content.Save();
-                    nodes[i] = content.ContentHandler;
-                }
+            //if (ContentType.GetByName(typeof(OData_Filter_ThroughReference_ContentHandler).Name) == null)
+            //    ContentTypeInstaller.InstallContentType(OData_Filter_ThroughReference_ContentHandler.CTD);
 
-                referrercontent = Content.CreateNew("OData_Filter_ThroughReference_ContentHandler", TestRoot, "Referrer");
-                var referrer = (OData_Filter_ThroughReference_ContentHandler)referrercontent.ContentHandler;
-                referrer.References = nodes;
-                referrercontent.Save();
-            }
+            //var referrercontent = Content.Load(RepositoryPath.Combine(_testRootPath, "Referrer"));
+            //if (referrercontent == null)
+            //{
+            //    var nodes = new Node[5];
+            //    for (int i = 0; i < nodes.Length; i++)
+            //    {
+            //        var content = Content.CreateNew("OData_Filter_ThroughReference_ContentHandler", testRoot, "Referenced" + i);
+            //        content.Index = i + 1;
+            //        content.Save();
+            //        nodes[i] = content.ContentHandler;
+            //    }
+
+            //    referrercontent = Content.CreateNew("OData_Filter_ThroughReference_ContentHandler", testRoot, "Referrer");
+            //    var referrer = (OData_Filter_ThroughReference_ContentHandler)referrercontent.ContentHandler;
+            //    referrer.References = nodes;
+            //    referrercontent.Save();
+            //}
         }
 
         #endregion
+
+        #region [TestMethod] 10 public void OData_Parsing_
+
+        [TestMethod]
+        public void OData_Parsing_TopSkip()
+        {
+            Test(() =>
+            {
+                CreateTestSite();
+
+                PortalContext pc;
+                ODataHandler handler;
+                //---------------------------------------- without top, without skip
+                using (var output = new StringWriter())
+                {
+                    pc = CreatePortalContext("/OData.svc/Root", "", output);
+                    handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    Assert.AreEqual(0, handler.ODataRequest.Top);
+                    Assert.AreEqual(0, handler.ODataRequest.Skip);
+                    Assert.IsTrue(!handler.ODataRequest.HasTop);
+                    Assert.IsTrue(!handler.ODataRequest.HasSkip);
+                }
+
+                //---------------------------------------- top 3, without skip
+                using (var output = new StringWriter())
+                {
+                    pc = CreatePortalContext("/OData.svc/Root", "$top=3", output);
+                    handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    Assert.AreEqual(3, handler.ODataRequest.Top);
+                    Assert.AreEqual(0, handler.ODataRequest.Skip);
+                    Assert.IsTrue(handler.ODataRequest.HasTop);
+                    Assert.IsTrue(!handler.ODataRequest.HasSkip);
+                }
+
+                //---------------------------------------- without top, skip 4
+                using (var output = new StringWriter())
+                {
+                    pc = CreatePortalContext("/OData.svc/Root", "$skip=4", output);
+                    handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    Assert.AreEqual(0, handler.ODataRequest.Top);
+                    Assert.AreEqual(4, handler.ODataRequest.Skip);
+                    Assert.IsTrue(!handler.ODataRequest.HasTop);
+                    Assert.IsTrue(handler.ODataRequest.HasSkip);
+                }
+
+                //---------------------------------------- top 3, skip 4
+                using (var output = new StringWriter())
+                {
+                    pc = CreatePortalContext("/OData.svc/Root", "$top=3&$skip=4", output);
+                    handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    Assert.AreEqual(3, handler.ODataRequest.Top);
+                    Assert.AreEqual(4, handler.ODataRequest.Skip);
+                    Assert.IsTrue(handler.ODataRequest.HasTop);
+                    Assert.IsTrue(handler.ODataRequest.HasSkip);
+                }
+
+                //---------------------------------------- top 0, skip 0
+                using (var output = new StringWriter())
+                {
+                    pc = CreatePortalContext("/OData.svc/Root", "$top=0&$skip=0", output);
+                    handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    Assert.AreEqual(0, handler.ODataRequest.Top);
+                    Assert.AreEqual(0, handler.ODataRequest.Skip);
+                    Assert.IsTrue(!handler.ODataRequest.HasTop);
+                    Assert.IsTrue(!handler.ODataRequest.HasSkip);
+                }
+            });
+        }
+        [TestMethod]
+        public void OData_Parsing_InvalidTop()
+        {
+            Test(() =>
+            {
+                CreateTestSite();
+
+                using (var output = new StringWriter())
+                {
+                    var pc = CreatePortalContext("/OData.svc/Root", "$top=-3", output);
+                    var handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    var code = GetExceptionCode(output);
+                    Assert.AreEqual(ODataExceptionCode.NegativeTopParameter, code);
+                }
+            });
+        }
+        [TestMethod]
+        public void OData_Parsing_InvalidSkip()
+        {
+            Test(() =>
+            {
+                CreateTestSite();
+
+                using (var output = new StringWriter())
+                {
+                    var pc = CreatePortalContext("/OData.svc/Root", "$skip=-4", output);
+                    var handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    var code = GetExceptionCode(output);
+                    Assert.AreEqual(ODataExceptionCode.NegativeSkipParameter, code);
+                }
+            });
+        }
+        [TestMethod]
+        public void OData_Parsing_InlineCount()
+        {
+            Test(() =>
+            {
+                CreateTestSite();
+
+                PortalContext pc;
+                ODataHandler handler;
+
+                using (var output = new StringWriter())
+                {
+                    pc = CreatePortalContext("/OData.svc/Root", "$inlinecount=none", output);
+                    handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    Assert.AreEqual(InlineCount.None, handler.ODataRequest.InlineCount);
+                    Assert.IsTrue(!handler.ODataRequest.HasInlineCount);
+                }
+
+                using (var output = new StringWriter())
+                {
+                    pc = CreatePortalContext("/OData.svc/Root", "$inlinecount=0", output);
+                    handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    Assert.AreEqual(InlineCount.None, handler.ODataRequest.InlineCount);
+                    Assert.IsTrue(!handler.ODataRequest.HasInlineCount);
+                }
+
+                using (var output = new StringWriter())
+                {
+                    pc = CreatePortalContext("/OData.svc/Root", "$inlinecount=allpages", output);
+                    handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    Assert.AreEqual(InlineCount.AllPages, handler.ODataRequest.InlineCount);
+                    Assert.IsTrue(handler.ODataRequest.HasInlineCount);
+                }
+
+                using (var output = new StringWriter())
+                {
+                    pc = CreatePortalContext("/OData.svc/Root", "$inlinecount=1", output);
+                    handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    Assert.AreEqual(InlineCount.AllPages, handler.ODataRequest.InlineCount);
+                    Assert.IsTrue(handler.ODataRequest.HasInlineCount);
+                }
+            });
+        }
+        [TestMethod]
+        public void OData_Parsing_InvalidInlineCount()
+        {
+            Test(() =>
+            {
+                CreateTestSite();
+
+                using (var output = new StringWriter())
+                {
+                    var pc = CreatePortalContext("/OData.svc/Root", "$inlinecount=asdf", output);
+                    var handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    var code = GetExceptionCode(output);
+                    Assert.AreEqual(ODataExceptionCode.InvalidInlineCountParameter, code);
+                }
+                using (var output = new StringWriter())
+                {
+                    var pc = CreatePortalContext("/OData.svc/Root", "$inlinecount=2", output);
+                    var handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    var code = GetExceptionCode(output);
+                    Assert.AreEqual(ODataExceptionCode.InvalidInlineCountParameter, code);
+                }
+            });
+        }
+        [TestMethod]
+        public void OData_Parsing_OrderBy()
+        {
+            Test(() =>
+            {
+                CreateTestSite();
+
+                PortalContext pc;
+                ODataHandler handler;
+
+                //----------------------------------------------------------------------------- sorting: -
+                using (var output = new StringWriter())
+                {
+                    pc = CreatePortalContext("/OData.svc/Root", "", output);
+                    handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    var sort = handler.ODataRequest.Sort.ToArray();
+                    Assert.IsFalse(handler.ODataRequest.HasSort);
+                    Assert.AreEqual(0, sort.Length);
+                }
+
+                //----------------------------------------------------------------------------- sorting: Id
+                using (var output = new StringWriter())
+                {
+                    pc = CreatePortalContext("/OData.svc/Root", "$orderby=Id", output);
+                    handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    var sort = handler.ODataRequest.Sort.ToArray();
+                    Assert.IsTrue(handler.ODataRequest.HasSort);
+                    Assert.AreEqual(1, sort.Length);
+                    Assert.AreEqual("Id", sort[0].FieldName);
+                    Assert.IsFalse(sort[0].Reverse);
+                }
+
+                //----------------------------------------------------------------------------- sorting: Name asc
+                using (var output = new StringWriter())
+                {
+                    pc = CreatePortalContext("/OData.svc/Root", "$orderby=Name asc", output);
+                    handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    var sort = handler.ODataRequest.Sort.ToArray();
+                    Assert.IsTrue(handler.ODataRequest.HasSort);
+                    Assert.IsTrue(sort.Length == 1);
+                    Assert.IsTrue(sort[0].FieldName == "Name");
+                    Assert.IsTrue(sort[0].Reverse == false);
+                }
+
+                //----------------------------------------------------------------------------- sorting: DisplayName desc
+                using (var output = new StringWriter())
+                {
+                    pc = CreatePortalContext("/OData.svc/Root", "$orderby=DisplayName desc", output);
+                    handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    var sort = handler.ODataRequest.Sort.ToArray();
+                    Assert.IsTrue(handler.ODataRequest.HasSort);
+                    Assert.AreEqual(1, sort.Length);
+                    Assert.AreEqual("DisplayName", sort[0].FieldName);
+                    Assert.IsTrue(sort[0].Reverse);
+                }
+
+                //----------------------------------------------------------------------------- sorting: ModificationDate desc, Category, Name
+                using (var output = new StringWriter())
+                {
+                    pc = CreatePortalContext("/OData.svc/Root", "$orderby=   ModificationDate desc    ,   Category   ,    Name", output);
+                    handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    var sort = handler.ODataRequest.Sort.ToArray();
+                    Assert.IsTrue(handler.ODataRequest.HasSort);
+                    Assert.AreEqual(3, sort.Length);
+                    Assert.AreEqual("ModificationDate", sort[0].FieldName);
+                    Assert.IsTrue(sort[0].Reverse);
+                    Assert.AreEqual("Category", sort[1].FieldName);
+                    Assert.IsFalse(sort[1].Reverse);
+                    Assert.AreEqual("Name", sort[2].FieldName);
+                    Assert.IsFalse(sort[2].Reverse);
+                }
+            });
+        }
+        [TestMethod]
+        public void OData_Parsing_InvalidOrderBy()
+        {
+            Test(() =>
+            {
+                CreateTestSite();
+
+                using (var output = new StringWriter())
+                {
+                    var pc = CreatePortalContext("/OData.svc/Root", "$orderby=asdf asd", output);
+                    var handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    var code = GetExceptionCode(output);
+                    Assert.IsTrue(code == ODataExceptionCode.InvalidOrderByDirectionParameter);
+                }
+                using (var output = new StringWriter())
+                {
+                    var pc = CreatePortalContext("/OData.svc/Root", "$orderby=asdf asc desc", output);
+                    var handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    var code = GetExceptionCode(output);
+                    Assert.IsTrue(code == ODataExceptionCode.InvalidOrderByParameter);
+                }
+            });
+        }
+        [TestMethod]
+        public void OData_Parsing_Format()
+        {
+            Test(() =>
+            {
+                CreateTestSite();
+
+                PortalContext pc;
+                ODataHandler handler;
+
+                using (var output = new StringWriter())
+                {
+                    pc = CreatePortalContext("/OData.svc/Root", "$format=json", output);
+                    handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    Assert.IsTrue(handler.ODataRequest.Format == "json");
+                }
+
+                using (var output = new StringWriter())
+                {
+                    pc = CreatePortalContext("/OData.svc/Root", "$format=verbosejson", output);
+                    handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    Assert.IsTrue(handler.ODataRequest.Format == "verbosejson");
+                }
+            });
+        }
+        [TestMethod]
+        public void OData_Parsing_InvalidFormat()
+        {
+            Test(() =>
+            {
+                CreateTestSite();
+
+                using (var output = new StringWriter())
+                {
+                    var pc = CreatePortalContext("/OData.svc/Root", "$format=atom", output);
+                    var handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    var code = GetExceptionCode(output);
+                    Assert.IsTrue(code == ODataExceptionCode.InvalidFormatParameter);
+                }
+
+                using (var output = new StringWriter())
+                {
+                    var pc = CreatePortalContext("/OData.svc/Root", "$format=xxx", output);
+                    var handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    var code = GetExceptionCode(output);
+                    Assert.IsTrue(code == ODataExceptionCode.InvalidFormatParameter);
+                }
+            });
+        }
+        [TestMethod]
+        public void OData_Parsing_Select()
+        {
+            Test(() =>
+            {
+                CreateTestSite();
+
+                PortalContext pc;
+                ODataHandler handler;
+
+                //----------------------------------------------------------------------------- select: -
+                using (var output = new StringWriter())
+                {
+                    pc = CreatePortalContext("/OData.svc/Root", "", output);
+                    handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    var select = handler.ODataRequest.Select;
+                    Assert.IsTrue(handler.ODataRequest.HasSelect == false);
+                    Assert.IsTrue(select.Count == 0);
+                }
+
+                //----------------------------------------------------------------------------- select: Id, DisplayName, ModificationDate
+                using (var output = new StringWriter())
+                {
+                    pc = CreatePortalContext("/OData.svc/Root",
+                        "$select=    Id  ,\tDisplayName\r\n\t,   ModificationDate   ", output);
+                    handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    var select = handler.ODataRequest.Select;
+                    Assert.IsTrue(handler.ODataRequest.HasSelect);
+                    Assert.IsTrue(select.Count == 3);
+                    Assert.IsTrue(select[0] == "Id");
+                    Assert.IsTrue(select[1] == "DisplayName");
+                    Assert.IsTrue(select[2] == "ModificationDate");
+                }
+
+                //----------------------------------------------------------------------------- select: *
+                using (var output = new StringWriter())
+                {
+                    pc = CreatePortalContext("/OData.svc/Root", "$select=*", output);
+                    handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    var select = handler.ODataRequest.Select;
+                    Assert.IsTrue(handler.ODataRequest.HasSelect == false);
+                    Assert.IsTrue(select.Count == 0);
+                }
+            });
+        }
+        #endregion
+
+        #region [TestMethod] 2 SnJsonConverterTest_
 
         [TestMethod]
         public void SnJsonConverterTest_SimpleProjection()
         {
             Test(() =>
             {
+                InstallCarContentType();
+                var testRoot = CreateTestRoot("ODataTestRoot");
+
                 // Create, save
-                var content = Content.CreateNew("Car", __testRoot, "MyCar1");
+                var content = Content.CreateNew("Car", testRoot, "MyCar1");
                 content["Make"] = "Citroen";
                 content["Model"] = "C100";
                 content["Price"] = 2399999.99;
@@ -293,14 +650,16 @@ namespace SenseNet.Services.OData.Tests
                 Assert.AreEqual(jobj["Price"].Value<decimal>(), content["Price"]);
             });
         }
-
         [TestMethod]
         public void SnJsonConverterTest_WithExpand()
         {
             Test(() =>
             {
+                InstallCarContentType();
+                var testRoot = CreateTestRoot("ODataTestRoot");
+
                 // Create, save
-                var content = Content.CreateNew("Car", __testRoot, "MyCar2");
+                var content = Content.CreateNew("Car", testRoot, "MyCar2");
                 content["Make"] = "Citroen";
                 content["Model"] = "C101";
                 content["Price"] = 4399999.99;
@@ -326,6 +685,8 @@ namespace SenseNet.Services.OData.Tests
                 Assert.AreEqual(jobj["CreatedBy"]["Path"], content.ContentHandler.CreatedBy.Path);
             });
         }
+        #endregion
+
 
         [TestMethod]
         public void OData_Urls_CurrentSite()
@@ -337,13 +698,13 @@ namespace SenseNet.Services.OData.Tests
                 var siteName = RepositoryPath.GetFileName(site.Path);
 
                 string expectedJson = string.Concat(@"{""d"":{
-                    ""__metadata"":{                    ""uri"":""/OData.svc", siteParentPath, @"('", siteName, @"')"",""type"":""Site""},
-                    ""Manager"":{""__deferred"":{       ""uri"":""/OData.svc", siteParentPath, @"('", siteName, @"')/Manager""}},
-                    ""CreatedBy"":{""__deferred"":{     ""uri"":""/OData.svc", siteParentPath, @"('", siteName, @"')/CreatedBy""}},
-                    ""ModifiedBy"":{""__deferred"":{    ""uri"":""/OData.svc", siteParentPath, @"('", siteName, @"')/ModifiedBy""}}}}")
+                    ""__metadata"":{                    ""uri"":""/odata.svc", siteParentPath, @"('", siteName, @"')"",""type"":""Site""},
+                    ""Manager"":{""__deferred"":{       ""uri"":""/odata.svc", siteParentPath, @"('", siteName, @"')/Manager""}},
+                    ""CreatedBy"":{""__deferred"":{     ""uri"":""/odata.svc", siteParentPath, @"('", siteName, @"')/CreatedBy""}},
+                    ""ModifiedBy"":{""__deferred"":{    ""uri"":""/odata.svc", siteParentPath, @"('", siteName, @"')/ModifiedBy""}}}}")
                     .Replace("\r\n", "").Replace("\t", "").Replace(" ", "");
                 string json;
-                using (var output = new System.IO.StringWriter())
+                using (var output = new StringWriter())
                 {
                     var pc = CreatePortalContext(ODataTools.GetODataUrl(site.Path),
                         "$select=Manager,CreatedBy,ModifiedBy&metadata=minimal", output);
@@ -352,482 +713,56 @@ namespace SenseNet.Services.OData.Tests
                     json = GetStringResult(output);
                 }
                 var result = json.Replace("\r\n", "").Replace("\t", "").Replace(" ", "");
-                Assert.IsTrue(result == expectedJson,
-                    String.Format("Result is: {0}, expected: {1}", result, expectedJson));
+                Assert.AreEqual(expectedJson, result);
             });
         }
 
         //-----------------------------------------------------------------------------------------------------------------------------------------
 
+
         [TestMethod]
-        public void OData_Parsing_TopSkip()
+        public void OData_Getting_Collection()
         {
             Test(() =>
             {
+                SaveInitialIndexDocuments();
+                RebuildIndex();
+
                 CreateTestSite();
-
-                PortalContext pc;
-                ODataHandler handler;
-                //---------------------------------------- without top, without skip
-                using (var output = new System.IO.StringWriter())
+                ODataEntities entities;
+                using (var output = new StringWriter())
                 {
-                    pc = CreatePortalContext("/OData.svc/Root", "", output);
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    Assert.IsTrue(handler.ODataRequest.Top == 0,
-                        string.Format("Top is {0}, expected: 0.", handler.ODataRequest.Top));
-                    Assert.IsTrue(handler.ODataRequest.Skip == 0,
-                        string.Format("Skip is {0}, expected: 0.", handler.ODataRequest.Skip));
-                    Assert.IsTrue(!handler.ODataRequest.HasTop, "HasTop is true, expected: false.");
-                    Assert.IsTrue(!handler.ODataRequest.HasSkip, "HasSkip is true, expected: false.");
-                }
-
-                //---------------------------------------- top 3, without skip
-                using (var output = new System.IO.StringWriter())
-                {
-                    pc = CreatePortalContext("/OData.svc/Root", "$top=3", output);
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    Assert.IsTrue(handler.ODataRequest.Top == 3,
-                        string.Format("Top is {0}, expected: 3.", handler.ODataRequest.Top));
-                    Assert.IsTrue(handler.ODataRequest.Skip == 0,
-                        string.Format("Skip is {0}, expected: 0.", handler.ODataRequest.Skip));
-                    Assert.IsTrue(handler.ODataRequest.HasTop, "HasTop is false, expected: true.");
-                    Assert.IsTrue(!handler.ODataRequest.HasSkip, "HasSkip is true, expected: false.");
-                }
-
-                //---------------------------------------- without top, skip 4
-                using (var output = new System.IO.StringWriter())
-                {
-                    pc = CreatePortalContext("/OData.svc/Root", "$skip=4", output);
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    Assert.IsTrue(handler.ODataRequest.Top == 0,
-                        string.Format("Top is {0}, expected: 0.", handler.ODataRequest.Top));
-                    Assert.IsTrue(handler.ODataRequest.Skip == 4,
-                        string.Format("Skip is {0}, expected: 4.", handler.ODataRequest.Skip));
-                    Assert.IsTrue(!handler.ODataRequest.HasTop, "HasTop is true, expected: false.");
-                    Assert.IsTrue(handler.ODataRequest.HasSkip, "HasSkip is false, expected: true.");
-                }
-
-                //---------------------------------------- top 3, skip 4
-                using (var output = new System.IO.StringWriter())
-                {
-                    pc = CreatePortalContext("/OData.svc/Root", "$top=3&$skip=4", output);
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    Assert.IsTrue(handler.ODataRequest.Top == 3,
-                        string.Format("Top is {0}, expected: 3.", handler.ODataRequest.Top));
-                    Assert.IsTrue(handler.ODataRequest.Skip == 4,
-                        string.Format("Skip is {0}, expected: 4.", handler.ODataRequest.Skip));
-                    Assert.IsTrue(handler.ODataRequest.HasTop, "HasTop is false, expected: true.");
-                    Assert.IsTrue(handler.ODataRequest.HasSkip, "HasSkip is false, expected: true.");
-                }
-
-                //---------------------------------------- top 0, skip 0
-                using (var output = new System.IO.StringWriter())
-                {
-                    pc = CreatePortalContext("/OData.svc/Root", "$top=0&$skip=0", output);
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    Assert.IsTrue(handler.ODataRequest.Top == 0,
-                        string.Format("Top is {0}, expected: 0.", handler.ODataRequest.Top));
-                    Assert.IsTrue(handler.ODataRequest.Skip == 0,
-                        string.Format("Skip is {0}, expected: 0.", handler.ODataRequest.Skip));
-                    Assert.IsTrue(!handler.ODataRequest.HasTop, "HasTop is true, expected: false.");
-                    Assert.IsTrue(!handler.ODataRequest.HasSkip, "HasSkip is true, expected: false.");
-                }
-            });
-        }
-        [TestMethod]
-        public void OData_Parsing_InvalidTop()
-        {
-            Test(() =>
-            {
-                CreateTestSite();
-
-                using (var output = new System.IO.StringWriter())
-                {
-                    var pc = CreatePortalContext("/OData.svc/Root", "$top=-3", output);
+                    var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn/Portal", "", output);
                     var handler = new ODataHandler();
                     handler.ProcessRequest(pc.OwnerHttpContext);
-                    var code = GetExceptionCode(output);
-                    Assert.IsTrue(code == ODataExceptionCode.NegativeTopParameter,
-                        string.Format("ErrorCode is {0}, expected: {1}.", code,
-                            ODataExceptionCode.NegativeTopParameter));
+                    entities = GetEntities(output);
                 }
+                var folder = Node.Load<Folder>("/Root/IMS/BuiltIn/Portal");
+                var origIds = string.Join(", ", folder.Children.Select(f => f.Id).OrderBy(x => x).Select(x=>x.ToString()).ToArray());
+                var Ids = string.Join(", ", entities.Select(e => e.Id).OrderBy(x => x).Select(x => x.ToString()).ToArray());
+                Assert.AreEqual(origIds, Ids);
             });
         }
         [TestMethod]
-        public void OData_Parsing_InvalidSkip()
+        public void OData_Getting_Entity()
         {
             Test(() =>
             {
                 CreateTestSite();
 
-                using (var output = new System.IO.StringWriter())
+                ODataEntity entity;
+                using (var output = new StringWriter())
                 {
-                    var pc = CreatePortalContext("/OData.svc/Root", "$skip=-4", output);
+                    var pc = CreatePortalContext("/OData.svc/Root('IMS')", "", output);
                     var handler = new ODataHandler();
                     handler.ProcessRequest(pc.OwnerHttpContext);
-                    var code = GetExceptionCode(output);
-                    Assert.IsTrue(code == ODataExceptionCode.NegativeSkipParameter,
-                        string.Format("ErrorCode is {0}, expected: {1}.", code,
-                            ODataExceptionCode.NegativeSkipParameter));
+                    entity = GetEntity(output);
                 }
+                var nodeHead = NodeHead.Get(entity.Path);
+                Assert.IsTrue(nodeHead.Id == entity.Id,
+                    string.Format("nodeHead.Id ({0}) and entity.Id ({1}) are not equal", nodeHead.Id, entity.Id));
             });
         }
-        [TestMethod]
-        public void OData_Parsing_InlineCount()
-        {
-            Test(() =>
-            {
-                CreateTestSite();
-
-                PortalContext pc;
-                ODataHandler handler;
-
-                using (var output = new System.IO.StringWriter())
-                {
-                    pc = CreatePortalContext("/OData.svc/Root", "$inlinecount=none", output);
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    Assert.IsTrue(handler.ODataRequest.InlineCount == InlineCount.None,
-                        string.Format("InlineCount is {0}, expected: None.", handler.ODataRequest.InlineCount));
-                    Assert.IsTrue(!handler.ODataRequest.HasInlineCount, "HasInlineCount is true, expected: false.");
-                }
-
-                using (var output = new System.IO.StringWriter())
-                {
-                    pc = CreatePortalContext("/OData.svc/Root", "$inlinecount=0", output);
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    Assert.IsTrue(handler.ODataRequest.InlineCount == InlineCount.None,
-                        string.Format("InlineCount is {0}, expected: None.", handler.ODataRequest.InlineCount));
-                    Assert.IsTrue(!handler.ODataRequest.HasInlineCount, "HasInlineCount is true, expected: false.");
-                }
-
-                using (var output = new System.IO.StringWriter())
-                {
-                    pc = CreatePortalContext("/OData.svc/Root", "$inlinecount=allpages", output);
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    Assert.IsTrue(handler.ODataRequest.InlineCount == InlineCount.AllPages,
-                        string.Format("InlineCount is {0}, expected: AllPages.", handler.ODataRequest.InlineCount));
-                    Assert.IsTrue(handler.ODataRequest.HasInlineCount, "HasInlineCount is false, expected: true.");
-                }
-
-                using (var output = new System.IO.StringWriter())
-                {
-                    pc = CreatePortalContext("/OData.svc/Root", "$inlinecount=1", output);
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    Assert.IsTrue(handler.ODataRequest.InlineCount == InlineCount.AllPages,
-                        string.Format("InlineCount is {0}, expected: AllPages.", handler.ODataRequest.InlineCount));
-                    Assert.IsTrue(handler.ODataRequest.HasInlineCount, "HasInlineCount is false, expected: true.");
-                }
-            });
-        }
-        [TestMethod]
-        public void OData_Parsing_InvalidInlineCount()
-        {
-            Test(() =>
-            {
-                CreateTestSite();
-
-                using (var output = new System.IO.StringWriter())
-                {
-                    var pc = CreatePortalContext("/OData.svc/Root", "$inlinecount=asdf", output);
-                    var handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var code = GetExceptionCode(output);
-                    Assert.IsTrue(code == ODataExceptionCode.InvalidInlineCountParameter,
-                        string.Format("ErrorCode is {0}, expected: {1}.", code,
-                            ODataExceptionCode.InvalidInlineCountParameter));
-                }
-                using (var output = new System.IO.StringWriter())
-                {
-                    var pc = CreatePortalContext("/OData.svc/Root", "$inlinecount=2", output);
-                    var handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var code = GetExceptionCode(output);
-                    Assert.IsTrue(code == ODataExceptionCode.InvalidInlineCountParameter,
-                        string.Format("ErrorCode is {0}, expected: {1}.", code,
-                            ODataExceptionCode.InvalidInlineCountParameter));
-                }
-            });
-        }
-        [TestMethod]
-        public void OData_Parsing_OrderBy()
-        {
-            Test(() =>
-            {
-                CreateTestSite();
-
-                PortalContext pc;
-                ODataHandler handler;
-
-                //----------------------------------------------------------------------------- sorting: -
-                using (var output = new System.IO.StringWriter())
-                {
-                    pc = CreatePortalContext("/OData.svc/Root", "", output);
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var sort = handler.ODataRequest.Sort.ToArray();
-                    Assert.IsTrue(handler.ODataRequest.HasSort == false, "HasSort is true.");
-                    Assert.IsTrue(sort.Length == 0, string.Format("Sort.Count is {0}, expected: 0.", sort.Length));
-                }
-
-                //----------------------------------------------------------------------------- sorting: Id
-                using (var output = new System.IO.StringWriter())
-                {
-                    pc = CreatePortalContext("/OData.svc/Root", "$orderby=Id", output);
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var sort = handler.ODataRequest.Sort.ToArray();
-                    Assert.IsTrue(handler.ODataRequest.HasSort, "HasSort is false.");
-                    Assert.IsTrue(sort.Length == 1, string.Format("Sort.Count is {0}, expected: 1.", sort.Length));
-                    Assert.IsTrue(sort[0].FieldName == "Id",
-                        string.Format("Sort[0].Name is {0}, expected: 'Id'.", sort[0].FieldName));
-                    Assert.IsTrue(sort[0].Reverse == false, "Sort[0].Reverse is true, expected: false.");
-                }
-
-                //----------------------------------------------------------------------------- sorting: Name asc
-                using (var output = new System.IO.StringWriter())
-                {
-                    pc = CreatePortalContext("/OData.svc/Root", "$orderby=Name asc", output);
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var sort = handler.ODataRequest.Sort.ToArray();
-                    Assert.IsTrue(handler.ODataRequest.HasSort, "HasSort is false.");
-                    Assert.IsTrue(sort.Length == 1, string.Format("Sort.Count is {0}, expected: 1.", sort.Length));
-                    Assert.IsTrue(sort[0].FieldName == "Name",
-                        string.Format("Sort[0].Name is {0}, expected: 'Name'.", sort[0].FieldName));
-                    Assert.IsTrue(sort[0].Reverse == false, "Sort[0].Reverse is true, expected: false.");
-                }
-
-                //----------------------------------------------------------------------------- sorting: DisplayName desc
-                using (var output = new System.IO.StringWriter())
-                {
-                    pc = CreatePortalContext("/OData.svc/Root", "$orderby=DisplayName desc", output);
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var sort = handler.ODataRequest.Sort.ToArray();
-                    Assert.IsTrue(handler.ODataRequest.HasSort, "HasSort is false.");
-                    Assert.IsTrue(sort.Length == 1, string.Format("Sort.Count is {0}, expected: 1.", sort.Length));
-                    Assert.IsTrue(sort[0].FieldName == "DisplayName",
-                        string.Format("Sort[0].Name is {0}, expected: 'DisplayName'.", sort[0].FieldName));
-                    Assert.IsTrue(sort[0].Reverse == true, "Sort[0].Reverse is true, expected: false.");
-                }
-
-                //----------------------------------------------------------------------------- sorting: ModificationDate desc, Category, Name
-                using (var output = new System.IO.StringWriter())
-                {
-                    pc = CreatePortalContext("/OData.svc/Root",
-                        "$orderby=   ModificationDate desc    ,   Category   ,    Name", output);
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var sort = handler.ODataRequest.Sort.ToArray();
-                    Assert.IsTrue(handler.ODataRequest.HasSort, "HasSort is false.");
-                    Assert.IsTrue(sort.Length == 3, string.Format("Sort.Count is {0}, expected: 3.", sort.Length));
-                    Assert.IsTrue(sort[0].FieldName == "ModificationDate",
-                        string.Format("Sort[0].Name is {0}, expected: 'ModificationDate'.", sort[0].FieldName));
-                    Assert.IsTrue(sort[0].Reverse == true, "Sort[0].Reverse is true, expected: false.");
-                    Assert.IsTrue(sort[1].FieldName == "Category",
-                        string.Format("Sort[1].Name is {0}, expected: 'ModificationDate'.", sort[1].FieldName));
-                    Assert.IsTrue(sort[1].Reverse == false, "Sort[1].Reverse is false, expected: true.");
-                    Assert.IsTrue(sort[2].FieldName == "Name",
-                        string.Format("Sort[2].Name is {0}, expected: 'ModificationDate'.", sort[2].FieldName));
-                    Assert.IsTrue(sort[2].Reverse == false, "Sort[2].Reverse is false, expected: true.");
-                }
-            });
-        }
-        [TestMethod]
-        public void OData_Parsing_InvalidOrderBy()
-        {
-            Test(() =>
-            {
-                CreateTestSite();
-
-                using (var output = new System.IO.StringWriter())
-                {
-                    var pc = CreatePortalContext("/OData.svc/Root", "$orderby=asdf asd", output);
-                    var handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var code = GetExceptionCode(output);
-                    Assert.IsTrue(code == ODataExceptionCode.InvalidOrderByDirectionParameter,
-                        string.Format("ErrorCode is {0}, expected: {1}.", code,
-                            ODataExceptionCode.InvalidInlineCountParameter));
-                }
-                using (var output = new System.IO.StringWriter())
-                {
-                    var pc = CreatePortalContext("/OData.svc/Root", "$orderby=asdf asc desc", output);
-                    var handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var code = GetExceptionCode(output);
-                    Assert.IsTrue(code == ODataExceptionCode.InvalidOrderByParameter,
-                        string.Format("ErrorCode is {0}, expected: {1}.", code,
-                            ODataExceptionCode.InvalidInlineCountParameter));
-                }
-            });
-        }
-        [TestMethod]
-        public void OData_Parsing_Format()
-        {
-            Test(() =>
-            {
-                CreateTestSite();
-
-                PortalContext pc;
-                ODataHandler handler;
-
-                using (var output = new System.IO.StringWriter())
-                {
-                    pc = CreatePortalContext("/OData.svc/Root", "$format=json", output);
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    Assert.IsTrue(handler.ODataRequest.Format == "json", string.Format("Format is {0}, expected: json.", handler.ODataRequest.Format));
-                }
-
-                using (var output = new System.IO.StringWriter())
-                {
-                    pc = CreatePortalContext("/OData.svc/Root", "$format=verbosejson", output);
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    Assert.IsTrue(handler.ODataRequest.Format == "verbosejson", string.Format("Format is {0}, expected: verbosejson.", handler.ODataRequest.Format));
-                }
-            });
-        }
-        [TestMethod]
-        public void OData_Parsing_InvalidFormat()
-        {
-            Test(() =>
-            {
-                CreateTestSite();
-
-                using (var output = new System.IO.StringWriter())
-                {
-                    var pc = CreatePortalContext("/OData.svc/Root", "$format=atom", output);
-                    var handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var code = GetExceptionCode(output);
-                    Assert.IsTrue(code == ODataExceptionCode.InvalidFormatParameter,
-                        string.Format("ErrorCode is {0}, expected: {1}.", code,
-                            ODataExceptionCode.InvalidFormatParameter));
-                }
-
-                using (var output = new System.IO.StringWriter())
-                {
-                    var pc = CreatePortalContext("/OData.svc/Root", "$format=xxx", output);
-                    var handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var code = GetExceptionCode(output);
-                    Assert.IsTrue(code == ODataExceptionCode.InvalidFormatParameter,
-                        string.Format("ErrorCode is {0}, expected: {1}.", code,
-                            ODataExceptionCode.InvalidFormatParameter));
-                }
-            });
-        }
-        [TestMethod]
-        public void OData_Parsing_Select()
-        {
-            Test(() =>
-            {
-                CreateTestSite();
-
-                PortalContext pc;
-                ODataHandler handler;
-
-                //----------------------------------------------------------------------------- select: -
-                using (var output = new System.IO.StringWriter())
-                {
-                    pc = CreatePortalContext("/OData.svc/Root", "", output);
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var select = handler.ODataRequest.Select;
-                    Assert.IsTrue(handler.ODataRequest.HasSelect == false, "HasSelect is true.");
-                    Assert.IsTrue(select.Count == 0, string.Format("Select.Count is {0}, expected: 0.", select.Count));
-                }
-
-                //----------------------------------------------------------------------------- select: Id, DisplayName, ModificationDate
-                using (var output = new System.IO.StringWriter())
-                {
-                    pc = CreatePortalContext("/OData.svc/Root",
-                        "$select=    Id  ,\tDisplayName\r\n\t,   ModificationDate   ", output);
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var select = handler.ODataRequest.Select;
-                    Assert.IsTrue(handler.ODataRequest.HasSelect, "HasSelect is false.");
-                    Assert.IsTrue(select.Count == 3, string.Format("select.Count is {0}, expected: 1.", select.Count));
-                    Assert.IsTrue(select[0] == "Id",
-                        string.Format("select[0].Name is {0}, expected: 'Id'.", select[0]));
-                    Assert.IsTrue(select[1] == "DisplayName",
-                        string.Format("select[1].Name is {0}, expected: 'DisplayName'.", select[0]));
-                    Assert.IsTrue(select[2] == "ModificationDate",
-                        string.Format("select[2].Name is {0}, expected: 'ModificationDate'.", select[0]));
-                }
-
-                //----------------------------------------------------------------------------- select: *
-                using (var output = new System.IO.StringWriter())
-                {
-                    pc = CreatePortalContext("/OData.svc/Root", "$select=*", output);
-                    handler = new ODataHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
-                    var select = handler.ODataRequest.Select;
-                    Assert.IsTrue(handler.ODataRequest.HasSelect == false, "HasSelect is true.");
-                    Assert.IsTrue(select.Count == 0, string.Format("Select.Count is {0}, expected: 0.", select.Count));
-                }
-            });
-        }
-
-        //[TestMethod]
-        //public void OData_Getting_Collection()
-        //{
-        //    CreateTestSite();
-        //    try
-        //    {
-        //        Entities entities;
-        //        using (var output = new System.IO.StringWriter())
-        //        {
-        //            //var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/Members", "", output);
-        //            var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn/Portal", "", output);
-        //            var handler = new ODataHandler();
-        //            handler.ProcessRequest(pc.OwnerHttpContext);
-        //            entities = GetEntities(output);
-        //        }
-        //        var folder = Node.Load<Folder>("/Root/IMS/BuiltIn/Portal");
-        //        var origIds = folder.Children.Select(f => f.Id);
-        //        var Ids = entities.Select(e => e.Id);
-        //        Assert.IsTrue(origIds.Except(Ids).Count() == 0, "#1");
-        //        Assert.IsTrue(Ids.Except(origIds).Count() == 0, "#2");
-        //    }
-        //    finally
-        //    {
-        //        CleanupTestSite();
-        //    }
-        //}
-        //[TestMethod]
-        //public void OData_Getting_Entity()
-        //{
-        //    CreateTestSite();
-        //    try
-        //    {
-        //        Entity entity;
-        //        using (var output = new System.IO.StringWriter())
-        //        {
-        //            var pc = CreatePortalContext("/OData.svc/Root('IMS')", "", output);
-        //            var handler = new ODataHandler();
-        //            handler.ProcessRequest(pc.OwnerHttpContext);
-        //            entity = GetEntity(output);
-        //        }
-        //        var nodeHead = NodeHead.Get(entity.Path);
-        //        Assert.IsTrue(nodeHead.Id == entity.Id, string.Format("nodeHead.Id ({0}) and entity.Id ({1}) are not equal", nodeHead.Id, entity.Id));
-        //    }
-        //    finally
-        //    {
-        //        CleanupTestSite();
-        //    }
-        //}
         [TestMethod]
         public void OData_Getting_NotExistentEntity()
         {
@@ -835,16 +770,15 @@ namespace SenseNet.Services.OData.Tests
             {
                 CreateTestSite();
 
-                string responseStatus = null;
-                using (var output = new System.IO.StringWriter())
+                string responseStatus;
+                using (var output = new StringWriter())
                 {
                     var pc = CreatePortalContext("/OData.svc/Root('AAAA')", "", output);
                     var handler = new ODataHandler();
                     handler.ProcessRequest(pc.OwnerHttpContext);
                     responseStatus = pc.OwnerHttpContext.Response.Status;
                 }
-                Assert.IsTrue(responseStatus == "404 Not Found",
-                    string.Format("responseStatus is {0}, expected {1}", responseStatus, "404 Not Found"));
+                Assert.IsTrue(responseStatus == "404 Not Found");
             });
         }
         [TestMethod]
@@ -855,7 +789,7 @@ namespace SenseNet.Services.OData.Tests
                 CreateTestSite();
 
                 string errorCode;
-                using (var output = new System.IO.StringWriter())
+                using (var output = new StringWriter())
                 {
                     var pc = CreatePortalContext("/OData.svc/Root('IMS')/aaaa", "", output);
                     var handler = new ODataHandler();
@@ -874,7 +808,7 @@ namespace SenseNet.Services.OData.Tests
         //    try
         //    {
         //        string json;
-        //        using (var output = new System.IO.StringWriter())
+        //        using (var output = new StringWriter())
         //        {
         //            var pc = CreatePortalContext("/OData.svc/Root('IMS')/Id", "", output);
         //            var handler = new ODataHandler();
@@ -882,7 +816,7 @@ namespace SenseNet.Services.OData.Tests
         //            json = GetStringResult(output);
         //        }
         //        Assert.IsTrue(json.Replace("\r\n", "").Replace("\t", "").Replace(" ", "") == "{\"d\":{\"Id\":3}}", "#1");
-        //        using (var output = new System.IO.StringWriter())
+        //        using (var output = new StringWriter())
         //        {
         //            var pc = CreatePortalContext("/OData.svc/Root('IMS')/Id/$value", "", output);
         //            var handler = new ODataHandler();
@@ -903,7 +837,7 @@ namespace SenseNet.Services.OData.Tests
         //    try
         //    {
         //        Entities entities;
-        //        using (var output = new System.IO.StringWriter())
+        //        using (var output = new StringWriter())
         //        {
         //            var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/Members", "", output);
         //            var handler = new ODataHandler();
@@ -928,7 +862,7 @@ namespace SenseNet.Services.OData.Tests
         //            try
         //            {
         //                ODataEntities entities;
-        //                using (var output = new System.IO.StringWriter())
+        //                using (var output = new StringWriter())
         //                {
         //                    //var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/Members", "", output);
         //                    var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn/Portal", "$select=Id,Name", output);
@@ -961,7 +895,7 @@ namespace SenseNet.Services.OData.Tests
         //            try
         //            {
         //                ODataEntity entity;
-        //                using (var output = new System.IO.StringWriter())
+        //                using (var output = new StringWriter())
         //                {
         //                    var pc = CreatePortalContext("/OData.svc/Root('IMS')", "$select=Id,Name", output);
         //                    var handler = new ODataHandler();
@@ -986,7 +920,7 @@ namespace SenseNet.Services.OData.Tests
         //            try
         //            {
         //                ODataEntity entity;
-        //                using (var output = new System.IO.StringWriter())
+        //                using (var output = new StringWriter())
         //                {
         //                    var pc = CreatePortalContext("/OData.svc/Root('IMS')", "", output);
         //                    var handler = new ODataHandler();
@@ -1025,10 +959,10 @@ namespace SenseNet.Services.OData.Tests
         //	</Fields>
         //</ContentListDefinition>
         //";
-        //            string path = RepositoryPath.Combine(TestRoot.Path, "Cars");
+        //            string path = RepositoryPath.Combine(testRoot.Path, "Cars");
         //            if (Node.Exists(path))
         //                Node.ForceDelete(path);
-        //            ContentList list = new ContentList(TestRoot);
+        //            ContentList list = new ContentList(testRoot);
         //            list.Name = "Cars";
         //            list.ContentListDefinition = listDef;
         //            list.AllowedChildTypes = new ContentType[] { ContentType.GetByName("Car") };
@@ -1043,7 +977,7 @@ namespace SenseNet.Services.OData.Tests
         //            try
         //            {
         //                ODataEntities entities;
-        //                using (var output = new System.IO.StringWriter())
+        //                using (var output = new StringWriter())
         //                {
         //                    //var odataPath = ODataHandler.GetODataPath(list.Path, car.Name);
         //                    var pc = CreatePortalContext("/OData.svc" + list.Path, "", output);
@@ -1105,7 +1039,7 @@ namespace SenseNet.Services.OData.Tests
         //                var expectedLocal = string.Join(", ", ContentQuery.Query(expectedQueryLocal).Nodes.Select(n => n.Id.ToString()));
 
         //                ODataEntities entities;
-        //                using (var output = new System.IO.StringWriter())
+        //                using (var output = new StringWriter())
         //                {
         //                    var pc = CreatePortalContext("/OData.svc/Root", "$select=Id,Path&query=asdf+AND+Type%3aCar+.SORT%3aPath+.AUTOFILTERS%3aOFF", output);
         //                    var handler = new ODataHandler();
@@ -1115,7 +1049,7 @@ namespace SenseNet.Services.OData.Tests
         //                var realGlobal = String.Join(", ", entities.Select(e => e.Id));
         //                Assert.IsTrue(expectedGlobal == realGlobal, String.Format("Local: The result is {0}. Expected: {1}", realGlobal, expectedGlobal));
 
-        //                using (var output = new System.IO.StringWriter())
+        //                using (var output = new StringWriter())
         //                {
         //                    var pc = CreatePortalContext("/OData.svc/" + folderName, "$select=Id,Path&query=asdf+AND+Type%3aCar+.SORT%3aPath+.AUTOFILTERS%3aOFF", output);
         //                    var handler = new ODataHandler();
@@ -1138,7 +1072,7 @@ namespace SenseNet.Services.OData.Tests
         //            try
         //            {
         //                ODataEntities entities;
-        //                using (var output = new System.IO.StringWriter())
+        //                using (var output = new StringWriter())
         //                {
         //                    var pc = CreatePortalContext("/OData.svc/Root/System/Schema/ContentTypes/GenericContent", "$orderby=Name desc&$skip=4&$top=3&$inlinecount=allpages", output);
         //                    var handler = new ODataHandler();
@@ -1165,7 +1099,7 @@ namespace SenseNet.Services.OData.Tests
         //            try
         //            {
         //                string result;
-        //                using (var output = new System.IO.StringWriter())
+        //                using (var output = new StringWriter())
         //                {
         //                    //var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/Members", "", output);
         //                    var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn/Portal/$count", "", output);
@@ -1188,7 +1122,7 @@ namespace SenseNet.Services.OData.Tests
         //            try
         //            {
         //                string result;
-        //                using (var output = new System.IO.StringWriter())
+        //                using (var output = new StringWriter())
         //                {
         //                    //var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/Members", "", output);
         //                    var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn/Portal/$count", "$top=3", output);
@@ -1239,7 +1173,7 @@ namespace SenseNet.Services.OData.Tests
         //            try
         //            {
         //                string jsonText;
-        //                using (var output = new System.IO.StringWriter())
+        //                using (var output = new StringWriter())
         //                {
         //                    var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')", "$expand=Members,ModifiedBy&$select=Id,Members/Id,Name,Members/Name&metadata=minimal", output);
         //                    var handler = new ODataHandler();
@@ -1264,7 +1198,7 @@ namespace SenseNet.Services.OData.Tests
         //            {
         //                ODataEntity entity;
         //                string json;
-        //                using (var output = new System.IO.StringWriter())
+        //                using (var output = new StringWriter())
         //                {
         //                    var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn('Portal')", "$expand=CreatedBy/Manager", output);
         //                    var handler = new ODataHandler();
@@ -1295,7 +1229,7 @@ namespace SenseNet.Services.OData.Tests
         //            {
         //                ODataEntity entity;
         //                string json;
-        //                using (var output = new System.IO.StringWriter())
+        //                using (var output = new StringWriter())
         //                {
         //                    var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn('Portal')", "$expand=CreatedBy/Manager&$select=CreatedBy", output);
         //                    var handler = new ODataHandler();
@@ -1324,7 +1258,7 @@ namespace SenseNet.Services.OData.Tests
         //            {
         //                ODataEntity entity;
         //                string json;
-        //                using (var output = new System.IO.StringWriter())
+        //                using (var output = new StringWriter())
         //                {
         //                    var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn('Portal')", "$expand=CreatedBy/Manager&$select=CreatedBy/Manager", output);
         //                    var handler = new ODataHandler();
@@ -1353,7 +1287,7 @@ namespace SenseNet.Services.OData.Tests
         //            {
         //                ODataEntity entity;
         //                string json;
-        //                using (var output = new System.IO.StringWriter())
+        //                using (var output = new StringWriter())
         //                {
         //                    var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn('Portal')", "$expand=CreatedBy/Manager&$select=CreatedBy/Manager/Id", output);
         //                    var handler = new ODataHandler();
@@ -1384,34 +1318,26 @@ namespace SenseNet.Services.OData.Tests
                 CreateTestSite();
 
                 //------------------------------------------------------------------------------------------------------------------------ test 1
-                using (var output = new System.IO.StringWriter())
+                using (var output = new StringWriter())
                 {
                     var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn/Portal",
                         "$expand=Members&$select=Members1/Id", output);
                     var handler = new ODataHandler();
                     handler.ProcessRequest(pc.OwnerHttpContext);
                     var error = GetError(output);
-                    Assert.IsTrue(error.Code == ODataExceptionCode.InvalidSelectParameter,
-                        string.Format("ErrorCode is '{0}', expected: '{1}'.", error.Code,
-                            ODataExceptionCode.InvalidSelectParameter));
-                    Assert.IsTrue(error.Message == "Bad item in $select: Members1/Id",
-                        string.Format("Message is '{0}', expected: '{1}'.", error.Message,
-                            "Bad item in $select: Members1/Id"));
+                    Assert.IsTrue(error.Code == ODataExceptionCode.InvalidSelectParameter);
+                    Assert.IsTrue(error.Message == "Bad item in $select: Members1/Id");
                 }
 
                 //------------------------------------------------------------------------------------------------------------------------ test 2
-                using (var output = new System.IO.StringWriter())
+                using (var output = new StringWriter())
                 {
                     var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn/Portal", "&$select=Members/Id", output);
                     var handler = new ODataHandler();
                     handler.ProcessRequest(pc.OwnerHttpContext);
                     var error = GetError(output);
-                    Assert.IsTrue(error.Code == ODataExceptionCode.InvalidSelectParameter,
-                        string.Format("ErrorCode is '{0}', expected: '{1}'.", error.Code,
-                            ODataExceptionCode.InvalidSelectParameter));
-                    Assert.IsTrue(error.Message == "Bad item in $select: Members/Id",
-                        string.Format("Message is '{0}', expected: '{1}'.", error.Message,
-                            "Bad item in $select: Members/Id"));
+                    Assert.IsTrue(error.Code == ODataExceptionCode.InvalidSelectParameter);
+                    Assert.IsTrue(error.Message == "Bad item in $select: Members/Id");
                 }
             });
         }
@@ -1467,7 +1393,7 @@ namespace SenseNet.Services.OData.Tests
                 try
                 {
                     string jsonText;
-                    using (var output = new System.IO.StringWriter())
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')",
                             "$expand=Members/Actions,ModifiedBy&$select=Id,Name,Actions,Members/Id,Members/Name,Members/Actions",
@@ -1509,7 +1435,7 @@ namespace SenseNet.Services.OData.Tests
                 try
                 {
                     string jsonText;
-                    using (var output = new System.IO.StringWriter())
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/Action3", "",
                             output);
@@ -1519,8 +1445,7 @@ namespace SenseNet.Services.OData.Tests
                     }
                     var raw = jsonText.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
                     var exp = expectedJson.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
-                    Assert.IsTrue(raw == exp,
-                        String.Format("Result and expected are not equal. Result: {0}, expected: {1}", raw, exp));
+                    Assert.IsTrue(raw == exp);
                 }
                 finally
                 {
@@ -1541,16 +1466,15 @@ namespace SenseNet.Services.OData.Tests
                 try
                 {
                     HttpResponse response;
-                    using (var output = new System.IO.StringWriter())
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/Action4", "",
                             output);
                         var handler = new ODataHandler();
-                        handler.ProcessRequest(pc.OwnerHttpContext, "POST", MemoryStream.Null);
+                        handler.ProcessRequest(pc.OwnerHttpContext, "POST", Stream.Null);
                         response = pc.OwnerHttpContext.Response;
                     }
-                    Assert.IsTrue(response.StatusCode == 204,
-                        String.Format("Response.Status is {0}, expected: 204 No content", response.Status));
+                    Assert.IsTrue(response.StatusCode == 204);
                 }
                 finally
                 {
@@ -1791,7 +1715,7 @@ namespace SenseNet.Services.OData.Tests
         //    try
         //    {
         //        ODataEntities entities;
-        //        using (var output = new System.IO.StringWriter())
+        //        using (var output = new StringWriter())
         //        {
         //            var pc = CreatePortalContext("/OData.svc" + path, "$orderby=Name asc&$select=Id,Id,Name,Name,Path", output);
         //            var handler = new ODataHandler();
@@ -1819,7 +1743,7 @@ namespace SenseNet.Services.OData.Tests
         //</AspectDefinition>";
         //            aspect1.Save();
 
-        //            var folder = new Folder(TestRoot) { Name = Guid.NewGuid().ToString() };
+        //            var folder = new Folder(testRoot) { Name = Guid.NewGuid().ToString() };
         //            folder.Save();
 
         //            var content1 = Content.CreateNew("Car", folder, "Car1");
@@ -1836,7 +1760,7 @@ namespace SenseNet.Services.OData.Tests
         //            try
         //            {
         //                ODataEntities entities;
-        //                using (var output = new System.IO.StringWriter())
+        //                using (var output = new StringWriter())
         //                {
         //                    var pc = CreatePortalContext("/OData.svc" + folder.Path, "$orderby=Name asc&$select=Name,Aspect1.Field1", output);
         //                    var handler = new ODataHandler();
@@ -1864,7 +1788,7 @@ namespace SenseNet.Services.OData.Tests
         //            //var r = ContentQuery.Query(String.Concat("Name:", name, " .AUTOFILTERS:OFF"));
         //            //if (r.Count > 0)
         //            //    return (Aspect)r.Nodes.First();
-        //            //var aspectContent = Content.CreateNew("Aspect", TestRoot, name);
+        //            //var aspectContent = Content.CreateNew("Aspect", testRoot, name);
         //            //aspectContent.Save();
         //            //return (Aspect)aspectContent.ContentHandler;
 
@@ -1882,18 +1806,20 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
-                var content = Content.CreateNew("Car", TestRoot, "ORIG_" + Guid.NewGuid());
+                InstallCarContentType();
+                var testRoot = CreateTestRoot("ODataTestRoot");
+
+                var content = Content.CreateNew("Car", testRoot, "ORIG_" + Guid.NewGuid());
                 content.DisplayName = "Initial DisplayName";
                 content.Save();
                 var id = content.Id;
                 var path = content.Path;
 
-                var newName = "NEW_" + Guid.NewGuid().ToString();
+                var newName = "NEW_" + Guid.NewGuid();
                 var newDisplayName = "New DisplayName";
 
                 CreateTestSite();
-                ODataEntity entity;
-                using (var output = new System.IO.StringWriter())
+                using (var output = new StringWriter())
                 {
                     var json = String.Concat(@"models=[{
                       ""Name"": """, newName, @""",
@@ -1903,7 +1829,7 @@ namespace SenseNet.Services.OData.Tests
                     var pc = CreatePortalContext("/OData.svc" + content.Path, "", output);
                     var handler = new ODataHandler();
                     handler.ProcessRequest(pc.OwnerHttpContext, "PUT", stream);
-                    entity = GetEntity(output);
+                    var entity = GetEntity(output);
                 }
                 var content1 = Content.Load(id);
                 Assert.AreEqual(newName, content1.Name);
@@ -1915,7 +1841,10 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
-                var content = Content.CreateNew("Car", TestRoot, "ORIG_" + Guid.NewGuid().ToString());
+                InstallCarContentType();
+                var testRoot = CreateTestRoot("ODataTestRoot");
+
+                var content = Content.CreateNew("Car", testRoot, "ORIG_" + Guid.NewGuid().ToString());
                 content.DisplayName = "Initial DisplayName";
                 content.Save();
                 var id = content.Id;
@@ -1926,8 +1855,7 @@ namespace SenseNet.Services.OData.Tests
 
                 CreateTestSite();
 
-                ODataEntity entity;
-                using (var output = new System.IO.StringWriter())
+                using (var output = new StringWriter())
                 {
                     var json = String.Concat(@"models=[{
                       ""Name"": """, newName, @""",
@@ -1937,7 +1865,7 @@ namespace SenseNet.Services.OData.Tests
                     var pc = CreatePortalContext("/OData.svc" + content.Path, "", output);
                     var handler = new ODataHandler();
                     handler.ProcessRequest(pc.OwnerHttpContext, "PATCH", stream);
-                    entity = GetEntity(output);
+                    var entity = GetEntity(output);
                 }
                 var content1 = Content.Load(id);
                 Assert.AreEqual(newName, content1.Name);
@@ -1952,17 +1880,19 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
+                InstallCarContentType();
+                var testRoot = CreateTestRoot("ODataTestRoot");
                 CreateTestSite();
                 EnsureTemplateStructure();
 
                 var name = Guid.NewGuid().ToString();
-                var path = RepositoryPath.Combine(TestRoot.Path, name);
+                var path = RepositoryPath.Combine(testRoot.Path, name);
                 var json = string.Concat(
                     @"models=[{""__ContentType"":""Car"",""__ContentTemplate"":""Template3"",""Name"":""", name,
                     @""",""EngineSize"":""3.5 l""}]");
 
-                var output = new System.IO.StringWriter();
-                var pc = CreatePortalContext("/OData.svc/" + TestRoot.Path, "", output);
+                var output = new StringWriter();
+                var pc = CreatePortalContext("/OData.svc/" + testRoot.Path, "", output);
                 var handler = new ODataHandler();
                 var stream = CreateRequestStream(json);
 
@@ -1979,7 +1909,7 @@ namespace SenseNet.Services.OData.Tests
         private void EnsureTemplateStructure()
         {
             //global template folder
-            var ctfGlobal = Node.LoadNode(Repository.ContentTemplateFolderPath);
+            var ctfGlobal = Node.LoadNode(RepositoryStructure.ContentTemplateFolderPath);
             if (ctfGlobal == null)
             {
                 ctfGlobal = new SystemFolder(Node.LoadNode("/Root")) { Name = Repository.ContentTemplatesFolderName };
@@ -2018,10 +1948,12 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
+                InstallCarContentType();
+                var testRoot = CreateTestRoot("ODataTestRoot");
                 CreateTestSite();
 
                 var name = Guid.NewGuid().ToString();
-                var content = Content.CreateNew("Car", TestRoot, name);
+                var content = Content.CreateNew("Car", testRoot, name);
                 content.DisplayName = "vadalma";
                 var defaultMake = (string) content["Make"];
                 content["Make"] = "Not default";
@@ -2038,7 +1970,7 @@ namespace SenseNet.Services.OData.Tests
   ""Index"": 42
 }]");
 
-                var output = new System.IO.StringWriter();
+                var output = new StringWriter();
                 var pc = CreatePortalContext("/OData.svc/" + path, "", output);
                 var handler = new ODataHandler();
                 var stream = CreateRequestStream(json);
@@ -2049,15 +1981,10 @@ namespace SenseNet.Services.OData.Tests
                 var creationDateStr = c.ContentHandler.CreationDate.ToString("yyyy-MM-dd HH:mm:ss.ffff");
                 var modificationDateStr = c.ContentHandler.ModificationDate.ToString("yyyy-MM-dd HH:mm:ss.ffff");
 
-                Assert.IsTrue(c.DisplayName == newDisplayName,
-                    String.Format("The DisplayName is '{0}', expected: '{1}'", c.DisplayName, newDisplayName));
-                Assert.IsTrue(modificationDateStr == "2012-10-11 03:52:01.6370",
-                    String.Format("The CreationDate is '{0}', expected: '{1}'", modificationDateStr,
-                        "2012-10-11 03:52:01.6300"));
-                Assert.IsTrue(c.ContentHandler.Index == 42,
-                    String.Format("The Index is '{0}', expected: '{1}'", c.ContentHandler.Index, 42));
-                Assert.IsTrue((string) c["Make"] == null,
-                    String.Format("The Make field is '{0}', expected: null", c["Make"]));
+                Assert.IsTrue(c.DisplayName == newDisplayName);
+                Assert.IsTrue(modificationDateStr == "2012-10-11 03:52:01.6370");
+                Assert.IsTrue(c.ContentHandler.Index == 42);
+                Assert.IsTrue((string)c["Make"] == null);
             });
         }
         [TestMethod]
@@ -2065,10 +1992,12 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
+                InstallCarContentType();
+                var testRoot = CreateTestRoot("ODataTestRoot");
                 CreateTestSite();
 
                 var name = Guid.NewGuid().ToString();
-                var content = Content.CreateNew("Car", TestRoot, name);
+                var content = Content.CreateNew("Car", testRoot, name);
                 content.DisplayName = "vadalma";
                 var defaultMake = (string) content["Make"];
                 content["Make"] = "Not default";
@@ -2085,7 +2014,7 @@ namespace SenseNet.Services.OData.Tests
   ""Index"": 42
 }]");
 
-                var output = new System.IO.StringWriter();
+                var output = new StringWriter();
                 var pc = CreatePortalContext("/OData.svc/" + path, "", output);
                 var handler = new ODataHandler();
                 var stream = CreateRequestStream(json);
@@ -2096,15 +2025,10 @@ namespace SenseNet.Services.OData.Tests
                 var creationDateStr = c.ContentHandler.CreationDate.ToString("yyyy-MM-dd HH:mm:ss.ffff");
                 var modificationDateStr = c.ContentHandler.ModificationDate.ToString("yyyy-MM-dd HH:mm:ss.ffff");
 
-                Assert.IsTrue(c.DisplayName == newDisplayName,
-                    String.Format("The DisplayName is '{0}', expected: '{1}'", c.DisplayName, newDisplayName));
-                Assert.IsTrue(modificationDateStr == "2012-10-11 03:52:01.6370",
-                    String.Format("The CreationDate is '{0}', expected: '{1}'", modificationDateStr,
-                        "2012-10-11 03:52:01.6300"));
-                Assert.IsTrue(c.ContentHandler.Index == 42,
-                    String.Format("The Index is '{0}', expected: '{1}'", c.ContentHandler.Index, 42));
-                Assert.IsTrue((string) c["Make"] == "Not default",
-                    String.Format("The Make field is '{0}', expected: \"Not default\"", c["Make"]));
+                Assert.IsTrue(c.DisplayName == newDisplayName);
+                Assert.IsTrue(modificationDateStr == "2012-10-11 03:52:01.6370");
+                Assert.IsTrue(c.ContentHandler.Index == 42);
+                Assert.IsTrue((string)c["Make"] == "Not default");
             });
         }
         [TestMethod]
@@ -2112,10 +2036,12 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
+                InstallCarContentType();
+                var testRoot = CreateTestRoot("ODataTestRoot");
                 CreateTestSite();
 
                 var name = Guid.NewGuid().ToString();
-                var content = Content.CreateNew("Car", TestRoot, name);
+                var content = Content.CreateNew("Car", testRoot, name);
                 content.DisplayName = "vadalma";
                 var defaultMake = (string) content["Make"];
                 content["Make"] = "Not default";
@@ -2132,7 +2058,7 @@ namespace SenseNet.Services.OData.Tests
   ""Index"": 42
 }]");
 
-                var output = new System.IO.StringWriter();
+                var output = new StringWriter();
                 var pc = CreatePortalContext("/OData.svc/" + path, "", output);
                 var handler = new ODataHandler();
                 var stream = CreateRequestStream(json);
@@ -2143,15 +2069,10 @@ namespace SenseNet.Services.OData.Tests
                 var creationDateStr = c.ContentHandler.CreationDate.ToString("yyyy-MM-dd HH:mm:ss.ffff");
                 var modificationDateStr = c.ContentHandler.ModificationDate.ToString("yyyy-MM-dd HH:mm:ss.ffff");
 
-                Assert.IsTrue(c.DisplayName == newDisplayName,
-                    String.Format("The DisplayName is '{0}', expected: '{1}'", c.DisplayName, newDisplayName));
-                Assert.IsTrue(modificationDateStr == "2012-10-11 03:52:01.6370",
-                    String.Format("The CreationDate is '{0}', expected: '{1}'", modificationDateStr,
-                        "2012-10-11 03:52:01.6300"));
-                Assert.IsTrue(c.ContentHandler.Index == 42,
-                    String.Format("The Index is '{0}', expected: '{1}'", c.ContentHandler.Index, 42));
-                Assert.IsTrue((string) c["Make"] == "Not default",
-                    String.Format("The Make field is '{0}', expected: \"Not default\"", c["Make"]));
+                Assert.IsTrue(c.DisplayName == newDisplayName);
+                Assert.IsTrue(modificationDateStr == "2012-10-11 03:52:01.6370");
+                Assert.IsTrue(c.ContentHandler.Index == 42);
+                Assert.IsTrue((string)c["Make"] == "Not default");
             });
         }
 
@@ -2160,25 +2081,25 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
+                var testRoot = CreateTestRoot("ODataTestRoot");
                 CreateTestSite();
 
                 var name = Guid.NewGuid().ToString();
                 var displayName = Guid.NewGuid().ToString();
-                var path = RepositoryPath.Combine(TestRoot.Path, name);
+                var path = RepositoryPath.Combine(testRoot.Path, name);
                 //var json = string.Concat(@"models=[{""Id"":"""",""IsFile"":false,""Name"":"""",""DisplayName"":""", displayName, @""",""ModifiedBy"":null,""ModificationDate"":null,""CreationDate"":null,""Actions"":null}]");
                 var json = string.Concat(@"models=[{""Name"":""", name, @""",""DisplayName"":""", displayName,
                     @""",""Index"":41}]");
 
-                var output = new System.IO.StringWriter();
-                var pc = CreatePortalContext("/OData.svc/" + TestRoot.Path, "", output);
+                var output = new StringWriter();
+                var pc = CreatePortalContext("/OData.svc/" + testRoot.Path, "", output);
                 var handler = new ODataHandler();
                 var stream = CreateRequestStream(json);
 
                 handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
 
                 var content = Content.Load(path);
-                Assert.IsTrue(content.DisplayName == displayName,
-                    String.Format("The DisplayName is '{0}', expected: '{1}'", content.DisplayName, displayName));
+                Assert.IsTrue(content.DisplayName == displayName);
             });
         }
         [TestMethod]
@@ -2186,25 +2107,25 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
+                InstallCarContentType();
+                var testRoot = CreateTestRoot("ODataTestRoot");
                 CreateTestSite();
 
                 var name = Guid.NewGuid().ToString();
-                var path = RepositoryPath.Combine(TestRoot.Path, name);
+                var path = RepositoryPath.Combine(testRoot.Path, name);
                 //var json = string.Concat(@"models=[{""Id"":"""",""IsFile"":false,""Name"":"""",""DisplayName"":""", displayName, @""",""ModifiedBy"":null,""ModificationDate"":null,""CreationDate"":null,""Actions"":null}]");
                 var json = string.Concat(@"models=[{""__ContentType"":""Car"",""Name"":""", name, @"""}]");
 
-                var output = new System.IO.StringWriter();
-                var pc = CreatePortalContext("/OData.svc/" + TestRoot.Path, "", output);
+                var output = new StringWriter();
+                var pc = CreatePortalContext("/OData.svc/" + testRoot.Path, "", output);
                 var handler = new ODataHandler();
                 var stream = CreateRequestStream(json);
 
                 handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
 
                 var content = Content.Load(path);
-                Assert.IsTrue(content.ContentType.Name == "Car",
-                    String.Format("The ContentType is '{0}', expected: '{1}'", content.ContentType.Name, "Car"));
-                Assert.IsTrue(content.Name == name,
-                    String.Format("The DisplayName is '{0}', expected: '{1}'", content.Name, name));
+                Assert.IsTrue(content.ContentType.Name == "Car");
+                Assert.IsTrue(content.Name == name);
             });
         }
 
@@ -2213,19 +2134,21 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
+                InstallCarContentType();
+                var testRoot = CreateTestRoot("ODataTestRoot");
                 CreateTestSite();
 
                 var name = Guid.NewGuid().ToString();
-                var content = Content.CreateNew("Car", TestRoot, name);
+                var content = Content.CreateNew("Car", testRoot, name);
                 content.Save();
-                var path = string.Concat("/OData.svc/", TestRoot.Path, "('", name, "')");
+                var path = string.Concat("/OData.svc/", testRoot.Path, "('", name, "')");
 
-                var output = new System.IO.StringWriter();
+                var output = new StringWriter();
                 var pc = CreatePortalContext(path, "", output);
                 var handler = new ODataHandler();
                 handler.ProcessRequest(pc.OwnerHttpContext, "DELETE", null);
 
-                var repoPath = string.Concat(TestRoot.Path, "/", name);
+                var repoPath = string.Concat(testRoot.Path, "/", name);
                 Assert.IsTrue(Node.Exists(repoPath) == false);
             });
         }
@@ -2235,11 +2158,12 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
+                var testRoot = CreateTestRoot("ODataTestRoot");
                 CreateTestSite();
                 var refs = new[] {Repository.Root, Repository.ImsFolder};
 
                 var name1 = Guid.NewGuid().ToString();
-                var path1 = RepositoryPath.Combine(TestRoot.Path, name1);
+                var path1 = RepositoryPath.Combine(testRoot.Path, name1);
 
                 var pathRefs = "[" + String.Join(",", refs.Select(n => "\"" + n.Path + "\"")) + "]";
                 var idRefs = "[" + String.Join(",", refs.Select(n => n.Id)) + "]";
@@ -2250,8 +2174,8 @@ namespace SenseNet.Services.OData.Tests
                     @""",""Reference"":", pathRefs, @",""References"":", pathRefs, @",""Reference2"":""",
                     simpleRefNode.Path, @"""}]");
 
-                var output1 = new System.IO.StringWriter();
-                var pc1 = CreatePortalContext("/OData.svc/" + TestRoot.Path, "", output1);
+                var output1 = new StringWriter();
+                var pc1 = CreatePortalContext("/OData.svc/" + testRoot.Path, "", output1);
                 var handler1 = new ODataHandler();
                 var stream1 = CreateRequestStream(json1);
 
@@ -2267,15 +2191,15 @@ namespace SenseNet.Services.OData.Tests
                 /*--------------------------------------------------------------*/
 
                 var name2 = Guid.NewGuid().ToString();
-                var path2 = RepositoryPath.Combine(TestRoot.Path, name2);
+                var path2 = RepositoryPath.Combine(testRoot.Path, name2);
 
                 var json2 = string.Concat(
                     @"models=[{""__ContentType"":""OData_ReferenceTest_ContentHandler"",""Name"":""", name2,
                     @""",""Reference"":", idRefs, @",""References"":", idRefs, @",""Reference2"":", simpleRefNode.Id,
                     @"}]");
 
-                var output2 = new System.IO.StringWriter();
-                var pc2 = CreatePortalContext("/OData.svc/" + TestRoot.Path, "", output2);
+                var output2 = new StringWriter();
+                var pc2 = CreatePortalContext("/OData.svc/" + testRoot.Path, "", output2);
                 var handler2 = new ODataHandler();
                 var stream2 = CreateRequestStream(json2);
 
@@ -2295,8 +2219,9 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
+                var testRoot = CreateTestRoot("ODataTestRoot");
                 CreateTestSite();
-                ODataEntity entity;
+
                 var guid = Guid.NewGuid().ToString().Replace("-", "");
                 var name = "*_|" + guid;
                 var encodedName = ContentNamingProvider.GetNameFromDisplayName(name);
@@ -2306,21 +2231,21 @@ namespace SenseNet.Services.OData.Tests
 
                 var json = string.Concat(@"models=[{""Name"":""", name, @"""}]");
 
-                var output = new System.IO.StringWriter();
-                var pc = CreatePortalContext("/OData.svc/" + TestRoot.Path, "", output);
+                var output = new StringWriter();
+                var pc = CreatePortalContext("/OData.svc/" + testRoot.Path, "", output);
                 var handler = new ODataHandler();
                 var stream = CreateRequestStream(json);
 
                 handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
                 CheckError(output);
-                entity = GetEntity(output);
+                var entity = GetEntity(output);
                 Assert.AreEqual(encodedName, entity.Name);
 
                 // renaming
 
                 json = string.Concat(@"models=[{""Name"":""", newName, @"""}]");
 
-                output = new System.IO.StringWriter();
+                output = new StringWriter();
                 pc = CreatePortalContext("/OData.svc/" + entity.Path, "", output);
                 handler = new ODataHandler();
                 stream = CreateRequestStream(json);
@@ -2360,7 +2285,7 @@ namespace SenseNet.Services.OData.Tests
                 try
                 {
                     JContainer json;
-                    using (var output = new System.IO.StringWriter())
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext(
                             "/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/GetPermissions", "", output);
@@ -2398,7 +2323,7 @@ namespace SenseNet.Services.OData.Tests
                 try
                 {
                     JContainer json;
-                    using (var output = new System.IO.StringWriter())
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext(
                             "/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/GetPermissions", "", output);
@@ -2409,8 +2334,8 @@ namespace SenseNet.Services.OData.Tests
                     }
                     var identity = json[0]["identity"];
                     var permissions = json[0]["permissions"];
-                    Assert.IsTrue(identity != null, "Identity is null");
-                    Assert.IsTrue(permissions != null, "Permissions is null");
+                    Assert.IsTrue(identity != null);
+                    Assert.IsTrue(permissions != null);
                 }
                 finally
                 {
@@ -2436,7 +2361,7 @@ namespace SenseNet.Services.OData.Tests
                 try
                 {
                     string result;
-                    using (var output = new System.IO.StringWriter())
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext(
                             "/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/HasPermission", "", output);
@@ -2446,7 +2371,7 @@ namespace SenseNet.Services.OData.Tests
                         handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
                         result = GetStringResult(output);
                     }
-                    Assert.IsTrue(result == "true", "Result is false");
+                    Assert.IsTrue(result == "true");
                 }
                 finally
                 {
@@ -2470,8 +2395,8 @@ namespace SenseNet.Services.OData.Tests
                 CreateTestSite();
                 try
                 {
-                    string result = null;
-                    using (var output = new System.IO.StringWriter())
+                    string result;
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext(
                             "/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/HasPermission", "", output);
@@ -2482,7 +2407,7 @@ namespace SenseNet.Services.OData.Tests
                         handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
                         result = GetStringResult(output);
                     }
-                    Assert.IsTrue(result == "false", "Result is false");
+                    Assert.IsTrue(result == "false");
                 }
                 finally
                 {
@@ -2506,8 +2431,8 @@ namespace SenseNet.Services.OData.Tests
                 CreateTestSite();
                 try
                 {
-                    string result = null;
-                    using (var output = new System.IO.StringWriter())
+                    string result;
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext(
                             "/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/HasPermission", "", output);
@@ -2516,7 +2441,7 @@ namespace SenseNet.Services.OData.Tests
                         handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
                         result = GetStringResult(output);
                     }
-                    Assert.IsTrue(result == "true", "Result is false");
+                    Assert.IsTrue(result == "true");
                 }
                 finally
                 {
@@ -2540,8 +2465,8 @@ namespace SenseNet.Services.OData.Tests
                 CreateTestSite();
                 try
                 {
-                    string result = null;
-                    using (var output = new System.IO.StringWriter())
+                    string result;
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext(
                             "/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/HasPermission", "", output);
@@ -2550,7 +2475,7 @@ namespace SenseNet.Services.OData.Tests
                         handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
                         result = GetStringResult(output);
                     }
-                    Assert.IsTrue(result == "true", "Result is false");
+                    Assert.IsTrue(result == "true");
                 }
                 finally
                 {
@@ -2575,7 +2500,7 @@ namespace SenseNet.Services.OData.Tests
                 try
                 {
                     ODataError error;
-                    using (var output = new System.IO.StringWriter())
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext(
                             "/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/HasPermission", "", output);
@@ -2586,12 +2511,8 @@ namespace SenseNet.Services.OData.Tests
                         handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
                         error = GetError(output);
                     }
-                    Assert.IsTrue(error.Code == ODataExceptionCode.ResourceNotFound,
-                        String.Format("Code is {0}, expected: {1}", error.Code, ODataExceptionCode.ResourceNotFound));
-                    Assert.IsTrue(error.Message == "Identity not found: /root/ims/builtin/portal/nobody",
-                        String.Format(
-                            "Message is '{0}', expected: 'Identity not found: /root/ims/builtin/portal/nobody'",
-                            error.Message));
+                    Assert.IsTrue(error.Code == ODataExceptionCode.ResourceNotFound);
+                    Assert.IsTrue(error.Message == "Identity not found: /root/ims/builtin/portal/nobody");
                 }
                 finally
                 {
@@ -2616,7 +2537,7 @@ namespace SenseNet.Services.OData.Tests
                 try
                 {
                     ODataError error;
-                    using (var output = new System.IO.StringWriter())
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext(
                             "/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/HasPermission", "", output);
@@ -2625,10 +2546,8 @@ namespace SenseNet.Services.OData.Tests
                         handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
                         error = GetError(output);
                     }
-                    Assert.IsTrue(error.Code == ODataExceptionCode.NotSpecified,
-                        String.Format("Code is {0}, expected: {1}", error.Code, ODataExceptionCode.NotSpecified));
-                    Assert.IsTrue(error.Message == "Unknown permission: Save1",
-                        String.Format("Message is '{0}', expected: 'Unknown permission: Save1'", error.Message));
+                    Assert.IsTrue(error.Code == ODataExceptionCode.NotSpecified);
+                    Assert.IsTrue(error.Message == "Unknown permission: Save1");
                 }
                 finally
                 {
@@ -2653,7 +2572,7 @@ namespace SenseNet.Services.OData.Tests
                 try
                 {
                     ODataError error;
-                    using (var output = new System.IO.StringWriter())
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext(
                             "/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/HasPermission", "", output);
@@ -2662,12 +2581,8 @@ namespace SenseNet.Services.OData.Tests
                         handler.ProcessRequest(pc.OwnerHttpContext, "POST", null);
                         error = GetError(output);
                     }
-                    Assert.IsTrue(error.Code == ODataExceptionCode.NotSpecified,
-                        String.Format("Code is {0}, expected: {1}", error.Code, ODataExceptionCode.NotSpecified));
-                    Assert.IsTrue(error.Message == "Value cannot be null.\\nParameter name: permissions",
-                        String.Format(
-                            "Message is '{0}', expected: 'Value cannot be null.\\nParameter name: permissions'",
-                            error.Message));
+                    Assert.IsTrue(error.Code == ODataExceptionCode.NotSpecified);
+                    Assert.IsTrue(error.Message == "Value cannot be null.\\nParameter name: permissions");
                 }
                 finally
                 {
@@ -2685,7 +2600,9 @@ namespace SenseNet.Services.OData.Tests
                 //Stream: {r:[{identity:"/Root/IMS/BuiltIn/Portal/Visitor", OpenMinor:"allow", Save:"deny"},{identity:"/Root/IMS/BuiltIn/Portal/Creators", Custom16:"A", Custom17:"1"}]}
                 //result: (nothing)
 
-                var content = Content.CreateNew("Car", TestRoot, Guid.NewGuid().ToString());
+                InstallCarContentType();
+                var testRoot = CreateTestRoot("ODataTestRoot");
+                var content = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
                 content.Save();
                 var resourcePath = ODataHandler.GetEntityUrl(content.Path);
 
@@ -2697,7 +2614,7 @@ namespace SenseNet.Services.OData.Tests
                 try
                 {
                     string result;
-                    using (var output = new System.IO.StringWriter())
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext(string.Concat("/OData.svc/", resourcePath, "/SetPermissions"), "",
                             output);
@@ -2708,7 +2625,7 @@ namespace SenseNet.Services.OData.Tests
                         handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
                         result = GetStringResult(output);
                     }
-                    Assert.IsTrue(result.Length == 0, "Result is not empty");
+                    Assert.IsTrue(result.Length == 0);
                 }
                 finally
                 {
@@ -2726,11 +2643,13 @@ namespace SenseNet.Services.OData.Tests
                 //Stream: {r:[{identity:"/Root/IMS/BuiltIn/Portal/Visitor", OpenMinor:"allow", Save:"deny"},{identity:"/Root/IMS/BuiltIn/Portal/Creators", Custom16:"A", Custom17:"1"}]}
                 //result: (nothing)
 
-                var content = Content.CreateNew("Folder", TestRoot, Guid.NewGuid().ToString());
+                InstallCarContentType();
+                var testRoot = CreateTestRoot("ODataTestRoot");
+                var content = Content.CreateNew("Folder", testRoot, Guid.NewGuid().ToString());
                 content.Save();
                 var folderPath = ODataHandler.GetEntityUrl(content.Path);
                 var folderRepoPath = content.Path;
-                content = Content.CreateNew("Car", TestRoot, Guid.NewGuid().ToString());
+                content = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
                 content.Save();
                 var carRepoPath = content.Path;
 
@@ -2742,7 +2661,7 @@ namespace SenseNet.Services.OData.Tests
                 try
                 {
                     string result;
-                    using (var output = new System.IO.StringWriter())
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext(string.Concat("/OData.svc/", folderPath, "/SetPermissions"), "",
                             output);
@@ -2753,14 +2672,12 @@ namespace SenseNet.Services.OData.Tests
                         handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
                         result = GetStringResult(output);
                     }
-                    Assert.IsTrue(result.Length == 0, "Result is not empty");
+                    Assert.IsTrue(result.Length == 0);
                     var folder = Node.LoadNode(folderRepoPath);
                     var car = Node.LoadNode(carRepoPath);
 
-                    Assert.IsTrue(folder.Security.HasPermission((IUser) User.Visitor, PermissionType.OpenMinor),
-                        "Not allowed on the folder.");
-                    Assert.IsFalse(car.Security.HasPermission((IUser) User.Visitor, PermissionType.OpenMinor),
-                        "Allowed on the car.");
+                    Assert.IsTrue(folder.Security.HasPermission((IUser)User.Visitor, PermissionType.OpenMinor));
+                    Assert.IsFalse(car.Security.HasPermission((IUser)User.Visitor, PermissionType.OpenMinor));
                 }
                 finally
                 {
@@ -2774,7 +2691,9 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
-                var content = Content.CreateNew("Car", TestRoot, Guid.NewGuid().ToString());
+                InstallCarContentType();
+                var testRoot = CreateTestRoot("ODataTestRoot");
+                var content = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
                 content.Save();
                 var resourcePath = ODataHandler.GetEntityUrl(content.Path);
 
@@ -2786,7 +2705,7 @@ namespace SenseNet.Services.OData.Tests
                 try
                 {
                     string result;
-                    using (var output = new System.IO.StringWriter())
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext(string.Concat("/OData.svc/", resourcePath, "/SetPermissions"), "",
                             output);
@@ -2795,7 +2714,7 @@ namespace SenseNet.Services.OData.Tests
                         handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
                         result = GetStringResult(output);
                     }
-                    Assert.IsTrue(result.Length == 0, "Result is not empty");
+                    Assert.IsTrue(result.Length == 0);
                 }
                 finally
                 {
@@ -2809,7 +2728,9 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
-                var content = Content.CreateNew("Car", TestRoot, Guid.NewGuid().ToString());
+                InstallCarContentType();
+                var testRoot = CreateTestRoot("ODataTestRoot");
+                var content = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
                 content.Save();
                 var resourcePath = ODataHandler.GetEntityUrl(content.Path);
 
@@ -2821,7 +2742,7 @@ namespace SenseNet.Services.OData.Tests
                 try
                 {
                     string result;
-                    using (var output = new System.IO.StringWriter())
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext(string.Concat("/OData.svc/", resourcePath, "/SetPermissions"), "",
                             output);
@@ -2830,7 +2751,7 @@ namespace SenseNet.Services.OData.Tests
                         handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
                         result = GetStringResult(output);
                     }
-                    Assert.IsTrue(result.Length == 0, "Result is not empty");
+                    Assert.IsTrue(result.Length == 0);
                 }
                 finally
                 {
@@ -2844,7 +2765,9 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
-                var content = Content.CreateNew("Car", TestRoot, Guid.NewGuid().ToString());
+                InstallCarContentType();
+                var testRoot = CreateTestRoot("ODataTestRoot");
+                var content = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
                 content.Save();
                 var resourcePath = ODataHandler.GetEntityUrl(content.Path);
 
@@ -2856,25 +2779,21 @@ namespace SenseNet.Services.OData.Tests
                 try
                 {
                     ODataError error;
-                    using (var output = new System.IO.StringWriter())
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext(string.Concat("/OData.svc/", resourcePath, "/SetPermissions"), "",
                             output);
                         var handler = new ODataHandler();
-                        Stream stream = null;
-                        handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
+                        handler.ProcessRequest(pc.OwnerHttpContext, "POST", null);
                         error = GetError(output);
                     }
                     var expectedMessage = "Value cannot be null.\\nParameter name: stream";
-                    Assert.IsTrue(error.Code == ODataExceptionCode.NotSpecified,
-                        String.Format("Code is {0}, expected: {1}", error.Code, ODataExceptionCode.NotSpecified));
-                    Assert.IsTrue(error.Message == expectedMessage,
-                        String.Format("Message is '{0}', expected: '{1}'", error.Message, expectedMessage));
+                    Assert.IsTrue(error.Code == ODataExceptionCode.NotSpecified);
+                    Assert.IsTrue(error.Message == expectedMessage);
                 }
                 finally
                 {
                     odataHandlerAcc.SetStaticProperty("ActionResolver", originalActionResolver);
-                    content.DeletePhysical();
                 }
             });
         }
@@ -2883,7 +2802,9 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
-                var content = Content.CreateNew("Car", TestRoot, Guid.NewGuid().ToString());
+                InstallCarContentType();
+                var testRoot = CreateTestRoot("ODataTestRoot");
+                var content = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
                 content.Save();
                 var resourcePath = ODataHandler.GetEntityUrl(content.Path);
 
@@ -2895,7 +2816,7 @@ namespace SenseNet.Services.OData.Tests
                 try
                 {
                     ODataError error;
-                    using (var output = new System.IO.StringWriter())
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext(string.Concat("/OData.svc/", resourcePath, "/SetPermissions"), "",
                             output);
@@ -2907,10 +2828,8 @@ namespace SenseNet.Services.OData.Tests
                         error = GetError(output);
                     }
                     var expectedMessage = "Cannot use  r  and  inheritance  parameters at the same time.";
-                    Assert.IsTrue(error.Code == ODataExceptionCode.NotSpecified,
-                        String.Format("Code is {0}, expected: {1}", error.Code, ODataExceptionCode.NotSpecified));
-                    Assert.IsTrue(error.Message == expectedMessage,
-                        String.Format("Message is '{0}', expected: '{1}'", error.Message, expectedMessage));
+                    Assert.IsTrue(error.Code == ODataExceptionCode.NotSpecified);
+                    Assert.IsTrue(error.Message == expectedMessage);
                 }
                 finally
                 {
@@ -2924,7 +2843,9 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
-                var content = Content.CreateNew("Car", TestRoot, Guid.NewGuid().ToString());
+                InstallCarContentType();
+                var testRoot = CreateTestRoot("ODataTestRoot");
+                var content = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
                 content.Save();
                 var resourcePath = ODataHandler.GetEntityUrl(content.Path);
 
@@ -2936,7 +2857,7 @@ namespace SenseNet.Services.OData.Tests
                 try
                 {
                     ODataError error;
-                    using (var output = new System.IO.StringWriter())
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext(string.Concat("/OData.svc/", resourcePath, "/SetPermissions"), "",
                             output);
@@ -2946,10 +2867,8 @@ namespace SenseNet.Services.OData.Tests
                         error = GetError(output);
                     }
                     var expectedMessage = "The value of the  inheritance  must be  break  or  unbreak .";
-                    Assert.IsTrue(error.Code == ODataExceptionCode.NotSpecified,
-                        String.Format("Code is {0}, expected: {1}", error.Code, ODataExceptionCode.NotSpecified));
-                    Assert.IsTrue(error.Message == expectedMessage,
-                        String.Format("Message is '{0}', expected: '{1}'", error.Message, expectedMessage));
+                    Assert.IsTrue(error.Code == ODataExceptionCode.NotSpecified);
+                    Assert.IsTrue(error.Message == expectedMessage);
                 }
                 finally
                 {
@@ -2966,6 +2885,7 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
+                InstallCarContentType();
                 var site = CreateTestSite();
                 var folder1 = Content.CreateNew("Folder", site, "Folder_" + Guid.NewGuid().ToString());
                 folder1.Save();
@@ -2982,7 +2902,7 @@ namespace SenseNet.Services.OData.Tests
                 var expectedJson = String.Concat("{\"d\":{\"EntitySets\":[", names, "]}}");
 
                 string json;
-                using (var output = new System.IO.StringWriter())
+                using (var output = new StringWriter())
                 {
                     var pc = CreatePortalContext("/OData.svc", "", output);
                     var handler = new ODataHandler();
@@ -2990,8 +2910,7 @@ namespace SenseNet.Services.OData.Tests
                     json = GetStringResult(output);
                 }
                 var result = json.Replace("\r\n", "").Replace("\t", "").Replace(" ", "");
-                Assert.IsTrue(result == expectedJson,
-                    String.Format("Result is: {0}, expected: {1}", result, expectedJson));
+                Assert.IsTrue(result == expectedJson);
             });
         }
 
@@ -3006,27 +2925,30 @@ namespace SenseNet.Services.OData.Tests
 
                 XmlNamespaceManager nsmgr;
                 XmlDocument metaXml;
-                using (var output = new System.IO.StringWriter())
+                using (var output = new StringWriter())
                 {
                     var pc = CreatePortalContext("/OData.svc/$metadata", "", output);
                     var handler = new ODataHandler();
                     handler.ProcessRequest(pc.OwnerHttpContext);
                     metaXml = GetMetadataXml(output.GetStringBuilder().ToString(), out nsmgr);
                 }
+                Assert.IsNotNull(metaXml);
                 var allTypes = metaXml.SelectNodes("//x:EntityType", nsmgr);
-                Assert.IsTrue(allTypes.Count == ContentType.GetContentTypes().Count(), "#1");
+                Assert.IsNotNull(allTypes);
+                Assert.IsTrue(allTypes.Count == ContentType.GetContentTypes().Length);
                 var rootTypes = metaXml.SelectNodes("//x:EntityType[not(@BaseType)]", nsmgr);
+                Assert.IsNotNull(rootTypes);
                 foreach (XmlElement node in rootTypes)
                 {
                     var hasKey = node.SelectSingleNode("x:Key", nsmgr) != null;
                     var hasId = node.SelectSingleNode("x:Property[@Name = 'Id']", nsmgr) != null;
-                    Assert.IsTrue(hasId == hasKey, "#2");
+                    Assert.IsTrue(hasId == hasKey);
                 }
                 foreach (XmlElement node in metaXml.SelectNodes("//x:EntityType[@BaseType]", nsmgr))
                 {
                     var hasKey = node.SelectSingleNode("x:Key", nsmgr) != null;
                     var hasId = node.SelectSingleNode("x:Property[@Name = 'Id']", nsmgr) != null;
-                    Assert.IsFalse(hasKey, "#3");
+                    Assert.IsFalse(hasKey);
                 }
             });
         }
@@ -3046,8 +2968,9 @@ namespace SenseNet.Services.OData.Tests
 	</Fields>
 </ContentListDefinition>
 ";
-
-                var listContent = Content.CreateNew("ContentList", TestRoot, Guid.NewGuid().ToString());
+                InstallCarContentType();
+                var testRoot = CreateTestRoot("ODataTestRoot");
+                var listContent = Content.CreateNew("ContentList", testRoot, Guid.NewGuid().ToString());
                 var list = (ContentList) listContent.ContentHandler;
                 list.AllowChildTypes(new[]
                     {ContentType.GetByName("Folder"), ContentType.GetByName("File"), ContentType.GetByName("Car")});
@@ -3063,8 +2986,7 @@ namespace SenseNet.Services.OData.Tests
 
                 XmlNamespaceManager nsmgr;
                 XmlDocument metaXml;
-                string src = null;
-                using (var output = new System.IO.StringWriter())
+                using (var output = new StringWriter())
                 {
                     var pc = CreatePortalContext(
                         String.Concat("/OData.svc", ODataHandler.GetEntityUrl(itemContent.Path), "/$metadata"), "",
@@ -3072,13 +2994,13 @@ namespace SenseNet.Services.OData.Tests
                     var handler = new ODataHandler();
                     handler.ProcessRequest(pc.OwnerHttpContext);
                     output.Flush();
-                    src = GetStringResult(output);
+                    var src = GetStringResult(output);
                     metaXml = GetMetadataXml(src, out nsmgr);
                 }
                 var allTypes = metaXml.SelectNodes("//x:EntityType", nsmgr);
-                Assert.IsTrue(allTypes.Count == 1, "#1");
+                Assert.IsTrue(allTypes.Count == 1);
                 var listProps = metaXml.SelectNodes("//x:EntityType/x:Property[@Name='#ListField1']", nsmgr);
-                Assert.IsTrue(listProps.Count == 1, "#2");
+                Assert.IsTrue(listProps.Count == 1);
             });
         }
         [TestMethod]
@@ -3097,8 +3019,9 @@ namespace SenseNet.Services.OData.Tests
 	</Fields>
 </ContentListDefinition>
 ";
-
-                var listContent = Content.CreateNew("ContentList", TestRoot, Guid.NewGuid().ToString());
+                InstallCarContentType();
+                var testRoot = CreateTestRoot("ODataTestRoot");
+                var listContent = Content.CreateNew("ContentList", testRoot, Guid.NewGuid().ToString());
                 var list = (ContentList) listContent.ContentHandler;
                 list.AllowChildTypes(new[]
                     {ContentType.GetByName("Folder"), ContentType.GetByName("File"), ContentType.GetByName("Car")});
@@ -3113,7 +3036,7 @@ namespace SenseNet.Services.OData.Tests
                 XmlNamespaceManager nsmgr;
                 XmlDocument metaXml;
                 string src = null;
-                using (var output = new System.IO.StringWriter())
+                using (var output = new StringWriter())
                 {
                     var pc = CreatePortalContext(String.Concat("/OData.svc", listContent.Path, "/$metadata"), "",
                         output);
@@ -3124,9 +3047,9 @@ namespace SenseNet.Services.OData.Tests
                     metaXml = GetMetadataXml(src, out nsmgr);
                 }
                 var allTypes = metaXml.SelectNodes("//x:EntityType", nsmgr);
-                Assert.IsTrue(allTypes.Count > 1, "#1");
+                Assert.IsTrue(allTypes.Count > 1);
                 var listProps = metaXml.SelectNodes("//x:EntityType/x:Property[@Name='#ListField1']", nsmgr);
-                Assert.IsTrue(listProps.Count == allTypes.Count, "#2");
+                Assert.IsTrue(listProps.Count == allTypes.Count);
             });
         }
 
@@ -3139,7 +3062,7 @@ namespace SenseNet.Services.OData.Tests
         //    var names = new List<string>();
         //    foreach (var x in new[] { "Ferrari", "Porsche", "Ferrari", "Mercedes" })
         //    {
-        //        var car = Content.CreateNew("Car", TestRoot, Guid.NewGuid().ToString());
+        //        var car = Content.CreateNew("Car", testRoot, Guid.NewGuid().ToString());
         //        car["Make"] = x;
         //        car.Save();
         //        names.Add(car.Name);
@@ -3149,9 +3072,9 @@ namespace SenseNet.Services.OData.Tests
         //    try
         //    {
         //        ODataEntities entities;
-        //        using (var output = new System.IO.StringWriter())
+        //        using (var output = new StringWriter())
         //        {
-        //            var pc = CreatePortalContext("/OData.svc" + TestRoot.Path, "$filter=Make eq 'Ferrari'&enableautofilters=false", output);
+        //            var pc = CreatePortalContext("/OData.svc" + testRoot.Path, "$filter=Make eq 'Ferrari'&enableautofilters=false", output);
         //            var handler = new ODataHandler();
         //            handler.ProcessRequest(pc.OwnerHttpContext);
         //            entities = GetEntities(output);
@@ -3171,7 +3094,7 @@ namespace SenseNet.Services.OData.Tests
         //    try
         //    {
         //        ODataEntities entities;
-        //        using (var output = new System.IO.StringWriter())
+        //        using (var output = new StringWriter())
         //        {
         //            var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn/Portal", "$orderby=Id&$filter=Id lt (9 sub 2)", output);
         //            var handler = new ODataHandler();
@@ -3193,23 +3116,22 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
+                var testRoot = CreateTestRoot("ODataTestRoot");
                 CreateTestSite();
 
                 ODataEntities entities;
-                using (var output = new System.IO.StringWriter())
+                using (var output = new StringWriter())
                 {
-                    var resourcePath = ODataHandler.GetEntityUrl(_testRootPath + "/Referrer");
+                    var resourcePath = ODataHandler.GetEntityUrl(testRoot.Path + "/Referrer");
                     var url = String.Format("/OData.svc{0}/References", resourcePath);
                     var pc = CreatePortalContext(url, "$orderby=Index&$filter=Index lt 5 and Index gt 2", output);
                     var handler = new ODataHandler();
                     handler.ProcessRequest(pc.OwnerHttpContext);
                     entities = GetEntities(output);
                 }
-                Assert.IsTrue(entities.Length == 2, String.Format("Count is {0}, expected: 2", entities.Length));
-                Assert.IsTrue(entities[0].Index == 3,
-                    String.Format("entities[0].Index is {0}, expected: 3", entities[0].Index));
-                Assert.IsTrue(entities[1].Index == 4,
-                    String.Format("entities[1].Index is {0}, expected: 4", entities[1].Index));
+                Assert.IsTrue(entities.Length == 2);
+                Assert.IsTrue(entities[0].Index == 3);
+                Assert.IsTrue(entities[1].Index == 4);
 
             });
         }
@@ -3219,12 +3141,13 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
+                var testRoot = CreateTestRoot("ODataTestRoot");
                 CreateTestSite();
 
                 ODataEntities entities;
-                using (var output = new System.IO.StringWriter())
+                using (var output = new StringWriter())
                 {
-                    var resourcePath = ODataHandler.GetEntityUrl(_testRootPath + "/Referrer");
+                    var resourcePath = ODataHandler.GetEntityUrl(testRoot.Path + "/Referrer");
                     var url = String.Format("/OData.svc{0}/References", resourcePath);
                     var pc = CreatePortalContext(url, "$orderby=Index&$filter=Index lt 10&$top=3&$skip=1", output);
                     var handler = new ODataHandler();
@@ -3238,7 +3161,7 @@ namespace SenseNet.Services.OData.Tests
         //[TestMethod]
         //public void OData_Filter_IsFolder()
         //{
-        //    var folder = new Folder(TestRoot);
+        //    var folder = new Folder(testRoot);
         //    folder.Name = Guid.NewGuid().ToString();
         //    folder.Save();
 
@@ -3257,7 +3180,7 @@ namespace SenseNet.Services.OData.Tests
         //    try
         //    {
         //        ODataEntities entities;
-        //        using (var output = new System.IO.StringWriter())
+        //        using (var output = new StringWriter())
         //        {
         //            var pc = CreatePortalContext("/OData.svc" + folder.Path, "&$filter=IsFolder eq true", output);
         //            var handler = new ODataHandler();
@@ -3267,7 +3190,7 @@ namespace SenseNet.Services.OData.Tests
         //        Assert.IsTrue(entities.Length == 2, String.Format("Count is {0}, expected: 2", entities.Length));
         //        Assert.IsTrue(entities[0].Id == folder1.Id, String.Format("entities[0].Id is {0}, expected: {1}", entities[0].Id, folder1.Id));
         //        Assert.IsTrue(entities[1].Id == folder2.Id, String.Format("entities[1].Id is {0}, expected: {1}", entities[1].Id, folder2.Id));
-        //        using (var output = new System.IO.StringWriter())
+        //        using (var output = new StringWriter())
         //        {
         //            var pc = CreatePortalContext("/OData.svc" + folder.Path, "&$filter=IsFolder eq false", output);
         //            var handler = new ODataHandler();
@@ -3296,7 +3219,7 @@ namespace SenseNet.Services.OData.Tests
                 try
                 {
                     ODataEntities entities;
-                    using (var output = new System.IO.StringWriter())
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext("/OData.svc/Root('IMS')/ChildrenDefinitionFilteringTest", "",
                             output);
@@ -3332,7 +3255,7 @@ namespace SenseNet.Services.OData.Tests
                 try
                 {
                     ODataEntities entities;
-                    using (var output = new System.IO.StringWriter())
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext("/OData.svc/Root('IMS')/CollectionFilteringTest",
                             "$skip=1&$top=3&$orderby=Name desc&$select=Id,Name&$filter=Id ne 10&metadata=no", output);
@@ -3359,7 +3282,7 @@ namespace SenseNet.Services.OData.Tests
         //[TestMethod]
         //public void OData_Filter_IsOf()
         //{
-        //    var folder = new Folder(TestRoot);
+        //    var folder = new Folder(testRoot);
         //    folder.Name = Guid.NewGuid().ToString();
         //    folder.Save();
 
@@ -3378,7 +3301,7 @@ namespace SenseNet.Services.OData.Tests
         //    try
         //    {
         //        ODataEntities entities;
-        //        using (var output = new System.IO.StringWriter())
+        //        using (var output = new StringWriter())
         //        {
         //            var pc = CreatePortalContext("/OData.svc" + folder.Path, "&$filter=isof('Folder')", output);
         //            var handler = new ODataHandler();
@@ -3388,7 +3311,7 @@ namespace SenseNet.Services.OData.Tests
         //        Assert.IsTrue(entities.Length == 2, String.Format("Count is {0}, expected: 2", entities.Length));
         //        Assert.IsTrue(entities[0].Id == folder1.Id, String.Format("entities[0].Id is {0}, expected: {1}", entities[0].Id, folder1.Id));
         //        Assert.IsTrue(entities[1].Id == folder2.Id, String.Format("entities[1].Id is {0}, expected: {1}", entities[1].Id, folder2.Id));
-        //        using (var output = new System.IO.StringWriter())
+        //        using (var output = new StringWriter())
         //        {
         //            var pc = CreatePortalContext("/OData.svc" + folder.Path, "&$filter=not isof('Folder')", output);
         //            var handler = new ODataHandler();
@@ -3417,7 +3340,7 @@ namespace SenseNet.Services.OData.Tests
                 try
                 {
                     ODataEntities entities;
-                    using (var output = new System.IO.StringWriter())
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext("/OData.svc/Root('IMS')/CollectionFilteringTest",
                             "&$select=Id,Name&metadata=no&$filter=isof('User')", output);
@@ -3432,7 +3355,7 @@ namespace SenseNet.Services.OData.Tests
                     // 6, 1
                     Assert.AreEqual(expids, ids);
 
-                    using (var output = new System.IO.StringWriter())
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext("/OData.svc/Root('IMS')/CollectionFilteringTest",
                             "&$select=Id,Name&metadata=no&$filter=not isof('User')", output);
@@ -3462,7 +3385,7 @@ namespace SenseNet.Services.OData.Tests
         //    try
         //    {
         //        ODataEntities entities;
-        //        using (var output = new System.IO.StringWriter())
+        //        using (var output = new StringWriter())
         //        {
         //            var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn/Portal", "$filter=SenseNet.ContentRepository.Tests.OData.ODataFilterTestHelper/TestValue eq Name", output);
         //            var handler = new ODataHandler();
@@ -3526,7 +3449,7 @@ namespace SenseNet.Services.OData.Tests
                 content4.Save();
 
                 ODataEntities entities;
-                using (var output = new System.IO.StringWriter())
+                using (var output = new StringWriter())
                 {
                     var pc = CreatePortalContext("/OData.svc" + site.Path,
                         "$orderby=Index&$filter=" + aspectFieldODataName + " eq 'Value2'", output);
@@ -3562,7 +3485,7 @@ namespace SenseNet.Services.OData.Tests
                 var site = CreateTestSite();
 
                 ODataError error;
-                using (var output = new System.IO.StringWriter())
+                using (var output = new StringWriter())
                 {
                     var pc = CreatePortalContext("/OData.svc" + site.Path,
                         "$orderby=Index&$filter=" + aspectName + "/Field2 eq 'Value2'", output);
@@ -3596,7 +3519,7 @@ namespace SenseNet.Services.OData.Tests
                 var site = CreateTestSite();
 
                 ODataError error;
-                using (var output = new System.IO.StringWriter())
+                using (var output = new StringWriter())
                 {
                     var pc = CreatePortalContext("/OData.svc" + site.Path,
                         "$orderby=Index&$filter=" + aspectName + " eq 'Value2'", output);
@@ -3617,7 +3540,7 @@ namespace SenseNet.Services.OData.Tests
                 var site = CreateTestSite();
 
                 ODataError error;
-                using (var output = new System.IO.StringWriter())
+                using (var output = new StringWriter())
                 {
                     var pc = CreatePortalContext("/OData.svc" + site.Path,
                         "$orderby=Index&$filter=" + aspectName + "/Field1 eq 'Value1'", output);
@@ -3647,7 +3570,7 @@ namespace SenseNet.Services.OData.Tests
                     ODataError error;
 
                     //------------------------------------------------------------ POST: ok
-                    using (var output = new System.IO.StringWriter())
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext("/OData.svc/Root('IMS')/ODataAction", "", output);
                         var handler = new ODataHandler();
@@ -3660,7 +3583,7 @@ namespace SenseNet.Services.OData.Tests
                     var verbs = new[] {"GET", "PUT", "MERGE", "PATCH", "DELETE"};
                     foreach (var verb in verbs)
                     {
-                        using (var output = new System.IO.StringWriter())
+                        using (var output = new StringWriter())
                         {
                             var pc = CreatePortalContext("/OData.svc/Root('IMS')/ODataAction", "", output);
                             var handler = new ODataHandler();
@@ -3693,7 +3616,7 @@ namespace SenseNet.Services.OData.Tests
                 try
                 {
                     string result = null;
-                    using (var output = new System.IO.StringWriter())
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext("/OData.svc/Root('IMS')/ODataFunction", "", output);
                         var handler = new ODataHandler();
@@ -3702,7 +3625,7 @@ namespace SenseNet.Services.OData.Tests
                     }
                     Assert.AreEqual("ODataFunction executed.", result);
 
-                    using (var output = new System.IO.StringWriter())
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext("/OData.svc/Root('IMS')/ODataFunction", "", output);
                         var handler = new ODataHandler();
@@ -3716,7 +3639,7 @@ namespace SenseNet.Services.OData.Tests
                     foreach (var verb in verbs)
                     {
                         ODataError error = null;
-                        using (var output = new System.IO.StringWriter())
+                        using (var output = new StringWriter())
                         {
                             var pc = CreatePortalContext("/OData.svc/Root('IMS')/ODataAction", "", output);
                             var handler = new ODataHandler();
@@ -3749,7 +3672,7 @@ namespace SenseNet.Services.OData.Tests
                 try
                 {
                     ODataEntities result = null;
-                    using (var output = new System.IO.StringWriter())
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext(
                             "/OData.svc/Root/System/Schema/ContentTypes/GenericContent('FieldSettingContent')/ODataGetParentChainAction"
@@ -3776,7 +3699,7 @@ namespace SenseNet.Services.OData.Tests
         //    try
         //    {
         //        //var name = Guid.NewGuid().ToString();
-        //        //var content = Content.CreateNew("Car", TestRoot, name);
+        //        //var content = Content.CreateNew("Car", testRoot, name);
         //        //content.Save();
         //        //var contentId = content.Id;
         //        var content = Content.Load(1);
@@ -3784,7 +3707,7 @@ namespace SenseNet.Services.OData.Tests
 
         //        ODataEntity entity;
         //        CreateTestSite();
-        //        using (var output = new System.IO.StringWriter())
+        //        using (var output = new StringWriter())
         //        {
         //            var pc = CreatePortalContext("/OData.svc/Content(" + id + ")", "", output);
         //            var handler = new ODataHandler();
@@ -3810,7 +3733,7 @@ namespace SenseNet.Services.OData.Tests
         //    {
         //        ODataError err;
         //        CreateTestSite();
-        //        using (var output = new System.IO.StringWriter())
+        //        using (var output = new StringWriter())
         //        {
         //            var pc = CreatePortalContext("/OData.svc/Content(qwer)", "", output);
         //            var handler = new ODataHandler();
@@ -3831,7 +3754,7 @@ namespace SenseNet.Services.OData.Tests
         //    try
         //    {
         //        //var name = Guid.NewGuid().ToString();
-        //        //var content = Content.CreateNew("Car", TestRoot, name);
+        //        //var content = Content.CreateNew("Car", testRoot, name);
         //        //content.Save();
         //        //var contentId = content.Id;
         //        var content = Content.Load(1);
@@ -3839,7 +3762,7 @@ namespace SenseNet.Services.OData.Tests
 
         //        string result;
         //        CreateTestSite();
-        //        using (var output = new System.IO.StringWriter())
+        //        using (var output = new StringWriter())
         //        {
         //            var pc = CreatePortalContext("/OData.svc/Content(" + id + ")/Name", "", output);
         //            var handler = new ODataHandler();
@@ -3860,10 +3783,12 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
+                InstallCarContentType();
+                var testRoot = CreateTestRoot("ODataTestRoot");
                 CreateTestSite();
 
                 var name = Guid.NewGuid().ToString();
-                var content = Content.CreateNew("Car", TestRoot, name);
+                var content = Content.CreateNew("Car", testRoot, name);
                 content.DisplayName = "vadalma";
                 var defaultMake = (string) content["Make"];
                 content["Make"] = "Not default";
@@ -3880,7 +3805,7 @@ namespace SenseNet.Services.OData.Tests
   ""Index"": 42
 }]");
 
-                var output = new System.IO.StringWriter();
+                var output = new StringWriter();
                 var pc = CreatePortalContext("/OData.svc/content(" + id + ")", "", output);
                 var handler = new ODataHandler();
                 var stream = CreateRequestStream(json);
@@ -3891,15 +3816,10 @@ namespace SenseNet.Services.OData.Tests
                 var creationDateStr = c.ContentHandler.CreationDate.ToString("yyyy-MM-dd HH:mm:ss.ffff");
                 var modificationDateStr = c.ContentHandler.ModificationDate.ToString("yyyy-MM-dd HH:mm:ss.ffff");
 
-                Assert.IsTrue(c.DisplayName == newDisplayName,
-                    String.Format("The DisplayName is '{0}', expected: '{1}'", c.DisplayName, newDisplayName));
-                Assert.IsTrue(modificationDateStr == "2012-10-11 03:52:01.6370",
-                    String.Format("The CreationDate is '{0}', expected: '{1}'", modificationDateStr,
-                        "2012-10-11 03:52:01.6300"));
-                Assert.IsTrue(c.ContentHandler.Index == 42,
-                    String.Format("The Index is '{0}', expected: '{1}'", c.ContentHandler.Index, 42));
-                Assert.IsTrue((string) c["Make"] == null,
-                    String.Format("The Make field is '{0}', expected: null", c["Make"]));
+                Assert.IsTrue(c.DisplayName == newDisplayName);
+                Assert.IsTrue(modificationDateStr == "2012-10-11 03:52:01.6370");
+                Assert.IsTrue(c.ContentHandler.Index == 42);
+                Assert.IsTrue((string)c["Make"] == null);
 
             });
         }
@@ -3908,10 +3828,12 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
+                InstallCarContentType();
+                var testRoot = CreateTestRoot("ODataTestRoot");
                 CreateTestSite();
 
                 var name = Guid.NewGuid().ToString();
-                var content = Content.CreateNew("Car", TestRoot, name);
+                var content = Content.CreateNew("Car", testRoot, name);
                 content.DisplayName = "vadalma";
                 var defaultMake = (string) content["Make"];
                 content["Make"] = "Not default";
@@ -3928,7 +3850,7 @@ namespace SenseNet.Services.OData.Tests
   ""Index"": 42
 }]");
 
-                var output = new System.IO.StringWriter();
+                var output = new StringWriter();
                 var pc = CreatePortalContext("/OData.svc/content(" + id + ")", "", output);
                 var handler = new ODataHandler();
                 var stream = CreateRequestStream(json);
@@ -3939,15 +3861,10 @@ namespace SenseNet.Services.OData.Tests
                 var creationDateStr = c.ContentHandler.CreationDate.ToString("yyyy-MM-dd HH:mm:ss.ffff");
                 var modificationDateStr = c.ContentHandler.ModificationDate.ToString("yyyy-MM-dd HH:mm:ss.ffff");
 
-                Assert.IsTrue(c.DisplayName == newDisplayName,
-                    String.Format("The DisplayName is '{0}', expected: '{1}'", c.DisplayName, newDisplayName));
-                Assert.IsTrue(modificationDateStr == "2012-10-11 03:52:01.6370",
-                    String.Format("The CreationDate is '{0}', expected: '{1}'", modificationDateStr,
-                        "2012-10-11 03:52:01.6300"));
-                Assert.IsTrue(c.ContentHandler.Index == 42,
-                    String.Format("The Index is '{0}', expected: '{1}'", c.ContentHandler.Index, 42));
-                Assert.IsTrue((string) c["Make"] == "Not default",
-                    String.Format("The Make field is '{0}', expected: \"Not default\"", c["Make"]));
+                Assert.IsTrue(c.DisplayName == newDisplayName);
+                Assert.IsTrue(modificationDateStr == "2012-10-11 03:52:01.6370");
+                Assert.IsTrue(c.ContentHandler.Index == 42);
+                Assert.IsTrue((string)c["Make"] == "Not default");
 
             });
         }
@@ -3956,10 +3873,12 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
+                InstallCarContentType();
+                var testRoot = CreateTestRoot("ODataTestRoot");
                 CreateTestSite();
 
                 var name = Guid.NewGuid().ToString();
-                var content = Content.CreateNew("Car", TestRoot, name);
+                var content = Content.CreateNew("Car", testRoot, name);
                 content.DisplayName = "vadalma";
                 var defaultMake = (string) content["Make"];
                 content["Make"] = "Not default";
@@ -3976,7 +3895,7 @@ namespace SenseNet.Services.OData.Tests
   ""Index"": 42
 }]");
 
-                var output = new System.IO.StringWriter();
+                var output = new StringWriter();
                 var pc = CreatePortalContext("/OData.svc/content(" + id + ")", "", output);
                 var handler = new ODataHandler();
                 var stream = CreateRequestStream(json);
@@ -3987,15 +3906,10 @@ namespace SenseNet.Services.OData.Tests
                 var creationDateStr = c.ContentHandler.CreationDate.ToString("yyyy-MM-dd HH:mm:ss.ffff");
                 var modificationDateStr = c.ContentHandler.ModificationDate.ToString("yyyy-MM-dd HH:mm:ss.ffff");
 
-                Assert.IsTrue(c.DisplayName == newDisplayName,
-                    String.Format("The DisplayName is '{0}', expected: '{1}'", c.DisplayName, newDisplayName));
-                Assert.IsTrue(modificationDateStr == "2012-10-11 03:52:01.6370",
-                    String.Format("The CreationDate is '{0}', expected: '{1}'", modificationDateStr,
-                        "2012-10-11 03:52:01.6300"));
-                Assert.IsTrue(c.ContentHandler.Index == 42,
-                    String.Format("The Index is '{0}', expected: '{1}'", c.ContentHandler.Index, 42));
-                Assert.IsTrue((string) c["Make"] == "Not default",
-                    String.Format("The Make field is '{0}', expected: \"Not default\"", c["Make"]));
+                Assert.IsTrue(c.DisplayName == newDisplayName);
+                Assert.IsTrue(modificationDateStr == "2012-10-11 03:52:01.6370");
+                Assert.IsTrue(c.ContentHandler.Index == 42);
+                Assert.IsTrue((string)c["Make"] == "Not default");
 
             });
         }
@@ -4005,25 +3919,25 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
+                var testRoot = CreateTestRoot("ODataTestRoot");
                 CreateTestSite();
 
                 var name = Guid.NewGuid().ToString();
                 var displayName = Guid.NewGuid().ToString();
-                var path = RepositoryPath.Combine(TestRoot.Path, name);
+                var path = RepositoryPath.Combine(testRoot.Path, name);
                 //var json = string.Concat(@"models=[{""Id"":"""",""IsFile"":false,""Name"":"""",""DisplayName"":""", displayName, @""",""ModifiedBy"":null,""ModificationDate"":null,""CreationDate"":null,""Actions"":null}]");
                 var json = string.Concat(@"models=[{""Name"":""", name, @""",""DisplayName"":""", displayName,
                     @""",""Index"":41}]");
 
-                var output = new System.IO.StringWriter();
-                var pc = CreatePortalContext("/OData.svc/content(" + TestRoot.Id + ")", "", output);
+                var output = new StringWriter();
+                var pc = CreatePortalContext("/OData.svc/content(" + testRoot.Id + ")", "", output);
                 var handler = new ODataHandler();
                 var stream = CreateRequestStream(json);
 
                 handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
 
                 var content = Content.Load(path);
-                Assert.IsTrue(content.DisplayName == displayName,
-                    String.Format("The DisplayName is '{0}', expected: '{1}'", content.DisplayName, displayName));
+                Assert.IsTrue(content.DisplayName == displayName);
 
             });
         }
@@ -4032,25 +3946,25 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
+                InstallCarContentType();
+                var testRoot = CreateTestRoot("ODataTestRoot");
                 CreateTestSite();
 
                 var name = Guid.NewGuid().ToString();
-                var path = RepositoryPath.Combine(TestRoot.Path, name);
+                var path = RepositoryPath.Combine(testRoot.Path, name);
                 //var json = string.Concat(@"models=[{""Id"":"""",""IsFile"":false,""Name"":"""",""DisplayName"":""", displayName, @""",""ModifiedBy"":null,""ModificationDate"":null,""CreationDate"":null,""Actions"":null}]");
                 var json = string.Concat(@"models=[{""__ContentType"":""Car"",""Name"":""", name, @"""}]");
 
-                var output = new System.IO.StringWriter();
-                var pc = CreatePortalContext("/OData.svc/content(" + TestRoot.Id + ")", "", output);
+                var output = new StringWriter();
+                var pc = CreatePortalContext("/OData.svc/content(" + testRoot.Id + ")", "", output);
                 var handler = new ODataHandler();
                 var stream = CreateRequestStream(json);
 
                 handler.ProcessRequest(pc.OwnerHttpContext, "POST", stream);
 
                 var content = Content.Load(path);
-                Assert.IsTrue(content.ContentType.Name == "Car",
-                    String.Format("The ContentType is '{0}', expected: '{1}'", content.ContentType.Name, "Car"));
-                Assert.IsTrue(content.Name == name,
-                    String.Format("The DisplayName is '{0}', expected: '{1}'", content.Name, name));
+                Assert.IsTrue(content.ContentType.Name == "Car");
+                Assert.IsTrue(content.Name == name);
 
             });
         }
@@ -4060,19 +3974,21 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
+                InstallCarContentType();
+                var testRoot = CreateTestRoot("ODataTestRoot");
                 CreateTestSite();
 
                 var name = Guid.NewGuid().ToString();
-                var content = Content.CreateNew("Car", TestRoot, name);
+                var content = Content.CreateNew("Car", testRoot, name);
                 content.Save();
                 var path = string.Concat("/OData.svc/content(" + content.Id + ")");
 
-                var output = new System.IO.StringWriter();
+                var output = new StringWriter();
                 var pc = CreatePortalContext(path, "", output);
                 var handler = new ODataHandler();
                 handler.ProcessRequest(pc.OwnerHttpContext, "DELETE", null);
 
-                var repoPath = string.Concat(TestRoot.Path, "/", name);
+                var repoPath = string.Concat(testRoot.Path, "/", name);
                 Assert.IsTrue(Node.Exists(repoPath) == false);
 
             });
@@ -4085,17 +4001,19 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
+                InstallCarContentType();
+                var testRoot = CreateTestRoot("ODataTestRoot");
 
                 var name = Guid.NewGuid().ToString();
-                var path = RepositoryPath.Combine(TestRoot.Path, name);
+                var path = RepositoryPath.Combine(testRoot.Path, name);
                 var json = string.Concat(@"models=[{""__ContentType"":""Car"",""Name"":""", name, @"""}]");
 
                 ODataEntity entity;
                 string result;
                 CreateTestSite();
-                using (var output = new System.IO.StringWriter())
+                using (var output = new StringWriter())
                 {
-                    var pc = CreatePortalContext(String.Concat("/OData.svc", ODataHandler.GetEntityUrl(TestRoot.Path)),
+                    var pc = CreatePortalContext(String.Concat("/OData.svc", ODataHandler.GetEntityUrl(testRoot.Path)),
                         "", output);
                     var handler = new ODataHandler();
                     var stream = CreateRequestStream(json);
@@ -4105,9 +4023,9 @@ namespace SenseNet.Services.OData.Tests
                     entity = GetEntity(output);
                 }
                 var name1 = entity.Name;
-                using (var output = new System.IO.StringWriter())
+                using (var output = new StringWriter())
                 {
-                    var pc = CreatePortalContext(String.Concat("/OData.svc", ODataHandler.GetEntityUrl(TestRoot.Path)),
+                    var pc = CreatePortalContext(String.Concat("/OData.svc", ODataHandler.GetEntityUrl(testRoot.Path)),
                         "", output);
                     var handler = new ODataHandler();
                     var stream = CreateRequestStream(json);
@@ -4128,7 +4046,8 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
-                var root = new Folder(TestRoot) {Name = Guid.NewGuid().ToString()};
+                var testRoot = CreateTestRoot("ODataTestRoot");
+                var root = new Folder(testRoot) {Name = Guid.NewGuid().ToString()};
                 root.Save();
                 var node = new Folder(root) {Name = Guid.NewGuid().ToString()};
                 node.Save();
@@ -4147,7 +4066,7 @@ namespace SenseNet.Services.OData.Tests
                     User.Current = User.Visitor;
 
                     ODataEntity entity;
-                    using (var output = new System.IO.StringWriter())
+                    using (var output = new StringWriter())
                     {
                         var json = String.Concat(@"models=[{""Index"": 42}]");
                         var pc = CreatePortalContext("/OData.svc" + node.Path, "", output);
@@ -4193,7 +4112,7 @@ namespace SenseNet.Services.OData.Tests
         //            var field2Name = String.Concat(aspect1Name, Aspect.ASPECTFIELDSEPARATOR, "Field2");
         //            var field3Name = String.Concat(aspect1Name, Aspect.ASPECTFIELDSEPARATOR, "Field3");
 
-        //            var container = new SystemFolder(TestRoot) { Name = Guid.NewGuid().ToString() };
+        //            var container = new SystemFolder(testRoot) { Name = Guid.NewGuid().ToString() };
         //            container.Save();
 
         //            var today = DateTime.Now;
@@ -4239,7 +4158,7 @@ namespace SenseNet.Services.OData.Tests
         //            try
         //            {
         //                // Field1 ASC
-        //                using (var output = new System.IO.StringWriter())
+        //                using (var output = new StringWriter())
         //                {
         //                    var pc = CreatePortalContext("/OData.svc/" + container.Path, "$orderby=" + field1Name + " asc", output);
         //                    var handler = new ODataHandler();
@@ -4250,7 +4169,7 @@ namespace SenseNet.Services.OData.Tests
         //                Assert.AreEqual("1,2,3,4,5", string.Join(",", entities.Select(e => e.Name[4])));
 
         //                // Field1 DESC
-        //                using (var output = new System.IO.StringWriter())
+        //                using (var output = new StringWriter())
         //                {
         //                    var pc = CreatePortalContext("/OData.svc/" + container.Path, "$orderby=" + field1Name + " desc", output);
         //                    var handler = new ODataHandler();
@@ -4263,7 +4182,7 @@ namespace SenseNet.Services.OData.Tests
 
 
         //                // Field2 ASC
-        //                using (var output = new System.IO.StringWriter())
+        //                using (var output = new StringWriter())
         //                {
         //                    var pc = CreatePortalContext("/OData.svc/" + container.Path, "$orderby=" + field2Name + " asc", output);
         //                    var handler = new ODataHandler();
@@ -4274,7 +4193,7 @@ namespace SenseNet.Services.OData.Tests
         //                Assert.AreEqual("5,4,3,2,1", string.Join(",", entities.Select(e => e.Name[4])));
 
         //                // Field2 DESC
-        //                using (var output = new System.IO.StringWriter())
+        //                using (var output = new StringWriter())
         //                {
         //                    var pc = CreatePortalContext("/OData.svc/" + container.Path, "$orderby=" + field2Name + " desc", output);
         //                    var handler = new ODataHandler();
@@ -4287,7 +4206,7 @@ namespace SenseNet.Services.OData.Tests
 
 
         //                // Field3 ASC
-        //                using (var output = new System.IO.StringWriter())
+        //                using (var output = new StringWriter())
         //                {
         //                    var pc = CreatePortalContext("/OData.svc/" + container.Path, "$orderby=" + field2Name + " asc", output);
         //                    var handler = new ODataHandler();
@@ -4298,7 +4217,7 @@ namespace SenseNet.Services.OData.Tests
         //                Assert.AreEqual("5,4,3,2,1", string.Join(",", entities.Select(e => e.Name[4])));
 
         //                // Field3 DESC
-        //                using (var output = new System.IO.StringWriter())
+        //                using (var output = new StringWriter())
         //                {
         //                    var pc = CreatePortalContext("/OData.svc/" + container.Path, "$orderby=" + field2Name + " desc", output);
         //                    var handler = new ODataHandler();
@@ -4333,7 +4252,7 @@ namespace SenseNet.Services.OData.Tests
                 var testString = "a&b c+d%20e";
                 string result = null;
                 //------------------------------------------------------------ POST: ok
-                using (var output = new System.IO.StringWriter())
+                using (var output = new StringWriter())
                 {
                     //"{iii: 42, sss: 'asdf' }"
                     var json = $"{{testString: \'{testString}\' }}";
@@ -4375,7 +4294,7 @@ namespace SenseNet.Services.OData.Tests
         {
             string result = null;
             var sides = url.Split('?');
-            using (var output = new System.IO.StringWriter())
+            using (var output = new StringWriter())
             {
                 var pc = CreatePortalContext(sides[0], sides[1], output);
                 var handler = new ODataHandler();
@@ -4394,7 +4313,7 @@ namespace SenseNet.Services.OData.Tests
         //    lucQueryAcc.SetStaticField("__executionAlgorithm", LucQuery.ContentQueryExecutionAlgorithm.LuceneOnly);
 
         //    var contentName = Guid.NewGuid().ToString();
-        //    var content = new Folder(TestRoot) { Name = contentName };
+        //    var content = new Folder(testRoot) { Name = contentName };
         //    content.DisableObserver(typeof(Workflow.WorkflowNotificationObserver));
         //    content.Save();
 
@@ -4406,7 +4325,7 @@ namespace SenseNet.Services.OData.Tests
         //        var reopenCount = Tests.Search.QueryResultTests.ReopenCountTest(content, repeat, () =>
         //        {
         //            ODataEntities entities;
-        //            using (var output = new System.IO.StringWriter())
+        //            using (var output = new StringWriter())
         //            {
         //                var pc = CreatePortalContext("/OData.svc/Root/System", "", output);
         //                var handler = new ODataHandler();
@@ -4419,7 +4338,7 @@ namespace SenseNet.Services.OData.Tests
         //        reopenCount = Tests.Search.QueryResultTests.ReopenCountTest(content, repeat, () =>
         //        {
         //            ODataEntities entities;
-        //            using (var output = new System.IO.StringWriter())
+        //            using (var output = new StringWriter())
         //            {
         //                var pc = CreatePortalContext("/OData.svc/Root/System", "queryexecutionmode=quick", output);
         //                var handler = new ODataHandler();
@@ -4441,9 +4360,8 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
-                string sourcePath;
-                string targetContainerPath;
-                CreateStructureFor_RightExceptionIfTargetExistsTests(out sourcePath, out targetContainerPath);
+                var testRoot = CreateTestRoot("ODataTestRoot");
+                CreateStructureFor_RightExceptionIfTargetExistsTests(testRoot, out var sourcePath, out var targetContainerPath);
 
                 var odataHandlerAcc = new PrivateType(typeof(ODataHandler));
                 var originalActionResolver = odataHandlerAcc.GetStaticProperty("ActionResolver");
@@ -4453,7 +4371,7 @@ namespace SenseNet.Services.OData.Tests
                 try
                 {
                     //------------------------------------------------------------------------------------------------------------------------ test 1
-                    using (var output = new System.IO.StringWriter())
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext(
                             string.Format("/OData.svc/{0}('{1}')/MoveTo", RepositoryPath.GetParentPath(sourcePath),
@@ -4464,8 +4382,7 @@ namespace SenseNet.Services.OData.Tests
 
                         var error = GetError(output);
                         Assert.AreEqual(ODataExceptionCode.ContentAlreadyExists, error.Code);
-                        Assert.IsTrue(error.Message.ToLowerInvariant().Contains("cannot move the content"),
-                            "Invalid message: " + error.Message);
+                        Assert.IsTrue(error.Message.ToLowerInvariant().Contains("cannot move the content"));
                     }
                 }
                 finally
@@ -4479,9 +4396,8 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
-                string sourcePath;
-                string targetContainerPath;
-                CreateStructureFor_RightExceptionIfTargetExistsTests(out sourcePath, out targetContainerPath);
+                var testRoot = CreateTestRoot("ODataTestRoot");
+                CreateStructureFor_RightExceptionIfTargetExistsTests(testRoot, out var sourcePath, out var targetContainerPath);
 
                 var odataHandlerAcc = new PrivateType(typeof(ODataHandler));
                 var originalActionResolver = odataHandlerAcc.GetStaticProperty("ActionResolver");
@@ -4491,7 +4407,7 @@ namespace SenseNet.Services.OData.Tests
                 try
                 {
                     //------------------------------------------------------------------------------------------------------------------------ test 1
-                    using (var output = new System.IO.StringWriter())
+                    using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext(
                             string.Format("/OData.svc/{0}('{1}')/CopyTo", RepositoryPath.GetParentPath(sourcePath),
@@ -4502,8 +4418,7 @@ namespace SenseNet.Services.OData.Tests
 
                         var error = GetError(output);
                         Assert.AreEqual(ODataExceptionCode.ContentAlreadyExists, error.Code);
-                        Assert.IsTrue(error.Message.ToLowerInvariant().Contains("cannot copy the content"),
-                            "Invalid message: " + error.Message);
+                        Assert.IsTrue(error.Message.ToLowerInvariant().Contains("cannot copy the content"));
                     }
                 }
                 finally
@@ -4512,11 +4427,11 @@ namespace SenseNet.Services.OData.Tests
                 }
             });
         }
-        public void CreateStructureFor_RightExceptionIfTargetExistsTests(out string sourcePath, out string targetContainerPath)
+        public void CreateStructureFor_RightExceptionIfTargetExistsTests(Node testRoot, out string sourcePath, out string targetContainerPath)
         {
-            var sourceFolder = new SystemFolder(TestRoot) { Name = Guid.NewGuid().ToString() };
+            var sourceFolder = new SystemFolder(testRoot) { Name = Guid.NewGuid().ToString() };
             sourceFolder.Save();
-            var targetFolder = new SystemFolder(TestRoot) { Name = Guid.NewGuid().ToString() };
+            var targetFolder = new SystemFolder(testRoot) { Name = Guid.NewGuid().ToString() };
             targetFolder.Save();
 
             var sourceContent = new GenericContent(sourceFolder, "HTMLContent") { Name = "DemoContent" };

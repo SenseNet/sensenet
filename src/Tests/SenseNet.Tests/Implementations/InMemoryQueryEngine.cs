@@ -36,6 +36,9 @@ namespace SenseNet.Tests.Implementations
 
             public int Compare(Hit x, Hit y)
             {
+                if (_sort == null)
+                    return 1;
+
                 for (var i = 0; i < _sort.Length; i++)
                 {
                     var vx = x?.ValuesForSort[i];

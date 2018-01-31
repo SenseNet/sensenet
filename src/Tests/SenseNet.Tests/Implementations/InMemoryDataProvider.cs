@@ -543,12 +543,12 @@ namespace SenseNet.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+        #endregion
 
         protected internal override IEnumerable<int> GetChildrenIdentfiers(int nodeId)
         {
-            throw new NotImplementedException();
+            return _db.Nodes.Where(n => n.ParentNodeId == nodeId).Select(n => n.NodeId).ToArray();
         }
-        #endregion
 
         protected internal override List<ContentListType> GetContentListTypesInTree(string path)
         {
@@ -561,7 +561,10 @@ namespace SenseNet.Tests.Implementations
 
         protected internal override IEnumerable<int> GetIdsOfNodesThatDoNotHaveIndexDocument(int fromId, int toId)
         {
-            return _db.Versions.Where(v => v.IndexDocument == null).Select(v => v.NodeId).ToArray();
+            return _db.Versions
+                .Where(v => v.IndexDocument == null && v.NodeId >= fromId && v.NodeId <= toId)
+                .Select(v => v.NodeId)
+                .ToArray();
         }
 
         #region NOT IMPLEMENTED
@@ -972,12 +975,12 @@ namespace SenseNet.Tests.Implementations
                         || n.Path.Equals(path, StringComparison.InvariantCultureIgnoreCase));
         }
 
-        #region NOT IMPLEMENTED
-
         protected override bool NodeExistsInDatabase(string path)
         {
-            throw new NotImplementedException();
+            return DB.Nodes.Any(n => n.Path.Equals(path, StringComparison.OrdinalIgnoreCase));
         }
+
+        #region NOT IMPLEMENTED
 
         protected internal override IEnumerable<int> QueryNodesByPath(string pathStart, bool orderByPath)
         {
