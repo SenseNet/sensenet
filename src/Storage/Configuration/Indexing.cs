@@ -38,7 +38,7 @@ namespace SenseNet.Configuration
         /// <summary>
         /// Do not use this property directly. Use SearchManager.IsOuterEngineEnabled instead.
         /// </summary>
-        internal static bool IsOuterSearchEngineEnabled { get; set; } = GetValue<bool>(SectionName, "EnableOuterSearchEngine", true);
+        public static bool IsOuterSearchEngineEnabled { get; set; } = GetValue<bool>(SectionName, "EnableOuterSearchEngine", true);
 
         #region Moved to Lucene29 configuration
 
