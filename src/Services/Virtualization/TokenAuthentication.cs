@@ -35,14 +35,14 @@ namespace SenseNet.Portal.Virtualization
             public static int Ok = 200;
         }
 
-        public TokenAuthentication(IUltimateLogoutProvider logoutProvider = null)
+        public TokenAuthentication(IUltimateLogoutSupplier logoutProvider = null)
         {
             _logoutProvider = logoutProvider;
         }
 
         private enum TokenAction { TokenLogin, TokenLogout, TokenAccess, TokenRefresh }
         private static ISecurityKey _securityKey;
-        private IUltimateLogoutProvider _logoutProvider;
+        private IUltimateLogoutSupplier _logoutProvider;
         private static readonly object _keyLock = new object();
 
         private ISecurityKey SecurityKey

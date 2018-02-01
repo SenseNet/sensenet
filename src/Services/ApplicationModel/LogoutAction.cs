@@ -14,11 +14,11 @@ namespace SenseNet.ApplicationModel
         public override bool IsHtmlOperation => false;
         public override ActionParameter[] ActionParameters { get; } = { new ActionParameter("ultimateLogout", typeof(bool), false) };
 
-        private IUltimateLogoutProvider _logoutProvider;
+        private IUltimateLogoutSupplier _logouter;
         public override void Initialize(Content context, string backUri, Application application, object parameters)
         {
             base.Initialize(context, backUri, application, parameters);
-            _logoutProvider = new UltimateLogoutProvider();
+            _logouter = new LogoutExecutor();
             if (PortalContext.Current.AuthenticationMode == "Windows" || !User.Current.IsAuthenticated)
             {
                 this.Visible = false;
@@ -28,7 +28,7 @@ namespace SenseNet.ApplicationModel
         public override object Execute(Content content, params object[] parameters)
         {
             var ultimateLogout = parameters != null && parameters.Length > 0 && parameters[0] != null && (bool)parameters[0];
-            _logoutProvider.Logout(ultimateLogout);
+            _logouter.Logout(ultimateLogout);
 
             var backUrl = PortalContext.Current.BackUrl;
             var back = string.IsNullOrWhiteSpace(backUrl) ? "/" : backUrl;
