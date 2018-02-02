@@ -14,11 +14,10 @@ namespace SenseNet.ApplicationModel
         public override bool IsHtmlOperation => false;
         public override ActionParameter[] ActionParameters { get; } = { new ActionParameter("ultimateLogout", typeof(bool), false) };
 
-        private ILogoutExecutor _logoutExecutor;
         public override void Initialize(Content context, string backUri, Application application, object parameters)
         {
             base.Initialize(context, backUri, application, parameters);
-            _logoutExecutor = new LogoutExecutor();
+
             if (PortalContext.Current.AuthenticationMode == "Windows" || !User.Current.IsAuthenticated)
             {
                 this.Visible = false;
@@ -29,7 +28,9 @@ namespace SenseNet.ApplicationModel
         {
             // getting the only argument if any, which tells that the client would like to log out simply or in an ultimate fashion
             var ultimateLogout = parameters != null && parameters.Length > 0 && parameters[0] != null && (bool)parameters[0];
-            _logoutExecutor.Logout(ultimateLogout);
+
+            var logoutExecutor = new LogoutExecutor();
+            logoutExecutor.Logout(ultimateLogout);
 
             var backUrl = PortalContext.Current.BackUrl;
             var back = string.IsNullOrWhiteSpace(backUrl) ? "/" : backUrl;

@@ -115,9 +115,9 @@ namespace SenseNet.Portal.Virtualization
         }
 
         /// <summary>
-        /// Logs out the current user
+        /// Logs out the current user.
         /// </summary>
-        /// <param name="ultimateLogout">tells if it is an ultimate logout</param>
+        /// <param name="ultimateLogout">Whether this should be an ultimate logout. If set to True, the user will be logged out from all clients.</param>
         public static void Logout(bool ultimateLogout = false)
         {
             var user = User.Current;
@@ -150,6 +150,7 @@ namespace SenseNet.Portal.Virtualization
                 };
 
                 HttpContext.Current.Response.Cookies.Add(sessionCookie);
+
                 // in case of ultimate logout saves the time on user
                 if (ultimateLogout || Configuration.Security.DefaultUltimateLogout)
                 {

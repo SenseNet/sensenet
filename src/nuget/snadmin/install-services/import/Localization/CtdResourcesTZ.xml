@@ -515,6 +515,12 @@
         <data name="ProfilePath-Description" xml:space="preserve">
           <value>Path of the user's personal workspace.</value>
         </data>
+        <data name="LastLoggedOut-DisplayName" xml:space="preserve">
+          <value>Last logout date</value>
+        </data>
+        <data name="LastLoggedOut-Description" xml:space="preserve">
+          <value>Date and time of when the user logged out from all devices.</value>
+        </data>
       </Language>
       <Language cultureName="hu">
         <data name="DisplayName" xml:space="preserve">
@@ -732,6 +738,12 @@
         </data>
         <data name="ProfilePath-Description" xml:space="preserve">
           <value>A felhasználó saját munkaterületének útvonala.</value>
+        </data>
+        <data name="LastLoggedOut-DisplayName" xml:space="preserve">
+          <value>Utolsó kilépés</value>
+        </data>
+        <data name="LastLoggedOut-Description" xml:space="preserve">
+          <value>Az az időpont, amikor a felhasználó utoljára kilépett az összes kliensről.</value>
         </data>
       </Language>
     </Languages>
