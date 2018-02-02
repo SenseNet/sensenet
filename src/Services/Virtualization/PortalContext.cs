@@ -189,7 +189,7 @@ namespace SenseNet.Portal.Virtualization
 
                 // check if the connection uses http or https
                 var forwardedHttps = string.Equals(HttpContext.Current.Request.Headers[SECURE_HEADER_FORWARDED], SECURE_HTTPS, StringComparison.OrdinalIgnoreCase);
-                var headerHost443 = HttpContext.Current.Request.Headers[SECURE_HEADER_HOST].EndsWith(SECURE_PORT);
+                var headerHost443 = HttpContext.Current.Request.Headers[SECURE_HEADER_HOST]?.EndsWith(SECURE_PORT) ?? false;
 
                 var referrerHttps = false;
                 var referrer = HttpContext.Current.Request.UrlReferrer;

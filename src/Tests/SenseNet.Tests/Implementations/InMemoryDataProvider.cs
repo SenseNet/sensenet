@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Xml;
 using SenseNet.ContentRepository.Search.Indexing;
@@ -21,11 +22,21 @@ namespace SenseNet.Tests.Implementations
 {
     public partial class InMemoryDataProvider : DataProvider
     {
+        internal const int StringPageSize = 80;
+        internal const int IntPageSize = 40;
+        internal const int DateTimePageSize = 25;
+        internal const int CurrencyPageSize = 15;
+
         public override IMetaQueryEngine MetaQueryEngine => null;
+
+        private int _contentListStartPage;
+        private Dictionary<DataType, int> _contentListMappingOffsets;
+
+        protected internal override int ContentListStartPage => _contentListStartPage;
+        public override Dictionary<DataType, int> ContentListMappingOffsets => _contentListMappingOffsets;
 
         #region NOT IMPLEMENTED
 
-        public override Dictionary<DataType, int> ContentListMappingOffsets => throw new NotImplementedException();
 
         public override string DatabaseName => throw new NotImplementedException();
 
@@ -48,8 +59,6 @@ namespace SenseNet.Tests.Implementations
         public override int PathMaxLength => 150;
 
         #region NOT IMPLEMENTED
-
-        protected internal override int ContentListStartPage => throw new NotImplementedException();
 
         public override void AssertSchemaTimestampAndWriteModificationDate(long timestamp)
         {
@@ -93,12 +102,18 @@ namespace SenseNet.Tests.Implementations
             }
         }
 
-        #region NOT IMPLEMENTED
-
         public override string GetNameOfLastNodeWithNameBase(int parentId, string namebase, string extension)
         {
-            throw new NotImplementedException();
+            var regex = new Regex((namebase + "\\([0-9]*\\)" + extension).ToLowerInvariant());
+            var existingName = _db.Nodes
+                .Where(n => n.ParentNodeId == parentId && regex.IsMatch(n.Name.ToLowerInvariant()))
+                .Select(n => n.Name.ToLowerInvariant())
+                .OrderByDescending(s => s)
+                .FirstOrDefault();
+            return existingName;
         }
+
+        #region NOT IMPLEMENTED
 
         public override IEnumerable<string> GetScriptsForDatabaseBackup()
         {
@@ -1204,6 +1219,16 @@ namespace SenseNet.Tests.Implementations
 
         public InMemoryDataProvider()
         {
+            _contentListStartPage = 10000000;
+            _contentListMappingOffsets = new Dictionary<DataType, int>();
+            _contentListMappingOffsets.Add(DataType.String, StringPageSize * _contentListStartPage);
+            _contentListMappingOffsets.Add(DataType.Int, IntPageSize * _contentListStartPage);
+            _contentListMappingOffsets.Add(DataType.DateTime, DateTimePageSize * _contentListStartPage);
+            _contentListMappingOffsets.Add(DataType.Currency, CurrencyPageSize * _contentListStartPage);
+            _contentListMappingOffsets.Add(DataType.Binary, 0);
+            _contentListMappingOffsets.Add(DataType.Reference, 0);
+            _contentListMappingOffsets.Add(DataType.Text, 0);
+
             if (_prototype == null)
             {
                 // ReSharper disable once UseObjectOrCollectionInitializer
@@ -1537,6 +1562,11 @@ namespace SenseNet.Tests.Implementations
 
             public void InsertNodeAndVersionRows(NodeData nodeData, out int lastMajorVersionId, out int lastMinorVersionId)
             {
+                // Check unique keys.
+                if(_db.Nodes.Any(n=>n.Path.Equals(nodeData.Path, StringComparison.OrdinalIgnoreCase)))
+                    throw new NodeAlreadyExistsException();
+
+                // insert
                 var newNodeId = _db.Nodes.Max(r => r.NodeId) + 1;
                 var newVersionId = _db.Versions.Max(r => r.VersionId) + 1;
                 lastMinorVersionId = newVersionId;
