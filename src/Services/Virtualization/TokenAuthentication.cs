@@ -35,14 +35,14 @@ namespace SenseNet.Portal.Virtualization
             public static int Ok = 200;
         }
 
-        internal TokenAuthentication(ILogoutExecutor logoutProvider = null)
+        internal TokenAuthentication(ILogoutExecutor logoutExecutor = null)
         {
-            _logoutProvider = logoutProvider;
+            _logoutExecutor = logoutExecutor;
         }
 
         private enum TokenAction { TokenLogin, TokenLogout, TokenAccess, TokenRefresh }
         private static ISecurityKey _securityKey;
-        private ILogoutExecutor _logoutProvider;
+        private ILogoutExecutor _logoutExecutor;
         private static readonly object _keyLock = new object();
 
         private ISecurityKey SecurityKey
@@ -265,7 +265,7 @@ namespace SenseNet.Portal.Virtualization
                         context.User = portalPrincipal;
                     }
                 }
-                _logoutProvider?.Logout(ultimateLogout);
+                _logoutExecutor?.Logout(ultimateLogout);
                 //AuthenticationHelper.Logout(ultimateLogout);
                 CookieHelper.DeleteCookie(context.Response, AccessSignatureCookieName);
                 CookieHelper.DeleteCookie(context.Response, AccessHeadAndPayloadCookieName);
@@ -340,7 +340,7 @@ namespace SenseNet.Portal.Virtualization
             PortalPrincipal portalPrincipal;
             using (AuthenticationHelper.GetSystemAccount())
             {
-                portalPrincipal = _logoutProvider.LoadPortalPrincipalForLogout(userName);
+                portalPrincipal = _logoutExecutor.LoadPortalPrincipalForLogout(userName);
             }
             AssertUserHasNotLoggedOut(tokenManager, portalPrincipal, tokenheadAndPayload);
         }
@@ -371,7 +371,7 @@ namespace SenseNet.Portal.Virtualization
         {
             using (AuthenticationHelper.GetSystemAccount())
             {
-                portalPrincipal = _logoutProvider.LoadPortalPrincipalForLogout(userName);
+                portalPrincipal = _logoutExecutor.LoadPortalPrincipalForLogout(userName);
             }
             return UserHasLoggedOut(tokenManager, portalPrincipal, tokenheadAndPayload);
         }
