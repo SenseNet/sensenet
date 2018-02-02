@@ -6,6 +6,9 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.TokenAuthentication;
 using System.Linq;
+using System.Security.Principal;
+using SenseNet.ContentRepository.Security;
+using SenseNet.Services.Virtualization;
 
 namespace SenseNet.Portal.Virtualization
 {
@@ -32,8 +35,14 @@ namespace SenseNet.Portal.Virtualization
             public static int Ok = 200;
         }
 
+        internal TokenAuthentication(ILogoutExecutor logoutExecutor = null)
+        {
+            _logoutExecutor = logoutExecutor;
+        }
+
         private enum TokenAction { TokenLogin, TokenLogout, TokenAccess, TokenRefresh }
         private static ISecurityKey _securityKey;
+        private readonly ILogoutExecutor _logoutExecutor;
         private static readonly object _keyLock = new object();
 
         private ISecurityKey SecurityKey
@@ -244,6 +253,21 @@ namespace SenseNet.Portal.Virtualization
                 {
                     throw new UnauthorizedAccessException("Invalid access token.");
                 }
+
+                bool.TryParse(AuthenticationHelper.GetRequestParameterValue(context, "ultimateLogout"), out var ultimateLogout);
+
+                // ultimately log out only if the user has not been logged out already, if he has, just a local logout executes
+                if (ultimateLogout || Configuration.Security.DefaultUltimateLogout)
+                {
+                    ultimateLogout = !UserHasLoggedOut(tokenManager, principal.Identity.Name, accessHeadAndPayload, out var portalPrincipal);
+                    using (AuthenticationHelper.GetSystemAccount())
+                    {
+                        context.User = portalPrincipal;
+                    }
+                }
+
+                _logoutExecutor?.Logout(ultimateLogout);
+                
                 CookieHelper.DeleteCookie(context.Response, AccessSignatureCookieName);
                 CookieHelper.DeleteCookie(context.Response, AccessHeadAndPayloadCookieName);
                 CookieHelper.DeleteCookie(context.Response, RefreshSignatureCookieName);
@@ -262,15 +286,22 @@ namespace SenseNet.Portal.Virtualization
                 }
 
                 var accessSignature = authCookie.Value;
-                var principal = tokenManager.ValidateToken(accessHeadAndPayload + "." + accessSignature);
-                if (principal == null)
+                var tokenPrincipal = tokenManager.ValidateToken(accessHeadAndPayload + "." + accessSignature);
+                if (tokenPrincipal == null)
                 {
                     throw new UnauthorizedAccessException("Invalid access token.");
                 }
                 var userName = tokenManager.GetPayLoadValue(accessHeadAndPayload.Split(Convert.ToChar("."))[1], "name");
+                PortalPrincipal portalPrincipal;
                 using (AuthenticationHelper.GetSystemAccount())
                 {
-                    context.User = AuthenticationHelper.LoadUserPrincipal(userName);
+                    portalPrincipal = AuthenticationHelper.LoadPortalPrincipal(userName);
+                }
+                AssertUserHasNotLoggedOut(tokenManager, portalPrincipal, accessHeadAndPayload);
+
+                using (AuthenticationHelper.GetSystemAccount())
+                {
+                    context.User = portalPrincipal;
                 }
             }
         }
@@ -284,13 +315,84 @@ namespace SenseNet.Portal.Virtualization
             }
 
             var refreshSignature = authCookie.Value;
-            var principal = tokenManager.ValidateToken(refreshHeadAndPayload + "." + refreshSignature);
-            var userName = principal.Identity.Name;
-            var roleName = String.Empty;
+            var tokenPrincipal = tokenManager.ValidateToken(refreshHeadAndPayload + "." + refreshSignature);
+            if (tokenPrincipal == null)
+            {
+                throw new UnauthorizedAccessException("Invalid access token.");
+            }
+            var userName = tokenPrincipal.Identity.Name;
 
+            AssertUserHasNotLoggedOut(tokenManager, userName, refreshHeadAndPayload);
+
+            var roleName = String.Empty;
             // emit access token and cookie only
             EmitTokensAndCookies(context, tokenManager, validFrom, userName, roleName, false);
             context.Response.StatusCode = HttpResponseStatusCode.Ok;
+        }
+
+        /// <summary>
+        /// Checks whether the user has logged out previously.
+        /// </summary>
+        /// <param name="tokenManager">TokenManager instance</param>
+        /// <param name="userName">name of the user to check</param>
+        /// <param name="tokenheadAndPayload">the token head and payload value got from client</param>
+        private void AssertUserHasNotLoggedOut(TokenManager tokenManager, string userName, string tokenheadAndPayload)
+        {
+            PortalPrincipal portalPrincipal;
+            using (AuthenticationHelper.GetSystemAccount())
+            {
+                portalPrincipal = _logoutExecutor.LoadPortalPrincipalForLogout(userName);
+            }
+            AssertUserHasNotLoggedOut(tokenManager, portalPrincipal, tokenheadAndPayload);
+        }
+
+        /// <summary>
+        /// Checks the user's logged in state.
+        /// </summary>
+        /// <param name="tokenManager">TokenManager instance.</param>
+        /// <param name="portalPrincipal">PortalPrincipal of the user to check.</param>
+        /// <param name="tokenheadAndPayload">The token head and payload value got from the client.</param>
+        /// <exception cref="UnauthorizedAccessException">Thrown when the access token is invalid or unavailable.</exception>
+        private void AssertUserHasNotLoggedOut(TokenManager tokenManager, PortalPrincipal portalPrincipal, string tokenheadAndPayload)
+        {
+            if (UserHasLoggedOut(tokenManager, portalPrincipal, tokenheadAndPayload))
+            {
+                throw new UnauthorizedAccessException("Invalid access token.");
+            }
+        }
+
+        /// <summary>
+        /// Tells if the user has been logged out.
+        /// </summary>
+        /// <param name="tokenManager">TokenManager instance.</param>
+        /// <param name="userName">Name of the user to check.</param>
+        /// <param name="tokenheadAndPayload">the token head and payload value got from the client.</param>
+        /// <param name="portalPrincipal">Loaded PortalPrincipal of the user.</param>
+        private bool UserHasLoggedOut(TokenManager tokenManager, string userName, string tokenheadAndPayload, out PortalPrincipal portalPrincipal)
+        {
+            using (AuthenticationHelper.GetSystemAccount())
+            {
+                portalPrincipal = _logoutExecutor.LoadPortalPrincipalForLogout(userName);
+            }
+            return UserHasLoggedOut(tokenManager, portalPrincipal, tokenheadAndPayload);
+        }
+
+        /// <summary>
+        /// Tells if the user has been logged out.
+        /// </summary>
+        /// <param name="tokenManager">TokenManager instance.</param>
+        /// <param name="portalPrincipal">Loaded PortalPrincipal of the user to check.</param>
+        /// <param name="tokenheadAndPayload">The token head and payload value got from the client.</param>
+        private bool UserHasLoggedOut(TokenManager tokenManager, PortalPrincipal portalPrincipal, string tokenheadAndPayload)
+        {
+            var lastLoggedOut = (portalPrincipal?.Identity as IUser)?.LastLoggedOut;
+            return lastLoggedOut.HasValue && DateTime.Compare(lastLoggedOut.GetValueOrDefault(), TokenCreationTime(tokenManager, tokenheadAndPayload)) > 0;
+        }
+
+        private DateTime TokenCreationTime(TokenManager tokenManager, string headAndPayload)
+        {
+            var seconds = int.Parse(tokenManager.GetPayLoadValue(headAndPayload.Split(Convert.ToChar("."))[1], "iat"));
+            return tokenManager.GetDateFromNumericDate(seconds);
         }
 
         private void EmitTokensAndCookies(HttpContextBase context, TokenManager tokenManager, DateTime validFrom, string userName, string roleName, bool refreshTokenAsWell)
@@ -329,8 +431,16 @@ namespace SenseNet.Portal.Virtualization
             uri = request.Url.AbsolutePath;
             headerMark = TokenActions.Contains(actionHeader, StringComparer.InvariantCultureIgnoreCase);
             uriMark = TokenPaths.Contains(uri, StringComparer.InvariantCultureIgnoreCase);
-            var cookie = CookieHelper.GetCookie(request, AccessHeadAndPayloadCookieName);
-            headAndPayload = cookie == null ? request.Headers[RefreshHeaderName] : cookie.Value;
+            var refreshHeader = request.Headers[RefreshHeaderName];
+            if (refreshHeader == null)
+            {
+                var cookie = CookieHelper.GetCookie(request, AccessHeadAndPayloadCookieName);
+                headAndPayload = cookie?.Value;
+            }
+            else
+            {
+                headAndPayload = refreshHeader;
+            }
             return request.IsSecureConnection && (headerMark || uriMark || headAndPayload != null);
         }
 

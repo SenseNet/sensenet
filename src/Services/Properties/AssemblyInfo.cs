@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 
 [assembly: InternalsVisibleTo("SenseNet.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.Services.Tests")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 
 #if DEBUG
 [assembly: AssemblyTitle("SenseNet.Services (Debug)")]
