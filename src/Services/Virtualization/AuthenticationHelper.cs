@@ -114,6 +114,10 @@ namespace SenseNet.Portal.Virtualization
             throw new OData.ODataException(OData.ODataExceptionCode.Forbidden);
         }
 
+        /// <summary>
+        /// Logs out the current user
+        /// </summary>
+        /// <param name="ultimateLogout">tells if it is an ultimate logout</param>
         public static void Logout(bool ultimateLogout = false)
         {
             var user = User.Current;
@@ -146,7 +150,7 @@ namespace SenseNet.Portal.Virtualization
                 };
 
                 HttpContext.Current.Response.Cookies.Add(sessionCookie);
-
+                // in case of ultimate logout saves the time on user
                 if (ultimateLogout || Configuration.Security.DefaultUltimateLogout)
                 {
                     using (new SystemAccount())

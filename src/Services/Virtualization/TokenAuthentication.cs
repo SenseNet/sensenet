@@ -35,7 +35,7 @@ namespace SenseNet.Portal.Virtualization
             public static int Ok = 200;
         }
 
-        public TokenAuthentication(IUltimateLogoutSupplier logoutProvider = null)
+        internal TokenAuthentication(IUltimateLogoutSupplier logoutProvider = null)
         {
             _logoutProvider = logoutProvider;
         }
@@ -329,6 +329,12 @@ namespace SenseNet.Portal.Virtualization
             context.Response.StatusCode = HttpResponseStatusCode.Ok;
         }
 
+        /// <summary>
+        /// Checks the user's logged state
+        /// </summary>
+        /// <param name="tokenManager">TokenManager instance</param>
+        /// <param name="userName">name of the user to check</param>
+        /// <param name="tokenheadAndPayload">the token head and payload value got from client</param>
         private void AssertUserHasNotLoggedOut(TokenManager tokenManager, string userName, string tokenheadAndPayload)
         {
             PortalPrincipal portalPrincipal;
@@ -339,6 +345,12 @@ namespace SenseNet.Portal.Virtualization
             AssertUserHasNotLoggedOut(tokenManager, portalPrincipal, tokenheadAndPayload);
         }
 
+        /// <summary>
+        /// Checks the user's logged state
+        /// </summary>
+        /// <param name="tokenManager">TokenManager instance</param>
+        /// <param name="portalPrincipal">PortalPrincipal of the user to check</param>
+        /// <param name="tokenheadAndPayload">the token head and payload value got from client</param>
         private void AssertUserHasNotLoggedOut(TokenManager tokenManager, PortalPrincipal portalPrincipal, string tokenheadAndPayload)
         {
             if (UserHasLoggedOut(tokenManager, portalPrincipal, tokenheadAndPayload))
@@ -347,6 +359,14 @@ namespace SenseNet.Portal.Virtualization
             }
         }
 
+        /// <summary>
+        /// Tells if the user has been logged out
+        /// </summary>
+        /// <param name="tokenManager">TokenManager instance</param>
+        /// <param name="userName">name of the user to check</param>
+        /// <param name="tokenheadAndPayload">the token head and payload value got from client</param>
+        /// <param name="portalPrincipal">loaded PortalPrincipal of the user</param>
+        /// <returns></returns>
         private bool UserHasLoggedOut(TokenManager tokenManager, string userName, string tokenheadAndPayload, out PortalPrincipal portalPrincipal)
         {
             using (AuthenticationHelper.GetSystemAccount())
@@ -356,6 +376,13 @@ namespace SenseNet.Portal.Virtualization
             return UserHasLoggedOut(tokenManager, portalPrincipal, tokenheadAndPayload);
         }
 
+        /// <summary>
+        /// Tells if the user has been logged out
+        /// </summary>
+        /// <param name="tokenManager">TokenManager instance</param>
+        /// <param name="portalPrincipal">loaded PortalPrincipal of the user to check</param>
+        /// <param name="tokenheadAndPayload">the token head and payload value got from client</param>
+        /// <returns></returns>
         private bool UserHasLoggedOut(TokenManager tokenManager, PortalPrincipal portalPrincipal, string tokenheadAndPayload)
         {
             var lastLoggedOut = (portalPrincipal?.Identity as IUser)?.LastLoggedOut;
