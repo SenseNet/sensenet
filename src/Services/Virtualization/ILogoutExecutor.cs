@@ -6,7 +6,7 @@ namespace SenseNet.Services.Virtualization
     /// <summary>
     /// An ultimate logout feature, that helps users to log out from their sessions on all workstations they were logged in.
     /// </summary>
-    internal interface IUltimateLogoutSupplier
+    internal interface ILogoutExecutor
     {
         /// <summary>
         /// Executes the logout process

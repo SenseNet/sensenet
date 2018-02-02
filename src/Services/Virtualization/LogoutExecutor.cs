@@ -7,7 +7,7 @@ namespace SenseNet.Services.Virtualization
     /// <summary>
     /// Executes logout process.
     /// </summary>
-    internal class LogoutExecutor: IUltimateLogoutSupplier
+    internal class LogoutExecutor: ILogoutExecutor
     {
         public Func<string, PortalPrincipal> LoadPortalPrincipalForLogout { get; set; } = userName => AuthenticationHelper.LoadPortalPrincipal(userName);
 
