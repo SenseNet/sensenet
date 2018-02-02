@@ -1721,19 +1721,19 @@ GO
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[proc_LogWrite]') AND type in (N'P', N'PC'))
 BEGIN
 EXEC dbo.sp_executesql @statement = N'CREATE PROCEDURE [dbo].[proc_LogWrite]
-	@EventId int,
-	@Priority int,
-	@Severity varchar(30),
-	@Title nvarchar(256),
-	@Timestamp datetime,
-	@MachineName varchar(32),
+	@eventID int,
+	@priority int,
+	@severity varchar(30),
+	@title nvarchar(256),
+	@timestamp datetime,
+	@machineName varchar(32),
 	@AppDomainName varchar(512),
 	@ProcessID varchar(256),
 	@ProcessName varchar(512),
 	@ThreadName varchar(512),
 	@Win32ThreadId varchar(128),
-	@Message nvarchar(1500),
-	@FormattedMessage ntext,
+	@message nvarchar(1500),
+	@formattedmessage ntext,
 	@LogId int out,
 	@ContentPath nvarchar(450) = null,
 	@UserName nvarchar(450) = null
@@ -1756,7 +1756,7 @@ INSERT INTO [dbo].[LogEntries]
            ,[Priority]
            ,[Severity]
            ,[Title]
-		   ,[ContentId]
+           ,[ContentId]
            ,[ContentPath]
            ,[UserName]
            ,[LogDate]
@@ -1769,23 +1769,23 @@ INSERT INTO [dbo].[LogEntries]
            ,[Message]
            ,[FormattedMessage])
      VALUES
-           (@EventId
+           (@eventID
            ,@Category
-           ,@Priority
-           ,@Severity
-           ,@Title
-		   ,@ContentId
+           ,@priority
+           ,@severity
+           ,@title
+           ,@ContentId
            ,@ContentPath
            ,@UserName
-           ,@Timestamp
-           ,@MachineName
+           ,@timestamp
+           ,@machineName
            ,@AppDomainName
            ,@ProcessID
            ,@ProcessName
            ,@ThreadName
            ,@Win32ThreadId
-           ,@Message
-           ,@FormattedMessage)
+           ,@message
+           ,@formattedmessage)
 SELECT @LogId = @@IDENTITY
 END
 ' 
@@ -1800,7 +1800,7 @@ GO
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[proc_LogAddCategory]') AND type in (N'P', N'PC'))
 BEGIN
 EXEC dbo.sp_executesql @statement = N'CREATE PROCEDURE [dbo].[proc_LogAddCategory]
-	@CategoryName nvarchar(50), @LogId int
+	@categoryName nvarchar(50), @logID int
 AS
 -- do nothing
 ' 

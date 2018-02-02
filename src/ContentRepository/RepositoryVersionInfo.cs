@@ -5,7 +5,9 @@ using System.Linq;
 using SenseNet.ContentRepository.Storage;
 using System.Reflection;
 using SenseNet.Communication.Messaging;
+using SenseNet.Diagnostics;
 using SenseNet.Packaging;
+using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository
 {
@@ -122,5 +124,33 @@ namespace SenseNet.ContentRepository
                 RepositoryVersionInfo.ResetPrivate();
             }
         }
-    }
+
+        public static void CheckComponentVersions()
+        {
+            //TODO: have a pinned list of components in the Providers class
+            // so that the instances can be replaced by tests.
+            foreach (var componentType in TypeResolver.GetTypesByInterface(typeof(ISnComponent)).Where(vct => !vct.IsAbstract))
+            {
+                var component = TypeResolver.CreateInstance(componentType.FullName) as ISnComponent;
+                if (component == null)
+                    continue;
+
+                if (string.IsNullOrEmpty(component.ComponentId))
+                {
+                    SnLog.WriteWarning($"Component class {component.GetType().FullName} is invalid, it does not provide a ComponentId.");
+                    continue;
+                }
+
+                var componentVersion = Instance.Components.FirstOrDefault(c => c.ComponentId == component.ComponentId)?.Version;
+
+                if (component.IsComponentAllowed(componentVersion))
+                {
+                    SnTrace.System.Write($"Component {component.ComponentId} is allowed to run (version: {componentVersion})");
+                    continue;
+                }
+
+                throw new ApplicationException($"Component and assembly version mismatch. Component {component.ComponentId} (version: {componentVersion}) is not allowed to run. Please check assembly versions and available ugrades before starting the repository.");
+            }
+        }
+    }   
 }

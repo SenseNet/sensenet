@@ -114,6 +114,8 @@ namespace SenseNet.Services
 
                 Repository.Start(startConfig);
 
+                RepositoryVersionInfo.CheckComponentVersions();
+
                 StorageContext.L2Cache = new L2CacheImpl();
 
                 RegisterRoutes(RouteTable.Routes, application);

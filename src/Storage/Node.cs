@@ -18,20 +18,52 @@ using SenseNet.Security;
 
 namespace SenseNet.ContentRepository.Storage
 {
-
+    /// <summary>
+    /// Represents the method that will handle the revocable events of a <see cref="Node"/>.
+    /// </summary>
     public delegate void CancellableNodeEventHandler(object sender, CancellableNodeEventArgs e);
+    /// <summary>
+    /// Represents the method that will handle the revocable batch operation events of a <see cref="Node"/>.
+    /// </summary>
     public delegate void CancellableNodeOperationEventHandler(object sender, CancellableNodeOperationEventArgs e);
 
     internal enum AccessLevel { Header, Major, Minor }
-    public enum VersionRaising { None, NextMinor, NextMajor }
-    public enum ContentSavingState { Finalized, Creating, Modifying, ModifyingLocked }
 
     /// <summary>
-    /// <para>Represents a structured set of data that can be stored in the Sense/Net Content Repository.</para>
-    /// <para>A node can be loaded from the Sense/Net Content Repository, the represented data can be modified via the properties of the node, and the changes can be persisted back.</para>
+    /// Defines constants for version raising modes during saving a <see cref="Node"/>.
+    /// </summary>
+    public enum VersionRaising
+    {
+        /// <summary>Version number will not be changed.</summary>
+        None,
+        /// <summary>Minor number will be increased.</summary>
+        NextMinor,
+        /// <summary>Major number will be increased.</summary>
+        NextMajor
+    }
+
+    /// <summary>
+    /// Defines constants of saving states.
+    /// </summary>
+    public enum ContentSavingState
+    {
+        /// <summary>Saving the <see cref="Node"/> is finished.</summary>
+        Finalized,
+        /// <summary>The <see cref="Node"/> is created but not saved (finalized) yet.</summary>
+        Creating,
+        /// <summary>The <see cref="Node"/> is modified.</summary>
+        Modifying,
+        /// <summary>The <see cref="Node"/> is modified in checked-out state.</summary>
+        ModifyingLocked
+    }
+
+    /// <summary>
+    /// <para>Represents a structured set of data that can be stored in the sensenet Content Repository.</para>
+    /// <para>A <see cref="Node"/> can be loaded from the sensenet Content Repository, the data can be modified via the properties
+    /// of the <see cref="Node"/>, and the changes can be persisted to the database.</para>
     /// </summary>
     /// <remarks>Remark</remarks>
-    /// <example>Here is an example from the test project that creates a new Node with two integer Properties TestInt1 and TestInt2
+    /// <example>Here is an example from the test project that creates a new <see cref="Node"/> with two integer Properties TestInt1 and TestInt2
     /// <code>
     /// [ContentHandler]
     /// public class TestNode : Node
@@ -64,10 +96,17 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
+        /// <summary>
+        /// Gets true if the audit log is enabled.
+        /// This property is obsolete. Use the SenseNet.Configuration.Logging.AuditEnabled property instead.
+        /// </summary>
         [Obsolete("After V6.5 PATCH 9: Use SenseNet.Configuration.Logging.AuditEnabled instead.")]
         public static bool AuditEnabled => Logging.AuditEnabled;
 
         private bool _copying;
+        /// <summary>
+        /// Gets true if this instance is a target of a copy operation.
+        /// </summary>
         public bool CopyInProgress
         {
             get { return _copying; }
@@ -76,14 +115,21 @@ namespace SenseNet.ContentRepository.Storage
 
         private bool IsDirty { get; set; }
 
+        /// <summary>
+        /// Gets a value that states whether the inherited type is ContentType or not.
+        /// </summary>
         public abstract bool IsContentType { get; }
 
         /// <summary>
-        /// Set this to override AllowIncrementalNaming setting of ContentType programatically
+        /// Set this to override the AllowIncrementalNaming setting of ContentType programatically.
         /// </summary>
         public bool? AllowIncrementalNaming;
 
-        public string NodeOperation { get; set; }
+        //UNDONE: Node.NodeOperation: setter be protected.
+        /// <summary>
+        /// Gets the currently running node operation (e.g. Undo checkout or Template creation).
+        /// </summary>
+        public string NodeOperation { get; set; } 
 
         private static IIndexPopulator Populator
         {
@@ -92,7 +138,13 @@ namespace SenseNet.ContentRepository.Storage
 
         private SecurityHandler _security;
         private LockHandler _lockHandler;
+        /// <summary>
+        /// Gets true if the current user has only See permission for this <see cref="Node"/>.
+        /// </summary>
         public bool IsHeadOnly { get; private set; }
+        /// <summary>
+        /// Gets true if the current user has only Preview permission for this <see cref="Node"/>.
+        /// </summary>
         public bool IsPreviewOnly { get; private set; }
 
         /// <summary>
@@ -103,6 +155,9 @@ namespace SenseNet.ContentRepository.Storage
         protected internal virtual bool IsIndexingEnabled { get { return true; } }
 
         private static readonly List<string> SeeEnabledProperties = new List<string> { "Name", "Path", "Id", "Index", "NodeType", "ContentListId", "ContentListType", "Parent", "IsModified", "IsDeleted", "CreationDate", "ModificationDate", "CreatedBy", "ModifiedBy", "VersionCreationDate", "VersionModificationDate", "VersionCreatedById", "VersionModifiedById", "Aspects", "Icon", "StoredIcon" };
+        /// <summary>
+        /// Returns true if the current user has enough permissions to view the property identified by the given name.
+        /// </summary>
         public bool IsAllowedProperty(string name)
         {
             if (!HasProperty(name))
@@ -118,18 +173,30 @@ namespace SenseNet.ContentRepository.Storage
                 return SeeEnabledProperties.Contains(name);
             return true;
         }
+        /// <summary>
+        /// Returns the array of property names that are allowed to be viewed by a user who has only See permission for this instance.
+        /// </summary>
         public static string[] GetHeadOnlyProperties()
         {
             return SeeEnabledProperties.ToArray();
         }
 
+        /// <summary>
+        /// Gets the list of property names that are not copied from the source <see cref="Node"/> to the target instance.
+        /// </summary>
         public static readonly List<string> EXCLUDED_COPY_PROPERTIES = new List<string> { "ApprovingMode", "InheritableApprovingMode", "InheritableVersioningMode", "VersioningMode", "AvailableContentTypeFields", "FieldSettingContents" };
 
-        public IEnumerable<Node> PhysicalChildArray
+        /// <summary>
+        /// Gets the collection of child <see cref="Node"/>s. The current user needs to have See permission for every instance.
+        /// </summary>
+        public IEnumerable<Node> PhysicalChildArray //UNDONE: Be obsolete or remove.
         {
             get { return this.GetChildren(); }
         }
 
+        /// <summary>
+        /// Gets the collection of child <see cref="Node"/>s. The current user need to have See permission for every instance.
+        /// </summary>
         protected virtual IEnumerable<Node> GetChildren()
         {
             var nodeHeads = DataBackingStore.GetNodeHeads(QueryChildren().Identifiers);
@@ -140,7 +207,10 @@ namespace SenseNet.ContentRepository.Storage
                                        where nodeHead != null && SecurityHandler.HasPermission(user, nodeHead, PermissionType.See)
                                        select nodeHead.Id));
         }
-        protected int GetChildCount()
+        /// <summary>
+        /// Returns the count of children.
+        /// </summary>
+        protected int GetChildCount() //UNDONE: Make this obsolete. Use count only query instead.
         {
             return QueryChildren().Count;
         }
@@ -162,6 +232,9 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
+        /// <summary>
+        /// Returns the count of <see cref="Node"/>s in the subtree.
+        /// </summary>
         public virtual int NodesInTree
         {
             get
@@ -185,9 +258,9 @@ namespace SenseNet.ContentRepository.Storage
         #region // ================================================================================================= General Properties
 
         /// <summary>
-        /// The unique identifier of the node.
+        /// Gets the identifier of this <see cref="Node"/>.
         /// </summary>
-        /// <remarks>Notice if you develop a data provider for the system you have to convert your Id to integer.</remarks>
+        /// <remarks>Note that if you develop a data provider for the system, you have to convert your Id to an integer.</remarks>
         public int Id
         {
             get
@@ -202,21 +275,30 @@ namespace SenseNet.ContentRepository.Storage
                 _data.Id = value;
             }
         }
+        /// <summary>
+        /// Gets the id of this <see cref="Node"/>'s <see cref="NodeType"/>.
+        /// </summary>
         public virtual int NodeTypeId
         {
             get { return _data.NodeTypeId; }
         }
+        /// <summary>
+        /// Gets the nearest <see cref="ContentListType"/> id on the ancestor chain.
+        /// </summary>
         public virtual int ContentListTypeId
         {
             get { return _data.ContentListTypeId; }
         }
         /// <summary>
-        /// Gets the <see cref="SenseNet.ContentRepository.Storage.Schema.NodeType">NodeType</see> of the instance.
+        /// Gets the <see cref="NodeType"/> of this <see cref="Node"/>.
         /// </summary>
         public virtual NodeType NodeType
         {
             get { return NodeTypeManager.Current.NodeTypes.GetItemById(_data.NodeTypeId); }
         }
+        /// <summary>
+        /// Gets the nearest <see cref="ContentListType"/> on the ancestor chain.
+        /// </summary>
         public virtual ContentListType ContentListType
         {
             get
@@ -231,6 +313,9 @@ namespace SenseNet.ContentRepository.Storage
                 _data.ContentListTypeId = value == null ? 0 : value.Id;
             }
         }
+        /// <summary>
+        /// Gets the nearest content list id on the ancestor chain.
+        /// </summary>
         public virtual int ContentListId
         {
             get { return _data.ContentListId; }
@@ -242,7 +327,7 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// Gets or sets the version.
+        /// Gets or sets the version of this <see cref="Node"/>.
         /// </summary>
         /// <value>The version.</value>
         public VersionNumber Version
@@ -257,15 +342,17 @@ namespace SenseNet.ContentRepository.Storage
                 _data.Version = value;
             }
         }
+        /// <summary>
+        /// Returns true if the Version property has changed since the last loading.
+        /// </summary>
         public bool IsVersionChanged()
         {
             return _data.IsPropertyChanged("Version");
         }
 
         /// <summary>
-        /// Gets the version id.
+        /// Gets the version id of this <see cref="Node"/>.
         /// </summary>
-        /// <value>The version id.</value>
         public int VersionId
         {
             get
@@ -274,6 +361,10 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
+        /// <summary>
+        /// Returns true if this instance is a new one.
+        /// Can be useful in overridden Save methods.
+        /// </summary>
         public bool CreatingInProgress
         {
             get { return _data.CreatingInProgress; }
@@ -284,12 +375,18 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
+        /// <summary>
+        /// Gets a value that describes that this instance is the highest public version or not.
+        /// </summary>
         public bool IsLastPublicVersion { get; private set; }
+        /// <summary>
+        /// Gets a value that describes that this instance is the highest version or not (draft or public).
+        /// </summary>
         public bool IsLatestVersion { get; private set; }
 
         /// <summary>
-        /// Gets the parent node.
-        /// Use this.ParentId, this.ParentPath, this.ParentName instead of Parent.Id, Parent.Path, Parent.Name
+        /// Gets the parent <see cref="Node"/>.
+        /// Use this.ParentId, this.ParentPath, this.ParentName instead of Parent.Id, Parent.Path, Parent.Name if possible.
         /// </summary>
         /// <value>The parent.</value>
         public Node Parent
@@ -309,29 +406,33 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
         /// <summary>
-        /// Gets the Id of parent.
+        /// Gets the Id of the parent <see cref="Node"/>.
         /// </summary>
-        /// <value>The parent.</value>
         public int ParentId
         {
             get { return Data.ParentId; }
         }
+        /// <summary>
+        /// Gets the Path of the parent <see cref="Node"/>.
+        /// </summary>
         public string ParentPath
         {
             get { return RepositoryPath.GetParentPath(this.Path); }
         }
+        /// <summary>
+        /// Gets the Name of the parent <see cref="Node"/>.
+        /// </summary>
         public string ParentName
         {
             get { return RepositoryPath.GetFileName(this.ParentPath); }
         }
         /// <summary>
-        /// Gets or sets the name.
+        /// Gets or sets the name of this <see cref="Node"/>.
         /// </summary>
         /// <remarks>
-        /// A node is uniquely identified by the Name within a leaf in the Sense/Net Content Repository tree.
-        /// This guarantees that there can be no two nodes with the same path in the Repository.
+        /// A <see cref="Node"/> is uniquely identified by the Name within a container in the sensenet Content Repository tree.
+        /// This guarantees that there can be no two <see cref="Node"/>s with the same path in the Content Repository.
         /// </remarks>
-        /// <value>The name.</value>
         public virtual string Name
         {
             get { return _data.Name; }
@@ -345,6 +446,10 @@ namespace SenseNet.ContentRepository.Storage
             }
 
         }
+        /// <summary>
+        /// Gets or sets the human readable name of this <see cref="Node"/>. This value is not affected 
+        /// by versioning (it is the same for all versions) and may contain any character.
+        /// </summary>
         public virtual string DisplayName
         {
             get { return _data.DisplayName; }
@@ -355,16 +460,15 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
         /// <summary>
-        /// Gets the path.
+        /// Gets the path of this <see cref="Node"/>.
         /// </summary>
-        /// <value>The path.</value>
         public virtual string Path
         {
             get { return _data.Path; }
         }
 
         /// <summary>
-        /// Gedepth of the node in the tree (Root = 0
+        /// Gets the depth (count of parent folders) of the <see cref="Node"/> in the tree (Root = 0)
         /// </summary>
         public virtual int Depth
         {
@@ -384,40 +488,31 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
         /// <summary>
-        /// Gets a value indicating whether this instance is modified.
+        /// Gets a value indicating whether this <see cref="Node"/> instance is modified.
         /// </summary>
-        /// <value>
-        /// 	<c>true</c> if this instance is modified; otherwise, <c>false</c>.
-        /// </value>
         public bool IsModified
         {
             get { return this._data.AnyDataModified; }
         }
         /// <summary>
-        /// Gets a value indicating whether this instance is deleted.
+        /// Gets a value indicating whether this <see cref="Node"/> instance is deleted.
         /// </summary>
-        /// <value>
-        /// 	<c>true</c> if this instance is deleted; otherwise, <c>false</c>.
-        /// </value>
         public bool IsDeleted
         {
             get { return _data.IsDeleted; }
         }
         /// <summary>
-        /// Gets a value indicating whether the default permissions of this instance are inherited from its parent.
+        /// Gets a value indicating whether the permissions of this <see cref="Node"/> are inherited from its parent.
         /// </summary>
-        /// <value>
-        /// 	<c>true</c> if the default permissions of this instance are inherited from its parent; otherwise <c>false</c>.
-        /// </value>
         public bool IsInherited
         {
             get { return Security.IsInherited; }
         }
 
         /// <summary>
-        /// Gets the security.
+        /// Gets the security handler for this <see cref="Node"/>. This is the entry point of all permission-related operations.
         /// </summary>
-        /// <value>The security.</value>
+        /// <value>The security handler.</value>
         public SecurityHandler Security
         {
             get
@@ -428,9 +523,9 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
         /// <summary>
-        /// Gets the lock.
+        /// Gets the lock handler.
         /// </summary>
-        /// <value>The lock.</value>
+        /// <value>The lock handler.</value>
         public LockHandler Lock
         {
             get
@@ -442,7 +537,7 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// Indicates the state of the multi step saving. 
+        /// Gets the saving state of the node (e.g. whether it is under a multistep saving operation).
         /// </summary>
         public ContentSavingState SavingState
         {
@@ -463,6 +558,10 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
+        /// <summary>
+        /// Gets a value indicating whether this <see cref="Node"/> is system Content or not.
+        /// ContentQuery results do not contain system Content by default if the auto filtering is active.
+        /// </summary>
         public bool IsSystem
         {
             get { return _data.IsSystem; }
@@ -473,6 +572,9 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
+        /// <summary>
+        /// Gets the timestamp of the <see cref="Node"/> as it was when it was loaded from the database.
+        /// </summary>
         public long NodeTimestamp
         {
             get
@@ -480,6 +582,9 @@ namespace SenseNet.ContentRepository.Storage
                 return _data.NodeTimestamp;
             }
         }
+        /// <summary>
+        /// Gets the timestamp of this version of the <see cref="Node"/> as it was when it was loaded from the database.
+        /// </summary>
         public long VersionTimestamp
         {
             get
@@ -489,7 +594,7 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// Means: node is new if its Id is 0
+        /// The <see cref="Node"/> is new if its Id is 0.
         /// </summary>
         public virtual bool IsNew
         {
@@ -504,7 +609,7 @@ namespace SenseNet.ContentRepository.Storage
         // --------------------------------------------------------- Node-level Creation, Modification
 
         /// <summary>
-        /// Gets or sets the creation date of the first version. Writing is not allowed except in import working mode.
+        /// Gets or sets the creation date of the first version. Writing is only allowed for a member of the Operators group.
         /// </summary>
         public virtual DateTime CreationDate
         {
@@ -515,7 +620,13 @@ namespace SenseNet.ContentRepository.Storage
                 SetCreationDate(value);
             }
         }
-        protected void AssertUserIsOperator(string propertyName)
+        //UNDONE: Node.AssertUserIsOperator: make this private or delete
+        /// <summary>
+        /// Checks if the current user is a system user or a member of the Operators group
+        /// and throws a <see cref="NotSupportedException"/> if not.
+        /// </summary>
+        /// <param name="propertyName">The property that the caller tried to access. Used only when throwing an exception.</param>
+        protected void AssertUserIsOperator(string propertyName) 
         {
             var user = AccessProvider.Current.GetCurrentUser();
 
@@ -529,7 +640,11 @@ namespace SenseNet.ContentRepository.Storage
                     throw new NotSupportedException(String.Format(SR.Exceptions.General.Msg_CannotWriteReadOnlyProperty_1, propertyName));
             }
         }
-        protected void SetCreationDate(DateTime creation)
+
+        /// <summary>
+        /// Sets the CreationDate of this node to the specified value.
+        /// </summary>
+        protected void SetCreationDate(DateTime creation) //UNDONE: Move this code to the setter of the CreationDate
         {
             if (creation < DataProvider.Current.DateTimeMinValue)
                 throw SR.Exceptions.General.Exc_LessThanDateTimeMinValue();
@@ -540,7 +655,7 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// Gets or sets the user who created the last version.
+        /// Gets or sets the <see cref="Node"/> that represents the user who created the first version.
         /// </summary>
         public virtual Node CreatedBy
         {
@@ -588,7 +703,7 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
         /// <summary>
-        /// Gets or sets the user who modified the last version.
+        /// Gets or sets the <see cref="Node"/> that represents the user who modified the last version.
         /// </summary>
         public virtual Node ModifiedBy
         {
@@ -619,11 +734,17 @@ namespace SenseNet.ContentRepository.Storage
             get { return _data.ModifiedById; }
         }
 
+        /// <summary>
+        /// Gets the user id who is the owner of this <see cref="Node"/>.
+        /// </summary>
         public virtual int OwnerId
         {
             get { return _data.OwnerId; }
         }
 
+        /// <summary>
+        /// Gets or sets the <see cref="Node"/> that represents the user who is the owner of this <see cref="Node"/>.
+        /// </summary>
         public virtual Node Owner
         {
             get
@@ -651,7 +772,7 @@ namespace SenseNet.ContentRepository.Storage
         // --------------------------------------------------------- Version-level Creation, Modification
 
         /// <summary>
-        /// Gets or sets the creation date of this version. Writing is not allowed except in import working mode.
+        /// Gets or sets the creation date of this version. Writing is only allowed for a member of the Operators group.
         /// </summary>
         public virtual DateTime VersionCreationDate
         {
@@ -662,7 +783,11 @@ namespace SenseNet.ContentRepository.Storage
                 SetVersionCreationDate(value);
             }
         }
-        protected void SetVersionCreationDate(DateTime creation)
+
+        /// <summary>
+        /// Sets the VersionCreationDate of this node version to the specified value.
+        /// </summary>
+        protected void SetVersionCreationDate(DateTime creation) //UNDONE: Move this code to the setter of the VersionCreationDate
         {
             if (creation < DataProvider.Current.DateTimeMinValue)
                 throw SR.Exceptions.General.Exc_LessThanDateTimeMinValue();
@@ -755,10 +880,16 @@ namespace SenseNet.ContentRepository.Storage
         #endregion
         #region // --------------------------------------------------------- Properties for locking
 
+        /// <summary>
+        /// Gets true if this <see cref="Node"/> is locked (i.e. the LockedById property is not null).
+        /// </summary>
         public bool Locked
         {
             get { return LockedById != 0; }
         }
+        /// <summary>
+        /// Gets the id of the user who locks this <see cref="Node"/>.
+        /// </summary>
         public int LockedById
         {
             get { return _data == null ? 0 : _data.LockedById; }
@@ -769,6 +900,9 @@ namespace SenseNet.ContentRepository.Storage
                 _data.Locked = value != 0;
             }
         }
+        /// <summary>
+        /// Gets the user who locks this <see cref="Node"/>.
+        /// </summary>
         public IUser LockedBy
         {
             get
@@ -778,6 +912,9 @@ namespace SenseNet.ContentRepository.Storage
                 return LoadRefUserOrSomebody(LockedById, "LockedBy");
             }
         }
+        /// <summary>
+        /// Gets or sets the ETag value.
+        /// </summary>
         public string ETag
         {
             get { return _data.ETag; }
@@ -787,6 +924,9 @@ namespace SenseNet.ContentRepository.Storage
                 _data.ETag = value;
             }
         }
+        /// <summary>
+        /// Gets or sets a value that can be used in any locking mechanism.
+        /// </summary>
         public int LockType
         {
             get { return _data.LockType; }
@@ -796,6 +936,9 @@ namespace SenseNet.ContentRepository.Storage
                 _data.LockType = value;
             }
         }
+        /// <summary>
+        /// Gets the maximum lock time in seconds.
+        /// </summary>
         public int LockTimeout
         {
             get { return _data.LockTimeout; }
@@ -805,6 +948,10 @@ namespace SenseNet.ContentRepository.Storage
                 _data.LockTimeout = value;
             }
         }
+        /// <summary>
+        /// Gets or sets the date and time of the start of the locking.
+        /// The lock can be kept alive if it is updated within the timeout.
+        /// </summary>
         public DateTime LockDate
         {
             get { return _data.LockDate; }
@@ -814,6 +961,10 @@ namespace SenseNet.ContentRepository.Storage
                 _data.LockDate = value;
             }
         }
+        /// <summary>
+        /// Gets an unique value that is generated at the start of the locking.
+        /// Returns null or empty if tis <see cref="Node"/> is not locked.
+        /// </summary>
         public string LockToken
         {
             get { return _data.LockToken; }
@@ -823,6 +974,9 @@ namespace SenseNet.ContentRepository.Storage
                 _data.LockToken = value;
             }
         }
+        /// <summary>
+        /// Gets the date and time when the lock was refreshed.
+        /// </summary>
         public DateTime LastLockUpdate
         {
             get { return _data.LastLockUpdate; }
@@ -835,6 +989,9 @@ namespace SenseNet.ContentRepository.Storage
 
         #endregion
 
+        /// <summary>
+        /// Returns the loaded value of the specified property. Modifications are ignored.
+        /// </summary>
         public object GetStoredValue(string name)
         {
             var data = Data;
@@ -880,6 +1037,9 @@ namespace SenseNet.ContentRepository.Storage
 
         #region // ================================================================================================= Dynamic property accessors
 
+        /// <summary>
+        /// Gets or sets value of the specified property.
+        /// </summary>
         public object this[string propertyName]
         {
             get
@@ -967,6 +1127,9 @@ namespace SenseNet.ContentRepository.Storage
             get { return this[GetPropertyTypeById(propertyId)]; }
             set { this[GetPropertyTypeById(propertyId)] = value; }
         }
+        /// <summary>
+        /// Gets or sets the value of the specified property.
+        /// </summary>
         public object this[PropertyType propertyType]
         {
             get
@@ -1015,17 +1178,30 @@ namespace SenseNet.ContentRepository.Storage
             "Locked","Lock","LockedById","LockedBy","ETag","LockType","LockTimeout","LockDate","LockToken","LastLockUpdate","Security",
             "SavingState", "ChangedData"});
 
+        /// <summary>
+        /// Gets the <see cref="PropertyType"/> collection of this <see cref="Node"/>.
+        /// This is the dynamic signature of this <see cref="Node"/>.
+        /// </summary>
         public TypeCollection<PropertyType> PropertyTypes { get { return _data.PropertyTypes; } }
+        /// <summary>
+        /// Returns true if this <see cref="Node"/> supports the property by the given name.
+        /// </summary>
         public virtual bool HasProperty(string name)
         {
             if (PropertyTypes[name] != null)
                 return true;
             return _propertyNames.Contains(name);
         }
+        /// <summary>
+        /// Returns true if this <see cref="Node"/> supports the given property.
+        /// </summary>
         public bool HasProperty(PropertyType propType)
         {
             return HasProperty(propType.Id);
         }
+        /// <summary>
+        /// Returns true if this <see cref="Node"/> supports the property by the given property type id.
+        /// </summary>
         public bool HasProperty(int propertyTypeId)
         {
             return PropertyTypes.GetItemById(propertyTypeId) != null;
@@ -1062,6 +1238,11 @@ namespace SenseNet.ContentRepository.Storage
 
         // ---------------- General axis
 
+        /// <summary>
+        /// Returns the value of the specified property converted to the desired type.
+        /// An <see cref="InvalidCastException"/> will be thrown if the type parameter does not match 
+        /// the type of the requested data.
+        /// </summary>
         public T GetProperty<T>(string propertyName)
         {
             return (T)this[propertyName];
@@ -1070,10 +1251,19 @@ namespace SenseNet.ContentRepository.Storage
         {
             return (T)this[propertyId];
         }
+        /// <summary>
+        /// Returns the value of the specified property converted to the desired type.
+        /// An <see cref="InvalidCastException"/> will be thrown if the type parameter does not match 
+        /// the type of the requested data.
+        /// </summary>
         public T GetProperty<T>(PropertyType propertyType)
         {
             return (T)this[propertyType];
         }
+        /// <summary>
+        /// Returns the value of the specified property.
+        /// The value is null if the requested property does not exist.
+        /// </summary>
         public virtual object GetPropertySafely(string propertyName)
         {
             if (this.HasProperty(propertyName))
@@ -1137,6 +1327,9 @@ namespace SenseNet.ContentRepository.Storage
 
         // ---------------- Binary axis
 
+        /// <summary>
+        /// Returns the <see cref="BinaryData"/> property of this <see cref="Node"/> by the given name.
+        /// </summary>
         public BinaryData GetBinary(string propertyName)
         {
             return (BinaryData)this[propertyName];
@@ -1145,10 +1338,16 @@ namespace SenseNet.ContentRepository.Storage
         {
             return (BinaryData)this[propertyId];
         }
+        /// <summary>
+        /// Returns the <see cref="BinaryData"/> property of this <see cref="Node"/> by the given <see cref="PropertyType"/>.
+        /// </summary>
         public BinaryData GetBinary(PropertyType property)
         {
             return (BinaryData)this[property];
         }
+        /// <summary>
+        /// Assigns the given <see cref="BinaryData"/> value to the specified property of this <see cref="Node"/>.
+        /// </summary>
         public void SetBinary(string propertyName, BinaryData data)
         {
             if (data == null)
@@ -1159,6 +1358,11 @@ namespace SenseNet.ContentRepository.Storage
 
         // ---------------- Reference axes
 
+        /// <summary>
+        /// Returns the collection of the referenced <see cref="Node"/>s from the property identified by the given name.
+        /// The return value is always a collection even if the requested property is a single reference.
+        /// In that case the collection contains only one item.
+        /// </summary>
         public IEnumerable<Node> GetReferences(string propertyName)
         {
             return (IEnumerable<Node>)this[propertyName];
@@ -1167,11 +1371,21 @@ namespace SenseNet.ContentRepository.Storage
         {
             return (IEnumerable<Node>)this[propertyId];
         }
+        /// <summary>
+        /// Returns the collection of the referenced <see cref="Node"/>s from the property identified by the given <see cref="PropertyType"/>.
+        /// The return value is always a collection even if the requested property is a single reference.
+        /// In that case the collection contains only one item.
+        /// </summary>
         public IEnumerable<Node> GetReferences(PropertyType property)
         {
             return (IEnumerable<Node>)this[property];
         }
 
+        /// <summary>
+        /// Assigns the specified collection to the reference property of this <see cref="Node"/>.
+        /// The proerty is identified by the given name.
+        /// </summary>
+        /// <typeparam name="T">Node or any inherited type.</typeparam>
         public void SetReferences<T>(string propertyName, IEnumerable<T> nodes) where T : Node
         {
             ClearReference(propertyName);
@@ -1182,12 +1396,20 @@ namespace SenseNet.ContentRepository.Storage
             ClearReference(propertyId);
             AddReferences(propertyId, nodes);
         }
+        /// <summary>
+        /// Assigns the specified collection to the reference property of this <see cref="Node"/>.
+        /// The proerty is identified by the given <see cref="PropertyType"/>.
+        /// </summary>
+        /// <typeparam name="T">Node or any inherited type.</typeparam>
         public void SetReferences<T>(PropertyType property, IEnumerable<T> nodes) where T : Node
         {
             ClearReference(property);
             AddReferences(property, nodes);
         }
 
+        /// <summary>
+        /// Clears the value of the reference property that is identified by the given name.
+        /// </summary>
         public void ClearReference(string propertyName)
         {
             GetNodeList(propertyName).Clear();
@@ -1196,11 +1418,18 @@ namespace SenseNet.ContentRepository.Storage
         {
             GetNodeList(propertyId).Clear();
         }
+        /// <summary>
+        /// Clears the value of the reference property that is identified by the given <see cref="PropertyType"/>.
+        /// </summary>
         public void ClearReference(PropertyType property)
         {
             GetNodeList(property).Clear();
         }
 
+        /// <summary>
+        /// Adds the given <see cref="Node"/> to the reference property that is identified by the given name.
+        /// Duplicates are allowed.
+        /// </summary>
         public void AddReference(string propertyName, Node refNode)
         {
             GetNodeList(propertyName).Add(refNode);
@@ -1209,11 +1438,20 @@ namespace SenseNet.ContentRepository.Storage
         {
             GetNodeList(propertyId).Add(refNode);
         }
+        /// <summary>
+        /// Adds the given <see cref="Node"/> to the reference property that is identified by the given <see cref="PropertyType"/>.
+        /// Duplicates are allowed.
+        /// </summary>
         public void AddReference(PropertyType property, Node refNode)
         {
             GetNodeList(property).Add(refNode);
         }
 
+        /// <summary>
+        /// Adds the given <see cref="Node"/>s to the reference property that is identified by the given name.
+        /// Duplicates are allowed.
+        /// </summary>
+        /// <typeparam name="T">Node or any inherited type.</typeparam>
         public void AddReferences<T>(string propertyName, IEnumerable<T> refNodes) where T : Node
         {
             AddReferences<T>(propertyName, refNodes, false);
@@ -1222,10 +1460,20 @@ namespace SenseNet.ContentRepository.Storage
         {
             AddReferences<T>(propertyId, refNodes, false);
         }
+        /// <summary>
+        /// Adds the given <see cref="Node"/>s to the reference property that is identified by the given <see cref="PropertyType"/>.
+        /// Duplicates are allowed.
+        /// </summary>
+        /// <typeparam name="T">Node or any inherited type.</typeparam>
         public void AddReferences<T>(PropertyType property, IEnumerable<T> refNodes) where T : Node
         {
             AddReferences<T>(property, refNodes, false);
         }
+        /// <summary>
+        /// Adds the given <see cref="Node"/>s to the reference property that is identified by the given name.
+        /// If the "distinct" parameter is true, the duplicates will be filtered.
+        /// </summary>
+        /// <typeparam name="T">Node or any inherited type.</typeparam>
         public void AddReferences<T>(string propertyName, IEnumerable<T> refNodes, bool distinct) where T : Node
         {
             AddReferences<T>(GetNodeList(propertyName), refNodes, distinct);
@@ -1234,11 +1482,19 @@ namespace SenseNet.ContentRepository.Storage
         {
             AddReferences<T>(GetNodeList(propertyId), refNodes, distinct);
         }
+        /// <summary>
+        /// Adds the given <see cref="Node"/>s to the reference property that is identified by the given <see cref="PropertyType"/>.
+        /// If the "distinct" parameter is true, the duplicates will be filtered.
+        /// </summary>
+        /// <typeparam name="T">Node or any inherited type.</typeparam>
         public void AddReferences<T>(PropertyType property, IEnumerable<T> refNodes, bool distinct) where T : Node
         {
             AddReferences<T>(GetNodeList(property), refNodes, distinct);
         }
 
+        /// <summary>
+        /// Returns true if the given <see cref="Node"/> is referenced by the specified property.
+        /// </summary>
         public bool HasReference(string propertyName, Node refNode)
         {
             return GetNodeList(propertyName).Contains(refNode);
@@ -1247,11 +1503,18 @@ namespace SenseNet.ContentRepository.Storage
         {
             return GetNodeList(propertyId).Contains(refNode);
         }
+        /// <summary>
+        /// Returns true if the given <see cref="Node"/> is referenced by the specified property.
+        /// </summary>
         public bool HasReference(PropertyType property, Node refNode)
         {
             return GetNodeList(property).Contains(refNode);
         }
 
+        /// <summary>
+        /// Removes the given <see cref="Node"/> from the specified property.
+        /// If the reference does not exist, does nothing.
+        /// </summary>
         public void RemoveReference(string propertyName, Node refNode)
         {
             GetNodeList(propertyName).Remove(refNode);
@@ -1260,11 +1523,18 @@ namespace SenseNet.ContentRepository.Storage
         {
             GetNodeList(propertyId).Remove(refNode);
         }
+        /// <summary>
+        /// Removes the given <see cref="Node"/> from the specified property.
+        /// If the reference does not exist, does nothing.
+        /// </summary>
         public void RemoveReference(PropertyType property, Node refNode)
         {
             GetNodeList(property).Remove(refNode);
         }
 
+        /// <summary>
+        /// Returns the count of referenced <see cref="Node"/>s in the specified property.
+        /// </summary>
         public int GetReferenceCount(string propertyName)
         {
             return GetNodeList(propertyName).Count;
@@ -1273,6 +1543,9 @@ namespace SenseNet.ContentRepository.Storage
         {
             return GetNodeList(propertyId).Count;
         }
+        /// <summary>
+        /// Returns the count of referenced <see cref="Node"/>s in the specified property.
+        /// </summary>
         public int GetReferenceCount(PropertyType property)
         {
             return GetNodeList(property).Count;
@@ -1280,6 +1553,11 @@ namespace SenseNet.ContentRepository.Storage
 
         // ---------------- Single reference interface
 
+        /// <summary>
+        /// Returns the referred <see cref="Node"/> from the specified property.
+        /// If the property has more than one referred <see cref="Node"/>s, returns the first one.
+        /// </summary>
+        /// <typeparam name="T">the desired type that can be Node or any inherited type.</typeparam>
         public T GetReference<T>(string propertyName) where T : Node
         {
             return GetNodeList(propertyName).GetSingleValue<T>();
@@ -1288,10 +1566,18 @@ namespace SenseNet.ContentRepository.Storage
         {
             return GetNodeList(propertyId).GetSingleValue<T>();
         }
+        /// <summary>
+        /// Returns the referred <see cref="Node"/> from the specified property.
+        /// If the property has more than one referred <see cref="Node"/>s, returns the first one.
+        /// </summary>
+        /// <typeparam name="T">the desired type that can be Node or any inherited type.</typeparam>
         public T GetReference<T>(PropertyType property) where T : Node
         {
             return GetNodeList(property).GetSingleValue<T>();
         }
+        /// <summary>
+        /// Assigns the given <see cref="Node"/> to the specified reference property.
+        /// </summary>
         public void SetReference(string propertyName, Node node)
         {
             GetNodeList(propertyName).SetSingleValue<Node>(node);
@@ -1300,6 +1586,9 @@ namespace SenseNet.ContentRepository.Storage
         {
             GetNodeList(propertyId).SetSingleValue<Node>(node);
         }
+        /// <summary>
+        /// Assigns the given <see cref="Node"/> to the specified reference property.
+        /// </summary>
         public void SetReference(PropertyType property, Node node)
         {
             GetNodeList(property).SetSingleValue<Node>(node);
@@ -1332,6 +1621,10 @@ namespace SenseNet.ContentRepository.Storage
 
         #region // ================================================================================================= Construction
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Node"/> class.
+        /// Do not use or override this constructor directly from your code.
+        /// </summary>
         protected Node() { }
         /// <summary>
         /// Initializes a new instance of the <see cref="Node"/> class.
@@ -1342,7 +1635,7 @@ namespace SenseNet.ContentRepository.Storage
         /// Initializes a new instance of the <see cref="Node"/> class.
         /// </summary>
         /// <param name="parent">The parent.</param>
-        /// <param name="nodeTypeName">Name of the node type.</param>
+        /// <param name="nodeTypeName">Name of the <see cref="Schema.NodeType"/>.</param>
         protected Node(Node parent, string nodeTypeName)
         {
             if (nodeTypeName == null)
@@ -1395,7 +1688,10 @@ namespace SenseNet.ContentRepository.Storage
 
         #endregion
 
-        public void RefreshVersionInfo()
+        /// <summary>
+        /// Refreshes the IsLastPublicVersion and IsLastVersion property values.
+        /// </summary>
+        public void RefreshVersionInfo() //UNDONE: be obsolete or delete now.
         {
             SetVersionInfo(NodeHead.Get(this.Id));
         }
@@ -1418,6 +1714,11 @@ namespace SenseNet.ContentRepository.Storage
 
         // ----------------------------------------------------------------------------- Static batch loaders
 
+        /// <summary>
+        /// Returns <see cref="Node"/> instances loaded by the given ids. The current user has 
+        /// at least See permission for each item in the result set.
+        /// </summary>
+        /// <param name="idArray">The IEnumerable&lt;int&gt; that contains the requested ids.</param>
         public static List<Node> LoadNodes(IEnumerable<int> idArray)
         {
             return LoadNodes(DataBackingStore.GetNodeHeads(idArray), VersionNumber.LastAccessible);
@@ -1528,7 +1829,7 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// Loads multiple nodes as a batch operation using an identifier list.
+        /// Loads multiple <see cref="Node"/>s as a batch operation using an identifier list.
         /// </summary>
         /// <param name="identifiers">A list of identifiers (represented by either a path or an id).</param>
         public static IEnumerable<Node> LoadNodes(IEnumerable<NodeIdentifier> identifiers)
@@ -1547,48 +1848,73 @@ namespace SenseNet.ContentRepository.Storage
 
         // ----------------------------------------------------------------------------- Static single loaders
 
+        /// <summary>
+        /// Loads the appropiate <see cref="Node"/> by the given id.
+        /// </summary>
+        /// <typeparam name="T">The desired return type.</typeparam>
+        /// <param name="nodeId">The requested id.</param>
         public static T Load<T>(int nodeId) where T : Node
         {
             return (T)LoadNode(nodeId);
         }
+        /// <summary>
+        /// Loads the appropiate <see cref="Node"/> by the given id and version.
+        /// </summary>
+        /// <typeparam name="T">The desired return type.</typeparam>
+        /// <param name="nodeId">The requested id.</param>
+        /// <param name="version">The requested version for example: new VersionNumber(2, 0).</param>
         public static T Load<T>(int nodeId, VersionNumber version) where T : Node
         {
             return (T)LoadNode(nodeId, version);
         }
+        /// <summary>
+        /// Loads the appropiate <see cref="Node"/> by the given path.
+        /// </summary>
+        /// <typeparam name="T">The desired return type.</typeparam>
+        /// <param name="path">The requested path.</param>
         public static T Load<T>(string path) where T : Node
         {
             return (T)LoadNode(path);
         }
+        /// <summary>
+        /// Loads the appropiate <see cref="Node"/> by the given path and version.
+        /// </summary>
+        /// <typeparam name="T">The desired return type.</typeparam>
+        /// <param name="path">The requested path.</param>
+        /// <param name="version">The requested version for example: new VersionNumber(2, 0).</param>
+        /// <returns></returns>
         public static T Load<T>(string path, VersionNumber version) where T : Node
         {
             return (T)LoadNode(path, version);
         }
 
         /// <summary>
-        /// Loads the appropiate node by the given path.
+        /// Loads the appropiate <see cref="Node"/> by the given path.
         /// </summary>
-        /// <example>How to load a Node by passing the Sense/Net Content Repository path.
-        /// In this case you will get a Node named node filled with the data of the latest version of Node /Root/MyFavoriteNode.
+        /// <example>How to load a <see cref="Node"/> by passing the sensenet Content Repository path.
+        /// In this case you will get a <see cref="Node"/> named "node" filled with the data of the latest 
+        /// version of <see cref="Node"/> /Root/MyFavoriteNode.
         /// <code>
         /// Node node = Node.LoadNode("/Root/MyFavoriteNode");
         /// </code>
         /// </example>
-        /// <returns>The latest version of the Node has the given path.</returns>
+        /// <returns>The latest accessible version of the <see cref="Node"/> that has the given path, or null.</returns>
         public static Node LoadNode(string path)
         {
             return LoadNode(path, DefaultAbstractVersion);
         }
         /// <summary>
-        /// Loads the appropiate node by the given path and version.
+        /// Loads the appropiate <see cref="Node"/> by the given path and version.
         /// </summary>
-        /// <example>How to load the version 2.0 of a Node by passing the Sense/Net Content Repository path.
-        /// In this case you will get a Node named node filled with the data of the latest version of Node /Root/MyFavoriteNode.
+        /// <example>How to load version 2.0 of a <see cref="Node"/> by passing the sensenet Content Repository path.
+        /// In this case you will get a <see cref="Node"/> named "node" filled with the data of the provided 
+        /// version of <see cref="Node"/> /Root/MyFavoriteNode.
         /// <code>
         /// VersionNumber versionNumber = new VersionNumber(2, 0);
         /// Node node = Node.LoadNode("/Root/MyFavoriteNode", versionNumber);
         /// </code>
         /// </example>
-        /// <returns>The a node holds the data of the given version of the Node that has the given path.</returns>
+        /// <returns>The <see cref="Node"/> holds the data of the given version of the <see cref="Node"/> that has the given path.</returns>
         public static Node LoadNode(string path, VersionNumber version)
         {
             if (path == null)
@@ -1596,37 +1922,44 @@ namespace SenseNet.ContentRepository.Storage
             return LoadNode(DataBackingStore.GetNodeHead(path), version);
         }
         /// <summary>
-        /// Loads the appropiate node by the given ID.
+        /// Loads the appropiate <see cref="Node"/> by the given Id.
         /// </summary>
-        /// <example>How to load a the latest version of Node identified with ID 132. 
-        /// In this case you will get a Node named node filled with the data of the latest version of Node 132.
+        /// <example>How to load the latest version of the <see cref="Node"/> identified by the Id 132. 
+        /// In this case you will get a <see cref="Node"/> named node filled with the data of the latest version of <see cref="Node"/> 132.
         /// <code>
         /// Node node = Node.LoadNode(132);
         /// </code>
         /// </example>
-        /// <returns>The latest version of the Node that has the given ID.</returns> 
+        /// <returns>The latest version of the <see cref="Node"/> that has the given Id.</returns> 
         public static Node LoadNode(int nodeId)
         {
             return LoadNode(nodeId, DefaultAbstractVersion);
         }
         /// <summary>
-        /// Loads the appropiate node by the given ID and version number.
+        /// Loads the appropiate <see cref="Node"/> by the given Id and version number.
         /// </summary>
-        /// <example>How to load a the version 2.0 of Node identified with ID 132. In this case you will get a Node named node filled with the data of the given version of Node 132.
+        /// <example>How to load version 2.0 of the <see cref="Node"/> identified by the Id 132. In this case you will 
+        /// get a <see cref="Node"/> named "node" filled with the data of the given version of <see cref="Node"/> 132.
         /// <code>
         /// VersionNumber versionNumber = new VersionNumber(2, 0);
         /// Node node = Node.LoadNode(132, versionNumber);
         /// </code>
         /// </example>
-        /// <returns>The given version of the Node that has the given ID.</returns>
+        /// <returns>The given version of the <see cref="Node"/> that has the given Id.</returns>
         public static Node LoadNode(int nodeId, VersionNumber version)
         {
             return LoadNode(DataBackingStore.GetNodeHead(nodeId), version);
         }
+        /// <summary>
+        /// Loads the appropiate <see cref="Node"/> by the given <see cref="NodeHead"/>.
+        /// </summary>
         public static Node LoadNode(NodeHead head)
         {
             return LoadNode(head, null);
         }
+        /// <summary>
+        /// Loads the appropiate <see cref="Node"/> by the given <see cref="NodeHead"/> and <see cref="VersionNumber"/>.
+        /// </summary>
         public static Node LoadNode(NodeHead head, VersionNumber version)
         {
             if (version == null)
@@ -1692,6 +2025,10 @@ namespace SenseNet.ContentRepository.Storage
                 head = NodeHead.Get(head.Id);
             }
         }
+        /// <summary>
+        /// Loads the appropiate <see cref="Node"/> by the given parameter that can be a path or an id as a string.
+        /// </summary>
+        /// <param name="idOrPath">Id (e.g. "42") or path (e.g. "/Root/System").</param>
         public static Node LoadNodeByIdOrPath(string idOrPath)
         {
             if (string.IsNullOrEmpty(idOrPath))
@@ -1827,14 +2164,24 @@ namespace SenseNet.ContentRepository.Storage
             return node;
         }
 
+        /// <summary>
+        /// Returns a cached value by the given name. You can store any instance-related cacheable
+        /// object using the <see cref="SetCachedData"/> method.
+        /// </summary>
         public object GetCachedData(string name)
         {
             return this.Data.GetExtendedSharedData(name);
         }
+        /// <summary>
+        /// Associates the given object to this <see cref="Node"/> instance with the specified name.
+        /// </summary>
         public void SetCachedData(string name, object value)
         {
             this.Data.SetExtendedSharedData(name, value);
         }
+        /// <summary>
+        /// Removes the cached named object if it exists.
+        /// </summary>
         public void ResetCachedData(string name)
         {
             this.Data.ResetExtendedSharedData(name);
@@ -1855,7 +2202,7 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// Gets the list of avaliable versions of the Node identified by Id.
+        /// Gets the list of avaliable versions of the <see cref="Node"/> identified by Id.
         /// </summary>
         /// <returns>A list of version numbers.</returns>
         public static List<VersionNumber> GetVersionNumbers(int nodeId)
@@ -1863,7 +2210,7 @@ namespace SenseNet.ContentRepository.Storage
             return new List<VersionNumber>(DataProvider.Current.GetVersionNumbers(nodeId));
         }
         /// <summary>
-        /// Gets the list of avaliable versions of the Node identified by path.
+        /// Gets the list of avaliable versions of the <see cref="Node"/> identified by path.
         /// </summary>
         /// <returns>A list of version numbers.</returns>
         public static List<VersionNumber> GetVersionNumbers(string path)
@@ -1873,6 +2220,14 @@ namespace SenseNet.ContentRepository.Storage
             return new List<VersionNumber>(DataProvider.Current.GetVersionNumbers(path));
         }
 
+        /// <summary>
+        /// Returns collection of all permitted versions of this <see cref="Node"/> identified by Id.
+        /// The current user need to have minimum <see cref="PermissionType.Open"/> and 
+        /// <see cref="PermissionType.RecallOldVersion"/> permissions. In that case the collection
+        /// contains all public versions. If <see cref="PermissionType.OpenMinor"/> is also 
+        /// permitted, all versions will be returned. If the user does not have the required
+        /// set of permissions, a <see cref="SenseNetSecurityException"/> will be thrown. 
+        /// </summary>
         public IEnumerable<Node> LoadVersions()
         {
             Security.Assert(PermissionType.RecallOldVersion, PermissionType.Open);
@@ -1893,6 +2248,9 @@ namespace SenseNet.ContentRepository.Storage
             return x;
         }
 
+        /// <summary>
+        /// Loads the appropiate <see cref="Node"/> by the given versionId.
+        /// </summary>
         public static Node LoadNodeByVersionId(int versionId)
         {
 
@@ -1946,6 +2304,9 @@ namespace SenseNet.ContentRepository.Storage
 
         #region // ================================================================================================= Save methods
 
+        /// <summary>
+        /// Stores the modifications of this <see cref="Node"/> instance to the database.
+        /// </summary>
         public virtual void Save()
         {
             var settings = new NodeSaveSettings
@@ -2083,6 +2444,11 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
+        /// <summary>
+        /// Stores the modifications of this <see cref="Node"/> instance to the database.
+        /// The generated <see cref="VersionNumber"/> depends on the requested 
+        /// <see cref="VersionRaising"/> mode and the given <see cref="VersionStatus"/>.
+        /// </summary>
         public void Save(VersionRaising versionRaising, VersionStatus versionStatus)
         {
             Save(versionRaising, versionStatus, false);
@@ -2120,6 +2486,11 @@ namespace SenseNet.ContentRepository.Storage
         }
         #endregion
 
+        /// <summary>
+        /// Stores the modifications of this <see cref="Node"/> instance to the database.
+        /// The tasks of storing depend on the given <see cref="NodeSaveSettings"/>.
+        /// </summary>
+        /// <param name="settings">Describes the tasks and algorithms for persisting the node.</param>
         public virtual void Save(NodeSaveSettings settings)
         {
             var isNew = this.IsNew;
@@ -2362,6 +2733,9 @@ namespace SenseNet.ContentRepository.Storage
                 _data.SavingTimer.Stop();
         }
 
+        /// <summary>
+        /// Ends the multistep saving process and makes the Content available for modification.
+        /// </summary>
         public virtual void FinalizeContent()
         {
             if (SavingState == ContentSavingState.Finalized)
@@ -2545,19 +2919,28 @@ namespace SenseNet.ContentRepository.Storage
 
         #region // ================================================================================================= Move methods
 
+        //UNDONE: Node.GetChildTypesToAllow(int nodeId): check SQL procedure algorithm
+        /// <summary>
+        /// Gets all the types that can be found in a subtree under a node defined by an Id.
+        /// </summary>
         public static IEnumerable<NodeType> GetChildTypesToAllow(int nodeId)
         {
             return DataProvider.Current.LoadChildTypesToAllow(nodeId);
         }
+        //UNDONE: Node.GetChildTypesToAllow(): check SQL procedure algorithm
+        /// <summary>
+        /// Gets all the types that can be found in a subtree under the current node.
+        /// </summary>
         public IEnumerable<NodeType> GetChildTypesToAllow()
         {
             return DataProvider.Current.LoadChildTypesToAllow(this.Id);
         }
 
         /// <summary>
-        /// Moves the Node indentified by its path to another location. The destination node is also identified by path. 
+        /// Moves the <see cref="Node"/> indentified by the source path to another location. 
+        /// The destination <see cref="Node"/> is also identified by path. 
         /// </summary>
-        /// <remarks>Use this method if you do not want to instantiate the nodes.</remarks>
+        /// <remarks>Use this method if you do not want to instantiate the <see cref="Node"/>s.</remarks>
         public static void Move(string sourcePath, string targetPath)
         {
             Node sourceNode = Node.LoadNode(sourcePath);
@@ -2572,7 +2955,8 @@ namespace SenseNet.ContentRepository.Storage
             sourceNode.MoveTo(targetNode);
         }
         /// <summary>
-        /// Modes the Node instance to another loacation. The new location is a Node instance which will be parent node.
+        /// Moves the <see cref="Node"/> instance to another loacation. The new location is a <see cref="Node"/> instance 
+        /// that will be the parent <see cref="Node"/>.
         /// </summary>
         public virtual void MoveTo(Node target)
         {
@@ -2677,6 +3061,13 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
+        /// <summary>
+        /// Moves the <see cref="Node"/>s identified by the given ids (nodeList) into the target container.
+        /// After execution the errors parameter provides <see cref="Exception"/> instances if there were any.
+        /// </summary>
+        /// <param name="nodeList">List of ids that defines the source <see cref="Node"/>s.</param>
+        /// <param name="targetPath">Path of the target container.</param>
+        /// <param name="errors">List of <see cref="Exception"/>s to collect errors.</param>
         public static void MoveMore(List<Int32> nodeList, string targetPath, ref List<Exception> errors)
         {
             MoveMoreInternal2(new NodeList<Node>(nodeList), Node.LoadNode(targetPath), ref errors);
@@ -2716,9 +3107,10 @@ namespace SenseNet.ContentRepository.Storage
         #region // ================================================================================================= Copy methods
 
         /// <summary>
-        /// Copy the Node indentified by its path to another location. The destination node is also identified by path. 
+        /// Copy the <see cref="Node"/> indentified by the source path to another location. 
+        /// The destination <see cref="Node"/> is also identified by path. 
         /// </summary>
-        /// <remarks>Use this method if you do not want to instantiate the nodes.</remarks>
+        /// <remarks>Use this method if you do not want to instantiate the <see cref="Node"/>s.</remarks>
         public static void Copy(string sourcePath, string targetPath)
         {
             Node sourceNode = Node.LoadNode(sourcePath);
@@ -2730,6 +3122,13 @@ namespace SenseNet.ContentRepository.Storage
             sourceNode.CopyTo(targetNode);
         }
 
+        /// <summary>
+        /// Copies the <see cref="Node"/>s identified by the given ids (nodeList) into the target container.
+        /// After execution the errors parameter provides <see cref="Exception"/> instances if there were any.
+        /// </summary>
+        /// <param name="nodeList">List of ids that defines the source <see cref="Node"/>s.</param>
+        /// <param name="targetPath">Path of the target container.</param>
+        /// <param name="errors">List of <see cref="Exception"/>s to collect errors.</param>
         public static void Copy(List<int> nodeList, string targetPath, ref List<Exception> errors)
         {
             if (nodeList == null)
@@ -2838,14 +3237,16 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// Copies the Node instance to another location. The new location is a Node instance which will be parent node.
+        /// Copies the <see cref="Node"/> instance to another location. The new location is 
+        /// a <see cref="Node"/> instance that will be the parent <see cref="Node"/>.
         /// </summary>
         public virtual void CopyTo(Node target)
         {
             CopyTo(target, this.Name);
         }
         /// <summary>
-        /// Copies the Node instance to another location. The new location is a Node instance which will be parent node.
+        /// Copies the <see cref="Node"/> instance to another location with the provided new name. 
+        /// The new location is the target <see cref="Node"/> instance that will be the parent <see cref="Node"/>.
         /// </summary>
         public virtual void CopyTo(Node target, string newName)
         {
@@ -2853,15 +3254,19 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// Copies the Node instance to another location. The new location is a Node instance which will be parent node.
+        /// Copies the <see cref="Node"/> instance to another location. The new location is 
+        /// a <see cref="Node"/> instance that will be the parent <see cref="Node"/>.
         /// </summary>
+        /// <returns>The new node instance.</returns>
         public Node CopyToAndGetCopy(Node target)
         {
             return CopyToAndGetCopy(target, this.Name);
         }
         /// <summary>
-        /// Copies the Node instance to another location. The new location is a Node instance which will be parent node.
+        /// Copies the <see cref="Node"/> instance to another location with the provided new name. 
+        /// The new location is the target <see cref="Node"/> instance that will be the parent <see cref="Node"/>.
         /// </summary>
+        /// <returns>The new node instance.</returns>
         public Node CopyToAndGetCopy(Node target, string newName)
         {
             StorageContext.Search.SearchEngine.WaitIfIndexingPaused();
@@ -3010,6 +3415,9 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
+        /// <summary>
+        /// Make a new node instance under the provided parent based on the property values of the current node.
+        /// </summary>
         public Node MakeTemplatedCopy(Node target, string newName)
         {
             var copy = MakeCopy(target, newName);
@@ -3018,6 +3426,9 @@ namespace SenseNet.ContentRepository.Storage
             return copy;
         }
 
+        /// <summary>
+        /// Make a new node instance under the provided parent based on the property values of the current node.
+        /// </summary>
         public virtual Node MakeCopy(Node target, string newName)
         {
             var copy = this.NodeType.CreateInstance(target);
@@ -3046,6 +3457,9 @@ namespace SenseNet.ContentRepository.Storage
 
             return copy;
         }
+        /// <summary>
+        /// Copy dynamic properties of the current node to the inner data storage of the provided target node.
+        /// </summary>
         protected virtual void CopyDynamicProperties(Node target)
         {
             this.Data.CopyDynamicPropertiesTo(target.Data);
@@ -3055,6 +3469,9 @@ namespace SenseNet.ContentRepository.Storage
         #region // ==========================================================================Templated creation
 
         private Node _template;
+        /// <summary>
+        /// Gets or sets the original template that this node was based on.
+        /// </summary>
         public Node Template
         {
             get { return _template; }
@@ -3066,9 +3483,9 @@ namespace SenseNet.ContentRepository.Storage
         #region // ================================================================================================= Delete methods
 
         /// <summary>
-        /// Deletes a Node and all of its contents from the database. This operation removes all child nodes too.
+        /// Deletes a <see cref="Node"/> and all of its contents from the database. This operation removes all child <see cref="Node"/>s too.
         /// </summary>
-        /// <param name="sourcePath">The path of the Node that will be deleted.</param>
+        /// <param name="sourcePath">The path of the <see cref="Node"/> that will be deleted.</param>
         [Obsolete("DeletePhysical is obsolete. Use ForceDelete to delete Node permanently.")]
         public static void DeletePhysical(string sourcePath)
         {
@@ -3078,9 +3495,9 @@ namespace SenseNet.ContentRepository.Storage
             sourceNode.Delete();
         }
         /// <summary>
-        /// Deletes a Node and all of its contents from the database. This operation removes all child nodes too.
+        /// Deletes a <see cref="Node"/> and all of its contents from the database. This operation removes all child <see cref="Node"/>s too.
         /// </summary>
-        /// <param name="nodeId">Identifier of the Node that will be deleted.</param>
+        /// <param name="nodeId">Identifier of the <see cref="Node"/> that will be deleted.</param>
         [Obsolete("DeletePhysical is obsolete. Use ForceDelete to delete Node permanently.")]
         public static void DeletePhysical(int nodeId)
         {
@@ -3090,7 +3507,7 @@ namespace SenseNet.ContentRepository.Storage
             sourceNode.Delete();
         }
         /// <summary>
-        /// Deletes the Node instance and all of its contents. This operation removes the appropriate nodes from the database.
+        /// Deletes the <see cref="Node"/> instance and all of its contents. This operation removes the appropriate <see cref="Node"/>s from the database.
         /// </summary>
         [Obsolete("The DeletePhysical is obsolete. Use ForceDelete to delete Node permanently.")]
         public virtual void DeletePhysical()
@@ -3098,6 +3515,9 @@ namespace SenseNet.ContentRepository.Storage
             Delete();
         }
 
+        /// <summary>
+        /// Deletes the <see cref="Node"/> specified by the given path and its whole subtree physically.
+        /// </summary>
         public static void ForceDelete(string sourcePath)
         {
             var sourceNode = Node.LoadNode(sourcePath);
@@ -3106,6 +3526,9 @@ namespace SenseNet.ContentRepository.Storage
             sourceNode.ForceDelete();
         }
 
+        /// <summary>
+        /// Deletes the <see cref="Node"/> specified by the given id and its whole subtree physically.
+        /// </summary>
         public static void ForceDelete(int nodeId)
         {
             var sourceNode = Node.LoadNode(nodeId);
@@ -3115,12 +3538,16 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// This method deletes the node permanently
+        /// This method deletes the <see cref="Node"/> permanently.
         /// </summary>
         public virtual void ForceDelete()
         {
             ForceDelete(this.NodeTimestamp);
         }
+        //UNDONE: Node.ForceDelete(long timestamp): make this obsolete or private (timestamp parameter is not used).
+        /// <summary>
+        /// This method deletes the <see cref="Node"/> permanently.
+        /// </summary>
         public virtual void ForceDelete(long timestamp)
         {
             using (var op = SnTrace.ContentOperation.StartOperation("Node.ForceDelete: Id:{0}, Path:{1}", Id, Path))
@@ -3208,6 +3635,13 @@ namespace SenseNet.ContentRepository.Storage
                 op.Successful = true;
             }
         }
+        /// <summary>
+        /// Provides a customizable base method for querying all referrers.
+        /// In this class returns null, and totalCount output is 0.
+        /// </summary>
+        /// <param name="top">Defines the maximum count of items in the result set.</param>
+        /// <param name="totalCount">Provides total count of hits independently from the value of the "top" parameter.</param>
+        /// <returns></returns>
         protected virtual IEnumerable<Node> GetReferrers(int top, out int totalCount)
         {
             totalCount = 0;
@@ -3240,7 +3674,7 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// Delete the node
+        /// Deletes the node.
         /// </summary>
         public static void Delete(string sourcePath)
         {
@@ -3251,7 +3685,7 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// Delete the node
+        /// Deletes the node.
         /// </summary>
         public static void Delete(int nodeId)
         {
@@ -3264,7 +3698,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Batch delete.
         /// </summary>
-        /// <param name="nodeList">Represents an Id collection which holds the identifiers of the nodes will be deleted.</param>
+        /// <param name="nodeList">Represents an Id collection which holds the identifiers of the <see cref="Node"/>s will be deleted.</param>
         /// <param name="errors">If any error occures, it is added to the errors collection passed by errors parameter.</param>
         /// <exception cref="ArgumentNullException">You must specify a list collection instance.</exception>
         public static void Delete(List<int> nodeList, ref List<Exception> errors)
@@ -3377,11 +3811,8 @@ namespace SenseNet.ContentRepository.Storage
             }
         }
 
-
-
-
         /// <summary>
-        /// Delete current node
+        /// Deletes the current node.
         /// </summary>
         public virtual void Delete()
         {
@@ -3390,6 +3821,10 @@ namespace SenseNet.ContentRepository.Storage
 
         #endregion
 
+        /// <summary>
+        /// Provides an algorithm based on the creation date for generating a password salt for users. 
+        /// Derived classes may provide a custom algorithm here.
+        /// </summary>
         public virtual string GetPasswordSalt()
         {
             return this.CreationDate.ToString("yyyyMMddHHmmssff", CultureInfo.InvariantCulture);
@@ -3398,7 +3833,13 @@ namespace SenseNet.ContentRepository.Storage
         #region // ================================================================================================= Events
 
         private List<Type> _disabledObservers;
+        /// <summary>
+        /// Gets the collection of the disabled <see cref="NodeObserver"/> types.
+        /// </summary>
         public IEnumerable<Type> DisabledObservers { get { return _disabledObservers; } }
+        /// <summary>
+        /// Disables a <see cref="NodeObserver"/> specified by its type.
+        /// </summary>
         public void DisableObserver(Type observerType)
         {
             if (observerType == null)
@@ -3412,20 +3853,62 @@ namespace SenseNet.ContentRepository.Storage
                 _disabledObservers.Add(observerType);
         }
 
+        /// <summary>
+        /// Occurs before this <see cref="Node"/> instance is saved for the first time.
+        /// </summary>
         public event CancellableNodeEventHandler Creating;
+        /// <summary>
+        /// Occurs after this <see cref="Node"/> instance is saved for the first time.
+        /// </summary>
         public event EventHandler<NodeEventArgs> Created;
+        /// <summary>
+        /// Occurs before this <see cref="Node"/> instance is saved.
+        /// </summary>
         public event CancellableNodeEventHandler Modifying;
+        /// <summary>
+        /// Occurs after this <see cref="Node"/> instance is saved.
+        /// </summary>
         public event EventHandler<NodeEventArgs> Modified;
+        /// <summary>
+        /// Occurs before this <see cref="Node"/> instance is deleted temporarily.
+        /// </summary>
         public event CancellableNodeEventHandler Deleting;
+        /// <summary>
+        /// Occurs after this <see cref="Node"/> instance is deleted temporarily.
+        /// </summary>
         public event EventHandler<NodeEventArgs> Deleted;
+        /// <summary>
+        /// Occurs before this <see cref="Node"/> instance is deleted physically.
+        /// </summary>
         public event CancellableNodeEventHandler DeletingPhysically;
+        /// <summary>
+        /// Occurs after this <see cref="Node"/> instance is deleted physically.
+        /// </summary>
         public event EventHandler<NodeEventArgs> DeletedPhysically;
+        /// <summary>
+        /// Occurs before this <see cref="Node"/> instance is moved to another place.
+        /// </summary>
         public event CancellableNodeOperationEventHandler Moving;
+        /// <summary>
+        /// Occurs after this <see cref="Node"/> instance is moved to another place.
+        /// </summary>
         public event EventHandler<NodeOperationEventArgs> Moved;
+        /// <summary>
+        /// Occurs before this <see cref="Node"/> instance is copied to another place.
+        /// </summary>
         public event CancellableNodeOperationEventHandler Copying;
+        /// <summary>
+        /// Occurs after this <see cref="Node"/> instance is copied to another place.
+        /// </summary>
         public event EventHandler<NodeOperationEventArgs> Copied;
-        public event CancellableNodeEventHandler PermissionChanging;
-        public event EventHandler<PermissionChangedEventArgs> PermissionChanged;
+        /// <summary>
+        /// Occurs before this <see cref="Node"/> instance's permision setting is changed.
+        /// </summary>
+        public event CancellableNodeEventHandler PermissionChanging; //UNDONE: Never invoked: Node.PermissionChanging.
+        /// <summary>
+        /// Occurs after this <see cref="Node"/> instance's permision setting is changed.
+        /// </summary>
+        public event EventHandler<PermissionChangedEventArgs> PermissionChanged; //UNDONE: Never invoked: Node.PermissionChanged.
 
         //TODO: public event EventHandler Undeleted;
         //TODO: public event EventHandler Locked;
@@ -3516,26 +3999,75 @@ namespace SenseNet.ContentRepository.Storage
             OnLoaded(this, e);
         }
 
+        /// <summary>
+        /// Raises the <see cref="Creating"/> event.
+        /// </summary>
         protected virtual void OnCreating(object sender, CancellableNodeEventArgs e) { }
+        /// <summary>
+        /// Raises the <see cref="Created"/> event.
+        /// </summary>
         protected virtual void OnCreated(object sender, NodeEventArgs e) { }
+        /// <summary>
+        /// Raises the <see cref="Modifying"/> event.
+        /// </summary>
         protected virtual void OnModifying(object sender, CancellableNodeEventArgs e) { }
+        /// <summary>
+        /// Raises the <see cref="Modified"/> event.
+        /// </summary>
         protected virtual void OnModified(object sender, NodeEventArgs e) { }
+        /// <summary>
+        /// Raises the <see cref="Deleting"/> event.
+        /// </summary>
         protected virtual void OnDeleting(object sender, CancellableNodeEventArgs e) { }
+        /// <summary>
+        /// Raises the <see cref="Deleted"/> event.
+        /// </summary>
         protected virtual void OnDeleted(object sender, NodeEventArgs e) { }
+        /// <summary>
+        /// Raises the <see cref="DeletingPhysically"/> event.
+        /// </summary>
         protected virtual void OnDeletingPhysically(object sender, CancellableNodeEventArgs e) { }
+        /// <summary>
+        /// Raises the <see cref="DeletedPhysically"/> event.
+        /// </summary>
         protected virtual void OnDeletedPhysically(object sender, NodeEventArgs e) { }
+        /// <summary>
+        /// Raises the <see cref="Moving"/> event.
+        /// </summary>
         protected virtual void OnMoving(object sender, CancellableNodeOperationEventArgs e) { }
+        /// <summary>
+        /// Raises the <see cref="Moved"/> event.
+        /// </summary>
         protected virtual void OnMoved(object sender, NodeOperationEventArgs e) { }
+        /// <summary>
+        /// Raises the <see cref="Copying"/> event.
+        /// </summary>
         protected virtual void OnCopying(object sender, CancellableNodeOperationEventArgs e) { }
+        /// <summary>
+        /// Raises the <see cref="Copied"/> event.
+        /// </summary>
         protected virtual void OnCopied(object sender, NodeOperationEventArgs e) { }
+        /// <summary>
+        /// Provides an overridable method that is called immediately after this instance is loaded in memory.
+        /// Note that the data is not filled before calling.
+        /// </summary>
         protected virtual void OnLoaded(object sender, NodeEventArgs e) { }
+        /// <summary>
+        /// Raises the <see cref="PermissionChanging"/> event.
+        /// </summary>
         [Obsolete("Do not use this method anymore.")]
         protected virtual void OnPermissionChanging(object sender, CancellablePermissionChangingEventArgs e) { }
+        /// <summary>
+        /// Raises the <see cref="PermissionChanged"/> event.
+        /// </summary>
         [Obsolete("Do not use this method anymore.")]
         protected virtual void OnPermissionChanged(object sender, PermissionChangedEventArgs e) { }
 
         #endregion
 
+        /// <summary>
+        /// Occurs after any ContentList is deleted.
+        /// </summary>
         public static event EventHandler AnyContentListDeleted;
         private void FireAnyContentListDeleted()
         {
@@ -3546,21 +4078,37 @@ namespace SenseNet.ContentRepository.Storage
 
         #region // ================================================================================================= Public Tools
 
+        /// <summary>
+        /// Returns count of level of the given path. For example the "/Root" is 0, "/Root/System" is 1 etc.
+        /// </summary>
         public static int GetDepth(string path)
         {
             return path.Count(c => c == '/') - 1;
         }
 
+        /// <summary>
+        /// Returns true if the requested property has changed since last loading.
+        /// Note that all properties of a newly created <see cref="Node"/> are changed.
+        /// </summary>
+        /// <param name="propertyName">Name of the requested property.</param>
         public bool IsPropertyChanged(string propertyName)
         {
             return Data.IsPropertyChanged(propertyName);
         }
 
+        /// <summary>
+        /// Returns true if the <see cref="Node"/> identified by the given path exists in the database.
+        /// </summary>
         public static bool Exists(string path)
         {
             return DataBackingStore.NodeExists(path);
         }
 
+        /// <summary>
+        /// Returns the ContentList that is a parent of this instance.
+        /// The return value is null if this instance is not a list item.
+        /// </summary>
+        /// <returns></returns>
         public Node LoadContentList()
         {
             if (this.ContentListId == 0)
@@ -3568,6 +4116,12 @@ namespace SenseNet.ContentRepository.Storage
             return Node.LoadNode(this.ContentListId);
         }
 
+        /// <summary>
+        /// Returns the nearest <see cref="Node"/> instance on the parent chain that is instance of or derived from the given type.
+        /// Note that the type is NodeType and/or ContentType (both types build similar inheritance structures).
+        /// </summary>
+        /// <param name="child">The <see cref="Node"/> to search a parent for.</param>
+        /// <param name="typeName">The name of the desired NodeType and/or ContentType.</param>
         public static Node GetAncestorOfNodeType(Node child, string typeName)
         {
             var node = child;
@@ -3583,6 +4137,12 @@ namespace SenseNet.ContentRepository.Storage
             return node;
         }
 
+        /// <summary>
+        /// Returns the nearest <see cref="Node"/> instance on the parent chain that is instance of or derived from the given type.
+        /// </summary>
+        /// <typeparam name="T">The desired type that is inherited from <see cref="Node"/>.</typeparam>
+        /// <param name="child">The <see cref="Node"/> instance to search an ancestor for.</param>
+        /// <returns></returns>
         public static T GetAncestorOfType<T>(Node child) where T : Node
         {
             T ancestor = null;
@@ -3601,28 +4161,42 @@ namespace SenseNet.ContentRepository.Storage
             return ancestor;
         }
 
+        /// <summary>
+        /// Returns a <see cref="Node"/> on the parent chain from the given position.
+        /// 0 means this <see cref="Node"/>, 1 is the parent, 2 is the grandparent, etc.
+        /// </summary>
+        /// <param name="ancestorIndex">The position in the ancestor chain.</param>
+        /// <exception cref="NotSupportedException">Thrown if the parameter's value is less than 0.</exception>
+        /// <exception cref="ApplicationException">Thrown if the parameter's value is greater than the number of elements in the ancestor chain.</exception>
         public Node GetAncestor(int ancestorIndex)
         {
             if (ancestorIndex == 0) return this;
             if (ancestorIndex < 0)
                 throw new NotSupportedException("AncestorIndex < 0");
 
-            //TODO: implement unsafe str* handling to get number of slashes
             string[] path = this.Path.Split('/');
             if (ancestorIndex >= path.Length)
                 throw new ApplicationException("ancestorIndex overflow");
 
-            //TODO: implement unsafe str* handling
             string ancestorPath = string.Join("/", path, 0, path.Length - ancestorIndex);
 
             Node ancestor = Node.LoadNode(ancestorPath);
 
             return ancestor;
         }
+        /// <summary>
+        /// Returns true if the given <see cref="Node"/> is in the parent chain of the current <see cref="Node"/>
+        /// (meaning the current node is in the subtree of the provided ancestor).
+        /// </summary>
         public bool IsDescendantOf(Node ancestor)
         {
             return (this.Path.StartsWith(ancestor.Path + "/"));
         }
+        /// <summary>
+        /// Returns true if the given <see cref="Node"/> is in the parent chain of the current <see cref="Node"/>
+        /// (meaning the current node is in the subtree of the provided ancestor).
+        /// It also calculates the depth difference between the two nodes.
+        /// </summary>
         public bool IsDescendantOf(Node ancestor, out int distance)
         {
             distance = -1;
@@ -3633,26 +4207,33 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /// <summary>
-        /// Returns the level of hierachy the node is located at. The virtual Root node has always
-        /// a level of 0.
+        /// Returns the level of hierachy the <see cref="Node"/> is located at. The virtual Root <see cref="Node"/> has a level of 0.
         /// </summary>
         /// <param name="node"></param>
-        /// <returns></returns>
         public int NodeLevel()
         {
             return this.Path.Split('/').Length - 2;
         }
 
+        /// <summary>
+        /// Returns size of this <see cref="Node"/>'s all blobs in bytes.
+        /// </summary>
         public long GetFullSize()
         {
             return Node.GetTreeSize(this.Path, false);
         }
 
+        /// <summary>
+        /// Returns size of all blobs of all <see cref="Node"/>s in this subtree in bytes.
+        /// </summary>
         public long GetTreeSize()
         {
             return Node.GetTreeSize(this.Path, true);
         }
 
+        /// <summary>
+        /// Returns size of all blobs of all <see cref="Node"/> in the subtree that is identified by the given path.
+        /// </summary>
         public static long GetTreeSize(string path)
         {
             return GetTreeSize(path, true);
@@ -3746,14 +4327,23 @@ namespace SenseNet.ContentRepository.Storage
 
         /*================================================================================================= Linq Tools */
 
+        /// <summary>
+        /// Returns true if the given path is the path of this <see cref="Node"/>'s parent's.
+        /// </summary>
         public bool InFolder(string path)
         {
             return path.Equals(this.ParentPath, StringComparison.InvariantCultureIgnoreCase);
         }
+        /// <summary>
+        /// Returns true if this <see cref="Node"/>'s parent is the given <see cref="Node"/>.
+        /// </summary>
         public bool InFolder(Node node)
         {
             return InFolder(node.Path);
         }
+        /// <summary>
+        /// Returns true if this <see cref="Node"/> is in the <see cref="Node"/>'s subtree that is identified by the given path.
+        /// </summary>
         public bool InTree(string path)
         {
             if (Path.Equals(path, StringComparison.InvariantCultureIgnoreCase))
@@ -3762,14 +4352,25 @@ namespace SenseNet.ContentRepository.Storage
                 path += "/";
             return Path.StartsWith(path, StringComparison.InvariantCultureIgnoreCase);
         }
+        /// <summary>
+        /// Returns true if this <see cref="Node"/> is in the given <see cref="Node"/>'s subtree.
+        /// </summary>
         public bool InTree(Node node)
         {
             return InTree(node.Path);
         }
+        /// <summary>
+        /// Returns true if this <see cref="Node"/>'s type is exactly the same as the one identified by the given name.
+        /// Note that the type is NodeType and/or ContentType (both types build similar inheritance structures).
+        /// </summary>
         public bool Type(string contentTypeName)
         {
             return NodeType.Name == contentTypeName;
         }
+        /// <summary>
+        /// Returns true if this <see cref="Node"/>'s type is the same or equals to one of the descendands of the one identified by the given name.
+        /// Note that the type is NodeType and/or ContentType (both types build similar inheritance structures).
+        /// </summary>
         public bool TypeIs(string contentTypeName)
         {
             return NodeType.IsInstaceOfOrDerivedFrom(contentTypeName);
