@@ -57,7 +57,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         bool IsInContainer(ISecurityContainer container);
 
         /// <summary>
-        /// Gives the last exact time of the user's ultimate logout
+        /// Gets the last exact time of the user's ultimate logout.
         /// </summary>
         DateTime LastLoggedOut { get; set; }
 

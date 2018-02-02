@@ -9,9 +9,9 @@ namespace SenseNet.Services.Virtualization
     internal interface ILogoutExecutor
     {
         /// <summary>
-        /// Executes the logout process
+        /// Executes the logout process.
         /// </summary>
-        /// <param name="ultimateLogout">Tells whether it is an ultimate logout.</param>
+        /// <param name="ultimateLogout">Whether this should be an ultimate logout. If set to True, the user will be logged out from all clients.</param>
         void Logout(bool ultimateLogout);
 
         /// <summary>
