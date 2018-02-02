@@ -41,5 +41,10 @@ namespace SenseNet.Tests.Implementations
             _indexingEngine = new InMemoryIndexingEngine();
             _queryEngine = new InMemoryQueryEngine(_indexingEngine.Index);
         }
+
+        public void CreateSnapshot()
+        {
+            InMemoryIndex.SetPrototype(_indexingEngine.Index);
+        }
     }
 }

@@ -641,21 +641,21 @@ namespace SenseNet.Tests.SelfTest
                 // create a test structure:
                 var root = Node.LoadNode(Identifiers.PortalRootId);
                 var f1 = createNode(root, "F1");
-                createNode(f1, "A1");
-                createNode(f1, "B1");
-                createNode(f1, "C1");
-                createNode(f1, "A2");
-                createNode(f1, "B2");
-                createNode(f1, "C2");
-                createNode(f1, "A3");
-                createNode(f1, "B3");
-                createNode(f1, "C3");
+                createNode(f1, "Aa11");
+                createNode(f1, "Bb11");
+                createNode(f1, "Cc11");
+                createNode(f1, "Aa22");
+                createNode(f1, "Bb22");
+                createNode(f1, "Cc22");
+                createNode(f1, "Aa33");
+                createNode(f1, "Bb33");
+                createNode(f1, "Cc33");
 
                 // ACTION
                 var settings = QuerySettings.AdminSettings;
                 settings.Sort = new[] { new SortInfo(IndexFieldName.Name) };
-                var qresult1 = ContentQuery.Query(SafeQueries.OneTerm, settings, "Name", "B*");
-                var qresult2 = ContentQuery.Query(SafeQueries.OneTerm, settings, "Name", "*3");
+                var qresult1 = ContentQuery.Query(SafeQueries.OneTerm, settings, "Name", "Bb*");
+                var qresult2 = ContentQuery.Query(SafeQueries.OneTerm, settings, "Name", "*33");
 
                 return new Tuple<Node[], Node[]>(qresult1.Nodes.ToArray(), qresult2.Nodes.ToArray());
             });
@@ -663,8 +663,8 @@ namespace SenseNet.Tests.SelfTest
             var nodes1 = result.Item1;
             var nodes2 = result.Item2;
 
-            Assert.AreEqual("B1, B2, B3", string.Join(", ", nodes1.Select(n => n.Name)));
-            Assert.AreEqual("A3, B3, C3", string.Join(", ", nodes2.Select(n => n.Name)));
+            Assert.AreEqual("Bb11, Bb22, Bb33", string.Join(", ", nodes1.Select(n => n.Name)));
+            Assert.AreEqual("Aa33, Bb33, Cc33", string.Join(", ", nodes2.Select(n => n.Name)));
         }
 
         [TestMethod, TestCategory("IR")]
@@ -682,20 +682,20 @@ namespace SenseNet.Tests.SelfTest
                 // create a test structure:
                 var root = Node.LoadNode(Identifiers.PortalRootId);
                 var f1 = createNode(root, "F1");
-                createNode(f1, "Ax1");
-                createNode(f1, "Ax2");
-                createNode(f1, "Ay1");
-                createNode(f1, "Ay2");
-                createNode(f1, "Bx1");
-                createNode(f1, "Bx2");
-                createNode(f1, "By1");
-                createNode(f1, "By2");
+                createNode(f1, "AAxx11");
+                createNode(f1, "AAxx22");
+                createNode(f1, "AAyy11");
+                createNode(f1, "AAyy22");
+                createNode(f1, "BBxx11");
+                createNode(f1, "BBxx22");
+                createNode(f1, "BByy11");
+                createNode(f1, "BByy22");
 
                 // ACTION
                 var settings = QuerySettings.AdminSettings;
                 settings.Sort = new[] { new SortInfo(IndexFieldName.Name) };
-                var qresult1 = ContentQuery.Query(SafeQueries.OneTerm, settings, "Name", "A*2");
-                var qresult2 = ContentQuery.Query(SafeQueries.OneTerm, settings, "Name", "*y*");
+                var qresult1 = ContentQuery.Query(SafeQueries.OneTerm, settings, "Name", "AA*22");
+                var qresult2 = ContentQuery.Query(SafeQueries.OneTerm, settings, "Name", "*yy*");
 
                 return new Tuple<Node[], Node[]>(qresult1.Nodes.ToArray(), qresult2.Nodes.ToArray());
             });
@@ -703,8 +703,8 @@ namespace SenseNet.Tests.SelfTest
             var nodes1 = result.Item1;
             var nodes2 = result.Item2;
 
-            Assert.AreEqual("Ax2, Ay2", string.Join(", ", nodes1.Select(n => n.Name)));
-            Assert.AreEqual("Ay1, Ay2, By1, By2", string.Join(", ", nodes2.Select(n => n.Name)));
+            Assert.AreEqual("AAxx22, AAyy22", string.Join(", ", nodes1.Select(n => n.Name)));
+            Assert.AreEqual("AAyy11, AAyy22, BByy11, BByy22", string.Join(", ", nodes2.Select(n => n.Name)));
         }
 
 
@@ -717,48 +717,40 @@ namespace SenseNet.Tests.SelfTest
                 node.Save();
                 return node;
             });
+            var executeQuery = new Func<string, string>((query) =>
+            {
+                return string.Join(", ", CreateSafeContentQuery(query).Execute().Nodes
+                    .Where(n => n.Name.StartsWith("Nn")).Select(n => n.Name).ToArray());
+            });
 
-            var result = Test(() =>
+            Test(() =>
             {
                 // create a test structure:
                 var root = Node.LoadNode(Identifiers.PortalRootId);
-                createNode(root, "N0");
-                createNode(root, "N1");
-                createNode(root, "N2");
-                createNode(root, "N3");
-                createNode(root, "N4");
-                createNode(root, "N5");
-                createNode(root, "N6");
-                createNode(root, "N7");
-                createNode(root, "N8");
-                createNode(root, "N9");
+                createNode(root, "Nn0");
+                createNode(root, "Nn1");
+                createNode(root, "Nn2");
+                createNode(root, "Nn3");
+                createNode(root, "Nn4");
+                createNode(root, "Nn5");
+                createNode(root, "Nn6");
+                createNode(root, "Nn7");
+                createNode(root, "Nn8");
+                createNode(root, "Nn9");
 
                 // ACTION
                 var settings = QuerySettings.AdminSettings;
                 settings.Sort = new[] { new SortInfo(IndexFieldName.Name) };
-                string[] results = new[]
-                {
-                    string.Join(", ", ContentQuery.Query(SafeQueries.GT, settings, "Name", "N4").Nodes.Select(n => n.Name).ToArray()),
-                    string.Join(", ", ContentQuery.Query(SafeQueries.GTE, settings, "Name", "N4").Nodes.Select(n => n.Name).ToArray()),
-                    string.Join(", ", ContentQuery.Query(SafeQueries.LT, settings, "Name", "N4").Nodes.Select(n => n.Name).ToArray()),
-                    string.Join(", ", ContentQuery.Query(SafeQueries.LTE, settings, "Name", "N4").Nodes.Select(n => n.Name).ToArray()),
-                    string.Join(", ", ContentQuery.Query(SafeQueries.BracketBracketRange, settings, "Name", "N2", "N7").Nodes.Select(n => n.Name).ToArray()),
-                    string.Join(", ", ContentQuery.Query(SafeQueries.BracketBraceRange, settings, "Name", "N2", "N7").Nodes.Select(n => n.Name).ToArray()),
-                    string.Join(", ", ContentQuery.Query(SafeQueries.BraceBracketRange, settings, "Name", "N2", "N7").Nodes.Select(n => n.Name).ToArray()),
-                    string.Join(", ", ContentQuery.Query(SafeQueries.BraceBraceRange, settings, "Name", "N2", "N7").Nodes.Select(n => n.Name).ToArray()),
-                };
 
-                return results;
+                Assert.AreEqual("Nn5, Nn6, Nn7, Nn8, Nn9",      executeQuery("+Name:>Nn4  +InFolder:/Root"));
+                Assert.AreEqual("Nn4, Nn5, Nn6, Nn7, Nn8, Nn9", executeQuery("+Name:>=Nn4 +InFolder:/Root"));
+                Assert.AreEqual("Nn0, Nn1, Nn2, Nn3",           executeQuery("+Name:<Nn4  +InFolder:/Root"));
+                Assert.AreEqual("Nn0, Nn1, Nn2, Nn3, Nn4",      executeQuery("+Name:<=Nn4 +InFolder:/Root"));
+                Assert.AreEqual("Nn2, Nn3, Nn4, Nn5, Nn6, Nn7", executeQuery("+Name:[Nn2 TO Nn7] +InFolder:/Root"));
+                Assert.AreEqual("Nn2, Nn3, Nn4, Nn5, Nn6",      executeQuery("+Name:[Nn2 TO Nn7} +InFolder:/Root"));
+                Assert.AreEqual("Nn3, Nn4, Nn5, Nn6, Nn7",      executeQuery("+Name:{Nn2 TO Nn7] +InFolder:/Root"));
+                Assert.AreEqual("Nn3, Nn4, Nn5, Nn6",           executeQuery("+Name:{Nn2 TO Nn7} +InFolder:/Root"));
             });
-
-            Assert.AreEqual("N5, N6, N7, N8, N9",     result[0]);
-            Assert.AreEqual("N4, N5, N6, N7, N8, N9", result[1]);
-            Assert.AreEqual("N0, N1, N2, N3",         result[2]);
-            Assert.AreEqual("N0, N1, N2, N3, N4",     result[3]);
-            Assert.AreEqual("N2, N3, N4, N5, N6, N7", result[4]);
-            Assert.AreEqual("N2, N3, N4, N5, N6",     result[5]);
-            Assert.AreEqual(    "N3, N4, N5, N6, N7", result[6]);
-            Assert.AreEqual(    "N3, N4, N5, N6",     result[7]);
         }
 
 
@@ -776,31 +768,31 @@ namespace SenseNet.Tests.SelfTest
             {
                 // create a test structure:
                 var root = Node.LoadNode(Identifiers.PortalRootId);
-                createNode(root, "A0", 0);
-                createNode(root, "A1", 1);
-                createNode(root, "A2", 2);
-                createNode(root, "A3", 3);
-                createNode(root, "B0", 0);
-                createNode(root, "B1", 1);
-                createNode(root, "B2", 2);
-                createNode(root, "B3", 3);
+                createNode(root, "Xx0", 0);
+                createNode(root, "Xx1", 111);
+                createNode(root, "Xx2", 222);
+                createNode(root, "Xx3", 333);
+                createNode(root, "Yy0", 0);
+                createNode(root, "Yy1", 111);
+                createNode(root, "Yy2", 222);
+                createNode(root, "Yy3", 333);
 
                 // ACTION
                 var settings = QuerySettings.AdminSettings;
                 settings.Sort = new[] { new SortInfo(IndexFieldName.Name) };
                 string[] results = new[]
                 {
-                    string.Join(", ", ContentQuery.Query(SafeQueries.TwoTermsShouldShould, settings, "Name", "A*", "Index", 1).Nodes.Select(n => n.Name).ToArray()),
-                    string.Join(", ", ContentQuery.Query(SafeQueries.TwoTermsMustMust, settings, "Name", "A*", "Index", 1).Nodes.Select(n => n.Name).ToArray()),
-                    string.Join(", ", ContentQuery.Query(SafeQueries.TwoTermsMustNot, settings, "Name", "A*", "Index", 1).Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery.Query(SafeQueries.TwoTermsShouldShould, settings, "Name", "Xx*", "Index", 111).Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery.Query(SafeQueries.TwoTermsMustMust, settings, "Name", "Xx*", "Index", 111).Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery.Query(SafeQueries.TwoTermsMustNot, settings, "Name", "Xx*", "Index", 111).Nodes.Select(n => n.Name).ToArray()),
                 };
 
                 return results;
             });
 
-            Assert.AreEqual("A0, A1, A2, A3, B1", result[0]);
-            Assert.AreEqual("A1", result[1]);
-            Assert.AreEqual("A0, A2, A3", result[2]);
+            Assert.AreEqual("Xx0, Xx1, Xx2, Xx3, Yy1", result[0]);
+            Assert.AreEqual("Xx1", result[1]);
+            Assert.AreEqual("Xx0, Xx2, Xx3", result[2]);
         }
 
         [TestMethod, TestCategory("IR")]
@@ -817,14 +809,14 @@ namespace SenseNet.Tests.SelfTest
             {
                 // create a test structure:
                 var root = Node.LoadNode(Identifiers.PortalRootId);
-                createNode(root, "A0", 0);
-                createNode(root, "A1", 1);
-                createNode(root, "A2", 2);
-                createNode(root, "A3", 3);
-                createNode(root, "B0", 0);
-                createNode(root, "B1", 1);
-                createNode(root, "B2", 2);
-                createNode(root, "B3", 3);
+                createNode(root, "Aa0", 0);
+                createNode(root, "Aa1", 11);
+                createNode(root, "Aa2", 22);
+                createNode(root, "Aa3", 33);
+                createNode(root, "Bb0", 0);
+                createNode(root, "Bb1", 11);
+                createNode(root, "Bb2", 22);
+                createNode(root, "Bb3", 33);
 
                 // ACTION
                 var settings = QuerySettings.AdminSettings;
@@ -832,16 +824,16 @@ namespace SenseNet.Tests.SelfTest
                 string[] results = new[]
                 {
                     //  (+Name:A* +Index:1) (+Name:B* +Index:2) --> A1, B2
-                    string.Join(", ", ContentQuery.Query(SafeQueries.MultiLevelBool1, settings, "Name", "A*", "Index", 1, "Name", "B*", "Index", 2).Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery.Query(SafeQueries.MultiLevelBool1, settings, "Name", "Aa*", "Index", 11, "Name", "Bb*", "Index", 22).Nodes.Select(n => n.Name).ToArray()),
                     //  +(Name:A* Index:1) +(Name:B* Index:2) --> +(A0, A1, A2, A3, B1) +(B0, B1, B2, B3, A2) --> A2, B1
-                    string.Join(", ", ContentQuery.Query(SafeQueries.MultiLevelBool2, settings, "Name", "A*", "Index", 1, "Name", "B*", "Index", 2).Nodes.Select(n => n.Name).ToArray()),
+                    string.Join(", ", ContentQuery.Query(SafeQueries.MultiLevelBool2, settings, "Name", "Aa*", "Index", 11, "Name", "Bb*", "Index", 22).Nodes.Select(n => n.Name).ToArray()),
                 };
 
                 return results;
             });
 
-            Assert.AreEqual("A1, B2", result[0]);
-            Assert.AreEqual("A2, B1", result[1]);
+            Assert.AreEqual("Aa1, Bb2", result[0]);
+            Assert.AreEqual("Aa2, Bb1", result[1]);
         }
 
 

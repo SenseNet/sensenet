@@ -367,7 +367,7 @@ namespace SenseNet.Search.Indexing
                 var sortTerm = string.Join("-", sortList);
                 textExtract = string.Join(" ", localizedWords);
                 wordList.AddRange(localizedWords);
-                SnTrace.Test.Write(">>>>>>>>>>>>> {0}:'{1}' (sort by: {2})", snField.Name, wordList, sortTerm);
+                //SnTrace.Write(">>>>>>>>>>>>> {0}:'{1}' (sort by: {2})", snField.Name, wordList, sortTerm);
                 return CreateField(snField.Name, wordList, sortTerm);
             }
 

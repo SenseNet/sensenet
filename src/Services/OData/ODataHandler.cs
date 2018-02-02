@@ -25,7 +25,8 @@ namespace SenseNet.Portal.OData
     /// </summary>
     public class ODataHandler : IHttpHandler
     {
-        internal static IActionResolver ActionResolver { get; }
+        // Do not remove setter.
+        internal static IActionResolver ActionResolver { get; set; }
 
         internal static readonly string[] HeadFieldNames = new[] { "Id", "Name", "DisplayName", "Icon", "CreationDate", "ModificationDate", "CreatedBy", "ModifiedBy" };
         internal static readonly List<string> DisabledFieldNames = new List<string>(new[] { "TypeIs", "InTree", "InFolder", "NodeType", "Rate"/*, "VersioningMode", "ApprovingMode", "RateAvg", "RateCount"*/ });

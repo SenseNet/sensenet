@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
@@ -10,13 +11,72 @@ namespace SenseNet.Tests.Implementations
 {
     public class InMemoryIndex
     {
+        private static InMemoryIndex _prototype;
+        public static InMemoryIndex Create()
+        {
+            return _prototype == null ? new InMemoryIndex() : _prototype.Clone();
+        }
+
+        public static void SetPrototype(InMemoryIndex prototype)
+        {
+            _prototype = prototype;
+        }
+
+        private InMemoryIndex() { }
+
         /* ========================================================================== Data */
 
         // FieldName => FieldValue => VersionId
-        internal Dictionary<string, Dictionary<string, List<int>>> IndexData { get; } = new Dictionary<string, Dictionary<string, List<int>>>();
+        internal Dictionary<string, Dictionary<string, List<int>>> IndexData { get; private set; } = new Dictionary<string, Dictionary<string, List<int>>>();
 
         // VersionId, IndexFields
-        internal List<Tuple<int, List<IndexField>>> StoredData { get; } = new List<Tuple<int, List<IndexField>>>();
+        internal List<Tuple<int, List<IndexField>>> StoredData { get; private set; } = new List<Tuple<int, List<IndexField>>>();
+
+        private InMemoryIndex Clone()
+        {
+            using(var op = SnTrace.StartOperation("Clone index."))
+            {
+                var index = new InMemoryIndex
+                {
+                    IndexData = IndexData.ToDictionary(
+                        x => x.Key,
+                        x => x.Value.ToDictionary(
+                            y => y.Key,
+                            y => y.Value.ToList())),
+                    StoredData = StoredData
+                        .Select(x => new Tuple<int, List<IndexField>>(x.Item1, x.Item2.Select(Clone).ToList()))
+                        .ToList()
+                };
+
+                op.Successful = true;
+                return index;
+            }
+        }
+
+        private IndexField Clone(IndexField field)
+        {
+            switch (field.Type)
+            {
+                case IndexValueType.String:
+                    return new IndexField(field.Name, field.StringValue, field.Mode, field.Store, field.TermVector);
+                case IndexValueType.StringArray:
+                    return new IndexField(field.Name, field.StringArrayValue.ToArray(), field.Mode, field.Store, field.TermVector);
+                case IndexValueType.Bool:
+                    return new IndexField(field.Name, field.BooleanValue, field.Mode, field.Store, field.TermVector);
+                case IndexValueType.Int:
+                    return new IndexField(field.Name, field.IntegerValue, field.Mode, field.Store, field.TermVector);
+                case IndexValueType.Long:
+                    return new IndexField(field.Name, field.LongValue, field.Mode, field.Store, field.TermVector);
+                case IndexValueType.Float:
+                    return new IndexField(field.Name, field.SingleValue, field.Mode, field.Store, field.TermVector);
+                case IndexValueType.Double:
+                    return new IndexField(field.Name, field.DoubleValue, field.Mode, field.Store, field.TermVector);
+                case IndexValueType.DateTime:
+                    return new IndexField(field.Name, field.DateTimeValue, field.Mode, field.Store, field.TermVector);
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
 
         /* ========================================================================== Operations */
 

@@ -1198,24 +1198,32 @@ namespace SenseNet.Tests.Implementations
             return ContentTypeBytes[name];
         }
 
+        private static Database _prototype;
         private readonly Database _db;
         public Database DB => _db;
 
         public InMemoryDataProvider()
         {
-            // ReSharper disable once UseObjectOrCollectionInitializer
-            _db = new Database();
+            if (_prototype == null)
+            {
+                // ReSharper disable once UseObjectOrCollectionInitializer
+                _db = new Database();
 
-            _db.Schema = new XmlDocument();
-            _db.Schema.LoadXml(_initialSchema);
+                _db.Schema = new XmlDocument();
+                _db.Schema.LoadXml(_initialSchema);
 
-            _db.Nodes = GetInitialNodes();
-            _db.Versions = GetInitialVersions();
-            _db.BinaryProperties = GetInitialBinaryProperties();
-            _db.Files = GetInitialFiles();
-            _db.TextProperties = GetInitialTextProperties();
-            _db.FlatProperties = GetInitialFlatProperties();
-            _db.ReferenceProperties = GetInitialReferencProperties();
+                _db.Nodes = GetInitialNodes();
+                _db.Versions = GetInitialVersions();
+                _db.BinaryProperties = GetInitialBinaryProperties();
+                _db.Files = GetInitialFiles();
+                _db.TextProperties = GetInitialTextProperties();
+                _db.FlatProperties = GetInitialFlatProperties();
+                _db.ReferenceProperties = GetInitialReferencProperties();
+            }
+            else
+            {
+                _db = _prototype.Clone();
+            }
         }
         private List<NodeRecord> GetInitialNodes()
         {
@@ -1420,6 +1428,11 @@ namespace SenseNet.Tests.Implementations
                 }).ToList();
         }
 
+        public void CreateSnapshot()
+        {
+            _prototype = _db;
+        }
+
         #endregion
 
         #region Implementation classes
@@ -1474,8 +1487,33 @@ namespace SenseNet.Tests.Implementations
             public List<TextPropertyRecord> TextProperties { get; set; }
             public List<FlatPropertyRow> FlatProperties { get; set; }
             public List<ReferencePropertyRow> ReferenceProperties { get; set; }
-            public List<IndexingActivityRecord> IndexingActivities { get; } = new List<IndexingActivityRecord>();
-            public List<TreeLockRow> TreeLocks { get; } = new List<TreeLockRow>();
+            public List<IndexingActivityRecord> IndexingActivities { get; set; } = new List<IndexingActivityRecord>();
+            public List<TreeLockRow> TreeLocks { get; set; } = new List<TreeLockRow>();
+
+            public Database Clone()
+            {
+                using (var op = SnTrace.StartOperation("Clone database."))
+                {
+                    var schema = new XmlDocument();
+                    schema.LoadXml(_initialSchema);
+                    var db = new Database()
+                    {
+                        Schema = schema,
+                        Nodes = Nodes.Select(r => r.Clone()).ToList(),
+                        Versions = Versions.Select(r => r.Clone()).ToList(),
+                        BinaryProperties = BinaryProperties.Select(r => r.Clone()).ToList(),
+                        Files = Files.Select(r => r.Clone()).ToList(),
+                        TextProperties = TextProperties.Select(r => r.Clone()).ToList(),
+                        FlatProperties = FlatProperties.Select(r => r.Clone()).ToList(),
+                        ReferenceProperties = ReferenceProperties.Select(r => r.Clone()).ToList(),
+                        IndexingActivities = IndexingActivities.Select(r => r.Clone()).ToList(),
+                        TreeLocks = TreeLocks.Select(r => r.Clone()).ToList(),
+                    };
+
+                    op.Successful = true;
+                    return db;
+                }
+            }
         }
         private class InMemoryNodeWriter : INodeWriter
         {
@@ -2042,6 +2080,42 @@ namespace SenseNet.Tests.Implementations
             {
                 _nodeTimestamp = Interlocked.Increment(ref _lastTimestamp);
             }
+
+            public NodeRecord Clone()
+            {
+                return new NodeRecord
+                {
+                    _nodeId = _nodeId,
+                    _nodeTypeId = _nodeTypeId,
+                    _contentListTypeId = _contentListTypeId,
+                    _contentListId = _contentListId,
+                    _creatingInProgress = _creatingInProgress,
+                    _isDeleted = _isDeleted,
+                    _parentNodeId = _parentNodeId,
+                    _name = _name,
+                    _displayName = _displayName,
+                    _path = _path,
+                    _index = _index,
+                    _locked = _locked,
+                    _lockedById = _lockedById,
+                    _eTag = _eTag,
+                    _lockType = _lockType,
+                    _lockTimeout = _lockTimeout,
+                    _lockDate = _lockDate,
+                    _lockToken = _lockToken,
+                    _lastLockUpdate = _lastLockUpdate,
+                    _lastMinorVersionId = _lastMinorVersionId,
+                    _lastMajorVersionId = _lastMajorVersionId,
+                    _nodeCreationDate = _nodeCreationDate,
+                    _nodeCreatedById = _nodeCreatedById,
+                    _nodeModificationDate = _nodeModificationDate,
+                    _nodeModifiedById = _nodeModifiedById,
+                    _isSystem = _isSystem,
+                    _ownerId = _ownerId,
+                    _savingState = _savingState,
+                    _nodeTimestamp = _nodeTimestamp,
+                };
+            }
         }
         public class VersionRecord
         {
@@ -2144,6 +2218,23 @@ namespace SenseNet.Tests.Implementations
             {
                 _versionTimestamp = Interlocked.Increment(ref _lastTimestamp);
             }
+
+            public VersionRecord Clone()
+            {
+                return new VersionRecord
+                {
+                    _versionId = _versionId,
+                    _nodeId = _nodeId,
+                    _version = _version,
+                    _creationDate = _creationDate,
+                    _createdById = _createdById,
+                    _modificationDate = _modificationDate,
+                    _modifiedById = _modifiedById,
+                    _indexDocument = _indexDocument.ToArray(),
+                    _changedData = _changedData?.ToArray(),
+                    _versionTimestamp = _versionTimestamp,
+                };
+            }
         }
         public class BinaryPropertyRecord
         {
@@ -2151,6 +2242,17 @@ namespace SenseNet.Tests.Implementations
             public int VersionId;
             public int PropertyTypeId;
             public int FileId;
+
+            public BinaryPropertyRecord Clone()
+            {
+                return new BinaryPropertyRecord
+                {
+                    BinaryPropertyId = BinaryPropertyId,
+                    VersionId = VersionId,
+                    PropertyTypeId = PropertyTypeId,
+                    FileId = FileId,
+                };
+            }
         }
         public class FileRecord
         {
@@ -2168,6 +2270,26 @@ namespace SenseNet.Tests.Implementations
             public bool IsDeleted;
             public string BlobProvider;
             public string BlobProviderData;
+
+            public FileRecord Clone()
+            {
+                return new FileRecord
+                {
+                    FileId = FileId,
+                    ContentType = ContentType,
+                    FileNameWithoutExtension = FileNameWithoutExtension,
+                    Extension = Extension,
+                    Size = Size,
+                    Stream = Stream.ToArray(),
+                    CreationDate = CreationDate,
+                    Staging = Staging,
+                    StagingVersionId = StagingVersionId,
+                    StagingPropertyTypeId = StagingPropertyTypeId,
+                    IsDeleted = IsDeleted,
+                    BlobProvider = BlobProvider,
+                    BlobProviderData = BlobProviderData,
+                };
+            }
         }
         public class TextPropertyRecord
         {
@@ -2175,6 +2297,17 @@ namespace SenseNet.Tests.Implementations
             public int VersionId;
             public int PropertyTypeId;
             public string Value;
+
+            public TextPropertyRecord Clone()
+            {
+                return new TextPropertyRecord
+                {
+                    Id = Id,
+                    VersionId = VersionId,
+                    PropertyTypeId = PropertyTypeId,
+                    Value = Value,
+                };
+            }
         }
         public class FlatPropertyRow
         {
@@ -2185,6 +2318,20 @@ namespace SenseNet.Tests.Implementations
             public int?[] Integers = new int?[40];
             public DateTime?[] Datetimes = new DateTime?[25];
             public decimal?[] Decimals = new decimal?[15];
+
+            public FlatPropertyRow Clone()
+            {
+                return new FlatPropertyRow
+                {
+                    Id = Id,
+                    VersionId = VersionId,
+                    Page = Page,
+                    Strings = Strings.ToArray(),
+                    Integers = Integers.ToArray(),
+                    Datetimes = Datetimes.ToArray(),
+                    Decimals = Decimals.ToArray(),
+                };
+            }
         }
         public class ReferencePropertyRow
         {
@@ -2192,6 +2339,17 @@ namespace SenseNet.Tests.Implementations
             public int VersionId;
             public int PropertyTypeId;
             public int ReferredNodeId;
+
+            public ReferencePropertyRow Clone()
+            {
+                return new ReferencePropertyRow
+                {
+                    ReferencePropertyId = ReferencePropertyId,
+                    VersionId = VersionId,
+                    PropertyTypeId = PropertyTypeId,
+                    ReferredNodeId = ReferredNodeId,
+                };
+            }
         }
         public class IndexingActivityRecord
         {
@@ -2204,12 +2362,38 @@ namespace SenseNet.Tests.Implementations
             public int VersionId;
             public string Path;
             public string Extension;
+
+            public IndexingActivityRecord Clone()
+            {
+                return new IndexingActivityRecord
+                {
+                    IndexingActivityId = IndexingActivityId,
+                    ActivityType = ActivityType,
+                    CreationDate = CreationDate,
+                    RunningState = RunningState,
+                    LockTime = LockTime,
+                    NodeId = NodeId,
+                    VersionId = VersionId,
+                    Path = Path,
+                    Extension = Extension,
+                };
+            }
         }
         public class TreeLockRow
         {
             public int TreeLockId;
             public string Path;
             public DateTime LockedAt;
+
+            public TreeLockRow Clone()
+            {
+                return new TreeLockRow
+                {
+                    TreeLockId = TreeLockId,
+                    Path = Path,
+                    LockedAt = LockedAt
+                };
+            }
         }
         #endregion
     }

@@ -53,7 +53,7 @@ namespace SenseNet.Services.OData.Tests
     public class OData_Filter_ThroughReference_ContentHandler : GenericContent
     {
         public const string CTD = @"<?xml version='1.0' encoding='utf-8'?>
-<ContentType name='OData_Filter_ThroughReference_ContentHandler' parentType='GenericContent' handler='SenseNet.ContentRepository.Tests.OData.OData_Filter_ThroughReference_ContentHandler' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+<ContentType name='OData_Filter_ThroughReference_ContentHandler' parentType='GenericContent' handler='SenseNet.Services.OData.Tests.OData_Filter_ThroughReference_ContentHandler' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
   <Fields>
     <Field name='References' type='Reference'>
       <Configuration>
@@ -83,7 +83,7 @@ namespace SenseNet.Services.OData.Tests
     public class OData_ReferenceTest_ContentHandler : GenericContent
     {
         public const string CTD = @"<?xml version='1.0' encoding='utf-8'?>
-<ContentType name='OData_ReferenceTest_ContentHandler' parentType='GenericContent' handler='SenseNet.ContentRepository.Tests.OData.OData_ReferenceTest_ContentHandler' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+<ContentType name='OData_ReferenceTest_ContentHandler' parentType='GenericContent' handler='SenseNet.Services.OData.Tests.OData_ReferenceTest_ContentHandler' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
   <Fields>
     <Field name='Reference' type='Reference'>
       <Configuration>
@@ -193,7 +193,7 @@ namespace SenseNet.Services.OData.Tests
 
         private static void InitializePlayground()
         {
-            EnsureReferenceTestStructure();
+            //EnsureReferenceTestStructure();
 
             var content = Content.Create(User.Administrator);
             if (((IEnumerable<Node>)content["Manager"]).Any())
@@ -203,33 +203,31 @@ namespace SenseNet.Services.OData.Tests
             content.Save();
         }
 
-        private static void EnsureReferenceTestStructure()
+        private static void EnsureReferenceTestStructure(Node testRoot)
         {
-            throw new NotImplementedException();
+            if (ContentType.GetByName(typeof(OData_ReferenceTest_ContentHandler).Name) == null)
+                ContentTypeInstaller.InstallContentType(OData_ReferenceTest_ContentHandler.CTD);
 
-            //if (ContentType.GetByName(typeof(OData_ReferenceTest_ContentHandler).Name) == null)
-            //    ContentTypeInstaller.InstallContentType(OData_ReferenceTest_ContentHandler.CTD);
+            if (ContentType.GetByName(typeof(OData_Filter_ThroughReference_ContentHandler).Name) == null)
+                ContentTypeInstaller.InstallContentType(OData_Filter_ThroughReference_ContentHandler.CTD);
 
-            //if (ContentType.GetByName(typeof(OData_Filter_ThroughReference_ContentHandler).Name) == null)
-            //    ContentTypeInstaller.InstallContentType(OData_Filter_ThroughReference_ContentHandler.CTD);
+            var referrercontent = Content.Load(RepositoryPath.Combine(testRoot.Path, "Referrer"));
+            if (referrercontent == null)
+            {
+                var nodes = new Node[5];
+                for (int i = 0; i < nodes.Length; i++)
+                {
+                    var content = Content.CreateNew("OData_Filter_ThroughReference_ContentHandler", testRoot, "Referenced" + i);
+                    content.Index = i + 1;
+                    content.Save();
+                    nodes[i] = content.ContentHandler;
+                }
 
-            //var referrercontent = Content.Load(RepositoryPath.Combine(_testRootPath, "Referrer"));
-            //if (referrercontent == null)
-            //{
-            //    var nodes = new Node[5];
-            //    for (int i = 0; i < nodes.Length; i++)
-            //    {
-            //        var content = Content.CreateNew("OData_Filter_ThroughReference_ContentHandler", testRoot, "Referenced" + i);
-            //        content.Index = i + 1;
-            //        content.Save();
-            //        nodes[i] = content.ContentHandler;
-            //    }
-
-            //    referrercontent = Content.CreateNew("OData_Filter_ThroughReference_ContentHandler", testRoot, "Referrer");
-            //    var referrer = (OData_Filter_ThroughReference_ContentHandler)referrercontent.ContentHandler;
-            //    referrer.References = nodes;
-            //    referrercontent.Save();
-            //}
+                referrercontent = Content.CreateNew("OData_Filter_ThroughReference_ContentHandler", testRoot, "Referrer");
+                var referrer = (OData_Filter_ThroughReference_ContentHandler)referrercontent.ContentHandler;
+                referrer.References = nodes;
+                referrercontent.Save();
+            }
         }
 
         #endregion
@@ -725,9 +723,6 @@ namespace SenseNet.Services.OData.Tests
         {
             Test(() =>
             {
-                SaveInitialIndexDocuments();
-                RebuildIndex();
-
                 CreateTestSite();
                 ODataEntities entities;
                 using (var output = new StringWriter())
@@ -1352,59 +1347,27 @@ namespace SenseNet.Services.OData.Tests
                 var originalActionResolver = odataHandlerAcc.GetStaticProperty("ActionResolver");
                 odataHandlerAcc.SetStaticProperty("ActionResolver", new TestActionResolver());
 
-                var expectedJson = @"
-{
-    ""d"":{
-        ""__metadata"":{
-            ""uri"":""/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')"",
-            ""type"":""Group"",
-            ""actions"":[
-                {""title"":""Action3"",""name"":""Action3"",""target"":""/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/Action3"",""forbidden"":false,""parameters"": []},
-                {""title"":""Action4"",""name"":""Action4"",""target"":""/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/Action4"",""forbidden"":false,""parameters"": []}],
-            ""functions"":[
-                {""title"":""Action2"",""name"":""Action2"",""target"":""/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/Action2"",""forbidden"":false,""parameters"": []}]
-        },
-        ""Id"":7,
-        ""Name"":
-        ""Administrators"",
-        ""Actions"":{""__deferred"":{""uri"":""/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')/Actions""}},
-        ""Members"":[{
-            ""__metadata"":{
-                ""uri"":""/OData.svc/Root/IMS/BuiltIn/Portal('Admin')"",
-                ""type"":""User"",
-                ""actions"":[
-                    {""title"":""Action3"",""name"":""Action3"",""target"":""/OData.svc/Root/IMS/BuiltIn/Portal('Admin')/Action3"",""forbidden"":false,""parameters"": []},
-                    {""title"":""Action4"",""name"":""Action4"",""target"":""/OData.svc/Root/IMS/BuiltIn/Portal('Admin')/Action4"",""forbidden"":false,""parameters"": []}],
-                ""functions"":[
-                    {""title"":""Action2"",""name"":""Action2"",""target"":""/OData.svc/Root/IMS/BuiltIn/Portal('Admin')/Action2"",""forbidden"":false,""parameters"": []}]
-            },
-            ""Id"":1,
-            ""Name"":""Admin"",
-            ""Actions"":[
-                {""Name"":""Action1"",""DisplayName"":""Action1"",""Index"":0,""Icon"":""ActionIcon1"",""Url"":""ActionIcon1_URI"",""IncludeBackUrl"":0,""ClientAction"":false,""Forbidden"":false},
-                {""Name"":""Action2"",""DisplayName"":""Action2"",""Index"":0,""Icon"":""ActionIcon2"",""Url"":""ActionIcon2_URI"",""IncludeBackUrl"":0,""ClientAction"":false,""Forbidden"":false}]
-            }
-        ]
-    }
-}
-";
-
                 CreateTestSite();
                 try
                 {
-                    string jsonText;
+                    ODataEntity entity;
                     using (var output = new StringWriter())
                     {
                         var pc = CreatePortalContext("/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')",
-                            "$expand=Members/Actions,ModifiedBy&$select=Id,Name,Actions,Members/Id,Members/Name,Members/Actions",
+                            "metadata=no&$expand=Members/Actions,ModifiedBy&$select=Id,Name,Actions,Members/Id,Members/Name,Members/Actions",
                             output);
                         var handler = new ODataHandler();
                         handler.ProcessRequest(pc.OwnerHttpContext);
-                        jsonText = GetStringResult(output);
+                        entity = GetEntity(output);
                     }
-                    var raw = jsonText.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
-                    var exp = expectedJson.Replace("\n", "").Replace("\r", "").Replace("\t", "").Replace(" ", "");
-                    Assert.AreEqual(exp, raw);
+                    var members = entity.AllProperties["Members"] as JArray;
+                    Assert.IsNotNull(members);
+                    var member = members.FirstOrDefault() as JObject;
+                    Assert.IsNotNull(member);
+                    var actionsProperty = member.Property("Actions");
+                    var actions = actionsProperty.Value as JArray;
+                    Assert.IsNotNull(actions);
+                    Assert.IsTrue(actions.Any());
                 }
                 finally
                 {
@@ -1569,7 +1532,8 @@ namespace SenseNet.Services.OData.Tests
                 public override bool CausesStateChange { get { return true; } }
                 public override object Execute(Content content, params object[] parameters)
                 {
-                    return ContentQuery.Query("InFolder:/Root/IMS/BuiltIn/Portal .AUTOFILTERS:OFF").Nodes.Select(n => Content.Create(n));
+                    return CreateSafeContentQuery("InFolder:/Root/IMS/BuiltIn/Portal .AUTOFILTERS:OFF")
+                        .Execute().Nodes.Select(Content.Create);
                 }
             }
 
@@ -3118,6 +3082,7 @@ namespace SenseNet.Services.OData.Tests
             {
                 var testRoot = CreateTestRoot("ODataTestRoot");
                 CreateTestSite();
+                EnsureReferenceTestStructure(testRoot);
 
                 ODataEntities entities;
                 using (var output = new StringWriter())
@@ -3143,6 +3108,7 @@ namespace SenseNet.Services.OData.Tests
             {
                 var testRoot = CreateTestRoot("ODataTestRoot");
                 CreateTestSite();
+                EnsureReferenceTestStructure(testRoot);
 
                 ODataEntities entities;
                 using (var output = new StringWriter())
@@ -3228,11 +3194,8 @@ namespace SenseNet.Services.OData.Tests
                         entities = GetEntities(output);
                     }
                     var ids = String.Join(", ", entities.Select(e => e.Id));
-                    var expids = String.Join(", ",
-                        ContentQuery
-                            .Query(
-                                "InFolder:/Root/IMS/BuiltIn/Portal .AUTOFILTERS:OFF .REVERSESORT:Name .SKIP:2 .TOP:3")
-                            .Identifiers);
+                    var expids = String.Join(", ", CreateSafeContentQuery("InFolder:/Root/IMS/BuiltIn/Portal .AUTOFILTERS:OFF .REVERSESORT:Name .SKIP:2 .TOP:3")
+                        .Execute().Identifiers);
                     // 8, 9, 7
                     Assert.AreEqual(expids, ids);
                 }
@@ -3265,10 +3228,8 @@ namespace SenseNet.Services.OData.Tests
                     }
                     var ids = String.Join(", ", entities.Select(e => e.Id));
                     var expids = String.Join(", ",
-                        ContentQuery
-                            .Query(
-                                "+InFolder:/Root/IMS/BuiltIn/Portal -Id:10 .AUTOFILTERS:OFF .REVERSESORT:Name .SKIP:1 .TOP:3")
-                            .Identifiers);
+                        CreateSafeContentQuery("+InFolder:/Root/IMS/BuiltIn/Portal -Id:10 .AUTOFILTERS:OFF .REVERSESORT:Name .SKIP:1 .TOP:3")
+                            .Execute().Identifiers);
                     // 8, 9, 7
                     Assert.AreEqual(expids, ids);
                 }
@@ -3350,8 +3311,8 @@ namespace SenseNet.Services.OData.Tests
                     }
                     var ids = String.Join(", ", entities.Select(e => e.Id));
                     var expids = String.Join(", ",
-                        ContentQuery.Query("+InFolder:/Root/IMS/BuiltIn/Portal +TypeIs:User .AUTOFILTERS:OFF")
-                            .Identifiers);
+                        CreateSafeContentQuery("+InFolder:/Root/IMS/BuiltIn/Portal +TypeIs:User .AUTOFILTERS:OFF")
+                            .Execute().Identifiers);
                     // 6, 1
                     Assert.AreEqual(expids, ids);
 
@@ -3365,8 +3326,8 @@ namespace SenseNet.Services.OData.Tests
                     }
                     ids = String.Join(", ", entities.Select(e => e.Id));
                     expids = String.Join(", ",
-                        ContentQuery.Query("+InFolder:/Root/IMS/BuiltIn/Portal -TypeIs:User .AUTOFILTERS:OFF")
-                            .Identifiers);
+                        CreateSafeContentQuery("+InFolder:/Root/IMS/BuiltIn/Portal -TypeIs:User .AUTOFILTERS:OFF")
+                            .Execute().Identifiers);
                     // 8, 9, 7
                     Assert.AreEqual(expids, ids);
 

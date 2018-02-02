@@ -21,6 +21,42 @@ namespace SenseNet.Tests
     [TestClass]
     public class TestBase
     {
+
+        private static volatile bool _prototypesCreated;
+        private static readonly object PrototypeSync = new object();
+        private void EnsurePrototypes()
+        {
+            if (!_prototypesCreated)
+            {
+                SnTrace.Test.Write("Wait for creating prototypes.");
+                lock (PrototypeSync)
+                {
+                    if (!_prototypesCreated)
+                    {
+                        using (var op = SnTrace.Test.StartOperation("Create prototypes."))
+                        {
+                            ExecuteTest(false, null, () =>
+                            {
+                                SnTrace.Test.Write("Create initial index.");
+                                SaveInitialIndexDocuments();
+                                RebuildIndex();
+
+                                SnTrace.Test.Write("Create snapshots.");
+                                if (Providers.Instance.DataProvider is InMemoryDataProvider inMemDataProvider)
+                                    inMemDataProvider.CreateSnapshot();
+                                if (Providers.Instance.SearchEngine is InMemorySearchEngine inMemSearchEngine)
+                                    inMemSearchEngine.CreateSnapshot();
+                            });
+                            _prototypesCreated = true;
+                            op.Successful = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        // ==========================================================
+
         public TestContext TestContext { get; set; }
 
         [TestInitialize]
@@ -52,6 +88,11 @@ namespace SenseNet.Tests
         }
         protected void Test(bool useCurrentUser, Action<RepositoryBuilder> initialize, Action callback)
         {
+            EnsurePrototypes();
+            ExecuteTest(useCurrentUser, initialize, callback);
+        }
+        private void ExecuteTest(bool useCurrentUser, Action<RepositoryBuilder> initialize, Action callback)
+        {
             DistributedApplication.Cache.Reset();
             ContentTypeManager.Reset();
 
@@ -61,15 +102,21 @@ namespace SenseNet.Tests
 
             Indexing.IsOuterSearchEngineEnabled = true;
 
+            if (!_prototypesCreated)
+                SnTrace.Test.Write("Start repository.");
+
             using (Repository.Start(builder))
             {
-                if(useCurrentUser)
+                SnTrace.Test.Write("...run test....");
+                if (useCurrentUser)
                     callback();
                 else
                     using (new SystemAccount())
                         callback();
             }
         }
+
+        // ==========================================================
 
         protected T Test<T>(Func<T> callback)
         {
@@ -88,6 +135,11 @@ namespace SenseNet.Tests
         }
         protected T Test<T>(bool useCurrentUser, Action<RepositoryBuilder> initialize, Func<T> callback)
         {
+            EnsurePrototypes();
+            return ExecuteTest<T>(useCurrentUser, initialize, callback);
+        }
+        private T ExecuteTest<T>(bool useCurrentUser, Action<RepositoryBuilder> initialize, Func<T> callback)
+        {
             DistributedApplication.Cache.Reset();
             ContentTypeManager.Reset();
 
@@ -97,13 +149,15 @@ namespace SenseNet.Tests
 
             Indexing.IsOuterSearchEngineEnabled = true;
 
+            if (!_prototypesCreated)
+                SnTrace.Test.Write("Start repository.");
+
             using (Repository.Start(builder))
             {
                 if (useCurrentUser)
                     return callback();
-                else
-                    using (new SystemAccount())
-                        return callback();
+                using (new SystemAccount())
+                    return callback();
             }
         }
 
@@ -125,7 +179,7 @@ namespace SenseNet.Tests
                 .StartWorkflowEngine(false)
                 .DisableNodeObservers()
                 .EnableNodeObservers(typeof(SettingsCache))
-                .UseTraceCategories("Test", "Event", "System", "Repository");
+                .UseTraceCategories("Test", "Event", "Custom");
         }
 
         protected static ISecurityDataProvider GetSecurityDataProvider(InMemoryDataProvider repo)
@@ -173,7 +227,7 @@ namespace SenseNet.Tests
             populator.ClearAndPopulateAll();
         }
 
-        protected ContentQuery CreateSafeContentQuery(string qtext)
+        protected static ContentQuery CreateSafeContentQuery(string qtext)
         {
             var cquery = ContentQuery.CreateQuery(qtext, QuerySettings.AdminSettings);
             var cqueryAcc = new PrivateObject(cquery);
