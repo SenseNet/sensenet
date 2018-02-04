@@ -11,6 +11,8 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
+using SenseNet.Portal;
+using SenseNet.Portal.Virtualization;
 using SenseNet.Search;
 using SenseNet.Security;
 using SenseNet.Security.Data;
@@ -95,6 +97,8 @@ namespace SenseNet.Tests
         {
             DistributedApplication.Cache.Reset();
             ContentTypeManager.Reset();
+            var portalContextAcc = new PrivateType(typeof(PortalContext));
+            portalContextAcc.SetStaticField("_sites", new Dictionary<string, Site>());
 
             var builder = CreateRepositoryBuilderForTest();
 

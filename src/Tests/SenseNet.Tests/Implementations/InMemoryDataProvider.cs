@@ -1036,7 +1036,7 @@ namespace SenseNet.Tests.Implementations
                     .Where(n => n.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase))
                     .ToList();
 
-            if (pathStart != null)
+            if (pathStart != null && pathStart.Length > 0)
             {
                 var paths = pathStart.Select(p => p.EndsWith("/") ? p : p + "/").ToArray();
                 nodes = nodes

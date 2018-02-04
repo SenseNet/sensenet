@@ -2872,13 +2872,10 @@ namespace SenseNet.Services.OData.Tests
                 folder1.Save();
                 var car1 = Content.CreateNew("Car", site, "Car_1");
                 car1.Save();
-                //var workspace1 = Content.CreateNew("DocumentWorkspace", site,
-                //    "DocumentWorkspace_" + Guid.NewGuid().ToString());
-                //workspace1.Save();
                 var file1 = Content.CreateNew("File", site, "File_1");
                 file1.Save();
 
-                var containers = new[] {folder1, car1, /*workspace1,*/ file1};
+                var containers = new[] {folder1, car1, file1};
                 var names = String.Join(",", containers.Select(c => String.Concat("\"", c.Name, "\"")));
                 var expectedJson = String.Concat("{\"d\":{\"EntitySets\":[", names, "]}}");
 
