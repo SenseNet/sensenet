@@ -917,6 +917,9 @@ namespace SenseNet.Search.Querying.Parser
             if (value == null)
                 return null;
 
+            if (fieldName == IndexFieldName.AllText)
+                return new IndexValue(value.StringValue.ToLowerInvariant());
+
             var parser = context.GetPerFieldIndexingInfo(fieldName);
             var parsed = parser.IndexFieldHandler.Parse(value.StringValue);
             if (parsed == null)
