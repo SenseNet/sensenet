@@ -66,7 +66,7 @@ namespace SenseNet.Portal.Virtualization
                 {
                     if (AuthenticationHelper.IsUserValid(username, password))
                     {
-                        context.User = AuthenticationHelper.LoadUserPrincipal(username);
+                        context.User = AuthenticationHelper.LoadPortalPrincipal(username);
                     }
                     else
                     {
@@ -91,7 +91,7 @@ namespace SenseNet.Portal.Virtualization
             var context = AuthenticationHelper.GetContext(sender); //HttpContext.Current;
             var basicAuthenticated = DispatchBasicAuthentication(context, out var anonymAuthenticated);
 
-            var tokenAuthentication = new TokenAuthentication();
+            var tokenAuthentication = new TokenAuthentication(new LogoutExecutor());
             var tokenAuthenticated = tokenAuthentication.Authenticate(application, basicAuthenticated, anonymAuthenticated);
 
             if (!tokenAuthenticated)
