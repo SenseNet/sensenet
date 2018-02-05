@@ -192,11 +192,12 @@ namespace SenseNet.Tests.Implementations
             }
             else
             {
+                //UNDONE: Numeric fields are not comparable as a string
                 switch (field.Type)
                 {
                     case IndexValueType.String: fieldValues.Add(field.StringValue); break;
                     case IndexValueType.StringArray: fieldValues.AddRange(field.StringArrayValue); break;
-                    case IndexValueType.Bool: fieldValues.Add(field.BooleanValue.ToString(CultureInfo.InvariantCulture)); break;
+                    case IndexValueType.Bool: fieldValues.Add(field.BooleanValue ? IndexValue.Yes : IndexValue.No); break;
                     case IndexValueType.Int: fieldValues.Add(field.IntegerValue.ToString(CultureInfo.InvariantCulture)); break;
                     case IndexValueType.Long: fieldValues.Add(field.LongValue.ToString(CultureInfo.InvariantCulture)); break;
                     case IndexValueType.Float: fieldValues.Add(field.StringValue.ToString(CultureInfo.InvariantCulture)); break;
