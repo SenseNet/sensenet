@@ -73,6 +73,10 @@
       <Project>{5db4ddba-81f6-4d81-943a-18f3178b3355}</Project>
       <Name>Storage</Name>
     </ProjectReference>
+    <ProjectReference Include="..\SenseNet.Tests\SenseNet.Tests.csproj">
+      <Project>{4674B8B8-6567-4EB5-B5A8-C838FECCE302}</Project>
+      <Name>SenseNet.Tests</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

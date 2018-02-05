@@ -884,7 +884,7 @@ namespace SenseNet.Tests.SelfTest
             };
             var indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
             {
-                {"_Text", new TestPerfieldIndexingInfoString()},
+                //{"_Text", new TestPerfieldIndexingInfoString()},
                 {"F1", new TestPerfieldIndexingInfoString()},
                 {"F2", new TestPerfieldIndexingInfoString()},
                 {"F3", new TestPerfieldIndexingInfoString()},

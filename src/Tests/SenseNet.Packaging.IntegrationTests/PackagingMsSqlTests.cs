@@ -12,6 +12,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using SenseNet.Packaging.IntegrationTests.Implementations;
+using SenseNet.Tests;
 
 namespace SenseNet.Packaging.IntegrationTests
 {
@@ -24,7 +25,7 @@ namespace SenseNet.Packaging.IntegrationTests
     }
 
     [TestClass]
-    public class PackagingMsSqlTests
+    public class PackagingMsSqlTests : TestBase
     {
         private static readonly string ConnectionString =
             //"Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=sensenet;Data Source=(local)";

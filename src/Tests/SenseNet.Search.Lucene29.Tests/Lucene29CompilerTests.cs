@@ -9,12 +9,13 @@ using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 using SenseNet.Search.Querying.Parser;
 using SenseNet.Search.Tests.Implementations;
+using SenseNet.Tests;
 using SenseNet.Tests.Implementations;
 
 namespace SenseNet.Search.Lucene29.Tests
 {
     [TestClass]
-    public class Lucene29CompilerTests
+    public class Lucene29CompilerTests : TestBase
     {
         [TestMethod, TestCategory("IR")] // 38 tests
         public void Search_Compiler_Luc29_OriginalTests()
@@ -129,7 +130,7 @@ namespace SenseNet.Search.Lucene29.Tests
 
             var indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
             {
-                {"_Text", new TestPerfieldIndexingInfoString()},
+                //{"_Text", new TestPerfieldIndexingInfoString()},
                 {"#Field1", new TestPerfieldIndexingInfoString()},
                 {"Field1", new TestPerfieldIndexingInfoString()},
                 {"Field2", new TestPerfieldIndexingInfoString()},

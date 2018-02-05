@@ -111,7 +111,6 @@ namespace SenseNet.Tests
 
             using (Repository.Start(builder))
             {
-                SnTrace.Test.Write("...run test....");
                 if (useCurrentUser)
                     callback();
                 else

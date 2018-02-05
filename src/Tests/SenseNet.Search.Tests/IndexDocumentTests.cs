@@ -2,11 +2,12 @@
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Search.Indexing;
+using SenseNet.Tests;
 
 namespace SenseNet.Search.Tests
 {
     [TestClass]
-    public class IndexDocumentTests
+    public class IndexDocumentTests : TestBase
     {
         [TestMethod, TestCategory("IR")]
         public void IndexDoc_Security_CannotAddPassword()

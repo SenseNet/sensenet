@@ -1366,7 +1366,7 @@ namespace SenseNet.Tests.Implementations
                         Id = int.Parse(record[0]),
                         VersionId = int.Parse(record[1]),
                         Page = int.Parse(record[2]),
-                        Strings = record.Skip(3).ToArray(),
+                        Strings = record.Skip(3).Select(s => s == "NULL" ? null : s).ToArray(),
                     };
                 }).ToDictionary(x => x.Id, x => x);
 
@@ -1517,7 +1517,7 @@ namespace SenseNet.Tests.Implementations
 
             public Database Clone()
             {
-                using (var op = SnTrace.StartOperation("Clone database."))
+                using (var op = SnTrace.Database.StartOperation("Clone database."))
                 {
                     var schema = new XmlDocument();
                     schema.LoadXml(_initialSchema);

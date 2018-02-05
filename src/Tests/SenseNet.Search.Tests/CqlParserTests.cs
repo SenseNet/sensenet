@@ -8,16 +8,17 @@ using SenseNet.Search.Querying;
 using SenseNet.Search.Querying.Parser;
 using SenseNet.Search.Querying.Parser.Predicates;
 using SenseNet.Search.Tests.Implementations;
+using SenseNet.Tests;
 using SenseNet.Tests.Implementations;
 
 namespace SenseNet.Search.Tests
 {
     [TestClass]
-    public class CqlParserTests
+    public class CqlParserTests : TestBase
     {
         readonly Dictionary<string, IPerFieldIndexingInfo> _indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
         {
-            {"_Text", new TestPerfieldIndexingInfoString()},
+            //{"_Text", new TestPerfieldIndexingInfoString()},
             {"#Field1", new TestPerfieldIndexingInfoString()},
             {"Field1", new TestPerfieldIndexingInfoString()},
             {"Field2", new TestPerfieldIndexingInfoString()},

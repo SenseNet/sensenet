@@ -2,11 +2,12 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Search.Querying;
 using SenseNet.Search.Querying.Parser.Predicates;
+using SenseNet.Tests;
 
 namespace SenseNet.Search.Tests
 {
     [TestClass]
-    public class VisitorTests
+    public class VisitorTests : TestBase
     {
         private class TestVisitor : SnQueryVisitor
         {

@@ -34,7 +34,7 @@ namespace SenseNet.Tests.Implementations
 
         private InMemoryIndex Clone()
         {
-            using(var op = SnTrace.StartOperation("Clone index."))
+            using(var op = SnTrace.Index.StartOperation("Clone index."))
             {
                 var index = new InMemoryIndex
                 {

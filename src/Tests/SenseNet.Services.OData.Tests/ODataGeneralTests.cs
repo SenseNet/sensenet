@@ -488,15 +488,6 @@ namespace SenseNet.Services.OData.Tests
 
 
 
-
-
-
-
-
-
-
-
-
         [TestMethod]
         public void OData_Expand()
         {
@@ -511,14 +502,14 @@ namespace SenseNet.Services.OData.Tests
 {
   ""d"": {
     ""__metadata"": {
-      ""uri"": ""/OData.svc/Root/IMS/BuiltIn/Portal('Administrators')"",
+      ""uri"": ""/odata.svc/Root/IMS/BuiltIn/Portal('Administrators')"",
       ""type"": ""Group""
     },
     ""Id"": 7,
     ""Members"": [
       {
         ""__metadata"": {
-          ""uri"": ""/OData.svc/Root/IMS/BuiltIn/Portal('Admin')"",
+          ""uri"": ""/odata.svc/Root/IMS/BuiltIn/Portal('Admin')"",
           ""type"": ""User""
         },
         ""Id"": 1,

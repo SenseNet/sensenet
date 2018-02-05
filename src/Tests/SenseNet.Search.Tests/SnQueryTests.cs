@@ -13,11 +13,11 @@ using SenseNet.Tests.Implementations;
 namespace SenseNet.Search.Tests
 {
     [TestClass]
-    public class SnQueryTests
+    public class SnQueryTests : TestBase
     {
         readonly Dictionary<string, IPerFieldIndexingInfo> _indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
             {
-                {"_Text", new TestPerfieldIndexingInfoString()},
+                //{"_Text", new TestPerfieldIndexingInfoString()},
                 {"#Field1", new TestPerfieldIndexingInfoString()},
                 {"Field1", new TestPerfieldIndexingInfoString()},
                 {"Field2", new TestPerfieldIndexingInfoString()},
