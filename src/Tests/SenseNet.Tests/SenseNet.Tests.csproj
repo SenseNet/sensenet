@@ -46,6 +46,9 @@
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="SenseNet.Search, Version=0.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\SenseNet.Search.0.1.0\lib\net451\SenseNet.Search.dll</HintPath>
+    </Reference>
     <Reference Include="SenseNet.Security, Version=2.3.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\SenseNet.Security.2.3.1\lib\net45\SenseNet.Security.dll</HintPath>
     </Reference>
@@ -80,6 +83,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="SenseNet.Tests.nuspec" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\BlobStorage\BlobStorage.csproj">
@@ -93,10 +97,6 @@
     <ProjectReference Include="..\..\ContentRepository\ContentRepository.csproj">
       <Project>{786E6165-CA02-45A9-BF58-207A45D7D6DF}</Project>
       <Name>ContentRepository</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Search\Search.csproj">
-      <Project>{0279705B-779D-485D-86B9-F7AB3DD1F2C3}</Project>
-      <Name>Search</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Services\Services.csproj">
       <Project>{b72529c8-feb1-49f5-b08b-56055b58f296}</Project>

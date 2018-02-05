@@ -3,7 +3,7 @@ using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Tests.Implementations
 {
-    public class TestQueryEngine : IQueryEngine
+    internal class TestQueryEngine : IQueryEngine
     {
         private readonly IDictionary<string, QueryResult<int>> _intResults;
         private readonly IDictionary<string, QueryResult<string>> _stringResults;

@@ -24,7 +24,7 @@ Example of token authentication configuration settings:
 ...
 </sensenet>
 ```
-There are a few other parameters in the tokenAuthentication section that you can update to alter the behaviour of the token authentication:
+There are some other parameters in the tokenAuthentication and security section that you can update to alter the behaviour of the token authentication:
 ```xml
 <tokenAuthentication>
   <add key="SymmetricKeySecret" value="<random secret string>" />
@@ -35,16 +35,22 @@ There are a few other parameters in the tokenAuthentication section that you can
   <add key="RefreshLifeTimeInMinutes" value="1440" />
   <add key="ClockSkewInMinutes" value="1"/>
 </tokenAuthentication>
+<security>
+...
+  <add key="DefaultUltimateLogout" value="true"/>
+...
+</security>
 ```
 **_Audience, Issuer, Subject_**: environment constants to include in the token (further information at the end of the Token Authentication Protocol part)  
 **_AccessLifeTimeInMinutes_**: the time span within the access token is valid from its creation  
 **_RefreshLifeTimeInMinutes_**: the time span within the refresh token is valid from its creation  
 **_ClockSkewInMinutes_**: the possible maximum difference in actual times between servers
+**_DefaultUltimateLogout_**: the default behaviour at logout if ultimateLogout argument (see later) is not provided (_true_: executes an ultimate logout, _false_(default): simple logout). Note that if you provide 'true' here, the system will *always* perform an ultimate logout, *regardless of the parameter provided by the client*.
 
 ## Web Token Authentication Protocol ##
 ### Protocol overview ### 
 
-The token authentication needs a username and password pair for its first move. After it was given and the user was successfully identified, the service generates an access token and a refresh token and sends it to the client. The client can use the access token to get to the content allowed only for authenticated users. Every token has its expiration time, so when the access token is expired the client cannot access protected content. The client has to use the refresh token to obtain a new access token. When it is received, the client can use it to access content again. The refresh token could be expired too. In that case the client has to re-authenticate with a username and password and regain access to protected content.
+The token authentication needs a username and password pair for its first move. After it was given and the user was successfully identified, the service generates an access token and a refresh token and sends it to the client. The client can use the access token to get to the content allowed only for authenticated users. Every token has its expiration time, so when the access token is expired the client cannot access protected content. The client has to use the refresh token to obtain a new access token. When it is received, the client can use it to access content again. The refresh token could be expired too. In that case the client has to re-authenticate with a username and password and regain access to protected content. After a user finished his work, logs out. This deletes the obtained credentials. There are two ways of logging out: simple, when the user's logout deletes the local credentials only and ultimate, when the user's logout prevents the user to access protected content from any session on any device until he is logged in again.
 
 ### Protocol use cases in detail ###
 
@@ -52,11 +58,13 @@ _Steps of an authentication process from the clients' point of view:_
 1. Login with username and password by basic authentication on the login endpoint
 2. Receive a new access token and refresh token
 3. Access content using the access token
+4. Logout using the access token
 
 _Steps of a token refresh process from the clients' point of view:_
 1. Send the refresh token to the refresh endpoint
 2. Receive a new access token
 3. Access content using the access token
+4. Logout using the access token
 
 All the communication are sent through SSL (https). The used cookies are all HtmlOnly and Secure. There are two types of communication: header marked and uri marked (without header mark). Either of them can be choosen freely by a client developer. However the two could be mixed, but we advice to choose one and stick to it.
 
@@ -85,7 +93,7 @@ _body:_
 {"access":"<accessHeadAndPayload>", "refresh":"<refreshHeadAndPayload>"}
 ```
 
-**LogoutRequest with header mark:**  
+**Simple LogoutRequest with header mark:**  
 _uri:_  
 `https://<yourhost>/<indifferentpath>`  
 _headers:_  
@@ -96,7 +104,7 @@ Cookie: as=`<accessSignature>`
 Cookie: ahp=`<accessHeadAndPayload>`  
 Cookie: rs=`<refreshSignature>`
 
-**LogoutRequest with uri mark:**   
+**Simple LogoutRequest with uri mark:**   
 _uri:_  
 `https://<yourhost>/sn-token/logout`  
 _headers:_  
@@ -105,6 +113,29 @@ Cookie: as=`<accessSignature>`
 Cookie: ahp=`<accessHeadAndPayload>`  
 Cookie: rs=`<refreshSignature>`
 
+**Ultimate LogoutRequest with header mark:**  
+_verb (mandatory):_ POST  
+_uri:_  
+`https://<yourhost>/<indifferentpath>`  
+_headers:_  
+Content-Type: `application/x-www-form-urlencoded`  
+X-Authentication-Action: `TokenLogout`  
+X-Access-Data: `<accessHeadAndPayload>`  
+_cookies:_  
+Cookie: as=`<accessSignature>`  
+Cookie: ahp=`<accessHeadAndPayload>`  
+Cookie: rs=`<refreshSignature>`  
+_body:_  
+`ultimateLogout=true`  
+
+**Ultimate LogoutRequest with uri mark:**   
+_uri:_  
+`https://<yourhost>/sn-token/logout?ultimateLogout=true`  
+_headers:_  
+_cookies:_  
+Cookie: as=`<accessSignature>`  
+Cookie: ahp=`<accessHeadAndPayload>`  
+Cookie: rs=`<refreshSignature>`
 
 **AuthenticatedServiceRequest with header mark:**  
 _uri:_  

@@ -4,7 +4,7 @@ using SenseNet.Search.Querying;
 
 namespace SenseNet.Search.Tests.Implementations
 {
-    public class TestQueryContext : IQueryContext
+    internal class TestQueryContext : IQueryContext
     {
         private readonly IDictionary<string, IPerFieldIndexingInfo> _indexingInfo;
 
