@@ -16,7 +16,7 @@
     <tags>sensenet ecm ecms</tags>
     <dependencies>
       <dependency id="SenseNet.Services" version="7.1.0" />
-      <dependency id="SenseNet.SnAdmin" version="1.4.3" />
+      <dependency id="SenseNet.SnAdmin" version="1.4.4" />
       <dependency id="SenseNet.Search.Lucene29.Local" version="7.1.0" />
     </dependencies>
   </metadata>
