@@ -2930,7 +2930,9 @@ namespace SenseNet.Services.OData.Tests
                 }
             });
         }
-        [TestMethod]
+
+        //TODO: Remove inconclusive test result and implement this test.
+        //[TestMethod]
         public void OData_Metadata_Instance_Entity()
         {
             Assert.Inconclusive("InMemorySchemaWriter.CreatePropertyType is partially implemented.");
@@ -2983,7 +2985,9 @@ namespace SenseNet.Services.OData.Tests
                 Assert.IsTrue(listProps.Count == 1);
             });
         }
-        [TestMethod]
+        
+        //TODO: Remove inconclusive test result and implement this test.
+        //[TestMethod]
         public void OData_Metadata_Instance_Collection()
         {
             Assert.Inconclusive("InMemorySchemaWriter.CreatePropertyType is partially implemented.");
@@ -4293,7 +4297,8 @@ namespace SenseNet.Services.OData.Tests
             return result;
         }
 
-        [TestMethod]
+        //TODO: Remove inconclusive test result and implement this test.
+        //[TestMethod]
         public void OData_FIX_Move_RightExceptionIfTargetExists()
         {
             Assert.Inconclusive("InMemoryDataProvider.LoadChildTypesToAllow method is not implemented.");

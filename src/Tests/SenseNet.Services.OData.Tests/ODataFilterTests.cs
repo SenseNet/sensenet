@@ -72,7 +72,8 @@ namespace SenseNet.Services.OData.Tests
             });
         }
 
-        [TestMethod]
+        //TODO: Remove inconclusive test result and implement this test.
+        //[TestMethod]
         public void OData_Filter_SubstringOfEqListField()
         {
             Assert.Inconclusive("InMemorySchemaWriter.CreatePropertyType is partially implemented.");

@@ -17,7 +17,8 @@ namespace SenseNet.Services.OData.Tests
     [TestClass]
     public class ODataGeneralTests : ODataTestClass
     {
-        [TestMethod]
+        //TODO: Remove inconclusive test result and implement this test.
+        //[TestMethod]
         public void OData_OrderByNumericDouble()
         {
             Assert.Inconclusive("OData_OrderByNumericDouble is commented out (uses LuceneManager)");
@@ -255,7 +256,9 @@ namespace SenseNet.Services.OData.Tests
                 Assert.AreEqual(0, b.Length);
             });
         }
-        [TestMethod]
+
+        //TODO: Remove inconclusive test result and implement this test.
+        //[TestMethod]
         public void OData_Getting_ContentList_NoProjection()
         {
             Assert.Inconclusive("InMemorySchemaWriter.CreatePropertyType is partially implemented.");
