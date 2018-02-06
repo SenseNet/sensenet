@@ -393,22 +393,14 @@ namespace SenseNet.Services.OData.Tests
         [TestMethod]
         public void OData_Getting_Collection_CountTop()
         {
-            Assert.Inconclusive("OData_Getting_Collection_CountTop is commented out (uses LucQuery)");
+            Test(() =>
+            {
+                CreateTestSite();
 
-            //var lucQueryAcc = new PrivateType(typeof(LucQuery));
-            //var originalExecutionAlgorithm = (LucQuery.ContentQueryExecutionAlgorithm)lucQueryAcc.GetStaticField("__executionAlgorithm");
-            //lucQueryAcc.SetStaticField("__executionAlgorithm", LucQuery.ContentQueryExecutionAlgorithm.LuceneOnly);
-
-            //try
-            //{
-            //    var result = ODataGET<ODataRaw>("/OData.svc/Root/IMS/BuiltIn/Portal/$count", "$top=3");
-            //    var folder = Node.Load<Folder>("/Root/IMS/BuiltIn/Portal");
-            //    Assert.AreEqual("3", result.ToString());
-            //}
-            //finally
-            //{
-            //    lucQueryAcc.SetStaticField("__executionAlgorithm", originalExecutionAlgorithm);
-            //}
+                var result = ODataGET<ODataRaw>("/OData.svc/Root/IMS/BuiltIn/Portal/$count", "$top=3");
+                var folder = Node.Load<Folder>("/Root/IMS/BuiltIn/Portal");
+                Assert.AreEqual("3", result.ToString());
+            });
         }
 
         [TestMethod]
