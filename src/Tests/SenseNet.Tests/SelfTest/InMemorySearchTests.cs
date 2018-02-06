@@ -752,7 +752,62 @@ namespace SenseNet.Tests.SelfTest
                 Assert.AreEqual("Nn3, Nn4, Nn5, Nn6",           executeQuery("+Name:{Nn2 TO Nn7} +InFolder:/Root"));
             });
         }
+        [TestMethod, TestCategory("IR")]
+        public void InMemSearch_Query_Range_Int()
+        {
+            var createNode = new Func<Node, int, Node>((parent, index) =>
+            {
+                var node = new SystemFolder(parent) { Name = $"Nn{index}", Index = index };
+                node.Save();
+                return node;
+            });
+            var executeQuery = new Func<string, string>((query) =>
+            {
+                return string.Join(", ", CreateSafeContentQuery(query).Execute().Nodes
+                    .Where(n => n.Name.StartsWith("Nn")).Select(n => n.Index).OrderBy(i => i).ToArray());
+            });
 
+            Test(() =>
+            {
+                // create a test structure:
+                var root = Node.LoadNode(Identifiers.PortalRootId);
+                for (var i = 0; i < 100; i++)
+                    createNode(root, i);
+
+                // ACTION
+                var settings = QuerySettings.AdminSettings;
+                settings.Sort = new[] { new SortInfo(IndexFieldName.Name) };
+
+                Assert.AreEqual("5, 6, 7, 8, 9", executeQuery("+Index:>4 +Index:<10"));
+                Assert.AreEqual("4, 5, 6, 7, 8, 9", executeQuery("+Index:>=4 +Index:<10"));
+                Assert.AreEqual("0, 1, 2, 3", executeQuery("+Index:<4  +InFolder:/Root"));
+                Assert.AreEqual("0, 1, 2, 3, 4", executeQuery("+Index:<=4 +InFolder:/Root"));
+                Assert.AreEqual("2, 3, 4, 5, 6, 7", executeQuery("+Index:[2 TO 7] +InFolder:/Root"));
+                Assert.AreEqual("2, 3, 4, 5, 6", executeQuery("+Index:[2 TO 7} +InFolder:/Root"));
+                Assert.AreEqual("3, 4, 5, 6, 7", executeQuery("+Index:{2 TO 7] +InFolder:/Root"));
+                Assert.AreEqual("3, 4, 5, 6", executeQuery("+Index:{2 TO 7} +InFolder:/Root"));
+            });
+        }
+
+        [TestMethod]
+        public void InMemSearch_Converter_IntToString()
+        {
+            var input = new[] { int.MinValue, int.MinValue + 1, -124, -123, -12, -2, -1, 0, 1, 2, 12, 123, 124, int.MaxValue - 1, int.MaxValue };
+            var output = input.Select(InMemoryIndex.IntToString).ToArray();
+
+            for (var i = 1; i < output.Length; i++)
+                Assert.IsTrue(string.CompareOrdinal(output[i - 1], output[i]) < 0, $"Result of String.CompareOrdinal({output[i - 1]}, {output[i]}) is {string.CompareOrdinal(output[i - 1], output[i])}");
+        }
+
+        [TestMethod]
+        public void InMemSearch_Converter_LongToString()
+        {
+            var input = new[] { long.MinValue, long.MinValue + 1L, -124L, -123L, -12L, -2L, -1L, 0L, 1L, 2L, 12L, 123L, 124L, long.MaxValue - 1L, long.MaxValue };
+            var output = input.Select(InMemoryIndex.LongToString).ToArray();
+
+            for (var i = 1; i < output.Length; i++)
+                Assert.IsTrue(string.CompareOrdinal(output[i - 1], output[i]) < 0, $"Result of String.CompareOrdinal({output[i - 1]}, {output[i]}) is {string.CompareOrdinal(output[i - 1], output[i])}");
+        }
 
         [TestMethod, TestCategory("IR")]
         public void InMemSearch_Query_2TermsBool()

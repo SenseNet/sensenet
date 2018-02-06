@@ -218,8 +218,6 @@ namespace SenseNet.Services.OData.Tests
         [TestMethod]
         public void OData_Filter_InFolder()
         {
-            Assert.Inconclusive("Numeric fields are not comparable as a string");
-
             Test(() =>
             {
                 CreateTestSite();

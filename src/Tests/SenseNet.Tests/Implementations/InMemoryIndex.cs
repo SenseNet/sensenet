@@ -192,20 +192,10 @@ namespace SenseNet.Tests.Implementations
             }
             else
             {
-                //UNDONE: Numeric fields are not comparable as a string
-                switch (field.Type)
-                {
-                    case IndexValueType.String: fieldValues.Add(field.StringValue); break;
-                    case IndexValueType.StringArray: fieldValues.AddRange(field.StringArrayValue); break;
-                    case IndexValueType.Bool: fieldValues.Add(field.BooleanValue ? IndexValue.Yes : IndexValue.No); break;
-                    case IndexValueType.Int: fieldValues.Add(field.IntegerValue.ToString(CultureInfo.InvariantCulture)); break;
-                    case IndexValueType.Long: fieldValues.Add(field.LongValue.ToString(CultureInfo.InvariantCulture)); break;
-                    case IndexValueType.Float: fieldValues.Add(field.StringValue.ToString(CultureInfo.InvariantCulture)); break;
-                    case IndexValueType.Double: fieldValues.Add(field.DoubleValue.ToString(CultureInfo.InvariantCulture)); break;
-                    case IndexValueType.DateTime: fieldValues.Add(field.DateTimeValue.ToString("yyyy-MM-dd HH:mm:ss.ffff")); break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
+                if (field.Type == IndexValueType.StringArray)
+                    fieldValues.AddRange(field.StringArrayValue.Select(s=>s.ToLowerInvariant()));
+                else
+                    fieldValues.Add(IndexValueToString(field));
             }
             return fieldValues;
         }
@@ -239,5 +229,48 @@ namespace SenseNet.Tests.Implementations
             return _activityStatux;
         }
 
+        internal static string IndexValueToString(IndexValue value)
+        {
+            if (value == null)
+                return null;
+
+            switch (value.Type)
+            {
+                case IndexValueType.String: return value.StringValue.ToLowerInvariant();
+                case IndexValueType.StringArray: throw new NotImplementedException(); //UNDONE: Test and implement or rewrite to NotSupportedException
+                case IndexValueType.Bool: return value.BooleanValue ? IndexValue.Yes : IndexValue.No;
+                case IndexValueType.Int: return IntToString(value.IntegerValue);
+                case IndexValueType.Long: return LongToString(value.LongValue);
+                case IndexValueType.Float: return SingleToString(value.SingleValue);
+                case IndexValueType.Double: return DoubleToString(value.DoubleValue);
+                case IndexValueType.DateTime: return value.DateTimeValue.ToString("yyyy-MM-dd HH:mm:ss.ffff");
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+        internal static string IntToString(int value)
+        {
+            var uValue = value >= 0
+                ? Convert.ToUInt32(value) + int.MaxValue
+                : Convert.ToUInt32(value + 1 + int.MaxValue);
+            return uValue.ToString("0000000000") + "|" + value;
+        }
+        internal static string LongToString(long value)
+        {
+            var uValue = value >= 0
+                ? Convert.ToUInt64(value) + long.MaxValue
+                : Convert.ToUInt64(value + 1L + long.MaxValue);
+            return uValue.ToString("00000000000000000000") + "|" + value;
+        }
+        internal static string SingleToString(float value)
+        {
+            //UNDONE: Single fields are not comparable as a string
+            return value.ToString(CultureInfo.InvariantCulture);
+        }
+        internal static string DoubleToString(double value)
+        {
+            //UNDONE: Double fields are not comparable as a string
+            return value.ToString(CultureInfo.InvariantCulture);
+        }
     }
 }

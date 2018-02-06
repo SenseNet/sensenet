@@ -163,6 +163,7 @@ namespace SenseNet.Tests.Implementations
                 return values.FirstOrDefault();
             }
 
+            /// <summary>Returns with a parseable value.</summary>
             private string GetFieldValueAsString(IndexField field)
             {
                 if (field == null)
@@ -197,7 +198,7 @@ namespace SenseNet.Tests.Implementations
             {
                 var result = new List<int>();
 
-                var value = simplePredicate.Value.ValueAsString.ToLowerInvariant();
+                var value = InMemoryIndex.IndexValueToString(simplePredicate.Value);
                 if (_index.IndexData.TryGetValue(simplePredicate.FieldName, out var fieldValues))
                 {
                     if (!value.Contains("*"))
@@ -258,8 +259,8 @@ namespace SenseNet.Tests.Implementations
 
                 if (_index.IndexData.TryGetValue(range.FieldName, out var fieldValues))
                 {
-                    var min = range.Min?.ValueAsString.ToLowerInvariant();
-                    var max = range.Max?.ValueAsString.ToLowerInvariant();
+                    var min = InMemoryIndex.IndexValueToString(range.Min);
+                    var max = InMemoryIndex.IndexValueToString(range.Max);
                     IEnumerable<KeyValuePair<string, List<int>>> expression;
 
                     // play permutation of min, max and exclusiveness
