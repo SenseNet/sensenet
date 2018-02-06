@@ -103,7 +103,7 @@
     <None Include="Api.cd" />
     <None Include="packages.config" />
     <None Include="SearchInSearch.cd" />
-    <None Include="SenseNet.Search.nuspec" />
+    <None Include="Search.nuspec" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
