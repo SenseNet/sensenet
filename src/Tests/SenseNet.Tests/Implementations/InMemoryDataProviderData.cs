@@ -1486,6 +1486,7 @@
 		<PropertyType itemID='145' name='TwitterAccount' dataType='String' mapping='55' />
 		<PropertyType itemID='146' name='FacebookURL' dataType='String' mapping='56' />
 		<PropertyType itemID='147' name='LinkedInURL' dataType='String' mapping='57' />
+		<PropertyType itemID='148' name='LastLoggedOut' dataType='DateTime' mapping='11' />
 	</UsedPropertyTypes>
 	<NodeTypeHierarchy>
 		<NodeType itemID='10' name='GenericContent' className='SenseNet.ContentRepository.GenericContent'>
@@ -1554,6 +1555,7 @@
 				<PropertyType name='TwitterAccount' />
 				<PropertyType name='FacebookURL' />
 				<PropertyType name='LinkedInURL' />
+				<PropertyType name='LastLoggedOut' />
 			</NodeType>
 			<NodeType itemID='2' name='Group' className='SenseNet.ContentRepository.Group'>
 				<PropertyType name='VersioningMode' />
