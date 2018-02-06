@@ -4061,154 +4061,169 @@ namespace SenseNet.Services.OData.Tests
             });
         }
 
-        //UNDONE: OData_SortingByMappedDateTimeAspectField is commented out
-        //        [TestMethod]
-        //        public void OData_SortingByMappedDateTimeAspectField()
-        //        {
-        //            // Create an aspect with date field that is mapped to CreationDate
-        //            var aspect1Name = System.Reflection.MethodInfo.GetCurrentMethod().Name;
-        //            var aspect1 = AspectTests.EnsureAspect(aspect1Name);
-        //            aspect1.AspectDefinition = @"<AspectDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/AspectDefinition'>
-        //<Fields>
-        //    <AspectField name='Field1' type='DateTime'>
-        //      <!-- not bound -->
-        //    </AspectField>
-        //    <AspectField name='Field2' type='DateTime'>
-        //      <Bind property=""CreationDate""></Bind>
-        //    </AspectField>
-        //    <AspectField name='Field3' type='DateTime'>
-        //      <Bind property=""ModificationDate""></Bind>
-        //    </AspectField>
-        //  </Fields>
-        //</AspectDefinition>";
-        //            aspect1.Save();
-        //            var field1Name = String.Concat(aspect1Name, Aspect.ASPECTFIELDSEPARATOR, "Field1");
-        //            var field2Name = String.Concat(aspect1Name, Aspect.ASPECTFIELDSEPARATOR, "Field2");
-        //            var field3Name = String.Concat(aspect1Name, Aspect.ASPECTFIELDSEPARATOR, "Field3");
+        [TestMethod]
+        public void OData_SortingByMappedDateTimeAspectField()
+        {
+            Test(() =>
+            {
+                InstallCarContentType();
+                CreateTestSite();
+                var testRoot = CreateTestRoot("ODataTestRoot");
 
-        //            var container = new SystemFolder(testRoot) { Name = Guid.NewGuid().ToString() };
-        //            container.Save();
+                // Create an aspect with date field that is mapped to CreationDate
+                var aspect1Name = "OData_SortingByMappedDateTimeAspectField";
+                var aspect1Definition = @"<AspectDefinition xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/AspectDefinition'>
+<Fields>
+    <AspectField name='Field1' type='DateTime'>
+        <!-- not bound -->
+    </AspectField>
+    <AspectField name='Field2' type='DateTime'>
+        <Bind property=""CreationDate""></Bind>
+    </AspectField>
+    <AspectField name='Field3' type='DateTime'>
+        <Bind property=""ModificationDate""></Bind>
+    </AspectField>
+    </Fields>
+</AspectDefinition>";
 
-        //            var today = DateTime.Now;
-        //            (new[] { 3, 1, 5, 2, 4 }).Select(i => {
-        //                var content = Content.CreateNew("Car", container, "Car-" + i + "-" + Guid.NewGuid());
-        //                content.AddAspects(aspect1);
+                var aspect1 = new Aspect(Repository.AspectsFolder)
+                {
+                    Name = aspect1Name,
+                    AspectDefinition = aspect1Definition
+                };
+                aspect1.Save();
 
-        //                content[field1Name] = today.AddDays(-5 + i);
-        //                //content[field2Name] = today.AddDays(-i);
-        //                //content[field3Name] = today.AddDays(-i);
-        //                content.CreationDate = today.AddDays(-i);
-        //                content.ModificationDate = today.AddDays(-i);
+                var field1Name = String.Concat(aspect1Name, Aspect.ASPECTFIELDSEPARATOR, "Field1");
+                var field2Name = String.Concat(aspect1Name, Aspect.ASPECTFIELDSEPARATOR, "Field2");
+                var field3Name = String.Concat(aspect1Name, Aspect.ASPECTFIELDSEPARATOR, "Field3");
 
-        //                content.Save();
-        //                return i;
-        //            }).ToArray();
+                var container = new SystemFolder(testRoot) {Name = Guid.NewGuid().ToString()};
+                container.Save();
 
-        //            // check prerequisits
+                var today = DateTime.Now;
+                (new[] {3, 1, 5, 2, 4}).Select(i =>
+                {
+                    var content = Content.CreateNew("Car", container, "Car-" + i + "-" + Guid.NewGuid());
+                    content.AddAspects(aspect1);
 
-        //            var r1 = Content.All.DisableAutofilters().Where(c => c.InTree(container) && c.Name.StartsWith("Car-")).OrderBy(c => c[field1Name]).ToArray();
-        //            var result1 = String.Join(",", r1.Select(x => x.Name[4]));
-        //            Assert.AreEqual("1,2,3,4,5", result1);
-        //            var r2 = Content.All.DisableAutofilters().Where(c => c.InTree(container) && c.Name.StartsWith("Car-")).OrderByDescending(c => c[field1Name]).ToArray();
-        //            var result2 = String.Join(",", r2.Select(x => x.Name[4]));
-        //            Assert.AreEqual("5,4,3,2,1", result2);
-        //            var r3 = Content.All.DisableAutofilters().Where(c => c.InTree(container) && c.Name.StartsWith("Car-")).OrderBy(c => c[field2Name]).ToArray();
-        //            var result3 = String.Join(",", r3.Select(x => x.Name[4]));
-        //            Assert.AreEqual("5,4,3,2,1", result3);
-        //            var r4 = Content.All.DisableAutofilters().Where(c => c.InTree(container) && c.Name.StartsWith("Car-")).OrderByDescending(c => c[field2Name]).ToArray();
-        //            var result4 = String.Join(",", r4.Select(x => x.Name[4]));
-        //            Assert.AreEqual("1,2,3,4,5", result4);
-        //            var r5 = Content.All.DisableAutofilters().Where(c => c.InTree(container) && c.Name.StartsWith("Car-")).OrderBy(c => c[field3Name]).ToArray();
-        //            var result5 = String.Join(",", r5.Select(x => x.Name[4]));
-        //            Assert.AreEqual("5,4,3,2,1", result5);
-        //            var r6 = Content.All.DisableAutofilters().Where(c => c.InTree(container) && c.Name.StartsWith("Car-")).OrderByDescending(c => c[field3Name]).ToArray();
-        //            var result6 = String.Join(",", r6.Select(x => x.Name[4]));
-        //            Assert.AreEqual("1,2,3,4,5", result6);
+                    content[field1Name] = today.AddDays(-5 + i);
+                    //content[field2Name] = today.AddDays(-i);
+                    //content[field3Name] = today.AddDays(-i);
+                    content.CreationDate = today.AddDays(-i);
+                    content.ModificationDate = today.AddDays(-i);
 
-        //            //------------------------------------------
+                    content.Save();
+                    return i;
+                }).ToArray();
 
-        //            CreateTestSite();
-        //            ODataEntities entities;
-        //            try
-        //            {
-        //                // Field1 ASC
-        //                using (var output = new StringWriter())
-        //                {
-        //                    var pc = CreatePortalContext("/OData.svc/" + container.Path, "$orderby=" + field1Name + " asc", output);
-        //                    var handler = new ODataHandler();
-        //                    handler.ProcessRequest(pc.OwnerHttpContext);
-        //                    entities = GetEntities(output);
-        //                }
-        //                Assert.AreEqual(5, entities.Length);
-        //                Assert.AreEqual("1,2,3,4,5", string.Join(",", entities.Select(e => e.Name[4])));
+                // check prerequisits
 
-        //                // Field1 DESC
-        //                using (var output = new StringWriter())
-        //                {
-        //                    var pc = CreatePortalContext("/OData.svc/" + container.Path, "$orderby=" + field1Name + " desc", output);
-        //                    var handler = new ODataHandler();
-        //                    handler.ProcessRequest(pc.OwnerHttpContext);
-        //                    entities = GetEntities(output);
-        //                }
-        //                Assert.AreEqual(5, entities.Length);
-        //                Assert.AreEqual("5,4,3,2,1", string.Join(",", entities.Select(e => e.Name[4])));
+                var r1 = Content.All.DisableAutofilters().Where(c => c.InTree(container) && c.Name.StartsWith("Car-"))
+                    .OrderBy(c => c[field1Name]).ToArray();
+                var result1 = String.Join(",", r1.Select(x => x.Name[4]));
+                Assert.AreEqual("1,2,3,4,5", result1);
+                var r2 = Content.All.DisableAutofilters().Where(c => c.InTree(container) && c.Name.StartsWith("Car-"))
+                    .OrderByDescending(c => c[field1Name]).ToArray();
+                var result2 = String.Join(",", r2.Select(x => x.Name[4]));
+                Assert.AreEqual("5,4,3,2,1", result2);
+                var r3 = Content.All.DisableAutofilters().Where(c => c.InTree(container) && c.Name.StartsWith("Car-"))
+                    .OrderBy(c => c[field2Name]).ToArray();
+                var result3 = String.Join(",", r3.Select(x => x.Name[4]));
+                Assert.AreEqual("5,4,3,2,1", result3);
+                var r4 = Content.All.DisableAutofilters().Where(c => c.InTree(container) && c.Name.StartsWith("Car-"))
+                    .OrderByDescending(c => c[field2Name]).ToArray();
+                var result4 = String.Join(",", r4.Select(x => x.Name[4]));
+                Assert.AreEqual("1,2,3,4,5", result4);
+                var r5 = Content.All.DisableAutofilters().Where(c => c.InTree(container) && c.Name.StartsWith("Car-"))
+                    .OrderBy(c => c[field3Name]).ToArray();
+                var result5 = String.Join(",", r5.Select(x => x.Name[4]));
+                Assert.AreEqual("5,4,3,2,1", result5);
+                var r6 = Content.All.DisableAutofilters().Where(c => c.InTree(container) && c.Name.StartsWith("Car-"))
+                    .OrderByDescending(c => c[field3Name]).ToArray();
+                var result6 = String.Join(",", r6.Select(x => x.Name[4]));
+                Assert.AreEqual("1,2,3,4,5", result6);
 
+                //------------------------------------------
 
+                ODataEntities entities;
 
-        //                // Field2 ASC
-        //                using (var output = new StringWriter())
-        //                {
-        //                    var pc = CreatePortalContext("/OData.svc/" + container.Path, "$orderby=" + field2Name + " asc", output);
-        //                    var handler = new ODataHandler();
-        //                    handler.ProcessRequest(pc.OwnerHttpContext);
-        //                    entities = GetEntities(output);
-        //                }
-        //                Assert.AreEqual(5, entities.Length);
-        //                Assert.AreEqual("5,4,3,2,1", string.Join(",", entities.Select(e => e.Name[4])));
+                // Field1 ASC
+                using (var output = new StringWriter())
+                {
+                    var pc = CreatePortalContext("/OData.svc/" + container.Path, "$orderby=" + field1Name + " asc",
+                        output);
+                    var handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    entities = GetEntities(output);
+                }
+                Assert.AreEqual(5, entities.Length);
+                Assert.AreEqual("1,2,3,4,5", string.Join(",", entities.Select(e => e.Name[4])));
 
-        //                // Field2 DESC
-        //                using (var output = new StringWriter())
-        //                {
-        //                    var pc = CreatePortalContext("/OData.svc/" + container.Path, "$orderby=" + field2Name + " desc", output);
-        //                    var handler = new ODataHandler();
-        //                    handler.ProcessRequest(pc.OwnerHttpContext);
-        //                    entities = GetEntities(output);
-        //                }
-        //                Assert.AreEqual(5, entities.Length);
-        //                Assert.AreEqual("1,2,3,4,5", string.Join(",", entities.Select(e => e.Name[4])));
+                // Field1 DESC
+                using (var output = new StringWriter())
+                {
+                    var pc = CreatePortalContext("/OData.svc/" + container.Path, "$orderby=" + field1Name + " desc",
+                        output);
+                    var handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    entities = GetEntities(output);
+                }
+                Assert.AreEqual(5, entities.Length);
+                Assert.AreEqual("5,4,3,2,1", string.Join(",", entities.Select(e => e.Name[4])));
 
 
 
-        //                // Field3 ASC
-        //                using (var output = new StringWriter())
-        //                {
-        //                    var pc = CreatePortalContext("/OData.svc/" + container.Path, "$orderby=" + field2Name + " asc", output);
-        //                    var handler = new ODataHandler();
-        //                    handler.ProcessRequest(pc.OwnerHttpContext);
-        //                    entities = GetEntities(output);
-        //                }
-        //                Assert.AreEqual(5, entities.Length);
-        //                Assert.AreEqual("5,4,3,2,1", string.Join(",", entities.Select(e => e.Name[4])));
+                // Field2 ASC
+                using (var output = new StringWriter())
+                {
+                    var pc = CreatePortalContext("/OData.svc/" + container.Path, "$orderby=" + field2Name + " asc",
+                        output);
+                    var handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    entities = GetEntities(output);
+                }
+                Assert.AreEqual(5, entities.Length);
+                Assert.AreEqual("5,4,3,2,1", string.Join(",", entities.Select(e => e.Name[4])));
 
-        //                // Field3 DESC
-        //                using (var output = new StringWriter())
-        //                {
-        //                    var pc = CreatePortalContext("/OData.svc/" + container.Path, "$orderby=" + field2Name + " desc", output);
-        //                    var handler = new ODataHandler();
-        //                    handler.ProcessRequest(pc.OwnerHttpContext);
-        //                    entities = GetEntities(output);
-        //                }
-        //                Assert.AreEqual(5, entities.Length);
-        //                Assert.AreEqual("1,2,3,4,5", string.Join(",", entities.Select(e => e.Name[4])));
+                // Field2 DESC
+                using (var output = new StringWriter())
+                {
+                    var pc = CreatePortalContext("/OData.svc/" + container.Path, "$orderby=" + field2Name + " desc",
+                        output);
+                    var handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    entities = GetEntities(output);
+                }
+                Assert.AreEqual(5, entities.Length);
+                Assert.AreEqual("1,2,3,4,5", string.Join(",", entities.Select(e => e.Name[4])));
 
 
-        //            }
-        //            finally
-        //            {
-        //                CleanupTestSite();
-        //            }
 
-        //        }
+                // Field3 ASC
+                using (var output = new StringWriter())
+                {
+                    var pc = CreatePortalContext("/OData.svc/" + container.Path, "$orderby=" + field2Name + " asc",
+                        output);
+                    var handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    entities = GetEntities(output);
+                }
+                Assert.AreEqual(5, entities.Length);
+                Assert.AreEqual("5,4,3,2,1", string.Join(",", entities.Select(e => e.Name[4])));
+
+                // Field3 DESC
+                using (var output = new StringWriter())
+                {
+                    var pc = CreatePortalContext("/OData.svc/" + container.Path, "$orderby=" + field2Name + " desc",
+                        output);
+                    var handler = new ODataHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    entities = GetEntities(output);
+                }
+                Assert.AreEqual(5, entities.Length);
+                Assert.AreEqual("1,2,3,4,5", string.Join(",", entities.Select(e => e.Name[4])));
+            });
+        }
 
         /* =========================================================================================================== Bug reproductions 2 */
 
@@ -4277,57 +4292,6 @@ namespace SenseNet.Services.OData.Tests
             }
             return result;
         }
-
-        //UNDONE: Odata_QueryExecutionMode_Quick is commented out
-        //[TestMethod]
-        //public void Odata_QueryExecutionMode_Quick()
-        //{
-        //    var lucQueryAcc = new PrivateType(typeof(LucQuery));
-        //    var originalExecutionAlgorithm = (LucQuery.ContentQueryExecutionAlgorithm)lucQueryAcc.GetStaticField("__executionAlgorithm");
-        //    lucQueryAcc.SetStaticField("__executionAlgorithm", LucQuery.ContentQueryExecutionAlgorithm.LuceneOnly);
-
-        //    var contentName = Guid.NewGuid().ToString();
-        //    var content = new Folder(testRoot) { Name = contentName };
-        //    content.DisableObserver(typeof(Workflow.WorkflowNotificationObserver));
-        //    content.Save();
-
-        //    CreateTestSite();
-        //    try
-        //    {
-        //        var repeat = 5;
-
-        //        var reopenCount = Tests.Search.QueryResultTests.ReopenCountTest(content, repeat, () =>
-        //        {
-        //            ODataEntities entities;
-        //            using (var output = new StringWriter())
-        //            {
-        //                var pc = CreatePortalContext("/OData.svc/Root/System", "", output);
-        //                var handler = new ODataHandler();
-        //                handler.ProcessRequest(pc.OwnerHttpContext);
-        //                entities = GetEntities(output);
-        //            }
-        //        });
-        //        Assert.AreEqual(repeat, reopenCount);
-
-        //        reopenCount = Tests.Search.QueryResultTests.ReopenCountTest(content, repeat, () =>
-        //        {
-        //            ODataEntities entities;
-        //            using (var output = new StringWriter())
-        //            {
-        //                var pc = CreatePortalContext("/OData.svc/Root/System", "queryexecutionmode=quick", output);
-        //                var handler = new ODataHandler();
-        //                handler.ProcessRequest(pc.OwnerHttpContext);
-        //                entities = GetEntities(output);
-        //            }
-        //        });
-        //        Assert.IsTrue(repeat > reopenCount, string.Format("Reopen must be less than {0} but it is {1}", repeat, reopenCount));
-        //    }
-        //    finally
-        //    {
-        //        lucQueryAcc.SetStaticField("__executionAlgorithm", originalExecutionAlgorithm);
-        //        CleanupTestSite();
-        //    }
-        //}
 
         [TestMethod]
         public void OData_FIX_Move_RightExceptionIfTargetExists()
