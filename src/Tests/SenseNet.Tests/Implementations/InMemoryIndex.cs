@@ -237,7 +237,7 @@ namespace SenseNet.Tests.Implementations
             switch (value.Type)
             {
                 case IndexValueType.String: return value.StringValue.ToLowerInvariant();
-                case IndexValueType.StringArray: throw new NotImplementedException(); //UNDONE: Test and implement or rewrite to NotSupportedException
+                case IndexValueType.StringArray: throw new NotImplementedException(); //TODO: Test and implement or rewrite to NotSupportedException
                 case IndexValueType.Bool: return value.BooleanValue ? IndexValue.Yes : IndexValue.No;
                 case IndexValueType.Int: return IntToString(value.IntegerValue);
                 case IndexValueType.Long: return LongToString(value.LongValue);
@@ -264,12 +264,12 @@ namespace SenseNet.Tests.Implementations
         }
         internal static string SingleToString(float value)
         {
-            //UNDONE: Single fields are not comparable as a string
+            //TODO: Single fields are not comparable as a string
             return value.ToString(CultureInfo.InvariantCulture);
         }
         internal static string DoubleToString(double value)
         {
-            //UNDONE: Double fields are not comparable as a string
+            //TODO: Double fields are not comparable as a string
             return value.ToString(CultureInfo.InvariantCulture);
         }
     }
