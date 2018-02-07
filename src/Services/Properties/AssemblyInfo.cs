@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 
 [assembly: InternalsVisibleTo("SenseNet.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.Services.Tests")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 
 #if DEBUG
 [assembly: AssemblyTitle("SenseNet.Services (Debug)")]
@@ -17,9 +18,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyProduct("sensenet ECM")]
 [assembly: AssemblyTrademark("Sense/Net Inc.")]
 [assembly: AssemblyCulture("")]
-[assembly: AssemblyVersion("7.0.1.0")]
-[assembly: AssemblyFileVersion("7.0.1.0")]
+[assembly: AssemblyVersion("7.0.2.0")]
+[assembly: AssemblyFileVersion("7.0.2.0")]
 
 // This attribute is used by NuGet to determine the package file name and version.
 // It may contain a SemVer value.
-[assembly: AssemblyInformationalVersion("7.0.1")]
+[assembly: AssemblyInformationalVersion("7.0.2")]

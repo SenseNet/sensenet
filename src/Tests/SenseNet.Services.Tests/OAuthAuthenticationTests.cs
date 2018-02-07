@@ -106,6 +106,8 @@ namespace SenseNet.Services.Tests
                 throw new NotImplementedException();
             }
 
+            public DateTime LastLoggedOut { get; set; }
+
             public MembershipExtension MembershipExtension { get; set; }
         }
 
