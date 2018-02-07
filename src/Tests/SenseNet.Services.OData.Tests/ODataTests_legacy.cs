@@ -4012,10 +4012,9 @@ namespace SenseNet.Services.OData.Tests
                     names[i] = entity.Name;
                 }
 
-                Assert.AreNotEqual(name[0], name[1]);
-                Assert.AreNotEqual(name[0], name[2]);
-                Assert.AreNotEqual(name[1], name[2]);
-
+                Assert.AreNotEqual(names[0], names[1]);
+                Assert.AreNotEqual(names[0], names[2]);
+                Assert.AreNotEqual(names[1], names[2]);
             });
         }
 
