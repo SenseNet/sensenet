@@ -2,7 +2,7 @@
 
 ## Overview of sensenet ECM REST API
 
-The Open Data Protocol (OData) is a Web protocol for querying and updating data that provides a way to unlock your data and free it from silos that exist in applications today. OData is being used to expose and access information from a variety of sources including, but not limited to, relational databases, file systems, content management systems and traditional Web sites. Beginning from version 6.2 sensenet ECM Content Repository is an OData producer. Your applications can consume our OData service to create web apps on PCs and mobile devices (e.g. with KendoUI), mobile apps (OData is supported on all major smartphone platforms) or any other type of content based applications. We support CRUD operations on the repository, properties, binary streams, paging options and custom queries. You can expect an even wider coverage of the OData specification in future releases. For more information about OData check the OData website.In this article we explain how we implemented OData V3 and how you can access the sensenet ECM OData producer from OData clients.
+The Open Data Protocol (OData) is a Web protocol for querying and updating data that provides a way to unlock your data and free it from silos that exist in applications today. OData is being used to expose and access information from a variety of sources including, but not limited to, relational databases, file systems, content management systems and traditional Web sites. From version 6.2 sensenet ECM Content Repository is an OData producer. Your applications can consume our OData service to create web apps on PCs and mobile devices (e.g. with KendoUI), mobile apps (OData is supported on all major smartphone platforms) or any other type of content based applications. We support CRUD operations on the repository, properties, binary streams, paging options and custom queries. You can expect an even wider coverage of the OData specification in future releases. For more information about OData check the OData website.In this article we explain how we implemented OData V3 and how you can access the sensenet ECM OData producer from OData clients.
 
 > Please note that the structure and philosophy of the sensenet ECM [Content Repository](content-repository.md) prevents publishing an automatically discoverable OData metadata service, which means generic OData client tools will likely not work with sensenet ECM.
 
@@ -78,8 +78,8 @@ It returns child content of _/Root/Sites/ExampleSite/workspaces_ as a **collecti
 
 - **__metadata**: contains the OData URI of the entity and the name of its Content Type
 - **Actions**: this property is deferred: a comma separated list of action names
-- **IsFile**: if its value is true, the content has a binary property named "Binary" (from version 6.2.1).
-- **IsFolder**: if its value is true, the content implements **IFolder** interface. Implementing IFolder interface does not mean that the content is inherited from the `Folder` class but it has public Children property (from version 6.2.1).
+- **IsFile**: if its value is true, the content has a binary property named "Binary"
+- **IsFolder**: if its value is true, the content implements **IFolder** interface. Implementing IFolder interface does not mean that the content is inherited from the `Folder` class but it has public Children property.
 - **Id**, **Name**, **DisplayName**, **Icon**, **CreationDate**, **ModificationDate**: common properties of type integer, number or datetime.
 - **CreatedBy** and **ModifiedBy**: deferred properties (see: [http://www.odata.org/documentation/json-format#DeferredContent](http://www.odata.org/documentation/json-format#DeferredContent)).
 
@@ -108,7 +108,7 @@ Returns with one entity and all its properties. The content addressed with this 
 
 - http://www.example.com/workspaces/Document
 
-Another way: Service path followed by the "content" word and an entity id between parentheses (from version 6.3.1 Patch 2).
+Another way: Service path followed by the "content" word and an entity id between parentheses.
 
 - http://www.example.com/OData.svc/content(42)
 
@@ -306,8 +306,6 @@ $.ajax({
 ```
 
 ### $filter query option
-
-_(from version 6.2.1)_
 
 Defines a subset of the Entries from the specified collection. See on [OData.org](http://www.odata.org/documentation/uri-conventions#FilterSystemQueryOption). The filter expression can contain some global functions according to the OData standard:
 
