@@ -4,7 +4,6 @@ source_url: 'https://github.com/SenseNet/sensenet/blob/jwt/docs/content-query.md
 category: Concepts
 version: v6.0
 tags: [query, cql]
-description: XSS Protection
 ---
 
 ## Content Query
