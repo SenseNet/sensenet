@@ -4,7 +4,7 @@
   <ReleaseDate>2017-04-05</ReleaseDate>
   <Version>7.0.0</Version>
   <Dependencies>
-    <Dependency id='SenseNet.Services' minVersion='7.0.0' />
+    <Dependency id='SenseNet.Services' minVersion='7.1.0' />
   </Dependencies>
   <Parameters>
     <Parameter name="@path" description="Subtree path to rebuild the index for. Default: the whole Content Repository." />
