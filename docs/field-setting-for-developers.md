@@ -1,7 +1,7 @@
 ---
 title: "Field Setting"
 source_url: 'https://github.com/SenseNet/sensenet/docs/field-setting-for-developers.md'
-category: Developer
+category: Development
 version: v6.0
 tags: [field, field, setting, content type, content type definition]
 ---
