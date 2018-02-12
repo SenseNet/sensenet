@@ -6,7 +6,7 @@ version: v6.0
 tags: [query, cql]
 ---
 
-## Content Query
+# Content Query
 
 One of the main features of sensenet is Content Query. sensenet Content Repository is a query based system. This means that every content or image you see on the portal is collected by a very sophisticated and fast query engine.
 
