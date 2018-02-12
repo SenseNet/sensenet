@@ -2,7 +2,7 @@
 title: "ContentNamingProvider"
 source_url: 'https://github.com/SenseNet/sensenet/docs/content-naming-provider.md'
 category: Development
-version: v7.0
+version: v6.0
 tags: [content naming, naming, provider]
 ---
 
