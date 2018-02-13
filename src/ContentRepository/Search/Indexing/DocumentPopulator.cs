@@ -6,6 +6,7 @@ using SenseNet.ContentRepository.Search.Indexing.Activities;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Search;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Search.Querying;
@@ -57,12 +58,27 @@ namespace SenseNet.ContentRepository.Search.Indexing
         }
 
         // caller: IndexPopulator.Populator
-        public void RebuildIndexDirectly(string path)
+        public void RebuildIndexDirectly(string path, IndexRebuildLevel level = IndexRebuildLevel.IndexOnly)
         {
-            using (var op = SnTrace.Index.StartOperation("IndexPopulator RepopulateTree"))
+            if (level == IndexRebuildLevel.DatabaseAndIndex)
+            {
+                using (var op2 = SnTrace.Index.StartOperation("IndexPopulator: Rebuild index documents."))
+                {
+                    using (new SystemAccount())
+                    {
+                        var node = Node.LoadNode(path);
+                        DataBackingStore.SaveIndexDocument(node, false, false, out _);
+                        foreach (var n in NodeQuery.QueryNodesByPath(node.Path, true).Nodes)
+                            DataBackingStore.SaveIndexDocument(n, false, false, out _);
+                    }
+                    op2.Successful = true;
+                }
+            }
+
+            using (var op = SnTrace.Index.StartOperation("IndexPopulator: Rebuild index."))
             {
                 IndexManager.IndexingEngine.WriteIndex(
-                    new[] { new SnTerm(IndexFieldName.InTree, path) },
+                    new[] {new SnTerm(IndexFieldName.InTree, path)},
                     null,
                     SearchManager.LoadIndexDocumentsByPath(path, IndexManager.GetNotIndexedNodeTypes())
                         .Select(IndexManager.CompleteIndexDocument));
@@ -323,7 +339,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         private static readonly object PopulatorData = new object();
 
         public void ClearAndPopulateAll(TextWriter consoleWriter = null) { }
-        public void RebuildIndexDirectly(string path) { }
+        public void RebuildIndexDirectly(string path, IndexRebuildLevel level = IndexRebuildLevel.IndexOnly) { }
         public void AddTree(string path, int nodeId) { }
         public object BeginPopulateNode(Node node, NodeSaveSettings settings, string originalPath, string newPath) { return PopulatorData; }
         public void CommitPopulateNode(object data, IndexDocumentData indexDocument) { }

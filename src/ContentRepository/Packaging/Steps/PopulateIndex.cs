@@ -14,6 +14,9 @@ namespace SenseNet.Packaging.Steps
         [Annotation("Optional path of the subtree to populate. Default: /Root.")]
         public string Path { get; set; }
 
+        [Annotation("Optional configuration. Two values are accepted: 'IndexOnly' (default) and 'DatabaseAndIndex'.")]
+        public string Level { get; set; }
+
         private long _count;
         private long _versionCount;
         private long _factor;
@@ -25,6 +28,18 @@ namespace SenseNet.Packaging.Steps
             context.AssertRepositoryStarted();
 
             var path = context.ResolveVariable(Path) as string;
+            var level = context.ResolveVariable(Level) as string;
+            IndexRebuildLevel rebuildLevel;
+            try
+            {
+                rebuildLevel = string.IsNullOrEmpty(level)
+                    ? IndexRebuildLevel.IndexOnly
+                    : (IndexRebuildLevel) Enum.Parse(typeof(IndexRebuildLevel), level, true);
+            }
+            catch(Exception e)
+            {
+                throw new PackagingException(SR.Errors.InvalidParameter + ": Level", e, PackagingExceptionType.InvalidStepParameter);
+            }
 
             _context = context;
             _versionCount = DataProvider.GetVersionCount(path);
@@ -38,15 +53,17 @@ namespace SenseNet.Packaging.Steps
 
             try
             {
-                if (string.IsNullOrEmpty(path))
+                if (string.IsNullOrEmpty(path) && rebuildLevel == IndexRebuildLevel.IndexOnly)
                 {
-                    Logger.LogMessage($"Populating index of the whole Content Repository...");
+                    Logger.LogMessage($"Populating new index of the whole Content Repository...");
                     populator.ClearAndPopulateAll(context.Console);
                 }
                 else
                 {
-                    Logger.LogMessage($"Populating index for {path}...");
-                    populator.RebuildIndexDirectly(path);
+                    if (string.IsNullOrEmpty(path))
+                        path = Identifiers.RootPath;
+                    Logger.LogMessage($"Populating index for {path}, level={rebuildLevel} ...");
+                    populator.RebuildIndexDirectly(path, rebuildLevel);
                 }
             }
             finally
