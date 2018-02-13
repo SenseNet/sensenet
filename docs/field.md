@@ -8,7 +8,7 @@ tags: [field, content type, content type definition, inheritance, type system]
 
 # Field
 
-Fields are single data storing units that build up [Content Types](content-type.md) - in other words: Fields are attributes of Content. A single Field represents a single chunk of information, such as a name or a date. Fields are mapped to [Content Repository](content-repository.md) data slots in the storage layer, and can be displayed and accessed through [Field Controls](field-controls.md) in the UI layer.
+Fields are single data storing units that build up [Content Types](content-type.md) - in other words: Fields are attributes of Content. A single Field represents a single chunk of information, such as a name or a date. Fields are mapped to [Content Repository](content-repository.md) data slots in the storage layer, and can be displayed and accessed through [Field Controls](field-control.md) in the UI layer.
 
 A Field is a data storing building block of a Content. However, it not only stores data, but also carries metadata and configuration settings. Metadata includes attributes like *Title* and *Description*; configuration includes attributes like Compulsory and ReadOnly. For a complete list of available metadata and configuration attributes see [CTD Field definition](ctd.md).
 
@@ -29,7 +29,7 @@ As Fields build up [Content](content.md), the set of contained Fields are define
 
 ## Field controls
 
-When [Content](content.md) are presented with [Content Views](content-views.md) the different Fields of Content are displayed using [Field Controls](field-controls.md). Field Controls are ASP.Net controls that display the underlying Field value in *Browse mode* and provide an editable surface to set/change the Field value when rendered in *Edit mode*. More types of Field Controls can present a Field, but the Field Control always depends on the underlying Field. The Field itself can define a default Field control in its Field handler (see later) that can be overridden using the *ControlHint* Field configuration property. The default Field control setting of a Field plays role when the Content is presented with a [Generic Content View](generic-content-view.md) or the Field is presented with a  [Generic Field Control](genereic-field-control.md). Otherwise, always the Content View defines the Field-Field Control orderings.
+When [Content](content.md) are presented with [Content Views](content-views.md) the different Fields of Content are displayed using [Field Controls](field-control.md). Field Controls are ASP.Net controls that display the underlying Field value in *Browse mode* and provide an editable surface to set/change the Field value when rendered in *Edit mode*. More types of Field Controls can present a Field, but the Field Control always depends on the underlying Field. The Field itself can define a default Field control in its Field handler (see later) that can be overridden using the *ControlHint* Field configuration property. The default Field control setting of a Field plays role when the Content is presented with a [Generic Content View](generic-content-view.md) or the Field is presented with a  [Generic Field Control](genereic-field-control.md). Otherwise, always the Content View defines the Field-Field Control orderings.
 
 ## Fields and data slots
 

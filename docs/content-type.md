@@ -15,7 +15,7 @@ Content Types are defined in a type hierarchy: a Content Type may be inherited f
 A Content Type is a special content in the [Content Repository](content-repository.md). Content Types define the structure and functioning of content:
 
 - name, description of content types and available set of fields are defined with an xml configuration ([Content Type Definition](ctd.md) or CTD),
-- optional custom business logic is implemented via a custom [Content Handler](content-handler.md), custom [Fields](field.md) and custom [Field Controls](field-controls.md).
+- optional custom business logic is implemented via a custom [Content Handler](content-handler.md), custom [Fields](field.md) and custom [Field Controls](field-control.md).
 For example a User has a name, e-mail address, etc. - these fields of the User Content Type are defined by its Content Type Definition. When saving a User it can be synchronized into an Active Directory - this logic is implemented in its Content Handler.
 
 ## Content Type hierarchy
