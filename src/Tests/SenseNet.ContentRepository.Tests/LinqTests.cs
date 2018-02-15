@@ -856,6 +856,26 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_ReplaceTemplates()
+        {
+            Test(() =>
+            {
+                var childrenDef = new ChildrenDefinition
+                {
+                    PathUsage = PathUsageMode.InFolderOr,
+                    ContentQuery = "CreationDate:<@@CurrentDay@@"
+                };
+                var expr = Content.All.Where(c => c.IsFolder == true).Expression;
+                var actual = SnExpression.BuildQuery(expr, typeof(Content), "/Root/FakePath", childrenDef).ToString();
+                var expected = $"(+IsFolder:yes +CreationDate:<'{DateTime.UtcNow.Date:yyyy-MM-dd} 00:00:00.0000') InFolder:/root/fakepath";
+
+                Assert.AreEqual(expected, actual);
+
+                return true;
+            });
+        }
+
+        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_API()
         {
             Test(() =>

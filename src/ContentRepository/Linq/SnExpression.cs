@@ -53,7 +53,9 @@ namespace SenseNet.ContentRepository.Linq
             SnQuery lq = null;
             if (!string.IsNullOrEmpty(childrenDef?.ContentQuery))
             {
-                lq = SnQuery.Parse(childrenDef.ContentQuery, new SnQueryContext(QuerySettings.Default, User.Current.Id));
+                var queryText = TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), childrenDef.ContentQuery);
+
+                lq = SnQuery.Parse(queryText, new SnQueryContext(QuerySettings.Default, User.Current.Id));
                 q0 = q0 == null 
                     ? lq.QueryTree 
                     : CombineQueries(q0, lq.QueryTree);
