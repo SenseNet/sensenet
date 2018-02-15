@@ -120,11 +120,10 @@ namespace SenseNet.ContentRepository.Schema
         }
         private static IndexFieldAnalyzer ParseAnalyzer(string analyzerName, string contentTypeName, string fieldName)
         {
-            IndexFieldAnalyzer result;
-            if(Enum.TryParse(analyzerName, true, out result))
+            if(Enum.TryParse(analyzerName, true, out IndexFieldAnalyzer result))
                 return result;
 
-            var values = Enum.GetValues(typeof(IndexFieldAnalyzer)).OfType<string>().ToArray();
+            var values = Enum.GetValues(typeof(IndexFieldAnalyzer)).Cast<IndexFieldAnalyzer>().Select(a => a.ToString()).ToArray();
             var validValues = string.Join("', '", values);
             throw new ContentRegistrationException(
                 $"Invalid analyzer in {fieldName} field of content type {contentTypeName}: {analyzerName}. " +
