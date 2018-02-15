@@ -81,7 +81,12 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     new[] {new SnTerm(IndexFieldName.InTree, path)},
                     null,
                     SearchManager.LoadIndexDocumentsByPath(path, IndexManager.GetNotIndexedNodeTypes())
-                        .Select(IndexManager.CompleteIndexDocument));
+                        .Select(d =>
+                        {
+                            var indexDoc = IndexManager.CompleteIndexDocument(d);
+                            OnNodeIndexed(d.Path);
+                            return indexDoc;
+                        }));
                 op.Successful = true;
             }
         }

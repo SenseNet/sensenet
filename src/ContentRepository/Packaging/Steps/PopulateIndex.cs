@@ -2,9 +2,7 @@
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
-using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.Packaging.Steps
 {
@@ -14,7 +12,7 @@ namespace SenseNet.Packaging.Steps
         [Annotation("Optional path of the subtree to populate. Default: /Root.")]
         public string Path { get; set; }
 
-        [Annotation("Optional configuration. Two values are accepted: 'IndexOnly' (default) and 'DatabaseAndIndex'.")]
+        [Annotation("Optional level of rebuilding the index. Two values are accepted: 'IndexOnly' (default) and 'DatabaseAndIndex'.")]
         public string Level { get; set; }
 
         private long _count;
