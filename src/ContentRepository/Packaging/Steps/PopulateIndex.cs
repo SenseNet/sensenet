@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
@@ -76,7 +77,7 @@ namespace SenseNet.Packaging.Steps
         }
         private void Populator_NodeIndexed(object sender, NodeIndexedEventArgs e)
         {
-            _count++;
+            Interlocked.Increment(ref _count);
 
             if (_count % _factor == 0)
                 _context.Console.Write("|");

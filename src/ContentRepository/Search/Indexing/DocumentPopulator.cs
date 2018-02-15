@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using SenseNet.ContentRepository.Search.Indexing.Activities;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -68,8 +69,9 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     {
                         var node = Node.LoadNode(path);
                         DataBackingStore.SaveIndexDocument(node, false, false, out _);
-                        foreach (var n in NodeQuery.QueryNodesByPath(node.Path, true).Nodes)
-                            DataBackingStore.SaveIndexDocument(n, false, false, out _);
+
+                        Parallel.ForEach(NodeQuery.QueryNodesByPath(node.Path, true).Nodes,
+                            n => { DataBackingStore.SaveIndexDocument(n, false, false, out _); });
                     }
                     op2.Successful = true;
                 }
@@ -212,7 +214,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         {
             using (var op = SnTrace.Index.StartOperation("DocumentPopulator.RefreshIndex. Version: {0}, VersionId: {1}, recursive: {2}, level: {3}", node.Version, node.VersionId, recursive, rebuildLevel))
             {
-                using (new Storage.Security.SystemAccount())
+                using (new SystemAccount())
                 {
                     var databaseAndIndex = rebuildLevel == IndexRebuildLevel.DatabaseAndIndex;
                     if (recursive)
@@ -253,8 +255,9 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 if (databaseAndIndex)
                 {
                     DataBackingStore.SaveIndexDocument(node, false, false, out _);
-                    foreach (var n in NodeQuery.QueryNodesByPath(node.Path, true).Nodes)
-                        DataBackingStore.SaveIndexDocument(n, false, false, out _);
+
+                    Parallel.ForEach(NodeQuery.QueryNodesByPath(node.Path, true).Nodes,
+                        n => { DataBackingStore.SaveIndexDocument(n, false, false, out _); });
                 }
 
                 AddTree(node.Path, node.Id);
