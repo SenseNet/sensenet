@@ -39,7 +39,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// Does not notify any other webservers and does not register any activity.
         /// Note: 
         /// </summary>
-        void RebuildIndexDirectly(string path);
+        void RebuildIndexDirectly(string path, IndexRebuildLevel level = IndexRebuildLevel.IndexOnly);
         /// <summary>
         /// Adds a brand new subtree to the index.
         /// </summary>

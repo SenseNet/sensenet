@@ -1080,14 +1080,16 @@ Switches on the indexing. This step is experimental, we use it only in internal 
 ### PopulateIndex
 - Full name: `SenseNet.Packaging.Steps.PopulateIndex`
 - Default property: `Path`
-- Additional properties: -
+- Additional properties: `Level`
 
 Populates the index of the whole content tree, or a subtree, provided by the Path property.
+
+If you set the _Level_ property to _DatabaseAndIndex_, the tool will re-create index documents from scratch by loading and reindexing content items instead of just rebuilding the index from predefined index documents in the database (the latter is the default).
 
 ### CheckIndexIntegrity
 - Full name: `SenseNet.Packaging.Steps.CheckIndexIntegrity`
 - Default property: `Path`
-- Additional properties: Recursive, OutputLimit
+- Additional properties: `Recursive`, `OutputLimit`
 
 Checks the index integrity by comparation the index and database. This step needs running repository. All parameters are optional and their meanings are the following:
 - **Path**: Defines the integrity check's scope if there is. If empty, the whole repository tree will be checked.
