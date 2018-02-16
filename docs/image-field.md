@@ -1,6 +1,6 @@
 ---
 title:  "Image Field"
-source_url: 'https://github.com/SenseNet/sensenet/blob/jwt/docs/image-field.md'
+source_url: 'https://github.com/SenseNet/sensenet/blob/master/docs/image-field.md'
 category: Concepts
 version: v6.0
 tags: [fields, image]
