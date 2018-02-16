@@ -1,6 +1,6 @@
 ---
 title:  "Choice Field"
-source_url: 'https://github.com/SenseNet/sensenet/blob/jwt/docs/choice-field.md'
+source_url: 'https://github.com/SenseNet/sensenet/blob/master/docs/choice-field.md'
 category: Concepts
 version: v6.0
 tags: [fields, choice, select, checkbox, radiobutton]
