@@ -1,6 +1,6 @@
 ---
 title:  "Content Query"
-source_url: 'https://github.com/SenseNet/sensenet/blob/jwt/docs/content-query.md'
+source_url: 'https://github.com/SenseNet/sensenet/blob/master/docs/content-query.md'
 category: Concepts
 version: v6.0
 tags: [query, cql]
