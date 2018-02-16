@@ -8,14 +8,16 @@ tags: [binary, file, field control, field]
 
 # Binary Field Control
 
+> Although this feature is supported in sensenet ECM 7, it is built on the old Web Forms technology that you should not use for new projects. We encourage you to use a more modern UI solution using our [client-side packages](https://www.npmjs.com/org/sensenet).
+
 The Binary Field Control is a Field Control that handles [Binary Fields](binary-field.md) and provides an interface to modify binary data of a Content.
 
 <img src="https://raw.githubusercontent.com/SenseNet/sensenet/master/docs/images/ReferenceWiki_BinaryFieldControl1.png" style="margin: 20px auto" />
 
-With Binary Field Control the binary data of a Content can be added/modified. Depending on the configuration of the Field and the Content Type and extension, the control is rendered as a textarea where you can edit the binary manually or as a fileupload control allowing you uploading a new file. By default an upload control is rendered. A textarea is rendered when:
+With Binary Field Control the binary data of a Content can be added/modified. Depending on the configuration of the Field and the Content Type and extension, the control is rendered as a textarea where you can edit the binary manually or as a fileupload control allowing you to upload a new file. By default an upload control is rendered. A textarea is rendered when:
 
-- the displayed Content is a [Content Type](content-type,md),
-- the displayed Content has an extension that is included in the web.config's *EditSourceExtensions* entry of the <portalSettings> section,
+- the displayed Content is a [Content Type](content-type.md),
+- the displayed Content has an extension that is included in the web.config's *EditSourceExtensions* entry of the *sensenet/webApplication* section,
 - otherwise when the *IsText* property in the underyling [Binary Field's](binary-field.md) [Field Setting](field-setting.md) is set to true.
 When a textarea is rendered it can be displayed as a highlighted editor of bigger size using the FullScreenText property.
 

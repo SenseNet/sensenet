@@ -8,38 +8,27 @@ tags: [content, ctd, child types, field]
 
 # Allowed Child Types
 
-The sensenet [Content Repository](content-repository.md) stores different [Content Types](content-types.md). One of the major differences between a file system and the Content Repository, is that in a file system you can store any tpye (file or folder) anywhere, whereas in the sensenet Content Repository it is possible to define restrictions on what Content Types the different containers can contain. This allows portal builders to create a much more precisely defined [Content](content.md) structure and provide the users a better user experience when creating new content under different places in the Content Repository.
+The sensenet [Content Repository](content-repository.md) stores different [Content Types](content-type.md). One of the major differences between a file system and the Content Repository, is that in a file system you can store any tpye (file or folder) anywhere, whereas in the sensenet Content Repository it is possible to define restrictions on what Content Types the different containers can contain. This allows portal builders to create a much more precisely defined [Content](content.md) structure and provide the users a better user experience when creating new content under different places in the Content Repository.
 
 You can configure Allowed Child Types in the Content Type Definition of the different types. For example a MemoList can only contain Memos, a Document Library can only contain Folders and Files, etc. These settings can be overridden on the specific Content, for example you can modify any of your Document Libraries to contain Images, too. There are also some special types that behave differently: a Folder for example can never define child types, it will always inherit its parent settings. A SystemFolder will allow every type by default and can be created anywhere in the repository.
 
 ## CTD settings
 
-To set the default allowed child types for a specific Content Type, go to its CTD and define the AllowedChildTypes element. If it does not exist yet, create it right before *Fields*:
+To set the default allowed child types for a specific Content Type, go to its CTD and define the AllowedChildTypes element. If it does not exist yet, create it right before the *Fields* element:
 
 ```xml
-  ...
   <AllowedChildTypes>
     Folder,File
   </AllowedChildTypes>
-  <Fields>
-    ...
 ```
 
 The above settings will ensure that whenever you create a new Content of this specific type, only Files and Folders will be allowed to be created under it. This setting can be overridden on the created Content as explained in the next section.
 
 ## Content settings
 
-Allowed Child Types can also be defined on Content instances. When types are locally defined for a specific Content it means that the CTD settings of its type will no longer be in effect. This way you can freely modify Allowed Child Type settings for a specific Content, and modifications in CTD will not affect the child type settings of that Content in any ways. The local allowed child type settings of content is stored in the AllowedChildTypes Field defined on the GenericContent Content Type:
+Allowed Child Types can also be defined on Content instances. When types are locally defined for a specific Content it means that the CTD settings of its type will no longer be in effect. This way you can freely modify Allowed Child Type settings for a specific Content, and modifications in CTD will not affect the child type settings of that Content in any ways. The local allowed child type settings of a Content is stored in the *AllowedChildTypes* field.
 
-```xml
-    <Field name="AllowedChildTypes" type="AllowedChildTypes">
-      <DisplayName>Allowed child types</DisplayName>
-      <Description>You can specify which content types the user can create as children below this content.</Description>
-      ...
-    </Field>
-```
-
-To modify allowed child types of a Content, simply edit it and use the control for the *Content Types* Field:
+To modify allowed child types of a Content, simply open the edit page and modify the *Content Types* list:
 
 <img src="https://raw.githubusercontent.com/SenseNet/sensenet/master/docs/images/allowed-child-types/AllowedChildTypes1.png" style="margin: 20px auto" />
 
@@ -55,16 +44,7 @@ To undo these changes and remove local settings so that allowed child types list
 
 ### Explicit and effective allowed child types
 
-The **AllowedChildTypes** field itself does not always store the values you see in the user interface. For example Folders and Pages cannot have their own setting (see below), they always inherit from their parent. Other containers may inherit their allowed child types list from their content type (CTD). If you as a developer need the actual list of types that your users will be able to create in a container, use the **EffectiveAllowedChildTypes** read only field.
-
-```xml
-<Field name="EffectiveAllowedChildTypes" type="AllowedChildTypes">
-   <DisplayName>Effective allowed child types</DisplayName>
-   ...
-</Field>
-```
-
-The field is based on the read only property with the same name.
+The **AllowedChildTypes** field itself does not always store the values you see in the user interface. For example Folders and Pages cannot have their own setting (see below), they always inherit from their parent. Other containers may inherit their allowed child types list from their content type (CTD). If you as a developer need the actual list of types that your users will be able to create in a container, use the **EffectiveAllowedChildTypes** read only field based on the read only property with the same name.
 
 ## Creating new content
 
@@ -74,7 +54,7 @@ The allowed child types definition on a content (whether it comes from CTD or fr
 
 ## Permissions for creating a type
 
-A Content Type in the new menu will only show up if the user has See permissions on the Content Type node. For example to create a new Car anywhere you need to have See permissions on the */Root/System/Schema/ContentTypes/GenericContent/ListItem/Car* content.
+A Content Type in the new menu will only show up if the user has See permissions on the Content Type node. For example to create a new Car anywhere you need to have **See** permissions on the */Root/System/Schema/ContentTypes/GenericContent/ListItem/Car* content.
 
 ## Content allowing all types
 
@@ -103,7 +83,7 @@ Developers can use functions defined on the GenericContent API to get and set al
 To get the allowed child types, use the *GetAllowedChildTypes* function:
 
 ```csharp
-var gc = Node.LoadNode("/Root/Sites/Default_Site/MyContent") as GenericContent;
+var gc = Node.Load<GenericContent>("/Root/Sites/Default_Site/MyContent");
  
 // get IEnumerable<ContentType>
 var types = gc.GetAllowedChildTypes();
