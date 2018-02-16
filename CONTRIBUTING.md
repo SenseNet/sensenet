@@ -6,9 +6,13 @@ All kinds of contributions are welcome, including ideas, requests for improvemen
 Please start by **creating an issue** (if you do not find an existing one) either in the [main repository](https://github.com/SenseNet/sensenet) or in one of the [smaller ones](https://github.com/SenseNet). Issues may vary from a small bug to a discussion about a large architectural change, feel free to create them! 
 
 ## Enterprise customers
-sensenet ECM has an *Enterprise Edition* that is not published here on GitHub. However the source code is **identical to the Community Edition** published here - except for some modules that are not available in the *Community Edition* (for example Active Directory synchronization). For differences please visit [this article](http://wiki.sensenet.com/Differences_between_Community_and_Enterprise_editions) on our wiki.
+sensenet ECM has an *Enterprise Edition* containing all the modules in the *Community Edition*. The source code is identical in case of these editions - and it is published here on GitHub.
 
-If you work with the Enterprise Edition, you can file tickets in our [JIRA](http://support.sensenet.com), but if you already have an exact source code change in your mind, it is easier (and more agile) if you make that change here the same way as others - it will flow through the pipes to the same place in the Enterprise Edition and will be included in the next patch.
+> The Enterprise Edition may contain some additional modules that are not published here. If you have an issue with one of those, please contact us to sort it out. 
+
+If you work with the Enterprise Edition and want to report an urgent issue, you can file tickets in our [support system](http://support.sensenet.com), or you can create an issue here on GitHub, if you are OK with discussing it in public.
+
+If you already have an exact source code change in your mind, it is easier (and more agile) if you make that change here the same way as others - it will flow through the pipes to the same place and will be included in the next patch.
 
 ## sensenet and its components
 This is a huge project that consists of multiple repositories:
@@ -34,10 +38,10 @@ It also helps if you share your experience, thoughts or opinion on existing issu
 
 1. Github has a cool [overview](https://guides.github.com) of the workflows and basic git stuff, please check it out if you are not familar with how things work here :ok_hand:.
 2. If possible, avoid making broad changes (e.g. a huge refactor) before talking to us; the more files you change, the harder it is to review and merge the commit.
-3. Start work by [forking](https://help.github.com/articles/working-with-forks) the repository you want to improve, than making a *branch* for the fix/feature.
-4. The dev environment is usually not complicated in case of smaller components (for example [sensenet Tools](https://github.com/SenseNet/sn-tools) or [Client for .Net](https://github.com/SenseNet/sn-client-dotnet)) - just build it, and you're good to go. In case of the main product we have a [list of steps](http://wiki.sensenet.com/How_to_install_sensenet_from_source_package_(IIS_7.5_and_IIS_7.0)) you should take to assemble the environment.
+3. Start work by [forking](https://help.github.com/articles/working-with-forks) the repository you want to improve, then make a *branch* for the fix/feature.
+4. The dev environment is usually not complicated in case of smaller components (for example [sensenet Tools](https://github.com/SenseNet/sn-tools) or [Client for .Net](https://github.com/SenseNet/sn-client-dotnet)) - just build it, and you're good to go. In case of bigger components you may install them in a web application, build a custom library and try it out in your environment.
 5. We have a list of [Coding Conventions](http://wiki.sensenet.com/Coding_Conventions) for sensenet projects. Please try to follow that guide when you write code (it contains the usual stuff: code formatting, best practices and common mistakes).
-6. Unit tests are nice, please add some, if possible.
+6. Unit tests are nice, please execute existing tests and add new ones if possible.
 7. You may also use our [benchmark tool](https://github.com/SenseNet/sn-benchmark) to measure the performance of the product before and after the change, if necessary.
 7. When you are confident with your fix/feature, create a [pull request](https://help.github.com/articles/creating-a-pull-request-from-a-fork). We will get notified right away :smiley:.
 
