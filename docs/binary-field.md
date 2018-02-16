@@ -1,6 +1,6 @@
 ---
 title:  "Binary Field"
-source_url: 'https://github.com/SenseNet/sensenet/blob/jwt/docs/binary-field.md'
+source_url: 'https://github.com/SenseNet/sensenet/blob/master/docs/binary-field.md'
 category: Concepts
 version: v6.0
 tags: [fields, binary]
