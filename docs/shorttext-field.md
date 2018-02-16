@@ -1,6 +1,6 @@
 ---
 title:  "ShortText Field"
-source_url: 'https://github.com/SenseNet/sensenet/blob/jwt/docs/shorttext-field.md'
+source_url: 'https://github.com/SenseNet/sensenet/blob/master/docs/shorttext-field.md'
 category: Concepts
 version: v6.0
 tags: [fields, shorttext]
