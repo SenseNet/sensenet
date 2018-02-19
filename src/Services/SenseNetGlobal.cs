@@ -19,6 +19,7 @@ using System.Web.SessionState;
 using SenseNet.Configuration;
 using SenseNet.Portal;
 using SenseNet.Tools;
+using System.Security;
 
 namespace SenseNet.Services
 {
@@ -35,7 +36,44 @@ namespace SenseNet.Services
             {
                 if (__instance == null)
                 {
-                    __instance = ChooseInstance(TypeResolver.GetTypesByBaseType(typeof(SenseNetGlobal)));
+                    try
+                    {
+                        __instance = ChooseInstance(TypeResolver.GetTypesByBaseType(typeof(SenseNetGlobal)));
+                    }
+                    catch (ReflectionTypeLoadException ex)
+                    {
+                        List<string> types = new List<string>();
+                        if (ex.LoaderExceptions != null)
+                        {
+                            foreach (var item in ex.LoaderExceptions)
+                            {
+                                switch (item)
+                                {
+                                    case FileLoadException flo:
+                                        types.Add(flo.FileName);
+                                        break;
+                                    case FileNotFoundException f:
+                                        types.Add(f.FileName);
+                                        break;
+                                    case BadImageFormatException b:
+                                        types.Add(b.FileName);
+                                        break;
+                                    case SecurityException s:
+                                        types.Add(s.Url);
+                                        break;
+                                    case TypeLoadException tl:
+                                        types.Add(tl.TypeName);
+                                        break;
+                                }
+                            }
+                        }
+
+                        var typeList = Environment.NewLine + string.Join(Environment.NewLine, types);
+                        var message = ex.LoaderExceptions?.FirstOrDefault()?.Message;
+
+                        throw new Exception($"ReflectionTypeLoadException: Could not load types. Affected types: {typeList + Environment.NewLine}First message: {message}");
+                    }
+
                     SnTrace.System.Write("Global class loaded: " + __instance.GetType().FullName);
                 }
                 return __instance;
