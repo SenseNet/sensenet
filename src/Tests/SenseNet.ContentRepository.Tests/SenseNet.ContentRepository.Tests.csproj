@@ -77,6 +77,7 @@
     <Compile Include="TreeLockTests.cs" />
     <Compile Include="VersionExistenceTests.cs" />
     <Compile Include="VersionHistoryTests.cs" />
+    <Compile Include="VersionNumberTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\BlobStorage\BlobStorage.csproj">
