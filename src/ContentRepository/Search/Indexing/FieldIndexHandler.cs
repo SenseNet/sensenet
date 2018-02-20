@@ -840,9 +840,10 @@ namespace SenseNet.Search.Indexing
             textExtract = string.Empty;
             var data = snField.GetData();
             if (data is Node node)
-                return CreateField(snField.Name, node.Id.ToString());
+                return CreateField(snField.Name, node.Id);
             if (data is IEnumerable nodes)
-                return CreateField(snField.Name, nodes.Cast<Node>().Select(n => n.Id.ToString()));
+                return nodes.Cast<Node>().Select(n => CreateField(snField.Name, n.Id).First());
+
             return CreateField(snField.Name, SnQuery.NullReferenceValue);
         }
         /// <inheritdoc />
