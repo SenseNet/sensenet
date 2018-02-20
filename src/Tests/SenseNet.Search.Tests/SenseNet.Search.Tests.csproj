@@ -52,6 +52,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="CqlLexerTests.cs" />
     <Compile Include="CqlParserTests.cs" />
     <Compile Include="Implementations\TestQueryEngine.cs" />
     <Compile Include="SnQueryTests.cs" />
