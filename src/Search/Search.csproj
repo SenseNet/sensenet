@@ -100,9 +100,7 @@
     <Compile Include="SortInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Api.cd" />
     <None Include="packages.config" />
-    <None Include="SearchInSearch.cd" />
     <None Include="Search.nuspec" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
