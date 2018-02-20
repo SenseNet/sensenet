@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Search.Querying.Parser;
+using SenseNet.Tests;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 namespace SenseNet.Search.Tests
 {
     [TestClass]
-    public class CqlLexerTests
+    public class CqlLexerTests : TestBase
     {
         [DebuggerDisplay("{Token}:{Value}")]
         private class TokenChecker
