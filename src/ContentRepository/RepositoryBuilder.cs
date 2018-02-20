@@ -31,6 +31,12 @@ namespace SenseNet.ContentRepository
             Configuration.Providers.Instance.DataProvider = dataProvider;
             WriteLog("DataProvider", dataProvider);
 
+            if (dataProvider is ITransactionFactory)
+            {
+                CommonComponents.TransactionFactory = dataProvider;
+                WriteLog("TransactionFactory", dataProvider);
+            }
+
             return this;
         }
         /// <summary>
