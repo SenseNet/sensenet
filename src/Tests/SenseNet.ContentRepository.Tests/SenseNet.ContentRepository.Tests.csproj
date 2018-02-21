@@ -66,6 +66,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Accessors.cs" />
+    <Compile Include="AutoNamingTests.cs" />
     <Compile Include="ComponentVersionTests.cs" />
     <Compile Include="ContentTypeTests.cs" />
     <Compile Include="GenericContentTests.cs" />

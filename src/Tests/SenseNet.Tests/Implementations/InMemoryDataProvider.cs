@@ -108,9 +108,21 @@ namespace SenseNet.Tests.Implementations
             var existingName = _db.Nodes
                 .Where(n => n.ParentNodeId == parentId && regex.IsMatch(n.Name.ToLowerInvariant()))
                 .Select(n => n.Name.ToLowerInvariant())
-                .OrderByDescending(s => s)
+                .OrderByDescending(s => GetSuffix(s))
                 .FirstOrDefault();
             return existingName;
+        }
+        private int GetSuffix(string name)
+        {
+            var p0 = name.LastIndexOf("(");
+            if (p0 < 0)
+                return 0;
+            var p1 = name.IndexOf(")", p0);
+            if (p1 < 0)
+                return 0;
+            var suffix = p1 - p0 > 1 ? name.Substring(p0 + 1, p1 - p0 - 1) : "0";
+            var order = int.Parse(suffix);
+            return order;
         }
 
         #region NOT IMPLEMENTED
@@ -2010,7 +2022,8 @@ namespace SenseNet.Tests.Implementations
                 element.SetAttribute("name", name);
                 element.SetAttribute("className", className);
 
-                var parentElement = (XmlElement)_schemaXml.SelectSingleNode($"//x:NodeType[@itemID = '{parent.Id}']", _nsmgr);
+                //var parentElement = (XmlElement)_schemaXml.SelectSingleNode($"//x:NodeType[@itemID = '{parent.Id}']", _nsmgr);
+                var parentElement = (XmlElement)_schemaXml.SelectSingleNode($"//x:NodeType[@name = '{parent.Name}']", _nsmgr);
                 // ReSharper disable once PossibleNullReferenceException
                 parentElement.AppendChild(element);
             }
