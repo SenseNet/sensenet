@@ -8,7 +8,7 @@ tags: [content naming, naming, provider]
 
 # ContentNamingProvider
 
-As sensenet ECM has a web interface, handling content names that appear in URLs is crutial. Document naming is also important in a system that provides document management as one of its main features. To learn more about content naming, please check out the main article. This article is for developers about how to customize the default naming behavior in sensenet ECM.
+As sensenet ECM has a web interface, handling content names that appear in URLs is crutial. Document naming is also important in a system that provides document management as one of its main features. To learn more about content naming, please check out the [main article](content-naming.md). This article is for developers about how to customize the default naming behavior in sensenet ECM.
 
 All content naming operations are done through a content naming provider. The base provider is the abstract *SenseNet.ContentRepository.ContentNamingProvider* class. It has the following customizable features:
 
@@ -18,7 +18,7 @@ All content naming operations are done through a content naming provider. The ba
 
 These features are called by system methods and can be customized by developers by simply inheriting from the base class. The active provider is selected in the configuration (see below).
 
-> If you are interested in customizing how the name of a downloaded file looks like, please check out the [Document binary provider](document-binary-provider.md) article.
+> If you are interested in customizing how the name of a *downloaded* file looks like, please check out the [Document binary provider](document-binary-provider.md) article.
 
 ## Built-in naming providers
 
@@ -29,7 +29,7 @@ We offer the following predefiend naming providers. You may choose either one of
 **This is the default naming provider.** Contains a customized *GenerateNameFromDisplayName* method that replaces invalid characters with a **single replacement character**. Invalid characters and the replacement character are configurable in the **sensenet/contentNaming** section in the web.config.
 
 - **InvalidNameCharsPattern** (see details in the [Content naming article](content-naming.md))
-- **ReplacementChar**: a single character that will be used as a replacement character
+- **ReplacementChar**: a single character that will be used as a replacement character. Default is the '-' character.
 
 Duplicated 'ReplacementChar' characters are replaced by a single character (so after the conversion the name may contain less characters than the display name). This conversion is very simple but there is a chance of non-unique name creation. The original file extension will be kept.
 
@@ -45,7 +45,7 @@ In this section we list all the API methods that you may override in your custom
 
 ### Creating a new name
 
-This method should create a valid name from the base name and an associated ContentType that describes the expected extension. In our implementation the name base will be supplemented by the extension that is described in the provided content type. In inherited custom providers it is possible to write a more sophisticated name generation algorithm using the content type and the parent content instance.
+This method should create a valid name from the base name and an associated ContentType that may describe the expected extension. In our implementation the name base will be supplemented by the extension that is described in the provided content type. In inherited custom providers it is possible to write a more sophisticated name generation algorithm using the content type and the parent content instance.
 
 ```csharp
 protected virtual string GenerateNewName(string nameBase, ContentType contentType, Node parent)
@@ -91,12 +91,14 @@ protected virtual string GetNextNameSuffix(string currentName, int parentNodeId 
 
 ## Configuring the naming provider
 
-The active naming provider class needs to be selected in the configuration (e.g. web.config) file. In the *appSettings* section you may use the *ContentNamingProvider* key for providing the fully qualified name of the target class. If the key does not exist, the default provider is the *SenseNet.ContentRepository.CharReplacementContentNamingProvider*.
+The active naming provider class needs to be selected in the configuration (e.g. web.config) file. In the *sensenet/providers* section you may use the *ContentNamingProvider* key for providing the fully qualified name of the target class. If the key does not exist, the default provider is the *SenseNet.ContentRepository.CharReplacementContentNamingProvider*.
 
 ```csharp
-<appSettings>
-  ...
-  <add key="ContentNamingProvider" value="SenseNet.ContentRepository.Underscore5FContentNamingProvider" />
-  ...
-</appSettings>
+<sensenet>
+  <providers>
+    ...
+    <add key="ContentNamingProvider" value="SenseNet.ContentRepository.Underscore5FContentNamingProvider" />
+    ...
+  </providers>
+</sensenet>
 ```

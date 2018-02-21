@@ -10,7 +10,7 @@ tags: [content, naming, content type]
 
 In the sensenet [Content Repository](content-repository.md) every Content has a Name [Field](field.md) that together with its location identifies the Content. The Content Name is part of the Content Path, and since the path can be used to address the Content via url, there are certain restrictions against the Name. The Content in the Repository also have a DisplayName that is the user-friendly human readable name of Content and can contain any kind of characters without restrictions. This article summarizes the connection between these two fields and other common aspects of Content naming.
 
-> If you are interested in customizing how the name of a downloaded file looks like, please check out the [Document binary provider article](document-binary-provider.md) for developers.
+> If you are interested in customizing how the name of a *downloaded* file looks like, please check out the [Document binary provider article](document-binary-provider.md) for developers.
 
 ## Name and DisplayName
 
@@ -18,15 +18,15 @@ All content in the sensenet [Content Repository](content-repository.md) is ident
 
 |Field|Description|Example|
 |-----|-----------|-------|
-|**Name** (*Name Field*)|identifier of the Content|	Examples-tutorials.docx|
-|**Path** (*Path Field*)|	link to the Content in Content Repository|/Root/DemoContents/Examples-tutorials.docx|
-|**Display Name** (*DisplayName Field*)|a legible name of the Content for better human readability|Examples & tutorials.docx|
+|**Name**|identifier of the Content|	Examples-tutorials|
+|**Path**|	link to the Content in Content Repository|/Root/DemoContents/Examples-tutorials|
+|**DisplayName**|a legible name of the Content for better human readability|Examples & tutorials|
 
 The **Name** is the main identifier of the [Content](content.md). Its value is also included in the Path property which acts as a permalink to the Content. Thus changing a Content's Name (aka. renaming a Content) also changes the Path and therefore renaming operations should be carried out carefully. A path change may result in a lengthy operation (paths of child content are also changed respectively) and may also result in broken links in the [Content Repository](content-repository.md) (if another content refers to the changed one through its path - e.g. an article containing a link in its text). These two properties are used when the Content is referred to via a url link and therefore may not contain special characters.
 
 > Do not worry about [referenced content](reference-field.md): those are connected by content ids instead of paths, so renaming a referenced content will not brake reference fields.
 
-The **DisplayName** is the main display name of the Content. It acts as a legible, human readable name and may contain punctuations and accented characters as well. Generally, when a Content is displayed on the front-end of the portal, the value of the DisplayName property is shown. Changing the DisplayName is a simple operation and does not cause broken links (because changing DisplayName only does not change the Url Name).
+The **DisplayName** is the main display name of the Content. It acts as a legible, human readable name and may contain punctuations and accented characters as well. Generally, when a Content is displayed on the front-end of the portal, the value of the DisplayName property is shown. Changing the DisplayName is a simple operation and does not cause broken links (because changing only the DisplayName does not change the Url Name).
 
 ## Naming conventions of different types
 
@@ -49,14 +49,14 @@ Although all content types contain the 3 properties above there are some special
 </td>
 <td>The <i>File</i> types are identified by their <i>file names</i> in general file systems. When a Content of this naming type is uploaded the <i>Name</i> will act as its <i>file name</i>. When listing this Content the value of its <i>Name</i> will be shown. The path of the Content that acts as a permalink will also contain the <i>file name</i>. A simple .txt file for example does not have a legible <i>DisplayName</i>, only a file name (<i>Name</i> in sensenet <a href="/Content_Repository" title="Content Repository">Content Repository</a>).
 </td>
-<td>Document, Image
+<td>File, Image
 </td></tr>
 <tr>
 <td><b>Item</b>
 </td>
 <td>only <b>DisplayName</b> is important
 </td>
-<td>The <i>Item</i> types are Content that are created frequently but permalinks to the Content are rarely used. When a Content of this type is created only the human readable <i>DisplayName</i> is specified and the <i>Name</i> is auto-generated (often a Guid). A memo or a meeting request for example has a subject (the <i>DisplayName</i> will act as a legible subject in this case) but its <i>Name</i> or the permalink to the Content is indifferent.
+<td>The <i>Item</i> types are Content that are created frequently but permalinks to the Content are rarely used. When a Content of this type is created only the human readable <i>DisplayName</i> is specified and the <i>Name</i> is auto-generated (sometimes a Guid or a contenttype-date value). A memo or a meeting request for example has a subject (the <i>DisplayName</i> will act as a legible subject in this case) but its <i>Name</i> or the permalink to the Content is indifferent.
 </td>
 <td>Memo, Comment
 </td></tr>
@@ -91,7 +91,7 @@ Since it can be very time consuming to provide a Name and a DisplayName for a Co
 The [DisplayName Field Control](displayname-field-control.md) automatically fills the value of the [Name Field Control](name-field-control.md) visible in the same [Content View](content-view.md), from the value entered to the DisplayName Field Control. The entered DisplayName is processed so that invalid characters are encoded - the resulting string will be the automatically created Name for the Content. The Name however does not change automatically in the following cases:
 
 - the user edits the Name manually,
-- the underlyng Content already exists in the Content Repository, so it is not a new scenario but a rename scenario.
+- the underlyng Content already exists in the Content Repository, so it is not a new scenario but an edit scenario.
 
 #### Autonaming on server side
 
@@ -101,7 +101,7 @@ In case no [Name Field Control](name-field-control.md) is visible in the same [C
 
 Generally speaking it is not desired to change the Name of a Content automatically when changing its DisplayName as it would be considered renaming of the Content, and would possibly cause broken links (since the Name is part of the Path that also acts as a permalink to the Content). Therefore the following rules apply to Name autogeneration:
 
-- for new Content Name is autogenerated from DisplayName,
+- for new Content the Name is autogenerated from DisplayName,
 - for existing Content if the Content is opened in edit mode, the Name is NOT autogenerated from DisplayName,
 - for existing Content if the Content is opened with the Rename action, the Name is autogenerated from DisplayName,
 - in any scenario if the AlwaysUpdateName property of the DisplayName control is set to true, the Name is autogenerated from the DisplayName.
@@ -116,26 +116,24 @@ You can fine-adjust autonaming with the contentNaming section in the web.config:
       <!-- Regex pattern defining invalid name characters. Escape (\) character can be used as is (ie.: "[^a-zA-Z0-9.()[\]]"). 
 Pattern must start with '[' and end with ']'. -->
       <add key="InvalidNameCharsPattern" value="[^a-zA-Z0-9.()[\]\-_ ]" />
-      <add key="UriPlaceholderChar" value="-" />
+      <add key="ReplacementChar" value="-" />
     </contentNaming>
   </sensenet>
 ```
 - **InvalidNameCharsPattern**: a regular expression that defines the invalid characters a Content Name may not contain. These invalid characters are automatically encoded (or replaced) during converting a display name to a name, depending on the configured [ContentNamingProvider](content-naming-provider.md). If the Name is not autogenerated (for example for Files when DisplayName Field Control is not visible in the Content View) and the user inputs a name that contains invalid characters, an error message will be displayed upon trying to save the Content. The regular expression may contain characterset with a negating clause ([^...]) thus defining allowed characters instead of invalid ones, or define invalid characters simply ([...]). In both cases the regular expression MUST start with '[' and end with ']'.
-- **UriPlaceholderChar** (only before version 6.3.1): defines the character used to replace the '%' escape character when encoding invalid characters.
+- **ReplacementChar**: defines the character used to replace invalid characters.
 
-> Note that changing InvalidNameCharsPattern will affect path validation logic in the whole Content Repository. It is therefore desired to change validation messages when changing invalid characters pattern, see [#Invalid names and error messages](#invalid).
+> Note that changing InvalidNameCharsPattern will affect path validation logic in the whole Content Repository. It is therefore desired to change validation messages when changing invalid characters pattern, see [Invalid names and error messages](#Invalid-names-and-error-messages) below.
 
 #### Autonaming rules
 
-```diff
-Please note that the automatic algorithm changes to lessen the possibility of name collisions: we provide a short list of invalid characters (see example below) that will be encoded or replaced (depending on the configured [ContentNamingProvider](content-naming-provider.md)) and everything else is allowed. You may still make the regular expression less permissive if you need to.
-```
+> Please note that the automatic algorithm changes to lessen the possibility of name collisions: we provide a short list of invalid characters (see example below) that will be encoded or replaced (depending on the configured [ContentNamingProvider](content-naming-provider.md)) and everything else is allowed. You may still make the regular expression less permissive if you need to.
 
 We opened our content naming API so that you can provide your own naming algorithm. See the default providers and customization options in the [ContentNamingProvider](content-naming-provider.md) article.
 
 ## Invalid names and error messages
 
-The value of the Name Field falls under special validation according to certain restrictions. An auto-generated name by default is always correct but the user always has the possibility to override any auto-generated name and provide a name manually. If the name (or hence the path) of the Content does not satisfy the requirements an error message is displayed upon saving the Content. These can be the following:
+The value of the Name Field falls under special validation according to certain restrictions. An auto-generated name by default is always correct but the user always has the possibility to override any auto-generated name and provide a name manually. If the name (hence the path) of the Content does not satisfy the requirements an error message is displayed upon saving the Content. These can be the following:
 
 - Name cannot be empty.
     - Cause: the user did not provide name, it is 0 characters long. A valid name should contain at least 1 character.
@@ -144,10 +142,10 @@ The value of the Name Field falls under special validation according to certain 
     - Cause: The overall path length of the Content with the provided name exceeds the maximum allowed number of characters. The maximum length is determined by the data provider.
     - Resource key: Portal, PathTooLongMessage
 - Content path may only contain characters allowed in configuration.
-    - Cause: the provided path contains invalid characters. Invalid name characters are defined with the sensenet/contentNaming/InvalidNameCharsPattern web.config key. The '/' character in a path is always considered to be valid.
+    - Cause: the provided path contains invalid characters. Invalid name characters are defined using the InvalidNameCharsPattern web.config key. The '/' character in a path is always considered to be valid.
     - Resource key: Portal, InvalidPathMessage
 - Content name may only contain characters allowed in configuration.
-    - Cause: the provided name contains invalid characters. Invalid name characters are defined with the sensenet/contentNaming/InvalidNameCharsPattern web.config key.
+    - Cause: the provided name contains invalid characters. Invalid name characters are defined using the InvalidNameCharsPattern web.config key.
     - Resource key: Portal, InvalidNameMessage
 - Name cannot start with whitespace.
     - Cause: the provided name starts with space, which is not allowed.
@@ -168,7 +166,7 @@ Since the path identifies the Content, it has to be unique. Therefore a Content 
 
 **Cannot create new content. A content with the name you specified already exists.**
 
-It is possible to set up a Content Type so that when saving instances of that type no error message is shown when a Content with the same name already exists - but the name is automatically suffixed with a number until it does not collide with any name in the same folder. This setting is controlled with the AllowIncrementalNaming element in the CTD of the type. Possible settings:
+It is possible to set up a Content Type so that when saving instances of that type no error message is shown when a Content with the same name already exists - but the name is automatically suffixed with a number until it does not collide with any name in the same folder. This setting is controlled using the **AllowIncrementalNaming** element in the CTD of the type. Possible settings:
 
 ```xml
 <AllowIncrementalNaming>false</AllowIncrementalNaming>
