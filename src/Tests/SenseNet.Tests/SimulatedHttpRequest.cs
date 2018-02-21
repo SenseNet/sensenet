@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Web.Hosting;
 
-namespace SenseNet.Services.OData.Tests
+namespace SenseNet.Tests
 {
 	/// <summary>
 	/// Used to simulate an HttpRequest.

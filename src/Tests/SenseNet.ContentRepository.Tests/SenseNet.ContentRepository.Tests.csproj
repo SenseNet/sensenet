@@ -71,6 +71,7 @@
     <Compile Include="ContentTypeTests.cs" />
     <Compile Include="GenericContentTests.cs" />
     <Compile Include="LinqTests.cs" />
+    <Compile Include="PortalContextTest.cs" />
     <Compile Include="ProvidersTests.cs" />
     <Compile Include="RepositoryStartTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
