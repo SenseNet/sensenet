@@ -8,9 +8,9 @@ tags: [content type, content type definition, inheritance, type system]
 
 # Content Type
 
-The [Content Repository](content-repository.md) contains many different types of content. Content vary in structure and even in function. Different types of content contain different fields, are displayed with different views, and may also implement different business logic. The fields, views and business logic of a content is defined by its type - the Content Type.
+The [Content Repository](content-repository.md) contains many different types of content. Content vary in structure and even in function. Different types of content contain different fields, are displayed with different views, and may also implement different business logic. The **fields**, **views** and **business logic** of a content is defined by its type - the **Content Type**.
 
-Content Types are defined in a type hierarchy: a Content Type may be inherited from another Content Type - thus automatically inheriting its fields. Multiple inheritance is not allowed so the Content Types are arranged in a simple tree.
+Content Types are defined in a type hierarchy: a Content Type may be inherited from another Content Type - thus automatically inheriting its fields. Multiple inheritance is not allowed so Content Types are arranged in a simple tree.
 
 A Content Type is a special content in the [Content Repository](content-repository.md). Content Types define the structure and functioning of content:
 
@@ -24,10 +24,10 @@ Content Types can inherit fields from their ancestors. For example a *Domain* ty
 
 ## Example
 
-Let's examine on of the built-on Content Types, the *User*. Log in as an Administrator and go to Explore. Navigate to */Root/System/Schema/ContentTypes*. Here you can see the *Content Type hierarchy*. The root element is the Content (GenericContent). Navigate to */Root/System/Schema/ContentTypes/GenericContent/User*. An administrative surface appears with child Content Types and field set available on Car content:
+Let's examine one of the built-in Content Types: the *User*. Log in as an Administrator and go to Content Explorer. Navigate to */Root/System/Schema/ContentTypes*. Here you can see the *Content Type hierarchy*. The root element is the GenericContent. Navigate to */Root/System/Schema/ContentTypes/GenericContent/User*. An administrative surface appears with child Content Types and field set available on User content items:
 
 <img src="https://raw.githubusercontent.com/SenseNet/sensenet/master/docs/images/ctd/ctd-in-contentexplorer.png" style="margin: 20px auto" />
 
-You can edit the [Content Type Definition](ctd.md) of the User Content Type by clicking on the edit [Action](action.md) link.
+You can edit the [Content Type Definition](ctd.md) of the User Content Type by clicking on the Edit link.
 
 <img src="https://raw.githubusercontent.com/SenseNet/sensenet/master/docs/images/ctd/ctd-xml.png" style="margin: 20px auto" />

@@ -14,15 +14,15 @@ As a user, portal builder or administrator you get a simple but powerful content
 
 As a developer you get an easy-to use Application Programming Interface (API) that is capable of serving any need in your custom code.
 
-## User group information
-
-### End users
+## End users
 
 If you want details on how to search for content on the portal, create simple or more sophisticated queries to collect content, see the [Query syntax](query-syntax.md) page.
 
-### Developers
+## Developers
 
 If you are a developer and want to extend your code with collecting and presenting content, see the [Query API](query-api.md) docs.
+
+> Content Query also works from the client side - see our [OData REST API article](odata-rest-api.md) for details.
 
 ## Examples
 
@@ -32,7 +32,7 @@ In this section you will get some overview about where and how can you utilize t
 
 ### Getting articles
 
-If you want to get the five newest article you can do so by defining the following query.
+If you want to get the five newest articles you can do so by defining the following query.
 
 ```bash
 Type:Article .REVERSESORT:ModificationDate .TOP:5
@@ -54,17 +54,19 @@ If you want to list the 10 last modified documents of the current user you can d
 
 ### Portlet usage examples
 
-You can use query text in the following places:
+> The examples below are related to the old WebForms user interface of sensenet. We encourage you to use a more modern UI solution using our [client-side packages](https://www.npmjs.com/org/sensenet).
+
+You can use query text in the following places on th UI:
 
 #### Search boxes
 
-When you search for a content on the main portal search, you can make a simple search for one word, but using the full [Query syntax](query-syntax.md) you can create more sophisticated searches.
+When you search for a content on the portal, you can make a simple search for one word, but using the full [Query syntax](query-syntax.md) you can create more sophisticated searches.
 
 ### Smart folders
 
 <img src="https://raw.githubusercontent.com/SenseNet/sensenet/master/docs/images/Demo-smartfolder.png" style="margin: 20px auto" />
 
-SmartFolder is a very powerful portal builder feature of sensenet. You can define a query to collect content from anywhere in the portal and present them as children in a SmartFolder.
+**SmartFolder** is a very powerful portal builder feature of sensenet. You can define a query to collect content from anywhere in the portal and present them as **children** in a SmartFolder.
 
 ### Portlet property windows
 
