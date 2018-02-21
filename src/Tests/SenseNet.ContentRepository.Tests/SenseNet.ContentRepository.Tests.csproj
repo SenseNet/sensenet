@@ -73,7 +73,9 @@
     <Compile Include="RepositoryStartTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SavingActionTests.cs" />
+    <Compile Include="SchemaEditorTests.cs" />
     <Compile Include="TemplateReplacerTests.cs" />
+    <Compile Include="TimestampTests.cs" />
     <Compile Include="TreeLockTests.cs" />
     <Compile Include="VersionExistenceTests.cs" />
     <Compile Include="VersionHistoryTests.cs" />
