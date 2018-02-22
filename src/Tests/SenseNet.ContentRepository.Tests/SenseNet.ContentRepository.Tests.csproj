@@ -68,6 +68,7 @@
     <Compile Include="Accessors.cs" />
     <Compile Include="AutoNamingTests.cs" />
     <Compile Include="ComponentVersionTests.cs" />
+    <Compile Include="ContentTypeInheritanceTests.cs" />
     <Compile Include="ContentTypeTests.cs" />
     <Compile Include="GenericContentTests.cs" />
     <Compile Include="LinqTests.cs" />

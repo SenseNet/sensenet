@@ -1998,7 +1998,13 @@ namespace SenseNet.Tests.Implementations
             }
             public override void DeletePropertyType(PropertyType propertyType)
             {
-                throw new NotImplementedException();
+                var parentElement = (XmlElement)_schemaXml.SelectSingleNode($"//x:UsedPropertyTypes", _nsmgr);
+                if (parentElement == null)
+                    throw new InvalidOperationException("Invalid schema xml.");
+
+                var element = (XmlElement)parentElement.SelectSingleNode($"x:PropertyType[@name = '{propertyType.Name}']", _nsmgr);
+                if (element != null)
+                    parentElement.RemoveChild(element);
             }
 
             public override void CreateContentListType(string name)
@@ -2051,7 +2057,13 @@ namespace SenseNet.Tests.Implementations
             }
             public override void RemovePropertyTypeFromPropertySet(PropertyType propertyType, PropertySet owner)
             {
-                throw new NotImplementedException();
+                var parentElement = (XmlElement)_schemaXml.SelectSingleNode($"//x:NodeType[@name = '{owner.Name}']", _nsmgr);
+                if (parentElement == null)
+                    throw new NotImplementedException(); //TODO: ContentList property removal is not implemented.
+
+                var element = (XmlElement)parentElement.SelectSingleNode($"x:PropertyType[@name = '{propertyType.Name}']", _nsmgr);
+                if (element != null)
+                    parentElement.RemoveChild(element);
             }
             public override void UpdatePropertyTypeDeclarationState(PropertyType propertyType, NodeType owner, bool isDeclared)
             {
