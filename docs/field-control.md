@@ -8,13 +8,15 @@ tags: [field control, field]
 
 # Field Control
 
+> Although this feature is supported in sensenet ECM 7, it is built on the old Web Forms technology that you **should not use for new projects**. We encourage you to use a more modern UI solution using our [client-side packages](https://www.npmjs.com/org/sensenet).
+
 Field Controls are ASP.Net controls that provide GUI for setting/modifying Field values of a [Content](content.md). Thus, Field Controls are the basic building blocks of [Content Views](content-view.md) - views that define the HTML layout of Content when presented.
 
 [Content](content.md) build up of [Fields](field.md), and Fields are presented with Field Controls when Content are being presented with Content Views. Field Controls provide user interfaces both for displaying and for editing Field values.
 
 ## Field Controls and Fields
 
-[Content Views](content-view.md) can be connected to Content using Portlets. You can connect Field Controls to Content Fields in the Content View, using the Field Controls common FieldName property. This allows different Field Controls to be used with a specific Field. Not any kind of Field Control can be used for a certain Field. There are pre-defined Field Controls for all available Fields in the system. 
+[Content Views](content-view.md) are displayed on the UI using [Portlets](portlet.md). You can connect Field Controls to Content Fields in the Content View, using the Field Controls common FieldName property. This allows different Field Controls to be used with a specific Field. There are pre-defined Field Controls for all available Fields in the system. 
 
 ## Generic Field Control
 
@@ -22,7 +24,7 @@ Each Field defines a *default* Field Control in the Field implementation that ca
 
 ## Field Control modes
 
-A Field Control can be rendered in several modes. There is switch that defines the layout of the control and another one that controls the behavior of the Field Control:
+A Field Control can be rendered in several modes. There is a switch that defines the layout of the control and another one that controls the behavior of the Field Control:
 
 - **FrameMode**: a Field Control can be rendered with a frame containing the *Name* and *Description* of the Field, or without it - just the control itself. When set to *ShowFrame* the frame containing Field metadata is rendered around the control, when set to *NoFrame* only the control itself is rendered.
 - **ControlMode**: this switch controls the behavior of the control: the Field Control can either provide a UI to allow modifications to the underlying Field's value, or it can render the Field value in browse mode simply to display the Field value without providing means to modify the value. When *ControlMode* is set to *Edit* the control is editable, when set to *Browse* it presents Field value in a browsable-only mode.
@@ -31,7 +33,7 @@ The following table sums up the different Field Control modes on a [ShortText Fi
 
 <img src="https://raw.githubusercontent.com/SenseNet/sensenet/master/docs/images/shorttext-fieldcontrol.png" style="margin: 20px auto" />
 
-When these properties are not explicitely set in a [Content View](content-view.md), these mode switches fall back to the corresponding properties of the containing Content View: *ViewControlFrameMode* and *ViewControlMode* for controlling the Field Control's FrameMode and ControlMode respectively. Read this section for a short explanation: [Content View#Content Views and Field Control modes](content-view.md).
+When these properties are not explicitely set in a [Content View](content-view.md), these mode switches fall back to the corresponding properties of the containing Content View: *ViewControlFrameMode* and *ViewControlMode* for controlling the Field Control's FrameMode and ControlMode respectively. Read this section for a short explanation: [Content View](content-view.md#Content-Views-and-Field-Control-modes).
 
 ## Field Control Templates
 

@@ -15,7 +15,7 @@ A Content Type Definition is an xml-format configuration file for defining Conte
 - set of fields (name, displayname and configuration of fields)
 - content handler
 
-The Content Type Definition xml of a [Content Type](content-type.md) can be edited by editing the [Content Type](content-type.md) in Content Explorer (see [How to create a Content Type](https://community.sensenet.com/tutorial/how-to-create-a-content-type) for details).
+The Content Type Definition xml of a [Content Type](content-type.md) can be edited by editing the [Content Type](content-type.md) in Content Explorer (see [How to create a Content Type](https://community.sensenet.com/docs/tutorials/how-to-create-a-content-type) for details).
 
 ## Default template
 
@@ -237,8 +237,8 @@ The following elements make up the general structure of the xml:
 - **Preview**: whether the system needs to generate preview images for this type of content. Currently this works only for file types. This setting is not inheritable, you should set it explicitely in every CTD where you want to have preview images. Possible values are *yes/no* or *true/false*.
 - **AllowIndexing**: whether the instances of this type should be indexed or not. Possible values are *yes/no* or *true/false*. The default is true. If set to false, the index will be smaller, but nobody will be able to find the items of this type using content query. They will still be accessible through a direct request of course. In the default installation preview images are not indexed, for example.
 - **AppInfo**: custom text or xml fragment for CTD extensibility
-- **AllowIncrementalNaming**: boolean property for allowing the incremental name suffix generation during content creation when a Content with the same name already exists. Default is false - in this case an error message is shown when saving the Content with an existing name. See [Content naming#Incremental naming](content-naming.md) for details.
-- **AllowedChildTypes**: a comma, semicolon or space separated list of Content Type names defining the allowed Content Types that can be created under any content of this type. See [Allowed Child Types](allowed-childtypes.md) for details.
+- **AllowIncrementalNaming**: boolean property for allowing the incremental name suffix generation during content creation when a Content with the same name already exists. Default is false - in this case an error message is shown when saving the Content with an existing name. See [Content naming](content-naming.md#Incremental-naming) for details.
+- **AllowedChildTypes**: a comma, semicolon or space separated list of Content Type names defining the allowed Content Types that can be created under any content of this type. See [Allowed Child Types](allowed-child-types.md) for details.
 - **Fields**: this is the container element for the Field definitions. It should include all Fields of the type that are not defined in any ancestor type and also fields that are defined in an ancestor but overridden in this type.
 
 ## <a name="fielddefinition"></a>Field definition
@@ -246,7 +246,7 @@ The following elements make up the general structure of the xml:
 The following elements build up the field definition:
 
 - **Field**: root element, holds basic information in attributes
-    - **name** attribute (required): name of the field. If a field with the given name is already defined in the type hierarchy field types must match.
+    - **name** attribute (required): name of the field. If a field with the given name is already defined in the system (on another content type), field types must match.
     - **type** attribute (this or **handler** is required): the short name of the field type. This is defined with the *ShortName* attribute of the corresponding [Field](field.md) class (field handler implementation).
     - **handler** attribute (this or **type** is required): the fully qualified type name of field handler class. Prefer using type attribute instead of handler, for example:
 
@@ -263,7 +263,7 @@ The following elements build up the field definition:
 - **DisplayName**: displayed name of the field
 - **Description**: description of the field
 - **AppInfo**: custom text or xml fragment for CTD extensibility
-- **Bind**: name of the storage property the field is bound to. By default the bound property name is the name of the field. You can define composite fields by binding them to multiple properties. An example for this is Image Field. Within a content multiple fields can be bound to the same property. For more info read [Field - for Developers#Connection](field-for-developers.md) between Field and Property.
+- **Bind**: name of the storage property the field is bound to. By default the bound property name is the name of the field. You can define composite fields by binding them to multiple properties. An example for this is Image Field. Within a content multiple fields can be bound to the same property. For more info read [Field - for Developers](field-for-developers.md#Connection) between Field and Property.
 - **Indexing**: indexing settings of the field. Please refer to [Field Indexing](field-indexing.md) for detailed information.
 - **Configuration**: configuration settings of the field. This varies with the actual [Field Setting](field-setting.md). See detailed information on field configuration atarticles of specific Fields. The following optional elements are available in all types of Field Settings:
     - **ReadOnly**: indicates if the field is read-only
@@ -283,22 +283,22 @@ The following elements build up the field definition:
 
 ## Content Type inheritance
 
-Content Types are organized into hierarchy according to inheritance. Any Content Type may inherit from another one. The topmost Content Type in the inheritance hierarchy is the GenericContent (with handler SenseNet.ContentRepository.GenericContent), every Content Type must inherit from this, or any of its descendant. When a child Content Type is inherited from a parent Content Type it means that the child Content Type contains all the Fields of the parent, even if they are not defined in the child CTD (see [#Field inheritance](#fieldinheritance)) - and also they share common implemented logic.
+Content Types are organized into hierarchy according to inheritance. Any Content Type may inherit from another one. The topmost Content Type in the inheritance hierarchy is the GenericContent (with handler SenseNet.ContentRepository.GenericContent), every Content Type must inherit from this, or any of its descendant. When a child Content Type is inherited from a parent Content Type it means that the child Content Type contains all the Fields of the parent, even if they are not defined in the child CTD (see [Field inheritance](#fieldinheritance)) - and also they share common implemented logic.
 
 ```diff
-Warning! The child Content Type must use the parent's handler, or use a custom content handler! Child cannot use *SenseNet.ContentRepository.GenericContent* unless parent also uses *SenseNet.ContentRepository.GenericContent* as the handler!
+Warning! The child Content Type must use the parent's handler, or use a custom content handler derived from it. The child cannot use *SenseNet.ContentRepository.GenericContent* unless the parent also uses that as the handler.
 ```
 
 ## <a name="fieldinheritance"></a>Field inheritance
 
-When the **parentType** attribute in the CTD is specified the Content Type inherits its field from its parent Content Type. This means that only additional fields have to be defined in the type's CTD. The inherited fields apply to the Content Type as defined on the parent type, but may also be overridden. The following apply to field inheritance:
+A Content Type inherits its fields from its parent Content Type (defined byt he **parentType** attribute). This means that only additional fields have to be defined in the type's CTD. The inherited fields apply to the Content Type as defined on the parent type, but may also be overridden. The following apply to field inheritance:
 
 - fields of all ancestors are inherited: ie. fields of parent type of the direct parent are also available in the current type
-- all fields of parent type are inherited, deleting a field in a Content Type that has been defined in an ancestor type is not possible
+- all fields of the parent type are inherited, deleting a field that has been defined on an ancestor type is not possible
 - a field is inherited from parent when it is not defined in the current type's CTD
 - if a field is defined in a CTD it overrides parent's field of the same name
 - if a field is defined in a CTD with empty markup the parent's field of the same name is overridden with empty data
-- when inheriting a field the first order elements of the configuration element are inherited (these are defined by the [#Field Definition](#fielddefinition))
+- when inheriting a field the first order elements of the configuration element are inherited (these are defined by the [Field Definition](#fielddefinition))
 
 ## Examples
 
@@ -394,7 +394,7 @@ The following table sums up field sets of the two types:
 | MyField | MyField       |
 |         | MyOtherField  |
 
-> Please note, that *MyDerivedType* uses its parent's handler to use the same implemented content handler logic. It could only use *SenseNet.ContentRepository.GenericContent* if *MyType* also used *SenseNet.ContentRepository.GenericContent* instead of *SenseNet.ContentRepository.MyTypeHandler*.
+> Please note that *MyDerivedType* uses its **parent's handler** to use the same implemented content handler logic. This is the correct setting if the derived type does not have its own custom handler.
 
 #### Overriding a field of base Content Type
 
@@ -430,7 +430,7 @@ The following table sums up field sets of the two types:
 | MyField (DisplayName='My field', MaxLength=10) | MyField (DisplayName='My field overridden', MaxLength=15)       |
 |                                                | MyOtherField                                                    |
 
-> Please note, that *MyDerivedType* uses its parent's handler to use the same implemented content handler logic. It could only use *SenseNet.ContentRepository.GenericContent* if *MyType* also used *SenseNet.ContentRepository.GenericContent* instead of *SenseNet.ContentRepository.MyTypeHandler*.
+> Please note that *MyDerivedType* uses its **parent's handler** to use the same implemented content handler logic. This is the correct setting if the derived type does not have its own custom handler.
 
 ### Example for CTD with composite field
 

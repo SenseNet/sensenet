@@ -12,11 +12,11 @@ sensenet ECM is able to store huge amounts of documents in the [Content Reposito
 
 ## Document binary provider
 
-When a client sends a request to the server for a file, the server first finds the content (the file) in the Content Repository. Than passes it to the Document binary provider along with the name of the requested field - which is in most cases the default Binary field. The binary provider can decide how the binary value should be served or what additional tasks should be completed when accessing the binary (e.g. logging).
+When a client sends a request to the server for a file, the server first finds the content (the file) in the Content Repository. Than passes it to the Document binary provider along with the name of the requested field - which is in most cases the default Binary field. The binary provider can decide how the binary value should be served or what additional tasks should be completed when accessing the binary (e.g. logging). This always happens on-the-fly, when the binary is accessed, so please make these operations efficient and fast.
 
 ## Built-in default binary provider
 
-sensenet ECMS has a default binary provider which is sufficient in most cases. It simply serves the stored binary value of the specified field.
+sensenet ECM has a default binary provider which is sufficient in most cases. It simply serves the stored binary value of the specified field.
 
 ## Custom binary provider
 

@@ -8,6 +8,8 @@ tags: [field control, field]
 
 # Field Control
 
+> Although this feature is supported in sensenet ECM 7, it is built on the old Web Forms technology that you **should not use for new projects**. We encourage you to use a more modern UI solution using our [client-side packages](https://www.npmjs.com/org/sensenet).
+
 **Field Contols** are the main building blocks of [Content views](content-view.md). They generate the HTML controls responsible for the input or output of the displayed [Content](content.md)'s fields. Field controls are implemented as ASP.NET controls, they can be used in the ascx source of the content views.
 
 The field control class is responsible for the data flow between user interface and appropriate Field of the viewed Content.
@@ -35,10 +37,6 @@ namespace FieldControlSample
     }
 }
 ```
-
-To learn how to create a custom a field control implementation, read the following article:
-
-- [How to create a Field Control](https://community.sensenet.com/docs/tutorials/how-to-create-a-fieldcontrol/)
 
 ## Field controls in contentviews
 

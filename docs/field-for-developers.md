@@ -8,7 +8,7 @@ tags: [field, content type, content type definition, inheritance, type system]
 
 # Field
 
-[Content](content.md) in the sensenet [Content Repository](content-repository.md) are built up of fields. Everything is represented as a content and all of content data can be accessed via fields. Field in sensenet is the atomic data accessor, however it is more than a simple property. A field describes the represented data, defines its type, domain range and it is also able to validate data. The field specifies how its data is being indexed and is also responsible for data transformations between the storage layer, file system and the Lucene index. The field is one of the most important extensibility points in sensenet.
+[Content](content.md) in the sensenet [Content Repository](content-repository.md) are built up of fields. Everything is represented as a content and all of content data can be accessed via fields. Field in sensenet is the atomic data accessor, however it is more than a simple property. A field describes the represented data, defines its type, domain range and it is also able to validate data. The field specifies how its data is being indexed and is also responsible for data transformations between the storage layer, file system and the index. The field is one of the most important extensibility points in sensenet.
 
 ## Field definition in CTD
 
@@ -25,7 +25,7 @@ Fields of a content are defined in the content's content type definition. Any co
 </Field>
 ```
 
-For more info on field definition and the possible properties/settings, read [CTD#Field definition](ctd.md).
+For more info on field definition and the possible properties/settings, read [CTD](ctd.md#Field-definition).
 
 ### Field type setting
 
@@ -60,7 +60,7 @@ The following diagram shows the role of the field with respect to other content 
 
 <img src="https://raw.githubusercontent.com/SenseNet/sensenet/master/docs/images/FieldRole.png" style="margin: 20px auto" />
 
-The content type definition specifies the type of the content and its fields. In code this is manifested in the ContentType and FieldSetting objects. The Content wraps the given Node instance (or Content Handler) and has got a Field collection. The field can access the Node object's properties, read, write, validate, export,import them and the field also serves as the data source for the corresponding field control of the content view.
+The content type definition specifies the type of the content and its fields. In code this is manifested in the ContentType and FieldSetting objects. The Content wraps the given Node instance (or Content Handler) and has got a Field collection. The field can access the Node object's properties, read, write, validate, export/import them and the field also serves as the data source for the corresponding field control of the content view.
 
 ## Connection between Field and Property
 

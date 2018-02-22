@@ -8,6 +8,8 @@ tags: [dropdowm, select, choice, field control, field]
 
 # DropDown Field Control
 
+> Although this feature is supported in sensenet ECM 7, it is built on the old Web Forms technology that you should not use for new projects. We encourage you to use a more modern UI solution using our [client-side packages](https://www.npmjs.com/org/sensenet).
+
 The DropDown Field Control displays a drop-down list for selecting an option from a single-selection Choice field.
 
 <img src="https://raw.githubusercontent.com/SenseNet/sensenet/master/docs/images/DropDown.png" style="margin: 20px auto" />
