@@ -1511,7 +1511,7 @@ namespace SenseNet.Tests.Implementations
 
             public void Rollback()
             {
-                throw new NotSupportedException();
+                //throw new NotSupportedException();
             }
         }
         public class Database
