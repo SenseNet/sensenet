@@ -108,9 +108,21 @@ namespace SenseNet.Tests.Implementations
             var existingName = _db.Nodes
                 .Where(n => n.ParentNodeId == parentId && regex.IsMatch(n.Name.ToLowerInvariant()))
                 .Select(n => n.Name.ToLowerInvariant())
-                .OrderByDescending(s => s)
+                .OrderByDescending(s => GetSuffix(s))
                 .FirstOrDefault();
             return existingName;
+        }
+        private int GetSuffix(string name)
+        {
+            var p0 = name.LastIndexOf("(");
+            if (p0 < 0)
+                return 0;
+            var p1 = name.IndexOf(")", p0);
+            if (p1 < 0)
+                return 0;
+            var suffix = p1 - p0 > 1 ? name.Substring(p0 + 1, p1 - p0 - 1) : "0";
+            var order = int.Parse(suffix);
+            return order;
         }
 
         #region NOT IMPLEMENTED
@@ -346,9 +358,9 @@ namespace SenseNet.Tests.Implementations
                     Path = activity.Path,
                     IsSystem = nodeRecord.IsSystem,
                     IsLastDraft = nodeRecord.LastMinorVersionId == activity.VersionId,
-                    IsLastPublic = versionRecord.Version.Status == VersionStatus.Approved && nodeRecord.LastMajorVersionId == activity.VersionId
-                    //NodeTimestamp = nodeTimeStamp,
-                    //VersionTimestamp = versionTimestamp,
+                    IsLastPublic = versionRecord.Version.Status == VersionStatus.Approved && nodeRecord.LastMajorVersionId == activity.VersionId,
+                    NodeTimestamp = nodeRecord.NodeTimestamp,
+                    VersionTimestamp = versionRecord.VersionTimestamp,
                 };
             }
 
@@ -542,9 +554,8 @@ namespace SenseNet.Tests.Implementations
             if (nodeRow == null)
                 return;
 
-            SetLastVersionSlots(_db, nodeRow.NodeId, out lastMajorVersionId, out lastMinorVersionId);
-
-            nodeData.NodeTimestamp = nodeRow.NodeTimestamp; //TODO: nodetimestamp
+            SetLastVersionSlots(_db, nodeRow.NodeId, out lastMajorVersionId, out lastMinorVersionId, out long nodeTimeStamp);
+            nodeData.NodeTimestamp = nodeTimeStamp;
         }
 
         #region NOT IMPLEMENTED
@@ -624,12 +635,15 @@ namespace SenseNet.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+        #endregion
 
         protected internal override VersionNumber[] GetVersionNumbers(int nodeId)
         {
             var versions = _db.Versions.Where(r => r.NodeId == nodeId).Select(r => r.Version).ToArray();
             return versions;
         }
+
+        #region NOT IMPLEMENTED
 
         protected internal override bool HasChild(int nodeId)
         {
@@ -645,12 +659,12 @@ namespace SenseNet.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+        #endregion
 
         protected internal override int InstanceCount(int[] nodeTypeIds)
         {
-            throw new NotImplementedException();
+            return _db.Nodes.Count(n => nodeTypeIds.Contains(n.NodeTypeId));
         }
-        #endregion
 
         protected internal override bool IsCacheableText(string text)
         {
@@ -789,9 +803,9 @@ namespace SenseNet.Tests.Implementations
                 Path = node.Path,
                 IsSystem = node.IsSystem,
                 IsLastDraft = node.LastMinorVersionId == versionId,
-                IsLastPublic = approved && isLastMajor
-                //NodeTimestamp = node.Timestamp,
-                //VersionTimestamp = version.Timestamp,
+                IsLastPublic = approved && isLastMajor,
+                NodeTimestamp = node.NodeTimestamp,
+                VersionTimestamp = version.VersionTimestamp,
             };
         }
         private IndexDocumentData CreateIndexDocumentData(NodeRecord node, VersionRecord version)
@@ -1149,7 +1163,7 @@ namespace SenseNet.Tests.Implementations
             get { return _db.Nodes.Max(n => n.NodeId); }
         }
 
-        private static void SetLastVersionSlots(Database db, int nodeId, out int lastMajorVersionId, out int lastMinorVersionId)
+        private static void SetLastVersionSlots(Database db, int nodeId, out int lastMajorVersionId, out int lastMinorVersionId, out long nodeTimeStamp)
         {
             // proc_Node_SetLastVersion
 
@@ -1167,6 +1181,8 @@ namespace SenseNet.Tests.Implementations
                                      .FirstOrDefault()?
                                      .VersionId ?? 0;
             nodeRow.LastMajorVersionId = lastMajorVersionId;
+
+            nodeTimeStamp = nodeRow.NodeTimestamp;
         }
 
         /* ====================================================================================== Database */
@@ -1640,6 +1656,9 @@ namespace SenseNet.Tests.Implementations
                     throw new InvalidOperationException("Node not found. NodeId:" + nodeId);
                 var parentRec = _db.Nodes.FirstOrDefault(n => n.NodeId == nodeRec.ParentNodeId);
 
+                if (nodeRec.NodeTimestamp != nodeData.NodeTimestamp)
+                    throw new NodeIsOutOfDateException(nodeData.Id, nodeData.Path, nodeData.VersionId, nodeData.Version, null, nodeData.NodeTimestamp);
+
                 nodeRec.NodeTypeId = nodeData.NodeTypeId;
                 nodeRec.ContentListTypeId = nodeData.ContentListTypeId;
                 nodeRec.ContentListId = nodeData.ContentListId;
@@ -1665,6 +1684,8 @@ namespace SenseNet.Tests.Implementations
                 nodeRec.IsSystem = nodeData.IsSystem;
                 nodeRec.OwnerId = nodeData.OwnerId;
                 nodeRec.SavingState = nodeData.SavingState;
+
+                nodeData.NodeTimestamp = nodeRec.NodeTimestamp;
             }
 
             /*============================================================================ Version Insert/Update */
@@ -1706,6 +1727,9 @@ namespace SenseNet.Tests.Implementations
 
                 lastMajorVersionId = nodeRec.LastMajorVersionId;
                 lastMinorVersionId = nodeRec.LastMinorVersionId;
+
+                nodeData.NodeTimestamp = nodeRec.NodeTimestamp;
+                nodeData.VersionTimestamp = versionRec.VersionTimestamp;
             }
             public void CopyAndUpdateVersion(NodeData nodeData, int previousVersionId, out int lastMajorVersionId,
                 out int lastMinorVersionId)
@@ -1730,7 +1754,7 @@ namespace SenseNet.Tests.Implementations
                 {
                     // Insert version row
                     newVersionId = _db.Versions.Max(r => r.VersionId) + 1;
-                    _db.Versions.Add(new VersionRecord
+                    var newVersionRow = new VersionRecord
                     {
                         VersionId = newVersionId,
 
@@ -1741,7 +1765,9 @@ namespace SenseNet.Tests.Implementations
                         ModificationDate = nodeData.VersionModificationDate,
                         ModifiedById = nodeData.VersionModifiedById,
                         ChangedData = nodeData.ChangedData
-                    });
+                    };
+                    _db.Versions.Add(newVersionRow);
+                    nodeData.VersionTimestamp = newVersionRow.VersionTimestamp;
                 }
                 else
                 {
@@ -1755,6 +1781,7 @@ namespace SenseNet.Tests.Implementations
                     versionRow.ModificationDate = nodeData.VersionModificationDate;
                     versionRow.ModifiedById = nodeData.VersionModifiedById;
                     versionRow.ChangedData = nodeData.ChangedData;
+                    nodeData.VersionTimestamp = versionRow.VersionTimestamp;
 
                     // Delete previous property values
                     _db.BinaryProperties.RemoveAll(r => r.VersionId == newVersionId);
@@ -1801,12 +1828,11 @@ namespace SenseNet.Tests.Implementations
                     });
 
                 // Set last version pointers
-                SetLastVersionSlots(_db, nodeData.Id, out lastMajorVersionId, out lastMinorVersionId);
+                SetLastVersionSlots(_db, nodeData.Id, out lastMajorVersionId, out lastMinorVersionId, out long nodeTimeStamp);
 
                 // update back the given nodeData
                 nodeData.VersionId = newVersionId;
-                nodeData.NodeTimestamp = 0; //TODO: set back the new nodetimestamp
-                nodeData.VersionTimestamp = 0; //TODO: set back the new versiontimestamp
+                nodeData.NodeTimestamp = nodeTimeStamp;
                 foreach (var binaryPropertyRow in _db.BinaryProperties.Where(b => b.VersionId == newVersionId))
                 {
                     var binaryData = (BinaryDataValue)nodeData.GetDynamicRawData(binaryPropertyRow.PropertyTypeId);
@@ -1975,7 +2001,13 @@ namespace SenseNet.Tests.Implementations
             }
             public override void DeletePropertyType(PropertyType propertyType)
             {
-                throw new NotImplementedException();
+                var parentElement = (XmlElement)_schemaXml.SelectSingleNode($"//x:UsedPropertyTypes", _nsmgr);
+                if (parentElement == null)
+                    throw new InvalidOperationException("Invalid schema xml.");
+
+                var element = (XmlElement)parentElement.SelectSingleNode($"x:PropertyType[@name = '{propertyType.Name}']", _nsmgr);
+                if (element != null)
+                    parentElement.RemoveChild(element);
             }
 
             public override void CreateContentListType(string name)
@@ -1999,8 +2031,9 @@ namespace SenseNet.Tests.Implementations
                 element.SetAttribute("name", name);
                 element.SetAttribute("className", className);
 
-                var parentElement = (XmlElement)_schemaXml.SelectSingleNode($"//x:NodeType[@itemID = '{parent.Id}']", _nsmgr);
-                // ReSharper disable once PossibleNullReferenceException
+                var parentElement = parent == null
+                    ? (XmlElement)_schemaXml.SelectSingleNode($"//x:NodeTypeHierarchy", _nsmgr)
+                    : (XmlElement)_schemaXml.SelectSingleNode($"//x:NodeType[@name = '{parent.Name}']", _nsmgr);
                 parentElement.AppendChild(element);
             }
             public override void ModifyNodeType(NodeType nodeType, NodeType parent, string className)
@@ -2009,7 +2042,9 @@ namespace SenseNet.Tests.Implementations
             }
             public override void DeleteNodeType(NodeType nodeType)
             {
-                throw new NotImplementedException();
+                var element = (XmlElement)_schemaXml.SelectSingleNode($"//x:NodeType[@name = '{nodeType.Name}']", _nsmgr);
+                var parentElement = (XmlElement)element.ParentNode;
+                parentElement.RemoveChild(element);
             }
 
             public override void AddPropertyTypeToPropertySet(PropertyType propertyType, PropertySet owner, bool isDeclared)
@@ -2027,7 +2062,14 @@ namespace SenseNet.Tests.Implementations
             }
             public override void RemovePropertyTypeFromPropertySet(PropertyType propertyType, PropertySet owner)
             {
-                throw new NotImplementedException();
+                var parentElement = (XmlElement)_schemaXml.SelectSingleNode($"//x:NodeType[@name = '{owner.Name}']", _nsmgr);
+                if (parentElement == null)
+                    //throw new NotImplementedException(); //TODO: ContentList property removal is not implemented.
+                    return;
+
+                var element = (XmlElement)parentElement.SelectSingleNode($"x:PropertyType[@name = '{propertyType.Name}']", _nsmgr);
+                if (element != null)
+                    parentElement.RemoveChild(element);
             }
             public override void UpdatePropertyTypeDeclarationState(PropertyType propertyType, NodeType owner, bool isDeclared)
             {

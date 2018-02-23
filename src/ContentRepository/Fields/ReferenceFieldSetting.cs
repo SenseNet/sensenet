@@ -170,6 +170,7 @@ namespace SenseNet.ContentRepository.Fields
                         break;
                     case QueryName:
                         _query = ContentQuery.CreateQuery(element.InnerXml);
+                        _query.IsSafe = true;
                         break;
                     case FieldNameName:
                         _fieldName = element.InnerXml;

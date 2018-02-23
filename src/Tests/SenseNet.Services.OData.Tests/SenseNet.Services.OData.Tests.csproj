@@ -67,7 +67,6 @@
     <Compile Include="Results\ODataEntity.cs" />
     <Compile Include="Results\ODataError.cs" />
     <Compile Include="Results\ODataRawResult.cs" />
-    <Compile Include="SimulatedHttpRequest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
