@@ -16,7 +16,7 @@ The [Smart Application Model](smart-application-model.md) makes it possible to a
 
 If a content item is requested without an action, it is equivalent to specifying the default action, which is **Browse**. Actions are more often referred to as the links that guide the user to the requested application page. An Action link is presented with an [ActionLinkButton](actionlinkbutton.md) control that is a simple HTML link also displaying the requested [Application's](application.md) link.
 
-> From version 6.3 sensenet ECM provides a [Client-side action framework](client-side-action-framework.md) for displaying actions in Javascript.
+> sensenet ECM provides a [Client-side action framework](client-side-action-framework.md) for displaying actions in Javascript.
 
 ### Actions and Applications
 
