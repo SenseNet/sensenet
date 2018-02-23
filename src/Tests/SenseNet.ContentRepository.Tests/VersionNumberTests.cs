@@ -12,7 +12,7 @@ namespace SenseNet.ContentRepository.Tests
     ///to contain all SenseNet.ContentRepository.Storage.VersionNumber Unit Tests
     ///</summary>
     [TestClass()]
-    public class VersionNumberTest : TestBase
+    public class VersionNumberTests : TestBase
     {
         [TestMethod]
         public void VersionNumber_Constructor()

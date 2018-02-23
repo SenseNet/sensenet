@@ -1,4 +1,5 @@
-﻿using SenseNet.ContentRepository.Schema;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Schema;
 using System;
 using System.Collections;
@@ -246,6 +247,119 @@ namespace SenseNet.ContentRepository.Tests
         {
             return String.Concat("PTR: name=", this.Name, ", DataType=", this.DataType, ", IsDeclared=", this.IsDeclared);
         }
+    }
+
+    internal class TypeCollectionAccessor<T> : Accessor, IEnumerable<T> where T : SchemaItem
+    {
+        public TypeCollection<T> Target { get { return (TypeCollection<T>)_target; } }
+
+        public static TypeCollectionAccessor<T> Create(SchemaEditor schemaEditor)
+        {
+            PrivateType prt = new PrivateType("SenseNet.Storage", "SenseNet.ContentRepository.Storage.Schema.ISchemaRoot");
+            Type argType = prt.ReferencedType;
+            PrivateObject pro = new PrivateObject(typeof(TypeCollection<T>), new Type[] { argType }, new object[] { schemaEditor });
+            return new TypeCollectionAccessor<T>(pro.Target);
+        }
+        public static TypeCollectionAccessor<T> Create(TypeCollection<T> initialList)
+        {
+            PrivateObject pro = new PrivateObject(typeof(TypeCollection<T>), new Type[] { typeof(TypeCollection<T>) }, new object[] { initialList });
+            return new TypeCollectionAccessor<T>(pro.Target);
+        }
+
+        public TypeCollectionAccessor(object target) : base(target) { }
+
+        public void Add(T item)
+        {
+            CallPrivateMethod("Add", item);
+        }
+        public int Count
+        {
+            get { return Target.Count; }
+        }
+        public T this[string name]
+        {
+            get { return Target[name]; }
+            set
+            {
+                var indexerInfo = Target.GetType().GetMethod("set_Item", BindingFlags.Instance | BindingFlags.NonPublic, null, new Type[] { typeof(string), typeof(T) }, null);
+                indexerInfo.Invoke(_target, new object[] { name, value });
+            }
+        }
+        public T this[int index]
+        {
+            get { return Target[index]; }
+            set
+            {
+                var indexerInfo = Target.GetType().GetMethod("set_Item", BindingFlags.Instance | BindingFlags.NonPublic, null, new Type[] { typeof(int), typeof(T) }, null);
+                indexerInfo.Invoke(_target, new object[] { index, value });
+            }
+        }
+
+        public bool Contains(T item)
+        {
+            return Target.Contains(item);
+        }
+        public int IndexOf(T item)
+        {
+            return Target.IndexOf(item);
+        }
+
+        public void CopyTo(T[] array, int arrayIndex)
+        {
+            Target.CopyTo(array, arrayIndex);
+        }
+        public T[] CopyTo(int arrayIndex)
+        {
+            return Target.CopyTo(arrayIndex);
+        }
+        public T[] ToArray()
+        {
+            return Target.ToArray();
+        }
+        public int[] ToIdArray()
+        {
+            return Target.ToIdArray();
+        }
+        public string[] ToNameArray()
+        {
+            return Target.ToNameArray();
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            return Target.GetEnumerator();
+        }
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return Target.GetEnumerator();
+        }
+
+        public T GetItemById(int itemId)
+        {
+            return Target.GetItemById(itemId);
+        }
+
+        public void AddRange(TypeCollection<T> items)
+        {
+            CallPrivateMethod("AddRange", items);
+        }
+        public void Insert(int index, T item)
+        {
+            CallPrivateMethod("Insert", index, item);
+        }
+        public void Clear()
+        {
+            CallPrivateMethod("Clear");
+        }
+        internal bool Remove(T item)
+        {
+            return (bool)CallPrivateMethod("Remove", item);
+        }
+        internal void RemoveAt(int index)
+        {
+            CallPrivateMethod("RemoveAt", index);
+        }
+
     }
 
 }

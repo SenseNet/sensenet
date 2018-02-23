@@ -12,7 +12,7 @@ using SenseNet.Tests;
 namespace SenseNet.ContentRepository.Tests.Schema
 {
     [TestClass]
-    public class SqlSchemaWriterTest : TestBase
+    public class SqlSchemaWriterTests : TestBase
     {
         #region Accessors
         private class SchemaItemAccessor : Accessor

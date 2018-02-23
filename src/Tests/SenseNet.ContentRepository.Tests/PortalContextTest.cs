@@ -12,7 +12,7 @@ using System.Web;
 namespace SenseNet.ContentRepository.Tests
 {
     [TestClass]
-    public class PortalContextTest : TestBase
+    public class PortalContextTests : TestBase
     {
         private void CreateTestSite()
         {
