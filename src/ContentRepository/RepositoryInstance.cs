@@ -608,17 +608,19 @@ namespace SenseNet.ContentRepository
             {
                 try
                 {
-                    var smtpClient = new System.Net.Mail.SmtpClient();
-                    var msgstr = string.Format(WRITELOCKREMOVEERRORTEMPLATESTR,
-                        Indexing.IndexLockFileWaitForRemovedTimeout,
-                        AppDomain.CurrentDomain.FriendlyName,
-                        AppDomain.CurrentDomain.BaseDirectory);
-                    var msg = new System.Net.Mail.MailMessage(
-                        Notification.NotificationSender,
-                        Indexing.IndexLockFileRemovedNotificationEmail.Replace(';', ','),
-                        WRITELOCKREMOVEERRORSUBJECTSTR,
-                        msgstr);
-                    smtpClient.Send(msg);
+                    using (var smtpClient = new System.Net.Mail.SmtpClient())
+                    {
+                        var msgstr = string.Format(WRITELOCKREMOVEERRORTEMPLATESTR,
+                            Indexing.IndexLockFileWaitForRemovedTimeout,
+                            AppDomain.CurrentDomain.FriendlyName,
+                            AppDomain.CurrentDomain.BaseDirectory);
+                        var msg = new System.Net.Mail.MailMessage(
+                            Notification.NotificationSender,
+                            Indexing.IndexLockFileRemovedNotificationEmail.Replace(';', ','),
+                            WRITELOCKREMOVEERRORSUBJECTSTR,
+                            msgstr);
+                        smtpClient.Send(msg);
+                    }
                 }
                 catch (Exception ex)
                 {
