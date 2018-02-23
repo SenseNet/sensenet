@@ -82,6 +82,7 @@
     <Compile Include="SavingActionTests.cs" />
     <Compile Include="SchemaEditorTests.cs" />
     <Compile Include="SchemaEditorSchemaWriterTests.cs" />
+    <Compile Include="SqlSchemaWriterTests.cs" />
     <Compile Include="TemplateReplacerTests.cs" />
     <Compile Include="TimestampTests.cs" />
     <Compile Include="TransactionScopeTests.cs" />
