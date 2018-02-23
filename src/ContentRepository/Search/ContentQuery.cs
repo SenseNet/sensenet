@@ -55,7 +55,7 @@ namespace SenseNet.Search
         /// <summary>
         /// Gets a value that is "true" if the query is safe.
         /// </summary>
-        public bool IsSafe { get; private set; }
+        public bool IsSafe { get; internal set; }
 
         private static readonly Regex EscaperRegex;
         static ContentQuery()
