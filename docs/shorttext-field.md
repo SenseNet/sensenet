@@ -17,19 +17,19 @@ The following apply to the behavior of the Field:
 ## Field handler
 
 - handler: *SenseNet.ContentRepository.Fields.ShortTextField*
-- short name: **ShortText**
+- short name: *ShortText*
 
 Usage in CTD:
 
 ```xml
-   <Field name="ShortDesc" type="ShortText">
-   ...
-   </Field>
+<Field name="ShortDesc" type="ShortText">
+...
+</Field>
 ```
 
 ## Supported Field Controls
 
-- [ShortText Field Control](shorttext-field-control.md): a simple textbox control where user can edit value (if non-readonly).
+- [ShortText Field Control](shorttext-fieldcontrol.md): a simple textbox control where user can edit value (if non-readonly).
 
 ## Configuration
 
@@ -40,7 +40,7 @@ The following properties can be set in the Field's [Field Setting](field-setting
 - **DefaultValue**: specifies the value filled in, when a new content is added.
 - **MaxLength**: an integer type property defining the maximum length of the inserted text: 0 to infinite.
 - **MinLength**: an integer type property defining the minimal expected length of the inserted text: 0 to infinite.
-- **Regex*: contains common regular expression against which the Field is validated. E.g. [a-zA-Z0-9]*$
+- **Regex**: contains common regular expression against which the Field is validated. E.g. [a-zA-Z0-9]*$
 
 > For a complete list of common Field Setting configuration properties see [CTD Field definition](ctd.md).
 

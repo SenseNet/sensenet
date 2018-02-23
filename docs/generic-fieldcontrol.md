@@ -8,17 +8,19 @@ tags: [field control, field, generic]
 
 # Generic Field Control
 
-The Generic Field Control is a special [Field Control](field-control.md) that renders the default Field Controls for the Fields of the displayed Content. Default Field Control for a Field is defined by the Field implementation (see supported Field Controls section for each [Field](field.md)) and can be overridden in the [Content Type Definition](ctd.md) of the displayed Content.
+> Although this feature is supported in sensenet ECM 7, it is built on the old Web Forms technology that you **should not use for new projects**. We encourage you to use a more modern UI solution using our [client-side packages](https://www.npmjs.com/org/sensenet).
+
+The Generic Field Control is a special [Field Control](field-control.md) that renders the default Field Controls for the Fields of the displayed Content. The default Field Control for a Field is defined by the Field implementation (see supported Field Controls section for each [Field](field.md)) and can be overridden in the [Content Type Definition](ctd.md) of the displayed Content.
 
 The Generic Field Control automatically resolves the default Field Control for a given Field and renders it. Not only does it render a single Field Control, but Field Controls for all Fields defined in the CTD of the Content - except when explicitely given to skip specific Field Controls. This makes it a useful tool when creating [Content Views](content-view.md) that use a generic layout for the Field Controls.
 
 ### Field controls
 
-The Generic Field Control will list all defined Fields of the Content using the default Field Control. The default Field Control for a Field is defined by the Field itself , from code (see supported Field Controls section for each Field) - but can be set with the ControlHint property in the [Field Setting](field-setting,md).
+The Generic Field Control will list all defined Fields of the Content using the default Field Control. The default Field Control for a Field is defined by the Field itself , from code (see supported Field Controls section for each Field) - but can be set with the ControlHint property in the [Field Setting](field-setting.md).
 
 ### Field order
 
-Fields are listed according to the order of the Fields defined in the CTD. Please note, that Field order can be changed by overriding a Field a child Content Type. Above that, Field order can be configured using the *FieldsOrder* property.
+Fields are listed according to the order of the Fields defined in the CTD. Please note that Field order can be changed by overriding a Field in a child Content Type. Above that, Field order can be configured using the *FieldsOrder* property.
 
 ### Field visibility
 
@@ -58,12 +60,12 @@ The following code is an excerpt from the User Content Type's *Edit* Content Vie
 The following example shows how to give Field Control ordering:
 
 ```html
-    <sn:GenericFieldControl runat="server" ID="GenericFieldcontrol1" FieldsOrder="DisplayName Description FirstLevelApprover FirstLevelTimeFrame 
+<sn:GenericFieldControl runat="server" ID="GenericFieldcontrol1" FieldsOrder="DisplayName Description FirstLevelApprover FirstLevelTimeFrame 
 SecondLevelApprover SecondLevelTimeFrame WaitForAll" />
 ```
 
 The following line will list the Fields of the current item Content that are defined in a parent List - Fields that start with '#'.
 
 ```html
-    <sn:GenericFieldControl runat=server ID="GenericFieldControl1" ContentListFieldsOnly="true" />
+<sn:GenericFieldControl runat=server ID="GenericFieldControl1" ContentListFieldsOnly="true" />
 ```

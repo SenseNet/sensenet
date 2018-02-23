@@ -8,7 +8,7 @@ tags: [content, ctd, child types, field]
 
 # Text extractors
 
-In an enterprise-grade ECM solution one of the most important features is indexing documents to let users search for (and find) uploaded files. sensenet ECM is able to index not only metadata of documents (like creation date or author) but the binary content itself. The latter is called text extracting. This article was written for developers who want to understand the mechanism behind binary indexing and want to create a custom text extractor for a particular file type.
+In an enterprise-grade ECM solution one of the most important features is indexing documents to let users search for (and find) uploaded files. sensenet ECM is able to index not only metadata of documents (like creation date or author) but the **binary content** itself. The latter is called text extracting. This article was written for developers who want to understand the mechanism behind binary indexing and want to create a custom text extractor for a particular file type.
 
 ## Text extractors
 
@@ -48,9 +48,10 @@ The following list contains the list of built-in text extractors:
 - **docm**: SenseNet.Search.DocxTextExtractor
 - **docx**: SenseNet.Search.DocxTextExtractor
 - **msg**: SenseNet.Search.MsgTextExtractor
-- **pdf**: SenseNet.Search.PdfTextExtractor (in the Enterprise Edition: AsposePreviewProvider.AsposePdfTextExtractor)
+- **pdf**: SenseNet.Search.PdfTextExtractor 
+   - In the **Enterprise Edition**: AsposePreviewProvider.AsposePdfTextExtractor
 - **pptx**: SenseNet.Search.PptxTextExtractor
-- **rtf**: SenseNet.Search.RtfTextExtractor (from version 6.4)
+- **rtf**: SenseNet.Search.RtfTextExtractor
 - **txt**: SenseNet.Search.PlainTextExtractor
 - **xls**: SenseNet.Search.XlsTextExtractor
 - **xlb**: SenseNet.Search.XlbTextExtractor
@@ -118,7 +119,7 @@ public class ABCTextExtractor : TextExtractor
                 // read the stream and extract text
             }
  
-            SenseNet.ContentRepository.Search.Indexing.IndexingTools.AddTextExtract(context.VersionId, text);
+            IndexingTools.AddTextExtract(context.VersionId, text);
         });
  
         return string.Empty;

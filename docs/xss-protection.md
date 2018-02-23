@@ -15,6 +15,8 @@ XSS (or Cross-site scripting) is a common form of web attacks that exploit vulne
 
 ### Field Controls and Field Data
 
+> Although this feature is supported in sensenet ECM 7, it is built on the old Web Forms technology that you **should not use for new projects**. We encourage you to use a more modern UI solution using our [client-side packages](https://www.npmjs.com/org/sensenet).
+
 Fields will always store data in the same format as received from input. The following applies when displaying Field data in [Field Controls](field-controls.md):
 
 - the following sanitization levels are defined in the system:
@@ -40,9 +42,9 @@ Where RawData outputs raw data, TextData uses full encoding of data and HtmlData
 This will use the OutputMethod defined on the Field, or will use Text (ie full encoding) if Default is in effect on the Field. The OutputMethod of any Field can be set at CTD level with the following configuration:
 
 ```xml
-      <Configuration>
-        <OutputMethod>Html</OutputMethod>
-      </Configuration>
+<Configuration>
+  <OutputMethod>Html</OutputMethod>
+</Configuration>
 ```
 
 Here OutputMethod can be one of the following:
@@ -53,6 +55,8 @@ Here OutputMethod can be one of the following:
 - **Default**: output will be displayed with the default output method of the Field Control. Field Controls' default output is Text, Richtext uses Html, and Binary uses Raw.
 
 ### ContentViews
+
+> Although this feature is supported in sensenet ECM 7, it is built on the old Web Forms technology that you **should not use for new projects**. We encourage you to use a more modern UI solution using our [client-side packages](https://www.npmjs.com/org/sensenet).
 
 It is possible to display input data in [Content Views](content-views.md) using the *GetValue* function:
 
@@ -105,16 +109,15 @@ The following is an excerpt from the CTD of the HTMLContent type:
 <ContentType name="HTMLContent" parentType="WebContent" handler="SenseNet.ContentRepository.GenericContent" xmlns="http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition">
  
  ...
-   <Field name="HTMLFragment" type="LongText">
-      ...
-      <Configuration>
-        <OutputMethod>Html</OutputMethod>
-      </Configuration>
- 
- ...
+<Field name="HTMLFragment" type="LongText">
+   ...
+   <Configuration>
+     <OutputMethod>Html</OutputMethod>
+   </Configuration> 
+   ...
 ```
 
-The above setting will instruct the CMS to use *Html* sanitization level if the data of the Field is displayed using the [LongText Field Control](long-text-fieldcontrol.md) in browse mode, since the default fieldcontroltemplate of the LongText Field Control is the following:
+The above setting will instruct the CMS to use *Html* sanitization level if the data of the Field is displayed using the [LongText Field Control](longtext-fieldcontrol.md) in browse mode, since the default fieldcontroltemplate of the LongText Field Control is the following:
 
 ```csharp
 <%@  Language="C#" %>
