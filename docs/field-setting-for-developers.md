@@ -8,14 +8,12 @@ tags: [field, field, setting, content type, content type definition]
 
 # Field Setting
 
-The FieldSetting object is the implementation of the configuration element in a CTD. Every field has a FieldSetting object.
+The FieldSetting object is the implementation of the configuration element in a [Content Type Definition](ctd.md). Every field has a FieldSetting object.
 
 The FieldSetting object can be accessed via a property on every field:
 
 ```csharp
-public abstract class Field
-{
-   public FieldSetting FieldSetting { get; private set; }
+var fs = myField.FieldSetting;
 ```
 
 ## Field and FieldSetting
@@ -36,22 +34,22 @@ public class ShortTextField : Field
 To define a specific FieldSetting implementation for a field, use the handler attribute of the Configuration element in the CTD providing the fully qualified name of the desired FieldSetting type:
 
 ```xml
-    <Field name="Email" type="ShortText">
-      <Configuration handler="SenseNet.ContentRepository.Fields.ActivationFieldSetting">
-        <Enabled>true</Enabled>
-        <MailFrom></MailFrom>
-        <MailDefinition>
-          Click the following link to activate your account:
-          ##ActivationLink##
-        </MailDefinition>
-        <MailSubject>Activation subject</MailSubject>
-        <IsBodyHtml>false</IsBodyHtml>
-        <MailPriority>Low</MailPriority>
-      </Configuration>
-    </Field>
+<Field name="Email" type="ShortText">
+  <Configuration handler="SenseNet.ContentRepository.Fields.ActivationFieldSetting">
+    <Enabled>true</Enabled>
+    <MailFrom></MailFrom>
+    <MailDefinition>
+      Click the following link to activate your account:
+      ##ActivationLink##
+    </MailDefinition>
+    <MailSubject>Activation subject</MailSubject>
+    <IsBodyHtml>false</IsBodyHtml>
+    <MailPriority>Low</MailPriority>
+  </Configuration>
+</Field>
 ```
 
-In this case the type of the field is *ShortText*, however we use the *ActivationFieldSetting* type instead of the more general *ShortTextFieldSetting* type. As you see the contents of the *Configuration* element depends on the used FieldSetting type.
+In this case the type of the field is *ShortText*, however we use the *ActivationFieldSetting* type instead of the more general *ShortTextFieldSetting* type. As you see the contents of the *Configuration* element depend on the used FieldSetting type.
 
 ## Built-in FieldSettings
 
@@ -63,26 +61,27 @@ The following diagram shows the built-in field types of sensenet:
 
 For a list and description of common configuration elements please refer to the following article:
 
-- [CTD#Field definition](ctd.md)
+- [Content Type Definition](ctd.md#Field-definition)
 
 ## Validation mechanism
 
-The FieldSetting not only specifies the type of information but it also validates according to its implementation. Validation can happen automatically on saving a content, or manually from code. The Field is able to store the validation status (valid, invalid, reason of error), thus if a validation has occurred the field will be revalidated if its data has changed or a previous validation has failed. When developing user interaction handling code we don't come across the validation mechanism, since it is done in the background. There are some properties however that indicate if a validation has failed or not. The following code snippet is an example for handling validation and other problems when using [content views](content-views.md):
+The FieldSetting not only specifies the type of information but it also validates according to its implementation. Validation can happen automatically on saving a content, or manually from code. The Field is able to store the validation status (valid, invalid, reason of error), thus if a validation has occurred the field will be revalidated if its data has changed or a previous validation has failed. 
+
+When developing user interaction we don't come across the validation mechanism, since it is done in the background. There are some properties however that indicate if a validation has failed or not. The following code snippet is an example for handling validation:
 
 ```csharp
-    contentView.UpdateContent();
-    if (contentView.IsUserInputValid && content.IsValid)
+if (content.IsValid)
+{
+    try
     {
-        try
-        {
-            content.Save();
-        }
-        catch (Exception ex)
-        {
-            Logger.WriteException(ex);
-            contentView.ContentException = ex;
-        }
+        content.Save();
     }
+    catch (Exception ex)
+    {
+        Logger.WriteException(ex);
+        contentView.ContentException = ex;
+    }
+}
 ```
 
-When a content view updates the underlying content all fields are validated by their field settings and the view's controls can access the validation results. If there is a problem with any field data the content's IsValid property will be set to false and the control can write back the reason to the form.
+When a content view updates the underlying content all fields are validated by their field settings and the view's controls can access the validation results. If there is a problem with any field data the content's *IsValid* property will be set to false and the view will be able to display the validation details.

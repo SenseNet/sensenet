@@ -8,15 +8,15 @@ tags: [field, indexing, index, content type, content type definition]
 
 # Field Indexing
 
-For every [Content](content.md) the [Field](field.md) values can be indexed so that when searched for a Field value the corresponding Content will appear in the result set. It is also possible to search in Fields by explicitely defining the Field whose values are to be searched within a query. The way a specific Field of a Content is indexed is defined in the [CTD Field Definition](ctd.md).
+For every [Content](content.md) the [Field](field.md) values can be indexed so that when searching for a value the corresponding Content will appear in the result set. It is also possible to search in Fields by explicitely defining the Field to search for in a query. The way a specific Field of a Content is indexed is defined in the [Content Type Definition](ctd.md).
 
-> It is possible to switch off indexing for certain content types. In that case nobody will be able to find the instances of those content types using [Content Query](content-query.md), but the index will be smaller. For more details, see the Index description in the Content Type Definition article.
+> It is possible to switch off indexing for certain fields or content types. In that case nobody will be able to find the instances of those content types using [Content Query](content-query.md), but the index will be smaller. For more details, see the Index description in the Content Type Definition article.
 
-The portal uses the [Lucene search engine](http://lucenenet.apache.org/) for indexing of the [Content Repository](content-repository.md) and to provide a fast mechanism for returning query results. Apart from the indexing of some basic built-in properties every Field can be configured to be indexed separately.
+The portal uses the [Lucene search engine](http://lucenenet.apache.org/) by default for indexing the [Content Repository](content-repository.md) and to provide a fast mechanism for returning query results. Apart from the indexing of some basic built-in properties every Field can be configured to be indexed separately.
 
 ### Indexing and storing
 
-There are two ways to put Field data information in the index: by indexing and by storing. Indexing means that an analyzer processes Field data, it resolves to data to terms and the Content ID is stored under the corresponding term making it possible to search for terms to get the Content. Storing means that Field data itself can be stored in the index for a Content (for example the base system stores path in the index to allow convenient programming). Indexing and storing is independent of each other, they can both be switched on and off regardless of the state of the other.
+There are two ways to put Field data information in the index: by indexing and by storing. **Indexing** means that an analyzer processes Field data, it resolves to data to *terms* and the Content ID is stored under the corresponding term making it possible to search for terms to get the Content. **Storing** means that Field data itself can be stored in the index for a Content (for example the base system stores content Path in the index for convenience). Indexing and storing is independent of each other, they can both be switched on and off regardless of the state of the other.
 
 ### Analyzers
 
@@ -24,7 +24,7 @@ The goal of an analyzer is to extract all relevant terms from a text, filtering 
 
 ### Stop-word dictionary
 
-Some of the built-in analyzers (*StandardAnalyzer* and *StopAnalyzer*) use a stop-word dictionary to exclude certain words that will not be indexed as terms. For example when indexing written English texts it is useful not to index the word the, as it is usually irrelevant in relation to the text content. Besides, searching for *the* would come up with results including Content containing any written English text. The built-in stop-word dictionary uses the following words:
+Some of the built-in analyzers (*StandardAnalyzer* and *StopAnalyzer*) use a stop-word dictionary to exclude certain words that will not be indexed as terms. For example when indexing written English texts it is useful not to index the word 'the', as it is usually irrelevant in relation to the text content. Besides, searching for 'the' would come up with results including Content containing any written English text. The built-in stop-word dictionary contains the following words:
 
 ```txt
 "a", "an", "and", "are", "as", "at", "be", "but", "by", "for", "if", "in", "into", "is", "it", "no", "not", "of", 
@@ -54,7 +54,7 @@ You can configure the indexing and storing mode, analyzer, and the association o
 
 ### Mode
 
-Indexing mode settings (refer to [http://lucene.apache.org/java/2_9_4/api/core/org/apache/lucene/document/Field.Index.html](http://lucene.apache.org/java/2_9_4/api/core/org/apache/lucene/document/Field.Index.html)). Available values:
+Indexing mode settings (refer to [Lucene indexing documentation](http://lucene.apache.org/java/2_9_4/api/core/org/apache/lucene/document/Field.Index.html)). Available values:
 
 - **Analyzed** (default): Field will be analyzed with the given analyzer (see later)
 - **AnalyzedNoNorms**
@@ -66,14 +66,14 @@ Indexing mode settings (refer to [http://lucene.apache.org/java/2_9_4/api/core/o
 
 ### Store
 
-The native Field value storage in the index can be switched on or off (refer to [http://lucene.apache.org/java/2_9_4/api/core/org/apache/lucene/document/Field.Store.html](http://lucene.apache.org/java/2_9_4/api/core/org/apache/lucene/document/Field.Store.html)). Available values:
+The native Field value storage in the index can be switched on or off (refer to [Lucene storing documentation](http://lucene.apache.org/java/2_9_4/api/core/org/apache/lucene/document/Field.Store.html)). Available values:
 
 - **No** (default)
 - **Yes**
 
 ### Term vector
 
-Term vector settings (refer to [http://lucene.apache.org/java/2_9_4/api/core/org/apache/lucene/document/Field.TermVector.html](http://lucene.apache.org/java/2_9_4/api/core/org/apache/lucene/document/Field.TermVector.html)). Available values:
+Term vector settings (refer to [Lucene term vector documentation](http://lucene.apache.org/java/2_9_4/api/core/org/apache/lucene/document/Field.TermVector.html)). Available values:
 
 - **No** (default)
 - **WithOffsets**
@@ -85,7 +85,7 @@ Term vector settings (refer to [http://lucene.apache.org/java/2_9_4/api/core/org
 
 ### Analyzer
 
-You can associate any Lucene Analyzer to a Field (refer to: [http://lucene.apache.org/java/2_9_4/api/core/org/apache/lucene/analysis/Analyzer.html](http://lucene.apache.org/java/2_9_4/api/core/org/apache/lucene/analysis/Analyzer.html)). The element value is the fully qualified type name of the desired Lucene analyzer. Available analyzers:
+You can associate any Lucene Analyzer to a Field (refer to: [Lucene analyzer documentation](http://lucene.apache.org/java/2_9_4/api/core/org/apache/lucene/analysis/Analyzer.html)). The element value is the fully qualified type name of the desired Lucene analyzer. Available analyzers:
 
 - Lucene.Net.Analysis.Standard.**StandardAnalyzer**: an analyzer created specifically for text sentences/words. It excludes punctuations, splits up input string to words, gets each word in lower case and uses a stop-word dictionary for exclusions to lower false hit rates (for example you cannot query for articles like 'a' or 'the'). Use this whenever written text is stored in a Field that needs to be queried to individual words.
 - Lucene.Net.Analysis.**KeywordAnalyzer**: (default) Trims the input string (removes whitespaces from the beginning and the end) and treats the input as a whole expression, as given - it does not even transform the input to lower case. It is useful for Fields holding processable string data, that needs to be searched as is.
@@ -93,11 +93,7 @@ You can associate any Lucene Analyzer to a Field (refer to: [http://lucene.apach
 - Lucene.Net.Analysis.**StopAnalyzer**: similar to SimpleAnalyzer but also uses stop-word dictionary to exclude words.
 - Lucene.Net.Analysis.**WhitespaceAnalyzer**: splits input string along whitespaces, but not along punctuations.
 
-The built-in standard analyzer is based upon the English language. Please note, that when using the system in different language environments it is reasonable to develop a custom analyzer with stop-word dictionary (and optionally a stemmer) specialized for the given language.
-
-```diff
-Warning! Be very careful when providing an analyzer classname for a Field. Misspelled classnames may result in system crash!
-```
+The built-in standard analyzer is based upon the English language. Please note that when using the system in different language environments it is reasonable to develop a custom analyzer with stop-word dictionary (and optionally a stemmer) specialized for the given language.
 
 Only one analyzer can be bound to a specific Field, that is this setting cannot be overridden. Changing an analyzer for a Field can only be done at the topmost level the Field is defined. To change an analyzer first re-register the CTD with omitted analyzer settings:
 
@@ -126,9 +122,9 @@ Warning! Changing an analyzer for a Field is only valid in development time, it 
 
 ### IndexHandler
 
-Every content Field has an association with a FieldIndexHandler that generates the indexable value from the Field's value. This association is configurable with the IndexHandler element. The element value is the fully qualified type name of the desired *FieldIndexHandler*. Default depends on the Field's [Field Setting](field-setting.md). The master default is the *LowerStringIndexHandler* (if a Field Setting does not override the CreateDefaultIndexFieldHandler method). Available built-in Field index handlers and their usages:
+Every content Field has a corresponding FieldIndexHandler that generates the indexable value from the Field's value. This association is configurable using the IndexHandler element in the CTD. The element value is the fully qualified type name of the desired *FieldIndexHandler*. Default depends on the Field's [Field Setting](field-setting.md). The master default is the *LowerStringIndexHandler* (if a Field Setting does not override the CreateDefaultIndexFieldHandler method). Available built-in Field index handlers and their usages:
 
-- SenseNet.Search.**NotIndexedIndexFieldHandler**: Password, UrlList, Color, Image, Lock, Security, SiteRelativeUrl, WhoAndWhen fields. These are not indexed.
+- SenseNet.Search.**NotIndexedIndexFieldHandler**: Password, UrlList, Color, Image, Lock, Security, SiteRelativeUrl, WhoAndWhen fields. These fields are not indexed.
 - SenseNet.Search.**LowerStringIndexHandler**: this is the default index field handler.
 - SenseNet.Search.**BooleanIndexHandler**: Boolean fields.
 - SenseNet.Search.**IntegerIndexHandler**: Integer fields (Id, VersionId, Index fields and so on).
@@ -148,7 +144,7 @@ Every content Field has an association with a FieldIndexHandler that generates t
 
 The following is a list of the properties that are indexed regardless of Field indexing settings:
 
-- **NodeId**: (node.Id) the identifier number of the Content.
+- **NodeId**: the identifier number of the Content.
 - **VersionId**: (node.VersionId) version id of the Content.
 - **Version**: (node.Version) version string of the Content (in the form of V*major*.*minor*.*status*).
 - **CreatedById**: (node.CreatedById) id of the creator user Content of the Content.
@@ -166,11 +162,12 @@ The following is a list of the properties that are indexed regardless of Field i
 
 ## for Developers
 
-The indexing of content is carried out in two steps: first an IndexDocument data is created and stored in the database when the content is saved. After that, this IndexDocument data is used to include the analyzed data in the index. This two-step procedure allows fast creation of the index using the [Index Populator](index-populator.md). Please bear in mind though, that when changing field index configuration the IndexDocuments are not automatically regenerated, so running the Index Populator after configuration change will lead to the index being created according to previous settings. To overcome this you could manually save each affected content or use the following API to regenerate the IndexDocument data:
+The indexing of content is carried out in two steps: first an *IndexDocument* data is created and *stored in the database* when the content is saved. After that, this IndexDocument data is used to include the analyzed data in the index. This two-step procedure allows fast index creation using the [index SnAdmin tool](snadmin-tools.md#index). Please bear in mind though, that when *changing field index configuration* the IndexDocuments are not automatically regenerated, so running the index tool with the level *DatabaseAndIndex* is necessary.
+
+It is also possible to re-create the index of a content or a subtree using the following API:
 
 ```csharp
-var popu = StorageContext.Search.SearchEngine.GetPopulator();
-popu.RefreshIndexDocumentInfo(node, false);
+content.RebuildIndex();
 ```
 
 ## Indexing binaries
@@ -179,7 +176,7 @@ Binary fields are special fields that hold the actual content of a file. Indexin
 
 - [Text extractors](text-extractors.md)
 
-## Example
+## Examples
 
 ### Disabling Field indexing
 
@@ -416,7 +413,7 @@ The following terms will be present in the index:
 
 Different queries will return the following results:
 
-``txt
+```txt
 MyKeywords:test
 Result count: 1
  
