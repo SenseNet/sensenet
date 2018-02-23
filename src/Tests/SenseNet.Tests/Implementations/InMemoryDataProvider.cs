@@ -635,12 +635,15 @@ namespace SenseNet.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+        #endregion
 
         protected internal override VersionNumber[] GetVersionNumbers(int nodeId)
         {
             var versions = _db.Versions.Where(r => r.NodeId == nodeId).Select(r => r.Version).ToArray();
             return versions;
         }
+
+        #region NOT IMPLEMENTED
 
         protected internal override bool HasChild(int nodeId)
         {
@@ -656,12 +659,12 @@ namespace SenseNet.Tests.Implementations
         {
             throw new NotImplementedException();
         }
+        #endregion
 
         protected internal override int InstanceCount(int[] nodeTypeIds)
         {
-            throw new NotImplementedException();
+            return _db.Nodes.Count(n => nodeTypeIds.Contains(n.NodeTypeId));
         }
-        #endregion
 
         protected internal override bool IsCacheableText(string text)
         {
@@ -2028,9 +2031,9 @@ namespace SenseNet.Tests.Implementations
                 element.SetAttribute("name", name);
                 element.SetAttribute("className", className);
 
-                //var parentElement = (XmlElement)_schemaXml.SelectSingleNode($"//x:NodeType[@itemID = '{parent.Id}']", _nsmgr);
-                var parentElement = (XmlElement)_schemaXml.SelectSingleNode($"//x:NodeType[@name = '{parent.Name}']", _nsmgr);
-                // ReSharper disable once PossibleNullReferenceException
+                var parentElement = parent == null
+                    ? (XmlElement)_schemaXml.SelectSingleNode($"//x:NodeTypeHierarchy", _nsmgr)
+                    : (XmlElement)_schemaXml.SelectSingleNode($"//x:NodeType[@name = '{parent.Name}']", _nsmgr);
                 parentElement.AppendChild(element);
             }
             public override void ModifyNodeType(NodeType nodeType, NodeType parent, string className)
@@ -2039,7 +2042,9 @@ namespace SenseNet.Tests.Implementations
             }
             public override void DeleteNodeType(NodeType nodeType)
             {
-                throw new NotImplementedException();
+                var element = (XmlElement)_schemaXml.SelectSingleNode($"//x:NodeType[@name = '{nodeType.Name}']", _nsmgr);
+                var parentElement = (XmlElement)element.ParentNode;
+                parentElement.RemoveChild(element);
             }
 
             public override void AddPropertyTypeToPropertySet(PropertyType propertyType, PropertySet owner, bool isDeclared)
@@ -2059,7 +2064,8 @@ namespace SenseNet.Tests.Implementations
             {
                 var parentElement = (XmlElement)_schemaXml.SelectSingleNode($"//x:NodeType[@name = '{owner.Name}']", _nsmgr);
                 if (parentElement == null)
-                    throw new NotImplementedException(); //TODO: ContentList property removal is not implemented.
+                    //throw new NotImplementedException(); //TODO: ContentList property removal is not implemented.
+                    return;
 
                 var element = (XmlElement)parentElement.SelectSingleNode($"x:PropertyType[@name = '{propertyType.Name}']", _nsmgr);
                 if (element != null)

@@ -1,5 +1,7 @@
-﻿using SenseNet.ContentRepository.Storage.Schema;
+﻿using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Storage.Schema;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -144,6 +146,105 @@ namespace SenseNet.ContentRepository.Tests
         {
             get { return ((SchemaItem)_target).Id; }
             set { SetPrivateField("_id", value); }
+        }
+    }
+
+    internal class ContentTypeManagerAccessor : Accessor
+    {
+        public ContentTypeManagerAccessor(ContentTypeManager target) : base(target) { }
+        public ContentType LoadOrCreateNew(string contentTypeDefinitionXml)
+        {
+            return (ContentType)CallPrivateStaticMethod("LoadOrCreateNew", new Type[] { typeof(string) }, contentTypeDefinitionXml);
+        }
+        public void ApplyChangesInEditor(ContentType settings, SchemaEditor editor)
+        {
+            base.CallPrivateStaticMethod("ApplyChangesInEditor", new Type[] { typeof(ContentType), typeof(SchemaEditor) }, settings, editor);
+        }
+        public NodeTypeRegistrationAccessor ParseAttributes(Type type)
+        {
+            object ntr = base.CallPrivateStaticMethod("ParseAttributes", new Type[] { typeof(Type) }, type);
+            if (ntr == null)
+                return null;
+            NodeTypeRegistrationAccessor ntrAcc = new NodeTypeRegistrationAccessor(ntr);
+            return ntrAcc;
+        }
+    }
+    internal class NodeTypeRegistrationAccessor : Accessor
+    {
+        private List<PropertyTypeRegistrationAccessor> _propertyTypeRegistrations;
+
+        public Type Type
+        {
+            get { return (Type)GetPublicValue("Type"); }
+            set { SetPublicValue("Type", value); }
+        }
+        public string Name
+        {
+            get { return (string)GetPublicValue("Name"); }
+        }
+        public string ParentName
+        {
+            get { return (string)GetPublicValue("ParentName"); }
+            set { SetPublicValue("ParentName", value); }
+        }
+        public List<PropertyTypeRegistrationAccessor> PropertyTypeRegistrations
+        {
+            get { return _propertyTypeRegistrations; }
+        }
+
+        public NodeTypeRegistrationAccessor(object target)
+            : base(target)
+        {
+            _propertyTypeRegistrations = new List<PropertyTypeRegistrationAccessor>();
+            object listobject = GetPublicValue("PropertyTypeRegistrations");
+            IEnumerable list = listobject as IEnumerable;
+            foreach (object item in list)
+            {
+                PropertyTypeRegistrationAccessor p = new PropertyTypeRegistrationAccessor(item);
+                p.Parent = this;
+                _propertyTypeRegistrations.Add(p);
+            }
+        }
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("NTR: name="); sb.Append(this.Name).Append(", ParentName=").Append(this.ParentName ?? "[null]");
+            sb.Append(", Type=").Append(this.Type.FullName ?? "[null]").Append("\r\n");
+            foreach (PropertyTypeRegistrationAccessor ptrAcc in _propertyTypeRegistrations)
+                sb.Append("\t").Append(ptrAcc).Append("\r\n");
+            return sb.ToString();
+        }
+    }
+    internal class PropertyTypeRegistrationAccessor : Accessor
+    {
+        private NodeTypeRegistrationAccessor _parent;
+
+        public string Name
+        {
+            get { return (string)GetPublicValue("Name"); }
+        }
+        public RepositoryDataType DataType
+        {
+            get { return (RepositoryDataType)GetPublicValue("DataType"); }
+            set { SetPublicValue("DataType", value); }
+        }
+        public bool IsDeclared
+        {
+            get { return (bool)GetPublicValue("IsDeclared"); }
+            set { SetPublicValue("IsDeclared", value); }
+        }
+        public NodeTypeRegistrationAccessor Parent
+        {
+            get { return _parent; }
+            set { _parent = value; }
+        }
+
+        public PropertyTypeRegistrationAccessor(object target) : base(target) { }
+
+        public override string ToString()
+        {
+            return String.Concat("PTR: name=", this.Name, ", DataType=", this.DataType, ", IsDeclared=", this.IsDeclared);
         }
     }
 

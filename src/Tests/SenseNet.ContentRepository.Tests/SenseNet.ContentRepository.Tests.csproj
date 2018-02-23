@@ -68,8 +68,10 @@
     <Compile Include="Accessors.cs" />
     <Compile Include="AutoNamingTests.cs" />
     <Compile Include="ComponentVersionTests.cs" />
+    <Compile Include="ContentHandlers\EnumTestNode.cs" />
     <Compile Include="ContentTypeInheritanceTests.cs" />
     <Compile Include="ContentTypeTests.cs" />
+    <Compile Include="FieldSettingTests.cs" />
     <Compile Include="GenericContentTests.cs" />
     <Compile Include="LinqTests.cs" />
     <Compile Include="NodeIdentifierTests.cs" />
@@ -127,6 +129,7 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
+  <ItemGroup />
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>
