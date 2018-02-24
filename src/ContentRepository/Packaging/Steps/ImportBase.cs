@@ -516,6 +516,7 @@ namespace SenseNet.Packaging.Steps
 
                 // ContentType ids
                 var RootContentId = Identifiers.PortalRootId;
+                var FolderContentTypeId = ContentType.GetByName("Folder").Id;
                 var SystemFolderContentTypeId = ContentType.GetByName("SystemFolder").Id;
                 var SurveyItemContentTypeId = ContentType.GetByName("SurveyItem")?.Id ?? 0;
                 var VotingItemContentTypeId = ContentType.GetByName("VotingItem")?.Id ?? 0;
@@ -607,6 +608,7 @@ namespace SenseNet.Packaging.Steps
                     aclEd.Allow(WorkspaceContentTypeId, IdentifiedUsersGroupId, false, PermissionType.See)
                         .Allow(ContentListContentTypeId, IdentifiedUsersGroupId, false, PermissionType.See)
                         .Allow(FileContentTypeId, IdentifiedUsersGroupId, false, PermissionType.See)
+                        .Allow(FolderContentTypeId, IdentifiedUsersGroupId, false, PermissionType.See)
                         .Allow(ListItemContentTypeId, IdentifiedUsersGroupId, false, PermissionType.See);
                 }
                 if (contentExplorersGroup != null)

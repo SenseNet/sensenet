@@ -207,8 +207,6 @@ namespace SenseNet.ContentRepository
                         mailBody = mailBody.Replace("{Evaluate}", string.Format(linkText, url, "Evaluate"));
                         mailBody = mailBody.Replace("{Creator}", (this.Parent.CreatedBy as IUser).FullName);
 
-                        var smtpClient = new SmtpClient();
-
                         foreach (var email in emailList)
                         {
                             mailBody = mailBody.Replace("{Addressee}", email.Value);
@@ -221,7 +219,8 @@ namespace SenseNet.ContentRepository
 
                             try
                             {
-                                smtpClient.Send(mailMessage);
+                                using (var smtpClient = new SmtpClient())
+                                    smtpClient.Send(mailMessage);
                             }
                             catch (Exception ex) // logged
                             {

@@ -1,7 +1,7 @@
 <Package type='Install' >
   <Id>SenseNet.Services</Id>
   <Description>sensenet ECM Services</Description>
-  <ReleaseDate>2018-01-18</ReleaseDate>
+  <ReleaseDate>2018-02-07</ReleaseDate>
   <Version>7.1.0</Version>
   <Parameters>
     <Parameter name="@dataSource" description="Name of the database server (. or MACHINENAME\SQL2016). Default: .">.</Parameter>
