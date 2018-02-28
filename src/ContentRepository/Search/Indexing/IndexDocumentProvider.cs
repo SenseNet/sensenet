@@ -145,7 +145,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         continue;
                     if (!field.IsBinaryField)
                         continue;
-                    if (TextExtractor.TextExtractingWillBePotentiallySlow((BinaryData)((BinaryField)field).GetData()))
+                    if (!TextExtractor.TextExtractingWillBePotentiallySlow((BinaryData)((BinaryField)field).GetData()))
                         continue;
 
                     IEnumerable<IndexField> indexFields = null;
