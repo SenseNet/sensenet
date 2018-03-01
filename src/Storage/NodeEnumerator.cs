@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.Diagnostics;
+using SenseNet.Search;
+using SenseNet.Search.Querying;
 
 namespace SenseNet.ContentRepository.Storage
 {
@@ -17,7 +21,7 @@ namespace SenseNet.ContentRepository.Storage
         {
             return GetNodes(path, hint, null, null);
         }
-        public static IEnumerable<Node> GetNodes(string path, ExecutionHint hint, NodeQuery filter, int? depth)
+        public static IEnumerable<Node> GetNodes(string path, ExecutionHint hint, string filter, int? depth)
         {
             if (path == null)
                 throw new ArgumentNullException("path");
@@ -31,18 +35,31 @@ namespace SenseNet.ContentRepository.Storage
         private Stack<int> _currentIndices;
         protected Node CurrentNode;
         private readonly ExecutionHint _hint;
-        private readonly NodeQuery _filter;
+        private readonly string _filter;
         private int? _depth;
         private bool _skip;
 
-        protected NodeEnumerator(string path, ExecutionHint executionHint, NodeQuery filter, int? depth)
+        protected NodeEnumerator(string path, ExecutionHint executionHint, string filter, int? depth)
         {
             RootPath = path;
             _currentLevel = new Stack<int[]>();
             _currentIndices = new Stack<int>();
             _hint = executionHint;
-            _filter = filter;
             _depth = depth.HasValue ? Math.Max(1, depth.Value) : depth;
+            if (filter != null)
+            {
+                if (filter.Length == 0)
+                    filter = null;
+                else if (filter.StartsWith("<"))
+                {
+                    SnLog.WriteWarning(
+                        "NodeEnumerator cannot be initialized with filter that is a NodeQuery. Use content query text instead.",
+                        properties: new Dictionary<string, object> {{"InvalidFilter", filter}});
+
+                    filter = null;
+                }
+            }
+            _filter = filter;
         }
 
         // ================================================================== IEnumerable<Node> Members
@@ -122,36 +139,35 @@ namespace SenseNet.ContentRepository.Storage
 
         // ================================================================== Tools
 
-        private NodeQueryResult QueryChildren(int thisId)
+        private QueryResult QueryChildren(int thisId)
         {
             switch (_hint)
             {
                 case ExecutionHint.None:
-                    if (StorageContext.Search.IsOuterEngineEnabled && StorageContext.Search.SearchEngine != InternalSearchEngine.Instance)
-                        return QueryChildrenFromLucene(thisId);
-                    return QueryChildrenFromDatabase(thisId);
+                    return SearchManager.ContentQueryIsAllowed
+                        ? QueryChildrenFromIndex(thisId)
+                        : QueryChildrenFromDatabase(thisId);
                 case ExecutionHint.ForceRelationalEngine:
                     return QueryChildrenFromDatabase(thisId);
                 case ExecutionHint.ForceIndexedEngine:
-                    return QueryChildrenFromLucene(thisId);
+                    return QueryChildrenFromIndex(thisId);
                 default:
                     throw new SnNotSupportedException();
             }
         }
-        protected virtual NodeQueryResult QueryChildrenFromLucene(int thisId)
+        protected virtual QueryResult QueryChildrenFromIndex(int thisId)
         {
-            var query = new NodeQuery();
-            query.Add(new IntExpression(IntAttribute.ParentId, ValueOperator.Equal, thisId));
-            if (this._filter != null)
-                query.Add(_filter);
-            return query.Execute(ExecutionHint.ForceIndexedEngine);
+            var q = $"ParentId:{thisId}";
+            if (_filter != null)
+                q += $" +({_filter})";
+            return SearchManager.ExecuteContentQuery(q, QuerySettings.AdminSettings);
         }
-        private NodeQueryResult QueryChildrenFromDatabase(int thisId)
+        private QueryResult QueryChildrenFromDatabase(int thisId)
         {
             if (_filter != null)
                 throw new NotSupportedException("Cannot query the children from database with filter.");
             var idArray = DataProvider.Current.GetChildrenIdentfiers(thisId);
-            return new NodeQueryResult(new NodeList<Node>(idArray));
+            return new QueryResult(idArray);
         }
 
         private Node LoadCurrentNode()

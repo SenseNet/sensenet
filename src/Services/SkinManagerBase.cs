@@ -8,6 +8,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.Portal.Virtualization;
 using System.Threading;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.Diagnostics;
 using SenseNet.Tools;
 
@@ -213,17 +214,7 @@ namespace SenseNet.Portal
         private void ReadSkinStructure()
         {
             Node[] nodes;
-            if (RepositoryInstance.ContentQueryIsAllowed)
-            {
-                var query = new NodeQuery();
-                query.Add(new StringExpression(StringAttribute.Path, StringOperator.StartsWith, RepositoryStructure.SkinRootFolderPath));
-                query.Add(new TypeExpression(NodeType.GetByName("Skin")));
-                nodes = query.Execute().Nodes.ToArray();
-            }
-            else
-            {
-                nodes = NodeQuery.QueryNodesByTypeAndPath(NodeType.GetByName("Skin"), false, RepositoryStructure.SkinRootFolderPath, false).Nodes.ToArray();
-            }
+            nodes = NodeQuery.QueryNodesByTypeAndPath(NodeType.GetByName("Skin"), false, RepositoryStructure.SkinRootFolderPath, false).Nodes.ToArray();
 
             try
             {
@@ -239,17 +230,7 @@ namespace SenseNet.Portal
         }
         private static SortedDictionary<string, string> MapSkin(Node skin)
         {
-            NodeQueryResult result;
-            if (RepositoryInstance.ContentQueryIsAllowed)
-            {
-                var query = new NodeQuery();
-                query.Add(new StringExpression(StringAttribute.Path, StringOperator.StartsWith, skin.Path));
-                result = query.Execute();
-            }
-            else
-            {
-                result = NodeQuery.QueryNodesByPath(skin.Path, false);
-            }
+            var result = NodeQuery.QueryNodesByPath(skin.Path, false);
 
             var dict = new SortedDictionary<string, string>();
             foreach (Node n in result.Nodes)

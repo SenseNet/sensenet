@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using SenseNet.Configuration;
+#pragma warning disable 1591
 
 namespace SenseNet.ContentRepository
 {

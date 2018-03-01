@@ -1,4 +1,5 @@
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
@@ -20,6 +21,10 @@ using SenseNet.Search;
 using System.Diagnostics;
 using SenseNet.BackgroundOperations;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search.Indexing;
+using SenseNet.ContentRepository.Search.Querying;
+using SenseNet.ContentRepository.Storage.Search;
+using SenseNet.Search.Indexing;
 using SenseNet.TaskManagement.Core;
 
 namespace SenseNet.ContentRepository
@@ -313,7 +318,7 @@ namespace SenseNet.ContentRepository
         public static Dictionary<string, List<string>> CheckAllowedChildTypesOfFolders(Content root)
         {
             var result = new Dictionary<string, List<string>>();
-            var rootPath = root != null ? root.Path : Repository.Root.Path;
+            var rootPath = root != null ? root.Path : Identifiers.RootPath;
             foreach (var node in NodeEnumerator.GetNodes(rootPath))
             {
                 if (!(node is IFolder))
@@ -551,23 +556,29 @@ namespace SenseNet.ContentRepository
             return SecurityHandler.SecurityContext.GetRecentActivities();
         }
         [ODataFunction]
-        public static SenseNet.Search.Indexing.IndexingActivityHistory GetRecentIndexingActivities(Content content)
+        public static IndexingActivityHistory GetRecentIndexingActivities(Content content)
         {
-            return SenseNet.Search.Indexing.IndexingActivityHistory.GetHistory();
+            return IndexingActivityHistory.GetHistory();
         }
         [ODataAction]
-        public static SenseNet.Search.Indexing.IndexingActivityHistory ResetRecentIndexingActivities(Content content)
+        public static IndexingActivityHistory ResetRecentIndexingActivities(Content content)
         {
-            return SenseNet.Search.Indexing.IndexingActivityHistory.Reset();
+            return IndexingActivityHistory.Reset();
         }
 
+        [Obsolete("Use an offline solution of this problem.")]
+        [ODataFunction]
+        public static object CheckIndexIntegrity(Content content, bool recurse)
+        {
+            throw new SnNotSupportedException("Checking index integrity online is not supported anymore.");
+        }
         [ODataFunction]
         public static SecurityConsistencyResult CheckSecurityConsistency(Content content)
         {
-            var groups = SenseNet.ContentRepository.Storage.Search.NodeQuery.QueryNodesByType(NodeType.GetByName("Group"), false).Identifiers;
-            var ous = SenseNet.ContentRepository.Storage.Search.NodeQuery.QueryNodesByType(NodeType.GetByName("OrganizationalUnit"), false).Identifiers;
+            var groups = NodeQuery.QueryNodesByType(NodeType.GetByName("Group"), false).Identifiers;
+            var ous = NodeQuery.QueryNodesByType(NodeType.GetByName("OrganizationalUnit"), false).Identifiers;
             var allGroups = groups.Union(ous).ToArray();
-            var allIds = SenseNet.ContentRepository.Storage.Search.NodeQuery.QueryNodesByPath("/", false).Identifiers;
+            var allIds = NodeQuery.QueryNodesByPath("/", false).Identifiers;
 
             return CheckSecurityConsistency(allIds, allGroups);
         }

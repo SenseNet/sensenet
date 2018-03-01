@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using SenseNet.ContentRepository.Search;
 
 namespace SenseNet.Packaging.Steps
 {
@@ -9,7 +6,7 @@ namespace SenseNet.Packaging.Steps
     {
         public override void Execute(ExecutionContext context)
         {
-            SenseNet.ContentRepository.Storage.StorageContext.Search.DisableOuterEngine();
+            SearchManager.DisableOuterEngine();
         }
     }
 }

@@ -14,6 +14,9 @@ using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.ContentRepository.Linq;
+using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Indexing;
+using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.Tools;
 
 namespace  SenseNet.ContentRepository.Schema
@@ -59,7 +62,7 @@ namespace  SenseNet.ContentRepository.Schema
         /// </summary>
         /// <param name="parent">The parent.</param>
         /// <param name="nodeTypeName">Name of the node type.</param>
-        public ContentType(Node parent, string nodeTypeName) : base(parent, nodeTypeName) //UNDONE: be private
+        public ContentType(Node parent, string nodeTypeName) : base(parent, nodeTypeName)
         {
             Initialize();
         }
@@ -486,7 +489,6 @@ namespace  SenseNet.ContentRepository.Schema
             foreach (XPathNavigator fieldElement in fieldsElement.SelectChildren(XPathNodeType.Element))
             {
                 FieldDescriptor fieldDescriptor = FieldDescriptor.Parse(fieldElement, nsres, this);
-                CheckFieldValidation(fieldDescriptor, this.Name);
                 
                 int fieldIndex = GetFieldSettingIndexByName(fieldDescriptor.FieldName);
                 FieldSetting fieldSetting = fieldIndex < 0 ? null : this.FieldSettings[fieldIndex];
@@ -709,7 +711,7 @@ namespace  SenseNet.ContentRepository.Schema
                 return;
             }
 
-            if (!Object.ReferenceEquals(this, ContentTypeManager.Current.GetContentTypeByName(this.Name)))
+            if (!Object.ReferenceEquals(this, ContentTypeManager.Instance.GetContentTypeByName(this.Name)))
             {
                 string src = this.ToXml();
                 ContentTypeManager.LoadOrCreateNew(src);
@@ -732,7 +734,7 @@ namespace  SenseNet.ContentRepository.Schema
             }
             ContentTypeManager.ApplyChanges(this);
             base.Save();
-            ContentTypeManager.Current.AddContentType(this);
+            ContentTypeManager.Instance.AddContentType(this);
         }
         /// <summary>
         /// Persist this Content's changes by the given settings.
@@ -753,12 +755,12 @@ namespace  SenseNet.ContentRepository.Schema
         {
             if (this.Path.StartsWith(Repository.ContentTypesFolderPath))
             {
-                ContentType contentTypeToDelete = ContentTypeManager.Current.GetContentTypeByName(this.Name);
+                ContentType contentTypeToDelete = ContentTypeManager.Instance.GetContentTypeByName(this.Name);
                 if (contentTypeToDelete != null)
                 {
                     if (!IsDeletable(contentTypeToDelete))
                         throw new ApplicationException(String.Concat("Cannot delete ContentType '", this.Name, "' because one or more Content use this type or any descendant type."));
-                    ContentTypeManager.Current.RemoveContentType(contentTypeToDelete.Name);
+                    ContentTypeManager.Instance.RemoveContentType(contentTypeToDelete.Name);
                 }
             }
             base.Delete();
@@ -910,17 +912,6 @@ namespace  SenseNet.ContentRepository.Schema
             return -1;
         }
 
-        // ---------------------------------------------------------------------- Other validation
-
-        private static void CheckFieldValidation(FieldDescriptor fieldDesc, string contentTypeName)
-        {
-            if (fieldDesc.Analyzer != null)
-            {
-                var analyzerType = TypeResolver.GetType(fieldDesc.Analyzer, false);
-                if (analyzerType == null)
-                    throw new RegistrationException(string.Concat("Unknown analyzer: ", fieldDesc.Analyzer, ". Field: ", fieldDesc.FieldName, ", ContentType: ", contentTypeName));
-            }
-        }
         // ==================================================== IFolder 
 
         /// <summary>
@@ -960,7 +951,7 @@ namespace  SenseNet.ContentRepository.Schema
         /// <returns>The <see cref="QueryResult"/> instance.</returns>
         public virtual QueryResult GetChildren(string text, QuerySettings settings, bool getAllChildren)
         {
-            if (RepositoryInstance.ContentQueryIsAllowed)
+            if (SearchManager.ContentQueryIsAllowed)
             {
                 var query = ContentQuery.CreateQuery(getAllChildren ? SafeQueries.InTree : SafeQueries.InFolder, settings, this.Path);
                 if (!string.IsNullOrEmpty(text))
@@ -1006,7 +997,7 @@ namespace  SenseNet.ContentRepository.Schema
         /// </summary>
         public static ContentType GetByName(string contentTypeName)
         {
-            return ContentTypeManager.Current.GetContentTypeByName(contentTypeName);
+            return ContentTypeManager.Instance.GetContentTypeByName(contentTypeName);
         }
 
         /// <summary>
@@ -1014,28 +1005,28 @@ namespace  SenseNet.ContentRepository.Schema
         /// </summary>
         public static ContentType[] GetRootTypes()
         {
-            return ContentTypeManager.Current.GetRootTypes();
+            return ContentTypeManager.Instance.GetRootTypes();
         }
         /// <summary>
         /// Returns an array of <see cref="ContentType"/> names that does not have a parent <see cref="ContentType"/>.
         /// </summary>
         public static string[] GetRootTypeNames()
         {
-            return ContentTypeManager.Current.GetRootTypeNames();
+            return ContentTypeManager.Instance.GetRootTypeNames();
         }
         /// <summary>
         /// Returns an array of all <see cref="ContentType"/>s in the system.
         /// </summary>
         public static ContentType[] GetContentTypes()
         {
-            return ContentTypeManager.Current.GetContentTypes();
+            return ContentTypeManager.Instance.GetContentTypes();
         }
         /// <summary>
         /// Returns an array of all <see cref="ContentType"/> names.
         /// </summary>
         public static string[] GetContentTypeNames()
         {
-            return ContentTypeManager.Current.GetContentTypeNames();
+            return ContentTypeManager.Instance.GetContentTypeNames();
         }
 
         /// <summary>
@@ -1063,16 +1054,16 @@ namespace  SenseNet.ContentRepository.Schema
         /// Provides information about <see cref="ContentType"/> 
         /// inheritance hierarchy for debugger users only.
         /// </summary>
-        public static string TraceContentSchema() //UNDONE: Be private or internal.
+        internal static string TraceContentSchema()
         {
-            return ContentTypeManager.Current.TraceContentSchema();
+            return ContentTypeManager.Instance.TraceContentSchema();
         }
 
         /// <summary>
         /// Gets indexing information of the <see cref="Field"/> identified by the given name.
         /// </summary>
-        /// <returns>An existing <see cref="PerFieldIndexingInfo"/> instance or null.</returns>
-        public static PerFieldIndexingInfo GetPerfieldIndexingInfo(string fieldName)
+        /// <returns>An existing <see cref="IPerFieldIndexingInfo"/> instance or null.</returns>
+        public static IPerFieldIndexingInfo GetPerfieldIndexingInfo(string fieldName)
         {
             return ContentTypeManager.GetPerFieldIndexingInfo(fieldName);
         }
@@ -1154,7 +1145,7 @@ namespace  SenseNet.ContentRepository.Schema
                 if(!newFieldNames.Contains(baseField.Name))
                     baseFields.Add(baseField);
             contentType.FieldSettings.InsertRange(0, baseFields);
-            contentType.FinalizeAllowedChildTypes(ContentTypeManager.Current.ContentTypes, ContentTypeManager.Current.AllFieldNames);
+            contentType.FinalizeAllowedChildTypes(ContentTypeManager.Instance.ContentTypes, ContentTypeManager.Instance.AllFieldNames);
 
             return contentType;
         }
@@ -1242,8 +1233,8 @@ namespace  SenseNet.ContentRepository.Schema
                 sb.Append(item.Value.IndexingMode).Append("\t");
                 sb.Append(item.Value.IndexStoringMode).Append("\t");
                 sb.Append(item.Value.TermVectorStoringMode).Append("\t");
-                sb.Append((item.Value.Analyzer ?? "[null]").Replace("Lucene.Net.Analysis.", String.Empty)).Append("\t");
-                sb.AppendLine(item.Value.IndexFieldHandler.GetType().FullName.Replace("SenseNet.Search.", String.Empty));
+                sb.Append(item.Value.Analyzer).Append("\t");
+                sb.AppendLine(item.Value.IndexFieldHandler?.GetType().FullName?.Replace("SenseNet.Search.", string.Empty) ?? "[null]");
             }
             return sb.ToString();
         }

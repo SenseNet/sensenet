@@ -5,12 +5,15 @@ using System.Text;
 using SenseNet.ContentRepository.Schema;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using SenseNet.ContentRepository.Storage.Search;
+using SenseNet.Search;
+using SenseNet.Search.Indexing;
 
 namespace SenseNet.ContentRepository.Schema
 {
-    public enum IndexingMode { Analyzed, AnalyzedNoNorms, No, NotAnalyzed, NotAnalyzedNoNorms }
-    public enum IndexStoringMode { No, Yes }
-    public enum IndexTermVector { No, WithOffsets, WithPositions, WithPositionsOffsets, Yes }
+    //public enum IndexingMode { Analyzed, AnalyzedNoNorms, No, NotAnalyzed, NotAnalyzedNoNorms }
+    //public enum IndexStoringMode { No, Yes }
+    //public enum IndexTermVector { No, WithOffsets, WithPositions, WithPositionsOffsets, Yes }
 
     /// <summary>
     /// Carries field indexing information in a FieldInfo
@@ -26,7 +29,7 @@ namespace SenseNet.ContentRepository.Schema
         /// <summary>
         /// Fully qualified type name of the associated Analyzer
         /// </summary>
-        public string Analyzer { get; set; }
+        public IndexFieldAnalyzer Analyzer { get; set; }
         /// <summary>
         /// Fully qualified type name of the associated FieldIndexHandler
         /// </summary>

@@ -27,24 +27,24 @@ namespace SenseNet.ContentRepository.Storage.Schema
         }
         #endregion
 
-        private static NodeTypeManager _current;
+        //private static NodeTypeManager _current;
         private static readonly object _lock = new object();
 
 		internal static NodeTypeManager Current
 		{
 			get
 			{
-                if(_current == null)
+                if(Providers.Instance.NodeTypeManeger == null)
                 {
                     lock(_lock)
                     {
-                        if (_current == null)
+                        if (Providers.Instance.NodeTypeManeger == null)
                         {
                             LoadPrivate();
                         }
                     }
                 }
-                return _current;
+                return Providers.Instance.NodeTypeManeger;
 			}
 		}
 
@@ -91,12 +91,11 @@ namespace SenseNet.ContentRepository.Storage.Schema
             // this method must be called inside a lock block!
             var current = new NodeTypeManager();
             current.Load();
-            current.StartEventSystem();
 
-            _current = current;
+            Providers.Instance.NodeTypeManeger = current;
             
             NodeObserver.FireOnStart(Start);
-	        SnLog.WriteInformation("NodeTypeManager created: " + _current);
+	        SnLog.WriteInformation("NodeTypeManager created: " + Providers.Instance.NodeTypeManeger);
 	    }
 
 	    public static event EventHandler<EventArgs> Start;
@@ -106,50 +105,8 @@ namespace SenseNet.ContentRepository.Storage.Schema
 			NodeObserver.FireOnReset(Reset);
 		}
 
-		private List<NodeObserver> _nodeObservers;
-        internal List<NodeObserver> NodeObservers
-        {
-            get { return _nodeObservers; }
-        }
-
         [Obsolete("After V6.5 PATCH 9: Use RepositoryEnvironment.DisabledNodeObservers instead.")]
         public static List<string> DisabledNodeObservers => RepositoryEnvironment.DisabledNodeObservers;
-
-		private void StartEventSystem()
-		{
-            var nodeObserverTypes = TypeResolver.GetTypesByBaseType(typeof(NodeObserver));
-            var activeObservers = nodeObserverTypes.Where(t => !t.IsAbstract).Select(t => (NodeObserver)Activator.CreateInstance(t, true))
-                .Where(n => !RepositoryEnvironment.DisabledNodeObservers.Contains(n.GetType().FullName)).ToList();
-
-            if (SnTrace.Repository.Enabled)
-                TraceNodeObservers(nodeObserverTypes, RepositoryEnvironment.DisabledNodeObservers);
-
-            var activeObserverNames = activeObservers.Select(x => x.GetType().FullName).ToArray();
-            SnLog.WriteInformation("NodeObservers are instantiated. ", EventId.RepositoryLifecycle, 
-                properties: new Dictionary<string, object> { { "Types", string.Join(", ", activeObserverNames) } });
-
-            _nodeObservers = activeObservers;
-        }
-        private static bool _TraceNodeObserversCalled;
-        private void TraceNodeObservers(Type[] nodeObserverTypes, List<string> disabledObserverNames)
-        {
-            if (!_TraceNodeObserversCalled)
-            {
-                SnTrace.Repository.Write("NodeObservers (count: {0}):", nodeObserverTypes.Length);
-                for (int i = 0; i < nodeObserverTypes.Length; i++)
-                {
-                    var observerType = nodeObserverTypes[i];
-                    var fullName = observerType.FullName;
-                    SnTrace.Repository.Write("  #{0} ({1}): {2}:{3} // {4}",
-                        i + 1,
-                        disabledObserverNames.Contains(fullName) ? "disabled" : "active",
-                        observerType.Name,
-                        observerType.BaseType.Name,
-                        observerType.Assembly.GetName().Name);
-                }
-                _TraceNodeObserversCalled = true;
-            }
-        }
 
         public static TypeCollection<PropertyType> GetDynamicSignature(int nodeTypeId, int contentListTypeId)
         {
@@ -162,6 +119,5 @@ namespace SenseNet.ContentRepository.Storage.Schema
 
             return allPropertyTypes;
         }
-
     }
 }

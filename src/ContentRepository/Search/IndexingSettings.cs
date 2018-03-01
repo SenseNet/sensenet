@@ -3,46 +3,65 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Diagnostics;
 using SenseNet.Tools;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.Search
 {
+    /// <summary>
+    /// Content handler class of the IndexingSettings.
+    /// </summary>
     [ContentHandler]
     public class IndexingSettings : Settings
     {
         // ================================================================================= Constructors
 
+        /// <summary>
+        /// Initializes a new instance of the IndexingSettings.
+        /// </summary>
+        /// <param name="parent">Existing parent <see cref="Node"/> of the new instance.</param>
         public IndexingSettings(Node parent) : this(parent, null) { }
+        /// <summary>
+        /// Initializes a new instance of the IndexingSettings.
+        /// </summary>
+        /// <param name="parent">Existing parent <see cref="Node"/> of the new instance.</param>
+        /// <param name="nodeTypeName">TypeName of the inherited class if it has not it own content handler class.</param>
         public IndexingSettings(Node parent, string nodeTypeName) : base(parent, nodeTypeName) {}
+        /// <summary>
+        /// Initializes a new instance of the IndexingSettings.
+        /// This constructor is used for instantiate the saved instance.
+        /// </summary>
         protected IndexingSettings(NodeToken nt) : base(nt) { }
 
         // ================================================================================= Properties
 
-        private const string ASPOSE_PDF_TEXTEXTRACTOR_NAME = "AsposePreviewProvider.AsposePdfTextExtractor";
-        private const string TEXTEXTRACTORS_TEXTFIELDNAME = "TextExtractors";
-        internal const string TEXTEXTRACTORS_PROPERTYNAME = "TextExtractorInstances";
-        internal const string SETTINGSNAME = "Indexing";
+        private const string TextExtractorsTextfieldName = "TextExtractors";
+        internal const string TextExtractorsPropertyName = "TextExtractorInstances";
+        internal const string SettingsName = "Indexing";
 
-        private static object _extractorLock = new object();
+        private static readonly object ExtractorLock = new object();
         private ReadOnlyDictionary<string, ITextExtractor> _textExtractors;
+        /// <summary>
+        /// Gets the dictionary of the known text extractors.
+        /// </summary>
         public ReadOnlyDictionary<string, ITextExtractor> TextExtractorInstances
         {
             get
             {
                 if (_textExtractors == null)
                 {
-                    lock (_extractorLock)
+                    lock (ExtractorLock)
                     {
                         if (_textExtractors == null)
                         {
                             _textExtractors = new ReadOnlyDictionary<string, ITextExtractor>(LoadTextExtractors());
 
-                            SetCachedData(TEXTEXTRACTORS_CACHEKEY, _textExtractors);
+                            SetCachedData(TextExtractorsCacheKey, _textExtractors);
 
                             SnLog.WriteInformation("Text extractors were created.", properties: _textExtractors.ToDictionary(t => t.Key, t => (object)t.Value.GetType().FullName));
                         }
@@ -79,7 +98,7 @@ namespace SenseNet.Search
                             };
 
             // load text extractor settings (they may override the defaults listed above)
-            foreach (var field in this.Content.Fields.Values.Where(field => field.Name.StartsWith(TEXTEXTRACTORS_TEXTFIELDNAME + ".")))
+            foreach (var field in Content.Fields.Values.Where(field => field.Name.StartsWith(TextExtractorsTextfieldName + ".")))
             {
                 var extractorName = field.GetData() as string;
                 if (string.IsNullOrEmpty(extractorName))
@@ -103,22 +122,28 @@ namespace SenseNet.Search
 
         // ================================================================================= Overrides
 
+        /// <summary>
+        /// Returns a value of the property by the given name.
+        /// </summary>
         public override object GetProperty(string name)
         {
             switch (name)
             {
-                case TEXTEXTRACTORS_PROPERTYNAME:
-                    return this.TextExtractorInstances;
+                case TextExtractorsPropertyName:
+                    return TextExtractorInstances;
                 default:
                     return base.GetProperty(name);
             }
         }
 
+        /// <summary>
+        /// Sets the value of the property by the given name and object.
+        /// </summary>
         public override void SetProperty(string name, object value)
         {
             switch (name)
             {
-                case TEXTEXTRACTORS_PROPERTYNAME:
+                case TextExtractorsPropertyName:
                     // this is a readonly property
                     break;
                 default:
@@ -129,30 +154,16 @@ namespace SenseNet.Search
 
         // ================================================================================= Cached data
 
-        private const string TEXTEXTRACTORS_CACHEKEY = "CachedTextExtractors";
+        private const string TextExtractorsCacheKey = "CachedTextExtractors";
 
+        /// <summary>
+        /// Restores the cached data if there is.
+        /// </summary>
         protected override void OnLoaded(object sender, NodeEventArgs e)
         {
             base.OnLoaded(sender, e);
 
-            _textExtractors = (ReadOnlyDictionary<string, ITextExtractor>)GetCachedData(TEXTEXTRACTORS_CACHEKEY);
-        }
-    }
-
-    [ShortName("TextExtractors")]
-    [DataSlot(0, RepositoryDataType.NotDefined, typeof(ReadOnlyDictionary<string, ITextExtractor>))]
-    [DefaultFieldSetting(typeof(NullFieldSetting))]
-    [DefaultFieldControl("SenseNet.Portal.UI.Controls.ShortText")]
-    public class TextExtractorsField : Field
-    {
-        protected override void ImportData(System.Xml.XmlNode fieldNode, ImportContext context)
-        {
-            throw new NotSupportedException("The ImportData operation is not supported on TextExtractorsField.");
-        }
-
-        protected override void ExportData(System.Xml.XmlWriter writer, ExportContext context)
-        {
-            // do not export this field, it is autogenerated in the contetn handler
+            _textExtractors = (ReadOnlyDictionary<string, ITextExtractor>)GetCachedData(TextExtractorsCacheKey);
         }
     }
 }

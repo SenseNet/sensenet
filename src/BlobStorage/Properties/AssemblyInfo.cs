@@ -3,6 +3,8 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: InternalsVisibleTo("SenseNet.Tests")]
+[assembly: InternalsVisibleTo("SenseNet.ContentRepository.Tests")]
+[assembly: InternalsVisibleTo("SenseNet.Search.Lucene29.Tests")]
 
 #if DEBUG
 [assembly: AssemblyTitle("SenseNet.BlobStorage (Debug)")]
@@ -17,6 +19,6 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyProduct("sensenet ECM")]
 [assembly: AssemblyTrademark("Sense/Net Inc.")]
 [assembly: AssemblyCulture("")]
-[assembly: AssemblyVersion("7.0.0.0")]
-[assembly: AssemblyFileVersion("7.0.0.0")]
-[assembly: AssemblyInformationalVersion("7.0.0")]
+[assembly: AssemblyVersion("7.1.0.0")]
+[assembly: AssemblyFileVersion("7.1.0.0")]
+[assembly: AssemblyInformationalVersion("7.1.0")]

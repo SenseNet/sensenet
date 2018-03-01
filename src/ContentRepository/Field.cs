@@ -13,6 +13,8 @@ using System.Globalization;
 using SenseNet.ContentRepository.i18n;
 using SenseNet.Diagnostics;
 using System.Linq;
+using SenseNet.ContentRepository.Fields;
+using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.ContentRepository
 {
@@ -253,20 +255,25 @@ namespace SenseNet.ContentRepository
 
         /// <summary>
         /// Returns object data which is a transfer object.
+        /// The return value is localized if it contains a resource key.
         /// </summary>
-        public virtual object GetData(bool localized = true)
+        public virtual object GetData()
+        {
+            return GetData(true);
+        }
+        /// <summary>
+        /// Returns object data which is a transfer object.
+        /// </summary>
+        public virtual object GetData(bool localized)
         {
             if (!LocalizationEnabled || !localized || !SenseNetResourceManager.Running)
                 return Value;
-            var stringData = Value as string;
-            if (stringData == null)
+            if (!(Value is string stringData))
                 return Value;
 
-            string className, name;
-            if (SenseNetResourceManager.ParseResourceKey(stringData, out className, out name))
-                return SenseNetResourceManager.Current.GetString(className, name);
-
-            return Value;
+            return SenseNetResourceManager.ParseResourceKey(stringData, out var className, out var name) 
+                ? SenseNetResourceManager.Current.GetString(className, name) 
+                : Value;
         }
 
         /// <summary>
@@ -400,7 +407,10 @@ namespace SenseNet.ContentRepository
                 return this.FieldSetting.IndexingInfo.IsInIndex;
             }
         }
-        public string GetIndexFieldInfoErrorLog(string message, FieldSetting fieldSetting, PerFieldIndexingInfo indexingInfo)
+
+        public bool IsBinaryField => this is BinaryField;
+
+        public string GetIndexFieldInfoErrorLog(string message, FieldSetting fieldSetting, IPerFieldIndexingInfo indexingInfo)
         {
             return message +
                 " (Field name: " + this.Name +
@@ -411,7 +421,8 @@ namespace SenseNet.ContentRepository
                 (indexingInfo == null ? string.Empty : ", IndexingInfo IsInIndex: " + indexingInfo.IsInIndex.ToString()) +
                 ")";
         }
-        public virtual IEnumerable<IndexFieldInfo> GetIndexFieldInfos(out string textExtract)
+
+        public virtual IEnumerable<IndexField> GetIndexFields(out string textExtract)
         {
             var fieldSetting = this.FieldSetting;
             if (fieldSetting == null)
@@ -425,7 +436,7 @@ namespace SenseNet.ContentRepository
             if (indexFieldHandler == null)
                 throw new InvalidOperationException(GetIndexFieldInfoErrorLog("IndexFieldHandler cannot be null.", fieldSetting, indexingInfo));
 
-            return indexFieldHandler.GetIndexFieldInfos(this, out textExtract);
+            return indexFieldHandler.GetIndexFields(this, out textExtract);
         }
 
         // ========================================================================= Conversions

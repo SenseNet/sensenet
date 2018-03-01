@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using SenseNet.Configuration;
 
 namespace SenseNet.ContentRepository.Storage.Security
 {
@@ -11,21 +10,19 @@ namespace SenseNet.ContentRepository.Storage.Security
     /// </summary>
     public class MembershipExtension
     {
-        private IEnumerable<int> _extensionIds;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="MembershipExtension"/>.
         /// </summary>
         /// <param name="extension">The collection of groups that extends the membership of a user.</param>
         public MembershipExtension(IEnumerable<ISecurityContainer> extension)
         {
-            _extensionIds = extension == null ? new int[0] : extension.Select(x => x.Id).ToArray();
+            ExtensionIds = extension?.Select(x => x.Id).ToArray() ?? new int[0];
         }
 
         /// <summary>
         /// Gets the collection of group ids that extends the membership of a user.
         /// </summary>
-        public IEnumerable<int> ExtensionIds { get { return _extensionIds; } }
+        public IEnumerable<int> ExtensionIds { get; }
     }
 
     /// <summary>
@@ -38,12 +35,10 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Defines a constant for empty extension groups.
         /// </summary>
         public static readonly MembershipExtension EmptyExtension = new MembershipExtension(new ISecurityContainer[0]);
-        private static MembershipExtenderBase _instance;
-        private static MembershipExtenderBase Instance { get { return _instance; } }
+        private static MembershipExtenderBase Instance => Providers.Instance.MembershipExtender;
 
         static MembershipExtenderBase()
         {
-            _instance = TypeHandler.ResolveProvider<MembershipExtenderBase>();
         }
 
         /// <summary>
@@ -52,17 +47,11 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="user">The <see cref="IUser"/> instance that's membership will be extended.</param>
         public static void Extend(IUser user)
         {
-            var instance = Instance;
-            if (instance == null)
-                return;
-            instance.ExtendPrivate(user);
+            Instance?.ExtendPrivate(user);
         }
         private void ExtendPrivate(IUser user)
         {
-            var ext = GetExtension(user);
-            if (ext == null)
-                ext = EmptyExtension;
-            user.MembershipExtension = ext;
+            user.MembershipExtension = GetExtension(user) ?? EmptyExtension;
         }
 
         /// <summary>
@@ -87,7 +76,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         public override MembershipExtension GetExtension(IUser user)
         {
-            return MembershipExtenderBase.EmptyExtension;
+            return EmptyExtension;
         }
     }
 }

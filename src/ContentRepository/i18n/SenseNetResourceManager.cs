@@ -12,6 +12,7 @@ using SenseNet.ContentRepository.Storage;
 using System.Xml;
 using SenseNet.Communication.Messaging;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.Search;
 
 namespace SenseNet.ContentRepository.i18n
@@ -134,29 +135,17 @@ namespace SenseNet.ContentRepository.i18n
             if (resNodeType != null)
             {
                 // search for all Resource content
-                NodeQuery query = new NodeQuery();
-                query.Add(new StringExpression(StringAttribute.Path, StringOperator.StartsWith,
-                        String.Concat(RepositoryStructure.ResourceFolderPath, RepositoryPath.PathSeparator)));
-                query.Add(new TypeExpression(resNodeType));
-
                 // Elevation: caching all string resource files 
                 // is independent from the current user.
                 using (new SystemAccount())
                 {
                     IEnumerable<Node> nodes;
 
-                    if (RepositoryInstance.ContentQueryIsAllowed)
-                    {
-                        nodes = query.Execute().Nodes.OrderBy(i => i.Index);
-                    }
-                    else
-                    {
-                        var r = NodeQuery.QueryNodesByTypeAndPath(ActiveSchema.NodeTypes["Resource"]
-                            , false
-                            , String.Concat(RepositoryStructure.ResourceFolderPath, RepositoryPath.PathSeparator)
-                            , true);
-                        nodes = r.Nodes.OrderBy(i => i.Index);
-                    }
+                    var r = NodeQuery.QueryNodesByTypeAndPath(ActiveSchema.NodeTypes["Resource"]
+                        , false
+                        , String.Concat(RepositoryStructure.ResourceFolderPath, RepositoryPath.PathSeparator)
+                        , true);
+                    nodes = r.Nodes.OrderBy(i => i.Index);
 
                     LastResourceModificationDate = nodes.Any()
                         ? nodes.Max(x => x.ModificationDate)

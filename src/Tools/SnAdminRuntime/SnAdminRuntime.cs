@@ -89,26 +89,31 @@ namespace SenseNet.Tools.SnAdmin
                 {
                     foreach (var item in ex.LoaderExceptions)
                     {
-                        if (item is FileLoadException flo)
+                        switch (item)
                         {
-                            types.Add(flo.FileName);
-                        }
-                        if (item is FileNotFoundException f)
-                        {
-                            types.Add(f.FileName);
-                        }
-                        if (item is BadImageFormatException b)
-                        {
-                            types.Add(b.FileName);
-                        }
-                        if (item is SecurityException s)
-                        {
-                            types.Add(s.Url);
+                            case FileLoadException flo:
+                                types.Add(flo.FileName);
+                                break;
+                            case FileNotFoundException f:
+                                types.Add(f.FileName);
+                                break;
+                            case BadImageFormatException b:
+                                types.Add(b.FileName);
+                                break;
+                            case SecurityException s:
+                                types.Add(s.Url);
+                                break;
+                            case TypeLoadException tl:
+                                types.Add(tl.TypeName);
+                                break;
                         }
                     }
                 }
-                throw new Exception(
-                    $"ReflectionTypeLoadException: Could not load types. Affected types: {Environment.NewLine + string.Join(";" + Environment.NewLine, types) + ";" + Environment.NewLine}");
+
+                var typeList = Environment.NewLine + string.Join(Environment.NewLine, types);
+                var message = ex.LoaderExceptions?.FirstOrDefault()?.Message;
+
+                throw new Exception($"ReflectionTypeLoadException: Could not load types. Affected types: {typeList + Environment.NewLine}First message: {message}");
             }
         }
 
@@ -283,7 +288,7 @@ namespace SenseNet.Tools.SnAdmin
             {
                 xml = Disk.LoadManifest(files[0]);
             }
-            catch (Exception e)
+            catch
             {
                 return null;
             }

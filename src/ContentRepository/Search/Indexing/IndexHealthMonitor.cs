@@ -1,8 +1,7 @@
 ﻿using System;
-using SenseNet.ContentRepository;
 using SenseNet.Diagnostics;
 
-namespace SenseNet.Search.Indexing
+namespace SenseNet.ContentRepository.Search.Indexing
 {
     internal static class IndexHealthMonitor
     {
@@ -10,22 +9,28 @@ namespace SenseNet.Search.Indexing
 
         internal static void Start(System.IO.TextWriter consoleOut)
         {
-            var pollInterval = SenseNet.Configuration.Indexing.IndexHealthMonitorRunningPeriod * 1000.0;
+            var pollInterval = Configuration.Indexing.IndexHealthMonitorRunningPeriod * 1000.0;
 
             _timer = new System.Timers.Timer(pollInterval);
-            _timer.Elapsed += new System.Timers.ElapsedEventHandler(Timer_Elapsed);
-            _timer.Disposed += new EventHandler(Timer_Disposed);
+            _timer.Elapsed += Timer_Elapsed;
+            _timer.Disposed += Timer_Disposed;
             _timer.Enabled = true;
 
-            if (consoleOut == null)
+            consoleOut?.WriteLine("IndexHealthMonitor started. Frequency: {0} s", Configuration.Indexing.IndexHealthMonitorRunningPeriod);
+        }
+        internal static void ShutDown()
+        {
+            if (_timer == null)
                 return;
-            consoleOut.WriteLine("IndexHealthMonitor started. Frequency: {0} s", SenseNet.Configuration.Indexing.IndexHealthMonitorRunningPeriod);
+
+            _timer.Enabled = false;
+            _timer.Dispose();
         }
 
         private static void Timer_Disposed(object sender, EventArgs e)
         {
-            _timer.Elapsed -= new System.Timers.ElapsedEventHandler(Timer_Elapsed);
-            _timer.Disposed -= new EventHandler(Timer_Disposed);
+            _timer.Elapsed -= Timer_Elapsed;
+            _timer.Disposed -= Timer_Disposed;
         }
         private static void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
@@ -34,13 +39,13 @@ namespace SenseNet.Search.Indexing
         // for testing purposes we need a parameterless method because ElapsedEventArgs has only internal constructor
         private static void Timer_Elapsed()
         {
-            if (RepositoryInstance.ContentQueryIsAllowed)
+            if (SearchManager.ContentQueryIsAllowed)
             {
                 var timerEnabled = _timer.Enabled;
                 _timer.Enabled = false;
                 try
                 {
-                    IndexingActivityQueue.HealthCheck();
+                    DistributedIndexingActivityQueue.HealthCheck();
                 }
                 catch (Exception ex) // logged
                 {

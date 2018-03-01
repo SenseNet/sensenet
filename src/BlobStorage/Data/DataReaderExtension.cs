@@ -54,6 +54,15 @@ namespace SenseNet.ContentRepository.Storage.Data
             return !reader.IsDBNull(index) && reader.GetBoolean(index);
         }
         /// <summary>
+        /// Converts a DateTime db column value to a DateTime value safely.
+        /// </summary>
+        /// <param name="reader">Data reader pointing to a record that contains a column to be converted.</param>
+        /// <param name="index">The index of the column to find.</param>
+        public static DateTime? GetSafeDateTime(this IDataReader reader, int index)
+        {
+            return reader.IsDBNull(index) ? (DateTime?)null : reader.GetDateTime(index);
+        }
+        /// <summary>
         /// Converts a String db column value to a string value safely.
         /// </summary>
         /// <param name="reader">Data reader pointing to a record that contains a column to be converted.</param>

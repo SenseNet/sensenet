@@ -3,84 +3,45 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
-using System.IO;
-using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.Search.Indexing.Activities;
-using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.ContentRepository.Search.Indexing
 {
     /// <summary>
-    /// Contains detailed per field indexing information
-    /// </summary>
-    public sealed class ExplicitPerFieldIndexingInfo
-    {
-        public string ContentTypeName { get; internal set; }
-        public string ContentTypePath { get; internal set; }
-        public string FieldName { get; internal set; }
-        public string FieldTitle { get; internal set; }
-        public string FieldDescription { get; internal set; }
-        public string FieldType { get; internal set; }
-        public string Analyzer { get; internal set; }
-        public string IndexHandler { get; internal set; }
-        public string IndexingMode { get; internal set; }
-        public string IndexStoringMode { get; internal set; }
-        public string TermVectorStoringMode { get; internal set; }
-    }
-
-    /// <summary>
-    /// Provides information about indexing.
+    /// Provides information about indexing. Provides a method for outer component to extend a Content version with text extract.
     /// </summary>
     public static class IndexingTools
     {
+        /// <summary>
+        /// Extends a Content version with text extract.
+        /// </summary>
         public static void AddTextExtract(int versionId, string textExtract)
         {
-            // 1: load indexDocumentInfo.
-            var docData = StorageContext.Search.LoadIndexDocumentByVersionId(versionId);
-
-            var buffer = docData.IndexDocumentInfoBytes;
-            var docStream = new System.IO.MemoryStream(buffer);
-            var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-            var info = (IndexDocumentInfo)formatter.Deserialize(docStream);
+            // 1: load indexDocument.
+            var docData = SearchManager.LoadIndexDocumentByVersionId(versionId);
+            var indexDoc = docData.IndexDocument;
 
             // 2: original and new text extract concatenation.
-            var allTextField = info.Fields.FirstOrDefault(f => f.Name == LucObject.FieldName.AllText);
-            if (allTextField != null)
-            {
-                textExtract = allTextField.Value + " " + textExtract;
-                info.Fields.Remove(allTextField);
-            }
-            info.Fields.Add(
-                new IndexFieldInfo(
-                    LucObject.FieldName.AllText,
-                    textExtract,
-                    FieldInfoType.StringField,
-                    Lucene.Net.Documents.Field.Store.NO,
-                    Lucene.Net.Documents.Field.Index.ANALYZED,
-                    Lucene.Net.Documents.Field.TermVector.NO));
+            textExtract = (indexDoc.GetStringValue(IndexFieldName.AllText) ?? "") + textExtract;
 
-            // 3: save indexDocumentInfo.
-            using (var docStream2 = new MemoryStream())
-            {
-                var formatter2 = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-                formatter2.Serialize(docStream2, info);
-                docStream2.Flush();
-                docStream2.Position = 0;
-                var bytes = docStream2.GetBuffer();
-                DataProvider.SaveIndexDocument(versionId, bytes);
-            }
+            indexDoc.Add(new IndexField(IndexFieldName.AllText, textExtract, IndexingMode.Analyzed, IndexStoringMode.No,
+                IndexTermVector.No));
+
+            // 3: save indexDocument.
+            docData.IndexDocumentChanged();
+            DataProvider.SaveIndexDocument(versionId, docData.SerializedIndexDocument);
 
             // 4: distributed cache invalidation because of version timestamp.
             DataBackingStore.RemoveNodeDataFromCacheByVersionId(versionId);
 
-            // 5: distributed lucene index update.
+            // 5: index update.
             var node = Node.LoadNodeByVersionId(versionId);
             if (node != null)
-                StorageContext.Search.SearchEngine.GetPopulator().RebuildIndex(node);
+                SearchManager.GetIndexPopulator().RebuildIndex(node);
         }
-
 
         /// <summary>
         /// Gets the name of every field in the system.
@@ -90,9 +51,9 @@ namespace SenseNet.ContentRepository.Search.Indexing
         public static IEnumerable<string> GetAllFieldNames(bool includeNonIndexedFields = true)
         {
             if (includeNonIndexedFields)
-                return ContentTypeManager.Current.AllFieldNames;
+                return ContentTypeManager.Instance.AllFieldNames;
 
-            return ContentTypeManager.Current.AllFieldNames.Where(x => ContentTypeManager.Current.IndexingInfo.ContainsKey(x) && ContentTypeManager.Current.IndexingInfo[x].IsInIndex);
+            return ContentTypeManager.Instance.AllFieldNames.Where(x => ContentTypeManager.Instance.IndexingInfo.ContainsKey(x) && ContentTypeManager.Instance.IndexingInfo[x].IsInIndex);
         }
 
         /// <summary>
@@ -102,9 +63,9 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// <returns>Detailed indexing information about all fields in the repository.</returns>
         public static IEnumerable<ExplicitPerFieldIndexingInfo> GetExplicitPerFieldIndexingInfo(bool includeNonIndexedFields)
         {
-            var infoArray = new List<ExplicitPerFieldIndexingInfo>(ContentTypeManager.Current.ContentTypes.Count * 5);
+            var infoArray = new List<ExplicitPerFieldIndexingInfo>(ContentTypeManager.Instance.ContentTypes.Count * 5);
 
-            foreach (var contentType in ContentTypeManager.Current.ContentTypes.Values)
+            foreach (var contentType in ContentTypeManager.Instance.ContentTypes.Values)
             {
                 var xml = new System.Xml.XmlDocument();
                 var nsmgr = new System.Xml.XmlNamespaceManager(xml.NameTable);
@@ -112,46 +73,65 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
                 nsmgr.AddNamespace("x", ContentType.ContentDefinitionXmlNamespace);
                 xml.Load(contentType.Binary.GetStream());
-                foreach (System.Xml.XmlElement fieldElement in xml.SelectNodes("/x:ContentType/x:Fields/x:Field", nsmgr))
+                var fieldNodes = xml.SelectNodes("/x:ContentType/x:Fields/x:Field", nsmgr);
+                if (fieldNodes != null)
                 {
-                    var typeAttr = fieldElement.Attributes["type"];
-                    if (typeAttr == null)
-                        typeAttr = fieldElement.Attributes["handler"];
-
-                    var info = new ExplicitPerFieldIndexingInfo
+                    foreach (System.Xml.XmlElement fieldElement in fieldNodes)
                     {
-                        ContentTypeName = contentType.Name,
-                        ContentTypePath = contentType.Path.Replace(Repository.ContentTypesFolderPath + "/", String.Empty),
-                        FieldName = fieldElement.Attributes["name"].Value,
-                        FieldType = typeAttr.Value
-                    };
+                        var typeAttr = fieldElement.Attributes["type"] ?? fieldElement.Attributes["handler"];
 
-                    var fieldTitleElement = fieldElement.SelectSingleNode("x:DisplayName", nsmgr);
-                    if (fieldTitleElement != null)
-                        info.FieldTitle = fieldTitleElement.InnerText;
-
-                    var fieldDescElement = fieldElement.SelectSingleNode("x:Description", nsmgr);
-                    if (fieldDescElement != null)
-                        info.FieldDescription = fieldDescElement.InnerText;
-
-                    var hasIndexing = false;
-                    foreach (System.Xml.XmlElement element in fieldElement.SelectNodes("x:Indexing/*", nsmgr))
-                    {
-                        hasIndexing = true;
-                        switch (element.LocalName)
+                        var info = new ExplicitPerFieldIndexingInfo
                         {
-                            case "Analyzer": info.Analyzer = element.InnerText.Replace("Lucene.Net.Analysis", "."); break;
-                            case "IndexHandler": info.IndexHandler = element.InnerText.Replace("SenseNet.Search", "."); break;
-                            case "Mode": info.IndexingMode = element.InnerText; break;
-                            case "Store": info.IndexStoringMode = element.InnerText; break;
-                            case "TermVector": info.TermVectorStoringMode = element.InnerText; break;
+                            ContentTypeName = contentType.Name,
+                            ContentTypePath =
+                                contentType.Path.Replace(Repository.ContentTypesFolderPath + "/", String.Empty),
+                            FieldName = fieldElement.Attributes["name"].Value,
+                            FieldType = typeAttr.Value
+                        };
+
+                        var fieldTitleElement = fieldElement.SelectSingleNode("x:DisplayName", nsmgr);
+                        if (fieldTitleElement != null)
+                            info.FieldTitle = fieldTitleElement.InnerText;
+
+                        var fieldDescElement = fieldElement.SelectSingleNode("x:Description", nsmgr);
+                        if (fieldDescElement != null)
+                            info.FieldDescription = fieldDescElement.InnerText;
+
+                        var hasIndexing = false;
+                        var indexingNodes = fieldElement.SelectNodes("x:Indexing/*", nsmgr);
+                        if (indexingNodes != null)
+                        {
+                            foreach (System.Xml.XmlElement element in indexingNodes)
+                            {
+                                if (!Enum.TryParse(element.InnerText, out IndexFieldAnalyzer analyzer))
+                                    analyzer = IndexFieldAnalyzer.Default;
+                                hasIndexing = true;
+                                switch (element.LocalName)
+                                {
+                                    case "Analyzer":
+                                        info.Analyzer = analyzer;
+                                        break;
+                                    case "IndexHandler":
+                                        info.IndexHandler = element.InnerText.Replace("SenseNet.Search", ".");
+                                        break;
+                                    case "Mode":
+                                        info.IndexingMode = element.InnerText;
+                                        break;
+                                    case "Store":
+                                        info.IndexStoringMode = element.InnerText;
+                                        break;
+                                    case "TermVector":
+                                        info.TermVectorStoringMode = element.InnerText;
+                                        break;
+                                }
+                            }
                         }
+
+                        fieldCount++;
+
+                        if (hasIndexing || includeNonIndexedFields)
+                            infoArray.Add(info);
                     }
-
-                    fieldCount++;
-
-                    if (hasIndexing || includeNonIndexedFields)
-                        infoArray.Add(info);
                 }
 
                 // content type without fields

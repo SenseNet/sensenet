@@ -5,9 +5,12 @@ using System.IO;
 using System.Linq;
 using System.Data.Common;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Storage.Search.Internal;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
+using SenseNet.Search;
+using SenseNet.Search.Querying;
+using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
@@ -17,6 +20,10 @@ namespace SenseNet.ContentRepository.Storage.Data
         //////////////////////////////////////// Static Access ////////////////////////////////////////
 
         public static DataProvider Current => Providers.Instance.DataProvider;
+
+        // ====================================================== Query support
+
+        public abstract IMetaQueryEngine MetaQueryEngine { get; }
 
         //////////////////////////////////////// For tests ////////////////////////////////////////
 
@@ -38,7 +45,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract int GetPermissionLogEntriesCountAfterMomentInternal(DateTime moment);
 
-        internal abstract AuditLogEntry[] LoadLastAuditLogEntries(int count);
+        protected internal abstract AuditLogEntry[] LoadLastAuditLogEntries(int count);
 
 
         //////////////////////////////////////// Generic Datalayer Logic ////////////////////////////////////////
@@ -155,6 +162,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     throw new SnNotSupportedException("Unknown SavingAlgorithm: " + savingAlgorithm);
             }
         }
+
         private static void SaveNodeProperties(NodeData nodeData, SavingAlgorithm savingAlgorithm, INodeWriter writer, bool isNewNode)
         {
             int versionId = nodeData.VersionId;
@@ -457,56 +465,23 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected internal abstract IEnumerable<int> GetIdsOfNodesThatDoNotHaveIndexDocument(int fromId, int toId);
 
-        // ====================================================== Index backup / restore operations
-
-        internal static Guid StoreIndexBackupToDb(string backupFilePath, IndexBackupProgress progress)
-        {
-            var lastBackup = Current.LoadLastBackup();
-            var backupNumber = lastBackup == null ? 1 : lastBackup.BackupNumber + 1;
-            var backup = Current.CreateBackup(backupNumber);
-            Current.StoreBackupStream(backupFilePath, backup, progress);
-            Current.SetActiveBackup(backup, lastBackup);
-            return backup.RowGuid; // backup.BackupNumber;
-        }
-        protected internal abstract IndexBackup LoadLastBackup();
-        protected internal abstract IndexBackup CreateBackup(int backupNumber);
-        protected internal abstract void StoreBackupStream(string backupFilePath, IndexBackup backup, IndexBackupProgress progress);
-        protected internal abstract void SetActiveBackup(IndexBackup backup, IndexBackup lastBackup);
-
-        internal static void DeleteUnnecessaryBackups()
-        {
-            Current.KeepOnlyLastIndexBackup();
-        }
-        protected abstract void KeepOnlyLastIndexBackup();
-
-        // ------------------------------------------------------
-
-        internal static Guid GetLastStoredBackupNumber()
-        {
-            return Current.GetLastIndexBackupNumber();
-        }
-        protected abstract Guid GetLastIndexBackupNumber();
-
-        // ------------------------------------------------------
-
-        internal static IndexBackup RecoverIndexBackupFromDb(string backupFilePath)
-        {
-            return Current.RecoverIndexBackup(backupFilePath);
-        }
-        protected abstract IndexBackup RecoverIndexBackup(string backupFilePath);
-
         // ====================================================== Indexing activity operations
 
         public abstract IIndexingActivity[] LoadIndexingActivities(int fromId, int toId, int count, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory);
         public abstract IIndexingActivity[] LoadIndexingActivities(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory);
         public abstract void RegisterIndexingActivity(IIndexingActivity activity);
-        public abstract int GetLastActivityId();
+        public abstract IIndexingActivity[] LoadExecutableIndexingActivities(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds);
+        public abstract IIndexingActivity[] LoadExecutableIndexingActivities(IIndexingActivityFactory activityFactory, int maxCount, int runningTimeoutInSeconds, int[] waitingActivityIds, out int[] finishedActivitiyIds);
+        public abstract void UpdateIndexingActivityRunningState(int indexingActivityId, IndexingActivityRunningState runningState);
+        public abstract void RefreshIndexingActivityLockTime(int[] waitingIds);
+        public abstract int GetLastIndexingActivityId();
+        public abstract void DeleteFinishedIndexingActivities();
         public abstract void DeleteAllIndexingActivities();
 
         // ====================================================== Checking  index integrity
 
-        public abstract IDataProcedure GetTimestampDataForOneNodeIntegrityCheck(string path, int[] excludedNodeTypeIds);
-        public abstract IDataProcedure GetTimestampDataForRecursiveIntegrityCheck(string path, int[] excludedNodeTypeIds);
+        public abstract IEnumerable<IndexIntegrityCheckerItem> GetTimestampDataForOneNodeIntegrityCheck(string path, int[] excludedNodeTypeIds);
+        public abstract IEnumerable<IndexIntegrityCheckerItem> GetTimestampDataForRecursiveIntegrityCheck(string path, int[] excludedNodeTypeIds);
 
         // ====================================================== Database backup / restore operations
 
@@ -522,6 +497,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 @long = (@long << 8) + bytes[i];
             return @long;
         }
+
         internal static byte[] GetBytesFromLong(long @long)
         {
             var bytes = new byte[8];
@@ -568,72 +544,4 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected internal abstract void ReleaseTreeLock(int[] lockIds);
         protected internal abstract Dictionary<int, string> LoadAllTreeLocks();
     }
-
-    public class QueryPropertyData
-    {
-        public string PropertyName { get; set; }
-        public object Value { get; set; }
-
-        private Operator _queryOperator = Operator.Equal;
-        public Operator QueryOperator
-        {
-            get { return _queryOperator; }
-            set { _queryOperator = value; }
-        }
-    }
-
-    [Serializable]
-    public class IndexDocumentData
-    {
-        [NonSerialized] private object _indexDocumentInfo;
-        public object IndexDocumentInfo
-        {
-            get
-            {
-                if (_indexDocumentInfo == null)
-                    _indexDocumentInfo = StorageContext.Search.SearchEngine.DeserializeIndexDocumentInfo(IndexDocumentInfoBytes);
-                return _indexDocumentInfo;
-            }
-        }
-
-        private byte[] _indexDocumentInfoBytes;
-        public byte[] IndexDocumentInfoBytes
-        {
-            get
-            {
-                if (_indexDocumentInfoBytes == null)
-                {
-                    using (var docStream = new MemoryStream())
-                    {
-                        var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-                        formatter.Serialize(docStream, _indexDocumentInfo);
-                        docStream.Flush();
-                        IndexDocumentInfoSize = docStream.Length;
-                        _indexDocumentInfoBytes = docStream.GetBuffer();
-                    }
-                }
-                return _indexDocumentInfoBytes;
-            }
-
-        }
-        public long? IndexDocumentInfoSize { get; set; }
-
-        public int NodeTypeId { get; set; }
-        public int VersionId { get; set; }
-        public int NodeId { get; set; }
-        public string Path { get; set; }
-        public int ParentId { get; set; }
-        public bool IsSystem { get; set; }
-        public bool IsLastDraft { get; set; }
-        public bool IsLastPublic { get; set; }
-        public long NodeTimestamp { get; set; }
-        public long VersionTimestamp { get; set; }
-
-        public IndexDocumentData(object indexDocumentInfo, byte[] indexDocumentInfoBytes)
-        {
-            _indexDocumentInfo = indexDocumentInfo;
-            _indexDocumentInfoBytes = indexDocumentInfoBytes;
-        }
-    }
-
 }

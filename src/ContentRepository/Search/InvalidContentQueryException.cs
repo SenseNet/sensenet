@@ -1,23 +1,33 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Web.UI.WebControls;
 
 namespace SenseNet.ContentRepository.Search
 {
+    /// <summary>
+    /// Defines an exception that will be thrown in the execution when occurs any error in the CQL query or in any other extension.
+    /// </summary>
     [Serializable]
     public class InvalidContentQueryException : Exception
     {
-        public string QueryText { get; private set; }
+        /// <summary>
+        /// Gets the query text.
+        /// </summary>
+        public string QueryText { get; }
 
+        /// <summary>
+        /// Initializes a nem instance of the InvalidContentQueryException.
+        /// </summary>
+        /// <param name="queryText">The CQL query.</param>
+        /// <param name="message">Optional message that overrides the automated text.</param>
+        /// <param name="innerException">Wrapped exception if there is.</param>
         public InvalidContentQueryException(string queryText, string message = null, Exception innerException = null)
-            : base((message ?? "Invalid content query"), innerException)
+            : base(message ?? "Invalid content query", innerException)
         {
             QueryText = queryText;
         }
 
-        protected InvalidContentQueryException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) : base(info, context)
+        /// <inheritdoc />
+        protected InvalidContentQueryException(System.Runtime.Serialization.SerializationInfo info,
+            System.Runtime.Serialization.StreamingContext context) : base(info, context)
         {
         }
     }

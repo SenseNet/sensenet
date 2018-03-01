@@ -1,16 +1,19 @@
 ﻿using System;
-using Lucene.Net.Index;
-using SenseNet.Diagnostics;
+using SenseNet.Search;
+using SenseNet.Search.Querying;
 
-namespace SenseNet.Search.Indexing.Activities
+namespace SenseNet.ContentRepository.Search.Indexing.Activities
 {
     [Serializable]
-    internal class RemoveTreeActivity : LuceneTreeActivity
+    internal class RemoveTreeActivity : TreeIndexingActivity
     {
         protected override bool ProtectedExecute()
         {
-            var terms = new[] { new Term("InTree", TreeRoot), new Term("Path", TreeRoot) };
-            return LuceneManager.DeleteDocuments(terms, MoveOrRename ?? false, this.Id, this.IsUnprocessedActivity, null);
+            return IndexManager.DeleteDocuments(new[]
+            {
+                new SnTerm(IndexFieldName.InTree, TreeRoot),
+                new SnTerm(IndexFieldName.Path, TreeRoot)
+            }, null);
         }
     }
 }

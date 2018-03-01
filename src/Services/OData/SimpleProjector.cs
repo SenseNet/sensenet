@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using SenseNet.ContentRepository;
+// ReSharper disable CheckNamespace
 
 namespace SenseNet.Portal.OData
 {
     internal class SimpleProjector : Projector
     {
         //TODO: PERFORMANCE , INVALIDATION ???
-        private Dictionary<string, IEnumerable<string>> _fieldNamesForPaths = new Dictionary<string, IEnumerable<string>>();
+        private readonly Dictionary<string, IEnumerable<string>> _fieldNamesForPaths = new Dictionary<string, IEnumerable<string>>();
 
         internal override void Initialize(Content container)
         {
@@ -18,10 +19,10 @@ namespace SenseNet.Portal.OData
         {
             var fields = new Dictionary<string, object>();
             var selfurl = GetSelfUrl(content);
-            if (this.Request.EntityMetadata != MetadataFormat.None)
-                fields.Add("__metadata", GetMetadata(content, selfurl, this.Request.EntityMetadata));
+            if (Request.EntityMetadata != MetadataFormat.None)
+                fields.Add("__metadata", GetMetadata(content, selfurl, Request.EntityMetadata));
 
-            IEnumerable<string> fieldNames = null;
+            IEnumerable<string> fieldNames;
             if (Request.HasSelect)
             {
                 fieldNames = Request.Select;
@@ -65,15 +66,14 @@ namespace SenseNet.Portal.OData
                     continue;
                 }
 
-                if (base.IsAllowedField(content, fieldName))
+                if (IsAllowedField(content, fieldName))
                 {
-                    Field field;
-                    if (content.Fields.TryGetValue(fieldName, out field))
+                    if (content.Fields.TryGetValue(fieldName, out var field))
                         fields.Add(fieldName, ODataFormatter.GetJsonObject(field, selfurl));
                     else if (fieldName == ACTIONSPROPERTY)
-                        fields.Add(ACTIONSPROPERTY, ODataReference.Create(String.Concat(selfurl, "/", ODataHandler.PROPERTY_ACTIONS)));
+                        fields.Add(ACTIONSPROPERTY, ODataReference.Create(String.Concat(selfurl, "/", ODataHandler.ActionsPropertyName)));
                     else if (fieldName == ISFILEPROPERTY)
-                        fields.Add(ISFILEPROPERTY, content.Fields.ContainsKey(ODataHandler.PROPERTY_BINARY));
+                        fields.Add(ISFILEPROPERTY, content.Fields.ContainsKey(ODataHandler.BinaryPropertyName));
                     else if (fieldName == ICONPROPERTY)
                         fields.Add(fieldName, content.Icon ?? content.ContentType.Icon);
                     else

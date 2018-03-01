@@ -335,12 +335,14 @@ namespace SenseNet.Services.ContentStore
 		    if (!includeChildren) 
                 return;
 
-            Children = new ContentStoreService().GetFeed2(ContentNode.Path, onlyFileChildren, false, start, limit);
+            throw new InvalidOperationException("includeChildren=true is not supported anymore");
 
-            var content = SenseNet.ContentRepository.Content.Create(contentNode);
-            content.ChildrenDefinition.EnableAutofilters = FilterStatus.Disabled;
-            content.ChildrenDefinition.EnableLifespanFilter = FilterStatus.Disabled;
-            ChildCount = content.Children.Count();
+            //Children = new ContentStoreService().GetFeed2(ContentNode.Path, onlyFileChildren, false, start, limit);
+
+            //var content = SenseNet.ContentRepository.Content.Create(contentNode);
+            //content.ChildrenDefinition.EnableAutofilters = FilterStatus.Disabled;
+            //content.ChildrenDefinition.EnableLifespanFilter = FilterStatus.Disabled;
+            //ChildCount = content.Children.Count();
         }
 
         private object EnsureData(object data)

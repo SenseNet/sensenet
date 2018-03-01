@@ -106,8 +106,8 @@
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="SenseNet.Security, Version=2.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SenseNet.Security.2.3.0.0\lib\net45\SenseNet.Security.dll</HintPath>
+    <Reference Include="SenseNet.Security, Version=2.3.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SenseNet.Security.2.3.1\lib\net45\SenseNet.Security.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="SenseNet.Security.EF6SecurityStore, Version=2.3.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -171,12 +171,17 @@
     <Compile Include="ContentNotFoundException.cs" />
     <Compile Include="CounterManager.cs" />
     <Compile Include="Data\BlobStorage.cs" />
+    <Compile Include="Data\IndexDocumentData.cs" />
+    <Compile Include="Data\IndexIntegrityCheckerItem.cs" />
     <Compile Include="Data\IPackageStorageProvider.cs" />
+    <Compile Include="Data\QueryPropertyData.cs" />
     <Compile Include="Data\SnMaintenance.cs" />
-    <Compile Include="Data\IndexBackup.cs" />
-    <Compile Include="Data\IndexBackupProgress.cs" />
     <Compile Include="Data\RepositoryPathTooLongException.cs" />
     <Compile Include="Data\SqlClient\DataReaderExtensions.cs" />
+    <Compile Include="Data\SqlClient\SnLucToSqlCompiler.cs" />
+    <Compile Include="Data\SqlClient\SqlQueryEngine.cs" />
+    <Compile Include="Data\SqlClient\SqlQueryExecutor.cs" />
+    <Compile Include="Data\SqlClient\SqlQueryFieldInfo.cs" />
     <Compile Include="Data\SqlClient\TextPropertyWriter.cs" />
     <Compile Include="Data\SqlClient\TraceSqlProvider.cs" />
     <Compile Include="Data\StorageDataReaderExtensions.cs" />
@@ -189,7 +194,6 @@
     <Compile Include="Events\PermissionChangedEventArgs.cs" />
     <Compile Include="Events\CancellablePermissionChangingEventArgs.cs" />
     <Compile Include="IFolder.cs" />
-    <Compile Include="IIndexingActivity.cs" />
     <Compile Include="InvalidContentException.cs" />
     <Compile Include="IResourceManager.cs" />
     <Compile Include="ISnService.cs" />
@@ -217,11 +221,9 @@
     <Compile Include="Caching\ICache.cs" />
     <Compile Include="Diagnostics\TimeboxedActivity.cs" />
     <Compile Include="DistributedApplication\Messaging\MsmqChannel.cs" />
-    <Compile Include="IContentQuery.cs" />
     <Compile Include="DataBackingStore.cs" />
     <Compile Include="Data\ConfigurationException.cs" />
     <Compile Include="Data\INodeWriter.cs" />
-    <Compile Include="Data\INodeQueryCompiler.cs" />
     <Compile Include="Data\NodeBuilder.cs" />
     <Compile Include="Caching\DistributedActions\CleanupNodeCacheAction.cs" />
     <Compile Include="Data\PropertyMapping.cs" />
@@ -238,9 +240,12 @@
     <Compile Include="NodeSaveSettings.cs" />
     <Compile Include="Package.cs" />
     <Compile Include="PreviewProvider.cs" />
-    <Compile Include="QueryResult.cs" />
-    <Compile Include="QuerySettings.cs" />
+    <Compile Include="Search\QueryResult.cs" />
     <Compile Include="Retrier.cs" />
+    <Compile Include="Search\SearchManager.cs" />
+    <Compile Include="Search\IIndexDocumentProvider.cs" />
+    <Compile Include="Search\IIndexingActivity.cs" />
+    <Compile Include="Search\IIndexingActivityFactory.cs" />
     <Compile Include="Search\IIndexPopulator.cs" />
     <Compile Include="Instrumentation\TraceFrame.cs" />
     <Compile Include="Instrumentation\TraceFrameEventType.cs" />
@@ -280,11 +285,12 @@
     <Compile Include="Events\NodeObserver.cs" />
     <Compile Include="Events\NodeOperationEventArgs.cs" />
     <Compile Include="IContentList.cs" />
-    <Compile Include="Search\DateTimeParser.cs" />
-    <Compile Include="Search\ISearchEngine.cs" />
-    <Compile Include="Search\Internal\Operator.cs" />
-    <Compile Include="Search\NodeQueryResult.cs" />
-    <Compile Include="Search\NodeQueryTemplateReplacer.cs" />
+    <Compile Include="Search\InternalSearchEngine.cs" />
+    <Compile Include="Search\NodeIndexedEventArgs.cs" />
+    <Compile Include="Search\Operator.cs" />
+    <Compile Include="Search\ISearchEngineSupport.cs" />
+    <Compile Include="Search\PermissionFilter.cs" />
+    <Compile Include="Search\PermissionFilterFactory.cs" />
     <Compile Include="Security\BCrypt.cs" />
     <Compile Include="Security\Extensions.cs" />
     <Compile Include="Security\PermissionType.cs" />
@@ -315,8 +321,6 @@
     <Compile Include="Scripting\Evaluator.cs" />
     <Compile Include="Scripting\IEvaluator.cs" />
     <Compile Include="Scripting\ScriptTagNameAttribute.cs" />
-    <Compile Include="Search\Internal\Literal.cs" />
-    <Compile Include="Search\Internal\PropertyLiteral.cs" />
     <Compile Include="Security\LockedNodeException.cs" />
     <Compile Include="Security\SystemUser.cs" />
     <Compile Include="InvalidPathException.cs" />
@@ -331,28 +335,13 @@
     <Compile Include="Schema\SchemaItem.cs" />
     <Compile Include="Schema\SchemaRoot.cs" />
     <Compile Include="Schema\TypeCollection.cs" />
-    <Compile Include="Search\Internal\BinaryExpression.cs" />
-    <Compile Include="Search\Internal\ExpressionEnumerator.cs" />
-    <Compile Include="Search\Internal\IBinaryExpression.cs" />
-    <Compile Include="Search\NotExpression.cs" />
-    <Compile Include="Search\SearchOrder.cs" />
-    <Compile Include="Search\TypeExpression.cs" />
     <Compile Include="Security\AccessProvider.cs" />
     <Compile Include="Security\IGroup.cs" />
     <Compile Include="Security\LockHandler.cs" />
     <Compile Include="NodeList.cs" />
     <Compile Include="Schema\NodeTypeManager.cs" />
     <Compile Include="Schema\PropertyType.cs" />
-    <Compile Include="Search\CurrencyExpression.cs" />
-    <Compile Include="Search\DateTimeExpression.cs" />
-    <Compile Include="Search\Expression.cs" />
-    <Compile Include="Search\ExpressionList.cs" />
-    <Compile Include="Search\IntExpression.cs" />
     <Compile Include="Search\NodeQuery.cs" />
-    <Compile Include="Search\ReferenceExpression.cs" />
-    <Compile Include="Search\SearchExpression.cs" />
-    <Compile Include="Search\StringExpression.cs" />
-    <Compile Include="Search\Enums.cs" />
     <Compile Include="Security\SenseNetSecurityException.cs" />
     <Compile Include="Security\IUser.cs" />
     <Compile Include="SR.cs" />
@@ -367,7 +356,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Data\StorageSchemaSample.xml" />
-    <EmbeddedResource Include="Search\QuerySample.xml" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Data\SqlClient\Scripts\Create_SenseNet_Database.sql" />
@@ -379,10 +367,6 @@
     <None Include="Data\SqlClient\Scripts\Install_03_Data_Phase1.sql" />
     <None Include="Data\SqlClient\Scripts\Install_04_Data_Phase2.sql" />
     <None Include="Data\SqlClient\Scripts\Rebuild_SenseNet_FullTextCatalog.sql" />
-    <EmbeddedResource Include="Search\QuerySchema.xsd">
-      <SubType>
-      </SubType>
-    </EmbeddedResource>
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
@@ -433,6 +417,10 @@
     <ProjectReference Include="..\Common\Common.csproj">
       <Project>{A453E920-29C0-45CD-984C-0D8E3631B1E3}</Project>
       <Name>Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Search\Search.csproj">
+      <Project>{0279705b-779d-485d-86b9-f7ab3dd1f2c3}</Project>
+      <Name>Search</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

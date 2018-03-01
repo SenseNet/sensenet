@@ -66,13 +66,19 @@ SnAdmin seturl url:demo.example.com site:MySite authenticationType:Windows
 ```
 
 ## index
-Re-create the index for the whole Content Repository (in case of a large repository this may take time).
+Rebuild the index for a content subtree (for example a workspace or library) or the whole Content Repository (in case of a large repository this may take time).
+
+Recreate the whole index from predefined index documents stored in the database. This will not reindex content items (soft reindex).
 ``` text
 SnAdmin index
 ```
 Repopulate the index of a subtree.
 ``` text
 SnAdmin index path:"/Root/Sites/MySite/MyFolder"
+```
+Reindex content items in both the database and the index (hard reindex). This will load content items and re-generate index documents from scratch (instead of loading predefined index documents from the db).
+``` text
+SnAdmin index level:DatabaseAndIndex
 ```
 
 ## createeventlog

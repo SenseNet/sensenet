@@ -1,22 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using SenseNet.Search;
-using Lucene.Net.Search;
-using Lucene.Net.Index;
-using SenseNet.Search.Indexing;
+using SenseNet.Search.Querying;
 
 namespace SenseNet.ContentRepository.Linq
 {
     public class LinqContentEnumerator<T> : IEnumerator<T>
     {
-        private ContentSet<T> _queryable;
+        private readonly ContentSet<T> _queryable;
         private IEnumerable<T> _result;
         private IEnumerator<T> _resultEnumerator;
-        private LucQuery _query;
-        private bool _isContent;
+        private SnQuery _query;
+        private IQueryContext _queryContext;
+        private readonly bool _isContent;
 
+        private IQueryContext QueryContext => _queryContext ?? (_queryContext = SnQueryContext.CreateDefault());
 
         public LinqContentEnumerator(ContentSet<T> queryable)
         {
@@ -27,16 +24,13 @@ namespace SenseNet.ContentRepository.Linq
         public void Dispose()
         {
         }
-        public T Current
-        {
-            get { return _resultEnumerator.Current; }
-        }
-        object System.Collections.IEnumerator.Current
-        {
-            get { return Current; }
-        }
+        public T Current => _resultEnumerator.Current;
+
+        object System.Collections.IEnumerator.Current => Current;
+
         public void Reset()
         {
+            _queryContext = null;
             _resultEnumerator.Reset();
         }
         public bool MoveNext()
@@ -44,11 +38,11 @@ namespace SenseNet.ContentRepository.Linq
             if (_result == null)
             {
                 Compile();
-                var qresult = _query.Execute();
+                var qresult = _query.Execute(QueryContext);
 
-                var nresult = new Storage.NodeList<Storage.Node>(qresult.Select(x => x.NodeId).ToArray());
+                var nresult = new Storage.NodeList<Storage.Node>(qresult.Hits.ToArray());
                 if (_isContent)
-                    _result = (IEnumerable<T>)nresult.Where(n => n != null).Select(n => Content.Create(n));
+                    _result = (IEnumerable<T>)nresult.Where(n => n != null).Select(Content.Create);
                 else
                     _result = nresult.Where(n => n != null).Cast<T>();
 
@@ -59,13 +53,15 @@ namespace SenseNet.ContentRepository.Linq
         private void Compile()
         {
             if (_query == null)
-                _query = SnExpression.BuildQuery(_queryable.Expression, typeof(T), _queryable.ContextPath, _queryable.ChildrenDefinition);
+            {
+                _query = SnExpression.BuildQuery(_queryable.Expression, typeof(T), _queryable.ContextPath,
+                    _queryable.ChildrenDefinition);
+            }
         }
         public string GetQueryText()
         {
             Compile();
             return _query.ToString();
         }
-
     }
 }
