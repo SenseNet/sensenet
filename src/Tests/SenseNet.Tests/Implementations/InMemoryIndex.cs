@@ -187,7 +187,9 @@ namespace SenseNet.Tests.Implementations
 
             if (field.Name == IndexFieldName.AllText) //TODO: it would be better to use an analyzer
             {
-                var words = field.StringValue.Split("\t\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                var words = field.StringValue
+                    .Split(" \t\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+                    .Select(s => s.ToLowerInvariant());
                 fieldValues.AddRange(words);
             }
             else

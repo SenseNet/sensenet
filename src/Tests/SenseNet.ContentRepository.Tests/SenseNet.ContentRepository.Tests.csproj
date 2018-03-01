@@ -74,6 +74,7 @@
     <Compile Include="ContentTypeTests.cs" />
     <Compile Include="FieldSettingTests.cs" />
     <Compile Include="GenericContentTests.cs" />
+    <Compile Include="IndexingTests.cs" />
     <Compile Include="LinqTests.cs" />
     <Compile Include="NodeIdentifierTests.cs" />
     <Compile Include="PortalContextTest.cs" />
