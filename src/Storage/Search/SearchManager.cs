@@ -63,9 +63,9 @@ namespace SenseNet.ContentRepository.Search
         public static readonly List<string> NoList = new List<string>(new[] { "0", "false", "n", IndexValue.No });
 
         /// <summary>
-        /// Gets the implementation onstance of the current <see cref="ISearchEngine"/>.
+        /// Gets the implementation instance of the current <see cref="ISearchEngine"/>.
         /// The value depends on the value of the Configuration.Indexing.IsOuterSearchEngineEnabled setting.
-        /// If this value is true, returns with the Providers.Instance.SearchEngine, otherwise with the InternalSearchEngine.Instance.
+        /// If this value is true, returns Providers.Instance.SearchEngine, otherwise the InternalSearchEngine.Instance.
         /// </summary>
         public static ISearchEngine SearchEngine => !Configuration.Indexing.IsOuterSearchEngineEnabled
             ? InternalSearchEngine.Instance

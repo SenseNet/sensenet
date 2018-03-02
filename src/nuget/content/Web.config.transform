@@ -56,9 +56,7 @@
   <unity>
     <typeAliases>
       <typeAlias alias="IApplicationCache" type="SenseNet.ContentRepository.Storage.AppModel.IApplicationCache, SenseNet.Storage" />
-      <typeAlias alias="ISearchEngine" type="SenseNet.Search.ISearchEngine, SenseNet.Search" />
       <typeAlias alias="IApplicationCacheImpl" type="SenseNet.ContentRepository.ApplicationCache, SenseNet.ContentRepository" />
-      <typeAlias alias="ISearchEngineImpl" type="SenseNet.Search.Lucene29.Lucene29SearchEngine, SenseNet.Search.Lucene29.Common" />
       <typeAlias alias="MembershipExtenderBase" type="SenseNet.ContentRepository.Storage.Security.MembershipExtenderBase, SenseNet.Storage" />
       <typeAlias alias="MembershipExtender" type="SenseNet.ContentRepository.Storage.Security.DefaultMembershipExtender, SenseNet.Storage" />
       <typeAlias alias="PurgeUrlCollector" type="SenseNet.Portal.Virtualization.PurgeUrlCollector, SenseNet.Services" />
@@ -68,7 +66,6 @@
       <container name="Providers">
         <types>
           <type type="IApplicationCache" mapTo="IApplicationCacheImpl" />
-          <type type="ISearchEngine" mapTo="ISearchEngineImpl" />
           <type type="MembershipExtenderBase" mapTo="MembershipExtender">
             <lifetime type="singleton" />
           </type>
