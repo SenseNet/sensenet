@@ -82,7 +82,7 @@ namespace SenseNet.Portal.Virtualization
                 }
 
                 if (permissionValue != PermissionValue.Allowed)
-                    if (nodeHead.Id == Repository.Root.Id)
+                    if (nodeHead.Id == Identifiers.PortalRootId)
                         if (currentPortalContext.IsOdataRequest)
                             if (currentPortalContext.ODataRequest.IsMemberRequest)
                                 permissionValue = PermissionValue.Allowed;

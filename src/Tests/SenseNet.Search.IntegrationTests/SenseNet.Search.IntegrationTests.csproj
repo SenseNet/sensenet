@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{A29CB53A-DF6C-487C-9FDC-DC73A5CB2B13}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SenseNet.Search.IntegrationTests</RootNamespace>
+    <AssemblyName>SenseNet.Search.IntegrationTests</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">15.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+    <ReferencePath>$(ProgramFiles)\Common Files\microsoft shared\VSTT\$(VisualStudioVersion)\UITestExtensionPackages</ReferencePath>
+    <IsCodedUITest>False</IsCodedUITest>
+    <TestProjectType>UnitTest</TestProjectType>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\PublicAssemblies\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="SenseNet.Security, Version=2.3.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\SenseNet.Security.2.3.1\lib\net45\SenseNet.Security.dll</HintPath>
+    </Reference>
+    <Reference Include="SenseNet.Tools, Version=2.1.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\SenseNet.Tools.2.1.1\lib\net451\SenseNet.Tools.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.XML" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CentralizedIndexingInMemoryTests.cs" />
+    <Compile Include="CentralizedIndexingSqlTests.cs" />
+    <Compile Include="FieldIndexHandlerTests.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ActivityQueueSelectorTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\BlobStorage\BlobStorage.csproj">
+      <Project>{4E6722B5-AC95-494C-80A5-A4D80CC502B5}</Project>
+      <Name>BlobStorage</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Common\Common.csproj">
+      <Project>{a453e920-29c0-45cd-984c-0d8e3631b1e3}</Project>
+      <Name>Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\ContentRepository\ContentRepository.csproj">
+      <Project>{786E6165-CA02-45A9-BF58-207A45D7D6DF}</Project>
+      <Name>ContentRepository</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Search\Search.csproj">
+      <Project>{0279705b-779d-485d-86b9-f7ab3dd1f2c3}</Project>
+      <Name>Search</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Services\Services.csproj">
+      <Project>{b72529c8-feb1-49f5-b08b-56055b58f296}</Project>
+      <Name>Services</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Storage\Storage.csproj">
+      <Project>{5db4ddba-81f6-4d81-943a-18f3178b3355}</Project>
+      <Name>Storage</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SenseNet.Tests\SenseNet.Tests.csproj">
+      <Project>{4674b8b8-6567-4eb5-b5a8-c838fecce302}</Project>
+      <Name>SenseNet.Tests</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

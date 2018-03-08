@@ -12,6 +12,7 @@ namespace SenseNet.Packaging
             internal static readonly string ManifestNotFound = "Manifest not found.";
             internal static readonly string PackageCanContainOnlyOneFileInTheRoot = "Package can contain only one file in the root.";
             internal static readonly string InvalidPhaseIndex_2 = "Phase index out of range. Count of phases: {0}, requested index: {1}.";
+            internal static readonly string InvalidParameter = "Invalid parameter";
             internal static readonly string InvalidParameters = "Invalid parameters";
 
             internal static readonly string PhaseFinishedWithError_1 = "Phase terminated with error: {0}";

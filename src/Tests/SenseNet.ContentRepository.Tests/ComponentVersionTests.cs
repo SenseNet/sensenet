@@ -1,10 +1,11 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.Tests;
 
 namespace SenseNet.ContentRepository.Tests
 {
     [TestClass]
-    public class ComponentVersionTests
+    public class ComponentVersionTests : TestBase
     {
         [TestMethod]
         public void VersionCheck_Services_Correct()

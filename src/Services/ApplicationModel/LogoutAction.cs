@@ -27,7 +27,7 @@ namespace SenseNet.ApplicationModel
         public override object Execute(Content content, params object[] parameters)
         {
             // getting the only argument if any, which tells that the client would like to log out simply or in an ultimate fashion
-            var ultimateLogout = parameters != null && parameters.Length > 0 && parameters[0] != null && (bool)parameters[0];
+            var ultimateLogout = parameters?.Length > 0 && parameters[0] is bool && (bool)parameters[0];
 
             var logoutExecutor = new LogoutExecutor();
             logoutExecutor.Logout(ultimateLogout);

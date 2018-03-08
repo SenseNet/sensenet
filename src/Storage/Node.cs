@@ -7,6 +7,8 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Search;
@@ -14,6 +16,8 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.Diagnostics;
+using SenseNet.Search;
+using SenseNet.Search.Querying;
 using SenseNet.Security;
 
 namespace SenseNet.ContentRepository.Storage
@@ -125,16 +129,10 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public bool? AllowIncrementalNaming;
 
-        //UNDONE: Node.NodeOperation: setter be protected.
         /// <summary>
         /// Gets the currently running node operation (e.g. Undo checkout or Template creation).
         /// </summary>
         public string NodeOperation { get; set; } 
-
-        private static IIndexPopulator Populator
-        {
-            get { return StorageContext.Search.SearchEngine.GetPopulator(); }
-        }
 
         private SecurityHandler _security;
         private LockHandler _lockHandler;
@@ -152,7 +150,7 @@ namespace SenseNet.ContentRepository.Storage
         /// but can be overidden in derived classes. Determines whether an indexing activity and index
         /// document will be created for this content.
         /// </summary>
-        protected internal virtual bool IsIndexingEnabled { get { return true; } }
+        protected internal virtual bool IsIndexingEnabled => true;
 
         private static readonly List<string> SeeEnabledProperties = new List<string> { "Name", "Path", "Id", "Index", "NodeType", "ContentListId", "ContentListType", "Parent", "IsModified", "IsDeleted", "CreationDate", "ModificationDate", "CreatedBy", "ModifiedBy", "VersionCreationDate", "VersionModificationDate", "VersionCreatedById", "VersionModifiedById", "Aspects", "Icon", "StoredIcon" };
         /// <summary>
@@ -189,10 +187,8 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Gets the collection of child <see cref="Node"/>s. The current user needs to have See permission for every instance.
         /// </summary>
-        public IEnumerable<Node> PhysicalChildArray //UNDONE: Be obsolete or remove.
-        {
-            get { return this.GetChildren(); }
-        }
+        [Obsolete("Use GetChildren() method instead.")]
+        public IEnumerable<Node> PhysicalChildArray => this.GetChildren();
 
         /// <summary>
         /// Gets the collection of child <see cref="Node"/>s. The current user need to have See permission for every instance.
@@ -210,43 +206,26 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Returns the count of children.
         /// </summary>
-        protected int GetChildCount() //UNDONE: Make this obsolete. Use count only query instead.
+        protected int GetChildCount()
         {
             return QueryChildren().Count;
         }
-        private NodeQueryResult QueryChildren()
+        private QueryResult QueryChildren()
         {
             if (this.Id == 0)
-                return new NodeQueryResult(new NodeList<Node>());
+                return new QueryResult(new NodeList<Node>());
 
-            if (StorageContext.Search.IsOuterEngineEnabled && StorageContext.Search.SearchEngine != InternalSearchEngine.Instance)
-            {
-                var query = new NodeQuery();
-                query.Add(new IntExpression(IntAttribute.ParentId, ValueOperator.Equal, this.Id));
-                return query.Execute();
-            }
-            else
-            {
-                // fallback to the direct db query
-                return NodeQuery.QueryChildren(this.Id);
-            }
+            return NodeQuery.QueryChildren(this.Id);
         }
 
         /// <summary>
         /// Returns the count of <see cref="Node"/>s in the subtree.
         /// </summary>
-        public virtual int NodesInTree
-        {
-            get
-            {
-                var childQuery = new NodeQuery();
-                childQuery.Add(new StringExpression(StringAttribute.Path, StringOperator.StartsWith, this.Path));
-                var childResult = childQuery.Execute();
-                var childNum = childResult.Count;
-
-                return childNum;
-            }
-        }
+        public virtual int NodesInTree => SearchManager.ExecuteContentQuery(
+                "+InTree:@0",
+                QuerySettings.AdminSettings,
+                this.Path)
+            .Count;
 
         internal void MakePrivateData()
         {
@@ -620,7 +599,6 @@ namespace SenseNet.ContentRepository.Storage
                 SetCreationDate(value);
             }
         }
-        //UNDONE: Node.AssertUserIsOperator: make this private or delete
         /// <summary>
         /// Checks if the current user is a system user or a member of the Operators group
         /// and throws a <see cref="NotSupportedException"/> if not.
@@ -644,7 +622,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Sets the CreationDate of this node to the specified value.
         /// </summary>
-        protected void SetCreationDate(DateTime creation) //UNDONE: Move this code to the setter of the CreationDate
+        private void SetCreationDate(DateTime creation)
         {
             if (creation < DataProvider.Current.DateTimeMinValue)
                 throw SR.Exceptions.General.Exc_LessThanDateTimeMinValue();
@@ -787,7 +765,7 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Sets the VersionCreationDate of this node version to the specified value.
         /// </summary>
-        protected void SetVersionCreationDate(DateTime creation) //UNDONE: Move this code to the setter of the VersionCreationDate
+        private void SetVersionCreationDate(DateTime creation)
         {
             if (creation < DataProvider.Current.DateTimeMinValue)
                 throw SR.Exceptions.General.Exc_LessThanDateTimeMinValue();
@@ -1691,7 +1669,8 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Refreshes the IsLastPublicVersion and IsLastVersion property values.
         /// </summary>
-        public void RefreshVersionInfo() //UNDONE: be obsolete or delete now.
+        [Obsolete("This method will be deleted in the future.")]
+        public void RefreshVersionInfo()
         {
             SetVersionInfo(NodeHead.Get(this.Id));
         }
@@ -2418,7 +2397,7 @@ namespace SenseNet.ContentRepository.Storage
                 var thisPath = RepositoryPath.Combine(parentPath, this.Name);
 
                 // save
-                DataBackingStore.SaveNodeData(this, settings, Populator, thisPath, thisPath);
+                DataBackingStore.SaveNodeData(this, settings, SearchManager.GetIndexPopulator(), thisPath, thisPath);
 
                 // <L2Cache>
                 StorageContext.L2Cache.Clear();
@@ -2498,8 +2477,6 @@ namespace SenseNet.ContentRepository.Storage
 
             if (_data != null)
                 _data.SavingTimer.Restart();
-
-            StorageContext.Search.SearchEngine.WaitIfIndexingPaused();
 
             var lockBefore = this.Version == null ? false : this.Version.Status == VersionStatus.Locked;
             if (isNew)
@@ -2662,7 +2639,7 @@ namespace SenseNet.ContentRepository.Storage
                     try
                     {
                         this.Data.PreloadTextProperties();
-                        DataBackingStore.SaveNodeData(this, settings, Populator, originalPath, newPath);
+                        DataBackingStore.SaveNodeData(this, settings, SearchManager.GetIndexPopulator(), originalPath, newPath);
                     }
                     finally
                     {
@@ -2763,7 +2740,7 @@ namespace SenseNet.ContentRepository.Storage
                     ExpectedVersionId = this.VersionId,
                     MultistepSaving = false
                 };
-                DataBackingStore.SaveNodeData(this, settings, Populator, Path, Path);
+                DataBackingStore.SaveNodeData(this, settings, SearchManager.GetIndexPopulator(), Path, Path);
 
                 // events
                 if (this.Version.Status != VersionStatus.Locked)
@@ -2804,7 +2781,9 @@ namespace SenseNet.ContentRepository.Storage
                     else
                     {
                         // RefreshLock
-                        if (!settings.TakingLockOver && this.LockedById != AccessProvider.Current.GetCurrentUser().Id)
+                        if (AccessProvider.Current.GetCurrentUser().Id != Identifiers.SystemUserId
+                            && !settings.TakingLockOver
+                            && this.LockedById != AccessProvider.Current.GetCurrentUser().Id)
                             throw new SenseNetSecurityException(this.Id, "Node is locked by another user");
                         LastLockUpdate = DateTime.UtcNow;
                     }
@@ -2919,7 +2898,7 @@ namespace SenseNet.ContentRepository.Storage
 
         #region // ================================================================================================= Move methods
 
-        //UNDONE: Node.GetChildTypesToAllow(int nodeId): check SQL procedure algorithm
+        //TODO: Node.GetChildTypesToAllow(int nodeId): check SQL procedure algorithm. See issue #259
         /// <summary>
         /// Gets all the types that can be found in a subtree under a node defined by an Id.
         /// </summary>
@@ -2927,7 +2906,7 @@ namespace SenseNet.ContentRepository.Storage
         {
             return DataProvider.Current.LoadChildTypesToAllow(nodeId);
         }
-        //UNDONE: Node.GetChildTypesToAllow(): check SQL procedure algorithm
+        //TODO: Node.GetChildTypesToAllow(): check SQL procedure algorithm. See issue #259
         /// <summary>
         /// Gets all the types that can be found in a subtree under the current node.
         /// </summary>
@@ -2966,8 +2945,6 @@ namespace SenseNet.ContentRepository.Storage
         }
         private void MoveTo(Node target, long sourceTimestamp, long targetTimestamp)
         {
-            StorageContext.Search.SearchEngine.WaitIfIndexingPaused();
-
             this.AssertLock();
 
             if (target == null)
@@ -3026,7 +3003,8 @@ namespace SenseNet.ContentRepository.Storage
                     PathDependency.FireChanged(pathToInvalidate);
                     PathDependency.FireChanged(this.Path);
 
-                    Populator.DeleteTree(this.Path, this.Id, true);
+                    var populator = SearchManager.GetIndexPopulator();
+                    populator.DeleteTree(this.Path, this.Id);
 
                     // <L2Cache>
                     StorageContext.L2Cache.Clear();
@@ -3049,7 +3027,7 @@ namespace SenseNet.ContentRepository.Storage
                     }
 
                     using (new SystemAccount())
-                        Populator.PopulateTree(targetPath, this.Id);
+                        populator.AddTree(targetPath, this.Id);
 
                 } // end lock
 
@@ -3140,8 +3118,6 @@ namespace SenseNet.ContentRepository.Storage
         }
         private static void CopyMoreInternal(IEnumerable<int> nodeList, string targetNodePath, ref List<Exception> errors)
         {
-            StorageContext.Search.SearchEngine.WaitIfIndexingPaused();
-
             var col2 = new List<Node>();
 
             var targetNode = LoadNode(targetNodePath);
@@ -3269,7 +3245,6 @@ namespace SenseNet.ContentRepository.Storage
         /// <returns>The new node instance.</returns>
         public Node CopyToAndGetCopy(Node target, string newName)
         {
-            StorageContext.Search.SearchEngine.WaitIfIndexingPaused();
 
             using (var op = SnTrace.ContentOperation.StartOperation("Node.SaveCopied"))
             {
@@ -3542,18 +3517,8 @@ namespace SenseNet.ContentRepository.Storage
         /// </summary>
         public virtual void ForceDelete()
         {
-            ForceDelete(this.NodeTimestamp);
-        }
-        //UNDONE: Node.ForceDelete(long timestamp): make this obsolete or private (timestamp parameter is not used).
-        /// <summary>
-        /// This method deletes the <see cref="Node"/> permanently.
-        /// </summary>
-        public virtual void ForceDelete(long timestamp)
-        {
             using (var op = SnTrace.ContentOperation.StartOperation("Node.ForceDelete: Id:{0}, Path:{1}", Id, Path))
             {
-                StorageContext.Search.SearchEngine.WaitIfIndexingPaused();
-
                 this.Security.AssertSubtree(PermissionType.Delete);
 
                 this.AssertLock();
@@ -3620,7 +3585,7 @@ namespace SenseNet.ContentRepository.Storage
                     if (this.Id > 0)
                         SecurityHandler.DeleteEntity(this.Id);
 
-                    Populator.DeleteTree(myPath, this.Id, false);
+                    SearchManager.GetIndexPopulator().DeleteTree(myPath, this.Id);
 
                     if (hadContentList)
                         FireAnyContentListDeleted();
@@ -3634,6 +3599,14 @@ namespace SenseNet.ContentRepository.Storage
                 }
                 op.Successful = true;
             }
+        }
+        /// <summary>
+        /// This method deletes the <see cref="Node"/> permanently.
+        /// </summary>
+        [Obsolete("Use parameterless ForceDelete method.")]
+        public virtual void ForceDelete(long timestamp)
+        {
+            ForceDelete();
         }
         /// <summary>
         /// Provides a customizable base method for querying all referrers.
@@ -3713,8 +3686,6 @@ namespace SenseNet.ContentRepository.Storage
         // TODO: need to consider> method based upon the original DeleteInternal, this contains duplicated source code
         private static void DeleteMoreInternal(ICollection<Int32> nodeList, ref List<Exception> errors)
         {
-            StorageContext.Search.SearchEngine.WaitIfIndexingPaused();
-
             if (nodeList == null)
                 throw new ArgumentNullException("nodeList");
             if (nodeList.Count == 0)
@@ -3795,7 +3766,7 @@ namespace SenseNet.ContentRepository.Storage
             }
             try
             {
-                Populator.DeleteForest(ids, false);
+                SearchManager.GetIndexPopulator().DeleteForest(ids);
             }
             catch (Exception e)
             {
@@ -3904,11 +3875,17 @@ namespace SenseNet.ContentRepository.Storage
         /// <summary>
         /// Occurs before this <see cref="Node"/> instance's permision setting is changed.
         /// </summary>
-        public event CancellableNodeEventHandler PermissionChanging; //UNDONE: Never invoked: Node.PermissionChanging.
+#pragma warning disable 67
+        [Obsolete("Do not use this event anymore.")]
+        public event CancellableNodeEventHandler PermissionChanging;
+#pragma warning restore 67
         /// <summary>
         /// Occurs after this <see cref="Node"/> instance's permision setting is changed.
         /// </summary>
-        public event EventHandler<PermissionChangedEventArgs> PermissionChanged; //UNDONE: Never invoked: Node.PermissionChanged.
+#pragma warning disable 67
+        [Obsolete("Do not use this event anymore.")]
+        public event EventHandler<PermissionChangedEventArgs> PermissionChanged;
+#pragma warning restore 67
 
         //TODO: public event EventHandler Undeleted;
         //TODO: public event EventHandler Locked;

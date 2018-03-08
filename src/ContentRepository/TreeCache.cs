@@ -5,6 +5,7 @@ using SenseNet.ContentRepository.Storage.Search;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository

@@ -68,6 +68,10 @@
       <Project>{891b1fd9-ca73-4129-8d1d-d6663f01866c}</Project>
       <Name>SnAdminRuntime</Name>
     </ProjectReference>
+    <ProjectReference Include="..\SenseNet.Tests\SenseNet.Tests.csproj">
+      <Project>{4674B8B8-6567-4EB5-B5A8-C838FECCE302}</Project>
+      <Name>SenseNet.Tests</Name>
+    </ProjectReference>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

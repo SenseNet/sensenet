@@ -1,103 +1,101 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using SenseNet.Communication.Messaging;
+using System.IO;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.Diagnostics;
 
-namespace SenseNet.ContentRepository.Storage.Search
+// ReSharper disable once CheckNamespace
+namespace SenseNet.ContentRepository.Search.Indexing
 {
-    public enum IndexRebuildLevel { IndexOnly, DatabaseAndIndex };
+    /// <summary>
+    /// Defines constants for level definition of the index rebuilding.
+    /// </summary>
+    public enum IndexRebuildLevel
+    {
+        /// <summary>
+        /// Rebuild the index with using the prepared index documents stored in the database.
+        /// </summary>
+        IndexOnly,
+        /// <summary>
+        /// Prepare the index document in the database by the modified content data and then
+        /// rebuild the index with using the new index documents.
+        /// </summary>
+        DatabaseAndIndex
+    }
+
+    /// <summary>
+    /// Defines operations for building indexes of the content.
+    /// </summary>
     public interface IIndexPopulator
     {
-        void ClearAndPopulateAll(bool backup = true);
-        void RepopulateTree(string newPath);
-        void PopulateTree(string newPath, int nodeId);
+        /// <summary>
+        /// Build a brand new index.
+        /// </summary>
+        /// <param name="consoleWriter">TextWriter instance for writing progress.</param>
+        void ClearAndPopulateAll(TextWriter consoleWriter = null);
+
+        /// <summary>
+        /// Refreshes the index of the given subtree directly. Designed for offline usage e.g. any step of SnAdmin package.
+        /// Does not notify any other webservers and does not register any activity.
+        /// Note: 
+        /// </summary>
+        void RebuildIndexDirectly(string path, IndexRebuildLevel level = IndexRebuildLevel.IndexOnly);
+        /// <summary>
+        /// Adds a brand new subtree to the index.
+        /// </summary>
+        /// <param name="path">The Path of the root node of the subtree.</param>
+        /// <param name="nodeId">The Id of the root node of the subtree.</param>
+        void AddTree(string path, int nodeId);
+        /// <summary>
+        /// Creates a snapshot object before saving the node.
+        /// This snapshot helps to perform the correct indexing operation.
+        /// </summary>
+        /// <param name="node">The node before save.</param>
+        /// <param name="settings">The current saving algorithm.</param>
+        /// <param name="originalPath">The path of the node before save. Required.</param>
+        /// <param name="newPath">The path of the node after save. Required.</param>
+        /// <returns></returns>
         object BeginPopulateNode(Node node, NodeSaveSettings settings, string originalPath, string newPath);
+        /// <summary>
+        /// Writes index document to the index by the given snapshot.
+        /// </summary>
+        /// <param name="data">The snapshot that recorded by the BeginPopulateNode method.</param>
+        /// <param name="indexDocument">The index document that will be written into the index.</param>
         void CommitPopulateNode(object data, IndexDocumentData indexDocument);
+        /// <summary>
+        /// Writes index document to the index after text extracting by the given snapshot.
+        /// </summary>
+        /// <param name="data">The snapshot that recorded by the BeginPopulateNode method.</param>
+        /// <param name="indexDocument">The index document that will be written into the index.</param>
         void FinalizeTextExtracting(object data, IndexDocumentData indexDocument);
-        void DeleteTree(string path, int nodeId, bool moveOrRename);
-        void DeleteForest(IEnumerable<int> idSet, bool moveOrRename);
-        void DeleteForest(IEnumerable<string> pathSet, bool moveOrRename);
+        /// <summary>
+        /// Deletes a subtree from the index by path.
+        /// </summary>
+        /// <param name="path">Path of the deleted content.</param>
+        /// <param name="nodeId">Id os the deleted content.</param>
+        void DeleteTree(string path, int nodeId);
+        /// <summary>
+        /// Deletes more subtrees by id.
+        /// The idSet cannot be null.
+        /// </summary>
+        void DeleteForest(IEnumerable<int> idSet);
+        /// <summary>
+        /// Deletes more subtrees by path.
+        /// The pathSet cannot be null.
+        /// </summary>
+        void DeleteForest(IEnumerable<string> pathSet);
 
-        [Obsolete("This API is prohibited due to the poor performance. Use RebuildIndex method instead.", true)]
-        void RefreshIndexDocumentInfo(IEnumerable<Node> nodes);
-        [Obsolete("This API is prohibited due to the poor performance. Use RebuildIndex method instead.", true)]
-        void RefreshIndexDocumentInfo(Node node, bool recursive);
-        [Obsolete("This API is prohibited due to the poor performance. Use RebuildIndex method instead.", true)]
-        void RefreshIndex(IEnumerable<Node> nodes);
-        [Obsolete("This API is prohibited due to the poor performance. Use RebuildIndex method instead.", true)]
-        void RefreshIndex(Node node, bool recursive);
-
+        /// <summary>
+        /// Rebuilds the index of a node or a subtree.
+        /// </summary>
+        /// <param name="node">The root node of the subtree.</param>
+        /// <param name="recursive">True if the intention is to reindex the whole subtree.</param>
+        /// <param name="rebuildLevel">IndexRebuildLevel option.</param>
         void RebuildIndex(Node node, bool recursive = false, IndexRebuildLevel rebuildLevel = IndexRebuildLevel.IndexOnly);
 
-        event EventHandler<NodeIndexedEvenArgs> NodeIndexed;
-    }
-
-    public class NodeIndexedEvenArgs : EventArgs
-    {
-        public string Path { get; private set; }
-        public NodeIndexedEvenArgs(string path) { Path = path; }
-    }
-    internal class NullPopulator : IIndexPopulator
-    {
-        public static NullPopulator Instance = new NullPopulator();
-
-        private static readonly object PopulatorData = new object();
-
-        public void ClearAndPopulateAll(bool backup = true) { }
-        public void RepopulateTree(string newPath) { }
-        public void PopulateTree(string newPath, int nodeId) { }
-        public object BeginPopulateNode(Node node, NodeSaveSettings settings, string originalPath, string newPath) { return PopulatorData; }
-        public void CommitPopulateNode(object data, IndexDocumentData indexDocument) { }
-        public void FinalizeTextExtracting(object data, IndexDocumentData indexDocument) { }
-        public void DeleteTree(string path, int nodeId, bool moveOrRename) { }
-#pragma warning disable 0067
-        // suppressed because it is not used but the interface declares.
-        public event EventHandler<NodeIndexedEvenArgs> NodeIndexed;
-#pragma warning restore 0067
-        public void DeleteForest(IEnumerable<int> idSet, bool moveOrRename) { }
-        public void DeleteForest(IEnumerable<string> pathSet, bool moveOrRename) { }
-
-        #region Obsolete API
-        [Obsolete("This API is prohibited due to the poor performance. Use RebuildIndex method instead.", true)]
-        public void RefreshIndexDocumentInfo(IEnumerable<Node> nodes) { }
-        [Obsolete("This API is prohibited due to the poor performance. Use RebuildIndex method instead.", true)]
-        public void RefreshIndexDocumentInfo(Node node, bool recursive) { }
-        [Obsolete("This API is prohibited due to the poor performance. Use RebuildIndex method instead.", true)]
-        public void RefreshIndex(IEnumerable<Node> nodes) { }
-        [Obsolete("This API is prohibited due to the poor performance. Use RebuildIndex method instead.", true)]
-        public void RefreshIndex(Node node, bool recursive) { }
-        #endregion
-
-        public void RebuildIndex(Node node, bool recursive = false, IndexRebuildLevel rebuildLevel = IndexRebuildLevel.IndexOnly)
-        {
-            if (rebuildLevel == IndexRebuildLevel.IndexOnly)
-                return;
-
-            using (var op = SnTrace.Index.StartOperation("NullPopulator.RefreshIndex. Version: {0}, VersionId: {1}, recursive: {2}, level: {3}", node.Version, node.VersionId, recursive, rebuildLevel))
-            {
-                bool hasBinary;
-                using (new SenseNet.ContentRepository.Storage.Security.SystemAccount())
-                {
-                    if (recursive)
-                    {
-                        using (SenseNet.ContentRepository.Storage.TreeLock.Acquire(node.Path))
-                        {
-                            foreach (var n in NodeEnumerator.GetNodes(node.Path))
-                                DataBackingStore.SaveIndexDocument(n, false, false, out hasBinary);
-                        }
-                    }
-                    else
-                    {
-                        SenseNet.ContentRepository.Storage.TreeLock.AssertFree(node.Path);
-                        DataBackingStore.SaveIndexDocument(node, false, false, out hasBinary);
-                    }
-                }
-                op.Successful = true;
-            }
-        }
-
+        /// <summary>
+        /// Defines an event that occurs when a node has just been indexed.
+        /// </summary>
+        event EventHandler<NodeIndexedEventArgs> NodeIndexed;
     }
 }

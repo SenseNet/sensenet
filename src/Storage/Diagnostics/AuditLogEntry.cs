@@ -11,7 +11,7 @@ namespace SenseNet.Diagnostics
     /// <summary>
     /// Read only audit log entry for diagnostic purposes
     /// </summary>
-    internal class AuditLogEntry
+    public class AuditLogEntry
     {
         public int Id { get; set; }
         public int EventId { get; set; }

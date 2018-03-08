@@ -11,10 +11,12 @@ using System.IO;
 using System.Xml;
 using SenseNet.ContentRepository.Storage.Events;
 using System.Reflection;
+using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Indexing;
+using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Search;
-using Lucene.Net.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
@@ -172,11 +174,10 @@ namespace SenseNet.ContentRepository
         {
             return FieldSetting.Create(fieldInfo, new List<string>(), this);
         }
-        //UNDONE: Aspect.SetFieldSlots: make this internal or private.
         /// <summary>
         /// Set field slot indexes and readonly flags for aspect fields.
         /// </summary>
-        protected virtual void SetFieldSlots() 
+        private void SetFieldSlots() 
         {
             // Field slot indices and readonly.
             foreach (FieldSetting fieldSetting in this.FieldSettings)
@@ -279,7 +280,7 @@ namespace SenseNet.ContentRepository
         public static Aspect LoadAspectByName(string name)
         {
             // IMPORTANT:
-            // We can't use Lucene query here because this method is called during indexing!
+            // We can't use external query here because this method is called during indexing!
             // It would mean trying to query the index while writing to it, which would result in a deadlock.
             // For this reason, this method uses its own cache for finding aspects.
 
@@ -320,7 +321,7 @@ namespace SenseNet.ContentRepository
         /// <param name="name">Name of the <see cref="Aspect"/>.</param>
         public static bool AspectExists(string name)
         {
-            if (RepositoryInstance.ContentQueryIsAllowed)
+            if (SearchManager.ContentQueryIsAllowed)
                 return ContentQuery.Query(SafeQueries.AspectExists, null, name).Count > 0;
             return LoadAspectByName(name) != null;
         }

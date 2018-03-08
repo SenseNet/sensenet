@@ -1,36 +1,37 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using SenseNet.ContentRepository;
-using System.Configuration;
-using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Search;
 
 namespace SenseNet.Packaging.Steps
 {
     public class StartRepository : Step
     {
-        private bool _startLuceneManagerChanged;
-        private bool _startLuceneManager;
+        private bool _startIndexingEngineChanged;
+        private bool _startIndexingEngine;
+
+        [Obsolete("Use the StartIndexingEngine property instead.")]
         public bool StartLuceneManager
         {
-            get { return _startLuceneManager; }
+            get => StartIndexingEngine;
+            set => StartIndexingEngine = value;
+        }
+        public bool StartIndexingEngine
+        {
+            get => _startIndexingEngine;
             set
             {
-                _startLuceneManager = value;
-                _startLuceneManagerChanged = true;
+                _startIndexingEngine = value;
+                _startIndexingEngineChanged = true;
             }
         }
 
         public string PluginsPath { get; set; }
         public string IndexPath { get; set; }
-        public bool RestoreIndex { get; set; }
-        public bool BackupIndexAtTheEnd { get; set; }
         public bool StartWorkflowEngine { get; set; }
 
         public override void Execute(ExecutionContext context)
         {
-            context.Console.Write("Starting ... ");
+            context.Console.WriteLine("Starting ... ");
 
             var indexPath = IndexPath;
             if (IndexPath == null)
@@ -38,7 +39,7 @@ namespace SenseNet.Packaging.Steps
                 indexPath = Configuration.Indexing.IndexDirectoryPath;
                 if (string.IsNullOrEmpty(indexPath))
                 {
-                    indexPath = System.IO.Path.Combine(context.TargetPath, "App_Data\\LuceneIndex");
+                    indexPath = System.IO.Path.Combine(context.TargetPath, Configuration.Indexing.DefaultLocalIndexDirectory);
                 }
                 else
                 {
@@ -46,19 +47,18 @@ namespace SenseNet.Packaging.Steps
                         indexPath = System.IO.Path.GetFullPath(System.IO.Path.Combine(context.TargetPath, indexPath));
                 }
             }
-            var startLuceneManager = _startLuceneManagerChanged ? StartLuceneManager : StorageContext.Search.IsOuterEngineEnabled;
+            var startIndexingEngine = _startIndexingEngineChanged ? StartIndexingEngine : SearchManager.IsOuterEngineEnabled;
 
-            context.Console.WriteLine("startLuceneManager: " + startLuceneManager);
-            context.Console.WriteLine("indexPath: " + indexPath);
+            Logger.LogMessage("startIndexingEngine: " + startIndexingEngine);
+            Logger.LogMessage("indexPath: " + indexPath);
 
             Repository.Start(new RepositoryStartSettings
             {
-                StartLuceneManager = startLuceneManager,
+                StartIndexingEngine = startIndexingEngine,
                 PluginsPath = PluginsPath ?? context.SandboxPath,
                 IndexPath = indexPath,
-                RestoreIndex = RestoreIndex,
-                BackupIndexAtTheEnd = BackupIndexAtTheEnd,
-                StartWorkflowEngine = StartWorkflowEngine
+                StartWorkflowEngine = StartWorkflowEngine,
+                Console = context.Console
             });
 
             context.Console.WriteLine("Ok.");
@@ -69,8 +69,6 @@ namespace SenseNet.Packaging.Steps
             context.Console.WriteLine("  References: {0}.", trace.ReferencedAssemblies.Length);
             context.Console.WriteLine("  Loaded before start: {0}.", trace.AssembliesBeforeStart.Length);
             context.Console.WriteLine("  Plugins: {0}.", trace.Plugins.Length);
-            context.Console.WriteLine("Index: {0}.", trace.IndexDirectory);
-            context.Console.WriteLine("Index was read only: {0}", trace.IndexWasReadOnly.ToString().ToLower());
 
             context.RepositoryStarted = true;
         }

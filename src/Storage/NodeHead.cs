@@ -64,7 +64,7 @@ namespace SenseNet.ContentRepository.Storage
 
         internal NodeHead() { }
 
-        internal NodeHead(int nodeId, string name, string displayName, string path, int parentNodeId,
+        public NodeHead(int nodeId, string name, string displayName, string path, int parentNodeId,
             int nodeTypeId, int contentListTypeId, int contentListId,
             DateTime creationDate, DateTime modificationDate,
             int lastMinorVersionId, int lastMajorVersionId,

@@ -1,7 +1,5 @@
 using System;
-using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
@@ -9,7 +7,6 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
-using System.Text;
 using SenseNet.ContentRepository.Security.ADSync;
 using System.Collections.Generic;
 using SenseNet.Diagnostics;
@@ -20,10 +17,10 @@ using SenseNet.Search;
 using System.Xml.Serialization;
 using System.IO;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.i18n;
+using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Setting;
-using SenseNet.ContentRepository.Storage.Search.Internal;
-using SenseNet.Security;
+using SenseNet.Search.Querying;
 using SenseNet.Tools;
 using Retrier = SenseNet.ContentRepository.Storage.Retrier;
 
@@ -452,7 +449,7 @@ namespace SenseNet.ContentRepository
             switch (hint)
             {
                 case ExecutionHint.None: 
-                    forceCql = RepositoryInstance.ContentQueryIsAllowed; break;
+                    forceCql = SearchManager.ContentQueryIsAllowed; break;
                 case ExecutionHint.ForceIndexedEngine: 
                     forceCql = true; break;
                 case ExecutionHint.ForceRelationalEngine: 
@@ -578,66 +575,25 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Invalidates the pinned visitor user instance.
+        /// Invalidates the pinned instances.
         /// </summary>
-        public static void Reset() //UNDONE: Make obsolete, internal.
+        [Obsolete("Do not use this method anymore.")]
+        public static void Reset()
         {
             _visitor = null;
+            _somebody = null;
         }
 
-        //UNDONE: make private: RegisterUser
         /// <summary>
         /// Technical method for loading or creating an administrator user.
         /// Do not use this method from your code directly.
         /// </summary>
         /// <param name="fullUserName">A username including the domain.</param>
         /// <returns>The loaded or newly created user.</returns>
+        [Obsolete("Do not use this method anymore.", true)]
         public static User RegisterUser(string fullUserName)
         {
-            if (string.IsNullOrEmpty(fullUserName))
-                return null;
-
-            var slashIndex = fullUserName.IndexOf('\\');
-            var domain = fullUserName.Substring(0, slashIndex);
-            var username = fullUserName.Substring(slashIndex + 1);
-
-            var user = User.Load(domain, username);
-
-            if (user != null)
-                return user;
-
-            try
-            {
-                AccessProvider.Current.SetCurrentUser(User.Administrator);
-
-                var dom = Node.Load<Domain>(RepositoryPath.Combine(RepositoryStructure.ImsFolderPath, domain));
-
-                if (dom == null)
-                {
-                    // create domain
-                    dom = new Domain(Repository.ImsFolder) { Name = domain };
-                    dom.Save();
-                }
-
-                // create user
-                user = new User(dom) { Name = username, Enabled = true, FullName = username };
-                user.Save();
-
-                Group.Administrators.AddMember(user);
-            }
-            finally
-            {
-                if (user != null)
-                    AccessProvider.Current.SetCurrentUser(user);
-            }
-
-            return user;
-        }
-
-        // visibility changed
-        internal new void SetCreationDate(DateTime creation)
-        {
-            base.SetCreationDate(creation);
+            throw new NotSupportedException();
         }
 
         // =================================================================================== Profile
@@ -1050,7 +1006,7 @@ namespace SenseNet.ContentRepository
 
             List<int> identifiers;
 
-            if (RepositoryInstance.ContentQueryIsAllowed)
+            if (SearchManager.ContentQueryIsAllowed)
             {
                 // We need to look for other users in elevated mode, because the current 
                 // user may not have enough permissions for the whole user tree.

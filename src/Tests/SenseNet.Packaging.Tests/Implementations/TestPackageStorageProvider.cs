@@ -10,7 +10,7 @@ namespace SenseNet.Packaging.Tests.Implementations
     internal class TestPackageStorageProviderFactory : IPackageStorageProviderFactory
     {
         // An idea: to parallelize test execution, need to store the provider instance in the thread context.
-        private IPackageStorageProvider _provider;
+        private readonly IPackageStorageProvider _provider;
         public TestPackageStorageProviderFactory(IPackageStorageProvider provider)
         {
             _provider = provider;
@@ -65,8 +65,7 @@ namespace SenseNet.Packaging.Tests.Implementations
                     && p.ExecutionResult == ExecutionResult.Successful))
             {
                 var componentId = package.ComponentId;
-                ComponentInfo component;
-                if (!componentInfos.TryGetValue(componentId, out component))
+                if (!componentInfos.TryGetValue(componentId, out var component))
                 {
                     component = new ComponentInfo
                     {
@@ -86,8 +85,7 @@ namespace SenseNet.Packaging.Tests.Implementations
                 .Where(p => (p.PackageType == PackageType.Install || p.PackageType == PackageType.Patch)))
             {
                 var componentId = package.ComponentId;
-                ComponentInfo component;
-                if (componentInfos.TryGetValue(componentId, out component))
+                if (componentInfos.TryGetValue(componentId, out var component))
                 {
                     if ((package.ComponentVersion > (component.AcceptableVersion ?? nullVersion))
                         && package.ExecutionResult == ExecutionResult.Successful)

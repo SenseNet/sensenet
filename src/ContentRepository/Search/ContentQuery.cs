@@ -1,58 +1,107 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
-using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Search;
-using System.Xml;
 using System.Text;
-using SenseNet.Search.Parser;
-using System.Reflection;
+using System.Text.RegularExpressions;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
-using SenseNet.ContentRepository.Storage.Diagnostics;
-using SenseNet.Tools;
+using SenseNet.Search.Querying;
+using SenseNet.Search.Querying.Parser;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.Search
 {
     /// <summary>
-    /// A marker interface for classes that hold safe queries in static readonly string properties. The visibility of these properties are irrelevant.
-    /// In a solution can be more ISafeQueryHolder implementations. The property values from these classes will be collected
-    ///   in order to build the white list of queries that can be accepted in elevated mode.
-    /// Implementation classes can be anywhere in the solution. Property name can be anything because only the values will be collected.
+    /// Represents a content query and encapsulates the content query related operations.
     /// </summary>
-    /// <example>Here is an example that explains a full implementation of some safe queries
-    /// <code>
-    /// public class SafeQueries : ISafeQueryHolder
-    /// {
-    ///     public static string AllDevices { get { return "+InTree:/Root/System/Devices +TypeIs:Device .AUTOFILTERS:OFF"; } }
-    ///     public static string InFolderAndSomeType { get { return "+InFolder:@0 +TypeIs:(@1)"; } }
-    /// }
-    /// </code>
-    /// </example>
-    public interface ISafeQueryHolder { }
-
-    public class ContentQuery : IContentQuery
+    public class ContentQuery
     {
-        public static readonly string EmptyText = "$##$EMPTY$##$";
-        internal static readonly string EmptyInnerQueryText = "$##$EMPTYINNERQUERY$##$";
+        /// <summary>
+        /// Gets the empty text representation in a simple predicate.
+        /// </summary>
+        public static string EmptyText => SnQuery.EmptyText;
 
-        private static readonly string[] QuerySettingParts = new[] { "SKIP", "TOP", "SORT", "REVERSESORT", "AUTOFILTERS", "LIFESPAN", "COUNTONLY" };
+        private static readonly string[] QuerySettingParts = { "SKIP", "TOP", "SORT", "REVERSESORT", "AUTOFILTERS", "LIFESPAN", "COUNTONLY" };
         private static readonly string RegexKeywordsAndComments = "//|/\\*|(\\.(?<keyword>[A-Z]+)(([ ]*:[ ]*[#]?\\w+(\\.\\w+)?)|([\\) $\\r\\n]+)))";
         private static readonly string RegexCommentEndSingle = "$";
         private static readonly string RegexCommentEndMulti = "\\*/|\\z";
         private static readonly string MultilineCommentStart = "/*";
         private static readonly string MultilineCommentEnd = "*/";
 
+        private string _text;
+        /// <summary>
+        /// Gets or sets the CQL query text.
+        /// </summary>
+        public string Text
+        {
+            get => _text;
+            set => _text = FixMultilineComment(value);
+        }
+
+        private QuerySettings _settings = new QuerySettings();
+        /// <summary>
+        /// Gets or sets an instance of the <see cref="QuerySettings"/> that is the extension of the represented query.
+        /// </summary>
+        public QuerySettings Settings
+        {
+            get => _settings;
+            set => _settings = value ?? new QuerySettings();
+        }
+
+        /// <summary>
+        /// Gets a value that is "true" if the query is safe.
+        /// </summary>
+        public bool IsSafe { get; internal set; }
+
+        private static readonly Regex EscaperRegex;
+        static ContentQuery()
+        {
+            var pattern = new StringBuilder("[");
+            foreach (var c in Cql.StringTerminatorChars.ToCharArray())
+                pattern.Append("\\" + c);
+            pattern.Append("]");
+            EscaperRegex = new Regex(pattern.ToString());
+        }
+
+        /// <summary>
+        /// Returns with the <see cref="QueryResult"/> of the given CQL query.
+        /// </summary>
+        /// <param name="text">CQL query text.</param>
+        public static QueryResult Query(string text)
+        {
+            return Query(text, null, null);
+        }
+        /// <summary>
+        /// Returns with the <see cref="QueryResult"/> of the given CQL query.
+        /// </summary>
+        /// <param name="text">CQL query text.</param>
+        /// <param name="settings"><see cref="QuerySettings"/> that extends the query.</param>
+        /// <param name="parameters">Values to substitute the parameters of the CQL query text.</param>
+        /// <returns></returns>
+        public static QueryResult Query(string text, QuerySettings settings, params object[] parameters)
+        {
+            return CreateQuery(text, settings, parameters).Execute();
+        }
+
+        /// <summary>
+        /// Returns with a new instance of the ContentQuery.
+        /// </summary>
+        /// <param name="text">CQL text of the query.</param>
         public static ContentQuery CreateQuery(string text)
         {
-            return CreateQuery(text, null);
+            return CreateQuery(text, null, null);
         }
-        public static ContentQuery CreateQuery(string text, QuerySettings settings)
-        {
-            return CreateQuery(text, settings, null);
-        }
+        /// <summary>
+        /// Returns with a new instance of the ContentQuery.
+        /// </summary>
+        /// <param name="text">CQL text of the query.</param>
+        /// <param name="settings"><see cref="QuerySettings"/> that extends the query.</param>
+        /// <param name="parameters">Values to substitute the parameters of the CQL query text.</param>
+        /// <returns></returns>
         public static ContentQuery CreateQuery(string text, QuerySettings settings, params object[] parameters)
         {
             var isSafe = IsSafeQuery(text);
@@ -66,30 +115,9 @@ namespace SenseNet.Search
             };
             return query;
         }
-
-        public static QueryResult Query(string text)
+        private static bool IsSafeQuery(string queryText)
         {
-            return Query(text, null);
-        }
-        public static QueryResult Query(string text, QuerySettings settings)
-        {
-            return Query(text, settings, null);
-        }
-        /// <summary>
-        /// Executes a prepared query. Before execution substitutes the parameters into the placeholders.
-        /// Placeholder is a '@' character followed by a number that means the (zero based) index in the paramter array.
-        /// Example: +TypeIs:@0 +Name:@1
-        /// Parameter values will be escaped and quotation marks will be used in the appropriate places.
-        /// Do not surround the placeholders with quotation mark (") or apsthrophe (').
-        /// In case of inconsistence beetween parameter count and placeholder indexes InvalidOperationException will be thrown.
-        /// </summary>
-        /// <param name="text">Query text containing placeholders</param>
-        /// <param name="settings">Additional control parameters (top, skip, sort, automations). It can be null.</param>
-        /// <param name="parameters">Value list that will be substituted into the placeholders of the query text.</param>
-        /// <returns>Contains result set and its metadata.</returns>
-        public static QueryResult Query(string text, QuerySettings settings, params object[] parameters)
-        {
-            return CreateQuery(text, settings, parameters).Execute(ExecutionHint.None);
+            return SafeQueries.IsSafe(queryText);
         }
         private static string SubstituteParameters(string text, object[] parameters)
         {
@@ -104,12 +132,11 @@ namespace SenseNet.Search
                 if (text[p] == '@')
                 {
                     var q = p;
-                    while (++q < text.Length && Char.IsDigit(text[q]))
-                        ;
+                    while (++q < text.Length && char.IsDigit(text[q])) { /* do nothing */ }
                     var nr = text.Substring(p + 1, q - p - 1);
                     if (nr.Length > 0)
                     {
-                        var index = int.Parse(nr);
+                        var index = Int32.Parse(nr);
                         if (index >= parameters.Length)
                             throw new InvalidOperationException("Invalid format string.");
                         sb.Append(stringValues[index]);
@@ -129,407 +156,96 @@ namespace SenseNet.Search
         }
         private static string EscapeParameter(object value)
         {
-            var enumerableValue = value as System.Collections.IEnumerable;
-            if (!(value is string) && enumerableValue != null)
+            if (!(value is string) && value is IEnumerable enumerableValue)
             {
                 var escaped = new List<string>();
                 foreach (var x in enumerableValue)
                     if (x != null)
                         escaped.Add(EscapeParameter(x.ToString()));
-                var joined = String.Join(" ", escaped);
+                var joined = string.Join(" ", escaped);
                 if (escaped.Count < 2)
                     return joined;
                 return "(" + joined + ")";
             }
-            else
+
+            var stringValue = value.ToString();
+            var neeqQuot = false;
+            foreach (var c in stringValue)
             {
-                var stringValue = value.ToString();
-                var neeqQuot = false;
-                foreach (var c in stringValue)
+                if (Char.IsWhiteSpace(c))
                 {
-                    if (char.IsWhiteSpace(c))
-                    {
-                        neeqQuot = true;
-                        break;
-                    }
-                    if (c == '\'' || c == '"' || c == '\\' || c == '+' || c == '-' || c == '&' || c == '|' || c == '!' || c == '(' || c == ')'
-                         || c == '{' || c == '}' || c == '[' || c == ']' || c == '^' || c == '~' || c == '*' || c == '?' || c == ':' || c == '/' || c == '.')
-                    {
-                        neeqQuot = true;
-                        break;
-                    }
+                    neeqQuot = true;
+                    break;
                 }
-                if (neeqQuot)
-                    stringValue = "\"" + stringValue.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"";
-
-                return stringValue;
+                if (c == '\'' || c == '"' || c == '\\' || c == '+' || c == '-' || c == '&' || c == '|' || c == '!' || c == '(' || c == ')'
+                    || c == '{' || c == '}' || c == '[' || c == ']' || c == '^' || c == '~' || c == '*' || c == '?' || c == ':' || c == '/' || c == '.')
+                {
+                    neeqQuot = true;
+                    break;
+                }
             }
+            if (neeqQuot)
+                stringValue = "\"" + stringValue.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"";
+
+            return stringValue;
         }
 
-        // ================================================================== Genuine query checking
-
-        private static string[] _safeQueries;
-        static ContentQuery()
-        {
-            var genuineQueries = new List<string>();
-            foreach (Type t in TypeResolver.GetTypesByInterface(typeof(ISafeQueryHolder)))
-            {
-                genuineQueries.AddRange(
-                    t.GetProperties(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
-                    .Where(x => x.GetSetMethod() == null)
-                    .Select(x => x.GetGetMethod(true).Invoke(null, null) as string)
-                    .Where(y => y != null).Distinct().ToArray());
-            }
-            _safeQueries = genuineQueries.ToArray();
-        }
-        internal static bool IsSafeQuery(string queryText)
-        {
-            return _safeQueries.Contains(queryText);
-        }
-        public bool IsSafe { get; private set; }
-
-        // ================================================================== IContentQuery Members
-
-        private string _text;
-        public string Text
-        {
-            get { return _text; }
-            set { _text = FixMultilineComment(value); }
-        }
-
-        public int TotalCount { get; private set; }
-
-        private QuerySettings _settings;
-        public QuerySettings Settings
-        {
-            get { return _settings ?? (_settings = new QuerySettings()); }
-            set { _settings = value; }
-        }
-
-        public bool IsNodeQuery
-        {
-            get { return !string.IsNullOrEmpty(Text) && Text.StartsWith("<"); }
-        }
-        public bool IsContentQuery
-        {
-            get { return !string.IsNullOrEmpty(Text) && !Text.StartsWith("<"); }
-        }
-
+        /// <summary>
+        /// Extends the Text property with the given additional clause. Uses AND relation.
+        /// </summary>
+        /// <param name="text">The additional clause.</param>
         public void AddClause(string text)
         {
-            AddClause(text, ChainOperator.And);
+            AddClause(text, LogicalOperator.And);
         }
-        public void AddClause(string text, ChainOperator chainOp)
+        /// <summary>
+        /// Extends the Text property with the given additional clause.
+        /// </summary>
+        /// <param name="text">The additional clause.</param>
+        /// <param name="logicalOp">The operator in the concatenation. Can be AND / OR.</param>
+        public void AddClause(string text, LogicalOperator logicalOp)
         {
-            AddClause(text, chainOp, null);
+            AddClause(text, logicalOp, null);
         }
-        public void AddClause(string text, ChainOperator chainOp, params object[] parameters)
+        /// <summary>
+        /// Extends the Text property with the given additional clause.
+        /// </summary>
+        /// <param name="text">The additional clause.</param>
+        /// <param name="logicalOp">The operator in the concatenation. Can be AND / OR.</param>
+        /// <param name="parameters">Values to substitute the parameters of the additional clause.</param>
+        public void AddClause(string text, LogicalOperator logicalOp, params object[] parameters)
         {
-            var isSafe = this.IsSafe && IsSafeQuery(text);
+            var isSafe = IsSafe && IsSafeQuery(text);
             if (parameters != null && parameters.Length > 0)
                 text = SubstituteParameters(text, parameters);
-            this.IsSafe = isSafe;
-            AddClausePrivate(text, chainOp);
+            IsSafe = isSafe;
+            AddClausePrivate(text, logicalOp);
         }
-        private void AddClausePrivate(string text, ChainOperator chainOp)
+        private void AddClausePrivate(string text, LogicalOperator logicalOp)
         {
             if (text == null)
-                throw new ArgumentNullException("text");
+                throw new ArgumentNullException(nameof(text));
             if (text.Length == 0)
-                throw new ArgumentException("Clause cannot be empty", "text");
+                throw new ArgumentException("Clause cannot be empty", nameof(text));
 
-            if (string.IsNullOrEmpty(this.Text))
+            if (string.IsNullOrEmpty(Text))
             {
-                this.Text = text;
+                Text = text;
             }
             else
             {
                 // we can modify the _text variable here directly because it was already fixed at init time
-                switch (chainOp)
+                switch (logicalOp)
                 {
-                    case ChainOperator.And:
-                        this._text = MoveSettingsToTheEnd(string.Format("+({0}) +({1})", Text, text)).Trim();
+                    case LogicalOperator.And:
+                        _text = MoveSettingsToTheEnd($"+({Text}) +({text})").Trim();
                         break;
-                    case ChainOperator.Or:
-                        this._text = MoveSettingsToTheEnd(string.Format("({0}) {1}", Text, text));
+                    case LogicalOperator.Or:
+                        _text = MoveSettingsToTheEnd($"({Text}) {text}");
                         break;
                 }
             }
         }
-
-        public static string AddClause(string originalText, string addition, ChainOperator chainOp)
-        {
-            if (addition == null)
-                throw new ArgumentNullException("addition");
-            if (addition.Length == 0)
-                throw new ArgumentException("Clause cannot be empty", "addition");
-
-            if (string.IsNullOrEmpty(originalText))
-                return addition;
-
-            var queryText = string.Empty;
-
-            switch (chainOp)
-            {
-                case ChainOperator.And:
-                    queryText = MoveSettingsToTheEnd(string.Format("+({0}) +({1})", originalText, addition)).Trim();
-                    break;
-                case ChainOperator.Or:
-                    queryText = MoveSettingsToTheEnd(string.Format("({0}) {1}", originalText, addition));
-                    break;
-            }
-
-            return queryText;
-        }
-
-        public void AddClause(Expression expression)
-        {
-            AddClause(expression, ChainOperator.And);
-        }
-        public void AddClause(Expression expression, ChainOperator chainOp)
-        {
-            if (expression == null)
-                throw new ArgumentNullException("expression");
-
-            ExpressionList finalExpList;
-            var origExpList = expression as ExpressionList;
-
-            if (origExpList != null)
-            {
-                finalExpList = origExpList;
-            }
-            else
-            {
-                finalExpList = new ExpressionList(chainOp);
-                finalExpList.Add(expression);
-            }
-
-            this.Text = AddFilterToNodeQuery(Text, finalExpList.ToXml());
-        }
-
-        public QueryResult Execute()
-        {
-            return Execute(ExecutionHint.None);
-        }
-        public QueryResult Execute(ExecutionHint hint)
-        {
-            return new QueryResult(GetIdResults(hint), TotalCount);
-        }
-        public IEnumerable<int> ExecuteToIds()
-        {
-            return ExecuteToIds(ExecutionHint.None);
-        }
-        public IEnumerable<int> ExecuteToIds(ExecutionHint hint)
-        {
-            // We need to get the pure id list for one single query.
-            // If you run Execute, it returns a NodeList that loads
-            // all result ids, not only the page you specified.
-            return GetIdResults(hint);
-        }
-
-        // ================================================================== Get result ids
-
-        private IEnumerable<int> GetIdResults(ExecutionHint hint)
-        {
-            return GetIdResults(hint, Settings.Top, Settings.Skip, Settings.Sort,
-                Settings.EnableAutofilters, Settings.EnableLifespanFilter, Settings.QueryExecutionMode);
-        }
-        private IEnumerable<int> GetIdResults(ExecutionHint hint, int top, int skip, IEnumerable<SortInfo> sort,
-            FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode)
-        {
-            if (SenseNet.ContentRepository.User.Current.Id == -1 && !this.IsSafe)
-            {
-                var ex = new InvalidOperationException("Cannot execute this query, please convert it to a safe query.");
-                ex.Data.Add("EventId", EventId.Querying);
-                ex.Data.Add("Query", this._text);
-
-                throw ex;
-            }
-
-            if (IsNodeQuery)
-            {
-                using (var op = SnTrace.Query.StartOperation("NodeQuery: {0} | Top:{1} Skip:{2} Sort:{3} Mode:{4}", _text, _settings.Top, _settings.Skip, _settings.Sort, _settings.QueryExecutionMode))
-                {
-                    var result = GetIdResultsWithNodeQuery(hint, top, skip, sort, enableAutofilters, enableLifespanFilter, executionMode);
-                    op.Successful = true;
-                    return result;
-                }
-            }
-            if (IsContentQuery)
-            {
-                using (var op = SnTrace.Query.StartOperation("ContentQuery: {0} | Top:{1} Skip:{2} Sort:{3} Mode:{4}", this._text, _settings.Top, _settings.Skip, _settings.Sort, _settings.QueryExecutionMode))
-                {
-                    var result = GetIdResultsWithLucQuery(top, skip, sort, enableAutofilters, enableLifespanFilter, executionMode);
-                    op.Successful = true;
-                    return result;
-                }
-            }
-
-            throw new InvalidOperationException("Cannot execute query with null or empty Text");
-        }
-        private IEnumerable<int> GetIdResultsWithLucQuery(int top, int skip, IEnumerable<SortInfo> sort,
-            FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode)
-        {
-            var queryText = Text;
-
-            if (!queryText.Contains("}}"))
-            {
-                LucQuery query;
-
-                try
-                {
-                    query = LucQuery.Parse(queryText);
-                }
-                catch (ParserException ex)
-                {
-                    throw new InvalidContentQueryException(queryText, innerException: ex);
-                }
-
-                if (skip != 0)
-                    query.Skip = skip;
-
-                query.Top = System.Math.Min(top == 0 ? int.MaxValue : top, query.Top == 0 ? int.MaxValue : query.Top);
-                if (query.Top == 0)
-                    query.Top = GetDefaultMaxResults();
-
-                query.PageSize = query.Top;
-
-                if (sort != null && sort.Count() > 0)
-                    query.SetSort(sort);
-
-                if (enableAutofilters != FilterStatus.Default)
-                    query.EnableAutofilters = enableAutofilters;
-                if (enableLifespanFilter != FilterStatus.Default)
-                    query.EnableLifespanFilter = enableLifespanFilter;
-                if (executionMode != QueryExecutionMode.Default)
-                    query.QueryExecutionMode = executionMode;
-
-                // Re-set settings values. This is important for NodeList that
-                // uses the paging info written into the query text.
-                this.Settings.Top = query.PageSize;
-                this.Settings.Skip = query.Skip;
-
-                var lucObjects = query.Execute().ToList();
-
-                TotalCount = query.TotalCount;
-
-                return (from luco in lucObjects
-                        select luco.NodeId).ToList();
-            }
-            else
-            {
-                List<string> log;
-                int count;
-                var result = RecursiveExecutor.ExecuteRecursive(queryText, top, skip,
-                            sort, enableAutofilters, enableLifespanFilter, executionMode, this.Settings, out count, out log);
-
-                TotalCount = count;
-
-                return result;
-            }
-        }
-        private IEnumerable<int> GetIdResultsWithNodeQuery(ExecutionHint hint, int top, int skip, IEnumerable<SortInfo> sort,
-            FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode)
-        {
-            //TODO: QUICK: Process executionMode in GetIdResultsWithNodeQuery
-            var queryText = LucQuery.IsAutofilterEnabled(enableAutofilters) ? AddAutofilterToNodeQuery(Text) : Text;
-            if (LucQuery.IsLifespanFilterEnabled(enableLifespanFilter))
-                queryText = AddLifespanFilterToNodeQuery(queryText, GetLifespanFilterForNodeQuery());
-
-            NodeQuery query;
-
-            try
-            {
-                query = NodeQuery.Parse(queryText);
-            }
-            catch (XmlException ex)
-            {
-                throw new InvalidContentQueryException(queryText, innerException: ex);
-            }
-            catch (InvalidOperationException ex)
-            {
-                throw new InvalidContentQueryException(queryText, innerException: ex);
-            }
-
-            if (skip != 0)
-                query.Skip = skip;
-
-            if (top != 0)
-                query.Top = top;
-            else
-                if (query.Top == 0)
-                    query.Top = GetDefaultMaxResults();
-
-            query.PageSize = query.Top;
-
-            if (sort != null && sort.Count() > 0)
-                throw new NotSupportedException("Sorting override is not allowed on NodeQuery");
-
-            var result = query.Execute(hint);
-            TotalCount = result.Count;
-
-            return result.Identifiers.ToList();
-        }
-
-        // ================================================================== Filter methods
-
-        public static string AddAutofilterToNodeQuery(string originalText)
-        {
-            return AddFilterToNodeQuery(originalText, GetAutofilterForNodeQuery());
-        }
-
-        public static string AddFilterToNodeQuery(string originalText, string filterText)
-        {
-            if (string.IsNullOrEmpty(filterText))
-                return originalText;
-
-            var filterXml = new XmlDocument();
-            try
-            {
-                filterXml.LoadXml(filterText);
-            }
-            catch (XmlException ex)
-            {
-                throw new InvalidContentQueryException(filterText, "Invalid content query filter", ex);
-            }
-
-            var filterTopLogicalElement = (XmlElement)filterXml.SelectSingleNode("/*/*[1]");
-            if (filterTopLogicalElement == null)
-                return originalText;
-            var filterInnerXml = filterTopLogicalElement.InnerXml;
-            if (string.IsNullOrEmpty(filterInnerXml))
-                return originalText;
-
-            var originalXml = new XmlDocument();
-            try
-            {
-                originalXml.LoadXml(originalText);
-            }
-            catch (XmlException ex)
-            {
-                throw new InvalidContentQueryException(originalText ?? string.Empty, innerException: ex);
-            }
-
-            var originalTopLogicalElement = (XmlElement)originalXml.SelectSingleNode("/*/*[1]");
-            if (originalTopLogicalElement == null)
-                return originalText;
-            var originalOuterXml = originalTopLogicalElement.OuterXml;
-            if (string.IsNullOrEmpty(originalOuterXml))
-                return originalText;
-
-            filterTopLogicalElement.InnerXml = String.Concat(filterInnerXml, originalOuterXml);
-
-            return filterXml.OuterXml;
-        }
-
-        public static string AddLifespanFilterToNodeQuery(string originalText, string filterText)
-        {
-            if (string.IsNullOrEmpty(filterText))
-                return originalText;
-
-            return originalText;
-        }
-
         /// <summary>
         /// This method moves all the settings keywords (e.g. SKIP, TOP, etc.) to the end of the text, skipping comments.
         /// </summary>
@@ -578,6 +294,53 @@ namespace SenseNet.Search
             return string.Concat(queryText, backParts);
         }
 
+        /// <summary>
+        /// Returns with a combination of a valid CQL query and an additional clause.
+        /// </summary>
+        public static string AddClause(string originalText, string addition, LogicalOperator logicalOp)
+        {
+            if (addition == null)
+                throw new ArgumentNullException(nameof(addition));
+            if (addition.Length == 0)
+                throw new ArgumentException("Clause cannot be empty", nameof(addition));
+
+            if (string.IsNullOrEmpty(originalText))
+                return addition;
+
+            var queryText = string.Empty;
+
+            switch (logicalOp)
+            {
+                case LogicalOperator.And:
+                    queryText = MoveSettingsToTheEnd($"+({originalText}) +({addition})").Trim();
+                    break;
+                case LogicalOperator.Or:
+                    queryText = MoveSettingsToTheEnd($"({originalText}) {addition}");
+                    break;
+            }
+
+            return queryText;
+        }
+
+
+        private static string FixMultilineComment(string queryText)
+        {
+            if (string.IsNullOrEmpty(queryText))
+                return queryText;
+
+            // find the last multiline comment
+            var commentStartIndex = queryText.LastIndexOf(MultilineCommentStart, StringComparison.Ordinal);
+            if (commentStartIndex < 0)
+                return queryText;
+
+            // find the end of the multiline comment: /* ... */
+            var commentEndIndex = GetCommentEndIndex(queryText, commentStartIndex);
+            if (commentEndIndex < queryText.Length - 1)
+                return queryText;
+
+            // comment is not closed --> close it manually
+            return queryText + MultilineCommentEnd;
+        }
         private static int GetCommentEndIndex(string queryText, int commentStartIndex)
         {
             // construct a single- or multiline end-commend regex
@@ -596,97 +359,126 @@ namespace SenseNet.Search
             return queryText.Length;
         }
 
-        private static string FixMultilineComment(string queryText)
+        /// <summary>
+        /// Executes the represented query and returns with the QueryResult.
+        /// </summary>
+        public QueryResult Execute()
         {
+            var queryText = Text;
+
             if (string.IsNullOrEmpty(queryText))
-                return queryText;
+                throw new InvalidOperationException("Cannot execute query with null or empty Text");
 
-            // find the last multiline comment
-            var commentStartIndex = queryText.LastIndexOf(MultilineCommentStart);
-            if (commentStartIndex < 0)
-                return queryText;
+            var userId = AccessProvider.Current.GetCurrentUser().Id;
+            if (userId == Identifiers.SystemUserId && !IsSafe)
+            {
+                var ex = new InvalidOperationException("Cannot execute this query, please convert it to a safe query.");
+                ex.Data.Add("EventId", EventId.Querying);
+                ex.Data.Add("Query", _text);
 
-            // find the end of the multiline comment: /* ... */
-            var commentEndIndex = GetCommentEndIndex(queryText, commentStartIndex);
-            if (commentEndIndex < queryText.Length - 1)
-                return queryText;
+                throw ex;
+            }
 
-            // comment is not closed --> close it manually
-            return queryText + MultilineCommentEnd;
+            QueryResult result;
+            using (var op = SnTrace.Query.StartOperation("ContentQuery: {0} | Top:{1} Skip:{2} Sort:{3} Mode:{4} AllVersions:{5}", queryText, _settings.Top, _settings.Skip, _settings.Sort, _settings.QueryExecutionMode, _settings.AllVersions))
+            {
+                var query = TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), queryText);
+
+                result = query.Contains("}}")
+                    ? RecursiveExecutor.ExecuteRecursive(query, Settings, userId)
+                    : Execute(query, new SnQueryContext(Settings, userId));
+
+                op.Successful = true;
+            }
+            return result;
         }
 
-        private static int GetDefaultMaxResults()
+        private static QueryResult Execute(string query, SnQueryContext context)
         {
-            return int.MaxValue;
+            try
+            {
+                var snQueryResultresult = SnQuery.Query(query, context);
+                return new QueryResult(snQueryResultresult.Hits, snQueryResultresult.TotalCount);
+            }
+            catch (ParserException ex)
+            {
+                throw new InvalidContentQueryException(query, innerException: ex);
+            }
         }
-        private static string GetAutofilterForNodeQuery()
+        private static string[] ExecuteAndProject(string query, SnQueryContext context)
         {
-            return "";
-        }
-        private static string GetLifespanFilterForNodeQuery()
-        {
-            return "";
+            try
+            {
+                var snQueryresult = SnQuery.QueryAndProject(query, context);
+                return snQueryresult.Hits
+                    .Where(s => !string.IsNullOrEmpty(s))
+                    .Select(s => EscaperRegex.IsMatch(s) ? string.Concat("'", s, "'") : s)
+                    .ToArray();
+            }
+            catch (ParserException ex)
+            {
+                throw new InvalidContentQueryException(query, innerException: ex);
+            }
         }
 
         // ================================================================== Recursive executor class
 
         private static class RecursiveExecutor
         {
-            private class InnerQueryResult
+            public static QueryResult ExecuteRecursive(string queryText, QuerySettings querySettings, int userId)
             {
-                internal bool IsIntArray;
-                internal string[] StringArray;
-                internal int[] IntArray;
-            }
+                QueryResult result;
 
-            public static IEnumerable<int> ExecuteRecursive(string queryText, int top, int skip,
-                IEnumerable<SortInfo> sort, FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode,
-                QuerySettings settings, out int count, out List<string> log)
-            {
-                log = new List<string>();
-                IEnumerable<int> result = new int[0];
                 var src = queryText;
-                log.Add(src);
                 var control = GetControlString(src);
+
+                var recursiveQuerySettings = new QuerySettings
+                {
+                    Skip = 0,
+                    Top = 0,
+                    Sort = querySettings.Sort,
+                    EnableAutofilters = querySettings.EnableAutofilters,
+                    EnableLifespanFilter = querySettings.EnableLifespanFilter,
+                    QueryExecutionMode = querySettings.QueryExecutionMode,
+                    // AllVersions be always false in the inner queries
+                };
+                var recursiveQueryContext = new SnQueryContext(recursiveQuerySettings, userId);
 
                 while (true)
                 {
-                    int start;
-                    var sss = GetInnerScript(src, control, out start);
-                    var end = sss == String.Empty;
+                    var innerScript = GetInnerScript(src, control, out var start);
+                    var end = innerScript == string.Empty;
 
                     if (!end)
                     {
-                        src = src.Remove(start, sss.Length);
-                        control = control.Remove(start, sss.Length);
+                        src = src.Remove(start, innerScript.Length);
+                        control = control.Remove(start, innerScript.Length);
 
-                        int innerCount;
-                        var innerResult = ExecuteInnerScript(sss.Substring(2, sss.Length - 4), 0, 0,
-                            sort, enableAutofilters, enableLifespanFilter, executionMode, null, true, out innerCount).StringArray;
+                        // execute inner query
+                        var subQuery = innerScript.Substring(2, innerScript.Length - 4);
+                        var innerResult = ExecuteAndProject(subQuery, recursiveQueryContext);
 
+                        // process inner query result
                         switch (innerResult.Length)
                         {
                             case 0:
-                                sss = EmptyInnerQueryText;
+                                innerScript = SnQuery.EmptyInnerQueryText;
                                 break;
                             case 1:
-                                sss = innerResult[0];
+                                innerScript = innerResult[0];
                                 break;
                             default:
-                                sss = String.Join(" ", innerResult);
-                                sss = "(" + sss + ")";
+                                innerScript = string.Join(" ", innerResult);
+                                innerScript = "(" + innerScript + ")";
                                 break;
                         }
-                        src = src.Insert(start, sss);
-                        control = control.Insert(start, sss);
-                        log.Add(src);
+                        src = src.Insert(start, innerScript);
+                        control = control.Insert(start, innerScript);
                     }
                     else
                     {
-                        result = ExecuteInnerScript(src, top, skip, sort, enableAutofilters, enableLifespanFilter, executionMode,
-                            settings, false, out count).IntArray;
-                        
-                        log.Add(String.Join(" ", result.Select(i => i.ToString()).ToArray()));
+                        // execute and process top level query
+                        result = Execute(src, new SnQueryContext(querySettings, userId));
                         break;
                     }
                 }
@@ -718,14 +510,14 @@ namespace SenseNet.Search
                             if (instr)
                             {
                                 if (c == strlimit)
-                                    instr = !instr;
+                                    instr = false;
                                 @out.Append('_');
                             }
                             else
                             {
                                 if (c == '\'' || c == '"')
                                 {
-                                    instr = !instr;
+                                    instr = true;
                                     strlimit = c;
                                     @out.Append('_');
                                 }
@@ -738,128 +530,21 @@ namespace SenseNet.Search
                     }
                 }
 
-                var l0 = src.Length;
-                var l1 = @out.Length;
-
                 return @out.ToString();
             }
             private static string GetInnerScript(string src, string control, out int start)
             {
                 start = 0;
-                var p1 = control.IndexOf("}}");
+                var p1 = control.IndexOf("}}", StringComparison.Ordinal);
                 if (p1 < 0)
-                    return String.Empty;
-                var p0 = control.LastIndexOf("{{", p1);
+                    return string.Empty;
+                var p0 = control.LastIndexOf("{{", p1, StringComparison.Ordinal);
                 if (p0 < 0)
-                    return String.Empty;
+                    return string.Empty;
                 start = p0;
                 var ss = src.Substring(p0, p1 - p0 + 2);
                 return ss;
             }
-
-            private static InnerQueryResult ExecuteInnerScript(string src, int top, int skip,
-                IEnumerable<SortInfo> sort, FilterStatus enableAutofilters, FilterStatus enableLifespanFilter, QueryExecutionMode executionMode,
-                QuerySettings settings, bool enableProjection, out int count)
-            {
-                LucQuery query;
-
-                try
-                {
-                    query = LucQuery.Parse(src);
-                }
-                catch (ParserException ex)
-                {
-                    throw new InvalidContentQueryException(src, innerException: ex);
-                }
-
-                var projection = query.Projection;
-                if (projection != null)
-                {
-                    if (!enableProjection)
-                        throw new ApplicationException(String.Format("Projection in top level query is not allowed ({0}:{1})", Parser.SnLucLexer.Keywords.Select, projection));
-                    query.ForceLuceneExecution = true;
-                }
-
-                if (skip != 0)
-                    query.Skip = skip;
-
-                if (top != 0)
-                    query.PageSize = top;
-                else
-                    if (query.PageSize == 0)
-                        query.PageSize = GetDefaultMaxResults();
-
-                if (sort != null && sort.Count() > 0)
-                    query.SetSort(sort);
-
-                if (enableAutofilters != FilterStatus.Default)
-                    query.EnableAutofilters = enableAutofilters;
-                if (enableLifespanFilter != FilterStatus.Default)
-                    query.EnableLifespanFilter = enableLifespanFilter;
-                if (executionMode != QueryExecutionMode.Default)
-                    query.QueryExecutionMode = executionMode;
-
-                // Re-set settings values. This is important for NodeList that
-                // uses the paging info written into the query text.
-                if (settings != null)
-                {
-                    settings.Top = query.PageSize;
-                    settings.Skip = query.Skip;
-                }
-
-                InnerQueryResult result;
-
-                var qresult = query.Execute().ToList();
-                if (projection == null || !enableProjection)
-                {
-                    var idResult = qresult.Select(o => o.NodeId).ToArray();
-                    result = new InnerQueryResult { IsIntArray = true, IntArray = idResult, StringArray = idResult.Select(i => i.ToString()).ToArray() };
-                }
-                else
-                {
-                    var stringResult = qresult.Select(o => o[projection, false]).Where(r => !String.IsNullOrEmpty(r));
-                    var escaped = new List<string>();
-                    foreach (var s in stringResult)
-                        escaped.Add(EscapeForQuery(s));
-                    result = new InnerQueryResult { IsIntArray = false, StringArray = escaped.ToArray() };
-                }
-
-                count = query.TotalCount;
-
-                return result;
-            }
-
-            private static object __escaperRegexSync = new object();
-            private static Regex __escaperRegex;
-            private static Regex EscaperRegex
-            {
-                get
-                {
-                    if (__escaperRegex == null)
-                    {
-                        lock (__escaperRegexSync)
-                        {
-                            if (__escaperRegex == null)
-                            {
-                                var pattern = new StringBuilder("[");
-                                foreach (var c in SenseNet.Search.Parser.SnLucLexer.STRINGTERMINATORCHARS.ToCharArray())
-                                    pattern.Append("\\" + c);
-                                pattern.Append("]");
-                                __escaperRegex = new Regex(pattern.ToString());
-                            }
-                        }
-                    }
-                    return __escaperRegex;
-                }
-            }
-
-            public static string EscapeForQuery(string value)
-            {
-                if (EscaperRegex.IsMatch(value))
-                    return String.Concat("'", value, "'");
-                return value;
-            }
         }
-
     }
 }

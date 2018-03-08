@@ -1,20 +1,19 @@
-﻿using SenseNet.ContentRepository.Storage;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using SenseNet.ContentRepository.Storage;
+using SenseNet.Search;
+using SenseNet.Search.Querying;
 
-namespace SenseNet.Search.Indexing.Activities
+namespace SenseNet.ContentRepository.Search.Indexing.Activities
 {
     [Serializable]
-    internal class RebuildActivity : LuceneIndexingActivity
+    internal class RebuildActivity : IndexingActivityBase
     {
         private static readonly int[] EmptyIntArray = new int[0];
         protected override bool ProtectedExecute()
         {
             // getting common versioning info
-            var head = NodeHead.Get(this.NodeId);
+            var head = NodeHead.Get(NodeId);
             var versioningInfo = new VersioningInfo
             {
                 Delete = EmptyIntArray,
@@ -24,16 +23,15 @@ namespace SenseNet.Search.Indexing.Activities
             };
 
             // delete documents by NodeId
-            LuceneManager.DeleteDocuments(new[] { LuceneManager.GetNodeIdTerm(this.NodeId) }, false, this.Id, false, versioningInfo);
+            IndexManager.DeleteDocuments(new[] { new SnTerm(IndexFieldName.NodeId, NodeId)}, versioningInfo);
 
             // add documents of all versions
-            var documents = IndexDocumentInfo.GetDocuments(head.Versions.Select(v => v.VersionId));
-            foreach (var document in documents)
-                LuceneManager.AddDocument(document, this.Id, this.IsUnprocessedActivity, versioningInfo);
+            var docs = IndexManager.LoadIndexDocumentsByVersionId(head.Versions.Select(v => v.VersionId).ToArray());
+            foreach (var doc in docs)
+                IndexManager.AddDocument(doc, versioningInfo);
 
             return true;
         }
-
 
         protected override string GetExtension()
         {
@@ -43,6 +41,5 @@ namespace SenseNet.Search.Indexing.Activities
         {
             // do nothing
         }
-
     }
 }

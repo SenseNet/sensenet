@@ -17,6 +17,7 @@ using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Data;
 using System.Timers;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Security;
 
@@ -514,7 +515,7 @@ namespace SenseNet.Packaging.Steps
                 Log(ImportLogLevel.Info, "Set initial permissions...");
 
                 // ContentType ids
-                var RootContentId = Repository.Root.Id;
+                var RootContentId = Identifiers.PortalRootId;
                 var FolderContentTypeId = ContentType.GetByName("Folder").Id;
                 var SystemFolderContentTypeId = ContentType.GetByName("SystemFolder").Id;
                 var SurveyItemContentTypeId = ContentType.GetByName("SurveyItem")?.Id ?? 0;

@@ -1,17 +1,20 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Fields;
 using System.Diagnostics;
+// ReSharper disable CheckNamespace
+// ReSharper disable RedundantBaseQualifier
+// ReSharper disable ArrangeThisQualifier
 
 namespace SenseNet.Portal.OData
 {
     internal class SimpleExpanderProjector : Projector
     {
-        [DebuggerDisplay("{Name}")]
+        [DebuggerDisplay("{" + nameof(Name) + "}")]
         private class Property
         {
             public string Name;
@@ -42,37 +45,18 @@ namespace SenseNet.Portal.OData
                 globals.Add(prop);
                 return prop;
             }
-            internal bool ___debug(StringBuilder sb, int indent)
-            {
-                sb.Append(' ', indent * 2).AppendLine(Name);
-                if (Children != null)
-                    foreach (var p in Children)
-                        p.___debug(sb, indent + 1);
-                return true;
-            }
         }
 
         private List<Property> _expandTree;
-        internal string ____expandTree
-        {
-            get
-            {
-                var sb = new StringBuilder();
-                foreach (var p in _expandTree)
-                    p.___debug(sb, 0);
-                return sb.ToString();
-            }
-        }
 
         internal override void Initialize(Content container)
         {
-            Property prop;
             // pre building property tree by expansions
             _expandTree = new List<Property>();
             foreach (var item in this.Request.Expand)
             {
                 var chain = item.Split('/').Select(s => s.Trim()).ToArray();
-                prop = Property.EnsureChild(_expandTree, chain[0]);
+                var prop = Property.EnsureChild(_expandTree, chain[0]);
                 for (int i = 1; i < chain.Length; i++)
                     prop = prop.EnsureChild(chain[i]);
             }
@@ -83,8 +67,6 @@ namespace SenseNet.Portal.OData
         }
         private Dictionary<string, object> Project(Content content, List<Property> expandTree)
         {
-            Property expansion;
-
             var outfields = new Dictionary<string, object>();
             var selfurl = GetSelfUrl(content);
             if (this.Request.EntityMetadata != MetadataFormat.None)
@@ -99,7 +81,7 @@ namespace SenseNet.Portal.OData
 
                 var propertyName = field.Name;
 
-                expansion = expansionEnabled ? GetExpansion(propertyName, expandTree) : null;
+                var expansion = expansionEnabled ? GetExpansion(propertyName, expandTree) : null;
 
                 if (expansion != null)
                 {
@@ -107,23 +89,21 @@ namespace SenseNet.Portal.OData
                 }
                 else
                 {
-                    if (base.IsAllowedField(content, field.Name))
-                        outfields.Add(propertyName, ODataFormatter.GetJsonObject(field, selfurl));
-                    else
-                        outfields.Add(propertyName, null);
+                    outfields.Add(propertyName,
+                        base.IsAllowedField(content, field.Name) ? ODataFormatter.GetJsonObject(field, selfurl) : null);
                 }
             }
 
             var actionExpansion = GetExpansion(ACTIONSPROPERTY, expandTree);
             if (actionExpansion == null)
-                outfields.Add(ACTIONSPROPERTY, ODataReference.Create(String.Concat(selfurl, "/", ODataHandler.PROPERTY_ACTIONS)));
+                outfields.Add(ACTIONSPROPERTY, ODataReference.Create(String.Concat(selfurl, "/", ODataHandler.ActionsPropertyName)));
             else
                 outfields.Add(ACTIONSPROPERTY, GetActions(content));
 
             if (!outfields.ContainsKey(ICONPROPERTY))
                 outfields.Add(ICONPROPERTY, content.Icon ?? content.ContentType.Icon);
 
-            outfields.Add(ISFILEPROPERTY, content.Fields.ContainsKey(ODataHandler.PROPERTY_BINARY));
+            outfields.Add(ISFILEPROPERTY, content.Fields.ContainsKey(ODataHandler.BinaryPropertyName));
 
             return outfields;
         }
@@ -131,18 +111,16 @@ namespace SenseNet.Portal.OData
         {
             if (expandTree == null)
                 return null;
-            for (int i = 0; i < expandTree.Count; i++)
-                if (expandTree[i].Name == fieldName)
-                    return expandTree[i];
+            foreach (Property property in expandTree)
+                if (property.Name == fieldName)
+                    return property;
             return null;
         }
         private object Project(Field field, List<Property> expansion)
         {
-            var refField = field as ReferenceField;
-            if (refField == null)
+            if (!(field is ReferenceField refField))
             {
-                var allowedChildTypesField = field as AllowedChildTypesField;
-                if (allowedChildTypesField == null)
+                if (!(field is AllowedChildTypesField allowedChildTypesField))
                     return null;
                 return ProjectMultiRefContents(allowedChildTypesField.GetData(), expansion);
             }
@@ -153,7 +131,7 @@ namespace SenseNet.Portal.OData
                 isMultiRef = refFieldSetting.AllowMultiple == true;
 
             return isMultiRef
-                ? (object)ProjectMultiRefContents(refField.GetData(), expansion)
+                ? ProjectMultiRefContents(refField.GetData(), expansion)
                 : (object)ProjectSingleRefContent(refField.GetData(), expansion);
         }
         private List<Dictionary<string, object>> ProjectMultiRefContents(object references, List<Property> expansion)
@@ -161,21 +139,20 @@ namespace SenseNet.Portal.OData
             var contents = new List<Dictionary<string, object>>();
             if (references != null)
             {
-                Node node = references as Node;
-                if (node != null)
+                if (references is Node node)
                 {
                     contents.Add(Project(Content.Create(node), expansion));
                 }
                 else
                 {
-                    var enumerable = references as System.Collections.IEnumerable;
+                    var enumerable = references as IEnumerable;
                     var count = 0;
                     if (enumerable != null)
                     {
                         foreach (Node item in enumerable)
                         {
                             contents.Add(Project(Content.Create(item), expansion));
-                            if (++count > ODataHandler.EXPANSIONLIMIT)
+                            if (++count > ODataHandler.ExpansionLimit)
                                 break;
                         }
                     }
@@ -188,12 +165,10 @@ namespace SenseNet.Portal.OData
             if (references == null)
                 return null;
 
-            Node node = references as Node;
-            if (node != null)
+            if (references is Node node)
                 return Project(Content.Create(node), expansion);
 
-            var enumerable = references as System.Collections.IEnumerable;
-            if (enumerable != null)
+            if (references is IEnumerable enumerable)
                 foreach (Node item in enumerable)
                     return Project(Content.Create(item), expansion);
 

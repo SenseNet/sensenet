@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace SenseNet.ContentRepository.Linq
 {
     internal class ExecutorVisitor : ExpressionVisitor
     {
-        private Dictionary<Expression, SnExpr> _expressions = new Dictionary<Expression, SnExpr>();
+        private readonly Dictionary<Expression, SnExpr> _expressions;
         public ExecutorVisitor(Dictionary<Expression, SnExpr> expressions)
         {
             _expressions = expressions;
@@ -24,7 +21,7 @@ namespace SenseNet.ContentRepository.Linq
                     if (node.NodeType == ExpressionType.Constant)
                         return node;
 
-                    var x = DynamicExpression.Lambda(node);
+                    var x = Expression.Lambda(node);
                     var y = x.Compile();
                     var z = y.DynamicInvoke();
                     return Expression.Constant(z);

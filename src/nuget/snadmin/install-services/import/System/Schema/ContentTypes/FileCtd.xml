@@ -9,7 +9,7 @@
       <DisplayName>$Ctd-File,Binary-DisplayName</DisplayName>
       <Description>$Ctd-File,Binary-Description</Description>
       <Indexing>
-        <Analyzer>Lucene.Net.Analysis.Standard.StandardAnalyzer</Analyzer>
+        <Analyzer>Standard</Analyzer>
       </Indexing>
       <Configuration>
         <VisibleBrowse>Show</VisibleBrowse>

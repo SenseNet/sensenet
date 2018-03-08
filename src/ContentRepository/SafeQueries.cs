@@ -14,9 +14,13 @@ namespace SenseNet.ContentRepository
         /// <summary>Returns with the following query: "+TypeIs:Aspect +Name:@0 .AUTOFILTERS:OFF .COUNTONLY"</summary>
         public static string AspectExists { get { return "+TypeIs:Aspect +Name:@0 .AUTOFILTERS:OFF .COUNTONLY"; } }
 
+        /// <summary>Returns with the following query: "+InTree:@0"</summary>
+        public static string InTree { get { return "+InTree:@0"; } }
         /// <summary>Returns with the following query: "InTree:@0 .SORT:Path"</summary>
         public static string InTreeOrderByPath { get { return "InTree:@0 .SORT:Path"; } }
 
+        /// <summary>Returns with the following query: "+TypeIs:@0"</summary>
+        public static string TypeIs { get { return "+TypeIs:@0"; } }
         /// <summary>Returns with the following query: "+InFolder:@0"</summary>
         public static string InFolder { get { return "+InFolder:@0"; } }
         /// <summary>Returns with the following query: "+InFolder:@0 +TypeIs:@1"</summary>
@@ -27,8 +31,6 @@ namespace SenseNet.ContentRepository
         /// <summary>Returns with the following query: "+InFolder:@0 +TypeIs:@1 .COUNTONLY"</summary>
         public static string InFolderAndTypeIsCountOnly { get { return "+InFolder:@0 +TypeIs:@1 .COUNTONLY"; } }
 
-        /// <summary>Returns with the following query: "+InTree:@0"</summary>
-        public static string InTree { get { return "+InTree:@0"; } }
         /// <summary>Returns with the following query: "+InTree:@0 +TypeIs:@1"</summary>
         public static string InTreeAndTypeIs { get { return "+InTree:@0 +TypeIs:@1"; } }
         /// <summary>Returns with the following query: "+InTree:@0 +TypeIs:@1 +Name:@2"</summary>

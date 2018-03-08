@@ -182,7 +182,6 @@ namespace SenseNet.ContentRepository.Schema.Metadata
     {
         private Class _class;
         private ChoiceFieldSetting _choiceFielSetting;
-        private ChoiceOption _option;
         public string Name;
         public string OriginalName;
         public string Value;

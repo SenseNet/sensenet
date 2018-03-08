@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,6 +11,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Packaging.Steps;
 using SenseNet.Packaging.Tests.Implementations;
+using SenseNet.Tests;
 
 namespace SenseNet.Packaging.Tests
 {
@@ -26,10 +28,10 @@ namespace SenseNet.Packaging.Tests
     #endregion
 
     [TestClass]
-    public class PackagingTests
+    public class PackagingTests : TestBase
     {
         private static StringBuilder _log;
-
+        private IPackageStorageProviderFactory _packageStorageProviderFactoryBackup;
         [TestInitialize]
         public void PrepareTest()
         {
@@ -40,9 +42,15 @@ namespace SenseNet.Packaging.Tests
             loggerAcc.SetStaticField("_loggers", loggers);
 
             var storage = new TestPackageStorageProvider();
+            _packageStorageProviderFactoryBackup = PackageManager.StorageFactory;
             PackageManager.StorageFactory = new TestPackageStorageProviderFactory(storage);
 
             RepositoryVersionInfo.Reset();
+        }
+        [TestCleanup]
+        public void AfterTest()
+        {
+            PackageManager.StorageFactory = _packageStorageProviderFactoryBackup;
         }
 
         #region // ========================================= Manifest parsing tests
@@ -1180,8 +1188,6 @@ namespace SenseNet.Packaging.Tests
                                 <Phase><Trace>Package is running. Phase-3</Trace></Phase>
                             </Steps>
                         </Package>");
-            ComponentInfo component;
-            Package pkg;
 
             // phase 1
             ExecutePhase(manifestXml, 0);
@@ -1190,7 +1196,7 @@ namespace SenseNet.Packaging.Tests
             var verInfo = RepositoryVersionInfo.Instance;
             Assert.IsFalse(verInfo.Components.Any());
             Assert.IsTrue(verInfo.InstalledPackages.Any());
-            pkg = RepositoryVersionInfo.Instance.InstalledPackages.FirstOrDefault();
+            var pkg = RepositoryVersionInfo.Instance.InstalledPackages.FirstOrDefault();
             Assert.IsNotNull(pkg);
             Assert.AreEqual("Component42", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Unfinished, pkg.ExecutionResult);
@@ -1215,7 +1221,7 @@ namespace SenseNet.Packaging.Tests
             ExecutePhase(manifestXml, 2);
 
             // validate state after phase 3
-            component = RepositoryVersionInfo.Instance.Components.FirstOrDefault();
+            var component = RepositoryVersionInfo.Instance.Components.FirstOrDefault();
             Assert.IsNotNull(component);
             Assert.AreEqual("Component42", component.ComponentId);
             Assert.AreEqual("4.42", component.Version.ToString());
@@ -1258,20 +1264,17 @@ namespace SenseNet.Packaging.Tests
                             </Steps>
                         </Package>");
 
-            ComponentInfo component;
-            Package pkg;
-
             // phase 1
             ExecutePhase(manifestXml, 0);
 
             // validate state after phase 1
-            component = RepositoryVersionInfo.Instance.Components.FirstOrDefault();
+            var component = RepositoryVersionInfo.Instance.Components.FirstOrDefault();
             Assert.IsNotNull(component);
             Assert.AreEqual("MyCompany.MyComponent", component.ComponentId);
             Assert.AreEqual("1.2", component.Version.ToString());
             Assert.IsNotNull(component.AcceptableVersion);
             Assert.AreEqual("1.0", component.AcceptableVersion.ToString());
-            pkg = RepositoryVersionInfo.Instance.InstalledPackages.LastOrDefault();
+            var pkg = RepositoryVersionInfo.Instance.InstalledPackages.LastOrDefault();
             Assert.IsNotNull(pkg);
             Assert.AreEqual("MyCompany.MyComponent", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Unfinished, pkg.ExecutionResult);
@@ -1603,10 +1606,10 @@ namespace SenseNet.Packaging.Tests
             var verInfo = RepositoryVersionInfo.Instance;
 
             var package = verInfo.InstalledPackages.FirstOrDefault();
-            Assert.IsNull(package.Manifest);
+            Assert.IsNull(package?.Manifest);
 
             PackageManager.Storage.LoadManifest(package);
-            var actual = package.Manifest;
+            var actual = package?.Manifest;
 
             Assert.AreEqual(expected, actual);
         }
@@ -1692,7 +1695,7 @@ namespace SenseNet.Packaging.Tests
             var expectedCnStr = "Data Source=SQL1;Initial Catalog=sensenet;Integrated Security=True";
             using (CnStr(originalCnStr))
             {
-                var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo("SQL1", null), CnInfo());
+                var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo("SQL1"), CnInfo());
                 Assert.AreEqual(expectedCnStr, actualCnStr);
             }
         }
@@ -1725,7 +1728,7 @@ namespace SenseNet.Packaging.Tests
             var expectedCnStr = "Data Source=SQL2;Initial Catalog=sensenet;Integrated Security=True";
             using (CnStr(originalCnStr))
             {
-                var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo("SQL2", null), CnInfo());
+                var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo("SQL2"), CnInfo());
                 Assert.AreEqual(expectedCnStr, actualCnStr);
             }
         }
@@ -1781,7 +1784,7 @@ namespace SenseNet.Packaging.Tests
             var expectedCnStr = "Data Source=.;Initial Catalog=sensenet;Integrated Security=True";
             using (CnStr(originalCnStr))
             {
-                var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo(null, null, null, null), CnInfo());
+                var actualCnStr = Manifest.EditConnectionString(originalCnStr, CnInfo(), CnInfo());
                 Assert.AreEqual(expectedCnStr, actualCnStr);
             }
         }
@@ -1819,16 +1822,18 @@ namespace SenseNet.Packaging.Tests
             public ConnectionStringSwindler(string connectionString):base(connectionString) { }
             protected override string Value
             {
-                get { return Configuration.ConnectionStrings.ConnectionString; }
-                set { Configuration.ConnectionStrings.ConnectionString = value; }
+                get => Configuration.ConnectionStrings.ConnectionString;
+                set => Configuration.ConnectionStrings.ConnectionString = value;
             }
         }
         private abstract class Swindler<T> : IDisposable
         {
             protected abstract T Value { get; set; }
 
-            private T _saved;
+            private readonly T _saved;
 
+            [SuppressMessage("ReSharper", "VirtualMemberCallInConstructor")]
+            // Message supressed because the overridden member cannot cause any class inconsistence.
             protected Swindler(T value)
             {
                 _saved = Value;

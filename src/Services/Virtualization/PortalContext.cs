@@ -11,6 +11,7 @@ using SenseNet.Communication.Messaging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.i18n;
+using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Search;
@@ -19,6 +20,7 @@ using SenseNet.ContentRepository.Workspaces;
 using SenseNet.Diagnostics;
 using SenseNet.Portal.AppModel;
 using SenseNet.Portal.OData;
+using SenseNet.Search;
 using SenseNet.Tools;
 
 namespace SenseNet.Portal.Virtualization
@@ -187,7 +189,7 @@ namespace SenseNet.Portal.Virtualization
 
                 // check if the connection uses http or https
                 var forwardedHttps = string.Equals(HttpContext.Current.Request.Headers[SECURE_HEADER_FORWARDED], SECURE_HTTPS, StringComparison.OrdinalIgnoreCase);
-                var headerHost443 = HttpContext.Current.Request.Headers[SECURE_HEADER_HOST].EndsWith(SECURE_PORT);
+                var headerHost443 = HttpContext.Current.Request.Headers[SECURE_HEADER_HOST]?.EndsWith(SECURE_PORT) ?? false;
 
                 var referrerHttps = false;
                 var referrer = HttpContext.Current.Request.UrlReferrer;
@@ -579,18 +581,7 @@ namespace SenseNet.Portal.Virtualization
                 if (pageType == null)
                     return smartUrls;
 
-                NodeQueryResult pageResult;
-                if (RepositoryInstance.ContentQueryIsAllowed)
-                {
-                    var pageQuery = new NodeQuery();
-                    pageQuery.Add(new TypeExpression(pageType, false));
-                    pageResult = pageQuery.Execute();
-                }
-                else
-                {
-                    pageResult = NodeQuery.QueryNodesByType(pageType, false);
-                }
-                
+                var pageResult = NodeQuery.QueryNodesByType(pageType, false);
                 if (pageResult == null)
                     throw new ApplicationException("SmartURL: Query returned null.");
 
@@ -667,27 +658,16 @@ namespace SenseNet.Portal.Virtualization
             lock (_sitesLock)
             {
                 _sites = null;
-                NodeQueryResult result = null;
+                QueryResult result = null;
 
                 try
                 {
                     if (ContentRepository.Schema.ContentType.GetByName("Site") == null)
                         throw new ApplicationException("Unknown ContentType: Site");
 
-                    // CONDITIONAL EXECUTE
                     using (new SystemAccount())
                     {
-                        if (RepositoryInstance.ContentQueryIsAllowed)
-                        {
-                            var query = new NodeQuery();
-                            var nt = ActiveSchema.NodeTypes[typeof(Site).Name];
-                            query.Add(new TypeExpression(nt, false));
-                            result = query.Execute();//.Nodes.ToList<Node>();
-                        }
-                        else
-                        {
-                            result = NodeQuery.QueryNodesByType(ActiveSchema.NodeTypes[typeof(Site).Name], false);//.Nodes.ToList<Node>();
-                        }
+                        result = NodeQuery.QueryNodesByType(ActiveSchema.NodeTypes[typeof(Site).Name], false);//.Nodes.ToList<Node>();
                     }
 
                     _urlPaths = new NameValueCollection(result.Count);

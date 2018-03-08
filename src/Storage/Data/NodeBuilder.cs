@@ -81,7 +81,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             _loaded = true;
         }
 
-        internal void Finish()
+        public void Finish()
         {
             if(_loaded)
                 _token.NodeData = _data;

@@ -38,7 +38,9 @@ namespace SenseNet.ContentRepository.Storage
             {
                 return default(T);
             }
+#pragma warning disable CS1066 // The default value specified will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
             bool ISettingsManager.IsSettingsAvailable(string settingsName, string contextPath = null)
+#pragma warning restore CS1066 // The default value specified will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
             {
                 return true;
             }

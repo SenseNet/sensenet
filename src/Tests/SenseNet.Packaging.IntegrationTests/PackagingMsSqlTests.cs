@@ -12,6 +12,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using SenseNet.Packaging.IntegrationTests.Implementations;
+using SenseNet.Tests;
 
 namespace SenseNet.Packaging.IntegrationTests
 {
@@ -24,11 +25,12 @@ namespace SenseNet.Packaging.IntegrationTests
     }
 
     [TestClass]
-    public class PackagingMsSqlTests
+    public class PackagingMsSqlTests : TestBase
     {
         private static readonly string ConnectionString =
             //"Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=sensenet;Data Source=(local)";
-            "Data Source=.;Initial Catalog=sensenet;User ID=sa;Password=sa;Pooling=False";
+            //"Data Source=.;Initial Catalog=sensenet;User ID=sa;Password=sa;Pooling=False";
+            @"Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=sn7tests;Data Source=.\SQL2016";
 
         private static readonly string DropPackagesTableSql = @"
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Packages]') AND type in (N'U'))
@@ -488,8 +490,6 @@ CREATE TABLE [dbo].[Packages](
                                 <Phase><Trace>Package is running. Phase-3</Trace></Phase>
                             </Steps>
                         </Package>");
-            ComponentInfo component;
-            Package pkg;
 
             // phase 1
             ExecutePhase(manifestXml, 0);
@@ -498,7 +498,7 @@ CREATE TABLE [dbo].[Packages](
             var verInfo = RepositoryVersionInfo.Instance;
             Assert.IsFalse(verInfo.Components.Any());
             Assert.IsTrue(verInfo.InstalledPackages.Any());
-            pkg = RepositoryVersionInfo.Instance.InstalledPackages.FirstOrDefault();
+            var pkg = RepositoryVersionInfo.Instance.InstalledPackages.FirstOrDefault();
             Assert.IsNotNull(pkg);
             Assert.AreEqual("Component42", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Unfinished, pkg.ExecutionResult);
@@ -523,7 +523,7 @@ CREATE TABLE [dbo].[Packages](
             ExecutePhase(manifestXml, 2);
 
             // validate state after phase 3
-            component = RepositoryVersionInfo.Instance.Components.FirstOrDefault();
+            var component = RepositoryVersionInfo.Instance.Components.FirstOrDefault();
             Assert.IsNotNull(component);
             Assert.AreEqual("Component42", component.ComponentId);
             Assert.AreEqual("4.42", component.Version.ToString());
@@ -566,20 +566,17 @@ CREATE TABLE [dbo].[Packages](
                             </Steps>
                         </Package>");
 
-            ComponentInfo component;
-            Package pkg;
-
             // phase 1
             ExecutePhase(manifestXml, 0);
 
             // validate state after phase 1
-            component = RepositoryVersionInfo.Instance.Components.FirstOrDefault();
+            var component = RepositoryVersionInfo.Instance.Components.FirstOrDefault();
             Assert.IsNotNull(component);
             Assert.AreEqual("MyCompany.MyComponent", component.ComponentId);
             Assert.AreEqual("1.2", component.Version.ToString());
             Assert.IsNotNull(component.AcceptableVersion);
             Assert.AreEqual("1.0", component.AcceptableVersion.ToString());
-            pkg = RepositoryVersionInfo.Instance.InstalledPackages.LastOrDefault();
+            var pkg = RepositoryVersionInfo.Instance.InstalledPackages.LastOrDefault();
             Assert.IsNotNull(pkg);
             Assert.AreEqual("MyCompany.MyComponent", pkg.ComponentId);
             Assert.AreEqual(ExecutionResult.Unfinished, pkg.ExecutionResult);
@@ -910,11 +907,11 @@ CREATE TABLE [dbo].[Packages](
 
             // manifest is not explicitly loaded
             var package = verInfo.InstalledPackages.FirstOrDefault();
-            Assert.IsNull(package.Manifest);
+            Assert.IsNull(package?.Manifest);
 
             // load manifest explicitly
             PackageManager.Storage.LoadManifest(package);
-            var actual = package.Manifest;
+            var actual = package?.Manifest;
             Assert.AreEqual(expected, actual);
         }
 
