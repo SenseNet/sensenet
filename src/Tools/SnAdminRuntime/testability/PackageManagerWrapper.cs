@@ -10,7 +10,7 @@ namespace SenseNet.Tools.SnAdmin.Testability
 {
     internal interface IPackageManagerWrapper
     {
-        PackagingResult Execute(string packagePath, string targetDirectory, int phase, string[] parameters, TextWriter output);
+        PackagingResult Execute(string packagePath, string targetDirectory, int phase, string[] parameters, TextWriter output, out Manifest manifest);
         string GetXmlSchema();
         string GetHelp();
     }
@@ -22,9 +22,9 @@ namespace SenseNet.Tools.SnAdmin.Testability
 
     internal class BuiltInPackageManagerWrapper : IPackageManagerWrapper
     {
-        public PackagingResult Execute(string packagePath, string targetDirectory, int phase, string[] parameters, TextWriter output)
+        public PackagingResult Execute(string packagePath, string targetDirectory, int phase, string[] parameters, TextWriter output, out Manifest manifest)
         {
-            return PackageManager.Execute(packagePath, targetDirectory, phase, parameters, output);
+            return PackageManager.Execute(packagePath, targetDirectory, phase, parameters, output, out manifest);
         }
 
         public string GetXmlSchema()

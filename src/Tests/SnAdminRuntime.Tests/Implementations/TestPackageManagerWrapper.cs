@@ -11,8 +11,9 @@ namespace SnAdminRuntime.Tests.Implementations
     {
         public StringBuilder Log { get; } = new StringBuilder();
 
-        public PackagingResult Execute(string packagePath, string targetDirectory, int phase, string[] parameters, TextWriter output)
+        public PackagingResult Execute(string packagePath, string targetDirectory, int phase, string[] parameters, TextWriter output, out Manifest manifest)
         {
+            manifest = null;
             Log.AppendLine($"CALL: PackageManager({packagePath}, {targetDirectory}, {phase}, parameters:string[{parameters.Length}])");
             var result = new PackagingResult();
             var resultAcc = new PrivateObject(result);

@@ -7,12 +7,11 @@ using System.Reflection;
 using SenseNet.Packaging;
 using SenseNet.ContentRepository;
 using System.Diagnostics;
-using Ionic.Zip;
-using System.Configuration;
 using System.Security;
 using System.Xml;
-using SenseNet.ContentRepository.Storage;
 using SenseNet.Tools.SnAdmin.Testability;
+using System.Net.Http;
+using Newtonsoft.Json;
 
 namespace SenseNet.Tools.SnAdmin
 {
@@ -243,9 +242,11 @@ namespace SenseNet.Tools.SnAdmin
             }
 
             PackagingResult result = null;
+            Manifest manifest = null;
+
             try
             {
-                result = PackageManagerWrapper.Instance.Execute(packagePath, targetDirectory, phase, parameters, Output);
+                result = PackageManagerWrapper.Instance.Execute(packagePath, targetDirectory, phase, parameters, Output, out manifest);
             }
             catch (Exception e)
             {
@@ -258,6 +259,14 @@ namespace SenseNet.Tools.SnAdmin
                 // but the clusterchannel started because one of the components needed it.
                 DistributedApplication.ClusterChannel.ShutDown();
             }
+
+            // Send telemetry data only if
+            // - this is a sensenet package AND 
+            // - this is the last phase OR
+            // - there was an error
+            if (manifest?.ComponentId?.StartsWith("sensenet.", StringComparison.InvariantCultureIgnoreCase) ?? false &&
+                (manifest.CountOfPhases == phase + 1 || !(result?.Successful ?? false)))
+                SendTelemetryData(manifest, result);                
 
             // result:
             // -2: error,
@@ -305,6 +314,32 @@ namespace SenseNet.Tools.SnAdmin
             Logger.LogMessage("Assemblies:");
             foreach (var asm in SenseNet.ContentRepository.Storage.TypeHandler.GetAssemblyInfo())
                 Logger.LogMessage("  {0} {1}", asm.Name, asm.Version);
+        }
+
+        private static void SendTelemetryData(Manifest manifest, PackagingResult result)
+        {            
+            var requestUrl = "http://localhost:50400/api/v1/snadmin";
+            var client = new HttpClient();
+            var json = JsonConvert.SerializeObject(new
+            {
+                PackageId = manifest.ComponentId,
+                Version = manifest.Version,
+                PackageType = manifest.PackageType,
+                Successful = result?.Successful ?? false,
+                Region = System.Globalization.RegionInfo.CurrentRegion.EnglishName
+            });
+            var stringContent = new StringContent(json, Encoding.UTF8, "application/json");
+            var timer = Stopwatch.StartNew();
+
+            try
+            {
+                client.PostAsync(requestUrl, stringContent).Wait();
+                Logger.LogMessage($"Telemetry request sent. Time elapsed: {timer.Elapsed}");
+            }
+            catch (Exception ex)
+            {
+                Logger.LogMessage($"Telemetry request unsuccesful. {ex.Message} Time elapsed: {timer.Elapsed}");
+            }
         }
     }
 }

@@ -22,7 +22,7 @@ namespace SenseNet.Packaging
 
         internal static IPackageStorageProvider Storage => StorageFactory.CreateProvider();
 
-        public static PackagingResult Execute(string packagePath, string targetPath, int currentPhase, string[] parameters, TextWriter console)
+        public static PackagingResult Execute(string packagePath, string targetPath, int currentPhase, string[] parameters, TextWriter console, out Manifest manifest)
         {
             var packageParameters = parameters?.Select(PackageParameter.Parse).ToArray() ?? new PackageParameter[0];
             var forcedReinstall = "true" == (packageParameters
@@ -33,7 +33,7 @@ namespace SenseNet.Packaging
 
             var files = Directory.GetFiles(packagePath);
 
-            Manifest manifest = null;
+            manifest = null;
             Exception manifestParsingException = null;
             if (files.Length == 1)
             {
