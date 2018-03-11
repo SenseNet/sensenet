@@ -260,7 +260,7 @@ TPScriptUrl=""_vti_bin/owssvr.dll""
                 return;
 
             var requestPath = PortalContext.Current.RequestedUri.AbsolutePath.ToLower();
-            
+
             // mock workflow.asmx -> we don't implement, simply return HTTP 200
             if (requestPath.EndsWith("_vti_bin/workflow.asmx"))
             {
@@ -269,7 +269,7 @@ TPScriptUrl=""_vti_bin/owssvr.dll""
             }
 
             // initial request to _vti_inf.html
-            if (requestPath.EndsWith("_vti_inf.html")) 
+            if (requestPath.EndsWith("_vti_inf.html"))
             {
                 HandleVtiInf(context);
                 return;
@@ -304,7 +304,7 @@ TPScriptUrl=""_vti_bin/owssvr.dll""
             }
 
 
-            if (requestPath.EndsWith("_vti_rpc")) 
+            if (requestPath.EndsWith("_vti_rpc"))
             {
                 if (method.StartsWith("server version"))
                 {
@@ -402,34 +402,26 @@ TPScriptUrl=""_vti_bin/owssvr.dll""
                 {
                     using (new SystemAccount())
                     {
-                        // -----------
-                        // Commented out this part to fix the bug that prevented Office clients to open documents
-                        // correctly when there was a SPACE in the name of the workspace.
-                        // Returning "/" below fixes that bug.
-                        // -----------
-
-                        //var doclib = DwsHelper.GetDocumentLibraryForNode(node);
-                        //if (doclib != null)
-                        //{
-                        //    // weburl should be doclibs parent (most of the time currentworkspace)
-                        //    // fileurl should be doclib name and doclib relative path
-                        //    // this will work for /Sites/MySite/Doclib/document.docx, for /Sites/Mysite/myworkspace/Doclib/document.docx and for /Root/Doclib/document.docx
-                        //    weburl = doclib.ParentPath;
-                        //    fileurl = (path.Length > doclib.ParentPath.Length) ? path.Substring(doclib.ParentPath.Length + 1) : string.Empty;
-                        //}
-                        //else
-                        //{
-                        //    // weburl should be parent's parentpath
-                        //    // fileurl should be parentname + name  -> parent will act as a mocked document library
-                        //    // this will work for /Root/YourDocuments/document.docx
-                        //    if (node.Parent != null)
-                        //    {
-                        //        weburl = node.Parent.ParentPath;
-                        //        fileurl = RepositoryPath.Combine(node.Parent.Name, node.Name);
-                        //    }
-                        //}
-                        weburl = "/";
-                        fileurl = path;
+                        var doclib = DwsHelper.GetDocumentLibraryForNode(node);
+                        if (doclib != null)
+                        {
+                            // weburl should be doclibs parent (most of the time currentworkspace)
+                            // fileurl should be doclib name and doclib relative path
+                            // this will work for /Sites/MySite/Doclib/document.docx, for /Sites/Mysite/myworkspace/Doclib/document.docx and for /Root/Doclib/document.docx
+                            weburl = doclib.ParentPath;
+                            fileurl = (path.Length > doclib.ParentPath.Length) ? path.Substring(doclib.ParentPath.Length + 1) : string.Empty;
+                        }
+                        else
+                        {
+                            // weburl should be parent's parentpath
+                            // fileurl should be parentname + name  -> parent will act as a mocked document library
+                            // this will work for /Root/YourDocuments/document.docx
+                            if (node.Parent != null)
+                            {
+                                weburl = node.Parent.ParentPath;
+                                fileurl = RepositoryPath.Combine(node.Parent.Name, node.Name);
+                            }
+                        }
                     }
                 }
             }
