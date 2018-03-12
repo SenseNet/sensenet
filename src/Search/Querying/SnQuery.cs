@@ -1,10 +1,12 @@
-﻿using SenseNet.Search.Querying.Parser.Predicates;
+﻿using System.Runtime.Serialization;
+using SenseNet.Search.Querying.Parser.Predicates;
 
 namespace SenseNet.Search.Querying
 {
     /// <summary>
     /// Represents a parsed CQL query encapsulating all extensions.
     /// </summary>
+    [DataContract]
     public partial class SnQuery
     {
         /// <summary>
@@ -40,10 +42,12 @@ namespace SenseNet.Search.Querying
         /// <summary>
         /// Gets the original text representation of the query.
         /// </summary>
+        [DataMember]
         public string Querytext { get; internal set; }
         /// <summary>
         /// Gets the projection value. Default projection is NodeId.
         /// </summary>
+        [DataMember]
         public string Projection { get; internal set; }
         /// <summary>
         /// Gets or sets the maximum count of the query result.
@@ -65,6 +69,7 @@ namespace SenseNet.Search.Querying
         /// <summary>
         /// Gets the predicate tree representation of the query.
         /// </summary>
+        [DataMember]
         public SnQueryPredicate QueryTree { get; internal set; }
 
         /// <summary>

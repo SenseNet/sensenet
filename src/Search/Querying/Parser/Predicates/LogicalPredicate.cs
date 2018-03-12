@@ -1,16 +1,19 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace SenseNet.Search.Querying.Parser.Predicates
 {
     /// <summary>
     /// Defines a logical predicate that represents one level of the parenthesis in the CQL queries.
     /// </summary>
+    [DataContract]
     public class LogicalPredicate : SnQueryPredicate
     {
         /// <summary>
         /// Gets the list of the logical clauses.
         /// </summary>
-        public List<LogicalClause> Clauses { get; } = new List<LogicalClause>();
+        [DataMember]
+        public List<LogicalClause> Clauses { get; private set; } = new List<LogicalClause>();
 
         /// <summary>
         /// Initializes a new instance of LogicalPredicate with empty clause list.

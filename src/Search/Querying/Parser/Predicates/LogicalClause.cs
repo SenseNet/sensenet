@@ -1,4 +1,6 @@
-﻿namespace SenseNet.Search.Querying.Parser.Predicates
+﻿using System.Runtime.Serialization;
+
+namespace SenseNet.Search.Querying.Parser.Predicates
 {
     /// <summary>
     /// Defines clause occurence options in CQL queries.
@@ -27,15 +29,18 @@
     /// Defines a logical clause inspired by Lucene query syntax.
     /// This clause is any clause expanded by an occurence.
     /// </summary>
+    [DataContract]
     public class LogicalClause
     {
         /// <summary>
         /// Gets the base predicate of the clause.
         /// </summary>
-        public SnQueryPredicate Predicate { get; }
+        [DataMember]
+        public SnQueryPredicate Predicate { get; private set; }
         /// <summary>
         /// Gets or sets the occurence of the predicate.
         /// </summary>
+        [DataMember]
         public Occurence Occur { get; set; }
 
         /// <summary>
