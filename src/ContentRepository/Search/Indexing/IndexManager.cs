@@ -324,11 +324,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
         }
         private static IndexDocument CreateIndexDocument(IndexDocumentData data)
         {
-            return CompleteIndexDocument(data);
+            return data == null ? null : CompleteIndexDocument(data);
         }
         internal static IndexDocument CompleteIndexDocument(IndexDocumentData docData)
         {
-            var doc = docData.IndexDocument;
+            var doc = docData?.IndexDocument;
 
             if (doc == null)
                 return null;
