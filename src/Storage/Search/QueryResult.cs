@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using SenseNet.ContentRepository.Storage;
 using System.Linq;
-using System.Diagnostics;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Search
@@ -14,17 +13,19 @@ namespace SenseNet.Search
     {
         private class NodeResolver : INodeResolver<Node>
         {
-            private Node[] _nodes;
+            private readonly Node[] _nodes;
 
+            public NodeResolver(Node[] nodes)
+            {
+                _nodes = nodes;
+            }
             public NodeResolver(IEnumerable<Node> nodes)
             {
                 _nodes = nodes.ToArray();
             }
 
-            public int IdCount
-            {
-                get { return _nodes.Length; }
-            }
+            public int IdCount => _nodes.Length;
+
             public int GetPermittedCount()
             {
                 return _nodes.Length;
@@ -78,7 +79,7 @@ namespace SenseNet.Search
         /// identifiers as hit collection and it's count.
         /// </summary>
         /// <param name="result">The IEnumerable&lt;int&gt; that contains ids of hits.</param>
-        /// <param name="totalCount">Count os items.</param>
+        /// <param name="totalCount">Count of items.</param>
         public QueryResult(IEnumerable<int> result, int totalCount)
         {
             _result = new NodeList<Node>(result);
@@ -86,13 +87,40 @@ namespace SenseNet.Search
         }
 
         /// <summary>
-        /// Initializes a new instance of the QueryResult with
-        /// a prepared hit collection.
+        /// Initializes a new instance of the QueryResult with a prepared hit collection.
+        /// Use this constructor if the hit collection contains all items in the memory.
         /// </summary>
         /// <param name="nodes">The <see cref="IEnumerable&lt;Node&gt;"/> that contains hits.</param>
         public QueryResult(IEnumerable<Node> nodes)
         {
+            switch (nodes)
+            {
+                case NodeList<Node> nodeList:
+                    _result = nodeList;
+                    Count = nodeList.Count;
+                    break;
+                case List<Node> listOfNodes:
+                    _result = new NodeResolver(listOfNodes);
+                    Count = listOfNodes.Count;
+                    break;
+                default:
+                    var nodeArray = nodes as Node[] ?? nodes.ToArray();
+                    _result = new NodeResolver(nodeArray);
+                    Count = nodeArray.Length;
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the QueryResult with a prepared hit collection and it's count.
+        /// Use this constructor if the hit collection does contain all items in the memory and uses a block-read algorithm.
+        /// </summary>
+        /// <param name="nodes">The <see cref="IEnumerable&lt;Node&gt;"/> that contains hits.</param>
+        /// <param name="totalCount">Count of items.</param>
+        public QueryResult(IEnumerable<Node> nodes, int totalCount)
+        {
             _result = new NodeResolver(nodes);
+            Count = totalCount;
         }
 
         // =========================================== Properties
