@@ -1,24 +1,30 @@
-﻿namespace SenseNet.Search.Querying.Parser.Predicates
+﻿using System.Runtime.Serialization;
+
+namespace SenseNet.Search.Querying.Parser.Predicates
 {
     /// <summary>
     /// Represents a simple clause on the CQL query.
     /// </summary>
+    [DataContract]
     public class SimplePredicate : SnQueryPredicate
     {
         /// <summary>
         /// Gets the field name of the clause.
         /// </summary>
-        public string FieldName { get; }
+        [DataMember]
+        public string FieldName { get; private set; }
 
         /// <summary>
         /// Gets the value of the clause.
         /// </summary>
-        public IndexValue Value { get; }
+        [DataMember]
+        public IndexValue Value { get; private set; }
 
         /// <summary>
         /// Gets a value for compiling fuzzy queries.
         /// </summary>
-        public double? FuzzyValue { get; }
+        [DataMember]
+        public double? FuzzyValue { get; private set; }
 
         /// <summary>
         /// Initializes a new SimplePredicate instance.

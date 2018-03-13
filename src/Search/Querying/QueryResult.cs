@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace SenseNet.Search.Querying
 {
@@ -6,6 +7,9 @@ namespace SenseNet.Search.Querying
     /// Represens a result of the SnQuery execution.
     /// </summary>
     /// <typeparam name="T">Can be int or string.</typeparam>
+    [DataContract]
+    [KnownType(typeof(QueryResult<int>))]
+    [KnownType(typeof(QueryResult<string>))]
     public class QueryResult<T>
     {
         /// <summary>
@@ -16,12 +20,14 @@ namespace SenseNet.Search.Querying
         /// <summary>
         /// Gets the resulted items.
         /// </summary>
-        public IEnumerable<T> Hits { get; }
+        [DataMember]
+        public IEnumerable<T> Hits { get; private set; }
 
         /// <summary>
         /// Gets the total count of permitted items without top and skip restrictions.
         /// </summary>
-        public int TotalCount { get; }
+        [DataMember]
+        public int TotalCount { get; private set; }
 
         /// <summary>
         /// Initializes a new QueryResult instance.

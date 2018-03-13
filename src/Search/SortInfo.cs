@@ -1,23 +1,27 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.Serialization;
 
 namespace SenseNet.Search
 {
     /// <summary>
     /// Represents a sorting criteria for querying.
     /// </summary>
+    [DataContract]
     [DebuggerDisplay("{" + nameof(ToString) + "()}")]
     public class SortInfo
     {
         /// <summary>
         /// Gets the field name.
         /// </summary>
-        public string FieldName { get; }
+        [DataMember]
+        public string FieldName { get; private set; }
 
         /// <summary>
         /// Gets the sorting direction. "False" means ascending, "true" means descending.
         /// </summary>
-        public bool Reverse { get; }
+        [DataMember]
+        public bool Reverse { get; private set; }
 
         /// <summary>
         /// Initializes an instance of the SortInfo
