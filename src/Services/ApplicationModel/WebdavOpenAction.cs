@@ -73,7 +73,7 @@ namespace SenseNet.ApplicationModel
                 if (!EXTENSION_SCHEMES.TryGetValue(extension, out officeScheme))
                     return string.Empty;
 
-                return officeScheme + OFFICESCHEMESTRING + PortalContext.Current.CurrentSiteAbsoluteUrl + SiteRelativePath;
+                return officeScheme + OFFICESCHEMESTRING + PortalContext.Current.CurrentSiteAbsoluteUrl + Content.Path;
             }
         }
 

@@ -96,7 +96,7 @@ namespace SenseNet.Portal.Dws
             // remove trailing slash
             partialPath = partialPath.TrimEnd('/');
 
-            if (partialPath.StartsWith("/Root/", StringComparison.OrdinalIgnoreCase))
+            if (partialPath.StartsWith("/Root", StringComparison.OrdinalIgnoreCase))
                 return partialPath;
 
             string absPath1;
