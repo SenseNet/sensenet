@@ -74,7 +74,7 @@
       <Name>Storage</Name>
     </ProjectReference>
     <ProjectReference Include="..\SenseNet.Tests\SenseNet.Tests.csproj">
-      <Project>{4674B8B8-6567-4EB5-B5A8-C838FECCE302}</Project>
+      <Project>{A0909E8F-E039-4080-A259-676CFD38CCD1}</Project>
       <Name>SenseNet.Tests</Name>
     </ProjectReference>
   </ItemGroup>

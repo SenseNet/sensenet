@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 #else
 [assembly: AssemblyTitle("SenseNet.Tests (Release)")]
 #endif
+
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Sense/Net Inc.")]
@@ -18,4 +19,4 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyInformationalVersion("1.0.0")]
 
 [assembly: ComVisible(false)]
-[assembly: Guid("a0909e8f-e039-4080-a259-676cfd38ccd1")]
+[assembly: Guid("4674b8b8-6567-4eb5-b5a8-c838fecce302")]
