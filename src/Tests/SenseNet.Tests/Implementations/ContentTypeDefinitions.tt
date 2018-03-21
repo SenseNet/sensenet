@@ -18,12 +18,13 @@ namespace SenseNet.Tests.Implementations
 		public static readonly List<string> ContentTypes = new List<string>
 		{
 <#
+	var id = 0;
 	foreach(var path in Directory.GetFiles(ctdRoot))
 	{
 		var name = Path.GetFileName(path);
 		var content = File.ReadAllText(path).Replace("\"", "\"\"");
 #>
-			#region <#= name #>
+			#region  <#= ++id #>. <#= name #>
 			@"<#= content #>",
 			#endregion
 <#

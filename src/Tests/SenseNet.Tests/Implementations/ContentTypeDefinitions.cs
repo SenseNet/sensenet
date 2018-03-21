@@ -7,7 +7,7 @@ namespace SenseNet.Tests.Implementations
     {
 		public static readonly List<string> ContentTypes = new List<string>
 		{
-			#region ApplicationCtd.xml
+			#region  1. ApplicationCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Application"" parentType=""GenericContent"" handler=""SenseNet.ApplicationModel.Application"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Application,DisplayName</DisplayName>
@@ -181,7 +181,7 @@ namespace SenseNet.Tests.Implementations
 </ContentType>
 ",
 			#endregion
-			#region ApplicationOverrideCtd.xml
+			#region  2. ApplicationOverrideCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""ApplicationOverride"" parentType=""Application"" handler=""SenseNet.ApplicationModel.Application"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-ApplicationOverride,DisplayName</DisplayName>
@@ -190,7 +190,7 @@ namespace SenseNet.Tests.Implementations
 </ContentType>
 ",
 			#endregion
-			#region AspectCTD.xml
+			#region  3. AspectCTD.xml
 			@"<ContentType name=""Aspect"" parentType=""ContentList"" handler=""SenseNet.ContentRepository.Aspect"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Aspect,DisplayName</DisplayName>
   <Description>$Ctd-Aspect,Description</Description>
@@ -353,7 +353,7 @@ namespace SenseNet.Tests.Implementations
 </ContentType>
 ",
 			#endregion
-			#region BinaryFieldSettingCtd.xml
+			#region  4. BinaryFieldSettingCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name='BinaryFieldSetting' parentType='FieldSettingContent' handler='SenseNet.ContentRepository.Schema.FieldSettingContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
   <DisplayName>$Ctd-BinaryFieldSetting,DisplayName</DisplayName>
@@ -361,7 +361,7 @@ namespace SenseNet.Tests.Implementations
   <Fields />
 </ContentType>",
 			#endregion
-			#region ChoiceFieldSettingCtd.xml
+			#region  5. ChoiceFieldSettingCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name='ChoiceFieldSetting' parentType='ShortTextFieldSetting' handler='SenseNet.ContentRepository.Schema.FieldSettingContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
   <DisplayName>$Ctd-ChoiceFieldSetting,DisplayName</DisplayName>
@@ -369,7 +369,7 @@ namespace SenseNet.Tests.Implementations
   <Fields />
 </ContentType>",
 			#endregion
-			#region ContentLinkCtd.xml
+			#region  6. ContentLinkCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""ContentLink"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.ContentLink"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-ContentLink,DisplayName</DisplayName>
@@ -402,7 +402,7 @@ namespace SenseNet.Tests.Implementations
 </ContentType>
 ",
 			#endregion
-			#region ContentListCtd.xml
+			#region  7. ContentListCtd.xml
 			@"<ContentType name=""ContentList"" parentType=""Folder"" handler=""SenseNet.ContentRepository.ContentList"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-ContentList,DisplayName</DisplayName>
   <Description>$Ctd-ContentList,Description</Description>
@@ -600,7 +600,7 @@ namespace SenseNet.Tests.Implementations
 </ContentType>
 ",
 			#endregion
-			#region ContentTypeCtd.xml
+			#region  8. ContentTypeCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""ContentType"" handler=""SenseNet.ContentRepository.Schema.ContentType"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-ContentType,DisplayName</DisplayName>
@@ -1020,7 +1020,7 @@ namespace SenseNet.Tests.Implementations
 </ContentType>
 ",
 			#endregion
-			#region CurrencyFieldSettingCtd.xml
+			#region  9. CurrencyFieldSettingCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""CurrencyFieldSetting"" parentType=""NumberFieldSetting"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-CurrencyFieldSetting,DisplayName</DisplayName>
@@ -1028,7 +1028,7 @@ namespace SenseNet.Tests.Implementations
   <Fields />
 </ContentType>",
 			#endregion
-			#region CustomListCtd.xml
+			#region  10. CustomListCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""CustomList"" parentType=""ItemList"" handler=""SenseNet.ContentRepository.ContentList"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-CustomList,DisplayName</DisplayName>
@@ -1040,7 +1040,7 @@ namespace SenseNet.Tests.Implementations
   <Fields></Fields>
 </ContentType>",
 			#endregion
-			#region CustomListItemCtd.xml
+			#region  11. CustomListItemCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""CustomListItem"" parentType=""ListItem"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-CustomListItem,DisplayName</DisplayName>
@@ -1107,7 +1107,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region DateTimeFieldSettingCtd.xml
+			#region  12. DateTimeFieldSettingCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""DateTimeFieldSetting"" parentType=""FieldSettingContent"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-DateTimeFieldSetting,DisplayName</DisplayName>
@@ -1115,7 +1115,7 @@ namespace SenseNet.Tests.Implementations
   <Fields />
 </ContentType>",
 			#endregion
-			#region DeviceCtd.xml
+			#region  13. DeviceCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Device"" parentType=""Folder"" handler=""SenseNet.ApplicationModel.Device"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Device,DisplayName</DisplayName>
@@ -1129,7 +1129,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region DocumentLibraryCtd.xml
+			#region  14. DocumentLibraryCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""DocumentLibrary"" parentType=""Library"" handler=""SenseNet.ContentRepository.ContentList"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-DocumentLibrary,DisplayName</DisplayName>
@@ -1141,7 +1141,7 @@ namespace SenseNet.Tests.Implementations
   <Fields></Fields>
 </ContentType>",
 			#endregion
-			#region DomainCtd.xml
+			#region  15. DomainCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Domain"" parentType=""Folder"" handler=""SenseNet.ContentRepository.Domain"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Domain,DisplayName</DisplayName>
@@ -1195,7 +1195,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region DomainsCtd.xml
+			#region  16. DomainsCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Domains"" parentType=""Folder"" handler=""SenseNet.ContentRepository.Folder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Domains,DisplayName</DisplayName>
@@ -1207,7 +1207,7 @@ namespace SenseNet.Tests.Implementations
   <Fields></Fields>
 </ContentType>",
 			#endregion
-			#region DynamicJsonContent.xml
+			#region  17. DynamicJsonContent.xml
 			@"<ContentType name=""DynamicJsonContent"" parentType=""File"" handler=""SenseNet.Portal.Handlers.DynamicJsonContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>Dynamic JSON content</DisplayName>
   <Description></Description>
@@ -1215,7 +1215,7 @@ namespace SenseNet.Tests.Implementations
   <Fields></Fields>
 </ContentType>",
 			#endregion
-			#region EmailCtd.xml
+			#region  18. EmailCtd.xml
 			@"<ContentType name=""Email"" parentType=""Folder"" handler=""SenseNet.ContentRepository.Folder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Email,DisplayName</DisplayName>
   <Description>$Ctd-Email,Description</Description>
@@ -1251,7 +1251,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region ExecutableFileCtd.xml
+			#region  19. ExecutableFileCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""ExecutableFile"" parentType=""File"" handler=""SenseNet.ContentRepository.File"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-ExecutableFile,DisplayName</DisplayName>
@@ -1260,7 +1260,7 @@ namespace SenseNet.Tests.Implementations
   <Preview>false</Preview>
 </ContentType>",
 			#endregion
-			#region ExportToCsvApplicationCtd.xml
+			#region  20. ExportToCsvApplicationCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""ExportToCsvApplication"" parentType=""Application"" handler=""SenseNet.Services.ExportToCsvApplication"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-ExportToCsvApplication,DisplayName</DisplayName>
@@ -1269,7 +1269,7 @@ namespace SenseNet.Tests.Implementations
   <Fields />
 </ContentType>",
 			#endregion
-			#region FieldSettingContentCtd.xml
+			#region  21. FieldSettingContentCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""FieldSettingContent"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-FieldSettingContent,DisplayName</DisplayName>
@@ -1304,7 +1304,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region FileCtd.xml
+			#region  22. FileCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""File"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.File"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-File,DisplayName</DisplayName>
@@ -1442,7 +1442,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region FolderCtd.xml
+			#region  23. FolderCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Folder"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.Folder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Folder,DisplayName</DisplayName>
@@ -1470,7 +1470,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region GenericContentCtd.xml
+			#region  24. GenericContentCtd.xml
 			@"<ContentType name=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-GenericContent,DisplayName</DisplayName>
   <Description>$Ctd-GenericContent,Description</Description>
@@ -2126,7 +2126,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region GenericODataApplicationCTD.xml
+			#region  25. GenericODataApplicationCTD.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""GenericODataApplication"" parentType=""Application"" handler=""SenseNet.Portal.ApplicationModel.GenericODataApplication"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-GenericODataApplication,DisplayName</DisplayName>
@@ -2148,7 +2148,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region GetMetadataApplicationCTD.xml
+			#region  26. GetMetadataApplicationCTD.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""GetMetadataApplication"" parentType=""HttpHandlerApplication"" handler=""SenseNet.Portal.Handlers.GetMetadataApplication"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>GetMetadataApplication</DisplayName>
@@ -2156,7 +2156,7 @@ namespace SenseNet.Tests.Implementations
 </ContentType>
 ",
 			#endregion
-			#region GroupCtd.xml
+			#region  27. GroupCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Group"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.Group"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Group,DisplayName</DisplayName>
@@ -2208,7 +2208,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region HtmlTemplateCtd.xml
+			#region  28. HtmlTemplateCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""HtmlTemplate"" parentType=""File"" handler=""SenseNet.Portal.UI.HtmlTemplate"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-HtmlTemplate,DisplayName</DisplayName>
@@ -2229,7 +2229,7 @@ namespace SenseNet.Tests.Implementations
 </ContentType>
 ",
 			#endregion
-			#region HttpHandlerApplicationCTD.xml
+			#region  29. HttpHandlerApplicationCTD.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""HttpHandlerApplication"" parentType=""Application"" handler=""SenseNet.Portal.Handlers.HttpHandlerApplication"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-HttpHandlerApplication,DisplayName</DisplayName>
@@ -2239,7 +2239,7 @@ namespace SenseNet.Tests.Implementations
 </ContentType>
 ",
 			#endregion
-			#region HttpStatusApplicationCtd.xml
+			#region  30. HttpStatusApplicationCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""HttpStatusApplication"" parentType=""Application"" handler=""SenseNet.Portal.AppModel.HttpStatusApplication"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-HttpStatusApplication,DisplayName</DisplayName>
@@ -2269,7 +2269,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region HyperLinkFieldSettingCtd.xml
+			#region  31. HyperLinkFieldSettingCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""HyperLinkFieldSetting"" parentType=""FieldSettingContent"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-HyperLinkFieldSetting,DisplayName</DisplayName>
@@ -2277,7 +2277,7 @@ namespace SenseNet.Tests.Implementations
   <Fields />
 </ContentType>",
 			#endregion
-			#region ImageCtd.xml
+			#region  32. ImageCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Image"" parentType=""File"" handler=""SenseNet.ContentRepository.Image"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Image,DisplayName</DisplayName>
@@ -2319,7 +2319,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region ImageLibraryCtd.xml
+			#region  33. ImageLibraryCtd.xml
 			@"<ContentType name=""ImageLibrary"" parentType=""Library"" handler=""SenseNet.ContentRepository.ContentList"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-ImageLibrary,DisplayName</DisplayName>
   <Description>$Ctd-ImageLibrary,Description</Description>
@@ -2348,7 +2348,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region ImgResizeApplicationCtd.xml
+			#region  34. ImgResizeApplicationCtd.xml
 			@"<ContentType name=""ImgResizeApplication"" parentType=""Application"" handler=""SenseNet.Portal.ApplicationModel.ImgResizeApplication"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-ImgResizeApplication,DisplayName</DisplayName>
   <Description>$Ctd-ImgResizeApplication,Description</Description>
@@ -2508,7 +2508,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region IndexingSettingsCtd.xml
+			#region  35. IndexingSettingsCtd.xml
 			@"<ContentType name=""IndexingSettings"" parentType=""Settings"" handler=""SenseNet.Search.IndexingSettings"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-IndexingSettings,DisplayName</DisplayName>
   <Description>$Ctd-IndexingSettings,Description</Description>
@@ -2528,7 +2528,7 @@ namespace SenseNet.Tests.Implementations
 </ContentType>
 ",
 			#endregion
-			#region IntegerFieldSettingCtd.xml
+			#region  36. IntegerFieldSettingCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""IntegerFieldSetting"" parentType=""FieldSettingContent"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-IntegerFieldSetting,DisplayName</DisplayName>
@@ -2536,7 +2536,7 @@ namespace SenseNet.Tests.Implementations
   <Fields />
 </ContentType>",
 			#endregion
-			#region ItemListCtd.xml
+			#region  37. ItemListCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""ItemList"" parentType=""ContentList"" handler=""SenseNet.ContentRepository.ContentList"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-ItemList,DisplayName</DisplayName>
@@ -2582,7 +2582,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region LibraryCtd.xml
+			#region  38. LibraryCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Library"" parentType=""ContentList"" handler=""SenseNet.ContentRepository.ContentList"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Library,DisplayName</DisplayName>
@@ -2611,7 +2611,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region ListItemCtd.xml
+			#region  39. ListItemCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""ListItem"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-ListItem,DisplayName</DisplayName>
@@ -2640,7 +2640,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region LoggingSettingsCtd.xml
+			#region  40. LoggingSettingsCtd.xml
 			@"<ContentType name=""LoggingSettings"" parentType=""Settings"" handler=""SenseNet.ContentRepository.LoggingSettings"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-LoggingSettings,DisplayName</DisplayName>
   <Description>$Ctd-LoggingSettings,Description</Description>
@@ -2648,7 +2648,7 @@ namespace SenseNet.Tests.Implementations
   <Fields></Fields>
 </ContentType>",
 			#endregion
-			#region LongTextFieldSettingCtd.xml
+			#region  41. LongTextFieldSettingCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""LongTextFieldSetting"" parentType=""TextFieldSetting"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-LongTextFieldSetting,DisplayName</DisplayName>
@@ -2656,7 +2656,7 @@ namespace SenseNet.Tests.Implementations
   <Fields />
 </ContentType>",
 			#endregion
-			#region MemoCtd.xml
+			#region  42. MemoCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Memo"" parentType=""ListItem"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Memo,DisplayName</DisplayName>
@@ -2699,7 +2699,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region MemoList.xml
+			#region  43. MemoList.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""MemoList"" parentType=""ItemList"" handler=""SenseNet.ContentRepository.ContentList"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-MemoList,DisplayName</DisplayName>
@@ -2711,7 +2711,7 @@ namespace SenseNet.Tests.Implementations
   <Fields></Fields>
 </ContentType>",
 			#endregion
-			#region NullFieldSettingCtd.xml
+			#region  44. NullFieldSettingCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""NullFieldSetting"" parentType=""FieldSettingContent"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-NullFieldSetting,DisplayName</DisplayName>
@@ -2719,7 +2719,7 @@ namespace SenseNet.Tests.Implementations
   <Fields />
 </ContentType>",
 			#endregion
-			#region NumberFieldSettingCtd.xml
+			#region  45. NumberFieldSettingCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""NumberFieldSetting"" parentType=""FieldSettingContent"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-NumberFieldSetting,DisplayName</DisplayName>
@@ -2727,7 +2727,7 @@ namespace SenseNet.Tests.Implementations
   <Fields />
 </ContentType>",
 			#endregion
-			#region OrganizationalUnitCtd.xml
+			#region  46. OrganizationalUnitCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""OrganizationalUnit"" parentType=""Folder"" handler=""SenseNet.ContentRepository.OrganizationalUnit"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-OrganizationalUnit,DisplayName</DisplayName>
@@ -2780,7 +2780,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region PasswordFieldSettingCtd.xml
+			#region  47. PasswordFieldSettingCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""PasswordFieldSetting"" parentType=""ShortTextFieldSetting"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-PasswordFieldSetting,DisplayName</DisplayName>
@@ -2788,7 +2788,7 @@ namespace SenseNet.Tests.Implementations
   <Fields />
 </ContentType>",
 			#endregion
-			#region PermissionChoiceFieldSettingCtd.xml
+			#region  48. PermissionChoiceFieldSettingCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""PermissionChoiceFieldSetting"" parentType=""ChoiceFieldSetting"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-PermissionChoiceFieldSetting,DisplayName</DisplayName>
@@ -2796,7 +2796,7 @@ namespace SenseNet.Tests.Implementations
   <Fields />
 </ContentType>",
 			#endregion
-			#region PortalRootCtd.xml
+			#region  49. PortalRootCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""PortalRoot"" parentType=""Folder"" handler=""SenseNet.ContentRepository.PortalRoot"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-PortalRoot,DisplayName</DisplayName>
@@ -2816,7 +2816,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region PortalSettingsCtd.xml
+			#region  50. PortalSettingsCtd.xml
 			@"<ContentType name=""PortalSettings"" parentType=""Settings"" handler=""SenseNet.Portal.PortalSettings"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-PortalSettings,DisplayName</DisplayName>
   <Description>$Ctd-PortalSettings,Description</Description>
@@ -2826,7 +2826,7 @@ namespace SenseNet.Tests.Implementations
 </ContentType>
 ",
 			#endregion
-			#region PreviewImageCtd.xml
+			#region  51. PreviewImageCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""PreviewImage"" parentType=""Image"" handler=""SenseNet.ContentRepository.Image"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-PreviewImage,DisplayName</DisplayName>
@@ -2840,7 +2840,7 @@ namespace SenseNet.Tests.Implementations
 
 ",
 			#endregion
-			#region ProfileDomainCtd.xml
+			#region  52. ProfileDomainCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""ProfileDomain"" parentType=""Folder"" handler=""SenseNet.ContentRepository.Folder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-ProfileDomain,DisplayName</DisplayName>
@@ -2875,7 +2875,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region ProfilesCtd.xml
+			#region  53. ProfilesCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Profiles"" parentType=""Folder"" handler=""SenseNet.ContentRepository.Folder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Profiles,DisplayName</DisplayName>
@@ -2887,7 +2887,7 @@ namespace SenseNet.Tests.Implementations
   <Fields></Fields>
 </ContentType>",
 			#endregion
-			#region Query.xml
+			#region  54. Query.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Query"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.QueryContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Query,DisplayName</DisplayName>
@@ -2917,7 +2917,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region ReferenceFieldSettingCtd.xml
+			#region  55. ReferenceFieldSettingCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""ReferenceFieldSetting"" parentType=""FieldSettingContent"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-ReferenceFieldSetting,DisplayName</DisplayName>
@@ -2925,7 +2925,7 @@ namespace SenseNet.Tests.Implementations
   <Fields />
 </ContentType>",
 			#endregion
-			#region ResourceCtd.xml
+			#region  56. ResourceCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Resource"" parentType=""SystemFile"" handler=""SenseNet.ContentRepository.i18n.Resource"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Resource,DisplayName</DisplayName>
@@ -2968,7 +2968,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region ResourcesCtd.xml
+			#region  57. ResourcesCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Resources"" parentType=""SystemFolder"" handler=""SenseNet.ContentRepository.SystemFolder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Resources,DisplayName</DisplayName>
@@ -2980,7 +2980,7 @@ namespace SenseNet.Tests.Implementations
   <Fields></Fields>
 </ContentType>",
 			#endregion
-			#region RssApplicationCtd.xml
+			#region  58. RssApplicationCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""RssApplication"" parentType=""Application"" handler=""SenseNet.Services.RssApplication"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-RssApplication,DisplayName</DisplayName>
@@ -2989,7 +2989,7 @@ namespace SenseNet.Tests.Implementations
   <Fields />
 </ContentType>",
 			#endregion
-			#region RuntimeContentContainerCtd.xml
+			#region  59. RuntimeContentContainerCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""RuntimeContentContainer"" parentType=""Folder"" handler=""SenseNet.ContentRepository.RuntimeContentContainer"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-RuntimeContentContainer,DisplayName</DisplayName>
@@ -2998,7 +2998,7 @@ namespace SenseNet.Tests.Implementations
   <Fields />
 </ContentType>",
 			#endregion
-			#region SettingsCtd.xml
+			#region  60. SettingsCtd.xml
 			@"<ContentType name=""Settings"" parentType=""File"" handler=""SenseNet.ContentRepository.Settings"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Settings,DisplayName</DisplayName>
   <Description>$Ctd-Settings,Description</Description>
@@ -3045,7 +3045,7 @@ namespace SenseNet.Tests.Implementations
 </ContentType>
 ",
 			#endregion
-			#region ShortTextFieldSettingCtd.xml
+			#region  61. ShortTextFieldSettingCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""ShortTextFieldSetting"" parentType=""TextFieldSetting"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-ShortTextFieldSetting,DisplayName</DisplayName>
@@ -3053,7 +3053,7 @@ namespace SenseNet.Tests.Implementations
   <Fields />
 </ContentType>",
 			#endregion
-			#region SiteCtd.xml
+			#region  62. SiteCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Site"" parentType=""Workspace"" handler=""SenseNet.Portal.Site"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Site,DisplayName</DisplayName>
@@ -3217,7 +3217,7 @@ namespace SenseNet.Tests.Implementations
 </ContentType>
 ",
 			#endregion
-			#region SitesCtd.xml
+			#region  63. SitesCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Sites"" parentType=""Folder"" handler=""SenseNet.ContentRepository.Folder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Sites,DisplayName</DisplayName>
@@ -3229,7 +3229,7 @@ namespace SenseNet.Tests.Implementations
   <Fields></Fields>
 </ContentType>",
 			#endregion
-			#region SmartFolderCtd.xml
+			#region  64. SmartFolderCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""SmartFolder"" parentType=""Folder"" handler=""SenseNet.ContentRepository.SmartFolder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-SmartFolder,DisplayName</DisplayName>
@@ -3271,7 +3271,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region SystemFileCtd.xml
+			#region  65. SystemFileCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""SystemFile"" parentType=""File"" handler=""SenseNet.ContentRepository.File"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-SystemFile,DisplayName</DisplayName>
@@ -3288,7 +3288,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region SystemFolderCtd.xml
+			#region  66. SystemFolderCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""SystemFolder"" parentType=""Folder"" handler=""SenseNet.ContentRepository.SystemFolder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-SystemFolder,DisplayName</DisplayName>
@@ -3302,7 +3302,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region TaskCtd.xml
+			#region  67. TaskCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Task"" parentType=""ListItem"" handler=""SenseNet.ContentRepository.Task"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Task,DisplayName</DisplayName>
@@ -3417,7 +3417,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region TaskList.xml
+			#region  68. TaskList.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""TaskList"" parentType=""ItemList"" handler=""SenseNet.ContentRepository.ContentList"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-TaskList,DisplayName</DisplayName>
@@ -3429,7 +3429,7 @@ namespace SenseNet.Tests.Implementations
   <Fields></Fields>
 </ContentType>",
 			#endregion
-			#region TextFieldSettingCtd.xml
+			#region  69. TextFieldSettingCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""TextFieldSetting"" parentType=""FieldSettingContent"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-TextFieldSetting,DisplayName</DisplayName>
@@ -3437,7 +3437,7 @@ namespace SenseNet.Tests.Implementations
   <Fields />
 </ContentType>",
 			#endregion
-			#region TrashBagCtd.xml
+			#region  70. TrashBagCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""TrashBag"" parentType=""Folder"" handler=""SenseNet.ContentRepository.TrashBag"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-TrashBag,DisplayName</DisplayName>
@@ -3501,7 +3501,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region TrashBinCtd.xml
+			#region  71. TrashBinCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""TrashBin"" parentType=""Workspace"" handler=""SenseNet.ContentRepository.TrashBin"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-TrashBin,DisplayName</DisplayName>
@@ -3632,7 +3632,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region UserCtd.xml
+			#region  72. UserCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""User"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.User"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-User,DisplayName</DisplayName>
@@ -3969,7 +3969,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region UserProfileCtd.xml
+			#region  73. UserProfileCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""UserProfile"" parentType=""Workspace"" handler=""SenseNet.ContentRepository.UserProfile"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-UserProfile,DisplayName</DisplayName>
@@ -4030,10 +4030,10 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region WebServiceApplicationCtd.xml
+			#region  74. WebServiceApplicationCtd.xml
 			@"<ContentType name=""WebServiceApplication"" parentType=""Application"" handler=""SenseNet.ApplicationModel.Application"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition""><DisplayName>$Ctd-WebServiceApplication,DisplayName</DisplayName><Description>$Ctd-WebServiceApplication,Description</Description><Icon>File</Icon><Fields><Field name=""Binary"" type=""Binary""><DisplayName>$Ctd-WebServiceApplication,Binary-DisplayName</DisplayName><Description>$Ctd-WebServiceApplication,Binary-Description</Description><Configuration><IsText>true</IsText></Configuration></Field></Fields></ContentType>",
 			#endregion
-			#region WorkspaceCtd.xml
+			#region  75. WorkspaceCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Workspace"" parentType=""Folder"" handler=""SenseNet.ContentRepository.Workspaces.Workspace"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Workspace,DisplayName</DisplayName>
@@ -4142,7 +4142,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>",
 			#endregion
-			#region XmlFieldSettingCtd.xml
+			#region  76. XmlFieldSettingCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""XmlFieldSetting"" parentType=""FieldSettingContent"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-XmlFieldSetting,DisplayName</DisplayName>
@@ -4150,7 +4150,7 @@ namespace SenseNet.Tests.Implementations
   <Fields />
 </ContentType>",
 			#endregion
-			#region YesNoFieldSettingCtd.xml
+			#region  77. YesNoFieldSettingCtd.xml
 			@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""YesNoFieldSetting"" parentType=""ChoiceFieldSetting"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-YesNoFieldSetting,DisplayName</DisplayName>
