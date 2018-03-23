@@ -15,7 +15,7 @@ namespace SenseNet.Tests.Implementations
 {
     public class ContentTypeDefinitions
     {
-		public static readonly List<string> ContentTypes = new List<string>
+		public static readonly Dictionary<string, string> ContentTypes = new Dictionary<string, string>
 		{
 <#
 	var id = 0;
@@ -25,7 +25,7 @@ namespace SenseNet.Tests.Implementations
 		var content = File.ReadAllText(path).Replace("\"", "\"\"");
 #>
 			#region  <#= ++id #>. <#= name #>
-			@"<#= content #>",
+			{ "<#= name #>", @"<#= content #>" },
 			#endregion
 <#
 	}
