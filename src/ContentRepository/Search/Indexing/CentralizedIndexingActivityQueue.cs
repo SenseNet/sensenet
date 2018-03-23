@@ -189,11 +189,16 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 {
                     if (WaitingActivities.TryGetValue(waitingActivity.Id, out IndexingActivityBase olderWaitingActivity))
                     {
+                        SnTrace.IndexQueue.Write($"CIAQ: Attaching new waiting A{waitingActivity.Id} to an older instance.");
+
                         // if exists, attach the current to existing.
                         olderWaitingActivity.Attach(waitingActivity);
                         // do not load executables because wait-polling cycle is active.
                         return 0;
                     }
+
+                    SnTrace.IndexQueue.Write($"CIAQ: Adding A{waitingActivity.Id} to waiting list.");
+
                     // add to waiting list
                     WaitingActivities.Add(waitingActivity.Id, waitingActivity);
                 }
@@ -227,18 +232,30 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 }
             }
 
-            // execute loaded activities
-            foreach (var loadedActivity in loadedActivities)
+            if (loadedActivities.Any())
             {
-                if (systemStart)
-                    loadedActivity.IsUnprocessedActivity = true;
+                lock (WaitingActivitiesSync)
+                {
+                    // execute loaded activities
+                    foreach (var loadedActivity in loadedActivities)
+                    {
+                        if (systemStart)
+                            loadedActivity.IsUnprocessedActivity = true;
 
-                if (waitingActivity == null)
-                    // polling branch
-                    System.Threading.Tasks.Task.Run(() => Execute(loadedActivity));
-                else
-                    // UI branch: pay attention to executing waiting instance, because that is needed to be released (loaded one can be dropped).
-                    System.Threading.Tasks.Task.Run(() => Execute(loadedActivity.Id == waitingActivity.Id ? waitingActivity : loadedActivity));
+                        // If a loaded activity is the same as the current activity or
+                        // the same as any of the already waiting activities, we have to
+                        // drop the loaded instance and execute the waiting instance, otherwise
+                        // the algorithm would not notice when the activity is finished and
+                        // the finish signal is released.
+                        var executableActivity = loadedActivity.Id == waitingActivity?.Id
+                            ? waitingActivity
+                            : (WaitingActivities.TryGetValue(loadedActivity.Id, out var otherWaitingActivity)
+                                ? otherWaitingActivity
+                                : loadedActivity);
+
+                        System.Threading.Tasks.Task.Run(() => Execute(executableActivity));
+                    }
+                }
             }
 
             // memorize last running time
