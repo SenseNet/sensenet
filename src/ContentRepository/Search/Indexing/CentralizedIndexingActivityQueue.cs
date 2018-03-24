@@ -115,7 +115,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
             if (!IsPollingEnabled())
                 return;
-
+            
             int waitingListLength;
             lock (WaitingActivitiesSync)
                 waitingListLength = WaitingActivities.Count;
@@ -165,11 +165,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
         private static void EnablePolling()
         {
-            _pollingBlockerCounter--;
+            Interlocked.Decrement(ref _pollingBlockerCounter);
         }
         private static void DisablePolling()
         {
-            _pollingBlockerCounter++;
+            Interlocked.Increment(ref _pollingBlockerCounter);
         }
         private static bool IsPollingEnabled()
         {
@@ -277,7 +277,9 @@ namespace SenseNet.ContentRepository.Search.Indexing
             {
                 try
                 {
-                    _activeTasks++;
+#pragma warning disable 420
+                    Interlocked.Increment(ref _activeTasks);
+#pragma warning restore 420
 
                     // execute synchronously
                     using (new Storage.Security.SystemAccount())
@@ -300,7 +302,10 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         act.Finish();
                         WaitingActivities.Remove(act.Id);
                     }
-                    _activeTasks--;
+
+#pragma warning disable 420
+                    Interlocked.Decrement(ref _activeTasks);
+#pragma warning restore 420
                 }
                 op.Successful = true;
             }
