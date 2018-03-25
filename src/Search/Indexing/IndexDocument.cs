@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -56,7 +57,28 @@ namespace SenseNet.Search.Indexing
         [NonSerialized]
         public static List<string> ForbiddenFields = new List<string>(new[] { "Password", "PasswordHash" });
 
-        private readonly Dictionary<string, IndexField> _fields = new Dictionary<string, IndexField>();
+        private readonly IDictionary<string, IndexField> _fields = new ConcurrentDictionary<string, IndexField>();
+
+        /// <summary>
+        /// Initializes a new instance of the IndexDocument class.
+        /// </summary>
+        public IndexDocument() { }
+        /// <summary>
+        /// Initializes a new instance of the IndexDocument class.
+        /// </summary>
+        /// <param name="fields">Initial field collection.</param>
+        public IndexDocument(IDictionary<string, IndexField> fields)
+        {
+            _fields =  new ConcurrentDictionary<string, IndexField>(fields);
+        }
+
+        /// <summary>
+        /// Converts the field collection in this index document to a dictionary for serialization scenarios.
+        /// </summary>
+        public Dictionary<string, IndexField> ToDictionary()
+        {
+            return new Dictionary<string, IndexField>(_fields);
+        }
 
         /// <summary>
         /// Returns with VersionId. Shortcut of the following call: GetIntegerValue(IndexFieldName.VersionId);
