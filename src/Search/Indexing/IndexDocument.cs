@@ -56,7 +56,7 @@ namespace SenseNet.Search.Indexing
         [NonSerialized]
         public static List<string> ForbiddenFields = new List<string>(new[] { "Password", "PasswordHash" });
 
-        private readonly IDictionary<string, IndexField> _fields = new Dictionary<string, IndexField>();
+        private readonly Dictionary<string, IndexField> _fields = new Dictionary<string, IndexField>();
 
         /// <summary>
         /// Returns with VersionId. Shortcut of the following call: GetIntegerValue(IndexFieldName.VersionId);
