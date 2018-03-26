@@ -204,6 +204,9 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 }
                 // get id array of waiting activities
                 waitingActivityIds = WaitingActivities.Keys.ToArray();
+
+                if (SnTrace.IndexQueue.Enabled)
+                    SnTrace.IndexQueue.Write($"Waiting set v1: {string.Join(", ", waitingActivityIds)}");
             }
 
             // load some executable activities and currently finished ones
@@ -214,7 +217,11 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 waitingActivityIds,
                 out var finishedActivitiyIds);
 
-            SnTrace.IndexQueue.Write("CIAQ: loaded: {0}, waiting: {1}, finished: {2}, tasks: {3}", loadedActivities.Length, waitingActivityIds.Length, finishedActivitiyIds.Length, _activeTasks);
+            if (SnTrace.IndexQueue.Enabled)
+                SnTrace.IndexQueue.Write("CIAQ: loaded: {0} ({1}), waiting: {2}, finished: {3}, tasks: {4}",
+                    loadedActivities.Length,
+                    string.Join(", ", loadedActivities.Select(la => la.Id)),
+                    waitingActivityIds.Length, finishedActivitiyIds.Length, _activeTasks);
 
             // release finished activities
             if (finishedActivitiyIds.Length > 0)
@@ -236,6 +243,9 @@ namespace SenseNet.ContentRepository.Search.Indexing
             {
                 lock (WaitingActivitiesSync)
                 {
+                    if (SnTrace.IndexQueue.Enabled)
+                        SnTrace.IndexQueue.Write($"Waiting set v2: {string.Join(", ", WaitingActivities.Keys)}");
+
                     // execute loaded activities
                     foreach (var loadedActivity in loadedActivities)
                     {
