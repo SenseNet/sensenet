@@ -1267,25 +1267,33 @@ namespace SenseNet.Tests.Implementations
                 _db = new Database();
 
                 _db.Schema = new XmlDocument();
-                _db.Schema.LoadXml(_initialSchema);
+                _db.Schema.LoadXml(_prototypeSchema);
 
-                _db.Nodes = GetInitialNodes();
-                _db.Versions = GetInitialVersions();
-                _db.BinaryProperties = GetInitialBinaryProperties();
-                _db.Files = GetInitialFiles();
-                _db.TextProperties = GetInitialTextProperties();
-                _db.FlatProperties = GetInitialFlatProperties();
-                _db.ReferenceProperties = GetInitialReferencProperties();
+                _db.Nodes = BuildNodes(_prototypeNodes);
+                _db.Versions = BuildVersions();
+                _db.BinaryProperties = BuildBinaryProperties(_prototypeBinaryProperties);
+                _db.Files = BuildInitialFiles(_prototypeFiles);
+                _db.TextProperties = BuildTextProperties(_prototypeTextProperties);
+                _db.FlatProperties = BuildFlatProperties(_prototypeFlatPropertiesNvarchar, _prototypeFlatPropertiesInt, _prototypeFlatPropertiesDatetime, _prototypeFlatPropertiesDecimal);
+                _db.ReferenceProperties = BuildReferencProperties(_prototypeReferenceProperties);
             }
             else
             {
                 _db = _prototype.Clone();
             }
         }
-        private List<NodeRecord> GetInitialNodes()
+        public void ResetDatabase()
         {
-            var skip = _initialNodes.StartsWith("NodeId") ? 1 : 0;
-            return _initialNodes.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+            throw new NotImplementedException();
+        }
+
+        private List<NodeRecord> BuildNodes(string tableData)
+        {
+            if(tableData == null)
+                return new List<NodeRecord>();
+
+            var skip = tableData.StartsWith("NodeId") ? 1 : 0;
+            return tableData.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
                 .Skip(skip)
                 .Select(l =>
                 {
@@ -1310,7 +1318,7 @@ namespace SenseNet.Tests.Implementations
                     };
                 }).ToList();
         }
-        private List<VersionRecord> GetInitialVersions()
+        private List<VersionRecord> BuildVersions()
         {
             return _db.Nodes.Select(n => new VersionRecord
             {
@@ -1323,10 +1331,13 @@ namespace SenseNet.Tests.Implementations
                 ModificationDate = DateTime.UtcNow,
             }).ToList();
         }
-        private List<BinaryPropertyRecord> GetInitialBinaryProperties()
+        private List<BinaryPropertyRecord> BuildBinaryProperties(string tableData)
         {
-            var skip = _initialBinaryProperties.StartsWith("BinaryPropertyId") ? 1 : 0;
-            return _initialBinaryProperties.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+            if (tableData == null)
+                return new List<BinaryPropertyRecord>();
+
+            var skip = tableData.StartsWith("BinaryPropertyId") ? 1 : 0;
+            return tableData.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
                 .Skip(skip)
                 .Select(l =>
                 {
@@ -1340,10 +1351,13 @@ namespace SenseNet.Tests.Implementations
                     };
                 }).ToList();
         }
-        private List<FileRecord> GetInitialFiles()
+        private List<FileRecord> BuildInitialFiles(string tableData)
         {
-            var skip = _initialFiles.StartsWith("FileId") ? 1 : 0;
-            return _initialFiles.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+            if (tableData == null)
+                return new List<FileRecord>();
+
+            var skip = tableData.StartsWith("FileId") ? 1 : 0;
+            return tableData.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
                 .Skip(skip)
                 .Select(l =>
                 {
@@ -1364,10 +1378,13 @@ namespace SenseNet.Tests.Implementations
                     };
                 }).ToList();
         }
-        private List<TextPropertyRecord> GetInitialTextProperties()
+        private List<TextPropertyRecord> BuildTextProperties(string tableData)
         {
-            var skip = _initialTextProperties.StartsWith("TextPropertyNVarcharId") ? 1 : 0;
-            return _initialTextProperties.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+            if (tableData == null)
+                return new List<TextPropertyRecord>();
+
+            var skip = tableData.StartsWith("TextPropertyNVarcharId") ? 1 : 0;
+            return tableData.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
                 .Skip(skip)
                 .Select(l =>
                 {
@@ -1383,11 +1400,14 @@ namespace SenseNet.Tests.Implementations
                 }).ToList();
 
         }
-        private List<FlatPropertyRow> GetInitialFlatProperties()
+        private List<FlatPropertyRow> BuildFlatProperties(string tableDataNvarchar, string tableDataInt, string tableDataDatetime, string tableDataDecimal)
         {
+            if (tableDataNvarchar == null)
+                return new List<FlatPropertyRow>();
+
             // nvarchars
-            var skip = _initialFlatPropertiesNvarchar.StartsWith("Id") ? 1 : 0;
-            var flatRows = _initialFlatPropertiesNvarchar.Split("\r\n".ToCharArray(),
+            var skip = tableDataNvarchar.StartsWith("Id") ? 1 : 0;
+            var flatRows = tableDataNvarchar.Split("\r\n".ToCharArray(),
                     StringSplitOptions.RemoveEmptyEntries)
                 .Skip(skip)
                 .Select(l =>
@@ -1403,8 +1423,8 @@ namespace SenseNet.Tests.Implementations
                 }).ToDictionary(x => x.Id, x => x);
 
             // integers
-            skip = _initialFlatPropertiesInt.StartsWith("Id") ? 1 : 0;
-            foreach (var item in _initialFlatPropertiesInt.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Skip(skip))
+            skip = tableDataInt.StartsWith("Id") ? 1 : 0;
+            foreach (var item in tableDataInt.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Skip(skip))
             {
                 var record = item.Split('\t');
                 var id = int.Parse(record[0]);
@@ -1424,8 +1444,8 @@ namespace SenseNet.Tests.Implementations
             }
 
             // datetimes
-            skip = _initialFlatPropertiesDatetime.StartsWith("Id") ? 1 : 0;
-            foreach (var item in _initialFlatPropertiesDatetime.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Skip(skip))
+            skip = tableDataDatetime.StartsWith("Id") ? 1 : 0;
+            foreach (var item in tableDataDatetime.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Skip(skip))
             {
                 var record = item.Split('\t');
                 var id = int.Parse(record[0]);
@@ -1445,8 +1465,8 @@ namespace SenseNet.Tests.Implementations
             }
 
             // decimals
-            skip = _initialFlatPropertiesDecimal.StartsWith("Id") ? 1 : 0;
-            foreach (var item in _initialFlatPropertiesDecimal.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Skip(skip))
+            skip = tableDataDecimal.StartsWith("Id") ? 1 : 0;
+            foreach (var item in tableDataDecimal.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Skip(skip))
             {
                 var record = item.Split('\t');
                 var id = int.Parse(record[0]);
@@ -1467,10 +1487,13 @@ namespace SenseNet.Tests.Implementations
 
             return flatRows.Values.ToList();
         }
-        private List<ReferencePropertyRow> GetInitialReferencProperties()
+        private List<ReferencePropertyRow> BuildReferencProperties(string tableData)
         {
-            var skip = _initialReferenceProperties.StartsWith("ReferencePropertyId") ? 1 : 0;
-            return _initialReferenceProperties.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+            if (tableData == null)
+                return new List<ReferencePropertyRow>();
+
+            var skip = tableData.StartsWith("ReferencePropertyId") ? 1 : 0;
+            return tableData.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
                 .Skip(skip)
                 .Select(l =>
                 {
@@ -1552,7 +1575,7 @@ namespace SenseNet.Tests.Implementations
                 using (var op = SnTrace.Database.StartOperation("Clone database."))
                 {
                     var schema = new XmlDocument();
-                    schema.LoadXml(_initialSchema);
+                    schema.LoadXml(_prototypeSchema);
                     var db = new Database()
                     {
                         Schema = schema,
@@ -2484,6 +2507,7 @@ namespace SenseNet.Tests.Implementations
             }
         }
         #endregion
+
     }
 }
 

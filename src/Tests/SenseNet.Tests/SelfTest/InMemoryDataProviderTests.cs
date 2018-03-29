@@ -18,6 +18,7 @@ namespace SenseNet.Tests.SelfTest
     [TestClass]
     public class InMemoryDataProviderTests : TestBase
     {
+        /*
         private static readonly StringBuilder _log = new StringBuilder();
         private class Importlogger : IPackagingLogger
         {
@@ -46,7 +47,7 @@ namespace SenseNet.Tests.SelfTest
             var inmemDb = DataProvider.Current as InMemoryDataProvider;
             if (inmemDb != null)
             {
-                inmemDb.DB.Reset();
+                inmemDb.ResetDatabase();
             }
 
             var sb = new StringBuilder();
@@ -92,7 +93,7 @@ namespace SenseNet.Tests.SelfTest
                 }
             });
         }
-
+        */
 
 
 

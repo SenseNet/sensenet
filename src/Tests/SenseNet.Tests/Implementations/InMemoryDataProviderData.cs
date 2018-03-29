@@ -55,7 +55,7 @@
 
         // SELECT NodeId, COALESCE(ParentNodeId, 0) ParentNodeId, NodeTypeId, LastMajorVersionId, LastMinorVersionId, [Index], IsSystem, Name, COALESCE(DisplayName, '""""'), [Path] FROM Nodes
 
-        private static string _initialNodes = @"NodeId	ParentNodeId	NodeTypeId	LastMajorVersionId	LastMinorVersionId	Index	IsSystem	Name	(No column name)	Path
+        private static string _prototypeNodes = @"NodeId	ParentNodeId	NodeTypeId	LastMajorVersionId	LastMinorVersionId	Index	IsSystem	Name	(No column name)	Path
 1	5	3	1	1	0	0	Admin	""""	/Root/IMS/BuiltIn/Portal/Admin
 2	0	4	2	2	1	0	Root	""""	/Root
 3	2	6	3	3	3	0	IMS	Users and Groups	/Root/IMS
@@ -313,7 +313,7 @@
 
         // SELECT * FROM BinaryProperties
 
-        private static string _initialBinaryProperties = @"BinaryPropertyId	VersionId	PropertyTypeId	FileId
+        private static string _prototypeBinaryProperties = @"BinaryPropertyId	VersionId	PropertyTypeId	FileId
 1	16	1	1
 2	17	1	2
 3	18	1	3
@@ -429,7 +429,7 @@
 
         // SELECT FileId, ContentType, FileNameWithoutExtension, Extension, Size FROM Files
 
-        private static string _initialFiles = @"FileId	ContentType	FileNameWithoutExtension	Extension	Size
+        private static string _prototypeFiles = @"FileId	ContentType	FileNameWithoutExtension	Extension	Size
 1	text/xml	ContentType	.ContentType	17616
 2	text/xml	GenericContent	.ContentType	27634
 3	text/xml	Application	.ContentType	7587
@@ -543,7 +543,7 @@
 
         #region TEXTPROPERTIES
 
-        private static string _initialTextProperties = @"TextPropertyNVarcharId	VersionId	PropertyTypeId	Value
+        private static string _prototypeTextProperties = @"TextPropertyNVarcharId	VersionId	PropertyTypeId	Value
 1	105	70	bool generateMissing
 2	107	3	
 3	109	70	bool empty
@@ -646,7 +646,7 @@
 
         // SELECT Id, VersionId, Page, nvarchar_1, nvarchar_2, nvarchar_3, nvarchar_4, nvarchar_5, nvarchar_6, nvarchar_7, nvarchar_8, nvarchar_9, nvarchar_10, nvarchar_11, nvarchar_12, nvarchar_13, nvarchar_14, nvarchar_15, nvarchar_16, nvarchar_17, nvarchar_18, nvarchar_19, nvarchar_20, nvarchar_21, nvarchar_22, nvarchar_23, nvarchar_24, nvarchar_25, nvarchar_26, nvarchar_27, nvarchar_28, nvarchar_29, nvarchar_30, nvarchar_31, nvarchar_32, nvarchar_33, nvarchar_34, nvarchar_35, nvarchar_36, nvarchar_37, nvarchar_38, nvarchar_39, nvarchar_40, nvarchar_41, nvarchar_42, nvarchar_43, nvarchar_44, nvarchar_45, nvarchar_46, nvarchar_47, nvarchar_48, nvarchar_49, nvarchar_50, nvarchar_51, nvarchar_52, nvarchar_53, nvarchar_54, nvarchar_55, nvarchar_56, nvarchar_57, nvarchar_58, nvarchar_59, nvarchar_60, nvarchar_61, nvarchar_62, nvarchar_63, nvarchar_64, nvarchar_65, nvarchar_66, nvarchar_67, nvarchar_68, nvarchar_69, nvarchar_70, nvarchar_71, nvarchar_72, nvarchar_73, nvarchar_74, nvarchar_75, nvarchar_76, nvarchar_77, nvarchar_78, nvarchar_79, nvarchar_80 FROM FlatProperties
 
-        private static string _initialFlatPropertiesNvarchar = @"Id	VersionId	Page	nvarchar_1	nvarchar_2	nvarchar_3	nvarchar_4	nvarchar_5	nvarchar_6	nvarchar_7	nvarchar_8	nvarchar_9	nvarchar_10	nvarchar_11	nvarchar_12	nvarchar_13	nvarchar_14	nvarchar_15	nvarchar_16	nvarchar_17	nvarchar_18	nvarchar_19	nvarchar_20	nvarchar_21	nvarchar_22	nvarchar_23	nvarchar_24	nvarchar_25	nvarchar_26	nvarchar_27	nvarchar_28	nvarchar_29	nvarchar_30	nvarchar_31	nvarchar_32	nvarchar_33	nvarchar_34	nvarchar_35	nvarchar_36	nvarchar_37	nvarchar_38	nvarchar_39	nvarchar_40	nvarchar_41	nvarchar_42	nvarchar_43	nvarchar_44	nvarchar_45	nvarchar_46	nvarchar_47	nvarchar_48	nvarchar_49	nvarchar_50	nvarchar_51	nvarchar_52	nvarchar_53	nvarchar_54	nvarchar_55	nvarchar_56	nvarchar_57	nvarchar_58	nvarchar_59	nvarchar_60	nvarchar_61	nvarchar_62	nvarchar_63	nvarchar_64	nvarchar_65	nvarchar_66	nvarchar_67	nvarchar_68	nvarchar_69	nvarchar_70	nvarchar_71	nvarchar_72	nvarchar_73	nvarchar_74	nvarchar_75	nvarchar_76	nvarchar_77	nvarchar_78	nvarchar_79	nvarchar_80
+        private static string _prototypeFlatPropertiesNvarchar = @"Id	VersionId	Page	nvarchar_1	nvarchar_2	nvarchar_3	nvarchar_4	nvarchar_5	nvarchar_6	nvarchar_7	nvarchar_8	nvarchar_9	nvarchar_10	nvarchar_11	nvarchar_12	nvarchar_13	nvarchar_14	nvarchar_15	nvarchar_16	nvarchar_17	nvarchar_18	nvarchar_19	nvarchar_20	nvarchar_21	nvarchar_22	nvarchar_23	nvarchar_24	nvarchar_25	nvarchar_26	nvarchar_27	nvarchar_28	nvarchar_29	nvarchar_30	nvarchar_31	nvarchar_32	nvarchar_33	nvarchar_34	nvarchar_35	nvarchar_36	nvarchar_37	nvarchar_38	nvarchar_39	nvarchar_40	nvarchar_41	nvarchar_42	nvarchar_43	nvarchar_44	nvarchar_45	nvarchar_46	nvarchar_47	nvarchar_48	nvarchar_49	nvarchar_50	nvarchar_51	nvarchar_52	nvarchar_53	nvarchar_54	nvarchar_55	nvarchar_56	nvarchar_57	nvarchar_58	nvarchar_59	nvarchar_60	nvarchar_61	nvarchar_62	nvarchar_63	nvarchar_64	nvarchar_65	nvarchar_66	nvarchar_67	nvarchar_68	nvarchar_69	nvarchar_70	nvarchar_71	nvarchar_72	nvarchar_73	nvarchar_74	nvarchar_75	nvarchar_76	nvarchar_77	nvarchar_78	nvarchar_79	nvarchar_80
 1	93	0	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
 2	94	0	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
 3	95	0	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
@@ -814,7 +814,7 @@
 
         // SELECT Id, VersionId, Page, int_1, int_2, int_3, int_4, int_5, int_6, int_7, int_8, int_9, int_10, int_11, int_12, int_13, int_14, int_15, int_16, int_17, int_18, int_19, int_20, int_21, int_22, int_23, int_24, int_25, int_26, int_27, int_28, int_29, int_30, int_31, int_32, int_33, int_34, int_35, int_36, int_37, int_38, int_39, int_40 FROM FlatProperties
 
-        private static string _initialFlatPropertiesInt = @"Id	VersionId	Page	int_1	int_2	int_3	int_4	int_5	int_6	int_7	int_8	int_9	int_10	int_11	int_12	int_13	int_14	int_15	int_16	int_17	int_18	int_19	int_20	int_21	int_22	int_23	int_24	int_25	int_26	int_27	int_28	int_29	int_30	int_31	int_32	int_33	int_34	int_35	int_36	int_37	int_38	int_39	int_40
+        private static string _prototypeFlatPropertiesInt = @"Id	VersionId	Page	int_1	int_2	int_3	int_4	int_5	int_6	int_7	int_8	int_9	int_10	int_11	int_12	int_13	int_14	int_15	int_16	int_17	int_18	int_19	int_20	int_21	int_22	int_23	int_24	int_25	int_26	int_27	int_28	int_29	int_30	int_31	int_32	int_33	int_34	int_35	int_36	int_37	int_38	int_39	int_40
 1	93	0	0	0	0	0	0	0	0	0	0	0	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	-4	NULL	NULL	NULL	1	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
 2	94	0	0	0	0	0	0	0	0	0	0	0	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	-4	NULL	NULL	NULL	1	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
 3	95	0	0	0	0	0	0	0	0	0	0	0	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	-4	NULL	NULL	NULL	0	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
@@ -982,7 +982,7 @@
 
         // SELECT Id, VersionId, Page, datetime_1, datetime_2, datetime_3, datetime_4, datetime_5, datetime_6, datetime_7, datetime_8, datetime_9, datetime_10, datetime_11, datetime_12, datetime_13, datetime_14, datetime_15, datetime_16, datetime_17, datetime_18, datetime_19, datetime_20, datetime_21, datetime_22, datetime_23, datetime_24, datetime_25 FROM FlatProperties
 
-        private static string _initialFlatPropertiesDatetime = @"Id	VersionId	Page	datetime_1	datetime_2	datetime_3	datetime_4	datetime_5	datetime_6	datetime_7	datetime_8	datetime_9	datetime_10	datetime_11	datetime_12	datetime_13	datetime_14	datetime_15	datetime_16	datetime_17	datetime_18	datetime_19	datetime_20	datetime_21	datetime_22	datetime_23	datetime_24	datetime_25
+        private static string _prototypeFlatPropertiesDatetime = @"Id	VersionId	Page	datetime_1	datetime_2	datetime_3	datetime_4	datetime_5	datetime_6	datetime_7	datetime_8	datetime_9	datetime_10	datetime_11	datetime_12	datetime_13	datetime_14	datetime_15	datetime_16	datetime_17	datetime_18	datetime_19	datetime_20	datetime_21	datetime_22	datetime_23	datetime_24	datetime_25
 1	93	0	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
 2	94	0	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
 3	95	0	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
@@ -1150,7 +1150,7 @@
 
         // SELECT Id, VersionId, Page, money_1, money_2, money_3, money_4, money_5, money_6, money_7, money_8, money_9, money_10, money_11, money_12, money_13, money_14, money_15 FROM FlatProperties
 
-        private static string _initialFlatPropertiesDecimal = @"Id	VersionId	Page	money_1	money_2	money_3	money_4	money_5	money_6	money_7	money_8	money_9	money_10	money_11	money_12	money_13	money_14	money_15
+        private static string _prototypeFlatPropertiesDecimal = @"Id	VersionId	Page	money_1	money_2	money_3	money_4	money_5	money_6	money_7	money_8	money_9	money_10	money_11	money_12	money_13	money_14	money_15
 1	93	0	0.00	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
 2	94	0	0.00	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
 3	95	0	0.00	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL
@@ -1318,7 +1318,7 @@
 
         // SELECT ReferencePropertyId, VersionId, PropertyTypeId, ReferredNodeId FROM ReferenceProperties
 
-        private static string _initialReferenceProperties = @"ReferencePropertyId	VersionId	PropertyTypeId	ReferredNodeId
+        private static string _prototypeReferenceProperties = @"ReferencePropertyId	VersionId	PropertyTypeId	ReferredNodeId
 2	11	71	7
 3	7	71	1
 4	7	71	1190
@@ -1336,7 +1336,7 @@
 
         #region SCHEMA
 
-        private static readonly string _initialSchema = @"<?xml version='1.0' encoding='utf-8' ?>
+        private static readonly string _prototypeSchema = @"<?xml version='1.0' encoding='utf-8' ?>
 <StorageSchema xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/Storage/Schema'>
 	<UsedPropertyTypes>
 		<PropertyType itemID='1' name='Binary' dataType='Binary' mapping='0' />
@@ -1829,5 +1829,331 @@
 </StorageSchema>
 ";
         #endregion
+
+
+
+
+        #region INITIAL DATA
+
+        private static string _initialNodes = @"NodeId	ParentNodeId	NodeTypeId	LastMajorVersionId	LastMinorVersionId	Index	IsSystem	Name	(No column name)	Path
+1	5	3	1	1	0	0	Admin	""""	/Root/IMS/BuiltIn/Portal/Admin
+2	0	4	2	2	1	0	Root	""""	/Root
+3	2	6	3	3	3	0	IMS	Users and Groups	/Root/IMS
+4	3	7	4	4	0	0	BuiltIn	""""	/Root/IMS/BuiltIn
+5	4	8	5	5	0	0	Portal	""""	/Root/IMS/BuiltIn/Portal
+6	5	3	6	6	4	0	Visitor	""""	/Root/IMS/BuiltIn/Portal/Visitor
+7	5	2	7	7	2	0	Administrators	""""	/Root/IMS/BuiltIn/Portal/Administrators
+8	5	2	8	8	3	0	Everyone	""""	/Root/IMS/BuiltIn/Portal/Everyone
+9	5	2	9	9	5	0	Owners	""""	/Root/IMS/BuiltIn/Portal/Owners
+10	5	3	10	10	7	0	Somebody	""""	/Root/IMS/BuiltIn/Portal/Somebody
+11	5	2	11	11	7	0	Operators	""""	/Root/IMS/BuiltIn/Portal/Operators
+10	5	3	10	10	7	0	Startup	""""	/Root/IMS/BuiltIn/Portal/Startup
+1000	2	5	12	12	3	1	System	""""	/Root/System
+1001	1000	5	13	13	1	1	Schema	Schema	/Root/System/Schema
+1002	1001	5	14	14	1	1	ContentTypes	ContentTypes	/Root/System/Schema/ContentTypes
+1003	1000	5	15	15	2	1	Settings	Settings	/Root/System/Settings
+";
+
+        private static string _initialBinaryProperties = @"BinaryPropertyId	VersionId	PropertyTypeId	FileId";
+        private static string _initialFiles = @"FileId	ContentType	FileNameWithoutExtension	Extension	Size";
+        private static string _initialTextProperties = @"TextPropertyNVarcharId	VersionId	PropertyTypeId	Value";
+        private static string _initialFlatPropertiesNvarchar = @"Id	VersionId	Page	nvarchar_1	nvarchar_2	nvarchar_3	nvarchar_4	nvarchar_5	nvarchar_6	nvarchar_7	nvarchar_8	nvarchar_9	nvarchar_10	nvarchar_11	nvarchar_12	nvarchar_13	nvarchar_14	nvarchar_15	nvarchar_16	nvarchar_17	nvarchar_18	nvarchar_19	nvarchar_20	nvarchar_21	nvarchar_22	nvarchar_23	nvarchar_24	nvarchar_25	nvarchar_26	nvarchar_27	nvarchar_28	nvarchar_29	nvarchar_30	nvarchar_31	nvarchar_32	nvarchar_33	nvarchar_34	nvarchar_35	nvarchar_36	nvarchar_37	nvarchar_38	nvarchar_39	nvarchar_40	nvarchar_41	nvarchar_42	nvarchar_43	nvarchar_44	nvarchar_45	nvarchar_46	nvarchar_47	nvarchar_48	nvarchar_49	nvarchar_50	nvarchar_51	nvarchar_52	nvarchar_53	nvarchar_54	nvarchar_55	nvarchar_56	nvarchar_57	nvarchar_58	nvarchar_59	nvarchar_60	nvarchar_61	nvarchar_62	nvarchar_63	nvarchar_64	nvarchar_65	nvarchar_66	nvarchar_67	nvarchar_68	nvarchar_69	nvarchar_70	nvarchar_71	nvarchar_72	nvarchar_73	nvarchar_74	nvarchar_75	nvarchar_76	nvarchar_77	nvarchar_78	nvarchar_79	nvarchar_80";
+        private static string _initialFlatPropertiesInt = @"Id	VersionId	Page	int_1	int_2	int_3	int_4	int_5	int_6	int_7	int_8	int_9	int_10	int_11	int_12	int_13	int_14	int_15	int_16	int_17	int_18	int_19	int_20	int_21	int_22	int_23	int_24	int_25	int_26	int_27	int_28	int_29	int_30	int_31	int_32	int_33	int_34	int_35	int_36	int_37	int_38	int_39	int_40";
+        private static string _initialFlatPropertiesDatetime = @"Id	VersionId	Page	datetime_1	datetime_2	datetime_3	datetime_4	datetime_5	datetime_6	datetime_7	datetime_8	datetime_9	datetime_10	datetime_11	datetime_12	datetime_13	datetime_14	datetime_15	datetime_16	datetime_17	datetime_18	datetime_19	datetime_20	datetime_21	datetime_22	datetime_23	datetime_24	datetime_25";
+        private static string _initialFlatPropertiesDecimal = @"Id	VersionId	Page	money_1	money_2	money_3	money_4	money_5	money_6	money_7	money_8	money_9	money_10	money_11	money_12	money_13	money_14	money_15";
+        private static string _initialReferenceProperties = @"ReferencePropertyId	VersionId	PropertyTypeId	ReferredNodeId";
+
+
+        private static readonly string _initialSchema = @"<?xml version='1.0' encoding='utf-8' ?>
+<StorageSchema xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/Storage/Schema'>
+	<UsedPropertyTypes>
+		<PropertyType itemID='1' name='Binary' dataType='Binary' mapping='0' />
+		<PropertyType itemID='2' name='VersioningMode' dataType='Int' mapping='0' />
+		<PropertyType itemID='3' name='Description' dataType='Text' mapping='0' />
+		<PropertyType itemID='4' name='Hidden' dataType='Int' mapping='1' />
+		<PropertyType itemID='5' name='InheritableVersioningMode' dataType='Int' mapping='2' />
+		<PropertyType itemID='6' name='ApprovingMode' dataType='Int' mapping='3' />
+		<PropertyType itemID='7' name='InheritableApprovingMode' dataType='Int' mapping='4' />
+		<PropertyType itemID='8' name='AllowedChildTypes' dataType='Text' mapping='1' />
+		<PropertyType itemID='9' name='TrashDisabled' dataType='Int' mapping='5' />
+		<PropertyType itemID='10' name='EnableLifespan' dataType='Int' mapping='6' />
+		<PropertyType itemID='11' name='ValidFrom' dataType='DateTime' mapping='0' />
+		<PropertyType itemID='12' name='ValidTill' dataType='DateTime' mapping='1' />
+		<PropertyType itemID='13' name='Aspects' dataType='Reference' mapping='0' />
+		<PropertyType itemID='14' name='AspectData' dataType='Text' mapping='2' />
+		<PropertyType itemID='15' name='BrowseApplication' dataType='Reference' mapping='1' />
+		<PropertyType itemID='16' name='ExtensionData' dataType='Text' mapping='3' />
+		<PropertyType itemID='17' name='IsTaggable' dataType='Int' mapping='7' />
+		<PropertyType itemID='18' name='Tags' dataType='Text' mapping='4' />
+		<PropertyType itemID='19' name='IsRateable' dataType='Int' mapping='8' />
+		<PropertyType itemID='20' name='RateStr' dataType='String' mapping='0' />
+		<PropertyType itemID='21' name='RateAvg' dataType='Currency' mapping='0' />
+		<PropertyType itemID='22' name='RateCount' dataType='Int' mapping='9' />
+		<PropertyType itemID='23' name='CheckInComments' dataType='Text' mapping='5' />
+		<PropertyType itemID='24' name='RejectReason' dataType='Text' mapping='6' />
+		<PropertyType itemID='25' name='AppName' dataType='String' mapping='1' />
+		<PropertyType itemID='26' name='Disabled' dataType='Int' mapping='10' />
+		<PropertyType itemID='27' name='IsModal' dataType='Int' mapping='11' />
+		<PropertyType itemID='28' name='Clear' dataType='Int' mapping='12' />
+		<PropertyType itemID='29' name='Scenario' dataType='String' mapping='2' />
+		<PropertyType itemID='30' name='ActionTypeName' dataType='String' mapping='3' />
+		<PropertyType itemID='31' name='StyleHint' dataType='String' mapping='4' />
+		<PropertyType itemID='32' name='RequiredPermissions' dataType='String' mapping='5' />
+		<PropertyType itemID='33' name='DeepPermissionCheck' dataType='Int' mapping='13' />
+		<PropertyType itemID='34' name='IncludeBackUrl' dataType='String' mapping='6' />
+		<PropertyType itemID='35' name='CacheControl' dataType='String' mapping='7' />
+		<PropertyType itemID='36' name='MaxAge' dataType='String' mapping='8' />
+		<PropertyType itemID='37' name='CustomUrlParameters' dataType='String' mapping='9' />
+		<PropertyType itemID='38' name='StoredIcon' dataType='String' mapping='10' />
+		<PropertyType itemID='39' name='ContentListBindings' dataType='Text' mapping='7' />
+		<PropertyType itemID='40' name='ContentListDefinition' dataType='Text' mapping='8' />
+		<PropertyType itemID='41' name='DefaultView' dataType='String' mapping='11' />
+		<PropertyType itemID='42' name='AvailableViews' dataType='Reference' mapping='2' />
+		<PropertyType itemID='43' name='AvailableContentTypeFields' dataType='Reference' mapping='3' />
+		<PropertyType itemID='44' name='ListEmail' dataType='String' mapping='12' />
+		<PropertyType itemID='45' name='ExchangeSubscriptionId' dataType='String' mapping='13' />
+		<PropertyType itemID='46' name='OverwriteFiles' dataType='Int' mapping='14' />
+		<PropertyType itemID='47' name='GroupAttachments' dataType='String' mapping='14' />
+		<PropertyType itemID='48' name='SaveOriginalEmail' dataType='Int' mapping='15' />
+		<PropertyType itemID='49' name='IncomingEmailWorkflow' dataType='Reference' mapping='4' />
+		<PropertyType itemID='50' name='OnlyFromLocalGroups' dataType='Int' mapping='16' />
+		<PropertyType itemID='51' name='InboxFolder' dataType='String' mapping='15' />
+		<PropertyType itemID='52' name='OwnerWhenVisitor' dataType='Reference' mapping='5' />
+		<PropertyType itemID='53' name='AspectDefinition' dataType='Text' mapping='9' />
+		<PropertyType itemID='54' name='FieldSettingContents' dataType='Reference' mapping='6' />
+		<PropertyType itemID='55' name='Link' dataType='Reference' mapping='7' />
+		<PropertyType itemID='56' name='WorkflowsRunning' dataType='Int' mapping='17' />
+		<PropertyType itemID='57' name='UserAgentPattern' dataType='String' mapping='16' />
+		<PropertyType itemID='58' name='SyncGuid' dataType='String' mapping='17' />
+		<PropertyType itemID='59' name='LastSync' dataType='DateTime' mapping='2' />
+		<PropertyType itemID='60' name='Watermark' dataType='String' mapping='18' />
+		<PropertyType itemID='61' name='PageCount' dataType='Int' mapping='18' />
+		<PropertyType itemID='62' name='MimeType' dataType='String' mapping='19' />
+		<PropertyType itemID='63' name='Shapes' dataType='Text' mapping='10' />
+		<PropertyType itemID='64' name='PageAttributes' dataType='Text' mapping='11' />
+		<PropertyType itemID='65' name='From' dataType='String' mapping='20' />
+		<PropertyType itemID='66' name='Body' dataType='Text' mapping='12' />
+		<PropertyType itemID='67' name='Sent' dataType='DateTime' mapping='3' />
+		<PropertyType itemID='68' name='ClassName' dataType='String' mapping='21' />
+		<PropertyType itemID='69' name='MethodName' dataType='String' mapping='22' />
+		<PropertyType itemID='70' name='Parameters' dataType='Text' mapping='13' />
+		<PropertyType itemID='71' name='Members' dataType='Reference' mapping='8' />
+		<PropertyType itemID='72' name='StatusCode' dataType='String' mapping='23' />
+		<PropertyType itemID='73' name='RedirectUrl' dataType='String' mapping='24' />
+		<PropertyType itemID='74' name='Width' dataType='Int' mapping='19' />
+		<PropertyType itemID='75' name='Height' dataType='Int' mapping='20' />
+		<PropertyType itemID='76' name='Keywords' dataType='Text' mapping='14' />
+		<PropertyType itemID='77' name='DateTaken' dataType='DateTime' mapping='4' />
+		<PropertyType itemID='78' name='CoverImage' dataType='Reference' mapping='9' />
+		<PropertyType itemID='79' name='ImageType' dataType='String' mapping='25' />
+		<PropertyType itemID='80' name='ImageFieldName' dataType='String' mapping='26' />
+		<PropertyType itemID='81' name='Stretch' dataType='Int' mapping='21' />
+		<PropertyType itemID='82' name='OutputFormat' dataType='String' mapping='27' />
+		<PropertyType itemID='83' name='SmoothingMode' dataType='String' mapping='28' />
+		<PropertyType itemID='84' name='InterpolationMode' dataType='String' mapping='29' />
+		<PropertyType itemID='85' name='PixelOffsetMode' dataType='String' mapping='30' />
+		<PropertyType itemID='86' name='ResizeTypeMode' dataType='String' mapping='31' />
+		<PropertyType itemID='87' name='CropVAlign' dataType='String' mapping='32' />
+		<PropertyType itemID='88' name='CropHAlign' dataType='String' mapping='33' />
+		<PropertyType itemID='89' name='GlobalOnly' dataType='Int' mapping='22' />
+		<PropertyType itemID='90' name='Date' dataType='DateTime' mapping='5' />
+		<PropertyType itemID='91' name='MemoType' dataType='String' mapping='34' />
+		<PropertyType itemID='92' name='SeeAlso' dataType='Reference' mapping='10' />
+		<PropertyType itemID='93' name='Query' dataType='Text' mapping='15' />
+		<PropertyType itemID='94' name='Downloads' dataType='Currency' mapping='1' />
+		<PropertyType itemID='95' name='IsActive' dataType='Int' mapping='23' />
+		<PropertyType itemID='96' name='IsWallContainer' dataType='Int' mapping='24' />
+		<PropertyType itemID='97' name='WorkspaceSkin' dataType='Reference' mapping='11' />
+		<PropertyType itemID='98' name='Manager' dataType='Reference' mapping='12' />
+		<PropertyType itemID='99' name='Deadline' dataType='DateTime' mapping='6' />
+		<PropertyType itemID='100' name='IsCritical' dataType='Int' mapping='25' />
+		<PropertyType itemID='101' name='PendingUserLang' dataType='String' mapping='35' />
+		<PropertyType itemID='102' name='Language' dataType='String' mapping='36' />
+		<PropertyType itemID='103' name='EnableClientBasedCulture' dataType='Int' mapping='26' />
+		<PropertyType itemID='104' name='EnableUserBasedCulture' dataType='Int' mapping='27' />
+		<PropertyType itemID='105' name='UrlList' dataType='Text' mapping='16' />
+		<PropertyType itemID='106' name='StartPage' dataType='Reference' mapping='13' />
+		<PropertyType itemID='107' name='LoginPage' dataType='Reference' mapping='14' />
+		<PropertyType itemID='108' name='SiteSkin' dataType='Reference' mapping='15' />
+		<PropertyType itemID='109' name='DenyCrossSiteAccess' dataType='Int' mapping='28' />
+		<PropertyType itemID='110' name='EnableAutofilters' dataType='String' mapping='37' />
+		<PropertyType itemID='111' name='EnableLifespanFilter' dataType='String' mapping='38' />
+		<PropertyType itemID='112' name='StartDate' dataType='DateTime' mapping='7' />
+		<PropertyType itemID='113' name='DueDate' dataType='DateTime' mapping='8' />
+		<PropertyType itemID='114' name='AssignedTo' dataType='Reference' mapping='16' />
+		<PropertyType itemID='115' name='Priority' dataType='String' mapping='39' />
+		<PropertyType itemID='116' name='Status' dataType='String' mapping='40' />
+		<PropertyType itemID='117' name='TaskCompletion' dataType='Int' mapping='29' />
+		<PropertyType itemID='118' name='KeepUntil' dataType='DateTime' mapping='9' />
+		<PropertyType itemID='119' name='OriginalPath' dataType='String' mapping='41' />
+		<PropertyType itemID='120' name='WorkspaceId' dataType='Int' mapping='30' />
+		<PropertyType itemID='121' name='WorkspaceRelativePath' dataType='String' mapping='42' />
+		<PropertyType itemID='122' name='MinRetentionTime' dataType='Int' mapping='31' />
+		<PropertyType itemID='123' name='SizeQuota' dataType='Int' mapping='32' />
+		<PropertyType itemID='124' name='BagCapacity' dataType='Int' mapping='33' />
+		<PropertyType itemID='125' name='Enabled' dataType='Int' mapping='34' />
+		<PropertyType itemID='126' name='Domain' dataType='String' mapping='43' />
+		<PropertyType itemID='127' name='Email' dataType='String' mapping='44' />
+		<PropertyType itemID='128' name='FullName' dataType='String' mapping='45' />
+		<PropertyType itemID='129' name='OldPasswords' dataType='Text' mapping='17' />
+		<PropertyType itemID='130' name='PasswordHash' dataType='String' mapping='46' />
+		<PropertyType itemID='131' name='LoginName' dataType='String' mapping='47' />
+		<PropertyType itemID='132' name='Profile' dataType='Reference' mapping='17' />
+		<PropertyType itemID='133' name='FollowedWorkspaces' dataType='Reference' mapping='18' />
+		<PropertyType itemID='134' name='JobTitle' dataType='String' mapping='48' />
+		<PropertyType itemID='135' name='ImageRef' dataType='Reference' mapping='19' />
+		<PropertyType itemID='136' name='ImageData' dataType='Binary' mapping='1' />
+		<PropertyType itemID='137' name='Captcha' dataType='String' mapping='49' />
+		<PropertyType itemID='138' name='Department' dataType='String' mapping='50' />
+		<PropertyType itemID='139' name='Languages' dataType='String' mapping='51' />
+		<PropertyType itemID='140' name='Phone' dataType='String' mapping='52' />
+		<PropertyType itemID='141' name='Gender' dataType='String' mapping='53' />
+		<PropertyType itemID='142' name='MaritalStatus' dataType='String' mapping='54' />
+		<PropertyType itemID='143' name='BirthDate' dataType='DateTime' mapping='10' />
+		<PropertyType itemID='144' name='Education' dataType='Text' mapping='18' />
+		<PropertyType itemID='145' name='TwitterAccount' dataType='String' mapping='55' />
+		<PropertyType itemID='146' name='FacebookURL' dataType='String' mapping='56' />
+		<PropertyType itemID='147' name='LinkedInURL' dataType='String' mapping='57' />
+		<PropertyType itemID='148' name='LastLoggedOut' dataType='DateTime' mapping='11' />
+	</UsedPropertyTypes>
+	<NodeTypeHierarchy>
+		<NodeType itemID='10' name='GenericContent' className='SenseNet.ContentRepository.GenericContent'>
+			<PropertyType name='VersioningMode' />
+			<PropertyType name='Description' />
+			<PropertyType name='Hidden' />
+			<PropertyType name='InheritableVersioningMode' />
+			<PropertyType name='ApprovingMode' />
+			<PropertyType name='InheritableApprovingMode' />
+			<PropertyType name='AllowedChildTypes' />
+			<PropertyType name='TrashDisabled' />
+			<PropertyType name='EnableLifespan' />
+			<PropertyType name='ValidFrom' />
+			<PropertyType name='ValidTill' />
+			<PropertyType name='Aspects' />
+			<PropertyType name='AspectData' />
+			<PropertyType name='BrowseApplication' />
+			<PropertyType name='ExtensionData' />
+			<PropertyType name='IsTaggable' />
+			<PropertyType name='Tags' />
+			<PropertyType name='IsRateable' />
+			<PropertyType name='RateStr' />
+			<PropertyType name='RateAvg' />
+			<PropertyType name='RateCount' />
+			<PropertyType name='CheckInComments' />
+			<PropertyType name='RejectReason' />
+			<NodeType itemID='3' name='User' className='SenseNet.ContentRepository.User'>
+				<PropertyType name='VersioningMode' />
+				<PropertyType name='Description' />
+				<PropertyType name='Hidden' />
+				<PropertyType name='InheritableVersioningMode' />
+				<PropertyType name='ApprovingMode' />
+				<PropertyType name='InheritableApprovingMode' />
+				<PropertyType name='AllowedChildTypes' />
+				<PropertyType name='TrashDisabled' />
+				<PropertyType name='EnableLifespan' />
+				<PropertyType name='ValidFrom' />
+				<PropertyType name='ValidTill' />
+				<PropertyType name='Aspects' />
+				<PropertyType name='AspectData' />
+				<PropertyType name='BrowseApplication' />
+				<PropertyType name='SyncGuid' />
+				<PropertyType name='LastSync' />
+				<PropertyType name='Manager' />
+				<PropertyType name='Language' />
+				<PropertyType name='Enabled' />
+				<PropertyType name='Domain' />
+				<PropertyType name='Email' />
+				<PropertyType name='FullName' />
+				<PropertyType name='OldPasswords' />
+				<PropertyType name='PasswordHash' />
+				<PropertyType name='LoginName' />
+				<PropertyType name='Profile' />
+				<PropertyType name='FollowedWorkspaces' />
+				<PropertyType name='JobTitle' />
+				<PropertyType name='ImageRef' />
+				<PropertyType name='ImageData' />
+				<PropertyType name='Captcha' />
+				<PropertyType name='Department' />
+				<PropertyType name='Languages' />
+				<PropertyType name='Phone' />
+				<PropertyType name='Gender' />
+				<PropertyType name='MaritalStatus' />
+				<PropertyType name='BirthDate' />
+				<PropertyType name='Education' />
+				<PropertyType name='TwitterAccount' />
+				<PropertyType name='FacebookURL' />
+				<PropertyType name='LinkedInURL' />
+				<PropertyType name='LastLoggedOut' />
+			</NodeType>
+			<NodeType itemID='2' name='Group' className='SenseNet.ContentRepository.Group'>
+				<PropertyType name='VersioningMode' />
+				<PropertyType name='Description' />
+				<PropertyType name='Hidden' />
+				<PropertyType name='InheritableVersioningMode' />
+				<PropertyType name='ApprovingMode' />
+				<PropertyType name='InheritableApprovingMode' />
+				<PropertyType name='AllowedChildTypes' />
+				<PropertyType name='TrashDisabled' />
+				<PropertyType name='EnableLifespan' />
+				<PropertyType name='ValidFrom' />
+				<PropertyType name='ValidTill' />
+				<PropertyType name='Aspects' />
+				<PropertyType name='AspectData' />
+				<PropertyType name='BrowseApplication' />
+				<PropertyType name='SyncGuid' />
+				<PropertyType name='LastSync' />
+				<PropertyType name='Members' />
+			</NodeType>
+			<NodeType itemID='1' name='Folder' className='SenseNet.ContentRepository.Folder'>
+				<PropertyType name='VersioningMode' />
+				<PropertyType name='Description' />
+				<PropertyType name='Hidden' />
+				<PropertyType name='InheritableVersioningMode' />
+				<PropertyType name='ApprovingMode' />
+				<PropertyType name='InheritableApprovingMode' />
+				<PropertyType name='TrashDisabled' />
+				<PropertyType name='EnableLifespan' />
+				<PropertyType name='ValidFrom' />
+				<PropertyType name='ValidTill' />
+				<PropertyType name='Aspects' />
+				<PropertyType name='AspectData' />
+				<PropertyType name='BrowseApplication' />
+				<NodeType itemID='8' name='OrganizationalUnit' className='SenseNet.ContentRepository.OrganizationalUnit'>
+					<PropertyType name='SyncGuid' />
+					<PropertyType name='LastSync' />
+				</NodeType>
+				<NodeType itemID='7' name='Domain' className='SenseNet.ContentRepository.Domain'>
+					<PropertyType name='SyncGuid' />
+					<PropertyType name='LastSync' />
+				</NodeType>
+				<NodeType itemID='6' name='Domains' className='SenseNet.ContentRepository.Folder' />
+				<NodeType itemID='5' name='SystemFolder' className='SenseNet.ContentRepository.SystemFolder'>
+					<NodeType itemID='54' name='Resources' className='SenseNet.ContentRepository.SystemFolder' />
+				</NodeType>
+				<NodeType itemID='4' name='PortalRoot' className='SenseNet.ContentRepository.PortalRoot'>
+					<PropertyType name='VersioningMode' />
+					<PropertyType name='Description' />
+					<PropertyType name='Hidden' />
+					<PropertyType name='InheritableVersioningMode' />
+					<PropertyType name='ApprovingMode' />
+					<PropertyType name='InheritableApprovingMode' />
+					<PropertyType name='TrashDisabled' />
+					<PropertyType name='EnableLifespan' />
+					<PropertyType name='ValidFrom' />
+					<PropertyType name='ValidTill' />
+					<PropertyType name='Aspects' />
+					<PropertyType name='AspectData' />
+					<PropertyType name='BrowseApplication' />
+				</NodeType>
+			</NodeType>
+		</NodeType>
+		<NodeType itemID='9' name='ContentType' className='SenseNet.ContentRepository.Schema.ContentType'>
+			<PropertyType name='Binary' />
+		</NodeType>
+	</NodeTypeHierarchy>
+</StorageSchema>
+";
+        #endregion
     }
 }
+
