@@ -158,8 +158,13 @@ namespace SenseNet.ContentRepository.Search.Indexing
         {
             if (DateTime.UtcNow - _lastDeleteFinishedTime >= DeleteFinishedPeriod)
             {
-                DataProvider.Current.DeleteFinishedIndexingActivities();
-                _lastDeleteFinishedTime = DateTime.UtcNow;
+                using (var op = SnTrace.IndexQueue.StartOperation("CIAQ: DeleteFinishedActivities"))
+                {
+                    DataProvider.Current.DeleteFinishedIndexingActivities();
+                    _lastDeleteFinishedTime = DateTime.UtcNow;
+
+                    op.Successful = true;
+                }
             }
         }
 
@@ -197,7 +202,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         return 0;
                     }
 
-                    SnTrace.IndexQueue.Write($"CIAQ: Adding A{waitingActivity.Id} to waiting list.");
+                    SnTrace.IndexQueue.Write($"CIAQ: Adding arrived A{waitingActivity.Id} to waiting list.");
 
                     // add to waiting list
                     WaitingActivities.Add(waitingActivity.Id, waitingActivity);
@@ -257,11 +262,32 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         // drop the loaded instance and execute the waiting instance, otherwise
                         // the algorithm would not notice when the activity is finished and
                         // the finish signal is released.
-                        var executableActivity = loadedActivity.Id == waitingActivity?.Id
-                            ? waitingActivity
-                            : (WaitingActivities.TryGetValue(loadedActivity.Id, out var otherWaitingActivity)
-                                ? otherWaitingActivity
-                                : loadedActivity);
+                        IIndexingActivity executableActivity;
+
+                        if (loadedActivity.Id == waitingActivity?.Id)
+                        {
+                            executableActivity = waitingActivity;
+                        }
+                        else
+                        {
+                            if (WaitingActivities.TryGetValue(loadedActivity.Id, out var otherWaitingActivity))
+                            {
+                                // Found in the waiting list: drop the loaded one and execute the waiting.
+                                executableActivity = otherWaitingActivity;
+
+                                SnTrace.IndexQueue.Write($"CIAQ: Loaded A{loadedActivity.Id} found in the waiting list.");
+                            }
+                            else
+                            {
+                                // If a loaded activity is not in the waiting list, we have to add it here
+                                // so that other threads may find it and be able to attach to it.
+
+                                SnTrace.IndexQueue.Write($"CIAQ: Adding loaded A{loadedActivity.Id} to waiting list.");
+
+                                WaitingActivities.Add(loadedActivity.Id, loadedActivity as IndexingActivityBase);
+                                executableActivity = loadedActivity;
+                            }
+                        }
 
                         System.Threading.Tasks.Task.Run(() => Execute(executableActivity));
                     }
