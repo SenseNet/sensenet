@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -8,6 +9,8 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
+using SenseNet.Packaging;
+using SenseNet.Packaging.Steps;
 using SenseNet.Tests.Implementations;
 
 namespace SenseNet.Tests.SelfTest
@@ -15,6 +18,84 @@ namespace SenseNet.Tests.SelfTest
     [TestClass]
     public class InMemoryDataProviderTests : TestBase
     {
+        private static readonly StringBuilder _log = new StringBuilder();
+        private class Importlogger : IPackagingLogger
+        {
+            public LogLevel AcceptedLevel { get; private set; }
+            public string LogFilePath { get; private set; }
+            public void Initialize(LogLevel level, string logFilePath)
+            {
+                AcceptedLevel = level;
+                LogFilePath = logFilePath;
+            }
+            public void WriteTitle(string title)
+            {
+                _log.AppendLine("==============================");
+                _log.AppendLine(title);
+                _log.AppendLine("==============================");
+            }
+            public void WriteMessage(string message)
+            {
+                _log.AppendLine(message);
+            }
+        }
+
+        [TestMethod]
+        public void Xxx()
+        {
+            var inmemDb = DataProvider.Current as InMemoryDataProvider;
+            if (inmemDb != null)
+            {
+                inmemDb.DB.Reset();
+            }
+
+            var sb = new StringBuilder();
+
+            Test(() =>
+            {
+                var importer = new Import
+                {
+                    ResetSecurity = true,
+                    Source = "import",
+                    SourceIsRelativeTo = Step.PathRelativeTo.Package,
+                    Target = "/Root"
+                };
+
+                var packagePath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                    "..\\..\\..\\..\\nuget\\snadmin\\install-services"));
+                string targetPath = null;
+                var networkTargets = new string[0];
+                string sandboxPath = null;
+                Manifest manifest = null;
+                var phase = 1;
+                var countOfPhases = 1;
+                var parameters = new string[0];
+                var console = new StringWriter(sb);
+                var executionContext = ExecutionContext.CreateForTest(packagePath, targetPath, networkTargets,
+                    sandboxPath, manifest, phase, countOfPhases, parameters, console);
+
+                var logDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "App_Data");
+                if (!Directory.Exists(logDirectory))
+                    Directory.CreateDirectory(logDirectory);
+                Logger.Create(LogLevel.Default, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"importlog{DateTime.UtcNow:yyyyMMdd-HHmmss}.log"));
+
+                executionContext.RepositoryStarted = true;
+                RepositoryEnvironment.WorkingMode.SnAdmin = true;
+
+                try
+                {
+                    importer.Execute(executionContext);
+                }
+                catch
+                {
+                    // suppressed
+                }
+            });
+        }
+
+
+
+
         [TestMethod]
         public void InMemDb_LoadRootById()
         {

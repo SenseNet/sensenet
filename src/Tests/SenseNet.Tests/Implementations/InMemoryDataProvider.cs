@@ -657,7 +657,26 @@ namespace SenseNet.Tests.Implementations
 
         protected internal override void InstallDefaultSecurityStructure()
         {
-            throw new NotImplementedException();
+            //UNDONE: InstallDefaultSecurityStructure
+
+            //var securityContext = SecurityHandler.SecurityContext;
+            //SecurityHandler.DeleteEverythingAndRestart();
+
+            //using (var proc = CreateDataProcedure("SELECT NodeId, ParentNodeId, [OwnerId] FROM Nodes ORDER BY [Path]"))
+            //{
+            //    proc.CommandType = CommandType.Text;
+            //    using (var reader = proc.ExecuteReader())
+            //    {
+            //        var idSet = new List<int>();
+            //        while (reader.Read())
+            //        {
+            //            var id = reader.GetSafeInt32(0);
+            //            var parentId = reader.GetSafeInt32(1);
+            //            var ownerId = reader.GetSafeInt32(2);
+            //            securityContext.CreateSecurityEntity(id, parentId, ownerId);
+            //        }
+            //    }
+            //}
         }
         #endregion
 
