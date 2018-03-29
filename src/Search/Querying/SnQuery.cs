@@ -52,14 +52,17 @@ namespace SenseNet.Search.Querying
         /// <summary>
         /// Gets or sets the maximum count of the query result.
         /// </summary>
+        [DataMember]
         public int Top { get; set; }
         /// <summary>
         /// Gets or sets the number of items that are skipped in the beginning of the result list. 
         /// </summary>
+        [DataMember]
         public int Skip { get; set; }
         /// <summary>
         /// Gets or sets the sorting criterias in order of importance.
         /// </summary>
+        [DataMember]
         public SortInfo[] Sort { get; set; }
         /// <summary>
         /// Gets true if the Sort property is not null and contains one or more elements.
@@ -75,39 +78,47 @@ namespace SenseNet.Search.Querying
         /// <summary>
         /// Gets or sets the value of the switch that controls the auto filtering.
         /// </summary>
+        [DataMember]
         public FilterStatus EnableAutofilters { get; set; }
         /// <summary>
         /// Gets or sets the value of the switch that controls the lifespan filtering.
         /// </summary>
+        [DataMember]
         public FilterStatus EnableLifespanFilter { get; set; }
         /// <summary>
         /// Gets or set a value that is true if only the conunt of query result is relevant.
         /// </summary>
+        [DataMember]
         public bool CountOnly { get; set; }
         /// <summary>
         /// Gets or sets the performance option of the query executor.
         /// </summary>
+        [DataMember]
         public QueryExecutionMode QueryExecutionMode { get; set; }
         /// <summary>
         /// Gets or set a value that is true if all versions are relavant in the query result.
         /// </summary>
+        [DataMember]
         public bool AllVersions { get; set; }
 
         /// <summary>
         /// Gets or sets a value that is true if the query result need to contain all count
         /// without "top" and "skip" restrictions.
         /// </summary>
+        [DataMember]
         public bool CountAllPages { get; set; }
 
         /// <summary>
         /// Gets or sets a value to indicate that the result set have to contains one or more elements or not.
         /// This is a simple storage slot.
         /// </summary>
+        [DataMember]
         public bool ThrowIfEmpty { get; set; }
         /// <summary>
         /// Gets or sets a value to indicate that only the first item's existence is relevant.
         /// This is a simple storage slot.
         /// </summary>
+        [DataMember]
         public bool ExistenceOnly { get; set; }
     }
 }

@@ -69,7 +69,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
 
         public virtual IndexDocument CreateDocument()
         {
-            using (var op = SnTrace.Index.StartOperation("LM: DocumentIndexingActivity.CreateDocument (VersionId:{0})", VersionId))
+            using (var op = SnTrace.Index.StartOperation("LM: DocumentIndexingActivity.CreateDocument (VersionId:{0}) A{1}", VersionId, Id))
             {
                 IndexDocument doc;
                 if (IndexDocumentData != null)
