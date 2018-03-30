@@ -1847,11 +1847,11 @@
 9	5	2	9	9	5	0	Owners	""""	/Root/IMS/BuiltIn/Portal/Owners
 10	5	3	10	10	7	0	Somebody	""""	/Root/IMS/BuiltIn/Portal/Somebody
 11	5	2	11	11	7	0	Operators	""""	/Root/IMS/BuiltIn/Portal/Operators
-12	5	3	10	10	7	0	Startup	""""	/Root/IMS/BuiltIn/Portal/Startup
-1000	2	5	12	12	3	1	System	""""	/Root/System
-1001	1000	5	13	13	1	1	Schema	Schema	/Root/System/Schema
-1002	1001	5	14	14	1	1	ContentTypes	ContentTypes	/Root/System/Schema/ContentTypes
-1003	1000	5	15	15	2	1	Settings	Settings	/Root/System/Settings
+12	5	3	12	12	8	0	Startup	""""	/Root/IMS/BuiltIn/Portal/Startup
+1000	2	5	13	13	3	1	System	""""	/Root/System
+1001	1000	5	14	14	1	1	Schema	Schema	/Root/System/Schema
+1002	1001	5	15	15	1	1	ContentTypes	ContentTypes	/Root/System/Schema/ContentTypes
+1003	1000	5	16	16	2	1	Settings	Settings	/Root/System/Settings
 ";
 
         //private static string _initialBinaryProperties = @"BinaryPropertyId	VersionId	PropertyTypeId	FileId";
