@@ -66,6 +66,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>ContentTypeDefinitions.tt</DependentUpon>
     </Compile>
+    <Compile Include="Implementations\DataGenerator.cs" />
     <Compile Include="Implementations\EmptyCache.cs" />
     <Compile Include="Implementations\EverythingAllowedPermissionFilter.cs" />
     <Compile Include="Implementations\InMemoryBlobProvider.cs" />
