@@ -63,7 +63,6 @@
     <Compile Include="CentralizedIndexingInMemoryTests.cs" />
     <Compile Include="CentralizedIndexingSqlTests.cs" />
     <Compile Include="FieldIndexHandlerTests.cs" />
-    <Compile Include="UnitTest1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

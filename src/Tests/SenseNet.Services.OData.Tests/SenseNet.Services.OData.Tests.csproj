@@ -69,7 +69,6 @@
     <Compile Include="Results\ODataEntity.cs" />
     <Compile Include="Results\ODataError.cs" />
     <Compile Include="Results\ODataRawResult.cs" />
-    <Compile Include="UnitTest1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
