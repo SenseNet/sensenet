@@ -1179,7 +1179,7 @@ namespace SenseNet.Tests.Implementations
 
         public int LastNodeId
         {
-            get { return _db.Nodes.Max(n => n.NodeId); }
+            get { return _db.Nodes.Count == 0 ? 1 : _db.Nodes.Max(n => n.NodeId); }
         }
 
         private static void SetLastVersionSlots(Database db, int nodeId, out int lastMajorVersionId, out int lastMinorVersionId, out long nodeTimeStamp)
@@ -1284,7 +1284,16 @@ namespace SenseNet.Tests.Implementations
         }
         public void ResetDatabase()
         {
-            throw new NotImplementedException();
+            _db.Schema = new XmlDocument();
+            _db.Schema.LoadXml(_initialSchema);
+
+            _db.Nodes = BuildNodes(_initialNodes);
+            _db.Versions = BuildVersions();
+            _db.BinaryProperties = BuildBinaryProperties(null);
+            _db.Files = BuildInitialFiles(null);
+            _db.TextProperties = BuildTextProperties(null);
+            _db.FlatProperties = BuildFlatProperties(null, null, null, null);
+            _db.ReferenceProperties = BuildReferencProperties(null);
         }
 
         private List<NodeRecord> BuildNodes(string tableData)
@@ -1622,8 +1631,8 @@ namespace SenseNet.Tests.Implementations
                     throw new NodeAlreadyExistsException();
 
                 // insert
-                var newNodeId = _db.Nodes.Max(r => r.NodeId) + 1;
-                var newVersionId = _db.Versions.Max(r => r.VersionId) + 1;
+                var newNodeId = _db.Nodes.Count == 0 ? 1 : _db.Nodes.Max(r => r.NodeId) + 1;
+                var newVersionId = _db.Versions.Count == 0 ? 1 : _db.Versions.Max(r => r.VersionId) + 1;
                 lastMinorVersionId = newVersionId;
                 lastMajorVersionId = nodeData.Version.IsMajor ? newVersionId : 0;
                 var nodeRecord = new NodeRecord
@@ -1792,7 +1801,7 @@ namespace SenseNet.Tests.Implementations
                 if (destinationVersionId == 0)
                 {
                     // Insert version row
-                    newVersionId = _db.Versions.Max(r => r.VersionId) + 1;
+                    newVersionId = _db.Versions.Count == 0 ? 1 : _db.Versions.Max(r => r.VersionId) + 1;
                     var newVersionRow = new VersionRecord
                     {
                         VersionId = newVersionId,
@@ -1833,7 +1842,7 @@ namespace SenseNet.Tests.Implementations
                 foreach (var binaryPropertyRow in _db.BinaryProperties.Where(r => r.VersionId == previousVersionId).ToArray())
                     _db.BinaryProperties.Add(new BinaryPropertyRecord
                     {
-                        BinaryPropertyId = _db.BinaryProperties.Max(r => r.BinaryPropertyId) + 1,
+                        BinaryPropertyId = _db.BinaryProperties.Count == 0 ? 1 : _db.BinaryProperties.Max(r => r.BinaryPropertyId) + 1,
                         VersionId = newVersionId,
                         PropertyTypeId = binaryPropertyRow.PropertyTypeId,
                         FileId = binaryPropertyRow.FileId
@@ -1841,7 +1850,7 @@ namespace SenseNet.Tests.Implementations
                 foreach (var flatPropertyRow in _db.FlatProperties.Where(r => r.VersionId == previousVersionId).ToArray())
                     _db.FlatProperties.Add(new FlatPropertyRow
                     {
-                        Id = _db.FlatProperties.Max(r => r.Id) + 1,
+                        Id = _db.FlatProperties.Count == 0 ? 1 : _db.FlatProperties.Max(r => r.Id) + 1,
                         VersionId = newVersionId,
                         Page = flatPropertyRow.Page,
                         Strings = flatPropertyRow.Strings.ToArray(),
@@ -1852,7 +1861,7 @@ namespace SenseNet.Tests.Implementations
                 foreach (var referencePropertyRow in _db.ReferenceProperties.Where(r => r.VersionId == previousVersionId).ToArray())
                     _db.ReferenceProperties.Add(new ReferencePropertyRow
                     {
-                        ReferencePropertyId = _db.ReferenceProperties.Max(r => r.ReferencePropertyId) + 1,
+                        ReferencePropertyId = _db.ReferenceProperties.Count == 0 ? 1 : _db.ReferenceProperties.Max(r => r.ReferencePropertyId) + 1,
                         VersionId = newVersionId,
                         PropertyTypeId = referencePropertyRow.PropertyTypeId,
                         ReferredNodeId = referencePropertyRow.ReferredNodeId
@@ -1860,7 +1869,7 @@ namespace SenseNet.Tests.Implementations
                 foreach (var textPropertyRow in _db.TextProperties.Where(r => r.VersionId == previousVersionId).ToArray())
                     _db.TextProperties.Add(new TextPropertyRecord
                     {
-                        Id = _db.TextProperties.Max(r => r.Id) + 1,
+                        Id = _db.TextProperties.Count == 0 ? 1 : _db.TextProperties.Max(r => r.Id) + 1,
                         VersionId = newVersionId,
                         PropertyTypeId = textPropertyRow.PropertyTypeId,
                         Value = textPropertyRow.Value
@@ -1905,7 +1914,7 @@ namespace SenseNet.Tests.Implementations
                 var row = _db.FlatProperties.FirstOrDefault(r => r.VersionId == versionId && r.Page == page);
                 if (row == null)
                 {
-                    var id = _db.FlatProperties.Max(r => r.Id) + 1;
+                    var id = _db.FlatProperties.Count == 0 ? 1 : _db.FlatProperties.Max(r => r.Id) + 1;
                     row = new FlatPropertyRow { Id = id, VersionId = versionId, Page = page };
                     _db.FlatProperties.Add(row);
                 }
@@ -1920,7 +1929,7 @@ namespace SenseNet.Tests.Implementations
                 if (row == null)
                     _db.TextProperties.Add(row = new TextPropertyRecord
                     {
-                        Id = _db.TextProperties.Max(r => r.Id) + 1,
+                        Id = _db.TextProperties.Count == 0 ? 1 : _db.TextProperties.Max(r => r.Id) + 1,
                         VersionId = versionId,
                         PropertyTypeId = propertyType.Id
                     });
@@ -1938,7 +1947,7 @@ namespace SenseNet.Tests.Implementations
                 foreach (var referredNodeId in value.Distinct())
                     _db.ReferenceProperties.Add(new ReferencePropertyRow
                     {
-                        ReferencePropertyId = _db.ReferenceProperties.Max(x => x.ReferencePropertyId) + 1,
+                        ReferencePropertyId = _db.ReferenceProperties.Count == 0 ? 1 : _db.ReferenceProperties.Max(x => x.ReferencePropertyId) + 1,
                         VersionId = versionId,
                         PropertyTypeId = propertyType.Id,
                         ReferredNodeId = referredNodeId
@@ -1956,7 +1965,7 @@ namespace SenseNet.Tests.Implementations
                 var fileId = value.FileId;
                 if (fileId == 0 || value.Stream != null)
                 {
-                    fileId = _db.Files.Max(r => r.FileId) + 1;
+                    fileId = _db.Files.Count == 0 ? 1 : _db.Files.Max(r => r.FileId) + 1;
                     _db.Files.Add(new FileRecord
                     {
                         FileId = fileId,
@@ -1969,7 +1978,7 @@ namespace SenseNet.Tests.Implementations
                     value.FileId = fileId;
                 }
 
-                var binaryPropertyId = _db.BinaryProperties.Max(r => r.BinaryPropertyId) + 1;
+                var binaryPropertyId = _db.BinaryProperties.Count == 0 ? 1 : _db.BinaryProperties.Max(r => r.BinaryPropertyId) + 1;
                 _db.BinaryProperties.Add(new BinaryPropertyRecord
                 {
                     BinaryPropertyId = binaryPropertyId,

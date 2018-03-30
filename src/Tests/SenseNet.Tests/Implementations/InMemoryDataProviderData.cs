@@ -1847,22 +1847,21 @@
 9	5	2	9	9	5	0	Owners	""""	/Root/IMS/BuiltIn/Portal/Owners
 10	5	3	10	10	7	0	Somebody	""""	/Root/IMS/BuiltIn/Portal/Somebody
 11	5	2	11	11	7	0	Operators	""""	/Root/IMS/BuiltIn/Portal/Operators
-10	5	3	10	10	7	0	Startup	""""	/Root/IMS/BuiltIn/Portal/Startup
+12	5	3	10	10	7	0	Startup	""""	/Root/IMS/BuiltIn/Portal/Startup
 1000	2	5	12	12	3	1	System	""""	/Root/System
 1001	1000	5	13	13	1	1	Schema	Schema	/Root/System/Schema
 1002	1001	5	14	14	1	1	ContentTypes	ContentTypes	/Root/System/Schema/ContentTypes
 1003	1000	5	15	15	2	1	Settings	Settings	/Root/System/Settings
 ";
 
-        private static string _initialBinaryProperties = @"BinaryPropertyId	VersionId	PropertyTypeId	FileId";
-        private static string _initialFiles = @"FileId	ContentType	FileNameWithoutExtension	Extension	Size";
-        private static string _initialTextProperties = @"TextPropertyNVarcharId	VersionId	PropertyTypeId	Value";
-        private static string _initialFlatPropertiesNvarchar = @"Id	VersionId	Page	nvarchar_1	nvarchar_2	nvarchar_3	nvarchar_4	nvarchar_5	nvarchar_6	nvarchar_7	nvarchar_8	nvarchar_9	nvarchar_10	nvarchar_11	nvarchar_12	nvarchar_13	nvarchar_14	nvarchar_15	nvarchar_16	nvarchar_17	nvarchar_18	nvarchar_19	nvarchar_20	nvarchar_21	nvarchar_22	nvarchar_23	nvarchar_24	nvarchar_25	nvarchar_26	nvarchar_27	nvarchar_28	nvarchar_29	nvarchar_30	nvarchar_31	nvarchar_32	nvarchar_33	nvarchar_34	nvarchar_35	nvarchar_36	nvarchar_37	nvarchar_38	nvarchar_39	nvarchar_40	nvarchar_41	nvarchar_42	nvarchar_43	nvarchar_44	nvarchar_45	nvarchar_46	nvarchar_47	nvarchar_48	nvarchar_49	nvarchar_50	nvarchar_51	nvarchar_52	nvarchar_53	nvarchar_54	nvarchar_55	nvarchar_56	nvarchar_57	nvarchar_58	nvarchar_59	nvarchar_60	nvarchar_61	nvarchar_62	nvarchar_63	nvarchar_64	nvarchar_65	nvarchar_66	nvarchar_67	nvarchar_68	nvarchar_69	nvarchar_70	nvarchar_71	nvarchar_72	nvarchar_73	nvarchar_74	nvarchar_75	nvarchar_76	nvarchar_77	nvarchar_78	nvarchar_79	nvarchar_80";
-        private static string _initialFlatPropertiesInt = @"Id	VersionId	Page	int_1	int_2	int_3	int_4	int_5	int_6	int_7	int_8	int_9	int_10	int_11	int_12	int_13	int_14	int_15	int_16	int_17	int_18	int_19	int_20	int_21	int_22	int_23	int_24	int_25	int_26	int_27	int_28	int_29	int_30	int_31	int_32	int_33	int_34	int_35	int_36	int_37	int_38	int_39	int_40";
-        private static string _initialFlatPropertiesDatetime = @"Id	VersionId	Page	datetime_1	datetime_2	datetime_3	datetime_4	datetime_5	datetime_6	datetime_7	datetime_8	datetime_9	datetime_10	datetime_11	datetime_12	datetime_13	datetime_14	datetime_15	datetime_16	datetime_17	datetime_18	datetime_19	datetime_20	datetime_21	datetime_22	datetime_23	datetime_24	datetime_25";
-        private static string _initialFlatPropertiesDecimal = @"Id	VersionId	Page	money_1	money_2	money_3	money_4	money_5	money_6	money_7	money_8	money_9	money_10	money_11	money_12	money_13	money_14	money_15";
-        private static string _initialReferenceProperties = @"ReferencePropertyId	VersionId	PropertyTypeId	ReferredNodeId";
-
+        //private static string _initialBinaryProperties = @"BinaryPropertyId	VersionId	PropertyTypeId	FileId";
+        //private static string _initialFiles = @"FileId	ContentType	FileNameWithoutExtension	Extension	Size";
+        //private static string _initialTextProperties = @"TextPropertyNVarcharId	VersionId	PropertyTypeId	Value";
+        //private static string _initialFlatPropertiesNvarchar = @"Id	VersionId	Page	nvarchar_1	nvarchar_2	nvarchar_3	nvarchar_4	nvarchar_5	nvarchar_6	nvarchar_7	nvarchar_8	nvarchar_9	nvarchar_10	nvarchar_11	nvarchar_12	nvarchar_13	nvarchar_14	nvarchar_15	nvarchar_16	nvarchar_17	nvarchar_18	nvarchar_19	nvarchar_20	nvarchar_21	nvarchar_22	nvarchar_23	nvarchar_24	nvarchar_25	nvarchar_26	nvarchar_27	nvarchar_28	nvarchar_29	nvarchar_30	nvarchar_31	nvarchar_32	nvarchar_33	nvarchar_34	nvarchar_35	nvarchar_36	nvarchar_37	nvarchar_38	nvarchar_39	nvarchar_40	nvarchar_41	nvarchar_42	nvarchar_43	nvarchar_44	nvarchar_45	nvarchar_46	nvarchar_47	nvarchar_48	nvarchar_49	nvarchar_50	nvarchar_51	nvarchar_52	nvarchar_53	nvarchar_54	nvarchar_55	nvarchar_56	nvarchar_57	nvarchar_58	nvarchar_59	nvarchar_60	nvarchar_61	nvarchar_62	nvarchar_63	nvarchar_64	nvarchar_65	nvarchar_66	nvarchar_67	nvarchar_68	nvarchar_69	nvarchar_70	nvarchar_71	nvarchar_72	nvarchar_73	nvarchar_74	nvarchar_75	nvarchar_76	nvarchar_77	nvarchar_78	nvarchar_79	nvarchar_80";
+        //private static string _initialFlatPropertiesInt = @"Id	VersionId	Page	int_1	int_2	int_3	int_4	int_5	int_6	int_7	int_8	int_9	int_10	int_11	int_12	int_13	int_14	int_15	int_16	int_17	int_18	int_19	int_20	int_21	int_22	int_23	int_24	int_25	int_26	int_27	int_28	int_29	int_30	int_31	int_32	int_33	int_34	int_35	int_36	int_37	int_38	int_39	int_40";
+        //private static string _initialFlatPropertiesDatetime = @"Id	VersionId	Page	datetime_1	datetime_2	datetime_3	datetime_4	datetime_5	datetime_6	datetime_7	datetime_8	datetime_9	datetime_10	datetime_11	datetime_12	datetime_13	datetime_14	datetime_15	datetime_16	datetime_17	datetime_18	datetime_19	datetime_20	datetime_21	datetime_22	datetime_23	datetime_24	datetime_25";
+        //private static string _initialFlatPropertiesDecimal = @"Id	VersionId	Page	money_1	money_2	money_3	money_4	money_5	money_6	money_7	money_8	money_9	money_10	money_11	money_12	money_13	money_14	money_15";
+        //private static string _initialReferenceProperties = @"ReferencePropertyId	VersionId	PropertyTypeId	ReferredNodeId";
 
         private static readonly string _initialSchema = @"<?xml version='1.0' encoding='utf-8' ?>
 <StorageSchema xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/Storage/Schema'>

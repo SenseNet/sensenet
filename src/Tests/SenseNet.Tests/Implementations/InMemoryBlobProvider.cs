@@ -65,7 +65,7 @@ namespace SenseNet.Tests.Implementations
             if (!isNewNode)
                 db.BinaryProperties.RemoveAll(r => r.VersionId == versionId && r.PropertyTypeId == propertyTypeId);
 
-            var fileId = db.Files.Max(r => r.FileId) + 1;
+            var fileId = db.Files.Count == 0 ? 1 : db.Files.Max(r => r.FileId) + 1;
             db.Files.Add(new InMemoryDataProvider.FileRecord
             {
                 FileId = fileId,
@@ -76,7 +76,7 @@ namespace SenseNet.Tests.Implementations
                 BlobProvider = value.BlobProviderName,
                 BlobProviderData = value.BlobProviderData
             });
-            var binaryPropertyId = db.BinaryProperties.Max(r => r.BinaryPropertyId) + 1;
+            var binaryPropertyId = db.BinaryProperties.Count == 0 ? 1 : db.BinaryProperties.Max(r => r.BinaryPropertyId) + 1;
             db.BinaryProperties.Add(new InMemoryDataProvider.BinaryPropertyRecord
             {
                 BinaryPropertyId = binaryPropertyId,
@@ -124,7 +124,7 @@ namespace SenseNet.Tests.Implementations
                 return;
 
             var db = _dataProvider.DB;
-            var fileId = db.Files.Max(r => r.FileId) + 1;
+            var fileId = db.Files.Count == 0 ? 1 : db.Files.Max(r => r.FileId) + 1;
             db.Files.Add(new InMemoryDataProvider.FileRecord
             {
                 FileId = fileId,

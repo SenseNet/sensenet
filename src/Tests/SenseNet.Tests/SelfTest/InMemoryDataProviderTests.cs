@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
@@ -18,7 +19,6 @@ namespace SenseNet.Tests.SelfTest
     [TestClass]
     public class InMemoryDataProviderTests : TestBase
     {
-        /*
         private static readonly StringBuilder _log = new StringBuilder();
         private class Importlogger : IPackagingLogger
         {
@@ -44,16 +44,20 @@ namespace SenseNet.Tests.SelfTest
         [TestMethod]
         public void Xxx()
         {
-            var inmemDb = DataProvider.Current as InMemoryDataProvider;
-            if (inmemDb != null)
-            {
-                inmemDb.ResetDatabase();
-            }
-
             var sb = new StringBuilder();
 
             Test(() =>
             {
+                if (!(DataProvider.Current is InMemoryDataProvider inmemDb))
+                    throw new ApplicationException("Cannot reset the database.");
+                inmemDb.ResetDatabase();
+
+                if(!(SearchManager.SearchEngine.IndexingEngine is InMemoryIndexingEngine inmemIndxEngine))
+                    throw new ApplicationException("Cannot reset the index.");
+                inmemIndxEngine.ClearIndex();
+
+                ContentTypeManager.Reset();
+
                 var importer = new Import
                 {
                     ResetSecurity = true,
@@ -86,14 +90,15 @@ namespace SenseNet.Tests.SelfTest
                 try
                 {
                     importer.Execute(executionContext);
+                    SaveInitialIndexDocuments();
+                    RebuildIndex();
                 }
                 catch
                 {
-                    // suppressed
+                    throw;
                 }
             });
         }
-        */
 
 
 
