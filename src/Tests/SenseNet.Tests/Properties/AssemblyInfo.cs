@@ -6,7 +6,6 @@ using System.Runtime.InteropServices;
 #else
 [assembly: AssemblyTitle("SenseNet.Tests (Release)")]
 #endif
-
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Sense/Net Inc.")]

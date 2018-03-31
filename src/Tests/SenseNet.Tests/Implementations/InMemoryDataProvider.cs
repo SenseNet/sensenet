@@ -1196,24 +1196,21 @@ namespace SenseNet.Tests.Implementations
             // Preload CTD bytes from disk to avoid heavy IO charging
 
             ContentTypeBytes = new Dictionary<string, byte[]>();
-
-            var ctdDirectory = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                @"..\..\..\..\nuget\snadmin\install-services\import\System\Schema\ContentTypes"));
-
-            foreach (var ctdPath in Directory.GetFiles(ctdDirectory, "*.xml"))
+            foreach (var item in ContentTypeDefinitions.ContentTypes)
             {
-                var stream = new MemoryStream();
                 byte[] bytes;
+                using (var stream = new MemoryStream())
                 using (var writer = new StreamWriter(stream, Encoding.UTF8))
-                using (var reader = new StreamReader(ctdPath))
                 {
-                    writer.Write(reader.ReadToEnd());
+                    writer.Write(item.Value);
                     writer.Flush();
+                    stream.Position = 0;
                     var buffer = stream.GetBuffer();
                     bytes = new byte[stream.Length];
                     Array.Copy(buffer, bytes, bytes.Length);
                 }
-                ContentTypeBytes.Add(Path.GetFileNameWithoutExtension(ctdPath).ToLowerInvariant(), bytes);
+
+                ContentTypeBytes.Add(Path.GetFileNameWithoutExtension(item.Key).ToLowerInvariant(), bytes);
             }
         }
 

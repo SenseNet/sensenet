@@ -9,7 +9,7 @@ nuget pack $srcPath\Common\Common.csproj -properties Configuration=Release -Outp
 nuget pack $srcPath\BlobStorage\BlobStorage.csproj -properties Configuration=Release -OutputDirectory $PSScriptRoot
 nuget pack $srcPath\Services\Services.nuspec -properties Configuration=Release -OutputDirectory $PSScriptRoot
 nuget pack $srcPath\Search\Search.csproj -properties Configuration=Release -OutputDirectory $PSScriptRoot
-nuget pack $srcPath\Tests\SenseNet.Tests\SenseNet.Tests.csproj -properties Configuration=Release -OutputDirectory $PSScriptRoot
+nuget pack $srcPath\Tests\SenseNet.Tests\SenseNet.Tests.nuspec -properties Configuration=Release -OutputDirectory $PSScriptRoot
 
 New-Item $srcPath\nuget\snadmin\install-services\scripts -ItemType directory -Force
 

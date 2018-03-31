@@ -11,10 +11,21 @@ namespace SenseNet.ContentRepository.Tests.Schema
     public class TypeCollectionTests : TestBase
     {
         [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
         public void TypeCollection_Constructor_WithNull()
         {
-            TypeCollection<NodeType> tc1 = TypeCollectionAccessor<NodeType>.Create((SchemaEditor)null).Target;
+            Exception e = null;
+            try
+            {
+                var tc1 = TypeCollectionAccessor<NodeType>.Create((SchemaEditor) null).Target;
+            }
+            catch(Exception ex)
+            {
+                e = ex;
+                while (e != null && !(e is ArgumentNullException))
+                    e = e.InnerException;
+            }
+            if (e == null)
+                Assert.Fail("ArgumentNullException was not thrown.");
         }
         [TestMethod]
         public void TypeCollection_Constructor_WithAllAllowedTypes()
