@@ -18,7 +18,7 @@ namespace SenseNet.ContentRepository
 {
     /// <summary>
     /// Settings and provider builder class that controls the startup options and provider
-    /// instances when a sensenet ECM repository starts.
+    /// instances when a sensenet repository starts.
     /// </summary>
     public class RepositoryBuilder : RepositoryStartSettings
     {

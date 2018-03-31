@@ -2,15 +2,15 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>SenseNet.Common</id>
-    <version>7.1.0</version>
-    <title>sensenet ECM Common library</title>
-    <authors>kavics,aniko,laci,borsi,lajos,tusmester</authors>
+    <version>7.1.1</version>
+    <title>sensenet Common library</title>
+    <authors>kavics,aniko,lajos,tusmester</authors>
     <owners>Sense/Net</owners>
     <licenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/SenseNet/sensenet</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Common library for the sensenet ECM platform containing storage and configuration-related components.</description>
+    <description>Common library for the sensenet platform containing storage and configuration-related components.</description>
     <releaseNotes>See release notes on GitHub.</releaseNotes>
     <copyright>Copyright © Sense/Net Inc.</copyright>
     <tags>sensenet ecm ecms</tags>

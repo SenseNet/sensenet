@@ -2,22 +2,22 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>SenseNet.Services.Install</id>
-    <version>7.1.0</version>
-    <title>sensenet ECM Services install package</title>
-    <authors>kavics,aniko,laci,borsi,lajos,tusmester</authors>
+    <version>7.1.1</version>
+    <title>sensenet Services install package</title>
+    <authors>kavics,aniko,lajos,tusmester</authors>
     <owners>Sense/Net</owners>
     <licenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/SenseNet/sensenet</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>sensenet ECM is an Enterprise Content Management platform for .Net. This package contains installation items and should be installed only in a single web project. All other projects should reference the SenseNet.Services dll-only package.</description>
+    <description>sensenet is an Enterprise Content Services platform for .Net. This package contains installation items and should be installed only in a single web project. All other projects should reference the SenseNet.Services dll-only package.</description>
     <releaseNotes>See release notes on GitHub.</releaseNotes>
     <copyright>Copyright © Sense/Net Inc.</copyright>
-    <tags>sensenet ecm ecms</tags>
+    <tags>sensenet ecm ecms csp content platform</tags>
     <dependencies>
-      <dependency id="SenseNet.Services" version="7.1.0" />
+      <dependency id="SenseNet.Services" version="7.1.1" />
       <dependency id="SenseNet.SnAdmin" version="1.4.4" />
-      <dependency id="SenseNet.Search.Lucene29.Local" version="7.1.0" />
+      <dependency id="SenseNet.Search.Lucene29.Local" version="7.1.1" />
     </dependencies>
   </metadata>
   <files>

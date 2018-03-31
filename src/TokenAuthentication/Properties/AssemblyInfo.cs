@@ -6,13 +6,13 @@ using System.Runtime.CompilerServices;
 #else
 [assembly: AssemblyTitle("SenseNet.TokenAuthentication (Release)")]
 #endif
-[assembly: AssemblyDescription("JWT Token authentication for sensenet ECM")]
+[assembly: AssemblyDescription("JWT Token authentication for sensenet")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Sense/Net Inc.")]
-[assembly: AssemblyProduct("sensenet ECM")]
+[assembly: AssemblyProduct("sensenet")]
 [assembly: AssemblyCopyright("Copyright © Sense/Net Inc.")]
 [assembly: AssemblyTrademark("Sense/Net Inc.")]
 [assembly: AssemblyCulture("")]
-[assembly: AssemblyVersion("7.1.0.0")]
-[assembly: AssemblyFileVersion("7.1.0.0")]
-[assembly: AssemblyInformationalVersion("7.1.0")]
+[assembly: AssemblyVersion("7.1.1.0")]
+[assembly: AssemblyFileVersion("7.1.1.0")]
+[assembly: AssemblyInformationalVersion("7.1.1")]
