@@ -25,9 +25,11 @@ namespace SenseNet.RestTester
                 .Select(c => c.Name)
                 .ToArray();
 
-            var actual = string.Join(", ", topLevelNames);
-            var expected = "(apps), IMS, Localization, System, Trash";
-            Assert.AreEqual(expected, actual);
+            Assert.IsTrue(topLevelNames.Contains("(apps)"));
+            Assert.IsTrue(topLevelNames.Contains("IMS"));
+            Assert.IsTrue(topLevelNames.Contains("Localization"));
+            Assert.IsTrue(topLevelNames.Contains("System"));
+            Assert.IsTrue(topLevelNames.Contains("Trash"));
         }
         [TestMethod]
         public void CreateAndDeleteContent()
