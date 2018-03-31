@@ -6,10 +6,10 @@ using System.Runtime.CompilerServices;
 #else
 [assembly: AssemblyTitle("SenseNet.TokenAuthentication (Release)")]
 #endif
-[assembly: AssemblyDescription("JWT Token authentication for sensenet ECM")]
+[assembly: AssemblyDescription("JWT Token authentication for sensenet")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Sense/Net Inc.")]
-[assembly: AssemblyProduct("sensenet ECM")]
+[assembly: AssemblyProduct("sensenet")]
 [assembly: AssemblyCopyright("Copyright © Sense/Net Inc.")]
 [assembly: AssemblyTrademark("Sense/Net Inc.")]
 [assembly: AssemblyCulture("")]

@@ -3,7 +3,7 @@
   <metadata>
     <id>SenseNet.Tests</id>
     <version>1.1</version>
-    <title>sensenet ECM Test library</title>
+    <title>sensenet Test library</title>
     <authors>kavics,tusmester</authors>
     <owners>Sense/Net</owners>
     <licenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</licenseUrl>
@@ -19,7 +19,7 @@
       <dependency id="SenseNet.Security" version="2.3.1" />
       <dependency id="SenseNet.Tools" version="2.1.1" />
       <dependency id="SenseNet.Search" version="1.1.0" />
-      <dependency id="SenseNet.Services" version="7.1" />
+      <dependency id="SenseNet.Services" version="7.1.1" />
     </dependencies>
   </metadata>
   <files>

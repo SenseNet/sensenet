@@ -3,8 +3,8 @@
   <metadata>
     <id>SenseNet.Search</id>
     <version>1.1</version>
-    <title>sensenet ECM Search library</title>
-    <authors>kavics,laci,tusmester</authors>
+    <title>sensenet Search library</title>
+    <authors>kavics,tusmester</authors>
     <owners>Sense/Net</owners>
     <licenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/SenseNet/sensenet</projectUrl>

@@ -1,3 +1,3 @@
 ﻿# Common library
 
-A library containing sensenet ECM product-level common knowledge.
+A library containing sensenet product-level common knowledge.

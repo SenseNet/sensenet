@@ -5,9 +5,6 @@ using System.Runtime.InteropServices;
 [assembly: InternalsVisibleTo("SenseNet.Search.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.Search.Lucene29.Tests")]
 
-// General Information about an assembly is controlled through the following 
-// set of attributes. Change these attribute values to modify the information
-// associated with an assembly.
 [assembly: AssemblyTitle("SenseNet.Search")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]

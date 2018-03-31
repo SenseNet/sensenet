@@ -847,7 +847,7 @@ namespace SenseNet.ContentRepository
         {
             // NOTE:
             // A Settings content can contain any user-defined JSON object. The properties of that JSON object will appear as dynamic fields on the Content layer.
-            // The problem is that sensenet ECM can't handle two differently typed fields with the same name.
+            // The problem is that sensenet can't handle two differently typed fields with the same name.
             // However, the name of these fields may collide with the name of a CTD field or a name of another dynamic field.
             // ----------
             // For now, the solution is to disable indexing for the dynamic fields on Settings.

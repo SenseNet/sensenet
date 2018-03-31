@@ -3,7 +3,7 @@
 namespace SenseNet.ContentRepository
 {
     /// <summary>
-    /// Defines properties and methods related to a sensenet ECM component - for example Services or Workspaces.
+    /// Defines properties and methods related to a sensenet component - for example Services or Workspaces.
     /// </summary>
     public interface ISnComponent
     {
