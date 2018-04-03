@@ -35,7 +35,7 @@ namespace SenseNet.Search.Querying
         BinaryOrFullText = 3
     }
 
-    internal class PermissionFilter : IPermissionFilter
+    public class PermissionFilter : IPermissionFilter
     {
         private enum DocumentOpenLevel { Denied, See, Preview, Open, OpenMinor }
 
@@ -188,7 +188,7 @@ namespace SenseNet.Search.Querying
 
         private static readonly string[] HeadOnlyFields = Node.GetHeadOnlyProperties();
 
-        private QueryFieldLevel GetFieldLevel(SnQuery query)
+        public static QueryFieldLevel GetFieldLevel(SnQuery query)
         {
             var v = new FieldNameVisitor();
             v.Visit(query.QueryTree);

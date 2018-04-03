@@ -2,18 +2,17 @@
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("SenseNet.Search.IntegrationTests")]
+
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("SenseNet.Search.IntegrationTests")]
-[assembly: AssemblyCopyright("Copyright ©  2017")]
-[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCompany("Sense/Net Inc.")]
+[assembly: AssemblyCopyright("Copyright © Sense/Net Inc.")]
+[assembly: AssemblyProduct("sensenet")]
+[assembly: AssemblyTrademark("Sense/Net Inc.")]
 [assembly: AssemblyCulture("")]
+[assembly: AssemblyVersion("1.1.0.0")]
+[assembly: AssemblyFileVersion("1.1.0.0")]
+[assembly: AssemblyInformationalVersion("1.1.0.0")]
 
 [assembly: ComVisible(false)]
-
 [assembly: Guid("a29cb53a-df6c-487c-9fdc-dc73a5cb2b13")]
-
-[assembly: AssemblyVersion("7.0.0.0")]
-[assembly: AssemblyFileVersion("7.0.0.0")]
-[assembly: AssemblyInformationalVersion("7.0.0")]

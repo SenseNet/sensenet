@@ -527,11 +527,11 @@ namespace SenseNet.Search.IntegrationTests
 
                 var start = new[]
                 {
-                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Done,    1, 1, "/Root/Path1"),
-                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Done,    2, 2, "/Root/Path2"),
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Done,    1, 1, "/Root/Path1", DateTime.UtcNow.AddHours(-1), DateTime.UtcNow.AddMinutes(-59)),
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Done,    2, 2, "/Root/Path2", DateTime.UtcNow.AddHours(-1), DateTime.UtcNow.AddMinutes(-59)),
                     RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Running, 3, 3, "/Root/Path3"),
                     RegisterActivity(IndexingActivityType.UpdateDocument, IndexingActivityRunningState.Waiting, 3, 3, "/Root/Path3"),
-                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Done,    4, 4, "/Root/Path4"),
+                    RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Done,    4, 4, "/Root/Path4", DateTime.UtcNow.AddHours(-1), DateTime.UtcNow.AddMinutes(-59)),
                     RegisterActivity(IndexingActivityType.AddDocument,    IndexingActivityRunningState.Waiting, 5, 5, "/Root/Path5"),
                 };
 
@@ -566,14 +566,21 @@ namespace SenseNet.Search.IntegrationTests
             }
         }
 
-        private IIndexingActivity RegisterActivity(IndexingActivityType type, IndexingActivityRunningState state, int nodeId, int versionId, string path)
+        private IIndexingActivity RegisterActivity(IndexingActivityType type, IndexingActivityRunningState state, 
+            int nodeId, int versionId, string path, DateTime? creationDate = null, DateTime? lockTime = null)
         {
             IndexingActivityBase activity;
             if (type == IndexingActivityType.AddTree || type == IndexingActivityType.RemoveTree)
                 activity = CreateTreeActivity(type, path, nodeId, null);
             else
                 activity = CreateActivity(type, path, nodeId, versionId, 9999, null);
+
             activity.RunningState = state;
+
+            if (creationDate.HasValue)
+                activity.CreationDate = creationDate.Value;
+            if (lockTime.HasValue)
+                activity.LockTime = lockTime;
 
             DataProvider.Current.RegisterIndexingActivity(activity);
 

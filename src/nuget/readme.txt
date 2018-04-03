@@ -1,12 +1,12 @@
 ************************************************************************************
-                                sensenet ECM platform
+                                sensenet platform
                           Content Repository and Services
 ************************************************************************************
 
 To read these instructions on the web in a more readable format, follow this link:
 https://github.com/SenseNet/sensenet/blob/master/docs/install-sn-from-nuget.md#InstallPackage
 
-To finalize the installation and get started with sensenet ECM platform, please follow these steps:
+To finalize the installation and get started with sensenet platform, please follow these steps:
 
 1. Change the Global.asax markup file's (not the cs file's) first line to contain a new parent type:
    
@@ -37,7 +37,7 @@ To finalize the installation and get started with sensenet ECM platform, please 
 
 4. Build your solution, make sure that there are no build errors.
 
-5. Install sensenet ECM Content Repository database. Please make sure that you have access to a SQL Server.
+5. Install sensenet Content Repository database. Please make sure that you have access to a SQL Server.
 
    The process will modify the connection string in Web.config and Tools\SnAdminRuntime.exe.config files automatically, 
    ensuring that it is pointing to your SQL Server (DataSource) and Database Name (Initial Catalog).

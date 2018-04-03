@@ -27,7 +27,7 @@ using Retrier = SenseNet.ContentRepository.Storage.Retrier;
 namespace SenseNet.ContentRepository
 {
     /// <summary>
-    /// A content handler that encapsulates metadata and functionality of a sensenet ECM user.
+    /// A content handler that encapsulates metadata and functionality of a sensenet user.
     /// </summary>
     [ContentHandler]
     public class User : GenericContent, IUser, IADSyncable, SenseNet.Security.ISecurityUser

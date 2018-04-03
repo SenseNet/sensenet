@@ -4,7 +4,7 @@ using SenseNet.ContentRepository.Storage;
 namespace SenseNet.ContentRepository
 {
     /// <summary>
-    /// Defines a base class for sensenet ECM components. 
+    /// Defines a base class for sensenet components. 
     /// </summary>
     public abstract class SnComponent : ISnComponent
     {
