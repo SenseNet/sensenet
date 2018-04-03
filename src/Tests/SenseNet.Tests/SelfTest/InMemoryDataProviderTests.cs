@@ -1,17 +1,13 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
-using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
-using SenseNet.Packaging;
-using SenseNet.Packaging.Steps;
 using SenseNet.Tests.Implementations;
 
 namespace SenseNet.Tests.SelfTest
