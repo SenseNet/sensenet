@@ -1160,7 +1160,7 @@ namespace SenseNet.Tests.Implementations
 
         public int LastNodeId
         {
-            get { return _db.Nodes.Max(n => n.NodeId); }
+            get { return _db.Nodes.Count == 0 ? 1 : _db.Nodes.Max(n => n.NodeId); }
         }
 
         private static void SetLastVersionSlots(Database db, int nodeId, out int lastMajorVersionId, out int lastMinorVersionId, out long nodeTimeStamp)
@@ -1248,25 +1248,42 @@ namespace SenseNet.Tests.Implementations
                 _db = new Database();
 
                 _db.Schema = new XmlDocument();
-                _db.Schema.LoadXml(_initialSchema);
+                _db.Schema.LoadXml(_prototypeSchema);
 
-                _db.Nodes = GetInitialNodes();
-                _db.Versions = GetInitialVersions();
-                _db.BinaryProperties = GetInitialBinaryProperties();
-                _db.Files = GetInitialFiles();
-                _db.TextProperties = GetInitialTextProperties();
-                _db.FlatProperties = GetInitialFlatProperties();
-                _db.ReferenceProperties = GetInitialReferencProperties();
+                _db.Nodes = BuildNodes(_prototypeNodes);
+                _db.Versions = BuildVersions();
+                _db.BinaryProperties = BuildBinaryProperties(_prototypeBinaryProperties);
+                _db.Files = BuildInitialFiles(_prototypeFiles);
+                _db.TextProperties = BuildTextProperties(_prototypeTextProperties);
+                _db.FlatProperties = BuildFlatProperties(_prototypeFlatPropertiesNvarchar, _prototypeFlatPropertiesInt, _prototypeFlatPropertiesDatetime, _prototypeFlatPropertiesDecimal);
+                _db.ReferenceProperties = BuildReferencProperties(_prototypeReferenceProperties);
             }
             else
             {
                 _db = _prototype.Clone();
             }
         }
-        private List<NodeRecord> GetInitialNodes()
+        public void ResetDatabase()
         {
-            var skip = _initialNodes.StartsWith("NodeId") ? 1 : 0;
-            return _initialNodes.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+            _db.Schema = new XmlDocument();
+            _db.Schema.LoadXml(_initialSchema);
+
+            _db.Nodes = BuildNodes(_initialNodes);
+            _db.Versions = BuildVersions();
+            _db.BinaryProperties = BuildBinaryProperties(null);
+            _db.Files = BuildInitialFiles(null);
+            _db.TextProperties = BuildTextProperties(null);
+            _db.FlatProperties = BuildFlatProperties(null, null, null, null);
+            _db.ReferenceProperties = BuildReferencProperties(null);
+        }
+
+        private List<NodeRecord> BuildNodes(string tableData)
+        {
+            if(tableData == null)
+                return new List<NodeRecord>();
+
+            var skip = tableData.StartsWith("NodeId") ? 1 : 0;
+            return tableData.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
                 .Skip(skip)
                 .Select(l =>
                 {
@@ -1291,7 +1308,7 @@ namespace SenseNet.Tests.Implementations
                     };
                 }).ToList();
         }
-        private List<VersionRecord> GetInitialVersions()
+        private List<VersionRecord> BuildVersions()
         {
             return _db.Nodes.Select(n => new VersionRecord
             {
@@ -1304,10 +1321,13 @@ namespace SenseNet.Tests.Implementations
                 ModificationDate = DateTime.UtcNow,
             }).ToList();
         }
-        private List<BinaryPropertyRecord> GetInitialBinaryProperties()
+        private List<BinaryPropertyRecord> BuildBinaryProperties(string tableData)
         {
-            var skip = _initialBinaryProperties.StartsWith("BinaryPropertyId") ? 1 : 0;
-            return _initialBinaryProperties.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+            if (tableData == null)
+                return new List<BinaryPropertyRecord>();
+
+            var skip = tableData.StartsWith("BinaryPropertyId") ? 1 : 0;
+            return tableData.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
                 .Skip(skip)
                 .Select(l =>
                 {
@@ -1321,10 +1341,13 @@ namespace SenseNet.Tests.Implementations
                     };
                 }).ToList();
         }
-        private List<FileRecord> GetInitialFiles()
+        private List<FileRecord> BuildInitialFiles(string tableData)
         {
-            var skip = _initialFiles.StartsWith("FileId") ? 1 : 0;
-            return _initialFiles.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+            if (tableData == null)
+                return new List<FileRecord>();
+
+            var skip = tableData.StartsWith("FileId") ? 1 : 0;
+            return tableData.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
                 .Skip(skip)
                 .Select(l =>
                 {
@@ -1345,10 +1368,13 @@ namespace SenseNet.Tests.Implementations
                     };
                 }).ToList();
         }
-        private List<TextPropertyRecord> GetInitialTextProperties()
+        private List<TextPropertyRecord> BuildTextProperties(string tableData)
         {
-            var skip = _initialTextProperties.StartsWith("TextPropertyNVarcharId") ? 1 : 0;
-            return _initialTextProperties.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+            if (tableData == null)
+                return new List<TextPropertyRecord>();
+
+            var skip = tableData.StartsWith("TextPropertyNVarcharId") ? 1 : 0;
+            return tableData.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
                 .Skip(skip)
                 .Select(l =>
                 {
@@ -1364,11 +1390,14 @@ namespace SenseNet.Tests.Implementations
                 }).ToList();
 
         }
-        private List<FlatPropertyRow> GetInitialFlatProperties()
+        private List<FlatPropertyRow> BuildFlatProperties(string tableDataNvarchar, string tableDataInt, string tableDataDatetime, string tableDataDecimal)
         {
+            if (tableDataNvarchar == null)
+                return new List<FlatPropertyRow>();
+
             // nvarchars
-            var skip = _initialFlatPropertiesNvarchar.StartsWith("Id") ? 1 : 0;
-            var flatRows = _initialFlatPropertiesNvarchar.Split("\r\n".ToCharArray(),
+            var skip = tableDataNvarchar.StartsWith("Id") ? 1 : 0;
+            var flatRows = tableDataNvarchar.Split("\r\n".ToCharArray(),
                     StringSplitOptions.RemoveEmptyEntries)
                 .Skip(skip)
                 .Select(l =>
@@ -1384,8 +1413,8 @@ namespace SenseNet.Tests.Implementations
                 }).ToDictionary(x => x.Id, x => x);
 
             // integers
-            skip = _initialFlatPropertiesInt.StartsWith("Id") ? 1 : 0;
-            foreach (var item in _initialFlatPropertiesInt.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Skip(skip))
+            skip = tableDataInt.StartsWith("Id") ? 1 : 0;
+            foreach (var item in tableDataInt.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Skip(skip))
             {
                 var record = item.Split('\t');
                 var id = int.Parse(record[0]);
@@ -1405,8 +1434,8 @@ namespace SenseNet.Tests.Implementations
             }
 
             // datetimes
-            skip = _initialFlatPropertiesDatetime.StartsWith("Id") ? 1 : 0;
-            foreach (var item in _initialFlatPropertiesDatetime.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Skip(skip))
+            skip = tableDataDatetime.StartsWith("Id") ? 1 : 0;
+            foreach (var item in tableDataDatetime.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Skip(skip))
             {
                 var record = item.Split('\t');
                 var id = int.Parse(record[0]);
@@ -1426,8 +1455,8 @@ namespace SenseNet.Tests.Implementations
             }
 
             // decimals
-            skip = _initialFlatPropertiesDecimal.StartsWith("Id") ? 1 : 0;
-            foreach (var item in _initialFlatPropertiesDecimal.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Skip(skip))
+            skip = tableDataDecimal.StartsWith("Id") ? 1 : 0;
+            foreach (var item in tableDataDecimal.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Skip(skip))
             {
                 var record = item.Split('\t');
                 var id = int.Parse(record[0]);
@@ -1448,10 +1477,13 @@ namespace SenseNet.Tests.Implementations
 
             return flatRows.Values.ToList();
         }
-        private List<ReferencePropertyRow> GetInitialReferencProperties()
+        private List<ReferencePropertyRow> BuildReferencProperties(string tableData)
         {
-            var skip = _initialReferenceProperties.StartsWith("ReferencePropertyId") ? 1 : 0;
-            return _initialReferenceProperties.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+            if (tableData == null)
+                return new List<ReferencePropertyRow>();
+
+            var skip = tableData.StartsWith("ReferencePropertyId") ? 1 : 0;
+            return tableData.Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
                 .Skip(skip)
                 .Select(l =>
                 {
@@ -1533,7 +1565,7 @@ namespace SenseNet.Tests.Implementations
                 using (var op = SnTrace.Database.StartOperation("Clone database."))
                 {
                     var schema = new XmlDocument();
-                    schema.LoadXml(_initialSchema);
+                    schema.LoadXml(_prototypeSchema);
                     var db = new Database()
                     {
                         Schema = schema,
@@ -1580,8 +1612,8 @@ namespace SenseNet.Tests.Implementations
                     throw new NodeAlreadyExistsException();
 
                 // insert
-                var newNodeId = _db.Nodes.Max(r => r.NodeId) + 1;
-                var newVersionId = _db.Versions.Max(r => r.VersionId) + 1;
+                var newNodeId = _db.Nodes.Count == 0 ? 1 : _db.Nodes.Max(r => r.NodeId) + 1;
+                var newVersionId = _db.Versions.Count == 0 ? 1 : _db.Versions.Max(r => r.VersionId) + 1;
                 lastMinorVersionId = newVersionId;
                 lastMajorVersionId = nodeData.Version.IsMajor ? newVersionId : 0;
                 var nodeRecord = new NodeRecord
@@ -1750,7 +1782,7 @@ namespace SenseNet.Tests.Implementations
                 if (destinationVersionId == 0)
                 {
                     // Insert version row
-                    newVersionId = _db.Versions.Max(r => r.VersionId) + 1;
+                    newVersionId = _db.Versions.Count == 0 ? 1 : _db.Versions.Max(r => r.VersionId) + 1;
                     var newVersionRow = new VersionRecord
                     {
                         VersionId = newVersionId,
@@ -1791,7 +1823,7 @@ namespace SenseNet.Tests.Implementations
                 foreach (var binaryPropertyRow in _db.BinaryProperties.Where(r => r.VersionId == previousVersionId).ToArray())
                     _db.BinaryProperties.Add(new BinaryPropertyRecord
                     {
-                        BinaryPropertyId = _db.BinaryProperties.Max(r => r.BinaryPropertyId) + 1,
+                        BinaryPropertyId = _db.BinaryProperties.Count == 0 ? 1 : _db.BinaryProperties.Max(r => r.BinaryPropertyId) + 1,
                         VersionId = newVersionId,
                         PropertyTypeId = binaryPropertyRow.PropertyTypeId,
                         FileId = binaryPropertyRow.FileId
@@ -1799,7 +1831,7 @@ namespace SenseNet.Tests.Implementations
                 foreach (var flatPropertyRow in _db.FlatProperties.Where(r => r.VersionId == previousVersionId).ToArray())
                     _db.FlatProperties.Add(new FlatPropertyRow
                     {
-                        Id = _db.FlatProperties.Max(r => r.Id) + 1,
+                        Id = _db.FlatProperties.Count == 0 ? 1 : _db.FlatProperties.Max(r => r.Id) + 1,
                         VersionId = newVersionId,
                         Page = flatPropertyRow.Page,
                         Strings = flatPropertyRow.Strings.ToArray(),
@@ -1810,7 +1842,7 @@ namespace SenseNet.Tests.Implementations
                 foreach (var referencePropertyRow in _db.ReferenceProperties.Where(r => r.VersionId == previousVersionId).ToArray())
                     _db.ReferenceProperties.Add(new ReferencePropertyRow
                     {
-                        ReferencePropertyId = _db.ReferenceProperties.Max(r => r.ReferencePropertyId) + 1,
+                        ReferencePropertyId = _db.ReferenceProperties.Count == 0 ? 1 : _db.ReferenceProperties.Max(r => r.ReferencePropertyId) + 1,
                         VersionId = newVersionId,
                         PropertyTypeId = referencePropertyRow.PropertyTypeId,
                         ReferredNodeId = referencePropertyRow.ReferredNodeId
@@ -1818,7 +1850,7 @@ namespace SenseNet.Tests.Implementations
                 foreach (var textPropertyRow in _db.TextProperties.Where(r => r.VersionId == previousVersionId).ToArray())
                     _db.TextProperties.Add(new TextPropertyRecord
                     {
-                        Id = _db.TextProperties.Max(r => r.Id) + 1,
+                        Id = _db.TextProperties.Count == 0 ? 1 : _db.TextProperties.Max(r => r.Id) + 1,
                         VersionId = newVersionId,
                         PropertyTypeId = textPropertyRow.PropertyTypeId,
                         Value = textPropertyRow.Value
@@ -1863,7 +1895,7 @@ namespace SenseNet.Tests.Implementations
                 var row = _db.FlatProperties.FirstOrDefault(r => r.VersionId == versionId && r.Page == page);
                 if (row == null)
                 {
-                    var id = _db.FlatProperties.Max(r => r.Id) + 1;
+                    var id = _db.FlatProperties.Count == 0 ? 1 : _db.FlatProperties.Max(r => r.Id) + 1;
                     row = new FlatPropertyRow { Id = id, VersionId = versionId, Page = page };
                     _db.FlatProperties.Add(row);
                 }
@@ -1878,7 +1910,7 @@ namespace SenseNet.Tests.Implementations
                 if (row == null)
                     _db.TextProperties.Add(row = new TextPropertyRecord
                     {
-                        Id = _db.TextProperties.Max(r => r.Id) + 1,
+                        Id = _db.TextProperties.Count == 0 ? 1 : _db.TextProperties.Max(r => r.Id) + 1,
                         VersionId = versionId,
                         PropertyTypeId = propertyType.Id
                     });
@@ -1896,7 +1928,7 @@ namespace SenseNet.Tests.Implementations
                 foreach (var referredNodeId in value.Distinct())
                     _db.ReferenceProperties.Add(new ReferencePropertyRow
                     {
-                        ReferencePropertyId = _db.ReferenceProperties.Max(x => x.ReferencePropertyId) + 1,
+                        ReferencePropertyId = _db.ReferenceProperties.Count == 0 ? 1 : _db.ReferenceProperties.Max(x => x.ReferencePropertyId) + 1,
                         VersionId = versionId,
                         PropertyTypeId = propertyType.Id,
                         ReferredNodeId = referredNodeId
@@ -1914,7 +1946,7 @@ namespace SenseNet.Tests.Implementations
                 var fileId = value.FileId;
                 if (fileId == 0 || value.Stream != null)
                 {
-                    fileId = _db.Files.Max(r => r.FileId) + 1;
+                    fileId = _db.Files.Count == 0 ? 1 : _db.Files.Max(r => r.FileId) + 1;
                     _db.Files.Add(new FileRecord
                     {
                         FileId = fileId,
@@ -1927,7 +1959,7 @@ namespace SenseNet.Tests.Implementations
                     value.FileId = fileId;
                 }
 
-                var binaryPropertyId = _db.BinaryProperties.Max(r => r.BinaryPropertyId) + 1;
+                var binaryPropertyId = _db.BinaryProperties.Count == 0 ? 1 : _db.BinaryProperties.Max(r => r.BinaryPropertyId) + 1;
                 _db.BinaryProperties.Add(new BinaryPropertyRecord
                 {
                     BinaryPropertyId = binaryPropertyId,
@@ -2465,6 +2497,7 @@ namespace SenseNet.Tests.Implementations
             }
         }
         #endregion
+
     }
 }
 
