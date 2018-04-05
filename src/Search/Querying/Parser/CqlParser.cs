@@ -921,6 +921,9 @@ namespace SenseNet.Search.Querying.Parser
                 return new IndexValue(value.StringValue.ToLowerInvariant());
 
             var parser = context.GetPerFieldIndexingInfo(fieldName);
+            if (parser == null)
+                throw ParserError($"Unknown field: {fieldName}.");
+
             var parsed = parser.IndexFieldHandler.Parse(value.StringValue);
             if (parsed == null)
                 throw ParserError($"Cannot parse the value. FieldName {fieldName}, Parser: {parser.IndexFieldHandler.GetType().Name}");

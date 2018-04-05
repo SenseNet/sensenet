@@ -15,7 +15,7 @@ namespace SenseNet.Search.Tests.Implementations
 
         public IPerFieldIndexingInfo GetPerFieldIndexingInfo(string fieldName)
         {
-            return _indexingInfo[fieldName];
+            return (_indexingInfo.TryGetValue(fieldName, out var result)) ? result : null;
         }
 
         public TestQueryContext(QuerySettings settings, int userId, IDictionary<string, IPerFieldIndexingInfo> indexingInfo, IQueryEngine queryEngine = null, IMetaQueryEngine metaQueryEngine = null)
