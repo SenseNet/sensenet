@@ -286,6 +286,28 @@ namespace SenseNet.Search.Tests
             TestError("Name:aaa^x");
         }
 
+        [TestMethod, TestCategory("IR")]
+        public void SnQuery_Parser_UnknownField_RightError()
+        {
+            var queryContext = new TestQueryContext(QuerySettings.Default, 0, _indexingInfo);
+            var parser = new CqlParser();
+            Exception thrownException = null;
+
+            try
+            {
+                parser.Parse("TypeIs:User TOP:2", queryContext);
+            }
+            catch (Exception e)
+            {
+                thrownException = e;
+            }
+
+            if (thrownException == null)
+                Assert.Fail("Any exception wasn't thrown");
+            if (!(thrownException is ParserException))
+                Assert.Fail($"Thrown exception is {thrownException.GetType().FullName}, Expected: {typeof(ParserException).FullName}");
+        }
+
         private SnQuery Test(string queryText, string expected = null)
         {
             var queryContext = new TestQueryContext(QuerySettings.Default, 0, _indexingInfo);
