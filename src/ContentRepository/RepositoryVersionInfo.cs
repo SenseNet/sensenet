@@ -149,7 +149,11 @@ namespace SenseNet.ContentRepository
                     continue;
                 }
 
+#if DEBUG
+                SnTrace.System.Write($"Component {component.ComponentId} is allowed to run in the DEBUG version (version: {componentVersion})");
+#else
                 throw new ApplicationException($"Component and assembly version mismatch. Component {component.ComponentId} (version: {componentVersion}) is not allowed to run. Please check assembly versions and available ugrades before starting the repository.");
+#endif
             }
         }
     }   
