@@ -16,9 +16,13 @@ namespace SenseNet.Packaging.Steps
 {
     public class DeleteContentType : Step
     {
+        public enum Mode { No, IfNotUsed, Force }
+
         [DefaultProperty]
         [Annotation("Name of the content type that will be deleted.")]
         public string Name { get; set; }
+        [Annotation("Execution mode.")]
+        public Mode Delete { get; set; }
 
         public override void Execute(ExecutionContext context)
         {
@@ -63,6 +67,11 @@ namespace SenseNet.Packaging.Steps
                 if(contentInstancesResult.Count > 0 || relatedContentTypes.Length > 0 || relatedFieldSettings.Length > 0 || relatedContentPaths.Count > 0)
                     throw new NotImplementedException();
 
+                if (Delete == Mode.No)
+                {
+                    Logger.LogMessage($"The {name} content type is not removed, this step provides only information.");
+                    return;
+                }
                 ContentTypeInstaller.RemoveContentType(name);
                 Logger.LogMessage($"The {name} content type removed successfully.");
             }

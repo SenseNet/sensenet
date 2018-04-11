@@ -32,6 +32,80 @@ namespace SenseNet.Packaging.Tests.StepTests
         }
 
         [TestMethod]
+        public void Step_DeleteContentType_Parse()
+        {
+            DeleteContentType CreateStep(string stepElementString)
+            {
+                var manifestXml = new XmlDocument();
+                manifestXml.LoadXml($@"<?xml version='1.0' encoding='utf-8'?>
+                    <Package type='Install'>
+                        <Id>MyCompany.MyComponent</Id>
+                        <ReleaseDate>2017-01-01</ReleaseDate>
+                        <Version>1.0</Version>
+                        <Steps>
+                            {stepElementString}
+                        </Steps>
+                    </Package>");
+                var manifest = Manifest.Parse(manifestXml, 0, true, new PackageParameter[0]);
+                var executionContext = ExecutionContext.CreateForTest("packagePath", "targetPath", new string[0], "sandboxPath", manifest, 0, manifest.CountOfPhases, null, null);
+                var stepElement = (XmlElement)manifestXml.SelectSingleNode("/Package/Steps/DeleteContentType");
+                var result = (DeleteContentType)Step.Parse(stepElement, 0, executionContext);
+                return result;
+            }
+
+            var step = CreateStep("<DeleteContentType>ContenType1</DeleteContentType>");
+            Assert.AreEqual("ContenType1", step.Name);
+            Assert.AreEqual(DeleteContentType.Mode.No, step.Delete);
+
+            step = CreateStep("<DeleteContentType name='ContenType1'/>");
+            Assert.AreEqual("ContenType1", step.Name);
+            Assert.AreEqual(DeleteContentType.Mode.No, step.Delete);
+
+            step = CreateStep("<DeleteContentType name='ContenType2' delete='no'/>");
+            Assert.AreEqual("ContenType2", step.Name);
+            Assert.AreEqual(DeleteContentType.Mode.No, step.Delete);
+
+            step = CreateStep("<DeleteContentType name='ContenType3' delete='ifNotUsed'/>");
+            Assert.AreEqual("ContenType3", step.Name);
+            Assert.AreEqual(DeleteContentType.Mode.IfNotUsed, step.Delete);
+
+            step = CreateStep("<DeleteContentType name='ContenType4' delete='FORCE'/>");
+            Assert.AreEqual("ContenType4", step.Name);
+            Assert.AreEqual(DeleteContentType.Mode.Force, step.Delete);
+        }
+
+        [TestMethod]
+        public void Step_DeleteContentType_DefaultOrInformationOnly()
+        {
+            Test(() =>
+            {
+                // init
+                if (null != ContentType.GetByName("Car"))
+                    Assert.Inconclusive();
+                var contentTypeCount = GetContentTypeCount();
+                InstallCarContentType();
+                Assert.IsNotNull(ContentType.GetByName("Car"));
+                Assert.AreEqual(contentTypeCount + 1, GetContentTypeCount());
+
+                // test-1
+                var step = new DeleteContentType { Name = "Car" };
+                step.Execute(GetExecutionContext());
+
+                // check-1
+                Assert.IsNotNull(ContentType.GetByName("Car"));
+                Assert.AreEqual(contentTypeCount + 1, GetContentTypeCount());
+
+                // test-1
+                step = new DeleteContentType { Name = "Car", Delete = DeleteContentType.Mode.No };
+                step.Execute(GetExecutionContext());
+
+                // check-1
+                Assert.IsNotNull(ContentType.GetByName("Car"));
+                Assert.AreEqual(contentTypeCount + 1, GetContentTypeCount());
+            });
+        }
+
+        [TestMethod]
         public void Step_DeleteContentType_Leaf()
         {
             Test(() =>
@@ -42,13 +116,21 @@ namespace SenseNet.Packaging.Tests.StepTests
                 var contentTypeCount = GetContentTypeCount();
                 InstallCarContentType();
                 Assert.IsNotNull(ContentType.GetByName("Car"));
-                Assert.AreEqual(contentTypeCount+1, GetContentTypeCount());
+                Assert.AreEqual(contentTypeCount + 1, GetContentTypeCount());
 
-                // test
-                var step = new DeleteContentType { Name = "Car" };
+                // test-1
+                var step = new DeleteContentType { Name = "Car", Delete = DeleteContentType.Mode.Force };
                 step.Execute(GetExecutionContext());
 
-                // check
+                // check-1
+                Assert.IsNull(ContentType.GetByName("Car"));
+                Assert.AreEqual(contentTypeCount, GetContentTypeCount());
+
+                // test-2
+                step = new DeleteContentType { Name = "Car", Delete = DeleteContentType.Mode.IfNotUsed };
+                step.Execute(GetExecutionContext());
+
+                // check-1
                 Assert.IsNull(ContentType.GetByName("Car"));
                 Assert.AreEqual(contentTypeCount, GetContentTypeCount());
             });
@@ -74,7 +156,7 @@ namespace SenseNet.Packaging.Tests.StepTests
                 Assert.AreEqual(contentTypeCount + 3, GetContentTypeCount());
 
                 // test
-                var step = new DeleteContentType {Name = "Car"};
+                var step = new DeleteContentType {Name = "Car", Delete = DeleteContentType.Mode.Force};
                 step.Execute(GetExecutionContext());
 
                 // check
@@ -82,7 +164,6 @@ namespace SenseNet.Packaging.Tests.StepTests
                 Assert.AreEqual(contentTypeCount, GetContentTypeCount());
             });
         }
-
 
         private int GetContentTypeCount()
         {
