@@ -39,14 +39,15 @@ namespace SenseNet.Packaging.Steps
                 }
 
                 Logger.LogMessage("DELETING CONTENT TYPE: " + name);
-
-                var typeSubtreeResult = ContentQuery.Query($"+InTree:'{currentContentType.Path}' .AUTOFILTERS:OFF");
+                var typeSubtreeQuery = ContentQuery.CreateQuery(ContentRepository.SafeQueries.InTree, QuerySettings.AdminSettings, currentContentType.Path);
+                var typeSubtreeResult = typeSubtreeQuery.Execute();
                 var inheritedTypeNames = typeSubtreeResult.Nodes.Select(n => n.Name).ToArray();
                 Logger.LogMessage("  Inherited types to delete: " + string.Join(", ", inheritedTypeNames));
                 Logger.LogMessage(string.Empty);
 
-                var contentResult = ContentQuery.Query($"+TypeIs:'{name}' .AUTOFILTERS:OFF");
-                Logger.LogMessage("  Content to delete: " + contentResult.Count);
+                var contentInstancesQuery = ContentQuery.CreateQuery(ContentRepository.SafeQueries.TypeIs, QuerySettings.AdminSettings, name);
+                var contentInstancesResult = contentInstancesQuery.Execute();
+                Logger.LogMessage("  Content to delete: " + contentInstancesResult.Count);
                 Logger.LogMessage(string.Empty);
 
                 // ContentType/AllowedChildTypes: "Folder,File"
@@ -135,7 +136,9 @@ namespace SenseNet.Packaging.Steps
             var whereClausePart = string.Join(Environment.NewLine + "    OR" + Environment.NewLine,
                 names.Select(n =>$"    (t.Value like '{n}' OR t.Value like '% {n} %' OR t.Value like '{n} %' OR t.Value like '% {n}')"));
 
-            var sql = @"SELECT n.Path, t.Value FROM TextPropertiesNVarchar t
+            // testability: the first line is recognizable for the tests.
+            var sql = $"-- GetContentPathsWhereTheyAreAllowedChildren: [{string.Join(", ", names)}]" + Environment.NewLine; 
+            sql += @"SELECT n.Path, t.Value FROM TextPropertiesNVarchar t
 	JOIN SchemaPropertyTypes p ON p.PropertyTypeId = t.PropertyTypeId
 	JOIN Versions v ON t.VersionId = v.VersionId
 	JOIN Nodes n ON n.NodeId = v.NodeId

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -470,7 +471,29 @@ namespace SenseNet.Tests.Implementations
 
         protected internal override IDataProcedure CreateDataProcedureInternal(string commandText, string connectionName = null, InitialCatalog initialCatalog = 0)
         {
-            throw new NotImplementedException();
+            const string getContentPathsWhereTheyAreAllowedChildren = "-- GetContentPathsWhereTheyAreAllowedChildren: [";
+            if (commandText.StartsWith(getContentPathsWhereTheyAreAllowedChildren))
+            {
+                var names = commandText
+                    .Substring(0, commandText.IndexOf("]", StringComparison.Ordinal))
+                    .Replace(getContentPathsWhereTheyAreAllowedChildren, "")
+                    .Split(',')
+                    .Select(s=>s.Trim())
+                    .ToArray();
+
+                return new InMemoryDataProcedure<Tuple<string, string>>(() =>
+                {
+                    var propTypeId = ActiveSchema.PropertyTypes["AllowedChildTypes"].Id;
+                    var versionsAndValues = _db.TextProperties
+                        .Where(t => t.PropertyTypeId == propTypeId && t.Value.Split(' ').Intersect(names).Any())
+                        .Select(t => new Tuple<string, string>(
+                            _db.Nodes.First(n => n.NodeId ==
+                                _db.Versions.First(v => v.VersionId == t.VersionId).NodeId).Path,
+                            t.Value));
+                    return versionsAndValues;
+                });
+            }
+            throw new SnNotSupportedException();
         }
 
         protected internal override INodeWriter CreateNodeWriter()
@@ -2106,6 +2129,279 @@ namespace SenseNet.Tests.Implementations
             }
         }
 
+        private class InMemoryDataProcedure<T> : IDataProcedure where T : class
+        {
+            private readonly Func<IEnumerable<T>> _function;
+
+            public InMemoryDataProcedure(Func<IEnumerable<T>> function)
+            {
+                _function = function;
+            }
+
+            public void Dispose()
+            {
+            }
+
+            public CommandType CommandType { get; set; }
+            public string CommandText { get; set; }
+            public DbParameterCollection Parameters { get; } = new InMemoryDbParameterCollection();
+            public void DeriveParameters()
+            {
+                throw new NotImplementedException();
+            }
+
+            public DbDataReader ExecuteReader()
+            {
+                return new InMemoryDbDataReader<T>(_function.Invoke());
+            }
+
+            public DbDataReader ExecuteReader(CommandBehavior behavior)
+            {
+                throw new NotImplementedException();
+            }
+
+            public object ExecuteScalar()
+            {
+                throw new NotImplementedException();
+            }
+
+            public int ExecuteNonQuery()
+            {
+                throw new NotImplementedException();
+            }
+        }
+        private class InMemoryDbParameterCollection : DbParameterCollection
+        {
+            public override int Add(object value)
+            {
+                throw new NotImplementedException();
+            }
+            public override bool Contains(object value)
+            {
+                throw new NotImplementedException();
+            }
+            public override void Clear()
+            {
+                throw new NotImplementedException();
+            }
+            public override int IndexOf(object value)
+            {
+                throw new NotImplementedException();
+            }
+            public override void Insert(int index, object value)
+            {
+                throw new NotImplementedException();
+            }
+            public override void Remove(object value)
+            {
+                throw new NotImplementedException();
+            }
+            public override void RemoveAt(int index)
+            {
+                throw new NotImplementedException();
+            }
+            public override void RemoveAt(string parameterName)
+            {
+                throw new NotImplementedException();
+            }
+            protected override void SetParameter(int index, DbParameter value)
+            {
+                throw new NotImplementedException();
+            }
+            protected override void SetParameter(string parameterName, DbParameter value)
+            {
+                throw new NotImplementedException();
+            }
+            public override int Count { get; }
+            public override object SyncRoot { get; }
+            public override int IndexOf(string parameterName)
+            {
+                throw new NotImplementedException();
+            }
+            public override IEnumerator GetEnumerator()
+            {
+                throw new NotImplementedException();
+            }
+            protected override DbParameter GetParameter(int index)
+            {
+                throw new NotImplementedException();
+            }
+            protected override DbParameter GetParameter(string parameterName)
+            {
+                throw new NotImplementedException();
+            }
+            public override bool Contains(string value)
+            {
+                throw new NotImplementedException();
+            }
+            public override void CopyTo(Array array, int index)
+            {
+                throw new NotImplementedException();
+            }
+            public override void AddRange(Array values)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class InMemoryDbDataReader<T> : DbDataReader where T : class
+        {
+            private T[] _enumerable;
+            private int _currentIndex = -1;
+
+            public InMemoryDbDataReader(IEnumerable<T> enumerable)
+            {
+                _enumerable = enumerable.ToArray();
+            }
+
+            public override string GetName(int ordinal)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override int GetValues(object[] values)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override bool IsDBNull(int ordinal)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override int FieldCount { get; }
+
+            public override object this[int ordinal]
+            {
+                get { throw new NotImplementedException(); }
+            }
+
+            public override object this[string name]
+            {
+                get { throw new NotImplementedException(); }
+            }
+
+            public override bool HasRows => _enumerable.Length > 0;
+            public override bool IsClosed { get; }
+            public override int RecordsAffected => _enumerable.Length;
+
+            public override bool NextResult()
+            {
+                throw new NotImplementedException();
+            }
+
+            public override bool Read()
+            {
+                return ++_currentIndex < _enumerable.Length;
+            }
+
+            public override int Depth { get; }
+
+            public override int GetOrdinal(string name)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override bool GetBoolean(int ordinal)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override byte GetByte(int ordinal)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override long GetBytes(int ordinal, long dataOffset, byte[] buffer, int bufferOffset, int length)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override char GetChar(int ordinal)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override long GetChars(int ordinal, long dataOffset, char[] buffer, int bufferOffset, int length)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override Guid GetGuid(int ordinal)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override short GetInt16(int ordinal)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override int GetInt32(int ordinal)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override long GetInt64(int ordinal)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override DateTime GetDateTime(int ordinal)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override string GetString(int ordinal)
+            {
+                //UNDONE: Implement well
+                var record = _enumerable[_currentIndex] as Tuple<string, string>;
+                if(null == record)
+                    throw new NotImplementedException();
+
+                if (ordinal == 0)
+                    return record.Item1;
+                if (ordinal == 1)
+                    return record.Item2;
+
+                throw new NotImplementedException();
+            }
+
+            public override decimal GetDecimal(int ordinal)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override double GetDouble(int ordinal)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override float GetFloat(int ordinal)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override string GetDataTypeName(int ordinal)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override Type GetFieldType(int ordinal)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override object GetValue(int ordinal)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override IEnumerator GetEnumerator()
+            {
+                throw new NotImplementedException();
+            }
+        }
         #endregion
 
         #region Data classes
