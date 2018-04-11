@@ -41,8 +41,9 @@ namespace SenseNet.Packaging.Steps
                 Logger.LogMessage("DELETING CONTENT TYPE: " + name);
                 var typeSubtreeQuery = ContentQuery.CreateQuery(ContentRepository.SafeQueries.InTree, QuerySettings.AdminSettings, currentContentType.Path);
                 var typeSubtreeResult = typeSubtreeQuery.Execute();
-                var inheritedTypeNames = typeSubtreeResult.Nodes.Select(n => n.Name).ToArray();
-                Logger.LogMessage("  Inherited types to delete: " + string.Join(", ", inheritedTypeNames));
+                var inheritedTypeNames = typeSubtreeResult.Nodes.Select(n => n.Name).Where(s => s != name).ToArray();
+                Logger.LogMessage("  Inherited types to delete: ");
+                Logger.LogMessage("    " + (inheritedTypeNames.Length == 0 ? "There is no related item." : string.Join(", ", inheritedTypeNames)));
                 Logger.LogMessage(string.Empty);
 
                 var contentInstancesQuery = ContentQuery.CreateQuery(ContentRepository.SafeQueries.TypeIs, QuerySettings.AdminSettings, name);
@@ -51,23 +52,20 @@ namespace SenseNet.Packaging.Steps
                 Logger.LogMessage(string.Empty);
 
                 // ContentType/AllowedChildTypes: "Folder,File"
-                GetContentTypesWhereTheyAreAllowed(inheritedTypeNames);
+                var relatedContentTypes = GetContentTypesWhereTheyAreAllowed(inheritedTypeNames);
 
                 // ContentType/Fields/Field/Configuration/AllowedTypes/Type: "Folder"
-                GetContentTypesWhereTheyAreAllowedInReferenceField(inheritedTypeNames);
+                var relatedFieldSettings = GetContentTypesWhereTheyAreAllowedInReferenceField(inheritedTypeNames);
 
                 // ContentMetaData/Fields/AllowedChildTypes: "Folder File"
-                GetContentPathsWhereTheyAreAllowedChildren(inheritedTypeNames);
+                var relatedContentPaths = GetContentPathsWhereTheyAreAllowedChildren(inheritedTypeNames);
 
+                if(contentInstancesResult.Count > 0 || relatedContentTypes.Length > 0 || relatedFieldSettings.Length > 0 || relatedContentPaths.Count > 0)
+                    throw new NotImplementedException();
+
+                ContentTypeInstaller.RemoveContentType(name);
+                Logger.LogMessage($"The {name} content type removed successfully.");
             }
-
-            for (int i = 0; i < 30; i++)
-            {
-                Console.Write($"\r{30 - i}  ");
-                Thread.Sleep(50);
-            }
-            Console.Write("\r");
-
 
             Logger.LogMessage("Ok. ");
         }
