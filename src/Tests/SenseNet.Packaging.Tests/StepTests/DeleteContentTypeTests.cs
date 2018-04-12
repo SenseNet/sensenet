@@ -197,7 +197,7 @@ namespace SenseNet.Packaging.Tests.StepTests
                 Assert.AreEqual(3, dependencies.InstanceCount);
                 Assert.AreEqual(0, dependencies.RelatedContentTypes.Length);
                 Assert.AreEqual(0, dependencies.RelatedFieldSettings.Length);
-                Assert.AreEqual(0, dependencies.RelatedContentPaths.Length);
+                Assert.AreEqual(0, dependencies.RelatedContentCollection.Count);
 
                 // test-2
                 step.Execute(GetExecutionContext());
