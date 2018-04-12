@@ -5,11 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.Search;
+using SenseNet.Search.Querying;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging.Steps
@@ -17,6 +19,16 @@ namespace SenseNet.Packaging.Steps
     public class DeleteContentType : Step
     {
         public enum Mode { No, IfNotUsed, Force }
+
+        internal class ContentTypeDependencies
+        {
+            public string ContentTypeName { get; set; }
+            public string[] InheritedTypeNames { get; set; }
+            public int InstanceCount { get; set; }
+            public ContentType[] RelatedContentTypes { get; set; }
+            public ReferenceFieldSetting[] RelatedFieldSettings { get; set; }
+            public string[] RelatedContentPaths { get; set; }
+        }
 
         [DefaultProperty]
         [Annotation("Name of the content type that will be deleted.")]
@@ -26,57 +38,78 @@ namespace SenseNet.Packaging.Steps
 
         public override void Execute(ExecutionContext context)
         {
-            var names = ResolveVariable(Name, context)
-                .Split(" ,;".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
-                .Select(n => n.Trim())
-                .ToArray();
+            var name = ResolveVariable(Name, context);
 
             context.AssertRepositoryStarted();
 
-            foreach (var name in names)
+            var currentContentType = ContentType.GetByName(name);
+            if (null == currentContentType)
             {
-                var currentContentType = ContentType.GetByName(name);
-                if (null == currentContentType)
-                {
-                    Logger.LogMessage("Content type is already deleted: " + name);
-                    continue;
-                }
-
-                Logger.LogMessage("DELETING CONTENT TYPE: " + name);
-                var typeSubtreeQuery = ContentQuery.CreateQuery(ContentRepository.SafeQueries.InTree, QuerySettings.AdminSettings, currentContentType.Path);
-                var typeSubtreeResult = typeSubtreeQuery.Execute();
-                var inheritedTypeNames = typeSubtreeResult.Nodes.Select(n => n.Name).Where(s => s != name).ToArray();
-                Logger.LogMessage("  Inherited types to delete: ");
-                Logger.LogMessage("    " + (inheritedTypeNames.Length == 0 ? "There is no related item." : string.Join(", ", inheritedTypeNames)));
-                Logger.LogMessage(string.Empty);
-
-                var contentInstancesQuery = ContentQuery.CreateQuery(ContentRepository.SafeQueries.TypeIs, QuerySettings.AdminSettings, name);
-                var contentInstancesResult = contentInstancesQuery.Execute();
-                Logger.LogMessage("  Content to delete: " + contentInstancesResult.Count);
-                Logger.LogMessage(string.Empty);
-
-                // ContentType/AllowedChildTypes: "Folder,File"
-                var relatedContentTypes = GetContentTypesWhereTheyAreAllowed(inheritedTypeNames);
-
-                // ContentType/Fields/Field/Configuration/AllowedTypes/Type: "Folder"
-                var relatedFieldSettings = GetContentTypesWhereTheyAreAllowedInReferenceField(inheritedTypeNames);
-
-                // ContentMetaData/Fields/AllowedChildTypes: "Folder File"
-                var relatedContentPaths = GetContentPathsWhereTheyAreAllowedChildren(inheritedTypeNames);
-
-                if(contentInstancesResult.Count > 0 || relatedContentTypes.Length > 0 || relatedFieldSettings.Length > 0 || relatedContentPaths.Count > 0)
-                    throw new NotImplementedException();
-
-                if (Delete == Mode.No)
-                {
-                    Logger.LogMessage($"The {name} content type is not removed, this step provides only information.");
-                    return;
-                }
-                ContentTypeInstaller.RemoveContentType(name);
-                Logger.LogMessage($"The {name} content type removed successfully.");
+                Logger.LogMessage("Content type is already deleted: " + name);
+                return;
             }
 
-            Logger.LogMessage("Ok. ");
+            var dependencies = GetDependencies(currentContentType);
+
+            Logger.LogMessage("DELETING CONTENT TYPE: " + name);
+
+            var inheritedTypeNames = dependencies.InheritedTypeNames;
+            Logger.LogMessage("  Inherited types to delete: ");
+            Logger.LogMessage("    " + (inheritedTypeNames.Length == 0
+                                  ? "There is no related item."
+                                  : string.Join(", ", inheritedTypeNames)));
+            Logger.LogMessage(string.Empty);
+
+            Logger.LogMessage("  Content to delete: " + dependencies.InstanceCount);
+            Logger.LogMessage(string.Empty);
+
+            if (dependencies.RelatedContentTypes.Length > 0 ||
+                dependencies.RelatedFieldSettings.Length > 0 || dependencies.RelatedContentPaths.Length > 0)
+                throw new NotImplementedException();
+
+            if (Delete == Mode.No)
+            {
+                Logger.LogMessage($"The {name} content type is not removed, this step provides only information.");
+                return;
+            }
+
+            if (dependencies.InstanceCount > 0)
+                DeleteInstances(name);
+
+            ContentTypeInstaller.RemoveContentType(name);
+            Logger.LogMessage($"The {name} content type removed successfully.");
+        }
+
+        internal ContentTypeDependencies GetDependencies(ContentType currentContentType)
+        {
+            var name = currentContentType.Name;
+
+            var typeSubtreeQuery = ContentQuery.CreateQuery(ContentRepository.SafeQueries.InTree,
+                QuerySettings.AdminSettings, currentContentType.Path);
+            var typeSubtreeResult = typeSubtreeQuery.Execute();
+            var typeNames = typeSubtreeResult.Nodes.Select(n => n.Name).ToArray();
+            var inheritedTypeNames = typeNames.Where(s => s != name).ToArray();
+
+            var queryContext = new SnQueryContext(QuerySettings.AdminSettings, User.Current.Id);
+            var contentInstancesCount = SnQuery.Parse($"+TypeIs:{name} .COUNTONLY", queryContext)
+                .Execute(queryContext)
+                .TotalCount;
+
+            var result = new ContentTypeDependencies
+            {
+                ContentTypeName = name,
+                // +InTree:[currentContentType.Path]
+                InheritedTypeNames = inheritedTypeNames,
+                // +TypeIs:[name]
+                InstanceCount = contentInstancesCount,
+                // ContentType/AllowedChildTypes: "Folder,File"
+                RelatedContentTypes = GetContentTypesWhereTheyAreAllowed(typeNames),
+                // ContentType/Fields/Field/Configuration/AllowedTypes/Type: "Folder"
+                RelatedFieldSettings = GetContentTypesWhereTheyAreAllowedInReferenceField(typeNames),
+                // ContentMetaData/Fields/AllowedChildTypes: "Folder File"
+                RelatedContentPaths = GetContentPathsWhereTheyAreAllowedChildren(typeNames)
+            };
+            return result;
         }
 
         private ContentType[] GetContentTypesWhereTheyAreAllowed(string[] names)
@@ -134,7 +167,7 @@ namespace SenseNet.Packaging.Steps
             return relevantFieldSettings;
         }
 
-        private List<string> GetContentPathsWhereTheyAreAllowedChildren(string[] names)
+        private string[] GetContentPathsWhereTheyAreAllowedChildren(string[] names)
         {
             Logger.LogMessage("  Remaining allowed child types in content after deletion:");
 
@@ -191,7 +224,24 @@ WHERE p.Name = 'AllowedChildTypes' AND (
             }
             Logger.LogMessage(string.Empty);
 
-            return result;
+            return result.ToArray();
         }
+
+
+        private void DeleteInstances(string contentTypeName)
+        {
+            Logger.LogMessage($"Deleting content by content-type: {contentTypeName}");
+
+            var nodes = ContentQuery.CreateQuery(
+                    ContentRepository.SafeQueries.TypeIs, QuerySettings.AdminSettings, contentTypeName)
+                .Execute().Nodes;
+
+            foreach (var node in nodes)
+            {
+                Logger.LogMessage($"    {node.Path}");
+                node.ForceDelete();
+            }
+        }
+
     }
 }

@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.Packaging.Steps;
 using SenseNet.Packaging.Tests.Implementations;
@@ -135,7 +136,6 @@ namespace SenseNet.Packaging.Tests.StepTests
                 Assert.AreEqual(contentTypeCount, GetContentTypeCount());
             });
         }
-
         [TestMethod]
         public void Step_DeleteContentType_Subtree()
         {
@@ -161,6 +161,50 @@ namespace SenseNet.Packaging.Tests.StepTests
 
                 // check
                 Assert.IsNull(ContentType.GetByName("Car"));
+                Assert.IsNull(ContentType.GetByName("Car1"));
+                Assert.IsNull(ContentType.GetByName("Car2"));
+                Assert.AreEqual(contentTypeCount, GetContentTypeCount());
+            });
+        }
+
+        [TestMethod]
+        public void Step_DeleteContentType_WithInstances()
+        {
+            var contentTypeTemplate =
+                @"<?xml version='1.0' encoding='utf-8'?><ContentType name='{0}' parentType='Car' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition' />";
+
+            Test(() =>
+            {
+                // init
+                var contentTypeCount = GetContentTypeCount();
+                InstallCarContentType();
+                ContentTypeInstaller.InstallContentType(
+                    string.Format(contentTypeTemplate, "Car1"),
+                    string.Format(contentTypeTemplate, "Car2"));
+                var root = new SystemFolder(Repository.Root) {Name = "TestRoot"};
+                root.Save();
+                var car0 = Content.CreateNew("Car", root, "Car0");
+                car0.Save();
+                var car1 = Content.CreateNew("Car1", root, "Car1");
+                car1.Save();
+                var car2 = Content.CreateNew("Car2", root, "Car2");
+                car2.Save();
+
+                // test-1
+                var step = new DeleteContentType { Name = "Car", Delete = DeleteContentType.Mode.Force };
+                var dependencies = step.GetDependencies(ContentType.GetByName("Car"));
+
+                Assert.AreEqual(3, dependencies.InstanceCount);
+                Assert.AreEqual(0, dependencies.RelatedContentTypes.Length);
+                Assert.AreEqual(0, dependencies.RelatedFieldSettings.Length);
+                Assert.AreEqual(0, dependencies.RelatedContentPaths.Length);
+
+                // test-2
+                step.Execute(GetExecutionContext());
+
+                Assert.IsNull(ContentType.GetByName("Car"));
+                Assert.IsNull(ContentType.GetByName("Car1"));
+                Assert.IsNull(ContentType.GetByName("Car2"));
                 Assert.AreEqual(contentTypeCount, GetContentTypeCount());
             });
         }

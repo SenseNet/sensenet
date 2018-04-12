@@ -485,7 +485,7 @@ namespace SenseNet.Tests.Implementations
                 {
                     var propTypeId = ActiveSchema.PropertyTypes["AllowedChildTypes"].Id;
                     var versionsAndValues = _db.TextProperties
-                        .Where(t => t.PropertyTypeId == propTypeId && t.Value.Split(' ').Intersect(names).Any())
+                        .Where(t => t.PropertyTypeId == propTypeId && t.Value != null &&t.Value.Split(' ').Intersect(names).Any())
                         .Select(t => new Tuple<string, string>(
                             _db.Nodes.First(n => n.NodeId ==
                                 _db.Versions.First(v => v.VersionId == t.VersionId).NodeId).Path,
