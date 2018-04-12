@@ -8,6 +8,8 @@ using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Workspaces;
 using SenseNet.Packaging.Steps;
 using SenseNet.Packaging.Tests.Implementations;
 using SenseNet.Tests;
@@ -206,6 +208,70 @@ namespace SenseNet.Packaging.Tests.StepTests
                 Assert.IsNull(ContentType.GetByName("Car1"));
                 Assert.IsNull(ContentType.GetByName("Car2"));
                 Assert.AreEqual(contentTypeCount, GetContentTypeCount());
+            });
+        }
+
+        [TestMethod]
+        public void Step_DeleteContentType_WithRelatedContent()
+        {
+            Workspace CreateWorkspace(Node parent, string name, string[] allowedChildTypes)
+            {
+                var w = new Workspace(parent) { Name = name };
+                w.AllowedChildTypes = new ContentType[0];
+                w.AllowChildTypes(allowedChildTypes);
+                w.Save();
+                return w;
+            }
+
+            var contentTypeTemplate =
+                @"<?xml version='1.0' encoding='utf-8'?><ContentType name='{0}' parentType='Car' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition' />";
+
+            Test(() =>
+            {
+                // init
+                var contentTypeCount = GetContentTypeCount();
+                InstallCarContentType();
+                ContentTypeInstaller.InstallContentType(
+                    string.Format(contentTypeTemplate, "Car1"),
+                    string.Format(contentTypeTemplate, "Car2"));
+                var root = new SystemFolder(Repository.Root) { Name = "TestRoot" };
+                root.Save();
+
+                var w1 = CreateWorkspace(root, "W1", new[] { "Car1", "Folder" });
+                var w2 = CreateWorkspace(root, "W2", new[] { "Car", "Folder", "Car2", "File" });
+                var w3 = CreateWorkspace(root, "W3", new[] { "Workspace", "Car2", "Folder", "Car1", "File" });
+                var w4 = CreateWorkspace(root, "W4", new[] { "Car", "Car2", "Car1" });
+                var w5 = CreateWorkspace(root, "W5", new[] { "Workspace", "Folder", "File" });
+
+
+                // test-1
+                var step = new DeleteContentType { Name = "Car", Delete = DeleteContentType.Mode.Force };
+                var dependencies = step.GetDependencies(ContentType.GetByName("Car"));
+
+                Assert.AreEqual(0, dependencies.InstanceCount);
+                Assert.AreEqual(0, dependencies.RelatedContentTypes.Length);
+                Assert.AreEqual(0, dependencies.RelatedFieldSettings.Length);
+                Assert.AreEqual(4, dependencies.RelatedContentCollection.Count);
+
+                // test-2
+                step.Execute(GetExecutionContext());
+
+                Assert.IsNull(ContentType.GetByName("Car"));
+                Assert.IsNull(ContentType.GetByName("Car1"));
+                Assert.IsNull(ContentType.GetByName("Car2"));
+                Assert.AreEqual(contentTypeCount, GetContentTypeCount());
+
+                w1 = Node.Load<Workspace>(w1.Id);
+                w2 = Node.Load<Workspace>(w2.Id);
+                w3 = Node.Load<Workspace>(w3.Id);
+                w4 = Node.Load<Workspace>(w4.Id);
+                w5 = Node.Load<Workspace>(w5.Id);
+                var names = new[] { "Car", "Car2", "Car1" };
+                Assert.IsFalse(w1.GetAllowedChildTypeNames().Intersect(names).Any());
+                Assert.IsFalse(w2.GetAllowedChildTypeNames().Intersect(names).Any());
+                Assert.IsFalse(w3.GetAllowedChildTypeNames().Intersect(names).Any());
+                Assert.IsFalse(w4.GetAllowedChildTypeNames().Intersect(names).Any());
+                Assert.IsFalse(w5.GetAllowedChildTypeNames().Intersect(names).Any());
             });
         }
 

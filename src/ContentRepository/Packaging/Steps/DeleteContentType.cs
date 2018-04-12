@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
@@ -12,6 +13,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.Search;
 using SenseNet.Search.Querying;
+// ReSharper disable PossibleNullReferenceException
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging.Steps
@@ -28,6 +30,11 @@ namespace SenseNet.Packaging.Steps
             public ContentType[] RelatedContentTypes { get; set; }
             public ReferenceFieldSetting[] RelatedFieldSettings { get; set; }
             public Dictionary<string, string> RelatedContentCollection { get; set; }
+            public bool HasDependency => InheritedTypeNames.Length > 0 ||
+                                         InstanceCount > 0 ||
+                                         RelatedContentTypes.Length > 0 ||
+                                         RelatedFieldSettings.Length > 0 ||
+                                         RelatedContentCollection.Count > 0;
         }
 
         [DefaultProperty]
@@ -50,76 +57,11 @@ namespace SenseNet.Packaging.Steps
             }
 
             var dependencies = GetDependencies(currentContentType);
-            var names = dependencies.InheritedTypeNames.ToList();
-            names.Add(name);
 
             Logger.LogMessage("DELETING CONTENT TYPE: " + name);
 
-            var inheritedTypeNames = dependencies.InheritedTypeNames;
-            Logger.LogMessage("  Dependencies: ");
-            Logger.LogMessage("    Inherited types: ");
-            Logger.LogMessage("      " + (inheritedTypeNames.Length == 0 ? "There is no related item." : string.Join(", ", inheritedTypeNames)));
-            Logger.LogMessage(string.Empty);
-            Logger.LogMessage("    Content instances: " + dependencies.InstanceCount);
-            Logger.LogMessage(string.Empty);
+            PrintDependencies(dependencies);
 
-            Logger.LogMessage("    Remaining allowed child types in other content types after deletion:");
-            var relevantContentTypes = dependencies.RelatedContentTypes;
-            if (0 == relevantContentTypes.Length)
-            {
-                Logger.LogMessage("      There is no related item.");
-            }
-            else
-            {
-                foreach (var contentType in relevantContentTypes)
-                {
-                    var remaining = string.Join(", ", contentType.AllowedChildTypeNames.Except(names).ToArray());
-                    remaining = remaining.Length == 0 ? "[empty]" : remaining;
-                    Logger.LogMessage($"      {contentType.Name}: {remaining}");
-                }
-            }
-            Logger.LogMessage(string.Empty);
-
-            Logger.LogMessage("    Remaining allowed child types in reference fields after deletion:");
-            var relevantFieldSettings = dependencies.RelatedFieldSettings;
-            if (0 == relevantFieldSettings.Length)
-            {
-                Logger.LogMessage("      There is no related item.");
-            }
-            else
-            {
-                foreach (var fieldSetting in relevantFieldSettings)
-                {
-                    var remaining = string.Join(", ", fieldSetting.AllowedTypes.Except(names).ToArray());
-                    remaining = remaining.Length == 0 ? "[empty]" : remaining;
-                    Logger.LogMessage($"      {fieldSetting.Owner.Name}.{fieldSetting.Name}: {remaining}");
-                }
-            }
-            Logger.LogMessage(string.Empty);
-
-            Logger.LogMessage("    Remaining allowed child types in content after deletion:");
-            var relatedContentCollection = dependencies.RelatedContentCollection;
-            if (0 == relatedContentCollection.Count)
-            {
-                Logger.LogMessage("      There is no related item.");
-            }
-            else
-            {
-                foreach (var item in relatedContentCollection)
-                {
-                    var remaining = string.Join(", ", item.Value.Split(' ').Except(names).ToArray());
-                    Logger.LogMessage($"      {item.Key}: {(remaining.Length == 0 ? "[empty]" : remaining)}");
-                }
-            }
-            Logger.LogMessage(string.Empty);
-
-
-
-
-
-            if (dependencies.RelatedContentTypes.Length > 0 ||
-                dependencies.RelatedFieldSettings.Length > 0 || dependencies.RelatedContentCollection.Count > 0)
-                throw new NotImplementedException();
 
             if (Delete == Mode.No)
             {
@@ -127,8 +69,17 @@ namespace SenseNet.Packaging.Steps
                 return;
             }
 
+            if (Delete == Mode.IfNotUsed && dependencies.HasDependency)
+            {
+                ContentTypeInstaller.RemoveContentType(name);
+                Logger.LogMessage($"The {name} content type has no any depencency.");
+                Logger.LogMessage($"The {name} content type removed successfully.");
+                return;
+            }
+
             if (dependencies.InstanceCount > 0)
                 DeleteInstances(name);
+            RemoveAllowedTypes(dependencies);
 
             ContentTypeInstaller.RemoveContentType(name);
             Logger.LogMessage($"The {name} content type removed successfully.");
@@ -220,6 +171,69 @@ WHERE p.Name = 'AllowedChildTypes' AND (
             return result;
         }
 
+        private void PrintDependencies(ContentTypeDependencies dependencies)
+        {
+            var names = dependencies.InheritedTypeNames.ToList();
+            names.Add(dependencies.ContentTypeName);
+
+            var inheritedTypeNames = dependencies.InheritedTypeNames;
+            Logger.LogMessage("  Dependencies: ");
+            Logger.LogMessage("    Inherited types: ");
+            Logger.LogMessage("      " + (inheritedTypeNames.Length == 0 ? "There is no related item." : string.Join(", ", inheritedTypeNames)));
+            Logger.LogMessage(string.Empty);
+            Logger.LogMessage("    Content instances: " + dependencies.InstanceCount);
+            Logger.LogMessage(string.Empty);
+
+            Logger.LogMessage("    Remaining allowed child types in other content types after deletion:");
+            var relevantContentTypes = dependencies.RelatedContentTypes;
+            if (0 == relevantContentTypes.Length)
+            {
+                Logger.LogMessage("      There is no related item.");
+            }
+            else
+            {
+                foreach (var contentType in relevantContentTypes)
+                {
+                    var remaining = string.Join(", ", contentType.AllowedChildTypeNames.Except(names).ToArray());
+                    remaining = remaining.Length == 0 ? "[empty]" : remaining;
+                    Logger.LogMessage($"      {contentType.Name}: {remaining}");
+                }
+            }
+            Logger.LogMessage(string.Empty);
+
+            Logger.LogMessage("    Remaining allowed child types in reference fields after deletion:");
+            var relevantFieldSettings = dependencies.RelatedFieldSettings;
+            if (0 == relevantFieldSettings.Length)
+            {
+                Logger.LogMessage("      There is no related item.");
+            }
+            else
+            {
+                foreach (var fieldSetting in relevantFieldSettings)
+                {
+                    var remaining = string.Join(", ", fieldSetting.AllowedTypes.Except(names).ToArray());
+                    remaining = remaining.Length == 0 ? "[empty]" : remaining;
+                    Logger.LogMessage($"      {fieldSetting.Owner.Name}.{fieldSetting.Name}: {remaining}");
+                }
+            }
+            Logger.LogMessage(string.Empty);
+
+            Logger.LogMessage("    Remaining allowed child types in content after deletion:");
+            var relatedContentCollection = dependencies.RelatedContentCollection;
+            if (0 == relatedContentCollection.Count)
+            {
+                Logger.LogMessage("      There is no related item.");
+            }
+            else
+            {
+                foreach (var item in relatedContentCollection)
+                {
+                    var remaining = string.Join(", ", item.Value.Split(' ').Except(names).ToArray());
+                    Logger.LogMessage($"      {item.Key}: {(remaining.Length == 0 ? "[empty]" : remaining)}");
+                }
+            }
+            Logger.LogMessage(string.Empty);
+        }
 
         private void DeleteInstances(string contentTypeName)
         {
@@ -235,6 +249,83 @@ WHERE p.Name = 'AllowedChildTypes' AND (
                 node.ForceDelete();
             }
         }
+        private void RemoveAllowedTypes(ContentTypeDependencies dependencies)
+        {
+            Logger.LogMessage("Remove from allowed types:");
 
+            var names = dependencies.InheritedTypeNames.ToList();
+            names.Add(dependencies.ContentTypeName);
+            var ns = EditContentType.NamespacePrefix;
+
+            if (dependencies.RelatedContentTypes.Length + dependencies.RelatedFieldSettings.Length > 0)
+            {
+                foreach (var contentType in ContentType.GetContentTypes())
+                {
+                    var changed = false;
+                    var xml = new XmlDocument();
+                    xml.Load(contentType.Binary.GetStream());
+                    var nsmgr = EditContentType.GetNamespaceManager(xml);
+
+                    var allowedChildTypesElement =
+                        (XmlElement) xml.SelectSingleNode($"/{ns}:ContentType/{ns}:AllowedChildTypes", nsmgr);
+                    if (allowedChildTypesElement != null)
+                    {
+                        var oldList = allowedChildTypesElement.InnerText.Split(new[] {','},
+                            StringSplitOptions.RemoveEmptyEntries);
+                        var newList = oldList.Except(names).ToArray();
+                        if (oldList.Length != newList.Length)
+                        {
+                            changed = true;
+                            Logger.LogMessage($"    {contentType.Name}");
+                            allowedChildTypesElement.InnerText = string.Join(",", newList);
+                        }
+                    }
+
+                    foreach (XmlElement refFieldElement in xml.SelectNodes($"//{ns}:Field[@type='Reference']", nsmgr))
+                    {
+                        var elementsToDelete = new List<XmlElement>();
+                        var oldAllowedTypes =
+                            refFieldElement.SelectNodes($"{ns}:Configuration/{ns}:AllowedTypes/{ns}:Type");
+                        foreach (XmlElement typeElement in oldAllowedTypes)
+                            if (names.Contains(typeElement.InnerText))
+                                elementsToDelete.Add(typeElement);
+                        if (elementsToDelete.Any())
+                        {
+                            var fieldName = refFieldElement.Attributes["name"].Value;
+                            Logger.LogMessage($"    {contentType.Name}.{fieldName}");
+                            changed = true;
+                        }
+                        foreach (var element in elementsToDelete)
+                            element.ParentNode.RemoveChild(element);
+                    }
+
+                    if (changed)
+                    {
+                        ContentTypeInstaller.InstallContentType(xml.OuterXml);
+                    }
+                }
+            }
+
+            if (dependencies.RelatedContentCollection.Count > 0)
+            {
+                foreach (var item in dependencies.RelatedContentCollection)
+                {
+                    Logger.LogMessage($"    {item.Key}");
+
+                    var content = Content.Load(item.Key);
+                    if (content.ContentHandler is GenericContent gc)
+                    {
+                        var newList = new List<ContentType>();
+                        var oldList = gc.AllowedChildTypes.ToList();
+                        foreach(var ct in oldList)
+                            if (!names.Contains(ct.Name))
+                                newList.Add(ct);
+
+                        gc.AllowedChildTypes = newList;
+                        gc.Save();
+                    }
+                }
+            }
+        }
     }
 }
