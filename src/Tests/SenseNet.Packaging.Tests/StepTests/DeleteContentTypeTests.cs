@@ -212,6 +212,54 @@ namespace SenseNet.Packaging.Tests.StepTests
         }
 
         [TestMethod]
+        public void Step_DeleteContentType_WithRelatedContentType()
+        {
+            var contentTypeTemplate =
+                @"<?xml version='1.0' encoding='utf-8'?>
+<ContentType name='{0}' parentType='{1}' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+<AllowedChildTypes>{2}</AllowedChildTypes>
+</ContentType>";
+
+            Test(() =>
+            {
+                // init
+                var contentTypeCount = GetContentTypeCount();
+                InstallCarContentType();
+                ContentTypeInstaller.InstallContentType(
+                    string.Format(contentTypeTemplate, "Car1", "Car", ""),
+                    string.Format(contentTypeTemplate, "Car2", "Car", ""),
+                    string.Format(contentTypeTemplate, "Garage1", "GenericContent", "Car,Folder"),
+                    string.Format(contentTypeTemplate, "Garage2", "GenericContent", "Folder,Car2"));
+                var root = new SystemFolder(Repository.Root) { Name = "TestRoot" };
+                root.Save();
+
+                // test-1
+                var step = new DeleteContentType { Name = "Car", Delete = DeleteContentType.Mode.Force };
+                var dependencies = step.GetDependencies(ContentType.GetByName("Car"));
+
+                Assert.AreEqual(0, dependencies.InstanceCount);
+                Assert.AreEqual(2, dependencies.RelatedContentTypes.Length);
+                Assert.AreEqual(0, dependencies.RelatedFieldSettings.Length);
+                Assert.AreEqual(0, dependencies.RelatedContentCollection.Count);
+
+                // test-2
+                step.Execute(GetExecutionContext());
+
+                Assert.IsNull(ContentType.GetByName("Car"));
+                Assert.IsNull(ContentType.GetByName("Car1"));
+                Assert.IsNull(ContentType.GetByName("Car2"));
+                Assert.AreEqual(contentTypeCount + 2, GetContentTypeCount());
+
+                var names = new[] {"Car", "Car1", "Car2"};
+
+                var garage1 = ContentType.GetByName("Garage1");
+                Assert.IsFalse(garage1.AllowedChildTypeNames.Intersect(names).Any());
+                var garage2 = ContentType.GetByName("Garage2");
+                Assert.IsFalse(garage1.AllowedChildTypeNames.Intersect(names).Any());
+            });
+        }
+
+        [TestMethod]
         public void Step_DeleteContentType_WithRelatedContent()
         {
             Workspace CreateWorkspace(Node parent, string name, string[] allowedChildTypes)

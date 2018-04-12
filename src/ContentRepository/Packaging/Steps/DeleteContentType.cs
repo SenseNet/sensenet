@@ -285,7 +285,7 @@ WHERE p.Name = 'AllowedChildTypes' AND (
                     {
                         var elementsToDelete = new List<XmlElement>();
                         var oldAllowedTypes =
-                            refFieldElement.SelectNodes($"{ns}:Configuration/{ns}:AllowedTypes/{ns}:Type");
+                            refFieldElement.SelectNodes($"{ns}:Configuration/{ns}:AllowedTypes/{ns}:Type", nsmgr);
                         foreach (XmlElement typeElement in oldAllowedTypes)
                             if (names.Contains(typeElement.InnerText))
                                 elementsToDelete.Add(typeElement);
