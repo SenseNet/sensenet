@@ -95,10 +95,10 @@ namespace SenseNet.Packaging.Steps
             var typeNames = typeSubtreeResult.Nodes.Select(n => n.Name).ToArray();
             var inheritedTypeNames = typeNames.Where(s => s != name).ToArray();
 
-            var queryContext = new SnQueryContext(QuerySettings.AdminSettings, User.Current.Id);
-            var contentInstancesCount = SnQuery.Parse($"+TypeIs:{name} .COUNTONLY", queryContext)
-                .Execute(queryContext)
-                .TotalCount;
+            var contentInstancesCount = ContentQuery.CreateQuery(ContentRepository.SafeQueries.TypeIsCountOnly,
+                    QuerySettings.AdminSettings, name)
+                .Execute()
+                .Count;
 
             var result = new ContentTypeDependencies
             {
