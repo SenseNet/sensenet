@@ -201,6 +201,9 @@ namespace SenseNet.Packaging.Tests.StepTests
                 Assert.AreEqual(0, dependencies.RelatedContentTypes.Length);
                 Assert.AreEqual(0, dependencies.RelatedFieldSettings.Length);
                 Assert.AreEqual(0, dependencies.RelatedContentCollection.Count);
+                Assert.AreEqual(0, dependencies.RelatedApplications.Length);
+                Assert.AreEqual(0, dependencies.RelatedContentTemplates.Length);
+                Assert.AreEqual(0, dependencies.RelatedContentViews.Length);
 
                 // test-2
                 step.Execute(GetExecutionContext());
@@ -242,6 +245,9 @@ namespace SenseNet.Packaging.Tests.StepTests
                 Assert.AreEqual(2, dependencies.RelatedContentTypes.Length);
                 Assert.AreEqual(0, dependencies.RelatedFieldSettings.Length);
                 Assert.AreEqual(0, dependencies.RelatedContentCollection.Count);
+                Assert.AreEqual(0, dependencies.RelatedApplications.Length);
+                Assert.AreEqual(0, dependencies.RelatedContentTemplates.Length);
+                Assert.AreEqual(0, dependencies.RelatedContentViews.Length);
 
                 // test-2
                 step.Execute(GetExecutionContext());
@@ -305,6 +311,9 @@ namespace SenseNet.Packaging.Tests.StepTests
                 Assert.AreEqual(0, dependencies.RelatedContentTypes.Length);
                 Assert.AreEqual(0, dependencies.RelatedFieldSettings.Length);
                 Assert.AreEqual(4, dependencies.RelatedContentCollection.Count);
+                Assert.AreEqual(0, dependencies.RelatedApplications.Length);
+                Assert.AreEqual(0, dependencies.RelatedContentTemplates.Length);
+                Assert.AreEqual(0, dependencies.RelatedContentViews.Length);
 
                 // test-2
                 step.Execute(GetExecutionContext());
@@ -336,7 +345,48 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestMethod]
         public void Step_DeleteContentType_ContentTemplate()
         {
-            Assert.Inconclusive();
+            var contentTypeTemplate =
+                @"<?xml version='1.0' encoding='utf-8'?><ContentType name='{0}' parentType='Car' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition' />";
+
+            Test(() =>
+            {
+                InstallCarContentType();
+                ContentTypeInstaller.InstallContentType(
+                    string.Format(contentTypeTemplate, "Car1"),
+                    string.Format(contentTypeTemplate, "Car2"));
+
+                var globalTemp = CreateContent(Repository.Root, "SystemFolder", "ContentTemplates");
+                var globalCarTemp = CreateContent(globalTemp, "Folder", "Car");
+                var globalCar = CreateContent(globalCarTemp, "Car", "Car");
+                var sites = CreateContent(Repository.Root, "Sites", "Sites");
+                var site = CreateContent(sites, "Site", "Site1");
+                var workspace = CreateContent(site, "Workspace", "WS1");
+                var localTemp = CreateContent(workspace, "SystemFolder", "ContentTemplates");
+                var localCarTemp = CreateContent(localTemp, "Folder", "Car");
+                var localCar = CreateContent(localCarTemp, "Car", "Car");
+
+                // test-1
+                var step = new DeleteContentType { Name = "Car", Delete = DeleteContentType.Mode.Force };
+                var dependencies = step.GetDependencies(ContentType.GetByName("Car"));
+
+                Assert.AreEqual(0, dependencies.InstanceCount);
+                Assert.AreEqual(0, dependencies.RelatedContentTypes.Length);
+                Assert.AreEqual(0, dependencies.RelatedFieldSettings.Length);
+                Assert.AreEqual(0, dependencies.RelatedContentCollection.Count);
+                Assert.AreEqual(0, dependencies.RelatedApplications.Length);
+                Assert.AreEqual(2, dependencies.RelatedContentTemplates.Length);
+                Assert.AreEqual(0, dependencies.RelatedContentViews.Length);
+
+                // test-2
+                step.Execute(GetExecutionContext());
+
+                Assert.IsNotNull(Node.LoadNode(globalTemp.Id));
+                Assert.IsNull(Node.LoadNode(globalCarTemp.Id));
+                Assert.IsNull(Node.LoadNode(globalCar.Id));
+                Assert.IsNotNull(Node.LoadNode(localTemp.Id));
+                Assert.IsNull(Node.LoadNode(localCarTemp.Id));
+                Assert.IsNull(Node.LoadNode(localCar.Id));
+            });
         }
         [TestMethod]
         public void Step_DeleteContentType_ContentView()
@@ -351,6 +401,12 @@ namespace SenseNet.Packaging.Tests.StepTests
         }
 
 
+        private Node CreateContent(Node parent, string type, string name)
+        {
+            var content = Content.CreateNew(type, parent, name);
+            content.Save();
+            return content.ContentHandler;
+        }
         private int GetContentTypeCount()
         {
             return ContentType.GetContentTypes().Length;

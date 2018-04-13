@@ -10,6 +10,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.Search;
@@ -86,10 +87,8 @@ namespace SenseNet.Packaging.Steps
             }
 
             if (dependencies.InstanceCount > 0)
-            {
                 DeleteInstances(name);
-                DeleteRelatedItems(dependencies);
-            }
+            DeleteRelatedItems(dependencies);
             RemoveAllowedTypes(dependencies);
 
             ContentTypeInstaller.RemoveContentType(name);
@@ -106,13 +105,14 @@ namespace SenseNet.Packaging.Steps
             var typeNames = typeSubtreeResult.Nodes.Select(n => n.Name).ToArray();
             var inheritedTypeNames = typeNames.Where(s => s != name).ToArray();
 
-            //UNDONE: instance in any content template is not an usage.
-            var contentInstancesCount = ContentQuery.CreateQuery(ContentRepository.SafeQueries.TypeIsCountOnly,
-                    QuerySettings.AdminSettings, name)
-                .Execute()
-                .Count;
-
             var relatedFolders = GetRelatedFolders(typeNames);
+
+            var contentInstancesCount = ContentQuery.CreateQuery(ContentRepository.SafeQueries.TypeIsCountOnly,
+                    QuerySettings.AdminSettings, name).Execute().Count
+                -
+                relatedFolders.ContentTemplates.Select(p => ContentQuery.Query(ContentRepository.SafeQueries.InTreeAndTypeIsCountOnly,
+                    QuerySettings.AdminSettings, p, typeNames).Count).Sum();
+
             var result = new ContentTypeDependencies
             {
                 ContentTypeName = name,
@@ -311,22 +311,22 @@ WHERE p.Name = 'AllowedChildTypes' AND (
             if (dependencies.RelatedApplications.Length > 0)
             {
                 Logger.LogMessage("Deleting applications...");
-                foreach (var path in dependencies.RelatedApplications)
-                    Content.DeletePhysical(path);
+                foreach (var node in dependencies.RelatedApplications.Select(p => Node.LoadNode(p)).Where(n => n != null))
+                    node.ForceDelete();
                 Logger.LogMessage("Ok.");
             }
             if (dependencies.RelatedContentTemplates.Length > 0)
             {
                 Logger.LogMessage("Deleting content templates...");
-                foreach (var path in dependencies.RelatedContentTemplates)
-                    Content.DeletePhysical(path);
+                foreach (var node in dependencies.RelatedContentTemplates.Select(p => Node.LoadNode(p)).Where(n => n != null))
+                    node.ForceDelete();
                 Logger.LogMessage("Ok.");
             }
             if (dependencies.RelatedContentViews.Length > 0)
             {
                 Logger.LogMessage("Deleting content views...");
-                foreach (var path in dependencies.RelatedContentViews)
-                    Content.DeletePhysical(path);
+                foreach (var node in dependencies.RelatedContentViews.Select(p => Node.LoadNode(p)).Where(n => n != null))
+                    node.ForceDelete();
                 Logger.LogMessage("Ok.");
             }
         }
@@ -394,16 +394,19 @@ WHERE p.Name = 'AllowedChildTypes' AND (
                     Logger.LogMessage($"    {item.Key}");
 
                     var content = Content.Load(item.Key);
-                    if (content.ContentHandler is GenericContent gc)
+                    if (content != null)
                     {
-                        var newList = new List<ContentType>();
-                        var oldList = gc.AllowedChildTypes.ToList();
-                        foreach(var ct in oldList)
-                            if (!names.Contains(ct.Name))
-                                newList.Add(ct);
+                        if (content.ContentHandler is GenericContent gc)
+                        {
+                            var newList = new List<ContentType>();
+                            var oldList = gc.AllowedChildTypes.ToList();
+                            foreach (var ct in oldList)
+                                if (!names.Contains(ct.Name))
+                                    newList.Add(ct);
 
-                        gc.AllowedChildTypes = newList;
-                        gc.Save();
+                            gc.AllowedChildTypes = newList;
+                            gc.Save();
+                        }
                     }
                 }
             }
