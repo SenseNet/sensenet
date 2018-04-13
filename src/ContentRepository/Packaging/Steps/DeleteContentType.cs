@@ -30,11 +30,11 @@ namespace SenseNet.Packaging.Steps
             public ContentType[] RelatedContentTypes { get; set; }
             public ReferenceFieldSetting[] RelatedFieldSettings { get; set; }
             public Dictionary<string, string> RelatedContentCollection { get; set; }
-            public bool HasDependency => InheritedTypeNames.Length > 0 ||
-                                         InstanceCount > 0 ||
-                                         RelatedContentTypes.Length > 0 ||
-                                         RelatedFieldSettings.Length > 0 ||
-                                         RelatedContentCollection.Count > 0;
+            public string[] RelatedContentTemplates { get; set; } //UNDONE: RelatedContentTemplates
+            public string[] RelatedContentViews { get; set; }     //UNDONE: RelatedContentViews
+            public string[] RelatedApplications { get; set; }     //UNDONE: RelatedApplications
+
+            public bool HasDependency => InheritedTypeNames.Length > 0 || InstanceCount > 0;
         }
 
         [DefaultProperty]
@@ -169,6 +169,19 @@ WHERE p.Name = 'AllowedChildTypes' AND (
             }
 
             return result;
+        }
+
+        private string[] GetRelatedContentTemplates(string[] names)
+        {
+            throw new NotImplementedException();
+        }
+        private string[] GetRelatedContentViews(string[] names)
+        {
+            throw new NotImplementedException();
+        }
+        private string[] GetRelatedApplications(string[] names)
+        {
+            throw new NotImplementedException();
         }
 
         private void PrintDependencies(ContentTypeDependencies dependencies)

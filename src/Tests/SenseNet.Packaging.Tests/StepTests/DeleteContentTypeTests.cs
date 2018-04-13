@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -258,7 +259,11 @@ namespace SenseNet.Packaging.Tests.StepTests
                 Assert.IsFalse(garage1.AllowedChildTypeNames.Intersect(names).Any());
             });
         }
-
+        [TestMethod]
+        public void Step_DeleteContentType_WithRelatedFieldSetting()
+        {
+            Assert.Inconclusive();
+        }
         [TestMethod]
         public void Step_DeleteContentType_WithRelatedContent()
         {
@@ -322,6 +327,29 @@ namespace SenseNet.Packaging.Tests.StepTests
                 Assert.IsFalse(w5.GetAllowedChildTypeNames().Intersect(names).Any());
             });
         }
+
+        [TestMethod]
+        public void Step_DeleteContentType_Applications()
+        {
+            Assert.Inconclusive();
+        }
+        [TestMethod]
+        public void Step_DeleteContentType_ContentTemplate()
+        {
+            Assert.Inconclusive();
+        }
+        [TestMethod]
+        public void Step_DeleteContentType_ContentView()
+        {
+            Assert.Inconclusive();
+        }
+
+        [TestMethod]
+        public void Step_DeleteContentType_IfNotUsed()
+        {
+            Assert.Inconclusive();
+        }
+
 
         private int GetContentTypeCount()
         {
