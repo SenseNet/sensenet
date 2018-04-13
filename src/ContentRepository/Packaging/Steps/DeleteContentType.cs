@@ -31,9 +31,9 @@ namespace SenseNet.Packaging.Steps
             public ContentType[] RelatedContentTypes { get; set; }
             public ReferenceFieldSetting[] RelatedFieldSettings { get; set; }
             public Dictionary<string, string> RelatedContentCollection { get; set; }
-            public string[] RelatedContentTemplates { get; set; } //UNDONE: RelatedContentTemplates
-            public string[] RelatedContentViews { get; set; }     //UNDONE: RelatedContentViews
-            public string[] RelatedApplications { get; set; }     //UNDONE: RelatedApplications
+            public string[] RelatedContentTemplates { get; set; }
+            public string[] RelatedContentViews { get; set; }
+            public string[] RelatedApplications { get; set; }
 
             public bool HasDependency => InheritedTypeNames.Length > 0 || InstanceCount > 0;
         }
@@ -106,6 +106,7 @@ namespace SenseNet.Packaging.Steps
             var typeNames = typeSubtreeResult.Nodes.Select(n => n.Name).ToArray();
             var inheritedTypeNames = typeNames.Where(s => s != name).ToArray();
 
+            //UNDONE: instance in any content template is not an usage.
             var contentInstancesCount = ContentQuery.CreateQuery(ContentRepository.SafeQueries.TypeIsCountOnly,
                     QuerySettings.AdminSettings, name)
                 .Execute()
