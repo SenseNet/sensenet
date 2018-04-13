@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
@@ -35,6 +36,13 @@ namespace SenseNet.Packaging.Steps
             public string[] RelatedApplications { get; set; }     //UNDONE: RelatedApplications
 
             public bool HasDependency => InheritedTypeNames.Length > 0 || InstanceCount > 0;
+        }
+
+        internal class RelatedSensitiveFolders
+        {
+            public string[] Applications { get; set; }
+            public string[] ContentTemplates { get; set; }
+            public string[] ContentViews { get; set; }
         }
 
         [DefaultProperty]
@@ -78,7 +86,10 @@ namespace SenseNet.Packaging.Steps
             }
 
             if (dependencies.InstanceCount > 0)
+            {
                 DeleteInstances(name);
+                DeleteRelatedItems(dependencies);
+            }
             RemoveAllowedTypes(dependencies);
 
             ContentTypeInstaller.RemoveContentType(name);
@@ -100,6 +111,7 @@ namespace SenseNet.Packaging.Steps
                 .Execute()
                 .Count;
 
+            var relatedFolders = GetRelatedFolders(typeNames);
             var result = new ContentTypeDependencies
             {
                 ContentTypeName = name,
@@ -112,7 +124,11 @@ namespace SenseNet.Packaging.Steps
                 // ContentType/Fields/Field/Configuration/AllowedTypes/Type: "Folder"
                 RelatedFieldSettings = GetContentTypesWhereTheyAreAllowedInReferenceField(typeNames),
                 // ContentMetaData/Fields/AllowedChildTypes: "Folder File"
-                RelatedContentCollection = GetContentPathsWhereTheyAreAllowedChildren(typeNames)
+                RelatedContentCollection = GetContentPathsWhereTheyAreAllowedChildren(typeNames),
+
+                RelatedApplications = relatedFolders.Applications,
+                RelatedContentTemplates = relatedFolders.ContentTemplates,
+                RelatedContentViews = relatedFolders.ContentViews
             };
             return result;
         }
@@ -171,17 +187,40 @@ WHERE p.Name = 'AllowedChildTypes' AND (
             return result;
         }
 
+        private RelatedSensitiveFolders GetRelatedFolders(string[] names)
+        {
+            var result = ContentQuery.Query(ContentRepository.SafeQueries.TypeIsAndName, QuerySettings.AdminSettings,
+                "Folder", names);
+
+            var apps = new List<string>();
+            var temps = new List<string>();
+            var views = new List<string>();
+            var tempsPrefix = RepositoryStructure.ContentTemplateFolderPath.ToLowerInvariant();
+            foreach (var node in result.Nodes)
+            {
+                var path = node.Path.ToLowerInvariant();
+                if (path.Contains("/(apps)/"))
+                    apps.Add(path);
+                else if(path.StartsWith(tempsPrefix))
+                    temps.Add(path);
+                else if (path.Contains("/contentviews/"))
+                    views.Add(path);
+            }
+
+            return new RelatedSensitiveFolders
+            {
+                Applications = apps.ToArray(),
+                ContentTemplates = temps.ToArray(),
+                ContentViews = views.ToArray()
+            };
+        }
         private string[] GetRelatedContentTemplates(string[] names)
         {
-            throw new NotImplementedException();
+            return new string[0];
         }
         private string[] GetRelatedContentViews(string[] names)
         {
-            throw new NotImplementedException();
-        }
-        private string[] GetRelatedApplications(string[] names)
-        {
-            throw new NotImplementedException();
+            return new string[0];
         }
 
         private void PrintDependencies(ContentTypeDependencies dependencies)
@@ -197,55 +236,60 @@ WHERE p.Name = 'AllowedChildTypes' AND (
             Logger.LogMessage("    Content instances: " + dependencies.InstanceCount);
             Logger.LogMessage(string.Empty);
 
-            Logger.LogMessage("    Remaining allowed child types in other content types after deletion:");
-            var relevantContentTypes = dependencies.RelatedContentTypes;
-            if (0 == relevantContentTypes.Length)
+            Logger.LogMessage("  Relations: ");
+            if (dependencies.RelatedApplications.Length > 0)
             {
-                Logger.LogMessage("      There is no related item.");
+                Logger.LogMessage("    Applications: ");
+                foreach (var path in dependencies.RelatedApplications)
+                    Logger.LogMessage($"      {path}");
+                Logger.LogMessage(string.Empty);
             }
-            else
+            if (dependencies.RelatedContentTemplates.Length > 0)
             {
-                foreach (var contentType in relevantContentTypes)
+                Logger.LogMessage("    Content templates: ");
+                foreach (var path in dependencies.RelatedContentTemplates)
+                    Logger.LogMessage($"      {path}");
+                Logger.LogMessage(string.Empty);
+            }
+            if (dependencies.RelatedContentViews.Length > 0)
+            {
+                Logger.LogMessage("    Content views: ");
+                foreach (var path in dependencies.RelatedContentViews)
+                    Logger.LogMessage($"      {path}");
+                Logger.LogMessage(string.Empty);
+            }
+            if (dependencies.RelatedContentTypes.Length > 0)
+            {
+                Logger.LogMessage("    Remaining allowed child types in other content types after deletion:");
+                foreach (var contentType in dependencies.RelatedContentTypes)
                 {
                     var remaining = string.Join(", ", contentType.AllowedChildTypeNames.Except(names).ToArray());
                     remaining = remaining.Length == 0 ? "[empty]" : remaining;
                     Logger.LogMessage($"      {contentType.Name}: {remaining}");
                 }
+                Logger.LogMessage(string.Empty);
             }
-            Logger.LogMessage(string.Empty);
-
-            Logger.LogMessage("    Remaining allowed child types in reference fields after deletion:");
-            var relevantFieldSettings = dependencies.RelatedFieldSettings;
-            if (0 == relevantFieldSettings.Length)
+            if (dependencies.RelatedFieldSettings.Length > 0)
             {
-                Logger.LogMessage("      There is no related item.");
-            }
-            else
-            {
-                foreach (var fieldSetting in relevantFieldSettings)
+                Logger.LogMessage("    Remaining allowed child types in reference fields after deletion:");
+                foreach (var fieldSetting in dependencies.RelatedFieldSettings)
                 {
                     var remaining = string.Join(", ", fieldSetting.AllowedTypes.Except(names).ToArray());
                     remaining = remaining.Length == 0 ? "[empty]" : remaining;
                     Logger.LogMessage($"      {fieldSetting.Owner.Name}.{fieldSetting.Name}: {remaining}");
                 }
+                Logger.LogMessage(string.Empty);
             }
-            Logger.LogMessage(string.Empty);
-
-            Logger.LogMessage("    Remaining allowed child types in content after deletion:");
-            var relatedContentCollection = dependencies.RelatedContentCollection;
-            if (0 == relatedContentCollection.Count)
+            if (dependencies.RelatedContentCollection.Count > 0)
             {
-                Logger.LogMessage("      There is no related item.");
-            }
-            else
-            {
-                foreach (var item in relatedContentCollection)
+                Logger.LogMessage("    Remaining allowed child types in content after deletion:");
+                foreach (var item in dependencies.RelatedContentCollection)
                 {
                     var remaining = string.Join(", ", item.Value.Split(' ').Except(names).ToArray());
                     Logger.LogMessage($"      {item.Key}: {(remaining.Length == 0 ? "[empty]" : remaining)}");
                 }
+                Logger.LogMessage(string.Empty);
             }
-            Logger.LogMessage(string.Empty);
         }
 
         private void DeleteInstances(string contentTypeName)
@@ -260,6 +304,30 @@ WHERE p.Name = 'AllowedChildTypes' AND (
             {
                 Logger.LogMessage($"    {node.Path}");
                 node.ForceDelete();
+            }
+        }
+        private void DeleteRelatedItems(ContentTypeDependencies dependencies)
+        {
+            if (dependencies.RelatedApplications.Length > 0)
+            {
+                Logger.LogMessage("Deleting applications...");
+                foreach (var path in dependencies.RelatedApplications)
+                    Content.DeletePhysical(path);
+                Logger.LogMessage("Ok.");
+            }
+            if (dependencies.RelatedContentTemplates.Length > 0)
+            {
+                Logger.LogMessage("Deleting content templates...");
+                foreach (var path in dependencies.RelatedContentTemplates)
+                    Content.DeletePhysical(path);
+                Logger.LogMessage("Ok.");
+            }
+            if (dependencies.RelatedContentViews.Length > 0)
+            {
+                Logger.LogMessage("Deleting content views...");
+                foreach (var path in dependencies.RelatedContentViews)
+                    Content.DeletePhysical(path);
+                Logger.LogMessage("Ok.");
             }
         }
         private void RemoveAllowedTypes(ContentTypeDependencies dependencies)
@@ -340,5 +408,6 @@ WHERE p.Name = 'AllowedChildTypes' AND (
                 }
             }
         }
+
     }
 }
