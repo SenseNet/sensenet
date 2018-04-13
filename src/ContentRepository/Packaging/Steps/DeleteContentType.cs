@@ -195,13 +195,12 @@ WHERE p.Name = 'AllowedChildTypes' AND (
             var apps = new List<string>();
             var temps = new List<string>();
             var views = new List<string>();
-            var tempsPrefix = RepositoryStructure.ContentTemplateFolderPath.ToLowerInvariant();
             foreach (var node in result.Nodes)
             {
                 var path = node.Path.ToLowerInvariant();
                 if (path.Contains("/(apps)/"))
                     apps.Add(path);
-                else if(path.StartsWith(tempsPrefix))
+                else if (path.Contains("/contenttemplates/"))
                     temps.Add(path);
                 else if (path.Contains("/contentviews/"))
                     views.Add(path);
