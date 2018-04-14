@@ -355,15 +355,18 @@ namespace SenseNet.Packaging.Tests.StepTests
                     string.Format(contentTypeTemplate, "Car1"),
                     string.Format(contentTypeTemplate, "Car2"));
 
-                var globalTemp = CreateContent(Repository.Root, "SystemFolder", "ContentTemplates");
-                var globalCarTemp = CreateContent(globalTemp, "Folder", "Car");
-                var globalCar = CreateContent(globalCarTemp, "Car", "Car");
-                var sites = CreateContent(Repository.Root, "Sites", "Sites");
-                var site = CreateContent(sites, "Site", "Site1");
-                var workspace = CreateContent(site, "Workspace", "WS1");
-                var localTemp = CreateContent(workspace, "SystemFolder", "ContentTemplates");
-                var localCarTemp = CreateContent(localTemp, "Folder", "Car");
-                var localCar = CreateContent(localCarTemp, "Car", "Car");
+                Repository.Root
+                    .CreateChild("SystemFolder", "ContentTemplates", out Node globalTemp)
+                    .CreateChild("Folder", "Car", out Node globalCarTemp)
+                    .CreateChild("Car", "Car", out Node globalCar);
+                Repository.Root
+                    .CreateChild("Sites", "Sites")
+                    .CreateChild("Site", "Site1")
+                    .CreateChild("Workspace", "WS1")
+                    .CreateChild("Workspace", "WS1")
+                    .CreateChild("SystemFolder", "ContentTemplates", out Node localTemp)
+                    .CreateChild("Folder", "Car", out Node localCarTemp)
+                    .CreateChild("Car", "Car", out Node localCar);
 
                 // test-1
                 var step = new DeleteContentType { Name = "Car", Delete = DeleteContentType.Mode.Force };
