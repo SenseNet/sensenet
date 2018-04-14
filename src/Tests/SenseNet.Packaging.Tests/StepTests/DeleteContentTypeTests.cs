@@ -199,12 +199,12 @@ namespace SenseNet.Packaging.Tests.StepTests
                 var dependencies = step.GetDependencies(ContentType.GetByName("Car"));
 
                 Assert.AreEqual(3, dependencies.InstanceCount);
-                Assert.AreEqual(0, dependencies.RelatedContentTypes.Length);
-                Assert.AreEqual(0, dependencies.RelatedFieldSettings.Length);
-                Assert.AreEqual(0, dependencies.RelatedContentCollection.Count);
-                Assert.AreEqual(0, dependencies.RelatedApplications.Length);
-                Assert.AreEqual(0, dependencies.RelatedContentTemplates.Length);
-                Assert.AreEqual(0, dependencies.RelatedContentViews.Length);
+                Assert.AreEqual(0, dependencies.PermittingContentTypes.Length);
+                Assert.AreEqual(0, dependencies.PermittingFieldSettings.Length);
+                Assert.AreEqual(0, dependencies.PermittingContentCollection.Count);
+                Assert.AreEqual(0, dependencies.Applications.Length);
+                Assert.AreEqual(0, dependencies.ContentTemplates.Length);
+                Assert.AreEqual(0, dependencies.ContentViews.Length);
 
                 // test-2
                 step.Execute(GetExecutionContext());
@@ -243,12 +243,12 @@ namespace SenseNet.Packaging.Tests.StepTests
                 var dependencies = step.GetDependencies(ContentType.GetByName("Car"));
 
                 Assert.AreEqual(0, dependencies.InstanceCount);
-                Assert.AreEqual(2, dependencies.RelatedContentTypes.Length);
-                Assert.AreEqual(0, dependencies.RelatedFieldSettings.Length);
-                Assert.AreEqual(0, dependencies.RelatedContentCollection.Count);
-                Assert.AreEqual(0, dependencies.RelatedApplications.Length);
-                Assert.AreEqual(0, dependencies.RelatedContentTemplates.Length);
-                Assert.AreEqual(0, dependencies.RelatedContentViews.Length);
+                Assert.AreEqual(2, dependencies.PermittingContentTypes.Length);
+                Assert.AreEqual(0, dependencies.PermittingFieldSettings.Length);
+                Assert.AreEqual(0, dependencies.PermittingContentCollection.Count);
+                Assert.AreEqual(0, dependencies.Applications.Length);
+                Assert.AreEqual(0, dependencies.ContentTemplates.Length);
+                Assert.AreEqual(0, dependencies.ContentViews.Length);
 
                 // test-2
                 step.Execute(GetExecutionContext());
@@ -309,12 +309,12 @@ namespace SenseNet.Packaging.Tests.StepTests
                 var dependencies = step.GetDependencies(ContentType.GetByName("Car"));
 
                 Assert.AreEqual(0, dependencies.InstanceCount);
-                Assert.AreEqual(0, dependencies.RelatedContentTypes.Length);
-                Assert.AreEqual(0, dependencies.RelatedFieldSettings.Length);
-                Assert.AreEqual(4, dependencies.RelatedContentCollection.Count);
-                Assert.AreEqual(0, dependencies.RelatedApplications.Length);
-                Assert.AreEqual(0, dependencies.RelatedContentTemplates.Length);
-                Assert.AreEqual(0, dependencies.RelatedContentViews.Length);
+                Assert.AreEqual(0, dependencies.PermittingContentTypes.Length);
+                Assert.AreEqual(0, dependencies.PermittingFieldSettings.Length);
+                Assert.AreEqual(4, dependencies.PermittingContentCollection.Count);
+                Assert.AreEqual(0, dependencies.Applications.Length);
+                Assert.AreEqual(0, dependencies.ContentTemplates.Length);
+                Assert.AreEqual(0, dependencies.ContentViews.Length);
 
                 // test-2
                 step.Execute(GetExecutionContext());
@@ -372,12 +372,12 @@ namespace SenseNet.Packaging.Tests.StepTests
                 var dependencies = step.GetDependencies(ContentType.GetByName("Car"));
 
                 Assert.AreEqual(0, dependencies.InstanceCount); // Any instance in a content template is irrelevant.
-                Assert.AreEqual(0, dependencies.RelatedContentTypes.Length);
-                Assert.AreEqual(0, dependencies.RelatedFieldSettings.Length);
-                Assert.AreEqual(0, dependencies.RelatedContentCollection.Count);
-                Assert.AreEqual(3, dependencies.RelatedApplications.Length);
-                Assert.AreEqual(0, dependencies.RelatedContentTemplates.Length);
-                Assert.AreEqual(0, dependencies.RelatedContentViews.Length);
+                Assert.AreEqual(0, dependencies.PermittingContentTypes.Length);
+                Assert.AreEqual(0, dependencies.PermittingFieldSettings.Length);
+                Assert.AreEqual(0, dependencies.PermittingContentCollection.Count);
+                Assert.AreEqual(3, dependencies.Applications.Length);
+                Assert.AreEqual(0, dependencies.ContentTemplates.Length);
+                Assert.AreEqual(0, dependencies.ContentViews.Length);
 
                 // test-2
                 step.Execute(GetExecutionContext());
@@ -420,12 +420,12 @@ namespace SenseNet.Packaging.Tests.StepTests
                 var dependencies = step.GetDependencies(ContentType.GetByName("Car"));
 
                 Assert.AreEqual(0, dependencies.InstanceCount); // Any instance in a content template is irrelevant.
-                Assert.AreEqual(0, dependencies.RelatedContentTypes.Length);
-                Assert.AreEqual(0, dependencies.RelatedFieldSettings.Length);
-                Assert.AreEqual(0, dependencies.RelatedContentCollection.Count);
-                Assert.AreEqual(0, dependencies.RelatedApplications.Length);
-                Assert.AreEqual(2, dependencies.RelatedContentTemplates.Length);
-                Assert.AreEqual(0, dependencies.RelatedContentViews.Length);
+                Assert.AreEqual(0, dependencies.PermittingContentTypes.Length);
+                Assert.AreEqual(0, dependencies.PermittingFieldSettings.Length);
+                Assert.AreEqual(0, dependencies.PermittingContentCollection.Count);
+                Assert.AreEqual(0, dependencies.Applications.Length);
+                Assert.AreEqual(2, dependencies.ContentTemplates.Length);
+                Assert.AreEqual(0, dependencies.ContentViews.Length);
 
                 // test-2
                 step.Execute(GetExecutionContext());
@@ -453,19 +453,19 @@ namespace SenseNet.Packaging.Tests.StepTests
                 Assert.IsFalse(dependencies.HasDependency);
 
                 // allowed types
-                dependencies.RelatedContentTypes = new[] { ContentType.GetByName(typeof(GenericContent).Name) };
+                dependencies.PermittingContentTypes = new[] { ContentType.GetByName(typeof(GenericContent).Name) };
                 Assert.IsFalse(dependencies.HasDependency);
-                dependencies.RelatedFieldSettings = new[] { new ReferenceFieldSetting() };
+                dependencies.PermittingFieldSettings = new[] { new ReferenceFieldSetting() };
                 Assert.IsFalse(dependencies.HasDependency);
-                dependencies.RelatedContentCollection = new Dictionary<string, string> { { "/root/mycontent", "" } };
+                dependencies.PermittingContentCollection = new Dictionary<string, string> { { "/root/mycontent", "" } };
                 Assert.IsFalse(dependencies.HasDependency);
 
                 // sensitive items
-                dependencies.RelatedContentTemplates = new[] { "/root/temp" };
+                dependencies.ContentTemplates = new[] { "/root/temp" };
                 Assert.IsFalse(dependencies.HasDependency);
-                dependencies.RelatedContentViews = new[] { "/root/view" };
+                dependencies.ContentViews = new[] { "/root/view" };
                 Assert.IsFalse(dependencies.HasDependency);
-                dependencies.RelatedApplications = new[] { "/root/app" };
+                dependencies.Applications = new[] { "/root/app" };
                 Assert.IsFalse(dependencies.HasDependency);
 
                 // dependencies
