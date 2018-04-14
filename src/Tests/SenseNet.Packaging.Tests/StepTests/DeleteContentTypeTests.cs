@@ -341,7 +341,53 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestMethod]
         public void Step_DeleteContentType_Applications()
         {
-            Assert.Inconclusive();
+            var contentTypeTemplate =
+                @"<?xml version='1.0' encoding='utf-8'?><ContentType name='{0}' parentType='Car' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition' />";
+
+            Test(() =>
+            {
+                InstallCarContentType();
+                ContentTypeInstaller.InstallContentType(
+                    string.Format(contentTypeTemplate, "Car1"),
+                    string.Format(contentTypeTemplate, "Car2"));
+
+                var rootApps = Node.Load<Folder>("/Root/(apps)");
+                var rooAppCount = rootApps.Children.Count();
+
+                rootApps
+                    .CreateChild("Folder", "Car", out Node rootCar)
+                    .CreateChild("GenericODataApplication", "MyOperation");
+                rootApps
+                    .CreateChild("Folder", "Car1", out Node rootCar1)
+                    .CreateChild("GenericODataApplication", "MyOperation");
+                Repository.Root
+                    .CreateChild("SystemFolder", "MyStructure", out Node myRoot)
+                    .CreateChild("SystemFolder", "(apps)")
+                    .CreateChild("Folder", "Car", out Node deepCar)
+                    .CreateChild("GenericODataApplication", "MyOperation");
+                myRoot.CreateChild("Folder", "Car", out Node carFolder);
+
+                // test-1
+                var step = new DeleteContentType { Name = "Car", Delete = DeleteContentType.Mode.Force };
+                var dependencies = step.GetDependencies(ContentType.GetByName("Car"));
+
+                Assert.AreEqual(0, dependencies.InstanceCount); // Any instance in a content template is irrelevant.
+                Assert.AreEqual(0, dependencies.RelatedContentTypes.Length);
+                Assert.AreEqual(0, dependencies.RelatedFieldSettings.Length);
+                Assert.AreEqual(0, dependencies.RelatedContentCollection.Count);
+                Assert.AreEqual(3, dependencies.RelatedApplications.Length);
+                Assert.AreEqual(0, dependencies.RelatedContentTemplates.Length);
+                Assert.AreEqual(0, dependencies.RelatedContentViews.Length);
+
+                // test-2
+                step.Execute(GetExecutionContext());
+
+                Assert.IsNull(Node.LoadNode(rootCar.Id));
+                Assert.IsNull(Node.LoadNode(rootCar1.Id));
+                Assert.IsNull(Node.LoadNode(deepCar.Id));
+                Assert.IsNotNull(Node.LoadNode(carFolder.Id));
+                Assert.AreEqual(rooAppCount, rootApps.Children.Count());
+            });
         }
         [TestMethod]
         public void Step_DeleteContentType_ContentTemplate()
