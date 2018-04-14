@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Workspaces;
@@ -372,7 +373,7 @@ namespace SenseNet.Packaging.Tests.StepTests
                 var step = new DeleteContentType { Name = "Car", Delete = DeleteContentType.Mode.Force };
                 var dependencies = step.GetDependencies(ContentType.GetByName("Car"));
 
-                Assert.AreEqual(0, dependencies.InstanceCount);
+                Assert.AreEqual(0, dependencies.InstanceCount); // Any instance in a content template is irrelevant.
                 Assert.AreEqual(0, dependencies.RelatedContentTypes.Length);
                 Assert.AreEqual(0, dependencies.RelatedFieldSettings.Length);
                 Assert.AreEqual(0, dependencies.RelatedContentCollection.Count);
@@ -400,7 +401,38 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestMethod]
         public void Step_DeleteContentType_IfNotUsed()
         {
-            Assert.Inconclusive();
+            Test(() =>
+            {
+                var dependencies = new DeleteContentType.ContentTypeDependencies { ContentTypeName = "MyContentType" };
+                Assert.IsFalse(dependencies.HasDependency);
+
+                // allowed types
+                dependencies.RelatedContentTypes = new[] { ContentType.GetByName(typeof(GenericContent).Name) };
+                Assert.IsFalse(dependencies.HasDependency);
+                dependencies.RelatedFieldSettings = new[] { new ReferenceFieldSetting() };
+                Assert.IsFalse(dependencies.HasDependency);
+                dependencies.RelatedContentCollection = new Dictionary<string, string> { { "/root/mycontent", "" } };
+                Assert.IsFalse(dependencies.HasDependency);
+
+                // sensitive items
+                dependencies.RelatedContentTemplates = new[] { "/root/temp" };
+                Assert.IsFalse(dependencies.HasDependency);
+                dependencies.RelatedContentViews = new[] { "/root/view" };
+                Assert.IsFalse(dependencies.HasDependency);
+                dependencies.RelatedApplications = new[] { "/root/app" };
+                Assert.IsFalse(dependencies.HasDependency);
+
+                // dependencies
+                dependencies.InstanceCount = 1;
+                Assert.IsTrue(dependencies.HasDependency);
+
+                // check again
+                dependencies.InstanceCount = 0;
+                Assert.IsFalse(dependencies.HasDependency);
+
+                dependencies.InheritedTypeNames = new[] { "MyInheritedContentType", "MyAnotherInheritedContentType" };
+                Assert.IsTrue(dependencies.HasDependency);
+            });
         }
 
 

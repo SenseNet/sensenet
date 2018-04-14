@@ -27,14 +27,14 @@ namespace SenseNet.Packaging.Steps
         internal class ContentTypeDependencies
         {
             public string ContentTypeName { get; set; }
-            public string[] InheritedTypeNames { get; set; }
+            public string[] InheritedTypeNames { get; set; } = new string[0];
             public int InstanceCount { get; set; }
-            public ContentType[] RelatedContentTypes { get; set; }
-            public ReferenceFieldSetting[] RelatedFieldSettings { get; set; }
-            public Dictionary<string, string> RelatedContentCollection { get; set; }
-            public string[] RelatedContentTemplates { get; set; }
-            public string[] RelatedContentViews { get; set; }
-            public string[] RelatedApplications { get; set; }
+            public ContentType[] RelatedContentTypes { get; set; } = new ContentType[0];
+            public ReferenceFieldSetting[] RelatedFieldSettings { get; set; } = new ReferenceFieldSetting[0];
+            public Dictionary<string, string> RelatedContentCollection { get; set; } = new Dictionary<string, string>();
+            public string[] RelatedContentTemplates { get; set; } = new string[0];
+            public string[] RelatedContentViews { get; set; } = new string[0];
+            public string[] RelatedApplications { get; set; } = new string[0];
 
             public bool HasDependency => InheritedTypeNames.Length > 0 || InstanceCount > 0;
         }
