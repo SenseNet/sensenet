@@ -269,7 +269,68 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestMethod]
         public void Step_DeleteContentType_WithRelatedFieldSetting()
         {
-            Assert.Inconclusive();
+            var contentTypeTemplate =
+                @"<?xml version='1.0' encoding='utf-8'?>
+<ContentType name='{0}' parentType='{1}' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+<Fields><Field name='Ref1' type='Reference'><Configuration>
+  <AllowedTypes>{2}</AllowedTypes>
+</Configuration></Field></Fields></ContentType>";
+
+            Test(() =>
+            {
+                // init
+                var contentTypeCount = GetContentTypeCount();
+                InstallCarContentType();
+                ContentTypeInstaller.InstallContentType(
+                    string.Format(contentTypeTemplate, "Car1", "Car", ""),
+                    string.Format(contentTypeTemplate, "Car2", "Car", ""),
+                    string.Format(contentTypeTemplate, "Garage1", "GenericContent", "<Type>Car</Type><Type>Folder</Type>"),
+                    string.Format(contentTypeTemplate, "Garage2", "GenericContent", "<Type>Folder</Type><Type>Car2</Type>"));
+
+                // test-1
+                var step = new DeleteContentType { Name = "Car", Delete = DeleteContentType.Mode.Force };
+                var dependencies = step.GetDependencies(ContentType.GetByName("Car"));
+
+                Assert.AreEqual(0, dependencies.InstanceCount);
+                Assert.AreEqual(0, dependencies.PermittingContentTypes.Length);
+                Assert.AreEqual(2, dependencies.PermittingFieldSettings.Length);
+                Assert.AreEqual(0, dependencies.PermittingContentCollection.Count);
+                Assert.AreEqual(0, dependencies.Applications.Length);
+                Assert.AreEqual(0, dependencies.ContentTemplates.Length);
+                Assert.AreEqual(0, dependencies.ContentViews.Length);
+
+                // test-2
+                step.Execute(GetExecutionContext());
+
+                Assert.IsNull(ContentType.GetByName("Car"));
+                Assert.IsNull(ContentType.GetByName("Car1"));
+                Assert.IsNull(ContentType.GetByName("Car2"));
+                Assert.AreEqual(contentTypeCount + 2, GetContentTypeCount());
+
+                Assert.AreEqual(@"<ContentType name=""Garage1"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+  <Fields>
+    <Field name=""Ref1"" type=""Reference"">
+      <Configuration>
+        <AllowedTypes>
+          <Type>Folder</Type>
+        </AllowedTypes>
+      </Configuration>
+    </Field>
+  </Fields>
+</ContentType>", ContentType.GetByName("Garage1").ToXml());
+
+                Assert.AreEqual(@"<ContentType name=""Garage2"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+  <Fields>
+    <Field name=""Ref1"" type=""Reference"">
+      <Configuration>
+        <AllowedTypes>
+          <Type>Folder</Type>
+        </AllowedTypes>
+      </Configuration>
+    </Field>
+  </Fields>
+</ContentType>", ContentType.GetByName("Garage2").ToXml());
+            });
         }
         [TestMethod]
         public void Step_DeleteContentType_WithRelatedContent()
