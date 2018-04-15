@@ -8,6 +8,7 @@ using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search;
 
 // ReSharper disable PossibleNullReferenceException
@@ -50,44 +51,44 @@ namespace SenseNet.Packaging.Steps
         public override void Execute(ExecutionContext context)
         {
             var name = ResolveVariable(Name, context);
-
             context.AssertRepositoryStarted();
-
-            var currentContentType = ContentType.GetByName(name);
-            if (null == currentContentType)
+            using (new SystemAccount())
             {
-                Logger.LogMessage("Content type is already deleted: " + name);
-                return;
-            }
+                var currentContentType = ContentType.GetByName(name);
+                if (null == currentContentType)
+                {
+                    Logger.LogMessage("Content type is already deleted: " + name);
+                    return;
+                }
 
-            var dependencies = GetDependencies(currentContentType);
+                var dependencies = GetDependencies(currentContentType);
 
-            Logger.LogMessage("DELETING CONTENT TYPE: " + name);
+                Logger.LogMessage("DELETING CONTENT TYPE: " + name);
 
-            PrintDependencies(dependencies);
+                PrintDependencies(dependencies);
 
+                if (Delete == Mode.No)
+                {
+                    Logger.LogMessage($"The {name} content type is not removed, this step provides only information.");
+                    return;
+                }
 
-            if (Delete == Mode.No)
-            {
-                Logger.LogMessage($"The {name} content type is not removed, this step provides only information.");
-                return;
-            }
+                if (Delete == Mode.IfNotUsed && dependencies.HasDependency)
+                {
+                    ContentTypeInstaller.RemoveContentType(name);
+                    Logger.LogMessage($"The {name} content type has no any depencency.");
+                    Logger.LogMessage($"The {name} content type removed successfully.");
+                    return;
+                }
 
-            if (Delete == Mode.IfNotUsed && dependencies.HasDependency)
-            {
+                if (dependencies.InstanceCount > 0)
+                    DeleteInstances(name);
+                DeleteRelatedItems(dependencies);
+                RemoveAllowedTypes(dependencies);
+
                 ContentTypeInstaller.RemoveContentType(name);
-                Logger.LogMessage($"The {name} content type has no any depencency.");
                 Logger.LogMessage($"The {name} content type removed successfully.");
-                return;
             }
-
-            if (dependencies.InstanceCount > 0)
-                DeleteInstances(name);
-            DeleteRelatedItems(dependencies);
-            RemoveAllowedTypes(dependencies);
-
-            ContentTypeInstaller.RemoveContentType(name);
-            Logger.LogMessage($"The {name} content type removed successfully.");
         }
 
         internal ContentTypeDependencies GetDependencies(ContentType currentContentType)
