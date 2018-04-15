@@ -441,7 +441,76 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestMethod]
         public void Step_DeleteContentType_ContentView()
         {
-            Assert.Inconclusive();
+            var contentTypeTemplate =
+                @"<?xml version='1.0' encoding='utf-8'?><ContentType name='{0}' parentType='Car' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition' />";
+
+            Test(() =>
+            {
+                InstallCarContentType();
+                ContentTypeInstaller.InstallContentType(
+                    string.Format(contentTypeTemplate, "Car1"),
+                    string.Format(contentTypeTemplate, "Car2"),
+                        @"<?xml version='1.0' encoding='utf-8'?>
+                        <ContentType name='ContentViews' parentType='Folder' handler='SenseNet.ContentRepository.Folder' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+                          <AllowedChildTypes>ContentView ContentViews</AllowedChildTypes>
+                        </ContentType>",
+                        @"<?xml version='1.0' encoding='utf-8'?>
+                        <ContentType name='Skins' parentType='SystemFolder' handler='SenseNet.ContentRepository.SystemFolder' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+                          <AllowedChildTypes>Skin</AllowedChildTypes>
+                        </ContentType>",
+                        @"<?xml version='1.0' encoding='utf-8'?>
+                        <ContentType name='Skin' parentType='SystemFolder' handler='SenseNet.ContentRepository.SystemFolder' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+                          <AllowedChildTypes>SystemFolder</AllowedChildTypes>
+                        </ContentType>",
+                        @"<?xml version='1.0' encoding='utf-8'?>
+                        <ContentType name='ContentView' parentType='File' handler='SenseNet.ContentRepository.File' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+                        </ContentType>"
+                    );
+
+                Repository.Root
+                    .CreateChild("SystemFolder", "Global")
+                    .CreateChild("ContentViews", "ContentViews", out Node globalViews)
+                    .CreateChild("ContentViews", "Car", out Node globalCar)
+                    .CreateChild("ContentView", "something.ascx");
+                globalViews
+                    .CreateChild("ContentViews", "Car1", out Node globalCar1)
+                    .CreateChild("ContentView", "something.ascx");
+                Repository.Root
+                    .CreateChild("Skins", "Skins", out Node skins)
+                    .CreateChild("Skin", "Skin-1")
+                    .CreateChild("SystemFolder", "ContentViews", out Node skin1views)
+                    .CreateChild("ContentViews", "Car", out Node skin1Car)
+                    .CreateChild("ContentView", "something.ascx");
+                skin1views
+                    .CreateChild("ContentViews", "File", out Node skin1File)
+                    .CreateChild("ContentView", "something.ascx");
+                skins
+                    .CreateChild("Skin", "Skin-2")
+                    .CreateChild("SystemFolder", "ContentViews")
+                    .CreateChild("ContentViews", "Car2", out Node skin2Car2)
+                    .CreateChild("ContentView", "something.ascx");
+
+                // test-1
+                var step = new DeleteContentType { Name = "Car", Delete = DeleteContentType.Mode.Force };
+                var dependencies = step.GetDependencies(ContentType.GetByName("Car"));
+
+                Assert.AreEqual(0, dependencies.InstanceCount); // Any instance in a content template is irrelevant.
+                Assert.AreEqual(0, dependencies.PermittingContentTypes.Length);
+                Assert.AreEqual(0, dependencies.PermittingFieldSettings.Length);
+                Assert.AreEqual(0, dependencies.PermittingContentCollection.Count);
+                Assert.AreEqual(0, dependencies.Applications.Length);
+                Assert.AreEqual(0, dependencies.ContentTemplates.Length);
+                Assert.AreEqual(4, dependencies.ContentViews.Length);
+
+                // test-2
+                step.Execute(GetExecutionContext());
+
+                Assert.IsNull(Node.LoadNode(globalCar.Id));
+                Assert.IsNull(Node.LoadNode(globalCar1.Id));
+                Assert.IsNull(Node.LoadNode(skin1Car.Id));
+                Assert.IsNotNull(Node.LoadNode(skin1File.Id));
+                Assert.IsNull(Node.LoadNode(skin2Car2.Id));
+            });
         }
 
         [TestMethod]
