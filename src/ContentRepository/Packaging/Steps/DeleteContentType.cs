@@ -2,19 +2,14 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Xml;
-using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.Search;
-using SenseNet.Search.Querying;
+
 // ReSharper disable PossibleNullReferenceException
 
 // ReSharper disable once CheckNamespace
@@ -303,21 +298,21 @@ WHERE p.Name = 'AllowedChildTypes' AND (
             if (dependencies.Applications.Length > 0)
             {
                 Logger.LogMessage("Deleting applications...");
-                foreach (var node in dependencies.Applications.Select(p => Node.LoadNode(p)).Where(n => n != null))
+                foreach (var node in dependencies.Applications.Select(Node.LoadNode).Where(n => n != null))
                     node.ForceDelete();
                 Logger.LogMessage("Ok.");
             }
             if (dependencies.ContentTemplates.Length > 0)
             {
                 Logger.LogMessage("Deleting content templates...");
-                foreach (var node in dependencies.ContentTemplates.Select(p => Node.LoadNode(p)).Where(n => n != null))
+                foreach (var node in dependencies.ContentTemplates.Select(Node.LoadNode).Where(n => n != null))
                     node.ForceDelete();
                 Logger.LogMessage("Ok.");
             }
             if (dependencies.ContentViews.Length > 0)
             {
                 Logger.LogMessage("Deleting content views...");
-                foreach (var node in dependencies.ContentViews.Select(p => Node.LoadNode(p)).Where(n => n != null))
+                foreach (var node in dependencies.ContentViews.Select(Node.LoadNode).Where(n => n != null))
                     node.ForceDelete();
                 Logger.LogMessage("Ok.");
             }
