@@ -136,7 +136,7 @@ namespace SenseNet.Packaging.Steps
                         foreach (XmlElement element in typeElement.ChildNodes)
                         {
                             if(element.LocalName != fieldElementName)
-                                throw new InvalidStepParameterException($"Invalid element in the FieldMapping:  {typeElement.LocalName}. Expected: <{fieldElementName} source='' target=''>.");
+                                throw new InvalidStepParameterException($"Invalid child element in the FieldMapping/ContentType. Expected: <{fieldElementName} source='' target=''>.");
                             AddMapping(element, typeName);
                         }
                         break;
