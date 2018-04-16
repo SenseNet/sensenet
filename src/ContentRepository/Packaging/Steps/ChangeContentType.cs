@@ -1,11 +1,11 @@
-﻿using System;
+﻿using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Schema;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Schema;
+using System.Xml;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.Packaging.Steps
 {
     public class ChangeContentType : Step
@@ -18,6 +18,9 @@ namespace SenseNet.Packaging.Steps
         [Annotation("Name of the target content type.")]
         public string ContentTypeName { get; set; }
 
+        public IEnumerable<XmlElement> FieldMapping { get; set; }
+        private Dictionary<string, Dictionary<string, string>> _fieldMapping;
+
         public override void Execute(ExecutionContext context)
         {
             context.AssertRepositoryStarted();
@@ -29,19 +32,14 @@ namespace SenseNet.Packaging.Steps
             if (ct == null)
                 throw new PackagingException("Unknown content type: " + ContentTypeName);
 
+            _fieldMapping = ParseMapping(FieldMapping, ct);
+
             var count = 0;
 
-            foreach (var sourceContent in Search.ContentQuery.Query(ContentQuery).Nodes.Select(n => Content.Create(n)))
+            foreach (var sourceContent in Search.ContentQuery.Query(ContentQuery).Nodes.Select(Content.Create))
             {
                 try
                 {
-                    if (!ct.IsInstaceOfOrDerivedFrom(sourceContent.ContentType.Name))
-                    {
-                        // currently only child type is allowed
-                        Logger.LogWarningMessage(string.Format("Cannot change type {0} to {1} (Path: {2}).", sourceContent.ContentType.Name, ContentTypeName, sourceContent.Path));
-                        continue;
-                    }
-
                     if (sourceContent.Children.Any())
                         throw new PackagingException("Cannot change the type of a content that has children. Path: " + sourceContent.Path);
 
@@ -50,12 +48,7 @@ namespace SenseNet.Packaging.Steps
                     var targetContent = Content.CreateNew(ContentTypeName, parent, targetName);
 
                     // copy fields (skip Name and all the missing fields)
-                    foreach (var field in sourceContent.Fields.Values.Where(f => 
-                        string.Compare(f.Name, "Name", StringComparison.Ordinal) != 0 && 
-                        targetContent.Fields.ContainsKey(f.Name)))
-                    {
-                        targetContent[field.Name] = field.GetData(false);
-                    }
+                    CopyFields(sourceContent, targetContent);
 
                     // save the new content
                     targetContent.Save();
@@ -77,6 +70,84 @@ namespace SenseNet.Packaging.Steps
             }
 
             Logger.LogMessage("{0} content were changed to be {1}.", count, ContentTypeName);
+        }
+
+        private void CopyFields(Content source, Content target)
+        {
+            var availableFieldNames = target.Fields.Keys.ToArray();
+
+            foreach (var field in source.Fields.Values)
+            {
+                if (field.Name == "Name")
+                    continue;
+                var targetFieldName = TranslateFieldName(field.Content.ContentType.Name, availableFieldNames, field.Name, _fieldMapping);
+                if(targetFieldName != null)
+                    target[targetFieldName] = field.GetData(false);
+            }
+        }
+
+        private string TranslateFieldName(string sourceContentTypeName, string[] availableTargetNames, string fieldName, Dictionary<string, Dictionary<string, string>> mapping)
+        {
+            if (!mapping.TryGetValue(sourceContentTypeName, out var fields))
+                mapping.TryGetValue("", out fields);
+
+            if(fields != null)
+                if (fields.TryGetValue(fieldName, out var mappedFieldName))
+                    return mappedFieldName;
+
+            return availableTargetNames.Contains(fieldName) ? fieldName : null;
+        }
+
+        private Dictionary<string, Dictionary<string, string>> ParseMapping(IEnumerable<XmlElement> fieldMapping, ContentType targetType)
+        {
+            const string typeElementName = "ContentType";
+            const string fieldElementName = "Field";
+            const string defaultTypeName = "";
+
+            var targetFieldNames = targetType.FieldSettings.Select(f => f.Name).ToArray();
+
+            var types = new Dictionary<string, Dictionary<string, string>>();
+
+            // parses field element and add to mappings
+            // ReSharper disable once SuggestBaseTypeForParameter
+            void AddMapping(XmlElement fieldElement, string typeName)
+            {
+                var source = fieldElement.Attributes["source"].Value;
+                var target = fieldElement.Attributes["target"].Value;
+                if(!targetFieldNames.Contains(target))
+                    throw new InvalidStepParameterException($"The {target} is not a field of the {targetType.Name} content type.");
+
+                if (!types.TryGetValue(typeName, out Dictionary<string, string> fields))
+                {
+                    fields = new Dictionary<string, string>();
+                    types.Add(typeName, fields);
+                }
+
+                fields[source] = target;
+            }
+
+            // Parse root elements. These can be: ContentType or Field
+            foreach (var typeElement in fieldMapping)
+            {
+                switch (typeElement.LocalName)
+                {
+                    case typeElementName:
+                        var typeName = typeElement.Attributes["name"].Value;
+                        foreach (XmlElement element in typeElement.ChildNodes)
+                        {
+                            if(element.LocalName != fieldElementName)
+                                throw new InvalidStepParameterException($"Invalid element in the FieldMapping:  {typeElement.LocalName}. Expected: <{fieldElementName} source='' target=''>.");
+                            AddMapping(element, typeName);
+                        }
+                        break;
+                    case fieldElementName:
+                        AddMapping(typeElement, defaultTypeName);
+                        break;
+                    default:
+                        throw new InvalidStepParameterException($"Unknown element in the FieldMapping: {typeElement.LocalName}. Expected:<{typeElementName} name=''> or <{fieldElementName} source='' target=''>.");
+                }
+            }
+            return types;
         }
     }
 }
