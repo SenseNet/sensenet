@@ -80,13 +80,13 @@ namespace SenseNet.Packaging.Steps
             {
                 if (field.Name == "Name")
                     continue;
-                var targetFieldName = TranslateFieldName(field.Content.ContentType.Name, availableFieldNames, field.Name, _fieldMapping);
+                var targetFieldName = TranslateFieldName(field.Content.ContentType.Name, field.Name, availableFieldNames, _fieldMapping);
                 if(targetFieldName != null)
                     target[targetFieldName] = field.GetData(false);
             }
         }
 
-        private string TranslateFieldName(string sourceContentTypeName, string[] availableTargetNames, string fieldName, Dictionary<string, Dictionary<string, string>> mapping)
+        private string TranslateFieldName(string sourceContentTypeName, string fieldName, string[] availableTargetNames, Dictionary<string, Dictionary<string, string>> mapping)
         {
             if (!mapping.TryGetValue(sourceContentTypeName, out var fields))
                 mapping.TryGetValue("", out fields);

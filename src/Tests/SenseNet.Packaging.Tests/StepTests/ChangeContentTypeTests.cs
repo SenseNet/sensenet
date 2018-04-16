@@ -26,9 +26,9 @@ namespace SenseNet.Packaging.Tests.StepTests
             {
                 _original.Invoke(nameof(CopyFields), source, target);
             }
-            public string TranslateFieldName(string sourceContentTypeName, string[] availableTargetNames, string fieldName, Dictionary<string, Dictionary<string, string>> mapping)
+            public string TranslateFieldName(string sourceContentTypeName, string fieldName, string[] availableTargetNames, Dictionary<string, Dictionary<string, string>> mapping)
             {
-                return (string)_original.Invoke(nameof(TranslateFieldName), sourceContentTypeName, availableTargetNames, fieldName, mapping);
+                return (string)_original.Invoke(nameof(TranslateFieldName), sourceContentTypeName, fieldName, availableTargetNames, mapping);
             }
             public Dictionary<string, Dictionary<string, string>> ParseMapping(IEnumerable<XmlElement> fieldMapping, ContentType targetType)
             {
@@ -221,6 +221,31 @@ namespace SenseNet.Packaging.Tests.StepTests
                     Assert.IsTrue(e.Message.StartsWith("Invalid child element in the FieldMapping/ContentType."));
                 }
             });
+        }
+
+        [TestMethod]
+        public void Step_ChangeContentType_TranslateFieldName()
+        {
+            var step = CreateStep(@"<ChangeContentType contentQuery='TypeIs:Type1 .AUTOFILTERS:OFF' contentTypeName='Type2' />");
+            var stepAcc = new ChangeContentTypeAccessor(step);
+
+            var availableTargetNames = new[] {"Field1", "Field4"};
+            var mapping = new Dictionary<string, Dictionary<string, string>>
+            {
+                {"", new Dictionary<string, string> {{"Field2", "Field4"}}},
+                {"Type1", new Dictionary<string, string> {{"Field3", "Field4"}}},
+            };
+
+            // non-existent type in the mapping
+            // existing type in the mapping
+            Assert.AreEqual("Field1", stepAcc.TranslateFieldName("Type0", "Field1", availableTargetNames, mapping));
+            Assert.AreEqual("Field4", stepAcc.TranslateFieldName("Type0", "Field2", availableTargetNames, mapping));
+            Assert.AreEqual(null, stepAcc.TranslateFieldName("Type0", "Field3", availableTargetNames, mapping));
+            Assert.AreEqual("Field4", stepAcc.TranslateFieldName("Type0", "Field4", availableTargetNames, mapping));
+            Assert.AreEqual("Field1", stepAcc.TranslateFieldName("Type1", "Field1", availableTargetNames, mapping));
+            Assert.AreEqual(null, stepAcc.TranslateFieldName("Type1", "Field2", availableTargetNames, mapping));
+            Assert.AreEqual("Field4", stepAcc.TranslateFieldName("Type1", "Field3", availableTargetNames, mapping));
+            Assert.AreEqual("Field4", stepAcc.TranslateFieldName("Type1", "Field4", availableTargetNames, mapping));
         }
 
         /* =========================================================================== Tools */
