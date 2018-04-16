@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Xml;
@@ -236,16 +237,66 @@ namespace SenseNet.Packaging.Tests.StepTests
                 {"Type1", new Dictionary<string, string> {{"Field3", "Field4"}}},
             };
 
+            // implicit tests
+
             // non-existent type in the mapping
-            // existing type in the mapping
             Assert.AreEqual("Field1", stepAcc.TranslateFieldName("Type0", "Field1", availableTargetNames, mapping));
             Assert.AreEqual("Field4", stepAcc.TranslateFieldName("Type0", "Field2", availableTargetNames, mapping));
             Assert.AreEqual(null, stepAcc.TranslateFieldName("Type0", "Field3", availableTargetNames, mapping));
             Assert.AreEqual("Field4", stepAcc.TranslateFieldName("Type0", "Field4", availableTargetNames, mapping));
+
+            // existing type in the mapping
             Assert.AreEqual("Field1", stepAcc.TranslateFieldName("Type1", "Field1", availableTargetNames, mapping));
             Assert.AreEqual(null, stepAcc.TranslateFieldName("Type1", "Field2", availableTargetNames, mapping));
             Assert.AreEqual("Field4", stepAcc.TranslateFieldName("Type1", "Field3", availableTargetNames, mapping));
             Assert.AreEqual("Field4", stepAcc.TranslateFieldName("Type1", "Field4", availableTargetNames, mapping));
+        }
+
+        [TestMethod]
+        public void Step_ChangeContentType_CopyFields()
+        {
+            Assert.Inconclusive("The test is not finished but the code need to be committed.");
+
+            var step = CreateStep(@"<ChangeContentType contentQuery='TypeIs:Type1 .AUTOFILTERS:OFF' contentTypeName='Type2'>
+                                      <FieldMapping>
+                                        <ContentType name='Type2'>
+                                          <Field source='Field2' target='Field3' />
+                                        </ContentType>
+                                        <Field source='Field1' target='Field3' />
+                                      </FieldMapping>
+                                    </ChangeContentType>");
+            Assert.AreEqual("TypeIs:Type1 .AUTOFILTERS:OFF", step.ContentQuery);
+            Assert.AreEqual("Type2", step.ContentTypeName);
+            Assert.IsNotNull(step.FieldMapping);
+            Assert.AreEqual(2, step.FieldMapping.Count());
+
+            Test(() =>
+            {
+                ContentTypeInstaller.InstallContentType(
+@"<?xml version='1.0' encoding='utf-8'?><ContentType name='Type1' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+    <Fields>
+        <Field name='Field1' type='ShortText'/>
+    </Fields>
+</ContentType>",
+@"<?xml version='1.0' encoding='utf-8'?><ContentType name='Type2' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+    <Fields>
+        <Field name='Field2' type='ShortText'/>
+    </Fields>
+</ContentType>",
+@"<?xml version='1.0' encoding='utf-8'?><ContentType name='Type3' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+    <Fields>
+        <Field name='Field1' type='ShortText'/>
+        <Field name='Field4' type='ShortText'/>
+    </Fields>
+</ContentType>");
+
+                var stepAcc = new ChangeContentTypeAccessor(step);
+
+                // test
+                var mapping = stepAcc.ParseMapping(step.FieldMapping, ContentType.GetByName("Type2"));
+// not finished but the code need to be committed.
+Assert.Inconclusive();
+            });
         }
 
         /* =========================================================================== Tools */
