@@ -1,5 +1,6 @@
 ﻿using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.Search;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,13 +19,16 @@ namespace SenseNet.Packaging.Steps
         [Annotation("Name of the target content type.")]
         public string ContentTypeName { get; set; }
 
+        [Annotation("Comma (or space) separated list of source content types. Ignores ContentQuery.")]
+        public string SourceType { get; set; }
+
         public IEnumerable<XmlElement> FieldMapping { get; set; }
 
         public override void Execute(ExecutionContext context)
         {
             context.AssertRepositoryStarted();
 
-            if (string.IsNullOrEmpty(ContentQuery) || string.IsNullOrEmpty(ContentTypeName))
+            if ((string.IsNullOrEmpty(ContentQuery) && string.IsNullOrEmpty(SourceType)) || string.IsNullOrEmpty(ContentTypeName))
                 throw new PackagingException(SR.Errors.InvalidParameters);
 
             var ct = ContentType.GetByName(ContentTypeName);
@@ -35,7 +39,18 @@ namespace SenseNet.Packaging.Steps
 
             var count = 0;
 
-            foreach (var sourceContent in Search.ContentQuery.Query(ContentQuery).Nodes.Select(Content.Create))
+            ContentQuery query;
+            if (string.IsNullOrEmpty(SourceType))
+            {
+                query = Search.ContentQuery.CreateQuery(ContentQuery);
+            }
+            else
+            {
+                var sourceTypes = SourceType.Split(",; ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList();
+                query = Search.ContentQuery.CreateQuery(ContentRepository.SafeQueries.TypeIs, Search.QuerySettings.AdminSettings, sourceTypes);
+            }
+
+            foreach (var sourceContent in query.Execute().Nodes.Select(Content.Create))
             {
                 try
                 {
@@ -109,17 +124,17 @@ namespace SenseNet.Packaging.Steps
 
             // parses field element and add to mappings
             // ReSharper disable once SuggestBaseTypeForParameter
-            void AddMapping(XmlElement fieldElement, string typeName)
+            void AddMapping(XmlElement fieldElement, string sourceTypeName, string targetTypeName)
             {
                 var source = fieldElement.Attributes["source"].Value;
                 var target = fieldElement.Attributes["target"].Value;
                 if(!targetFieldNames.Contains(target))
-                    throw new InvalidStepParameterException($"The {target} is not a field of the {targetType.Name} content type.");
+                    throw new InvalidStepParameterException($"The {target} is not a field of the {targetTypeName} content type.");
 
-                if (!types.TryGetValue(typeName, out Dictionary<string, string> fields))
+                if (!types.TryGetValue(sourceTypeName, out Dictionary<string, string> fields))
                 {
                     fields = new Dictionary<string, string>();
-                    types.Add(typeName, fields);
+                    types.Add(sourceTypeName, fields);
                 }
 
                 fields[source] = target;
@@ -136,11 +151,11 @@ namespace SenseNet.Packaging.Steps
                         {
                             if(element.LocalName != fieldElementName)
                                 throw new InvalidStepParameterException($"Invalid child element in the FieldMapping/ContentType. Expected: <{fieldElementName} source='' target=''>.");
-                            AddMapping(element, typeName);
+                            AddMapping(element, typeName, targetType.Name);
                         }
                         break;
                     case fieldElementName:
-                        AddMapping(typeElement, defaultTypeName);
+                        AddMapping(typeElement, defaultTypeName, targetType.Name);
                         break;
                     default:
                         throw new InvalidStepParameterException($"Unknown element in the FieldMapping: {typeElement.LocalName}. Expected:<{typeElementName} name=''> or <{fieldElementName} source='' target=''>.");

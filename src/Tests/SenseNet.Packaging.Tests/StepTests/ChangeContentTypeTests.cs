@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml;
@@ -8,6 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Packaging.Steps;
 using SenseNet.Packaging.Tests.Implementations;
 using SenseNet.Tests;
@@ -318,6 +320,67 @@ namespace SenseNet.Packaging.Tests.StepTests
             });
         }
 
+        [TestMethod]
+        public void Step_ChangeContentType_Execute()
+        {
+            var step = CreateStep(@"<ChangeContentType sourceType='Type1 Type2' contentTypeName='Type3'>
+                                      <FieldMapping>
+                                        <ContentType name='Type2'>
+                                          <Field source='Field2' target='Field3' />
+                                        </ContentType>
+                                        <Field source='Field1' target='Field3' />
+                                      </FieldMapping>
+                                    </ChangeContentType>");
+
+            Test(() =>
+            {
+                ContentTypeInstaller.InstallContentType(
+@"<?xml version='1.0' encoding='utf-8'?><ContentType name='Type1' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+    <Fields>
+        <Field name='Field1' type='ShortText'/>
+        <Field name='Field4' type='ShortText'/>
+   </Fields>
+</ContentType>",
+@"<?xml version='1.0' encoding='utf-8'?><ContentType name='Type2' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+    <Fields>
+        <Field name='Field2' type='ShortText'/>
+        <Field name='Field4' type='ShortText'/>
+   </Fields>
+</ContentType>",
+@"<?xml version='1.0' encoding='utf-8'?><ContentType name='Type3' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+    <Fields>
+        <Field name='Field3' type='ShortText'/>
+        <Field name='Field4' type='ShortText'/>
+    </Fields>
+</ContentType>");
+
+                var testRoot = CreateTestRoot();
+
+                var content1 = Content.CreateNew("Type1", testRoot, "Content-1");
+                content1["Field1"] = "Value-1";
+                content1["Field4"] = "Value-4";
+                content1.Save();
+
+                var content2 = Content.CreateNew("Type2", testRoot, "Content-2");
+                content2["Field2"] = "Value-2";
+                content2["Field4"] = "Value-4";
+                content2.Save();
+
+                // test
+                step.Execute(GetExecutionContext());
+
+                // check
+                content1 = Content.Load(content1.Path);
+                Assert.AreEqual("Type3", content1.ContentType.Name);
+                Assert.AreEqual("Value-1", content1["Field3"]);
+                Assert.AreEqual("Value-4", content1["Field4"]);
+                content2 = Content.Load(content2.Path);
+                Assert.AreEqual("Type3", content2.ContentType.Name);
+                Assert.AreEqual("Value-2", content2["Field3"]);
+                Assert.AreEqual("Value-4", content2["Field4"]);
+            });
+        }
+
         /* =========================================================================== Tools */
 
         private Node CreateTestRoot()
@@ -343,6 +406,26 @@ namespace SenseNet.Packaging.Tests.StepTests
             var stepElement = (XmlElement)manifestXml.SelectSingleNode("/Package/Steps/ChangeContentType");
             var result = (ChangeContentType)Step.Parse(stepElement, 0, executionContext);
             return result;
+        }
+        private ExecutionContext GetExecutionContext()
+        {
+            var manifestXml = new XmlDocument();
+            manifestXml.LoadXml(@"<?xml version='1.0' encoding='utf-8'?>
+                    <Package type='Install'>
+                        <Id>MyCompany.MyComponent</Id>
+                        <ReleaseDate>2017-01-01</ReleaseDate>
+                        <Version>1.0</Version>
+                        <Steps>
+                            <Trace>Package is running.</Trace>
+                        </Steps>
+                    </Package>");
+
+            var phase = 0;
+            var console = new StringWriter();
+            var manifest = Manifest.Parse(manifestXml, phase, true, new PackageParameter[0]);
+            var executionContext = ExecutionContext.CreateForTest("packagePath", "targetPath", new string[0], "sandboxPath", manifest, phase, manifest.CountOfPhases, null, console);
+            executionContext.RepositoryStarted = true;
+            return executionContext;
         }
 
     }
