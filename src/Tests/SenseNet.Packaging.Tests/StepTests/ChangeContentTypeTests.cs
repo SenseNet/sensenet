@@ -7,6 +7,7 @@ using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.Packaging.Steps;
 using SenseNet.Packaging.Tests.Implementations;
 using SenseNet.Tests;
@@ -23,9 +24,9 @@ namespace SenseNet.Packaging.Tests.StepTests
             {
                 _original = new PrivateObject(original);
             }
-            public void CopyFields(Content source, Content target)
+            public void CopyFields(Content source, Content target, Dictionary<string, Dictionary<string, string>> fieldMapping)
             {
-                _original.Invoke(nameof(CopyFields), source, target);
+                _original.Invoke(nameof(CopyFields), source, target, fieldMapping);
             }
             public string TranslateFieldName(string sourceContentTypeName, string fieldName, string[] availableTargetNames, Dictionary<string, Dictionary<string, string>> mapping)
             {
@@ -255,9 +256,7 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestMethod]
         public void Step_ChangeContentType_CopyFields()
         {
-            Assert.Inconclusive("The test is not finished but the code need to be committed.");
-
-            var step = CreateStep(@"<ChangeContentType contentQuery='TypeIs:Type1 .AUTOFILTERS:OFF' contentTypeName='Type2'>
+            var step = CreateStep(@"<ChangeContentType contentQuery='TypeIs:(Type1 Type2) .AUTOFILTERS:OFF' contentTypeName='Type2'>
                                       <FieldMapping>
                                         <ContentType name='Type2'>
                                           <Field source='Field2' target='Field3' />
@@ -265,10 +264,6 @@ namespace SenseNet.Packaging.Tests.StepTests
                                         <Field source='Field1' target='Field3' />
                                       </FieldMapping>
                                     </ChangeContentType>");
-            Assert.AreEqual("TypeIs:Type1 .AUTOFILTERS:OFF", step.ContentQuery);
-            Assert.AreEqual("Type2", step.ContentTypeName);
-            Assert.IsNotNull(step.FieldMapping);
-            Assert.AreEqual(2, step.FieldMapping.Count());
 
             Test(() =>
             {
@@ -276,31 +271,61 @@ namespace SenseNet.Packaging.Tests.StepTests
 @"<?xml version='1.0' encoding='utf-8'?><ContentType name='Type1' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
     <Fields>
         <Field name='Field1' type='ShortText'/>
-    </Fields>
+        <Field name='Field4' type='ShortText'/>
+   </Fields>
 </ContentType>",
 @"<?xml version='1.0' encoding='utf-8'?><ContentType name='Type2' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
     <Fields>
         <Field name='Field2' type='ShortText'/>
-    </Fields>
+        <Field name='Field4' type='ShortText'/>
+   </Fields>
 </ContentType>",
 @"<?xml version='1.0' encoding='utf-8'?><ContentType name='Type3' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
     <Fields>
-        <Field name='Field1' type='ShortText'/>
+        <Field name='Field3' type='ShortText'/>
         <Field name='Field4' type='ShortText'/>
     </Fields>
 </ContentType>");
 
+                var testRoot = CreateTestRoot();
+
+                var content1 = Content.CreateNew("Type1", testRoot, "Content-1");
+                content1["Field1"] = "Value-1";
+                content1["Field4"] = "Value-4";
+                content1.Save();
+
+                var content2 = Content.CreateNew("Type2", testRoot, "Content-2");
+                content2["Field2"] = "Value-2";
+                content2["Field4"] = "Value-4";
+                content2.Save();
+
+                // do not save: filled by the test below
+                var contentFrom1 = Content.CreateNew("Type3", testRoot, "Content-3");
+                var contentFrom2 = Content.CreateNew("Type3", testRoot, "Content-4");
+
                 var stepAcc = new ChangeContentTypeAccessor(step);
+                var mapping = stepAcc.ParseMapping(step.FieldMapping, ContentType.GetByName("Type3"));
 
                 // test
-                var mapping = stepAcc.ParseMapping(step.FieldMapping, ContentType.GetByName("Type2"));
-// not finished but the code need to be committed.
-Assert.Inconclusive();
+                stepAcc.CopyFields(content1, contentFrom1, mapping);
+                stepAcc.CopyFields(content2, contentFrom2, mapping);
+
+                // check
+                Assert.AreEqual("Value-1", contentFrom1["Field3"]);
+                Assert.AreEqual("Value-4", contentFrom1["Field4"]);
+                Assert.AreEqual("Value-2", contentFrom2["Field3"]);
+                Assert.AreEqual("Value-4", contentFrom2["Field4"]);
             });
         }
 
         /* =========================================================================== Tools */
 
+        private Node CreateTestRoot()
+        {
+            var node = new SystemFolder(Repository.Root) { Name = "TestRoot" };
+            node.Save();
+            return node;
+        }
         private ChangeContentType CreateStep(string stepElementString)
         {
             var manifestXml = new XmlDocument();

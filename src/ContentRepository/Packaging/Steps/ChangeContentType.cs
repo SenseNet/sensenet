@@ -19,7 +19,6 @@ namespace SenseNet.Packaging.Steps
         public string ContentTypeName { get; set; }
 
         public IEnumerable<XmlElement> FieldMapping { get; set; }
-        private Dictionary<string, Dictionary<string, string>> _fieldMapping;
 
         public override void Execute(ExecutionContext context)
         {
@@ -32,7 +31,7 @@ namespace SenseNet.Packaging.Steps
             if (ct == null)
                 throw new PackagingException("Unknown content type: " + ContentTypeName);
 
-            _fieldMapping = ParseMapping(FieldMapping, ct);
+            var fieldMapping = ParseMapping(FieldMapping, ct);
 
             var count = 0;
 
@@ -48,7 +47,7 @@ namespace SenseNet.Packaging.Steps
                     var targetContent = Content.CreateNew(ContentTypeName, parent, targetName);
 
                     // copy fields (skip Name and all the missing fields)
-                    CopyFields(sourceContent, targetContent);
+                    CopyFields(sourceContent, targetContent, fieldMapping);
 
                     // save the new content
                     targetContent.Save();
@@ -72,7 +71,7 @@ namespace SenseNet.Packaging.Steps
             Logger.LogMessage("{0} content were changed to be {1}.", count, ContentTypeName);
         }
 
-        private void CopyFields(Content source, Content target)
+        private void CopyFields(Content source, Content target, Dictionary<string, Dictionary<string, string>> fieldMapping)
         {
             var availableFieldNames = target.Fields.Keys.ToArray();
 
@@ -80,7 +79,7 @@ namespace SenseNet.Packaging.Steps
             {
                 if (field.Name == "Name")
                     continue;
-                var targetFieldName = TranslateFieldName(field.Content.ContentType.Name, field.Name, availableFieldNames, _fieldMapping);
+                var targetFieldName = TranslateFieldName(field.Content.ContentType.Name, field.Name, availableFieldNames, fieldMapping);
                 if(targetFieldName != null)
                     target[targetFieldName] = field.GetData(false);
             }
