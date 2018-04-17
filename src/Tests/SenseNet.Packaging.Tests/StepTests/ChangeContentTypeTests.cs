@@ -55,7 +55,7 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestMethod]
         public void Step_ChangeContentType_Parse()
         {
-            var step = CreateStep(@"<ChangeContentType contentQuery='TypeIs:Type1 .AUTOFILTERS:OFF' contentTypeName='Type2' />");
+            var step = CreateStep(@"<ChangeContentType contentQuery='TypeIs:Type1 .AUTOFILTERS:OFF' targetType='Type2' />");
             Assert.AreEqual("TypeIs:Type1 .AUTOFILTERS:OFF", step.ContentQuery);
             Assert.AreEqual("Type2", step.TargetType);
             Assert.IsNull(step.FieldMapping);
@@ -63,7 +63,7 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestMethod]
         public void Step_ChangeContentType_ParseMapping()
         {
-            var step = CreateStep(@"<ChangeContentType contentQuery='TypeIs:Type1 .AUTOFILTERS:OFF' contentTypeName='Type2'>
+            var step = CreateStep(@"<ChangeContentType contentQuery='TypeIs:Type1 .AUTOFILTERS:OFF' targetType='Type2'>
                                       <FieldMapping>
                                         <ContentType name='Type1'>
                                           <Field source='Field1' target='Field3' />
@@ -104,7 +104,7 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestMethod]
         public void Step_ChangeContentType_ParseMapping_InvalidTargetField()
         {
-            var step = CreateStep(@"<ChangeContentType contentQuery='TypeIs:Type1 .AUTOFILTERS:OFF' contentTypeName='Type2'>
+            var step = CreateStep(@"<ChangeContentType contentQuery='TypeIs:Type1 .AUTOFILTERS:OFF' targetType='Type2'>
                                       <FieldMapping>
                                         <Field source='Field1' target='Field3' />
                                       </FieldMapping>
@@ -145,7 +145,7 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestMethod]
         public void Step_ChangeContentType_ParseMapping_InvalidRootElement()
         {
-            var step = CreateStep(@"<ChangeContentType contentQuery='TypeIs:Type1 .AUTOFILTERS:OFF' contentTypeName='Type2'>
+            var step = CreateStep(@"<ChangeContentType contentQuery='TypeIs:Type1 .AUTOFILTERS:OFF' targetType='Type2'>
                                       <FieldMapping>
                                         <UnknownElement />
                                       </FieldMapping>
@@ -186,7 +186,7 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestMethod]
         public void Step_ChangeContentType_ParseMapping_InvalidChildElement()
         {
-            var step = CreateStep(@"<ChangeContentType contentQuery='TypeIs:Type1 .AUTOFILTERS:OFF' contentTypeName='Type2'>
+            var step = CreateStep(@"<ChangeContentType contentQuery='TypeIs:Type1 .AUTOFILTERS:OFF' targetType='Type2'>
                                       <FieldMapping>
                                         <ContentType name='Type1'>
                                           <ContentType name='Type2' />
@@ -230,7 +230,7 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestMethod]
         public void Step_ChangeContentType_TranslateFieldName()
         {
-            var step = CreateStep(@"<ChangeContentType contentQuery='TypeIs:Type1 .AUTOFILTERS:OFF' contentTypeName='Type2' />");
+            var step = CreateStep(@"<ChangeContentType contentQuery='TypeIs:Type1 .AUTOFILTERS:OFF' targetType='Type2' />");
             var stepAcc = new ChangeContentTypeAccessor(step);
 
             var availableTargetNames = new[] {"Field1", "Field4"};
@@ -258,7 +258,7 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestMethod]
         public void Step_ChangeContentType_CopyFields()
         {
-            var step = CreateStep(@"<ChangeContentType contentQuery='TypeIs:(Type1 Type2) .AUTOFILTERS:OFF' contentTypeName='Type2'>
+            var step = CreateStep(@"<ChangeContentType contentQuery='TypeIs:(Type1 Type2) .AUTOFILTERS:OFF' targetType='Type2'>
                                       <FieldMapping>
                                         <ContentType name='Type2'>
                                           <Field source='Field2' target='Field3' />
@@ -323,7 +323,7 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestMethod]
         public void Step_ChangeContentType_Execute()
         {
-            var step = CreateStep(@"<ChangeContentType sourceType='Type1 Type2' contentTypeName='Type3'>
+            var step = CreateStep(@"<ChangeContentType sourceType='Type1 Type2' targetType='Type3'>
                                       <FieldMapping>
                                         <ContentType name='Type2'>
                                           <Field source='Field2' target='Field3' />
