@@ -57,7 +57,7 @@ namespace SenseNet.Packaging.Tests.StepTests
         {
             var step = CreateStep(@"<ChangeContentType contentQuery='TypeIs:Type1 .AUTOFILTERS:OFF' contentTypeName='Type2' />");
             Assert.AreEqual("TypeIs:Type1 .AUTOFILTERS:OFF", step.ContentQuery);
-            Assert.AreEqual("Type2", step.ContentTypeName);
+            Assert.AreEqual("Type2", step.TargetType);
             Assert.IsNull(step.FieldMapping);
         }
         [TestMethod]
@@ -72,7 +72,7 @@ namespace SenseNet.Packaging.Tests.StepTests
                                       </FieldMapping>
                                     </ChangeContentType>");
             Assert.AreEqual("TypeIs:Type1 .AUTOFILTERS:OFF", step.ContentQuery);
-            Assert.AreEqual("Type2", step.ContentTypeName);
+            Assert.AreEqual("Type2", step.TargetType);
             Assert.IsNotNull(step.FieldMapping);
             Assert.AreEqual(2, step.FieldMapping.Count());
 
@@ -110,7 +110,7 @@ namespace SenseNet.Packaging.Tests.StepTests
                                       </FieldMapping>
                                     </ChangeContentType>");
             Assert.AreEqual("TypeIs:Type1 .AUTOFILTERS:OFF", step.ContentQuery);
-            Assert.AreEqual("Type2", step.ContentTypeName);
+            Assert.AreEqual("Type2", step.TargetType);
 
             Test(() =>
             {
@@ -151,7 +151,7 @@ namespace SenseNet.Packaging.Tests.StepTests
                                       </FieldMapping>
                                     </ChangeContentType>");
             Assert.AreEqual("TypeIs:Type1 .AUTOFILTERS:OFF", step.ContentQuery);
-            Assert.AreEqual("Type2", step.ContentTypeName);
+            Assert.AreEqual("Type2", step.TargetType);
 
             Test(() =>
             {
@@ -194,7 +194,7 @@ namespace SenseNet.Packaging.Tests.StepTests
                                       </FieldMapping>
                                     </ChangeContentType>");
             Assert.AreEqual("TypeIs:Type1 .AUTOFILTERS:OFF", step.ContentQuery);
-            Assert.AreEqual("Type2", step.ContentTypeName);
+            Assert.AreEqual("Type2", step.TargetType);
 
             Test(() =>
             {

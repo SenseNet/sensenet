@@ -17,7 +17,7 @@ namespace SenseNet.Packaging.Steps
 
         /// <summary>Name of the target content type.</summary>
         [Annotation("Name of the target content type.")]
-        public string ContentTypeName { get; set; }
+        public string TargetType { get; set; }
 
         [Annotation("Comma (or space) separated list of source content types. Ignores ContentQuery.")]
         public string SourceType { get; set; }
@@ -28,12 +28,12 @@ namespace SenseNet.Packaging.Steps
         {
             context.AssertRepositoryStarted();
 
-            if ((string.IsNullOrEmpty(ContentQuery) && string.IsNullOrEmpty(SourceType)) || string.IsNullOrEmpty(ContentTypeName))
+            if ((string.IsNullOrEmpty(ContentQuery) && string.IsNullOrEmpty(SourceType)) || string.IsNullOrEmpty(TargetType))
                 throw new PackagingException(SR.Errors.InvalidParameters);
 
-            var ct = ContentType.GetByName(ContentTypeName);
+            var ct = ContentType.GetByName(TargetType);
             if (ct == null)
-                throw new PackagingException("Unknown content type: " + ContentTypeName);
+                throw new PackagingException("Unknown content type: " + TargetType);
 
             var fieldMapping = ParseMapping(FieldMapping, ct);
 
@@ -59,7 +59,7 @@ namespace SenseNet.Packaging.Steps
 
                     var targetName = Guid.NewGuid().ToString();
                     var parent = sourceContent.ContentHandler.Parent;
-                    var targetContent = Content.CreateNew(ContentTypeName, parent, targetName);
+                    var targetContent = Content.CreateNew(TargetType, parent, targetName);
 
                     // copy fields (skip Name and all the missing fields)
                     CopyFields(sourceContent, targetContent, fieldMapping);
@@ -83,7 +83,7 @@ namespace SenseNet.Packaging.Steps
                 }
             }
 
-            Logger.LogMessage("{0} content were changed to be {1}.", count, ContentTypeName);
+            Logger.LogMessage("{0} content were changed to be {1}.", count, TargetType);
         }
 
         private void CopyFields(Content source, Content target, Dictionary<string, Dictionary<string, string>> fieldMapping)
