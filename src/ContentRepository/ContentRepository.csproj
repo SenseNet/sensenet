@@ -163,6 +163,7 @@
     <Compile Include="Configuration\Services.cs" />
     <Compile Include="Configuration\Versioning.cs" />
     <Compile Include="ISnComponent.cs" />
+    <Compile Include="Packaging\Steps\DeleteContentType.cs" />
     <Compile Include="Packaging\Steps\Internal\CopyCustomAssemblies.cs" />
     <Compile Include="Packaging\Steps\Internal\ImportCustomContent.cs" />
     <Compile Include="Search\Indexing\NullPopulator.cs" />
