@@ -323,7 +323,7 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestMethod]
         public void Step_ChangeContentType_Execute()
         {
-            var step = CreateStep(@"<ChangeContentType sourceType='Type1 Type2' targetType='Type3'>
+            var step = CreateStep(@"<ChangeContentType sourceType='Type1 Type2' targetType='Type3' change='force'>
                                       <FieldMapping>
                                         <ContentType name='Type2'>
                                           <Field source='Field2' target='Field3' />
@@ -354,7 +354,13 @@ namespace SenseNet.Packaging.Tests.StepTests
     </Fields>
 </ContentType>");
 
-                var testRoot = CreateTestRoot();
+                var root = Repository.Root;
+                root.AllowChildTypes(root.GetAllowedChildTypes()
+                    .Union(new[] {ContentType.GetByName("Type1"), ContentType.GetByName("Type2")}));
+                root.Save();
+
+                var testRoot = new Folder(Repository.Root) { Name = "TestRoot" };
+                testRoot.Save();
 
                 var content1 = Content.CreateNew("Type1", testRoot, "Content-1");
                 content1["Field1"] = "Value-1";
