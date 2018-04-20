@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>SenseNet.Search</id>
+    <version>1.1</version>
+    <title>sensenet Search library</title>
+    <authors>kavics,tusmester</authors>
+    <owners>Sense/Net</owners>
+    <licenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/SenseNet/sensenet</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>General library for the sensenet platform containing interfaces and indexing-related classes.</description>
+    <releaseNotes>See release notes on GitHub.</releaseNotes>
+    <copyright>Copyright © Sense/Net Inc.</copyright>
+    <tags>sensenet ecm ecms indexing search</tags>
+    <dependencies>
+      <dependency id="Newtonsoft.Json" version="9.0.1" />
+      <dependency id="SenseNet.Security" version="2.3.1" />
+      <dependency id="SenseNet.Tools" version="2.1.1" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="bin\Release\SenseNet.Search.*" target="lib\net451" />
+  </files>
+</package>

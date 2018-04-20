@@ -166,12 +166,6 @@ namespace SenseNet.ContentRepository.Fields
                             list.Add(node);
                         }
                         break;
-                    case "SearchExpression":
-                        NodeQuery query = NodeQuery.Parse(refNode.OuterXml.Trim());
-                        var result = query.Execute();
-                        foreach (Node resultNode in result.Nodes)
-                            list.Add(resultNode);
-                        break;
                     default:
                         throw base.InvalidImportDataException("Unrecognized reference");
                 }

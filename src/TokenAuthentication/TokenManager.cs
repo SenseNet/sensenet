@@ -27,6 +27,11 @@ namespace SenseNet.TokenAuthentication
             return (int)(date - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds;
         }
 
+        public DateTime GetDateFromNumericDate(int dateNumber)
+        {
+            return new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(dateNumber);
+        }
+
         public string GenerateToken(string name, string role, out string refreshTokenString, bool refreshTokenAsWell = false)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -55,7 +60,8 @@ namespace SenseNet.TokenAuthentication
                     { "exp", numericExpiration},
                     { "iat", numericNow},
                     { "nbf", numericNotBefore},
-                    { "name", name}
+                    { "name", name},
+                    { "jti", Guid.NewGuid().ToString("N")}
                 };
                 if (!string.IsNullOrWhiteSpace(role))
                 {
@@ -79,7 +85,8 @@ namespace SenseNet.TokenAuthentication
                         { "exp", numericExpiration},
                         { "iat", numericNow},
                         { "nbf", numericNotBefore },
-                        { "name", name}
+                        { "name", name},
+                        { "jti", Guid.NewGuid().ToString("N")}
                     };
 
                     var refreshToken = new JwtSecurityToken(header, payload);

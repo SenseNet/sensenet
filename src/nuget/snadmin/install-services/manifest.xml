@@ -1,8 +1,8 @@
 <Package type='Install' >
   <Id>SenseNet.Services</Id>
-  <Description>sensenet ECM Services 7.0 (beta)</Description>
-  <ReleaseDate>2017-04-20</ReleaseDate>
-  <Version>7.0.0</Version>
+  <Description>sensenet Services</Description>
+  <ReleaseDate>2018-04-02</ReleaseDate>
+  <Version>7.1.1</Version>
   <Parameters>
     <Parameter name="@dataSource" description="Name of the database server (. or MACHINENAME\SQL2016). Default: .">.</Parameter>
     <Parameter name="@initialCatalog" description="Database name for the repository. Default: sensenet.">sensenet</Parameter>
@@ -73,11 +73,11 @@
       <Delete>App_Data\scripts\Create_SenseNet_Database_TEMP.sql</Delete>
     </Phase>
     <Phase>
-      <StartRepository startLuceneManager="false" startWorkflowEngine="false" />
+      <StartRepository startIndexingEngine="false" startWorkflowEngine="false" />
       <Import target="/Root" resetSecurity="true" LogLevel="Verbose" source="import" />
     </Phase>
     <Phase>
-      <StartRepository startLuceneManager="false" startWorkflowEngine="false" />
+      <StartRepository startIndexingEngine="false" startWorkflowEngine="false" />
       <PopulateIndex />
     </Phase>
   </Steps>

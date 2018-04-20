@@ -15,13 +15,23 @@ using SenseNet.Search;
 using System.Collections;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Json;
+using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Search.Internal;
 using SenseNet.Search.Indexing;
+// ReSharper disable ArrangeThisQualifier
+// ReSharper disable RedundantBaseQualifier
+// ReSharper disable InconsistentNaming
+// ReSharper disable ArrangeStaticMemberQualifier
+// ReSharper disable RedundantTypeArgumentsOfMethod
 
 namespace SenseNet.ContentRepository
 {
+    /// <summary>
+    /// A Content handler base class for managing feature dependent, local or global settings 
+    /// stored in the Content Repository instead of a config file in the file system.
+    /// </summary>
     [ContentHandler]
     public class Settings : File, ISupportsDynamicFields, ISupportsAddingFieldsOnTheFly
     {
@@ -46,32 +56,72 @@ namespace SenseNet.ContentRepository
         internal static readonly string SETTINGSCONTAINERNAME = Repository.SettingsFolderName; // "Settings";
         private static readonly string SETTINGSCONTAINERNAMEPART = "/" + SETTINGSCONTAINERNAME + "/";
         internal static readonly string EXTENSION = "settings";
+        /// <summary>
+        /// Defines a constant for the cache key of XML data.
+        /// </summary>
         protected static readonly string BINARYXMLKEY = "CachedBinaryXml";
+        /// <summary>
+        /// Defines a constant for the cache key of JSON data.
+        /// </summary>
         protected static readonly string BINARYJSONKEY = "CachedBinaryJson";
+        /// <summary>
+        /// Defines a constant for the cache key of interpreted data.
+        /// </summary>
         protected static readonly string SETTINGVALUESKEY = "CachedValues";
+        /// <summary>
+        /// Defines a constant for the cache key of dynamic metadata.
+        /// </summary>
         protected static readonly string DYNAMICMETADATA_CACHEKEY = "CachedDynamicMetadata";
+        /// <summary>
+        /// Defines a constant for the element name in the XML data.
+        /// </summary>
         protected static readonly string XML_DEFAULT_NODE_NAME = "add";
+        /// <summary>
+        /// Defines a constant for the "key" attribute name in the XML data.
+        /// </summary>
         protected static readonly string XML_DEFAULT_KEYATTRIBUTE_NAME = "key";
+        /// <summary>
+        /// Defines a constant for the "value" attribute name in the XML data.
+        /// </summary>
         protected static readonly string XML_DEFAULT_VALUEATTRIBUTE_NAME = "value";
 
         // ================================================================================= Constructors
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Settings"/> class.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
         public Settings(Node parent) : this(parent, null) { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Settings"/> class.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="nodeTypeName">Name of the node type.</param>
         public Settings(Node parent, string nodeTypeName) : base(parent, nodeTypeName) {}
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Settings"/> class during the loading process.
+        /// Do not use this constructor directly in your code.
+        /// </summary>
         protected Settings(NodeToken nt) : base(nt) {}
 
         // ================================================================================= Properties
 
-        private IDictionary<string, FieldMetadata> _dynamicFieldMetadata = null;
-        private bool _dynamicFieldsChanged = false;
+        private IDictionary<string, FieldMetadata> _dynamicFieldMetadata;
+        private bool _dynamicFieldsChanged;
 
-        protected bool _xmlIsLoaded;
+        /// <summary>
+        /// Returns true if the setting binary is already loaded as an xml.
+        /// </summary>
+        protected bool XmlIsLoaded { get; set; } 
         private XmlDocument _binaryAsXml;
+        /// <summary>
+        /// Gets data as an <see cref="XmlDocument"/> if it can be parsed, or null.
+        /// </summary>
         protected XmlDocument BinaryAsXml
         {
             get
             {
-                if (_binaryAsXml == null && !_xmlIsLoaded)
+                if (_binaryAsXml == null && !XmlIsLoaded)
                 {
                     if (this.Binary.Size > 0)
                     {
@@ -101,7 +151,7 @@ namespace SenseNet.ContentRepository
                         }
                     }
 
-                    _xmlIsLoaded = true;
+                    XmlIsLoaded = true;
                 }
 
                 return _binaryAsXml;
@@ -110,6 +160,9 @@ namespace SenseNet.ContentRepository
 
         private bool _jsonIsLoaded;
         private JObject _binaryAsJObject;
+        /// <summary>
+        /// Gets data as a <see cref="JObject"/> if it can be parsed, or null.
+        /// </summary>
         protected JObject BinaryAsJObject
         {
             get
@@ -137,11 +190,13 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        private static object _settingValuesLock = new object();
+        private static readonly object _settingValuesLock = new object();
         private Dictionary<string, object> _settingValues;
 
         /// <summary>
-        /// This property holds the real values for settings that were successfuly parsed from the binary. This is stored in the node cache.
+        /// Gets the interpreted values as a Dictionary&lt;string, object&gt; instance.
+        /// This property holds the real values for settings that were successfuly parsed from the binary. 
+        /// This is stored in the node cache.
         /// </summary>
         protected Dictionary<string, object> SettingValues
         {
@@ -178,14 +233,15 @@ namespace SenseNet.ContentRepository
         public static T GetSettingsByName<T>(string settingsName, string contextPath) where T : Settings
         {
             if (string.IsNullOrEmpty(settingsName))
-                throw new ArgumentNullException("settingsName");
+                throw new ArgumentNullException(nameof(settingsName));
 
-            return (T)SettingsCache.GetSettingsByName<T>(settingsName, contextPath)
+            return SettingsCache.GetSettingsByName<T>(settingsName, contextPath)
                 ?? Node.Load<T>(RepositoryPath.Combine(SETTINGSCONTAINERPATH, settingsName + "." + EXTENSION));
         }
 
         /// <summary>
-        /// Loads all settings content with a specified name (or relative path) from the Settings folders up on the parent chain, starting from the provided context path.
+        /// Loads all settings content with a specified name (or relative path) from the Settings folders 
+        /// up on the parent chain, starting from the provided context path.
         /// </summary>
         /// <typeparam name="T">The settings type.</typeparam>
         /// <param name="settingsName">Name or relative path of the settings content.</param>
@@ -220,6 +276,13 @@ namespace SenseNet.ContentRepository
             return settingsList;
         }
 
+        /// <summary>
+        /// Returns the input object converted to the desired type. If the input was null, the defaultValue will be returned.
+        /// </summary>
+        /// <typeparam name="T">Type of the return value</typeparam>
+        /// <param name="value">Input raw value</param>
+        /// <param name="defaultValue">Actual value if the "value" is null.</param>
+        /// <returns></returns>
         protected static T ConvertSettingValue<T>(object value, T defaultValue)
         {
             if (value == null)
@@ -232,14 +295,21 @@ namespace SenseNet.ContentRepository
                 return (T)Convert.ChangeType(value, typeof(T));
         }
 
+        /// <summary>
+        /// Returns a setting value by the given key of the specified <see cref="Settings"/>.
+        /// </summary>
+        /// <typeparam name="T">Type of the return value</typeparam>
+        /// <param name="settingsName">Name of the <see cref="Settings"/> (e.g. Indexing or Portal).</param>
+        /// <param name="key">The name of the requested value.</param>
+        /// <param name="contextPath">The content where the search for the settings will start.</param>
+        /// <param name="defaultValue">Value if the "value" is null.</param>
         public static T GetValue<T>(string settingsName, string key, string contextPath = null, T defaultValue = default(T))
         {
             using (new SystemAccount())
             {
                 // load the settings file
-                Settings settingsFile;
 
-                settingsFile = GetSettingsByName<Settings>(settingsName, contextPath);
+                var settingsFile = GetSettingsByName<Settings>(settingsName, contextPath);
 
                 // file not found, even in the global folder
                 if (settingsFile == null)
@@ -249,14 +319,12 @@ namespace SenseNet.ContentRepository
                 }
 
                 // Try to get setting value from cache
-                object settingValue;
-                if (settingsFile.SettingValues.TryGetValue(key, out settingValue))
+                if (settingsFile.SettingValues.TryGetValue(key, out var settingValue))
                     return ConvertSettingValue<T>(settingValue, defaultValue);
 
                 // Load the value from the Binary (xml or json format): this method should return a value 
                 // that is already converted to type 'T' from string, otherwise the received default value.
-                bool found;
-                settingValue = settingsFile.GetValueFromBinary(key, defaultValue, out found);
+                settingValue = settingsFile.GetValueFromBinary(key, defaultValue, out var found);
 
                 // the value was found on the settings file
                 if (found)
@@ -289,6 +357,12 @@ namespace SenseNet.ContentRepository
             }
         }
 
+        /// <summary>
+        /// Returns the closest <see cref="Settings"/> on the parent chain with the same name.
+        /// </summary>
+        /// <remarks>Note that the <see cref="Settings"/> is a context object with a special container.
+        /// Every Content can have settings under it's "/Settings/[settingname]" structure.
+        /// Searching the parent <see cref="Settings"/> is based on this structure.</remarks>
         protected Settings FindClosestInheritedSettingsFile()
         {
             if (this.ParentPath.StartsWith(SETTINGSCONTAINERPATH, true, System.Globalization.CultureInfo.InvariantCulture))
@@ -305,8 +379,8 @@ namespace SenseNet.ContentRepository
         // ================================================================================= Settings API (INSTANCE)
 
         /// <summary>
-        /// Gets the setting value by name from the Binary field. In the base implementation 
-        /// it uses XML, derived classes may implement other formats, e.g. JSON.
+        /// Gets the setting value by name from the Binary field. The base implementation is able
+        /// to work with XML and JSON format. Derived classes may understand other formats too.
         /// </summary>
         /// <typeparam name="T">The type of the setting value.</typeparam>
         /// <param name="key">The name of the setting.</param>
@@ -316,14 +390,14 @@ namespace SenseNet.ContentRepository
         protected virtual T GetValueFromBinary<T>(string key, T defaultValue, out bool found)
         {
             var xDoc = this.BinaryAsXml;
-            if (xDoc != null && xDoc.DocumentElement != null)
+            if (xDoc?.DocumentElement != null)
             {
                 // look for an xml node with a given name or a generic key/value 
                 // node in the well-known '<add key value>' format
                 var node = xDoc.DocumentElement.SelectSingleNode(key);
                 if (node == null)
                 {
-                    var xpath = string.Format("{0}[@{1} = \"{2}\"]", XML_DEFAULT_NODE_NAME, XML_DEFAULT_KEYATTRIBUTE_NAME, key);
+                    var xpath = $"{XML_DEFAULT_NODE_NAME}[@{XML_DEFAULT_KEYATTRIBUTE_NAME} = \"{key}\"]";
                     var nodes = xDoc.DocumentElement.SelectNodes(xpath);
                     if (nodes != null && nodes.Count > 0)
                         node = nodes[0];
@@ -337,15 +411,12 @@ namespace SenseNet.ContentRepository
             }
 
             // try json format
-            if (this.BinaryAsJObject != null)
+            // only return the result if the key was found in the JSON text
+            var jsonToken = BinaryAsJObject?[key];
+            if (jsonToken != null)
             {
-                // only return the result if the key was found in the JSON text
-                var jsonToken = this.BinaryAsJObject[key];
-                if (jsonToken != null)
-                {
-                    found = true;
-                    return this.GetValueFromJsonInternal<T>(jsonToken, key);
-                }
+                found = true;
+                return this.GetValueFromJsonInternal<T>(jsonToken, key);
             }
 
             // value was not found in the binary
@@ -370,7 +441,7 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Gets the settings value from the found JSON part.
+        /// Gets the settings value from the found JSON property.
         /// </summary>
         /// <param name="token">The JSON value for the setting in the binary field.</param>
         /// <param name="key">The name of the setting.</param>
@@ -380,6 +451,10 @@ namespace SenseNet.ContentRepository
             return null;
         }
 
+        /// <summary>
+        /// Returns deserialized JObject or null, if the deserializing was unsuccessful.
+        /// </summary>
+        /// <param name="stream">The input <see cref="Stream"/>.</param>
         public static JObject DeserializeToJObject(Stream stream)
         {
             JObject joe = null;
@@ -401,8 +476,8 @@ namespace SenseNet.ContentRepository
                         deserialized = JToken.ReadFrom(jreader);
                     }
 
-                    if (deserialized is JObject)
-                        joe = (JObject)deserialized;
+                    if (deserialized is JObject o)
+                        joe = o;
                     else if (deserialized is JArray && ((JArray)deserialized).Count > 0)
                         joe = ((JArray)deserialized)[0] as JObject;
                 }
@@ -417,16 +492,17 @@ namespace SenseNet.ContentRepository
 
         // ================================================================================= Overrides
 
+        /// <inheritdoc />
+        /// <remarks>Looks for dynamic properties by the given name. If it was not found, continues the search 
+        /// in the appropriate setting files on the parent chain.</remarks>
         public override object GetProperty(string name)
         {
             if (this.HasProperty(name))
-            {
                 return base.GetProperty(name);
-            }
-            else if (BinaryAsJObject != null)
+
+            if (BinaryAsJObject != null)
             {
-                bool found = false;
-                object result = JsonDynamicFieldHelper.GetProperty(BinaryAsJObject, name, out found);
+                object result = JsonDynamicFieldHelper.GetProperty(BinaryAsJObject, name, out var found);
 
                 // If not found, try the inherited settings file
                 if (!found)
@@ -446,6 +522,8 @@ namespace SenseNet.ContentRepository
                 return null;
         }
 
+        /// <inheritdoc />
+        /// <remarks>Sets or overrides any dynamic or well-known property.</remarks>
         public override void SetProperty(string name, object value)
         {
             if (this.HasProperty(name))
@@ -456,18 +534,16 @@ namespace SenseNet.ContentRepository
             {
                 // If the value is the same as what the inherited settings contains, set it to null, thus removing it from the JSON
                 var inherited = this.FindClosestInheritedSettingsFile();
-                if (inherited != null)
-                {
-                    var inheritedValue = inherited.GetProperty(name);
-                    if (inheritedValue != null && inheritedValue.Equals(value))
-                        value = null;
-                }
+                var inheritedValue = inherited?.GetProperty(name);
+                if (inheritedValue != null && inheritedValue.Equals(value))
+                    value = null;
 
                 JsonDynamicFieldHelper.SetProperty(BinaryAsJObject, name, value);
                 _dynamicFieldsChanged = true;
             }
         }
 
+        /// <inheritdoc />
         public override void Save(NodeSaveSettings settings)
         {
             AssertSettings();
@@ -487,35 +563,40 @@ namespace SenseNet.ContentRepository
                 base.Save(settings);
             }
 
-            // Find all settings that inherit from this setting and remove their cached data
-
-            if (RepositoryInstance.LuceneManagerIsRunning && !RepositoryEnvironment.WorkingMode.Importing)
+            // Find all settings that inherit from this setting and remove their cached data.
+            if (RepositoryInstance.IndexingEngineIsRunning && !RepositoryEnvironment.WorkingMode.Importing)
             {
-                string contextPath = null;
+                var contextPath = this.ParentPath.StartsWith(SETTINGSCONTAINERPATH, true,
+                    System.Globalization.CultureInfo.InvariantCulture)
+                    ? Identifiers.RootPath
+                    : GetParentContextPath(this.Path);
 
-                if (this.ParentPath.StartsWith(SETTINGSCONTAINERPATH, true, System.Globalization.CultureInfo.InvariantCulture))
-                    contextPath = "/Root";
-                else
-                    contextPath = GetParentContextPath(this.Path);
-                if (contextPath == null)
-
-                using (new SystemAccount())
+                if (contextPath != null)
                 {
-                    var q = ContentQuery.Query(SafeQueries.InTreeAndTypeIsAndName,
-                         new QuerySettings { EnableAutofilters = FilterStatus.Disabled },
-                         contextPath, typeof(Settings).Name, this.Name);
-                    foreach (var id in q.Identifiers)
-                        NodeIdDependency.FireChanged(id);
+                    using (new SystemAccount())
+                    {
+                        var q = ContentQuery.Query(SafeQueries.InTreeAndTypeIsAndName,
+                            new QuerySettings {EnableAutofilters = FilterStatus.Disabled},
+                            contextPath, typeof(Settings).Name, this.Name);
+
+                        foreach (var id in q.Identifiers)
+                            NodeIdDependency.FireChanged(id);
+                    }
                 }
             }
         }
 
+        /// <inheritdoc />
         public override void MoveTo(Node target)
         {
             AssertSettingsPath(RepositoryPath.Combine(target.Path, this.Name), this.Name, this.Id);
             base.MoveTo(target);
         }
 
+        /// <summary>
+        /// Overrides the base class behavior. Triggers the building of internal structures.
+        /// Do not use this method directly from your code.
+        /// </summary>
         protected override void OnLoaded(object sender, NodeEventArgs e)
         {
             base.OnLoaded(sender, e);
@@ -523,7 +604,7 @@ namespace SenseNet.ContentRepository
             // load cached xml if exists
             _binaryAsXml = (XmlDocument)base.GetCachedData(BINARYXMLKEY);
             if (_binaryAsXml != null)
-                _xmlIsLoaded = true;
+                XmlIsLoaded = true;
 
             // load cached json if exists
             _binaryAsJObject = (JObject)base.GetCachedData(BINARYJSONKEY);
@@ -550,19 +631,18 @@ namespace SenseNet.ContentRepository
                 throw new InvalidContentException(String.Format(SR.GetString(SR.Exceptions.Settings.Error_ForbiddenPath_2), SETTINGSCONTAINERNAMEPART, SETTINGSCONTAINERPATH));
 
             // check extension
-            if (!name.EndsWith("." + Settings.EXTENSION))
+            if (!name.EndsWith("." + EXTENSION))
                 throw new InvalidContentException(String.Format(SR.GetString(SR.Exceptions.Settings.Error_ForbiddenExtension), name));
 
             // Check name 
             // 1. settings content in the settings folder with the same name
             // 2. global only settings: cannot create a local setting if a global-only setting exists with the same name
-            string rootpath = null;
-            var p = path.IndexOf(SETTINGSCONTAINERNAMEPART);
-            rootpath = p >= 0 ? path.Substring(0, p + SETTINGSCONTAINERNAMEPART.Length - 1) : SETTINGSCONTAINERPATH;
+            var p = path.IndexOf(SETTINGSCONTAINERNAMEPART, StringComparison.Ordinal);
+            var rootpath = p >= 0 ? path.Substring(0, p + SETTINGSCONTAINERNAMEPART.Length - 1) : SETTINGSCONTAINERPATH;
             
             var nameError = false;
             var globalSettingError = false;
-            if (RepositoryInstance.ContentQueryIsAllowed)
+            if (SearchManager.ContentQueryIsAllowed)
             {
                 if (ContentQuery.Query(SafeQueries.SettingsByNameAndSubtree, null, name, id, rootpath).Count > 0)
                     nameError = true;
@@ -577,7 +657,7 @@ namespace SenseNet.ContentRepository
             {
                 var settingsType = ActiveSchema.NodeTypes["Settings"];
 
-                // query content without Lucene
+                // query content without outer search engine
                 var nqResult = NodeQuery.QueryNodesByTypeAndPathAndName(settingsType, false, rootpath, false, name);
                 if (nqResult.Nodes.Any(n => n.Id != id))
                     nameError = true;
@@ -694,11 +774,10 @@ namespace SenseNet.ContentRepository
                 }
 
                 // check for Array type
-                var jArray = token as JArray;
-                if (jArray != null)
+                if (token is JArray jArray)
                 {
                     if (!typeof(IEnumerable).IsAssignableFrom(tt))
-                        throw new InvalidOperationException(string.Format("Cannot convert a JArray to {0}.", tt.FullName));
+                        throw new InvalidOperationException($"Cannot convert a JArray to {tt.FullName}.");
 
                     return jArray.ToObject<T>();
                 }
@@ -726,19 +805,26 @@ namespace SenseNet.ContentRepository
         /// <returns>If an attribute called 'value' exists, than its value. Otherwise the inner text of the xml node.</returns>
         protected string GetInnerTextOrAttribute(XmlNode xmlNode)
         {
+            if(xmlNode == null)
+                throw new ArgumentException(nameof(xmlNode));
+
+            // ReSharper disable once PossibleNullReferenceException
             var attr = xmlNode.Attributes[XML_DEFAULT_VALUEATTRIBUTE_NAME];
             return attr != null ? attr.Value : xmlNode.InnerText;
         }
 
+        /// <summary>
+        /// Returns name of this instance without file name extension.
+        /// </summary>
         protected string GetSettingName()
         {
             if (this.IsNew)
                 return this.Name;
 
             var s = RepositoryPath.PathSeparator + SETTINGSCONTAINERNAME + RepositoryPath.PathSeparator;
-            var l = this.Path.LastIndexOf(s);
+            var l = this.Path.LastIndexOf(s, StringComparison.Ordinal);
             var result = this.Path.Substring(l + s.Length);
-            result = result.Substring(0, result.LastIndexOf("." + EXTENSION));
+            result = result.Substring(0, result.LastIndexOf("." + EXTENSION, StringComparison.Ordinal));
             return result;
         }
 
@@ -747,15 +833,21 @@ namespace SenseNet.ContentRepository
             if (string.IsNullOrEmpty(settingsPath) || settingsPath.Equals("/root", StringComparison.OrdinalIgnoreCase))
                 return null;
 
-            var result = settingsPath.Substring(0, settingsPath.LastIndexOf(RepositoryPath.PathSeparator + SETTINGSCONTAINERNAME + RepositoryPath.PathSeparator));
+            var result = settingsPath.Substring(0, settingsPath
+                .LastIndexOf(RepositoryPath.PathSeparator + SETTINGSCONTAINERNAME + RepositoryPath.PathSeparator, StringComparison.Ordinal));
             return result;
         }
 
+        /// <summary>
+        /// Overrides the base class behavior.
+        /// In this case disables the indexing of the dynamic fields.
+        /// Do not use this method directly from your code.
+        /// </summary>
         public override IEnumerable<IIndexableField> GetIndexableFields()
         {
             // NOTE:
             // A Settings content can contain any user-defined JSON object. The properties of that JSON object will appear as dynamic fields on the Content layer.
-            // The problem is that Sense/Net can't handle two differently typed fields with the same name.
+            // The problem is that sensenet can't handle two differently typed fields with the same name.
             // However, the name of these fields may collide with the name of a CTD field or a name of another dynamic field.
             // ----------
             // For now, the solution is to disable indexing for the dynamic fields on Settings.
@@ -766,7 +858,7 @@ namespace SenseNet.ContentRepository
             // Remove dynamic fields from indexable fields
             foreach (var item in baseResult)
             {
-                if (!this._dynamicFieldMetadata.Any(m => m.Value.FieldName == item.Name) || this.HasProperty(item.Name))
+                if (this._dynamicFieldMetadata.All(m => m.Value.FieldName != item.Name) || this.HasProperty(item.Name))
                     result.Add(item);
             }
 
@@ -792,15 +884,11 @@ namespace SenseNet.ContentRepository
             _settingValues = null;
         }
 
-        bool ISupportsDynamicFields.IsNewContent
-        {
-            get { return this.IsNew; }
-        }
+        bool ISupportsDynamicFields.IsNewContent => this.IsNew;
 
         private void BuildDynamicFieldMetadata()
         {
-            var cachedMetadata = this.GetCachedData(DYNAMICMETADATA_CACHEKEY) as IDictionary<string, FieldMetadata>;
-            if (cachedMetadata != null)
+            if (this.GetCachedData(DYNAMICMETADATA_CACHEKEY) is IDictionary<string, FieldMetadata> cachedMetadata)
             {
                 _dynamicFieldMetadata = cachedMetadata;
             }
@@ -813,7 +901,7 @@ namespace SenseNet.ContentRepository
                     if (!this.IsNew)
                     {
                         // Find inherited settings files
-                        var chain = Settings.GetAllSettingsByName<Settings>(this.GetSettingName(), this.Path).ToList();
+                        var chain = GetAllSettingsByName<Settings>(this.GetSettingName(), this.Path).ToList();
                         
                         // Workaround in case the current item was not yet loaded into the settings cache: the
                         // first element in this chain should always be the current settings file.

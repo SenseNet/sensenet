@@ -92,7 +92,7 @@ namespace SenseNet.ContentRepository
         {
             get
             {
-                return Convert.ToBoolean(this["EnableMoreFilling"]) || 
+                return Convert.ToBoolean(this["EnableMoreFilling"]) ||
                        ContentQuery.Query("+Type:votingitem +CreatedById:@0 +InTree:@1 .AUTOFILTERS:OFF .COUNTONLY", null, User.Current.Id, this.Path).Count <= 0;
             }
         }

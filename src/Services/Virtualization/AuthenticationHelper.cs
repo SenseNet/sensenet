@@ -13,6 +13,7 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using System.Security.Principal;
 using SenseNet.ContentRepository.Security;
+using SenseNet.Services.Virtualization;
 
 namespace SenseNet.Portal.Virtualization
 {
@@ -113,9 +114,14 @@ namespace SenseNet.Portal.Virtualization
             throw new OData.ODataException(OData.ODataExceptionCode.Forbidden);
         }
 
-        public static void Logout()
+        /// <summary>
+        /// Logs out the current user.
+        /// </summary>
+        /// <param name="ultimateLogout">Whether this should be an ultimate logout. If set to True, the user will be logged out from all clients.</param>
+        public static void Logout(bool ultimateLogout = false)
         {
-            var info = new CancellableLoginInfo { UserName = User.Current.Username };
+            var user = User.Current;
+            var info = new CancellableLoginInfo { UserName = user.Username };
             LoginExtender.OnLoggingOut(info);
 
             if (info.Cancel)
@@ -126,11 +132,11 @@ namespace SenseNet.Portal.Virtualization
             SnLog.WriteAudit(AuditEvent.Logout,
                 new Dictionary<string, object>
                 {
-                    {"UserName", User.Current.Username},
+                    {"UserName", user.Username},
                     {"ClientAddress", RepositoryTools.GetClientIpAddress()}
                 });
 
-            LoginExtender.OnLoggedOut(new LoginInfo { UserName = User.Current.Username });
+            LoginExtender.OnLoggedOut(new LoginInfo { UserName = user.Username });
 
             if (HttpContext.Current != null)
             {
@@ -144,6 +150,19 @@ namespace SenseNet.Portal.Virtualization
                 };
 
                 HttpContext.Current.Response.Cookies.Add(sessionCookie);
+
+                // in case of ultimate logout saves the time on user
+                if (ultimateLogout || Configuration.Security.DefaultUltimateLogout)
+                {
+                    using (new SystemAccount())
+                    {
+                        if (user is User userNode)
+                        {
+                            userNode.LastLoggedOut = DateTime.UtcNow;
+                            userNode.Save(SavingMode.KeepVersion);
+                        }
+                    }
+                }
             }
         }
 
@@ -153,15 +172,24 @@ namespace SenseNet.Portal.Virtualization
             return sessionStateSection != null ? sessionStateSection.CookieName : string.Empty;
         }
 
+        public static string GetRequestParameterValue(HttpContextBase context, string parameterName)
+        {
+            return GetRequestParameterValue(context.Request, parameterName);
+        }
+
+        private static string GetRequestParameterValue(HttpRequestBase request, string parameterName)
+        {
+            return request.Params == null ? null : request.Params[parameterName];
+        }
+
         public static Func<object, HttpContextBase> GetContext = sender => new HttpContextWrapper(((HttpApplication)sender).Context);
         public static Func<object, HttpRequestBase> GetRequest = sender => new HttpRequestWrapper(((HttpApplication)sender).Context.Request);
         public static Func<object, HttpResponseBase> GetResponse = sender => new HttpResponseWrapper(((HttpApplication)sender).Context.Response);
 
         public static Func<IPrincipal> GetVisitorPrincipal = () => new PortalPrincipal(User.Visitor);
         public static Func<string, IPrincipal> LoadUserPrincipal = userName => new PortalPrincipal(User.Load(userName));
-
+        public static Func<string, PortalPrincipal> LoadPortalPrincipal = userName => new PortalPrincipal(User.Load(userName));
         public static Func<string, string, bool> IsUserValid = (userName, password) => Membership.ValidateUser(userName, password);
-
         public static Func<IDisposable> GetSystemAccount = () => new SystemAccount();
         public static Func<string> GetBasicAuthHeader = () => PortalContext.Current.BasicAuthHeaders;
 

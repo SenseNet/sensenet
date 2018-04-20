@@ -1,60 +1,77 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
-using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using  SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Events;
-using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
+// ReSharper disable PublicConstructorInAbstractClass
 
 namespace SenseNet.ContentRepository
 {
+    /// <summary>
+    /// Defines a base class for handling Content instances with a primary blob.
+    /// </summary>
 	public abstract class FileBase : GenericContent, IFile
 	{
         // ================================================================================ Construction
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileBase"/> class.
+        /// Do not use this constructor directly from your code.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
         public FileBase(Node parent) : base(parent) { }
-		public FileBase(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileBase"/> class.
+        /// Do not use this constructor directly from your code.
+	    /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="nodeTypeName">Name of the node type.</param>
+        public FileBase(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileBase"/> class during the loading process.
+        /// Do not use this constructor directly from your code.
+	    /// </summary>
         protected FileBase(NodeToken nt) : base(nt) { }
 
         // ================================================================================= IFile Members
 
+        /// <summary>        
+        /// Gets or sets the main binary data of the file.
+        /// Persisted as <see cref="RepositoryDataType.Binary"/>.
+        /// </summary>
 		[RepositoryProperty("Binary", RepositoryDataType.Binary)]
 		public virtual BinaryData Binary
 		{
-			get { return this.GetBinary("Binary"); }
-			set { this.SetBinary("Binary", value); }
-		}
-        public long Size
-        {
-			get
-			{
-                // during the saving process we cannot determine the size of a binary field
-                if (this.SavingState != ContentSavingState.Finalized)
-                    return 0;
-
-			    return this.GetBinary("Binary").Size;
-			}
+			get => GetBinary("Binary");
+            set => SetBinary("Binary", value);
         }
-        public long FullSize
-        {
-            //TODO: Create logic to calculate the sum size of all versions
-            get { return -1; }
-		}
+	    /// <summary>        
+        /// Gets the size of the main binary data of the file.
+        /// </summary>
+        public long Size => SavingState != ContentSavingState.Finalized ? 0 : GetBinary("Binary").Size;
 
-        // ================================================================================= Overrides
+	    [Obsolete("This property and content field will be removed in the future.")]
+        public long FullSize => -1;
 
+	    // ================================================================================= Overrides
+
+        /// <inheritdoc />
+        /// <remarks>Before saving, checks the type-consistency of an executable file, if this instance is a new one.</remarks>>
 	    public override void Save(NodeSaveSettings settings)
 	    {
             // check new content here for speedup reasons
-            if (this.IsNew)
+            if (IsNew)
 	            AssertExecutableType(this);
 
 	        base.Save(settings);
 	    }
 
+	    /// <summary>
+	    /// Overrides the base class behavior. Triggers the validation of the executable file's type-consistency.
+	    /// For example after renaming a file to have a .cshtml extension, it must be an "ExecutableFile" or a derived type.
+	    /// Do not use this method directly from your code.
+	    /// </summary>
 	    protected override void OnModifying(object sender, CancellableNodeEventArgs e)
 	    {
             // check type in case of the name has changed
@@ -64,28 +81,33 @@ namespace SenseNet.ContentRepository
 	        base.OnModifying(sender, e);
 	    }
 
-	    // ================================================================================= Generic Property handling
+        // ================================================================================= Generic Property handling
 
-		public override object GetProperty(string name)
+	    /// <inheritdoc/>
+        public override object GetProperty(string name)
 		{
 			switch (name)
 			{
 				case "Binary":
-					return this.Binary;
+					return Binary;
                 case "Size":
-                    return this.Size;
+                    return Size;
                 case "FullSize":
-                    return this.FullSize;
+#pragma warning disable 618
+                    // Need to use even if deprecated because it is protected.
+                    return FullSize;
+#pragma warning restore 618
 				default:
 					return base.GetProperty(name);
 			}
 		}
+	    /// <inheritdoc/>
 		public override void SetProperty(string name, object value)
 		{
 			switch (name)
 			{
 				case "Binary":
-					this.Binary = (BinaryData)value;
+					Binary = (BinaryData)value;
 					break;
 				default:
 					base.SetProperty(name, value);

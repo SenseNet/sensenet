@@ -157,7 +157,7 @@
       <DisplayName>$Ctd-User,Department-DisplayName</DisplayName>
       <Description>$Ctd-User,Department-Description</Description>
       <Indexing>
-        <Analyzer>Lucene.Net.Analysis.Standard.StandardAnalyzer</Analyzer>
+        <Analyzer>Standard</Analyzer>
       </Indexing>
       <Configuration>
         <Visible>true</Visible>
@@ -167,7 +167,7 @@
       <DisplayName>$Ctd-User,Languages-DisplayName</DisplayName>
       <Description>$Ctd-User,Languages-Description</Description>
       <Indexing>
-        <Analyzer>Lucene.Net.Analysis.Standard.StandardAnalyzer</Analyzer>
+        <Analyzer>Standard</Analyzer>
       </Indexing>
       <Configuration>
         <Visible>true</Visible>
@@ -316,6 +316,16 @@
       <Description>$Ctd-User,ProfilePath-Description</Description>
       <Configuration>
         <ReadOnly>true</ReadOnly>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="LastLoggedOut" type="DateTime">
+      <DisplayName>$Ctd-User,LastLoggedOut-DisplayName</DisplayName>
+      <Description>$Ctd-User,LastLoggedOut-Description</Description>
+      <Configuration>
+        <DateTimeMode>DateAndTime</DateTimeMode>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Hide</VisibleNew>

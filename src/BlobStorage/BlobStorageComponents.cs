@@ -3,13 +3,19 @@ using SenseNet.ContentRepository.Storage.Data.SqlClient;
 
 namespace SenseNet.ContentRepository.Storage
 {
-    internal class BlobStorageComponents
+    /// <summary>
+    /// Contains provider instances for the blob storage.
+    /// </summary>
+    public class BlobStorageComponents
     {
         /// <summary>
-        /// Blob storage metadata provider instance used by the blob storage component.
-        /// Currently this property is hardcoded as an MsSqlBlobMetaDataProvider. 
-        /// Later it will be possible to change it using property injection.
+        /// Gets or sets the blob storage metadata provider instance used by the blob storage component.
         /// </summary>
-        internal static IBlobStorageMetaDataProvider DataProvider { get; set; } = new MsSqlBlobMetaDataProvider();
+        public static IBlobStorageMetaDataProvider DataProvider { get; set; } = new MsSqlBlobMetaDataProvider();
+
+        /// <summary>
+        /// Gets or sets the globally used IBlobProviderSelector instance.
+        /// </summary>
+        public static IBlobProviderSelector ProviderSelector { get; set; } = new BuiltInBlobProviderSelector();
     }
 }

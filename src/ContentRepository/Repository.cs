@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Configuration;
@@ -53,9 +52,7 @@ namespace SenseNet.ContentRepository
         public static RepositoryInstance Start(RepositoryStartSettings settings)
         {
             var instance = RepositoryInstance.Start(settings);
-            AccessProvider.ChangeToSystemAccount();
-            Root = (PortalRoot)Node.LoadNode(RootPath);
-            AccessProvider.RestoreOriginalUser();
+            SystemAccount.Execute(() => Root);
             return instance;
         }
         public static RepositoryInstance Start(RepositoryBuilder builder)
@@ -139,7 +136,7 @@ namespace SenseNet.ContentRepository
         /// Gets the root Node.
         /// </summary>
         /// <value>The root Node.</value>
-        public static PortalRoot Root { get; private set; }
+        public static PortalRoot Root => (PortalRoot)Node.LoadNode(Identifiers.PortalRootId);
 
         public static Folder AspectsFolder // creates if doesn't exist
         {
@@ -190,15 +187,6 @@ namespace SenseNet.ContentRepository
 
         [Obsolete("After V6.5 PATCH 9: Use Notification.DefaultEmailSender instead.")]
         public static string EmailSenderAddress => Notification.DefaultEmailSender;
-
-        [Obsolete("After V6.5 PATCH 9: Use Indexing.TextExtractTimeout instead.")]
-        public static int TextExtractTimeout => Indexing.TextExtractTimeout;
-        [Obsolete("After V6.5 PATCH 9: Use Indexing.IndexingPausedTimeout instead.")]
-        public static int IndexingPausedTimeout => Indexing.IndexingPausedTimeout;
-        [Obsolete("After V6.5 PATCH 9: Use Indexing.LuceneActivityTimeoutInSeconds instead.")]
-        public static int LuceneActivityTimeoutInSeconds => Indexing.LuceneActivityTimeoutInSeconds;
-        [Obsolete("After V6.5 PATCH 9: Use Indexing.LuceneActivityQueueMaxLength instead.")]
-        public static int LuceneActivityQueueMaxLength => Indexing.LuceneActivityQueueMaxLength;
 
         public static string[] ExecutableExtensions { get; internal set; } = { "aspx", "ashx", "asmx", "axd", "cshtml", "vbhtml" };
 

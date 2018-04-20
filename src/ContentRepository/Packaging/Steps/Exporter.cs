@@ -7,8 +7,9 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using System.Xml;
 using SenseNet.ContentRepository.Schema;
-using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search;
+using SenseNet.Search.Querying;
+
 namespace SenseNet.Packaging.Steps
 {
     internal static class Exporter
@@ -226,7 +227,7 @@ namespace SenseNet.Packaging.Steps
         private static void ExportByFilterText(ExportContext context, string fsRoot, string queryText)
         {
             var query = ContentQuery.CreateQuery(queryText);
-            query.AddClause(@"InTree:""" + context.SourceFsPath + @"""", ChainOperator.And);
+            query.AddClause(@"InTree:""" + context.SourceFsPath + @"""", LogicalOperator.And);
             var result = query.Execute();
             var maxCount = result.Count;
             var count = 0;

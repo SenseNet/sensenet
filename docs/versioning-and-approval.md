@@ -93,7 +93,6 @@ Administrators can have a *Force undo changes* permission. This means they can d
 <img src="https://raw.githubusercontent.com/SenseNet/sensenet/master/docs/images/approval/versioning-checkin.png" style="margin: 20px auto" />
 
 #### Taking over the lock 
-*from version 6.3.1 patch1*
 
 There are cases when somebody checked out a document, but the user is no longer available (or does not have enough permissions anymore). If force undo changes is not sufficient (e.g. because you want to preserve the content modifications) then administrators are allowed to *take over the lock* on the content. The admin still needs to have *Force undo changes* permission on the content. It is also possible to *pass on the lock to another user*. That user does not have to have force undo changes permission though, only *Save*.
 

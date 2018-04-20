@@ -4,13 +4,14 @@ using System.IO;
 using System.Reflection;
 using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.Tests;
 using SenseNet.Tools.SnAdmin.Testability;
 using SnAdminRuntime.Tests.Implementations;
 
 namespace SnAdminRuntime.Tests
 {
     [TestClass]
-    public class TypeResolutionTests
+    public class TypeResolutionTests : TestBase
     {
         #region Initialization
         private string[] DefaultDirs { get; set; }

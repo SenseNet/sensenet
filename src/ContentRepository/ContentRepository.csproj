@@ -75,10 +75,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\References\itextsharp.dll</HintPath>
     </Reference>
-    <Reference Include="Lucene.Net, Version=2.9.4.2, Culture=neutral, PublicKeyToken=85089178b9ac3181, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\References\Lucene.Net.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Exchange.WebServices, Version=15.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -98,11 +94,10 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="SenseNet.Preview, Version=7.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SenseNet.Preview.7.0.0-beta2\lib\net451\SenseNet.Preview.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\SenseNet.Preview.7.0.0\lib\net451\SenseNet.Preview.dll</HintPath>
     </Reference>
-    <Reference Include="SenseNet.Security, Version=2.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SenseNet.Security.2.3.0.0\lib\net45\SenseNet.Security.dll</HintPath>
+    <Reference Include="SenseNet.Security, Version=2.3.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SenseNet.Security.2.3.1\lib\net45\SenseNet.Security.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="SenseNet.TaskManagement.Core, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -164,10 +159,15 @@
     <Compile Include="CalendarEvent.cs" />
     <Compile Include="Configuration\Actions.cs" />
     <Compile Include="Configuration\Packaging.cs" />
-    <Compile Include="Configuration\Querying.cs" />
     <Compile Include="Configuration\RepositoryStructure.cs" />
     <Compile Include="Configuration\Services.cs" />
     <Compile Include="Configuration\Versioning.cs" />
+    <Compile Include="ISnComponent.cs" />
+    <Compile Include="Packaging\Steps\DeleteContentType.cs" />
+    <Compile Include="Packaging\Steps\Internal\CopyCustomAssemblies.cs" />
+    <Compile Include="Packaging\Steps\Internal\ImportCustomContent.cs" />
+    <Compile Include="Search\Indexing\NullPopulator.cs" />
+    <Compile Include="SnComponent.cs" />
     <Compile Include="Linq\CaseInsensitiveFilterVisitor.cs" />
     <Compile Include="Packaging\Dependency.cs" />
     <Compile Include="Packaging\ExecutionContext.cs" />
@@ -196,7 +196,6 @@
     <Compile Include="Packaging\Steps\ChangeContentType.cs" />
     <Compile Include="Packaging\Steps\ChangeFieldType.cs" />
     <Compile Include="Packaging\Steps\ChangeFieldTypeInCTD.cs" />
-    <Compile Include="Packaging\Steps\CheckIndexIntegrity.cs" />
     <Compile Include="Packaging\Steps\ConditionalStep.cs" />
     <Compile Include="Packaging\Steps\Copy.cs" />
     <Compile Include="Packaging\Steps\DefaultPropertyAttribute.cs" />
@@ -239,9 +238,45 @@
     <Compile Include="Packaging\Steps\XmlEditorStep.cs" />
     <Compile Include="Packaging\ZipUnpacker.cs" />
     <Compile Include="RepositoryBuilder.cs" />
+    <Compile Include="ServicesComponent.cs" />
     <Compile Include="Schema\Metadata\IMetaNode.cs" />
     <Compile Include="Schema\Metadata\MetaCollectionEnumerable.cs" />
     <Compile Include="Schema\Metadata\SchemaVisitor.cs" />
+    <Compile Include="Security\IOAuthIdentity.cs" />
+    <Compile Include="Security\OAuthProvider.cs" />
+    <Compile Include="SearchEngineSupport.cs" />
+    <Compile Include="Search\ContentQuery.cs" />
+    <Compile Include="Search\Indexing\Activities\AddDocumentActivity.cs" />
+    <Compile Include="Search\Indexing\Activities\AddTreeActivity.cs" />
+    <Compile Include="Search\Indexing\Activities\DistributedIndexingActivity.cs" />
+    <Compile Include="Search\Indexing\Activities\DocumentIndexingActivity.cs" />
+    <Compile Include="Search\Indexing\Activities\IndexingActivityBase.cs" />
+    <Compile Include="Search\Indexing\Activities\RebuildActivity.cs" />
+    <Compile Include="Search\Indexing\Activities\RemoveTreeActivity.cs" />
+    <Compile Include="Search\Indexing\Activities\TreeIndexingActivity.cs" />
+    <Compile Include="Search\Indexing\Activities\UpdateDocumentActivity.cs" />
+    <Compile Include="Search\Indexing\CentralizedIndexingActivityQueue.cs" />
+    <Compile Include="Search\Indexing\CommitManager.cs" />
+    <Compile Include="Search\Indexing\DistributedIndexingActivityQueue.cs" />
+    <Compile Include="Search\Indexing\DocumentPopulator.cs" />
+    <Compile Include="Search\Indexing\ExplicitPerFieldIndexingInfo.cs" />
+    <Compile Include="Search\Indexing\IIndexableDocument.cs" />
+    <Compile Include="Search\Indexing\IIndexValueConverter.cs" />
+    <Compile Include="Search\Indexing\IndexDocumentProvider.cs" />
+    <Compile Include="Search\Indexing\IndexHealthMonitor.cs" />
+    <Compile Include="Search\Indexing\IndexingActivityFactory.cs" />
+    <Compile Include="Search\Indexing\IndexingTools.cs" />
+    <Compile Include="Search\Indexing\IndexManager.cs" />
+    <Compile Include="Search\Indexing\PerFieldIndexingInfo.cs" />
+    <Compile Include="Search\ContentQueryTemplateReplacer.cs" />
+    <Compile Include="Search\Indexing\RichTextStripper.cs" />
+    <Compile Include="Search\InvalidContentQueryException.cs" />
+    <Compile Include="Search\SafeQueries.cs" />
+    <Compile Include="Search\Indexing\SnIFilter.cs" />
+    <Compile Include="Search\Querying\SnQueryContext.cs" />
+    <Compile Include="Search\Indexing\TextExtractor.cs" />
+    <Compile Include="Search\Indexing\TextSplitter.cs" />
+    <Compile Include="Search\TextExtractorsField.cs" />
     <Compile Include="Setting\UserProfileSettings.cs" />
     <Compile Include="ContentNamingHelper.cs" />
     <Compile Include="ContentNamingProvider.cs" />
@@ -250,19 +285,8 @@
     <Compile Include="JsonTreeCache.cs" />
     <Compile Include="LoggingSettings.cs" />
     <Compile Include="Schema\ISupportsVirtualChildren.cs" />
-    <Compile Include="Search\Indexing\Activities\RebuildActivity.cs" />
     <Compile Include="Security\ADSync\ADSettings.cs" />
     <Compile Include="Security\Cryptography\CryptoServiceProvider.cs" />
-    <Compile Include="Search\Parser\QueryClassifier.cs" />
-    <Compile Include="Search\Parser\SnLucToSqlCompiler.cs" />
-    <Compile Include="Search\Parser\SqlQueryFieldInfo.cs" />
-    <Compile Include="Search\QueryExecutors\IQueryExecutor.cs" />
-    <Compile Include="Search\QueryExecutors\LuceneQueryExecutor.cs" />
-    <Compile Include="Search\QueryExecutors\PermissionChecker.cs" />
-    <Compile Include="Search\QueryExecutors\QueryExecutor20131012.cs" />
-    <Compile Include="Search\QueryExecutors\QueryExecutor20131012CountOnly.cs" />
-    <Compile Include="Search\QueryExecutors\SqlQueryExecutor.cs" />
-    <Compile Include="Search\SearchProvider.cs" />
     <Compile Include="SnElevatedModificationVisibilityRule.cs" />
     <Compile Include="Fields\ColorFieldSetting.cs" />
     <Compile Include="Fields\DateTimeFieldSetting.cs" />
@@ -272,7 +296,7 @@
     <Compile Include="Json\JsonDynamicFieldHelper.cs" />
     <Compile Include="Linq\ChildrenContentSet.cs" />
     <Compile Include="Linq\ContentSet.cs" />
-    <Compile Include="Linq\CQVisitor.cs" />
+    <Compile Include="Linq\SnLinqVisitor.cs" />
     <Compile Include="Linq\ExecutorVisitor.cs" />
     <Compile Include="Linq\FilteredEnumerable.cs" />
     <Compile Include="Linq\LinqChildrenEnumerator.cs" />
@@ -320,60 +344,13 @@
     <Compile Include="Schema\FieldInfo.cs" />
     <Compile Include="Schema\ISupportsAddingFieldsOnTheFly.cs" />
     <Compile Include="SearchFolder.cs" />
-    <Compile Include="Search\ContentQuery.cs" />
     <Compile Include="RestoreException.cs" />
     <Compile Include="RestoreResultType.cs" />
     <Compile Include="SavingAction.cs" />
     <Compile Include="Schema\FieldMetadata.cs" />
     <Compile Include="Schema\ISupportsDynamicFields.cs" />
     <Compile Include="Search\IndexingSettings.cs" />
-    <Compile Include="Search\Indexing\Activities\AddDocumentActivity.cs" />
-    <Compile Include="Search\Indexing\Activities\AddTreeActivity.cs" />
-    <Compile Include="Search\Indexing\Activities\BackupActivity.cs" />
-    <Compile Include="Search\Indexing\Activities\LuceneDocumentActivity.cs" />
-    <Compile Include="Search\Indexing\Activities\LuceneIndexingActivity.cs" />
-    <Compile Include="Search\Indexing\Activities\LuceneTreeActivity.cs" />
-    <Compile Include="Search\Indexing\Activities\RemoveDocumentActivity.cs" />
-    <Compile Include="Search\Indexing\Activities\RemoveTreeActivity.cs" />
-    <Compile Include="Search\Indexing\Activities\UpdateDocumentActivity.cs" />
-    <Compile Include="Search\Indexing\IndexingActivityFactory.cs" />
-    <Compile Include="Search\Indexing\IndexingActivityQueue.cs" />
-    <Compile Include="Search\Indexing\BackupTools.cs" />
-    <Compile Include="Search\Indexing\Configuration\RepositoryIndexBehaviorSection.cs" />
-    <Compile Include="Search\Indexing\DocumentPopulator.cs" />
     <Compile Include="Search\Indexing\FieldIndexHandler.cs" />
-    <Compile Include="Search\Indexing\IndexDocumentInfo.cs" />
-    <Compile Include="Search\Indexing\IndexFilePathHandler.cs" />
-    <Compile Include="Search\Indexing\IndexHealthMonitor.cs" />
-    <Compile Include="Search\Indexing\IndexingTools.cs" />
-    <Compile Include="Search\Indexing\IndexReaderFrame.cs" />
-    <Compile Include="Search\Indexing\IndexWriterFrame.cs" />
-    <Compile Include="Search\Indexing\IntegrityChecker.cs" />
-    <Compile Include="Search\Indexing\SnPerFieldAnalyzerWrapper.cs" />
-    <Compile Include="Search\IndexManager.cs" />
-    <Compile Include="Search\Indexing\Activities\DistributedLuceneActivity.cs" />
-    <Compile Include="Search\InvalidContentQueryException.cs" />
-    <Compile Include="Search\LuceneSearchEngine.cs" />
-    <Compile Include="Search\LucObject.cs" />
-    <Compile Include="Search\LucQuery.cs" />
-    <Compile Include="Search\Parser\ContentQueryTemplateReplacer.cs" />
-    <Compile Include="Search\Parser\FieldNameVisitor.cs" />
-    <Compile Include="Search\RichTextStripper.cs" />
-    <Compile Include="Search\SnCollector.cs" />
-    <Compile Include="Search\SnLucCompiler.cs" />
-    <Compile Include="Search\SnIFilter.cs" />
-    <Compile Include="Search\TextExtractor.cs" />
-    <Compile Include="Search\Indexing\LuceneManager.cs" />
-    <Compile Include="Search\Parser\DumpVisitor.cs" />
-    <Compile Include="Search\Parser\LucQueryTemplateReplacer.cs" />
-    <Compile Include="Search\Parser\LineInfo.cs" />
-    <Compile Include="Search\Parser\LucQueryVisitor.cs" />
-    <Compile Include="Search\Parser\ParserException.cs" />
-    <Compile Include="Search\Parser\SnLucLexer.cs" />
-    <Compile Include="Search\Parser\SnLucParser.cs" />
-    <Compile Include="Search\Indexing\PerFieldIndexingInfo.cs" />
-    <Compile Include="Search\Parser\RepositoryLucQueryTemplateReplacer.cs" />
-    <Compile Include="Search\TextSplitter.cs" />
     <Compile Include="Security\ADSync\ADFolder.cs" />
     <Compile Include="ApplicationCache.cs" />
     <Compile Include="BinaryTypeResolver.cs" />
@@ -389,7 +366,6 @@
     <Compile Include="Fields\YesNoFieldSetting.cs" />
     <Compile Include="Security\ADSync\IADSyncable.cs" />
     <Compile Include="IAction.cs" />
-    <Compile Include="RepositoryQueryTemplateReplacer.cs" />
     <Compile Include="Schema\DynamicContentTools.cs" />
     <Compile Include="Schema\FieldDataType.cs" />
     <Compile Include="Schema\FieldSettingContent.cs" />
@@ -512,7 +488,9 @@
     <EmbeddedResource Include="Schema\AspectDefinition.xsd">
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Schema\ContentTypeDefinition.xsx">
       <DependentUpon>ContentTypeDefinition.xsd</DependentUpon>
     </None>
@@ -520,11 +498,9 @@
       <SubType>
       </SubType>
     </EmbeddedResource>
-    <None Include="Search\ClassDiagram1.cd" />
     <None Include="Schema\ContentListDefinition.xsx">
       <DependentUpon>ContentListDefinition.xsd</DependentUpon>
     </None>
-    <None Include="Search\Indexing\Activities\IndexingActivities.cd" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Schema\ContentListDefinitionSample.xml" />
@@ -557,9 +533,17 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\BlobStorage\BlobStorage.csproj">
+      <Project>{4E6722B5-AC95-494C-80A5-A4D80CC502B5}</Project>
+      <Name>BlobStorage</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Common\Common.csproj">
       <Project>{A453E920-29C0-45CD-984C-0D8E3631B1E3}</Project>
       <Name>Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Search\Search.csproj">
+      <Project>{0279705b-779d-485d-86b9-f7ab3dd1f2c3}</Project>
+      <Name>Search</Name>
     </ProjectReference>
     <ProjectReference Include="..\Storage\Storage.csproj">
       <Project>{5DB4DDBA-81F6-4D81-943A-18F3178B3355}</Project>

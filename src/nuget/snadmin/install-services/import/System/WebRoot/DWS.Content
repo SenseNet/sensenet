@@ -8,7 +8,7 @@
   <Permissions>
     <Clear />
     <Identity path="/Root/IMS/BuiltIn/Portal/Everyone">
-      <See>Allow</See>
+      <Open>Allow</Open>
       <RunApplication>Allow</RunApplication>
     </Identity>
   </Permissions>

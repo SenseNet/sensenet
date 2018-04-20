@@ -325,7 +325,7 @@ namespace SenseNet.ContentRepository.Storage.Schema
 
         // -------------------------------------------------------------------------------- FromXml
 
-        internal static DataSet BuildDataSetFromXml(XmlDocument schemaXml)
+        public static DataSet BuildDataSetFromXml(XmlDocument schemaXml)
         {
             Dictionary<string, int> dataTypes = new Dictionary<string, int>();
             dataTypes.Add("String", 1);

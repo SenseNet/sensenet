@@ -714,6 +714,9 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <returns></returns>
         public static PermittedLevel GetPermittedLevel(NodeHead nodeHead)
         {
+            // shortcut for system user
+            if (AccessProvider.Current.GetCurrentUser().Id == Identifiers.SystemUserId)
+                return PermittedLevel.All;
             return GetPermittedLevel(nodeHead.Id, GetIdentitiesByMembership(nodeHead));
         }
         /// <summary>
@@ -722,6 +725,9 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="node">The content.</param>
         public static PermittedLevel GetPermittedLevel(Node node)
         {
+            // shortcut for system user
+            if (AccessProvider.Current.GetCurrentUser().Id == Identifiers.SystemUserId)
+                return PermittedLevel.All;
             return GetPermittedLevel(node.Id, GetIdentitiesByMembership(node));
         }
         /// <summary>
@@ -730,6 +736,9 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="nodeId">The id of the content.</param>
         public static PermittedLevel GetPermittedLevel(int nodeId)
         {
+            // shortcut for system user
+            if (AccessProvider.Current.GetCurrentUser().Id == Identifiers.SystemUserId)
+                return PermittedLevel.All;
             return GetPermittedLevel(nodeId, GetIdentitiesByMembership(nodeId));
         }
         /// <summary>
@@ -739,6 +748,9 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="user">The user.</param>
         public static PermittedLevel GetPermittedLevel(int nodeId, IUser user)
         {
+            // shortcut for system user
+            if (user.Id == Identifiers.SystemUserId)
+                return PermittedLevel.All;
             return GetPermittedLevel(nodeId, GetIdentitiesByMembership(user, nodeId));
         }
         internal static PermittedLevel GetPermittedLevel(int nodeId, IEnumerable<int> identities)
@@ -1050,7 +1062,6 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="identityId">Id of the potential member that can be a user or a group.</param>
         /// <param name="groupId">Id of the container group.</param>
-        /// <returns></returns>
         public static bool IsInGroup(int identityId, int groupId)
         {
             return SecurityContext.IsInGroup(identityId, groupId);
@@ -1633,10 +1644,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         {
             var dummy = PermissionType.Open;
             var securityDataProvider = Providers.Instance.SecurityDataProvider;
-            var messageProvider = (IMessageProvider)Activator.CreateInstance(GetMessageProviderType());
-
-            messageProvider.Initialize();
-
+            var messageProvider = Providers.Instance.SecurityMessageProvider;
             var startingThesystem = DateTime.UtcNow;
 
             SnSecurityContext.StartTheSystem(new SecurityConfiguration
@@ -1660,15 +1668,6 @@ namespace SenseNet.ContentRepository.Storage.Security
                     { "DataProvider", securityDataProvider.GetType().FullName },
                     { "MessageProvider", messageProvider.GetType().FullName }
                 });
-        }
-        private static Type GetMessageProviderType()
-        {
-            var messageProviderTypeName = Providers.SecurityMessageProviderClassName;
-            var t = TypeResolver.GetType(messageProviderTypeName, false);
-            if (t == null)
-                throw new InvalidOperationException("Unknown security message provider: " + messageProviderTypeName);
-
-            return t;
         }
 
         internal static void DeleteEverythingAndRestart()

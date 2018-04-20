@@ -8,6 +8,7 @@ using System.Reflection;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Search.Querying;
 
 namespace SenseNet.ContentRepository
 {
@@ -94,18 +95,8 @@ namespace SenseNet.ContentRepository
         }
         private List<string> SearchData(string appTypeName)
         {
-            // CONDITIONAL EXECUTE
-            NodeQueryResult result;
-            if (RepositoryInstance.ContentQueryIsAllowed)
-            {
-                var q = new NodeQuery(new TypeExpression(ActiveSchema.NodeTypes["Folder"]),
-                    new StringExpression(StringAttribute.Name, StringOperator.Equal, appTypeName));
-                result = q.Execute();
-            }
-            else
-            {
-                result = NodeQuery.QueryNodesByTypeAndPathAndName(ActiveSchema.NodeTypes["Folder"], false, null, false, appTypeName);
-            }
+            var result = NodeQuery.QueryNodesByTypeAndPathAndName(ActiveSchema.NodeTypes["Folder"], false, null, false, appTypeName);
+
             var data = new List<string>();
             foreach (var node in result.Nodes)
                 foreach (var node1 in NodeEnumerator.GetNodes(node.Path).Where(n => n.Id != node.Id).OrderBy(x => x.Name))

@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SenseNet.ContentRepository.Linq
 {
@@ -36,14 +32,17 @@ namespace SenseNet.ContentRepository.Linq
             return rewritten;
         }
 
+        // ReSharper disable once UnusedMember.Local
+        // Used through reflection above.
         private static bool CaseInsensitiveEqual(string op1, string op2)
         {
             return StringComparer.InvariantCultureIgnoreCase.Compare(op1, op2) == 0;
         }
+        // ReSharper disable once UnusedMember.Local
+        // Used through reflection above.
         private static bool CaseInsensitiveNotEqual(string op1, string op2)
         {
             return StringComparer.InvariantCultureIgnoreCase.Compare(op1, op2) != 0;
         }
-
     }
 }

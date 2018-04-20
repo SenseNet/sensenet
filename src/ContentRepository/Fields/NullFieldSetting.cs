@@ -4,6 +4,7 @@ using System.Text;
 using  SenseNet.ContentRepository.Schema;
 using System.Xml;
 using System.Xml.XPath;
+using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 
@@ -15,7 +16,7 @@ namespace SenseNet.ContentRepository.Fields
         {
             "UrlList", "Color", "Image", "Lock", "Security", "SiteRelativeUrl", "WhoAndWhen"/*, "NodeType", "Version"*/
         });
-        protected override FieldIndexHandler CreateDefaultIndexFieldHandler()
+        protected override IFieldIndexHandler CreateDefaultIndexFieldHandler()
         {
             if (this.ShortName == "Boolean")
                 return new BooleanIndexHandler();

@@ -9,7 +9,7 @@ using SNCS = SenseNet.ContentRepository.Schema;
 
 namespace SenseNet.Packaging.Steps
 {
-    [Annotation("Checks the index integrity by comparation the index and database.")]
+    [Annotation("Allows or disallows child types of a content.")]
     public class EditAllowedChildTypes : EditContentType
     {
         [DefaultProperty]
@@ -65,8 +65,7 @@ namespace SenseNet.Packaging.Steps
                 return;
             }
 
-            var gc = content.ContentHandler as GenericContent;
-            if (gc == null)
+            if (!(content.ContentHandler is GenericContent gc))
             {
                 Logger.LogMessage("Content does not support AllowedContentTypes", path);
                 return;

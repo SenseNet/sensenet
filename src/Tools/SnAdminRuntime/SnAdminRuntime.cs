@@ -9,6 +9,7 @@ using SenseNet.ContentRepository;
 using System.Diagnostics;
 using Ionic.Zip;
 using System.Configuration;
+using System.Security;
 using System.Xml;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Tools.SnAdmin.Testability;
@@ -75,11 +76,45 @@ namespace SenseNet.Tools.SnAdmin
                 return -1;
 
             Logger.PackageName = Path.GetFileName(packagePath);
+            try
+            {
+                Logger.Create(logLevel, logFilePath);
+                Debug.WriteLine("##> " + Logger.Level);
+                return ExecutePhase(packagePath, targetDirectory, phase, parameters, logFilePath, help, schema);
+            }
+            catch (ReflectionTypeLoadException ex)
+            {
+                List<string> types = new List<string>();
+                if (ex.LoaderExceptions != null)
+                {
+                    foreach (var item in ex.LoaderExceptions)
+                    {
+                        switch (item)
+                        {
+                            case FileLoadException flo:
+                                types.Add(flo.FileName);
+                                break;
+                            case FileNotFoundException f:
+                                types.Add(f.FileName);
+                                break;
+                            case BadImageFormatException b:
+                                types.Add(b.FileName);
+                                break;
+                            case SecurityException s:
+                                types.Add(s.Url);
+                                break;
+                            case TypeLoadException tl:
+                                types.Add(tl.TypeName);
+                                break;
+                        }
+                    }
+                }
 
-            Logger.Create(logLevel, logFilePath);
-            Debug.WriteLine("##> " + Logger.Level);
+                var typeList = Environment.NewLine + string.Join(Environment.NewLine, types);
+                var message = ex.LoaderExceptions?.FirstOrDefault()?.Message;
 
-            return ExecutePhase(packagePath, targetDirectory, phase, parameters, logFilePath, help, schema);
+                throw new Exception($"ReflectionTypeLoadException: Could not load types. Affected types: {typeList + Environment.NewLine}First message: {message}");
+            }
         }
 
         internal static bool ParseParameters(string[] args, out string packagePath, out string targetDirectory,
@@ -253,7 +288,7 @@ namespace SenseNet.Tools.SnAdmin
             {
                 xml = Disk.LoadManifest(files[0]);
             }
-            catch (Exception e)
+            catch
             {
                 return null;
             }

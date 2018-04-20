@@ -10,8 +10,11 @@ using System.Diagnostics;
 using SenseNet.ContentRepository.Storage.Security;
 using System.Globalization;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Storage.Search;
+using SenseNet.Search;
+using SenseNet.Search.Indexing;
 using SenseNet.Security;
 using SenseNet.Tools;
 
@@ -682,8 +685,7 @@ namespace SenseNet.ContentRepository.Storage
 
             node.MakePrivateData(); // this is important because version timestamp will be changed.
 
-            var doc = IndexDocumentProvider.GetIndexDocumentInfo(node, skipBinaries, isNew, out hasBinary);
-            long? docSize = null;
+            var doc = IndexDocumentProvider.GetIndexDocument(node, skipBinaries, isNew, out hasBinary);
             byte[] bytes;
             if (doc != null)
             {
@@ -693,7 +695,6 @@ namespace SenseNet.ContentRepository.Storage
                     formatter.Serialize(docStream, doc);
                     docStream.Flush();
                     docStream.Position = 0;
-                    docSize = docStream.Length;
                     bytes = docStream.GetBuffer();
                     DataProvider.SaveIndexDocument(node.Data, bytes);
                 }
@@ -702,7 +703,7 @@ namespace SenseNet.ContentRepository.Storage
             {
                 bytes = new byte[0];
             }
-            return CreateIndexDocumentData(node, doc, bytes, docSize);
+            return CreateIndexDocumentData(node, doc, bytes);
         }
         public static IndexDocumentData SaveIndexDocument(Node node, IndexDocumentData indexDocumentData)
         {
@@ -711,19 +712,17 @@ namespace SenseNet.ContentRepository.Storage
 
             node.MakePrivateData(); // this is important because version timestamp will be changed.
 
-            var doc = IndexDocumentProvider.CompleteIndexDocumentInfo(node, indexDocumentData.IndexDocumentInfo);
+            var completedDocument = IndexDocumentProvider.CompleteIndexDocument(node, indexDocumentData.IndexDocument);
 
-            long? docSize = null;
             byte[] bytes;
-            if (doc != null)
+            if (completedDocument != null)
             {
                 using (var docStream = new MemoryStream())
                 {
                     var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-                    formatter.Serialize(docStream, doc);
+                    formatter.Serialize(docStream, completedDocument);
                     docStream.Flush();
                     docStream.Position = 0;
-                    docSize = docStream.Length;
                     bytes = docStream.GetBuffer();
                     DataProvider.SaveIndexDocument(node.Data, bytes);
                 }
@@ -732,12 +731,12 @@ namespace SenseNet.ContentRepository.Storage
             {
                 bytes = new byte[0];
             }
-            return CreateIndexDocumentData(node, doc, bytes, docSize);
+            return CreateIndexDocumentData(node, completedDocument, bytes);
         }
 
-        internal static IndexDocumentData CreateIndexDocumentData(Node node, object indexDocumentInfo, byte[] indexDocumentInfoBytes, long? indexDocumentInfoSize)
+        internal static IndexDocumentData CreateIndexDocumentData(Node node, IndexDocument indexDocument, byte[] serializedIndexDocument)
         {
-            return new IndexDocumentData(indexDocumentInfo, indexDocumentInfoBytes)
+            return new IndexDocumentData(indexDocument, serializedIndexDocument)
             {
                 NodeTypeId = node.NodeTypeId,
                 VersionId = node.VersionId,
@@ -747,30 +746,9 @@ namespace SenseNet.ContentRepository.Storage
                 IsSystem = node.IsSystem,
                 IsLastDraft = node.IsLatestVersion,
                 IsLastPublic = node.IsLastPublicVersion,
-                IndexDocumentInfoSize = indexDocumentInfoSize,
                 NodeTimestamp = node.NodeTimestamp,
                 VersionTimestamp = node.VersionTimestamp
             };
         }
-
-        // ====================================================================== Index backup / restore operations
-
-        public static Guid StoreIndexBackupToDb(string backupFilePath, IndexBackupProgress progress)
-        {
-            return DataProvider.StoreIndexBackupToDb(backupFilePath, progress);
-        }
-        public static void RecoverIndexBackupFromDb(string backupFilePath)
-        {
-            DataProvider.RecoverIndexBackupFromDb(backupFilePath);
-        }
-        public static Guid GetLastStoredBackupNumber()
-        {
-            return DataProvider.GetLastStoredBackupNumber();
-        }
-        public static void DeleteUnnecessaryBackups()
-        {
-            DataProvider.DeleteUnnecessaryBackups();
-        }
-
     }
 }

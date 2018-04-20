@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Threading;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Data;
-using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.Packaging.Steps
 {
@@ -11,8 +12,9 @@ namespace SenseNet.Packaging.Steps
         [DefaultProperty]
         [Annotation("Optional path of the subtree to populate. Default: /Root.")]
         public string Path { get; set; }
-        [Annotation("Whether to make a backup of the index to the database at the end. Default is TRUE.")]
-        public bool Backup { get; set; } = true;
+
+        [Annotation("Optional level of rebuilding the index. Two values are accepted: 'IndexOnly' (default) and 'DatabaseAndIndex'.")]
+        public string Level { get; set; }
 
         private long _count;
         private long _versionCount;
@@ -25,6 +27,18 @@ namespace SenseNet.Packaging.Steps
             context.AssertRepositoryStarted();
 
             var path = context.ResolveVariable(Path) as string;
+            var level = context.ResolveVariable(Level) as string;
+            IndexRebuildLevel rebuildLevel;
+            try
+            {
+                rebuildLevel = string.IsNullOrEmpty(level)
+                    ? IndexRebuildLevel.IndexOnly
+                    : (IndexRebuildLevel) Enum.Parse(typeof(IndexRebuildLevel), level, true);
+            }
+            catch(Exception e)
+            {
+                throw new PackagingException(SR.Errors.InvalidParameter + ": Level", e, PackagingExceptionType.InvalidStepParameter);
+            }
 
             _context = context;
             _versionCount = DataProvider.GetVersionCount(path);
@@ -33,22 +47,22 @@ namespace SenseNet.Packaging.Steps
             var savedMode = RepositoryEnvironment.WorkingMode.Populating;
             RepositoryEnvironment.WorkingMode.Populating = true;
 
-            var populator = StorageContext.Search.SearchEngine.GetPopulator();
+            var populator = SearchManager.GetIndexPopulator();
             populator.NodeIndexed += Populator_NodeIndexed;
 
             try
             {
-                if (string.IsNullOrEmpty(path))
+                if (string.IsNullOrEmpty(path) && rebuildLevel == IndexRebuildLevel.IndexOnly)
                 {
-                    var withOrWithout = Backup ? "WITH" : "without";
-
-                    Logger.LogMessage($"Populating index of the whole Content Repository {withOrWithout} backup...");
-                    populator.ClearAndPopulateAll(Backup);
+                    Logger.LogMessage($"Populating new index of the whole Content Repository...");
+                    populator.ClearAndPopulateAll(context.Console);
                 }
                 else
                 {
-                    Logger.LogMessage($"Populating index for {path}...");
-                    populator.RepopulateTree(path);
+                    if (string.IsNullOrEmpty(path))
+                        path = Identifiers.RootPath;
+                    Logger.LogMessage($"Populating index for {path}, level={rebuildLevel} ...");
+                    populator.RebuildIndexDirectly(path, rebuildLevel);
                 }
             }
             finally
@@ -61,9 +75,9 @@ namespace SenseNet.Packaging.Steps
 
             Logger.LogMessage("...finished: " + _count + " items indexed.");
         }
-        private void Populator_NodeIndexed(object sender, NodeIndexedEvenArgs e)
+        private void Populator_NodeIndexed(object sender, NodeIndexedEventArgs e)
         {
-            _count++;
+            Interlocked.Increment(ref _count);
 
             if (_count % _factor == 0)
                 _context.Console.Write("|");

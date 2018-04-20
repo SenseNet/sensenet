@@ -1,127 +1,117 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
-using Lucene.Net.Analysis;
-using Lucene.Net.Documents;
-using Lucene.Net.Index;
-using Lucene.Net.Store;
-using SenseNet.Diagnostics;
+using System.Threading.Tasks;
+using SenseNet.ContentRepository.Search.Indexing.Activities;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Schema;
-using SenseNet.ContentRepository.Storage.Search;
-using Lucene.Net.Search;
-using Lucene.Net.Util;
-using SenseNet.Search.Indexing.Activities;
-using SenseNet.ContentRepository;
-using SenseNet.Communication.Messaging;
-using System.Diagnostics;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Search;
+using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics;
+using SenseNet.Search;
+using SenseNet.Search.Querying;
 
-namespace SenseNet.Search.Indexing
+namespace SenseNet.ContentRepository.Search.Indexing
 {
-    public class DocumentPopulator : IIndexPopulator
+    internal class DocumentPopulator : IIndexPopulator
     {
         private class DocumentPopulatorData
         {
             internal Node Node { get; set; }
+            // ReSharper disable once UnusedAutoPropertyAccessor.Local
             internal NodeHead NodeHead { get; set; }
             internal NodeSaveSettings Settings { get; set; }
             internal string OriginalPath { get; set; }
             internal string NewPath { get; set; }
             internal bool IsNewNode { get; set; }
         }
-        private class DeleteVersionPopulatorData
-        {
-            internal Node OldVersion { get; set; }
-            internal Node LastDraftAfterDelete { get; set; }
-        }
 
         /*======================================================================================================= IIndexPopulator Members */
 
-        // caller: IndexPopulator.Populator, Import.Importer, Tests.Initializer, RunOnce
-        public void ClearAndPopulateAll(bool backup = true)
+        // caller: IndexPopulator.Populator, Import.Importer, Tests
+        public void ClearAndPopulateAll(TextWriter consoleWriter = null)
         {
-            var lastActivityId = LuceneManager.GetLastStoredIndexingActivityId();
-            var commitData = CompletionState.GetCommitUserData(lastActivityId);
-
             using (var op = SnTrace.Index.StartOperation("IndexPopulator ClearAndPopulateAll"))
             {
                 // recreate
-                var writer = IndexManager.GetIndexWriter(true);
-                try
-                {
-                    var excludedNodeTypes = LuceneManager.GetNotIndexedNodeTypes();
-                    foreach (var docData in StorageContext.Search.LoadIndexDocumentsByPath("/Root", excludedNodeTypes))
-                    {
-                        var doc = IndexDocumentInfo.GetDocument(docData);
-                        if (doc == null) // indexing disabled
-                            continue;
-                        writer.AddDocument(doc);
-                        OnNodeIndexed(docData.Path);
-                    }
-                    RepositoryInstance.Instance.ConsoleWrite("  Commiting ... ");
-                    writer.Commit(commitData);
-                    RepositoryInstance.Instance.ConsoleWriteLine("ok");
-                    RepositoryInstance.Instance.ConsoleWrite("  Optimizing ... ");
-                    writer.Optimize();
-                    RepositoryInstance.Instance.ConsoleWriteLine("ok");
-                }
-                finally
-                {
-                    writer.Close();
-                }
-                RepositoryInstance.Instance.ConsoleWrite("  Deleting indexing activities ... ");
-                LuceneManager.DeleteAllIndexingActivities();
-                RepositoryInstance.Instance.ConsoleWriteLine("ok");
-                if (backup)
-                {
-                    RepositoryInstance.Instance.ConsoleWrite("  Making backup ... ");
-                    BackupTools.BackupIndexImmediatelly();
-                    RepositoryInstance.Instance.ConsoleWriteLine("ok");
-                }
+                consoleWriter?.Write("  Cleanup index ... ");
+                IndexManager.ClearIndex();
+                consoleWriter?.WriteLine("ok");
+
+                IndexManager.AddDocuments(
+                    SearchManager.LoadIndexDocumentsByPath("/Root", IndexManager.GetNotIndexedNodeTypes())
+                        .Select(d =>
+                        {
+                            var indexDoc = IndexManager.CompleteIndexDocument(d);
+                            OnNodeIndexed(d.Path);
+                            return indexDoc;
+                        }));
+
+                consoleWriter?.Write("  Commiting ... ");
+                IndexManager.Commit(); // explicit commit
+                consoleWriter?.WriteLine("ok");
+
+                consoleWriter?.Write("  Deleting indexing activities ... ");
+                IndexManager.DeleteAllIndexingActivities();
                 op.Successful = true;
             }
         }
 
         // caller: IndexPopulator.Populator
-        public void RepopulateTree(string path)
+        public void RebuildIndexDirectly(string path, IndexRebuildLevel level = IndexRebuildLevel.IndexOnly)
         {
-            using (var op = SnTrace.Index.StartOperation("IndexPopulator RepopulateTree"))
+            if (level == IndexRebuildLevel.DatabaseAndIndex)
             {
-                var writer = IndexManager.GetIndexWriter(false);
-                writer.DeleteDocuments(new Term(LucObject.FieldName.InTree, path.ToLowerInvariant()));
-                try
+                using (var op2 = SnTrace.Index.StartOperation("IndexPopulator: Rebuild index documents."))
                 {
-                    var excludedNodeTypes = LuceneManager.GetNotIndexedNodeTypes();
-                    foreach (var docData in StorageContext.Search.LoadIndexDocumentsByPath(path, excludedNodeTypes))
+                    using (new SystemAccount())
                     {
-                        var doc = IndexDocumentInfo.GetDocument(docData);
-                        if (doc == null) // indexing disabled
-                            continue;
-                        writer.AddDocument(doc);
-                        OnNodeIndexed(docData.Path);
+                        var node = Node.LoadNode(path);
+                        DataBackingStore.SaveIndexDocument(node, false, false, out _);
+
+                        Parallel.ForEach(NodeQuery.QueryNodesByPath(node.Path, true).Nodes,
+                            n => { DataBackingStore.SaveIndexDocument(n, false, false, out _); });
                     }
-                    writer.Optimize();
+                    op2.Successful = true;
                 }
-                finally
-                {
-                    writer.Close();
-                }
+            }
+
+            using (var op = SnTrace.Index.StartOperation("IndexPopulator: Rebuild index."))
+            {
+                IndexManager.IndexingEngine.WriteIndex(
+                    new[] {new SnTerm(IndexFieldName.InTree, path)},
+                    null,
+                    SearchManager.LoadIndexDocumentsByPath(path, IndexManager.GetNotIndexedNodeTypes())
+                        .Select(d =>
+                        {
+                            var indexDoc = IndexManager.CompleteIndexDocument(d);
+                            OnNodeIndexed(d.Path);
+                            return indexDoc;
+                        }));
                 op.Successful = true;
             }
         }
 
         // caller: CommitPopulateNode (rename), Node.MoveTo, Node.MoveMoreInternal
-        public void PopulateTree(string path, int nodeId)
+        public void AddTree(string path, int nodeId)
         {
             // add new tree
-            CreateTreeActivityAndExecute(IndexingActivityType.AddTree, path, nodeId, false, null);
+            CreateTreeActivityAndExecute(IndexingActivityType.AddTree, path, nodeId, null);
         }
 
         // caller: Node.Save, Node.SaveCopied
         public object BeginPopulateNode(Node node, NodeSaveSettings settings, string originalPath, string newPath)
         {
+            if (node == null)
+                throw new ArgumentNullException(nameof(node));
+            if (settings == null)
+                throw new ArgumentNullException(nameof(settings));
+            if (originalPath == null)
+                throw new ArgumentNullException(nameof(originalPath));
+            if (newPath == null)
+                throw new ArgumentNullException(nameof(newPath));
+
             var populatorData = new DocumentPopulatorData
             {
                 Node = node,
@@ -138,14 +128,12 @@ namespace SenseNet.Search.Indexing
             var state = (DocumentPopulatorData)data;
             var versioningInfo = GetVersioningInfo(state);
 
-            var settings = state.Settings;
-
             using (var op = SnTrace.Index.StartOperation("DocumentPopulator.CommitPopulateNode. Version: {0}, VersionId: {1}, Path: {2}", state.Node.Version, state.Node.VersionId, state.Node.Path))
             {
                 if (!state.OriginalPath.Equals(state.NewPath, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    DeleteTree(state.OriginalPath, state.Node.Id, true);
-                    PopulateTree(state.NewPath, state.Node.Id);
+                    DeleteTree(state.OriginalPath, state.Node.Id);
+                    AddTree(state.NewPath, state.Node.Id);
                 }
                 else if (state.IsNewNode)
                 {
@@ -198,49 +186,35 @@ namespace SenseNet.Search.Indexing
         }
 
         // caller: CommitPopulateNode (rename), Node.MoveTo, Node.ForceDelete
-        public void DeleteTree(string path, int nodeId, bool moveOrRename)
+        public void DeleteTree(string path, int nodeId)
         {
-            // add new tree
-            CreateTreeActivityAndExecute(IndexingActivityType.RemoveTree, path, nodeId, moveOrRename, null);
+            CreateTreeActivityAndExecute(IndexingActivityType.RemoveTree, path, nodeId, null);
         }
 
         // caller: Node.DeleteMoreInternal
-        public void DeleteForest(IEnumerable<Int32> idSet, bool moveOrRename)
+        public void DeleteForest(IEnumerable<Int32> idSet)
         {
+            if (idSet == null)
+                throw new ArgumentNullException(nameof(idSet));
+
             foreach (var head in NodeHead.Get(idSet))
-                DeleteTree(head.Path, head.Id, moveOrRename);
+                DeleteTree(head.Path, head.Id);
         }
         // caller: Node.MoveMoreInternal
-        public void DeleteForest(IEnumerable<string> pathSet, bool moveOrRename)
+        public void DeleteForest(IEnumerable<string> pathSet)
         {
-            foreach (var head in NodeHead.Get(pathSet))
-                DeleteTree(head.Path, head.Id, moveOrRename);
-        }
+            if (pathSet == null)
+                throw new ArgumentNullException(nameof(pathSet));
 
-        #region Obsolete API
-        [Obsolete("This API is prohibited due to the poor performance. Use RebuildIndex method instead.", true)]
-        public void RefreshIndexDocumentInfo(IEnumerable<Node> nodes)
-        {
+            foreach (var head in NodeHead.Get(pathSet))
+                DeleteTree(head.Path, head.Id);
         }
-        [Obsolete("This API is prohibited due to the poor performance. Use RebuildIndex method instead.", true)]
-        public void RefreshIndexDocumentInfo(Node node, bool recursive)
-        {
-        }
-        [Obsolete("This API is prohibited due to the poor performance. Use RebuildIndex method instead.", true)]
-        public void RefreshIndex(IEnumerable<Node> nodes)
-        {
-        }
-        [Obsolete("This API is prohibited due to the poor performance. Use RebuildIndex method instead.", true)]
-        public void RefreshIndex(Node node, bool recursive)
-        {
-        }
-        #endregion
 
         public void RebuildIndex(Node node, bool recursive = false, IndexRebuildLevel rebuildLevel = IndexRebuildLevel.IndexOnly)
         {
             using (var op = SnTrace.Index.StartOperation("DocumentPopulator.RefreshIndex. Version: {0}, VersionId: {1}, recursive: {2}, level: {3}", node.Version, node.VersionId, recursive, rebuildLevel))
             {
-                using (new SenseNet.ContentRepository.Storage.Security.SystemAccount())
+                using (new SystemAccount())
                 {
                     var databaseAndIndex = rebuildLevel == IndexRebuildLevel.DatabaseAndIndex;
                     if (recursive)
@@ -256,10 +230,11 @@ namespace SenseNet.Search.Indexing
             TreeLock.AssertFree(node.Path);
 
             var head = NodeHead.Get(node.Id);
-            bool hasBinary;
             if (databaseAndIndex)
+            {
                 foreach (var version in head.Versions.Select(v => Node.LoadNodeByVersionId(v.VersionId)))
-                    DataBackingStore.SaveIndexDocument(version, false, false, out hasBinary);
+                    DataBackingStore.SaveIndexDocument(version, false, false, out _);
+            }
 
             var versioningInfo = new VersioningInfo
             {
@@ -269,29 +244,31 @@ namespace SenseNet.Search.Indexing
                 Reindex = new int[0]
             };
 
-            CreateActivityAndExecute(IndexingActivityType.Rebuild, node.Path, node.Id, 0, 0, null, versioningInfo, null);
+            CreateActivityAndExecute(IndexingActivityType.Rebuild, node.Path, node.Id, 0, 0, versioningInfo, null);
         }
 
         private void RebuildIndex_Recursive(Node node, bool databaseAndIndex)
         {
-            bool hasBinary;
             using (TreeLock.Acquire(node.Path))
             {
-                DeleteTree(node.Path, node.Id, true);
+                DeleteTree(node.Path, node.Id);
                 if (databaseAndIndex)
-                    foreach (var n in NodeQuery.QueryNodesByPath(node.Path, true).Nodes)
-                        DataBackingStore.SaveIndexDocument(n, false, false, out hasBinary);
-                PopulateTree(node.Path, node.Id);
+                {
+                    DataBackingStore.SaveIndexDocument(node, false, false, out _);
+
+                    Parallel.ForEach(NodeQuery.QueryNodesByPath(node.Path, true).Nodes,
+                        n => { DataBackingStore.SaveIndexDocument(n, false, false, out _); });
+                }
+
+                AddTree(node.Path, node.Id);
             }
         }
 
 
-        public event EventHandler<NodeIndexedEvenArgs> NodeIndexed;
+        public event EventHandler<NodeIndexedEventArgs> NodeIndexed;
         protected void OnNodeIndexed(string path)
         {
-            if (NodeIndexed == null)
-                return;
-            NodeIndexed(null, new NodeIndexedEvenArgs(path));
+            NodeIndexed?.Invoke(null, new NodeIndexedEventArgs(path));
         }
 
 
@@ -300,78 +277,66 @@ namespace SenseNet.Search.Indexing
         // caller: CommitPopulateNode
         private static void CreateBrandNewNode(Node node, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData)
         {
-            CreateActivityAndExecute(IndexingActivityType.AddDocument, node.Path, node.Id, node.VersionId, node.VersionTimestamp, true, versioningInfo, indexDocumentData);
+            CreateActivityAndExecute(IndexingActivityType.AddDocument, node.Path, node.Id, node.VersionId, node.VersionTimestamp, versioningInfo, indexDocumentData);
         }
         // caller: CommitPopulateNode
         private static void AddNewVersion(Node newVersion, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData)
         {
-            CreateActivityAndExecute(IndexingActivityType.AddDocument, newVersion.Path, newVersion.Id, newVersion.VersionId, newVersion.VersionTimestamp, null, versioningInfo, indexDocumentData);
+            CreateActivityAndExecute(IndexingActivityType.AddDocument, newVersion.Path, newVersion.Id, newVersion.VersionId, newVersion.VersionTimestamp, versioningInfo, indexDocumentData);
         }
         // caller: CommitPopulateNode
         private static void UpdateVersion(DocumentPopulatorData state, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData)
         {
-            CreateActivityAndExecute(IndexingActivityType.UpdateDocument, state.OriginalPath, state.Node.Id, state.Node.VersionId, state.Node.VersionTimestamp, null, versioningInfo, indexDocumentData);
+            CreateActivityAndExecute(IndexingActivityType.UpdateDocument, state.OriginalPath, state.Node.Id, state.Node.VersionId, state.Node.VersionTimestamp, versioningInfo, indexDocumentData);
         }
 
-        // caller: ClearAndPopulateAll, RepopulateTree
-        private static IEnumerable<Node> GetVersions(Node node)
-        {
-            var versionNumbers = Node.GetVersionNumbers(node.Id);
-            var versions = from versionNumber in versionNumbers select Node.LoadNode(node.Id, versionNumber);
-            return versions.ToArray();
-        }
         /*================================================================================================================================*/
 
-        private static LuceneIndexingActivity CreateActivity(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp, bool? singleVersion, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData)
+        private static IndexingActivityBase CreateActivity(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData)
         {
-            var activity = (LuceneIndexingActivity)IndexingActivityFactory.Instance.CreateActivity(type);
+            var activity = (IndexingActivityBase)IndexingActivityFactory.Instance.CreateActivity(type);
             activity.Path = path.ToLowerInvariant();
             activity.NodeId = nodeId;
             activity.VersionId = versionId;
             activity.VersionTimestamp = versionTimestamp;
-            activity.SingleVersion = singleVersion;
 
             if (indexDocumentData != null)
             {
-                var lucDocAct = activity as LuceneDocumentActivity;
-                if (lucDocAct != null)
-                    lucDocAct.IndexDocumentData = indexDocumentData;
+                if (activity is DocumentIndexingActivity docAct)
+                    docAct.IndexDocumentData = indexDocumentData;
             }
 
-            var documentActivity = activity as LuceneDocumentActivity;
-            if (documentActivity != null)
+            if (activity is DocumentIndexingActivity documentActivity)
                 documentActivity.Versioning = versioningInfo;
 
             return activity;
         }
-        private static LuceneIndexingActivity CreateTreeActivity(IndexingActivityType type, string path, int nodeId, bool moveOrRename, IndexDocumentData indexDocumentData)
+        private static IndexingActivityBase CreateTreeActivity(IndexingActivityType type, string path, int nodeId, IndexDocumentData indexDocumentData)
         {
-            var activity = (LuceneIndexingActivity)IndexingActivityFactory.Instance.CreateActivity(type);
+            var activity = (IndexingActivityBase)IndexingActivityFactory.Instance.CreateActivity(type);
             activity.Path = path.ToLowerInvariant();
             activity.NodeId = nodeId;
-            activity.MoveOrRename = moveOrRename;
 
             if (indexDocumentData != null)
             {
-                var lucDocAct = activity as LuceneDocumentActivity;
-                if (lucDocAct != null)
-                    lucDocAct.IndexDocumentData = indexDocumentData;
+                if (activity is DocumentIndexingActivity docAct)
+                    docAct.IndexDocumentData = indexDocumentData;
             }
 
             return activity;
         }
-        private static void CreateActivityAndExecute(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp, bool? singleVersion, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData)
+        private static void CreateActivityAndExecute(IndexingActivityType type, string path, int nodeId, int versionId, long versionTimestamp, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData)
         {
-            ExecuteActivity(CreateActivity(type, path, nodeId, versionId, versionTimestamp, singleVersion, versioningInfo, indexDocumentData));
+            ExecuteActivity(CreateActivity(type, path, nodeId, versionId, versionTimestamp, versioningInfo, indexDocumentData));
         }
-        private static void CreateTreeActivityAndExecute(IndexingActivityType type, string path, int nodeId, bool moveOrRename, IndexDocumentData indexDocumentData)
+        private static void CreateTreeActivityAndExecute(IndexingActivityType type, string path, int nodeId, IndexDocumentData indexDocumentData)
         {
-            ExecuteActivity(CreateTreeActivity(type, path, nodeId, moveOrRename, indexDocumentData));
+            ExecuteActivity(CreateTreeActivity(type, path, nodeId, indexDocumentData));
         }
-        private static void ExecuteActivity(LuceneIndexingActivity activity)
+        private static void ExecuteActivity(IndexingActivityBase activity)
         {
-            LuceneManager.RegisterActivity(activity);
-            LuceneManager.ExecuteActivity(activity, true, true);
+            IndexManager.RegisterActivity(activity);
+            IndexManager.ExecuteActivity(activity);
         }
     }
 }

@@ -3,8 +3,13 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: InternalsVisibleTo("SenseNet.Tests")]
+[assembly: InternalsVisibleTo("SenseNet.ContentRepository.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.Packaging.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.Packaging.IntegrationTests")]
+[assembly: InternalsVisibleTo("SenseNet.Search.Lucene29.Tests")]
+[assembly: InternalsVisibleTo("SenseNet.Search.IntegrationTests")]
+[assembly: InternalsVisibleTo("SenseNet.Services.Tests")]
+[assembly: InternalsVisibleTo("SenseNet.Services.OData.Tests")]
 
 #if DEBUG
 [assembly: AssemblyTitle("SenseNet.ContentRepository (Debug)")]
@@ -15,9 +20,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Sense/Net Inc.")]
 [assembly: AssemblyCopyright("Copyright © Sense/Net Inc.")]
-[assembly: AssemblyProduct("sensenet ECM")]
+[assembly: AssemblyProduct("sensenet")]
 [assembly: AssemblyTrademark("Sense/Net Inc.")]
 [assembly: AssemblyCulture("")]
-[assembly: AssemblyVersion("7.0.0.0")]
-[assembly: AssemblyFileVersion("7.0.0.0")]
-[assembly: AssemblyInformationalVersion("7.0.0-beta46")]
+[assembly: AssemblyVersion("7.1.1.0")]
+[assembly: AssemblyFileVersion("7.1.1.0")]
+[assembly: AssemblyInformationalVersion("7.1.1")]

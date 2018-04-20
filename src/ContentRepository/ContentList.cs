@@ -12,14 +12,14 @@ using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Data;
 using System.Linq;
-using SenseNet.ContentRepository.Storage.Search.Internal;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Storage.Search;
 using System.Diagnostics;
-using System.Globalization;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Fields;
+using SenseNet.ContentRepository.Search;
+using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.Search;
 using SenseNet.Tools;
 
@@ -960,7 +960,7 @@ namespace SenseNet.ContentRepository
             int count;
             using (new SystemAccount())
             {
-                if (RepositoryInstance.ContentQueryIsAllowed)
+                if (SearchManager.ContentQueryIsAllowed)
                 {
                     count = Content.All.OfType<ContentList>().Count(cl => (string)cl["ListEmail"] == email && cl.Id != this.Id);
                 }
@@ -1007,7 +1007,7 @@ namespace SenseNet.ContentRepository
             var targetPath = RepositoryPath.Combine(this.Path, "Workflows/MailProcess");
             IEnumerable<Node> runningWorkflows;
 
-            if (RepositoryInstance.ContentQueryIsAllowed)
+            if (SearchManager.ContentQueryIsAllowed)
             {
                 runningWorkflows = Content.All.DisableAutofilters().Where(
                     c => c.TypeIs("MailProcessorWorkflow") &&

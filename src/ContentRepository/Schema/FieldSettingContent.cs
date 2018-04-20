@@ -8,20 +8,44 @@ using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Schema
 {
+    /// <summary>
+    /// A Content handler that represents a <see cref="Schema.FieldSetting"/> as a Content.
+    /// </summary>
     [ContentHandler]
     public class FieldSettingContent : GenericContent, ISupportsDynamicFields
     {
+        /// <summary>
+        /// Gets or sets the represented <see cref="Schema.FieldSetting"/> instance.
+        /// </summary>
         public FieldSetting FieldSetting { get; set; }
+        /// <summary>
+        /// Gets or sets the owner <see cref="ContentRepository.ContentList"/> of the 
+        /// represented <see cref="Schema.FieldSetting"/> instance.
+        /// </summary>
         public ContentList ContentList { get; set; }
-        // visibility changed
-        public new ContentType ContentType { get; set; }
+        /// <summary>
+        /// Gets or sets the owner <see cref="Schema.ContentType"/> of the 
+        /// represented <see cref="Schema.FieldSetting"/> instance.
+        /// </summary>
+        public new ContentType ContentType { get; set; } // visibility changed
 
         private bool _isNew = true;
 
+        /// <summary>
+        /// Gets or sets a value that is true if a new field should be added to the default view
+        /// of the containing Content List.
+        /// </summary>
         public bool AddToDefaultView { get; set; }
 
         // ================================================================= Constructors
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FieldSettingContent"/> class from the
+        /// specified <see cref="Schema.FieldSetting"/> for the given <see cref="ContentRepository.ContentList"/>.
+        /// </summary>
+        /// <param name="fieldSetting">The represented <see cref="Schema.FieldSetting"/> instance.</param>
+        /// <param name="contentList">The <see cref="ContentRepository.ContentList"/> that is owner of the 
+        /// represented <see cref="Schema.FieldSetting"/> instance.</param>
         public FieldSettingContent(FieldSetting fieldSetting, ContentList contentList) :
             this(contentList ?? Repository.Root as Node, GetNodeTypeName(fieldSetting))
         {
@@ -33,6 +57,13 @@ namespace SenseNet.ContentRepository.Schema
             this._isNew = false;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FieldSettingContent"/> class from the
+        /// specified <see cref="Schema.FieldSetting"/> for the given <see cref="Schema.ContentType"/>.
+        /// </summary>
+        /// <param name="fieldSetting">The represented <see cref="Schema.FieldSetting"/> instance.</param>
+        /// <param name="contentType">The <see cref="Schema.ContentType"/> that is owner of the 
+        /// represented <see cref="Schema.FieldSetting"/> instance.</param>
         public FieldSettingContent(FieldSetting fieldSetting, ContentType contentType) :
             this(Repository.Root, GetNodeTypeName(fieldSetting))
         {
@@ -43,11 +74,22 @@ namespace SenseNet.ContentRepository.Schema
             this._isNew = false;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FieldSettingContent"/> class.
+        /// Do not use this constructor directly in your code.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
         protected FieldSettingContent(Node parent) : base(parent, "FieldSettingContent")
         {
             base.Initialize();
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FieldSettingContent"/> class.
+        /// Do not use this constructor directly in your code.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="nodeTypeName">Name of the node type.</param>
         public FieldSettingContent(Node parent, string nodeTypeName): base(parent, nodeTypeName)
         {
             this.ContentList = parent as ContentList;
@@ -74,10 +116,15 @@ namespace SenseNet.ContentRepository.Schema
             base.Initialize();
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FieldSettingContent"/> class during the loading process.
+        /// Do not use this constructor directly in your code.
+        /// </summary>
         protected FieldSettingContent(NodeToken nt): base(nt)
         {
         }
 
+        /// <inheritdoc />
         protected override void Initialize()
         {
             // do nothing. base is called back in constructor of this
@@ -85,6 +132,10 @@ namespace SenseNet.ContentRepository.Schema
 
         // ====================================================================== Properties
 
+        /// <summary>
+        /// Gets or sets the order of the field based on the represented <see cref="Schema.FieldSetting"/> instance.
+        /// If it is currently null, returns null. Assign is ineffective in that case.
+        /// </summary>
         public int? FieldIndex
         {
             get
@@ -100,11 +151,20 @@ namespace SenseNet.ContentRepository.Schema
 
         // ================================================================= Node methods
 
+        /// <summary>
+        /// Saves the <see cref="Schema.FieldSetting"/> data to the Content List definition xml. This method
+        /// does not call the base Save implementation, no standalone field setting content is saved into the
+        /// Content Repository.
+        /// </summary>
         public override void Save(SavingMode mode)
         {
             SaveFieldSetting();
         }
 
+        /// <summary>
+        /// Deletes the <see cref="Schema.FieldSetting"/> data from the Content List definition xml. This method
+        /// does not call the base Delete implementation.
+        /// </summary>
         public override void Delete()
         {
             // remove column from views
@@ -158,6 +218,7 @@ namespace SenseNet.ContentRepository.Schema
                 ivm.AddToDefaultView(this.FieldSetting, this.ContentList);
         }
 
+        /// <inheritdoc />
         public override object GetProperty(string name)
         {
             var found = false;
@@ -185,6 +246,7 @@ namespace SenseNet.ContentRepository.Schema
             return base.GetProperty(name);
         }
 
+        /// <inheritdoc />
         public override void SetProperty(string name, object value)
         {
             if (this.FieldSetting.SetProperty(name, value))
@@ -223,26 +285,31 @@ namespace SenseNet.ContentRepository.Schema
 
         #region ISupportsDynamicFields Members
 
+        /// <inheritdoc />
         public IDictionary<string, FieldMetadata> GetDynamicFieldMetadata()
         {
             return this.FieldSetting.GetFieldMetadata();
         }
 
+        /// <inheritdoc />
         object ISupportsDynamicFields.GetProperty(string name)
         {
             return this.GetProperty(name);
         }
 
+        /// <inheritdoc />
         void ISupportsDynamicFields.SetProperty(string name, object value)
         {
             this.SetProperty(name, value);
         }
 
+        /// <inheritdoc />
         bool ISupportsDynamicFields.IsNewContent
         {
             get { return this._isNew; }
         }
 
+        /// <inheritdoc />
         void ISupportsDynamicFields.ResetDynamicFields()        
         { 
             // do nothing

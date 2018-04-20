@@ -1,18 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using SenseNet.Search;
-using Lucene.Net.Search;
-using Lucene.Net.Index;
-using System.Collections;
 using System.Linq.Expressions;
+using SenseNet.ContentRepository.Schema;
+using SenseNet.Search.Querying;
+using SenseNet.Search.Querying.Parser.Predicates;
 
 namespace SenseNet.ContentRepository.Linq
 {
     public class SnExpression
     {
-        public static LucQuery BuildQuery(System.Linq.Expressions.Expression expression, Type sourceCollectionItemType, string contextPath, QuerySettings settings)
+        public static SnQuery BuildQuery(Expression expression, Type sourceCollectionItemType, string contextPath, QuerySettings settings)
         {
             var childrenDef = new ChildrenDefinition
             {
@@ -24,17 +22,17 @@ namespace SenseNet.ContentRepository.Linq
                 EnableLifespanFilter = settings.EnableLifespanFilter
             };
 
-            return BuildLucQuery(expression, sourceCollectionItemType, contextPath, childrenDef);
+            return BuildSnQuery(expression, sourceCollectionItemType, contextPath, childrenDef);
         }
-        public static LucQuery BuildQuery(System.Linq.Expressions.Expression expression, Type sourceCollectionItemType, string contextPath, ChildrenDefinition childrenDef)
+        public static SnQuery BuildQuery(Expression expression, Type sourceCollectionItemType, string contextPath, ChildrenDefinition childrenDef)
         {
-            return BuildLucQuery(expression, sourceCollectionItemType, contextPath, childrenDef);
+            return BuildSnQuery(expression, sourceCollectionItemType, contextPath, childrenDef);
         }
-        private static LucQuery BuildLucQuery(System.Linq.Expressions.Expression expression, Type sourceCollectionItemType, string contextPath, ChildrenDefinition childrenDef)
+        private static SnQuery BuildSnQuery(Expression expression, Type sourceCollectionItemType, string contextPath, ChildrenDefinition childrenDef)
         {
-            Query q0 = null;
+            SnQueryPredicate q0 = null;
 
-            CQVisitor v = null;
+            SnLinqVisitor v = null;
             // #1 compiling linq expression
             if (expression != null)
             {
@@ -46,32 +44,33 @@ namespace SenseNet.ContentRepository.Linq
                     var v2 = new ExecutorVisitor(v1.GetExpressions());
                     expr2 = v2.Visit(expr1);
                 }
-                v = new CQVisitor();
+                v = new SnLinqVisitor();
                 v.Visit(expr2);
-                q0 = v.GetQuery(sourceCollectionItemType, childrenDef);
+                q0 = v.GetPredicate(sourceCollectionItemType, childrenDef);
             }
 
             // #2 combining with additional query clause
-            LucQuery lq = null;
-            if (!string.IsNullOrEmpty(childrenDef.ContentQuery))
+            SnQuery lq = null;
+            if (!string.IsNullOrEmpty(childrenDef?.ContentQuery))
             {
-                lq = LucQuery.Parse(childrenDef.ContentQuery);
-                if (q0 == null)
-                    q0 = lq.Query;
-                else
-                    q0 = CombineQueries(q0, lq.Query);
+                var queryText = TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), childrenDef.ContentQuery);
+
+                lq = SnQuery.Parse(queryText, new SnQueryContext(QuerySettings.Default, User.Current.Id));
+                q0 = q0 == null 
+                    ? lq.QueryTree 
+                    : CombineQueries(q0, lq.QueryTree);
             }
 
             // #3 combining with context path
             if (q0 == null)
             {
                 if (childrenDef != null && childrenDef.PathUsage != PathUsageMode.NotUsed && contextPath != null)
-                    q0 = GetPathQuery(contextPath, childrenDef.PathUsage == PathUsageMode.InTreeAnd || childrenDef.PathUsage == PathUsageMode.InTreeOr);
+                    q0 = GetPathPredicate(contextPath, childrenDef.PathUsage == PathUsageMode.InTreeAnd || childrenDef.PathUsage == PathUsageMode.InTreeOr);
             }
             else
             {
                 if (childrenDef != null && childrenDef.PathUsage != PathUsageMode.NotUsed && contextPath != null)
-                    q0 = CombinePathQuery(q0, contextPath, childrenDef.PathUsage);
+                    q0 = CombinePathPredicate(q0, contextPath, childrenDef.PathUsage);
             }
 
             // #4 empty query is invalid in this place
@@ -81,13 +80,13 @@ namespace SenseNet.ContentRepository.Linq
             var q1 = OptimizeBooleans(q0);
 
             // #5 configuring query by linq expression (the smallest priority)
-            var query = LucQuery.Create(q1);
+            var query = SnQuery.Create(q1);
             if (v != null)
             {
                 query.Skip = v.Skip;
                 query.Top = v.Top;
                 query.CountOnly = v.CountOnly;
-                query.SortFields = v.SortFields.ToArray();
+                query.Sort = v.Sort.ToArray();
                 query.ThrowIfEmpty = v.ThrowIfEmpty;
                 query.ExistenceOnly = v.ExistenceOnly;
             }
@@ -99,11 +98,9 @@ namespace SenseNet.ContentRepository.Linq
                 if (childrenDef.Top > 0)
                     query.Top = childrenDef.Top;
                 if (childrenDef.Sort != null)
-                    query.SetSort(childrenDef.Sort);
+                    query.Sort = childrenDef.Sort.ToArray();
                 if (childrenDef.CountAllPages != null)
-                {
                     query.CountAllPages = childrenDef.CountAllPages.Value;
-                }
                 if(childrenDef.EnableAutofilters != FilterStatus.Default)
                     query.EnableAutofilters = childrenDef.EnableAutofilters;
                 if (childrenDef.EnableLifespanFilter != FilterStatus.Default)
@@ -117,80 +114,68 @@ namespace SenseNet.ContentRepository.Linq
             {
                 if (lq.Skip > 0)
                     query.Skip = lq.Skip;
-                if (lq.Top > 0)
+                if (lq.Top > 0 && lq.Top != int.MaxValue)
                     query.Top = lq.Top;
-                if (lq.SortFields != null && lq.SortFields.Length > 0)
-                    query.SortFields = lq.SortFields;
+                if (lq.Sort != null && lq.Sort.Length > 0)
+                    query.Sort = lq.Sort;
                 if (lq.EnableAutofilters != FilterStatus.Default)
                     query.EnableAutofilters = lq.EnableAutofilters;
                 if (lq.EnableLifespanFilter != FilterStatus.Default)
                     query.EnableLifespanFilter = lq.EnableLifespanFilter;
                 if (lq.QueryExecutionMode != QueryExecutionMode.Default)
                     query.QueryExecutionMode = lq.QueryExecutionMode;
+                if (lq.AllVersions)
+                    query.AllVersions = true;
             }
 
             return query;
         }
-        internal static Query OptimizeBooleans(Query q)
+
+        internal static SnQueryPredicate OptimizeBooleans(SnQueryPredicate predicate)
         {
             var v = new OptimizeBooleansVisitor();
-            var q1 = v.Visit(q);
-            var bq = q1 as BooleanQuery;
-            if(bq == null)
-                return q1;
-            var clauses = bq.GetClauses();
-            if (clauses.Length != 1)
-                return bq;
-            if(clauses[0].GetOccur() != BooleanClause.Occur.MUST_NOT)
-                return bq;
-            bq.Add(LucQuery.FullSetQuery, BooleanClause.Occur.MUST);
-            return bq;
+            var optimizedPredicate = v.Visit(predicate);
+            if (!(optimizedPredicate is LogicalPredicate logicalPredicate))
+                return optimizedPredicate;
+            var clauses = logicalPredicate.Clauses;
+            if (clauses.Count != 1)
+                return logicalPredicate;
+            if (clauses[0].Occur != Occurence.MustNot)
+                return logicalPredicate;
+            logicalPredicate.Clauses.Add(new LogicalClause(SnQuery.FullSetPredicate, Occurence.Must));
+            return logicalPredicate;
         }
-        private static Query CombinePathQuery(Query q, string contextPath, PathUsageMode pathUsageMode)
+
+        private static SnQueryPredicate CombinePathPredicate(SnQueryPredicate predicate, string contextPath, PathUsageMode pathUsageMode)
         {
-            if (q == null)
+            if (predicate == null)
                 return null;
-            var pathQuery = GetPathQuery(contextPath, pathUsageMode == PathUsageMode.InTreeAnd || pathUsageMode == PathUsageMode.InTreeOr);
+
+            var pathQuery = GetPathPredicate(contextPath, pathUsageMode == PathUsageMode.InTreeAnd || pathUsageMode == PathUsageMode.InTreeOr);
             if (pathQuery == null)
-                return q;
+                return predicate;
+
             var occur = pathUsageMode == PathUsageMode.InFolderOr || pathUsageMode == PathUsageMode.InTreeOr
-                ? BooleanClause.Occur.SHOULD
-                : BooleanClause.Occur.MUST;
-            var bq = new BooleanQuery();
-            bq.Add(new BooleanClause(q, occur));
-            bq.Add(new BooleanClause(pathQuery, occur));
+                ? Occurence.Should
+                : Occurence.Must;
 
-            return bq;
+            return new LogicalPredicate(new[]
+                {new LogicalClause(predicate, occur), new LogicalClause(pathQuery, occur)});
         }
-        private static Query CombineQueries(Query q1, Query q2)
+
+        private static SnQueryPredicate CombineQueries(SnQueryPredicate p1, SnQueryPredicate p2)
         {
-            var bq = new BooleanQuery();
-            bq.Add(new BooleanClause(q1, BooleanClause.Occur.MUST));
-            bq.Add(new BooleanClause(q2, BooleanClause.Occur.MUST));
-            return bq;
+            return new LogicalPredicate(new[]
+                {new LogicalClause(p1, Occurence.Must), new LogicalClause(p2, Occurence.Must)});
         }
 
-        internal static Query GetPathQuery(string path, bool inTree)
+        internal static SnQueryPredicate GetPathPredicate(string path, bool inTree)
         {
             if (path == null)
                 return null;
-
-            SenseNet.Search.Indexing.FieldIndexHandler converter = null;
-            string fieldName = null;
-            if (inTree)
-            {
-                converter = new SenseNet.Search.Indexing.InTreeIndexHandler();
-                fieldName = LucObject.FieldName.InTree;
-            }
-            else
-            {
-                converter = new SenseNet.Search.Indexing.InFolderIndexHandler();
-                fieldName = LucObject.FieldName.InFolder;
-            }
-
-            var qvalue = new SenseNet.Search.Parser.QueryFieldValue(path);
-            converter.ConvertToTermValue(qvalue);
-            return new TermQuery(new Term(fieldName, qvalue.StringValue));
+            var fieldName = inTree ? IndexFieldName.InTree : IndexFieldName.InFolder;
+            var converter = ContentTypeManager.GetPerFieldIndexingInfo(fieldName).IndexFieldHandler;
+            return new SimplePredicate(fieldName, converter.ConvertToTermValue(path));
         }
 
         public static Expression GetCaseInsensitiveFilter(Expression expression)

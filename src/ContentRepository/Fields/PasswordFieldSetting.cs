@@ -7,9 +7,15 @@ using SenseNet.ContentRepository.Schema;
 using System.Xml.XPath;
 using System.Web;
 using System.Linq;
+using SenseNet.ContentRepository.Storage.Search;
+using SenseNet.Search;
+using SenseNet.Search.Indexing;
 
 namespace SenseNet.ContentRepository.Fields
 {
+    /// <summary>
+    /// Represents a result of password validation.
+    /// </summary>
     public class PasswordCheckResult
     {
         /// <summary>
@@ -267,7 +273,7 @@ namespace SenseNet.ContentRepository.Fields
             return fmd;
         }
 
-        protected override SenseNet.Search.Indexing.FieldIndexHandler CreateDefaultIndexFieldHandler()
+        protected override IFieldIndexHandler CreateDefaultIndexFieldHandler()
         {
             return new SenseNet.Search.Indexing.NotIndexedIndexFieldHandler();
         }

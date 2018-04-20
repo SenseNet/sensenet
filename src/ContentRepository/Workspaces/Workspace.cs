@@ -11,21 +11,49 @@ using SenseNet.Search;
 
 namespace SenseNet.ContentRepository.Workspaces
 {
+    /// <summary>
+    /// A Content handler that represents a root Content of a collaborative workspace in the sensenet Content Repository.
+    /// </summary>
     [ContentHandler]
     public class Workspace : Folder
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Workspace"/> class.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
         public Workspace(Node parent) : this(parent, null) { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Workspace"/> class.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="nodeTypeName">Name of the node type.</param>
         public Workspace(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Workspace"/> class during the loading process.
+        /// Do not use this constructor directly in your code.
+        /// </summary>
         protected Workspace(NodeToken nt) : base(nt) { }
 
+        /// <summary>
+        /// Defines a constant for the name of the local groups folder.
+        /// </summary>
         public const string LocalGroupsFolderName = "Groups";
-        
-        // duplicate code from ContentList, needs refactor
+
+        /// <summary>
+        /// Returs a parent <see cref="Workspace"/> of the given <see cref="Node"/> if it is found.
+        /// </summary>
+        /// <param name="child">The <see cref="Node"/> instance to find the owner workspace for.</param>
+        /// <returns>The existing <see cref="Workspace"/> instance or null if it was not found.</returns>
         public static Workspace GetWorkspaceForNode(Node child)
         {
             return Node.GetAncestorOfType<Workspace>(child);
         }
 
+        /// <summary>
+        /// Finds the given <see cref="Node"/>'s ancestor <see cref="Workspace"/> that supports a wall functionality.
+        /// </summary>
+        /// <param name="child">The <see cref="Node"/> instance to find the owner workspace for.</param>
+        /// <returns>The existing <see cref="Workspace"/> instance or null if it was not found.</returns>
         public static Workspace GetWorkspaceWithWallForNode(Node child)
         {
             var parentWs = Node.GetAncestorOfType<Workspace>(child);
@@ -55,6 +83,10 @@ namespace SenseNet.ContentRepository.Workspaces
             return members.Distinct();
         }
 
+        /// <summary>
+        /// Gets or sets whether this workspace is active or not.
+        /// Persisted as <see cref="RepositoryDataType.Int"/>.
+        /// </summary>
         [RepositoryProperty("IsActive", RepositoryDataType.Int)]
         public bool IsActive
         {
@@ -62,6 +94,10 @@ namespace SenseNet.ContentRepository.Workspaces
             set { this["IsActive"] = value ? 1 : 0; }
         }
 
+        /// <summary>
+        /// Gets or sets true if this instance supports the wall functionality.
+        /// Persisted as <see cref="RepositoryDataType.Int"/>.
+        /// </summary>
         [RepositoryProperty("IsWallContainer", RepositoryDataType.Int)]
         public bool IsWallContainer
         {
@@ -69,6 +105,10 @@ namespace SenseNet.ContentRepository.Workspaces
             set { this["IsWallContainer"] = value ? 1 : 0; }
         }
 
+        /// <summary>
+        /// Gets or sets the custom Skin used under this workspace.
+        /// Persisted as <see cref="RepositoryDataType.Reference"/>.
+        /// </summary>
         [RepositoryProperty("WorkspaceSkin", RepositoryDataType.Reference)]
         public Node WorkspaceSkin
         {
@@ -76,6 +116,9 @@ namespace SenseNet.ContentRepository.Workspaces
             set { this.SetReference("WorkspaceSkin", value); }
         }
 
+        /// <summary>
+        /// Gets true if this <see cref="Workspace"/> instance is followed by the logged-in user.
+        /// </summary>
         public bool IsFollowed
         {
             get
@@ -90,6 +133,7 @@ namespace SenseNet.ContentRepository.Workspaces
 
         // ===================================================================================== Overrides
 
+        /// <inheritdoc />
         public override void Save(NodeSaveSettings settings)
         {
             if(this.IsNew)
@@ -100,12 +144,14 @@ namespace SenseNet.ContentRepository.Workspaces
             base.Save(settings);
         }
 
+        /// <inheritdoc />
         public override void ForceDelete()
         {
             Security.Assert(PermissionType.ManageListsAndWorkspaces);
             base.ForceDelete();
         }
 
+        /// <inheritdoc />
         public override object GetProperty(string name)
         {
             switch (name)
@@ -123,6 +169,7 @@ namespace SenseNet.ContentRepository.Workspaces
             }
         }
 
+        /// <inheritdoc />
         public override void SetProperty(string name, object value)
         {
             switch (name)
@@ -141,6 +188,5 @@ namespace SenseNet.ContentRepository.Workspaces
                     break;
             }
         }
-
     }
 }

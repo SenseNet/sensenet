@@ -85,7 +85,7 @@ namespace SenseNet.Portal.Dws
             if (hostIdx < 0)
                 return pageUrl;
 
-            var prefixLength = hostIdx + HttpContext.Current.Request.Url.Host.Length;
+            var prefixLength = pageUrl.IndexOf('/', hostIdx);
             var path = pageUrl.Substring(prefixLength);
 
             return GetFullPath(path);
@@ -96,7 +96,7 @@ namespace SenseNet.Portal.Dws
             // remove trailing slash
             partialPath = partialPath.TrimEnd('/');
 
-            if (partialPath.StartsWith("/Root/", StringComparison.OrdinalIgnoreCase))
+            if (partialPath.StartsWith("/Root", StringComparison.OrdinalIgnoreCase))
                 return partialPath;
 
             string absPath1;

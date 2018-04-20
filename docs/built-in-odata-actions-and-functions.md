@@ -267,7 +267,6 @@ In addition, subsequent request bodies should contain the uploaded file in chunk
 > For more information about how uploading works see the [Upload action](upload-action.md) article. You can find a C# source code example there that demonstrates the usage of the [Upload action](upload-action.md) from a **console application**.
 
 ### Restore action
-*(from version 6.3)*
 
 Restores a deleted content from the Trash. You can call this action only on a TrashBag content that contains the deleted content itself.
 
@@ -299,7 +298,6 @@ $.ajax({
 ```
 
 ### SaveQuery action
-*(from version 6.3)*
 
 Creates or modifies a Query content. Use this action instead of creating query content directly using the basic OData create method, because query content can be saved under a workspace or to the user's profile as a private query.
 
@@ -329,7 +327,6 @@ $.ajax({
 ```
 
 ### Approve action
-*(from version 6.3)*
 
 Performs an approve operation on a content, the equivalent of calling `Approve()` on the Content instance in .NET. Also checks whether the content handler of the subject content inherits GenericContent (otherwise it does not support this operation). This action has no parameters.
 
@@ -347,7 +344,6 @@ $.ajax({
 ```
 
 ### Reject action
-*(from version 6.3)*
 
 Performs a reject operation on a content, the equivalent of calling `Reject()` on the Content instance in .NET. Also checks whether the content handler of the subject content inherits `GenericContent` (otherwise it does not support this operation). The reject reason can be supplied in an optional parameter called `rejectReason`.
 
@@ -368,7 +364,6 @@ $.ajax({
 ```
 
 ### Publish action
-*(from version 6.3)*
 
 Performs a publish operation on a content, the equivalent of calling `Publish()` on the Content instance in .NET. Also checks whether the content handler of the subject content inherits GenericContent (otherwise it does not support this operation). This action has no parameters.
 
@@ -386,7 +381,6 @@ $.ajax({
 ```
 
 ### Check in action
-*(from version 6.3)*
 
 Performs a check in operation on a content, the equivalent of calling `CheckIn()` on the Content instance in .NET. This action enforces the check in comments mode of the content. Also checks whether the content handler of the subject content inherits GenericContent (otherwise it does not support this operation). The check-in comments can be supplied in an optional parameter called checkInComments.
 
@@ -407,7 +401,6 @@ $.ajax({
 ```
 
 ### Check out action
-*(from version 6.3)*
 
 Performs a check out operation on a content, the equivalent of calling `CheckOut()` on the Content instance in .NET. Also checks whether the content handler of the subject content inherits GenericContent (otherwise it does not support this operation). This action has no parameters.
 
@@ -425,7 +418,6 @@ $.ajax({
 ```
 
 ### Undo check out action
-*(from version 6.3)*
 
 Performs an undo check out operation on a content, the equivalent of calling `UndoCheckOut()` on the Content instance in .NET. Also checks whether the content handler of the subject content inherits GenericContent (otherwise it does not support this operation). This action has no parameters.
 
@@ -443,7 +435,6 @@ $.ajax({
 ```
 
 ### Force undo check out action
-*(from version 6.3)*
 
 Performs a force undo check out operation on a content, the equivalent of calling `ForceUndoCheckOut()` on the Content instance in .NET. Also checks whether the content handler of the subject content inherits GenericContent (otherwise it does not support this operation). This action has no parameters.
 
@@ -461,7 +452,6 @@ $.ajax({
 ```
 
 ### Restore version action
-*(from version 6.3)*
 
 Restores an old version of the content. Also checks whether the content handler of the subject content inherits GenericContent (otherwise it does not support this operation). This action has a single parameter called version where the caller can specify which old version to restore.
 
@@ -482,7 +472,6 @@ $.ajax({
 ```
 
 ### Finalize content action
-*(from version 6.3)*
 
 Closes a [Multistep saving](multistep-saving.md) operation and sets the saving state of a content to Finalized. Can be invoked only on content that are not already finalized.
 
@@ -500,7 +489,6 @@ $.ajax({
 ```
 
 ### Take lock over action
-*(from version 6.3.2)*
 
 Lets administrators take over the lock of a checked out document from another user. A new locker user can be provided using the 'user' parameter (user path or id as string). If left empty, the current user will take the lock.
 
@@ -521,7 +509,6 @@ $.ajax({
 ```
 
 ### Indexing actions
-*(from version 6.4 Patch 1)*
 
 These actions perform an [indexing operation](http://community.sensenet.com/tutorials/how-to-reindex-content) on a single content or a whole subtree.
 
@@ -572,7 +559,6 @@ $.ajax({
 ```
 
 ### Add members action
-*(from version 6.5)*
 
 Administrators can add new members to a group using this action. The list of new members can be provided using the 'contentIds' parameter (list of user or group ids).
 
@@ -591,7 +577,6 @@ $.ajax({
 ```
 
 ### Remove members action
-*(from version 6.5)*
 
 Administrators can remove members from a group using this action. The list of removable members can be provided using the 'contentIds' parameter (list of user or group ids).
 
@@ -610,7 +595,6 @@ $.ajax({
 ```
 
 ### Take ownership action
-*(from version 6.5)*
 
 Users who have _TakeOwnership_ permission for the current content can modify the Owner of this content. The new owner is provided using the 'userOrGroup' parameter that accepts the path or the id of the new owner (that can be a Group or a User). The input parameter also supports empty or null string, in this case the new owner will be the current user.
 
@@ -629,7 +613,6 @@ $.ajax({
 ```
 
 ### Login action
-*(from version 6.5.3)*
 
 It is possible to send authentication requests using this action. You provide the username and password and will get the User object as the response if the login operation was successful or HTTP 403 Forbidden message if it wasn’t. If the username does not contain a domain prefix, the configured default domain will be used. After you logged in the user successfully, you will receive a standard ASP.NET auth cookie which will make sure that your subsequent requests will be authorized correctly.
 
@@ -658,7 +641,6 @@ $.ajax({
 ```
 
 ### Logout action
-*(from version 6.5.3)*
 
 Similarly to the Login action above, you can send a logout action to the portal.
 
@@ -828,7 +810,6 @@ $.ajax({
 > Please note that OData functions can be called with POST or GET request.
 
 ### GetQueries
-*(from version 6.3)*
 
 Gets Query content that are relevant in the current context. The result set will contain two types of content:
 
@@ -866,7 +847,6 @@ Permissions for the library for the current user:
 ```
 
 ### Permission queries
-*(from version 6.3)*
 
 There are a couple of OData functions that can be used for getting aggregated security information about a content subtree. These are the following:
 
@@ -874,13 +854,12 @@ There are a couple of OData functions that can be used for getting aggregated se
 - **GetRelatedItems**
 - **GetRelatedPermissions**
 - **GetRelatedItemsOneLevel**
-- **GetAllowedUsers** (from version 6.5.2)
-- **GetParentGroups** (from version 6.5.2)
+- **GetAllowedUsers**
+- **GetParentGroups**
 
 > For more details, please visit the [Permission queries](permission-queries.md) article.
 
 ### Get metadata
-*(from version 6.3)*
 
 OData function for collecting all fields of all types in the system. The content parameter (the resource you call it on, in this example the library) is ignored.
 
@@ -894,7 +873,6 @@ OData function for collecting all fields of all types in the system. The content
 ```
 
 ### Check allowed child types
-*(from version 6.3)*
 
 Checks all IFolder objects in the Content Repository and returns all paths where AllowedChildTypes is empty. Paths are categorized by content type names. This is a helper function that can be used to get an overview of your system.
 
@@ -910,7 +888,6 @@ Permissions for the library for the current user:
 ```
 
 ### Get VersionInfo
-*(from version 6.3.1)*
 
 Gets the complete version information about the core product and the installed applications. This function is accessible only for administrators by default. You can learn more about the subject in the [SnAdmin](snadmin.md) article. You can read detailed description of the [function result](snadmin.md#Getting_package_information).
 

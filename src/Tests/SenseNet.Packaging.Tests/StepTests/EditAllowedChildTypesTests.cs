@@ -1,11 +1,12 @@
 ﻿using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Packaging.Steps;
+using SenseNet.Tests;
 
 namespace SenseNet.Packaging.Tests.StepTests
 {
     [TestClass]
-    public class EditAllowedChildTypesTests
+    public class EditAllowedChildTypesTests : TestBase
     {
         [TestMethod]
         public void Step_EditAllowedChildTypes_0Orig_0New_0Old()

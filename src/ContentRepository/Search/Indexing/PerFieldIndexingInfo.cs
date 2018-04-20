@@ -1,35 +1,51 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Lucene.Net.Documents;
+using SenseNet.Search.Indexing;
 
-namespace SenseNet.Search.Indexing
+namespace SenseNet.ContentRepository.Search.Indexing
 {
-    public class PerFieldIndexingInfo
+    /// <summary>
+    /// Implements the metadata for indexing a field.
+    /// </summary>
+    public class PerFieldIndexingInfo : IPerFieldIndexingInfo
     {
-        public static readonly Field.Index DefaultIndexingMode = Field.Index.ANALYZED;
-        public static readonly Field.Store DefaultIndexStoringMode = Field.Store.NO;
-        public static readonly Field.TermVector DefaultTermVectorStoringMode = Field.TermVector.NO;
+        /// <summary>
+        /// Default value of the <see cref="IndexingMode"/>.
+        /// </summary>
+        public static readonly IndexingMode DefaultIndexingMode = IndexingMode.Analyzed;
+        /// <summary>
+        /// Default value of the <see cref="IndexStoringMode"/>.
+        /// </summary>
+        public static readonly IndexStoringMode DefaultIndexStoringMode = IndexStoringMode.No;
+        /// <summary>
+        /// Default value of the <see cref="IndexTermVector"/>.
+        /// </summary>
+        public static readonly IndexTermVector DefaultTermVectorStoringMode = IndexTermVector.No;
 
-        public string Analyzer { get; set; }
-        public FieldIndexHandler IndexFieldHandler { get; set; }
+        /// <inheritdoc />
+        public IndexFieldAnalyzer Analyzer { get; set; }
+        /// <inheritdoc />
+        public IFieldIndexHandler IndexFieldHandler { get; set; }
 
-        public Field.Index IndexingMode { get; set; }
-        public Field.Store IndexStoringMode { get; set; }
-        public Field.TermVector TermVectorStoringMode { get; set; }
+        /// <inheritdoc />
+        public IndexingMode IndexingMode { get; set; }
+        /// <inheritdoc />
+        public IndexStoringMode IndexStoringMode { get; set; }
+        /// <inheritdoc />
+        public IndexTermVector TermVectorStoringMode { get; set; }
 
+        /// <inheritdoc />
         public bool IsInIndex
         {
             get
             {
-                if (IndexingMode == Lucene.Net.Documents.Field.Index.NO &&
-                    (IndexStoringMode == null || IndexStoringMode == Lucene.Net.Documents.Field.Store.NO))
+                if (IndexingMode == IndexingMode.No &&
+                    (IndexStoringMode == IndexStoringMode.Default || IndexStoringMode == IndexStoringMode.No))
                     return false;
                 return true;
             }
         }
 
+        /// <inheritdoc />
         public Type FieldDataType { get; set; }
     }
 }

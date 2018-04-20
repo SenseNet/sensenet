@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq.Expressions;
 
@@ -21,8 +18,7 @@ namespace SenseNet.ContentRepository.Linq
         internal void SetExecutable(bool isExecutable)
         {
             IsExecutable = isExecutable;
-            if (Parent != null)
-                Parent.SetExecutable(isExecutable);
+            Parent?.SetExecutable(isExecutable);
         }
     }
 }

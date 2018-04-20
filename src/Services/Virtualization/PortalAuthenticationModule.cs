@@ -15,6 +15,9 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using Newtonsoft.Json;
 using SenseNet.Configuration;
+using SenseNet.Search;
+using SenseNet.Search.Querying;
+using SenseNet.Services.Virtualization;
 using SenseNet.TokenAuthentication;
 
 namespace SenseNet.Portal.Virtualization
@@ -63,7 +66,7 @@ namespace SenseNet.Portal.Virtualization
                 {
                     if (AuthenticationHelper.IsUserValid(username, password))
                     {
-                        context.User = AuthenticationHelper.LoadUserPrincipal(username);
+                        context.User = AuthenticationHelper.LoadPortalPrincipal(username);
                     }
                     else
                     {
@@ -86,10 +89,15 @@ namespace SenseNet.Portal.Virtualization
         {
             var application = sender as HttpApplication;
             var context = AuthenticationHelper.GetContext(sender); //HttpContext.Current;
-            bool anonymAuthenticated;
-            var basicAuthenticated = DispatchBasicAuthentication(context, out anonymAuthenticated);
+            var basicAuthenticated = DispatchBasicAuthentication(context, out var anonymAuthenticated);
 
-            var tokenAuthenticated = new TokenAuthentication().Authenticate(application, basicAuthenticated, anonymAuthenticated);
+            var tokenAuthentication = new TokenAuthentication(new LogoutExecutor());
+            var tokenAuthenticated = tokenAuthentication.Authenticate(application, basicAuthenticated, anonymAuthenticated);
+
+            if (!tokenAuthenticated)
+            {
+                tokenAuthenticated = OAuthManager.Instance.Authenticate(application, tokenAuthentication);
+            }
 
             // if it is a simple basic authentication case or authenticated with a token
             if (basicAuthenticated || tokenAuthenticated)
@@ -209,7 +217,7 @@ namespace SenseNet.Portal.Virtualization
                                 PortalContext.Current.Site != null &&
                                 Group.Administrators.Members.Count() == 1)
                             {
-                                user = User.RegisterUser(fullUsername);
+                                user = RegisterUser(fullUsername);
                             }
                         }
                     }
@@ -266,6 +274,47 @@ namespace SenseNet.Portal.Virtualization
                 application.Context.User = appUser;
             }
         }
+        private static User RegisterUser(string fullUserName)
+        {
+            if (string.IsNullOrEmpty(fullUserName))
+                return null;
+
+            var slashIndex = fullUserName.IndexOf('\\');
+            var domain = fullUserName.Substring(0, slashIndex);
+            var username = fullUserName.Substring(slashIndex + 1);
+
+            var user = User.Load(domain, username);
+
+            if (user != null)
+                return user;
+
+            try
+            {
+                AccessProvider.Current.SetCurrentUser(User.Administrator);
+
+                var dom = Node.Load<Domain>(RepositoryPath.Combine(RepositoryStructure.ImsFolderPath, domain));
+
+                if (dom == null)
+                {
+                    // create domain
+                    dom = new Domain(Repository.ImsFolder) { Name = domain };
+                    dom.Save();
+                }
+
+                // create user
+                user = new User(dom) { Name = username, Enabled = true, FullName = username };
+                user.Save();
+
+                Group.Administrators.AddMember(user);
+            }
+            finally
+            {
+                if (user != null)
+                    AccessProvider.Current.SetCurrentUser(user);
+            }
+
+            return user;
+        }
 
         private void OnEndRequest(object sender, EventArgs e)
         {
@@ -294,34 +343,18 @@ namespace SenseNet.Portal.Virtualization
             if (HttpRuntime.UsingIntegratedPipeline)
             {
                 WindowsPrincipal user = null;
-                if (HttpRuntime.IsOnUNCShare && application.Request.IsAuthenticated)
+                var context = AuthenticationHelper.GetContext(application);
+                if(HttpRuntime.IsOnUNCShare && context.Request.IsAuthenticated)
                 {
-                    var applicationIdentityToken = (IntPtr)typeof (System.Web.Hosting.HostingEnvironment)
-                        .GetProperty("ApplicationIdentityToken", BindingFlags.NonPublic | BindingFlags.Static)
-                        .GetGetMethod().Invoke(null, null);
-
-                    var wi = new WindowsIdentity(
-                        applicationIdentityToken, 
-                        application.User.Identity.AuthenticationType,
-                        WindowsAccountType.Normal, 
-                        true);
-
-                    user = new WindowsPrincipal(wi);
+                    user = new WindowsPrincipal(WindowsIdentity.GetCurrent());
                 }
                 else
                 {
                     user = application.Context.User as WindowsPrincipal;
                 }
-
                 if (user != null)
                 {
                     identity = user.Identity as WindowsIdentity;
-
-                    object[] setPrincipalNoDemandParameters = { null, false };
-                    var setPrincipalNoDemandParameterTypes = new[] { typeof(IPrincipal), typeof(bool) };
-                    var setPrincipalNoDemandMethodInfo = application.Context.GetType().GetMethod("SetPrincipalNoDemand", BindingFlags.Instance | BindingFlags.NonPublic, null, setPrincipalNoDemandParameterTypes, null);
-
-                    setPrincipalNoDemandMethodInfo.Invoke(application.Context, setPrincipalNoDemandParameters);
                 }
             }
             else

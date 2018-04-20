@@ -11,13 +11,13 @@ namespace SenseNet.ContentRepository.Schema
 {
     public class ContentTypeInstaller
     {
-        private class CTD
+        private class Ctd
         {
-            public string Name;
-            public string ParentName;
-            public XPathDocument Document;
+            public readonly string Name;
+            public readonly string ParentName;
+            public readonly XPathDocument Document;
 
-            public CTD(string name, string parentName, XPathDocument doc)
+            public Ctd(string name, string parentName, XPathDocument doc)
             {
                 Name = name;
                 ParentName = parentName;
@@ -27,9 +27,9 @@ namespace SenseNet.ContentRepository.Schema
 
         // ========================================================================== Batch installer
 
-        private CTD _contentTypeCTD;
-        private SchemaEditor _editor;
-        private Dictionary<string, CTD> _docs;
+        private Ctd _contentTypeCtd;
+        private readonly SchemaEditor _editor;
+        private readonly Dictionary<string, Ctd> _docs;
 
         public static ContentTypeInstaller CreateBatchContentTypeInstaller()
         {
@@ -45,7 +45,7 @@ namespace SenseNet.ContentRepository.Schema
         private ContentTypeInstaller(SchemaEditor editor)
         {
             _editor = editor;
-            _docs = new Dictionary<string, CTD>();
+            _docs = new Dictionary<string, Ctd>();
         }
 
         public void AddContentType(Stream contentTypeDefinitionXml)
@@ -57,8 +57,8 @@ namespace SenseNet.ContentRepository.Schema
         }
         public void AddContentType(string contentTypeDefinitionXml)
         {
-            XPathDocument ctd = new XPathDocument(new StringReader(contentTypeDefinitionXml));
-            XPathNavigator nav = ctd.CreateNavigator().SelectSingleNode("/*[1]");
+            var ctd = new XPathDocument(new StringReader(contentTypeDefinitionXml));
+            var nav = ctd.CreateNavigator().SelectSingleNode("/*[1]");
 
             // check xml namespace
             if (nav.NamespaceURI != ContentType.ContentDefinitionXmlNamespace)
@@ -68,27 +68,27 @@ namespace SenseNet.ContentRepository.Schema
 
             string name = nav.GetAttribute("name", "");
             string parentName = nav.GetAttribute("parentType", "");
-            AddContentType(name, new CTD(name, parentName, ctd));
+            AddContentType(name, new Ctd(name, parentName, ctd));
         }
-        private void AddContentType(string name, CTD ctd)
+        private void AddContentType(string name, Ctd ctd)
         {
             if (name == typeof(ContentType).Name)
-                _contentTypeCTD = ctd;
+                _contentTypeCtd = ctd;
             else
                 _docs.Add(name, ctd);
         }
         public void ExecuteBatch()
         {
             // Install considering dependencies
-            if (_contentTypeCTD != null)
-                Install(_contentTypeCTD);
+            if (_contentTypeCtd != null)
+                Install(_contentTypeCtd);
 
-            List<CTD> docList = new List<CTD>(_docs.Values);
-            Stack<CTD> stack = new Stack<CTD>();
-            CTD parent = null;
+            List<Ctd> docList = new List<Ctd>(_docs.Values);
+            Stack<Ctd> stack = new Stack<Ctd>();
+            Ctd parent = null;
             while (docList.Count > 0)
             {
-                CTD doc = parent ?? docList[0];
+                Ctd doc = parent ?? docList[0];
                 docList.Remove(doc);
                 _docs.Remove(doc.Name);
                 if (_docs.ContainsKey(doc.ParentName))
@@ -110,7 +110,7 @@ namespace SenseNet.ContentRepository.Schema
             ContentTypeManager.Reset();
         }
 
-        private void Install(CTD ctd)
+        private void Install(Ctd ctd)
         {
             var contentType = ContentTypeManager.LoadOrCreateNew(ctd.Document);
 
@@ -119,7 +119,7 @@ namespace SenseNet.ContentRepository.Schema
 
             ContentTypeManager.ApplyChangesInEditor(contentType, _editor);
             contentType.Save(false);
-            ContentTypeManager.Current.AddContentType(contentType);
+            ContentTypeManager.Instance.AddContentType(contentType);
         }
 
         // ========================================================================== Static installer
@@ -144,7 +144,7 @@ namespace SenseNet.ContentRepository.Schema
 
         public static void RemoveContentType(string contentTypeName)
         {
-            RemoveContentType(ContentTypeManager.Current.GetContentTypeByName(contentTypeName));
+            RemoveContentType(ContentTypeManager.Instance.GetContentTypeByName(contentTypeName));
         }
         public static void RemoveContentType(ContentType contentType)
         {

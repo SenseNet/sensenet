@@ -260,7 +260,7 @@ TPScriptUrl=""_vti_bin/owssvr.dll""
                 return;
 
             var requestPath = PortalContext.Current.RequestedUri.AbsolutePath.ToLower();
-            
+
             // mock workflow.asmx -> we don't implement, simply return HTTP 200
             if (requestPath.EndsWith("_vti_bin/workflow.asmx"))
             {
@@ -269,7 +269,7 @@ TPScriptUrl=""_vti_bin/owssvr.dll""
             }
 
             // initial request to _vti_inf.html
-            if (requestPath.EndsWith("_vti_inf.html")) 
+            if (requestPath.EndsWith("_vti_inf.html"))
             {
                 HandleVtiInf(context);
                 return;
@@ -304,7 +304,7 @@ TPScriptUrl=""_vti_bin/owssvr.dll""
             }
 
 
-            if (requestPath.EndsWith("_vti_rpc")) 
+            if (requestPath.EndsWith("_vti_rpc"))
             {
                 if (method.StartsWith("server version"))
                 {

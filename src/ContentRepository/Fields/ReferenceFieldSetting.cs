@@ -8,6 +8,9 @@ using System.Xml.XPath;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Search;
+using SenseNet.Diagnostics;
+using SenseNet.Search;
+using SenseNet.Search.Indexing;
 
 namespace SenseNet.ContentRepository.Fields
 {
@@ -26,7 +29,7 @@ namespace SenseNet.ContentRepository.Fields
         private bool? _allowMultiple;
         private List<string> _allowedTypes;
         private List<string> _selectionRoots;
-        private NodeQuery _query;
+        private ContentQuery _query;
         private string _fieldName;
 
         public bool? AllowMultiple
@@ -80,7 +83,7 @@ namespace SenseNet.ContentRepository.Fields
                 _selectionRoots = value;
             }
         }
-        public NodeQuery Query
+        public ContentQuery Query
         {
             get
             {
@@ -166,11 +169,8 @@ namespace SenseNet.ContentRepository.Fields
                         }
                         break;
                     case QueryName:
-                        var sb = new StringBuilder();
-                        sb.Append("<SearchExpression xmlns=\"").Append(NodeQuery.XmlNamespace).Append("\">");
-                        sb.Append(element.InnerXml);
-                        sb.Append("</SearchExpression>");
-                        _query = NodeQuery.Parse(sb.ToString());
+                        _query = ContentQuery.CreateQuery(element.InnerXml);
+                        _query.IsSafe = true;
                         break;
                     case FieldNameName:
                         _fieldName = element.InnerXml;
@@ -189,7 +189,11 @@ namespace SenseNet.ContentRepository.Fields
             if (info.TryGetValue(SelectionRootName, out temp))
                 _selectionRoots = new List<string>((string[])temp);
             if (info.TryGetValue(QueryName, out temp))
-                _query = NodeQuery.Parse((string)temp);
+            {
+                var queryText = (string)temp;
+                if (queryText != null)
+                    _query = ParseQuery(queryText);
+            }
             if (_selectionRoots != null)
             {
                 foreach (var path in _selectionRoots)
@@ -384,7 +388,7 @@ namespace SenseNet.ContentRepository.Fields
             }
             return FieldValidationResult.Successful;
         }
-        private FieldValidationResult ValidateWithQuery(List<Node> list, NodeQuery query)
+        private FieldValidationResult ValidateWithQuery(List<Node> list, ContentQuery query)
         {
             var x = query.Execute();
             List<int> idList = x.Identifiers.ToList();
@@ -452,7 +456,7 @@ namespace SenseNet.ContentRepository.Fields
 
             if (_query != null)
             {
-                WriteElement(writer, _query.ToXml(), QueryName);
+                WriteElement(writer, _query.Text, QueryName);
             }
 
             if (_fieldName != null)
@@ -546,7 +550,7 @@ namespace SenseNet.ContentRepository.Fields
                 switch (name)
                 {
                     case QueryName:
-                        val = _query == null ? null : _query.ToXml();
+                        val = _query?.Text;
                         found = true;
                         break;
                     case AllowedTypesName:
@@ -581,7 +585,7 @@ namespace SenseNet.ContentRepository.Fields
             {
                 case QueryName:
                     if (!string.IsNullOrEmpty(sv))
-                        _query = NodeQuery.Parse(sv);
+                        _query = ParseQuery(sv);
                     found = true;
                     break;
                 case AllowedTypesName:
@@ -606,9 +610,22 @@ namespace SenseNet.ContentRepository.Fields
             return found;
         }
 
-        protected override SenseNet.Search.Indexing.FieldIndexHandler CreateDefaultIndexFieldHandler()
+        protected override IFieldIndexHandler CreateDefaultIndexFieldHandler()
         {
             return new SenseNet.Search.Indexing.ReferenceIndexHandler();
         }
+
+        private ContentQuery ParseQuery(string queryText)
+        {
+            if (queryText.StartsWith("<"))
+            {
+                SnLog.WriteWarning(
+                    "ReferenceFieldSetting.Query cannot be initialized with a NodeQuery source xml. Use content query text instead.",
+                    properties: new Dictionary<string, object> { { "InvalidFilter", queryText } });
+                return null;
+            }
+            return ContentQuery.CreateQuery(queryText);
+        }
+
     }
 }

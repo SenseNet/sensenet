@@ -1,19 +1,20 @@
 <Package type='Tool'>
   <Id>SenseNet.Index</Id>
   <Description>sensenet ECM tool for rebuilding the index for a subtree or the whole Content Repository.</Description>
-  <ReleaseDate>2017-04-05</ReleaseDate>
-  <Version>7.0.0</Version>
+  <ReleaseDate>2018-02-15</ReleaseDate>
+  <Version>7.1.0</Version>
   <Dependencies>
-    <Dependency id='SenseNet.Services' minVersion='7.0.0' />
+    <Dependency id='SenseNet.Services' minVersion='7.1.0' />
   </Dependencies>
   <Parameters>
+    <Parameter name="@startindexingengine" description="Whether the indexing engine should be started.">true</Parameter>
     <Parameter name="@path" description="Subtree path to rebuild the index for. Default: the whole Content Repository." />
-    <Parameter name="@backup" description="Whether to compress and insert the new index into the database.">true</Parameter>
+    <Parameter name="@level" description="Optional level of rebuilding the index. Two values are accepted: 'IndexOnly' (default) and 'DatabaseAndIndex'." />
   </Parameters>
   <Steps>
     <Phase>
-      <StartRepository StartLuceneManager="false" StartWorkflowEngine="false" />
-      <PopulateIndex Path="@path" Backup="@backup" />
+      <StartRepository StartIndexingEngine="@startindexingengine" StartWorkflowEngine="false" />
+      <PopulateIndex Path="@path" Level="@level" />
     </Phase>
   </Steps>
 </Package>

@@ -219,52 +219,17 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             WriteLog(MethodBase.GetCurrentMethod());
             return base.GetIdsOfNodesThatDoNotHaveIndexDocument(fromId, toId);
         }
-        protected internal override IndexBackup LoadLastBackup()
+        public override int GetLastIndexingActivityId()
         {
             WriteLog(MethodBase.GetCurrentMethod());
-            return base.LoadLastBackup();
+            return base.GetLastIndexingActivityId();
         }
-        protected internal override IndexBackup CreateBackup(int backupNumber)
-        {
-            WriteLog(MethodBase.GetCurrentMethod(), backupNumber);
-            return base.CreateBackup(backupNumber);
-        }
-        protected internal override void StoreBackupStream(string backupFilePath, IndexBackup backup, IndexBackupProgress progress)
-        {
-            WriteLog(MethodBase.GetCurrentMethod(), backupFilePath, backup, progress);
-            base.StoreBackupStream(backupFilePath, backup, progress);
-        }
-        protected internal override void SetActiveBackup(IndexBackup backup, IndexBackup lastBackup)
-        {
-            WriteLog(MethodBase.GetCurrentMethod(), backup, lastBackup);
-            base.SetActiveBackup(backup, lastBackup);
-        }
-        protected override void KeepOnlyLastIndexBackup()
-        {
-            WriteLog(MethodBase.GetCurrentMethod());
-            base.KeepOnlyLastIndexBackup();
-        }
-        protected override Guid GetLastIndexBackupNumber()
-        {
-            WriteLog(MethodBase.GetCurrentMethod());
-            return base.GetLastIndexBackupNumber();
-        }
-        protected override IndexBackup RecoverIndexBackup(string backupFilePath)
-        {
-            WriteLog(MethodBase.GetCurrentMethod(), backupFilePath);
-            return base.RecoverIndexBackup(backupFilePath);
-        }
-        public override int GetLastActivityId()
-        {
-            WriteLog(MethodBase.GetCurrentMethod());
-            return base.GetLastActivityId();
-        }
-        public override IDataProcedure GetTimestampDataForOneNodeIntegrityCheck(string path, int[] excludedNodeTypeIds)
+        public override IEnumerable<IndexIntegrityCheckerItem> GetTimestampDataForOneNodeIntegrityCheck(string path, int[] excludedNodeTypeIds)
         {
             WriteLog(MethodBase.GetCurrentMethod(), path);
             return base.GetTimestampDataForOneNodeIntegrityCheck(path, excludedNodeTypeIds);
         }
-        public override IDataProcedure GetTimestampDataForRecursiveIntegrityCheck(string path, int[] excludedNodeTypeIds)
+        public override IEnumerable<IndexIntegrityCheckerItem> GetTimestampDataForRecursiveIntegrityCheck(string path, int[] excludedNodeTypeIds)
         {
             WriteLog(MethodBase.GetCurrentMethod(), path);
             return base.GetTimestampDataForRecursiveIntegrityCheck(path, excludedNodeTypeIds);

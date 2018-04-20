@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Collections;
-using System.Linq;
 using System.Data.Common;
+// ReSharper disable UnassignedGetOnlyAutoProperty
 
 namespace SenseNet.Packaging.Tests.Implementations
 {
     public class TestDataReader : DbDataReader
     {
-        private string[] _columnNames;
-        private object[][] _records;
+        private readonly string[] _columnNames;
+        private readonly object[][] _records;
         private int _currentRecord = -1;
 
-        public TestDataReader() : base() { }
+        public TestDataReader() { }
 
-        public TestDataReader(string[] columnNames, object[][] records) : base()
+        public TestDataReader(string[] columnNames, object[][] records)
         {
             _columnNames = columnNames;
             _records = records;
@@ -36,15 +36,9 @@ namespace SenseNet.Packaging.Tests.Implementations
 
         public override int FieldCount { get; }
 
-        public override object this[int ordinal]
-        {
-            get { throw new NotImplementedException(); }
-        }
+        public override object this[int ordinal] => throw new NotImplementedException();
 
-        public override object this[string name]
-        {
-            get { throw new NotImplementedException(); }
-        }
+        public override object this[string name] => throw new NotImplementedException();
 
         public override bool HasRows { get; }
         public override bool IsClosed { get; }
