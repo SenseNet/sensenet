@@ -185,7 +185,7 @@ namespace SenseNet.ContentRepository.Linq
                     throw new InvalidOperationException("Sequence contains no elements.");
                 return default(TResult);
             }
-            if (count == 1)
+            if (count >= 1)
             {
                 if (typeof(Node).IsAssignableFrom(typeof(TResult)))
                 {

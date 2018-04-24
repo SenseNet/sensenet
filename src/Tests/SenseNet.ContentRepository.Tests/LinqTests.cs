@@ -520,13 +520,17 @@ namespace SenseNet.ContentRepository.Tests
         //    Assert.AreEqual(expected, actual);
         //}
 
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void Linq_First()
-        //{
-        //    //.First(c => ...), .FirstOrDefault(c => ...)
-        //    var content = Content.All.DisableAutofilters().Where(c => c.Id < 6).OrderByDescending(c => c.Id).First();
-        //    Assert.AreEqual(5, content.Id);
-        //}
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_First()
+        {
+            //.First(c => ...), .FirstOrDefault(c => ...)
+
+            Test(() =>
+            {
+                var content = Content.All.DisableAutofilters().Where(c => c.Id < 6).OrderByDescending(c => c.Id).First();
+                Assert.AreEqual(5, content.Id);
+            });
+        }
         //[TestMethod, ExpectedException(typeof(InvalidOperationException))]
         //public void Linq_First_OnEmpty()
         //{
