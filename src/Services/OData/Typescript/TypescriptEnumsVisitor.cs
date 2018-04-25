@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SenseNet.ContentRepository.Schema.Metadata;
 
 namespace SenseNet.Portal.OData.Typescript
@@ -32,7 +28,7 @@ namespace SenseNet.Portal.OData.Typescript
  *  Id: 1,
  *  Name: 'MyCar',
  *  DisplayName: 'My Car',
- *  Style: Enum.Style.Cabrio
+ *  Style: Style.Cabrio
  * });
  * ```
  */ /** */
@@ -49,7 +45,7 @@ namespace SenseNet.Portal.OData.Typescript
         {
             // do not call base functionality in this method
 
-            var options = enumeration.Options.Select(o => $" {o.Name} = '{o.Value}'").ToArray();
+            var options = enumeration.Options.Select(o => $" {o.Name} = \"{o.Value}\"").ToArray();
 
             var names = Context.EmittedEnumerationNames
                 .Where(x => x.Value == enumeration.Key)
