@@ -16,7 +16,7 @@ namespace SenseNet.Portal.OData.Typescript
     {
         protected const string STRING = "string";
         protected const string NUMBER = "number";
-        protected static readonly string DeferredObject = $"{TypescriptGenerationContext.ComplexTypesModuleName}.DeferredObject";
+        protected static readonly string MediaResourceObject = $"{TypescriptGenerationContext.ComplexTypesModuleName}.MediaResourceObject";
 
         protected static string[] FieldSettingPropertyBlackList =
         {
@@ -33,8 +33,8 @@ namespace SenseNet.Portal.OData.Typescript
             {"AllowedChildTypes", STRING},
             {"TextExtractors", STRING},
             {"UrlList", STRING},
-            {"Image", DeferredObject},
-            {"Binary", DeferredObject},
+            {"Image", MediaResourceObject},
+            {"Binary", MediaResourceObject},
         };
 
         protected readonly TextWriter _writer;
@@ -160,6 +160,8 @@ namespace SenseNet.Portal.OData.Typescript
         protected string GetPropertyTypeName(ReferenceType referenceType)
         {
             ReferenceFieldSetting settings = referenceType.FieldSetting as ReferenceFieldSetting;
+            var allAllowedTypeNames = new Schema(TypescriptFormatter.DisabledContentTypeNames).Classes.Select(c => c.Name);
+            settings.AllowedTypes = settings?.AllowedTypes?.Where(allowedType => allAllowedTypeNames.Contains(allowedType)).ToList();
             var allowMultiple = settings?.AllowMultiple != null && settings.AllowMultiple.Value;
             var allowedTypes = "GenericContent";
             if (settings?.AllowedTypes?.Count > 0)
