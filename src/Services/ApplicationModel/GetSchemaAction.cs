@@ -3,6 +3,7 @@ using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Schema.Metadata;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -18,15 +19,14 @@ namespace SenseNet.Services.ApplicationModel
         private readonly string[] FieldSettingPropertyBlackList =
         {
             "Aspect", "ShortName", "FieldClassName", "DisplayNameStoredValue", "DescriptionStoredValue", "Bindings",
-            "IsRerouted", "Owner", "ParentFieldSetting", "FullName", "BindingName", "IndexingInfo", "OutputMethod",
-            "Visible", "LocalizationEnabled", "FieldDataType"
+            "IsRerouted", "Owner", "ParentFieldSetting", "FullName", "BindingName", "IndexingInfo", "LocalizationEnabled"
         };
 
         // from TypescriptFormatter. ToDo: put this somewhere. const? web.config? Setting?
         public readonly string[] ContentTypeBlacklist = new[]
                 {"Application", "ApplicationCacheFile", "FieldSettingContent", "JournalNode"};
 
-        private object getSerializableFieldSetting(FieldSetting fieldSetting)
+        private object GetSerializableFieldSetting(FieldSetting fieldSetting)
         {
             var settings = new Dictionary<string, object> { };
 
@@ -39,7 +39,10 @@ namespace SenseNet.Services.ApplicationModel
             {
                 var name = propertyInfo.Name;
                 var value = propertyInfo.GetValue(fieldSetting);
-                if (value != null)
+                if (value is Type)
+                {
+                    settings.Add(name, (value as Type).Name);
+                } else if (value != null)
                     settings.Add(name, value);
 
             }
@@ -48,7 +51,7 @@ namespace SenseNet.Services.ApplicationModel
             return JsonConvert.DeserializeObject(JsonConvert.SerializeObject(settings));
         }
 
-        private object getSerializableSchemaClass(Class schemaClass)
+        private object GetSerializableSchemaClass(Class schemaClass)
         {
             return new
             {
@@ -62,7 +65,7 @@ namespace SenseNet.Services.ApplicationModel
                 AllowedChildTypes = schemaClass.ContentType.AllowedChildTypeNames,
                 FieldSettings = schemaClass.ContentType.FieldSettings
                           .Where(f => f.Owner == schemaClass.ContentType)
-                          .Select(f => getSerializableFieldSetting(f))
+                          .Select(f => GetSerializableFieldSetting(f))
             };
         }
 
@@ -75,9 +78,8 @@ namespace SenseNet.Services.ApplicationModel
 
         public override object Execute(Content content, params object[] parameters)
         {
-            var serializerSettings = new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore };
             var schema = new Schema(ContentTypeBlacklist)
-                .Classes.Select(ct => getSerializableSchemaClass(ct));
+                .Classes.Select(ct => GetSerializableSchemaClass(ct));
             return schema;
         }
     }
