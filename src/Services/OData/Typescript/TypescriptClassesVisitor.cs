@@ -2,24 +2,23 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Schema.Metadata;
 
 namespace SenseNet.Portal.OData.Typescript
 {
     internal class TypescriptClassesVisitor : TypescriptModuleWriter
     {
+        public static readonly string[] RequiredFields = new []{ "Id", "Name", "Path", "Type" };
+
         public TypescriptClassesVisitor(TypescriptGenerationContext context, TextWriter writer) : base(context, writer) { }
 
         protected override IMetaNode VisitSchema(ContentRepository.Schema.Metadata.Schema schema)
         {
             _writer.WriteLine(@"/**
+ * The Content Repository contains many different types of *Content*. *Content* vary in structure and even in function.
  *
- * @module ContentTypes
- * @preferred
- *
- *
- * @description The Content Repository contains many different types of ```Content```. ```Content``` vary in structure and even in function. Different types of content contain different fields,
- * are displayed with different views, and may also implement different business logic. The fields, views and business logic of a content is defined by its type - the Content Type.
+ * Different types of content contain different fields, are displayed with different views, and may also implement different business logic. The fields, views and business logic of a content is defined by its type - the Content Type.
  *
  * Content Types are defined in a type hierarchy: a Content Type may be inherited from another Content Type - thus automatically inheriting its fields.
  *
@@ -28,15 +27,21 @@ namespace SenseNet.Portal.OData.Typescript
  * types or check the required ones.
  *
  *//** */
-import { Enums, ComplexTypes } from './SN';
-import { ContentListReferenceField, ContentReferenceField } from './ContentReferences';
 
+// tslint:disable:naming-convention
 
+import * as ComplexTypes from ""./ComplexTypes"";
+import * as Enums from ""./Enums"";
+import { IActionModel } from ""./IActionModel"";
+
+export type ContentReferenceField<T> = ComplexTypes.DeferredObject | T | number;
+export type ContentListReferenceField<T> = ComplexTypes.DeferredObject | T[] | number[];
+
+export type BinaryField = ComplexTypes.MediaResourceObject;
 ");
 
             // Do not call base because only classes will be read.
             Visit(schema.Classes);
-
             return schema;
         }
         protected override IMetaNode VisitClass(Class @class)
@@ -45,17 +50,23 @@ import { ContentListReferenceField, ContentReferenceField } from './ContentRefer
             var propertyLines = new List<string>();
             foreach (var property in visitedProperties)
             {
-                propertyLines.Add($"{property.Name}?: {GetPropertyTypeName(property)};");
+                var fieldDescription = SenseNetResourceManager.Current.GetString(property.FieldSetting.Description);
+                if (!string.IsNullOrWhiteSpace(fieldDescription))
+                {
+                    propertyLines.Add($" /* {fieldDescription} */");
+                }
+                var isRequired = RequiredFields.Contains(property.Name) ? "!" : "?";
+                propertyLines.Add($"public {property.Name}{isRequired}: {GetPropertyTypeName(property)};");
             }
 
             var type = @class.Name;
             var parentName = @class.BaseClassName;
             WriteLine($"/**");
-            WriteLine($" * Class representing a {type}");
-            WriteLine($" * @class {type}");
-            if (!string.IsNullOrWhiteSpace(parentName))
+            var description = SenseNetResourceManager.Current.GetString(@class.ContentType.Description);
+
+            if (!string.IsNullOrWhiteSpace(description))
             {
-                WriteLine($" * @extends {{@link {parentName}" + "}");
+                WriteLine($" * {description}");
             }
             WriteLine($" */");
             if (!string.IsNullOrWhiteSpace(parentName))
@@ -69,7 +80,9 @@ import { ContentListReferenceField, ContentReferenceField } from './ContentRefer
             
             _indentCount++;
             foreach (var propertyLine in propertyLines)
+            {
                 WriteLine(propertyLine);
+            }
             WriteLine();
             _indentCount--;
             WriteLine("}");
