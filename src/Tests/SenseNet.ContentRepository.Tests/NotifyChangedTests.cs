@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Linq;
+﻿using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
 using SenseNet.Tests;
+// ReSharper disable UnusedMember.Local
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -26,6 +23,7 @@ namespace SenseNet.ContentRepository.Tests
     <Field name='ShortTextField1' type='ShortText'>
       <Bind property='ShortText1' />
     </Field>
+    <Field name='CustomInt1' type='Integer' />
   </Fields>
 </ContentType>";
 
@@ -34,13 +32,28 @@ namespace SenseNet.ContentRepository.Tests
             protected ContentHandler1(NodeToken nt) : base(nt) { }
 
             [RepositoryProperty(nameof(ShortText1), RepositoryDataType.String)]
-            public virtual string ShortText1
+            public string ShortText1
             {
                 get => base.GetProperty<string>(nameof(ShortText1));
                 set => this[nameof(ShortText1)] = value;
             }
-        }
 
+            private int _customInt1;
+            public int CustomInt1
+            {
+                get => _customInt1;
+                set
+                {
+                    _customInt1 = value;
+                    notifypropertychanged();
+                }
+            }
+
+            private void notifypropertychanged([CallerMemberName] string propertyName = null)
+            {
+                base.PropertyChanged(propertyName);
+            }
+        }
 
 
         [TestMethod]
@@ -186,6 +199,38 @@ namespace SenseNet.ContentRepository.Tests
                 node.Save();
                 Assert.AreSame(content, node.Content);
                 Assert.AreEqual(testValue, (string)content[fieldName]);
+            });
+        }
+
+        [TestMethod]
+        public void NotifyChanged_CustomProperty()
+        {
+            var contentName = MethodBase.GetCurrentMethod().Name;
+
+            Test(() =>
+            {
+                ContentTypeInstaller.InstallContentType(ContentHandler1.CTD);
+                var root = CreateTestRoot();
+                var node = new ContentHandler1(root) { Name = contentName };
+                var content = node.Content;
+                const string fieldName = nameof(node.CustomInt1);
+                var testValue = 1;
+
+                node.CustomInt1 = testValue;
+                Assert.AreEqual(testValue, (int)content[fieldName]);
+
+                content[fieldName] = 42;
+                Assert.AreEqual("TestValue42", (int)content[fieldName]);
+                Assert.AreEqual(testValue, node.CustomInt1);
+
+                testValue = 2;
+                node.CustomInt1 = testValue;
+                Assert.AreEqual(testValue, (int)content[fieldName]);
+
+                content[fieldName] = 42;
+                node.Save();
+                Assert.AreSame(content, node.Content);
+                Assert.AreEqual(testValue, (int)content[fieldName]);
             });
         }
 
