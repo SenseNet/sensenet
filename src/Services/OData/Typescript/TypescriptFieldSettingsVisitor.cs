@@ -20,7 +20,7 @@ namespace SenseNet.Portal.OData.Typescript
             _writer.WriteLine(@"/**
  * @module FieldSettings
  * @preferred
- * 
+ *
  * @description Module for FieldSettings.
  *
  * FieldSetting object is the implementation of the configuration element in a Sense/Net Content Type Definition.
@@ -29,38 +29,43 @@ namespace SenseNet.Portal.OData.Typescript
  * client-side e.g. for validation.
  *
  * This module also contains some FieldSetting related enums to use them as types in properties e.g. visibitily or datetime mode options.
- */ /** */
+ */
 
- import * as ComplexTypes from ""./ComplexTypes"";
+import * as ComplexTypes from ""./ComplexTypes"";
 
 /**
-    * Enum for Field visibility values.
-    */
+ * Enum for Field visibility values.
+ */
 export enum FieldVisibility { Show, Hide, Advanced }
 /**
-    * Enum for Field output method values.
-    */
+ * Enum for Field output method values.
+ */
 export enum OutputMethod { Default, Raw, Text, Html }
 /**
-    * Enum for Choice Field control values.
-    */
+ * Enum for Choice Field control values.
+ */
 export enum DisplayChoice { DropDown, RadioButtons, CheckBoxes }
 /**
-    * Enum for DateTime Field mode values.
-    */
+ * Enum for DateTime Field mode values.
+ */
 export enum DateTimeMode { None, Date, DateAndTime }
 /**
-    * Enum for DateTime Field precision values.
-    */
+ * Enum for DateTime Field precision values.
+ */
 export enum DateTimePrecision { Millisecond, Second, Minute, Hour, Day }
 /**
-    * Enum for LongText field editor values.
-    */
+ * Enum for LongText field editor values.
+ */
 export enum TextType { LongText, RichText, AdvancedRichText }
 /**
-    * Enum for HyperLink field href values.
-    */
+ * Enum for HyperLink field href values.
+ */
 export enum UrlFormat { Hyperlink, Picture }
+
+// tslint:disable-next-line:only-arrow-functions
+export function isFieldSettingOfType<T extends FieldSetting>(setting: FieldSetting, type: { new(): T }): setting is T {
+    return setting.Type === type.name;
+}
 
 export class FieldSetting {
     public Name!: string;
@@ -85,9 +90,7 @@ export class FieldSetting {
             #endregion
 
             // Do not call base because only classes will be read.
-            _indentCount++;
             Visit(schema.Classes);
-            _indentCount--;
 
             return schema;
         }
@@ -127,7 +130,6 @@ export class FieldSetting {
 
             _indentCount--;
             WriteLine("}");
-            WriteLine();
         }
         private string[] _wellKnownEnums =
         {
