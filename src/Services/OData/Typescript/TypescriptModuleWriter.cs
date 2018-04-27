@@ -5,10 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 using SenseNet.ContentRepository.Fields;
 using SenseNet.ContentRepository.Schema.Metadata;
-using SenseNet.ContentRepository.Storage.Search;
 
 namespace SenseNet.Portal.OData.Typescript
 {
@@ -17,12 +15,13 @@ namespace SenseNet.Portal.OData.Typescript
         protected const string STRING = "string";
         protected const string NUMBER = "number";
         protected static readonly string MediaResourceObject = $"{TypescriptGenerationContext.ComplexTypesModuleName}.MediaResourceObject";
+        protected static readonly string GenericReferenceList = $"ContentListReferenceField<GenericContent>";
 
         protected static string[] FieldSettingPropertyBlackList =
         {
             "Aspect", "ShortName", "FieldClassName", "DisplayNameStoredValue", "DescriptionStoredValue", "Bindings",
             "IsRerouted", "Owner", "ParentFieldSetting", "FullName", "BindingName", "IndexingInfo", "OutputMethod",
-            "Visible", "LocalizationEnabled", "FieldDataType"
+            "LocalizationEnabled"
         };
 
         protected static Dictionary<string, string> SimplifiedProperties = new Dictionary<string, string>
@@ -30,11 +29,12 @@ namespace SenseNet.Portal.OData.Typescript
             {"Rating", STRING},
             {"NodeType", STRING},
             {"Version", STRING},
-            {"AllowedChildTypes", STRING},
             {"TextExtractors", STRING},
             {"UrlList", STRING},
             {"Image", MediaResourceObject},
             {"Binary", MediaResourceObject},
+            {"EffectiveAllowedChildTypes", GenericReferenceList },
+            {"AllowedChildTypes", GenericReferenceList }
         };
 
         protected readonly TextWriter _writer;
@@ -61,16 +61,18 @@ namespace SenseNet.Portal.OData.Typescript
 
             var stringValue = value as string;
             if (stringValue != null)
-                return "'" + stringValue.Replace("\\", "\\\\").Replace("'", "\\'").Replace("\r\n", "\\").Replace("\r", "\\").Replace("\n", "\\") + "'";
+                return "\"" + stringValue.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\r\n", "\\").Replace("\r", "\\").Replace("\n", "\\") + "\"";
 
             var stringEnumerable = value as IEnumerable<string>;
             if (stringEnumerable != null)
-                return "[" + string.Join(",", stringEnumerable.Select(s => "'" + s + "'").ToArray()) + "]";
+                return "[" + string.Join(", ", stringEnumerable.Select(s => "\"" + s + "\"").ToArray()) + "]";
 
             var choiceOptionEnumerable = value as IEnumerable<ChoiceOption>;
             if (choiceOptionEnumerable != null)
                 return GetChoiceOptions(choiceOptionEnumerable);
 
+            if (value is Type)
+                return $"\"{(value as Type).Name}\"";
             var type = value.GetType();
             var prefix = type.IsEnum ? $"FieldSettings.{type.Name}." : string.Empty;
 
@@ -91,7 +93,7 @@ namespace SenseNet.Portal.OData.Typescript
                     sb.AppendLine();
                 else
                     sb.AppendLine(",");
-                sb.Append($"{indent}{{Value: '{option.Value}', Text: '{option.Text}', Enabled: {option.Enabled.ToString().ToLowerInvariant()}, Selected: {option.Selected.ToString().ToLowerInvariant()} }}");
+                sb.Append($"{indent}{{Value: \"{option.Value}\", Text: \"{option.Text}\", Enabled: {option.Enabled.ToString().ToLowerInvariant()}, Selected: {option.Selected.ToString().ToLowerInvariant()} }}");
             }
             sb.AppendLine();
             indent = indent.Substring(_indent.Length);
