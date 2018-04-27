@@ -18,6 +18,7 @@ using SenseNet.Preview;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Search.Querying;
 using SenseNet.Tools;
+using System.Runtime.CompilerServices;
 // ReSharper disable ArrangeThisQualifier
 // ReSharper disable VirtualMemberCallInConstructor
 // ReSharper disable RedundantBaseQualifier
@@ -300,7 +301,7 @@ namespace SenseNet.ContentRepository
         /// </summary>
         public Content Content => _content ?? (_content = Content.Create(this));
 
-        protected override void PropertyChanged(string propertyName)
+        protected override void PropertyChanged([CallerMemberName] string propertyName = null)
         {
             this.Content.PropertyChanged(propertyName);
             base.PropertyChanged(propertyName);

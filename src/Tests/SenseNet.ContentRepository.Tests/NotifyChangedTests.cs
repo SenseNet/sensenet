@@ -45,13 +45,36 @@ namespace SenseNet.ContentRepository.Tests
                 set
                 {
                     _customInt1 = value;
-                    notifypropertychanged();
+                    PropertyChanged();
                 }
             }
 
-            private void notifypropertychanged([CallerMemberName] string propertyName = null)
+            public override object GetProperty(string name)
             {
-                base.PropertyChanged(propertyName);
+                switch (name)
+                {
+                    case nameof(ShortText1):
+                        return this.ShortText1;
+                    case nameof(CustomInt1):
+                        return this.CustomInt1;
+                    default:
+                        return base[name];
+                }
+            }
+            public override void SetProperty(string name, object value)
+            {
+                switch (name)
+                {
+                    case nameof(ShortText1):
+                        this.ShortText1 = (string)value;
+                        break;
+                    case nameof(CustomInt1):
+                        this.CustomInt1 = (int)value;
+                        break;
+                    default:
+                        base[name] = value;
+                        break;
+                }
             }
         }
 
@@ -220,7 +243,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(testValue, (int)content[fieldName]);
 
                 content[fieldName] = 42;
-                Assert.AreEqual("TestValue42", (int)content[fieldName]);
+                Assert.AreEqual(42, (int)content[fieldName]);
                 Assert.AreEqual(testValue, node.CustomInt1);
 
                 testValue = 2;
