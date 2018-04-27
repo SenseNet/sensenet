@@ -24,9 +24,9 @@ namespace SenseNet.Portal.OData.Typescript
  * This module provides us description of this Content schemas in Typesript.
  *
  * The ```Schema``` class represents an object that holds the basic information about the Content Type (name, icon, ect.) and an array of its ```FieldSettings``` and their full configuration.
- */ /** */
+ */
 
-import * as FieldSettings from './FieldSettings';
+import * as FieldSettings from ""./FieldSettings"";
 
 /**
  * Class that represents a Schema.
@@ -34,16 +34,15 @@ import * as FieldSettings from './FieldSettings';
  * It represents an object that holds the basic information about the Content Type (name, icon, ect.) and an array of its ```FieldSettings``` and their full configuration.
  */
 export class Schema {
-    public ContentTypeName: string;
-    public ParentTypeName?: string;
-
-    public Icon: string;
-    public DisplayName: string;
-    public Description: string;
-    public AllowIndexing: boolean;
-    public AllowIncrementalNaming: boolean;
-    public AllowedChildTypes: string[];
-    public FieldSettings: FieldSettings.FieldSetting[];
+     public ContentTypeName!: string;
+     public ParentTypeName?: string;
+     public Icon!: string;
+     public DisplayName!: string;
+     public Description!: string;
+     public AllowIndexing!: boolean;
+     public AllowIncrementalNaming!: boolean;
+     public AllowedChildTypes!: string[];
+     public FieldSettings!: FieldSettings.FieldSetting[];
 }
 
 export const SchemaStore: Schema[] = [
@@ -55,26 +54,27 @@ export const SchemaStore: Schema[] = [
             Visit(schema.Classes);
             _indentCount--;
 
-            _writer.WriteLine(@"]");
+            _writer.WriteLine(@"];");
+            _writer.WriteLine();
             return schema;
         }
 
         protected override IMetaNode VisitClass(Class @class)
         {
             var contentType = @class.ContentType;
-            var allowedChildTypes = string.Join("', '", contentType.AllowedChildTypeNames);
+            var allowedChildTypes = string.Join("\", \"", contentType.AllowedChildTypeNames);
             if (allowedChildTypes.Length > 0)
-                allowedChildTypes = "'" + allowedChildTypes + "'";
+                allowedChildTypes = "\"" + allowedChildTypes + "\"";
             WriteLine("{");
             _indentCount++;
-            WriteLine($"ContentTypeName: '{contentType.Name}',");
+            WriteLine($"ContentTypeName: \"{contentType.Name}\",");
             if (!string.IsNullOrWhiteSpace(contentType.ParentTypeName))
             {
-                WriteLine($"ParentTypeName: '{contentType.ParentTypeName}',");
+                WriteLine($"ParentTypeName: \"{contentType.ParentTypeName}\",");
             }
-            WriteLine($"DisplayName: '{contentType.DisplayName}',");
-            WriteLine($"Description: '{contentType.Description}',");
-            WriteLine($"Icon: '{contentType.Icon}',");
+            WriteLine($"DisplayName: \"{contentType.DisplayName}\",");
+            WriteLine($"Description: \"{contentType.Description}\",");
+            WriteLine($"Icon: \"{contentType.Icon}\",");
             WriteLine($"AllowIndexing: {contentType.IndexingEnabled.ToString().ToLowerInvariant()},");
             WriteLine($"AllowIncrementalNaming: {contentType.AllowIncrementalNaming.ToString().ToLowerInvariant()},");
             WriteLine($"AllowedChildTypes: [{allowedChildTypes}],");
@@ -84,7 +84,6 @@ export const SchemaStore: Schema[] = [
 
             WriteLine($"]");
             WriteLine($"}},");
-            WriteLine();
 
             _indentCount--;
 
@@ -111,7 +110,7 @@ export const SchemaStore: Schema[] = [
             _indentCount++;
             WriteLine("{");
             _indentCount++;
-            WriteLine($"Type: '{property.FieldSetting.GetType().Name}',");
+            WriteLine($"Type: \"{property.FieldSetting.GetType().Name}\",");
             for (int i = 0; i < propertyLines.Count; i++)
             {
                 var comma = i < propertyLines.Count - 1 ? "," : "";
