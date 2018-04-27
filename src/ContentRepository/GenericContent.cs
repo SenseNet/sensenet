@@ -300,6 +300,12 @@ namespace SenseNet.ContentRepository
         /// </summary>
         public Content Content => _content ?? (_content = Content.Create(this));
 
+        protected override void PropertyChanged(string propertyName)
+        {
+            this.Content.PropertyChanged(propertyName);
+            base.PropertyChanged(propertyName);
+        }
+
         /// <summary>
         /// Initializes default field values in case of a new instance that is not yet saved to the database.
         /// </summary>
@@ -1695,6 +1701,10 @@ namespace SenseNet.ContentRepository
             // if related workflows should be kept alive, update them on a separate thread
             if (_keepWorkflowsAlive)
                 System.Threading.Tasks.Task.Run(() => UpdateRelatedWorkflows());
+
+            if(_content != null)
+                foreach(var field in _content.Fields.Values)
+                    field.Reset();
         }
 
         private bool _keepWorkflowsAlive;

@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Storage
 {
@@ -214,6 +215,7 @@ namespace SenseNet.ContentRepository.Storage
 
             staticData[index] = value;
             staticDataIsModified[index] = true;
+            PropertyChanged(slot.ToString());
         }
         private void Reset(int index)
         {
@@ -505,6 +507,8 @@ namespace SenseNet.ContentRepository.Storage
             {
                 ResetDynamicRawData(propertyType);
             }
+
+            PropertyChanged(propertyType.Name);
         }
 
         internal void CheckChanges(PropertyType propertyType)
@@ -1243,5 +1247,11 @@ namespace SenseNet.ContentRepository.Storage
                     throw new InvalidOperationException("Unknown datetime kind: " + dateTime.Kind);
             }
        }
+
+        internal Action<string> PropertyChangedCallback;
+        protected virtual void PropertyChanged(string propertyName)
+        {
+            PropertyChangedCallback?.Invoke(propertyName);
+        }
     }
 }

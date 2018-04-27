@@ -288,6 +288,11 @@ namespace SenseNet.ContentRepository
             this.Content.FieldChanged();
             _isValidated = false;
         }
+        internal void Reset()
+        {
+            Value = null;
+            _changed = false;
+        }
 
         internal bool Validate()
         {
