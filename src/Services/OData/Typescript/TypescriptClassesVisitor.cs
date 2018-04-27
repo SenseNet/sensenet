@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using SenseNet.ContentRepository.i18n;
@@ -84,10 +83,13 @@ export type BinaryField = ComplexTypes.MediaResourceObject;
                 WriteLine(propertyLine);
             }
             WriteLine();
+            if (string.IsNullOrWhiteSpace(parentName))
+            {
+                WriteLine("public Actions?: ContentListReferenceField<IActionModel>;");
+                WriteLine("public Type!: string;");
+            }
             _indentCount--;
             WriteLine("}");
-
-            WriteLine();
 
             if (@class.Properties == visitedProperties)
                 return @class;
