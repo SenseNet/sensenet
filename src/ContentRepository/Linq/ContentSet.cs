@@ -21,6 +21,8 @@ namespace SenseNet.ContentRepository.Linq
 
         Content First();
         Content FirstOrDefault();
+        Content Last();
+        Content LastOrDefault();
     }
     public class ContentSet<T> : IOrderedEnumerable<T>, IQueryProvider, ISnQueryable<T>
     {
@@ -78,6 +80,14 @@ namespace SenseNet.ContentRepository.Linq
             throw new SnNotSupportedException("SnLinq: ContentSet.First");
         }
         public Content FirstOrDefault()
+        {
+            throw new SnNotSupportedException("SnLinq: ContentSet.FirstOrDefault");
+        }
+        public Content Last()
+        {
+            throw new SnNotSupportedException("SnLinq: ContentSet.First");
+        }
+        public Content LastOrDefault()
         {
             throw new SnNotSupportedException("SnLinq: ContentSet.FirstOrDefault");
         }
@@ -154,7 +164,7 @@ namespace SenseNet.ContentRepository.Linq
             if (!this.ExecuteQuery)
                 count = ChildrenDefinition.BaseCollection.Count();
 
-            var query = SnExpression.BuildQuery(expression, typeof(T), this.ContextPath, this.ChildrenDefinition);
+            var query = SnExpression.BuildQuery(expression, typeof(T), this.ContextPath, this.ChildrenDefinition, out var elementSelection);
             if (TracingEnabled)
             {
                 TraceLog.Append("Expression: ").AppendLine(expression.ToString());
@@ -197,9 +207,22 @@ namespace SenseNet.ContentRepository.Linq
                 }
                 // ReSharper disable once PossibleNullReferenceException
                 // Result cannot be null here because the query definitely executed.
-                if (this.ExecuteQuery)
-                    return (TResult)Convert.ChangeType(Content.Load(result.Hits.First()), typeof(TResult));
-                return (TResult)Convert.ChangeType(Content.Create(ChildrenDefinition.BaseCollection.First()), typeof(TResult));
+
+                switch (elementSelection)
+                {
+                    case "first":
+                        return this.ExecuteQuery
+                            ? (TResult)Convert.ChangeType(Content.Load(result.Hits.FirstOrDefault()), typeof(TResult))
+                            : (TResult)Convert.ChangeType(Content.Create(ChildrenDefinition.BaseCollection.FirstOrDefault()), typeof(TResult));
+                    case "last":
+                        return this.ExecuteQuery
+                            ? (TResult)Convert.ChangeType(Content.Load(result.Hits.LastOrDefault()), typeof(TResult))
+                            : (TResult)Convert.ChangeType(Content.Create(ChildrenDefinition.BaseCollection.LastOrDefault()), typeof(TResult));
+                    case "single":
+                        return this.ExecuteQuery
+                            ? (TResult)Convert.ChangeType(Content.Load(result.Hits.SingleOrDefault()), typeof(TResult))
+                            : (TResult)Convert.ChangeType(Content.Create(ChildrenDefinition.BaseCollection.SingleOrDefault()), typeof(TResult));
+                }
             }
 
             throw new SnNotSupportedException("SnLinq: ContentSet.Execute<TResult>");

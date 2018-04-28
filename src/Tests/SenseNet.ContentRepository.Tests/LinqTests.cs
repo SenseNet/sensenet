@@ -14,6 +14,8 @@ using SenseNet.Tests;
 
 namespace SenseNet.ContentRepository.Tests
 {
+    // Testmethod name convention: Linq_   query compilation tests
+    //                             LinqEx_ execution tests e.g. First, ElementAt, Min etc.
     [TestClass]
     public class LinqTests : TestBase
     {
@@ -521,102 +523,6 @@ namespace SenseNet.ContentRepository.Tests
         //}
 
         [TestMethod, TestCategory("IR, LINQ")]
-        public void Linq_First()
-        {
-            //.First(c => ...), .FirstOrDefault(c => ...)
-
-            Test(() =>
-            {
-                var content = Content.All.DisableAutofilters().Where(c => c.Id < 6).OrderByDescending(c => c.Id).First();
-                Assert.AreEqual(5, content.Id);
-            });
-        }
-        //[TestMethod, ExpectedException(typeof(InvalidOperationException))]
-        //public void Linq_First_OnEmpty()
-        //{
-        //    var content = Content.All.DisableAutofilters().Where(c => c.Id < 0).OrderByDescending(c => c.Id).First();
-        //}
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void Linq_FirstOrDefault()
-        //{
-        //    var content = Content.All.DisableAutofilters().Where(c => c.Id < 6).OrderByDescending(c => c.Id).FirstOrDefault();
-        //    Assert.AreEqual(5, content.Id);
-        //}
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void Linq_FirstOrDefault_OnEmpty()
-        //{
-        //    var content = Content.All.DisableAutofilters().Where(c => c.Id < 0).OrderByDescending(c => c.Id).FirstOrDefault();
-        //    Assert.IsNull(content);
-        //}
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void Linq_First_WithPredicate()
-        //{
-        //    var content = Content.All.DisableAutofilters().Where(c => c.Id < 10).OrderByDescending(c => c.Id).First(c => c.Id < 4);
-        //    Assert.AreEqual(3, content.Id);
-        //}
-        //[TestMethod, ExpectedException(typeof(InvalidOperationException))]
-        //public void Linq_First_WithPredicate_EmptySource()
-        //{
-        //    //var x = Enumerable.Range(1, 100).Where(i => i > 10).OrderByDescending(i => i).First(i => i < 4);
-        //    var content = Content.All.DisableAutofilters().Where(c => c.Id > 10).OrderByDescending(c => c.Id).First(c => c.Id < 4);
-        //    Assert.AreEqual(3, content.Id);
-        //}
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void Linq_FirstOrDefault_WithPredicate()
-        //{
-        //    var content = Content.All.DisableAutofilters().Where(c => c.Id < 10).OrderByDescending(c => c.Id).FirstOrDefault(c => c.Id < 4);
-        //    Assert.AreEqual(3, content.Id);
-        //}
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void Linq_FirstOrDefault_WithPredicate_EmptySource()
-        //{
-        //    //var x = Enumerable.Range(1, 100).Where(i => i > 10).OrderByDescending(i => i).FirstOrDefault(i => i < 4);
-        //    var content = Content.All.DisableAutofilters().Where(c => c.Id > 10).OrderByDescending(c => c.Id).FirstOrDefault(c => c.Id < 4);
-        //    Assert.IsNull(content);
-        //}
-
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void Linq_CountOnly()
-        //{
-        //    var qresult = ContentQuery.Query(string.Concat("InFolder:", TestRoot.Path, " .AUTOFILTERS:OFF .COUNTONLY"));
-        //    var expected = qresult.Count;
-
-        //    var actual = Content.All.DisableAutofilters().Where(c => c.InFolder(TestRoot)).Count();
-        //    Assert.AreEqual(expected, actual);
-        //}
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void Linq_CountIsDeferred()
-        //{
-        //    string log = null;
-        //    try
-        //    {
-        //        ContentSet<Content>.TracingEnabled = true;
-        //        var count = Content.All.DisableAutofilters().Where(c => c.InFolder(TestRoot)).Count();
-        //        log = ContentSet<Content>.TraceLog.ToString();
-        //    }
-        //    finally
-        //    {
-        //        ContentSet<Content>.TraceLog.Clear();
-        //        ContentSet<Content>.TracingEnabled = false;
-        //    }
-        //    Assert.IsTrue(log.Contains(".COUNTONLY"));
-        //}
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void Linq_Count_WithPredicate()
-        //{
-        //    Assert.AreEqual(6, Content.All.DisableAutofilters().Count(c => c.Id < 7));
-        //    Assert.AreEqual(4, Content.All.DisableAutofilters().Where(c => c.Id > 2).Count(c => c.Id < 7));
-        //}
-
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void Linq_Any()
-        //{
-        //    Assert.IsFalse(Content.All.DisableAutofilters().Any(c => c.Id == 0), "#1");
-        //    Assert.IsTrue(Content.All.DisableAutofilters().Any(c => c.Id == 1), "#2");
-        //    Assert.IsTrue(Content.All.DisableAutofilters().Any(c => c.Id > 0), "#3");
-        //}
-
-        [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_InFolder()
         {
             Test(() =>
@@ -969,44 +875,6 @@ Id:<42 .QUICK";
             });
         }
 
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void Linq_OfTypeAndFirst()
-        //{
-        //    var email = "admin@b.c";
-        //    var user = new User(User.Administrator.Parent);
-        //    user.Name = "testuser129";
-        //    user.Email = email;
-        //    user.Save();
-
-        //    var result = Content.All.OfType<User>().FirstOrDefault(c => c.InTree(Repository.ImsFolderPath) && c.Email == email);
-        //    Assert.IsTrue(result != null);
-        //}
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void Linq_OfTypeAndWhere()
-        //{
-        //    string path = "/Root/IMS/BuiltIn/Portal";
-        //    User user = User.Administrator;
-        //    var ok = Content.All.OfType<Group>().Where(g => g.InTree(path)).AsEnumerable().Any(g => user.IsInGroup(g));
-        //    Assert.IsTrue(ok);
-        //}
-
-        ////---------------------------------------------------------------------------------------------------------
-
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void Linq_Error_UnknownField()
-        //{
-        //    try
-        //    {
-        //        var x = Content.All.Where(c => (int)c["UnknownField"] == 42).ToArray();
-        //        Assert.Fail("The expected InvalidOperationException was not thrown.");
-        //    }
-        //    catch (InvalidOperationException e)
-        //    {
-        //        var msg = e.Message;
-        //        Assert.IsTrue(msg.ToLower().Contains("unknown field"), "Error message does not contain: 'unknown field'.");
-        //        Assert.IsTrue(msg.Contains("UnknownField"), "Error message does not contain the field name: 'UnknownField'.");
-        //    }
-        //}
         [TestMethod, TestCategory("IR, LINQ")]
         [SuppressMessage("ReSharper", "UnusedVariable")]
         public void Linq_Error_NotConstants()
@@ -1026,7 +894,7 @@ Id:<42 .QUICK";
             });
         }
 
-        //---------------------------------------------------------------------------------------------------------
+        /* ------------------------------------------------------------------------------------------- */ 
 
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_OptimizeBooleans()
@@ -1046,7 +914,7 @@ Id:<42 .QUICK";
             });
         }
 
-        //---------------------------------------------------------------------------------------------------------
+        /* ------------------------------------------------------------------------------------------- */
 
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_AspectField()
@@ -1076,7 +944,149 @@ Id:<42 .QUICK";
             });
         }
 
-        //========================================================================================================= bugz
+
+
+        /* ========================================================================================== LinqEx_ */
+        /* When the framework calls Provider.Execute */
+
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void LinqEx_FirstLastSingle()
+        {
+            Test(() =>
+            {
+                // ======== First()
+                Assert.AreEqual(5, Content.All.DisableAutofilters().Where(c => c.Id < 6).OrderByDescending(c => c.Id).First().Id);
+                Assert.AreEqual(5, Content.All.DisableAutofilters().Where(c => c.Id < 10).OrderByDescending(c => c.Id).First(c => c.Id < 6).Id);
+                // empty
+                InvalidOperationTest(() => { Content.All.Where(c => c.Id < 0).First(); });
+                InvalidOperationTest(() => { Content.All.First(c => c.Id < 0); });
+
+                // ======== FirstOrDefault()
+                Assert.AreEqual(5, Content.All.DisableAutofilters().Where(c => c.Id < 6).OrderByDescending(c => c.Id).FirstOrDefault().Id);
+                Assert.AreEqual(5, Content.All.DisableAutofilters().Where(c => c.Id < 10).OrderByDescending(c => c.Id).FirstOrDefault(c => c.Id < 6).Id);
+                // empty
+                Assert.IsNull(Content.All.Where(c => c.Id < 0).FirstOrDefault());
+                Assert.IsNull(Content.All.Where(c => c.Id < 0).FirstOrDefault(c => c.Id < 4));
+
+                // ======== Last()
+                Assert.AreEqual(5, Content.All.DisableAutofilters().Where(c => c.Id < 6).OrderBy(c => c.Id).Last().Id);
+                Assert.AreEqual(5, Content.All.DisableAutofilters().Where(c => c.Id < 10).OrderBy(c => c.Id).Last(c => c.Id < 6).Id);
+                // empty
+                InvalidOperationTest(() => { Content.All.Where(c => c.Id < 0).Last(); });
+                InvalidOperationTest(() => { Content.All.Last(c => c.Id < 0); });
+
+                // ======== LastOrDefault()
+                Assert.AreEqual(5, Content.All.DisableAutofilters().Where(c => c.Id < 6).OrderBy(c => c.Id).LastOrDefault().Id);
+                Assert.AreEqual(5, Content.All.DisableAutofilters().Where(c => c.Id < 10).OrderBy(c => c.Id).LastOrDefault(c => c.Id < 6).Id);
+                // empty
+                Assert.IsNull(Content.All.Where(c => c.Id < 0).LastOrDefault());
+                Assert.IsNull(Content.All.Where(c => c.Id < 0).LastOrDefault(c => c.Id < 4));
+
+
+                // ======== Single()
+                Assert.AreEqual(5, Content.All.DisableAutofilters().Where(c => c.Id == 5).Single().Id);
+                Assert.AreEqual(5, Content.All.DisableAutofilters().Single(c => c.Id == 5).Id);
+                // empty
+                InvalidOperationTest(() => { Content.All.Where(c => c.Id < 0).Single(); });
+                InvalidOperationTest(() => { Content.All.Single(c => c.Id < 0); });
+                // more than one
+                InvalidOperationTest(() => { Content.All.Where(c => c.Id < 6).Single(); });
+                InvalidOperationTest(() => { Content.All.Single(c => c.Id < 6); });
+
+                // ======== SingleOrDefault()
+                Assert.AreEqual(5, Content.All.DisableAutofilters().Where(c => c.Id == 5).SingleOrDefault().Id);
+                Assert.AreEqual(5, Content.All.DisableAutofilters().SingleOrDefault(c => c.Id == 5).Id);
+                // empty
+                Assert.IsNull(Content.All.Where(c => c.Id < 0).SingleOrDefault());
+                Assert.IsNull(Content.All.SingleOrDefault(c => c.Id < 0));
+                // more than one
+                InvalidOperationTest(() => { Content.All.Where(c => c.Id < 6).SingleOrDefault(); });
+                InvalidOperationTest(() => { Content.All.SingleOrDefault(c => c.Id < 6); });
+            });
+        }
+
+        //[TestMethod, TestCategory("IR, LINQ")]
+        //public void LinqEx_CountOnly()
+        //{
+        //    var qresult = ContentQuery.Query(string.Concat("InFolder:", TestRoot.Path, " .AUTOFILTERS:OFF .COUNTONLY"));
+        //    var expected = qresult.Count;
+
+        //    var actual = Content.All.DisableAutofilters().Where(c => c.InFolder(TestRoot)).Count();
+        //    Assert.AreEqual(expected, actual);
+        //}
+        //[TestMethod, TestCategory("IR, LINQ")]
+        //public void LinqEx_CountIsDeferred()
+        //{
+        //    string log = null;
+        //    try
+        //    {
+        //        ContentSet<Content>.TracingEnabled = true;
+        //        var count = Content.All.DisableAutofilters().Where(c => c.InFolder(TestRoot)).Count();
+        //        log = ContentSet<Content>.TraceLog.ToString();
+        //    }
+        //    finally
+        //    {
+        //        ContentSet<Content>.TraceLog.Clear();
+        //        ContentSet<Content>.TracingEnabled = false;
+        //    }
+        //    Assert.IsTrue(log.Contains(".COUNTONLY"));
+        //}
+        //[TestMethod, TestCategory("IR, LINQ")]
+        //public void LinqEx_Count_WithPredicate()
+        //{
+        //    Assert.AreEqual(6, Content.All.DisableAutofilters().Count(c => c.Id < 7));
+        //    Assert.AreEqual(4, Content.All.DisableAutofilters().Where(c => c.Id > 2).Count(c => c.Id < 7));
+        //}
+
+        //[TestMethod, TestCategory("IR, LINQ")]
+        //public void LinqEx_Any()
+        //{
+        //    Assert.IsFalse(Content.All.DisableAutofilters().Any(c => c.Id == 0), "#1");
+        //    Assert.IsTrue(Content.All.DisableAutofilters().Any(c => c.Id == 1), "#2");
+        //    Assert.IsTrue(Content.All.DisableAutofilters().Any(c => c.Id > 0), "#3");
+        //}
+        //[TestMethod, TestCategory("IR, LINQ")]
+        //public void LinqEx_OfTypeAndFirst()
+        //{
+        //    var email = "admin@b.c";
+        //    var user = new User(User.Administrator.Parent);
+        //    user.Name = "testuser129";
+        //    user.Email = email;
+        //    user.Save();
+
+        //    var result = Content.All.OfType<User>().FirstOrDefault(c => c.InTree(Repository.ImsFolderPath) && c.Email == email);
+        //    Assert.IsTrue(result != null);
+        //}
+        //[TestMethod, TestCategory("IR, LINQ")]
+        //public void LinqEx_OfTypeAndWhere()
+        //{
+        //    string path = "/Root/IMS/BuiltIn/Portal";
+        //    User user = User.Administrator;
+        //    var ok = Content.All.OfType<Group>().Where(g => g.InTree(path)).AsEnumerable().Any(g => user.IsInGroup(g));
+        //    Assert.IsTrue(ok);
+        //}
+
+        ///* ------------------------------------------------------------------------------------------- */ 
+
+
+        //[TestMethod, TestCategory("IR, LINQ")]
+        //public void LinqEx_Error_UnknownField()
+        //{
+        //    try
+        //    {
+        //        var x = Content.All.Where(c => (int)c["UnknownField"] == 42).ToArray();
+        //        Assert.Fail("The expected InvalidOperationException was not thrown.");
+        //    }
+        //    catch (InvalidOperationException e)
+        //    {
+        //        var msg = e.Message;
+        //        Assert.IsTrue(msg.ToLower().Contains("unknown field"), "Error message does not contain: 'unknown field'.");
+        //        Assert.IsTrue(msg.Contains("UnknownField"), "Error message does not contain the field name: 'UnknownField'.");
+        //    }
+        //}
+
+
+        /* ========================================================================================== bugz */
 
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_OptimizeBooleans_1()
@@ -1261,6 +1271,19 @@ Id:<42 .QUICK";
             foreach (var observer in NodeObserver.GetObserverTypes())
                 node.DisableObserver(observer);
             node.Save();
+        }
+
+        private void InvalidOperationTest(Action action)
+        {
+            try
+            {
+                action();
+                Assert.Fail("InvalidOperationException was not thrown.");
+            }
+            catch (InvalidOperationException e)
+            {
+                // expected exception
+            }
         }
 
     }

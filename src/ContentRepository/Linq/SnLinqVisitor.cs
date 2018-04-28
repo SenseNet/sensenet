@@ -70,6 +70,7 @@ namespace SenseNet.ContentRepository.Linq
         public List<SortInfo> Sort { get; private set; }
         public bool ThrowIfEmpty { get; private set; }
         public bool ExistenceOnly { get; private set; }
+        public string ElementSelection { get; private set; }
 
         public override Expression Visit(Expression node)
         {
@@ -335,6 +336,7 @@ namespace SenseNet.ContentRepository.Linq
                     }
                     throw NotSupportedException(node, "#3");
                 case "First":
+                    ElementSelection = "first";
                     this.Top = 1;
                     this.ThrowIfEmpty = true;
                     if (methodCallExpr.Arguments.Count == 2)
@@ -342,16 +344,45 @@ namespace SenseNet.ContentRepository.Linq
                             CombineTwoPredicatesOnStack();
                     break;
                 case "FirstOrDefault":
+                    ElementSelection = "first";
                     this.ThrowIfEmpty = false;
                     this.Top = 1;
                     if (methodCallExpr.Arguments.Count == 2)
                         if (_predicates.Count > 1) // There is Where in the main expression
                             CombineTwoPredicatesOnStack();
                     break;
+                case "Single":
+                    ElementSelection = "single";
+                    this.ThrowIfEmpty = true;
+                    if (methodCallExpr.Arguments.Count == 2)
+                        if (_predicates.Count > 1)
+                            CombineTwoPredicatesOnStack();
+                    break;
+                case "SingleOrDefault":
+                    ElementSelection = "single";
+                    this.ThrowIfEmpty = false;
+                    if (methodCallExpr.Arguments.Count == 2)
+                        if (_predicates.Count > 1) // There is Where in the main expression
+                            CombineTwoPredicatesOnStack();
+                    break;
                 case "Any":
+                    ElementSelection = "first";
                     this.CountOnly = true;
                     this.ExistenceOnly = true;
                     this.Top = 1;
+                    if (methodCallExpr.Arguments.Count == 2)
+                        if (_predicates.Count > 1)
+                            CombineTwoPredicatesOnStack();
+                    break;
+                case "Last":
+                    ElementSelection = "last";
+                    this.ThrowIfEmpty = true;
+                    if (methodCallExpr.Arguments.Count == 2)
+                        if (_predicates.Count > 1)
+                            CombineTwoPredicatesOnStack();
+                    break;
+                case "LastOrDefault":
+                    ElementSelection = "last";
                     if (methodCallExpr.Arguments.Count == 2)
                         if (_predicates.Count > 1)
                             CombineTwoPredicatesOnStack();
