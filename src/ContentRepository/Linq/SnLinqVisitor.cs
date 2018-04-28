@@ -289,12 +289,11 @@ namespace SenseNet.ContentRepository.Linq
                     var skipExpr = GetArgumentAsConstant(methodCallExpr, 1);
                     this.Skip = (int)skipExpr.Value;
                     break;
+                case "LongCount":
                 case "Count":
-                    if (node.Arguments.Count == 2)
-                    {
+                    if (methodCallExpr.Arguments.Count == 2)
                         if (_predicates.Count > 1) // There is Where in the main expression
                             CombineTwoPredicatesOnStack();
-                    }
                     this.CountOnly = true;
                     break;
                 case "ThenBy":

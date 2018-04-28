@@ -1027,15 +1027,34 @@ Id:<42 .QUICK";
             });
         }
 
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void LinqEx_CountOnly()
-        //{
-        //    var qresult = ContentQuery.Query(string.Concat("InFolder:", TestRoot.Path, " .AUTOFILTERS:OFF .COUNTONLY"));
-        //    var expected = qresult.Count;
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void LinqEx_Any()
+        {
+            Test(() =>
+            {
+                Assert.IsFalse(Content.All.DisableAutofilters().Where(c => c.Id == 0).Any());
+                Assert.IsTrue(Content.All.DisableAutofilters().Where(c => c.Id == 1).Any());
+                Assert.IsTrue(Content.All.DisableAutofilters().Where(c => c.Id > 0).Any());
 
-        //    var actual = Content.All.DisableAutofilters().Where(c => c.InFolder(TestRoot)).Count();
-        //    Assert.AreEqual(expected, actual);
-        //}
+                Assert.IsFalse(Content.All.DisableAutofilters().Any(c => c.Id == 0));
+                Assert.IsTrue(Content.All.DisableAutofilters().Any(c => c.Id == 1));
+                Assert.IsTrue(Content.All.DisableAutofilters().Any(c => c.Id > 0));
+            });
+        }
+
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void LinqEx_CountOnly()
+        {
+            Test(() =>
+            {
+                Assert.AreEqual(9, Content.All.DisableAutofilters().Where(c => c.Id < 10).Count());
+                Assert.AreEqual(9, Content.All.DisableAutofilters().Count(c => c.Id < 10));
+
+                Assert.AreEqual(9L, Content.All.DisableAutofilters().Where(c => c.Id < 10).LongCount());
+                Assert.AreEqual(9L, Content.All.DisableAutofilters().LongCount(c => c.Id < 10));
+            });
+        }
+
         //[TestMethod, TestCategory("IR, LINQ")]
         //public void LinqEx_CountIsDeferred()
         //{
@@ -1053,20 +1072,7 @@ Id:<42 .QUICK";
         //    }
         //    Assert.IsTrue(log.Contains(".COUNTONLY"));
         //}
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void LinqEx_Count_WithPredicate()
-        //{
-        //    Assert.AreEqual(6, Content.All.DisableAutofilters().Count(c => c.Id < 7));
-        //    Assert.AreEqual(4, Content.All.DisableAutofilters().Where(c => c.Id > 2).Count(c => c.Id < 7));
-        //}
 
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void LinqEx_Any()
-        //{
-        //    Assert.IsFalse(Content.All.DisableAutofilters().Any(c => c.Id == 0), "#1");
-        //    Assert.IsTrue(Content.All.DisableAutofilters().Any(c => c.Id == 1), "#2");
-        //    Assert.IsTrue(Content.All.DisableAutofilters().Any(c => c.Id > 0), "#3");
-        //}
         //[TestMethod, TestCategory("IR, LINQ")]
         //public void LinqEx_OfTypeAndFirst()
         //{
