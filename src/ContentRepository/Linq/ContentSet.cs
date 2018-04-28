@@ -192,40 +192,74 @@ namespace SenseNet.ContentRepository.Linq
             if (count == 0)
             {
                 if (query.ThrowIfEmpty)
-                    throw new InvalidOperationException("Sequence contains no elements.");
+                {
+                    if (elementSelection == "elementat")
+                        throw new ArgumentOutOfRangeException("Index was out of range.");
+                    else
+                        throw new InvalidOperationException("Sequence contains no elements.");
+                }
                 return default(TResult);
             }
-            if (count >= 1)
+
+            if (typeof(Node).IsAssignableFrom(typeof(TResult)))
             {
-                if (typeof(Node).IsAssignableFrom(typeof(TResult)))
-                {
-                    // ReSharper disable once PossibleNullReferenceException
-                    // Result cannot be null here because the query definitely executed.
-                    if (this.ExecuteQuery)
-                        return (TResult)Convert.ChangeType(Node.LoadNode(result.Hits.First()), typeof(TResult));
-                    return (TResult)Convert.ChangeType(ChildrenDefinition.BaseCollection.First(), typeof(TResult));
-                }
                 // ReSharper disable once PossibleNullReferenceException
                 // Result cannot be null here because the query definitely executed.
-
-                switch (elementSelection)
-                {
-                    case "first":
-                        return this.ExecuteQuery
-                            ? (TResult)Convert.ChangeType(Content.Load(result.Hits.FirstOrDefault()), typeof(TResult))
-                            : (TResult)Convert.ChangeType(Content.Create(ChildrenDefinition.BaseCollection.FirstOrDefault()), typeof(TResult));
-                    case "last":
-                        return this.ExecuteQuery
-                            ? (TResult)Convert.ChangeType(Content.Load(result.Hits.LastOrDefault()), typeof(TResult))
-                            : (TResult)Convert.ChangeType(Content.Create(ChildrenDefinition.BaseCollection.LastOrDefault()), typeof(TResult));
-                    case "single":
-                        return this.ExecuteQuery
-                            ? (TResult)Convert.ChangeType(Content.Load(result.Hits.SingleOrDefault()), typeof(TResult))
-                            : (TResult)Convert.ChangeType(Content.Create(ChildrenDefinition.BaseCollection.SingleOrDefault()), typeof(TResult));
-                }
+                if (ExecuteQuery)
+                    return (TResult)Convert.ChangeType(Node.LoadNode(result.Hits.First()), typeof(TResult));
+                return (TResult)Convert.ChangeType(ChildrenDefinition.BaseCollection.First(), typeof(TResult));
             }
+            // ReSharper disable once PossibleNullReferenceException
+            // Result cannot be null here because the query definitely executed.
 
-            throw new SnNotSupportedException("SnLinq: ContentSet.Execute<TResult>");
+            switch (elementSelection)
+            {
+                case "first":
+                    return ExecuteQuery
+                        ? (TResult)Convert.ChangeType(Content.Load(result.Hits.FirstOrDefault()), typeof(TResult))
+                        : (TResult)Convert.ChangeType(Content.Create(ChildrenDefinition.BaseCollection.FirstOrDefault()), typeof(TResult));
+                case "last":
+                    return ExecuteQuery
+                        ? (TResult)Convert.ChangeType(Content.Load(result.Hits.LastOrDefault()), typeof(TResult))
+                        : (TResult)Convert.ChangeType(Content.Create(ChildrenDefinition.BaseCollection.LastOrDefault()), typeof(TResult));
+                case "single":
+                    return ExecuteQuery
+                        ? (TResult)Convert.ChangeType(Content.Load(result.Hits.SingleOrDefault()), typeof(TResult))
+                        : (TResult)Convert.ChangeType(Content.Create(ChildrenDefinition.BaseCollection.SingleOrDefault()), typeof(TResult));
+                case "elementat":
+                    var any = ExecuteQuery ? result.Hits.Any() : ChildrenDefinition.BaseCollection.Any();
+                    if(!any)
+                    {
+                        if (query.ThrowIfEmpty)
+                            throw new ArgumentOutOfRangeException("Index was out of range.");
+                        else
+                            return default(TResult);
+                    }
+                    return ExecuteQuery
+                        ? (TResult)Convert.ChangeType(Content.Load(result.Hits.FirstOrDefault()), typeof(TResult))
+                        : (TResult)Convert.ChangeType(Content.Create(ChildrenDefinition.BaseCollection.FirstOrDefault()), typeof(TResult));
+                default:
+                    //if (elementSelection.StartsWith("index"))
+                    //{
+                    //    var index = int.Parse(elementSelection.Substring(6));
+                    //    if (index >= count)
+                    //    {
+                    //        if (query.ThrowIfEmpty)
+                    //            throw new ArgumentOutOfRangeException("Index was out of range.");
+                    //        return default(TResult);
+                    //    }
+                    //    if (index == 0)
+                    //    {
+                    //        return ExecuteQuery
+                    //            ? (TResult)Convert.ChangeType(Content.Load(result.Hits.FirstOrDefault()), typeof(TResult))
+                    //            : (TResult)Convert.ChangeType(Content.Create(ChildrenDefinition.BaseCollection.FirstOrDefault()), typeof(TResult));
+                    //    }
+                    //    return ExecuteQuery
+                    //        ? (TResult)Convert.ChangeType(Content.Load(result.Hits.Skip(index - 1).First()), typeof(TResult))
+                    //        : (TResult)Convert.ChangeType(Content.Create(ChildrenDefinition.BaseCollection.Skip(index - 1).First()), typeof(TResult));
+                    //}
+                    throw new SnNotSupportedException();
+            }
         }
         public virtual object Execute(Expression expression)
         {

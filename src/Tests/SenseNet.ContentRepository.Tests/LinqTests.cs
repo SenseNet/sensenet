@@ -1005,6 +1005,28 @@ Id:<42 .QUICK";
             });
         }
 
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void LinqEx_ElementAt()
+        {
+            Test(() =>
+            {
+                var x = 2;
+                // ======== ElementAt()
+                Assert.AreEqual(6, Content.All.DisableAutofilters().Where(c => c.Id < 10).OrderBy(c => c.Id).ElementAt(3 + x).Id);
+                // less
+                ArgumentOutOfRangeTest(() => { Content.All.DisableAutofilters().Where(c => c.Id < 3).OrderBy(c => c.Id).ElementAt(5); });
+                // empty
+                ArgumentOutOfRangeTest(() => { Content.All.DisableAutofilters().Where(c => c.Id < 0).OrderBy(c => c.Id).ElementAt(5); });
+
+                // ======== FirstOrDefault()
+                Assert.AreEqual(6, Content.All.DisableAutofilters().Where(c => c.Id < 10).OrderBy(c => c.Id).ElementAtOrDefault(5).Id);
+                // less
+                Assert.IsNull(Content.All.DisableAutofilters().Where(c => c.Id < 3).OrderBy(c => c.Id).ElementAtOrDefault(5));
+                // empty
+                Assert.IsNull(Content.All.DisableAutofilters().Where(c => c.Id < 0).OrderBy(c => c.Id).ElementAtOrDefault(5));
+            });
+        }
+
         //[TestMethod, TestCategory("IR, LINQ")]
         //public void LinqEx_CountOnly()
         //{
@@ -1281,6 +1303,18 @@ Id:<42 .QUICK";
                 Assert.Fail("InvalidOperationException was not thrown.");
             }
             catch (InvalidOperationException e)
+            {
+                // expected exception
+            }
+        }
+        private void ArgumentOutOfRangeTest(Action action)
+        {
+            try
+            {
+                action();
+                Assert.Fail("ArgumentOutOfRangeException was not thrown.");
+            }
+            catch (ArgumentOutOfRangeException e)
             {
                 // expected exception
             }

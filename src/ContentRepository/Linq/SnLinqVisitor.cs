@@ -272,7 +272,9 @@ namespace SenseNet.ContentRepository.Linq
             var visited = base.VisitMethodCall(node);
             if (!(visited is MethodCallExpression methodCallExpr))
                 throw new NotSupportedException("#VisitMethodCall if visited is not null");
-            switch (methodCallExpr.Method.Name)
+
+            var methodName = methodCallExpr.Method.Name;
+            switch (methodName)
             {
                 case "OfType":
                 // Do nothing. Type of expression has been changed so a TypeIs predicate will be created.
@@ -335,54 +337,45 @@ namespace SenseNet.ContentRepository.Linq
                         break;
                     }
                     throw NotSupportedException(node, "#3");
+                case "FirstOrDefault":
                 case "First":
                     ElementSelection = "first";
                     this.Top = 1;
-                    this.ThrowIfEmpty = true;
-                    if (methodCallExpr.Arguments.Count == 2)
-                        if (_predicates.Count > 1)
-                            CombineTwoPredicatesOnStack();
-                    break;
-                case "FirstOrDefault":
-                    ElementSelection = "first";
-                    this.ThrowIfEmpty = false;
-                    this.Top = 1;
-                    if (methodCallExpr.Arguments.Count == 2)
-                        if (_predicates.Count > 1) // There is Where in the main expression
-                            CombineTwoPredicatesOnStack();
-                    break;
-                case "Single":
-                    ElementSelection = "single";
-                    this.ThrowIfEmpty = true;
+                    this.ThrowIfEmpty = methodName == "First";
                     if (methodCallExpr.Arguments.Count == 2)
                         if (_predicates.Count > 1)
                             CombineTwoPredicatesOnStack();
                     break;
                 case "SingleOrDefault":
+                case "Single":
                     ElementSelection = "single";
-                    this.ThrowIfEmpty = false;
+                    this.ThrowIfEmpty = methodName == "Single";
                     if (methodCallExpr.Arguments.Count == 2)
-                        if (_predicates.Count > 1) // There is Where in the main expression
+                        if (_predicates.Count > 1)
                             CombineTwoPredicatesOnStack();
+                    break;
+                case "LastOrDefault":
+                case "Last":
+                    ElementSelection = "last";
+                    this.ThrowIfEmpty = methodName == "Last";
+                    if (methodCallExpr.Arguments.Count == 2)
+                        if (_predicates.Count > 1)
+                            CombineTwoPredicatesOnStack();
+                    break;
+                case "ElementAtOrDefault":
+                case "ElementAt":
+                    ElementSelection = "elementat";
+                    this.ThrowIfEmpty = methodName == "ElementAt";
+                    var constExpr = GetArgumentAsConstant(methodCallExpr, 1);
+                    var index = Convert.ToInt32(constExpr.Value);
+                    this.Skip = index;
+                    this.Top = 1;
                     break;
                 case "Any":
                     ElementSelection = "first";
                     this.CountOnly = true;
                     this.ExistenceOnly = true;
                     this.Top = 1;
-                    if (methodCallExpr.Arguments.Count == 2)
-                        if (_predicates.Count > 1)
-                            CombineTwoPredicatesOnStack();
-                    break;
-                case "Last":
-                    ElementSelection = "last";
-                    this.ThrowIfEmpty = true;
-                    if (methodCallExpr.Arguments.Count == 2)
-                        if (_predicates.Count > 1)
-                            CombineTwoPredicatesOnStack();
-                    break;
-                case "LastOrDefault":
-                    ElementSelection = "last";
                     if (methodCallExpr.Arguments.Count == 2)
                         if (_predicates.Count > 1)
                             CombineTwoPredicatesOnStack();
