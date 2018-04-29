@@ -204,6 +204,20 @@ namespace SenseNet.ContentRepository.Tests
             public virtual int ChildCount => GetChildCount();
         }
 
+
+        [TestMethod]
+        public void Linq_AsQueryable()
+        {
+            Assert.IsTrue(Content.All is IQueryable<Content>);
+
+            var allContent = Content.All;
+            var allContent2 = Content.All;
+            Assert.AreNotSame(allContent, allContent2);
+
+            var asQueryable = allContent.AsQueryable();
+            Assert.AreSame(allContent, asQueryable);
+        }
+
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_IdEquality()
         {
@@ -798,6 +812,7 @@ namespace SenseNet.ContentRepository.Tests
                     (ContentSet<Content>) Content.All.Where(c => c.Id == 2).OrderBy(c => c.Name),
                     (ContentSet<Content>) Content.All.Where(c => c.Id == 2).OrderByDescending(c => c.Name),
                     (ContentSet<Content>) Content.All.Where(c => c.Id == 2).OrderBy(c => c.Name).ThenBy(c => c.Id),
+                    (ContentSet<Content>) Content.All.Where(c => c.Id == 2).OrderBy(c => c.Name).ThenByDescending(c => c.Id),
                     (ContentSet<Content>) Content.All.EnableAutofilters().Where(c => c.Id == 2),
                     (ContentSet<Content>) Content.All.DisableAutofilters().Where(c => c.Id == 2),
                     (ContentSet<Content>) Content.All.EnableLifespan().Where(c => c.Id == 2),
@@ -826,6 +841,7 @@ Id:2 .TOP:5
 Id:2 .SORT:Name
 Id:2 .REVERSESORT:Name
 Id:2 .SORT:Name .SORT:Id
+Id:2 .SORT:Name .REVERSESORT:Id
 Id:2
 Id:2 .AUTOFILTERS:OFF
 Id:2 .LIFESPAN:ON
