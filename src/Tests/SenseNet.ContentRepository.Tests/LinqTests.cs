@@ -963,19 +963,29 @@ Id:<42 .QUICK";
         /* ========================================================================================== Linq_NotSupported_ */
 
         [TestMethod, TestCategory("IR, LINQ")]
-        public void Linq_NotSupported_Select()
+        public void Linq_NotSupported_Select_New()
         {
-            AsEnumerableError("Select", () => { Content.All.Where(c => c.Id < 10).Select(c => new { c.Id, c.Path }); });
+            AsEnumerableError("Select", () => { Content.All.Where(c => c.Id < 10)
+                .Select(c => new { c.Id, c.Path }); });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Select_Content()
+        {
+            AsEnumerableError("Select", () => { Content.All.Where(c => false)
+                .Select(c => c.ContentHandler).ToArray(); });
         }
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_NotSupported_SelectMany()
         {
-            AsEnumerableError("SelectMany", () => { Content.All.Where(c => c.Id < 10).SelectMany(c => c.Versions); });
+            AsEnumerableError("SelectMany", () => { Content.All.Where(c => false)
+                .SelectMany(c => c.Versions).ToArray(); });
         }
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_NotSupported_SelectManySelect()
         {
-            AsEnumerableError("SelectMany", () => { Content.All.Where(c => true).SelectMany(c => c.Versions).Select(v => v.Version); });
+            AsEnumerableError("SelectMany", () => { Content.All.Where(c => true)
+                .SelectMany(c => c.Versions)
+                .Select(n => Content.Create(n)).ToArray(); });
         }
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_NotSupported_Min()
@@ -1000,12 +1010,12 @@ Id:<42 .QUICK";
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_NotSupported_SkipWhile()
         {
-            AsEnumerableError("SkipWhile", () => { Content.All.Where(c => true).SkipWhile(c => c.Id < 5); });
+            AsEnumerableError("SkipWhile", () => { Content.All.Where(c => true).SkipWhile(c => false).ToArray(); });
         }
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_NotSupported_TakeWhile()
         {
-            AsEnumerableError("TakeWhile", () => { Content.All.Where(c => true).TakeWhile(c => c.Id < 5); });
+            AsEnumerableError("TakeWhile", () => { Content.All.Where(c => true).TakeWhile(c => false).ToArray(); });
         }
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_NotSupported_Join_NonameOutput()
