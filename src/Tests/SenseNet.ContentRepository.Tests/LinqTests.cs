@@ -1152,6 +1152,15 @@ Id:<42 .QUICK";
             });
         }
 
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Zip()
+        {
+            AsEnumerableError("Zip", () =>
+            {
+                Content.All.Where(c => false).Zip(new Content[0], (a, b) => a).ToArray();
+            });
+        }
+
 
         /* ========================================================================================== LinqEx_ */
         /* When the framework calls Provider.Execute */
