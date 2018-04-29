@@ -1044,7 +1044,55 @@ Id:<42 .QUICK";
                 Content.All.Where(c => false).Aggregate(0, (a, b) => a + b.Id);
             });
         }
-
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Cast()
+        {
+            AsEnumerableError("Cast", () =>
+            {
+                Content.All.Where(c => false).Cast<Content>().ToArray();
+            });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Distinct()
+        {
+            AsEnumerableError("Distinct", () =>
+            {
+                Content.All.Where(c => false).Distinct().ToArray();
+            });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Concat()
+        {
+            AsEnumerableError("Concat", () =>
+            {
+                Content.All.Where(c => false).Concat(new Content[0]).ToArray();
+            });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Union()
+        {
+            AsEnumerableError("Union", () =>
+            {
+                Content.All.Where(c => false).Union(new Content[0]).ToArray();
+            });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Intersect()
+        {
+            AsEnumerableError("Intersect", () =>
+            {
+                Content.All.Where(c => false).Intersect(new Content[0]).ToArray();
+            });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Except()
+        {
+            AsEnumerableError("Except", () =>
+            {
+                Content.All.Where(c => false).Except(new Content[0]).ToArray();
+            });
+        }
+    
         /* ========================================================================================== LinqEx_ */
         /* When the framework calls Provider.Execute */
 
