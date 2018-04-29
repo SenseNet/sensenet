@@ -286,9 +286,9 @@ namespace SenseNet.ContentRepository.Linq
             if (expression is MethodCallExpression callExpr)
             {
                 var lastMethodName = callExpr.Method.Name;
-                throw new NotSupportedException($"Cannot resolve an expression. Use AsEnumerable method before calling {lastMethodName} method");
+                throw SnExpression.CallingAsEnunerableExpectedError(lastMethodName);
             }
-            throw new NotSupportedException($"Cannot resolve the expression: {expression}. Use AsEnumerable method before last segment.");
+            throw SnExpression.CallingAsEnunerableExpectedError(expression);
         }
 
         // ==================================================================================================================================================

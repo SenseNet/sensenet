@@ -107,7 +107,7 @@ namespace SenseNet.ContentRepository.Linq
                     break;
 
                 // All other cases are not supported here (~70)
-                default: throw new SnNotSupportedException("SnLinq: VisitBinary");
+                default: throw new SnNotSupportedException("VisitBinary: " + node);
             }
             return visited;
         }
@@ -269,7 +269,16 @@ namespace SenseNet.ContentRepository.Linq
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
             Trace(MethodBase.GetCurrentMethod(), node);
-            var visited = base.VisitMethodCall(node);
+            Expression visited = null;
+            try
+            {
+                visited = base.VisitMethodCall(node);
+            }
+            catch(SnNotSupportedException e)
+            {
+                throw SnExpression.CallingAsEnunerableExpectedError(node.Method.Name, e);
+            }
+
             if (!(visited is MethodCallExpression methodCallExpr))
                 throw new NotSupportedException("#VisitMethodCall if visited is not null");
 
@@ -459,7 +468,7 @@ namespace SenseNet.ContentRepository.Linq
                         break;
                     }
                 default:
-                    throw new SnNotSupportedException("Unknown method: " + methodCallExpr.Method.Name);
+                    throw SnExpression.CallingAsEnunerableExpectedError(methodCallExpr.Method.Name);
             }
 
             return visited;

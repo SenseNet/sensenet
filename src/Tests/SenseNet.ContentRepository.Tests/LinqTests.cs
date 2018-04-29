@@ -641,9 +641,9 @@ namespace SenseNet.ContentRepository.Tests
                         .Where(c => c.InTree(root) && (string) c["DisplayName"] == "Porsche")
                         .OrderBy(c => c.Name)));
                 Assert.AreEqual(expected, GetQueryString(from c in Content.All.DisableAutofilters()
-                    where c.InTree(root) && (string) c["DisplayName"] == "Porsche"
-                    orderby c.Name
-                    select c));
+                                                         where c.InTree(root) && (string) c["DisplayName"] == "Porsche"
+                                                         orderby c.Name
+                                                         select c));
 
                 return true;
             });
@@ -910,7 +910,7 @@ Id:<42 .QUICK";
             });
         }
 
-        /* ------------------------------------------------------------------------------------------- */ 
+        /* ------------------------------------------------------------------------------------------- */
 
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_OptimizeBooleans()
@@ -960,7 +960,90 @@ Id:<42 .QUICK";
             });
         }
 
+        /* ========================================================================================== Linq_NotSupported_ */
 
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Select()
+        {
+            AsEnumerableError("Select", () => { Content.All.Where(c => c.Id < 10).Select(c => new { c.Id, c.Path }); });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_SelectMany()
+        {
+            AsEnumerableError("SelectMany", () => { Content.All.Where(c => c.Id < 10).SelectMany(c => c.Versions); });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_SelectManySelect()
+        {
+            AsEnumerableError("SelectMany", () => { Content.All.Where(c => true).SelectMany(c => c.Versions).Select(v => v.Version); });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Min()
+        {
+            AsEnumerableError("Min", () => { Content.All.Where(c => true).Min(c => c.Id); });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Max()
+        {
+            AsEnumerableError("Max", () => { Content.All.Where(c => true).Max(c => c.Id); });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Sum()
+        {
+            AsEnumerableError("Sum", () => { Content.All.Where(c => true).Sum(c => c.Id); });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Average()
+        {
+            AsEnumerableError("Average", () => { Content.All.Where(c => true).Average(c => c.Id); });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_SkipWhile()
+        {
+            AsEnumerableError("SkipWhile", () => { Content.All.Where(c => true).SkipWhile(c => c.Id < 5); });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_TakeWhile()
+        {
+            AsEnumerableError("TakeWhile", () => { Content.All.Where(c => true).TakeWhile(c => c.Id < 5); });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Join_NonameOutput()
+        {
+            AsEnumerableError("Join", () =>
+            {
+                Content.All.Where(c => c.Id < 10000)
+                    .Join(
+                        Content.All,
+                        user => user.Id,
+                        doc => doc.ContentHandler.ModifiedBy.Id,
+                        (user, doc) => new { UserId = user.Id, DocId = doc.Id })
+                    .Where(item => item.UserId == 42);
+            });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Join_ContentOutput()
+        {
+            AsEnumerableError("Join", () =>
+            {
+                Content.All.Where(c => false)
+                    .Join(
+                        Content.All,
+                        user => user.Id,
+                        doc => doc.ContentHandler.ModifiedBy.Id,
+                        (user, doc) => user)
+                    .Where(user => user.Id == 42)
+                    .ToArray();
+            });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Aggregate()
+        {
+            AsEnumerableError("Aggregate", () =>
+            {
+                Content.All.Where(c => false).Aggregate(0, (a, b) => a + b.Id);
+            });
+        }
 
         /* ========================================================================================== LinqEx_ */
         /* When the framework calls Provider.Execute */
@@ -1340,6 +1423,29 @@ Id:<42 .QUICK";
             {
                 // expected exception
             }
+        }
+        private void AsEnumerableError(string expectedMethodName, Action action)
+        {
+            var message = string.Empty;
+            try
+            {
+                action();
+                Assert.Fail("NotSupportedException was not thrown.");
+            }
+            catch (SnNotSupportedException e)
+            {
+                message = e.Message;
+                // expected exception
+            }
+            catch (NotSupportedException e)
+            {
+                message = e.Message;
+                // expected exception
+            }
+
+            // $"Cannot resolve an expression. Use 'AsEnumerable()' method before calling '{lastMethodName}' method");
+            var actualMethodName = message.Split('\'')[3];
+            Assert.AreEqual(expectedMethodName, actualMethodName);
         }
 
     }

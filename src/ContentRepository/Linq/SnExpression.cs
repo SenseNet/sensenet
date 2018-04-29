@@ -190,5 +190,16 @@ namespace SenseNet.ContentRepository.Linq
             var result = v1.Visit(expression);
             return result;
         }
+
+        internal static Exception CallingAsEnunerableExpectedError(string methodName, Exception innerException = null)
+        {
+            var message = $"Cannot resolve an expression. Use 'AsEnumerable()' method before calling the '{methodName}' method. {innerException?.Message ?? string.Empty}";
+            return new NotSupportedException(message);
+        }
+        internal static Exception CallingAsEnunerableExpectedError(Expression expression)
+        {
+            return new NotSupportedException($"Cannot resolve an expression: Use 'AsEnumerable()' method before using the '{expression}' expression.");
+        }
+
     }
 }
