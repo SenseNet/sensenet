@@ -1092,7 +1092,67 @@ Id:<42 .QUICK";
                 Content.All.Where(c => false).Except(new Content[0]).ToArray();
             });
         }
-    
+
+
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_GroupBy()
+        {
+            AsEnumerableError("GroupBy", () =>
+            {
+                Content.All.Where(c => false).GroupBy(c => c);
+            });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_GroupJoin()
+        {
+            AsEnumerableError("GroupJoin", () =>
+            {
+                Content.All.Where(c => false).GroupJoin(new Content[0], a => a, b => b, (c, d) => new { A = c, B = d });
+            });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_All()
+        {
+            AsEnumerableError("All", () =>
+            {
+                Content.All.Where(c => false).All(c => true);
+            });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Reverse()
+        {
+            AsEnumerableError("Reverse", () =>
+            {
+                Content.All.Where(c => false).Reverse().ToArray();
+            });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_SequenceEqual()
+        {
+            AsEnumerableError("SequenceEqual", () =>
+            {
+                Content.All.Where(c => false).SequenceEqual(new Content[0]);
+            });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_DefaultIfEmpty()
+        {
+            AsEnumerableError("DefaultIfEmpty", () =>
+            {
+                Content.All.Where(c => false).DefaultIfEmpty().ToArray();
+            });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_DefaultIfEmptyDefault()
+        {
+            AsEnumerableError("DefaultIfEmpty", () =>
+            {
+                Content defaultContent = null;
+                Content.All.Where(c => false).DefaultIfEmpty(defaultContent).ToArray();
+            });
+        }
+
+
         /* ========================================================================================== LinqEx_ */
         /* When the framework calls Provider.Execute */
 
