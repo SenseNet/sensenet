@@ -1343,7 +1343,7 @@ Id:<42 .QUICK";
         /* ========================================================================================== bugz */
 
         [TestMethod, TestCategory("IR, LINQ")]
-        public void Linq_OptimizeBooleans_1()
+        public void Linq_BugReproduction_OptimizeBooleans_1()
         {
             Test(() =>
             {
@@ -1372,6 +1372,28 @@ Id:<42 .QUICK";
                 Assert.AreEqual(expected, actual);
 
                 return true;
+            });
+        }
+
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_BugReproduction_SnNotSupported_1()
+        {
+            const string SystemFolder = "SystemFolder";
+            const string File = "File";
+            Test(() =>
+            {
+                Repository.Root
+                    .CreateChild(SystemFolder, "TestRoot", out Node testRoot)
+                    .CreateChild(SystemFolder, "Folder1")
+                    .CreateChild(File, "File1");
+                testRoot
+                    .CreateChild(SystemFolder, "Folder2")
+                    .CreateChild(File, "File2");
+
+                Content content = Content.All.DisableAutofilters()
+                    .FirstOrDefault(c => c.InTree(testRoot.Path) && c.Type(File));
+
+                Assert.IsNotNull(content);
             });
         }
 
