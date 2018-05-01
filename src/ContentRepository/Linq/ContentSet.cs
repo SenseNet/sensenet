@@ -85,11 +85,11 @@ namespace SenseNet.ContentRepository.Linq
         }
         public Content Last()
         {
-            throw new SnNotSupportedException("SnLinq: ContentSet.First");
+            throw new SnNotSupportedException("SnLinq: ContentSet.Last");
         }
         public Content LastOrDefault()
         {
-            throw new SnNotSupportedException("SnLinq: ContentSet.FirstOrDefault");
+            throw new SnNotSupportedException("SnLinq: ContentSet.LastOrDefault");
         }
 
         // =====================================================================
