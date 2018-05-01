@@ -416,17 +416,17 @@ namespace SenseNet.Packaging.Tests.StepTests
                 var rooAppCount = rootApps.Children.Count();
 
                 rootApps
-                    .CreateChild("Folder", "Car", out Node rootCar)
-                    .CreateChild("GenericODataApplication", "MyOperation");
+                    .CreateChild("Car", "Folder", out Node rootCar)
+                    .CreateChild("MyOperation", "GenericODataApplication");
                 rootApps
-                    .CreateChild("Folder", "Car1", out Node rootCar1)
-                    .CreateChild("GenericODataApplication", "MyOperation");
+                    .CreateChild("Car1", "Folder", out Node rootCar1)
+                    .CreateChild("MyOperation", "GenericODataApplication");
                 Repository.Root
-                    .CreateChild("SystemFolder", "MyStructure", out Node myRoot)
-                    .CreateChild("SystemFolder", "(apps)")
-                    .CreateChild("Folder", "Car", out Node deepCar)
-                    .CreateChild("GenericODataApplication", "MyOperation");
-                myRoot.CreateChild("Folder", "Car", out Node carFolder);
+                    .CreateChild("MyStructure", "SystemFolder", out Node myRoot)
+                    .CreateChild("(apps)", "SystemFolder")
+                    .CreateChild("Car", "Folder", out Node deepCar)
+                    .CreateChild("MyOperation", "GenericODataApplication");
+                myRoot.CreateChild("Car", "Folder", out Node carFolder);
 
                 // test-1
                 var step = new DeleteContentType { Name = "Car", Delete = DeleteContentType.Mode.Force };
@@ -464,16 +464,16 @@ namespace SenseNet.Packaging.Tests.StepTests
                     string.Format(contentTypeTemplate, "Car2"));
 
                 Repository.Root
-                    .CreateChild("SystemFolder", "ContentTemplates", out Node globalTemp)
-                    .CreateChild("Folder", "Car", out Node globalCarTemp)
+                    .CreateChild("ContentTemplates", "SystemFolder", out Node globalTemp)
+                    .CreateChild("Car", "Folder", out Node globalCarTemp)
                     .CreateChild("Car", "Car", out Node globalCar);
                 Repository.Root
                     .CreateChild("Sites", "Sites")
-                    .CreateChild("Site", "Site1")
-                    .CreateChild("Workspace", "WS1")
-                    .CreateChild("Workspace", "WS1")
-                    .CreateChild("SystemFolder", "ContentTemplates", out Node localTemp)
-                    .CreateChild("Folder", "Car", out Node localCarTemp)
+                    .CreateChild("Site1", "Site")
+                    .CreateChild("WS1", "Workspace")
+                    .CreateChild("WS1", "Workspace")
+                    .CreateChild("ContentTemplates", "SystemFolder", out Node localTemp)
+                    .CreateChild("Car", "Folder", out Node localCarTemp)
                     .CreateChild("Car", "Car", out Node localCar);
 
                 // test-1
@@ -529,27 +529,27 @@ namespace SenseNet.Packaging.Tests.StepTests
                     );
 
                 Repository.Root
-                    .CreateChild("SystemFolder", "Global")
+                    .CreateChild("Global", "SystemFolder")
                     .CreateChild("ContentViews", "ContentViews", out Node globalViews)
-                    .CreateChild("ContentViews", "Car", out Node globalCar)
-                    .CreateChild("ContentView", "something.ascx");
+                    .CreateChild("Car", "ContentViews", out Node globalCar)
+                    .CreateChild("something.ascx", "ContentView");
                 globalViews
-                    .CreateChild("ContentViews", "Car1", out Node globalCar1)
-                    .CreateChild("ContentView", "something.ascx");
+                    .CreateChild("Car1", "ContentViews", out Node globalCar1)
+                    .CreateChild("something.ascx", "ContentView");
                 Repository.Root
                     .CreateChild("Skins", "Skins", out Node skins)
-                    .CreateChild("Skin", "Skin-1")
-                    .CreateChild("SystemFolder", "ContentViews", out Node skin1views)
-                    .CreateChild("ContentViews", "Car", out Node skin1Car)
-                    .CreateChild("ContentView", "something.ascx");
+                    .CreateChild("Skin-1", "Skin")
+                    .CreateChild("ContentViews", "SystemFolder", out Node skin1views)
+                    .CreateChild("Car", "ContentViews", out Node skin1Car)
+                    .CreateChild("something.ascx", "ContentView");
                 skin1views
-                    .CreateChild("ContentViews", "File", out Node skin1File)
-                    .CreateChild("ContentView", "something.ascx");
+                    .CreateChild("File", "ContentViews", out Node skin1File)
+                    .CreateChild("something.ascx", "ContentView");
                 skins
-                    .CreateChild("Skin", "Skin-2")
-                    .CreateChild("SystemFolder", "ContentViews")
-                    .CreateChild("ContentViews", "Car2", out Node skin2Car2)
-                    .CreateChild("ContentView", "something.ascx");
+                    .CreateChild("Skin-2", "Skin")
+                    .CreateChild("ContentViews", "SystemFolder")
+                    .CreateChild("Car2", "ContentViews", out Node skin2Car2)
+                    .CreateChild("something.ascx", "ContentView");
 
                 // test-1
                 var step = new DeleteContentType { Name = "Car", Delete = DeleteContentType.Mode.Force };
