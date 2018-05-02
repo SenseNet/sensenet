@@ -78,10 +78,11 @@ namespace SenseNet.Packaging.Steps
                     if (dependencies.HasDependency)
                     {
                         var deps = dependencies.InheritedTypeNames.Length + dependencies.InstanceCount;
-                        Logger.LogMessage($"The {name} content type is not removed because it has {deps} depencency.");
+                        Logger.LogMessage($"The {name} content type was not removed because it has {deps} dependenc{(deps < 2 ? "y" : "ies")}.");
                         return;
                     }
-                    Logger.LogMessage($"The {name} content type has no any depencency.");
+
+                    Logger.LogMessage($"The {name} content type has no depencencies.");
                 }
 
                 if (dependencies.InstanceCount > 0)
