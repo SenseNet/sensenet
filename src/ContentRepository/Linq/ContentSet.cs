@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Linq.Expressions;
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using SenseNet.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Search.Querying;
@@ -18,9 +19,6 @@ namespace SenseNet.ContentRepository.Linq
         ISnQueryable<T> DisableAutofilters();
         ISnQueryable<T> EnableLifespan();
         ISnQueryable<T> DisableLifespan();
-
-        Content First();
-        Content FirstOrDefault();
     }
     public class ContentSet<T> : IOrderedEnumerable<T>, IQueryProvider, ISnQueryable<T>
     {
@@ -71,15 +69,6 @@ namespace SenseNet.ContentRepository.Linq
         {
             this.ChildrenDefinition.QueryExecutionMode = executionMode;
             return this;
-        }
-
-        public Content First()
-        {
-            throw new SnNotSupportedException("SnLinq: ContentSet.First");
-        }
-        public Content FirstOrDefault()
-        {
-            throw new SnNotSupportedException("SnLinq: ContentSet.FirstOrDefault");
         }
 
         // =====================================================================
@@ -146,6 +135,7 @@ namespace SenseNet.ContentRepository.Linq
             return CreateQuery<Content>(expression);
         }
 
+        [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
         public virtual TResult Execute<TResult>(Expression expression)
         {
             var count = 0;
@@ -154,7 +144,7 @@ namespace SenseNet.ContentRepository.Linq
             if (!this.ExecuteQuery)
                 count = ChildrenDefinition.BaseCollection.Count();
 
-            var query = SnExpression.BuildQuery(expression, typeof(T), this.ContextPath, this.ChildrenDefinition);
+            var query = SnExpression.BuildQuery(expression, typeof(T), this.ContextPath, this.ChildrenDefinition, out var elementSelection);
             if (TracingEnabled)
             {
                 TraceLog.Append("Expression: ").AppendLine(expression.ToString());
@@ -164,8 +154,6 @@ namespace SenseNet.ContentRepository.Linq
             var result = this.ExecuteQuery ? query.Execute(SnQueryContext.CreateDefault()) : null;
             if (query.CountOnly)
             {
-                // ReSharper disable once PossibleNullReferenceException
-                // Result cannot be null here because the query definitely executed.
                 if (this.ExecuteQuery)
                     count = result.TotalCount;
 
@@ -174,35 +162,59 @@ namespace SenseNet.ContentRepository.Linq
                 return (TResult)Convert.ChangeType(count, typeof(TResult));
             }
 
-            // ReSharper disable once PossibleNullReferenceException
-            // Result cannot be null here because the query definitely executed.
             if (this.ExecuteQuery)
                 count = result.TotalCount;
 
             if (count == 0)
             {
                 if (query.ThrowIfEmpty)
-                    throw new InvalidOperationException("Sequence contains no elements.");
+                {
+                    if (elementSelection == "elementat")
+                        // ReSharper disable once NotResolvedInText
+                        throw new ArgumentOutOfRangeException("Index was out of range.");
+                    else
+                        throw new InvalidOperationException("Sequence contains no elements.");
+                }
                 return default(TResult);
             }
-            if (count == 1)
+
+            if (typeof(Node).IsAssignableFrom(typeof(TResult)))
             {
-                if (typeof(Node).IsAssignableFrom(typeof(TResult)))
-                {
-                    // ReSharper disable once PossibleNullReferenceException
-                    // Result cannot be null here because the query definitely executed.
-                    if (this.ExecuteQuery)
-                        return (TResult)Convert.ChangeType(Node.LoadNode(result.Hits.First()), typeof(TResult));
-                    return (TResult)Convert.ChangeType(ChildrenDefinition.BaseCollection.First(), typeof(TResult));
-                }
-                // ReSharper disable once PossibleNullReferenceException
-                // Result cannot be null here because the query definitely executed.
-                if (this.ExecuteQuery)
-                    return (TResult)Convert.ChangeType(Content.Load(result.Hits.First()), typeof(TResult));
-                return (TResult)Convert.ChangeType(Content.Create(ChildrenDefinition.BaseCollection.First()), typeof(TResult));
+                if (ExecuteQuery)
+                    return (TResult)Convert.ChangeType(Node.LoadNode(result.Hits.First()), typeof(TResult));
+                return (TResult)Convert.ChangeType(ChildrenDefinition.BaseCollection.First(), typeof(TResult));
             }
 
-            throw new SnNotSupportedException("SnLinq: ContentSet.Execute<TResult>");
+            switch (elementSelection)
+            {
+                case "first":
+                    return ExecuteQuery
+                        ? (TResult)Convert.ChangeType(Content.Load(result.Hits.FirstOrDefault()), typeof(TResult))
+                        : (TResult)Convert.ChangeType(Content.Create(ChildrenDefinition.BaseCollection.FirstOrDefault()), typeof(TResult));
+                case "last":
+                    return ExecuteQuery
+                        ? (TResult)Convert.ChangeType(Content.Load(result.Hits.LastOrDefault()), typeof(TResult))
+                        : (TResult)Convert.ChangeType(Content.Create(ChildrenDefinition.BaseCollection.LastOrDefault()), typeof(TResult));
+                case "single":
+                    return ExecuteQuery
+                        ? (TResult)Convert.ChangeType(Content.Load(result.Hits.SingleOrDefault()), typeof(TResult))
+                        : (TResult)Convert.ChangeType(Content.Create(ChildrenDefinition.BaseCollection.SingleOrDefault()), typeof(TResult));
+                case "elementat":
+                    var any = ExecuteQuery ? result.Hits.Any() : ChildrenDefinition.BaseCollection.Any();
+                    if(!any)
+                    {
+                        if (query.ThrowIfEmpty)
+                            // ReSharper disable once NotResolvedInText
+                            throw new ArgumentOutOfRangeException("Index was out of range.");
+                        else
+                            return default(TResult);
+                    }
+                    return ExecuteQuery
+                        ? (TResult)Convert.ChangeType(Content.Load(result.Hits.FirstOrDefault()), typeof(TResult))
+                        : (TResult)Convert.ChangeType(Content.Create(ChildrenDefinition.BaseCollection.FirstOrDefault()), typeof(TResult));
+                default:
+                    throw new SnNotSupportedException();
+            }
         }
         public virtual object Execute(Expression expression)
         {
@@ -229,9 +241,9 @@ namespace SenseNet.ContentRepository.Linq
             if (expression is MethodCallExpression callExpr)
             {
                 var lastMethodName = callExpr.Method.Name;
-                throw new NotSupportedException($"Cannot resolve an expression. Use AsEnumerable method before calling {lastMethodName} method");
+                throw SnExpression.CallingAsEnunerableExpectedError(lastMethodName);
             }
-            throw new NotSupportedException($"Cannot resolve the expression: {expression}. Use AsEnumerable method before last segment.");
+            throw SnExpression.CallingAsEnunerableExpectedError(expression);
         }
 
         // ==================================================================================================================================================
