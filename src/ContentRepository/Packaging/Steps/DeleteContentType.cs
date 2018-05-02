@@ -73,12 +73,15 @@ namespace SenseNet.Packaging.Steps
                     return;
                 }
 
-                if (Delete == Mode.IfNotUsed && dependencies.HasDependency)
+                if (Delete == Mode.IfNotUsed)
                 {
-                    ContentTypeInstaller.RemoveContentType(name);
+                    if (dependencies.HasDependency)
+                    {
+                        var deps = dependencies.InheritedTypeNames.Length + dependencies.InstanceCount;
+                        Logger.LogMessage($"The {name} content type is not removed because it has {deps} depencency.");
+                        return;
+                    }
                     Logger.LogMessage($"The {name} content type has no any depencency.");
-                    Logger.LogMessage($"The {name} content type removed successfully.");
-                    return;
                 }
 
                 if (dependencies.InstanceCount > 0)
