@@ -135,6 +135,7 @@ namespace SenseNet.ContentRepository.Linq
             return CreateQuery<Content>(expression);
         }
 
+        [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
         public virtual TResult Execute<TResult>(Expression expression)
         {
             var count = 0;
@@ -153,8 +154,6 @@ namespace SenseNet.ContentRepository.Linq
             var result = this.ExecuteQuery ? query.Execute(SnQueryContext.CreateDefault()) : null;
             if (query.CountOnly)
             {
-                // ReSharper disable once PossibleNullReferenceException
-                // Result cannot be null here because the query definitely executed.
                 if (this.ExecuteQuery)
                     count = result.TotalCount;
 
@@ -163,8 +162,6 @@ namespace SenseNet.ContentRepository.Linq
                 return (TResult)Convert.ChangeType(count, typeof(TResult));
             }
 
-            // ReSharper disable once PossibleNullReferenceException
-            // Result cannot be null here because the query definitely executed.
             if (this.ExecuteQuery)
                 count = result.TotalCount;
 
@@ -183,14 +180,10 @@ namespace SenseNet.ContentRepository.Linq
 
             if (typeof(Node).IsAssignableFrom(typeof(TResult)))
             {
-                // ReSharper disable once PossibleNullReferenceException
-                // Result cannot be null here because the query definitely executed.
                 if (ExecuteQuery)
                     return (TResult)Convert.ChangeType(Node.LoadNode(result.Hits.First()), typeof(TResult));
                 return (TResult)Convert.ChangeType(ChildrenDefinition.BaseCollection.First(), typeof(TResult));
             }
-            // ReSharper disable once PossibleNullReferenceException
-            // Result cannot be null here because the query definitely executed.
 
             switch (elementSelection)
             {
@@ -211,6 +204,7 @@ namespace SenseNet.ContentRepository.Linq
                     if(!any)
                     {
                         if (query.ThrowIfEmpty)
+                            // ReSharper disable once NotResolvedInText
                             throw new ArgumentOutOfRangeException("Index was out of range.");
                         else
                             return default(TResult);
