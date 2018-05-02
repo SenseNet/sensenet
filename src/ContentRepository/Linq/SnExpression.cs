@@ -22,15 +22,20 @@ namespace SenseNet.ContentRepository.Linq
                 EnableLifespanFilter = settings.EnableLifespanFilter
             };
 
-            return BuildSnQuery(expression, sourceCollectionItemType, contextPath, childrenDef);
+            return BuildSnQuery(expression, sourceCollectionItemType, contextPath, childrenDef, out var elementSelection);
         }
         public static SnQuery BuildQuery(Expression expression, Type sourceCollectionItemType, string contextPath, ChildrenDefinition childrenDef)
         {
-            return BuildSnQuery(expression, sourceCollectionItemType, contextPath, childrenDef);
+            return BuildSnQuery(expression, sourceCollectionItemType, contextPath, childrenDef, out var elementSelection);
         }
-        private static SnQuery BuildSnQuery(Expression expression, Type sourceCollectionItemType, string contextPath, ChildrenDefinition childrenDef)
+        public static SnQuery BuildQuery(Expression expression, Type sourceCollectionItemType, string contextPath, ChildrenDefinition childrenDef, out string elementSelection)
+        {
+            return BuildSnQuery(expression, sourceCollectionItemType, contextPath, childrenDef, out elementSelection);
+        }
+        private static SnQuery BuildSnQuery(Expression expression, Type sourceCollectionItemType, string contextPath, ChildrenDefinition childrenDef, out string elementSelection)
         {
             SnQueryPredicate q0 = null;
+            elementSelection = null;
 
             SnLinqVisitor v = null;
             // #1 compiling linq expression
@@ -47,6 +52,7 @@ namespace SenseNet.ContentRepository.Linq
                 v = new SnLinqVisitor();
                 v.Visit(expr2);
                 q0 = v.GetPredicate(sourceCollectionItemType, childrenDef);
+                elementSelection = v.ElementSelection;
             }
 
             // #2 combining with additional query clause
@@ -184,5 +190,16 @@ namespace SenseNet.ContentRepository.Linq
             var result = v1.Visit(expression);
             return result;
         }
+
+        internal static Exception CallingAsEnunerableExpectedError(string methodName, Exception innerException = null)
+        {
+            var message = $"Cannot resolve an expression. Use 'AsEnumerable()' method before calling the '{methodName}' method. {innerException?.Message ?? string.Empty}";
+            return new NotSupportedException(message);
+        }
+        internal static Exception CallingAsEnunerableExpectedError(Expression expression)
+        {
+            return new NotSupportedException($"Cannot resolve an expression: Use 'AsEnumerable()' method before using the '{expression}' expression.");
+        }
+
     }
 }

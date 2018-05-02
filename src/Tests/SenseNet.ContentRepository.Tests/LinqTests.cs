@@ -14,6 +14,8 @@ using SenseNet.Tests;
 
 namespace SenseNet.ContentRepository.Tests
 {
+    // Testmethod name convention: Linq_   query compilation tests
+    //                             LinqEx_ execution tests e.g. First, ElementAt, Min etc.
     [TestClass]
     public class LinqTests : TestBase
     {
@@ -200,6 +202,20 @@ namespace SenseNet.ContentRepository.Tests
             public virtual IEnumerable<Node> Children => GetChildren();
 
             public virtual int ChildCount => GetChildCount();
+        }
+
+
+        [TestMethod]
+        public void Linq_AsQueryable()
+        {
+            Assert.IsTrue(Content.All is IQueryable<Content>);
+
+            var allContent = Content.All;
+            var allContent2 = Content.All;
+            Assert.AreNotSame(allContent, allContent2);
+
+            var asQueryable = allContent.AsQueryable();
+            Assert.AreSame(allContent, asQueryable);
         }
 
         [TestMethod, TestCategory("IR, LINQ")]
@@ -520,98 +536,6 @@ namespace SenseNet.ContentRepository.Tests
         //    Assert.AreEqual(expected, actual);
         //}
 
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void Linq_First()
-        //{
-        //    //.First(c => ...), .FirstOrDefault(c => ...)
-        //    var content = Content.All.DisableAutofilters().Where(c => c.Id < 6).OrderByDescending(c => c.Id).First();
-        //    Assert.AreEqual(5, content.Id);
-        //}
-        //[TestMethod, ExpectedException(typeof(InvalidOperationException))]
-        //public void Linq_First_OnEmpty()
-        //{
-        //    var content = Content.All.DisableAutofilters().Where(c => c.Id < 0).OrderByDescending(c => c.Id).First();
-        //}
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void Linq_FirstOrDefault()
-        //{
-        //    var content = Content.All.DisableAutofilters().Where(c => c.Id < 6).OrderByDescending(c => c.Id).FirstOrDefault();
-        //    Assert.AreEqual(5, content.Id);
-        //}
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void Linq_FirstOrDefault_OnEmpty()
-        //{
-        //    var content = Content.All.DisableAutofilters().Where(c => c.Id < 0).OrderByDescending(c => c.Id).FirstOrDefault();
-        //    Assert.IsNull(content);
-        //}
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void Linq_First_WithPredicate()
-        //{
-        //    var content = Content.All.DisableAutofilters().Where(c => c.Id < 10).OrderByDescending(c => c.Id).First(c => c.Id < 4);
-        //    Assert.AreEqual(3, content.Id);
-        //}
-        //[TestMethod, ExpectedException(typeof(InvalidOperationException))]
-        //public void Linq_First_WithPredicate_EmptySource()
-        //{
-        //    //var x = Enumerable.Range(1, 100).Where(i => i > 10).OrderByDescending(i => i).First(i => i < 4);
-        //    var content = Content.All.DisableAutofilters().Where(c => c.Id > 10).OrderByDescending(c => c.Id).First(c => c.Id < 4);
-        //    Assert.AreEqual(3, content.Id);
-        //}
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void Linq_FirstOrDefault_WithPredicate()
-        //{
-        //    var content = Content.All.DisableAutofilters().Where(c => c.Id < 10).OrderByDescending(c => c.Id).FirstOrDefault(c => c.Id < 4);
-        //    Assert.AreEqual(3, content.Id);
-        //}
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void Linq_FirstOrDefault_WithPredicate_EmptySource()
-        //{
-        //    //var x = Enumerable.Range(1, 100).Where(i => i > 10).OrderByDescending(i => i).FirstOrDefault(i => i < 4);
-        //    var content = Content.All.DisableAutofilters().Where(c => c.Id > 10).OrderByDescending(c => c.Id).FirstOrDefault(c => c.Id < 4);
-        //    Assert.IsNull(content);
-        //}
-
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void Linq_CountOnly()
-        //{
-        //    var qresult = ContentQuery.Query(string.Concat("InFolder:", TestRoot.Path, " .AUTOFILTERS:OFF .COUNTONLY"));
-        //    var expected = qresult.Count;
-
-        //    var actual = Content.All.DisableAutofilters().Where(c => c.InFolder(TestRoot)).Count();
-        //    Assert.AreEqual(expected, actual);
-        //}
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void Linq_CountIsDeferred()
-        //{
-        //    string log = null;
-        //    try
-        //    {
-        //        ContentSet<Content>.TracingEnabled = true;
-        //        var count = Content.All.DisableAutofilters().Where(c => c.InFolder(TestRoot)).Count();
-        //        log = ContentSet<Content>.TraceLog.ToString();
-        //    }
-        //    finally
-        //    {
-        //        ContentSet<Content>.TraceLog.Clear();
-        //        ContentSet<Content>.TracingEnabled = false;
-        //    }
-        //    Assert.IsTrue(log.Contains(".COUNTONLY"));
-        //}
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void Linq_Count_WithPredicate()
-        //{
-        //    Assert.AreEqual(6, Content.All.DisableAutofilters().Count(c => c.Id < 7));
-        //    Assert.AreEqual(4, Content.All.DisableAutofilters().Where(c => c.Id > 2).Count(c => c.Id < 7));
-        //}
-
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void Linq_Any()
-        //{
-        //    Assert.IsFalse(Content.All.DisableAutofilters().Any(c => c.Id == 0), "#1");
-        //    Assert.IsTrue(Content.All.DisableAutofilters().Any(c => c.Id == 1), "#2");
-        //    Assert.IsTrue(Content.All.DisableAutofilters().Any(c => c.Id > 0), "#3");
-        //}
-
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_InFolder()
         {
@@ -717,9 +641,9 @@ namespace SenseNet.ContentRepository.Tests
                         .Where(c => c.InTree(root) && (string) c["DisplayName"] == "Porsche")
                         .OrderBy(c => c.Name)));
                 Assert.AreEqual(expected, GetQueryString(from c in Content.All.DisableAutofilters()
-                    where c.InTree(root) && (string) c["DisplayName"] == "Porsche"
-                    orderby c.Name
-                    select c));
+                                                         where c.InTree(root) && (string) c["DisplayName"] == "Porsche"
+                                                         orderby c.Name
+                                                         select c));
 
                 return true;
             });
@@ -888,6 +812,7 @@ namespace SenseNet.ContentRepository.Tests
                     (ContentSet<Content>) Content.All.Where(c => c.Id == 2).OrderBy(c => c.Name),
                     (ContentSet<Content>) Content.All.Where(c => c.Id == 2).OrderByDescending(c => c.Name),
                     (ContentSet<Content>) Content.All.Where(c => c.Id == 2).OrderBy(c => c.Name).ThenBy(c => c.Id),
+                    (ContentSet<Content>) Content.All.Where(c => c.Id == 2).OrderBy(c => c.Name).ThenByDescending(c => c.Id),
                     (ContentSet<Content>) Content.All.EnableAutofilters().Where(c => c.Id == 2),
                     (ContentSet<Content>) Content.All.DisableAutofilters().Where(c => c.Id == 2),
                     (ContentSet<Content>) Content.All.EnableLifespan().Where(c => c.Id == 2),
@@ -916,6 +841,7 @@ Id:2 .TOP:5
 Id:2 .SORT:Name
 Id:2 .REVERSESORT:Name
 Id:2 .SORT:Name .SORT:Id
+Id:2 .SORT:Name .REVERSESORT:Id
 Id:2
 Id:2 .AUTOFILTERS:OFF
 Id:2 .LIFESPAN:ON
@@ -965,44 +891,6 @@ Id:<42 .QUICK";
             });
         }
 
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void Linq_OfTypeAndFirst()
-        //{
-        //    var email = "admin@b.c";
-        //    var user = new User(User.Administrator.Parent);
-        //    user.Name = "testuser129";
-        //    user.Email = email;
-        //    user.Save();
-
-        //    var result = Content.All.OfType<User>().FirstOrDefault(c => c.InTree(Repository.ImsFolderPath) && c.Email == email);
-        //    Assert.IsTrue(result != null);
-        //}
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void Linq_OfTypeAndWhere()
-        //{
-        //    string path = "/Root/IMS/BuiltIn/Portal";
-        //    User user = User.Administrator;
-        //    var ok = Content.All.OfType<Group>().Where(g => g.InTree(path)).AsEnumerable().Any(g => user.IsInGroup(g));
-        //    Assert.IsTrue(ok);
-        //}
-
-        ////---------------------------------------------------------------------------------------------------------
-
-        //[TestMethod, TestCategory("IR, LINQ")]
-        //public void Linq_Error_UnknownField()
-        //{
-        //    try
-        //    {
-        //        var x = Content.All.Where(c => (int)c["UnknownField"] == 42).ToArray();
-        //        Assert.Fail("The expected InvalidOperationException was not thrown.");
-        //    }
-        //    catch (InvalidOperationException e)
-        //    {
-        //        var msg = e.Message;
-        //        Assert.IsTrue(msg.ToLower().Contains("unknown field"), "Error message does not contain: 'unknown field'.");
-        //        Assert.IsTrue(msg.Contains("UnknownField"), "Error message does not contain the field name: 'UnknownField'.");
-        //    }
-        //}
         [TestMethod, TestCategory("IR, LINQ")]
         [SuppressMessage("ReSharper", "UnusedVariable")]
         public void Linq_Error_NotConstants()
@@ -1022,7 +910,7 @@ Id:<42 .QUICK";
             });
         }
 
-        //---------------------------------------------------------------------------------------------------------
+        /* ------------------------------------------------------------------------------------------- */
 
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_OptimizeBooleans()
@@ -1042,7 +930,7 @@ Id:<42 .QUICK";
             });
         }
 
-        //---------------------------------------------------------------------------------------------------------
+        /* ------------------------------------------------------------------------------------------- */
 
         [TestMethod, TestCategory("IR, LINQ")]
         public void Linq_AspectField()
@@ -1072,10 +960,390 @@ Id:<42 .QUICK";
             });
         }
 
-        //========================================================================================================= bugz
+        /* ========================================================================================== Linq_NotSupported_ */
 
         [TestMethod, TestCategory("IR, LINQ")]
-        public void Linq_OptimizeBooleans_1()
+        public void Linq_NotSupported_Select_New()
+        {
+            AsEnumerableError("Select", () => { Content.All.Where(c => c.Id < 10)
+                .Select(c => new { c.Id, c.Path }); });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Select_Content()
+        {
+            AsEnumerableError("Select", () => { Content.All.Where(c => false)
+                .Select(c => c.ContentHandler).ToArray(); });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_SelectMany()
+        {
+            AsEnumerableError("SelectMany", () => { Content.All.Where(c => false)
+                .SelectMany(c => c.Versions).ToArray(); });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_SelectManySelect()
+        {
+            AsEnumerableError("SelectMany", () => { Content.All.Where(c => true)
+                .SelectMany(c => c.Versions)
+                .Select(n => Content.Create(n)).ToArray(); });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Min()
+        {
+            AsEnumerableError("Min", () => { Content.All.Where(c => true).Min(c => c.Id); });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Max()
+        {
+            AsEnumerableError("Max", () => { Content.All.Where(c => true).Max(c => c.Id); });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Sum()
+        {
+            AsEnumerableError("Sum", () => { Content.All.Where(c => true).Sum(c => c.Id); });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Average()
+        {
+            AsEnumerableError("Average", () => { Content.All.Where(c => true).Average(c => c.Id); });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_SkipWhile()
+        {
+            AsEnumerableError("SkipWhile", () => { Content.All.Where(c => true).SkipWhile(c => false).ToArray(); });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_TakeWhile()
+        {
+            AsEnumerableError("TakeWhile", () => { Content.All.Where(c => true).TakeWhile(c => false).ToArray(); });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Join_NonameOutput()
+        {
+            AsEnumerableError("Join", () =>
+            {
+                Content.All.Where(c => c.Id < 10000)
+                    .Join(
+                        Content.All,
+                        user => user.Id,
+                        doc => doc.ContentHandler.ModifiedBy.Id,
+                        (user, doc) => new { UserId = user.Id, DocId = doc.Id })
+                    .Where(item => item.UserId == 42);
+            });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Join_ContentOutput()
+        {
+            AsEnumerableError("Join", () =>
+            {
+                Content.All.Where(c => false)
+                    .Join(
+                        Content.All,
+                        user => user.Id,
+                        doc => doc.ContentHandler.ModifiedBy.Id,
+                        (user, doc) => user)
+                    .Where(user => user.Id == 42)
+                    .ToArray();
+            });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Aggregate()
+        {
+            AsEnumerableError("Aggregate", () =>
+            {
+                Content.All.Where(c => false).Aggregate(0, (a, b) => a + b.Id);
+            });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Cast()
+        {
+            AsEnumerableError("Cast", () =>
+            {
+                Content.All.Where(c => false).Cast<Content>().ToArray();
+            });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Distinct()
+        {
+            AsEnumerableError("Distinct", () =>
+            {
+                Content.All.Where(c => false).Distinct().ToArray();
+            });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Concat()
+        {
+            AsEnumerableError("Concat", () =>
+            {
+                Content.All.Where(c => false).Concat(new Content[0]).ToArray();
+            });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Union()
+        {
+            AsEnumerableError("Union", () =>
+            {
+                Content.All.Where(c => false).Union(new Content[0]).ToArray();
+            });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Intersect()
+        {
+            AsEnumerableError("Intersect", () =>
+            {
+                Content.All.Where(c => false).Intersect(new Content[0]).ToArray();
+            });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Except()
+        {
+            AsEnumerableError("Except", () =>
+            {
+                Content.All.Where(c => false).Except(new Content[0]).ToArray();
+            });
+        }
+
+
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_GroupBy()
+        {
+            AsEnumerableError("GroupBy", () =>
+            {
+                Content.All.Where(c => false).GroupBy(c => c);
+            });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_GroupJoin()
+        {
+            AsEnumerableError("GroupJoin", () =>
+            {
+                Content.All.Where(c => false).GroupJoin(new Content[0], a => a, b => b, (c, d) => new { A = c, B = d });
+            });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_All()
+        {
+            AsEnumerableError("All", () =>
+            {
+                Content.All.Where(c => false).All(c => true);
+            });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Reverse()
+        {
+            AsEnumerableError("Reverse", () =>
+            {
+                Content.All.Where(c => false).Reverse().ToArray();
+            });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_SequenceEqual()
+        {
+            AsEnumerableError("SequenceEqual", () =>
+            {
+                Content.All.Where(c => false).SequenceEqual(new Content[0]);
+            });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_DefaultIfEmpty()
+        {
+            AsEnumerableError("DefaultIfEmpty", () =>
+            {
+                Content.All.Where(c => false).DefaultIfEmpty().ToArray();
+            });
+        }
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_DefaultIfEmptyDefault()
+        {
+            AsEnumerableError("DefaultIfEmpty", () =>
+            {
+                Content defaultContent = null;
+                Content.All.Where(c => false).DefaultIfEmpty(defaultContent).ToArray();
+            });
+        }
+
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_NotSupported_Zip()
+        {
+            AsEnumerableError("Zip", () =>
+            {
+                Content.All.Where(c => false).Zip(new Content[0], (a, b) => a).ToArray();
+            });
+        }
+
+
+        /* ========================================================================================== LinqEx_ */
+        /* When the framework calls Provider.Execute */
+
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void LinqEx_FirstLastSingle()
+        {
+            Test(() =>
+            {
+                // ======== First()
+                Assert.AreEqual(5, Content.All.DisableAutofilters().Where(c => c.Id < 6).OrderByDescending(c => c.Id).First().Id);
+                Assert.AreEqual(5, Content.All.DisableAutofilters().Where(c => c.Id < 10).OrderByDescending(c => c.Id).First(c => c.Id < 6).Id);
+                // empty
+                InvalidOperationTest(() => { Content.All.Where(c => c.Id < 0).First(); });
+                InvalidOperationTest(() => { Content.All.First(c => c.Id < 0); });
+
+                // ======== FirstOrDefault()
+                Assert.AreEqual(5, Content.All.DisableAutofilters().Where(c => c.Id < 6).OrderByDescending(c => c.Id).FirstOrDefault().Id);
+                Assert.AreEqual(5, Content.All.DisableAutofilters().Where(c => c.Id < 10).OrderByDescending(c => c.Id).FirstOrDefault(c => c.Id < 6).Id);
+                // empty
+                Assert.IsNull(Content.All.Where(c => c.Id < 0).FirstOrDefault());
+                Assert.IsNull(Content.All.Where(c => c.Id < 0).FirstOrDefault(c => c.Id < 4));
+
+                // ======== Last()
+                Assert.AreEqual(5, Content.All.DisableAutofilters().Where(c => c.Id < 6).OrderBy(c => c.Id).Last().Id);
+                Assert.AreEqual(5, Content.All.DisableAutofilters().Where(c => c.Id < 10).OrderBy(c => c.Id).Last(c => c.Id < 6).Id);
+                // empty
+                InvalidOperationTest(() => { Content.All.Where(c => c.Id < 0).Last(); });
+                InvalidOperationTest(() => { Content.All.Last(c => c.Id < 0); });
+
+                // ======== LastOrDefault()
+                Assert.AreEqual(5, Content.All.DisableAutofilters().Where(c => c.Id < 6).OrderBy(c => c.Id).LastOrDefault().Id);
+                Assert.AreEqual(5, Content.All.DisableAutofilters().Where(c => c.Id < 10).OrderBy(c => c.Id).LastOrDefault(c => c.Id < 6).Id);
+                // empty
+                Assert.IsNull(Content.All.Where(c => c.Id < 0).LastOrDefault());
+                Assert.IsNull(Content.All.Where(c => c.Id < 0).LastOrDefault(c => c.Id < 4));
+
+
+                // ======== Single()
+                Assert.AreEqual(5, Content.All.DisableAutofilters().Where(c => c.Id == 5).Single().Id);
+                Assert.AreEqual(5, Content.All.DisableAutofilters().Single(c => c.Id == 5).Id);
+                // empty
+                InvalidOperationTest(() => { Content.All.Where(c => c.Id < 0).Single(); });
+                InvalidOperationTest(() => { Content.All.Single(c => c.Id < 0); });
+                // more than one
+                InvalidOperationTest(() => { Content.All.Where(c => c.Id < 6).Single(); });
+                InvalidOperationTest(() => { Content.All.Single(c => c.Id < 6); });
+
+                // ======== SingleOrDefault()
+                Assert.AreEqual(5, Content.All.DisableAutofilters().Where(c => c.Id == 5).SingleOrDefault().Id);
+                Assert.AreEqual(5, Content.All.DisableAutofilters().SingleOrDefault(c => c.Id == 5).Id);
+                // empty
+                Assert.IsNull(Content.All.Where(c => c.Id < 0).SingleOrDefault());
+                Assert.IsNull(Content.All.SingleOrDefault(c => c.Id < 0));
+                // more than one
+                InvalidOperationTest(() => { Content.All.Where(c => c.Id < 6).SingleOrDefault(); });
+                InvalidOperationTest(() => { Content.All.SingleOrDefault(c => c.Id < 6); });
+            });
+        }
+
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void LinqEx_ElementAt()
+        {
+            Test(() =>
+            {
+                var x = 2;
+                // ======== ElementAt()
+                Assert.AreEqual(6, Content.All.DisableAutofilters().Where(c => c.Id < 10).OrderBy(c => c.Id).ElementAt(3 + x).Id);
+                // less
+                ArgumentOutOfRangeTest(() => { Content.All.DisableAutofilters().Where(c => c.Id < 3).OrderBy(c => c.Id).ElementAt(5); });
+                // empty
+                ArgumentOutOfRangeTest(() => { Content.All.DisableAutofilters().Where(c => c.Id < 0).OrderBy(c => c.Id).ElementAt(5); });
+
+                // ======== ElementAtOrDefault()
+                Assert.AreEqual(6, Content.All.DisableAutofilters().Where(c => c.Id < 10).OrderBy(c => c.Id).ElementAtOrDefault(5).Id);
+                // less
+                Assert.IsNull(Content.All.DisableAutofilters().Where(c => c.Id < 3).OrderBy(c => c.Id).ElementAtOrDefault(5));
+                // empty
+                Assert.IsNull(Content.All.DisableAutofilters().Where(c => c.Id < 0).OrderBy(c => c.Id).ElementAtOrDefault(5));
+            });
+        }
+
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void LinqEx_Any()
+        {
+            Test(() =>
+            {
+                Assert.IsFalse(Content.All.DisableAutofilters().Where(c => c.Id == 0).Any());
+                Assert.IsTrue(Content.All.DisableAutofilters().Where(c => c.Id == 1).Any());
+                Assert.IsTrue(Content.All.DisableAutofilters().Where(c => c.Id > 0).Any());
+
+                Assert.IsFalse(Content.All.DisableAutofilters().Any(c => c.Id == 0));
+                Assert.IsTrue(Content.All.DisableAutofilters().Any(c => c.Id == 1));
+                Assert.IsTrue(Content.All.DisableAutofilters().Any(c => c.Id > 0));
+            });
+        }
+
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void LinqEx_CountOnly()
+        {
+            Test(() =>
+            {
+                Assert.AreEqual(9, Content.All.DisableAutofilters().Where(c => c.Id < 10).Count());
+                Assert.AreEqual(9, Content.All.DisableAutofilters().Count(c => c.Id < 10));
+
+                Assert.AreEqual(9L, Content.All.DisableAutofilters().Where(c => c.Id < 10).LongCount());
+                Assert.AreEqual(9L, Content.All.DisableAutofilters().LongCount(c => c.Id < 10));
+            });
+        }
+
+        //[TestMethod, TestCategory("IR, LINQ")]
+        //public void LinqEx_CountIsDeferred()
+        //{
+        //    string log = null;
+        //    try
+        //    {
+        //        ContentSet<Content>.TracingEnabled = true;
+        //        var count = Content.All.DisableAutofilters().Where(c => c.InFolder(TestRoot)).Count();
+        //        log = ContentSet<Content>.TraceLog.ToString();
+        //    }
+        //    finally
+        //    {
+        //        ContentSet<Content>.TraceLog.Clear();
+        //        ContentSet<Content>.TracingEnabled = false;
+        //    }
+        //    Assert.IsTrue(log.Contains(".COUNTONLY"));
+        //}
+
+        //[TestMethod, TestCategory("IR, LINQ")]
+        //public void LinqEx_OfTypeAndFirst()
+        //{
+        //    var email = "admin@b.c";
+        //    var user = new User(User.Administrator.Parent);
+        //    user.Name = "testuser129";
+        //    user.Email = email;
+        //    user.Save();
+
+        //    var result = Content.All.OfType<User>().FirstOrDefault(c => c.InTree(Repository.ImsFolderPath) && c.Email == email);
+        //    Assert.IsTrue(result != null);
+        //}
+        //[TestMethod, TestCategory("IR, LINQ")]
+        //public void LinqEx_OfTypeAndWhere()
+        //{
+        //    string path = "/Root/IMS/BuiltIn/Portal";
+        //    User user = User.Administrator;
+        //    var ok = Content.All.OfType<Group>().Where(g => g.InTree(path)).AsEnumerable().Any(g => user.IsInGroup(g));
+        //    Assert.IsTrue(ok);
+        //}
+
+        ///* ------------------------------------------------------------------------------------------- */ 
+
+
+        //[TestMethod, TestCategory("IR, LINQ")]
+        //public void LinqEx_Error_UnknownField()
+        //{
+        //    try
+        //    {
+        //        var x = Content.All.Where(c => (int)c["UnknownField"] == 42).ToArray();
+        //        Assert.Fail("The expected InvalidOperationException was not thrown.");
+        //    }
+        //    catch (InvalidOperationException e)
+        //    {
+        //        var msg = e.Message;
+        //        Assert.IsTrue(msg.ToLower().Contains("unknown field"), "Error message does not contain: 'unknown field'.");
+        //        Assert.IsTrue(msg.Contains("UnknownField"), "Error message does not contain the field name: 'UnknownField'.");
+        //    }
+        //}
+
+
+        /* ========================================================================================== bugz */
+
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_BugReproduction_OptimizeBooleans_1()
         {
             Test(() =>
             {
@@ -1106,6 +1374,54 @@ Id:<42 .QUICK";
                 return true;
             });
         }
+
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_BugReproduction_SnNotSupported_1()
+        {
+            const string SystemFolder = "SystemFolder";
+            const string File = "File";
+            Test(() =>
+            {
+                Repository.Root
+                    .CreateChild("TestRoot", SystemFolder, out Node testRoot)
+                    .CreateChild("Folder1", SystemFolder)
+                    .CreateChild("File1", File);
+                testRoot
+                    .CreateChild("Folder2", SystemFolder)
+                    .CreateChild("File2", File);
+
+                Content content = Content.All.DisableAutofilters()
+                    .FirstOrDefault(c => c.InTree(testRoot.Path) && c.Type(File));
+
+                Assert.IsNotNull(content);
+            });
+        }
+
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_BugReproduction_StartsWith_1()
+        {
+            Test(() =>
+            {
+                Repository.Root.CreateChild<SystemFolder>("TestRoot", out SystemFolder testRoot);
+                testRoot.CreateChild<Folder>("doc-1-folder");
+                testRoot.CreateChild<Folder>("doc-2-folder");
+                testRoot.CreateChild<File>("doc-1-file");
+                testRoot.CreateChild<File>("doc-2-file");
+
+                Content[] result;
+
+                // var crmcontactsall = this.Model.Items.Where(c => c.Type("RorWebCRMContact") && c.Path.StartsWith(company.Path)).ToList();
+                result = Content.All.DisableAutofilters()
+                    .Where(c => c.Type("File") && c.Path.StartsWith(testRoot.Path)).ToArray();
+                Assert.AreEqual(2, result.Length);
+
+                // var crmcontactsall = this.Model.Items.Where(c => c.Type("RorWebCRMContact") && c.InTree(company.Path)).ToList();
+                result = Content.All.DisableAutofilters()
+                    .Where(c => c.Type("File") && c.InTree(testRoot.Path)).ToArray();
+                Assert.AreEqual(2, result.Length);
+            });
+        }
+
 
         //[TestMethod, TestCategory("IR, LINQ")]
         //public void Linq_Bug_StackOverflow()
@@ -1257,6 +1573,54 @@ Id:<42 .QUICK";
             foreach (var observer in NodeObserver.GetObserverTypes())
                 node.DisableObserver(observer);
             node.Save();
+        }
+
+        private void InvalidOperationTest(Action action)
+        {
+            try
+            {
+                action();
+                Assert.Fail("InvalidOperationException was not thrown.");
+            }
+            catch (InvalidOperationException e)
+            {
+                // expected exception
+            }
+        }
+        private void ArgumentOutOfRangeTest(Action action)
+        {
+            try
+            {
+                action();
+                Assert.Fail("ArgumentOutOfRangeException was not thrown.");
+            }
+            catch (ArgumentOutOfRangeException e)
+            {
+                // expected exception
+            }
+        }
+        private void AsEnumerableError(string expectedMethodName, Action action)
+        {
+            var message = string.Empty;
+            try
+            {
+                action();
+                Assert.Fail("NotSupportedException was not thrown.");
+            }
+            catch (SnNotSupportedException e)
+            {
+                message = e.Message;
+                // expected exception
+            }
+            catch (NotSupportedException e)
+            {
+                message = e.Message;
+                // expected exception
+            }
+
+            // $"Cannot resolve an expression. Use 'AsEnumerable()' method before calling '{lastMethodName}' method");
+            var actualMethodName = message.Split('\'')[3];
+            Assert.AreEqual(expectedMethodName, actualMethodName);
         }
 
     }

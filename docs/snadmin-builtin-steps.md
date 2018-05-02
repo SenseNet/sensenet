@@ -763,6 +763,55 @@ If you want to modify the **content handler** of the content type, use this step
 ```
 >Please make sure that a **StartRepository** step precedes this one to make sure that the repository is started.
 
+### DeleteContentType
+- Full name: *SenseNet.Packaging.Steps.DeleteContentType*
+- Default property: *Name*
+- Additional properties: *Delete*
+
+Deletes a content type and its usages. The execution mode depends on the value of the *Delete* property. Allowed values are:
+
+- No (default)
+- IfNotUsed
+- Force
+
+#### No
+This is the default execution mode so the following two steps are equal:
+```xml
+<DeleteContentType name='ContenType1'/>
+<DeleteContentType name='ContenType1' delete='no'/>
+```
+In this case the step only *simulates* the deletion, does not execute it. Discovers all usages and displays them.
+
+#### IfNotUsed
+```xml
+<DeleteContentType name='ContenType1' delete='ifNotUsed'/>
+```
+
+Deletes the content type if it is not used. "Not used" means the content type does not have any "hard" dependencies:
+
+- There are no instances of this type in the repository (except content templates).
+- There is no child content type inherited from this content type.
+
+If a hard dependency exists, the content type will not be deleted and only a message will be written to the log.
+
+#### Force
+```xml
+<DeleteContentType name='ContenType1' delete='force'/>
+```
+The content type will be deleted even if there are dependencies in the repository. Before the deletion all dependencies and usages will be deleted:
+
+- Inherited content types
+- Content instances
+- Content templates
+- Content views
+- Allowed child types in all content type headers.
+- Allowed types in all CTD contfigurations of reference fields.
+- Allowed child types in all content instances.
+
+>Please make sure that a **StartRepository** step precedes this one to make sure that the repository is started.
+
+>Please note that this step can take some time to complete depending on the usages of the content type.
+
 ## Permissions and security
 Although it is possible to modify content permissions by importing .Content files containing security entries, sometimes it is easier to define permission changes using these specialized steps.
 

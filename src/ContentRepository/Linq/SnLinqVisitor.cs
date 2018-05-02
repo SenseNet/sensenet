@@ -70,6 +70,7 @@ namespace SenseNet.ContentRepository.Linq
         public List<SortInfo> Sort { get; private set; }
         public bool ThrowIfEmpty { get; private set; }
         public bool ExistenceOnly { get; private set; }
+        public string ElementSelection { get; private set; }
 
         public override Expression Visit(Expression node)
         {
@@ -106,7 +107,7 @@ namespace SenseNet.ContentRepository.Linq
                     break;
 
                 // All other cases are not supported here (~70)
-                default: throw new SnNotSupportedException("SnLinq: VisitBinary");
+                default: throw new SnNotSupportedException("VisitBinary: " + node);
             }
             return visited;
         }
@@ -268,10 +269,21 @@ namespace SenseNet.ContentRepository.Linq
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
             Trace(MethodBase.GetCurrentMethod(), node);
-            var visited = base.VisitMethodCall(node);
+            Expression visited = null;
+            try
+            {
+                visited = base.VisitMethodCall(node);
+            }
+            catch(SnNotSupportedException e)
+            {
+                throw SnExpression.CallingAsEnunerableExpectedError(node.Method.Name, e);
+            }
+
             if (!(visited is MethodCallExpression methodCallExpr))
                 throw new NotSupportedException("#VisitMethodCall if visited is not null");
-            switch (methodCallExpr.Method.Name)
+
+            var methodName = methodCallExpr.Method.Name;
+            switch (methodName)
             {
                 case "OfType":
                 // Do nothing. Type of expression has been changed so a TypeIs predicate will be created.
@@ -286,12 +298,11 @@ namespace SenseNet.ContentRepository.Linq
                     var skipExpr = GetArgumentAsConstant(methodCallExpr, 1);
                     this.Skip = (int)skipExpr.Value;
                     break;
+                case "LongCount":
                 case "Count":
-                    if (node.Arguments.Count == 2)
-                    {
+                    if (methodCallExpr.Arguments.Count == 2)
                         if (_predicates.Count > 1) // There is Where in the main expression
                             CombineTwoPredicatesOnStack();
-                    }
                     this.CountOnly = true;
                     break;
                 case "ThenBy":
@@ -334,21 +345,42 @@ namespace SenseNet.ContentRepository.Linq
                         break;
                     }
                     throw NotSupportedException(node, "#3");
+                case "FirstOrDefault":
                 case "First":
+                    ElementSelection = "first";
                     this.Top = 1;
-                    this.ThrowIfEmpty = true;
+                    this.ThrowIfEmpty = methodName == "First";
                     if (methodCallExpr.Arguments.Count == 2)
                         if (_predicates.Count > 1)
                             CombineTwoPredicatesOnStack();
                     break;
-                case "FirstOrDefault":
-                    this.ThrowIfEmpty = false;
-                    this.Top = 1;
+                case "SingleOrDefault":
+                case "Single":
+                    ElementSelection = "single";
+                    this.ThrowIfEmpty = methodName == "Single";
                     if (methodCallExpr.Arguments.Count == 2)
-                        if (_predicates.Count > 1) // There is Where in the main expression
+                        if (_predicates.Count > 1)
                             CombineTwoPredicatesOnStack();
                     break;
+                case "LastOrDefault":
+                case "Last":
+                    ElementSelection = "last";
+                    this.ThrowIfEmpty = methodName == "Last";
+                    if (methodCallExpr.Arguments.Count == 2)
+                        if (_predicates.Count > 1)
+                            CombineTwoPredicatesOnStack();
+                    break;
+                case "ElementAtOrDefault":
+                case "ElementAt":
+                    ElementSelection = "elementat";
+                    this.ThrowIfEmpty = methodName == "ElementAt";
+                    var constExpr = GetArgumentAsConstant(methodCallExpr, 1);
+                    var index = Convert.ToInt32(constExpr.Value);
+                    this.Skip = index;
+                    this.Top = 1;
+                    break;
                 case "Any":
+                    ElementSelection = "first";
                     this.CountOnly = true;
                     this.ExistenceOnly = true;
                     this.Top = 1;
@@ -436,7 +468,7 @@ namespace SenseNet.ContentRepository.Linq
                         break;
                     }
                 default:
-                    throw new SnNotSupportedException("Unknown method: " + methodCallExpr.Method.Name);
+                    throw SnExpression.CallingAsEnunerableExpectedError(methodCallExpr.Method.Name);
             }
 
             return visited;
