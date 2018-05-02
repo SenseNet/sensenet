@@ -36,5 +36,17 @@ namespace SenseNet.Tests
             content.Save();
             return content.ContentHandler;
         }
+
+        public static T CreateChild<T>(this Node parent, string name, out T child) where T : Node
+        {
+            child = parent.CreateChild<T>(name);
+            return child;
+        }
+        public static T CreateChild<T>(this Node parent, string name) where T : Node
+        {
+            var content = Content.CreateNew(typeof(T).Name, parent, name);
+            content.Save();
+            return (T)content.ContentHandler;
+        }
     }
 }

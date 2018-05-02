@@ -1383,12 +1383,12 @@ Id:<42 .QUICK";
             Test(() =>
             {
                 Repository.Root
-                    .CreateChild(SystemFolder, "TestRoot", out Node testRoot)
-                    .CreateChild(SystemFolder, "Folder1")
-                    .CreateChild(File, "File1");
+                    .CreateChild("TestRoot", SystemFolder, out Node testRoot)
+                    .CreateChild("Folder1", SystemFolder)
+                    .CreateChild("File1", File);
                 testRoot
-                    .CreateChild(SystemFolder, "Folder2")
-                    .CreateChild(File, "File2");
+                    .CreateChild("Folder2", SystemFolder)
+                    .CreateChild("File2", File);
 
                 Content content = Content.All.DisableAutofilters()
                     .FirstOrDefault(c => c.InTree(testRoot.Path) && c.Type(File));
@@ -1396,6 +1396,32 @@ Id:<42 .QUICK";
                 Assert.IsNotNull(content);
             });
         }
+
+        [TestMethod, TestCategory("IR, LINQ")]
+        public void Linq_BugReproduction_StartsWith_1()
+        {
+            Test(() =>
+            {
+                Repository.Root.CreateChild<SystemFolder>("TestRoot", out SystemFolder testRoot);
+                testRoot.CreateChild<Folder>("doc-1-folder");
+                testRoot.CreateChild<Folder>("doc-2-folder");
+                testRoot.CreateChild<File>("doc-1-file");
+                testRoot.CreateChild<File>("doc-2-file");
+
+                Content[] result;
+
+                // var crmcontactsall = this.Model.Items.Where(c => c.Type("RorWebCRMContact") && c.Path.StartsWith(company.Path)).ToList();
+                result = Content.All.DisableAutofilters()
+                    .Where(c => c.Type("File") && c.Path.StartsWith(testRoot.Path)).ToArray();
+                Assert.AreEqual(2, result.Length);
+
+                // var crmcontactsall = this.Model.Items.Where(c => c.Type("RorWebCRMContact") && c.InTree(company.Path)).ToList();
+                result = Content.All.DisableAutofilters()
+                    .Where(c => c.Type("File") && c.InTree(testRoot.Path)).ToArray();
+                Assert.AreEqual(2, result.Length);
+            });
+        }
+
 
         //[TestMethod, TestCategory("IR, LINQ")]
         //public void Linq_Bug_StackOverflow()
