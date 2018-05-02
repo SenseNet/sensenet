@@ -672,8 +672,18 @@ namespace SenseNet.ContentRepository
                 if (profiles == null)
                 {
                     var profilesTarget = Node.LoadNode(GetProfilesTargetPath());
-                    profiles = Content.CreateNew(Profiles, profilesTarget, Profiles).ContentHandler;
-                    profiles.Save();
+                    var pc = Content.CreateNew(Profiles, profilesTarget, Profiles);
+                    pc.Save();
+
+                    var aclEditor = SecurityHandler.CreateAclEditor();
+                    aclEditor.BreakInheritance(pc.Id)
+                        // ReSharper disable once CoVariantArrayConversion
+                        .Allow(pc.Id, Identifiers.AdministratorsGroupId, false, PermissionType.PermissionTypes)
+                        // ReSharper disable once CoVariantArrayConversion
+                        .Allow(pc.Id, Identifiers.OwnersGroupId, false, PermissionType.PermissionTypes)
+                        .Apply();
+
+                    profiles = pc.ContentHandler;
                 }
 
                 Content profile = null;
