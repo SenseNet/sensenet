@@ -18,11 +18,6 @@ namespace SenseNet.ContentRepository.Linq
         ISnQueryable<T> DisableAutofilters();
         ISnQueryable<T> EnableLifespan();
         ISnQueryable<T> DisableLifespan();
-
-        Content First();
-        Content FirstOrDefault();
-        Content Last();
-        Content LastOrDefault();
     }
     public class ContentSet<T> : IOrderedEnumerable<T>, IQueryProvider, ISnQueryable<T>
     {
@@ -73,23 +68,6 @@ namespace SenseNet.ContentRepository.Linq
         {
             this.ChildrenDefinition.QueryExecutionMode = executionMode;
             return this;
-        }
-
-        public Content First()
-        {
-            throw new SnNotSupportedException("SnLinq: ContentSet.First");
-        }
-        public Content FirstOrDefault()
-        {
-            throw new SnNotSupportedException("SnLinq: ContentSet.FirstOrDefault");
-        }
-        public Content Last()
-        {
-            throw new SnNotSupportedException("SnLinq: ContentSet.Last");
-        }
-        public Content LastOrDefault()
-        {
-            throw new SnNotSupportedException("SnLinq: ContentSet.LastOrDefault");
         }
 
         // =====================================================================
