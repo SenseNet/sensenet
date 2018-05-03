@@ -203,7 +203,7 @@ namespace SenseNet.Communication.Messaging
             if (MessageReceived != null)
                 MessageReceived(this, new MessageReceivedEventArgs(message));
         }
-        internal virtual void OnMessageReceived(Stream messageBody)
+        protected internal virtual void OnMessageReceived(Stream messageBody)
         {
             ClusterMessage message = m_formatter.Deserialize(messageBody);
             SnTrace.Messaging.Write("Received a '{0}' message.", message.GetType().FullName);
