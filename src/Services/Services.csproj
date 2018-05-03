@@ -165,7 +165,8 @@
     <Compile Include="ApplicationModel\GenericODataApplication.cs" />
     <Compile Include="ApplicationModel\GenericODataOperation.cs" />
     <Compile Include="ApplicationModel\GetPermissionsAction.cs" />
-    <Compile Include="ApplicationModel\GetSchemaAction.cs" />
+    <Compile Include="Metadata\IMetadataProvider.cs" />
+    <Compile Include="Metadata\ClientMetadataProvider.cs" />
     <Compile Include="ApplicationModel\HasPermissionAction.cs" />
     <Compile Include="ApplicationModel\HttpAction.cs" />
     <Compile Include="ApplicationModel\HttpActionFactory.cs" />

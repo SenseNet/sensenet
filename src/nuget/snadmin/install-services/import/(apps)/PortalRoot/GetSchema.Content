@@ -3,9 +3,10 @@
   <ContentType>GenericODataApplication</ContentType>
   <ContentName>GetSchema</ContentName>
   <Fields>
-    <ClassName><![CDATA[SenseNet.Services.ApplicationModel.SchemaProvider]]></ClassName>
+    <ClassName><![CDATA[SenseNet.Services.Metadata.ClientMetadataProvider]]></ClassName>
     <MethodName><![CDATA[GetSchema]]></MethodName>
     <DisplayName><![CDATA[GetSchema]]></DisplayName>
+    <Parameters><![CDATA[string contentTypeName]]></Parameters>
   </Fields>
   <Permissions>
     <Clear />
