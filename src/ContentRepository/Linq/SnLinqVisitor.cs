@@ -853,12 +853,13 @@ namespace SenseNet.ContentRepository.Linq
         }
 
         private enum WildcardPosition { AtStart, AtEnd, AtStartAndEnd }
-        private void BuildWildcardPredicate(string field, WildcardPosition type, string arg)
+        private void BuildWildcardPredicate(string field, WildcardPosition type, string argument)
         {
             var fieldInfo = ContentTypeManager.GetPerFieldIndexingInfo(field);
             if (fieldInfo == null)
                 throw new InvalidOperationException("Unknown field: " + field);
 
+            var arg = ConvertValue(field, argument).StringValue;
             string text;
             switch (type)
             {
