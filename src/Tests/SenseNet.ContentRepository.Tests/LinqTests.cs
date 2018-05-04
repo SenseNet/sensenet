@@ -270,7 +270,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                Assert.AreEqual("Name:Car*", GetQueryString(Content.All.Where(c => c.Name.StartsWith("Car"))));
+                Assert.AreEqual("Name:car*", GetQueryString(Content.All.Where(c => c.Name.StartsWith("Car"))));
                 Assert.AreEqual("Name:*r2", GetQueryString(Content.All.Where(c => c.Name.EndsWith("r2"))));
                 Assert.AreEqual("Name:*ro*", GetQueryString(Content.All.Where(c => c.Name.Contains("ro"))));
                 return true;
@@ -1402,23 +1402,18 @@ Id:<42 .QUICK";
         {
             Test(() =>
             {
-                Repository.Root.CreateChild<SystemFolder>("TestRoot", out SystemFolder testRoot);
-                testRoot.CreateChild<Folder>("doc-1-folder");
-                testRoot.CreateChild<Folder>("doc-2-folder");
-                testRoot.CreateChild<File>("doc-1-file");
-                testRoot.CreateChild<File>("doc-2-file");
+                // based on original bug report
 
-                Content[] result;
+                Assert.AreEqual("Path:/root/ims*",
+                    GetQueryString(Content.All.Where(c => c.Path.StartsWith("/Root/IMS"))));
 
-                // var crmcontactsall = this.Model.Items.Where(c => c.Type("RorWebCRMContact") && c.Path.StartsWith(company.Path)).ToList();
-                result = Content.All.DisableAutofilters()
-                    .Where(c => c.Type("File") && c.Path.StartsWith(testRoot.Path)).ToArray();
-                Assert.AreEqual(2, result.Length);
+                // more test cases
 
-                // var crmcontactsall = this.Model.Items.Where(c => c.Type("RorWebCRMContact") && c.InTree(company.Path)).ToList();
-                result = Content.All.DisableAutofilters()
-                    .Where(c => c.Type("File") && c.InTree(testRoot.Path)).ToArray();
-                Assert.AreEqual(2, result.Length);
+                Assert.AreEqual("Path:*/mydoc",
+                    GetQueryString(Content.All.Where(c => c.Path.EndsWith("/MyDoc"))));
+                Assert.AreEqual("Path:*/views/*",
+                    GetQueryString(Content.All.Where(c => c.Path.Contains("/Views/"))));
+
             });
         }
 
