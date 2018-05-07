@@ -15,7 +15,7 @@
     <copyright>Copyright © Sense/Net Inc.</copyright>
     <tags>sensenet ecm ecms csp content platform</tags>
     <dependencies>
-      <dependency id="SenseNet.Services" version="7.1.1" />
+      <dependency id="SenseNet.Services" version="7.1.2" />
       <dependency id="SenseNet.SnAdmin" version="1.4.4" />
       <dependency id="SenseNet.Search.Lucene29.Local" version="7.1.1" />
     </dependencies>
