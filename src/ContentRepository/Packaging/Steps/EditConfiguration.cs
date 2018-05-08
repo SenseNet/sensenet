@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -142,24 +143,93 @@ namespace SenseNet.ContentRepository.Packaging.Steps
         {
             var sourceSectionElement = (XmlElement)xml.DocumentElement.SelectSingleNode(move.SourceSection);
             var targetSectionElement = (XmlElement)xml.DocumentElement.SelectSingleNode(move.TargetSection);
-            if (move.SourceKey == null)
+            if (move.SourceKey != null)
             {
-                // move the whole section
-                //UNDONE: Move section
-                throw new NotImplementedException();
-            }
-            else
-            {
+                // move element
                 var sourceElement = (XmlElement) sourceSectionElement.SelectSingleNode($"add[@key='{move.SourceKey}']");
                 if (move.TargetKey != null)
                     // rename
                     sourceElement.SetAttribute("key", move.TargetKey);
 
-                // move element
+                // ensure section element
+                if (targetSectionElement == null)
+                    targetSectionElement = CreateSection(xml, move.TargetSection);
+
+                // move
                 var moved = sourceElement.ParentNode.RemoveChild(sourceElement);
                 targetSectionElement.AppendChild(moved);
                 return true;
             }
+            else
+            {
+                // move the whole section
+                //UNDONE: Move section
+                throw new NotImplementedException();
+            }
+        }
+
+        private XmlElement CreateSection(XmlDocument xml, string sectionPath)
+        {
+            // path = sectionsA/section1
+            // <configuration>
+            //   <configSections>
+            //     <sectionGroup name='sectionsA'>
+            //       <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+            //     </sectionGroup>
+            //   </configSections>
+            //   <sectionsA>
+            //     <section1>
+
+            var configSections = (XmlElement) xml.DocumentElement.SelectSingleNode("configSections");
+            if (configSections == null)
+            {
+                configSections = xml.CreateElement("configSections");
+                xml.DocumentElement.InsertBefore(configSections, xml.DocumentElement.FirstChild);
+            }
+
+            // ensure configSections
+            var sectionRoot = configSections;
+            var steps = sectionPath.Split('/');
+            var lastName = steps[steps.Length - 1];
+            if (steps.Length > 1)
+            {
+                for (var i = 0; i < steps.Length - 1; i++)
+                {
+                    var sectionGroup = (XmlElement)sectionRoot.SelectSingleNode(steps[i]);
+                    if (sectionGroup == null)
+                    {
+                        sectionGroup = xml.CreateElement("sectionGroup");
+                        sectionGroup.SetAttribute("name", steps[i]);
+                        sectionRoot.AppendChild(sectionGroup);
+                        sectionRoot = sectionGroup;
+                    }
+                }
+            }
+
+            // ensure section definition
+            var sectionDef = (XmlElement)sectionRoot.SelectSingleNode(lastName);
+            if (sectionDef == null)
+            {
+                sectionDef = xml.CreateElement("section");
+                sectionDef.SetAttribute("name", lastName);
+                sectionDef.SetAttribute("type", "System.Configuration.NameValueFileSectionHandler");
+                sectionRoot.AppendChild(sectionDef);
+            }
+
+            // create sections
+            var section = xml.DocumentElement;
+            for (int i = 0; i < steps.Length; i++)
+            {
+                var childSection = (XmlElement)section.SelectSingleNode("steps[i]");
+                if (childSection == null)
+                {
+                    childSection = xml.CreateElement(steps[i]);
+                    section.AppendChild(childSection);
+                    section = childSection;
+                }
+            }
+
+            return section;
         }
     }
 }
