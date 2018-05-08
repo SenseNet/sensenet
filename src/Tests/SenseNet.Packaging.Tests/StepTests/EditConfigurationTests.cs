@@ -22,7 +22,7 @@ namespace SenseNet.Packaging.Tests.StepTests
         //     <Element sourceSetion="appSettings"
         //              sourceKey="asdf"
         //              targetSection="sensenet/section3"
-        //              default="42" />
+        //              deleteIfValueIs="42" />
         //     <Element sourceSetion="appSettings"
         //              sourceKey="LuceneActivityTimeoutInSeconds"
         //              targetSection="sensenet/indexing"
@@ -47,6 +47,8 @@ namespace SenseNet.Packaging.Tests.StepTests
             var loggerAcc = new PrivateType(typeof(Logger));
             loggerAcc.SetStaticField("_loggers", loggers);
         }
+
+        /* ============================================================================================== */
 
         [TestMethod]
         public void Step_EditConfiguration_Parse_MissingFile()
@@ -191,11 +193,11 @@ namespace SenseNet.Packaging.Tests.StepTests
             Assert.IsTrue(message.Contains("'sourcekey' is required"));
         }
         [TestMethod]
-        public void Step_EditConfiguration_Parse_Move_MissingSourceKeyIfDefaultGiven()
+        public void Step_EditConfiguration_Parse_Move_MissingSourceKeyIfDeleteValueGiven()
         {
             var step = CreateStep(@"<EditConfiguration file='./web.config'>
     <Move>
-        <Element sourceSection='section1' targetSection='section2' default='42'/>
+        <Element sourceSection='section1' targetSection='section2' deleteIfValueIs='42'/>
     </Move>
 </EditConfiguration>");
 
@@ -213,18 +215,17 @@ namespace SenseNet.Packaging.Tests.StepTests
             Assert.IsTrue(message.Contains("invalid move"));
             Assert.IsTrue(message.Contains("'sourcekey' is required"));
         }
-
         [TestMethod]
         public void Step_EditConfiguration_Parse_Move()
         {
             void CheckMoveOperation(EditConfiguration.MoveOperation op,
-                string sourceSection, string targetSection, string sourceKey, string targetKey, string defaultValue)
+                string sourceSection, string targetSection, string sourceKey, string targetKey, string deleteIfValueIs)
             {
                 Assert.AreEqual(sourceSection, op.SourceSection);
                 Assert.AreEqual(targetSection, op.TargetSection);
                 Assert.AreEqual(sourceKey, op.SourceKey);
                 Assert.AreEqual(targetKey, op.TargetKey);
-                Assert.AreEqual(defaultValue, op.DefaultValue);
+                Assert.AreEqual(deleteIfValueIs, op.DeleteIfValueIs);
             }
 
             var step = CreateStep(@"<EditConfiguration file='./web.config'>
@@ -232,7 +233,7 @@ namespace SenseNet.Packaging.Tests.StepTests
         <Element sourceSection='section1' targetSection='section2'/>
         <Element sourceSection='section1' targetSection='section2' sourceKey='key1'/>
         <Element sourceSection='section1' targetSection='section2' sourceKey='key1' targetKey='key2'/>
-        <Element sourceSection='section1' targetSection='section2' sourceKey='key1' targetKey='key2' default='42'/>
+        <Element sourceSection='section1' targetSection='section2' sourceKey='key1' targetKey='key2' deleteIfValueIs='42'/>
     </Move>
 </EditConfiguration>");
 
@@ -247,6 +248,114 @@ namespace SenseNet.Packaging.Tests.StepTests
             CheckMoveOperation(moves[3], "section1", "section2", "key1", "key2", "42");
         }
 
+        /* ---------------------------------------------------------------------------------------------- */
+
+        private string _config = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+    <sectionGroup name='sectionsA'>
+      <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+      <section name='section2' type='System.Configuration.NameValueFileSectionHandler' />
+    </sectionGroup>
+  </configSections>
+  <sectionsA>
+    <section1>
+      <add key='key1' value='value1' />
+      <add key='key2' value='value2' />
+      <add key='key3' value='value3' />
+    </section1>
+    <section2>
+      <add key='key4' value='value4' />
+    </section2>
+  </sectionsA>
+  <appSettings>
+    <add key='key5' value='value5' />
+    <add key='key6' value='value6' />
+    <add key='key7' value='value7' />
+  </appSettings>
+</configuration>";
+
+        [TestMethod]
+        public void Step_EditConfiguration_MoveSimpleKeyToExisting()
+        {
+            var config = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+    <sectionGroup name='sectionsA'>
+      <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+    </sectionGroup>
+  </configSections>
+  <section1>
+    <add key='key1' value='value1' />
+  </section1>
+  <sectionsA>
+    <section1>
+      <add key='key2' value='value2' />
+    </section1>
+  </sectionsA>
+  <appSettings>
+    <add key='key3' value='value3' />
+    <add key='key4' value='value4' />
+    <add key='key5' value='value5' />
+  </appSettings>
+</configuration>";
+
+            var expected = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+    <sectionGroup name='sectionsA'>
+      <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+    </sectionGroup>
+  </configSections>
+  <section1>
+    <add key='key1' value='value1' />
+    <add key='key3' value='value3' />
+  </section1>
+  <sectionsA>
+    <section1>
+      <add key='key2' value='value2' />
+      <add key='key4' value='value4' />
+    </section1>
+  </sectionsA>
+  <appSettings>
+    <add key='key5' value='value5' />
+  </appSettings>
+</configuration>";
+
+            MoveOperationTest(config, expected, new[]
+            {
+                new EditConfiguration.MoveOperation
+                {
+                    SourceSection = "appSettings",
+                    SourceKey = "key3",
+                    TargetSection = "section1",
+                },
+                new EditConfiguration.MoveOperation
+                {
+                    SourceSection = "appSettings",
+                    SourceKey = "key4",
+                    TargetSection = "sectionsA/section1",
+                },
+            });
+        }
+        [TestMethod]
+        public void Step_EditConfiguration_MoveSimpleKeyToExistingAndRename()
+        {
+            Assert.Inconclusive();
+        }
+        [TestMethod]
+        public void Step_EditConfiguration_MoveSimpleKeyAndCreate()
+        {
+            Assert.Inconclusive();
+        }
+        [TestMethod]
+        public void Step_EditConfiguration_MoveSimpleKeyAndRenameAndCreate()
+        {
+            Assert.Inconclusive();
+        }
 
         /* ============================================================================================== */
 
@@ -267,6 +376,21 @@ namespace SenseNet.Packaging.Tests.StepTests
             var stepElement = (XmlElement)manifestXml.SelectSingleNode("/Package/Steps/EditConfiguration");
             var result = (EditConfiguration)Step.Parse(stepElement, 0, executionContext);
             return result;
+        }
+
+        private void MoveOperationTest(string config, string expectedConfig, EditConfiguration.MoveOperation[] moves)
+        {
+            var xml = new XmlDocument();
+            xml.LoadXml(config);
+
+            var step = CreateStep("<EditConfiguration file='./web.config' />");
+            if (!step.Edit(xml, moves, null, "[path]"))
+                Assert.Fail("Not executed.");
+
+            var expected = expectedConfig.Replace("\r", "").Replace("\n", "").Replace("\t", "").Replace(" ", "").Replace("\"", "'");
+            var actual = xml.OuterXml.Replace("\r", "").Replace("\n", "").Replace("\t", "").Replace(" ", "").Replace("\"", "'");
+
+            Assert.IsTrue(expected == actual, $"Actual: {xml.OuterXml}");
         }
 
     }

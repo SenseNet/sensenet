@@ -19,7 +19,7 @@ namespace SenseNet.ContentRepository.Packaging.Steps
             public string SourceKey { get; set; }
             public string TargetSection { get; set; }
             public string TargetKey { get; set; }
-            public string DefaultValue { get; set; }
+            public string DeleteIfValueIs { get; set; }
         }
         internal class DeleteOperation
         {
@@ -95,13 +95,13 @@ namespace SenseNet.ContentRepository.Packaging.Steps
                     TargetSection = GetAttributeValue(e, "targetSection", true),
                     SourceKey = GetAttributeValue(e, "sourceKey", false),
                     TargetKey = GetAttributeValue(e, "targetKey", false),
-                    DefaultValue = GetAttributeValue(e, "default", false),
+                    DeleteIfValueIs = GetAttributeValue(e, "deleteIfValueIs", false),
                 };
                 if (string.IsNullOrEmpty(op.SourceKey))
                 {
                     if (!string.IsNullOrEmpty(op.TargetKey))
                         throw new InvalidStepParameterException("Invalid Move. The 'sourceKey' is required if the 'targetKey' is given.");
-                    if (!string.IsNullOrEmpty(op.DefaultValue))
+                    if (!string.IsNullOrEmpty(op.DeleteIfValueIs))
                         throw new InvalidStepParameterException("Invalid Move. The 'sourceKey' is required if the 'defaultValue' is given.");
                 }
                 return op;
@@ -125,10 +125,43 @@ namespace SenseNet.ContentRepository.Packaging.Steps
             throw new InvalidStepParameterException($"Invalid {element.ParentNode.LocalName}. Missing '{attrName}'.");
         }
 
-        private bool Edit(XmlDocument doc, MoveOperation[] moves, DeleteOperation[] deletes, string path)
+        internal bool Edit(XmlDocument xml, MoveOperation[] moves, DeleteOperation[] deletes, string path)
         {
-            throw new NotImplementedException();
+            if(deletes != null)
+                foreach (var delete in deletes) ;
+                
+            foreach (var move in moves)
+            {
+                if (!ExecuteMove(xml, move))
+                    return false;
+            }
+            return true;
         }
 
+        private bool ExecuteMove(XmlDocument xml, MoveOperation move)
+        {
+            var sourceSectionElement = (XmlElement)xml.DocumentElement.SelectSingleNode(move.SourceSection);
+            var targetSectionElement = (XmlElement)xml.DocumentElement.SelectSingleNode(move.TargetSection);
+            if (move.SourceKey == null)
+            {
+                // move the whole section
+                //UNDONE: Move section
+                throw new NotImplementedException();
+            }
+            else
+            {
+                var sourceElement = (XmlElement)sourceSectionElement.SelectSingleNode($"add[@key='{move.SourceKey}']");
+                if (move.TargetKey == null)
+                {
+                    // move element
+                    var moved = sourceElement.ParentNode.RemoveChild(sourceElement);
+                    targetSectionElement.AppendChild(moved);
+                    return true;
+                }
+                // rename element
+                //UNDONE: Move element and rename
+                throw new NotImplementedException();
+            }
+        }
     }
 }
