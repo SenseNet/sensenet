@@ -195,19 +195,19 @@ namespace SenseNet.ContentRepository.Packaging.Steps
             {
                 for (var i = 0; i < steps.Length - 1; i++)
                 {
-                    var sectionGroup = (XmlElement)sectionRoot.SelectSingleNode(steps[i]);
+                    var sectionGroup = (XmlElement)sectionRoot.SelectSingleNode($"sectionGroup[@name='{steps[i]}']");
                     if (sectionGroup == null)
                     {
                         sectionGroup = xml.CreateElement("sectionGroup");
                         sectionGroup.SetAttribute("name", steps[i]);
                         sectionRoot.AppendChild(sectionGroup);
-                        sectionRoot = sectionGroup;
                     }
+                    sectionRoot = sectionGroup;
                 }
             }
 
             // ensure section definition
-            var sectionDef = (XmlElement)sectionRoot.SelectSingleNode(lastName);
+            var sectionDef = (XmlElement)sectionRoot.SelectSingleNode($"section[@name='{lastName}']");
             if (sectionDef == null)
             {
                 sectionDef = xml.CreateElement("section");
@@ -220,13 +220,13 @@ namespace SenseNet.ContentRepository.Packaging.Steps
             var section = xml.DocumentElement;
             for (int i = 0; i < steps.Length; i++)
             {
-                var childSection = (XmlElement)section.SelectSingleNode("steps[i]");
+                var childSection = (XmlElement)section.SelectSingleNode(steps[i]);
                 if (childSection == null)
                 {
                     childSection = xml.CreateElement(steps[i]);
                     section.AppendChild(childSection);
-                    section = childSection;
                 }
+                section = childSection;
             }
 
             return section;

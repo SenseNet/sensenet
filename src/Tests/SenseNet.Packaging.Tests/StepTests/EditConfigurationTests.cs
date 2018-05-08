@@ -383,7 +383,7 @@ namespace SenseNet.Packaging.Tests.StepTests
             });
         }
         [TestMethod]
-        public void Step_EditConfiguration_MoveSimpleKeyAndCreate()
+        public void Step_EditConfiguration_MoveSimpleKeyAndFullCreate()
         {
             var config = @"<?xml version='1.0' encoding='utf-8'?>
 <configuration>
@@ -430,9 +430,114 @@ namespace SenseNet.Packaging.Tests.StepTests
             });
         }
         [TestMethod]
-        public void Step_EditConfiguration_MoveSimpleKeyAndRenameAndCreate()
+        public void Step_EditConfiguration_MoveSimpleKeyAndPartiallyCreate()
         {
-            Assert.Inconclusive();
+            var config = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <sectionGroup name='sectionsA'>
+      <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+    </sectionGroup>
+  </configSections>
+  <appSettings>
+    <add key='key1' value='value1' />
+    <add key='key2' value='value2' />
+  </appSettings>
+  <sectionsA>
+    <add key='key9' value='value9' />
+  </sectionsA>
+</configuration>";
+
+            var expected = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <sectionGroup name='sectionsA'>
+      <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+    </sectionGroup>
+    <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+  </configSections>
+  <appSettings>
+  </appSettings>
+  <sectionsA>
+    <add key='key9' value='value9' />
+    <section1>
+      <add key='key2' value='value2' />
+    </section1>
+  </sectionsA>
+  <section1>
+    <add key='key1' value='value1' />
+  </section1>
+</configuration>";
+
+            MoveOperationTest(config, expected, new[]
+            {
+                new EditConfiguration.MoveOperation
+                {
+                    SourceSection = "appSettings",
+                    SourceKey = "key1",
+                    TargetSection = "section1",
+                },
+                new EditConfiguration.MoveOperation
+                {
+                    SourceSection = "appSettings",
+                    SourceKey = "key2",
+                    TargetSection = "sectionsA/section1",
+                },
+            });
+        }
+        [TestMethod]
+        public void Step_EditConfiguration_MoveSimpleKeyAndRenameAndPartiallyCreate()
+        {
+            var config = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <sectionGroup name='sectionsA'>
+      <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+    </sectionGroup>
+  </configSections>
+  <appSettings>
+    <add key='key1' value='value1' />
+    <add key='key2' value='value2' />
+  </appSettings>
+</configuration>";
+
+            var expected = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <sectionGroup name='sectionsA'>
+      <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+    </sectionGroup>
+    <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+  </configSections>
+  <appSettings>
+  </appSettings>
+  <section1>
+    <add key='key1_renamed' value='value1' />
+  </section1>
+  <sectionsA>
+    <section1>
+      <add key='key2_renamed' value='value2' />
+    </section1>
+  </sectionsA>
+</configuration>";
+
+            MoveOperationTest(config, expected, new[]
+            {
+                new EditConfiguration.MoveOperation
+                {
+                    SourceSection = "appSettings",
+                    SourceKey = "key1",
+                    TargetSection = "section1",
+                    TargetKey = "key1_renamed"
+                },
+                new EditConfiguration.MoveOperation
+                {
+                    SourceSection = "appSettings",
+                    SourceKey = "key2",
+                    TargetSection = "sectionsA/section1",
+                    TargetKey = "key2_renamed"
+                },
+            });
         }
         [TestMethod]
         public void Step_EditConfiguration_Section()
