@@ -1,0 +1,273 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Xml;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.ContentRepository.Packaging.Steps;
+using SenseNet.Packaging.Steps;
+using SenseNet.Packaging.Tests.Implementations;
+using SenseNet.Tests;
+
+namespace SenseNet.Packaging.Tests.StepTests
+{
+    [TestClass]
+    public class EditConfigurationTests : TestBase
+    {
+        // <EditConfiguration>
+        //   <Move>
+        //     <Element sourceSetion="section1"
+        //              targetSection="sensenet/section2" />
+        //     <Element sourceSetion="appSettings"
+        //              sourceKey="asdf"
+        //              targetSection="sensenet/section3"
+        //              default="42" />
+        //     <Element sourceSetion="appSettings"
+        //              sourceKey="LuceneActivityTimeoutInSeconds"
+        //              targetSection="sensenet/indexing"
+        //              targetKey="IndexingActivityTimeoutInSeconds" />
+        //     ...
+        //   </Move>
+        //   <Delete>
+        //     <Element section="appSettings"
+        //              key="RestoreIndex" />
+        //     ...
+        //   </Delete>
+        // </EditConfiguration>
+
+        private static StringBuilder _log;
+
+        [TestInitialize]
+        public void PrepareTest()
+        {
+            // preparing logger
+            _log = new StringBuilder();
+            var loggers = new[] { new PackagingTestLogger(_log) };
+            var loggerAcc = new PrivateType(typeof(Logger));
+            loggerAcc.SetStaticField("_loggers", loggers);
+        }
+
+        [TestMethod]
+        public void Step_EditConfiguration_Parse_MissingFile()
+        {
+            try
+            {
+                var step = CreateStep(@"<EditConfiguration />");
+                var file = step.File;
+                Assert.Fail("InvalidStepParameterException exception was thrown.");
+            }
+            catch (InvalidStepParameterException)
+            {
+                // do nothing
+            }
+        }
+        [TestMethod]
+        public void Step_EditConfiguration_Parse_OperationNull()
+        {
+            var step = CreateStep(@"<EditConfiguration file='./web.config' />");
+            Assert.AreEqual("./web.config", step.File);
+            Assert.IsNull(step.Move);
+            Assert.IsNull(step.Delete);
+        }
+        [TestMethod]
+        public void Step_EditConfiguration_Parse_OperationEmpty()
+        {
+            var step = CreateStep(@"<EditConfiguration file='./web.config'><Move/><Delete/></EditConfiguration>");
+            Assert.AreEqual(0, step.Move.Count());
+            Assert.AreEqual(0, step.Delete.Count());
+        }
+
+        [TestMethod]
+        public void Step_EditConfiguration_Parse_Delete_MissingSection()
+        {
+            var step = CreateStep(@"<EditConfiguration file='./web.config'>
+    <Delete>
+        <Element/>
+    </Delete>
+</EditConfiguration>");
+
+            string message = null;
+            Assert.AreEqual(1, step.Delete.Count());
+            try
+            {
+                var acc = new PrivateObject(step);
+                var deletes = (EditConfiguration.DeleteOperation[])acc.Invoke("ParseDeleteElements");
+            }
+            catch (Exception e)
+            {
+                message = (e.InnerException?.Message ?? e.Message).ToLowerInvariant();
+            }
+            Assert.IsTrue(message.Contains("invalid delete"));
+            Assert.IsTrue(message.Contains("missing 'section'"));
+        }
+        [TestMethod]
+        public void Step_EditConfiguration_Parse_Delete()
+        {
+            var step = CreateStep(@"<EditConfiguration file='./web.config'>
+    <Delete>
+        <Element section='section1' key='key1'/>
+        <Element section='section2'/>
+    </Delete>
+</EditConfiguration>");
+
+            Assert.AreEqual(2, step.Delete.Count());
+            var acc = new PrivateObject(step);
+            var deletes = (EditConfiguration.DeleteOperation[]) acc.Invoke("ParseDeleteElements");
+            Assert.AreEqual(2, deletes.Length);
+            Assert.AreEqual("section1", deletes[0].Section);
+            Assert.AreEqual("key1", deletes[0].Key);
+            Assert.AreEqual("section2", deletes[1].Section);
+            Assert.AreEqual(null, deletes[1].Key);
+        }
+
+        [TestMethod]
+        public void Step_EditConfiguration_Parse_Move_MissingSource()
+        {
+            var step = CreateStep(@"<EditConfiguration file='./web.config'>
+    <Move>
+        <Element targetSection='section1'/>
+    </Move>
+</EditConfiguration>");
+
+            string message = null;
+            Assert.AreEqual(1, step.Move.Count());
+            try
+            {
+                var acc = new PrivateObject(step);
+                var moves = (EditConfiguration.DeleteOperation[])acc.Invoke("ParseMoveElements");
+            }
+            catch (Exception e)
+            {
+                message = (e.InnerException?.Message ?? e.Message).ToLowerInvariant();
+            }
+            Assert.IsTrue(message.Contains("invalid move"));
+            Assert.IsTrue(message.Contains("missing 'sourcesection'"));
+        }
+        [TestMethod]
+        public void Step_EditConfiguration_Parse_Move_MissingTarget()
+        {
+            var step = CreateStep(@"<EditConfiguration file='./web.config'>
+    <Move>
+        <Element sourceSection='section1'/>
+    </Move>
+</EditConfiguration>");
+
+            string message = null;
+            Assert.AreEqual(1, step.Move.Count());
+            try
+            {
+                var acc = new PrivateObject(step);
+                var moves = (EditConfiguration.DeleteOperation[])acc.Invoke("ParseMoveElements");
+            }
+            catch (Exception e)
+            {
+                message = (e.InnerException?.Message ?? e.Message).ToLowerInvariant();
+            }
+            Assert.IsTrue(message.Contains("invalid move"));
+            Assert.IsTrue(message.Contains("missing 'targetsection'"));
+        }
+        [TestMethod]
+        public void Step_EditConfiguration_Parse_Move_MissingSourceKeyIfTargetGiven()
+        {
+            var step = CreateStep(@"<EditConfiguration file='./web.config'>
+    <Move>
+        <Element sourceSection='section1' targetSection='section2' targetKey='key2'/>
+    </Move>
+</EditConfiguration>");
+
+            string message = null;
+            Assert.AreEqual(1, step.Move.Count());
+            try
+            {
+                var acc = new PrivateObject(step);
+                var moves = (EditConfiguration.DeleteOperation[])acc.Invoke("ParseMoveElements");
+            }
+            catch (Exception e)
+            {
+                message = (e.InnerException?.Message ?? e.Message).ToLowerInvariant();
+            }
+            Assert.IsTrue(message.Contains("invalid move"));
+            Assert.IsTrue(message.Contains("'sourcekey' is required"));
+        }
+        [TestMethod]
+        public void Step_EditConfiguration_Parse_Move_MissingSourceKeyIfDefaultGiven()
+        {
+            var step = CreateStep(@"<EditConfiguration file='./web.config'>
+    <Move>
+        <Element sourceSection='section1' targetSection='section2' default='42'/>
+    </Move>
+</EditConfiguration>");
+
+            string message = null;
+            Assert.AreEqual(1, step.Move.Count());
+            try
+            {
+                var acc = new PrivateObject(step);
+                var moves = (EditConfiguration.DeleteOperation[])acc.Invoke("ParseMoveElements");
+            }
+            catch (Exception e)
+            {
+                message = (e.InnerException?.Message ?? e.Message).ToLowerInvariant();
+            }
+            Assert.IsTrue(message.Contains("invalid move"));
+            Assert.IsTrue(message.Contains("'sourcekey' is required"));
+        }
+
+        [TestMethod]
+        public void Step_EditConfiguration_Parse_Move()
+        {
+            void CheckMoveOperation(EditConfiguration.MoveOperation op,
+                string sourceSection, string targetSection, string sourceKey, string targetKey, string defaultValue)
+            {
+                Assert.AreEqual(sourceSection, op.SourceSection);
+                Assert.AreEqual(targetSection, op.TargetSection);
+                Assert.AreEqual(sourceKey, op.SourceKey);
+                Assert.AreEqual(targetKey, op.TargetKey);
+                Assert.AreEqual(defaultValue, op.DefaultValue);
+            }
+
+            var step = CreateStep(@"<EditConfiguration file='./web.config'>
+    <Move>
+        <Element sourceSection='section1' targetSection='section2'/>
+        <Element sourceSection='section1' targetSection='section2' sourceKey='key1'/>
+        <Element sourceSection='section1' targetSection='section2' sourceKey='key1' targetKey='key2'/>
+        <Element sourceSection='section1' targetSection='section2' sourceKey='key1' targetKey='key2' default='42'/>
+    </Move>
+</EditConfiguration>");
+
+            Assert.IsNull(step.Delete);
+            Assert.AreEqual(4, step.Move.Count());
+            var acc = new PrivateObject(step);
+            var moves = (EditConfiguration.MoveOperation[]) acc.Invoke("ParseMoveElements");
+            Assert.AreEqual(4, moves.Length);
+            CheckMoveOperation(moves[0], "section1", "section2", null, null, null);
+            CheckMoveOperation(moves[1], "section1", "section2", "key1", null, null);
+            CheckMoveOperation(moves[2], "section1", "section2", "key1", "key2", null);
+            CheckMoveOperation(moves[3], "section1", "section2", "key1", "key2", "42");
+        }
+
+
+        /* ============================================================================================== */
+
+        private EditConfiguration CreateStep(string stepElementString)
+        {
+            var manifestXml = new XmlDocument();
+            manifestXml.LoadXml($@"<?xml version='1.0' encoding='utf-8'?>
+                    <Package type='Install'>
+                        <Id>MyCompany.MyComponent</Id>
+                        <ReleaseDate>2017-01-01</ReleaseDate>
+                        <Version>1.0</Version>
+                        <Steps>
+                            {stepElementString}
+                        </Steps>
+                    </Package>");
+            var manifest = Manifest.Parse(manifestXml, 0, true, new PackageParameter[0]);
+            var executionContext = ExecutionContext.CreateForTest("packagePath", "targetPath", new string[0], "sandboxPath", manifest, 0, manifest.CountOfPhases, null, null);
+            var stepElement = (XmlElement)manifestXml.SelectSingleNode("/Package/Steps/EditConfiguration");
+            var result = (EditConfiguration)Step.Parse(stepElement, 0, executionContext);
+            return result;
+        }
+
+    }
+}
