@@ -150,17 +150,15 @@ namespace SenseNet.ContentRepository.Packaging.Steps
             }
             else
             {
-                var sourceElement = (XmlElement)sourceSectionElement.SelectSingleNode($"add[@key='{move.SourceKey}']");
-                if (move.TargetKey == null)
-                {
-                    // move element
-                    var moved = sourceElement.ParentNode.RemoveChild(sourceElement);
-                    targetSectionElement.AppendChild(moved);
-                    return true;
-                }
-                // rename element
-                //UNDONE: Move element and rename
-                throw new NotImplementedException();
+                var sourceElement = (XmlElement) sourceSectionElement.SelectSingleNode($"add[@key='{move.SourceKey}']");
+                if (move.TargetKey != null)
+                    // rename
+                    sourceElement.SetAttribute("key", move.TargetKey);
+
+                // move element
+                var moved = sourceElement.ParentNode.RemoveChild(sourceElement);
+                targetSectionElement.AppendChild(moved);
+                return true;
             }
         }
     }

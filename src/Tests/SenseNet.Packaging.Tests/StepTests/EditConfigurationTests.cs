@@ -250,32 +250,6 @@ namespace SenseNet.Packaging.Tests.StepTests
 
         /* ---------------------------------------------------------------------------------------------- */
 
-        private string _config = @"<?xml version='1.0' encoding='utf-8'?>
-<configuration>
-  <configSections>
-    <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
-    <sectionGroup name='sectionsA'>
-      <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
-      <section name='section2' type='System.Configuration.NameValueFileSectionHandler' />
-    </sectionGroup>
-  </configSections>
-  <sectionsA>
-    <section1>
-      <add key='key1' value='value1' />
-      <add key='key2' value='value2' />
-      <add key='key3' value='value3' />
-    </section1>
-    <section2>
-      <add key='key4' value='value4' />
-    </section2>
-  </sectionsA>
-  <appSettings>
-    <add key='key5' value='value5' />
-    <add key='key6' value='value6' />
-    <add key='key7' value='value7' />
-  </appSettings>
-</configuration>";
-
         [TestMethod]
         public void Step_EditConfiguration_MoveSimpleKeyToExisting()
         {
@@ -344,7 +318,69 @@ namespace SenseNet.Packaging.Tests.StepTests
         [TestMethod]
         public void Step_EditConfiguration_MoveSimpleKeyToExistingAndRename()
         {
-            Assert.Inconclusive();
+            var config = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+    <sectionGroup name='sectionsA'>
+      <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+    </sectionGroup>
+  </configSections>
+  <section1>
+    <add key='key1' value='value1' />
+  </section1>
+  <sectionsA>
+    <section1>
+      <add key='key2' value='value2' />
+    </section1>
+  </sectionsA>
+  <appSettings>
+    <add key='key3' value='value3' />
+    <add key='key4' value='value4' />
+    <add key='key5' value='value5' />
+  </appSettings>
+</configuration>";
+
+            var expected = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+    <sectionGroup name='sectionsA'>
+      <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+    </sectionGroup>
+  </configSections>
+  <section1>
+    <add key='key1' value='value1' />
+    <add key='key3_renamed' value='value3' />
+  </section1>
+  <sectionsA>
+    <section1>
+      <add key='key2' value='value2' />
+      <add key='key4_renamed' value='value4' />
+    </section1>
+  </sectionsA>
+  <appSettings>
+    <add key='key5' value='value5' />
+  </appSettings>
+</configuration>";
+
+            MoveOperationTest(config, expected, new[]
+            {
+                new EditConfiguration.MoveOperation
+                {
+                    SourceSection = "appSettings",
+                    SourceKey = "key3",
+                    TargetSection = "section1",
+                    TargetKey = "key3_renamed"
+                },
+                new EditConfiguration.MoveOperation
+                {
+                    SourceSection = "appSettings",
+                    SourceKey = "key4",
+                    TargetSection = "sectionsA/section1",
+                    TargetKey = "key4_renamed"
+                },
+            });
         }
         [TestMethod]
         public void Step_EditConfiguration_MoveSimpleKeyAndCreate()
