@@ -92,19 +92,24 @@ namespace SenseNet.ContentRepository.Packaging.Steps
             {
                 var op = new MoveOperation
                 {
-                    SourceSection = GetAttributeValue(e, "sourceSection", true),
-                    TargetSection = GetAttributeValue(e, "targetSection", true),
+                    SourceSection = GetAttributeValue(e, "sourceSection", true).Trim().Trim('/'),
+                    TargetSection = GetAttributeValue(e, "targetSection", true).Trim().Trim('/'),
                     SourceKey = GetAttributeValue(e, "sourceKey", false),
                     TargetKey = GetAttributeValue(e, "targetKey", false),
                     DeleteIfValueIs = GetAttributeValue(e, "deleteIfValueIs", false),
                 };
+
                 if (string.IsNullOrEmpty(op.SourceKey))
+                    throw new InvalidStepParameterException("Invalid Move. The 'sourceKey' is required.");
+
+                if (op.SourceKey == "*")
                 {
                     if (!string.IsNullOrEmpty(op.TargetKey))
-                        throw new InvalidStepParameterException("Invalid Move. The 'sourceKey' is required if the 'targetKey' is given.");
+                        throw new InvalidStepParameterException("Invalid Move. The 'sourceKey' cannot be '*' if the 'targetKey' is given.");
                     if (!string.IsNullOrEmpty(op.DeleteIfValueIs))
-                        throw new InvalidStepParameterException("Invalid Move. The 'sourceKey' is required if the 'defaultValue' is given.");
+                        throw new InvalidStepParameterException("Invalid Move. The 'sourceKey' cannot be '*' if the 'deleteIfValueIs' is given.");
                 }
+
                 return op;
             }).ToArray();
         }
@@ -112,7 +117,7 @@ namespace SenseNet.ContentRepository.Packaging.Steps
         {
             return Delete.Select(e => new DeleteOperation
             {
-                Section = GetAttributeValue(e, "section", true),
+                Section = GetAttributeValue(e, "section", true).Trim().Trim('/'),
                 Key = GetAttributeValue(e, "key", false),
             }).ToArray();
         }
@@ -141,9 +146,12 @@ namespace SenseNet.ContentRepository.Packaging.Steps
 
         private bool ExecuteMove(XmlDocument xml, MoveOperation move)
         {
-            var sourceSectionElement = (XmlElement)xml.DocumentElement.SelectSingleNode(move.SourceSection);
-            var targetSectionElement = (XmlElement)xml.DocumentElement.SelectSingleNode(move.TargetSection);
-            if (move.SourceKey != null)
+            var sourceSectionElement = (XmlElement) xml.DocumentElement.SelectSingleNode(move.SourceSection);
+
+            // ensure section element
+            var targetSectionElement = (XmlElement) xml.DocumentElement.SelectSingleNode(move.TargetSection)
+                                       ?? CreateSection(xml, move.TargetSection);
+            if (move.SourceKey != "*")
             {
                 // move element
                 var sourceElement = (XmlElement) sourceSectionElement.SelectSingleNode($"add[@key='{move.SourceKey}']");
@@ -151,21 +159,72 @@ namespace SenseNet.ContentRepository.Packaging.Steps
                     // rename
                     sourceElement.SetAttribute("key", move.TargetKey);
 
-                // ensure section element
-                if (targetSectionElement == null)
-                    targetSectionElement = CreateSection(xml, move.TargetSection);
-
-                // move
-                var moved = sourceElement.ParentNode.RemoveChild(sourceElement);
-                targetSectionElement.AppendChild(moved);
+                MoveElement(sourceElement, targetSectionElement);
                 return true;
             }
-            else
+
+
+            // move the whole section
+            var sourceElements = sourceSectionElement.SelectNodes("*");
+            foreach (XmlElement sourceElement in sourceElements)
             {
-                // move the whole section
-                //UNDONE: Move section
-                throw new NotImplementedException();
+                //  <section2>
+                //    <add key='key2' value='value2_old' />
+                var sourceKey = sourceElement.Attributes["key"].Value;
+                var oldElement = targetSectionElement.SelectSingleNode($"add[@key='{sourceKey}']");
+                if (oldElement != null)
+                {
+                    Logger.LogMessage("  Rewritten element in {0}", GetPath(targetSectionElement));
+                    Logger.LogMessage("    {0}", oldElement.OuterXml);
+                    oldElement.ParentNode.RemoveChild(oldElement);
+                }
+
+                // move
+                MoveElement(sourceElement, targetSectionElement);
             }
+
+            DeleteSection(sourceSectionElement, move.SourceSection);
+
+            return true;
+        }
+
+        private void DeleteSection(XmlElement sectionElement, string sectionPath)
+        {
+            DeleteElementIfEmpty(sectionElement);
+
+            var steps = sectionPath.Split('/');
+            var lastName = steps[steps.Length - 1];
+
+            var xpath = "configSections/"
+                + string.Join("/", steps
+                    .Take(steps.Length - 1)
+                    .Select(n => $"sectionGroup[@name='{n}']")
+                    .ToArray())
+                + (steps.Length > 1 ? "/" : "")
+                + $"section[@name='{lastName}']";
+
+            var xml = sectionElement.OwnerDocument;
+            DeleteElementIfEmpty((XmlElement) xml.DocumentElement.SelectSingleNode(xpath));
+        }
+        private void DeleteElementIfEmpty(XmlElement deletable)
+        {
+            while (deletable.LocalName != "configuration" && deletable.SelectNodes("*").Count == 0)
+            {
+                var parent = (XmlElement)deletable.ParentNode;
+                parent.RemoveChild(deletable);
+                deletable = parent;
+            }
+        }
+
+        private void MoveElement(XmlElement sourceElement, XmlElement targetSectionElement)
+        {
+            targetSectionElement.AppendChild(sourceElement.ParentNode.RemoveChild(sourceElement));
+        }
+        private string GetPath(XmlElement sectionElement)
+        {
+            if (sectionElement == null)
+                return "/";
+            return $"{GetPath(sectionElement.ParentNode as XmlElement)}/{sectionElement.LocalName}";
         }
 
         private XmlElement CreateSection(XmlDocument xml, string sectionPath)

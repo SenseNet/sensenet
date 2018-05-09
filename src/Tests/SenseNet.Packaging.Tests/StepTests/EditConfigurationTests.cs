@@ -110,17 +110,30 @@ namespace SenseNet.Packaging.Tests.StepTests
     <Delete>
         <Element section='section1' key='key1'/>
         <Element section='section2'/>
-    </Delete>
+        <Element section='s1/'/>
+        <Element section='/s1'/>
+        <Element section='/s1/'/>
+        <Element section='s1/s2/'/>
+        <Element section='/s1/s2'/>
+        <Element section='/s1/s2/'/>
+   </Delete>
 </EditConfiguration>");
 
-            Assert.AreEqual(2, step.Delete.Count());
+            Assert.AreEqual(8, step.Delete.Count());
             var acc = new PrivateObject(step);
             var deletes = (EditConfiguration.DeleteOperation[]) acc.Invoke("ParseDeleteElements");
-            Assert.AreEqual(2, deletes.Length);
+            Assert.AreEqual(8, deletes.Length);
             Assert.AreEqual("section1", deletes[0].Section);
             Assert.AreEqual("key1", deletes[0].Key);
             Assert.AreEqual("section2", deletes[1].Section);
             Assert.AreEqual(null, deletes[1].Key);
+
+            Assert.AreEqual("s1", deletes[2].Section);
+            Assert.AreEqual("s1", deletes[3].Section);
+            Assert.AreEqual("s1", deletes[4].Section);
+            Assert.AreEqual("s1/s2", deletes[5].Section);
+            Assert.AreEqual("s1/s2", deletes[6].Section);
+            Assert.AreEqual("s1/s2", deletes[7].Section);
         }
 
         [TestMethod]
@@ -170,6 +183,29 @@ namespace SenseNet.Packaging.Tests.StepTests
             Assert.IsTrue(message.Contains("missing 'targetsection'"));
         }
         [TestMethod]
+        public void Step_EditConfiguration_Parse_Move_MissingSourceKey()
+        {
+            var step = CreateStep(@"<EditConfiguration file='./web.config'>
+    <Move>
+        <Element sourceSection='section1' targetSection='section2'/>
+    </Move>
+</EditConfiguration>");
+
+            string message = null;
+            Assert.AreEqual(1, step.Move.Count());
+            try
+            {
+                var acc = new PrivateObject(step);
+                var moves = (EditConfiguration.DeleteOperation[])acc.Invoke("ParseMoveElements");
+            }
+            catch (Exception e)
+            {
+                message = (e.InnerException?.Message ?? e.Message).ToLowerInvariant();
+            }
+            Assert.IsTrue(message.Contains("invalid move"));
+            Assert.IsTrue(message.Contains("'sourcekey' is required"));
+        }
+        [TestMethod]
         public void Step_EditConfiguration_Parse_Move_MissingSourceKeyIfTargetGiven()
         {
             var step = CreateStep(@"<EditConfiguration file='./web.config'>
@@ -215,6 +251,54 @@ namespace SenseNet.Packaging.Tests.StepTests
             Assert.IsTrue(message.Contains("invalid move"));
             Assert.IsTrue(message.Contains("'sourcekey' is required"));
         }
+
+        [TestMethod]
+        public void Step_EditConfiguration_Parse_Move_SourceKeyAsteriskIfTargetKeyGiven()
+        {
+            var step = CreateStep(@"<EditConfiguration file='./web.config'>
+    <Move>
+        <Element sourceSection='section1' targetSection='section2' sourceKey='*' targetKey='key2'/>
+    </Move>
+</EditConfiguration>");
+
+            string message = null;
+            Assert.AreEqual(1, step.Move.Count());
+            try
+            {
+                var acc = new PrivateObject(step);
+                var moves = (EditConfiguration.DeleteOperation[])acc.Invoke("ParseMoveElements");
+            }
+            catch (Exception e)
+            {
+                message = (e.InnerException?.Message ?? e.Message).ToLowerInvariant();
+            }
+            Assert.IsTrue(message.Contains("invalid move"));
+            Assert.IsTrue(message.Contains("'sourcekey' cannot be '*'"));
+        }
+        [TestMethod]
+        public void Step_EditConfiguration_Parse_Move_SourceKeyAsteriskIfDeleteValueGiven()
+        {
+            var step = CreateStep(@"<EditConfiguration file='./web.config'>
+    <Move>
+        <Element sourceSection='section1' targetSection='section2' sourceKey='*' deleteIfValueIs='42'/>
+    </Move>
+</EditConfiguration>");
+
+            string message = null;
+            Assert.AreEqual(1, step.Move.Count());
+            try
+            {
+                var acc = new PrivateObject(step);
+                var moves = (EditConfiguration.DeleteOperation[])acc.Invoke("ParseMoveElements");
+            }
+            catch (Exception e)
+            {
+                message = (e.InnerException?.Message ?? e.Message).ToLowerInvariant();
+            }
+            Assert.IsTrue(message.Contains("invalid move"));
+            Assert.IsTrue(message.Contains("'sourcekey' cannot be '*'"));
+        }
+
         [TestMethod]
         public void Step_EditConfiguration_Parse_Move()
         {
@@ -230,22 +314,36 @@ namespace SenseNet.Packaging.Tests.StepTests
 
             var step = CreateStep(@"<EditConfiguration file='./web.config'>
     <Move>
-        <Element sourceSection='section1' targetSection='section2'/>
+        <Element sourceSection='section1' targetSection='section2' sourceKey='*'/>
         <Element sourceSection='section1' targetSection='section2' sourceKey='key1'/>
         <Element sourceSection='section1' targetSection='section2' sourceKey='key1' targetKey='key2'/>
         <Element sourceSection='section1' targetSection='section2' sourceKey='key1' targetKey='key2' deleteIfValueIs='42'/>
+        <Element sourceSection='s1/' targetSection='t1/' sourceKey='*'/>
+        <Element sourceSection='/s1' targetSection='/t1' sourceKey='*'/>
+        <Element sourceSection='/s1/' targetSection='/t1/' sourceKey='*'/>
+        <Element sourceSection='s1/s2/' targetSection='t1/t2/' sourceKey='*'/>
+        <Element sourceSection='/s1/s2' targetSection='/t1/t2' sourceKey='*'/>
+        <Element sourceSection='/s1/s2/' targetSection='/t1/t2/' sourceKey='*'/>
     </Move>
 </EditConfiguration>");
 
             Assert.IsNull(step.Delete);
-            Assert.AreEqual(4, step.Move.Count());
+            Assert.AreEqual(10, step.Move.Count());
             var acc = new PrivateObject(step);
             var moves = (EditConfiguration.MoveOperation[]) acc.Invoke("ParseMoveElements");
-            Assert.AreEqual(4, moves.Length);
-            CheckMoveOperation(moves[0], "section1", "section2", null, null, null);
+            Assert.AreEqual(10, moves.Length);
+            CheckMoveOperation(moves[0], "section1", "section2", "*", null, null);
             CheckMoveOperation(moves[1], "section1", "section2", "key1", null, null);
             CheckMoveOperation(moves[2], "section1", "section2", "key1", "key2", null);
             CheckMoveOperation(moves[3], "section1", "section2", "key1", "key2", "42");
+
+            CheckMoveOperation(moves[4], "s1", "t1", "*", null, null);
+            CheckMoveOperation(moves[5], "s1", "t1", "*", null, null);
+            CheckMoveOperation(moves[6], "s1", "t1", "*", null, null);
+            CheckMoveOperation(moves[7], "s1/s2", "t1/t2", "*", null, null);
+            CheckMoveOperation(moves[8], "s1/s2", "t1/t2", "*", null, null);
+            CheckMoveOperation(moves[9], "s1/s2", "t1/t2", "*", null, null);
+
         }
 
         /* ---------------------------------------------------------------------------------------------- */
@@ -540,9 +638,138 @@ namespace SenseNet.Packaging.Tests.StepTests
             });
         }
         [TestMethod]
-        public void Step_EditConfiguration_Section()
+        public void Step_EditConfiguration_MoveWholeSection_Create()
         {
-            Assert.Inconclusive();
+            var config = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+  </configSections>
+  <section1>
+    <add key='key1' value='value1' />
+    <add key='key2' value='value2' />
+    <add key='key3' value='value3' />
+  </section1>
+</configuration>";
+
+            var expected = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <sectionGroup name='sectionsA'>
+      <section name='section2' type='System.Configuration.NameValueFileSectionHandler' />
+    </sectionGroup>
+  </configSections>
+  <sectionsA>
+    <section2>
+      <add key='key1' value='value1' />
+      <add key='key2' value='value2' />
+      <add key='key3' value='value3' />
+    </section2>
+  </sectionsA>
+</configuration>";
+
+            MoveOperationTest(config, expected, new[]
+            {
+                new EditConfiguration.MoveOperation
+                {
+                    SourceSection = "section1",
+                    SourceKey = "*",
+                    TargetSection = "sectionsA/section2",
+                },
+            });
+        }
+        [TestMethod]
+        public void Step_EditConfiguration_MoveWholeDeepSection()
+        {
+            var config = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <sectionGroup name='sectionsA'>
+      <sectionGroup name='sectionsB'>
+        <sectionGroup name='sectionsC'>
+          <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+        </sectionGroup>
+      </sectionGroup>
+    </sectionGroup>
+  </configSections>
+  <sectionsA>
+    <sectionsB>
+      <sectionsC>
+        <section1>
+          <add key='key1' value='value1' />
+          <add key='key2' value='value2' />
+          <add key='key3' value='value3' />
+        </section1>
+      </sectionsC>
+    </sectionsB>
+  </sectionsA>
+</configuration>";
+
+            var expected = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <section name='section2' type='System.Configuration.NameValueFileSectionHandler' />
+  </configSections>
+  <section2>
+    <add key='key1' value='value1' />
+    <add key='key2' value='value2' />
+    <add key='key3' value='value3' />
+  </section2>
+</configuration>";
+
+            MoveOperationTest(config, expected, new[]
+            {
+                new EditConfiguration.MoveOperation
+                {
+                    SourceSection = "sectionsA/sectionsB/sectionsC/section1",
+                    SourceKey = "*",
+                    TargetSection = "section2"
+                },
+            });
+        }
+        [TestMethod]
+        public void Step_EditConfiguration_MoveWholeSection_Merge()
+        {
+            var config = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+    <section name='section2' type='System.Configuration.NameValueFileSectionHandler' />
+  </configSections>
+  <section1>
+    <add key='key1' value='value1_new' />
+    <add key='key2' value='value2_new' />
+    <add key='key3' value='value3_new' />
+  </section1>
+  <section2>
+    <add key='key2' value='value2_old' />
+    <add key='key3' value='value3_old' />
+    <add key='key4' value='value4_old' />
+  </section2>
+</configuration>";
+
+            var expected = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <section name='section2' type='System.Configuration.NameValueFileSectionHandler' />
+  </configSections>
+  <section2>
+    <add key='key4' value='value4_old' />
+    <add key='key1' value='value1_new' />
+    <add key='key2' value='value2_new' />
+    <add key='key3' value='value3_new' />
+  </section2>
+</configuration>";
+
+            MoveOperationTest(config, expected, new[]
+            {
+                new EditConfiguration.MoveOperation
+                {
+                    SourceSection = "section1",
+                    SourceKey = "*",
+                    TargetSection = "section2",
+                },
+            });
         }
 
         /* ============================================================================================== */
