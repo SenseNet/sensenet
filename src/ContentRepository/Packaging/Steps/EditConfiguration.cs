@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
-using Microsoft.JScript;
-using SenseNet.Packaging;
-using SenseNet.Packaging.Steps;
+// ReSharper disable PossibleNullReferenceException
 
-namespace SenseNet.ContentRepository.Packaging.Steps
+// ReSharper disable once CheckNamespace
+namespace SenseNet.Packaging.Steps
 {
     [Annotation("Organizes (moves and/or deletes) one or more elements in the configuration files.")]
     public class EditConfiguration : Step
@@ -53,7 +48,7 @@ namespace SenseNet.ContentRepository.Packaging.Steps
 
             foreach (var path in ResolvePaths(File, context))
             {
-                string xmlSrc = null;
+                string xmlSrc;
                 using (var reader = new System.IO.StreamReader(path))
                     xmlSrc = reader.ReadToEnd();
 
@@ -153,10 +148,7 @@ namespace SenseNet.ContentRepository.Packaging.Steps
             if (delete.Key != null)
             {
                 var sourceElement = (XmlElement)sourceSectionElement.SelectSingleNode($"add[@key='{delete.Key}']");
-                if (sourceElement == null)
-                    return true;
-
-                sourceElement.ParentNode.RemoveChild(sourceElement);
+                sourceElement?.ParentNode.RemoveChild(sourceElement);
                 return true;
             }
 
@@ -176,7 +168,7 @@ namespace SenseNet.ContentRepository.Packaging.Steps
             if (sourceSectionElement == null)
                 return true;
 
-            XmlElement targetSectionElement = null;
+            XmlElement targetSectionElement;
 
             if (move.SourceKey != "*")
             {
@@ -300,12 +292,12 @@ namespace SenseNet.ContentRepository.Packaging.Steps
 
             // create sections
             var section = xml.DocumentElement;
-            for (int i = 0; i < steps.Length; i++)
+            foreach (string name in steps)
             {
-                var childSection = (XmlElement)section.SelectSingleNode(steps[i]);
+                var childSection = (XmlElement)section.SelectSingleNode(name);
                 if (childSection == null)
                 {
-                    childSection = xml.CreateElement(steps[i]);
+                    childSection = xml.CreateElement(name);
                     section.AppendChild(childSection);
                 }
                 section = childSection;

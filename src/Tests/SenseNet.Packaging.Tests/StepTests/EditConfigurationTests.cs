@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SenseNet.ContentRepository.Packaging.Steps;
 using SenseNet.Packaging.Steps;
 using SenseNet.Packaging.Tests.Implementations;
 using SenseNet.Tests;
@@ -15,6 +12,8 @@ namespace SenseNet.Packaging.Tests.StepTests
     [TestClass]
     public class EditConfigurationTests : TestBase
     {
+        // Samples
+        // -------
         // <EditConfiguration>
         //   <Move>
         //     <Element sourceSetion="section1"
@@ -27,12 +26,11 @@ namespace SenseNet.Packaging.Tests.StepTests
         //              sourceKey="LuceneActivityTimeoutInSeconds"
         //              targetSection="sensenet/indexing"
         //              targetKey="IndexingActivityTimeoutInSeconds" />
-        //     ...
         //   </Move>
         //   <Delete>
         //     <Element section="appSettings"
         //              key="RestoreIndex" />
-        //     ...
+        //     <Element section="sensenet/section3" />
         //   </Delete>
         // </EditConfiguration>
 
@@ -880,6 +878,14 @@ namespace SenseNet.Packaging.Tests.StepTests
                     TargetSection = "sectionsA/section2",
                 },
             });
+        }
+
+        /* ---------------------------------------------------------------------------------------------- */
+
+        [TestMethod]
+        public void Step_EditConfiguration_MoveDeleteIfValueIs()
+        {
+            Assert.Inconclusive();
         }
 
         /* ---------------------------------------------------------------------------------------------- */
