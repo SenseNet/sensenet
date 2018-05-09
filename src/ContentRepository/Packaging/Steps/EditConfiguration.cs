@@ -133,32 +133,64 @@ namespace SenseNet.ContentRepository.Packaging.Steps
 
         internal bool Edit(XmlDocument xml, MoveOperation[] moves, DeleteOperation[] deletes, string path)
         {
-            if(deletes != null)
-                foreach (var delete in deletes) ;
-                
-            foreach (var move in moves)
+            if (deletes != null)
+                foreach (var delete in deletes)
+                    if (!ExecuteDelete(xml, delete))
+                        return false;
+            if (moves != null)
+                foreach (var move in moves)
+                    if (!ExecuteMove(xml, move))
+                        return false;
+            return true;
+        }
+
+        private bool ExecuteDelete(XmlDocument xml, DeleteOperation delete)
+        {
+            var sourceSectionElement = (XmlElement)xml.DocumentElement.SelectSingleNode(delete.Section);
+            if (sourceSectionElement == null)
+                return true;
+
+            if (delete.Key != null)
             {
-                if (!ExecuteMove(xml, move))
-                    return false;
+                var sourceElement = (XmlElement)sourceSectionElement.SelectSingleNode($"add[@key='{delete.Key}']");
+                if (sourceElement == null)
+                    return true;
+
+                sourceElement.ParentNode.RemoveChild(sourceElement);
+                return true;
             }
+
+            // empty the section
+            var children = sourceSectionElement.SelectNodes("*");
+            foreach(XmlElement child in children)
+                child.ParentNode.RemoveChild(child);
+
+            DeleteSection(sourceSectionElement, delete.Section);
+
             return true;
         }
 
         private bool ExecuteMove(XmlDocument xml, MoveOperation move)
         {
             var sourceSectionElement = (XmlElement) xml.DocumentElement.SelectSingleNode(move.SourceSection);
+            if (sourceSectionElement == null)
+                return true;
 
-            // ensure section element
-            var targetSectionElement = (XmlElement) xml.DocumentElement.SelectSingleNode(move.TargetSection)
-                                       ?? CreateSection(xml, move.TargetSection);
+            XmlElement targetSectionElement = null;
+
             if (move.SourceKey != "*")
             {
                 // move element
                 var sourceElement = (XmlElement) sourceSectionElement.SelectSingleNode($"add[@key='{move.SourceKey}']");
+                if (sourceElement == null)
+                    return true;
+
                 if (move.TargetKey != null)
                     // rename
                     sourceElement.SetAttribute("key", move.TargetKey);
 
+                targetSectionElement = (XmlElement)xml.DocumentElement.SelectSingleNode(move.TargetSection)
+                                           ?? CreateSection(xml, move.TargetSection);
                 MoveElement(sourceElement, targetSectionElement);
                 return true;
             }
@@ -166,10 +198,10 @@ namespace SenseNet.ContentRepository.Packaging.Steps
 
             // move the whole section
             var sourceElements = sourceSectionElement.SelectNodes("*");
+            targetSectionElement = (XmlElement)xml.DocumentElement.SelectSingleNode(move.TargetSection)
+                                    ?? CreateSection(xml, move.TargetSection);
             foreach (XmlElement sourceElement in sourceElements)
             {
-                //  <section2>
-                //    <add key='key2' value='value2_old' />
                 var sourceKey = sourceElement.Attributes["key"].Value;
                 var oldElement = targetSectionElement.SelectSingleNode($"add[@key='{sourceKey}']");
                 if (oldElement != null)
@@ -220,6 +252,7 @@ namespace SenseNet.ContentRepository.Packaging.Steps
         {
             targetSectionElement.AppendChild(sourceElement.ParentNode.RemoveChild(sourceElement));
         }
+
         private string GetPath(XmlElement sectionElement)
         {
             if (sectionElement == null)
@@ -229,16 +262,6 @@ namespace SenseNet.ContentRepository.Packaging.Steps
 
         private XmlElement CreateSection(XmlDocument xml, string sectionPath)
         {
-            // path = sectionsA/section1
-            // <configuration>
-            //   <configSections>
-            //     <sectionGroup name='sectionsA'>
-            //       <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
-            //     </sectionGroup>
-            //   </configSections>
-            //   <sectionsA>
-            //     <section1>
-
             var configSections = (XmlElement) xml.DocumentElement.SelectSingleNode("configSections");
             if (configSections == null)
             {

@@ -414,6 +414,79 @@ namespace SenseNet.Packaging.Tests.StepTests
             });
         }
         [TestMethod]
+        public void Step_EditConfiguration_MoveSimpleKeyToExisting_NotFound()
+        {
+            var config = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+  </configSections>
+  <section1>
+    <add key='key1' value='value1' />
+  </section1>
+  <appSettings>
+    <add key='key2' value='value3' />
+  </appSettings>
+</configuration>";
+
+            var expected = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+  </configSections>
+  <section1>
+    <add key='key1' value='value1' />
+    <add key='key2' value='value3' />
+  </section1>
+  <appSettings>
+  </appSettings>
+</configuration>";
+
+            MoveOperationTest(config, expected, new[]
+            {
+                new EditConfiguration.MoveOperation
+                {
+                    SourceSection = "appSettings",
+                    SourceKey = "key2",
+                    TargetSection = "section1",
+                },
+                new EditConfiguration.MoveOperation
+                {
+                    SourceSection = "appSettings",
+                    SourceKey = "key3",
+                    TargetSection = "section1",
+                },
+            });
+        }
+        [TestMethod]
+        public void Step_EditConfiguration_MoveSimpleKeyToNew_NotFound()
+        {
+            var config = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <appSettings>
+    <add key='key1' value='value1' />
+  </appSettings>
+</configuration>";
+
+            var expected = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <appSettings>
+    <add key='key1' value='value1' />
+  </appSettings>
+</configuration>";
+
+            MoveOperationTest(config, expected, new[]
+            {
+                new EditConfiguration.MoveOperation
+                {
+                    SourceSection = "appSettings",
+                    SourceKey = "key2",
+                    TargetSection = "section1",
+                },
+            });
+        }
+
+        [TestMethod]
         public void Step_EditConfiguration_MoveSimpleKeyToExistingAndRename()
         {
             var config = @"<?xml version='1.0' encoding='utf-8'?>
@@ -771,6 +844,212 @@ namespace SenseNet.Packaging.Tests.StepTests
                 },
             });
         }
+        [TestMethod]
+        public void Step_EditConfiguration_MoveWholeSection_NotFound()
+        {
+            var config = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+  </configSections>
+  <section1>
+    <add key='key1' value='value1' />
+    <add key='key2' value='value2' />
+    <add key='key3' value='value3' />
+  </section1>
+</configuration>";
+
+            var expected = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+  </configSections>
+  <section1>
+    <add key='key1' value='value1' />
+    <add key='key2' value='value2' />
+    <add key='key3' value='value3' />
+  </section1>
+</configuration>";
+
+            MoveOperationTest(config, expected, new[]
+            {
+                new EditConfiguration.MoveOperation
+                {
+                    SourceSection = "section2",
+                    SourceKey = "*",
+                    TargetSection = "sectionsA/section2",
+                },
+            });
+        }
+
+        /* ---------------------------------------------------------------------------------------------- */
+
+        [TestMethod]
+        public void Step_EditConfiguration_DeleteKey()
+        {
+            var config = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <sectionGroup name='sectionsA'>
+      <sectionGroup name='sectionsB'>
+        <sectionGroup name='sectionsC'>
+          <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+        </sectionGroup>
+      </sectionGroup>
+    </sectionGroup>
+    <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+  </configSections>
+  <sectionsA>
+    <sectionsB>
+      <sectionsC>
+        <section1>
+          <add key='key1' value='value1' />
+          <add key='key2' value='value2' />
+        </section1>
+      </sectionsC>
+    </sectionsB>
+  </sectionsA>
+  <section1>
+    <add key='key1' value='value1' />
+    <add key='key2' value='value2' />
+    <add key='key3' value='value3' />
+  </section1>
+  <appSettings>
+    <add key='key1' value='value1' />
+  </appSettings>
+</configuration>";
+
+            var expected = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <sectionGroup name='sectionsA'>
+      <sectionGroup name='sectionsB'>
+        <sectionGroup name='sectionsC'>
+          <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+        </sectionGroup>
+      </sectionGroup>
+    </sectionGroup>
+    <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+  </configSections>
+  <sectionsA>
+    <sectionsB>
+      <sectionsC>
+        <section1></section1>
+      </sectionsC>
+    </sectionsB>
+  </sectionsA>
+  <section1>
+    <add key='key1' value='value1' />
+  </section1>
+  <appSettings></appSettings>
+</configuration>";
+
+            DeleteOperationTest(config, expected, new[]
+            {
+                new EditConfiguration.DeleteOperation
+                {
+                    Section = "sectionsA/sectionsB/sectionsC/section1",
+                    Key = "key1",
+                },
+                new EditConfiguration.DeleteOperation
+                {
+                    Section = "sectionsA/sectionsB/sectionsC/section1",
+                    Key = "key2",
+                },
+                new EditConfiguration.DeleteOperation
+                {
+                    Section = "sectionsA/sectionsB/sectionsC/section1",
+                    Key = "key3",
+                },
+                new EditConfiguration.DeleteOperation
+                {
+                    Section = "section1",
+                    Key = "key2",
+                },
+                new EditConfiguration.DeleteOperation
+                {
+                    Section = "section1",
+                    Key = "key3",
+                },
+                new EditConfiguration.DeleteOperation
+                {
+                    Section = "appSettings",
+                    Key = "key1",
+                },
+                new EditConfiguration.DeleteOperation
+                {
+                    Section = "appSettings",
+                    Key = "key2",
+                },
+            });
+        }
+        [TestMethod]
+        public void Step_EditConfiguration_DeleteSection()
+        {
+            var config = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <sectionGroup name='sectionsA'>
+      <sectionGroup name='sectionsB'>
+        <sectionGroup name='sectionsC'>
+          <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+        </sectionGroup>
+      </sectionGroup>
+    </sectionGroup>
+    <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+    <section name='section2' type='System.Configuration.NameValueFileSectionHandler' />
+  </configSections>
+  <sectionsA>
+    <sectionsB>
+      <sectionsC>
+        <section1>
+          <add key='key1' value='value1' />
+          <add key='key2' value='value2' />
+        </section1>
+      </sectionsC>
+    </sectionsB>
+  </sectionsA>
+  <section1>
+    <add key='key1' value='value1' />
+  </section1>
+  <section2>
+    <add key='key1' value='value1' />
+  </section2>
+  <appSettings>
+    <add key='key1' value='value1' />
+  </appSettings>
+</configuration>";
+
+            var expected = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <section name='section2' type='System.Configuration.NameValueFileSectionHandler' />
+  </configSections>
+  <section2>
+    <add key='key1' value='value1' />
+  </section2>
+  <appSettings>
+    <add key='key1' value='value1' />
+  </appSettings>
+</configuration>";
+
+            DeleteOperationTest(config, expected, new[]
+            {
+                new EditConfiguration.DeleteOperation
+                {
+                    Section = "sectionsA/sectionsB/sectionsC/section1",
+                },
+                new EditConfiguration.DeleteOperation
+                {
+                    Section = "section1",
+                },
+                new EditConfiguration.DeleteOperation
+                {
+                    Section = "section3", // does not exist
+                },
+            });
+        }
+
 
         /* ============================================================================================== */
 
@@ -800,6 +1079,20 @@ namespace SenseNet.Packaging.Tests.StepTests
 
             var step = CreateStep("<EditConfiguration file='./web.config' />");
             if (!step.Edit(xml, moves, null, "[path]"))
+                Assert.Fail("Not executed.");
+
+            var expected = expectedConfig.Replace("\r", "").Replace("\n", "").Replace("\t", "").Replace(" ", "").Replace("\"", "'");
+            var actual = xml.OuterXml.Replace("\r", "").Replace("\n", "").Replace("\t", "").Replace(" ", "").Replace("\"", "'");
+
+            Assert.IsTrue(expected == actual, $"Actual: {xml.OuterXml}");
+        }
+        private void DeleteOperationTest(string config, string expectedConfig, EditConfiguration.DeleteOperation[] deletes)
+        {
+            var xml = new XmlDocument();
+            xml.LoadXml(config);
+
+            var step = CreateStep("<EditConfiguration file='./web.config' />");
+            if (!step.Edit(xml, null, deletes, "[path]"))
                 Assert.Fail("Not executed.");
 
             var expected = expectedConfig.Replace("\r", "").Replace("\n", "").Replace("\t", "").Replace(" ", "").Replace("\"", "'");
