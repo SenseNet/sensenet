@@ -109,5 +109,53 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual("File", tpyeJObject["ContentTypeName"].Value<string>());
             });
         }
+
+        [TestMethod]
+        [TestCategory("Metadata")]
+        public void ClientMetadataProvider_GetSchema_NoNull()
+        {
+            // make sure that null values are not rendered to save time and bandwidth
+
+            Test(() =>
+            {
+                var allTypeObjects = ClientMetadataProvider.GetSchema(null) as object[];
+
+                Assert.IsNotNull(allTypeObjects);
+
+                foreach (var typeObject in allTypeObjects.Cast<JObject>())
+                {
+                    foreach (var property in typeObject)
+                    {
+                        AssertNullValue(property.Value, property.Key);
+                    }
+                }
+            });
+
+            // check property values recursively for null
+            void AssertNullValue(JToken token, string propertyName = null)
+            {
+                Assert.IsNotNull(token, $"Schema property must not be null. Property: {propertyName}");
+
+                if (token is JValue jValue)
+                {
+                    Assert.IsNotNull(jValue.Value, $"Schema property value must not be null. Property: {propertyName}");
+                }
+                
+                if (token.Type == JTokenType.Object)
+                {
+                    foreach (var child in token.Children<JProperty>())
+                    {
+                        AssertNullValue(child.Value, child.Name);
+                    }
+                }
+                else if (token.Type == JTokenType.Array)
+                {
+                    foreach (var childToken in token.Children())
+                    {
+                        AssertNullValue(childToken);
+                    }
+                }
+            }
+        }
     }
 }

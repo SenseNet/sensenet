@@ -6,6 +6,7 @@ using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Schema.Metadata;
 using System.Collections.Concurrent;
 using System.Linq;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SenseNet.Diagnostics;
 
@@ -116,6 +117,12 @@ namespace SenseNet.Services.Metadata
             // wrap the content type into a content to get localized displayname etc.
             var contentTypeContent = Content.Create(schemaClass.ContentType);
 
+            // do not serialize null values to preserve compute time and bandwidth
+            var seralizer = JsonSerializer.Create(new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore
+            });
+
             return JObject.FromObject(new
             {
                 ContentTypeName = contentTypeContent.Name,
@@ -128,7 +135,7 @@ namespace SenseNet.Services.Metadata
                 AllowedChildTypes = schemaClass.ContentType.AllowedChildTypeNames,
                 FieldSettings = schemaClass.ContentType.FieldSettings
                     .Where(f => f.Owner == schemaClass.ContentType)
-            });
+            }, seralizer);
         }
 
         //======================================================================================= OData API
