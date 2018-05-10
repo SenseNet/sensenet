@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Xml;
@@ -876,6 +877,88 @@ namespace SenseNet.Packaging.Tests.StepTests
                     SourceSection = "section2",
                     SourceKey = "*",
                     TargetSection = "sectionsA/section2",
+                },
+            });
+        }
+
+        [TestMethod]
+        public void Step_EditConfiguration_Move_AppSettingsNotDeclared()
+        {
+            var config = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+  </configSections>
+  <section1>
+    <add key='key1' value='value1' />
+    <add key='key2' value='value2' />
+  </section1>
+</configuration>";
+
+            var expected = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+  </configSections>
+  <section1></section1>
+  <connectionStrings>
+    <add key='key1' value='value1' />
+  </connectionStrings>
+  <appSettings>
+    <add key='key2' value='value2' />
+  </appSettings>
+</configuration>";
+
+            MoveOperationTest(config, expected, new[]
+            {
+                new EditConfiguration.MoveOperation
+                {
+                    SourceSection = "section1",
+                    SourceKey = "key1",
+                    TargetSection = "connectionStrings",
+                },
+                new EditConfiguration.MoveOperation
+                {
+                    SourceSection = "section1",
+                    SourceKey = "key2",
+                    TargetSection = "appSettings",
+                },
+            });
+        }
+        [TestMethod]
+        public void Step_EditConfiguration_Move_SameKeySameSection()
+        {
+            var config = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+  </configSections>
+  <section1>
+    <add key='key1' value='value1' />
+    <add key='key2' value='value2' />
+    <add key='key3' value='value3' />
+  </section1>
+</configuration>";
+
+            var expected = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+  </configSections>
+  <section1>
+    <add key='key1' value='value1' />
+    <add key='key3' value='value3' />
+    <add key='key2' value='value2' />
+  </section1>
+</configuration>";
+
+            MoveOperationTest(config, expected, new[]
+            {
+                new EditConfiguration.MoveOperation
+                {
+                    SourceSection = "section1",
+                    SourceKey = "key2",
+                    TargetSection = "section1",
                 },
             });
         }

@@ -23,6 +23,11 @@ namespace SenseNet.Packaging.Steps
             public string Key { get; set; }
         }
 
+        private readonly string[] _builtinSections = new string[]
+        {
+            "connectionStrings", "appSettings", "applicationSettings"
+        };
+
         private string _file;
 
         public string File
@@ -254,40 +259,45 @@ namespace SenseNet.Packaging.Steps
 
         private XmlElement CreateSection(XmlDocument xml, string sectionPath)
         {
-            var configSections = (XmlElement) xml.DocumentElement.SelectSingleNode("configSections");
-            if (configSections == null)
-            {
-                configSections = xml.CreateElement("configSections");
-                xml.DocumentElement.InsertBefore(configSections, xml.DocumentElement.FirstChild);
-            }
-
-            // ensure configSections
-            var sectionRoot = configSections;
             var steps = sectionPath.Split('/');
             var lastName = steps[steps.Length - 1];
-            if (steps.Length > 1)
-            {
-                for (var i = 0; i < steps.Length - 1; i++)
-                {
-                    var sectionGroup = (XmlElement)sectionRoot.SelectSingleNode($"sectionGroup[@name='{steps[i]}']");
-                    if (sectionGroup == null)
-                    {
-                        sectionGroup = xml.CreateElement("sectionGroup");
-                        sectionGroup.SetAttribute("name", steps[i]);
-                        sectionRoot.AppendChild(sectionGroup);
-                    }
-                    sectionRoot = sectionGroup;
-                }
-            }
 
-            // ensure section definition
-            var sectionDef = (XmlElement)sectionRoot.SelectSingleNode($"section[@name='{lastName}']");
-            if (sectionDef == null)
+            if (!_builtinSections.Contains(sectionPath))
             {
-                sectionDef = xml.CreateElement("section");
-                sectionDef.SetAttribute("name", lastName);
-                sectionDef.SetAttribute("type", "System.Configuration.NameValueFileSectionHandler");
-                sectionRoot.AppendChild(sectionDef);
+                var configSections = (XmlElement) xml.DocumentElement.SelectSingleNode("configSections");
+                if (configSections == null)
+                {
+                    configSections = xml.CreateElement("configSections");
+                    xml.DocumentElement.InsertBefore(configSections, xml.DocumentElement.FirstChild);
+                }
+
+                // ensure configSections
+                var sectionRoot = configSections;
+                if (steps.Length > 1)
+                {
+                    for (var i = 0; i < steps.Length - 1; i++)
+                    {
+                        var sectionGroup =
+                            (XmlElement) sectionRoot.SelectSingleNode($"sectionGroup[@name='{steps[i]}']");
+                        if (sectionGroup == null)
+                        {
+                            sectionGroup = xml.CreateElement("sectionGroup");
+                            sectionGroup.SetAttribute("name", steps[i]);
+                            sectionRoot.AppendChild(sectionGroup);
+                        }
+                        sectionRoot = sectionGroup;
+                    }
+                }
+
+                // ensure section definition
+                var sectionDef = (XmlElement) sectionRoot.SelectSingleNode($"section[@name='{lastName}']");
+                if (sectionDef == null)
+                {
+                    sectionDef = xml.CreateElement("section");
+                    sectionDef.SetAttribute("name", lastName);
+                    sectionDef.SetAttribute("type", "System.Configuration.NameValueFileSectionHandler");
+                    sectionRoot.AppendChild(sectionDef);
+                }
             }
 
             // create sections
