@@ -966,9 +966,73 @@ namespace SenseNet.Packaging.Tests.StepTests
         /* ---------------------------------------------------------------------------------------------- */
 
         [TestMethod]
-        public void Step_EditConfiguration_MoveDeleteIfValueIs()
+        public void Step_EditConfiguration_Move_DeleteIfValueIs()
         {
-            Assert.Inconclusive();
+            var config = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <sectionGroup name='sectionsA'>
+      <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+    </sectionGroup>
+  </configSections>
+  <sectionsA>
+    <section1>
+      <add key='key1' value='value1' />
+      <add key='key2' value='value2' />
+    </section1>
+  </sectionsA>
+  <appSettings>
+    <add key='key3' value='value3' />
+    <add key='key4' value='value4' />
+  </appSettings>
+</configuration>";
+
+            var expected = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <sectionGroup name='sectionsA'>
+      <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+    </sectionGroup>
+  </configSections>
+  <sectionsA>
+    <section1>
+      <add key='key1' value='value1' />
+      <add key='key3' value='value3' />
+    </section1>
+  </sectionsA>
+  <appSettings>
+  </appSettings>
+</configuration>";
+
+            MoveOperationTest(config, expected, new[]
+            {
+                new EditConfiguration.MoveOperation
+                {
+                    SourceSection = "sectionsA/section1",
+                    SourceKey = "key1",
+                    TargetSection = "sectionsA/section1",
+                },
+                new EditConfiguration.MoveOperation
+                {
+                    SourceSection = "sectionsA/section1",
+                    SourceKey = "key2",
+                    TargetSection = "sectionsA/section1",
+                    DeleteIfValueIs = "value2"
+                },
+                new EditConfiguration.MoveOperation
+                {
+                    SourceSection = "appSettings",
+                    SourceKey = "key3",
+                    TargetSection = "sectionsA/section1",
+                },
+                new EditConfiguration.MoveOperation
+                {
+                    SourceSection = "appSettings",
+                    SourceKey = "key4",
+                    TargetSection = "sectionsA/section1",
+                    DeleteIfValueIs = "value4"
+                },
+            });
         }
 
         /* ---------------------------------------------------------------------------------------------- */

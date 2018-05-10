@@ -182,6 +182,12 @@ namespace SenseNet.Packaging.Steps
                 if (sourceElement == null)
                     return true;
 
+                if (move.DeleteIfValueIs != null && sourceElement.Attributes["value"].Value == move.DeleteIfValueIs)
+                {
+                    sourceElement.ParentNode.RemoveChild(sourceElement);
+                    return true;
+                }
+
                 if (move.TargetKey != null)
                     // rename
                     sourceElement.SetAttribute("key", move.TargetKey);
