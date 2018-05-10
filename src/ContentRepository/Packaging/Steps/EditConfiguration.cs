@@ -88,6 +88,9 @@ namespace SenseNet.Packaging.Steps
         }
         private MoveOperation[] ParseMoveElements()
         {
+            if(Move == null)
+                return new MoveOperation[0];
+
             return Move.Select((e) =>
             {
                 var op = new MoveOperation
@@ -115,6 +118,9 @@ namespace SenseNet.Packaging.Steps
         }
         private DeleteOperation[] ParseDeleteElements()
         {
+            if (Delete == null)
+                return new DeleteOperation[0];
+
             return Delete.Select(e => new DeleteOperation
             {
                 Section = GetAttributeValue(e, "section", true).Trim().Trim('/'),

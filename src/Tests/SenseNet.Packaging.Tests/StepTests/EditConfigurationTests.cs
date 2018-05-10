@@ -70,6 +70,13 @@ namespace SenseNet.Packaging.Tests.StepTests
             Assert.AreEqual("./web.config", step.File);
             Assert.IsNull(step.Move);
             Assert.IsNull(step.Delete);
+
+            var acc = new PrivateObject(step);
+            var moves = (EditConfiguration.MoveOperation[])acc.Invoke("ParseMoveElements");
+            var deletes = (EditConfiguration.DeleteOperation[])acc.Invoke("ParseDeleteElements");
+
+            Assert.AreEqual(0, moves.Length);
+            Assert.AreEqual(0, deletes.Length);
         }
         [TestMethod]
         public void Step_EditConfiguration_Parse_OperationEmpty()
