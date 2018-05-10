@@ -72,7 +72,7 @@ export class FieldSetting {
     public Type!: string;
     public DisplayName?: string;
     public Description?: string;
-    public FieldDataType?: string;
+    public FieldClassName?: string;
     public Icon?: string;
     public ReadOnly?: boolean;
     public Compulsory?: boolean;

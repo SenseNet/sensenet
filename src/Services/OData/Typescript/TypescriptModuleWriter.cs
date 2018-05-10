@@ -19,9 +19,9 @@ namespace SenseNet.Portal.OData.Typescript
 
         protected static string[] FieldSettingPropertyBlackList =
         {
-            "Aspect", "ShortName", "FieldClassName", "DisplayNameStoredValue", "DescriptionStoredValue", "Bindings",
+            "Aspect", "ShortName", "DisplayNameStoredValue", "DescriptionStoredValue", "Bindings",
             "IsRerouted", "Owner", "ParentFieldSetting", "FullName", "BindingName", "IndexingInfo", "OutputMethod",
-            "LocalizationEnabled"
+            "FieldDataType", "LocalizationEnabled"
         };
 
         protected static Dictionary<string, string> SimplifiedProperties = new Dictionary<string, string>
