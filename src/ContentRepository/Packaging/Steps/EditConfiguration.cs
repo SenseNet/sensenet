@@ -139,14 +139,22 @@ namespace SenseNet.Packaging.Steps
 
         internal bool Edit(XmlDocument xml, MoveOperation[] moves, DeleteOperation[] deletes, string path)
         {
-            if (deletes != null)
+            Logger.LogMessage("Edit " + path);
+
+            if (deletes != null && deletes.Length > 0)
+            {
+                Logger.LogMessage("  DELETE");
                 foreach (var delete in deletes)
                     if (!ExecuteDelete(xml, delete))
                         return false;
-            if (moves != null)
+            }
+            if (moves != null && moves.Length > 0)
+            {
+                Logger.LogMessage("  MOVE");
                 foreach (var move in moves)
                     if (!ExecuteMove(xml, move))
                         return false;
+            }
             return true;
         }
 
@@ -158,12 +166,14 @@ namespace SenseNet.Packaging.Steps
 
             if (delete.Key != null)
             {
+                Logger.LogMessage($"    KEY: {delete.Section}/{delete.Key}");
                 var sourceElement = (XmlElement)sourceSectionElement.SelectSingleNode($"add[@key='{delete.Key}']");
                 sourceElement?.ParentNode.RemoveChild(sourceElement);
                 return true;
             }
 
             // empty the section
+            Logger.LogMessage($"    SECTION: {delete.Section}");
             var children = sourceSectionElement.SelectNodes("*");
             foreach(XmlElement child in children)
                 child.ParentNode.RemoveChild(child);
@@ -190,16 +200,24 @@ namespace SenseNet.Packaging.Steps
 
                 if (move.DeleteIfValueIs != null && sourceElement.Attributes["value"].Value == move.DeleteIfValueIs)
                 {
+                    Logger.LogMessage($"    KEY DELETED: {move.SourceSection}/{move.SourceKey} VALUE: {move.DeleteIfValueIs}");
                     sourceElement.ParentNode.RemoveChild(sourceElement);
                     return true;
                 }
 
+                var msg = $"    KEY: {move.SourceSection}/{move.SourceKey} TO {move.TargetSection}";
                 if (move.TargetKey != null)
+                {
                     // rename
+                    msg += $" NAME: {move.TargetKey}";
                     sourceElement.SetAttribute("key", move.TargetKey);
+                }
 
                 targetSectionElement = (XmlElement)xml.DocumentElement.SelectSingleNode(move.TargetSection)
                                            ?? CreateSection(xml, move.TargetSection);
+
+                Logger.LogMessage(msg);
+
                 MoveElement(sourceElement, targetSectionElement);
                 return true;
             }
@@ -251,6 +269,7 @@ namespace SenseNet.Packaging.Steps
         {
             while (deletable.LocalName != "configuration" && deletable.SelectNodes("*").Count == 0)
             {
+                Logger.LogMessage($"    ELEMENT: {deletable.OuterXml}");
                 var parent = (XmlElement)deletable.ParentNode;
                 parent.RemoveChild(deletable);
                 deletable = parent;
@@ -279,6 +298,7 @@ namespace SenseNet.Packaging.Steps
                 var configSections = (XmlElement) xml.DocumentElement.SelectSingleNode("configSections");
                 if (configSections == null)
                 {
+                    Logger.LogMessage("    CREATE configSections");
                     configSections = xml.CreateElement("configSections");
                     xml.DocumentElement.InsertBefore(configSections, xml.DocumentElement.FirstChild);
                 }
@@ -293,6 +313,7 @@ namespace SenseNet.Packaging.Steps
                             (XmlElement) sectionRoot.SelectSingleNode($"sectionGroup[@name='{steps[i]}']");
                         if (sectionGroup == null)
                         {
+                            Logger.LogMessage($"    CREATE sectionGroup: {steps[i]}");
                             sectionGroup = xml.CreateElement("sectionGroup");
                             sectionGroup.SetAttribute("name", steps[i]);
                             sectionRoot.AppendChild(sectionGroup);
@@ -305,6 +326,7 @@ namespace SenseNet.Packaging.Steps
                 var sectionDef = (XmlElement) sectionRoot.SelectSingleNode($"section[@name='{lastName}']");
                 if (sectionDef == null)
                 {
+                    Logger.LogMessage($"    CREATE section definition: {lastName}");
                     sectionDef = xml.CreateElement("section");
                     sectionDef.SetAttribute("name", lastName);
                     sectionDef.SetAttribute("type", "System.Configuration.NameValueFileSectionHandler");
@@ -319,6 +341,7 @@ namespace SenseNet.Packaging.Steps
                 var childSection = (XmlElement)section.SelectSingleNode(name);
                 if (childSection == null)
                 {
+                    Logger.LogMessage($"    CREATE section: {name}");
                     childSection = xml.CreateElement(name);
                     section.AppendChild(childSection);
                 }
