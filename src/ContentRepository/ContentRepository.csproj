@@ -167,6 +167,7 @@
     <Compile Include="Packaging\Steps\EditConfiguration.cs" />
     <Compile Include="Packaging\Steps\Internal\CopyCustomAssemblies.cs" />
     <Compile Include="Packaging\Steps\Internal\ImportCustomContent.cs" />
+    <Compile Include="Packaging\Steps\SelectXmlValue.cs" />
     <Compile Include="Search\Indexing\NullPopulator.cs" />
     <Compile Include="SnComponent.cs" />
     <Compile Include="Linq\CaseInsensitiveFilterVisitor.cs" />
