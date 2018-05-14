@@ -606,6 +606,105 @@ Modifies the connection string (selected by the *ConnectionName* property) in th
 ```xml
 <EditConnectionString ConnectionName="SnCrMsSql" InitialCatalogName="@initialCatalog" DataSource="@dataSource" DbUserName="@dbUserName" DbPassword="@dbPassword" File="Web.config" />
 ```
+### EditConfiguration
+- Full name: `SenseNet.Packaging.Steps.EditConfiguration`
+- Default property: -
+- Additional properties: File, PathIsRelativeTo, Move, Delete
+
+Organizes configuration elements in the provided config *File*. This step can move or delete one or more elements or sections.
+
+#### Restrictions:
+- Modifying elements is not supported yet.
+- This step handles only name-value based sections and elements (`System.Configuration.NameValueFileSectionHandler`)
+
+#### Move
+
+Moves configuration elements from the identified sections to another section. This property can contain empty `Element` named elements that describe the atomic operations. Parameters:
+- **sourceSection** (_required_): Path of the section that will be moved or contains the source element. The value is a slash ('/') separated section list without preceding and trailing slashes. For example: `sensenet/notification`. If the source section or element does not exist, the operation does nothing.
+- **sourceKey** (_required_): The `key` attribute of the `add` source element to move. If the operation must move all elements (move or rename the whole section) the value should be an asterisk ('*'). 
+- **targetSection** (_required_): Path of the target section. If the target section does not exist, it will be created. Declaration under the `configSections` section will also be created.
+- **targetKey** (_optional_): The name of the target key, if it is different.
+- **deleteIfValueIs** (_optional_): If the value of the source element is the same as the provided value, the source element will be completely removed instead of moving it (this is useful when cleaning up default values from config files).
+
+After the move, the source section (and it's declaration in the `configSections` section) will be removed if the `sourceKey` is asterisk ('*'). The reason behind this is that when you want to move all values in a section it usually means you actually renamed the section.
+
+#### Delete
+
+Deletes configuration elements from the identified sections or a whole section. This property can contain empty `Element` named elements that describe the atomic operations. Parameters:
+- **section** (_required_): Path of the section that will be removed or contains the element to remove. The value is a slash ('/') separated section list without preceding and trailing slashes. For example: `sensenet/notification`. If the source section or element does not exist, the operation does nothing.
+- **key** (_optional_): The `key` attribute of the `add` source element that will be removed.
+
+After the deletion of a whole section, the declaration in the `configSections` section will also be removed.
+
+#### Example:
+Here is an example of a complex operation collection on the `web.config`:
+```xml
+<EditConfiguration file='./web.config'>
+  <Move>
+    <!-- Moves all children of the 'section1' into 'section2' -->
+    <Element sourceSection='section1' targetSection='section2' sourceKey='*'/>
+    <!-- Moves the 'add' element identified by the 'key1' under the 'section2'. -->
+    <Element sourceSection='section1' targetSection='section2' sourceKey='key1'/>
+    <!-- Moves the 'add' element identified by the 'key1' under the 'section2' and change it's 'key' attribute to 'key2'. -->
+    <Element sourceSection='section1' targetSection='section2' sourceKey='key1' targetKey='key2'/>
+     <!-- Moves the 'add' element identified by the 'key1' under the 'section2' if the 'value' is not '42'. Otherwise the source element will be simply removed. -->
+   <Element sourceSection='section1' targetSection='section2' sourceKey='key1' deleteIfValueIs='42'/>
+  </Move>
+  <Delete>
+    <!-- Removes the 'add' element identified by the 'key1' under the 'section1'. -->
+    <Element section='section1' key='key1'/>
+    <!-- Removes the whole 'section2'. -->
+    <Element section='section2'/>
+  </Delete>
+</EditConfiguration>
+```
+### EnsureConfigSection
+- Full name: `SenseNet.Packaging.Steps.EnsureConfigSection`
+- Default property: -
+- Additional properties: `File, PathIsRelativeTo, SectionPath` 
+
+Looks for a configuration section in the given config file. If the section declaration or the section element is missing, creates it.
+
+```xml
+<EnsureConfigSection file="Web.config" pathIsRelativeTo="TargetDirectory" sectionPath="sensenet/providers" />
+```
+The step above ensures the following structure in the defined config file:
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <configSections>
+    <sectionGroup name="sensenet">
+      <section name="providers" type="System.Configuration.NameValueFileSectionHandler" />
+    </sectionGroup>
+  </configSections>
+  <sensenet>
+    <providers>
+    </providers>
+  </sensenet>
+</configuration>
+```
+
+### SelectXmlValue
+- Full name: `SenseNet.Packaging.Steps.SelectXmlValue`
+- Default property: -
+- Additional properties: `File, PathIsRelativeTo, Xpath, VariableName, SubstringBefore, SubstringAfter`
+
+Selects an XML Node defined by an XPath and stores its value into a variable. The name of the variable is given in the `VariableName` parameter without a leading '@' (see the example).
+```xml
+<SelectXmlValue variableName="varName"
+    file="@configPath" pathIsRelativeTo="TargetDirectory"
+    xpath="/configuration/unity/typeAliases/typeAlias[@alias='MembershipExtender']/@type"
+    substringBefore="," />
+```
+ The selected value is customizable with the following modifier functions (in execution order):
+1. `SubstringBefore`: cuts the value at the given string's first occurence and returns the left side.
+2. `SubstringAfter`: cuts the value at the given string's first occurence and returns the right side.
+#### For example:
+If the selected value is "`First, second, third`", the modifier functions will convert the result to:
+- `substringBefore=", "`: "First".
+- `substringAfter=", "`: "second, third".
+#### Restriction:
+- This step does not work with content items in this version, only files in the file system.
 
 ## Content type manipulation
 The following steps are designed specifically to modify content types. You can choose to use the generic *xml manipulation steps* instead (see above), if you do not find the particular CTD step that you need here.
