@@ -165,6 +165,7 @@
     <Compile Include="ISnComponent.cs" />
     <Compile Include="Packaging\Steps\DeleteContentType.cs" />
     <Compile Include="Packaging\Steps\EditConfiguration.cs" />
+    <Compile Include="Packaging\Steps\EnsureConfigSection.cs" />
     <Compile Include="Packaging\Steps\Internal\CopyCustomAssemblies.cs" />
     <Compile Include="Packaging\Steps\Internal\ImportCustomContent.cs" />
     <Compile Include="Packaging\Steps\SelectXmlValue.cs" />
