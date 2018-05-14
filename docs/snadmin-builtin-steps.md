@@ -617,7 +617,7 @@ Organizes the configuration elements in the provided config *File*. This step ca
 - Modifying elements is not supported in this version but coming soon.
 - This step handles only name-value based sections and elements (`System.Configuration.NameValueFileSectionHandler`)
 
-### Move
+#### Move
 
 Moves configuration elements from the identified sections to another section. This property can contain empty `Element` named elements that describe the each atomic operations. Parameters:
 - **sourceSection** (_required_): Path of the section that will be moved or contains the source element. The value is the slash ('/') separated section list without preceding and trailing slashes. For example: `sensenet/notification`. If the source section or element does not exist, operation does nothing.
@@ -628,14 +628,14 @@ Moves configuration elements from the identified sections to another section. Th
 
 After the move, the source section (and it's declaration in the `configSections`) will be removed, if the `sourceKey` is asterisk ('*').
 
-### Delete
+#### Delete
 Deletes configuration elements from the identified sections or a whole section. This property can contain empty `Element` named elements that describe the each atomic operations. Parameters:
 - **section** (_required_): Path of the section that will be removed or contains the element to remove. The value is the slash ('/') separated section list without preceding and trailing slashes. For example: `sensenet/notification`. If the source section or element does not exist, operation does nothing.
 - **key** (_optional_): The `key` attribute of the `add` source element that will be removed.
 
 After the deletion of a whole section, the declaration in the `configSections` will also be removed.
 
-### Example:
+#### Example:
 Here is an example of a complex operation collection on the `web.config`:
 ```xml
 <EditConfiguration file='./web.config'>
@@ -657,6 +657,54 @@ Here is an example of a complex operation collection on the `web.config`:
   </Delete>
 </EditConfiguration>
 ```
+### EnsureConfigSection
+- Full name: `SenseNet.Packaging.Steps.EnsureConfigSection`
+- Default property: -
+- Additional properties: `File, PathIsRelativeTo, SectionPath` 
+
+Check a configuration section in the given config file. If the section or any element is missing, creates it.
+
+```xml
+<EnsureConfigSection file="Web.config" pathIsRelativeTo="TargetDirectory" sectionPath="sensenet/providers" />
+```
+The step above ensures the following structure in the defined config file:
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <configSections>
+    <sectionGroup name="sensenet">
+      <section name="providers" type="System.Configuration.NameValueFileSectionHandler" />
+    </sectionGroup>
+  </configSections>
+  <sensenet>
+    <providers>
+    </providers>
+  </sensenet>
+</configuration>
+```
+
+### SelectXmlValue
+- Full name: `SenseNet.Packaging.Steps.SelectXmlValue`
+- Default property: -
+- Additional properties: `File, PathIsRelativeTo, Xpath, VariableName, SubstringBefore, SubstringAfter`
+
+Selects an XML Node defined by an XPath and stores its value into a variable. The name of the variable is given in the `VariableName` parameter without leading '@' (see the example).
+```xml
+<SelectXmlValue variableName="varName"
+    file="@configPath" pathIsRelativeTo="TargetDirectory"
+    xpath="/configuration/unity/typeAliases/typeAlias[@alias='MembershipExtender']/@type"
+    substringBefore="," />
+```
+ The selected value is customizable with the modifier functions (in the execution order):
+1. `SubstringBefore`: cuts the value at the given string first occurence and returns with the left side.
+2. `SubstringAfter`: cuts the value at the given string first occurence and returns with the right side.
+#### For example:
+If the selected value is "`First, second, third`", the modifier functions change them to:
+- `substringBefore=", "`: "First".
+- `substringAfter=", "`: "second, third".
+- `substringBefore=", " substringAfter=", "`: "second".
+#### Restriction:
+- This step does not work with content in this version.
 
 ## Content type manipulation
 The following steps are designed specifically to modify content types. You can choose to use the generic *xml manipulation steps* instead (see above), if you do not find the particular CTD step that you need here.
