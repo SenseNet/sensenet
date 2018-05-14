@@ -23,10 +23,7 @@ namespace SenseNet.Packaging.Steps
             public string Key { get; set; }
         }
 
-        private readonly string[] _builtinSections = new string[]
-        {
-            "connectionStrings", "appSettings", "applicationSettings"
-        };
+        private static readonly string[] BuiltinSections = {"connectionStrings", "appSettings", "applicationSettings"};
 
         private string _file;
 
@@ -288,12 +285,12 @@ namespace SenseNet.Packaging.Steps
             return $"{GetPath(sectionElement.ParentNode as XmlElement)}/{sectionElement.LocalName}";
         }
 
-        private XmlElement CreateSection(XmlDocument xml, string sectionPath)
+        internal static XmlElement CreateSection(XmlDocument xml, string sectionPath)
         {
             var steps = sectionPath.Split('/');
             var lastName = steps[steps.Length - 1];
 
-            if (!_builtinSections.Contains(sectionPath))
+            if (!BuiltinSections.Contains(sectionPath))
             {
                 var configSections = (XmlElement) xml.DocumentElement.SelectSingleNode("configSections");
                 if (configSections == null)
