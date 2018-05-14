@@ -611,29 +611,30 @@ Modifies the connection string (selected by the *ConnectionName* property) in th
 - Default property: -
 - Additional properties: File, PathIsRelativeTo, Move, Delete
 
-Organizes the configuration elements in the provided config *File*. This step can move or delete one or more elements or sections in one pass.
+Organizes configuration elements in the provided config *File*. This step can move or delete one or more elements or sections.
 
 #### Restrictions:
-- Modifying elements is not supported in this version but coming soon.
+- Modifying elements is not supported yet.
 - This step handles only name-value based sections and elements (`System.Configuration.NameValueFileSectionHandler`)
 
 #### Move
 
-Moves configuration elements from the identified sections to another section. This property can contain empty `Element` named elements that describe the each atomic operations. Parameters:
-- **sourceSection** (_required_): Path of the section that will be moved or contains the source element. The value is the slash ('/') separated section list without preceding and trailing slashes. For example: `sensenet/notification`. If the source section or element does not exist, operation does nothing.
-- **sourceKey** (_required_): The `key` attribute of the `add` source element. If the operation must move all elements (move the whole section) the value should be asterisk ('*'). 
-- **targetSection** (_required_): Path of the target section. If the target section does not exist, it will be created. Declaration under the `configSections` will be also created.
-- **targetKey** (_optional_): After moving the source will be renamed to the value of this parameter.
-- **deleteIfValueIs** (_optional_): If the value of the source element equals the given value, the source element will be removed instead of move.
+Moves configuration elements from the identified sections to another section. This property can contain empty `Element` named elements that describe the atomic operations. Parameters:
+- **sourceSection** (_required_): Path of the section that will be moved or contains the source element. The value is a slash ('/') separated section list without preceding and trailing slashes. For example: `sensenet/notification`. If the source section or element does not exist, the operation does nothing.
+- **sourceKey** (_required_): The `key` attribute of the `add` source element to move. If the operation must move all elements (move or rename the whole section) the value should be an asterisk ('*'). 
+- **targetSection** (_required_): Path of the target section. If the target section does not exist, it will be created. Declaration under the `configSections` section will also be created.
+- **targetKey** (_optional_): The name of the target key, if it is different.
+- **deleteIfValueIs** (_optional_): If the value of the source element is the same as the provided value, the source element will be completely removed instead of moving it (this is useful when cleaning up default values from config files).
 
-After the move, the source section (and it's declaration in the `configSections`) will be removed, if the `sourceKey` is asterisk ('*').
+After the move, the source section (and it's declaration in the `configSections` section) will be removed if the `sourceKey` is asterisk ('*'). The reason behind this is that when you want to move all values in a section it usually means you actually renamed the section.
 
 #### Delete
-Deletes configuration elements from the identified sections or a whole section. This property can contain empty `Element` named elements that describe the each atomic operations. Parameters:
-- **section** (_required_): Path of the section that will be removed or contains the element to remove. The value is the slash ('/') separated section list without preceding and trailing slashes. For example: `sensenet/notification`. If the source section or element does not exist, operation does nothing.
+
+Deletes configuration elements from the identified sections or a whole section. This property can contain empty `Element` named elements that describe the atomic operations. Parameters:
+- **section** (_required_): Path of the section that will be removed or contains the element to remove. The value is a slash ('/') separated section list without preceding and trailing slashes. For example: `sensenet/notification`. If the source section or element does not exist, the operation does nothing.
 - **key** (_optional_): The `key` attribute of the `add` source element that will be removed.
 
-After the deletion of a whole section, the declaration in the `configSections` will also be removed.
+After the deletion of a whole section, the declaration in the `configSections` section will also be removed.
 
 #### Example:
 Here is an example of a complex operation collection on the `web.config`:
@@ -662,7 +663,7 @@ Here is an example of a complex operation collection on the `web.config`:
 - Default property: -
 - Additional properties: `File, PathIsRelativeTo, SectionPath` 
 
-Check a configuration section in the given config file. If the section or any element is missing, creates it.
+Looks for a configuration section in the given config file. If the section declaration or the section element is missing, creates it.
 
 ```xml
 <EnsureConfigSection file="Web.config" pathIsRelativeTo="TargetDirectory" sectionPath="sensenet/providers" />
@@ -688,23 +689,22 @@ The step above ensures the following structure in the defined config file:
 - Default property: -
 - Additional properties: `File, PathIsRelativeTo, Xpath, VariableName, SubstringBefore, SubstringAfter`
 
-Selects an XML Node defined by an XPath and stores its value into a variable. The name of the variable is given in the `VariableName` parameter without leading '@' (see the example).
+Selects an XML Node defined by an XPath and stores its value into a variable. The name of the variable is given in the `VariableName` parameter without a leading '@' (see the example).
 ```xml
 <SelectXmlValue variableName="varName"
     file="@configPath" pathIsRelativeTo="TargetDirectory"
     xpath="/configuration/unity/typeAliases/typeAlias[@alias='MembershipExtender']/@type"
     substringBefore="," />
 ```
- The selected value is customizable with the modifier functions (in the execution order):
-1. `SubstringBefore`: cuts the value at the given string first occurence and returns with the left side.
-2. `SubstringAfter`: cuts the value at the given string first occurence and returns with the right side.
+ The selected value is customizable with the following modifier functions (in execution order):
+1. `SubstringBefore`: cuts the value at the given string's first occurence and returns the left side.
+2. `SubstringAfter`: cuts the value at the given string's first occurence and returns the right side.
 #### For example:
-If the selected value is "`First, second, third`", the modifier functions change them to:
+If the selected value is "`First, second, third`", the modifier functions will convert the result to:
 - `substringBefore=", "`: "First".
 - `substringAfter=", "`: "second, third".
-- `substringBefore=", " substringAfter=", "`: "second".
 #### Restriction:
-- This step does not work with content in this version.
+- This step does not work with content items in this version, only files in the file system.
 
 ## Content type manipulation
 The following steps are designed specifically to modify content types. You can choose to use the generic *xml manipulation steps* instead (see above), if you do not find the particular CTD step that you need here.
