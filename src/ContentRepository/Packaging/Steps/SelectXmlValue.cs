@@ -3,7 +3,8 @@ using System.Xml;
 using SenseNet.Packaging;
 using SenseNet.Packaging.Steps;
 
-namespace SenseNet.ContentRepository.Packaging.Steps
+// ReSharper disable once CheckNamespace
+namespace SenseNet.Packaging.Steps
 {
     [Annotation("Selects a single node defined by the given xpath and stores its value in a varable.")]
     public class SelectXmlValue : Step
