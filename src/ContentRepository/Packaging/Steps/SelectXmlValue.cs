@@ -5,6 +5,7 @@ using SenseNet.Packaging.Steps;
 
 namespace SenseNet.ContentRepository.Packaging.Steps
 {
+    [Annotation("Selects a single node defined by the given xpath and stores its value in a varable.")]
     public class SelectXmlValue : Step
     {
         private string _file;
