@@ -140,13 +140,16 @@ Examples:
 <Export Target="export_target" Filter="@filter">@path</Export>
 ```
 
-## ForEach
+### ForEach
 - Full name: `SenseNet.Packaging.Steps.ForEach`
 - Properties: `Item, ContentQuery, Files`
 
 >This step can be placed in ForEach steps' Block sections.
 
-Implements a loop structure inside the package, that iterates through the collection having collected by the given source. Use this step to define a recurring loop of steps on the resources obtained by the source property. The source can be two kinds: *Files* or *ContentQuery*. Exactly one of them must be present at once. Files property is used to give a file system path (wildcards are allowed) relative to the web root. ContentQuery on the other hand is used to define a repository query expression. 
+Implements a loop structure inside the package, that iterates through the collection having collected by the given source. Use this step to define a recurring loop of steps on the resources obtained by the source property. The source can be two kinds: *Files* or *ContentQuery*. Exactly one of them must be present. 
+
+- **Files**: this property defines a file system path (wildcards are allowed) relative to the web root. It may contain a single file, a pattern, or a comma separated list of files and patterns.
+- **ContentQuery**: defines a repository query expression. 
 
 A ForEach step must contain exactly one *Block* XML tag. The Block tag is not an independent step, it serves only one aim: to contain the steps that are executed subsequently on each and every resource. The Block tag can contain indefinite number of steps (not every step is allowed to be put inside a ForEach step). The Item property contains the identifier of an inner package variable, that holds the value of the current resource, while the loop is executing. The Item's value must contain only English alphabetic characters preceded by an **@** sign.
 
@@ -154,7 +157,7 @@ Examples:
 ``` xml
 <Steps>
   <StartRepository />
-  <ForEach item="@path" files="Tools\*.config">
+  <ForEach item="@path" files="web.config,Tools\*.config">
     <Block>
       <Copy TargetDirectory="App_Data\copytest" SourceIsRelativeTo="TargetDirectory">@path</Copy>
     </Block>
@@ -166,7 +169,7 @@ Examples:
   <StartRepository />
     <ForEach item="@filePath" files="Admin\ForEachAndImport\contents\*.Content">
       <Block>
-    <Import source="@filePath" target="/Root/Folder1" SourceIsRelativeTo="TargetDirectory" />
+       <Import source="@filePath" target="/Root/Folder1" SourceIsRelativeTo="TargetDirectory" />
       </Block>
     </ForEach>
 </Steps>
