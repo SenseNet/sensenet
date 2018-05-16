@@ -8,7 +8,9 @@ using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Scripting;
 using System.IO;
+using System.Runtime.Serialization;
 using System.Web;
+using Newtonsoft.Json;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
@@ -84,6 +86,10 @@ namespace SenseNet.ContentRepository.Schema
         private int? _fieldIndex;
 
         // Properties /////////////////////////////////////////////////////////////
+
+        [JsonProperty]
+        private string Type { get; }
+
         private string _name;
         /// <summary>
         /// Gets the name of the descripted Field. This value comes from the ContentTypeDefinition.
@@ -100,6 +106,7 @@ namespace SenseNet.ContentRepository.Schema
         }
 
         private Aspect _aspect;
+        [IgnoreDataMember]
         public Aspect Aspect
         {
             get { return _aspect; }
@@ -115,6 +122,7 @@ namespace SenseNet.ContentRepository.Schema
         /// <summary>
         /// Gets the ShortName of the descripted Field. This value comes from the ContentTypeDefinition.
         /// </summary>
+        [IgnoreDataMember]
         public string ShortName
         {
             get { return _shortName; }
@@ -168,6 +176,7 @@ namespace SenseNet.ContentRepository.Schema
             }
         }
 
+        [IgnoreDataMember]
         public string DisplayNameStoredValue
         {
             get
@@ -214,6 +223,7 @@ namespace SenseNet.ContentRepository.Schema
             }
         }
 
+        [IgnoreDataMember]
         public string DescriptionStoredValue
         {
             get
@@ -258,6 +268,7 @@ namespace SenseNet.ContentRepository.Schema
         /// <summary>
         /// Gets the property names of ContentHandler that are handled by the descripted Field. This value comes from the ContentTypeDefinition.
         /// </summary>
+        [IgnoreDataMember]
         public List<string> Bindings
         {
             get { return _bindings; }
@@ -269,12 +280,14 @@ namespace SenseNet.ContentRepository.Schema
             }
         }
 
+        [IgnoreDataMember]
         public bool IsRerouted { get; private set; }
 
         private ContentType _owner;
         /// <summary>
         /// Gets the owner ContentType declares or overrides the Field in the ContentTypeDefinition.
         /// </summary>
+        [IgnoreDataMember]
         public ContentType Owner
         {
             get { return _owner; }
@@ -299,11 +312,13 @@ namespace SenseNet.ContentRepository.Schema
         ///     |
         /// ContentType owner-----FieldSetting (e.g. <see cref="SenseNet.Portal.UI.Controls.ShortText">ShortText</see>)
         /// </remarks>
+        [IgnoreDataMember]
         public FieldSetting ParentFieldSetting { get; internal set; }
 
         /// <summary>
         /// Gets the content of field's AppInfo element from ContentTypeDefinition XML.
         /// </summary>
+        [IgnoreDataMember]
         public string AppInfo
         {
             get
@@ -322,11 +337,13 @@ namespace SenseNet.ContentRepository.Schema
             }
         }
 
+        [IgnoreDataMember]
         public string FullName
         {
             get { return string.Format("{0}.{1}", Owner.Name, this.Name); }
         }
 
+        [IgnoreDataMember]
         public string BindingName
         {
             get { return GetBindingNameFromFullName(this.FullName); }
@@ -359,6 +376,7 @@ namespace SenseNet.ContentRepository.Schema
         /// <summary>
         /// Gets the type of the described Field's value
         /// </summary>
+        [IgnoreDataMember]
         public Type FieldDataType { get; private set; }
 
         internal int[] HandlerSlotIndices { get; private set; }
@@ -375,6 +393,7 @@ namespace SenseNet.ContentRepository.Schema
 
         // Indexing control //////////////////////////////////////////////////
 
+        [IgnoreDataMember]
         public IPerFieldIndexingInfo IndexingInfo
         {
             get
@@ -573,6 +592,8 @@ namespace SenseNet.ContentRepository.Schema
         protected FieldSetting()
         {
             _mutable = true;
+
+            Type = GetType().Name;
         }
 
         // Methods ////////////////////////////////////////////////////////////////
@@ -1575,6 +1596,7 @@ namespace SenseNet.ContentRepository.Schema
             return HttpContext.GetGlobalResourceObject("FieldEditor", resName) as string;
         }
 
+        [IgnoreDataMember]
         public virtual bool LocalizationEnabled { get { return this.Name == "DisplayName" || this.Name == "Description"; } }
 
 

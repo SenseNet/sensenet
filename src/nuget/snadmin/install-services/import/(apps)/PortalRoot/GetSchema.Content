@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>GenericODataApplication</ContentType>
+  <ContentName>GetSchema</ContentName>
+  <Fields>
+    <ClassName><![CDATA[SenseNet.Services.Metadata.ClientMetadataProvider]]></ClassName>
+    <MethodName><![CDATA[GetSchema]]></MethodName>
+    <DisplayName><![CDATA[GetSchema]]></DisplayName>
+    <Parameters><![CDATA[string contentTypeName]]></Parameters>
+  </Fields>
+  <Permissions>
+    <Clear />
+    <Identity path="/Root/IMS/BuiltIn/Portal/Everyone">
+      <RunApplication>Allow</RunApplication>
+    </Identity>
+    <Identity path="/Root/IMS/BuiltIn/Portal/Visitor">
+      <RunApplication>Allow</RunApplication>
+    </Identity>
+  </Permissions>
+</ContentMetaData>
