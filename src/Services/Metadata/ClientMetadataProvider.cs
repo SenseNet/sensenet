@@ -18,10 +18,6 @@ namespace SenseNet.Services.Metadata
     /// </summary>
     public class ClientMetadataProvider : IClientMetadataProvider
     {
-        //UNDONE: from TypescriptFormatter. ToDo: put this somewhere. const? web.config? Setting?
-        private static readonly string[] ContentTypeBlacklist =
-            {"Application", "ApplicationCacheFile", "FieldSettingContent", "JournalNode"};
-
         private const string ClientMetadataProviderKey = "ClientMetadataProvider";
         private static readonly object MetadataProviderSync = new object();
 
@@ -143,7 +139,7 @@ namespace SenseNet.Services.Metadata
         [ODataFunction]
         public static object GetSchema(Content content, string contentTypeName = null)
         {
-            var sch = new Schema(ContentTypeBlacklist);
+            var sch = new Schema(Portal.OData.Typescript.TypescriptFormatter.DisabledContentTypeNames);
 
             // If the content type name filter is provided, the result array contains
             // only that type. In the future it may contain parent content types too
