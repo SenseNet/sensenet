@@ -224,20 +224,9 @@ namespace SenseNet.Packaging.Steps
             var sourceElements = sourceSectionElement.SelectNodes("*");
             targetSectionElement = (XmlElement)xml.DocumentElement.SelectSingleNode(move.TargetSection)
                                     ?? CreateSection(xml, move.TargetSection);
-            foreach (XmlElement sourceElement in sourceElements)
-            {
-                var sourceKey = sourceElement.Attributes["key"].Value;
-                var oldElement = targetSectionElement.SelectSingleNode($"add[@key='{sourceKey}']");
-                if (oldElement != null)
-                {
-                    Logger.LogMessage("  Rewritten element in {0}", GetPath(targetSectionElement));
-                    Logger.LogMessage("    {0}", oldElement.OuterXml);
-                    oldElement.ParentNode.RemoveChild(oldElement);
-                }
 
-                // move
+            foreach (XmlElement sourceElement in sourceElements)
                 MoveElement(sourceElement, targetSectionElement);
-            }
 
             DeleteSection(sourceSectionElement, move.SourceSection);
 
@@ -275,6 +264,16 @@ namespace SenseNet.Packaging.Steps
 
         private void MoveElement(XmlElement sourceElement, XmlElement targetSectionElement)
         {
+            // remove old element if exists
+            var sourceKey = sourceElement.Attributes["key"].Value;
+            var oldElement = targetSectionElement.SelectSingleNode($"add[@key='{sourceKey}']");
+            if (oldElement != null && oldElement != sourceElement)
+            {
+                Logger.LogMessage("  Rewritten element in {0}", GetPath(targetSectionElement));
+                Logger.LogMessage("    {0}", oldElement.OuterXml);
+                oldElement.ParentNode.RemoveChild(oldElement);
+            }
+
             targetSectionElement.AppendChild(sourceElement.ParentNode.RemoveChild(sourceElement));
         }
 

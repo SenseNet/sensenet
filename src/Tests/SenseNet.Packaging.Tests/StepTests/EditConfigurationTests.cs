@@ -420,6 +420,62 @@ namespace SenseNet.Packaging.Tests.StepTests
             });
         }
         [TestMethod]
+        public void Step_EditConfiguration_MoveSimpleKeyToExistingAndFound()
+        {
+            var config = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+  </configSections>
+  <section1>
+    <add key='key2' value='value2' />
+  </section1>
+  <appSettings>
+    <add key='key1' value='value1' />
+    <add key='key2' value='value2_fromAppSettings' />
+    <add key='key3' value='value3' />
+    <add key='key4' value='value4' />
+  </appSettings>
+</configuration>";
+
+            var expected = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <section name='section1' type='System.Configuration.NameValueFileSectionHandler' />
+  </configSections>
+  <section1>
+    <add key='key1' value='value1' />
+    <add key='key2' value='value2_fromAppSettings' />
+    <add key='key3' value='value3' />
+  </section1>
+  <appSettings>
+    <add key='key4' value='value4' />
+  </appSettings>
+</configuration>";
+
+            MoveOperationTest(config, expected, new[]
+            {
+                new EditConfiguration.MoveOperation
+                {
+                    SourceSection = "appSettings",
+                    SourceKey = "key1",
+                    TargetSection = "section1",
+                },
+                new EditConfiguration.MoveOperation
+                {
+                    SourceSection = "appSettings",
+                    SourceKey = "key2",
+                    TargetSection = "section1",
+                },
+                new EditConfiguration.MoveOperation
+                {
+                    SourceSection = "appSettings",
+                    SourceKey = "key3",
+                    TargetSection = "section1",
+                },
+            });
+        }
+        [TestMethod]
         public void Step_EditConfiguration_MoveSimpleKeyToExisting_NotFound()
         {
             var config = @"<?xml version='1.0' encoding='utf-8'?>
