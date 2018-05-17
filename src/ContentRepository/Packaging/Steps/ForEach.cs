@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml;
@@ -40,8 +41,19 @@ namespace SenseNet.Packaging.Steps
         private IEnumerable<string> ResolveFiles(ExecutionContext context)
         {
             var result = new List<string>();
+            var files = this.Files.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
 
-            var path = this.Files;
+            // resolve files/patterns one by one
+            foreach (var file in files)
+            {
+                ResolveFile(file, result, context);
+            }
+
+            return result;
+        }
+
+        private static void ResolveFile(string path, List<string> pathList, ExecutionContext context)
+        {
             var isRooted = Path.IsPathRooted(path);
 
             if (path.Contains('?') || path.Contains('*'))
@@ -59,14 +71,12 @@ namespace SenseNet.Packaging.Steps
                     pattern = path;
                 }
                 var files = Directory.GetFiles(dir, pattern);
-                result.AddRange(isRooted ? files : files.Select(f => f.Substring(context.TargetPath.Length + 1)));
+                pathList.AddRange(isRooted ? files : files.Select(f => f.Substring(context.TargetPath.Length + 1)));
             }
             else
             {
-                result.Add(path);
+                pathList.Add(path);
             }
-
-            return result;
         }
 
         private IEnumerable<Content> ResolveContents(ExecutionContext context)

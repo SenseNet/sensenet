@@ -64,6 +64,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StepTests\DeleteContentTypeTests.cs" />
     <Compile Include="StepTests\EditAllowedChildTypesTests.cs" />
+    <Compile Include="StepTests\EditConfigurationTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
