@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web;
 using SenseNet.ContentRepository.Schema.Metadata;
 using SenseNet.ContentRepository.Storage;
@@ -17,12 +14,13 @@ namespace SenseNet.Portal.OData.Typescript
     {
         /// <inheritdoc />
         /// <remarks>Returns with "typescript" in this case.</remarks>
-        public override string FormatName { get { return "typescript"; } }
+        public override string FormatName => "typescript";
+
         /// <inheritdoc />
         /// <remarks>Returns with "text/x-typescript" in this case.</remarks>
-        public override string MimeType { get { return "text/x-typescript"; } }
+        public override string MimeType => "text/x-typescript";
 
-        internal static readonly string[] DisabledContentTypeNames = new[] { "Application", "ApplicationCacheFile", "FieldSettingContent", "JournalNode" };
+        internal static readonly string[] DisabledContentTypeNames = { "Application", "ApplicationCacheFile", "FieldSettingContent", "JournalNode" };
 
         /// <inheritdoc />
         protected override void WriteMetadata(System.IO.TextWriter writer, Metadata.Edmx edmx)
