@@ -22,7 +22,7 @@ namespace SenseNet.Portal.OData.Typescript
         /// <remarks>Returns with "text/x-typescript" in this case.</remarks>
         public override string MimeType { get { return "text/x-typescript"; } }
 
-        public static readonly string[] DisabledContentTypeNames = new[] { "Application", "ApplicationCacheFile", "FieldSettingContent", "JournalNode" };
+        internal static readonly string[] DisabledContentTypeNames = new[] { "Application", "ApplicationCacheFile", "FieldSettingContent", "JournalNode" };
 
         /// <inheritdoc />
         protected override void WriteMetadata(System.IO.TextWriter writer, Metadata.Edmx edmx)
