@@ -8,7 +8,7 @@ namespace SenseNet.Portal.OData.Typescript
 {
     internal class TypescriptClassesVisitor : TypescriptModuleWriter
     {
-        public static readonly string[] RequiredFields = new []{ "Id", "Name", "Path", "Type" };
+        private static readonly string[] RequiredFields = new []{ "Id", "Name", "Path", "Type" };
 
         public TypescriptClassesVisitor(TypescriptGenerationContext context, TextWriter writer) : base(context, writer) { }
 
@@ -49,7 +49,7 @@ export type BinaryField = ComplexTypes.MediaResourceObject;
             var propertyLines = new List<string>();
             foreach (var property in visitedProperties)
             {
-                var fieldDescription = SenseNetResourceManager.Current.GetString(property.FieldSetting.Description);
+                var fieldDescription = SNSR.GetString(property.FieldSetting.Description);
                 if (!string.IsNullOrWhiteSpace(fieldDescription))
                 {
                     propertyLines.Add($" /* {fieldDescription} */");
@@ -61,7 +61,7 @@ export type BinaryField = ComplexTypes.MediaResourceObject;
             var type = @class.Name;
             var parentName = @class.BaseClassName;
             WriteLine($"/**");
-            var description = SenseNetResourceManager.Current.GetString(@class.ContentType.Description);
+            var description = SNSR.GetString(@class.ContentType.Description);
 
             if (!string.IsNullOrWhiteSpace(description))
             {
