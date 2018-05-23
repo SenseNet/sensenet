@@ -2579,7 +2579,12 @@ namespace SenseNet.ContentRepository.Storage
                                 this.Data.VersionModifiedById = adminId;
                                 this.Data.CreatedById = adminId;
                                 this.Data.ModifiedById = adminId;
-                                this.Data.OwnerId = adminId;
+
+                                // Re-set the owner only if it has not been changed (for example during
+                                // templated userprofile creation the new user should be the owner of the
+                                // content and this is set in the upper layer).
+                                if (this.Data.OwnerId == Identifiers.VisitorUserId)
+                                    this.Data.OwnerId = adminId;
                             }
                         }
                     }
