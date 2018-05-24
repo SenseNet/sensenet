@@ -15,5 +15,14 @@ tags: [user, profile, permission, domain, security]
 ## Domain
 
 ### Default domain
+If you want to set the default domain of your portal login write this section to the webcofig.:
+
+```xml
+<identityManagement>
+    <add key="DefaultDomain" value="domain" />
+</identityManagement>
+```
+Default setting is the "builtin" domain.
 
 ## Group
+
