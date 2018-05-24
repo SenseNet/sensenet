@@ -146,9 +146,13 @@ namespace SenseNet.Services
             {
                 var runOnceMarkerPath = application.Server.MapPath("/" + RunOnceGuid);
                 var firstRun = File.Exists(runOnceMarkerPath);
-                var startConfig = new RepositoryStartSettings { StartIndexingEngine = !firstRun, IsWebContext = true };
+                var repositoryBuilder = new RepositoryBuilder()
+                    .StartIndexingEngine(!firstRun)
+                    .IsWebContext(true);
 
-                Repository.Start(startConfig);
+                ConfigureRepository(repositoryBuilder);
+
+                Repository.Start(repositoryBuilder);
 
                 RepositoryVersionInfo.CheckComponentVersions();
 
@@ -398,6 +402,16 @@ namespace SenseNet.Services
 
                 return null;
             })));
+        }
+
+        /// <summary>
+        /// Derived classes may customize the repository by defining options and providers here. This instance
+        /// is used later when the system starts the content repository.
+        /// </summary>
+        /// <param name="repositoryBuilder">A repository builder instance with a fluent api for configuring the repository.</param>
+        protected virtual void ConfigureRepository(RepositoryBuilder repositoryBuilder)
+        {
+            // do nothing
         }
 
         /*====================================================================================================================== Helpers */
