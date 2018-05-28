@@ -150,7 +150,7 @@ namespace SenseNet.Services
                     .StartIndexingEngine(!firstRun)
                     .IsWebContext(true);
 
-                ConfigureRepository(repositoryBuilder);
+                BuildRepository(repositoryBuilder);
 
                 Repository.Start(repositoryBuilder);
 
@@ -409,7 +409,7 @@ namespace SenseNet.Services
         /// is used later when the system starts the content repository.
         /// </summary>
         /// <param name="repositoryBuilder">A repository builder instance with a fluent api for configuring the repository.</param>
-        protected virtual void ConfigureRepository(RepositoryBuilder repositoryBuilder)
+        protected virtual void BuildRepository(RepositoryBuilder repositoryBuilder)
         {
             // do nothing
         }

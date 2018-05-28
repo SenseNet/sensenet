@@ -1,13 +1,13 @@
 ---
-title: "Configure the repository"
-source_url: 'https://github.com/SenseNet/sensenet/blob/master/docs/configure-repository.md'
+title: "Build the repository"
+source_url: 'https://github.com/SenseNet/sensenet/blob/master/docs/build-repository.md'
 category: Development
 version: v7.0
 tags: [configuration, startup, repository, tests, ioc]
 description: This article is about starting the application or the repository itself using custom options or providers.
 ---
 
-# Configure the repository
+# Build the repository
 The Content Repository is a complex structure of data and code. Some parts of the system can be thought of as building blocks and can be replaced by custom implementations (providers). In this article we describe the possibilities for developers to **configure the repository from code**, during application or repository start.
 
 > A **provider** is an implementation of one of the many extensibility points (interfaces or base classes) available in sensenet. Providers are created as alternative implementations for certain APIs (for example accessing the db, handling server-to-server messages or search operations) and can be injected as building blocks to the system.
@@ -64,7 +64,7 @@ public static ICustomProvider Instance
 > Yes, this is a simple but powerful IoC framework inside sensenet.
 
 ## Application start
-If you [installed sensenet](install-sn-from-nuget.md) in an Asp.Net application you already have an `Application_Start` method in your application class derived from our `SenseNetGlobal` class. If you want to configure the repository builder instance right before sensenet starts the repository, you only have to override the `ConfigureRepository` method and add your providers and options.
+If you [installed sensenet](install-sn-from-nuget.md) in an Asp.Net application you already have an `Application_Start` method in your application class derived from our `SenseNetGlobal` class. If you want to access the repository builder instance right before sensenet starts the repository, you only have to override the `BuildRepository` method and add your providers and options.
 
 ```csharp
 public class MvcApplication : SenseNet.Portal.SenseNetGlobal
@@ -74,7 +74,7 @@ public class MvcApplication : SenseNet.Portal.SenseNetGlobal
         ...
     }
 
-    protected override void ConfigureRepository(RepositoryBuilder repositoryBuilder)
+    protected override void BuildRepository(RepositoryBuilder repositoryBuilder)
     {
         repositoryBuilder
             .UseSecurityMessageProvider(new MyMessageProvider("serviceurl"))
