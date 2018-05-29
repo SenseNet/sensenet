@@ -42,9 +42,11 @@ namespace SenseNet.ContentRepository
         protected abstract void InstanceChanged();
         protected void InvalidatePrivate()
         {
-            __items = null;
-
-            SnTrace.System.Write("{0} tree cache invalidated.", typeof(T).Name);
+            lock (_sync)
+            {
+                __items = null;
+                SnTrace.System.Write("{0} tree cache invalidated.", typeof(T).Name);
+            }
         }
 
         protected override void OnReset(object sender, EventArgs e)
