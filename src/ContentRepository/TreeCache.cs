@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SenseNet.ContentRepository.Search.Querying;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository
@@ -28,7 +29,8 @@ namespace SenseNet.ContentRepository
                     lock (_sync)
                     {
                         if (__items == null)
-                            __items = Build(LoadItems());
+                            using (new SystemAccount())
+                                __items = Build(LoadItems());
                     }
                 }
                 return __items;
