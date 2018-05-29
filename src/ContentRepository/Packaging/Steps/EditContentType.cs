@@ -12,7 +12,7 @@ namespace SenseNet.Packaging.Steps
     /// </summary>
     public abstract class EditContentType : Step
     {
-        protected static readonly string NAMESPACE = "x";
+        protected internal static readonly string NamespacePrefix = "x";
 
         public string ContentType { get; set; }
         public string InsertAfter { get; set; }
@@ -54,12 +54,12 @@ namespace SenseNet.Packaging.Steps
 
         protected static XmlNode LoadChild(XmlNode parent, string childName)
         {
-            return parent.SelectSingleNode(string.Format("{0}:{1}", NAMESPACE, childName), GetNamespaceManager(parent.OwnerDocument));
+            return parent.SelectSingleNode(string.Format("{0}:{1}", NamespacePrefix, childName), GetNamespaceManager(parent.OwnerDocument));
         }
 
         protected internal static XmlElement LoadFieldElement(XmlDocument xDoc, string fieldName, bool throwOnError = true)
         {
-            var fieldNode = xDoc.SelectSingleNode(string.Format("//{0}:Field[@name='{1}']", NAMESPACE, fieldName), GetNamespaceManager(xDoc)) as XmlElement;
+            var fieldNode = xDoc.SelectSingleNode(string.Format("//{0}:Field[@name='{1}']", NamespacePrefix, fieldName), GetNamespaceManager(xDoc)) as XmlElement;
             if (fieldNode == null && throwOnError)
                 throw new PackagingException(string.Format(SR.Errors.Content.FieldNotFound_1, fieldName));
 
@@ -69,7 +69,7 @@ namespace SenseNet.Packaging.Steps
         internal static XmlNamespaceManager GetNamespaceManager(XmlDocument xDoc)
         {
             var nsmgr = new XmlNamespaceManager(xDoc.NameTable);
-            nsmgr.AddNamespace(NAMESPACE, xDoc.DocumentElement.NamespaceURI);
+            nsmgr.AddNamespace(NamespacePrefix, xDoc.DocumentElement.NamespaceURI);
 
             return nsmgr;
         }

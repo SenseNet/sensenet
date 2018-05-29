@@ -21,6 +21,8 @@ namespace SenseNet.ContentRepository
 
         /// <summary>Returns with the following query: "+TypeIs:@0"</summary>
         public static string TypeIs { get { return "+TypeIs:@0"; } }
+        /// <summary>Returns with the following query: "+TypeIs:@0 .COUNTONLY"</summary>
+        public static string TypeIsCountOnly { get { return "+TypeIs:@0 .COUNTONLY"; } }
         /// <summary>Returns with the following query: "+InFolder:@0"</summary>
         public static string InFolder { get { return "+InFolder:@0"; } }
         /// <summary>Returns with the following query: "+InFolder:@0 +TypeIs:@1"</summary>

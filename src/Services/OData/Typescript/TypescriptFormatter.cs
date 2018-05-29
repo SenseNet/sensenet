@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web;
 using SenseNet.ContentRepository.Schema.Metadata;
 using SenseNet.ContentRepository.Storage;
@@ -17,10 +14,13 @@ namespace SenseNet.Portal.OData.Typescript
     {
         /// <inheritdoc />
         /// <remarks>Returns with "typescript" in this case.</remarks>
-        public override string FormatName { get { return "typescript"; } }
+        public override string FormatName => "typescript";
+
         /// <inheritdoc />
         /// <remarks>Returns with "text/x-typescript" in this case.</remarks>
-        public override string MimeType { get { return "text/x-typescript"; } }
+        public override string MimeType => "text/x-typescript";
+
+        internal static readonly string[] DisabledContentTypeNames = { "Application", "ApplicationCacheFile", "FieldSettingContent", "JournalNode" };
 
         /// <inheritdoc />
         protected override void WriteMetadata(System.IO.TextWriter writer, Metadata.Edmx edmx)
@@ -29,7 +29,7 @@ namespace SenseNet.Portal.OData.Typescript
             if (string.IsNullOrEmpty(requestedModule))
                 requestedModule = "classes";
 
-            var schema0 = new ContentRepository.Schema.Metadata.Schema(new[] { "Application", "ApplicationCacheFile", "FieldSettingContent", "JournalNode" });
+            var schema0 = new Schema(DisabledContentTypeNames);
             var context = new TypescriptGenerationContext();
             var schema1 = new TypescriptTypeCollectorVisitor(context).Visit(schema0);
 

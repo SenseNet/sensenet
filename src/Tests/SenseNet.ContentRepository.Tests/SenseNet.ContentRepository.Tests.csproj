@@ -64,6 +64,7 @@
     <Compile Include="Accessors.cs" />
     <Compile Include="AspectTests.cs" />
     <Compile Include="AutoNamingTests.cs" />
+    <Compile Include="ClientMetadataProviderTests.cs" />
     <Compile Include="ComponentVersionTests.cs" />
     <Compile Include="ContentHandlers\EnumTestNode.cs" />
     <Compile Include="ContentTypeInheritanceTests.cs" />
