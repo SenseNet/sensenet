@@ -428,6 +428,9 @@ namespace SenseNet.ContentRepository
                 SnTrace.Repository.Write("Shutting down {0}", DistributedApplication.ClusterChannel.GetType().Name);
                 DistributedApplication.ClusterChannel.ShutDown();
 
+                SnTrace.Repository.Write("Shutting down Security.");
+                SecurityHandler.ShutDownSecurity();
+
                 SnTrace.Repository.Write("Shutting down IndexingEngine.");
                 IndexManager.ShutDown();
 
