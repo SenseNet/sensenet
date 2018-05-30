@@ -16,7 +16,7 @@
     <tags>sensenet ecm ecms indexing search</tags>
     <dependencies>
       <dependency id="Newtonsoft.Json" version="9.0.1" />
-      <dependency id="SenseNet.Security" version="2.3.1" />
+      <dependency id="SenseNet.Security" version="2.4.0" />
       <dependency id="SenseNet.Tools" version="2.1.1" />
     </dependencies>
   </metadata>
