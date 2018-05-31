@@ -189,6 +189,7 @@ namespace SenseNet.Tests.Implementations
             {
                 var words = field.StringValue
                     .Split(" \t\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+                    .Distinct()
                     .Select(s => s.ToLowerInvariant());
                 fieldValues.AddRange(words);
             }

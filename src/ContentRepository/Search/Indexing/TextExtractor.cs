@@ -393,6 +393,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
     }
     internal sealed class XmlTextExtractor : TextExtractor
     {
+        private static readonly string[] WordDelimiters = { " ", "\t", "\r", "\n", "</", "<", ">", "='", "'", "=\"", "\"" };
+
         public override bool IsSlow => false;
 
         public override string Extract(Stream stream, TextExtractorContext context)
@@ -402,18 +404,35 @@ namespace SenseNet.ContentRepository.Search.Indexing
             // because we cannot assume that the file is a real content in the
             // Content Repository.
 
-            // initial length: chars = bytes / 2, relevant text rate: ~25%
-            var sb = new StringBuilder(Math.Max(20, Convert.ToInt32(stream.Length / 8)));
-            var reader = new XmlTextReader(stream);
-            while (reader.Read())
+            try
             {
-                if (reader.NodeType == XmlNodeType.Text && reader.HasValue)
+                // initial length: chars = bytes / 2, relevant text rate: ~25%
+                var sb = new StringBuilder(Math.Max(20, Convert.ToInt32(stream.Length / 8)));
+
+                var reader = new XmlTextReader(stream);
+                while (reader.Read())
                 {
-                    sb.Append(reader.Value).Append(' ');
+                    if (reader.NodeType == XmlNodeType.Text && reader.HasValue)
+                    {
+                        sb.Append(reader.Value).Append(' ');
+                    }
                 }
+
+                return sb.ToString();
+            }
+            catch
+            {
+                // execute the fallback algorithm
             }
 
-            return sb.ToString();
+            // Split to words by predefined string delimiters
+            string text;
+            stream.Seek(0L, SeekOrigin.Begin);
+            using (var reader = new StreamReader(stream))
+                text = reader.ReadToEnd();
+
+            var words = text.Split(WordDelimiters, StringSplitOptions.RemoveEmptyEntries);
+            return string.Join(" ", words);
         }
     }
     internal sealed class DocTextExtractor : TextExtractor
