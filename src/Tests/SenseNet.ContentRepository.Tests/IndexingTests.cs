@@ -103,5 +103,87 @@ namespace SenseNet.ContentRepository.Tests
                 }
             });
         }
+
+        [TestMethod, TestCategory("IR")]
+        public void Indexing_XmlFile_Wellformed()
+        {
+            Test(() =>
+            {
+                var testRoot = new SystemFolder(Repository.Root) { Name = "TestRoot" };
+                testRoot.Save();
+
+                // Create an xml file
+                var file = new File(testRoot) { Name = "TestFile.xml" };
+
+                // Write a well-formed xml into the file's binary.
+                var text = "<rootelement42><xmlelement42 attr42='attrvalue'>elementtext1 elementtext2 elementtext3</xmlelement42></rootelement42>";
+                var binaryData = new BinaryData() { FileName = file.Name };
+                binaryData.SetStream(RepositoryTools.GetStreamFromString(text));
+                file.Binary = binaryData;
+
+                // Save the file.
+                file.Save();
+                var fileId = file.Id;
+
+                // Check the index with queries by well known words in the default (_Text) field.
+                var results = new[]
+                {
+                    CreateSafeContentQuery("rootelement42").Execute().Nodes.ToArray(),
+                    CreateSafeContentQuery("xmlelement42").Execute().Nodes.ToArray(),
+                    CreateSafeContentQuery("attr42").Execute().Nodes.ToArray(),
+
+                    CreateSafeContentQuery("elementtext1").Execute().Nodes.ToArray(),
+                    CreateSafeContentQuery("elementtext2").Execute().Nodes.ToArray(),
+                    CreateSafeContentQuery("elementtext3").Execute().Nodes.ToArray(),
+
+                    CreateSafeContentQuery("attrvalue").Execute().Nodes.ToArray(),
+                };
+
+                var expectedCounts = "0, 0, 0, 1, 1, 1, 0";
+                var actualCounts = string.Join(", ", results.Select(r => r.Length.ToString()).ToArray());
+                Assert.AreEqual(expectedCounts, actualCounts);
+            });
+        }
+
+        [TestMethod, TestCategory("IR")]
+        public void Indexing_XmlFile_NotWellformed()
+        {
+            Test(() =>
+            {
+                var testRoot = new SystemFolder(Repository.Root) { Name = "TestRoot" };
+                testRoot.Save();
+
+                // Create an xml file
+                var file = new File(testRoot) { Name = "TestFile.xml" };
+
+                // Write a not well-formed xml into the file's binary.
+                var text = "<rootelement42><xmlelement42 attr42='attrvalue'>elementtext1 elementtext2 elementtext3</xmlelement42><rootelement42>";
+                var binaryData = new BinaryData() { FileName = file.Name };
+                binaryData.SetStream(RepositoryTools.GetStreamFromString(text));
+                file.Binary = binaryData;
+
+                // Save the file.
+                file.Save();
+
+                // Check the index with queries by well known words in the default (_Text) field.
+                var results = new[]
+                {
+                    CreateSafeContentQuery("rootelement42").Execute().Nodes.ToArray(),
+                    CreateSafeContentQuery("xmlelement42").Execute().Nodes.ToArray(),
+                    CreateSafeContentQuery("attr42").Execute().Nodes.ToArray(),
+
+                    CreateSafeContentQuery("elementtext1").Execute().Nodes.ToArray(),
+                    CreateSafeContentQuery("elementtext2").Execute().Nodes.ToArray(),
+                    CreateSafeContentQuery("elementtext3").Execute().Nodes.ToArray(),
+
+                    CreateSafeContentQuery("attrvalue").Execute().Nodes.ToArray(),
+                };
+
+                var expectedCounts = "1, 1, 1, 1, 1, 1, 1";
+                var actualCounts = string.Join(", ", results.Select(r => r.Length.ToString()).ToArray());
+                Assert.AreEqual(expectedCounts, actualCounts);
+            });
+        }
+
     }
 }
