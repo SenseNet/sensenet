@@ -59,7 +59,9 @@
     <Compile Include="Implementations\TestDataReader.cs" />
     <Compile Include="Implementations\TestDbParameterCollection.cs" />
     <Compile Include="Implementations\TestPackageStorageProvider.cs" />
+    <Compile Include="PackagingEzReleaseTests.cs" />
     <Compile Include="PackagingStorageTests.cs" />
+    <Compile Include="PackagingTestBase.cs" />
     <Compile Include="PackagingTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StepTests\DeleteContentTypeTests.cs" />
