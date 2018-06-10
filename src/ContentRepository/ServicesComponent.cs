@@ -6,6 +6,7 @@ namespace SenseNet.ContentRepository
     {
         public override string ComponentId => "SenseNet.Services";
 
+        //UNDONE: Set the SupportedVersion version before release.
         public override Version SupportedVersion => null;
     }
 }
