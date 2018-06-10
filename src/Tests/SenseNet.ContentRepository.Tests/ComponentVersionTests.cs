@@ -12,23 +12,24 @@ namespace SenseNet.ContentRepository.Tests
         {
             // set a fake assembly version for testing purposes
             var av = new Version(3, 3, 3, 3);
-            var services = new ServicesComponent {AssemblyVersion = av};
+            //var services = new ServicesComponent {AssemblyVersion = av};
+            var servicesInfo = new SnComponentInfo {AssemblyVersion = av};
 
-            Assert.IsTrue(services.IsComponentAllowed(av));
+            Assert.IsTrue(RepositoryVersionInfo.IsComponentAllowed(servicesInfo, av));
 
             // it is allowed to have a component with a higher version than the assembly
-            Assert.IsTrue(services.IsComponentAllowed(new Version(av.Major, av.Minor, av.Build, av.Revision + 1)));
-            Assert.IsTrue(services.IsComponentAllowed(new Version(av.Major, av.Minor, av.Build + 1, av.Revision)));
-            Assert.IsTrue(services.IsComponentAllowed(new Version(av.Major, av.Minor + 1, av.Build, av.Revision)));
-            Assert.IsTrue(services.IsComponentAllowed(new Version(av.Major + 1, av.Minor, av.Build, av.Revision)));
+            Assert.IsTrue(RepositoryVersionInfo.IsComponentAllowed(servicesInfo, new Version(av.Major, av.Minor, av.Build, av.Revision + 1)));
+            Assert.IsTrue(RepositoryVersionInfo.IsComponentAllowed(servicesInfo, new Version(av.Major, av.Minor, av.Build + 1, av.Revision)));
+            Assert.IsTrue(RepositoryVersionInfo.IsComponentAllowed(servicesInfo, new Version(av.Major, av.Minor + 1, av.Build, av.Revision)));
+            Assert.IsTrue(RepositoryVersionInfo.IsComponentAllowed(servicesInfo, new Version(av.Major + 1, av.Minor, av.Build, av.Revision)));
 
             // This is the edge case where the assembly version's _revision_ number (the 4th one) 
             // is higher than the component version, which is allowed.
-            Assert.IsTrue(services.IsComponentAllowed(new Version(av.Major, av.Minor, av.Build, av.Revision - 1)));
+            Assert.IsTrue(RepositoryVersionInfo.IsComponentAllowed(servicesInfo, new Version(av.Major, av.Minor, av.Build, av.Revision - 1)));
 
-            Assert.IsFalse(services.IsComponentAllowed(new Version(av.Major, av.Minor, av.Build - 1)));
-            Assert.IsFalse(services.IsComponentAllowed(new Version(av.Major, av.Minor - 1, av.Build)));
-            Assert.IsFalse(services.IsComponentAllowed(new Version(av.Major - 1, av.Minor, av.Build)));
+            Assert.IsFalse(RepositoryVersionInfo.IsComponentAllowed(servicesInfo, new Version(av.Major, av.Minor, av.Build - 1)));
+            Assert.IsFalse(RepositoryVersionInfo.IsComponentAllowed(servicesInfo, new Version(av.Major, av.Minor - 1, av.Build)));
+            Assert.IsFalse(RepositoryVersionInfo.IsComponentAllowed(servicesInfo, new Version(av.Major - 1, av.Minor, av.Build)));
         }
 
         [TestMethod]

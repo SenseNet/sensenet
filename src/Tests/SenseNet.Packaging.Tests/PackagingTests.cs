@@ -10,8 +10,6 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Packaging.Steps;
-using SenseNet.Packaging.Tests.Implementations;
-using SenseNet.Tests;
 
 namespace SenseNet.Packaging.Tests
 {

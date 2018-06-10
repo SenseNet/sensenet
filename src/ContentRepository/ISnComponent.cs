@@ -8,9 +8,17 @@ namespace SenseNet.ContentRepository
     public interface ISnComponent
     {
         /// <summary>
-        /// Identifier of the component. Implementing classes must provide a unique value here.
+        /// Gets the identifier of the component. Implementing classes must provide a unique value here.
         /// </summary>
         string ComponentId { get; }
+
+        /// <summary>
+        /// Gets the last allowed version number that is compatible with this component instance.
+        /// The current value is the version of the containing assembly.
+        /// This value cannot be greater than the version of the containing assembly otherwise
+        /// an exception will be thrown. Null value means: supports only the its own version.
+        /// </summary>
+        Version SupportedVersion { get; }
 
         /// <summary>
         /// Checks whether this component is able to work with the available version of the assembly.
