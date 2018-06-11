@@ -40,9 +40,8 @@
     <Reference Include="SenseNet.Security, Version=2.4.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\SenseNet.Security.2.4.0\lib\net451\SenseNet.Security.dll</HintPath>
     </Reference>
-    <Reference Include="SenseNet.Tools, Version=2.1.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SenseNet.Tools.2.1.1\lib\net451\SenseNet.Tools.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="SenseNet.Tools, Version=2.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SenseNet.Tools.2.2.0\lib\net451\SenseNet.Tools.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
