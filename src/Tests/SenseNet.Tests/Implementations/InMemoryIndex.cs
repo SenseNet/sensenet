@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using Newtonsoft.Json;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
@@ -23,6 +25,12 @@ namespace SenseNet.Tests.Implementations
         }
 
         private InMemoryIndex() { }
+
+        /// <summary>
+        /// Gets or sets the path of the local disk directory
+        /// that will contain every IndexDocument for trace index modifications.
+        /// </summary>
+        public string IndexDocumentPath { get; set; }
 
         /* ========================================================================== Data */
 
@@ -82,6 +90,9 @@ namespace SenseNet.Tests.Implementations
 
         public void AddDocument(IndexDocument document)
         {
+            if(IndexDocumentPath != null)
+                WriteTo(IndexDocumentPath, document);
+
             var versionId = document.GetIntegerValue(IndexFieldName.VersionId);
 
             var storedFields = document.Where(f => f.Store == IndexStoringMode.Yes).ToList();
@@ -110,6 +121,59 @@ namespace SenseNet.Tests.Implementations
 
                     versionIds.Add(versionId);
                 }
+            }
+        }
+        private void WriteTo(string rootPath, IndexDocument document)
+        {
+            if (!Directory.Exists(rootPath))
+                Directory.CreateDirectory(rootPath);
+
+            var nodeId = document.GetIntegerValue(IndexFieldName.NodeId);
+            var versionId = document.GetIntegerValue(IndexFieldName.VersionId);
+            var contentType = document.GetStringValue(IndexFieldName.Type);
+
+            var contentFileBase = $"{rootPath}\\{nodeId}-{versionId}-{contentType}";
+            var contentFile = contentFileBase;
+            var suffix = 0;
+            while (File.Exists(contentFile + ".txt"))
+                contentFile = contentFileBase + "-" + ++suffix;
+            contentFile = contentFile + ".txt";
+
+            using (var writer = new StreamWriter(contentFile))
+            {
+                writer.WriteLine("{");
+
+                foreach (var field in document)
+                {
+                    string value;
+                    var type = "";
+                    switch (field.Type)
+                    {
+                        case IndexValueType.String:
+                            value = field.StringValue == null ? "null" : $"\"{field.StringValue}\"";
+                            break;
+                        case IndexValueType.StringArray:
+                            value = "[" + string.Join(", ", field.StringArrayValue.Select(s => $"\"{s}\"").ToArray()) + "]";
+                            break;
+                        case IndexValueType.DateTime:
+                            value = $"\"{field.ValueAsString}\"";
+                            break;
+                        case IndexValueType.Long:
+                        case IndexValueType.Float:
+                        case IndexValueType.Double:
+                            value = field.ValueAsString;
+                            type = " // " + field.Type.ToString().ToLowerInvariant();
+                            break;
+                        case IndexValueType.Bool:
+                        case IndexValueType.Int:
+                        default:
+                            value = field.ValueAsString;
+                            break;
+                    }
+                    writer.WriteLine("    {0}: {1},{2}", field.Name, value, type);
+                }
+
+                writer.WriteLine("}");
             }
         }
 
@@ -274,6 +338,24 @@ namespace SenseNet.Tests.Implementations
         {
             //TODO: Double fields are not comparable as a string
             return value.ToString(CultureInfo.InvariantCulture);
+        }
+
+        public void Save(string fileName)
+        {
+            var data = new Dictionary<string, List<string>>();
+            foreach (var item in IndexData)
+            {
+                var list = new List<string>();
+                data.Add(item.Key, list);
+                foreach (var term in item.Value)
+                    list.Add(term.Key);
+            }
+
+            using (var writer = new StreamWriter(fileName, false))
+            {
+                JsonSerializer ser = JsonSerializer.Create(new JsonSerializerSettings { Formatting = Formatting.Indented });
+                ser.Serialize(writer, data);
+            }
         }
     }
 }
