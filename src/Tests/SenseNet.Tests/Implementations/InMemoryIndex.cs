@@ -26,6 +26,12 @@ namespace SenseNet.Tests.Implementations
 
         private InMemoryIndex() { }
 
+        /// <summary>
+        /// Gets or sets the path of the local disk directory
+        /// that will contain every IndexDocument for trace index modifications.
+        /// </summary>
+        public string IndexDocumentPath { get; set; }
+
         /* ========================================================================== Data */
 
         // FieldName => FieldValue => VersionId
@@ -84,7 +90,8 @@ namespace SenseNet.Tests.Implementations
 
         public void AddDocument(IndexDocument document)
         {
-            //WriteTo(@"D:\dev\index-investigation", document);
+            if(IndexDocumentPath != null)
+                WriteTo(IndexDocumentPath, document);
 
             var versionId = document.GetIntegerValue(IndexFieldName.VersionId);
 
@@ -116,7 +123,6 @@ namespace SenseNet.Tests.Implementations
                 }
             }
         }
-
         private void WriteTo(string rootPath, IndexDocument document)
         {
             if (!Directory.Exists(rootPath))
@@ -334,7 +340,7 @@ namespace SenseNet.Tests.Implementations
             return value.ToString(CultureInfo.InvariantCulture);
         }
 
-        public void Save(string directoryName, [System.Runtime.CompilerServices.CallerMemberName] string fileName = null)
+        public void Save(string fileName)
         {
             var data = new Dictionary<string, List<string>>();
             foreach (var item in IndexData)
@@ -345,9 +351,7 @@ namespace SenseNet.Tests.Implementations
                     list.Add(term.Key);
             }
 
-
-            var fname = Path.Combine(directoryName, fileName + ".txt");
-            using (var writer = new StreamWriter(fname, false))
+            using (var writer = new StreamWriter(fileName, false))
             {
                 JsonSerializer ser = JsonSerializer.Create(new JsonSerializerSettings { Formatting = Formatting.Indented });
                 ser.Serialize(writer, data);

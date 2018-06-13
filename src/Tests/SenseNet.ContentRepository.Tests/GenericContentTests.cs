@@ -253,9 +253,6 @@ namespace SenseNet.ContentRepository.Tests
 
                 Assert.AreEqual(originalVersion.ToString(), file.Version.ToString());
                 Assert.AreEqual(VersionStatus.Approved, file.Version.Status);
-
-if (SearchManager.SearchEngine.IndexingEngine is InMemoryIndexingEngine indexingEngine)
-    indexingEngine.Index.Save(@"D:\dev\index-investigation\");
             });
         }
 
