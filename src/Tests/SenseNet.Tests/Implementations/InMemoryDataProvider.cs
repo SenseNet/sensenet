@@ -1212,9 +1212,9 @@ namespace SenseNet.Tests.Implementations
 
         #region CREATION
 
-        // Preloade CTD bytes by name
         private static readonly Dictionary<string, byte[]> ContentTypeBytes;
         private static readonly Dictionary<string, byte[]> ResourceBytes;
+
         static InMemoryDataProvider()
         {
             // Preload CTD bytes from disk

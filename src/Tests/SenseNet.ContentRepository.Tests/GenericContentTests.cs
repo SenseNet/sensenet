@@ -6,9 +6,7 @@ using SenseNet.Tests;
 using System;
 using System.Linq;
 using SenseNet.Configuration;
-using SenseNet.ContentRepository.Search;
 using SenseNet.Security;
-using SenseNet.Tests.Implementations;
 
 namespace SenseNet.ContentRepository.Tests
 {
