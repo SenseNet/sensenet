@@ -326,11 +326,21 @@ namespace SenseNet.Configuration
 
         public virtual T GetProvider<T>(string name) where T: class 
         {
-            object provider;
-            if (_providersByName.TryGetValue(name, out provider))
-                return provider as T;
+            // Test cached instance if there is.
+            if (!_providersByName.TryGetValue(name, out var provider))
+            {
+                // Try to resplve by configuration
+                // 1 - read classname from configuration.
+                var className = GetProvider(name);
 
-            return null;
+                // 2 - resolve provider instance.
+                provider = className == null ? null : TypeResolver.CreateInstance(className);
+
+                // 3 - memorize even if null.
+                SetProvider(name, provider);
+            }
+
+            return provider as T;
         }
         public virtual T GetProvider<T>() where T : class
         {
