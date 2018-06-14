@@ -329,7 +329,7 @@ namespace SenseNet.Configuration
             // Test cached instance if there is.
             if (!_providersByName.TryGetValue(name, out var provider))
             {
-                // Try to resplve by configuration
+                // Try to resolve by configuration
                 // 1 - read classname from configuration.
                 var className = GetProvider(name);
 
