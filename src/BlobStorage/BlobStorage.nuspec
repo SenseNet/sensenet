@@ -15,11 +15,11 @@
     <copyright>Copyright © Sense/Net Inc.</copyright>
     <tags>sensenet ecm ecms blob storage</tags>
     <dependencies>
-      <dependency id="SenseNet.Tools" version="2.1.1" />
+      <dependency id="SenseNet.Tools" version="3.0.0" />
       <dependency id="SenseNet.Common" version="7.1.1" />
     </dependencies>
   </metadata>
   <files>
-    <file src="bin\Release\SenseNet.BlobStorage.*" target="lib\net451" />
+    <file src="bin\Release\SenseNet.BlobStorage.*" target="lib\net461" />
   </files>
 </package>
