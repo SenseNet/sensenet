@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.Practices.Unity;
-using Microsoft.Practices.Unity.Configuration;
-using System.Configuration;
 using System.Diagnostics;
+using SenseNet.Configuration;
 using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Storage
@@ -82,71 +80,22 @@ namespace SenseNet.ContentRepository.Storage
 
         // ========================================================================= Using Unity container
 
-        public static T ResolveProvider<T>()
+        [Obsolete("Use Providers.Instance.GetProvider<T>(name) or any instrument of the SenseNet.Tools.TypeResolver.")]
+        public static T ResolveProvider<T>() where T : class
         {
-            try
-            {
-                return Container.Resolve<T>();
-            }
-            catch (ResolutionFailedException)
-            {
-                return (T)(object)null;
-            }
+            return ResolveNamedType<T>(typeof(T).Name);
         }
 
-        public static T ResolveNamedType<T>(string name)
+        [Obsolete("Use Providers.Instance.GetProvider<T>(name) or any instrument of the SenseNet.Tools.TypeResolver.")]
+        public static T ResolveNamedType<T>(string name) where T: class
         {
-            try
-            {
-                return Container.Resolve<T>(name);
-            }
-            catch (ResolutionFailedException)
-            {
-                return (T)(object)null;
-            }
+            return Providers.Instance.GetProvider<T>(name);
         }
 
-        public static T ResolveInstance<T>(string name)
+        [Obsolete("Use Providers.Instance.GetProvider<T>(name) or any instrument of the SenseNet.Tools.TypeResolver.")]
+        public static T ResolveInstance<T>(string name) where T : class
         {
-            try
-            {
-                return Container.Resolve<T>(name);
-            }
-            catch (ResolutionFailedException)
-            {
-                return (T)(object)null;
-            }
-        }
-
-        private static UnityContainer _container;
-        private static readonly object ContainerLock = new object();
-        
-        public static UnityContainer Container
-        {
-            get
-            {
-                if (_container == null)
-                {
-                    lock (ContainerLock)
-                    {
-                        if (_container == null)
-                        {
-                            _container = GetUnityContainer();
-                        }
-                    }
-                }
-                return _container;
-            }
-        }
-        private static UnityContainer GetUnityContainer()
-        {
-            var container = new UnityContainer();
-            var section = (UnityConfigurationSection)ConfigurationManager.GetSection("unity");
-            if (section == null)
-                throw new ConfigurationErrorsException("Unity section was not found. There is no configuration or it is invalid.");
-            section.Configure(container, "Providers");
-
-            return container;
+            return ResolveNamedType<T>(name);
         }
 
         // =========================================================================
@@ -235,35 +184,26 @@ namespace SenseNet.ContentRepository.Storage
             return null;
         }
 
-        private static IDictionary<Type, Type[]> _configuredProviders;
+        [Obsolete("Use RepositoryBuiler class instead.", true)]
         public static void Initialize(IDictionary<Type, Type[]> configuredProviders)
         {
-            _configuredProviders = configuredProviders;
+            throw new SnNotSupportedException("This method is not supported anymore.");
         }
 
+        [Obsolete("Use RepositoryBuiler class instead.", true)]
         public static T GetProviderInstance<T>()
         {
-            Type[] value;
-            if (!_configuredProviders.TryGetValue(typeof(T), out value))
-                return default(T);
-            var type = value.FirstOrDefault();
-            if (type == null)
-                return default(T);
-            return (T)Activator.CreateInstance(type);
+            throw new SnNotSupportedException("This method is not supported anymore.");
         }
+        [Obsolete("Use RepositoryBuiler class instead.", true)]
         public static Type[] GetProviderTypes()
         {
-            return _configuredProviders.Keys.ToArray();
+            throw new SnNotSupportedException("This method is not supported anymore.");
         }
+        [Obsolete("Use RepositoryBuiler class instead.", true)]
         public static T[] GetProviderInstances<T>()
         {
-            Type[] value;
-            if (!_configuredProviders.TryGetValue(typeof(T), out value))
-                return new T[0];
-            if(value == null)
-                return new T[0];
-            var instances = value.Select(t => (T)Activator.CreateInstance(t)).ToArray();
-            return instances;
+            throw new SnNotSupportedException("This method is not supported anymore.");
         }
 
     }

@@ -123,8 +123,6 @@ namespace SenseNet.ContentRepository
             else
                 LoggingSettings.SnTraceConfigurator.UpdateStartupCategories();
             
-            TypeHandler.Initialize(_settings.Providers);
-
             SearchManager.SetSearchEngineSupport(new SearchEngineSupport());
 
             InitializeLogger();
