@@ -17,10 +17,10 @@
     <dependencies>
       <dependency id="Newtonsoft.Json" version="9.0.1" />
       <dependency id="SenseNet.Security" version="2.4.0" />
-      <dependency id="SenseNet.Tools" version="2.1.1" />
+      <dependency id="SenseNet.Tools" version="3.0.0" />
     </dependencies>
   </metadata>
   <files>
-    <file src="bin\Release\SenseNet.Search.*" target="lib\net451" />
+    <file src="bin\Release\SenseNet.Search.*" target="lib\net461" />
   </files>
 </package>

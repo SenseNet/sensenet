@@ -15,10 +15,10 @@
     <copyright>Copyright © Sense/Net Inc.</copyright>
     <tags>sensenet ecm ecms</tags>
     <dependencies>
-      <dependency id="SenseNet.Tools" version="2.1.1" />
+      <dependency id="SenseNet.Tools" version="3.0.0" />
     </dependencies>
   </metadata>
   <files>
-    <file src="bin\Release\SenseNet.Common.*" target="lib\net451" />
+    <file src="bin\Release\SenseNet.Common.*" target="lib\net461" />
   </files>
 </package>

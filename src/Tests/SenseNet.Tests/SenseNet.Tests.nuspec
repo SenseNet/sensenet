@@ -17,7 +17,7 @@
     <dependencies>
       <dependency id="Newtonsoft.Json" version="9.0.1" />
       <dependency id="SenseNet.Security" version="2.4.0" />
-      <dependency id="SenseNet.Tools" version="2.1.1" />
+      <dependency id="SenseNet.Tools" version="3.0.0" />
       <dependency id="SenseNet.Search" version="1.1.2" />
       <dependency id="SenseNet.Services" version="7.1.4" />
       <dependency id="MSTest.TestAdapter" version="1.2.0" />
@@ -25,6 +25,6 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="bin\Release\SenseNet.Tests.*" target="lib\net452" />
+    <file src="bin\Release\SenseNet.Tests.*" target="lib\net461" />
   </files>
 </package>
