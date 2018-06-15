@@ -13,10 +13,12 @@ namespace SenseNet.ContentRepository
         string ComponentId { get; }
 
         /// <summary>
-        /// Gets the last allowed version number that is compatible with this component instance.
-        /// The current value is the version of the containing assembly.
+        /// Gets the last allowed component version that is compatible with this component instance.
+        /// If the component version found in the database is smaller than the version defined here,
+        /// the version check algorithm will not allow the component to run and will throw an exception.
         /// This value cannot be greater than the version of the containing assembly otherwise
-        /// an exception will be thrown. Null value means: supports only the its own version.
+        /// an exception will be thrown.
+        /// Null value means: supports only its own version.
         /// </summary>
         Version SupportedVersion { get; }
 
