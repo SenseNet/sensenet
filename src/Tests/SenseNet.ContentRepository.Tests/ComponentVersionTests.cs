@@ -30,7 +30,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.IsTrue(RepositoryVersionInfo.IsComponentAllowed(servicesInfo, new Version(av.Major, av.Minor, av.Build, av.Revision - 1)));
             Assert.IsTrue(RepositoryVersionInfo.IsComponentAllowed(servicesInfo, new Version(av.Major, av.Minor, av.Build, av.Revision + 1)));
 
-            // This should be false, because the supported version is not set (null) that means
+            // This should be false, because the supported version is set to the current version that means
             // the component can work only with the same version as the component version in the assembly.
             Assert.IsFalse(RepositoryVersionInfo.IsComponentAllowed(servicesInfo, new Version(av.Major, av.Minor, av.Build - 1)));
             Assert.IsFalse(RepositoryVersionInfo.IsComponentAllowed(servicesInfo, new Version(av.Major, av.Minor - 1, av.Build)));
