@@ -2,10 +2,9 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Xml;
-using SenseNet.Packaging;
-using SenseNet.Packaging.Steps;
 
-namespace SenseNet.ContentRepository.Packaging.Steps.Internal
+// ReSharper disable CheckNamespace
+namespace SenseNet.Packaging.Steps.Internal
 {
     public class UpgradeProviderConfiguration : Step
     {
