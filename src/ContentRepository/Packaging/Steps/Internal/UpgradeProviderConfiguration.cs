@@ -130,12 +130,22 @@ namespace SenseNet.Packaging.Steps.Internal
 
             foreach (XmlElement element in xml.SelectNodes("/configuration/unity/containers/container[@name='Providers']/types/*"))
                 relevantElements.Add(element);
-            foreach (XmlElement element in xml.SelectNodes("/configuration/unity/typeAliases/*"))
-                relevantElements.Add(element);
 
-            if (relevantElements.Count > 1)
+            if (relevantElements.Count > 0)
             {
                 Logger.LogMessage("The configuration contains one or more unkown elements.");
+                Logger.LogMessage("Providers container is not removed.");
+                Logger.LogMessage("Unity section is not removed.");
+                return;
+            }
+
+            DeleteElement((XmlElement)xml.SelectSingleNode("/configuration/unity/containers/container[@name='Providers']"));
+
+            var containerElements = xml.SelectNodes("/configuration/unity/containers/container");
+            if (containerElements.Count > 0)
+            {
+                Logger.LogMessage("Providers container is removed.");
+                Logger.LogMessage("There are one or more unknown container.");
                 Logger.LogMessage("Unity section is not removed.");
                 return;
             }

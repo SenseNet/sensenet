@@ -374,6 +374,8 @@ namespace SenseNet.Packaging.Tests.StepTests
   </configSections>
   <unity>
     <typeAliases>
+      <typeAlias alias='General' type='GeneralType, AssemblyName' />
+      <typeAlias alias='Specific' type='SpecificType, AssemblyName' />
       <!-- Scenario aliases -->
       <!--<typeAlias alias='CustomAction' type='SenseNet.Custom.CustomAction, SenseNet.Custom' />-->
       <typeAlias alias='singleton' type='Microsoft.Practices.Unity.ContainerControlledLifetimeManager, Microsoft.Practices.Unity' />
@@ -415,7 +417,7 @@ namespace SenseNet.Packaging.Tests.StepTests
             Assert.IsTrue(_log.ToString().Contains("Unity section is totally removed."));
         }
         [TestMethod]
-        public void Step_UpgradeProviderConfig_CleanupUnitySection_Keep()
+        public void Step_UpgradeProviderConfig_CleanupUnitySection_KeepProviders()
         {
             #region var config = ...
             var config = @"<?xml version='1.0' encoding='utf-8'?>
@@ -487,6 +489,80 @@ namespace SenseNet.Packaging.Tests.StepTests
                 new PrivateObject(step).Invoke("Execute", configXml);
             });
 
+            Assert.IsTrue(_log.ToString().Contains("Providers container is not removed."));
+            Assert.IsTrue(_log.ToString().Contains("Unity section is not removed."));
+        }
+        [TestMethod]
+        public void Step_UpgradeProviderConfig_CleanupUnitySection_KeepUnity()
+        {
+            #region var config = ...
+            var config = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <section name='unity' type='Microsoft.Practices.Unity.Configuration.UnityConfigurationSection, Microsoft.Practices.Unity.Configuration' />
+    <sectionGroup name='sensenet'>
+      <section name='providers' type='System.Configuration.NameValueFileSectionHandler' />
+    </sectionGroup>
+  </configSections>
+  <unity>
+    <typeAliases>
+      <typeAlias alias='General' type='GeneralType, AssemblyName' />
+      <typeAlias alias='Specific' type='SpecificType, AssemblyName' />
+      <!-- Scenario aliases -->
+      <!--<typeAlias alias='CustomAction' type='SenseNet.Custom.CustomAction, SenseNet.Custom' />-->
+      <typeAlias alias='singleton' type='Microsoft.Practices.Unity.ContainerControlledLifetimeManager, Microsoft.Practices.Unity' />
+    </typeAliases>
+    <containers>
+      <container name='Providers'>
+        <types>
+          <!--<type type='ActionBase' mapTo='CustomAction' name='CustomAction' />-->
+        </types>
+      </container>
+      <container name='Providers2'>
+      </container>
+    </containers>
+  </unity>
+  <sensenet>
+    <providers>
+    </providers>
+  </sensenet>
+</configuration>";
+            #endregion
+            #region expected = ...
+            var expected = @"<?xml version='1.0' encoding='utf-8'?>
+<configuration>
+  <configSections>
+    <section name='unity' type='Microsoft.Practices.Unity.Configuration.UnityConfigurationSection, Microsoft.Practices.Unity.Configuration' />
+    <sectionGroup name='sensenet'>
+      <section name='providers' type='System.Configuration.NameValueFileSectionHandler' />
+    </sectionGroup>
+  </configSections>
+  <unity>
+    <typeAliases>
+      <typeAlias alias='General' type='GeneralType, AssemblyName' />
+      <typeAlias alias='Specific' type='SpecificType, AssemblyName' />
+      <!-- Scenario aliases -->
+      <!--<typeAlias alias='CustomAction' type='SenseNet.Custom.CustomAction, SenseNet.Custom' />-->
+      <typeAlias alias='singleton' type='Microsoft.Practices.Unity.ContainerControlledLifetimeManager, Microsoft.Practices.Unity' />
+    </typeAliases>
+    <containers>
+      <container name='Providers2'>
+      </container>
+    </containers>
+  </unity>
+  <sensenet>
+    <providers>
+    </providers>
+  </sensenet>
+</configuration>";
+            #endregion
+
+            StepTest(config, expected, (step, configXml) =>
+            {
+                new PrivateObject(step).Invoke("Execute", configXml);
+            });
+
+            Assert.IsTrue(_log.ToString().Contains("Providers container is removed."));
             Assert.IsTrue(_log.ToString().Contains("Unity section is not removed."));
         }
         [TestMethod]
