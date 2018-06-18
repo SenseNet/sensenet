@@ -10,8 +10,6 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Packaging.Steps;
-using SenseNet.Packaging.Tests.Implementations;
-using SenseNet.Tests;
 
 namespace SenseNet.Packaging.Tests
 {
@@ -28,31 +26,8 @@ namespace SenseNet.Packaging.Tests
     #endregion
 
     [TestClass]
-    public class PackagingTests : TestBase
+    public class PackagingTests : PackagingTestBase
     {
-        private static StringBuilder _log;
-        private IPackageStorageProviderFactory _packageStorageProviderFactoryBackup;
-        [TestInitialize]
-        public void PrepareTest()
-        {
-            // preparing logger
-            _log = new StringBuilder();
-            var loggers = new[] { new PackagingTestLogger(_log) };
-            var loggerAcc = new PrivateType(typeof(Logger));
-            loggerAcc.SetStaticField("_loggers", loggers);
-
-            var storage = new TestPackageStorageProvider();
-            _packageStorageProviderFactoryBackup = PackageManager.StorageFactory;
-            PackageManager.StorageFactory = new TestPackageStorageProviderFactory(storage);
-
-            RepositoryVersionInfo.Reset();
-        }
-        [TestCleanup]
-        public void AfterTest()
-        {
-            PackageManager.StorageFactory = _packageStorageProviderFactoryBackup;
-        }
-
         #region // ========================================= Manifest parsing tests
 
         [TestMethod]
@@ -1847,65 +1822,5 @@ namespace SenseNet.Packaging.Tests
 
         //#endregion
 
-        /*================================================= tools */
-
-        private void SavePackage(string id, string version, string execTime, string releaseDate, PackageType packageType, ExecutionResult result)
-        {
-            var package = new Package
-            {
-                ComponentId = id,
-                ComponentVersion = Version.Parse(version),
-                Description = $"{id}-Description",
-                ExecutionDate = DateTime.Parse($"2017-03-30 {execTime}"),
-                ReleaseDate = DateTime.Parse(releaseDate),
-                ExecutionError = null,
-                ExecutionResult = result,
-                PackageType = packageType,
-            };
-            PackageManager.Storage.SavePackage(package);
-        }
-
-        internal static Manifest ParseManifestHead(string manifestXml)
-        {
-            var xml = new XmlDocument();
-            xml.LoadXml(manifestXml);
-            var manifest = new Manifest();
-            Manifest.ParseHead(xml, manifest);
-            return manifest;
-        }
-        internal static Manifest ParseManifest(string manifestXml, int currentPhase, bool forcedReinstall = false)
-        {
-            var xml = new XmlDocument();
-            xml.LoadXml(manifestXml);
-            return Manifest.Parse(xml, currentPhase, true, new PackageParameter[0], forcedReinstall);
-        }
-
-        internal static PackagingResult ExecutePhases(string manifestXml, TextWriter console = null)
-        {
-            var xml = new XmlDocument();
-            xml.LoadXml(manifestXml);
-            return ExecutePhases(xml, console);
-        }
-        internal static PackagingResult ExecutePhases(XmlDocument manifestXml, TextWriter console = null)
-        {
-            var phase = -1;
-            var errors = 0;
-            PackagingResult result;
-            do
-            {
-                result = ExecutePhase(manifestXml, ++phase, console ?? new StringWriter());
-                errors += result.Errors;
-            } while (result.NeedRestart);
-            result.Errors = errors;
-            return result;
-        }
-        internal static PackagingResult ExecutePhase(XmlDocument manifestXml, int phase, TextWriter console = null)
-        {
-            var manifest = Manifest.Parse(manifestXml, phase, true, new PackageParameter[0]);
-            var executionContext = ExecutionContext.CreateForTest("packagePath", "targetPath", new string[0], "sandboxPath", manifest, phase, manifest.CountOfPhases, null, console ?? new StringWriter());
-            var result = PackageManager.ExecuteCurrentPhase(manifest, executionContext);
-            RepositoryVersionInfo.Reset();
-            return result;
-        }
     }
 }
