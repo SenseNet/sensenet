@@ -237,7 +237,7 @@ namespace SenseNet.ContentRepository.Fields
             }
             else
             {
-                throw new SenseNet.ContentRepository.Storage.SnNotSupportedException();
+                throw new SnNotSupportedException();
             }
         }
 
