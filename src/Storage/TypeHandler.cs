@@ -78,7 +78,7 @@ namespace SenseNet.ContentRepository.Storage
             return TypeResolver.GetTypesByBaseType(baseType);
         }
 
-        // ========================================================================= Using Unity container
+        // ========================================================================= Oldschool container methods
 
         [Obsolete("Use Providers.Instance.GetProvider<T>(name) or any instrument of the SenseNet.Tools.TypeResolver.")]
         public static T ResolveProvider<T>() where T : class

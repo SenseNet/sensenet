@@ -36,7 +36,6 @@
     <file src="bin\Release\Microsoft.Exchange.WebServices.*" target="lib\net461" />
     <file src="bin\Release\Microsoft.Practices.EnterpriseLibrary.*" target="lib\net461" />
     <file src="bin\Release\Microsoft.Practices.ServiceLocation.*" target="lib\net461" />
-    <file src="bin\Release\Microsoft.Practices.Unity.*" target="lib\net461" />
     <file src="bin\Release\SenseNet.Configuration.*" target="lib\net461" />
     <file src="bin\Release\SenseNet.ContentRepository.*" target="lib\net461" />
     <file src="bin\Release\SenseNet.Services.*" target="lib\net461" />
