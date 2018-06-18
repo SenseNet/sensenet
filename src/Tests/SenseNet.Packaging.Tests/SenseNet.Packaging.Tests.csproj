@@ -65,6 +65,7 @@
     <Compile Include="StepTests\DeleteContentTypeTests.cs" />
     <Compile Include="StepTests\EditAllowedChildTypesTests.cs" />
     <Compile Include="StepTests\EditConfigurationTests.cs" />
+    <Compile Include="StepTests\UpgradeProviderConfigurationTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
