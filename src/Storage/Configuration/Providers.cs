@@ -17,6 +17,7 @@ using SenseNet.Security.Messaging;
 using SenseNet.Tools;
 using System.Linq;
 using SenseNet.ContentRepository.Search.Querying;
+using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Search.Querying;
 
@@ -53,6 +54,7 @@ namespace SenseNet.Configuration
             "SenseNet.ContentRepository.Storage.Security.DefaultMembershipExtender");
         public static string CacheClassName { get; internal set; } = GetProvider("Cache",
             typeof(AspNetCache).FullName);
+        public static string ApplicationCacheClassName { get; internal set; } = GetProvider("ApplicationCache", "SenseNet.ContentRepository.ApplicationCache");
 
         public static string ElevatedModificationVisibilityRuleProviderName { get; internal set; } =
             GetProvider("ElevatedModificationVisibilityRuleProvider",
@@ -211,7 +213,7 @@ namespace SenseNet.Configuration
             set { _membershipExtender = new Lazy<MembershipExtenderBase>(() => value); }
         }
         #endregion
-        
+
         #region private Lazy<ICache> _cacheProvider = new Lazy<ICache>
         private Lazy<ICache> _cacheProvider =
             new Lazy<ICache>(() => CreateProviderInstance<ICache>(CacheClassName, "CacheProvider"));
@@ -219,6 +221,16 @@ namespace SenseNet.Configuration
         {
             get { return _cacheProvider.Value; }
             set { _cacheProvider = new Lazy<ICache>(() => value); }
+        }
+        #endregion
+
+        #region private Lazy<IApplicationCache> _applicationCacheProvider = new Lazy<IApplicationCache>
+        private Lazy<IApplicationCache> _applicationCacheProvider =
+            new Lazy<IApplicationCache>(() => CreateProviderInstance<IApplicationCache>(ApplicationCacheClassName, "ApplicationCacheProvider"));
+        public virtual IApplicationCache ApplicationCacheProvider
+        {
+            get { return _applicationCacheProvider.Value; }
+            set { _applicationCacheProvider = new Lazy<IApplicationCache>(() => value); }
         }
         #endregion
 
@@ -314,11 +326,21 @@ namespace SenseNet.Configuration
 
         public virtual T GetProvider<T>(string name) where T: class 
         {
-            object provider;
-            if (_providersByName.TryGetValue(name, out provider))
-                return provider as T;
+            // Test cached instance if there is.
+            if (!_providersByName.TryGetValue(name, out var provider))
+            {
+                // Try to resolve by configuration
+                // 1 - read classname from configuration.
+                var className = GetProvider(name);
 
-            return null;
+                // 2 - resolve provider instance.
+                provider = className == null ? null : TypeResolver.CreateInstance(className);
+
+                // 3 - memorize even if null.
+                SetProvider(name, provider);
+            }
+
+            return provider as T;
         }
         public virtual T GetProvider<T>() where T : class
         {

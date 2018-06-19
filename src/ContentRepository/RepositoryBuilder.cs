@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using SenseNet.Communication.Messaging;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Events;
@@ -113,6 +114,17 @@ namespace SenseNet.ContentRepository
         {
             Configuration.Providers.Instance.CacheProvider = cacheProvider;
             WriteLog("CacheProvider", cacheProvider);
+
+            return this;
+        }
+        /// <summary>
+        /// Sets the application cache provider.
+        /// </summary>
+        /// <param name="applicationCacheProvider">IApplicationCache instance.</param>
+        public RepositoryBuilder UseApplicationCacheProvider(IApplicationCache applicationCacheProvider)
+        {
+            Configuration.Providers.Instance.ApplicationCacheProvider = applicationCacheProvider;
+            WriteLog("ApplicationCacheProvider", applicationCacheProvider);
 
             return this;
         }

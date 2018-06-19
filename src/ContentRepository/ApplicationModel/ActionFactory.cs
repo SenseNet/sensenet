@@ -1,10 +1,11 @@
 ﻿using System;
-using Microsoft.Practices.Unity;
+using System.Collections.Generic;
+using System.Linq;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Versioning;
 using SenseNet.Configuration;
-using SenseNet.Diagnostics;
 using SenseNet.Tools;
+// ReSharper disable CheckNamespace
 
 namespace SenseNet.ApplicationModel
 {
@@ -13,8 +14,7 @@ namespace SenseNet.ApplicationModel
         internal static ActionBase CreateAction(Type actionType, Application application, Content context, string backUri, object parameters)
         {
             var act = TypeResolver.CreateInstance(actionType.FullName) as ActionBase;
-            if (act != null)
-                act.Initialize(context, backUri, application, parameters);
+            act?.Initialize(context, backUri, application, parameters);
 
             return act == null || !act.Visible ? null : act;
         }
@@ -51,8 +51,7 @@ namespace SenseNet.ApplicationModel
 
             actionName = actionName.ToLower();
 
-            var generic = context.ContentHandler as GenericContent;
-            if (generic == null)
+            if (!(context.ContentHandler is GenericContent generic))
                 return false;
 
             switch (actionName)
@@ -77,67 +76,21 @@ namespace SenseNet.ApplicationModel
 
         // ======================================================================== Action type handling
 
-        private static UnityContainer _actionContainer;
-        private static object _actionContainerLock = new object();
-
-        /// <summary>
-        /// Contains all the action types and provides a way to instantiate them.
-        /// </summary>
-        private static UnityContainer ActionContainer
-        {
-            get
-            {
-                if (_actionContainer == null)
-                {
-                    lock (_actionContainerLock)
-                    {
-                        if (_actionContainer == null)
-                        {
-                            _actionContainer = GetUnityContainerForActions();
-                        }
-                    }
-                }
-                return _actionContainer;
-            }
-        }
+        private static Dictionary<string, Type> _actionCache;
+        private static readonly object ActionCacheLock = new object();
 
         private static ActionBase ResolveActionType(string name)
         {
-            try
-            {
-                return ActionContainer.Resolve<ActionBase>(name);
-            }
-            catch (ResolutionFailedException)
-            {
+            if (_actionCache == null)
+                lock (ActionCacheLock)
+                    if (_actionCache == null)
+                        _actionCache = TypeResolver.GetTypesByBaseType(typeof(ActionBase))
+                            .ToDictionary(t => t.Name, t => t);
+
+            if (!_actionCache.TryGetValue(name, out Type actionType))
                 return null;
-            }
-        }
 
-        private static UnityContainer GetUnityContainerForActions()
-        {
-            var container = new UnityContainer();
-
-            var actionBaseType = typeof(ActionBase);
-            var actionTypes = TypeResolver.GetTypesByBaseType(actionBaseType);
-
-            foreach (var actionType in actionTypes)
-            {
-                try
-                {
-                    // Register all action types with the base type ActionBase.
-                    // E.g. register 'SenseNet.ApplicationModel.UploadAction' type with the name 'UploadAction' to
-                    // be able to resolve an instance of the type by its simple name.
-                    // Since action objects are NOT stateless, they need to be instantiated every time, we 
-                    // cannot hold a singleton object for actions.
-                    container.RegisterType(actionBaseType, actionType, actionType.Name);
-                }
-                catch (Exception ex)
-                {
-                    SnLog.WriteException(ex, "Error during action type registration. Type name: " + actionType.FullName);
-                }
-            }
-
-            return container;
+            return (ActionBase)Activator.CreateInstance(actionType);
         }
     }
 }

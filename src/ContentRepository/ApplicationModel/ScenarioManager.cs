@@ -1,11 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Practices.Unity;
-using SenseNet.ContentRepository.Storage;
 using System;
-using SenseNet.ContentRepository;
 using SenseNet.Diagnostics;
 using SenseNet.Tools;
+// ReSharper disable CheckNamespace
 
 namespace SenseNet.ApplicationModel
 {
@@ -38,48 +36,39 @@ namespace SenseNet.ApplicationModel
 
         // ======================================================================== Sceario type handling
 
-        private static UnityContainer _scenarioContainer;
-        private static object _scenarioContainerLock = new object();
-
-        private static UnityContainer ScenarioContainer
-        {
-            get
-            {
-                if (_scenarioContainer == null)
-                {
-                    lock (_scenarioContainerLock)
-                    {
-                        if (_scenarioContainer == null)
-                        {
-                            _scenarioContainer = GetUnityContainerForScenarios();
-                        }
-                    }
-                }
-                return _scenarioContainer;
-            }
-        }
+        private static Dictionary<string, object> _scenarioCache;
+        private static readonly object ScenarioCacheLock = new object();
 
         private static GenericScenario ResolveScenarioType(string name)
         {
-            try
-            {
-                var sc = ScenarioContainer.Resolve<GenericScenario>(name);
+            if (_scenarioCache == null)
+                lock (ScenarioCacheLock)
+                    if (_scenarioCache == null)
+                        _scenarioCache = BuildScenarioCache();
 
-                // set the name
-                if (sc != null && string.IsNullOrEmpty(sc.Name))
-                    sc.Name = name;
-
-                return sc;
-            }
-            catch (ResolutionFailedException)
-            {
+            if (!_scenarioCache.TryGetValue(name, out object cachedValue))
                 return null;
+
+            GenericScenario instance;
+            switch (cachedValue)
+            {
+                case GenericScenario singleton:
+                    instance = singleton;
+                    break;
+                case Type scenarioType:
+                    instance = (GenericScenario) Activator.CreateInstance(scenarioType);
+                    break;
+                default:
+                    return null;
             }
+
+            instance.Name = name;
+            return instance;
         }
 
-        private static UnityContainer GetUnityContainerForScenarios()
+        private static Dictionary<string, object> BuildScenarioCache()
         {
-            var container = new UnityContainer();
+            var container = new Dictionary<string, object>();
 
             var baseType = typeof(GenericScenario);
             var subTypes = TypeResolver.GetTypesByBaseType(baseType);
@@ -92,8 +81,7 @@ namespace SenseNet.ApplicationModel
                 var singleton = true;
 
                 // use the information given by the developer who added a ScenarioAttribute to his scenario class
-                var scAttribute = scenarioType.GetCustomAttributes(attributeType, false).FirstOrDefault() as ScenarioAttribute;
-                if (scAttribute != null)
+                if (scenarioType.GetCustomAttributes(attributeType, false).FirstOrDefault() is ScenarioAttribute scAttribute)
                 {
                     singleton = scAttribute.AllowSingleton;
                     if (!string.IsNullOrEmpty(scAttribute.Name))
@@ -102,18 +90,10 @@ namespace SenseNet.ApplicationModel
 
                 try
                 {
-                    if (singleton)
-                    {
-                        // Most of the scenarios are stateless, so we can store a singleton 
-                        // object to handle all requests for the scenario.
-                        container.RegisterType(baseType, scenarioType, name, new ContainerControlledLifetimeManager(), new InjectionMember[0]);
-                    }
-                    else
-                    {
-                        // Scenario type contains its own properties or uses parameters, so
-                        // we will have to create a new instance of the type every time.
-                        container.RegisterType(baseType, scenarioType, name);
-                    }
+                    // Most of the scenarios are stateless, so we can store a singleton instance to handle
+                    // all requests for the scenario. If the Scenario type contains its own properties or uses
+                    // parameters, so we will have to create a new instance of the type every time.
+                    container.Add(name, singleton ? Activator.CreateInstance(scenarioType) : scenarioType);
                 }
                 catch (Exception ex)
                 {
@@ -122,18 +102,19 @@ namespace SenseNet.ApplicationModel
             }
             
             // collect scenarios that we did not register yet (do not have a codebehind)
-            var genericScenarios = ApplicationStorage.Instance.ScenarioNames.Except(container.Registrations.Select(reg => reg.Name)).ToArray();
+            var genericScenarioNames = ApplicationStorage.Instance.ScenarioNames
+                .Except(container.Keys).ToArray();
             
-            foreach (var genScen in genericScenarios)
+            foreach (var genericScenarioName in genericScenarioNames)
             {
                 try
                 {
                     // register a singleton generic scenario instance for every dynamic scenario
-                    container.RegisterType(baseType, baseType, genScen, new ContainerControlledLifetimeManager(), new InjectionMember[0]);
+                    container.Add(genericScenarioName, new GenericScenario());
                 }
                 catch (Exception ex)
                 {
-                    SnLog.WriteException(ex, "Error during scenario type registration. Type name: " + genScen);
+                    SnLog.WriteException(ex, "Error during scenario type registration. Type name: " + genericScenarioName);
                 } 
             }
 
