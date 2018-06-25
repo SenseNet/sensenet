@@ -9,6 +9,7 @@ using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Security.ADSync;
 using System.Collections.Generic;
+using System.Diagnostics;
 using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Fields;
@@ -827,7 +828,8 @@ namespace SenseNet.ContentRepository
             set { _password = value; }
         }
 
-        private const string MEMBERSHIPEXTENSIONKEY = "ExtendedMemberships";
+        internal const string MembershipExtensionKey = "ExtendedMemberships";
+        internal const string MembershipExtensionCallingKey = "MembershipExtensionCall";
         /// <summary>
         /// Gets or sets the <see cref="SenseNet.ContentRepository.Storage.Security.MembershipExtension"/> instance
         /// that can customize the membership of this user.
@@ -836,15 +838,49 @@ namespace SenseNet.ContentRepository
         {
             get
             {
-                var extension = (MembershipExtension)base.GetCachedData(MEMBERSHIPEXTENSIONKEY);
-                if (extension == null)
+                var key = MembershipExtensionCallingKey + ":" + this.Path;
+                var extension = (MembershipExtension)base.GetCachedData(MembershipExtensionKey);
+                if (extension == null || extension == MembershipExtension.Placeholder)
                 {
-                    MembershipExtenderBase.Extend(this);
-                    extension = (MembershipExtension)base.GetCachedData(MEMBERSHIPEXTENSIONKEY);
+                    var called = ContextHandler.GetObject(key) != null;
+                    if (called)
+                    {
+                        SnTrace.Security.Write("MembershipExtenderRecursionGuard: recursion skipped. Path: {0}", Path);
+var x = new StackTrace(true);
+SnTrace.Custom.Write(x.ToString());
+                        return MembershipExtension.Placeholder;
+                    }
+
+                    using (var op = SnTrace.Security.StartOperation(
+                        "MembershipExtenderRecursionGuard activation. Path: {0}", Path))
+                    {
+                        ContextHandler.SetObject(key, true);
+
+                        MembershipExtenderBase.Extend(this);
+                        extension = (MembershipExtension)base.GetCachedData(MembershipExtensionKey);
+
+                        ContextHandler.SetObject(key, null);
+                        op.Successful = true;
+                    }
                 }
+SnTrace.Write("GetMembershipExtension: " +
+    (extension == MembershipExtension.Placeholder
+    ? "Placeholder"
+    : (extension == MembershipExtenderBase.EmptyExtension
+        ? "EmptyExtension"
+        : $"[{string.Join(", ", extension.ExtensionIds.Select(x=>x.ToString()).ToArray())}]")));
                 return extension;
             }
-            set { base.SetCachedData(MEMBERSHIPEXTENSIONKEY, value); }
+            set
+            {
+SnTrace.Write("SetMembershipExtension: " +
+    (value == MembershipExtension.Placeholder
+        ? "Placeholder"
+        : (value == MembershipExtenderBase.EmptyExtension
+            ? "EmptyExtension"
+            : $"[{string.Join(", ", value.ExtensionIds.Select(x => x.ToString()).ToArray())}]")));
+                base.SetCachedData(MembershipExtensionKey, value);
+            }
         }
 
         // =================================================================================== 

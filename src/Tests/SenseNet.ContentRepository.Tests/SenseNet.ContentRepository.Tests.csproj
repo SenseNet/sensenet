@@ -94,6 +94,7 @@
     <Compile Include="GenericContentTests.cs" />
     <Compile Include="IndexingTests.cs" />
     <Compile Include="LinqTests.cs" />
+    <Compile Include="UserTests.cs" />
     <Compile Include="NodeIdentifierTests.cs" />
     <Compile Include="PortalContextTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

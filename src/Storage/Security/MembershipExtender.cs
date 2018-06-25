@@ -10,6 +10,8 @@ namespace SenseNet.ContentRepository.Storage.Security
     /// </summary>
     public class MembershipExtension
     {
+        public static readonly MembershipExtension Placeholder = new MembershipExtension(null);
+
         /// <summary>
         /// Initializes a new instance of the <see cref="MembershipExtension"/>.
         /// </summary>
