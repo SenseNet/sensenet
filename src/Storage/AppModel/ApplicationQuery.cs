@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Events;
@@ -89,30 +90,11 @@ namespace SenseNet.ContentRepository.Storage.AppModel
 
         // ======================================================================================= Cache
 
-        private static object _loaderLock = new object();
-        private static IApplicationCache _appCache;
-        private static IEnumerable<string> EmptyCache = new string[0];
-        private static IApplicationCache AppCache
-        {
-            get
-            {
-                if (_appCache == null)
-                {
-                    lock (_loaderLock)
-                    {
-                        if (_appCache == null)
-                        {
-                            _appCache = TypeHandler.ResolveProvider<IApplicationCache>();
-                        }
-                    }
-                }
-                return _appCache;
-            }
-        }
+        private static IApplicationCache AppCache => Providers.Instance.ApplicationCacheProvider;
+
         internal void Invalidate(string path)
         {
-            if (AppCache != null)
-                AppCache.Invalidate(AppFolderName, path);
+            AppCache?.Invalidate(AppFolderName, path);
         }
 
         private IEnumerable<NodeHead> ResolveByPathsFromCache(IEnumerable<string> paths, bool resolveChildren, bool all)

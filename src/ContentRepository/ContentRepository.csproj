@@ -185,6 +185,7 @@
     <Compile Include="Packaging\Steps\EnsureConfigSection.cs" />
     <Compile Include="Packaging\Steps\Internal\CopyCustomAssemblies.cs" />
     <Compile Include="Packaging\Steps\Internal\ImportCustomContent.cs" />
+    <Compile Include="Packaging\Steps\Internal\UpgradeProviderConfiguration.cs" />
     <Compile Include="Packaging\Steps\SelectXmlValue.cs" />
     <Compile Include="Search\Indexing\NullPopulator.cs" />
     <Compile Include="SnComponent.cs" />
@@ -307,6 +308,7 @@
     <Compile Include="Schema\ISupportsVirtualChildren.cs" />
     <Compile Include="Security\ADSync\ADSettings.cs" />
     <Compile Include="Security\Cryptography\CryptoServiceProvider.cs" />
+    <Compile Include="SnComponentInfo.cs" />
     <Compile Include="SnElevatedModificationVisibilityRule.cs" />
     <Compile Include="Fields\ColorFieldSetting.cs" />
     <Compile Include="Fields\DateTimeFieldSetting.cs" />
