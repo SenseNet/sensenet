@@ -829,6 +829,9 @@ namespace SenseNet.ContentRepository
         }
 
         internal const string MembershipExtensionKey = "ExtendedMemberships";
+
+        private volatile bool _isInMembershipExtensionCalling;
+        private readonly object _membershipExtensionCallingLock = new object();
         internal const string MembershipExtensionCallingKey = "MembershipExtensionCall";
         /// <summary>
         /// Gets or sets the <see cref="SenseNet.ContentRepository.Storage.Security.MembershipExtension"/> instance
@@ -842,43 +845,29 @@ namespace SenseNet.ContentRepository
                 var extension = (MembershipExtension)base.GetCachedData(MembershipExtensionKey);
                 if (extension == null || extension == MembershipExtension.Placeholder)
                 {
-                    var called = ContextHandler.GetObject(key) != null;
+                    var called = GetCachedData(key) != null;
                     if (called)
                     {
                         SnTrace.Security.Write("MembershipExtenderRecursionGuard: recursion skipped. Path: {0}", Path);
-var x = new StackTrace(true);
-SnTrace.Custom.Write(x.ToString());
                         return MembershipExtension.Placeholder;
                     }
 
                     using (var op = SnTrace.Security.StartOperation(
                         "MembershipExtenderRecursionGuard activation. Path: {0}", Path))
                     {
-                        ContextHandler.SetObject(key, true);
+                        SetCachedData(key, true);
 
                         MembershipExtenderBase.Extend(this);
                         extension = (MembershipExtension)base.GetCachedData(MembershipExtensionKey);
 
-                        ContextHandler.SetObject(key, null);
+                        SetCachedData(key, null);
                         op.Successful = true;
                     }
                 }
-SnTrace.Write("GetMembershipExtension: " +
-    (extension == MembershipExtension.Placeholder
-    ? "Placeholder"
-    : (extension == MembershipExtenderBase.EmptyExtension
-        ? "EmptyExtension"
-        : $"[{string.Join(", ", extension.ExtensionIds.Select(x=>x.ToString()).ToArray())}]")));
                 return extension;
             }
             set
             {
-SnTrace.Write("SetMembershipExtension: " +
-    (value == MembershipExtension.Placeholder
-        ? "Placeholder"
-        : (value == MembershipExtenderBase.EmptyExtension
-            ? "EmptyExtension"
-            : $"[{string.Join(", ", value.ExtensionIds.Select(x => x.ToString()).ToArray())}]")));
                 base.SetCachedData(MembershipExtensionKey, value);
             }
         }
