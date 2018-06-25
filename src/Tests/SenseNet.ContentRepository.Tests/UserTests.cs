@@ -8,6 +8,7 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Portal.Virtualization;
 using SenseNet.Security;
 using SenseNet.Tests;
+// ReSharper disable UnusedVariable
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -42,7 +43,6 @@ namespace SenseNet.ContentRepository.Tests
                 User user;
                 using (new SystemAccount())
                 {
-                    var root = Repository.Root;
                     var ed = SecurityHandler.CreateAclEditor();
                     ed.Set(Repository.Root.Id, User.Administrator.Id, false, PermissionBitMask.AllAllowed);
                     ed.Set(Repository.Root.Id, Group.Administrators.Id, false, PermissionBitMask.AllAllowed);
