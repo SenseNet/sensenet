@@ -35,7 +35,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Services.Tests", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.TokenAuthentication.Tests", "Tests\SenseNet.TokenAuthentication.Tests\SenseNet.TokenAuthentication.Tests.csproj", "{AFCB7986-73C5-4DEA-897B-46EC1D124965}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Search", "Search\Search.csproj", "{0279705B-779D-485D-86B9-F7AB3DD1F2C3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Search", "Search\Search.csproj", "{0279705B-779D-485D-86B9-F7AB3DD1F2C3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.RestTester", "Tests\SenseNet.RestTester\SenseNet.RestTester.csproj", "{87F754D3-F098-49A3-975E-82F02B575E7C}"
 EndProject

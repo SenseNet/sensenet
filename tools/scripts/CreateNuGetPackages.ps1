@@ -5,7 +5,6 @@ $scriptsSourcePath = "$srcPath\Storage\Data\SqlClient\Scripts"
 # delete existing packages
 Remove-Item $PSScriptRoot\*.nupkg
 
-nuget pack $srcPath\Common\Common.csproj -properties Configuration=Release -OutputDirectory $PSScriptRoot
 nuget pack $srcPath\BlobStorage\BlobStorage.csproj -properties Configuration=Release -OutputDirectory $PSScriptRoot
 nuget pack $srcPath\Services\Services.nuspec -properties Configuration=Release -OutputDirectory $PSScriptRoot
 nuget pack $srcPath\Tests\SenseNet.Tests\SenseNet.Tests.nuspec -properties Configuration=Release -OutputDirectory $PSScriptRoot
