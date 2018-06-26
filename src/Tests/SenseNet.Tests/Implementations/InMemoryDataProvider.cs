@@ -2389,7 +2389,7 @@ namespace SenseNet.Tests.Implementations
 
             public override string GetString(int ordinal)
             {
-                //UNDONE: Implement well
+                //TODO: Implement well
                 var record = _enumerable[_currentIndex] as Tuple<string, string>;
                 if(null == record)
                     throw new NotImplementedException();
