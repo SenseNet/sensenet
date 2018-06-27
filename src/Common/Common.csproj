@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <AssemblyName>SenseNet.Common</AssemblyName>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>SenseNet.Common</PackageId>
     <Version>7.2</Version>
