@@ -87,17 +87,17 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Common\Common.csproj">
+    <ProjectReference Include="..\..\Common\SenseNet.Common.csproj">
       <Project>{a453e920-29c0-45cd-984c-0d8e3631b1e3}</Project>
-      <Name>Common</Name>
+      <Name>SenseNet.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\ContentRepository\ContentRepository.csproj">
+    <ProjectReference Include="..\..\ContentRepository\SenseNet.ContentRepository.csproj">
       <Project>{786e6165-ca02-45a9-bf58-207a45d7d6df}</Project>
-      <Name>ContentRepository</Name>
+      <Name>SenseNet.ContentRepository</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Storage\Storage.csproj">
+    <ProjectReference Include="..\..\Storage\SenseNet.Storage.csproj">
       <Project>{5db4ddba-81f6-4d81-943a-18f3178b3355}</Project>
-      <Name>Storage</Name>
+      <Name>SenseNet.Storage</Name>
     </ProjectReference>
     <ProjectReference Include="..\SenseNet.Tests\SenseNet.Tests.csproj">
       <Project>{A0909E8F-E039-4080-A259-676CFD38CCD1}</Project>

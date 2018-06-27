@@ -65,9 +65,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\ContentRepository\ContentRepository.csproj">
+    <ProjectReference Include="..\..\ContentRepository\SenseNet.ContentRepository.csproj">
       <Project>{786e6165-ca02-45a9-bf58-207a45d7d6df}</Project>
-      <Name>ContentRepository</Name>
+      <Name>SenseNet.ContentRepository</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Tools\SnAdminRuntime\SnAdminRuntime.csproj">
       <Project>{891b1fd9-ca73-4129-8d1d-d6663f01866c}</Project>

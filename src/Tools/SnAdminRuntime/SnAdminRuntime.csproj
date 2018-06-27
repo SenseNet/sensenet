@@ -125,13 +125,13 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\ContentRepository\ContentRepository.csproj">
+    <ProjectReference Include="..\..\ContentRepository\SenseNet.ContentRepository.csproj">
       <Project>{786E6165-CA02-45A9-BF58-207A45D7D6DF}</Project>
-      <Name>ContentRepository</Name>
+      <Name>SenseNet.ContentRepository</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Storage\Storage.csproj">
+    <ProjectReference Include="..\..\Storage\SenseNet.Storage.csproj">
       <Project>{5DB4DDBA-81F6-4D81-943A-18F3178B3355}</Project>
-      <Name>Storage</Name>
+      <Name>SenseNet.Storage</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

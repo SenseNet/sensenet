@@ -6,19 +6,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{875EF569
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{2997D17C-A736-43E5-B3DD-11D11AC7DF17}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContentRepository", "ContentRepository\ContentRepository.csproj", "{786E6165-CA02-45A9-BF58-207A45D7D6DF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.ContentRepository", "ContentRepository\SenseNet.ContentRepository.csproj", "{786E6165-CA02-45A9-BF58-207A45D7D6DF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Storage", "Storage\Storage.csproj", "{5DB4DDBA-81F6-4D81-943A-18F3178B3355}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Storage", "Storage\SenseNet.Storage.csproj", "{5DB4DDBA-81F6-4D81-943A-18F3178B3355}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Services", "Services\Services.csproj", "{B72529C8-FEB1-49F5-B08B-56055B58F296}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Services", "Services\SenseNet.Services.csproj", "{B72529C8-FEB1-49F5-B08B-56055B58F296}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Configuration", "Configuration\Configuration.csproj", "{A19F707C-B1C3-45C7-AE38-E7B7F30C1161}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Configuration", "Configuration\SenseNet.Configuration.csproj", "{A19F707C-B1C3-45C7-AE38-E7B7F30C1161}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnAdminRuntime", "Tools\SnAdminRuntime\SnAdminRuntime.csproj", "{891B1FD9-CA73-4129-8D1D-D6663F01866C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlobStorage", "BlobStorage\BlobStorage.csproj", "{4E6722B5-AC95-494C-80A5-A4D80CC502B5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.BlobStorage", "BlobStorage\SenseNet.BlobStorage.csproj", "{4E6722B5-AC95-494C-80A5-A4D80CC502B5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{A453E920-29C0-45CD-984C-0D8E3631B1E3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SenseNet.Common", "Common\SenseNet.Common.csproj", "{A453E920-29C0-45CD-984C-0D8E3631B1E3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6D908666-E47F-47A7-A7E5-C696B9CD517A}"
 	ProjectSection(SolutionItems) = preProject
@@ -35,7 +35,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Services.Tests", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.TokenAuthentication.Tests", "Tests\SenseNet.TokenAuthentication.Tests\SenseNet.TokenAuthentication.Tests.csproj", "{AFCB7986-73C5-4DEA-897B-46EC1D124965}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Search", "Search\Search.csproj", "{0279705B-779D-485D-86B9-F7AB3DD1F2C3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SenseNet.Search", "Search\SenseNet.Search.csproj", "{0279705B-779D-485D-86B9-F7AB3DD1F2C3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.RestTester", "Tests\SenseNet.RestTester\SenseNet.RestTester.csproj", "{87F754D3-F098-49A3-975E-82F02B575E7C}"
 EndProject

@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>SenseNet.Common</AssemblyName>
+    <RootNamespace>SenseNet.Common</RootNamespace>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>SenseNet.Common</PackageId>
+    <Version>7.2</Version>
+    <Company>Sense/Net Inc.</Company>
+    <Copyright>Copyright © Sense/Net Inc.</Copyright>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageReleaseNotes>See release notes on GitHub.</PackageReleaseNotes>
+    <Authors>kavics,aniko,lajos,tusmester</Authors>
+    <Description>Common library for the sensenet platform containing storage and configuration-related components.</Description>
+    <Product>sensenet Common</Product>
+    <PackageTags>sensenet common</PackageTags>
+    <PackageIconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</PackageIconUrl>
+    <PackageProjectUrl>https://github.com/SenseNet/sensenet</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</PackageLicenseUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="SenseNet.Tools" Version="3.0.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.5.1" />
+  </ItemGroup>
+
+</Project>
