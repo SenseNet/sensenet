@@ -27,11 +27,6 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 
         internal static void AddStream(BlobStorageContext context, Stream stream)
         {
-            FileStreamData fileStreamData = null;
-            var providerData = context.BlobProviderData as BuiltinBlobProviderData;
-            if (providerData != null)
-                fileStreamData = providerData.FileStreamData;
-
             SqlProcedure cmd = null;
             try
             {
@@ -81,7 +76,6 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         internal static void UpdateStream(BlobStorageContext context, Stream stream)
         {
             var fileId = context.FileId;
-            var fileStreamData = ((BuiltinBlobProviderData)context.BlobProviderData).FileStreamData;
 
             SqlProcedure cmd = null;
             try
@@ -131,11 +125,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 
         public Stream GetStreamForRead(BlobStorageContext context)
         {
-            var data = (BuiltinBlobProviderData)context.BlobProviderData;
-            if (context.UseFileStream)
-                return new SenseNetSqlFileStream(context.Length, context.FileId, data.FileStreamData);
             return new RepositoryStream(context.FileId, context.Length);
-
         }
 
         public Stream CloneStream(BlobStorageContext context, Stream stream)
@@ -146,10 +136,6 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             var repoStream = stream as RepositoryStream;
             if (repoStream != null)
                 return new RepositoryStream(repoStream.FileId, repoStream.Length);
-
-            var snFileStream = stream as SenseNetSqlFileStream;
-            if (snFileStream != null)
-                return new SenseNetSqlFileStream(snFileStream.Length, snFileStream.FileId);
 
             throw new InvalidOperationException("Unknown stream type: " + stream.GetType().Name);
         }

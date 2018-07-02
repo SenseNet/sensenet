@@ -143,7 +143,7 @@ FROM  dbo.Files WHERE FileId = @FileId
                 Length = length,
                 UseFileStream = false,
                 BlobProviderData = provider == BlobStorageBase.BuiltInProvider
-                    ? new BuiltinBlobProviderData { FileStreamData = null }
+                    ? new BuiltinBlobProviderData()
                     : provider.ParseData(providerData)
             };
         }
@@ -198,7 +198,6 @@ SELECT @BinPropId, @FileId, [Timestamp] FROM Files WHERE FileId = @FileId;
             }
 
             SqlProcedure cmd = null;
-            FileStreamData fileStreamData = null;
             try
             {
                 cmd = new SqlProcedure { CommandText = isNewNode ? InsertBinaryPropertyScript : DeleteAndInsertBinaryProperty, CommandType = CommandType.Text };
@@ -237,7 +236,7 @@ SELECT @BinPropId, @FileId, [Timestamp] FROM Files WHERE FileId = @FileId;
             if (blobProvider == BlobStorageBase.BuiltInProvider && value.Stream != null && value.Stream.Length > 0)
             {
                 ctx.FileId = value.FileId;
-                ctx.BlobProviderData = new BuiltinBlobProviderData { FileStreamData = fileStreamData };
+                ctx.BlobProviderData = new BuiltinBlobProviderData();
 
                 BuiltInBlobProvider.AddStream(ctx, value.Stream);
             }
@@ -337,13 +336,12 @@ SELECT @FileId
                     throw new NotSupportedException();
             }
 
-            var isRepositoryStream = value.Stream is RepositoryStream || value.Stream is SenseNetSqlFileStream;
+            var isRepositoryStream = value.Stream is RepositoryStream;
             var hasStream = isRepositoryStream || value.Stream is MemoryStream;
             if (!hasStream)
                 // do not do any database operation if the stream is not modified
                 return;
 
-            FileStreamData fileStreamData = null;
             SqlProcedure cmd = null;
             try
             {
@@ -389,8 +387,8 @@ SELECT @FileId
                     PropertyTypeId = 0,
                     FileId = value.FileId,
                     Length = streamLength,
-                    UseFileStream = fileStreamData != null,
-                    BlobProviderData = new BuiltinBlobProviderData { FileStreamData = fileStreamData }
+                    UseFileStream = false,
+                    BlobProviderData = new BuiltinBlobProviderData()
                 };
 
                 BuiltInBlobProvider.UpdateStream(ctx, value.Stream);
@@ -483,7 +481,7 @@ SELECT @FileId
                     var provider = BlobStorageBase.GetProvider(providerName);
                     var context = new BlobStorageContext(provider, providerTextData) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = fileId, Length = length, UseFileStream = useFileStream };
                     if (provider == BlobStorageBase.BuiltInProvider)
-                        context.BlobProviderData = new BuiltinBlobProviderData { FileStreamData = null };
+                        context.BlobProviderData = new BuiltinBlobProviderData();
 
                     return new BinaryCacheEntity
                     {

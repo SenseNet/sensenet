@@ -38,9 +38,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         public object BlobProviderData { get; set; }
 
         /// <summary>
-        /// Gets a value indicating whether this binary value is (or will be) saved into a Filestream column in SQL Server.
+        /// RETURNS FALSE. Gets a value indicating whether this binary value is (or will be) saved into a Filestream column in SQL Server.
         /// </summary>
-        public bool UseFileStream { get; set; }
+        public bool UseFileStream { get; set; } //UNDONE:!!! remove UseFileStream
 
         /// <summary>
         /// Creates a new instance of the BlobStorageContext class.

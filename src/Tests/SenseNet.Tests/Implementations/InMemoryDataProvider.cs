@@ -697,49 +697,6 @@ namespace SenseNet.Tests.Implementations
         protected internal override BinaryCacheEntity LoadBinaryCacheEntity(int nodeVersionId, int propertyTypeId)
         {
             return BlobStorage.LoadBinaryCacheEntity(nodeVersionId, propertyTypeId);
-
-            // SELECT F.Size, B.BinaryPropertyId, F.FileId, F.BlobProvider, F.BlobProviderData,
-            //        CASE WHEN F.Size < 1048576 THEN F.Stream ELSE null END AS Stream
-            // FROM dbo.BinaryProperties B
-            //     JOIN Files F ON B.FileId = F.FileId
-            // WHERE B.VersionId = @VersionId AND B.PropertyTypeId = @PropertyTypeId AND F.Staging IS NULL";
-
-            var binRec = _db.BinaryProperties
-                .FirstOrDefault(r => r.VersionId == nodeVersionId && r.PropertyTypeId == propertyTypeId);
-            if (binRec == null)
-                return null;
-            var fileRec = _db.Files.FirstOrDefault(f => f.FileId == binRec.FileId);
-            if (fileRec == null)
-                return null;
-
-            var length = fileRec.Size;
-            var binaryPropertyId = binRec.BinaryPropertyId;
-            var fileId = binRec.FileId;
-
-            // To avoid accessing to blob provider, read data here, else set rawData to null
-            byte[] rawData = fileRec.Stream;
-
-            //TODO: partially implemented: IBlobProvider resolution always null.
-            IBlobProvider provider = null; //BlobStorageBase.GetProvider(null);
-            // ReSharper disable once ExpressionIsAlwaysNull
-            var context = new BlobStorageContext(provider)
-            {
-                VersionId = nodeVersionId,
-                PropertyTypeId = propertyTypeId,
-                FileId = fileId,
-                Length = length,
-                UseFileStream = false,
-                BlobProviderData = new BuiltinBlobProviderData {FileStreamData = null}
-            };
-
-            return new BinaryCacheEntity
-            {
-                Length = length,
-                RawData = rawData,
-                BinaryPropertyId = binaryPropertyId,
-                FileId = fileId,
-                Context = context
-            };
         }
 
         #region NOT IMPLEMENTED
