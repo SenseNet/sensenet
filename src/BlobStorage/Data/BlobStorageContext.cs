@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using Newtonsoft.Json;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
@@ -37,9 +38,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         public object BlobProviderData { get; set; }
 
-        /// <summary>
-        /// RETURNS FALSE. Gets a value indicating whether this binary value is (or will be) saved into a Filestream column in SQL Server.
-        /// </summary>
+        [Obsolete("ALWAYS FALSE.", true)]
         public bool UseFileStream { get; set; } //UNDONE:!!! remove UseFileStream
 
         /// <summary>

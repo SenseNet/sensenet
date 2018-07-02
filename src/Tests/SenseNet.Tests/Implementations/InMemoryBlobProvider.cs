@@ -48,7 +48,7 @@ namespace SenseNet.Tests.Implementations
         public void InsertBinaryProperty(IBlobProvider blobProvider, BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
         {
             var streamLength = value.Stream?.Length ?? 0;
-            var ctx = new BlobStorageContext(blobProvider) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = 0, Length = streamLength, UseFileStream = false };
+            var ctx = new BlobStorageContext(blobProvider) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = 0, Length = streamLength };
 
             // blob operation
 
@@ -106,7 +106,6 @@ namespace SenseNet.Tests.Implementations
                     PropertyTypeId = 0,
                     FileId = value.FileId,
                     Length = streamLength,
-                    UseFileStream = false
                 };
 
                 blobProvider.Allocate(ctx);
@@ -177,7 +176,6 @@ namespace SenseNet.Tests.Implementations
                 PropertyTypeId = propertyTypeId,
                 FileId = fileId,
                 Length = length,
-                UseFileStream = false
             };
 
             return new BinaryCacheEntity

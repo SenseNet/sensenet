@@ -141,7 +141,6 @@ FROM  dbo.Files WHERE FileId = @FileId
                 PropertyTypeId = propertyTypeId,
                 FileId = fileId,
                 Length = length,
-                UseFileStream = false,
                 BlobProviderData = provider == BlobStorageBase.BuiltInProvider
                     ? new BuiltinBlobProviderData()
                     : provider.ParseData(providerData)
@@ -180,7 +179,7 @@ SELECT @BinPropId, @FileId, [Timestamp] FROM Files WHERE FileId = @FileId;
         public void InsertBinaryProperty(IBlobProvider blobProvider, BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
         {
             var streamLength = value.Stream?.Length ?? 0;
-            var ctx = new BlobStorageContext(blobProvider) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = 0, Length = streamLength, UseFileStream = false };
+            var ctx = new BlobStorageContext(blobProvider) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = 0, Length = streamLength };
 
             // In case of an external provider allocate the place for bytes and
             // write the stream beforehand and get the generated provider data.
@@ -312,7 +311,6 @@ SELECT @FileId
                     PropertyTypeId = 0,
                     FileId = value.FileId,
                     Length = streamLength,
-                    UseFileStream = false
                 };
 
                 blobProvider.Allocate(ctx);
@@ -387,7 +385,6 @@ SELECT @FileId
                     PropertyTypeId = 0,
                     FileId = value.FileId,
                     Length = streamLength,
-                    UseFileStream = false,
                     BlobProviderData = new BuiltinBlobProviderData()
                 };
 
@@ -476,10 +473,8 @@ SELECT @FileId
                     else
                         rawData = (byte[])reader.GetValue(5);
 
-                    var useFileStream = false;
-
                     var provider = BlobStorageBase.GetProvider(providerName);
-                    var context = new BlobStorageContext(provider, providerTextData) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = fileId, Length = length, UseFileStream = useFileStream };
+                    var context = new BlobStorageContext(provider, providerTextData) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = fileId, Length = length };
                     if (provider == BlobStorageBase.BuiltInProvider)
                         context.BlobProviderData = new BuiltinBlobProviderData();
 
@@ -553,7 +548,7 @@ COMMIT TRAN";
             if (isLocalTransaction)
                 TransactionScope.Begin();
 
-            var ctx = new BlobStorageContext(blobProvider) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = 0, Length = fullSize, UseFileStream = false };
+            var ctx = new BlobStorageContext(blobProvider) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = 0, Length = fullSize };
             string blobProviderName = null;
             string blobProviderData = null;
             if (blobProvider != BlobStorageBase.BuiltInProvider)
@@ -762,7 +757,7 @@ WHERE IsDeleted = 1";
 
                         // delete bytes from the blob storage
                         var provider = BlobStorageBase.GetProvider(providerName);
-                        var ctx = new BlobStorageContext(provider, providerData) { VersionId = 0, PropertyTypeId = 0, FileId = fileId, Length = size, UseFileStream = false };
+                        var ctx = new BlobStorageContext(provider, providerData) { VersionId = 0, PropertyTypeId = 0, FileId = fileId, Length = size };
 
                         ctx.Provider.Delete(ctx);
                     }
