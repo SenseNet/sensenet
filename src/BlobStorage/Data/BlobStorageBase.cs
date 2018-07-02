@@ -389,12 +389,5 @@ namespace SenseNet.ContentRepository.Storage.Data
                 return provider;
             throw new InvalidOperationException("BlobProvider not found: '" + providerName + "'.");
         }
-        /// <summary>
-        /// RETURN FALSE. Decides whether a binary with the provided length should go to a Filestream column or not.
-        /// </summary>
-        protected internal static bool UseFileStream(long fullSize)
-        {
-            return BlobStorage.FileStreamEnabled && fullSize > long.MaxValue-1; //UNDONE:!! delete this line
-        }
     }
 }
