@@ -222,7 +222,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 {
                     var context = GetBlobStorageContext(tokenData.FileId, true, versionId, tokenData.PropertyTypeId);
 
-                    if (context.Provider == BuiltInProvider && !UseFileStream(context.Length))
+                    if (context.Provider == BuiltInProvider)
                     {
                         // Our built-in provider does not have a special stream for the case when
                         // the binary should be saved into a regular SQL varbinary column.
@@ -259,7 +259,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 {
                     var context = await GetBlobStorageContextAsync(tokenData.FileId, true, versionId, tokenData.PropertyTypeId);
 
-                    if (context.Provider == BuiltInProvider && !UseFileStream(context.Length))
+                    if (context.Provider == BuiltInProvider)
                     {
                         // Our built-in provider does not have a special stream for the case when
                         // the binary should be saved into a regular SQL varbinary column.
@@ -390,7 +390,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             throw new InvalidOperationException("BlobProvider not found: '" + providerName + "'.");
         }
         /// <summary>
-        /// Decides whether a binary with the provided length should go to a Filestream column or not.
+        /// RETURN FALSE. Decides whether a binary with the provided length should go to a Filestream column or not.
         /// </summary>
         protected internal static bool UseFileStream(long fullSize)
         {
