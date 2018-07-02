@@ -558,14 +558,8 @@ COMMIT TRAN";
             var ctx = new BlobStorageContext(blobProvider) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = 0, Length = fullSize, UseFileStream = false };
             string blobProviderName = null;
             string blobProviderData = null;
-            bool useSqlFileStream;
-            if (blobProvider == BlobStorageBase.BuiltInProvider)
+            if (blobProvider != BlobStorageBase.BuiltInProvider)
             {
-                useSqlFileStream = fullSize > long.MaxValue-1; //UNDONE:!! delete this line
-            }
-            else
-            {
-                useSqlFileStream = false;
                 blobProvider.Allocate(ctx);
                 blobProviderName = blobProvider.GetType().FullName;
                 blobProviderData = BlobStorageContext.SerializeBlobProviderData(ctx.BlobProviderData);
@@ -578,7 +572,6 @@ COMMIT TRAN";
                     cmd.Parameters.Add("@VersionId", SqlDbType.Int).Value = versionId;
                     cmd.Parameters.Add("@PropertyTypeId", SqlDbType.Int).Value = propertyTypeId;
                     cmd.Parameters.Add("@Size", SqlDbType.BigInt).Value = fullSize;
-                    cmd.Parameters.Add("@UseSqlFileStream", SqlDbType.TinyInt).Value = useSqlFileStream ? 2 : 0;
                     cmd.Parameters.Add("@BlobProvider", SqlDbType.NVarChar, 450).Value = blobProviderName != null ? (object)blobProviderName : DBNull.Value;
                     cmd.Parameters.Add("@BlobProviderData", SqlDbType.NVarChar, int.MaxValue).Value = blobProviderData != null ? (object)blobProviderData : DBNull.Value;
 
