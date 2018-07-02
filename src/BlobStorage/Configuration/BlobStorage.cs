@@ -32,15 +32,6 @@ namespace SenseNet.Configuration
         public static int BinaryCacheSize { get; internal set; } = GetInt(SectionName, "BinaryCacheSize", 1048576, 102400, 104857600);
 
         /// <summary>
-        /// Minimum size limit (in bytes) for binary data to be stored in a SQL FileStream column. 
-        /// Files smaller or equal this size will be stored in the database. Bigger files will go
-        /// to a FileStream column if the feature is enabled in the database.
-        /// If you set this to 0, all files will go to the filestream column. 
-        /// In case of a huge value everything will remain in the db.
-        /// </summary>
-        public static int MinimumSizeForFileStreamInBytes { get; internal set; } = GetInt(SectionName, "MinimumSizeForFileStreamKB", 500) * 1024;        
-
-        /// <summary>
         /// Minimum size limit (in bytes) for binary data to be stored in the external blob storage. 
         /// Files under this size will be stored in the database. If you set this to 0, all files
         /// will go to the external storage. In case of a huge value everything will remain in the db.

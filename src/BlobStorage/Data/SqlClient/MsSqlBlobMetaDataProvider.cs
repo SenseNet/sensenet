@@ -219,7 +219,7 @@ SELECT @BinPropId, @FileId, [Timestamp], FileStream.PathName(), GET_FILESTREAM_T
         {
             var streamLength = value.Stream?.Length ?? 0;
             var useFileStream = BlobStorage.FileStreamEnabled &&
-                                    streamLength > Convert.ToInt64(BlobStorage.MinimumSizeForFileStreamInBytes);
+                                    streamLength > long.MaxValue-1; //UNDONE:!! delete this line
             var ctx = new BlobStorageContext(blobProvider) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = 0, Length = streamLength, UseFileStream = useFileStream };
 
             // In case of an external provider allocate the place for bytes and
@@ -669,7 +669,7 @@ COMMIT TRAN";
             bool useSqlFileStream;
             if (blobProvider == BlobStorageBase.BuiltInProvider)
             {
-                useSqlFileStream = fullSize > BlobStorage.MinimumSizeForFileStreamInBytes;
+                useSqlFileStream = fullSize > long.MaxValue-1; //UNDONE:!! delete this line
             }
             else
             {

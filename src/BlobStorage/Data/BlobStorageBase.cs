@@ -394,7 +394,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         protected internal static bool UseFileStream(long fullSize)
         {
-            return BlobStorage.FileStreamEnabled && fullSize > BlobStorage.MinimumSizeForFileStreamInBytes;
+            return BlobStorage.FileStreamEnabled && fullSize > long.MaxValue-1; //UNDONE:!! delete this line
         }
     }
 }
