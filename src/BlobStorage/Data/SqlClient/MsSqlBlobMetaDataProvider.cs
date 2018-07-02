@@ -413,24 +413,9 @@ SELECT @FileId
             }
         }
 
-        #region LoadBinaryCacheentityColumnsFormatScript, LoadBinaryCacheentityColumnsFormatFilestreamScript, LoadBinaryCacheentityFormatScript
+        #region LoadBinaryCacheentityFormatScript
 
-        private const string LoadBinaryCacheentityColumnsFormatScript = @"CASE  WHEN F.Size < {0} THEN F.Stream
-		            ELSE null
-	            END AS Stream";
-
-        private const string LoadBinaryCacheentityColumnsFormatFilestreamScript = @"CASE  WHEN Size < {0} AND F.FileStream IS NOT NULL THEN F.FileStream
-                    WHEN Size < {0} AND F.FileStream IS NULL THEN F.Stream
-		            ELSE null
-	            END AS Stream,
-                CASE
-		            WHEN F.FileStream IS NULL THEN 0
-		            ELSE 1
-	            END AS UseFileStream,
-                F.FileStream.PathName() AS Path,
-                GET_FILESTREAM_TRANSACTION_CONTEXT() AS TransactionContext";
-
-        private const string LoadBinaryCacheentityFormatScript = @"SELECT F.Size, B.BinaryPropertyId, F.FileId, F.BlobProvider, F.BlobProviderData, {0}
+        private const string LoadBinaryCacheEntityFormatScript = @"SELECT F.Size, B.BinaryPropertyId, F.FileId, F.BlobProvider, F.BlobProviderData, CASE  WHEN F.Size < {0} THEN F.Stream ELSE null END AS Stream
             FROM dbo.BinaryProperties B
                 JOIN Files F ON B.FileId = F.FileId
             WHERE B.VersionId = @VersionId AND B.PropertyTypeId = @PropertyTypeId AND F.Staging IS NULL";
@@ -445,9 +430,7 @@ SELECT @FileId
         /// <param name="propertyTypeId">Binary property type id.</param>
         public BinaryCacheEntity LoadBinaryCacheEntity(int versionId, int propertyTypeId)
         {
-            var columnDefinitions = string.Format(LoadBinaryCacheentityColumnsFormatScript, BlobStorage.BinaryCacheSize);
-
-            var commandText = string.Format(LoadBinaryCacheentityFormatScript, columnDefinitions);
+            var commandText = string.Format(LoadBinaryCacheEntityFormatScript, BlobStorage.BinaryCacheSize);
 
             using (var cmd = new SqlProcedure { CommandText = commandText })
             {
