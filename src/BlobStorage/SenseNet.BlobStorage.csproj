@@ -78,7 +78,6 @@
   <ItemGroup>
     <Compile Include="BinaryDataValue.cs" />
     <Compile Include="BlobStorageComponents.cs" />
-    <Compile Include="BlobStorageConfiguration.cs" />
     <Compile Include="Configuration\BlobStorage.cs" />
     <Compile Include="Data\BlobStorageClient.cs" />
     <Compile Include="Data\IBlobStorageMetaDataProvider.cs" />
