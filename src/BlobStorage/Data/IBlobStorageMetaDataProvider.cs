@@ -14,7 +14,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <summary>
         /// Returns whether the FileStream feature is enabled in the blob provider or not.
         /// </summary>
-        bool IsFilestreamEnabled();
+        bool IsFilestreamEnabled(); //UNDONE:! remove IsFilestreamEnabled from interface
 
         /// <summary>
         /// Returns a context object that holds provider-specific data for blob storage operations.

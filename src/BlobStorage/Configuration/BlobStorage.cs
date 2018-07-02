@@ -1,4 +1,5 @@
-﻿using SenseNet.ContentRepository.Storage;
+﻿using System;
+using SenseNet.ContentRepository.Storage;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Configuration
@@ -37,12 +38,6 @@ namespace SenseNet.Configuration
         /// will go to the external storage. In case of a huge value everything will remain in the db.
         /// </summary>
         public static int MinimumSizeForBlobProviderInBytes { get; internal set; } = GetInt(SectionName, "MinimumSizeForBlobProviderKB", 500) * 1024;
-
-        /// <summary>
-        /// Whether the FileStream feature is enabled in the system or not.
-        /// Computed property, not possible to configure.
-        /// </summary>
-        public static bool FileStreamEnabled { get; internal set; } = BlobStorageComponents.DataProvider.IsFilestreamEnabled();
 
         /// <summary>
         /// Class name of an optional external blob storage provider.
