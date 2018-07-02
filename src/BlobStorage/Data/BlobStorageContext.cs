@@ -38,9 +38,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         public object BlobProviderData { get; set; }
 
-        [Obsolete("ALWAYS FALSE.", true)]
-        public bool UseFileStream { get; set; } //UNDONE:!!! remove UseFileStream
-
         /// <summary>
         /// Creates a new instance of the BlobStorageContext class.
         /// </summary>
