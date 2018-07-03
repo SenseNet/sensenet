@@ -45,8 +45,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
                 stream.Seek(0, SeekOrigin.Begin);
 
                 // The 'while' loop is misleading here, because we write the whole
-                // stream at once. Bigger files should go to the Filestream
-                // column anyway.
+                // stream at once. Bigger files should go to another blob provider.
                 while (offset < streamSize)
                 {
                     // Buffer size may be less at the end os the stream than the limit
@@ -95,8 +94,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
                 stream.Seek(0, SeekOrigin.Begin);
 
                 // The 'while' loop is misleading here, because we write the whole
-                // stream at once. Bigger files should go to the Filestream
-                // column anyway.
+                // stream at once. Bigger files should go to another blob provider.
                 while (offset < streamSize)
                 {
                     // Buffer size may be less at the end os the stream than the limit

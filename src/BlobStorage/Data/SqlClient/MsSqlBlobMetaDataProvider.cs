@@ -26,7 +26,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         /// Returns whether the FileStream feature is enabled in the blob provider or not.
         /// </summary>
         /// <returns></returns>
-        public bool IsFilestreamEnabled()
+        public bool IsFilestreamEnabled() //UNDONE:! remove IsFilestreamEnabled from interface
         {
             bool fsEnabled;
             const string sql = "SELECT COUNT(name) FROM sys.columns WHERE Name = N'FileStream' and Object_ID = Object_ID(N'Files')";
@@ -56,7 +56,7 @@ FROM  dbo.Files WHERE FileId = @FileId
         #endregion
 
         /// <summary>
-        /// Returns a context object that holds MsSql-specific data (e.g. FileStream info) for blob storage operations.
+        /// Returns a context object that holds MsSql-specific data for blob storage operations.
         /// </summary>
         /// <param name="fileId">File identifier.</param>
         /// <param name="clearStream">Whether the blob provider should clear the stream during assembling the context.</param>
@@ -78,7 +78,7 @@ FROM  dbo.Files WHERE FileId = @FileId
             }
         }
         /// <summary>
-        /// Returns a context object that holds MsSql-specific data (e.g. FileStream info) for blob storage operations.
+        /// Returns a context object that holds MsSql-specific data for blob storage operations.
         /// </summary>
         /// <param name="fileId">File identifier.</param>
         /// <param name="clearStream">Whether the blob provider should clear the stream during assembling the context.</param>
@@ -211,7 +211,7 @@ SELECT @BinPropId, @FileId, [Timestamp] FROM Files WHERE FileId = @FileId;
                 cmd.Parameters.Add("@BlobProviderData", SqlDbType.NVarChar, int.MaxValue).Value = value.BlobProviderData != null ? (object)value.BlobProviderData : DBNull.Value;
                 cmd.Parameters.Add("@Checksum", SqlDbType.VarChar, 200).Value = value.Checksum != null ? (object)value.Checksum : DBNull.Value;
 
-                // insert binary and file rows and retrieve file path and transaction context for the Filestream column
+                // insert binary and file rows and retrieve new ids.
                 using (var reader = cmd.ExecuteReader())
                 {
                     reader.Read();
@@ -229,8 +229,7 @@ SELECT @BinPropId, @FileId, [Timestamp] FROM Files WHERE FileId = @FileId;
 
             // The BuiltIn blob provider saves the stream after the record 
             // was saved into the Files table, because simple varbinary
-            // and sql filestream columns must exist before we can write a
-            // stream into the record.
+            // column must exist before we can write a stream into the record.
             // ReSharper disable once InvertIf
             if (blobProvider == BlobStorageBase.BuiltInProvider && value.Stream != null && value.Stream.Length > 0)
             {

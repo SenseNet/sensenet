@@ -7,11 +7,5 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
     /// </summary>
     internal class BuiltinBlobProviderData
     {
-        /// <summary>
-        /// Custom data for the Filestream column.
-        /// </summary>
-        [Newtonsoft.Json.JsonProperty("FileStreamData")]
-        [Obsolete("ALWAYS NULL", true)]
-        public object FileStreamData { get; set; }
     }
 }

@@ -150,7 +150,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 }
                 catch (Exception ex)
                 {
-                    throw new DataException("Error during saving binary chunk to filestream.", ex);
+                    throw new DataException("Error during saving binary chunk to stream.", ex);
                 }
             }
         }
@@ -181,7 +181,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 }
                 catch (Exception ex)
                 {
-                    throw new DataException("Error during saving binary chunk to filestream.", ex);
+                    throw new DataException("Error during saving binary chunk to stream.", ex);
                 }
             }
         }
@@ -240,7 +240,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
             catch (Exception e)
             {
-                throw new DataException("Error during saving binary chunk to filestream.", e);
+                throw new DataException("Error during saving binary chunk to stream.", e);
             }
         }
         /// <summary>
@@ -277,7 +277,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
             catch (Exception e)
             {
-                throw new DataException("Error during saving binary chunk to filestream.", e);
+                throw new DataException("Error during saving binary chunk to stream.", e);
             }
         }
         private static void CopyFromStreamByChunks(BlobStorageContext context, Stream input)
