@@ -10,6 +10,7 @@ using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
+using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 
 namespace SenseNet.ContentRepository.Search.Indexing
@@ -39,15 +40,10 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 IndexManager.ClearIndex();
                 consoleWriter?.WriteLine("ok");
 
-                IndexManager.AddDocuments(
-                    SearchManager.LoadIndexDocumentsByPath("/Root", IndexManager.GetNotIndexedNodeTypes())
-                        .Select(d =>
-                        {
-                            var indexDoc = IndexManager.CompleteIndexDocument(d);
-                            OnNodeIndexed(d.Path);
-                            return indexDoc;
-                        }));
+                IndexManager.AddDocuments(LoadIndexDocumentsByPath("/Root"));
 
+                // delete progress characters
+                consoleWriter?.Write("                                             \n");
                 consoleWriter?.Write("  Commiting ... ");
                 IndexManager.Commit(); // explicit commit
                 consoleWriter?.WriteLine("ok");
@@ -67,11 +63,21 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 {
                     using (new SystemAccount())
                     {
-                        var node = Node.LoadNode(path);
-                        DataBackingStore.SaveIndexDocument(node, false, false, out _);
+                        foreach (var node in Node.LoadNode(path).LoadVersions())
+                        {
+                            DataBackingStore.SaveIndexDocument(node, false, false, out _);
+                            OnIndexDocumentRefreshed(node.Path, node.Id, node.VersionId, node.Version.ToString());
+                        }
 
-                        Parallel.ForEach(NodeQuery.QueryNodesByPath(node.Path, true).Nodes,
-                            n => { DataBackingStore.SaveIndexDocument(n, false, false, out _); });
+                        Parallel.ForEach(NodeQuery.QueryNodesByPath(path, true).Nodes,
+                            n =>
+                            {
+                                foreach (var node in n.LoadVersions())
+                                {
+                                    DataBackingStore.SaveIndexDocument(node, false, false, out _);
+                                    OnIndexDocumentRefreshed(node.Path, node.Id, node.VersionId, node.Version.ToString());
+                                }
+                            });
                     }
                     op2.Successful = true;
                 }
@@ -82,13 +88,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 IndexManager.IndexingEngine.WriteIndex(
                     new[] {new SnTerm(IndexFieldName.InTree, path)},
                     null,
-                    SearchManager.LoadIndexDocumentsByPath(path, IndexManager.GetNotIndexedNodeTypes())
-                        .Select(d =>
-                        {
-                            var indexDoc = IndexManager.CompleteIndexDocument(d);
-                            OnNodeIndexed(d.Path);
-                            return indexDoc;
-                        }));
+                    LoadIndexDocumentsByPath(path));
                 op.Successful = true;
             }
         }
@@ -148,7 +148,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     UpdateVersion(state, versioningInfo, indexDocument);
                 }
 
-                OnNodeIndexed(state.Node.Path);
+                var node = state.Node;
+                OnNodeIndexed(node.Path, node.Id, node.VersionId, node.Version.ToString());
 
                 op.Successful = true;
             }
@@ -266,13 +267,43 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
 
         public event EventHandler<NodeIndexedEventArgs> NodeIndexed;
-        protected void OnNodeIndexed(string path)
+        protected void OnNodeIndexed(string path, int nodeId = 0, int versionId = 0, string version = null)
         {
-            NodeIndexed?.Invoke(null, new NodeIndexedEventArgs(path));
+            NodeIndexed?.Invoke(null, new NodeIndexedEventArgs(path, nodeId, versionId, version));
+        }
+        public event EventHandler<NodeIndexedEventArgs> IndexDocumentRefreshed;
+        protected void OnIndexDocumentRefreshed(string path, int nodeId = 0, int versionId = 0, string version = null)
+        {
+            IndexDocumentRefreshed?.Invoke(null, new NodeIndexedEventArgs(path, nodeId, versionId, version));
         }
 
+        public event EventHandler<NodeIndexingErrorEventArgs> IndexingError;
+        protected void OnIndexingError(IndexDocumentData doc, Exception exception)
+        {
+            IndexingError?.Invoke(null, new NodeIndexingErrorEventArgs(doc.NodeId, doc.VersionId, doc.Path, exception));
+        }
 
         /*================================================================================================================================*/
+
+        private IEnumerable<IndexDocument> LoadIndexDocumentsByPath(string path)
+        {
+            return SearchManager.LoadIndexDocumentsByPath(path, IndexManager.GetNotIndexedNodeTypes())
+                .Select(d =>
+                {
+                    try
+                    {
+                        var indexDoc = IndexManager.CompleteIndexDocument(d);
+                        OnNodeIndexed(d.Path, d.NodeId, d.VersionId, indexDoc.Version);
+                        return indexDoc;
+                    }
+                    catch (Exception e)
+                    {
+                        OnIndexingError(d, e);
+                        return null;
+                    }
+                })
+                .Where(d => d != null);
+        }
 
         // caller: CommitPopulateNode
         private static void CreateBrandNewNode(Node node, VersioningInfo versioningInfo, IndexDocumentData indexDocumentData)

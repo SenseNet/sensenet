@@ -91,6 +91,7 @@
     <Compile Include="StepTests\DeleteContentTypeTests.cs" />
     <Compile Include="StepTests\EditAllowedChildTypesTests.cs" />
     <Compile Include="StepTests\EditConfigurationTests.cs" />
+    <Compile Include="StepTests\PopulateIndexTests.cs" />
     <Compile Include="StepTests\UpgradeProviderConfigurationTests.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -106,6 +107,10 @@
     <ProjectReference Include="..\..\ContentRepository\SenseNet.ContentRepository.csproj">
       <Project>{786e6165-ca02-45a9-bf58-207a45d7d6df}</Project>
       <Name>SenseNet.ContentRepository</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Search\SenseNet.Search.csproj">
+      <Project>{0279705B-779D-485D-86B9-F7AB3DD1F2C3}</Project>
+      <Name>SenseNet.Search</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Storage\SenseNet.Storage.csproj">
       <Project>{5db4ddba-81f6-4d81-943a-18f3178b3355}</Project>
