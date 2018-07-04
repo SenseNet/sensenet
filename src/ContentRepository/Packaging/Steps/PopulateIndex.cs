@@ -86,6 +86,7 @@ namespace SenseNet.Packaging.Steps
                 populator.NodeIndexed -= Populator_NodeIndexed;
                 RepositoryEnvironment.WorkingMode.Populating = savedMode;
 
+                context.Console.Write("                                                      \r");
                 context.Console.WriteLine();
             }
 
