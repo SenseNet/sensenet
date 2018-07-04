@@ -29,7 +29,7 @@ namespace SenseNet.Packaging.Steps
         }
         // Method for indexing tests.
         internal void ExecuteInternal(ExecutionContext context,
-            EventHandler<NodeIndexedEventArgs> refreshed = null, //Action<object, NodeIndexedEventArgs> refreshed = null,
+            EventHandler<NodeIndexedEventArgs> refreshed = null,
             EventHandler<NodeIndexedEventArgs> indexed = null,
             EventHandler<NodeIndexingErrorEventArgs> error = null)
         {
@@ -113,6 +113,5 @@ namespace SenseNet.Packaging.Steps
         {
             Logger.LogException(e.Exception, $"Indexing error: NodeId: {e.NodeId}, VersionId: {e.VersionId}, Path: {e.Path}");
         }
-
     }
 }

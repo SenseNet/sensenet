@@ -42,7 +42,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
 
                 IndexManager.AddDocuments(LoadIndexDocumentsByPath("/Root"));
 
-                // delete progress characters if there is
+                // delete progress characters
                 consoleWriter?.Write("                                             \n");
                 consoleWriter?.Write("  Commiting ... ");
                 IndexManager.Commit(); // explicit commit

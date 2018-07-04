@@ -13,8 +13,17 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// Gets the path of the currently indexed node.
         /// </summary>
         public string Path { get; }
+        /// <summary>
+        /// Gets the id of the currently indexed node.
+        /// </summary>
         public int NodeId { get; }
+        /// <summary>
+        /// Gets the version id of the currently indexed node instance.
+        /// </summary>
         public int VersionId { get; }
+        /// <summary>
+        /// Gets the version of the currently indexed node instance.
+        /// </summary>
         public string Version { get; }
 
         /// <summary>

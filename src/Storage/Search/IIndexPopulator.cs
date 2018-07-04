@@ -94,7 +94,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
         void RebuildIndex(Node node, bool recursive = false, IndexRebuildLevel rebuildLevel = IndexRebuildLevel.IndexOnly);
 
         /// <summary>
-        /// Defines an event that occurs when an index document refreshed.
+        /// Defines an event that occurs when an index document is refreshed.
         /// </summary>
         event EventHandler<NodeIndexedEventArgs> IndexDocumentRefreshed;
 
