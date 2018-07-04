@@ -74,8 +74,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
                             {
                                 foreach (var node in n.LoadVersions())
                                 {
-                                    DataBackingStore.SaveIndexDocument(n, false, false, out _);
-                                    OnIndexDocumentRefreshed(n.Path, n.Id, n.VersionId, n.Version.ToString());
+                                    DataBackingStore.SaveIndexDocument(node, false, false, out _);
+                                    OnIndexDocumentRefreshed(node.Path, node.Id, node.VersionId, node.Version.ToString());
                                 }
                             });
                     }
