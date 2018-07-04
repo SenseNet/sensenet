@@ -94,8 +94,19 @@ namespace SenseNet.ContentRepository.Search.Indexing
         void RebuildIndex(Node node, bool recursive = false, IndexRebuildLevel rebuildLevel = IndexRebuildLevel.IndexOnly);
 
         /// <summary>
+        /// Defines an event that occurs when an index document refreshed.
+        /// </summary>
+        event EventHandler<NodeIndexedEventArgs> IndexDocumentRefreshed;
+
+        /// <summary>
         /// Defines an event that occurs when a node has just been indexed.
         /// </summary>
         event EventHandler<NodeIndexedEventArgs> NodeIndexed;
+
+        /// <summary>
+        /// Defines an event that occurs when a node indexing causes an error.
+        /// </summary>
+        event EventHandler<NodeIndexingErrorEventArgs> IndexingError;
+
     }
 }

@@ -23,6 +23,8 @@ namespace SenseNet.ContentRepository.Search.Indexing
 #pragma warning disable 0067
         // suppressed because it is not used but the interface declares.
         public event EventHandler<NodeIndexedEventArgs> NodeIndexed;
+        public event EventHandler<NodeIndexedEventArgs> IndexDocumentRefreshed;
+        public event EventHandler<NodeIndexingErrorEventArgs> IndexingError;
 #pragma warning restore 0067
         public void DeleteForest(IEnumerable<int> idSet) { }
         public void DeleteForest(IEnumerable<string> pathSet) { }

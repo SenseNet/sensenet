@@ -257,6 +257,7 @@
     <Compile Include="NodeSaveSettings.cs" />
     <Compile Include="Package.cs" />
     <Compile Include="PreviewProvider.cs" />
+    <Compile Include="Search\NodeIndexingErrorEventArgs.cs" />
     <Compile Include="Search\QueryResult.cs" />
     <Compile Include="Retrier.cs" />
     <Compile Include="Search\SearchManager.cs" />
