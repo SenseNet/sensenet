@@ -4,6 +4,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.Diagnostics;
 
 namespace SenseNet.Packaging.Steps
 {
@@ -17,12 +18,20 @@ namespace SenseNet.Packaging.Steps
         public string Level { get; set; }
 
         private long _count;
+        private long _docCount;
         private long _versionCount;
-        private long _factor;
 
         private ExecutionContext _context;
 
         public override void Execute(ExecutionContext context)
+        {
+            ExecuteInternal(context);
+        }
+        // Method for indexing tests.
+        internal void ExecuteInternal(ExecutionContext context,
+            EventHandler<NodeIndexedEventArgs> refreshed = null, //Action<object, NodeIndexedEventArgs> refreshed = null,
+            EventHandler<NodeIndexedEventArgs> indexed = null,
+            EventHandler<NodeIndexingErrorEventArgs> error = null)
         {
             context.AssertRepositoryStarted();
 
@@ -33,22 +42,29 @@ namespace SenseNet.Packaging.Steps
             {
                 rebuildLevel = string.IsNullOrEmpty(level)
                     ? IndexRebuildLevel.IndexOnly
-                    : (IndexRebuildLevel) Enum.Parse(typeof(IndexRebuildLevel), level, true);
+                    : (IndexRebuildLevel)Enum.Parse(typeof(IndexRebuildLevel), level, true);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 throw new PackagingException(SR.Errors.InvalidParameter + ": Level", e, PackagingExceptionType.InvalidStepParameter);
             }
 
             _context = context;
             _versionCount = DataProvider.GetVersionCount(path);
-            _factor = Math.Max(_versionCount / 60, 1);
 
             var savedMode = RepositoryEnvironment.WorkingMode.Populating;
             RepositoryEnvironment.WorkingMode.Populating = true;
 
             var populator = SearchManager.GetIndexPopulator();
             populator.NodeIndexed += Populator_NodeIndexed;
+            populator.IndexDocumentRefreshed += Populator_IndexDocumentRefreshed;
+            populator.IndexingError += Populator_IndexingError;
+            if (refreshed != null)
+                populator.IndexDocumentRefreshed += refreshed;
+            if (indexed != null)
+                populator.NodeIndexed += indexed;
+            if (error != null)
+                populator.IndexingError += error;
 
             try
             {
@@ -75,12 +91,28 @@ namespace SenseNet.Packaging.Steps
 
             Logger.LogMessage("...finished: " + _count + " items indexed.");
         }
+        private DateTime _lastWriteTime = DateTime.MinValue;
+
+        private void Populator_IndexDocumentRefreshed(object sender, NodeIndexedEventArgs e)
+        {
+            Interlocked.Increment(ref _docCount);
+            if (DateTime.Now.AddSeconds(-1) < _lastWriteTime)
+                return;
+            _context.Console.Write($"  Document refreshing progress: {_docCount}/{_versionCount} {_docCount * 100 / _versionCount}%  \r");
+            _lastWriteTime = DateTime.Now;
+        }
         private void Populator_NodeIndexed(object sender, NodeIndexedEventArgs e)
         {
             Interlocked.Increment(ref _count);
-
-            if (_count % _factor == 0)
-                _context.Console.Write("|");
+            if (DateTime.Now.AddSeconds(-1) < _lastWriteTime)
+                return;
+            _context.Console.Write($"  Indexing progress: {_count}/{_versionCount} {_count * 100 / _versionCount}%               \r");
+            _lastWriteTime = DateTime.Now;
         }
+        private void Populator_IndexingError(object sender, NodeIndexingErrorEventArgs e)
+        {
+            Logger.LogException(e.Exception, $"Indexing error: NodeId: {e.NodeId}, VersionId: {e.VersionId}, Path: {e.Path}");
+        }
+
     }
 }
