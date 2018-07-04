@@ -57,6 +57,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.Services.OData.Tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.BlobStorage.Legacy", "BlobStorage.Legacy\SenseNet.BlobStorage.Legacy.csproj", "{E1C1BB5C-28AB-448D-A21E-B1A6E13B6619}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SenseNet.BlobStorage.IntegrationTests", "Tests\SenseNet.BlobStorage.IntegrationTests\SenseNet.BlobStorage.IntegrationTests.csproj", "{2F7752CA-3178-4A8A-81AE-8FF50571DE8C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -385,6 +387,22 @@ Global
 		{E1C1BB5C-28AB-448D-A21E-B1A6E13B6619}.Release|x64.Build.0 = Release|Any CPU
 		{E1C1BB5C-28AB-448D-A21E-B1A6E13B6619}.Release|x86.ActiveCfg = Release|Any CPU
 		{E1C1BB5C-28AB-448D-A21E-B1A6E13B6619}.Release|x86.Build.0 = Release|Any CPU
+		{2F7752CA-3178-4A8A-81AE-8FF50571DE8C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F7752CA-3178-4A8A-81AE-8FF50571DE8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2F7752CA-3178-4A8A-81AE-8FF50571DE8C}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{2F7752CA-3178-4A8A-81AE-8FF50571DE8C}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{2F7752CA-3178-4A8A-81AE-8FF50571DE8C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2F7752CA-3178-4A8A-81AE-8FF50571DE8C}.Debug|x64.Build.0 = Debug|Any CPU
+		{2F7752CA-3178-4A8A-81AE-8FF50571DE8C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2F7752CA-3178-4A8A-81AE-8FF50571DE8C}.Debug|x86.Build.0 = Debug|Any CPU
+		{2F7752CA-3178-4A8A-81AE-8FF50571DE8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2F7752CA-3178-4A8A-81AE-8FF50571DE8C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2F7752CA-3178-4A8A-81AE-8FF50571DE8C}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{2F7752CA-3178-4A8A-81AE-8FF50571DE8C}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{2F7752CA-3178-4A8A-81AE-8FF50571DE8C}.Release|x64.ActiveCfg = Release|Any CPU
+		{2F7752CA-3178-4A8A-81AE-8FF50571DE8C}.Release|x64.Build.0 = Release|Any CPU
+		{2F7752CA-3178-4A8A-81AE-8FF50571DE8C}.Release|x86.ActiveCfg = Release|Any CPU
+		{2F7752CA-3178-4A8A-81AE-8FF50571DE8C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -411,6 +429,7 @@ Global
 		{11506B62-CDBB-40FB-AEDC-ABB393B3AC4D} = {C68D256D-7D40-4E33-8A2B-B1625538B138}
 		{0CB6D0A8-A477-4382-9F5A-C5BEBD2648AA} = {C68D256D-7D40-4E33-8A2B-B1625538B138}
 		{E1C1BB5C-28AB-448D-A21E-B1A6E13B6619} = {2997D17C-A736-43E5-B3DD-11D11AC7DF17}
+		{2F7752CA-3178-4A8A-81AE-8FF50571DE8C} = {C68D256D-7D40-4E33-8A2B-B1625538B138}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7D903DEB-CA0B-43D8-BD9D-820BB1453C4C}
