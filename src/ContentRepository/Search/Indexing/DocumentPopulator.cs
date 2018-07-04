@@ -63,11 +63,21 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 {
                     using (new SystemAccount())
                     {
-                        var node = Node.LoadNode(path);
-                        DataBackingStore.SaveIndexDocument(node, false, false, out _);
+                        foreach (var node in Node.LoadNode(path).LoadVersions())
+                        {
+                            DataBackingStore.SaveIndexDocument(node, false, false, out _);
+                            OnIndexDocumentRefreshed(node.Path, node.Id, node.VersionId, node.Version.ToString());
+                        }
 
-                        Parallel.ForEach(NodeQuery.QueryNodesByPath(node.Path, true).Nodes,
-                            n => { DataBackingStore.SaveIndexDocument(n, false, false, out _); });
+                        Parallel.ForEach(NodeQuery.QueryNodesByPath(path, true).Nodes,
+                            n =>
+                            {
+                                foreach (var node in n.LoadVersions())
+                                {
+                                    DataBackingStore.SaveIndexDocument(n, false, false, out _);
+                                    OnIndexDocumentRefreshed(n.Path, n.Id, n.VersionId, n.Version.ToString());
+                                }
+                            });
                     }
                     op2.Successful = true;
                 }
