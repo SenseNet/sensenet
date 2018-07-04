@@ -82,10 +82,18 @@ namespace SenseNet.ApplicationModel
         private static ActionBase ResolveActionType(string name)
         {
             if (_actionCache == null)
+            {
                 lock (ActionCacheLock)
+                {
                     if (_actionCache == null)
-                        _actionCache = TypeResolver.GetTypesByBaseType(typeof(ActionBase))
-                            .ToDictionary(t => t.Name, t => t);
+                    {
+                        var actionCache = new Dictionary<string, Type>();
+                        foreach (var t in TypeResolver.GetTypesByBaseType(typeof(ActionBase)))
+                            actionCache[t.Name] = t;
+                        _actionCache = actionCache;
+                    }
+                }
+            }
 
             if (!_actionCache.TryGetValue(name, out Type actionType))
                 return null;
