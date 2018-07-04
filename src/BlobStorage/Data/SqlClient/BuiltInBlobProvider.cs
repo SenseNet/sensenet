@@ -9,7 +9,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 {
     /// <summary>
     /// The built-in provider is responsible for saving bytes directly 
-    /// to the Files table (varbinary or SQL filestream column). This
+    /// to the Files table (varbinary column). This
     /// provider cannot be removed or replaced by an external provider.
     /// </summary>
     internal class BuiltInBlobProvider : IBlobProvider

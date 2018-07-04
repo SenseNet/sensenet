@@ -22,29 +22,6 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
                 : string.Concat(".", originalExtension);
         }
 
-        /// <summary>
-        /// Returns whether the FileStream feature is enabled in the blob provider or not.
-        /// </summary>
-        /// <returns></returns>
-        public bool IsFilestreamEnabled() //UNDONE:! remove IsFilestreamEnabled from interface
-        {
-            bool fsEnabled;
-            const string sql = "SELECT COUNT(name) FROM sys.columns WHERE Name = N'FileStream' and Object_ID = Object_ID(N'Files')";
-            using (var pro = new SqlProcedure {CommandText = sql, CommandType=CommandType.Text})
-            {
-                try
-                {
-                    fsEnabled = Convert.ToInt32(pro.ExecuteScalar()) > 0;
-                }
-                catch (Exception ex)
-                {
-                    SnLog.WriteException(ex);
-                    fsEnabled = false;
-                }
-            }
-            return fsEnabled;
-        }
-
         #region ClearStreamByFileIdScript, GetBlobContextDataScript
 
         private const string GetBlobContextDataScript = @"  SELECT Size, BlobProvider, BlobProviderData
@@ -327,8 +304,7 @@ SELECT @FileId
 
             if (blobProvider == BlobStorageBase.BuiltInProvider)
             {
-                // MS-SQL does not support stream size over [Int32.MaxValue],
-                // but check only if Filestream is not enabled
+                // MS-SQL does not support stream size over [Int32.MaxValue].
                 if (streamLength > int.MaxValue)
                     throw new NotSupportedException();
             }

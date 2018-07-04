@@ -30,11 +30,6 @@ namespace SenseNet.Tests.Implementations
             _dataProvider = dataProvider;
         }
 
-        public bool IsFilestreamEnabled()
-        {
-            return false;
-        }
-
         public BlobStorageContext GetBlobStorageContext(int fileId, bool clearStream, int versionId, int propertyTypeId)
         {
             throw new NotImplementedException();
