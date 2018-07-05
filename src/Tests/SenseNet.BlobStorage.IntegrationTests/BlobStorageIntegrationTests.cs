@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
+using System.Diagnostics.PerformanceData;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -25,6 +26,15 @@ namespace SenseNet.BlobStorage.IntegrationTests
     [TestClass]
     public abstract class BlobStorageIntegrationTests
     {
+        private static readonly Dictionary<Type, BlobStorageIntegrationTests> Instances =
+            new Dictionary<Type, BlobStorageIntegrationTests>();
+
+        protected static BlobStorageIntegrationTests GetInstance(Type type)
+        {
+            Instances.TryGetValue(type, out var instance);
+            return instance;
+        }
+
         protected abstract string DatabaseName { get; }
         protected abstract bool SqlFileStreamEnabled { get; }
 
@@ -37,8 +47,9 @@ namespace SenseNet.BlobStorage.IntegrationTests
         private bool _prepared;
         private string _connectionStringBackup;
         private string _securityDatabaseConnectionString;
+        private RepositoryInstance _repositoryInstance;
         [TestInitialize]
-        public void InitializeTest()
+        public void Initialize()
         {
             if (!_prepared)
             {
@@ -50,21 +61,28 @@ namespace SenseNet.BlobStorage.IntegrationTests
 
                 PrepareDatabase();
 
-                using (Repository.Start(CreateRepositoryBuilderForInstall()))
+                _repositoryInstance = Repository.Start(CreateRepositoryBuilderForInstall());
                 using (new SystemAccount())
                     PrepareRepository();
 
+                Instances[this.GetType()] = this;
                 _prepared = true;
             }
-
         }
-        [TestCleanup]
-        public void CleanupTest()
+
+        protected static void TearDown(Type type)
+        {
+            Instances.TryGetValue(type, out var instance);
+            instance?.TearDownPrivate();
+        }
+        private void TearDownPrivate()
         {
             if (_connectionStringBackup != null)
                 ConnectionStrings.ConnectionString = _connectionStringBackup;
             if (_securityDatabaseConnectionString != null)
                 ConnectionStrings.SecurityDatabaseConnectionString = _securityDatabaseConnectionString;
+
+            _repositoryInstance?.Dispose();
         }
 
         protected void PrepareDatabase()
@@ -214,6 +232,5 @@ namespace SenseNet.BlobStorage.IntegrationTests
         {
             Assert.Inconclusive();
         }
-
     }
 }

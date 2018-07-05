@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.Security.Cryptography.X509Certificates;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SenseNet.BlobStorage.IntegrationTests
 {
@@ -9,5 +10,16 @@ namespace SenseNet.BlobStorage.IntegrationTests
 
         protected override string DatabaseName => "sn7blobtests";
         protected override bool SqlFileStreamEnabled => false;
+
+        //[ClassInitialize]
+        //public static void ClassInitialize(TestContext context)
+        //{
+        //    BlobStorageIntegrationTests.Initialize(typeof(UnitTest1));
+        //}
+        [ClassCleanup]
+        public static void CleanupClass()
+        {
+            BlobStorageIntegrationTests.TearDown(typeof(UnitTest1));
+        }
     }
 }
