@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SenseNet.BlobStorage.IntegrationTests
 {
@@ -10,13 +7,7 @@ namespace SenseNet.BlobStorage.IntegrationTests
     {
         // private enum TestMode{BuiltIn, BuiltInFs, Legacy, LegacyFs};
 
-        protected static string DatabaseName => "sn7blobtests";
-
-        [ClassInitialize]
-        public static void InitializeClass(TestContext testContext)
-        {
-            EnsureDatabase(DatabaseName);
-        }
-
+        protected override string DatabaseName => "sn7blobtests";
+        protected override bool SqlFileStreamEnabled => false;
     }
 }
