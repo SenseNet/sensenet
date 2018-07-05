@@ -11,15 +11,10 @@ namespace SenseNet.BlobStorage.IntegrationTests
         protected override string DatabaseName => "sn7blobtests";
         protected override bool SqlFileStreamEnabled => false;
 
-        //[ClassInitialize]
-        //public static void ClassInitialize(TestContext context)
-        //{
-        //    BlobStorageIntegrationTests.Initialize(typeof(UnitTest1));
-        //}
         [ClassCleanup]
         public static void CleanupClass()
         {
-            BlobStorageIntegrationTests.TearDown(typeof(UnitTest1));
+            TearDown(typeof(UnitTest1));
         }
     }
 }

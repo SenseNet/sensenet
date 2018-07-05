@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.Common;
 using System.Data.SqlClient;
 using System.Diagnostics.PerformanceData;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using IO = System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
@@ -26,6 +27,8 @@ namespace SenseNet.BlobStorage.IntegrationTests
     [TestClass]
     public abstract class BlobStorageIntegrationTests
     {
+        #region Infrastructure
+
         private static readonly Dictionary<Type, BlobStorageIntegrationTests> Instances =
             new Dictionary<Type, BlobStorageIntegrationTests>();
 
@@ -87,36 +90,36 @@ namespace SenseNet.BlobStorage.IntegrationTests
 
         protected void PrepareDatabase()
         {
-            var scriptRootPath = Path.GetFullPath(Path.Combine(
+            var scriptRootPath = IO.Path.GetFullPath(IO.Path.Combine(
                 AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\Storage\Data\SqlClient\Scripts"));
 
             var dbid = ExecuteSqlScalarNative<int?>($"SELECT database_id FROM sys.databases WHERE Name = '{DatabaseName}'", "master");
             if (dbid == null)
             {
                 // create database
-                var sqlPath = Path.Combine(scriptRootPath, "Create_SenseNet_Database_Templated.sql");
+                var sqlPath = IO.Path.Combine(scriptRootPath, "Create_SenseNet_Database_Templated.sql");
                 string sql;
-                using (var reader = new StreamReader(sqlPath))
+                using (var reader = new IO.StreamReader(sqlPath))
                     sql = reader.ReadToEnd();
                 sql = sql.Replace("{DatabaseName}", DatabaseName);
                 ExecuteSqlCommandNative(sql, "master");
             }
             // prepare database
-            ExecuteSqlScriptNative(Path.Combine(scriptRootPath, @"Install_Security.sql"), DatabaseName);
-            ExecuteSqlScriptNative(Path.Combine(scriptRootPath, @"Install_01_Schema.sql"), DatabaseName);
-            ExecuteSqlScriptNative(Path.Combine(scriptRootPath, @"Install_02_Procs.sql"), DatabaseName);
-            ExecuteSqlScriptNative(Path.Combine(scriptRootPath, @"Install_03_Data_Phase1.sql"), DatabaseName);
-            ExecuteSqlScriptNative(Path.Combine(scriptRootPath, @"Install_04_Data_Phase2.sql"), DatabaseName);
+            ExecuteSqlScriptNative(IO.Path.Combine(scriptRootPath, @"Install_Security.sql"), DatabaseName);
+            ExecuteSqlScriptNative(IO.Path.Combine(scriptRootPath, @"Install_01_Schema.sql"), DatabaseName);
+            ExecuteSqlScriptNative(IO.Path.Combine(scriptRootPath, @"Install_02_Procs.sql"), DatabaseName);
+            ExecuteSqlScriptNative(IO.Path.Combine(scriptRootPath, @"Install_03_Data_Phase1.sql"), DatabaseName);
+            ExecuteSqlScriptNative(IO.Path.Combine(scriptRootPath, @"Install_04_Data_Phase2.sql"), DatabaseName);
 
             DataProvider.InitializeForTests();
 
             if (SqlFileStreamEnabled)
-                ExecuteSqlScriptNative(Path.Combine(scriptRootPath, @"EnableFilestream.sql"), DatabaseName);
+                ExecuteSqlScriptNative(IO.Path.Combine(scriptRootPath, @"EnableFilestream.sql"), DatabaseName);
         }
         private void ExecuteSqlScriptNative(string scriptPath, string databaseName)
         {
             string sql;
-            using (var reader = new StreamReader(scriptPath))
+            using (var reader = new IO.StreamReader(scriptPath))
                 sql = reader.ReadToEnd();
             ExecuteSqlCommandNative(sql, databaseName);
         }
@@ -181,12 +184,12 @@ namespace SenseNet.BlobStorage.IntegrationTests
         }
         private string[] LoadCtds()
         {
-            var ctdRootPath = Path.GetFullPath(Path.Combine(
+            var ctdRootPath = IO.Path.GetFullPath(IO.Path.Combine(
                 AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\nuget\snadmin\install-services\import\System\Schema\ContentTypes"));
-            var xmlSources = Directory.GetFiles(ctdRootPath, "*.xml")
+            var xmlSources = IO.Directory.GetFiles(ctdRootPath, "*.xml")
                 .Select(p =>
                 {
-                    using (var r = new StreamReader(p))
+                    using (var r = new IO.StreamReader(p))
                         return r.ReadToEnd();
                 })
                 .ToArray();
@@ -226,11 +229,133 @@ namespace SenseNet.BlobStorage.IntegrationTests
             proc.CommandType = CommandType.Text;
             return (T)proc.ExecuteScalar();
         }
+        private DbDataReader ExecuteSqlReader(string sql)
+        {
+            var proc = DataProvider.CreateDataProcedure(sql);
+            proc.CommandType = CommandType.Text;
+            return proc.ExecuteReader();
+        }
+
+        #endregion
 
         [TestMethod]
         public void Blob_CreateFile()
         {
-            Assert.Inconclusive();
+            using (new SystemAccount())
+            {
+                var testRoot = CreateTestRoot();
+
+                var file = new File(testRoot) {Name = "File1.file"};
+                var expectedFileContent = "asdf";
+                file.Binary.SetStream(RepositoryTools.GetStreamFromString(expectedFileContent));
+
+                // action
+                file.Save();
+
+                // assert
+                var dbFiles = LoadDbFile(file.VersionId);
+                Assert.AreEqual(1, dbFiles.Length);
+                var dbFile = dbFiles[0];
+                Assert.IsNull(dbFile.BlobProvider);
+                Assert.IsNull(dbFile.BlobProviderData);
+                Assert.AreEqual(false, dbFile.IsDeleted);
+                Assert.AreEqual(false, dbFile.Staging);
+                Assert.AreEqual(0, dbFile.StagingVersionId);
+                Assert.AreEqual(0, dbFile.StagingPropertyTypeId);
+                Assert.AreEqual(7L, dbFile.Size);
+                Assert.IsNotNull(dbFile.Stream);
+                Assert.AreEqual(7L, dbFile.Stream.Length);
+                string actualFileContent;
+                using (var stream = new IO.MemoryStream(dbFile.Stream))
+                using (var reader = new IO.StreamReader(stream))
+                    actualFileContent = reader.ReadToEnd();
+                Assert.AreEqual(expectedFileContent, actualFileContent);
+            }
+        }
+
+
+        #region Tools
+
+        private class DbFile
+        {
+            public int FileId;
+            public string ContentType;
+            public string FileNameWithoutExtension;
+            public string Extension;
+            public long Size;
+            //public string Checksum;
+            public byte[] Stream;
+            public DateTime CreationDate;
+            //public Guid RowGuid;
+            //public long Timestamp;
+            public bool? Staging;
+            public int StagingVersionId;
+            public int StagingPropertyTypeId;
+            public bool? IsDeleted;
+            public string BlobProvider;
+            public string BlobProviderData;
+        }
+        private DbFile[] LoadDbFile(int versionId, string propertyName = "Binary")
+        {
+            var propTypeId = ActiveSchema.PropertyTypes[propertyName].Id;
+            var sql = $@"SELECT f.* FROM BinaryProperties b JOIN Files f on f.FileId = b.FileId WHERE b.VersionId = {versionId} and b.PropertyTypeId = {propTypeId}";
+            var dbFiles = new List<DbFile>();
+            using (var reader = ExecuteSqlReader(sql))
+            {
+                while (reader.Read())
+                {
+                    var file = new DbFile();
+                    file.FileId = reader.GetInt32(reader.GetOrdinal("FileId"));
+                    file.BlobProvider = reader.GetSafeString(reader.GetOrdinal("BlobProvider"));
+                    file.BlobProviderData = reader.GetSafeString(reader.GetOrdinal("BlobProviderData"));
+                    file.ContentType = reader.GetSafeString(reader.GetOrdinal("ContentType"));
+                    file.FileNameWithoutExtension = reader.GetSafeString(reader.GetOrdinal("FileNameWithoutExtension"));
+                    file.Extension = reader.GetSafeString(reader.GetOrdinal("Extension"));
+                    file.Size = reader.GetSafeInt64(reader.GetOrdinal("Size"));
+                    file.CreationDate = reader.GetSafeDateTime(reader.GetOrdinal("CreationDate")) ?? DateTime.MinValue;
+                    file.IsDeleted = reader.GetSafeBoolFromBit(reader.GetOrdinal("IsDeleted"));
+                    file.Staging = reader.GetSafeBoolFromBit(reader.GetOrdinal("Staging"));
+                    file.StagingPropertyTypeId = reader.GetSafeInt32(reader.GetOrdinal("StagingPropertyTypeId"));
+                    file.StagingVersionId = reader.GetSafeInt32(reader.GetOrdinal("StagingVersionId"));
+                    file.Stream = (byte[]) reader[reader.GetOrdinal("Stream")];
+                    dbFiles.Add(file);
+                }
+            }
+
+            return dbFiles.ToArray();
+        }
+
+        private Node CreateTestRoot()
+        {
+            var root = new SystemFolder(Repository.Root) {Name = Guid.NewGuid().ToString()};
+            root.Save();
+            return root;
+        }
+
+        #endregion
+    }
+    internal static class DbReaderExtensions
+    {
+        public static long GetSafeInt64(this IDataReader reader, int index)
+        {
+            return reader.IsDBNull(index) ? 0 : reader.GetInt64(index);
+        }
+        public static int GetSafeInt32(this IDataReader reader, int index)
+        {
+            return reader.IsDBNull(index) ? 0 : reader.GetInt32(index);
+        }
+        public static DateTime? GetSafeDateTime(this IDataReader reader, int index)
+        {
+            return reader.IsDBNull(index) ? (DateTime?)null : reader.GetDateTime(index);
+        }
+        public static string GetSafeString(this IDataReader reader, int index)
+        {
+            return reader.IsDBNull(index) ? null : reader.GetString(index);
+        }
+        public static bool GetSafeBoolFromBit(this IDataReader reader, int index)
+        {
+            return !reader.IsDBNull(index) && reader.GetBoolean(index);
         }
     }
+
 }
