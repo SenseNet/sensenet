@@ -84,7 +84,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BlobStorageIntegrationTests.cs" />
-    <Compile Include="UnitTest1.cs" />
+    <Compile Include="BuiltInProviderSqlFsTests.cs" />
+    <Compile Include="BuiltInProviderTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

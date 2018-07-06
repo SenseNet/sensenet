@@ -17,6 +17,7 @@ using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Tests;
 using SenseNet.Tests.Implementations;
@@ -56,6 +57,9 @@ namespace SenseNet.BlobStorage.IntegrationTests
         {
             if (!_prepared)
             {
+                ContentTypeManager.Reset();
+                //ActiveSchema.Reset();
+
                 _connectionStringBackup = Configuration.ConnectionStrings.ConnectionString;
                 _securityDatabaseConnectionString = ConnectionStrings.SecurityDatabaseConnectionString;
                 var cnstr = GetConnectionString(DatabaseName);
@@ -123,32 +127,28 @@ namespace SenseNet.BlobStorage.IntegrationTests
                 sql = reader.ReadToEnd();
             ExecuteSqlCommandNative(sql, databaseName);
         }
+
         private void ExecuteSqlCommandNative(string sql, string databaseName)
         {
             var cnstr = GetConnectionString(databaseName);
-            var scripts = sql.Split(new []{"\r\nGO"}, StringSplitOptions.RemoveEmptyEntries);
+            var scripts = sql.Split(new[] {"\r\nGO"}, StringSplitOptions.RemoveEmptyEntries);
             var index = 0;
-            try
+
+            using (var cn = new SqlConnection(cnstr))
             {
-                using (var cn = new SqlConnection(cnstr))
+                cn.Open();
+                foreach (var script in scripts)
                 {
-                    cn.Open();
-                    foreach (var script in scripts)
+                    using (var proc = new SqlCommand(script, cn))
                     {
-                        using (var proc = new SqlCommand(script, cn))
-                        {
-                            proc.CommandType = CommandType.Text;
-                            proc.ExecuteNonQuery();
-                        }
-                        index++;
+                        proc.CommandType = CommandType.Text;
+                        proc.ExecuteNonQuery();
                     }
+                    index++;
                 }
             }
-            catch (Exception e)
-            {
-                throw;
-            }
         }
+
         private T ExecuteSqlScalarNative<T>(string sql, string databaseName)
         {
             var cnstr = GetConnectionString(databaseName);
@@ -238,8 +238,7 @@ namespace SenseNet.BlobStorage.IntegrationTests
 
         #endregion
 
-        [TestMethod]
-        public void Blob_CreateFile()
+        public void TestCase01_CreateFile()
         {
             using (new SystemAccount())
             {
@@ -265,14 +264,9 @@ namespace SenseNet.BlobStorage.IntegrationTests
                 Assert.AreEqual(7L, dbFile.Size);
                 Assert.IsNotNull(dbFile.Stream);
                 Assert.AreEqual(7L, dbFile.Stream.Length);
-                string actualFileContent;
-                using (var stream = new IO.MemoryStream(dbFile.Stream))
-                using (var reader = new IO.StreamReader(stream))
-                    actualFileContent = reader.ReadToEnd();
-                Assert.AreEqual(expectedFileContent, actualFileContent);
+                Assert.AreEqual(expectedFileContent, GetStringFromBytes(dbFile.Stream));
             }
         }
-
 
         #region Tools
 
@@ -283,11 +277,11 @@ namespace SenseNet.BlobStorage.IntegrationTests
             public string FileNameWithoutExtension;
             public string Extension;
             public long Size;
-            //public string Checksum;
+            public string Checksum;
             public byte[] Stream;
             public DateTime CreationDate;
-            //public Guid RowGuid;
-            //public long Timestamp;
+            public Guid RowGuid;
+            public long Timestamp;
             public bool? Staging;
             public int StagingVersionId;
             public int StagingPropertyTypeId;
@@ -318,6 +312,9 @@ namespace SenseNet.BlobStorage.IntegrationTests
                     file.StagingPropertyTypeId = reader.GetSafeInt32(reader.GetOrdinal("StagingPropertyTypeId"));
                     file.StagingVersionId = reader.GetSafeInt32(reader.GetOrdinal("StagingVersionId"));
                     file.Stream = (byte[]) reader[reader.GetOrdinal("Stream")];
+                    file.Checksum = reader.GetSafeString(reader.GetOrdinal("Checksum"));
+                    file.RowGuid = reader.GetGuid(reader.GetOrdinal("RowGuid"));
+                    file.Timestamp = DataProvider.GetLongFromBytes((byte[])reader[reader.GetOrdinal("Timestamp")]);
                     dbFiles.Add(file);
                 }
             }
@@ -332,6 +329,12 @@ namespace SenseNet.BlobStorage.IntegrationTests
             return root;
         }
 
+        private string GetStringFromBytes(byte[] bytes)
+        {
+            using (var stream = new IO.MemoryStream(bytes))
+            using (var reader = new IO.StreamReader(stream))
+                return reader.ReadToEnd();
+        }
         #endregion
     }
     internal static class DbReaderExtensions
