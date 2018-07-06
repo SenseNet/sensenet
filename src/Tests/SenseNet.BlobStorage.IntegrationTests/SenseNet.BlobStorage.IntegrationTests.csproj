@@ -86,6 +86,7 @@
     <Compile Include="BlobStorageIntegrationTests.cs" />
     <Compile Include="BuiltInProviderSqlFsTests.cs" />
     <Compile Include="BuiltInProviderTests.cs" />
+    <Compile Include="DbReaderExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
