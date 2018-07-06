@@ -8,7 +8,7 @@ namespace SenseNet.BlobStorage.IntegrationTests
         protected override string DatabaseName => "sn7blobtests_builtin";
         protected override bool SqlFsEnabled => false;
         protected override bool SqlFsUsed => false;
-        protected override void ConfigureMinimumSizeForFileStreamInBytes(int newValue, out int oldValue)
+        protected internal override void ConfigureMinimumSizeForFileStreamInBytes(int newValue, out int oldValue)
         {
             // do nothing
             oldValue = 0;

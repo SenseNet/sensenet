@@ -42,7 +42,7 @@ namespace SenseNet.BlobStorage.IntegrationTests
         protected abstract string DatabaseName { get; }
         protected abstract bool SqlFsEnabled { get; }
         protected abstract bool SqlFsUsed { get; }
-        protected abstract void ConfigureMinimumSizeForFileStreamInBytes(int newValue, out int oldValue);
+        protected internal abstract void ConfigureMinimumSizeForFileStreamInBytes(int newValue, out int oldValue);
 
         private static readonly string ConnetionStringBase = @"Data Source=.\SQL2016;Integrated Security=SSPI;Persist Security Info=False";
         private string GetConnectionString(string databaseName = null)
@@ -243,10 +243,11 @@ namespace SenseNet.BlobStorage.IntegrationTests
         public void TestCase01_CreateFile()
         {
             using (new SystemAccount())
+            using(new SqlFileStreamSizeSwindler(this, 10))
             {
                 var testRoot = CreateTestRoot();
 
-                var file = new File(testRoot) {Name = "File1.file"};
+                var file = new File(testRoot) { Name = "File1.file" };
                 var expectedText = "Lorem ipsum dolo sit amet";
                 file.Binary.SetStream(RepositoryTools.GetStreamFromString(expectedText));
 
@@ -351,6 +352,23 @@ namespace SenseNet.BlobStorage.IntegrationTests
             using (var reader = new IO.StreamReader(stream))
                 return reader.ReadToEnd();
         }
+
+        private class SqlFileStreamSizeSwindler : IDisposable
+        {
+            private readonly BlobStorageIntegrationTests _testClass;
+            private readonly int _originalValue;
+
+            public SqlFileStreamSizeSwindler(BlobStorageIntegrationTests testClass, int cheat)
+            {
+                _testClass = testClass;
+                testClass.ConfigureMinimumSizeForFileStreamInBytes(cheat, out _originalValue);
+            }
+            public void Dispose()
+            {
+                _testClass.ConfigureMinimumSizeForFileStreamInBytes(_originalValue, out _);
+            }
+        }
+
         #endregion
     }
     internal static class DbReaderExtensions
@@ -380,5 +398,4 @@ namespace SenseNet.BlobStorage.IntegrationTests
             return reader.IsDBNull(index) ? null : (byte[])reader[index];
         }
     }
-
 }
