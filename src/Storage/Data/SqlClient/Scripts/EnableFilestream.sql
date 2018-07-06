@@ -197,7 +197,7 @@ EXEC dbo.sp_executesql @statement = N'CREATE PROCEDURE [dbo].[proc_BinaryPropert
 	@Id int,
 	@Offset int,
 	@Value varbinary(max),
-	@UseFileStream tinyint
+	@UseFileStream tinyint = 0
 )
 AS
 	IF(@UseFileStream = 1)
