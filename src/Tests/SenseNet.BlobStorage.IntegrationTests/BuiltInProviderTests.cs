@@ -6,7 +6,13 @@ namespace SenseNet.BlobStorage.IntegrationTests
     public class BuiltInProviderTests : BlobStorageIntegrationTests
     {
         protected override string DatabaseName => "sn7blobtests_builtin";
-        protected override bool SqlFileStreamEnabled => false;
+        protected override bool SqlFsEnabled => false;
+        protected override bool SqlFsUsed => false;
+        protected override void ConfigureMinimumSizeForFileStreamInBytes(int newValue, out int oldValue)
+        {
+            // do nothing
+            oldValue = 0;
+        }
 
         [ClassCleanup]
         public static void CleanupClass()

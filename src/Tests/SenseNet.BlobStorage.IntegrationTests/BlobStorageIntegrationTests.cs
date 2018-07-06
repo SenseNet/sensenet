@@ -40,7 +40,9 @@ namespace SenseNet.BlobStorage.IntegrationTests
         }
 
         protected abstract string DatabaseName { get; }
-        protected abstract bool SqlFileStreamEnabled { get; }
+        protected abstract bool SqlFsEnabled { get; }
+        protected abstract bool SqlFsUsed { get; }
+        protected abstract void ConfigureMinimumSizeForFileStreamInBytes(int newValue, out int oldValue);
 
         private static readonly string ConnetionStringBase = @"Data Source=.\SQL2016;Integrated Security=SSPI;Persist Security Info=False";
         private string GetConnectionString(string databaseName = null)
@@ -117,7 +119,7 @@ namespace SenseNet.BlobStorage.IntegrationTests
 
             DataProvider.InitializeForTests();
 
-            if (SqlFileStreamEnabled)
+            if (SqlFsEnabled)
                 ExecuteSqlScriptNative(IO.Path.Combine(scriptRootPath, @"EnableFilestream.sql"), DatabaseName);
         }
         private void ExecuteSqlScriptNative(string scriptPath, string databaseName)
@@ -245,14 +247,14 @@ namespace SenseNet.BlobStorage.IntegrationTests
                 var testRoot = CreateTestRoot();
 
                 var file = new File(testRoot) {Name = "File1.file"};
-                var expectedFileContent = "asdf";
-                file.Binary.SetStream(RepositoryTools.GetStreamFromString(expectedFileContent));
+                var expectedText = "Lorem ipsum dolo sit amet";
+                file.Binary.SetStream(RepositoryTools.GetStreamFromString(expectedText));
 
                 // action
                 file.Save();
 
                 // assert
-                var dbFiles = LoadDbFile(file.VersionId);
+                var dbFiles = LoadDbFiles(file.VersionId);
                 Assert.AreEqual(1, dbFiles.Length);
                 var dbFile = dbFiles[0];
                 Assert.IsNull(dbFile.BlobProvider);
@@ -261,10 +263,21 @@ namespace SenseNet.BlobStorage.IntegrationTests
                 Assert.AreEqual(false, dbFile.Staging);
                 Assert.AreEqual(0, dbFile.StagingVersionId);
                 Assert.AreEqual(0, dbFile.StagingPropertyTypeId);
-                Assert.AreEqual(7L, dbFile.Size);
-                Assert.IsNotNull(dbFile.Stream);
-                Assert.AreEqual(7L, dbFile.Stream.Length);
-                Assert.AreEqual(expectedFileContent, GetStringFromBytes(dbFile.Stream));
+                Assert.AreEqual(expectedText.Length + 3, dbFile.Size);
+                if (SqlFsUsed)
+                {
+                    Assert.IsNull(dbFile.Stream);
+                    Assert.IsNotNull(dbFile.FileStream);
+                    Assert.AreEqual(dbFile.Size, dbFile.FileStream.Length);
+                    Assert.AreEqual(expectedText, GetStringFromBytes(dbFile.FileStream));
+                }
+                else
+                {
+                    Assert.IsNull(dbFile.FileStream);
+                    Assert.IsNotNull(dbFile.Stream);
+                    Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
+                    Assert.AreEqual(expectedText, GetStringFromBytes(dbFile.Stream));
+                }
             }
         }
 
@@ -288,8 +301,9 @@ namespace SenseNet.BlobStorage.IntegrationTests
             public bool? IsDeleted;
             public string BlobProvider;
             public string BlobProviderData;
+            public byte[] FileStream;
         }
-        private DbFile[] LoadDbFile(int versionId, string propertyName = "Binary")
+        private DbFile[] LoadDbFiles(int versionId, string propertyName = "Binary")
         {
             var propTypeId = ActiveSchema.PropertyTypes[propertyName].Id;
             var sql = $@"SELECT f.* FROM BinaryProperties b JOIN Files f on f.FileId = b.FileId WHERE b.VersionId = {versionId} and b.PropertyTypeId = {propTypeId}";
@@ -315,6 +329,8 @@ namespace SenseNet.BlobStorage.IntegrationTests
                     file.Checksum = reader.GetSafeString(reader.GetOrdinal("Checksum"));
                     file.RowGuid = reader.GetGuid(reader.GetOrdinal("RowGuid"));
                     file.Timestamp = DataProvider.GetLongFromBytes((byte[])reader[reader.GetOrdinal("Timestamp")]);
+                    if (reader.FieldCount > 16)
+                        file.FileStream = reader.GetSafeBytes(reader.GetOrdinal("FileStream"));
                     dbFiles.Add(file);
                 }
             }
@@ -358,6 +374,10 @@ namespace SenseNet.BlobStorage.IntegrationTests
         public static bool GetSafeBoolFromBit(this IDataReader reader, int index)
         {
             return !reader.IsDBNull(index) && reader.GetBoolean(index);
+        }
+        public static byte[] GetSafeBytes(this IDataReader reader, int index)
+        {
+            return reader.IsDBNull(index) ? null : (byte[])reader[index];
         }
     }
 
