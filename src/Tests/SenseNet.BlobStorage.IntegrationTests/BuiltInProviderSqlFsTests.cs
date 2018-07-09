@@ -30,5 +30,10 @@ namespace SenseNet.BlobStorage.IntegrationTests
         {
             base.TestCase01_CreateFile();
         }
+        [TestMethod]
+        public void Blob_BuiltInFS_02_UpdateFile()
+        {
+            base.TestCase02_UpdateFile();
+        }
     }
 }

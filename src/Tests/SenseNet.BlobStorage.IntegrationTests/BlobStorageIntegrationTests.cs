@@ -43,23 +43,27 @@ namespace SenseNet.BlobStorage.IntegrationTests
             return $"Initial Catalog={databaseName ?? DatabaseName};{ConnetionStringBase}";
         }
 
-        private bool _prepared;
+        private string _connectionString;
         private string _connectionStringBackup;
-        private string _securityDatabaseConnectionString;
+        private string _securityConnectionStringBackup;
         private RepositoryInstance _repositoryInstance;
         [TestInitialize]
         public void Initialize()
         {
-            if (!_prepared)
+            // Test class initialization problem: the test framework
+            // uses brand new instance for each test method.
+
+            var prepared = Instances.TryGetValue(this.GetType(), out var instance);
+            if (!prepared)
             {
                 ContentTypeManager.Reset();
                 //ActiveSchema.Reset();
 
-                _connectionStringBackup = Configuration.ConnectionStrings.ConnectionString;
-                _securityDatabaseConnectionString = ConnectionStrings.SecurityDatabaseConnectionString;
-                var cnstr = GetConnectionString(DatabaseName);
-                ConnectionStrings.ConnectionString = cnstr;
-                ConnectionStrings.SecurityDatabaseConnectionString = cnstr;
+                _connectionStringBackup = ConnectionStrings.ConnectionString;
+                _securityConnectionStringBackup = ConnectionStrings.SecurityDatabaseConnectionString;
+                _connectionString = GetConnectionString(DatabaseName);
+                ConnectionStrings.ConnectionString = _connectionString;
+                ConnectionStrings.SecurityDatabaseConnectionString = _connectionString;
 
                 PrepareDatabase();
 
@@ -68,7 +72,11 @@ namespace SenseNet.BlobStorage.IntegrationTests
                     PrepareRepository();
 
                 Instances[this.GetType()] = this;
-                _prepared = true;
+            }
+            else
+            {
+                ConnectionStrings.ConnectionString = instance._connectionString;
+                ConnectionStrings.SecurityDatabaseConnectionString = instance._connectionString;
             }
         }
 
@@ -81,8 +89,8 @@ namespace SenseNet.BlobStorage.IntegrationTests
         {
             if (_connectionStringBackup != null)
                 ConnectionStrings.ConnectionString = _connectionStringBackup;
-            if (_securityDatabaseConnectionString != null)
-                ConnectionStrings.SecurityDatabaseConnectionString = _securityDatabaseConnectionString;
+            if (_securityConnectionStringBackup != null)
+                ConnectionStrings.SecurityDatabaseConnectionString = _securityConnectionStringBackup;
 
             _repositoryInstance?.Dispose();
         }
@@ -251,6 +259,54 @@ namespace SenseNet.BlobStorage.IntegrationTests
                 var dbFiles = LoadDbFiles(file.VersionId);
                 Assert.AreEqual(1, dbFiles.Length);
                 var dbFile = dbFiles[0];
+                Assert.IsNull(dbFile.BlobProvider);
+                Assert.IsNull(dbFile.BlobProviderData);
+                Assert.AreEqual(false, dbFile.IsDeleted);
+                Assert.AreEqual(false, dbFile.Staging);
+                Assert.AreEqual(0, dbFile.StagingVersionId);
+                Assert.AreEqual(0, dbFile.StagingPropertyTypeId);
+                Assert.AreEqual(expectedText.Length + 3, dbFile.Size);
+                if (SqlFsUsed)
+                {
+                    Assert.IsNull(dbFile.Stream);
+                    Assert.IsNotNull(dbFile.FileStream);
+                    Assert.AreEqual(dbFile.Size, dbFile.FileStream.Length);
+                    Assert.AreEqual(expectedText, GetStringFromBytes(dbFile.FileStream));
+                }
+                else
+                {
+                    Assert.IsNull(dbFile.FileStream);
+                    Assert.IsNotNull(dbFile.Stream);
+                    Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
+                    Assert.AreEqual(expectedText, GetStringFromBytes(dbFile.Stream));
+                }
+            }
+        }
+        public void TestCase02_UpdateFile()
+        {
+            using (new SystemAccount())
+            using (new SqlFileStreamSizeSwindler(this, 10))
+            {
+                var testRoot = CreateTestRoot();
+
+                var file = new File(testRoot) { Name = "File1.file" };
+                var initialText = "Lorem ipsum dolo sit amet...";
+                file.Binary.SetStream(RepositoryTools.GetStreamFromString(initialText));
+                file.Save();
+                var fileId = file.Id;
+                var initialBlobId = file.Binary.FileId;
+                file = Node.Load<File>(fileId);
+                var expectedText = "Cras lobortis consequat nisi...";
+                file.Binary.SetStream(RepositoryTools.GetStreamFromString(expectedText));
+
+                // action
+                file.Save();
+
+                // assert
+                var dbFiles = LoadDbFiles(file.VersionId);
+                Assert.AreEqual(1, dbFiles.Length);
+                var dbFile = dbFiles[0];
+                //Assert.AreNotEqual(initialBlobId, file.Binary.FileId);
                 Assert.IsNull(dbFile.BlobProvider);
                 Assert.IsNull(dbFile.BlobProviderData);
                 Assert.AreEqual(false, dbFile.IsDeleted);
