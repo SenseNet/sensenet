@@ -50,20 +50,13 @@ namespace SenseNet.MsSqlFsBlobProvider
             return fsEnabled;
         }
 
-        #region ClearStreamByFileIdScript, ClearFileStreamByFileIdScript, GetBlobContextDataScript, GetBlobContextDataFileStreamScript
+        #region ClearFileStreamByFileIdScript, GetBlobContextDataFileStreamScript
 
         private const string GetBlobContextDataFileStreamScript = @"  SELECT Size, BlobProvider, BlobProviderData, FileStream.PathName() AS Path, GET_FILESTREAM_TRANSACTION_CONTEXT() AS TransactionContext
 FROM  dbo.Files WHERE FileId = @FileId
 ";
 
-        private const string GetBlobContextDataScript = @"  SELECT Size, BlobProvider, BlobProviderData
-FROM  dbo.Files WHERE FileId = @FileId
-";
-
         private const string ClearFileStreamByFileIdScript = @"UPDATE Files SET Stream = NULL, FileStream = CONVERT(varbinary, N'') WHERE FileId = @FileId AND FileStream IS NULL;
-";
-
-        private const string ClearStreamByFileIdScript = @"UPDATE Files SET Stream = NULL WHERE FileId = @FileId;
 ";
 
         #endregion
@@ -118,15 +111,11 @@ FROM  dbo.Files WHERE FileId = @FileId
             // this is a helper method to aid both the sync and 
             // async version of the GetBlobContext operation
 
-            var sql = BlobStorage.FileStreamEnabled
-                ? GetBlobContextDataFileStreamScript
-                : GetBlobContextDataScript;
+            var sql = GetBlobContextDataFileStreamScript;
 
             // add clear stream prefix of necessary
             if (clearStream)
-                sql = (BlobStorage.FileStreamEnabled
-                    ? ClearFileStreamByFileIdScript
-                    : ClearStreamByFileIdScript) + sql;
+                sql = ClearFileStreamByFileIdScript + sql;
 
             var cmd = new SqlProcedure {CommandText = sql, CommandType = CommandType.Text};
 
@@ -151,17 +140,12 @@ FROM  dbo.Files WHERE FileId = @FileId
             var providerData = reader.GetSafeString(2);
 
             var useFileStream = false;
-            FileStreamData fsData = null;
-
-            if (BlobStorage.FileStreamEnabled)
+            var fsData = new FileStreamData
             {
-                fsData = new FileStreamData
-                {
-                    Path = reader.GetSafeString(3),
-                    TransactionContext = reader.GetSqlBytes(4).Buffer
-                };
-                useFileStream = fsData.Path != null;
-            }
+                Path = reader.GetSafeString(3),
+                TransactionContext = reader.GetSqlBytes(4).Buffer
+            };
+            useFileStream = fsData.Path != null;
 
             var provider = BlobStorageBase.GetProvider(providerName);
 
@@ -223,8 +207,7 @@ SELECT @BinPropId, @FileId, [Timestamp], FileStream.PathName(), GET_FILESTREAM_T
         public void InsertBinaryProperty(IBlobProvider blobProvider, BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
         {
             var streamLength = value.Stream?.Length ?? 0;
-            var useFileStream = BlobStorage.FileStreamEnabled &&
-                                    streamLength > Convert.ToInt64(BlobStorage.MinimumSizeForFileStreamInBytes);
+            var useFileStream = streamLength > Convert.ToInt64(BlobStorage.MinimumSizeForFileStreamInBytes);
             var ctx = new BlobStorageContext(blobProvider) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = 0, Length = streamLength, UseFileStream = useFileStream };
 
             // In case of an external provider allocate the place for bytes and
@@ -339,16 +322,7 @@ SELECT CAST(@@IDENTITY AS int)
             value.Id = id;
         }
 
-        #region UpdateBinarypropertyNewFilerowScript, UpdateBinarypropertyNewFilerowFilestreamScript
-        private const string UpdateBinarypropertyNewFilerowScript = @"DECLARE @FileId int
-INSERT INTO Files (ContentType, FileNameWithoutExtension, Extension, [Size], [BlobProvider], [BlobProviderData], [Checksum], [Stream])
-    VALUES (@ContentType, @FileNameWithoutExtension, @Extension, @Size, @BlobProvider, @BlobProviderData,
-		CASE WHEN (@Size <= 0) THEN NULL ELSE @Checksum END,
-		CASE WHEN (@Size <= 0) THEN NULL ELSE CONVERT(varbinary, '') END)
-SELECT @FileId = @@IDENTITY
-UPDATE BinaryProperties SET FileId = @FileId WHERE BinaryPropertyId = @BinaryPropertyId
-SELECT @FileId
-";
+        #region UpdateBinarypropertyNewFilerowFilestreamScript
 
         private const string UpdateBinarypropertyNewFilerowFilestreamScript = @"DECLARE @FileId int
 INSERT INTO Files (ContentType, FileNameWithoutExtension, Extension, [Size], [BlobProvider], [BlobProviderData], [Checksum], [Stream], [FileStream])
@@ -393,14 +367,6 @@ SELECT @FileId, FileStream.PathName(), GET_FILESTREAM_TRANSACTION_CONTEXT() FROM
                 value.BlobProviderData = null;
             }
 
-            if (blobProvider == BlobStorageBase.BuiltInProvider && !BlobStorage.FileStreamEnabled)
-            {
-                // MS-SQL does not support stream size over [Int32.MaxValue],
-                // but check only if Filestream is not enabled
-                if (streamLength > int.MaxValue)
-                    throw new NotSupportedException();
-            }
-
             var isRepositoryStream = value.Stream is RepositoryStream || value.Stream is SenseNetSqlFileStream;
             var hasStream = isRepositoryStream || value.Stream is MemoryStream;
             if (!hasStream)
@@ -421,9 +387,7 @@ SELECT @FileId, FileStream.PathName(), GET_FILESTREAM_TRANSACTION_CONTEXT() FROM
                 else
                 {
                     commandType = CommandType.Text;
-                    sql = BlobStorage.FileStreamEnabled
-                        ? UpdateBinarypropertyNewFilerowFilestreamScript
-                        : UpdateBinarypropertyNewFilerowScript;
+                    sql = UpdateBinarypropertyNewFilerowFilestreamScript;
                 }
 
                 cmd = new SqlProcedure { CommandText = sql, CommandType = commandType };
@@ -437,29 +401,23 @@ SELECT @FileId, FileStream.PathName(), GET_FILESTREAM_TRANSACTION_CONTEXT() FROM
                 cmd.Parameters.Add("@BlobProviderData", SqlDbType.NVarChar, int.MaxValue).Value = value.BlobProviderData != null ? (object)value.BlobProviderData : DBNull.Value;
 
                 int fileId;
-                if (BlobStorage.FileStreamEnabled)
+                string path;
+                byte[] transactionContext;
+
+                // Update row and retrieve file path and 
+                // transaction context for the Filestream column
+                using (var reader = cmd.ExecuteReader())
                 {
-                    string path;
-                    byte[] transactionContext;
+                    reader.Read();
 
-                    // Update row and retrieve file path and 
-                    // transaction context for the Filestream column
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        reader.Read();
-
-                        fileId = reader.GetInt32(0);
-                        path = reader.GetSafeString(1);
-                        transactionContext = reader.IsDBNull(2) ? null : reader.GetSqlBytes(2).Buffer;
-                    }
-
-                    if (!string.IsNullOrEmpty(path))
-                        fileStreamData = new FileStreamData { Path = path, TransactionContext = transactionContext };
+                    fileId = reader.GetInt32(0);
+                    path = reader.GetSafeString(1);
+                    transactionContext = reader.IsDBNull(2) ? null : reader.GetSqlBytes(2).Buffer;
                 }
-                else
-                {
-                    fileId = (int)cmd.ExecuteScalar();
-                }
+
+                if (!string.IsNullOrEmpty(path))
+                    fileStreamData = new FileStreamData { Path = path, TransactionContext = transactionContext };
+
                 if (fileId > 0 && fileId != value.FileId)
                     value.FileId = fileId;
             }
@@ -507,13 +465,9 @@ SELECT @FileId, FileStream.PathName(), GET_FILESTREAM_TRANSACTION_CONTEXT() FROM
             }
         }
 
-        #region LoadBinaryCacheentityColumnsFormatScript, LoadBinaryCacheentityColumnsFormatFilestreamScript, LoadBinaryCacheentityFormatScript
+        #region LoadBinaryCacheentityFormatScript
 
-        private const string LoadBinaryCacheentityColumnsFormatScript = @"CASE  WHEN F.Size < {0} THEN F.Stream
-		            ELSE null
-	            END AS Stream";
-
-        private const string LoadBinaryCacheentityColumnsFormatFilestreamScript = @"CASE  WHEN Size < {0} AND F.FileStream IS NOT NULL THEN F.FileStream
+        private const string LoadBinaryCacheentityFormatScript = @"SELECT F.Size, B.BinaryPropertyId, F.FileId, F.BlobProvider, F.BlobProviderData, CASE  WHEN Size < {0} AND F.FileStream IS NOT NULL THEN F.FileStream
                     WHEN Size < {0} AND F.FileStream IS NULL THEN F.Stream
 		            ELSE null
 	            END AS Stream,
@@ -522,9 +476,7 @@ SELECT @FileId, FileStream.PathName(), GET_FILESTREAM_TRANSACTION_CONTEXT() FROM
 		            ELSE 1
 	            END AS UseFileStream,
                 F.FileStream.PathName() AS Path,
-                GET_FILESTREAM_TRANSACTION_CONTEXT() AS TransactionContext";
-
-        private const string LoadBinaryCacheentityFormatScript = @"SELECT F.Size, B.BinaryPropertyId, F.FileId, F.BlobProvider, F.BlobProviderData, {0}
+                GET_FILESTREAM_TRANSACTION_CONTEXT() AS TransactionContext
             FROM dbo.BinaryProperties B
                 JOIN Files F ON B.FileId = F.FileId
             WHERE B.VersionId = @VersionId AND B.PropertyTypeId = @PropertyTypeId AND F.Staging IS NULL";
@@ -539,12 +491,7 @@ SELECT @FileId, FileStream.PathName(), GET_FILESTREAM_TRANSACTION_CONTEXT() FROM
         /// <param name="propertyTypeId">Binary property type id.</param>
         public BinaryCacheEntity LoadBinaryCacheEntity(int versionId, int propertyTypeId)
         {
-            var columnDefinitions = BlobStorage.FileStreamEnabled
-                ? string.Format(LoadBinaryCacheentityColumnsFormatFilestreamScript, BlobStorage.BinaryCacheSize)
-                : string.Format(LoadBinaryCacheentityColumnsFormatScript, BlobStorage.BinaryCacheSize);
-
-            var commandText = string.Format(LoadBinaryCacheentityFormatScript, columnDefinitions);
-
+            var commandText = string.Format(LoadBinaryCacheentityFormatScript, BlobStorage.BinaryCacheSize);
             using (var cmd = new SqlProcedure { CommandText = commandText })
             {
                 cmd.Parameters.Add("@VersionId", SqlDbType.Int).Value = versionId;
@@ -569,22 +516,17 @@ SELECT @FileId, FileStream.PathName(), GET_FILESTREAM_TRANSACTION_CONTEXT() FROM
                     else
                         rawData = (byte[])reader.GetValue(5);
 
-                    var useFileStream = false;
 
                     FileStreamData fileStreamData = null;
-                    if (BlobStorage.FileStreamEnabled)
+                    var useFileStream = reader.GetInt32(6) == 1;
+                    if (useFileStream)
                     {
-                        useFileStream = reader.GetInt32(6) == 1;
-
-                        if (useFileStream)
+                        // fill Filestream info if we really need it
+                        fileStreamData = new FileStreamData
                         {
-                            // fill Filestream info if we really need it
-                            fileStreamData = new FileStreamData
-                            {
-                                Path = reader.GetSafeString(7),
-                                TransactionContext = reader.GetSqlBytes(8).Buffer
-                            };
-                        }
+                            Path = reader.GetSafeString(7),
+                            TransactionContext = reader.GetSqlBytes(8).Buffer
+                        };
                     }
 
                     var provider = BlobStorageBase.GetProvider(providerName);
@@ -604,9 +546,9 @@ SELECT @FileId, FileStream.PathName(), GET_FILESTREAM_TRANSACTION_CONTEXT() FROM
             }
         }
 
-        #region InsertStagingBinaryStartScript, InsertStagingBinaryScript, InsertStagingBinaryFsScript, InsertStagingBinaryEndScript
+        #region InsertStagingBinaryScript
 
-        private const string InsertStagingBinaryStartScript = @"
+        private const string InsertStagingBinaryScript = @"
 DECLARE @ContentType varchar(50);
 DECLARE @FileNameWithoutExtension varchar(450);
 DECLARE @Extension varchar(50);
@@ -626,16 +568,10 @@ BEGIN
     SET @FileNameWithoutExtension = '';
     SET @Extension = '';
 END
-";
-        private const string InsertStagingBinaryScript = @"
-INSERT INTO Files ([ContentType],[FileNameWithoutExtension],[Extension],[Size],[Checksum],[CreationDate], [Staging], [StagingVersionId], [StagingPropertyTypeId], [BlobProvider], [BlobProviderData])
-VALUES (@ContentType, @FileNameWithoutExtension, @Extension, @Size, NULL, GETUTCDATE(), 1, @VersionId, @PropertyTypeId, @BlobProvider, @BlobProviderData);            
-";
-        private const string InsertStagingBinaryFsScript = @"
+
 INSERT INTO Files ([ContentType],[FileNameWithoutExtension],[Extension],[Size],[Checksum],[CreationDate], [Staging], [StagingVersionId], [StagingPropertyTypeId], [BlobProvider], [BlobProviderData], [FileStream])
 VALUES (@ContentType, @FileNameWithoutExtension, @Extension, @Size, NULL, GETUTCDATE(), 1, @VersionId, @PropertyTypeId, @BlobProvider, @BlobProviderData, CASE @UseSqlFileStream WHEN 0 THEN NULL ELSE (0x) END);
-";
-        private const string InsertStagingBinaryEndScript = @"
+
 SET @FileId = @@IDENTITY;
 
 -- lazy binary row creation
@@ -684,12 +620,9 @@ COMMIT TRAN";
                 blobProviderData = BlobStorageContext.SerializeBlobProviderData(ctx.BlobProviderData);
             }
 
-            var sql = InsertStagingBinaryStartScript +
-                (BlobStorage.FileStreamEnabled ? InsertStagingBinaryFsScript : InsertStagingBinaryScript) +
-                InsertStagingBinaryEndScript;
             try
             {
-                using (var cmd = new SqlProcedure { CommandText = sql, CommandType = CommandType.Text })
+                using (var cmd = new SqlProcedure { CommandText = InsertStagingBinaryScript, CommandType = CommandType.Text })
                 {
                     cmd.Parameters.Add("@VersionId", SqlDbType.Int).Value = versionId;
                     cmd.Parameters.Add("@PropertyTypeId", SqlDbType.Int).Value = propertyTypeId;

@@ -33,7 +33,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// any time. Only the Parse method below can be used to extract the values. The layers above should
         /// NOT parse and use the ids compiled into this token.
         /// </summary>
-        internal string GetToken()
+        public string GetToken()
         {
             return $"{this.VersionId}|{this.PropertyTypeId}|{this.BinaryPropertyId}|{this.FileId}";
         }
