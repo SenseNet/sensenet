@@ -53,11 +53,7 @@ namespace SenseNet.MsSqlFsBlobProvider
                 var offsetParameter = cmd.Parameters.Add("@Offset", SqlDbType.Int);
                 var valueParameter = cmd.Parameters.Add("@Value", SqlDbType.VarBinary, streamSize);
 
-                if (BlobStorage.FileStreamEnabled)
-                {
-                    var useFileStreamParameter = cmd.Parameters.Add("@UseFileStream", SqlDbType.TinyInt);
-                    useFileStreamParameter.Value = false;
-                }
+                cmd.Parameters.Add("@UseFileStream", SqlDbType.TinyInt).Value = false;
 
                 var offset = 0;
                 byte[] buffer = null;
@@ -164,11 +160,7 @@ namespace SenseNet.MsSqlFsBlobProvider
                 var offsetParameter = cmd.Parameters.Add("@Offset", SqlDbType.Int);
                 var valueParameter = cmd.Parameters.Add("@Value", SqlDbType.VarBinary, streamSize);
 
-                if (BlobStorage.FileStreamEnabled)
-                {
-                    var useFileStreamParameter = cmd.Parameters.Add("@UseFileStream", SqlDbType.TinyInt);
-                    useFileStreamParameter.Value = false;
-                }
+                cmd.Parameters.Add("@UseFileStream", SqlDbType.TinyInt).Value = false;
 
                 var offset = 0;
                 byte[] buffer = null;
@@ -233,9 +225,7 @@ namespace SenseNet.MsSqlFsBlobProvider
             // do nothing
         }
 
-        #region LoadBinaryFragmentScript, LoadBinaryFragmentFilestreamScript
-
-        private const string LoadBinaryFragmentScript = @"SELECT SUBSTRING([Stream], @Position, @Count) FROM dbo.Files WHERE FileId = @FileId";
+        #region LoadBinaryFragmentFilestreamScript
 
         private const string LoadBinaryFragmentFilestreamScript = @"SELECT 
 	            CASE WHEN FileStream IS NULL
@@ -248,13 +238,9 @@ namespace SenseNet.MsSqlFsBlobProvider
         #endregion
         internal static byte[] ReadRandom(BlobStorageContext context, long offset, int count)
         {
-            var commandText = BlobStorage.FileStreamEnabled
-                ? LoadBinaryFragmentFilestreamScript
-                : LoadBinaryFragmentScript;
-
             byte[] result;
 
-            using (var cmd = new SqlProcedure { CommandText = commandText })
+            using (var cmd = new SqlProcedure { CommandText = LoadBinaryFragmentFilestreamScript })
             {
                 cmd.Parameters.Add("@FileId", SqlDbType.Int).Value = context.FileId;
                 cmd.Parameters.Add("@Position", SqlDbType.BigInt).Value = offset + 1;
@@ -334,8 +320,8 @@ namespace SenseNet.MsSqlFsBlobProvider
             return fs;
         }
 
-        #region UpdateStreamWriteChunkTemplateScript, UpdateStreamWriteChunkScript, UpdateStreamWriteChunkFsScript
-        private static readonly string UpdateStreamWriteChunkTemplateScript = MsSqlBlobMetaDataProvider.UpdateStreamWriteChunkSecurityCheckScript + @"
+        #region UpdateStreamWriteChunkFsScript
+        private static readonly string UpdateStreamWriteChunkFsScript = MsSqlBlobMetaDataProvider.UpdateStreamWriteChunkSecurityCheckScript + @"
 -- init for .WRITE
 UPDATE Files SET [Stream] = (CONVERT(varbinary, N'')) WHERE FileId = @FileId AND [Stream] IS NULL
 -- fill to offset
@@ -345,10 +331,8 @@ IF @StreamLength < @Offset
 	UPDATE Files SET [Stream].WRITE(CONVERT( varbinary, REPLICATE(0x00, (@Offset - DATALENGTH([Stream])))), NULL, 0)
 		WHERE FileId = @FileId
 -- write payload
-UPDATE Files SET [Stream].WRITE(@Data, @Offset, DATALENGTH(@Data)){0} WHERE FileId = @FileId";
+UPDATE Files SET [Stream].WRITE(@Data, @Offset, DATALENGTH(@Data)), [FileStream] = NULL WHERE FileId = @FileId";
 
-        private static readonly string UpdateStreamWriteChunkScript = string.Format(UpdateStreamWriteChunkTemplateScript, string.Empty);
-        private static readonly string UpdateStreamWriteChunkFsScript = string.Format(UpdateStreamWriteChunkTemplateScript, ", [FileStream] = NULL");
         #endregion
 
         private static void WriteChunkToSql(BlobStorageContext context, long offset, byte[] buffer)
@@ -370,13 +354,7 @@ UPDATE Files SET [Stream].WRITE(@Data, @Offset, DATALENGTH(@Data)){0} WHERE File
         {
             // This is a helper method to aid both the sync and async version of the write chunk operation.
 
-            // If Filestream is enabled but not used, we need to set it NULL 
-            // when inserting the chunk to the regular Stream column
-            var cmdText = BlobStorage.FileStreamEnabled
-                ? UpdateStreamWriteChunkFsScript
-                : UpdateStreamWriteChunkScript;
-
-            var cmd = new SqlProcedure { CommandText = cmdText, CommandType = CommandType.Text };
+            var cmd = new SqlProcedure { CommandText = UpdateStreamWriteChunkFsScript, CommandType = CommandType.Text };
 
             cmd.Parameters.Add("@FileId", SqlDbType.Int).Value = context.FileId;
             cmd.Parameters.Add("@VersionId", SqlDbType.Int).Value = context.VersionId;
