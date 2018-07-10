@@ -22,7 +22,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         /// </summary>
         protected static IBlobProvider ExternalBlobProvider { get; set; }
 
-        static BuiltInBlobProviderSelector()
+        public BuiltInBlobProviderSelector() //UNDONE:# check instance ctor without static ctor
         {
             // check if there is a configuration for an external blob provider
             if (string.IsNullOrEmpty(BlobStorage.BlobProviderClassName))

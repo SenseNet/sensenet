@@ -88,6 +88,7 @@
     <Compile Include="BuiltInProviderTests.cs" />
     <Compile Include="DbReaderExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SqlFileStreamBlobProviderTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -96,6 +97,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\BlobStorage\SenseNet.BlobStorage.csproj">
+      <Project>{4e6722b5-ac95-494c-80a5-a4d80cc502b5}</Project>
+      <Name>SenseNet.BlobStorage</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Common\SenseNet.Common.csproj">
       <Project>{a453e920-29c0-45cd-984c-0d8e3631b1e3}</Project>
       <Name>SenseNet.Common</Name>
@@ -103,6 +108,10 @@
     <ProjectReference Include="..\..\ContentRepository\SenseNet.ContentRepository.csproj">
       <Project>{786E6165-CA02-45A9-BF58-207A45D7D6DF}</Project>
       <Name>SenseNet.ContentRepository</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\MsSqlFsBlobProvider\SenseNet.MsSqlFsBlobProvider.csproj">
+      <Project>{7ec0d2c0-9e97-4c60-bf23-fe4e3fa5bfc8}</Project>
+      <Name>SenseNet.MsSqlFsBlobProvider</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Search\SenseNet.Search.csproj">
       <Project>{0279705B-779D-485D-86B9-F7AB3DD1F2C3}</Project>

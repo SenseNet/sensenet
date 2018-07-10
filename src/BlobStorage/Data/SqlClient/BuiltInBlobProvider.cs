@@ -12,7 +12,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
     /// to the Files table (varbinary column). This
     /// provider cannot be removed or replaced by an external provider.
     /// </summary>
-    internal class BuiltInBlobProvider : IBlobProvider
+    public class BuiltInBlobProvider : IBlobProvider
     {
         public object ParseData(string providerData)
         {
@@ -25,7 +25,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             throw new NotSupportedException();
         }
 
-        internal static void AddStream(BlobStorageContext context, Stream stream)
+        public static void AddStream(BlobStorageContext context, Stream stream)
         {
             SqlProcedure cmd = null;
             try
@@ -72,7 +72,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             }
         }
 
-        internal static void UpdateStream(BlobStorageContext context, Stream stream)
+        public static void UpdateStream(BlobStorageContext context, Stream stream)
         {
             var fileId = context.FileId;
 

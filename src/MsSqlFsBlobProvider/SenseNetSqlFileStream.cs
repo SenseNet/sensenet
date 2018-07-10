@@ -2,10 +2,12 @@
 using System.Data.SqlTypes;
 using System.IO;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Data;
 
 #pragma warning disable 1591
 
-namespace SenseNet.ContentRepository.Storage.Data
+namespace SenseNet.MsSqlFsBlobProvider
 {
     /// <summary>
     /// Wrapper class for an SqlFilestream. Handles buffered reading
@@ -29,11 +31,11 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public int FileId { get; set; }
 
-        private FileStreamData FileStreamData;
+        private SqlFileStreamData FileStreamData;
 
         // ========================================================= Constructor
 
-        internal SenseNetSqlFileStream(long size, int fileId, FileStreamData fileStreamData = null)
+        internal SenseNetSqlFileStream(long size, int fileId, SqlFileStreamData fileStreamData = null)
         {
             Length = size;
             FileStreamData = fileStreamData?.TransactionContext != null ? fileStreamData : null;
@@ -122,7 +124,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                     var ctx = BlobStorageBase.GetBlobStorageContext(this.FileId);
                     if (ctx != null)
                         if (ctx.Provider == BlobStorageBase.BuiltInProvider)
-                            FileStreamData = ((SqlClient.BuiltinBlobProviderData)ctx.BlobProviderData).FileStreamData;
+                            FileStreamData = ((SqlFileStreamBlobProviderData)ctx.BlobProviderData).FileStreamData;
                     if (FileStreamData == null)
                         throw new InvalidOperationException("Transaction data and file path could not be retrieved for SqlFilestream");
                     

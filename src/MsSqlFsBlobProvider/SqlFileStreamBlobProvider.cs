@@ -16,76 +16,33 @@ namespace SenseNet.MsSqlFsBlobProvider
     /// </summary>
     internal class SqlFileStreamBlobProvider : IBlobProvider
     {
+        internal static bool UseFileStream(IBlobProvider blobProvider, long fullSize)
+        {
+            if (/*!(blobProvider is BuiltInBlobProvider) &&*/ !(blobProvider is SqlFileStreamBlobProvider))
+                return false;
+            return fullSize > BlobStorage.MinimumSizeForBlobProviderInBytes;
+        }
+
         public object ParseData(string providerData)
         {
-            return BlobStorageContext.DeserializeBlobProviderData<BuiltinBlobProviderData>(providerData);
+            return BlobStorageContext.DeserializeBlobProviderData<SqlFileStreamBlobProviderData>(providerData);
         }
 
         public void Allocate(BlobStorageContext context)
         {
-            // Never used in our algorithms.
-            throw new NotSupportedException();
+            // do nothing
         }
 
         internal static void AddStream(BlobStorageContext context, Stream stream)
         {
             SqlFileStreamData fileStreamData = null;
-            if (context.BlobProviderData is BuiltinBlobProviderData providerData)
+            if (context.BlobProviderData is SqlFileStreamBlobProviderData providerData)
                 fileStreamData = providerData.FileStreamData;
 
-            SqlProcedure cmd = null;
-            try
-            {
-                // if possible, write the stream using the special Filestream technology
-                if (BlobStorageBase.UseFileStream(stream.Length))
-                {
-                    WriteSqlFileStream(stream, context.FileId, fileStreamData);
-                    return;
-                }
+            if (!UseFileStream(context.Provider, stream.Length))
+                throw new NotSupportedException("Assertion failed.");
 
-                // We have to work with an integer since SQL does not support
-                // binary values bigger than [Int32.MaxValue].
-                var streamSize = Convert.ToInt32(stream.Length);
-
-                cmd = new SqlProcedure { CommandText = "proc_BinaryProperty_WriteStream" };
-                cmd.Parameters.Add("@Id", SqlDbType.Int).Value = context.FileId;
-
-                var offsetParameter = cmd.Parameters.Add("@Offset", SqlDbType.Int);
-                var valueParameter = cmd.Parameters.Add("@Value", SqlDbType.VarBinary, streamSize);
-
-                cmd.Parameters.Add("@UseFileStream", SqlDbType.TinyInt).Value = false;
-
-                var offset = 0;
-                byte[] buffer = null;
-                stream.Seek(0, SeekOrigin.Begin);
-
-                // The 'while' loop is misleading here, because we write the whole
-                // stream at once. Bigger files should go to the Filestream
-                // column anyway.
-                while (offset < streamSize)
-                {
-                    // Buffer size may be less at the end os the stream than the limit
-                    var bufferSize = streamSize - offset;
-
-                    if (buffer == null || buffer.Length != bufferSize)
-                        buffer = new byte[bufferSize];
-
-                    // Read bytes from the source
-                    stream.Read(buffer, 0, bufferSize);
-
-                    offsetParameter.Value = offset;
-                    valueParameter.Value = buffer;
-
-                    // Write full stream
-                    cmd.ExecuteNonQuery();
-
-                    offset += bufferSize;
-                }
-            }
-            finally
-            {
-                cmd?.Dispose();
-            }
+            WriteSqlFileStream(stream, context.FileId, fileStreamData);
         }
         #region UpdateBinaryPropertyFileStreamScript
         private const string UpdateBinaryPropertyFileStreamScript = @"UPDATE Files SET Stream = NULL WHERE FileId = @Id;
@@ -93,7 +50,7 @@ namespace SenseNet.MsSqlFsBlobProvider
     FROM Files WHERE [FileId] = @Id
 ";
         #endregion
-        private static void WriteSqlFileStream(Stream stream, int fileId, FileStreamData fileStreamData = null)
+        private static void WriteSqlFileStream(Stream stream, int fileId, SqlFileStreamData fileStreamData = null)
         {
             SqlProcedure cmd = null;
 
@@ -118,7 +75,7 @@ namespace SenseNet.MsSqlFsBlobProvider
                         transactionContext = reader.GetSqlBytes(1).Buffer;
                     }
 
-                    fileStreamData = new FileStreamData { Path = path, TransactionContext = transactionContext };
+                    fileStreamData = new SqlFileStreamData { Path = path, TransactionContext = transactionContext };
                 }
 
                 stream.Seek(0, SeekOrigin.Begin);
@@ -138,13 +95,13 @@ namespace SenseNet.MsSqlFsBlobProvider
         internal static void UpdateStream(BlobStorageContext context, Stream stream)
         {
             var fileId = context.FileId;
-            var fileStreamData = ((BuiltinBlobProviderData)context.BlobProviderData).FileStreamData;
+            var fileStreamData = ((SqlFileStreamBlobProviderData)context.BlobProviderData).FileStreamData;
 
             SqlProcedure cmd = null;
             try
             {
                 // if possible, write the stream using the special Filestream technology
-                if (BlobStorageBase.UseFileStream(stream.Length))
+                if (UseFileStream(context.Provider, stream.Length)) //UNDONE:# Provider must be SqlFs
                 {
                     WriteSqlFileStream(stream, fileId, fileStreamData);
                     return;
@@ -197,11 +154,8 @@ namespace SenseNet.MsSqlFsBlobProvider
 
         public Stream GetStreamForRead(BlobStorageContext context)
         {
-            var data = (BuiltinBlobProviderData)context.BlobProviderData;
-            if (context.UseFileStream)
-                return new SenseNetSqlFileStream(context.Length, context.FileId, data.FileStreamData);
-            return new RepositoryStream(context.FileId, context.Length);
-
+            var data = (SqlFileStreamBlobProviderData)context.BlobProviderData;
+            return new SenseNetSqlFileStream(context.Length, context.FileId, data.FileStreamData);
         }
 
         public Stream CloneStream(BlobStorageContext context, Stream stream)
@@ -255,14 +209,14 @@ namespace SenseNet.MsSqlFsBlobProvider
 
         public void Write(BlobStorageContext context, long offset, byte[] buffer)
         {
-            if (BlobStorageBase.UseFileStream(context.Length))
+            if (UseFileStream(context.Provider, context.Length)) //UNDONE:# Provider must be SqlFs
                 WriteChunkToFilestream(context, offset, buffer);
             else
                 WriteChunkToSql(context, offset, buffer);
         }
         public async Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer)
         {
-            if (BlobStorageBase.UseFileStream(context.Length))
+            if (UseFileStream(context.Provider, context.Length)) //UNDONE:# Provider must be SqlFs
                 await WriteChunkToFilestreamAsync(context, offset, buffer);
             else
                 await WriteChunkToSqlAsync(context, offset, buffer);
@@ -290,7 +244,7 @@ namespace SenseNet.MsSqlFsBlobProvider
         /// </summary>
         private static SqlFileStream GetAndExtendFileStream(BlobStorageContext context, long offset)
         {
-            var fsd = ((BuiltinBlobProviderData)context.BlobProviderData).FileStreamData;
+            var fsd = ((SqlFileStreamBlobProviderData)context.BlobProviderData).FileStreamData;
             if (fsd == null)
                 throw new InvalidOperationException("File row not found. FileId: " + context.FileId);
 
@@ -321,7 +275,7 @@ namespace SenseNet.MsSqlFsBlobProvider
         }
 
         #region UpdateStreamWriteChunkFsScript
-        private static readonly string UpdateStreamWriteChunkFsScript = MsSqlBlobMetaDataProvider.UpdateStreamWriteChunkSecurityCheckScript + @"
+        private static readonly string UpdateStreamWriteChunkFsScript = SqlFileStreamBlobMetaDataProvider.UpdateStreamWriteChunkSecurityCheckScript + @"
 -- init for .WRITE
 UPDATE Files SET [Stream] = (CONVERT(varbinary, N'')) WHERE FileId = @FileId AND [Stream] IS NULL
 -- fill to offset
@@ -367,10 +321,10 @@ UPDATE Files SET [Stream].WRITE(@Data, @Offset, DATALENGTH(@Data)), [FileStream]
 
         public Stream GetStreamForWrite(BlobStorageContext context)
         {
-            if (!BlobStorageBase.UseFileStream(context.Length))
+            if (!UseFileStream(context.Provider, context.Length)) //UNDONE:# Provider must be SqlFs
                 throw new NotSupportedException();
 
-            var fsd = ((BuiltinBlobProviderData)context.BlobProviderData).FileStreamData;
+            var fsd = ((SqlFileStreamBlobProviderData)context.BlobProviderData).FileStreamData;
             if (fsd == null)
                 throw new InvalidOperationException("File row not found. FileId: " + context.FileId);
 

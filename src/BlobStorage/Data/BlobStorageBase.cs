@@ -58,7 +58,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="clearStream">Whether the blob provider should clear the stream during assembling the context.</param>
         /// <param name="versionId">Content version id.</param>
         /// <param name="propertyTypeId">Binary property type id.</param>
-        protected internal static BlobStorageContext GetBlobStorageContext(int fileId, bool clearStream = false, int versionId = 0, int propertyTypeId = 0)
+        public static BlobStorageContext GetBlobStorageContext(int fileId, bool clearStream = false, int versionId = 0, int propertyTypeId = 0)
         {
             return BlobStorageComponents.DataProvider.GetBlobStorageContext(fileId, clearStream, versionId, propertyTypeId);
         }
@@ -350,7 +350,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <summary>
         /// Gets an instance of the built-in provider.
         /// </summary>
-        protected internal static IBlobProvider BuiltInProvider { get; }
+        public static IBlobProvider BuiltInProvider { get; }
         /// <summary>
         /// Gets a list of available blob storage providers in the system.
         /// </summary>
@@ -373,14 +373,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Gets a provider based on the binary size and the available blob providers in the system.
         /// </summary>
         /// <param name="fullSize">Full binary length.</param>
-        protected internal static IBlobProvider GetProvider(long fullSize)
+        public static IBlobProvider GetProvider(long fullSize)
         {
             return BlobStorageComponents.ProviderSelector.GetProvider(fullSize, Providers, BuiltInProvider);
         }
         /// <summary>
         /// Gets the blob provider instance with the specified name. Default is the built-in provider.
         /// </summary>
-        protected internal static IBlobProvider GetProvider(string providerName)
+        public static IBlobProvider GetProvider(string providerName)
         {
             if (providerName == null)
                 return BuiltInProvider;

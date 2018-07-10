@@ -18,7 +18,7 @@ namespace SenseNet.MsSqlFsBlobProvider
     /// Contains the MS SQL-specific implementation of the IBlobStorageMetaDataProvider interface that
     /// is responsible for binary-related operations in the main metadata database.
     /// </summary>
-    public class MsSqlBlobMetaDataProvider : IBlobStorageMetaDataProvider
+    public class SqlFileStreamBlobMetaDataProvider : IBlobStorageMetaDataProvider
     {
         private static string ValidateExtension(string originalExtension)
         {
@@ -147,6 +147,8 @@ FROM  dbo.Files WHERE FileId = @FileId
             };
             useFileStream = fsData.Path != null;
 
+            //UNDONE:## Select SqlFs provider if useFileStream is true
+
             var provider = BlobStorageBase.GetProvider(providerName);
 
             return new BlobStorageContext(provider, providerData)
@@ -155,9 +157,8 @@ FROM  dbo.Files WHERE FileId = @FileId
                 PropertyTypeId = propertyTypeId,
                 FileId = fileId,
                 Length = length,
-                UseFileStream = useFileStream,
                 BlobProviderData = provider == BlobStorageBase.BuiltInProvider
-                    ? new BuiltinBlobProviderData { FileStreamData = fsData }
+                    ? new SqlFileStreamBlobProviderData { FileStreamData = fsData }
                     : provider.ParseData(providerData)
             };
         }
@@ -195,6 +196,10 @@ SELECT @BinPropId, @FileId, [Timestamp], FileStream.PathName(), GET_FILESTREAM_T
         private const string DeleteAndInsertBinaryPropertyFilestream = DeleteBinaryPropertyScript + InsertBinaryPropertyFilestreamScript;
         #endregion
 
+        private bool IsBuiltInOrSqlFileStreamProvider(IBlobProvider provider)
+        {
+            return provider == BlobStorageBase.BuiltInProvider || provider is SqlFileStreamBlobProvider;
+        }
         /// <summary>
         /// Inserts a new binary property value into the metadata database and the blob storage, 
         /// removing the previous one if the content is not new.
@@ -207,16 +212,16 @@ SELECT @BinPropId, @FileId, [Timestamp], FileStream.PathName(), GET_FILESTREAM_T
         public void InsertBinaryProperty(IBlobProvider blobProvider, BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
         {
             var streamLength = value.Stream?.Length ?? 0;
-            var useFileStream = streamLength > Convert.ToInt64(BlobStorage.MinimumSizeForFileStreamInBytes);
-            var ctx = new BlobStorageContext(blobProvider) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = 0, Length = streamLength, UseFileStream = useFileStream };
+            var useFileStream = SqlFileStreamBlobProvider.UseFileStream(blobProvider, streamLength);
+            var ctx = new BlobStorageContext(blobProvider) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = 0, Length = streamLength };
 
             // In case of an external provider allocate the place for bytes and
             // write the stream beforehand and get the generated provider data.
             // Note that the external provider does not need an existing record
             // in the Files table to work, it just stores the bytes. 
-            if (blobProvider != BlobStorageBase.BuiltInProvider && streamLength > 0)
+            if (!IsBuiltInOrSqlFileStreamProvider(blobProvider) && streamLength > 0)
             {
-                blobProvider.Allocate(ctx);
+                    blobProvider.Allocate(ctx);
 
                 using (var stream = blobProvider.GetStreamForWrite(ctx))
                     value.Stream?.CopyTo(stream);
@@ -275,9 +280,16 @@ SELECT @BinPropId, @FileId, [Timestamp], FileStream.PathName(), GET_FILESTREAM_T
             if (blobProvider == BlobStorageBase.BuiltInProvider && value.Stream != null && value.Stream.Length > 0)
             {
                 ctx.FileId = value.FileId;
-                ctx.BlobProviderData = new BuiltinBlobProviderData { FileStreamData = fileStreamData };
+                ctx.BlobProviderData = new SqlFileStreamBlobProviderData { FileStreamData = fileStreamData };
 
                 BuiltInBlobProvider.AddStream(ctx, value.Stream);
+            }
+            else if (blobProvider is SqlFileStreamBlobProvider && value.Stream != null && value.Stream.Length > 0)
+            {
+                ctx.FileId = value.FileId;
+                ctx.BlobProviderData = new SqlFileStreamBlobProviderData { FileStreamData = fileStreamData };
+
+                SqlFileStreamBlobProvider.AddStream(ctx, value.Stream);
             }
         }
 
@@ -343,7 +355,7 @@ SELECT @FileId, FileStream.PathName(), GET_FILESTREAM_TRANSACTION_CONTEXT() FROM
         public void UpdateBinaryProperty(IBlobProvider blobProvider, BinaryDataValue value)
         {
             var streamLength = value.Stream?.Length ?? 0;
-            if (blobProvider != BlobStorageBase.BuiltInProvider && streamLength > 0)
+            if (!IsBuiltInOrSqlFileStreamProvider(blobProvider) && streamLength > 0)
             {
                 var ctx = new BlobStorageContext(blobProvider, value.BlobProviderData)
                 {
@@ -351,7 +363,6 @@ SELECT @FileId, FileStream.PathName(), GET_FILESTREAM_TRANSACTION_CONTEXT() FROM
                     PropertyTypeId = 0,
                     FileId = value.FileId,
                     Length = streamLength,
-                    UseFileStream = false
                 };
 
                 blobProvider.Allocate(ctx);
@@ -379,7 +390,7 @@ SELECT @FileId, FileStream.PathName(), GET_FILESTREAM_TRANSACTION_CONTEXT() FROM
             {
                 string sql;
                 CommandType commandType;
-                if (blobProvider == BlobStorageBase.BuiltInProvider)
+                if (IsBuiltInOrSqlFileStreamProvider(blobProvider))
                 {
                     commandType = CommandType.StoredProcedure;
                     sql = "proc_BinaryProperty_Update";
@@ -436,11 +447,24 @@ SELECT @FileId, FileStream.PathName(), GET_FILESTREAM_TRANSACTION_CONTEXT() FROM
                     PropertyTypeId = 0,
                     FileId = value.FileId,
                     Length = streamLength,
-                    UseFileStream = fileStreamData != null,
-                    BlobProviderData = new BuiltinBlobProviderData { FileStreamData = fileStreamData }
+                    BlobProviderData = new SqlFileStreamBlobProviderData { FileStreamData = fileStreamData }
                 };
 
                 BuiltInBlobProvider.UpdateStream(ctx, value.Stream);
+            }
+            if (blobProvider is SqlFileStreamBlobProvider && !isRepositoryStream && streamLength > 0)
+            {
+                // Stream exists and is loaded -> write it
+                var ctx = new BlobStorageContext(blobProvider, value.BlobProviderData)
+                {
+                    VersionId = 0,
+                    PropertyTypeId = 0,
+                    FileId = value.FileId,
+                    Length = streamLength,
+                    BlobProviderData = new SqlFileStreamBlobProviderData { FileStreamData = fileStreamData }
+                };
+
+                SqlFileStreamBlobProvider.UpdateStream(ctx, value.Stream);
             }
         }
 
@@ -529,10 +553,12 @@ SELECT @FileId, FileStream.PathName(), GET_FILESTREAM_TRANSACTION_CONTEXT() FROM
                         };
                     }
 
+                    //UNDONE:## Select SqlFs provider if useFileStream is true
+
                     var provider = BlobStorageBase.GetProvider(providerName);
-                    var context = new BlobStorageContext(provider, providerTextData) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = fileId, Length = length, UseFileStream = useFileStream };
+                    var context = new BlobStorageContext(provider, providerTextData) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = fileId, Length = length };
                     if (provider == BlobStorageBase.BuiltInProvider)
-                        context.BlobProviderData = new BuiltinBlobProviderData { FileStreamData = fileStreamData };
+                        context.BlobProviderData = new SqlFileStreamBlobProviderData { FileStreamData = fileStreamData };
 
                     return new BinaryCacheEntity
                     {
@@ -604,13 +630,13 @@ COMMIT TRAN";
             if (isLocalTransaction)
                 TransactionScope.Begin();
 
-            var ctx = new BlobStorageContext(blobProvider) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = 0, Length = fullSize, UseFileStream = false };
+            var ctx = new BlobStorageContext(blobProvider) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = 0, Length = fullSize };
             string blobProviderName = null;
             string blobProviderData = null;
             bool useSqlFileStream;
             if (blobProvider == BlobStorageBase.BuiltInProvider)
             {
-                useSqlFileStream = fullSize > BlobStorage.MinimumSizeForFileStreamInBytes;
+                useSqlFileStream = SqlFileStreamBlobProvider.UseFileStream(blobProvider, fullSize);
             }
             else
             {
@@ -820,7 +846,7 @@ WHERE IsDeleted = 1";
 
                         // delete bytes from the blob storage
                         var provider = BlobStorageBase.GetProvider(providerName);
-                        var ctx = new BlobStorageContext(provider, providerData) { VersionId = 0, PropertyTypeId = 0, FileId = fileId, Length = size, UseFileStream = false };
+                        var ctx = new BlobStorageContext(provider, providerData) { VersionId = 0, PropertyTypeId = 0, FileId = fileId, Length = size };
 
                         ctx.Provider.Delete(ctx);
                     }
