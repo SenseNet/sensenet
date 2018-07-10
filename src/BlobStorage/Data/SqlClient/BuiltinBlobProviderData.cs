@@ -5,7 +5,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
     /// <summary>
     /// Blob provider data for the built-in blob provider.
     /// </summary>
-    internal class BuiltinBlobProviderData
+    public class BuiltinBlobProviderData
     {
     }
 }

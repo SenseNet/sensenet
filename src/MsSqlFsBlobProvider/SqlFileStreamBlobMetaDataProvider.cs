@@ -20,6 +20,11 @@ namespace SenseNet.MsSqlFsBlobProvider
     /// </summary>
     public class SqlFileStreamBlobMetaDataProvider : IBlobStorageMetaDataProvider
     {
+        private static bool IsBuiltInOrSqlFileStreamProvider(IBlobProvider provider)
+        {
+            return provider == BlobStorageBase.BuiltInProvider || provider is SqlFileStreamBlobProvider;
+        }
+
         private static string ValidateExtension(string originalExtension)
         {
             return originalExtension.Length == 0
@@ -147,9 +152,19 @@ FROM  dbo.Files WHERE FileId = @FileId
             };
             useFileStream = fsData.Path != null;
 
-            //UNDONE:## Select SqlFs provider if useFileStream is true
-
             var provider = BlobStorageBase.GetProvider(providerName);
+            object blobProviderData;
+            if (IsBuiltInOrSqlFileStreamProvider(provider))
+            {
+                if (useFileStream)
+                    blobProviderData = new SqlFileStreamBlobProviderData {FileStreamData = fsData};
+                else
+                    blobProviderData = new BuiltinBlobProviderData();
+            }
+            else
+            {
+                blobProviderData = provider.ParseData(providerData);
+            }
 
             return new BlobStorageContext(provider, providerData)
             {
@@ -157,9 +172,7 @@ FROM  dbo.Files WHERE FileId = @FileId
                 PropertyTypeId = propertyTypeId,
                 FileId = fileId,
                 Length = length,
-                BlobProviderData = provider == BlobStorageBase.BuiltInProvider
-                    ? new SqlFileStreamBlobProviderData { FileStreamData = fsData }
-                    : provider.ParseData(providerData)
+                BlobProviderData = blobProviderData
             };
         }
 
@@ -196,10 +209,6 @@ SELECT @BinPropId, @FileId, [Timestamp], FileStream.PathName(), GET_FILESTREAM_T
         private const string DeleteAndInsertBinaryPropertyFilestream = DeleteBinaryPropertyScript + InsertBinaryPropertyFilestreamScript;
         #endregion
 
-        private bool IsBuiltInOrSqlFileStreamProvider(IBlobProvider provider)
-        {
-            return provider == BlobStorageBase.BuiltInProvider || provider is SqlFileStreamBlobProvider;
-        }
         /// <summary>
         /// Inserts a new binary property value into the metadata database and the blob storage, 
         /// removing the previous one if the content is not new.

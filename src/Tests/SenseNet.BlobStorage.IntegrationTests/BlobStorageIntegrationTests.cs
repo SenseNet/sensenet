@@ -13,7 +13,9 @@ using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.MsSqlFsBlobProvider;
 using SenseNet.Tests.Implementations;
 
 namespace SenseNet.BlobStorage.IntegrationTests
@@ -248,16 +250,25 @@ namespace SenseNet.BlobStorage.IntegrationTests
         {
             var expectedText = "Lorem ipsum dolo sit amet";
             var dbFile = CreateFileTest(expectedText, expectedText.Length + 10);
+            var ctx = BlobStorageBase.GetBlobStorageContext(dbFile.FileId);
 
             Assert.IsNull(dbFile.FileStream);
             Assert.IsNotNull(dbFile.Stream);
             Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
             Assert.AreEqual(expectedText, GetStringFromBytes(dbFile.Stream));
+
+            Assert.AreEqual(dbFile.FileId, ctx.FileId);
+            Assert.AreEqual(dbFile.Size, ctx.Length);
+            Assert.IsTrue(ctx.BlobProviderData is BuiltinBlobProviderData);
         }
         public void TestCase02_CreateFileBig()
         {
             var expectedText = "Lorem ipsum dolo sit amet";
             var dbFile = CreateFileTest(expectedText, expectedText.Length - 10);
+            var ctx = BlobStorageBase.GetBlobStorageContext(dbFile.FileId);
+
+            Assert.AreEqual(dbFile.FileId, ctx.FileId);
+            Assert.AreEqual(dbFile.Size, ctx.Length);
 
             if (SqlFsUsed)
             {
@@ -265,6 +276,8 @@ namespace SenseNet.BlobStorage.IntegrationTests
                 Assert.IsNotNull(dbFile.FileStream);
                 Assert.AreEqual(dbFile.Size, dbFile.FileStream.Length);
                 Assert.AreEqual(expectedText, GetStringFromBytes(dbFile.FileStream));
+
+                Assert.IsTrue(ctx.BlobProviderData is SqlFileStreamBlobProviderData);
             }
             else
             {
@@ -272,6 +285,8 @@ namespace SenseNet.BlobStorage.IntegrationTests
                 Assert.IsNotNull(dbFile.Stream);
                 Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
                 Assert.AreEqual(expectedText, GetStringFromBytes(dbFile.Stream));
+
+                Assert.IsTrue(ctx.BlobProviderData is BuiltinBlobProviderData);
             }
         }
         private DbFile CreateFileTest(string fileContent, int sizeLimit)

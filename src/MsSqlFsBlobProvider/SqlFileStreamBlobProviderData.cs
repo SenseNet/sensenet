@@ -12,13 +12,3 @@
         public SqlFileStreamData FileStreamData { get; set; }
     }
 }
-
-namespace SenseNet.ContentRepository.Storage.Data.SqlClient
-{
-    /// <summary>
-    /// This class is used in legacy databases.
-    /// </summary>
-    internal class BuiltinBlobProviderData : MsSqlFsBlobProvider.SqlFileStreamBlobProviderData
-    {
-    }
-}
