@@ -74,7 +74,6 @@
     <Compile Include="SqlFileStreamData.cs" />
     <Compile Include="SqlFileStreamBlobProvider.cs" />
     <Compile Include="SqlFileStreamBlobProviderData.cs" />
-    <Compile Include="SqlFileStreamBlobProviderSelector.cs" />
     <Compile Include="SqlFileStreamBlobMetaDataProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

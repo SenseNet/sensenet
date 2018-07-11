@@ -145,7 +145,7 @@ FROM  dbo.Files WHERE FileId = @FileId
             var providerData = reader.GetSafeString(2);
 
             var useFileStream = false;
-            var fsData = new FileStreamData
+            var fsData = new SqlFileStreamData
             {
                 Path = reader.GetSafeString(3),
                 TransactionContext = reader.GetSqlBytes(4).Buffer
@@ -245,7 +245,7 @@ SELECT @BinPropId, @FileId, [Timestamp], FileStream.PathName(), GET_FILESTREAM_T
             }
 
             SqlProcedure cmd = null;
-            FileStreamData fileStreamData = null;
+            SqlFileStreamData fileStreamData = null;
             try
             {
                 cmd = useFileStream
@@ -272,7 +272,7 @@ SELECT @BinPropId, @FileId, [Timestamp], FileStream.PathName(), GET_FILESTREAM_T
                     value.Timestamp = Utility.Convert.BytesToLong((byte[])reader.GetValue(2));
                     if (useFileStream)
                     {
-                        fileStreamData = new FileStreamData
+                        fileStreamData = new SqlFileStreamData
                         {
                             Path = reader.GetString(3),
                             TransactionContext = reader.GetSqlBytes(4).Buffer
@@ -398,7 +398,7 @@ SELECT @FileId, FileStream.PathName(), GET_FILESTREAM_TRANSACTION_CONTEXT() FROM
                 // do not do any database operation if the stream is not modified
                 return;
 
-            FileStreamData fileStreamData = null;
+            SqlFileStreamData fileStreamData = null;
             SqlProcedure cmd = null;
             try
             {
@@ -441,7 +441,7 @@ SELECT @FileId, FileStream.PathName(), GET_FILESTREAM_TRANSACTION_CONTEXT() FROM
                 }
 
                 if (!string.IsNullOrEmpty(path))
-                    fileStreamData = new FileStreamData { Path = path, TransactionContext = transactionContext };
+                    fileStreamData = new SqlFileStreamData { Path = path, TransactionContext = transactionContext };
 
                 if (fileId > 0 && fileId != value.FileId)
                     value.FileId = fileId;
@@ -555,12 +555,12 @@ SELECT @FileId, FileStream.PathName(), GET_FILESTREAM_TRANSACTION_CONTEXT() FROM
                         rawData = (byte[])reader.GetValue(5);
 
 
-                    FileStreamData fileStreamData = null;
+                    SqlFileStreamData fileStreamData = null;
                     var useFileStream = reader.GetInt32(6) == 1;
                     if (useFileStream)
                     {
                         // fill Filestream info if we really need it
-                        fileStreamData = new FileStreamData
+                        fileStreamData = new SqlFileStreamData
                         {
                             Path = reader.GetSafeString(7),
                             TransactionContext = reader.GetSqlBytes(8).Buffer
