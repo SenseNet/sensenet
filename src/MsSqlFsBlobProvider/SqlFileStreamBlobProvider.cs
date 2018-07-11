@@ -209,14 +209,14 @@ namespace SenseNet.MsSqlFsBlobProvider
 
         public void Write(BlobStorageContext context, long offset, byte[] buffer)
         {
-            if (UseFileStream(context.Provider, context.Length)) //UNDONE:# Provider must be SqlFs
+            if (UseFileStream(context.Provider, context.Length))
                 WriteChunkToFilestream(context, offset, buffer);
             else
                 WriteChunkToSql(context, offset, buffer);
         }
         public async Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer)
         {
-            if (UseFileStream(context.Provider, context.Length)) //UNDONE:# Provider must be SqlFs
+            if (UseFileStream(context.Provider, context.Length))
                 await WriteChunkToFilestreamAsync(context, offset, buffer);
             else
                 await WriteChunkToSqlAsync(context, offset, buffer);

@@ -567,11 +567,21 @@ SELECT @FileId, FileStream.PathName(), GET_FILESTREAM_TRANSACTION_CONTEXT() FROM
                         };
                     }
 
-                    //UNDONE:## Select SqlFs provider if useFileStream is true
+                    var provider = useFileStream
+                        ? new SqlFileStreamBlobProvider()
+                        : BlobStorageBase.GetProvider(providerName);
 
-                    var provider = BlobStorageBase.GetProvider(providerName);
-                    var context = new BlobStorageContext(provider, providerTextData) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = fileId, Length = length };
+                    var context = new BlobStorageContext(provider, providerTextData)
+                    {
+                        VersionId = versionId,
+                        PropertyTypeId = propertyTypeId,
+                        FileId = fileId,
+                        Length = length
+                    };
+
                     if (provider == BlobStorageBase.BuiltInProvider)
+                        context.BlobProviderData = new BuiltinBlobProviderData();
+                    else if (provider is SqlFileStreamBlobProvider)
                         context.BlobProviderData = new SqlFileStreamBlobProviderData { FileStreamData = fileStreamData };
 
                     return new BinaryCacheEntity
@@ -859,6 +869,7 @@ WHERE IsDeleted = 1";
                         }
 
                         // delete bytes from the blob storage
+                        // Delete algorithm is same in the BuiltIn and SqlFs providers.
                         var provider = BlobStorageBase.GetProvider(providerName);
                         var ctx = new BlobStorageContext(provider, providerData) { VersionId = 0, PropertyTypeId = 0, FileId = fileId, Length = size };
 
