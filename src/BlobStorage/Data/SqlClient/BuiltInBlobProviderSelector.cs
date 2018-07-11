@@ -20,7 +20,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         /// <summary>
         /// A custom blob provider instance that can be configured in the <see cref="BlobStorage"/> section.
         /// </summary>
-        protected static IBlobProvider ExternalBlobProvider { get; set; }
+        protected internal static IBlobProvider ExternalBlobProvider { get; set; }
 
         public BuiltInBlobProviderSelector() //UNDONE:# check instance ctor without static ctor
         {

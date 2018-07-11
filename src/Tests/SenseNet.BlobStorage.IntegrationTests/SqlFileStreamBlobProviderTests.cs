@@ -1,6 +1,8 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.MsSqlFsBlobProvider;
 
@@ -13,15 +15,21 @@ namespace SenseNet.BlobStorage.IntegrationTests
 
         protected override bool SqlFsEnabled => true;
         protected override bool SqlFsUsed => true;
+        protected override Type ExpectedExternalBlobProviderType => typeof(SqlFileStreamBlobProvider);
+        protected override Type ExpectedMetadataProviderType => typeof(SqlFileStreamBlobMetaDataProvider);
+
         protected override void BuildLegoBricks(RepositoryBuilder builder)
         {
-            Configuration.BlobStorage.BlobProviderClassName = typeof(SqlFileStreamBlobProvider).FullName;
+            Configuration.BlobStorage.BlobProviderClassName = ExpectedExternalBlobProviderType?.FullName;
+            BuiltInBlobProviderSelector.ExternalBlobProvider = null; // reset external provider
+
+            var blobMetaDataProvider = (IBlobStorageMetaDataProvider)Activator.CreateInstance(ExpectedMetadataProviderType);
 
             builder
-                .UseBlobMetaDataProvider(new SqlFileStreamBlobMetaDataProvider())
-                .UseBlobProviderSelector(new BuiltInBlobProviderSelector()); // refreshes the external provider
+                .UseBlobMetaDataProvider(blobMetaDataProvider)
+                .UseBlobProviderSelector(new BuiltInBlobProviderSelector());
 
-            BlobStorageComponents.DataProvider = new SqlFileStreamBlobMetaDataProvider();
+            BlobStorageComponents.DataProvider = blobMetaDataProvider;
         }
         protected internal override void ConfigureMinimumSizeForFileStreamInBytes(int newValue, out int oldValue)
         {
@@ -61,5 +69,15 @@ namespace SenseNet.BlobStorage.IntegrationTests
             TestCase06_UpdateFileBigBig();
         }
 
+        [TestMethod]
+        public void Blob_SqlFs_07_WriteChunksSmall()
+        {
+            TestCase07_WriteChunksSmall();
+        }
+        [TestMethod]
+        public void Blob_SqlFs_08_WriteChunksBig()
+        {
+            TestCase08_WriteChunksBig();
+        }
     }
 }

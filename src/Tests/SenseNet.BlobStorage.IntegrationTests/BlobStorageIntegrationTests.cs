@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Text;
 using IO = System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
@@ -15,6 +16,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics;
 using SenseNet.MsSqlFsBlobProvider;
 using SenseNet.Tests.Implementations;
 
@@ -24,6 +26,8 @@ namespace SenseNet.BlobStorage.IntegrationTests
     public abstract class BlobStorageIntegrationTests
     {
         #region Infrastructure
+
+        public TestContext TestContext { get; set; }
 
         private static readonly Dictionary<Type, BlobStorageIntegrationTests> Instances =
             new Dictionary<Type, BlobStorageIntegrationTests>();
@@ -37,6 +41,8 @@ namespace SenseNet.BlobStorage.IntegrationTests
         protected abstract string DatabaseName { get; }
         protected abstract bool SqlFsEnabled { get; }
         protected abstract bool SqlFsUsed { get; }
+        protected abstract Type ExpectedExternalBlobProviderType { get; }
+        protected abstract Type ExpectedMetadataProviderType { get; }
         protected abstract void BuildLegoBricks(RepositoryBuilder builder);
         protected internal abstract void ConfigureMinimumSizeForFileStreamInBytes(int newValue, out int oldValue);
 
@@ -44,6 +50,13 @@ namespace SenseNet.BlobStorage.IntegrationTests
         private string GetConnectionString(string databaseName = null)
         {
             return $"Initial Catalog={databaseName ?? DatabaseName};{ConnetionStringBase}";
+        }
+
+        [AssemblyInitialize]
+        public static void StartAllTests(TestContext testContext)
+        {
+            SnTrace.SnTracers.Clear();
+            SnTrace.SnTracers.Add(new SnDebugViewTracer());
         }
 
         private string _connectionString;
@@ -70,7 +83,7 @@ namespace SenseNet.BlobStorage.IntegrationTests
 
                 PrepareDatabase();
 
-                _repositoryInstance = Repository.Start(CreateRepositoryBuilderForInstall());
+                using (Repository.Start(CreateRepositoryBuilderForInstall()))
                 using (new SystemAccount())
                     PrepareRepository();
 
@@ -81,6 +94,24 @@ namespace SenseNet.BlobStorage.IntegrationTests
                 ConnectionStrings.ConnectionString = instance._connectionString;
                 ConnectionStrings.SecurityDatabaseConnectionString = instance._connectionString;
             }
+
+            _repositoryInstance = Repository.Start(CreateRepositoryBuilderForInstall());
+
+            Assert.AreEqual(typeof(BuiltInBlobProviderSelector), BlobStorageComponents.ProviderSelector.GetType());
+            Assert.AreEqual(ExpectedExternalBlobProviderType, BuiltInBlobProviderSelector.ExternalBlobProvider?.GetType());
+            Assert.AreEqual(ExpectedMetadataProviderType, BlobStorageComponents.DataProvider.GetType());
+
+            SnTrace.Test.Enabled = true;
+            SnTrace.Test.Write("START test: {0}", TestContext.TestName);
+        }
+        [TestCleanup]
+        public void CleanupTest()
+        {
+            _repositoryInstance?.Dispose();
+
+            SnTrace.Test.Enabled = true;
+            SnTrace.Test.Write("END test: {0}", TestContext.TestName);
+            SnTrace.Flush();
         }
 
         protected static void TearDown(Type type)
@@ -421,7 +452,114 @@ namespace SenseNet.BlobStorage.IntegrationTests
             }
         }
 
+        public void TestCase07_WriteChunksSmall()
+        {
+            // 20 chars:       |------------------|
+            // 10 chars:       |--------|---------|---------|
+            var initialText = "Lorem ipsum dolo sit amet..";
+            var updatedText = "Cras lobortis consequat nisi..";
+            var dbFile = UpdateByChunksTest(initialText, updatedText, 222, 10);
+
+            Assert.IsNull(dbFile.FileStream);
+            Assert.IsNotNull(dbFile.Stream);
+            Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
+            Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.Stream));
+        }
+        public void TestCase08_WriteChunksBig()
+        {
+            // 20 chars:       |------------------|
+            // 10 chars:       |--------|---------|---------|
+            var initialText = "Lorem ipsum dolo sit amet..";
+            var updatedText = "Cras lobortis consequat nisi..";
+            var dbFile = UpdateByChunksTest(initialText, updatedText, 20, 10);
+
+            if (SqlFsUsed)
+            {
+                Assert.IsNull(dbFile.Stream);
+                Assert.IsNotNull(dbFile.FileStream);
+                Assert.AreEqual(dbFile.Size, dbFile.FileStream.Length);
+                Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.FileStream));
+            }
+            else
+            {
+                Assert.IsNull(dbFile.FileStream);
+                Assert.IsNotNull(dbFile.Stream);
+                Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
+                Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.Stream));
+            }
+        }
+        private DbFile UpdateByChunksTest(string initialContent, string updatedText, int sizeLimit, int chunkSize)
+        {
+            using (new SystemAccount())
+            using (new SqlFileStreamSizeSwindler(this, sizeLimit))
+            {
+                var testRoot = CreateTestRoot();
+
+                var file = new File(testRoot) { Name = "File1.file" };
+                file.Binary.SetStream(RepositoryTools.GetStreamFromString(initialContent));
+                file.Save();
+                var fileId = file.Id;
+
+                var chunks = SplitFile(updatedText, chunkSize, out var fullSize);
+
+                file = Node.Load<File>(fileId);
+                file.Save(SavingMode.StartMultistepSave);
+                var token = BinaryData.StartChunk(fileId, fullSize);
+
+                var offset = 0;
+                foreach (var chunk in chunks)
+                {
+                    BinaryData.WriteChunk(fileId, token, fullSize, chunk, offset);
+                    offset += chunkSize;
+                }
+
+                BinaryData.CommitChunk(fileId, token, fullSize);
+
+                file = Node.Load<File>(fileId);
+                file.FinalizeContent();
+
+
+                // assert
+                var dbFiles = LoadDbFiles(file.VersionId);
+                Assert.AreEqual(1, dbFiles.Length);
+                var dbFile = dbFiles[0];
+                //Assert.AreNotEqual(initialBlobId, file.Binary.FileId);
+                Assert.IsNull(dbFile.BlobProvider);
+                Assert.IsNull(dbFile.BlobProviderData);
+                Assert.AreEqual(false, dbFile.IsDeleted);
+                Assert.AreEqual(false, dbFile.Staging);
+                Assert.AreEqual(0, dbFile.StagingVersionId);
+                Assert.AreEqual(0, dbFile.StagingPropertyTypeId);
+                Assert.AreEqual(fullSize, dbFile.Size);
+
+                return dbFile;
+            }
+        }
+
         #region Tools
+
+        private List<byte[]> SplitFile(string text, int chunkSize, out int fullSize)
+        {
+            var stream = (IO.MemoryStream)RepositoryTools.GetStreamFromString(text);
+            var buffer = stream.GetBuffer();
+            var bytes = new byte[text.Length + 3];
+            fullSize = bytes.Length;
+
+            Array.Copy(buffer, 0, bytes, 0, bytes.Length);
+
+            var chunks = new List<byte[]>();
+            //var bytes = Encoding.UTF8.GetBytes(text);
+            var p = 0;
+            while (p < bytes.Length)
+            {
+                var size = Math.Min(chunkSize, bytes.Length - p);
+                var chunk = new byte[size];
+                Array.Copy(bytes, p, chunk, 0, size);
+                chunks.Add(chunk);
+                p += chunkSize;
+            }
+            return chunks;
+        }
 
         protected class DbFile
         {

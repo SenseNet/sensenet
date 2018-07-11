@@ -1,5 +1,9 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Data.SqlClient;
 
 namespace SenseNet.BlobStorage.IntegrationTests
 {
@@ -9,9 +13,21 @@ namespace SenseNet.BlobStorage.IntegrationTests
         protected override string DatabaseName => "sn7blobtests_builtin";
         protected override bool SqlFsEnabled => false;
         protected override bool SqlFsUsed => false;
+        protected override Type ExpectedExternalBlobProviderType => null;
+        protected override Type ExpectedMetadataProviderType => typeof(MsSqlBlobMetaDataProvider);
+
         protected override void BuildLegoBricks(RepositoryBuilder builder)
         {
-            // do nothing
+            Configuration.BlobStorage.BlobProviderClassName = ExpectedExternalBlobProviderType?.FullName;
+            BuiltInBlobProviderSelector.ExternalBlobProvider = null; // reset external provider
+
+            var blobMetaDataProvider = (IBlobStorageMetaDataProvider)Activator.CreateInstance(ExpectedMetadataProviderType);
+
+            builder
+                .UseBlobMetaDataProvider(blobMetaDataProvider)
+                .UseBlobProviderSelector(new BuiltInBlobProviderSelector());
+
+            BlobStorageComponents.DataProvider = blobMetaDataProvider;
         }
         protected internal override void ConfigureMinimumSizeForFileStreamInBytes(int newValue, out int oldValue)
         {
@@ -57,6 +73,17 @@ namespace SenseNet.BlobStorage.IntegrationTests
         public void Blob_BuiltIn_06_UpdateFileBigBig()
         {
             TestCase06_UpdateFileBigBig();
+        }
+
+        [TestMethod]
+        public void Blob_BuiltIn_07_WriteChunksSmall()
+        {
+            TestCase07_WriteChunksSmall();
+        }
+        [TestMethod]
+        public void Blob_BuiltIn_08_WriteChunksBig()
+        {
+            TestCase08_WriteChunksBig();
         }
     }
 }

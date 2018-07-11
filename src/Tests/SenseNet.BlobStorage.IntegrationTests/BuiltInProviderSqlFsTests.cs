@@ -5,6 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Data.SqlClient;
+using SenseNet.MsSqlFsBlobProvider;
 
 namespace SenseNet.BlobStorage.IntegrationTests
 {
@@ -14,9 +18,21 @@ namespace SenseNet.BlobStorage.IntegrationTests
         protected override string DatabaseName => "sn7blobtests_builtinfs";
         protected override bool SqlFsEnabled => true;
         protected override bool SqlFsUsed => false;
+        protected override Type ExpectedExternalBlobProviderType => null;
+        protected override Type ExpectedMetadataProviderType => typeof(MsSqlBlobMetaDataProvider);
+
         protected override void BuildLegoBricks(RepositoryBuilder builder)
         {
-            // do nothing
+            Configuration.BlobStorage.BlobProviderClassName = ExpectedExternalBlobProviderType?.FullName;
+            BuiltInBlobProviderSelector.ExternalBlobProvider = null; // reset external provider
+
+            var blobMetaDataProvider = (IBlobStorageMetaDataProvider)Activator.CreateInstance(ExpectedMetadataProviderType);
+
+            builder
+                .UseBlobMetaDataProvider(blobMetaDataProvider)
+                .UseBlobProviderSelector(new BuiltInBlobProviderSelector());
+
+            BlobStorageComponents.DataProvider = blobMetaDataProvider;
         }
         protected internal override void ConfigureMinimumSizeForFileStreamInBytes(int newValue, out int oldValue)
         {
@@ -62,6 +78,17 @@ namespace SenseNet.BlobStorage.IntegrationTests
         public void Blob_BuiltInFS_06_UpdateFileBigBig()
         {
             TestCase06_UpdateFileBigBig();
+        }
+
+        [TestMethod]
+        public void Blob_BuiltInFS_07_WriteChunksSmall()
+        {
+            TestCase07_WriteChunksSmall();
+        }
+        [TestMethod]
+        public void Blob_BuiltInFS_08_WriteChunksBig()
+        {
+            TestCase08_WriteChunksBig();
         }
     }
 }

@@ -156,8 +156,13 @@ FROM  dbo.Files WHERE FileId = @FileId
             object blobProviderData;
             if (IsBuiltInOrSqlFileStreamProvider(provider))
             {
-                if (useFileStream)
+                if (useFileStream) // based on db column
+                {
                     blobProviderData = new SqlFileStreamBlobProviderData {FileStreamData = fsData};
+                    // Name of the SqlFS and BuiltIn are the same: null
+                    //   so currently need to change to the SqlFS provider.
+                    provider = BlobStorageBase.GetProvider(length);
+                }
                 else
                     blobProviderData = new BuiltinBlobProviderData();
             }
@@ -590,7 +595,7 @@ DECLARE @Extension varchar(50);
 DECLARE @FileId int;
 
 BEGIN TRAN
-                
+
 -- select existing stream metadata values
 SELECT TOP(1) @ContentType = F.ContentType, @FileNameWithoutExtension = F.FileNameWithoutExtension, @Extension = F.Extension
 FROM BinaryProperties B JOIN Files F ON B.FileId = F.FileId
@@ -643,7 +648,7 @@ COMMIT TRAN";
             string blobProviderName = null;
             string blobProviderData = null;
             bool useSqlFileStream;
-            if (blobProvider == BlobStorageBase.BuiltInProvider)
+            if (IsBuiltInOrSqlFileStreamProvider(blobProvider))
             {
                 useSqlFileStream = SqlFileStreamBlobProvider.UseFileStream(blobProvider, fullSize);
             }
