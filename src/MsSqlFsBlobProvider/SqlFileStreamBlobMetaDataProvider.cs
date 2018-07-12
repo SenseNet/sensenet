@@ -20,7 +20,7 @@ namespace SenseNet.MsSqlFsBlobProvider
     /// </summary>
     public class SqlFileStreamBlobMetaDataProvider : IBlobStorageMetaDataProvider
     {
-        private static bool IsBuiltInOrSqlFileStreamProvider(IBlobProvider provider)
+        internal static bool IsBuiltInOrSqlFileStreamProvider(IBlobProvider provider)
         {
             return provider == BlobStorageBase.BuiltInProvider || provider is SqlFileStreamBlobProvider;
         }

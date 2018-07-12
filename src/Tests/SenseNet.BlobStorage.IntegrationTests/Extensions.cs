@@ -3,8 +3,14 @@ using System.Data;
 
 namespace SenseNet.BlobStorage.IntegrationTests
 {
-    internal static class DbReaderExtensions
+    internal static class Extensions
     {
+        public static int ToInt(this long input)
+        {
+            return Convert.ToInt32(input);
+        }
+
+
         public static long GetSafeInt64(this IDataReader reader, int index)
         {
             return reader.IsDBNull(index) ? 0 : reader.GetInt64(index);

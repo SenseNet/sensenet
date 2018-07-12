@@ -15,6 +15,7 @@ namespace SenseNet.BlobStorage.IntegrationTests
         protected override bool SqlFsUsed => false;
         protected override Type ExpectedExternalBlobProviderType => null;
         protected override Type ExpectedMetadataProviderType => typeof(MsSqlBlobMetaDataProvider);
+        protected override Type ExpectedBlobProviderDataType => typeof(BuiltinBlobProviderData);
 
         protected internal override void ConfigureMinimumSizeForFileStreamInBytes(int newValue, out int oldValue)
         {
