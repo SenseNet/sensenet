@@ -32,29 +32,6 @@ namespace SenseNet.MsSqlFsBlobProvider
                 : string.Concat(".", originalExtension);
         }
 
-        /// <summary>
-        /// Returns whether the FileStream feature is enabled in the blob provider or not.
-        /// </summary>
-        /// <returns></returns>
-        public bool IsFilestreamEnabled()
-        {
-            bool fsEnabled;
-            const string sql = "SELECT COUNT(name) FROM sys.columns WHERE Name = N'FileStream' and Object_ID = Object_ID(N'Files')";
-            using (var pro = new SqlProcedure {CommandText = sql, CommandType=CommandType.Text})
-            {
-                try
-                {
-                    fsEnabled = Convert.ToInt32(pro.ExecuteScalar()) > 0;
-                }
-                catch (Exception ex)
-                {
-                    SnLog.WriteException(ex);
-                    fsEnabled = false;
-                }
-            }
-            return fsEnabled;
-        }
-
         #region ClearFileStreamByFileIdScript, GetBlobContextDataFileStreamScript
 
         private const string GetBlobContextDataFileStreamScript = @"  SELECT Size, BlobProvider, BlobProviderData, FileStream.PathName() AS Path, GET_FILESTREAM_TRANSACTION_CONTEXT() AS TransactionContext

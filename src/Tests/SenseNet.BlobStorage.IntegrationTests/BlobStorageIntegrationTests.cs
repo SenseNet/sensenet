@@ -15,6 +15,7 @@ using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
+using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.MsSqlFsBlobProvider;
@@ -28,6 +29,11 @@ namespace SenseNet.BlobStorage.IntegrationTests
         #region Infrastructure
 
         public TestContext TestContext { get; set; }
+
+        protected BlobStorageIntegrationTests()
+        {
+            SnTrace.Test.Write("CTOR: {0}", this.GetType().Name);
+        }
 
         private static readonly Dictionary<Type, BlobStorageIntegrationTests> Instances =
             new Dictionary<Type, BlobStorageIntegrationTests>();
@@ -103,9 +109,11 @@ namespace SenseNet.BlobStorage.IntegrationTests
             {
                 ConnectionStrings.ConnectionString = instance._connectionString;
                 ConnectionStrings.SecurityDatabaseConnectionString = instance._connectionString;
-            }
 
-            //_repositoryInstance = Repository.Start(CreateRepositoryBuilder());
+                BuiltInBlobProviderSelector.ExternalBlobProvider = ExpectedExternalBlobProviderType == null
+                    ? null
+                    : (IBlobProvider)Activator.CreateInstance(ExpectedExternalBlobProviderType);
+            }
 
             Assert.AreEqual(typeof(BuiltInBlobProviderSelector), BlobStorageComponents.ProviderSelector.GetType());
             Assert.AreEqual(ExpectedExternalBlobProviderType, BuiltInBlobProviderSelector.ExternalBlobProvider?.GetType());
@@ -114,8 +122,6 @@ namespace SenseNet.BlobStorage.IntegrationTests
         [TestCleanup]
         public void CleanupTest()
         {
-            //_repositoryInstance?.Dispose();
-
             SnTrace.Test.Enabled = true;
             SnTrace.Test.Write("END test: {0}", TestContext.TestName);
             SnTrace.Flush();
@@ -586,6 +592,232 @@ namespace SenseNet.BlobStorage.IntegrationTests
             }
         }
 
+
+        public void TestCase09_DeleteBinaryPropertySmall()
+        {
+            using (var op = SnTrace.Test.StartOperation("testmethod"))
+            {
+                // 20 chars:       |------------------|
+                // 10 chars:       |--------|---------|---------|
+                var initialText = "Lorem ipsum dolo sit amet..";
+                var updatedText = "Cras lobortis consequat nisi..";
+                DeleteBinaryPropertyTest(initialText, updatedText, 222, 10);
+
+                op.Successful = true;
+            }
+        }
+        public void TestCase10_DeleteBinaryPropertyBig()
+        {
+            using (var op = SnTrace.Test.StartOperation("testmethod"))
+            {
+                // 20 chars:       |------------------|
+                // 10 chars:       |--------|---------|---------|
+                var initialText = "Lorem ipsum dolo sit amet..";
+                var updatedText = "Cras lobortis consequat nisi..";
+                DeleteBinaryPropertyTest(initialText, updatedText, 20, 10);
+
+                op.Successful = true;
+            }
+        }
+        private void DeleteBinaryPropertyTest(string initialContent, string updatedText, int sizeLimit, int chunkSize)
+        {
+            using (new SystemAccount())
+            using (new SqlFileStreamSizeSwindler(this, sizeLimit))
+            {
+                var testRoot = CreateTestRoot();
+
+                var file = new File(testRoot) { Name = "File1.file" };
+                file.Binary.SetStream(RepositoryTools.GetStreamFromString(initialContent));
+                file.Save();
+                var fileId = file.Id;
+
+                file = Node.Load<File>(fileId);
+                // action
+                file.Binary = null;
+                file.Save();
+
+                // assert
+                var dbFiles = LoadDbFiles(file.VersionId);
+                Assert.AreEqual(0, dbFiles.Length);
+            }
+        }
+
+
+        public void TestCase11_CopyfileRowSmall()
+        {
+            using (var op = SnTrace.Test.StartOperation("testmethod"))
+            {
+                // 20 chars:       |------------------|
+                // 10 chars:       |--------|---------|---------|
+                var initialText = "Lorem ipsum dolo sit amet..";
+                var updatedText = "Cras lobortis consequat nisi..";
+                var dbFiles = CopyfileRowTest(initialText, updatedText, 222, 10);
+
+                Assert.IsNull(dbFiles[0].FileStream);
+                Assert.IsNotNull(dbFiles[0].Stream);
+                Assert.AreEqual(dbFiles[0].Size, dbFiles[0].Stream.Length);
+                Assert.AreEqual(initialText, GetStringFromBytes(dbFiles[0].Stream));
+
+                Assert.IsNull(dbFiles[1].FileStream);
+                Assert.IsNotNull(dbFiles[1].Stream);
+                Assert.AreEqual(dbFiles[1].Size, dbFiles[1].Stream.Length);
+                Assert.AreEqual(updatedText, GetStringFromBytes(dbFiles[1].Stream));
+
+                op.Successful = true;
+            }
+        }
+        public void TestCase12_CopyfileRowBig()
+        {
+            using (var op = SnTrace.Test.StartOperation("testmethod"))
+            {
+                // 20 chars:       |------------------|
+                // 10 chars:       |--------|---------|---------|
+                var initialText = "Lorem ipsum dolo sit amet..";
+                var updatedText = "Cras lobortis consequat nisi..";
+                var dbFiles = CopyfileRowTest(initialText, updatedText, 20, 10);
+
+                if (SqlFsUsed)
+                {
+                    Assert.IsNull(dbFiles[0].Stream);
+                    Assert.IsNotNull(dbFiles[0].FileStream);
+                    Assert.AreEqual(dbFiles[0].Size, dbFiles[0].FileStream.Length);
+                    Assert.AreEqual(initialText, GetStringFromBytes(dbFiles[0].FileStream));
+
+                    Assert.IsNull(dbFiles[1].Stream);
+                    Assert.IsNotNull(dbFiles[1].FileStream);
+                    Assert.AreEqual(dbFiles[1].Size, dbFiles[1].FileStream.Length);
+                    Assert.AreEqual(updatedText, GetStringFromBytes(dbFiles[1].FileStream));
+
+                }
+                else
+                {
+                    Assert.IsNull(dbFiles[0].FileStream);
+                    Assert.IsNotNull(dbFiles[0].Stream);
+                    Assert.AreEqual(dbFiles[0].Size, dbFiles[0].Stream.Length);
+                    Assert.AreEqual(initialText, GetStringFromBytes(dbFiles[0].Stream));
+
+                    Assert.IsNull(dbFiles[1].FileStream);
+                    Assert.IsNotNull(dbFiles[1].Stream);
+                    Assert.AreEqual(dbFiles[1].Size, dbFiles[1].Stream.Length);
+                    Assert.AreEqual(updatedText, GetStringFromBytes(dbFiles[1].Stream));
+                }
+                op.Successful = true;
+            }
+        }
+        private DbFile[] CopyfileRowTest(string initialContent, string updatedText, int sizeLimit, int chunkSize)
+        {
+            using (new SystemAccount())
+            using (new SqlFileStreamSizeSwindler(this, sizeLimit))
+            {
+                var testRoot = CreateTestRoot();
+                var target = new SystemFolder(testRoot) {Name = "Target"};
+                target.Save();
+
+                var file = new File(testRoot) { Name = "File1.file" };
+                file.Binary.SetStream(RepositoryTools.GetStreamFromString(initialContent));
+                file.Save();
+                var fileId = file.Id;
+
+                // action
+                file.CopyTo(target);
+
+                // assert
+                var copy = Node.Load<File>(RepositoryPath.Combine(target.Path, file.Name));
+                Assert.AreNotEqual(file.Id, copy.Id);
+                Assert.AreNotEqual(file.VersionId, copy.VersionId);
+                Assert.AreEqual(file.Binary.FileId, copy.Binary.FileId);
+
+                // action 2
+                copy.Binary.SetStream(RepositoryTools.GetStreamFromString(updatedText));
+                copy.Save();
+
+                // assert 2
+                Assert.AreNotEqual(file.Binary.FileId, copy.Binary.FileId);
+
+                var dbFiles = new DbFile[2];
+
+                var loadedDbFiles = LoadDbFiles(file.VersionId);
+                Assert.AreEqual(1, loadedDbFiles.Length);
+                dbFiles[0] = loadedDbFiles[0];
+
+                loadedDbFiles = LoadDbFiles(copy.VersionId);
+                Assert.AreEqual(1, loadedDbFiles.Length);
+                dbFiles[1] = loadedDbFiles[0];
+
+                Assert.IsNull(dbFiles[0].BlobProvider);
+                Assert.IsNull(dbFiles[0].BlobProviderData);
+                Assert.AreEqual(false, dbFiles[0].IsDeleted);
+                Assert.AreEqual(false, dbFiles[0].Staging);
+                Assert.AreEqual(0, dbFiles[0].StagingVersionId);
+                Assert.AreEqual(0, dbFiles[0].StagingPropertyTypeId);
+                Assert.AreEqual(initialContent.Length + 3, dbFiles[0].Size);
+
+                Assert.IsNull(dbFiles[1].BlobProvider);
+                Assert.IsNull(dbFiles[1].BlobProviderData);
+                Assert.AreEqual(false, dbFiles[1].IsDeleted);
+                Assert.AreEqual(false, dbFiles[1].Staging);
+                Assert.AreEqual(0, dbFiles[1].StagingVersionId);
+                Assert.AreEqual(0, dbFiles[1].StagingPropertyTypeId);
+                Assert.AreEqual(updatedText.Length + 3, dbFiles[1].Size);
+
+                return dbFiles;
+            }
+        }
+
+
+        public void TestCase13_BinaryCacheEntitySmall()
+        {
+            using (var op = SnTrace.Test.StartOperation("testmethod"))
+            {
+                var expectedText = "Lorem ipsum dolo sit amet";
+                BinaryCacheEntityTest(expectedText, expectedText.Length + 10);
+
+                op.Successful = true;
+            }
+        }
+        public void TestCase14_BinaryCacheEntityBig()
+        {
+            using (var op = SnTrace.Test.StartOperation("testmethod"))
+            {
+                var expectedText = "Lorem ipsum dolo sit amet";
+                BinaryCacheEntityTest(expectedText, expectedText.Length - 10);
+
+                op.Successful = true;
+            }
+        }
+        private void BinaryCacheEntityTest(string fileContent, int sizeLimit)
+        {
+            using (new SystemAccount())
+            using (new SqlFileStreamSizeSwindler(this, sizeLimit))
+            {
+                var testRoot = CreateTestRoot();
+
+                var file = new File(testRoot) { Name = "File1.file" };
+                file.Binary.SetStream(RepositoryTools.GetStreamFromString(fileContent));
+                file.Save();
+                var nodeId = file.Id;
+                var versionId = file.VersionId;
+                var binaryPropertyId = file.Binary.Id;
+                var fileId = file.Binary.FileId;
+                var propertyTypeId = PropertyType.GetByName("Binary").Id;
+
+                // action
+                var binaryCacheEntity = DataProvider.Current.LoadBinaryCacheEntity(file.VersionId, propertyTypeId);
+
+                // assert
+                Assert.AreEqual(binaryPropertyId, binaryCacheEntity.BinaryPropertyId);
+                Assert.AreEqual(fileId, binaryCacheEntity.FileId);
+                Assert.AreEqual(fileContent.Length+3, binaryCacheEntity.Length);
+                Assert.AreEqual(fileContent, GetStringFromBytes(binaryCacheEntity.RawData));
+
+                Assert.AreEqual(versionId, binaryCacheEntity.Context.VersionId);
+                Assert.AreEqual(propertyTypeId, binaryCacheEntity.Context.PropertyTypeId);
+                Assert.AreEqual(fileId, binaryCacheEntity.Context.FileId);
+                Assert.AreEqual(fileContent.Length+3, binaryCacheEntity.Context.Length);
+                //null, binaryCacheEntity.Context.BlobProviderData;
+                //binaryCacheEntity.Context.Provider;
+            }
+        }
 
         #region Tools
 

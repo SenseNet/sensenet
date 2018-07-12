@@ -72,5 +72,39 @@ namespace SenseNet.BlobStorage.IntegrationTests
         {
             TestCase08_WriteChunksBig();
         }
+
+        [TestMethod]
+        public void Blob_SqlFs_09_DeleteBinaryPropertySmall()
+        {
+            TestCase09_DeleteBinaryPropertySmall();
+        }
+        [TestMethod]
+        public void Blob_SqlFs_10_DeleteBinaryPropertyBig()
+        {
+            TestCase10_DeleteBinaryPropertyBig();
+        }
+
+        [TestMethod]
+        public void Blob_SqlFs_11_CopyfileRowSmall()
+        {
+            TestCase11_CopyfileRowSmall();
+        }
+        [TestMethod]
+        public void Blob_SqlFs_12_CopyfileRowBig()
+        {
+            TestCase12_CopyfileRowBig();
+        }
+
+        [TestMethod]
+        public void Blob_SqlFs_13_BinaryCacheEntitySmall()
+        {
+            TestCase13_BinaryCacheEntitySmall();
+        }
+        [TestMethod]
+        public void Blob_SqlFs_14_BinaryCacheEntityBig()
+        {
+            TestCase14_BinaryCacheEntityBig();
+        }
+
     }
 }
