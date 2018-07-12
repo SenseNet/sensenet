@@ -1,14 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
-using SenseNet.MsSqlFsBlobProvider;
 
 namespace SenseNet.BlobStorage.IntegrationTests
 {
@@ -21,19 +16,6 @@ namespace SenseNet.BlobStorage.IntegrationTests
         protected override Type ExpectedExternalBlobProviderType => null;
         protected override Type ExpectedMetadataProviderType => typeof(MsSqlBlobMetaDataProvider);
 
-        protected override void BuildLegoBricks(RepositoryBuilder builder)
-        {
-            Configuration.BlobStorage.BlobProviderClassName = ExpectedExternalBlobProviderType?.FullName;
-            BuiltInBlobProviderSelector.ExternalBlobProvider = null; // reset external provider
-
-            var blobMetaDataProvider = (IBlobStorageMetaDataProvider)Activator.CreateInstance(ExpectedMetadataProviderType);
-
-            builder
-                .UseBlobMetaDataProvider(blobMetaDataProvider)
-                .UseBlobProviderSelector(new BuiltInBlobProviderSelector());
-
-            BlobStorageComponents.DataProvider = blobMetaDataProvider;
-        }
         protected internal override void ConfigureMinimumSizeForFileStreamInBytes(int newValue, out int oldValue)
         {
             // do nothing

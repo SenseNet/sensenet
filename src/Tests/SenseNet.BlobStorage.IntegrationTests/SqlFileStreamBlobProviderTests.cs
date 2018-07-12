@@ -18,23 +18,16 @@ namespace SenseNet.BlobStorage.IntegrationTests
         protected override Type ExpectedExternalBlobProviderType => typeof(SqlFileStreamBlobProvider);
         protected override Type ExpectedMetadataProviderType => typeof(SqlFileStreamBlobMetaDataProvider);
 
-        protected override void BuildLegoBricks(RepositoryBuilder builder)
-        {
-            Configuration.BlobStorage.BlobProviderClassName = ExpectedExternalBlobProviderType?.FullName;
-            BuiltInBlobProviderSelector.ExternalBlobProvider = null; // reset external provider
-
-            var blobMetaDataProvider = (IBlobStorageMetaDataProvider)Activator.CreateInstance(ExpectedMetadataProviderType);
-
-            builder
-                .UseBlobMetaDataProvider(blobMetaDataProvider)
-                .UseBlobProviderSelector(new BuiltInBlobProviderSelector());
-
-            BlobStorageComponents.DataProvider = blobMetaDataProvider;
-        }
         protected internal override void ConfigureMinimumSizeForFileStreamInBytes(int newValue, out int oldValue)
         {
             oldValue = Configuration.BlobStorage.MinimumSizeForBlobProviderInBytes;
             Configuration.BlobStorage.MinimumSizeForBlobProviderInBytes = newValue;
+        }
+
+        [ClassCleanup]
+        public static void CleanupClass()
+        {
+            TearDown(typeof(SqlFileStreamBlobProviderTests));
         }
 
         [TestMethod]

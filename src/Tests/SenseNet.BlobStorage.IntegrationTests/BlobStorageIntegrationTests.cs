@@ -43,7 +43,6 @@ namespace SenseNet.BlobStorage.IntegrationTests
         protected abstract bool SqlFsUsed { get; }
         protected abstract Type ExpectedExternalBlobProviderType { get; }
         protected abstract Type ExpectedMetadataProviderType { get; }
-        protected abstract void BuildLegoBricks(RepositoryBuilder builder);
         protected internal abstract void ConfigureMinimumSizeForFileStreamInBytes(int newValue, out int oldValue);
 
         private static readonly string ConnetionStringBase = @"Data Source=.\SQL2016;Integrated Security=SSPI;Persist Security Info=False";
@@ -56,7 +55,10 @@ namespace SenseNet.BlobStorage.IntegrationTests
         public static void StartAllTests(TestContext testContext)
         {
             SnTrace.SnTracers.Clear();
+            SnTrace.SnTracers.Add(new SnFileSystemTracer());
             SnTrace.SnTracers.Add(new SnDebugViewTracer());
+            SnTrace.Test.Enabled = true;
+            SnTrace.Test.Write("------------------------------------------------------");
         }
 
         private string _connectionString;
@@ -69,25 +71,33 @@ namespace SenseNet.BlobStorage.IntegrationTests
             // Test class initialization problem: the test framework
             // uses brand new instance for each test method.
 
+            SnTrace.Test.Enabled = true;
+            SnTrace.Test.Write("START test: {0}", TestContext.TestName);
+
             var prepared = Instances.TryGetValue(this.GetType(), out var instance);
             if (!prepared)
             {
-                ContentTypeManager.Reset();
-                //ActiveSchema.Reset();
+                using (var op = SnTrace.Test.StartOperation("Initialize {0}", DatabaseName))
+                {
+                    ContentTypeManager.Reset();
+                    //ActiveSchema.Reset();
 
-                _connectionStringBackup = ConnectionStrings.ConnectionString;
-                _securityConnectionStringBackup = ConnectionStrings.SecurityDatabaseConnectionString;
-                _connectionString = GetConnectionString(DatabaseName);
-                ConnectionStrings.ConnectionString = _connectionString;
-                ConnectionStrings.SecurityDatabaseConnectionString = _connectionString;
+                    _connectionStringBackup = ConnectionStrings.ConnectionString;
+                    _securityConnectionStringBackup = ConnectionStrings.SecurityDatabaseConnectionString;
+                    _connectionString = GetConnectionString(DatabaseName);
+                    ConnectionStrings.ConnectionString = _connectionString;
+                    ConnectionStrings.SecurityDatabaseConnectionString = _connectionString;
 
-                PrepareDatabase();
+                    PrepareDatabase();
 
-                using (Repository.Start(CreateRepositoryBuilderForInstall()))
-                using (new SystemAccount())
-                    PrepareRepository();
+                    using (Repository.Start(CreateRepositoryBuilder()))
+                    using (new SystemAccount())
+                        PrepareRepository();
 
-                Instances[this.GetType()] = this;
+                    Instances[this.GetType()] = this;
+
+                    op.Successful = true;
+                }
             }
             else
             {
@@ -95,19 +105,16 @@ namespace SenseNet.BlobStorage.IntegrationTests
                 ConnectionStrings.SecurityDatabaseConnectionString = instance._connectionString;
             }
 
-            _repositoryInstance = Repository.Start(CreateRepositoryBuilderForInstall());
+            //_repositoryInstance = Repository.Start(CreateRepositoryBuilder());
 
             Assert.AreEqual(typeof(BuiltInBlobProviderSelector), BlobStorageComponents.ProviderSelector.GetType());
             Assert.AreEqual(ExpectedExternalBlobProviderType, BuiltInBlobProviderSelector.ExternalBlobProvider?.GetType());
             Assert.AreEqual(ExpectedMetadataProviderType, BlobStorageComponents.DataProvider.GetType());
-
-            SnTrace.Test.Enabled = true;
-            SnTrace.Test.Write("START test: {0}", TestContext.TestName);
         }
         [TestCleanup]
         public void CleanupTest()
         {
-            _repositoryInstance?.Dispose();
+            //_repositoryInstance?.Dispose();
 
             SnTrace.Test.Enabled = true;
             SnTrace.Test.Write("END test: {0}", TestContext.TestName);
@@ -207,8 +214,13 @@ namespace SenseNet.BlobStorage.IntegrationTests
             SaveInitialIndexDocuments();
             RebuildIndex();
         }
-        protected RepositoryBuilder CreateRepositoryBuilderForInstall()
+        protected RepositoryBuilder CreateRepositoryBuilder()
         {
+            Configuration.BlobStorage.BlobProviderClassName = ExpectedExternalBlobProviderType?.FullName;
+            BuiltInBlobProviderSelector.ExternalBlobProvider = null; // reset external provider
+
+            var blobMetaDataProvider = (IBlobStorageMetaDataProvider)Activator.CreateInstance(ExpectedMetadataProviderType);
+
             var builder = new RepositoryBuilder()
                 .UseAccessProvider(new DesktopAccessProvider())
                 .UseSearchEngine(new InMemorySearchEngine())
@@ -217,8 +229,12 @@ namespace SenseNet.BlobStorage.IntegrationTests
                 .StartWorkflowEngine(false)
                 .DisableNodeObservers()
                 .EnableNodeObservers(typeof(SettingsCache))
-                .UseTraceCategories("Test", "Event", "Custom");
-            BuildLegoBricks(builder);
+                .UseTraceCategories("Test", "Event", "Custom")
+                .UseBlobMetaDataProvider(blobMetaDataProvider)
+                .UseBlobProviderSelector(new BuiltInBlobProviderSelector());
+
+            BlobStorageComponents.DataProvider = blobMetaDataProvider;
+
             return builder;
         }
         private string[] LoadCtds()
@@ -279,45 +295,53 @@ namespace SenseNet.BlobStorage.IntegrationTests
 
         public void TestCase01_CreateFileSmall()
         {
-            var expectedText = "Lorem ipsum dolo sit amet";
-            var dbFile = CreateFileTest(expectedText, expectedText.Length + 10);
-            var ctx = BlobStorageBase.GetBlobStorageContext(dbFile.FileId);
-
-            Assert.IsNull(dbFile.FileStream);
-            Assert.IsNotNull(dbFile.Stream);
-            Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
-            Assert.AreEqual(expectedText, GetStringFromBytes(dbFile.Stream));
-
-            Assert.AreEqual(dbFile.FileId, ctx.FileId);
-            Assert.AreEqual(dbFile.Size, ctx.Length);
-            Assert.IsTrue(ctx.BlobProviderData is BuiltinBlobProviderData);
-        }
-        public void TestCase02_CreateFileBig()
-        {
-            var expectedText = "Lorem ipsum dolo sit amet";
-            var dbFile = CreateFileTest(expectedText, expectedText.Length - 10);
-            var ctx = BlobStorageBase.GetBlobStorageContext(dbFile.FileId);
-
-            Assert.AreEqual(dbFile.FileId, ctx.FileId);
-            Assert.AreEqual(dbFile.Size, ctx.Length);
-
-            if (SqlFsUsed)
+            using (var op = SnTrace.Test.StartOperation("testmethod"))
             {
-                Assert.IsNull(dbFile.Stream);
-                Assert.IsNotNull(dbFile.FileStream);
-                Assert.AreEqual(dbFile.Size, dbFile.FileStream.Length);
-                Assert.AreEqual(expectedText, GetStringFromBytes(dbFile.FileStream));
+                var expectedText = "Lorem ipsum dolo sit amet";
+                var dbFile = CreateFileTest(expectedText, expectedText.Length + 10);
+                var ctx = BlobStorageBase.GetBlobStorageContext(dbFile.FileId);
 
-                Assert.IsTrue(ctx.BlobProviderData is SqlFileStreamBlobProviderData);
-            }
-            else
-            {
                 Assert.IsNull(dbFile.FileStream);
                 Assert.IsNotNull(dbFile.Stream);
                 Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
                 Assert.AreEqual(expectedText, GetStringFromBytes(dbFile.Stream));
 
+                Assert.AreEqual(dbFile.FileId, ctx.FileId);
+                Assert.AreEqual(dbFile.Size, ctx.Length);
                 Assert.IsTrue(ctx.BlobProviderData is BuiltinBlobProviderData);
+                op.Successful = true;
+            }
+        }
+        public void TestCase02_CreateFileBig()
+        {
+            using (var op = SnTrace.Test.StartOperation("testmethod"))
+            {
+                var expectedText = "Lorem ipsum dolo sit amet";
+                var dbFile = CreateFileTest(expectedText, expectedText.Length - 10);
+                var ctx = BlobStorageBase.GetBlobStorageContext(dbFile.FileId);
+
+                Assert.AreEqual(dbFile.FileId, ctx.FileId);
+                Assert.AreEqual(dbFile.Size, ctx.Length);
+
+                if (SqlFsUsed)
+                {
+                    Assert.IsNull(dbFile.Stream);
+                    Assert.IsNotNull(dbFile.FileStream);
+                    Assert.AreEqual(dbFile.Size, dbFile.FileStream.Length);
+                    Assert.AreEqual(expectedText, GetStringFromBytes(dbFile.FileStream));
+
+                    Assert.IsTrue(ctx.BlobProviderData is SqlFileStreamBlobProviderData);
+                }
+                else
+                {
+                    Assert.IsNull(dbFile.FileStream);
+                    Assert.IsNotNull(dbFile.Stream);
+                    Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
+                    Assert.AreEqual(expectedText, GetStringFromBytes(dbFile.Stream));
+
+                    Assert.IsTrue(ctx.BlobProviderData is BuiltinBlobProviderData);
+                }
+                op.Successful = true;
             }
         }
         private DbFile CreateFileTest(string fileContent, int sizeLimit)
@@ -349,72 +373,89 @@ namespace SenseNet.BlobStorage.IntegrationTests
             }
         }
 
+
         public void TestCase03_UpdateFileSmallSmall()
         {
-            // 20 chars:       |------------------|
-            var initialText = "Lorem ipsum...";
-            var updatedText = "Cras lobortis...";
-            var dbFile = UpdateFileTest(initialText, updatedText, 20);
-
-            Assert.IsNull(dbFile.FileStream);
-            Assert.IsNotNull(dbFile.Stream);
-            Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
-            Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.Stream));
-        }
-        public void TestCase04_UpdateFileSmallBig()
-        {
-            // 20 chars:       |------------------|
-            var initialText = "Lorem ipsum...";
-            var updatedText = "Cras lobortis consequat nisi...";
-            var dbFile = UpdateFileTest(initialText, updatedText, 20);
-
-            if (SqlFsUsed)
+            using (var op = SnTrace.Test.StartOperation("testmethod"))
             {
-                Assert.IsNull(dbFile.Stream);
-                Assert.IsNotNull(dbFile.FileStream);
-                Assert.AreEqual(dbFile.Size, dbFile.FileStream.Length);
-                Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.FileStream));
-            }
-            else
-            {
+                // 20 chars:       |------------------|
+                var initialText = "Lorem ipsum...";
+                var updatedText = "Cras lobortis...";
+                var dbFile = UpdateFileTest(initialText, updatedText, 20);
+
                 Assert.IsNull(dbFile.FileStream);
                 Assert.IsNotNull(dbFile.Stream);
                 Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
                 Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.Stream));
+                op.Successful = true;
+            }
+        }
+        public void TestCase04_UpdateFileSmallBig()
+        {
+            using (var op = SnTrace.Test.StartOperation("testmethod"))
+            {
+                // 20 chars:       |------------------|
+                var initialText = "Lorem ipsum...";
+                var updatedText = "Cras lobortis consequat nisi...";
+                var dbFile = UpdateFileTest(initialText, updatedText, 20);
+
+                if (SqlFsUsed)
+                {
+                    Assert.IsNull(dbFile.Stream);
+                    Assert.IsNotNull(dbFile.FileStream);
+                    Assert.AreEqual(dbFile.Size, dbFile.FileStream.Length);
+                    Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.FileStream));
+                }
+                else
+                {
+                    Assert.IsNull(dbFile.FileStream);
+                    Assert.IsNotNull(dbFile.Stream);
+                    Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
+                    Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.Stream));
+                }
+                op.Successful = true;
             }
         }
         public void TestCase05_UpdateFileBigSmall()
         {
-            // 20 chars:       |------------------|
-            var initialText = "Lorem ipsum dolo sit amet...";
-            var updatedText = "Cras lobortis...";
-            var dbFile = UpdateFileTest(initialText, updatedText, 20);
-
-            Assert.IsNull(dbFile.FileStream);
-            Assert.IsNotNull(dbFile.Stream);
-            Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
-            Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.Stream));
-        }
-        public void TestCase06_UpdateFileBigBig()
-        {
-            // 20 chars:       |------------------|
-            var initialText = "Lorem ipsum dolo sit amet...";
-            var updatedText = "Cras lobortis consequat nisi...";
-            var dbFile = UpdateFileTest(initialText, updatedText, 20);
-
-            if (SqlFsUsed)
+            using (var op = SnTrace.Test.StartOperation("testmethod"))
             {
-                Assert.IsNull(dbFile.Stream);
-                Assert.IsNotNull(dbFile.FileStream);
-                Assert.AreEqual(dbFile.Size, dbFile.FileStream.Length);
-                Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.FileStream));
-            }
-            else
-            {
+                // 20 chars:       |------------------|
+                var initialText = "Lorem ipsum dolo sit amet...";
+                var updatedText = "Cras lobortis...";
+                var dbFile = UpdateFileTest(initialText, updatedText, 20);
+
                 Assert.IsNull(dbFile.FileStream);
                 Assert.IsNotNull(dbFile.Stream);
                 Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
                 Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.Stream));
+                op.Successful = true;
+            }
+        }
+        public void TestCase06_UpdateFileBigBig()
+        {
+            using (var op = SnTrace.Test.StartOperation("testmethod"))
+            {
+                // 20 chars:       |------------------|
+                var initialText = "Lorem ipsum dolo sit amet...";
+                var updatedText = "Cras lobortis consequat nisi...";
+                var dbFile = UpdateFileTest(initialText, updatedText, 20);
+
+                if (SqlFsUsed)
+                {
+                    Assert.IsNull(dbFile.Stream);
+                    Assert.IsNotNull(dbFile.FileStream);
+                    Assert.AreEqual(dbFile.Size, dbFile.FileStream.Length);
+                    Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.FileStream));
+                }
+                else
+                {
+                    Assert.IsNull(dbFile.FileStream);
+                    Assert.IsNotNull(dbFile.Stream);
+                    Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
+                    Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.Stream));
+                }
+                op.Successful = true;
             }
         }
         private DbFile UpdateFileTest(string initialContent, string updatedContent, int sizeLimit)
@@ -452,40 +493,49 @@ namespace SenseNet.BlobStorage.IntegrationTests
             }
         }
 
+
         public void TestCase07_WriteChunksSmall()
         {
-            // 20 chars:       |------------------|
-            // 10 chars:       |--------|---------|---------|
-            var initialText = "Lorem ipsum dolo sit amet..";
-            var updatedText = "Cras lobortis consequat nisi..";
-            var dbFile = UpdateByChunksTest(initialText, updatedText, 222, 10);
-
-            Assert.IsNull(dbFile.FileStream);
-            Assert.IsNotNull(dbFile.Stream);
-            Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
-            Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.Stream));
-        }
-        public void TestCase08_WriteChunksBig()
-        {
-            // 20 chars:       |------------------|
-            // 10 chars:       |--------|---------|---------|
-            var initialText = "Lorem ipsum dolo sit amet..";
-            var updatedText = "Cras lobortis consequat nisi..";
-            var dbFile = UpdateByChunksTest(initialText, updatedText, 20, 10);
-
-            if (SqlFsUsed)
+            using (var op = SnTrace.Test.StartOperation("testmethod"))
             {
-                Assert.IsNull(dbFile.Stream);
-                Assert.IsNotNull(dbFile.FileStream);
-                Assert.AreEqual(dbFile.Size, dbFile.FileStream.Length);
-                Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.FileStream));
-            }
-            else
-            {
+                // 20 chars:       |------------------|
+                // 10 chars:       |--------|---------|---------|
+                var initialText = "Lorem ipsum dolo sit amet..";
+                var updatedText = "Cras lobortis consequat nisi..";
+                var dbFile = UpdateByChunksTest(initialText, updatedText, 222, 10);
+
                 Assert.IsNull(dbFile.FileStream);
                 Assert.IsNotNull(dbFile.Stream);
                 Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
                 Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.Stream));
+                op.Successful = true;
+            }
+        }
+        public void TestCase08_WriteChunksBig()
+        {
+            using (var op = SnTrace.Test.StartOperation("testmethod"))
+            {
+                // 20 chars:       |------------------|
+                // 10 chars:       |--------|---------|---------|
+                var initialText = "Lorem ipsum dolo sit amet..";
+                var updatedText = "Cras lobortis consequat nisi..";
+                var dbFile = UpdateByChunksTest(initialText, updatedText, 20, 10);
+
+                if (SqlFsUsed)
+                {
+                    Assert.IsNull(dbFile.Stream);
+                    Assert.IsNotNull(dbFile.FileStream);
+                    Assert.AreEqual(dbFile.Size, dbFile.FileStream.Length);
+                    Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.FileStream));
+                }
+                else
+                {
+                    Assert.IsNull(dbFile.FileStream);
+                    Assert.IsNotNull(dbFile.Stream);
+                    Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
+                    Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.Stream));
+                }
+                op.Successful = true;
             }
         }
         private DbFile UpdateByChunksTest(string initialContent, string updatedText, int sizeLimit, int chunkSize)
@@ -535,6 +585,7 @@ namespace SenseNet.BlobStorage.IntegrationTests
                 return dbFile;
             }
         }
+
 
         #region Tools
 

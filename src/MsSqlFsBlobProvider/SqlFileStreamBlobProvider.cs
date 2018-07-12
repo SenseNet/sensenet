@@ -101,7 +101,7 @@ namespace SenseNet.MsSqlFsBlobProvider
             try
             {
                 // if possible, write the stream using the special Filestream technology
-                if (UseFileStream(context.Provider, stream.Length)) //UNDONE:# Provider must be SqlFs
+                if (UseFileStream(context.Provider, stream.Length))
                 {
                     WriteSqlFileStream(stream, fileId, fileStreamData);
                     return;
