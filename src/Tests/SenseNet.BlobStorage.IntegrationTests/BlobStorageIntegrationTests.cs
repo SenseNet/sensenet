@@ -953,7 +953,7 @@ namespace SenseNet.BlobStorage.IntegrationTests
                 return new byte[0];
 
             var provider = BlobStorageBase.GetProvider(file.BlobProvider);
-            var context = new BlobStorageContext(provider, file.BlobProviderData);
+            var context = new BlobStorageContext(provider, file.BlobProviderData) {Length = file.Size};
             return GetExternalData(context);
         }
         private byte[] GetExternalData(BlobStorageContext context)

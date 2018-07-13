@@ -85,6 +85,7 @@
   <ItemGroup>
     <Compile Include="BlobStorageIntegrationTests.cs" />
     <Compile Include="BuiltInFsTests.cs" />
+    <Compile Include="BuiltInLocalDiskChunkTests.cs" />
     <Compile Include="BuiltInTests.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Implementations\FileSystemChunkReaderStream.cs" />

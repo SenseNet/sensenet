@@ -12,7 +12,7 @@ namespace SenseNet.BlobStorage.IntegrationTests.Implementations
 
 
         private static int _chunkByteSize = 10; //ten bytes by default
-        public static int ChunkByteSize { get;set; }
+        //public static int ChunkByteSize { get;set; }
 
         internal class LocalDiskChunkBlobProviderData
         {
