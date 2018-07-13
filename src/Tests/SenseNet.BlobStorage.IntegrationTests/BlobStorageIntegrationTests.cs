@@ -30,11 +30,6 @@ namespace SenseNet.BlobStorage.IntegrationTests
 
         public TestContext TestContext { get; set; }
 
-        protected BlobStorageIntegrationTests()
-        {
-            SnTrace.Test.Write("CTOR: {0}", this.GetType().Name);
-        }
-
         private static readonly Dictionary<Type, BlobStorageIntegrationTests> Instances =
             new Dictionary<Type, BlobStorageIntegrationTests>();
 
@@ -182,7 +177,7 @@ namespace SenseNet.BlobStorage.IntegrationTests
         private void ExecuteSqlCommandNative(string sql, string databaseName)
         {
             var cnstr = GetConnectionString(databaseName);
-            var scripts = sql.Split(new[] {"\r\nGO"}, StringSplitOptions.RemoveEmptyEntries);
+            var scripts = sql.Split(new[] { "\r\nGO" }, StringSplitOptions.RemoveEmptyEntries);
             var index = 0;
 
             using (var cn = new SqlConnection(cnstr))
@@ -209,7 +204,7 @@ namespace SenseNet.BlobStorage.IntegrationTests
                 using (var proc = new SqlCommand(sql, cn))
                 {
                     proc.CommandType = CommandType.Text;
-                    return (T) proc.ExecuteScalar();
+                    return (T)proc.ExecuteScalar();
                 }
             }
         }
@@ -306,62 +301,54 @@ namespace SenseNet.BlobStorage.IntegrationTests
 
         public void TestCase01_CreateFileSmall()
         {
-            using (var op = SnTrace.Test.StartOperation("testmethod"))
-            {
-                var expectedText = "Lorem ipsum dolo sit amet";
-                var dbFile = CreateFileTest(expectedText, expectedText.Length + 10);
-                var ctx = BlobStorageBase.GetBlobStorageContext(dbFile.FileId);
+            var expectedText = "Lorem ipsum dolo sit amet";
+            var dbFile = CreateFileTest(expectedText, expectedText.Length + 10);
+            var ctx = BlobStorageBase.GetBlobStorageContext(dbFile.FileId);
 
-                Assert.IsNull(dbFile.FileStream);
-                Assert.IsNotNull(dbFile.Stream);
-                Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
-                Assert.AreEqual(expectedText, GetStringFromBytes(dbFile.Stream));
+            Assert.IsNull(dbFile.FileStream);
+            Assert.IsNotNull(dbFile.Stream);
+            Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
+            Assert.AreEqual(expectedText, GetStringFromBytes(dbFile.Stream));
 
-                Assert.AreEqual(dbFile.FileId, ctx.FileId);
-                Assert.AreEqual(dbFile.Size, ctx.Length);
-                Assert.IsTrue(ctx.BlobProviderData is BuiltinBlobProviderData);
-                op.Successful = true;
-            }
+            Assert.AreEqual(dbFile.FileId, ctx.FileId);
+            Assert.AreEqual(dbFile.Size, ctx.Length);
+            Assert.IsTrue(ctx.BlobProviderData is BuiltinBlobProviderData);
         }
         public void TestCase02_CreateFileBig()
         {
-            using (var op = SnTrace.Test.StartOperation("testmethod"))
+            var expectedText = "Lorem ipsum dolo sit amet";
+            var dbFile = CreateFileTest(expectedText, expectedText.Length - 10);
+            var ctx = BlobStorageBase.GetBlobStorageContext(dbFile.FileId);
+
+            Assert.AreEqual(dbFile.FileId, ctx.FileId);
+            Assert.AreEqual(dbFile.Size, ctx.Length);
+
+            if (NeedExternal())
             {
-                var expectedText = "Lorem ipsum dolo sit amet";
-                var dbFile = CreateFileTest(expectedText, expectedText.Length - 10);
-                var ctx = BlobStorageBase.GetBlobStorageContext(dbFile.FileId);
+                Assert.IsNull(dbFile.Stream);
+                Assert.IsNull(dbFile.FileStream);
+                Assert.AreEqual(dbFile.Size, dbFile.ExternalStream.Length);
+                Assert.AreEqual(expectedText, GetStringFromBytes(dbFile.ExternalStream));
 
-                Assert.AreEqual(dbFile.FileId, ctx.FileId);
-                Assert.AreEqual(dbFile.Size, ctx.Length);
+                Assert.AreEqual(ExpectedBlobProviderDataType, ctx.BlobProviderData.GetType());
+            }
+            else if (SqlFsUsed)
+            {
+                Assert.IsNull(dbFile.Stream);
+                Assert.IsNotNull(dbFile.FileStream);
+                Assert.AreEqual(dbFile.Size, dbFile.FileStream.Length);
+                Assert.AreEqual(expectedText, GetStringFromBytes(dbFile.FileStream));
 
-                if (NeedExternal())
-                {
-                    Assert.IsNull(dbFile.Stream);
-                    Assert.IsNull(dbFile.FileStream);
-                    Assert.AreEqual(dbFile.Size, dbFile.ExternalStream.Length);
-                    Assert.AreEqual(expectedText, GetStringFromBytes(dbFile.ExternalStream));
+                Assert.IsTrue(ctx.BlobProviderData is SqlFileStreamBlobProviderData);
+            }
+            else
+            {
+                Assert.IsNotNull(dbFile.Stream);
+                Assert.IsNull(dbFile.FileStream);
+                Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
+                Assert.AreEqual(expectedText, GetStringFromBytes(dbFile.Stream));
 
-                    Assert.AreEqual(ExpectedBlobProviderDataType, ctx.BlobProviderData.GetType());
-                }
-                else if (SqlFsUsed)
-                {
-                    Assert.IsNull(dbFile.Stream);
-                    Assert.IsNotNull(dbFile.FileStream);
-                    Assert.AreEqual(dbFile.Size, dbFile.FileStream.Length);
-                    Assert.AreEqual(expectedText, GetStringFromBytes(dbFile.FileStream));
-
-                    Assert.IsTrue(ctx.BlobProviderData is SqlFileStreamBlobProviderData);
-                }
-                else
-                {
-                    Assert.IsNotNull(dbFile.Stream);
-                    Assert.IsNull(dbFile.FileStream);
-                    Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
-                    Assert.AreEqual(expectedText, GetStringFromBytes(dbFile.Stream));
-
-                    Assert.IsTrue(ctx.BlobProviderData is BuiltinBlobProviderData);
-                }
-                op.Successful = true;
+                Assert.IsTrue(ctx.BlobProviderData is BuiltinBlobProviderData);
             }
         }
         private DbFile CreateFileTest(string fileContent, int sizeLimit)
@@ -404,100 +391,84 @@ namespace SenseNet.BlobStorage.IntegrationTests
 
         public void TestCase03_UpdateFileSmallSmall()
         {
-            using (var op = SnTrace.Test.StartOperation("testmethod"))
-            {
-                // 20 chars:       |------------------|
-                var initialText = "Lorem ipsum...";
-                var updatedText = "Cras lobortis...";
-                var dbFile = UpdateFileTest(initialText, updatedText, 20);
+            // 20 chars:       |------------------|
+            var initialText = "Lorem ipsum...";
+            var updatedText = "Cras lobortis...";
+            var dbFile = UpdateFileTest(initialText, updatedText, 20);
 
-                Assert.IsNull(dbFile.FileStream);
-                Assert.IsNotNull(dbFile.Stream);
-                Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
-                Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.Stream));
-                op.Successful = true;
-            }
+            Assert.IsNull(dbFile.FileStream);
+            Assert.IsNotNull(dbFile.Stream);
+            Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
+            Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.Stream));
         }
         public void TestCase04_UpdateFileSmallBig()
         {
-            using (var op = SnTrace.Test.StartOperation("testmethod"))
-            {
-                // 20 chars:       |------------------|
-                var initialText = "Lorem ipsum...";
-                var updatedText = "Cras lobortis consequat nisi...";
-                var dbFile = UpdateFileTest(initialText, updatedText, 20);
+            // 20 chars:       |------------------|
+            var initialText = "Lorem ipsum...";
+            var updatedText = "Cras lobortis consequat nisi...";
+            var dbFile = UpdateFileTest(initialText, updatedText, 20);
 
-                if (NeedExternal())
-                {
-                    Assert.IsTrue(dbFile.Stream == null || dbFile.Stream.Length == 0);
-                    Assert.IsTrue(dbFile.FileStream == null || dbFile.FileStream.Length == 0);
-                    Assert.AreEqual(dbFile.Size, dbFile.ExternalStream.Length);
-                    Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.ExternalStream));
-                }
-                else if (SqlFsUsed)
-                {
-                    Assert.IsNull(dbFile.Stream);
-                    Assert.IsNotNull(dbFile.FileStream);
-                    Assert.AreEqual(dbFile.Size, dbFile.FileStream.Length);
-                    Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.FileStream));
-                }
-                else
-                {
-                    Assert.IsNotNull(dbFile.Stream);
-                    Assert.IsNull(dbFile.FileStream);
-                    Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
-                    Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.Stream));
-                }
-                op.Successful = true;
+            if (NeedExternal())
+            {
+                Assert.IsTrue(dbFile.Stream == null || dbFile.Stream.Length == 0);
+                Assert.IsTrue(dbFile.FileStream == null || dbFile.FileStream.Length == 0);
+                Assert.AreEqual(dbFile.Size, dbFile.ExternalStream.Length);
+                Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.ExternalStream));
+            }
+            else if (SqlFsUsed)
+            {
+                Assert.IsNull(dbFile.Stream);
+                Assert.IsNotNull(dbFile.FileStream);
+                Assert.AreEqual(dbFile.Size, dbFile.FileStream.Length);
+                Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.FileStream));
+            }
+            else
+            {
+                Assert.IsNotNull(dbFile.Stream);
+                Assert.IsNull(dbFile.FileStream);
+                Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
+                Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.Stream));
             }
         }
         public void TestCase05_UpdateFileBigSmall()
         {
-            using (var op = SnTrace.Test.StartOperation("testmethod"))
-            {
-                // 20 chars:       |------------------|
-                var initialText = "Lorem ipsum dolo sit amet...";
-                var updatedText = "Cras lobortis...";
-                var dbFile = UpdateFileTest(initialText, updatedText, 20);
+            // 20 chars:       |------------------|
+            var initialText = "Lorem ipsum dolo sit amet...";
+            var updatedText = "Cras lobortis...";
+            var dbFile = UpdateFileTest(initialText, updatedText, 20);
 
-                Assert.IsNull(dbFile.FileStream);
-                Assert.IsNotNull(dbFile.Stream);
-                Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
-                Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.Stream));
-                op.Successful = true;
-            }
+            Assert.IsNull(dbFile.FileStream);
+            Assert.IsNotNull(dbFile.Stream);
+            Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
+            Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.Stream));
         }
         public void TestCase06_UpdateFileBigBig()
         {
-            using (var op = SnTrace.Test.StartOperation("testmethod"))
-            {
-                // 20 chars:       |------------------|
-                var initialText = "Lorem ipsum dolo sit amet...";
-                var updatedText = "Cras lobortis consequat nisi...";
-                var dbFile = UpdateFileTest(initialText, updatedText, 20);
+            // 20 chars:       |------------------|
+            var initialText = "Lorem ipsum dolo sit amet...";
+            var updatedText = "Cras lobortis consequat nisi...";
+            var dbFile = UpdateFileTest(initialText, updatedText, 20);
 
-                if (NeedExternal())
-                {
-                    Assert.IsTrue(dbFile.Stream == null || dbFile.Stream.Length == 0);
-                    Assert.IsTrue(dbFile.FileStream == null || dbFile.FileStream.Length == 0);
-                    Assert.AreEqual(dbFile.Size, dbFile.ExternalStream.Length);
-                    Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.ExternalStream));
-                }
-                else if (SqlFsUsed)
-                {
-                    Assert.IsNull(dbFile.Stream);
-                    Assert.IsNotNull(dbFile.FileStream);
-                    Assert.AreEqual(dbFile.Size, dbFile.FileStream.Length);
-                    Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.FileStream));
-                }
-                else
-                {
-                    Assert.IsNotNull(dbFile.Stream);
-                    Assert.IsNull(dbFile.FileStream);
-                    Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
-                    Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.Stream));
-                }
-                op.Successful = true;
+            if (NeedExternal())
+            {
+                Assert.IsTrue(dbFile.Stream == null || dbFile.Stream.Length == 0);
+                Assert.IsTrue(dbFile.FileStream == null || dbFile.FileStream.Length == 0);
+                Assert.AreEqual(dbFile.Size, dbFile.ExternalStream.Length);
+                Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.ExternalStream));
+            }
+            else if (SqlFsUsed)
+            {
+                Assert.IsNull(dbFile.Stream);
+                Assert.IsNotNull(dbFile.FileStream);
+                Assert.AreEqual(dbFile.Size, dbFile.FileStream.Length);
+                Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.FileStream));
+            }
+            else
+            {
+                Assert.IsNotNull(dbFile.Stream);
+                Assert.IsNull(dbFile.FileStream);
+                Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
+                Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.Stream));
             }
         }
         private DbFile UpdateFileTest(string initialContent, string updatedContent, int sizeLimit)
@@ -546,53 +517,45 @@ namespace SenseNet.BlobStorage.IntegrationTests
 
         public void TestCase07_WriteChunksSmall()
         {
-            using (var op = SnTrace.Test.StartOperation("testmethod"))
-            {
-                // 20 chars:       |------------------|
-                // 10 chars:       |--------|---------|---------|
-                var initialText = "Lorem ipsum dolo sit amet..";
-                var updatedText = "Cras lobortis consequat nisi..";
-                var dbFile = UpdateByChunksTest(initialText, updatedText, 222, 10);
+            // 20 chars:       |------------------|
+            // 10 chars:       |--------|---------|---------|
+            var initialText = "Lorem ipsum dolo sit amet..";
+            var updatedText = "Cras lobortis consequat nisi..";
+            var dbFile = UpdateByChunksTest(initialText, updatedText, 222, 10);
 
-                Assert.IsNull(dbFile.FileStream);
-                Assert.IsNotNull(dbFile.Stream);
-                Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
-                Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.Stream));
-                op.Successful = true;
-            }
+            Assert.IsNull(dbFile.FileStream);
+            Assert.IsNotNull(dbFile.Stream);
+            Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
+            Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.Stream));
         }
         public void TestCase08_WriteChunksBig()
         {
-            using (var op = SnTrace.Test.StartOperation("testmethod"))
-            {
-                // 20 chars:       |------------------|
-                // 10 chars:       |--------|---------|---------|
-                var initialText = "Lorem ipsum dolo sit amet..";
-                var updatedText = "Cras lobortis consequat nisi..";
-                var dbFile = UpdateByChunksTest(initialText, updatedText, 20, 10);
+            // 20 chars:       |------------------|
+            // 10 chars:       |--------|---------|---------|
+            var initialText = "Lorem ipsum dolo sit amet..";
+            var updatedText = "Cras lobortis consequat nisi..";
+            var dbFile = UpdateByChunksTest(initialText, updatedText, 20, 10);
 
-                if (NeedExternal())
-                {
-                    Assert.IsNull(dbFile.Stream);
-                    Assert.IsTrue(dbFile.FileStream == null || dbFile.FileStream.Length == 0);
-                    Assert.AreEqual(dbFile.Size, dbFile.ExternalStream.Length);
-                    Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.ExternalStream));
-                }
-                else if (SqlFsUsed)
-                {
-                    Assert.IsNull(dbFile.Stream);
-                    Assert.IsNotNull(dbFile.FileStream);
-                    Assert.AreEqual(dbFile.Size, dbFile.FileStream.Length);
-                    Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.FileStream));
-                }
-                else
-                {
-                    Assert.IsNotNull(dbFile.Stream);
-                    Assert.IsNull(dbFile.FileStream);
-                    Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
-                    Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.Stream));
-                }
-                op.Successful = true;
+            if (NeedExternal())
+            {
+                Assert.IsNull(dbFile.Stream);
+                Assert.IsTrue(dbFile.FileStream == null || dbFile.FileStream.Length == 0);
+                Assert.AreEqual(dbFile.Size, dbFile.ExternalStream.Length);
+                Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.ExternalStream));
+            }
+            else if (SqlFsUsed)
+            {
+                Assert.IsNull(dbFile.Stream);
+                Assert.IsNotNull(dbFile.FileStream);
+                Assert.AreEqual(dbFile.Size, dbFile.FileStream.Length);
+                Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.FileStream));
+            }
+            else
+            {
+                Assert.IsNotNull(dbFile.Stream);
+                Assert.IsNull(dbFile.FileStream);
+                Assert.AreEqual(dbFile.Size, dbFile.Stream.Length);
+                Assert.AreEqual(updatedText, GetStringFromBytes(dbFile.Stream));
             }
         }
         private DbFile UpdateByChunksTest(string initialContent, string updatedText, int sizeLimit, int chunkSize)
@@ -653,29 +616,19 @@ namespace SenseNet.BlobStorage.IntegrationTests
 
         public void TestCase09_DeleteBinaryPropertySmall()
         {
-            using (var op = SnTrace.Test.StartOperation("testmethod"))
-            {
-                // 20 chars:       |------------------|
-                // 10 chars:       |--------|---------|---------|
-                var initialText = "Lorem ipsum dolo sit amet..";
-                var updatedText = "Cras lobortis consequat nisi..";
-                DeleteBinaryPropertyTest(initialText, updatedText, 222, 10);
-
-                op.Successful = true;
-            }
+            // 20 chars:       |------------------|
+            // 10 chars:       |--------|---------|---------|
+            var initialText = "Lorem ipsum dolo sit amet..";
+            var updatedText = "Cras lobortis consequat nisi..";
+            DeleteBinaryPropertyTest(initialText, updatedText, 222, 10);
         }
         public void TestCase10_DeleteBinaryPropertyBig()
         {
-            using (var op = SnTrace.Test.StartOperation("testmethod"))
-            {
-                // 20 chars:       |------------------|
-                // 10 chars:       |--------|---------|---------|
-                var initialText = "Lorem ipsum dolo sit amet..";
-                var updatedText = "Cras lobortis consequat nisi..";
-                DeleteBinaryPropertyTest(initialText, updatedText, 20, 10);
-
-                op.Successful = true;
-            }
+            // 20 chars:       |------------------|
+            // 10 chars:       |--------|---------|---------|
+            var initialText = "Lorem ipsum dolo sit amet..";
+            var updatedText = "Cras lobortis consequat nisi..";
+            DeleteBinaryPropertyTest(initialText, updatedText, 20, 10);
         }
         private void DeleteBinaryPropertyTest(string initialContent, string updatedText, int sizeLimit, int chunkSize)
         {
@@ -703,14 +656,57 @@ namespace SenseNet.BlobStorage.IntegrationTests
 
         public void TestCase11_CopyfileRowSmall()
         {
-            using (var op = SnTrace.Test.StartOperation("testmethod"))
-            {
-                // 20 chars:       |------------------|
-                // 10 chars:       |--------|---------|---------|
-                var initialText = "Lorem ipsum dolo sit amet..";
-                var updatedText = "Cras lobortis consequat nisi..";
-                var dbFiles = CopyfileRowTest(initialText, updatedText, 222, 10);
+            // 20 chars:       |------------------|
+            // 10 chars:       |--------|---------|---------|
+            var initialText = "Lorem ipsum dolo sit amet..";
+            var updatedText = "Cras lobortis consequat nisi..";
+            var dbFiles = CopyfileRowTest(initialText, updatedText, 222, 10);
 
+            Assert.IsNull(dbFiles[0].FileStream);
+            Assert.IsNotNull(dbFiles[0].Stream);
+            Assert.AreEqual(dbFiles[0].Size, dbFiles[0].Stream.Length);
+            Assert.AreEqual(initialText, GetStringFromBytes(dbFiles[0].Stream));
+
+            Assert.IsNull(dbFiles[1].FileStream);
+            Assert.IsNotNull(dbFiles[1].Stream);
+            Assert.AreEqual(dbFiles[1].Size, dbFiles[1].Stream.Length);
+            Assert.AreEqual(updatedText, GetStringFromBytes(dbFiles[1].Stream));
+        }
+        public void TestCase12_CopyfileRowBig()
+        {
+            // 20 chars:       |------------------|
+            // 10 chars:       |--------|---------|---------|
+            var initialText = "Lorem ipsum dolo sit amet..";
+            var updatedText = "Cras lobortis consequat nisi..";
+            var dbFiles = CopyfileRowTest(initialText, updatedText, 20, 10);
+
+            if (NeedExternal())
+            {
+                Assert.IsNull(dbFiles[0].Stream);
+                Assert.IsTrue(dbFiles[0].FileStream == null || dbFiles[0].FileStream.Length == 0);
+                Assert.AreEqual(dbFiles[0].Size, dbFiles[0].ExternalStream.Length);
+                Assert.AreEqual(initialText, GetStringFromBytes(dbFiles[0].ExternalStream));
+
+                Assert.IsTrue(dbFiles[1].Stream == null || dbFiles[1].Stream.Length == 0);
+                Assert.IsTrue(dbFiles[1].FileStream == null || dbFiles[1].FileStream.Length == 0);
+                Assert.AreEqual(dbFiles[1].Size, dbFiles[1].ExternalStream.Length);
+                Assert.AreEqual(updatedText, GetStringFromBytes(dbFiles[1].ExternalStream));
+
+            }
+            else if (SqlFsUsed)
+            {
+                Assert.IsNull(dbFiles[0].Stream);
+                Assert.IsNotNull(dbFiles[0].FileStream);
+                Assert.AreEqual(dbFiles[0].Size, dbFiles[0].FileStream.Length);
+                Assert.AreEqual(initialText, GetStringFromBytes(dbFiles[0].FileStream));
+
+                Assert.IsNull(dbFiles[1].Stream);
+                Assert.IsNotNull(dbFiles[1].FileStream);
+                Assert.AreEqual(dbFiles[1].Size, dbFiles[1].FileStream.Length);
+                Assert.AreEqual(updatedText, GetStringFromBytes(dbFiles[1].FileStream));
+            }
+            else
+            {
                 Assert.IsNull(dbFiles[0].FileStream);
                 Assert.IsNotNull(dbFiles[0].Stream);
                 Assert.AreEqual(dbFiles[0].Size, dbFiles[0].Stream.Length);
@@ -720,58 +716,6 @@ namespace SenseNet.BlobStorage.IntegrationTests
                 Assert.IsNotNull(dbFiles[1].Stream);
                 Assert.AreEqual(dbFiles[1].Size, dbFiles[1].Stream.Length);
                 Assert.AreEqual(updatedText, GetStringFromBytes(dbFiles[1].Stream));
-
-                op.Successful = true;
-            }
-        }
-        public void TestCase12_CopyfileRowBig()
-        {
-            using (var op = SnTrace.Test.StartOperation("testmethod"))
-            {
-                // 20 chars:       |------------------|
-                // 10 chars:       |--------|---------|---------|
-                var initialText = "Lorem ipsum dolo sit amet..";
-                var updatedText = "Cras lobortis consequat nisi..";
-                var dbFiles = CopyfileRowTest(initialText, updatedText, 20, 10);
-
-                if (NeedExternal())
-                {
-                    Assert.IsNull(dbFiles[0].Stream);
-                    Assert.IsTrue(dbFiles[0].FileStream == null || dbFiles[0].FileStream.Length == 0);
-                    Assert.AreEqual(dbFiles[0].Size, dbFiles[0].ExternalStream.Length);
-                    Assert.AreEqual(initialText, GetStringFromBytes(dbFiles[0].ExternalStream));
-
-                    Assert.IsTrue(dbFiles[1].Stream == null || dbFiles[1].Stream.Length == 0);
-                    Assert.IsTrue(dbFiles[1].FileStream == null || dbFiles[1].FileStream.Length == 0);
-                    Assert.AreEqual(dbFiles[1].Size, dbFiles[1].ExternalStream.Length);
-                    Assert.AreEqual(updatedText, GetStringFromBytes(dbFiles[1].ExternalStream));
-
-                }
-                else if (SqlFsUsed)
-                {
-                    Assert.IsNull(dbFiles[0].Stream);
-                    Assert.IsNotNull(dbFiles[0].FileStream);
-                    Assert.AreEqual(dbFiles[0].Size, dbFiles[0].FileStream.Length);
-                    Assert.AreEqual(initialText, GetStringFromBytes(dbFiles[0].FileStream));
-
-                    Assert.IsNull(dbFiles[1].Stream);
-                    Assert.IsNotNull(dbFiles[1].FileStream);
-                    Assert.AreEqual(dbFiles[1].Size, dbFiles[1].FileStream.Length);
-                    Assert.AreEqual(updatedText, GetStringFromBytes(dbFiles[1].FileStream));
-                }
-                else
-                {
-                    Assert.IsNull(dbFiles[0].FileStream);
-                    Assert.IsNotNull(dbFiles[0].Stream);
-                    Assert.AreEqual(dbFiles[0].Size, dbFiles[0].Stream.Length);
-                    Assert.AreEqual(initialText, GetStringFromBytes(dbFiles[0].Stream));
-
-                    Assert.IsNull(dbFiles[1].FileStream);
-                    Assert.IsNotNull(dbFiles[1].Stream);
-                    Assert.AreEqual(dbFiles[1].Size, dbFiles[1].Stream.Length);
-                    Assert.AreEqual(updatedText, GetStringFromBytes(dbFiles[1].Stream));
-                }
-                op.Successful = true;
             }
         }
         private DbFile[] CopyfileRowTest(string initialContent, string updatedText, int sizeLimit, int chunkSize)
@@ -780,7 +724,7 @@ namespace SenseNet.BlobStorage.IntegrationTests
             using (new SqlFileStreamSizeSwindler(this, sizeLimit))
             {
                 var testRoot = CreateTestRoot();
-                var target = new SystemFolder(testRoot) {Name = "Target"};
+                var target = new SystemFolder(testRoot) { Name = "Target" };
                 target.Save();
 
                 var file = new File(testRoot) { Name = "File1.file" };
@@ -853,23 +797,13 @@ namespace SenseNet.BlobStorage.IntegrationTests
 
         public void TestCase13_BinaryCacheEntitySmall()
         {
-            using (var op = SnTrace.Test.StartOperation("testmethod"))
-            {
-                var expectedText = "Lorem ipsum dolo sit amet";
-                BinaryCacheEntityTest(expectedText, expectedText.Length + 10);
-
-                op.Successful = true;
-            }
+            var expectedText = "Lorem ipsum dolo sit amet";
+            BinaryCacheEntityTest(expectedText, expectedText.Length + 10);
         }
         public void TestCase14_BinaryCacheEntityBig()
         {
-            using (var op = SnTrace.Test.StartOperation("testmethod"))
-            {
-                var expectedText = "Lorem ipsum dolo sit amet";
-                BinaryCacheEntityTest(expectedText, expectedText.Length - 10);
-
-                op.Successful = true;
-            }
+            var expectedText = "Lorem ipsum dolo sit amet";
+            BinaryCacheEntityTest(expectedText, expectedText.Length - 10);
         }
         private void BinaryCacheEntityTest(string fileContent, int sizeLimit)
         {
@@ -893,12 +827,12 @@ namespace SenseNet.BlobStorage.IntegrationTests
                 // assert
                 Assert.AreEqual(binaryPropertyId, binaryCacheEntity.BinaryPropertyId);
                 Assert.AreEqual(fileId, binaryCacheEntity.FileId);
-                Assert.AreEqual(fileContent.Length+3, binaryCacheEntity.Length);
+                Assert.AreEqual(fileContent.Length + 3, binaryCacheEntity.Length);
 
                 Assert.AreEqual(versionId, binaryCacheEntity.Context.VersionId);
                 Assert.AreEqual(propertyTypeId, binaryCacheEntity.Context.PropertyTypeId);
                 Assert.AreEqual(fileId, binaryCacheEntity.Context.FileId);
-                Assert.AreEqual(fileContent.Length+3, binaryCacheEntity.Context.Length);
+                Assert.AreEqual(fileContent.Length + 3, binaryCacheEntity.Context.Length);
 
                 if (NeedExternal(fileContent, sizeLimit))
                 {
@@ -1035,7 +969,7 @@ namespace SenseNet.BlobStorage.IntegrationTests
 
         protected Node CreateTestRoot()
         {
-            var root = new SystemFolder(Repository.Root) {Name = Guid.NewGuid().ToString()};
+            var root = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
             root.Save();
             return root;
         }
