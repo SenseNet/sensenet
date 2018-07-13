@@ -894,14 +894,22 @@ namespace SenseNet.BlobStorage.IntegrationTests
                 Assert.AreEqual(binaryPropertyId, binaryCacheEntity.BinaryPropertyId);
                 Assert.AreEqual(fileId, binaryCacheEntity.FileId);
                 Assert.AreEqual(fileContent.Length+3, binaryCacheEntity.Length);
-                Assert.AreEqual(fileContent, GetStringFromBytes(binaryCacheEntity.RawData));
 
                 Assert.AreEqual(versionId, binaryCacheEntity.Context.VersionId);
                 Assert.AreEqual(propertyTypeId, binaryCacheEntity.Context.PropertyTypeId);
                 Assert.AreEqual(fileId, binaryCacheEntity.Context.FileId);
                 Assert.AreEqual(fileContent.Length+3, binaryCacheEntity.Context.Length);
-                //null, binaryCacheEntity.Context.BlobProviderData;
-                //binaryCacheEntity.Context.Provider;
+
+                if (NeedExternal(fileContent, sizeLimit))
+                {
+                    Assert.IsTrue(binaryCacheEntity.Context.Provider.GetType() == ExpectedExternalBlobProviderType);
+                    Assert.IsTrue(binaryCacheEntity.Context.BlobProviderData.GetType() == ExpectedBlobProviderDataType);
+                    Assert.AreEqual(fileContent, GetStringFromBytes(GetExternalData(binaryCacheEntity.Context)));
+                }
+                else
+                {
+                    Assert.AreEqual(fileContent, GetStringFromBytes(binaryCacheEntity.RawData));
+                }
             }
         }
 
@@ -998,27 +1006,32 @@ namespace SenseNet.BlobStorage.IntegrationTests
                     file.Timestamp = DataProvider.GetLongFromBytes((byte[])reader[reader.GetOrdinal("Timestamp")]);
                     if (reader.FieldCount > 16)
                         file.FileStream = reader.GetSafeBytes(reader.GetOrdinal("FileStream"));
-                    file.ExternalStream = GetExternalStream(file);
+                    file.ExternalStream = GetExternalData(file);
                     dbFiles.Add(file);
                 }
             }
 
             return dbFiles.ToArray();
         }
-        private byte[] GetExternalStream(DbFile file)
+        private byte[] GetExternalData(DbFile file)
         {
             if (file.BlobProvider == null)
                 return new byte[0];
 
             var provider = BlobStorageBase.GetProvider(file.BlobProvider);
             var context = new BlobStorageContext(provider, file.BlobProviderData);
-            using (var stream = provider.GetStreamForRead(context))
+            return GetExternalData(context);
+        }
+        private byte[] GetExternalData(BlobStorageContext context)
+        {
+            using (var stream = context.Provider.GetStreamForRead(context))
             {
                 var buffer = new byte[stream.Length.ToInt()];
                 stream.Read(buffer, 0, buffer.Length);
                 return buffer;
             }
         }
+
 
         protected Node CreateTestRoot()
         {
