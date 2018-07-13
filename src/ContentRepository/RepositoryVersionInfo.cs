@@ -127,6 +127,8 @@ namespace SenseNet.ContentRepository
 
         public static void CheckComponentVersions()
         {
+SnTrace.System.Write("Checking component versions.");  //UNDONE: REMOVE trace
+
             var components = TypeResolver.GetTypesByInterface(typeof(ISnComponent)).Where(vct => !vct.IsAbstract)
                 .Select(t => TypeResolver.CreateInstance(t.FullName) as ISnComponent)
                 .Where(c => c != null)

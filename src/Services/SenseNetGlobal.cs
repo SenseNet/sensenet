@@ -144,9 +144,7 @@ namespace SenseNet.Services
             using (var op = SnTrace.Repository.StartOperation("Application_Start. Process: {0}, AppDomain: {1}, ",
                                 System.Diagnostics.Process.GetCurrentProcess().Id, AppDomain.CurrentDomain.Id))
             {
-                var runOnceMarkerPath = application.Server.MapPath("/" + RunOnceGuid);
-                var firstRun = File.Exists(runOnceMarkerPath);
-                var startConfig = new RepositoryStartSettings { StartIndexingEngine = !firstRun, IsWebContext = true };
+                var startConfig = new RepositoryStartSettings { StartIndexingEngine = true, IsWebContext = true };
 
                 Repository.Start(startConfig);
 

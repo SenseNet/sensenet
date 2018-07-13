@@ -50,6 +50,8 @@ namespace SenseNet.ContentRepository
                                               ? "Performance counters are created: " + string.Join(", ", _current.CounterNames) + "."
                                               : "Performance counters are disabled.";
 
+SnTrace.System.Write(message);  //UNDONE: REMOVE trace
+
                             SnLog.WriteInformation(message + ". CounterManager:" + _current);
                         }
                     }
@@ -67,11 +69,8 @@ namespace SenseNet.ContentRepository
 
         private PerformanceCounterCategory Category { get; set; }
 
-        private SenseNetPerformanceCounter[] _counters;
-        private IEnumerable<SenseNetPerformanceCounter> Counters
-        {
-            get { return _counters; }
-        }
+        private SenseNetPerformanceCounter[] _counters = new SenseNetPerformanceCounter[0];
+        private IEnumerable<SenseNetPerformanceCounter> Counters => _counters;
 
         // ================================================================================= Static methods
 
@@ -127,6 +126,7 @@ namespace SenseNet.ContentRepository
 
         public static void Start()
         {
+SnTrace.System.Write("Starting counter manager");  //UNDONE: REMOVE trace
             var cm = CounterManager.Current;
         }
 
@@ -155,21 +155,26 @@ namespace SenseNet.ContentRepository
             _cpuUsage = 0;
             _availableRAM = 0;
 
-            try
-            {
-                _cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
-                _ramCounter = new PerformanceCounter("Memory", "Available KBytes");
+SnTrace.System.Write("Initializing counter manager");  //UNDONE: REMOVE trace
 
-                _perfCounterTimer = new System.Timers.Timer(3000);
-                _perfCounterTimer.Elapsed += PerfCounter_Timer_Elapsed;
-                _perfCounterTimer.Disposed += PerfCounter_Timer_Disposed;
-                _perfCounterTimer.Enabled = true;
-            }
-            catch (Exception ex)
+            if (Logging.PerformanceCountersEnabled)
             {
-                SnLog.WriteWarning(
-                    "Performance counters could not be initialized, the values will always be 0. Message: " + ex.Message,
-                    EventId.RepositoryLifecycle);
+                try
+                {
+                    _cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+                    _ramCounter = new PerformanceCounter("Memory", "Available KBytes");
+
+                    _perfCounterTimer = new System.Timers.Timer(3000);
+                    _perfCounterTimer.Elapsed += PerfCounter_Timer_Elapsed;
+                    _perfCounterTimer.Disposed += PerfCounter_Timer_Disposed;
+                    _perfCounterTimer.Enabled = true;
+                }
+                catch (Exception ex)
+                {
+                    SnLog.WriteWarning(
+                        "Performance counters could not be initialized, the values will always be 0. Message: " + ex.Message,
+                        EventId.RepositoryLifecycle);
+                }
             }
 
             _invalidCounters = new Dictionary<string, bool>();

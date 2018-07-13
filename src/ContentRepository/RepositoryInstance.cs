@@ -90,15 +90,21 @@ namespace SenseNet.ContentRepository
         {
             if (!_started)
             {
+SnTrace.System.Write("Repo is not started yet."); //UNDONE: REMOVE trace
+
                 lock (_startStopSync)
                 {
                     if (!_started)
                     {
+SnTrace.System.Write("Preparing to start repository.");  //UNDONE: REMOVE trace
+
                         var instance = new RepositoryInstance();
                         instance._settings = new RepositoryStartSettings.ImmutableRepositoryStartSettings(settings);
                         _instance = instance;
                         try
                         {
+SnTrace.System.Write("Calling DoStart");  //UNDONE: REMOVE trace
+
                             instance.DoStart();
                         }
                         catch (Exception)
@@ -118,11 +124,15 @@ namespace SenseNet.ContentRepository
             ConsoleWriteLine("Starting Repository...");
             ConsoleWriteLine();
 
+SnTrace.System.Write("Preparing to update trace categories...");  //UNDONE: REMOVE trace
+
             if (_settings.TraceCategories != null)
                 LoggingSettings.SnTraceConfigurator.UpdateCategories(_settings.TraceCategories);
             else
                 LoggingSettings.SnTraceConfigurator.UpdateStartupCategories();
-            
+
+SnTrace.System.Write("Set SearchEngineSupport");  //UNDONE: REMOVE trace
+
             SearchManager.SetSearchEngineSupport(new SearchEngineSupport());
 
             InitializeLogger();
@@ -199,6 +209,8 @@ namespace SenseNet.ContentRepository
 
         private void LoadAssemblies()
         {
+SnTrace.System.Write("Loading assemblies");  //UNDONE: REMOVE trace
+
             string[] asmNames;
             _startupInfo.AssembliesBeforeStart = GetLoadedAsmNames().ToArray();
             var localBin = AppDomain.CurrentDomain.BaseDirectory;
@@ -207,6 +219,8 @@ namespace SenseNet.ContentRepository
             if (HttpContext.Current != null)
             {
                 ConsoleWrite("Getting referenced assemblies ... ");
+SnTrace.System.Write("Getting referenced assemblies ... ");  //UNDONE: REMOVE trace
+
                 BuildManager.GetReferencedAssemblies();
                 ConsoleWriteLine("Ok.");
             }
@@ -221,6 +235,8 @@ namespace SenseNet.ContentRepository
 
 
             ConsoleWriteLine("Loading Assemblies from ", pluginsPath, ":");
+SnTrace.System.Write("Loading assemblies from {0}", pluginsPath);  //UNDONE: REMOVE trace
+
             asmNames = TypeResolver.LoadAssembliesFrom(pluginsPath);
             _startupInfo.Plugins = GetLoadedAsmNames().Except(_startupInfo.AssembliesBeforeStart).Except(_startupInfo.ReferencedAssemblies).ToArray();
 
@@ -346,6 +362,8 @@ namespace SenseNet.ContentRepository
 
         private static void InitializeLogger()
         {
+SnTrace.System.Write("Initializing logger");  //UNDONE: REMOVE trace
+
             var logSection = ConfigurationManager.GetSection("loggingConfiguration");
             if (logSection != null)
                 SnLog.Instance = new EntLibLoggerAdapter();
@@ -355,6 +373,8 @@ namespace SenseNet.ContentRepository
 
         private void RegisterAppdomainEventHandlers()
         {
+SnTrace.System.Write("Registering event handlers");  //UNDONE: REMOVE trace
+
             AppDomain appDomain = AppDomain.CurrentDomain;
             appDomain.UnhandledException += new UnhandledExceptionEventHandler(Domain_UnhandledException);
         }
