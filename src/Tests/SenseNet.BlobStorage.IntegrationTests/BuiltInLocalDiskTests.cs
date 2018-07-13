@@ -1,23 +1,20 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.BlobStorage.IntegrationTests.Implementations;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.MsSqlFsBlobProvider;
 
 namespace SenseNet.BlobStorage.IntegrationTests
 {
     [TestClass]
-    public class SqlFileStreamBlobProviderTests : BlobStorageIntegrationTests
+    public class BuiltInLocalDiskTests : BlobStorageIntegrationTests
     {
-        protected override string DatabaseName => "sn7blobtests_sqlfs";
-
+        protected override string DatabaseName => "sn7blobtests_builtinfs";
         protected override bool SqlFsEnabled => true;
-        protected override bool SqlFsUsed => true;
-        protected override Type ExpectedExternalBlobProviderType => typeof(SqlFileStreamBlobProvider);
-        protected override Type ExpectedMetadataProviderType => typeof(SqlFileStreamBlobMetaDataProvider);
-        protected override Type ExpectedBlobProviderDataType => typeof(SqlFileStreamBlobProviderData);
+        protected override bool SqlFsUsed => false;
+        protected override Type ExpectedExternalBlobProviderType => typeof(LocalDiskBlobProvider);
+        protected override Type ExpectedMetadataProviderType => typeof(MsSqlBlobMetaDataProvider);
+        protected override Type ExpectedBlobProviderDataType => typeof(LocalDiskBlobProvider.LocalDiskBlobProviderData);
 
         protected internal override void ConfigureMinimumSizeForFileStreamInBytes(int newValue, out int oldValue)
         {
@@ -28,81 +25,82 @@ namespace SenseNet.BlobStorage.IntegrationTests
         [ClassCleanup]
         public static void CleanupClass()
         {
-            TearDown(typeof(SqlFileStreamBlobProviderTests));
+            TearDown(typeof(BuiltInLocalDiskTests));
         }
 
+
         [TestMethod]
-        public void Blob_SqlFS_01_CreateFileSmall()
+        public void Blob_BuiltInLocalDisk_01_CreateFileSmall()
         {
             TestCase01_CreateFileSmall();
         }
         [TestMethod]
-        public void Blob_SqlFS_02_CreateFileBig()
+        public void Blob_BuiltInLocalDisk_02_CreateFileBig()
         {
             TestCase02_CreateFileBig();
         }
 
         [TestMethod]
-        public void Blob_SqlFS_03_UpdateFileSmallSmall()
+        public void Blob_BuiltInLocalDisk_03_UpdateFileSmallSmall()
         {
             TestCase03_UpdateFileSmallSmall();
         }
         [TestMethod]
-        public void Blob_SqlFS_04_UpdateFileSmallBig()
+        public void Blob_BuiltInLocalDisk_04_UpdateFileSmallBig()
         {
             TestCase04_UpdateFileSmallBig();
         }
         [TestMethod]
-        public void Blob_SqlFS_05_UpdateFileBigSmall()
+        public void Blob_BuiltInLocalDisk_05_UpdateFileBigSmall()
         {
             TestCase05_UpdateFileBigSmall();
         }
         [TestMethod]
-        public void Blob_SqlFS_06_UpdateFileBigBig()
+        public void Blob_BuiltInLocalDisk_06_UpdateFileBigBig()
         {
             TestCase06_UpdateFileBigBig();
         }
 
         [TestMethod]
-        public void Blob_SqlFs_07_WriteChunksSmall()
+        public void Blob_BuiltInLocalDisk_07_WriteChunksSmall()
         {
             TestCase07_WriteChunksSmall();
         }
         [TestMethod]
-        public void Blob_SqlFs_08_WriteChunksBig()
+        public void Blob_BuiltInLocalDisk_08_WriteChunksBig()
         {
             TestCase08_WriteChunksBig();
         }
 
         [TestMethod]
-        public void Blob_SqlFs_09_DeleteBinaryPropertySmall()
+        public void Blob_BuiltInLocalDisk_09_DeleteBinaryPropertySmall()
         {
             TestCase09_DeleteBinaryPropertySmall();
         }
         [TestMethod]
-        public void Blob_SqlFs_10_DeleteBinaryPropertyBig()
+        public void Blob_BuiltInLocalDisk_10_DeleteBinaryPropertyBig()
         {
             TestCase10_DeleteBinaryPropertyBig();
         }
 
         [TestMethod]
-        public void Blob_SqlFs_11_CopyfileRowSmall()
+        public void Blob_BuiltInLocalDisk_11_CopyfileRowSmall()
         {
             TestCase11_CopyfileRowSmall();
         }
         [TestMethod]
-        public void Blob_SqlFs_12_CopyfileRowBig()
+        public void Blob_BuiltInLocalDisk_12_CopyfileRowBig()
         {
             TestCase12_CopyfileRowBig();
         }
 
         [TestMethod]
-        public void Blob_SqlFs_13_BinaryCacheEntitySmall()
+        public void Blob_BuiltInLocalDisk_13_BinaryCacheEntitySmall()
         {
             TestCase13_BinaryCacheEntitySmall();
         }
         [TestMethod]
-        public void Blob_SqlFs_14_BinaryCacheEntityBig()
+        public void Blob_BuiltInLocalDisk_14_BinaryCacheEntityBig()
         {
             TestCase14_BinaryCacheEntityBig();
         }

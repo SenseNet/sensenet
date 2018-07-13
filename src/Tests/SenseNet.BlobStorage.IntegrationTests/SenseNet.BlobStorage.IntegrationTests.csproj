@@ -84,16 +84,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BlobStorageIntegrationTests.cs" />
-    <Compile Include="BuiltInProviderSqlFsTests.cs" />
-    <Compile Include="BuiltInProviderTests.cs" />
+    <Compile Include="BuiltInFsTests.cs" />
+    <Compile Include="BuiltInTests.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Implementations\FileSystemChunkReaderStream.cs" />
     <Compile Include="Implementations\FileSystemChunkWriterStream.cs" />
     <Compile Include="Implementations\LocalDiskBlobProvider.cs" />
     <Compile Include="Implementations\LocalDiskChunkBlobProvider.cs" />
-    <Compile Include="LocalDiskBlobProviderTests.cs" />
+    <Compile Include="BuiltInLocalDiskTests.cs" />
+    <Compile Include="SqlFsLocalDiskTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SqlFileStreamBlobProviderTests.cs" />
+    <Compile Include="SqFsTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

@@ -8,10 +8,10 @@ using SenseNet.ContentRepository.Storage.Data.SqlClient;
 namespace SenseNet.BlobStorage.IntegrationTests
 {
     [TestClass]
-    public class BuiltInProviderSqlFsTests : BlobStorageIntegrationTests
+    public class BuiltInTests : BlobStorageIntegrationTests
     {
-        protected override string DatabaseName => "sn7blobtests_builtinfs";
-        protected override bool SqlFsEnabled => true;
+        protected override string DatabaseName => "sn7blobtests_builtin";
+        protected override bool SqlFsEnabled => false;
         protected override bool SqlFsUsed => false;
         protected override Type ExpectedExternalBlobProviderType => null;
         protected override Type ExpectedMetadataProviderType => typeof(MsSqlBlobMetaDataProvider);
@@ -26,83 +26,83 @@ namespace SenseNet.BlobStorage.IntegrationTests
         [ClassCleanup]
         public static void CleanupClass()
         {
-            TearDown(typeof(BuiltInProviderSqlFsTests));
+            TearDown(typeof(BuiltInTests));
         }
 
         /* ==================================================== Test cases */
 
         [TestMethod]
-        public void Blob_BuiltInFS_01_CreateFileSmall()
+        public void Blob_BuiltIn_01_CreateFileSmall()
         {
             TestCase01_CreateFileSmall();
         }
         [TestMethod]
-        public void Blob_BuiltInFS_02_CreateFileBig()
+        public void Blob_BuiltIn_02_CreateFileBig()
         {
             TestCase02_CreateFileBig();
         }
 
         [TestMethod]
-        public void Blob_BuiltInFS_03_UpdateFileSmallSmall()
+        public void Blob_BuiltIn_03_UpdateFileSmallSmall()
         {
             TestCase03_UpdateFileSmallSmall();
         }
         [TestMethod]
-        public void Blob_BuiltInFS_04_UpdateFileSmallBig()
+        public void Blob_BuiltIn_04_UpdateFileSmallBig()
         {
             TestCase04_UpdateFileSmallBig();
         }
         [TestMethod]
-        public void Blob_BuiltInFS_05_UpdateFileBigSmall()
+        public void Blob_BuiltIn_05_UpdateFileBigSmall()
         {
             TestCase05_UpdateFileBigSmall();
         }
         [TestMethod]
-        public void Blob_BuiltInFS_06_UpdateFileBigBig()
+        public void Blob_BuiltIn_06_UpdateFileBigBig()
         {
             TestCase06_UpdateFileBigBig();
         }
 
         [TestMethod]
-        public void Blob_BuiltInFS_07_WriteChunksSmall()
+        public void Blob_BuiltIn_07_WriteChunksSmall()
         {
             TestCase07_WriteChunksSmall();
         }
         [TestMethod]
-        public void Blob_BuiltInFS_08_WriteChunksBig()
+        public void Blob_BuiltIn_08_WriteChunksBig()
         {
             TestCase08_WriteChunksBig();
         }
 
         [TestMethod]
-        public void Blob_BuiltInFs_09_DeleteBinaryPropertySmall()
+        public void Blob_BuiltIn_09_DeleteBinaryPropertySmall()
         {
             TestCase09_DeleteBinaryPropertySmall();
         }
         [TestMethod]
-        public void Blob_BuiltInFs_10_DeleteBinaryPropertyBig()
+        public void Blob_BuiltIn_10_DeleteBinaryPropertyBig()
         {
             TestCase10_DeleteBinaryPropertyBig();
         }
 
         [TestMethod]
-        public void Blob_BuiltInFs_11_CopyfileRowSmall()
+        public void Blob_BuiltIn_11_CopyfileRowSmall()
         {
             TestCase11_CopyfileRowSmall();
         }
         [TestMethod]
-        public void Blob_BuiltInFs_12_CopyfileRowBig()
+        public void Blob_BuiltIn_12_CopyfileRowBig()
         {
             TestCase12_CopyfileRowBig();
         }
 
         [TestMethod]
-        public void Blob_BuiltInFs_13_BinaryCacheEntitySmall()
+        public void Blob_BuiltIn_13_BinaryCacheEntitySmall()
         {
             TestCase13_BinaryCacheEntitySmall();
         }
         [TestMethod]
-        public void Blob_BuiltInFs_14_BinaryCacheEntityBig()
+        public void Blob_BuiltIn_14_BinaryCacheEntityBig()
         {
             TestCase14_BinaryCacheEntityBig();
         }
