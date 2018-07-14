@@ -78,8 +78,6 @@ namespace SenseNet.BackgroundOperations
                 ApplicationUrl = Storage.Settings.GetValue<string>(Settings.SETTINGSNAME, Settings.TASKMANAGEMENTAPPLICATIONURL)
             };
 
-SnTrace.System.Write("Registering task management application");  //UNDONE: REMOVE trace
-
             // make this a synchron call
             var registered = Instance.RegisterApplicationAsync(taskManUrl, requestData).Result;
 

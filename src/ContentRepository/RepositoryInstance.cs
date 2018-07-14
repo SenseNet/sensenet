@@ -90,21 +90,15 @@ namespace SenseNet.ContentRepository
         {
             if (!_started)
             {
-SnTrace.System.Write("Repo is not started yet."); //UNDONE: REMOVE trace
-
                 lock (_startStopSync)
                 {
                     if (!_started)
                     {
-SnTrace.System.Write("Preparing to start repository.");  //UNDONE: REMOVE trace
-
                         var instance = new RepositoryInstance();
                         instance._settings = new RepositoryStartSettings.ImmutableRepositoryStartSettings(settings);
                         _instance = instance;
                         try
                         {
-SnTrace.System.Write("Calling DoStart");  //UNDONE: REMOVE trace
-
                             instance.DoStart();
                         }
                         catch (Exception)
@@ -124,14 +118,10 @@ SnTrace.System.Write("Calling DoStart");  //UNDONE: REMOVE trace
             ConsoleWriteLine("Starting Repository...");
             ConsoleWriteLine();
 
-SnTrace.System.Write("Preparing to update trace categories...");  //UNDONE: REMOVE trace
-
             if (_settings.TraceCategories != null)
                 LoggingSettings.SnTraceConfigurator.UpdateCategories(_settings.TraceCategories);
             else
                 LoggingSettings.SnTraceConfigurator.UpdateStartupCategories();
-
-SnTrace.System.Write("Set SearchEngineSupport");  //UNDONE: REMOVE trace
 
             SearchManager.SetSearchEngineSupport(new SearchEngineSupport());
 
@@ -209,8 +199,6 @@ SnTrace.System.Write("Set SearchEngineSupport");  //UNDONE: REMOVE trace
 
         private void LoadAssemblies()
         {
-SnTrace.System.Write("Loading assemblies");  //UNDONE: REMOVE trace
-
             string[] asmNames;
             _startupInfo.AssembliesBeforeStart = GetLoadedAsmNames().ToArray();
             var localBin = AppDomain.CurrentDomain.BaseDirectory;
@@ -219,7 +207,6 @@ SnTrace.System.Write("Loading assemblies");  //UNDONE: REMOVE trace
             if (HttpContext.Current != null)
             {
                 ConsoleWrite("Getting referenced assemblies ... ");
-SnTrace.System.Write("Getting referenced assemblies ... ");  //UNDONE: REMOVE trace
 
                 BuildManager.GetReferencedAssemblies();
                 ConsoleWriteLine("Ok.");
@@ -235,7 +222,6 @@ SnTrace.System.Write("Getting referenced assemblies ... ");  //UNDONE: REMOVE tr
 
 
             ConsoleWriteLine("Loading Assemblies from ", pluginsPath, ":");
-SnTrace.System.Write("Loading assemblies from {0}", pluginsPath);  //UNDONE: REMOVE trace
 
             asmNames = TypeResolver.LoadAssembliesFrom(pluginsPath);
             _startupInfo.Plugins = GetLoadedAsmNames().Except(_startupInfo.AssembliesBeforeStart).Except(_startupInfo.ReferencedAssemblies).ToArray();
@@ -362,8 +348,6 @@ SnTrace.System.Write("Loading assemblies from {0}", pluginsPath);  //UNDONE: REM
 
         private static void InitializeLogger()
         {
-SnTrace.System.Write("Initializing logger");  //UNDONE: REMOVE trace
-
             var logSection = ConfigurationManager.GetSection("loggingConfiguration");
             if (logSection != null)
                 SnLog.Instance = new EntLibLoggerAdapter();
@@ -373,8 +357,6 @@ SnTrace.System.Write("Initializing logger");  //UNDONE: REMOVE trace
 
         private void RegisterAppdomainEventHandlers()
         {
-SnTrace.System.Write("Registering event handlers");  //UNDONE: REMOVE trace
-
             AppDomain appDomain = AppDomain.CurrentDomain;
             appDomain.UnhandledException += new UnhandledExceptionEventHandler(Domain_UnhandledException);
         }
@@ -471,17 +453,16 @@ SnTrace.System.Write("Registering event handlers");  //UNDONE: REMOVE trace
 
         public void ConsoleWrite(params string[] text)
         {
-            if (_settings.Console == null)
-                return;
             foreach (var s in text)
-                _settings.Console.Write(s);
+            {
+                SnTrace.System.Write(s);
+                _settings.Console?.Write(s);
+            }
         }
         public void ConsoleWriteLine(params string[] text)
         {
-            if (_settings.Console == null)
-                return;
             ConsoleWrite(text);
-            _settings.Console.WriteLine();
+            _settings.Console?.WriteLine();
         }
 
         internal static bool Started()

@@ -1647,8 +1647,6 @@ namespace SenseNet.ContentRepository.Storage.Security
             var messageProvider = Providers.Instance.SecurityMessageProvider;
             var startingThesystem = DateTime.UtcNow;
 
-SnTrace.System.Write("Starting security");  //UNDONE: REMOVE trace
-
             SnSecurityContext.StartTheSystem(new SecurityConfiguration
             {
                 SecurityDataProvider = securityDataProvider,
