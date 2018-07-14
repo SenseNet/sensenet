@@ -47,6 +47,20 @@ namespace SenseNet.BlobStorage.IntegrationTests
         protected abstract Type ExpectedBlobProviderDataType { get; }
         protected internal abstract void ConfigureMinimumSizeForFileStreamInBytes(int newValue, out int oldValue);
 
+        protected virtual void UpdateFileCreationDate(int fileId, DateTime dateTime)
+        {
+            var sql = $"UPDATE Files SET CreationDate = @CreationDate WHERE FileId = {fileId}";
+            using (var proc = DataProvider.CreateDataProcedure(sql))
+            {
+                proc.CommandType = CommandType.Text;
+                var parameter = DataProvider.CreateParameter();
+                parameter.ParameterName = "@CreationDate";
+                parameter.Value = dateTime;
+                proc.Parameters.Add(parameter);
+                proc.ExecuteNonQuery();
+            }
+        }
+
         private static readonly string ConnetionStringBase = @"Data Source=.\SQL2016;Integrated Security=SSPI;Persist Security Info=False";
         private string GetConnectionString(string databaseName = null)
         {
@@ -95,6 +109,7 @@ namespace SenseNet.BlobStorage.IntegrationTests
                     using (Repository.Start(CreateRepositoryBuilder()))
                     using (new SystemAccount())
                         PrepareRepository();
+                    new SnMaintenance().Shutdown();
 
                     Instances[this.GetType()] = this;
 
@@ -848,6 +863,71 @@ namespace SenseNet.BlobStorage.IntegrationTests
         }
 
 
+        public void TestCase15_DeleteSmall()
+        {
+            var expectedText = "Lorem ipsum dolo sit amet";
+            DeleteTest(expectedText, expectedText.Length + 10);
+        }
+        public void TestCase16_DeleteBig()
+        {
+            var expectedText = "Lorem ipsum dolo sit amet";
+            DeleteTest(expectedText, expectedText.Length - 10);
+        }
+        private void DeleteTest(string fileContent, int sizeLimit)
+        {
+            using (new SystemAccount())
+            using (new SqlFileStreamSizeSwindler(this, sizeLimit))
+            {
+                var propertyTypeId = PropertyType.GetByName("Binary").Id;
+                var external = NeedExternal(fileContent, sizeLimit);
+
+                var testRoot = CreateTestRoot();
+
+                var file = new File(testRoot) { Name = "File1.file" };
+                file.Binary.SetStream(RepositoryTools.GetStreamFromString(fileContent));
+                file.Save();
+                var fileId = file.Binary.FileId;
+                // memorize blob storage context for further check
+                var ctx = BlobStorageComponents.DataProvider.GetBlobStorageContext(file.Binary.FileId, false,
+                    file.VersionId, propertyTypeId);
+                UpdateFileCreationDate(file.Binary.FileId, DateTime.UtcNow.AddDays(-1));
+
+                // Action #1
+                file.ForceDelete();
+
+                // Assert #1
+                var dbFile = LoadDbFile(fileId);
+                Assert.IsNotNull(dbFile);
+                Assert.AreEqual(false, dbFile.IsDeleted);
+                Assert.IsFalse(IsDeleted(ctx, external));
+
+                // Action #2
+                ContentRepository.Storage.Data.BlobStorage.CleanupFilesSetFlag();
+
+                // Assert #2
+                dbFile = LoadDbFile(fileId);
+                Assert.IsNotNull(dbFile);
+                Assert.AreEqual(true, dbFile.IsDeleted);
+                Assert.IsFalse(IsDeleted(ctx, external));
+
+                // Action #3
+                ContentRepository.Storage.Data.BlobStorage.CleanupFiles();
+
+                // Assert #3
+                dbFile = LoadDbFile(fileId);
+                Assert.IsNull(dbFile);
+                Assert.IsTrue(IsDeleted(ctx, external));
+            }
+        }
+
+        private bool IsDeleted(BlobStorageContext context, bool external)
+        {
+            return external
+                ? GetExternalData(context) == null
+                : LoadDbFile(context.FileId) == null;
+        }
+
+        #region Tools
 
         private bool NeedExternal(string fileContent, int sizeLimit)
         {
@@ -865,8 +945,6 @@ namespace SenseNet.BlobStorage.IntegrationTests
                 return false;
             return true;
         }
-
-        #region Tools
 
         private List<byte[]> SplitFile(string text, int chunkSize, out int fullSize)
         {
@@ -947,6 +1025,39 @@ namespace SenseNet.BlobStorage.IntegrationTests
 
             return dbFiles.ToArray();
         }
+        protected DbFile LoadDbFile(int fileId)
+        {
+            var sql = $@"SELECT * FROM Files WHERE FileId = {fileId}";
+            DbFile file = null;
+            using (var reader = ExecuteSqlReader(sql))
+            {
+                while (reader.Read())
+                {
+                    file = new DbFile();
+                    file.FileId = reader.GetInt32(reader.GetOrdinal("FileId"));
+                    file.BlobProvider = reader.GetSafeString(reader.GetOrdinal("BlobProvider"));
+                    file.BlobProviderData = reader.GetSafeString(reader.GetOrdinal("BlobProviderData"));
+                    file.ContentType = reader.GetSafeString(reader.GetOrdinal("ContentType"));
+                    file.FileNameWithoutExtension = reader.GetSafeString(reader.GetOrdinal("FileNameWithoutExtension"));
+                    file.Extension = reader.GetSafeString(reader.GetOrdinal("Extension"));
+                    file.Size = reader.GetSafeInt64(reader.GetOrdinal("Size"));
+                    file.CreationDate = reader.GetSafeDateTime(reader.GetOrdinal("CreationDate")) ?? DateTime.MinValue;
+                    file.IsDeleted = reader.GetSafeBoolFromBit(reader.GetOrdinal("IsDeleted"));
+                    file.Staging = reader.GetSafeBoolFromBit(reader.GetOrdinal("Staging"));
+                    file.StagingPropertyTypeId = reader.GetSafeInt32(reader.GetOrdinal("StagingPropertyTypeId"));
+                    file.StagingVersionId = reader.GetSafeInt32(reader.GetOrdinal("StagingVersionId"));
+                    file.Stream = reader.GetSafeBytes(reader.GetOrdinal("Stream"));
+                    file.Checksum = reader.GetSafeString(reader.GetOrdinal("Checksum"));
+                    file.RowGuid = reader.GetGuid(reader.GetOrdinal("RowGuid"));
+                    file.Timestamp = DataProvider.GetLongFromBytes((byte[])reader[reader.GetOrdinal("Timestamp")]);
+                    if (reader.FieldCount > 16)
+                        file.FileStream = reader.GetSafeBytes(reader.GetOrdinal("FileStream"));
+                    file.ExternalStream = GetExternalData(file);
+                }
+            }
+
+            return file;
+        }
         private byte[] GetExternalData(DbFile file)
         {
             if (file.BlobProvider == null)
@@ -958,11 +1069,18 @@ namespace SenseNet.BlobStorage.IntegrationTests
         }
         private byte[] GetExternalData(BlobStorageContext context)
         {
-            using (var stream = context.Provider.GetStreamForRead(context))
+            try
             {
-                var buffer = new byte[stream.Length.ToInt()];
-                stream.Read(buffer, 0, buffer.Length);
-                return buffer;
+                using (var stream = context.Provider.GetStreamForRead(context))
+                {
+                    var buffer = new byte[stream.Length.ToInt()];
+                    stream.Read(buffer, 0, buffer.Length);
+                    return buffer;
+                }
+            }
+            catch
+            {
+                return null;
             }
         }
 

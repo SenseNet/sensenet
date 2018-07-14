@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Data;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
@@ -16,7 +18,6 @@ namespace SenseNet.BlobStorage.IntegrationTests
         protected override Type ExpectedExternalBlobProviderType => null;
         protected override Type ExpectedMetadataProviderType => typeof(MsSqlBlobMetaDataProvider);
         protected override Type ExpectedBlobProviderDataType => typeof(BuiltinBlobProviderData);
-
         protected internal override void ConfigureMinimumSizeForFileStreamInBytes(int newValue, out int oldValue)
         {
             // do nothing
@@ -105,6 +106,18 @@ namespace SenseNet.BlobStorage.IntegrationTests
         public void Blob_BuiltInFs_14_BinaryCacheEntityBig()
         {
             TestCase14_BinaryCacheEntityBig();
+        }
+
+
+        [TestMethod]
+        public void Blob_BuiltInFs_15_DeleteSmall()
+        {
+            TestCase15_DeleteSmall();
+        }
+        [TestMethod]
+        public void Blob_BuiltInFs_16_DeleteBig()
+        {
+            TestCase16_DeleteBig();
         }
     }
 }

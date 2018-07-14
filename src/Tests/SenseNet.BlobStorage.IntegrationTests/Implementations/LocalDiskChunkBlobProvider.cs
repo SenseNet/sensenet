@@ -7,12 +7,7 @@ namespace SenseNet.BlobStorage.IntegrationTests.Implementations
 {
     internal class LocalDiskChunkBlobProvider : IBlobProvider
     {
-        private static StringBuilder _trace = new StringBuilder();
-        public static string Trace { get { return _trace.ToString(); } }
-
-
-        private static int _chunkByteSize = 10; //ten bytes by default
-        //public static int ChunkByteSize { get;set; }
+        public static int ChunkByteSize { get;set; } = 10;
 
         internal class LocalDiskChunkBlobProviderData
         {
@@ -38,11 +33,6 @@ namespace SenseNet.BlobStorage.IntegrationTests.Implementations
             }
         }
 
-        public static void _ClearTrace()
-        {
-            _trace.Clear();
-        }
-
         /*========================================================================== provider implementation */
 
         public object ParseData(string providerData)
@@ -54,15 +44,13 @@ namespace SenseNet.BlobStorage.IntegrationTests.Implementations
         {
             var id = Guid.NewGuid();
             CreateFolder(id);
-            context.BlobProviderData = new LocalDiskChunkBlobProviderData { Id = id, ChunkSize = _chunkByteSize };
-            //SnTrace.Test.Write("LocalDiskChunkBlobProvider.Allocate: " + id);
+            context.BlobProviderData = new LocalDiskChunkBlobProviderData { Id = id, ChunkSize = ChunkByteSize };
         }
 
         public void Delete(BlobStorageContext context)
         {
             var id = GetData(context).Id;
             DeleteFolder(id);
-            //SnTrace.Test.Write("LocalDiskChunkBlobProvider.Delete: " + id);
         }
 
         public Stream GetStreamForRead(BlobStorageContext context)
@@ -73,16 +61,12 @@ namespace SenseNet.BlobStorage.IntegrationTests.Implementations
 
         public Stream GetStreamForWrite(BlobStorageContext context)
         {
-            
-            //return new FileSystemChunkWriterStream((LocalDiskChunkBlobProviderData)context.BlobProviderData, (LocalDiskChunkBlobProviderData)context.BlobProviderData);
             var providerData = (LocalDiskChunkBlobProviderData)context.BlobProviderData;
             return new FileSystemChunkWriterStream(providerData, context.Length, GetDirectoryPath(providerData.Id));
         }
 
         public Stream CloneStream(BlobStorageContext context, Stream stream)
         {
-            //SnTrace.Test.Write("LocalDiskChunkBlobProvider.CloneStream: {0}", context.FileId);
-
             if (!(stream is FileSystemChunkReaderStream))
                 throw new InvalidOperationException("Stream must be a FileSystemChunkReaderStream in the local disk provider.");
 
@@ -203,7 +187,7 @@ namespace SenseNet.BlobStorage.IntegrationTests.Implementations
             }
         }
 
-        /*----------------------------------------------------------------------------------------------------*/
+        /* ---------------------------------------------------------------------------------------------------- */
 
         // LEGACY !!
 

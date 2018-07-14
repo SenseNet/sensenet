@@ -18,7 +18,7 @@ namespace SenseNet.MsSqlFsBlobProvider
     {
         internal static bool UseFileStream(IBlobProvider blobProvider, long fullSize)
         {
-            if (/*!(blobProvider is BuiltInBlobProvider) &&*/ !(blobProvider is SqlFileStreamBlobProvider))
+            if (!(blobProvider is SqlFileStreamBlobProvider))
                 return false;
             return fullSize > BlobStorage.MinimumSizeForBlobProviderInBytes;
         }
