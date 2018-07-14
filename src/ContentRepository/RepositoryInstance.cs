@@ -207,7 +207,6 @@ namespace SenseNet.ContentRepository
             if (HttpContext.Current != null)
             {
                 ConsoleWrite("Getting referenced assemblies ... ");
-
                 BuildManager.GetReferencedAssemblies();
                 ConsoleWriteLine("Ok.");
             }
@@ -222,7 +221,6 @@ namespace SenseNet.ContentRepository
 
 
             ConsoleWriteLine("Loading Assemblies from ", pluginsPath, ":");
-
             asmNames = TypeResolver.LoadAssembliesFrom(pluginsPath);
             _startupInfo.Plugins = GetLoadedAsmNames().Except(_startupInfo.AssembliesBeforeStart).Except(_startupInfo.ReferencedAssemblies).ToArray();
 
