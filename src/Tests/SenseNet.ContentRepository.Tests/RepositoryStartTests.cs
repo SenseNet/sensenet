@@ -232,7 +232,8 @@ namespace SenseNet.ContentRepository.Tests
                 }, () =>
                 {
                     //test that the loggers were set correctly
-                    Assert.IsTrue(SnTrace.SnTracers.Any(snt => snt is TestSnTracer));
+                    Assert.AreEqual(1, SnTrace.SnTracers.Count);
+                    Assert.IsTrue(SnTrace.SnTracers.First() is TestSnTracer);
                     Assert.IsTrue(SnLog.Instance is TestEventLogger);
                 });
             }

@@ -366,7 +366,10 @@ namespace SenseNet.ContentRepository
             //set configured tracers
             var tracers = Providers.Instance.GetProvider<ISnTracer[]>();
             if (tracers?.Length > 0)
+            {
+                SnTrace.SnTracers.Clear();
                 SnTrace.SnTracers.AddRange(tracers);
+            }
 
             SnLog.WriteInformation("Loggers and tracers initialized.", properties: new Dictionary<string, object>
             {
