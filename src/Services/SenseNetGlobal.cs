@@ -136,7 +136,7 @@ namespace SenseNet.Services
         }
 
         /*====================================================================================================================== Instance part */
-        internal static string RunOnceGuid = "101C50EF-24FD-441A-A15B-BD33DE431665";
+
         private static readonly int[] dontCareErrorCodes = new int[] { 401, 403, 404 };
 
         protected virtual void Application_Start(object sender, EventArgs e, HttpApplication application)
@@ -144,9 +144,7 @@ namespace SenseNet.Services
             using (var op = SnTrace.Repository.StartOperation("Application_Start. Process: {0}, AppDomain: {1}, ",
                                 System.Diagnostics.Process.GetCurrentProcess().Id, AppDomain.CurrentDomain.Id))
             {
-                var runOnceMarkerPath = application.Server.MapPath("/" + RunOnceGuid);
-                var firstRun = File.Exists(runOnceMarkerPath);
-                var startConfig = new RepositoryStartSettings { StartIndexingEngine = !firstRun, IsWebContext = true };
+                var startConfig = new RepositoryStartSettings { StartIndexingEngine = true, IsWebContext = true };
 
                 Repository.Start(startConfig);
 

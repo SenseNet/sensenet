@@ -122,7 +122,7 @@ namespace SenseNet.ContentRepository
                 LoggingSettings.SnTraceConfigurator.UpdateCategories(_settings.TraceCategories);
             else
                 LoggingSettings.SnTraceConfigurator.UpdateStartupCategories();
-            
+
             SearchManager.SetSearchEngineSupport(new SearchEngineSupport());
 
             InitializeLogger();
@@ -473,17 +473,16 @@ namespace SenseNet.ContentRepository
 
         public void ConsoleWrite(params string[] text)
         {
-            if (_settings.Console == null)
-                return;
             foreach (var s in text)
-                _settings.Console.Write(s);
+            {
+                SnTrace.System.Write(s);
+                _settings.Console?.Write(s);
+            }
         }
         public void ConsoleWriteLine(params string[] text)
         {
-            if (_settings.Console == null)
-                return;
             ConsoleWrite(text);
-            _settings.Console.WriteLine();
+            _settings.Console?.WriteLine();
         }
 
         internal static bool Started()
