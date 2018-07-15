@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
@@ -21,6 +23,27 @@ namespace SenseNet.ContentRepository.Tests
     {
         public class TestNodeObserver1 : NodeObserver { }
         public class TestNodeObserver2 : NodeObserver { }
+
+        public class TestEventLogger : IEventLogger
+        {
+            public void Write(object message, ICollection<string> categories, int priority, int eventId, TraceEventType severity, string title,
+                IDictionary<string, object> properties)
+            {
+                //do nothing
+            }
+        }
+        public class TestSnTracer : ISnTracer
+        {
+            public void Write(string line)
+            {
+                //do nothing
+            }
+
+            public void Flush()
+            {
+                //do nothing
+            }
+        }
 
         [TestMethod]
         public void RepositoryStart_NamedProviders()
@@ -190,6 +213,35 @@ namespace SenseNet.ContentRepository.Tests
             finally
             {
                 Indexing.IsOuterSearchEngineEnabled = originalIsOuterSearchEngineEnabled;
+            }
+        }
+
+        [TestMethod]
+        public void RepositoryStart_Loggers()
+        {
+            var originalLogger = SnLog.Instance;
+            var originalTracers = SnTrace.SnTracers;
+
+            try
+            {
+                Test(repoBuilder =>
+                {
+                    repoBuilder
+                        .UseLogger(new TestEventLogger())
+                        .UseTracer(new TestSnTracer());
+                }, () =>
+                {
+                    //test that the loggers were set correctly
+                    Assert.AreEqual(1, SnTrace.SnTracers.Count);
+                    Assert.IsTrue(SnTrace.SnTracers.First() is TestSnTracer);
+                    Assert.IsTrue(SnLog.Instance is TestEventLogger);
+                });
+            }
+            finally
+            {
+                SnLog.Instance = originalLogger;
+                SnTrace.SnTracers.Clear();
+                SnTrace.SnTracers.AddRange(originalTracers);
             }
         }
     }
