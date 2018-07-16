@@ -322,7 +322,7 @@ UPDATE Files SET [Stream].WRITE(@Data, @Offset, DATALENGTH(@Data)), [FileStream]
 
         public Stream GetStreamForWrite(BlobStorageContext context)
         {
-            if (!UseFileStream(context.Provider, context.Length)) //UNDONE:# Provider must be SqlFs
+            if (!UseFileStream(context.Provider, context.Length))
                 throw new NotSupportedException();
 
             var fsd = ((SqlFileStreamBlobProviderData)context.BlobProviderData).FileStreamData;
