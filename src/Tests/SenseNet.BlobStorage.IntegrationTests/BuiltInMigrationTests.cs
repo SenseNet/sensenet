@@ -7,8 +7,6 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.MsSqlFsBlobProvider;
-using SenseNet.Tests.Implementations;
 using File = SenseNet.ContentRepository.File;
 
 namespace SenseNet.BlobStorage.IntegrationTests
