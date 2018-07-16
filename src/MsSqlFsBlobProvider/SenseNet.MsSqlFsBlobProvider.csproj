@@ -79,7 +79,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BlobStorage\SenseNet.BlobStorage.csproj">
-      <Project>{4e6722b5-ac95-494c-80a5-a4d80cc502b5}</Project>
+      <Project>{c250c071-6acd-42e0-9ffc-63283afb8c6c}</Project>
       <Name>SenseNet.BlobStorage</Name>
     </ProjectReference>
     <ProjectReference Include="..\Common\SenseNet.Common.csproj">
