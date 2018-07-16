@@ -4,7 +4,6 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Threading.Tasks;
 using SenseNet.Configuration;
-using SenseNet.Diagnostics;
 using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Storage.Data.SqlClient
@@ -42,17 +41,10 @@ FROM  dbo.Files WHERE FileId = @FileId
         public BlobStorageContext GetBlobStorageContext(int fileId, bool clearStream, int versionId, int propertyTypeId)
         {
             using (var cmd = GetBlobContextProcedure(fileId, clearStream, versionId, propertyTypeId))
-            {
-                using (var reader = cmd.ExecuteReader(CommandBehavior.SingleRow | CommandBehavior.SingleResult))
-                {
-                    if (reader.Read())
-                    {
-                        return GetBlobStorageContextPrivate(reader, fileId, versionId, propertyTypeId);
-                    }
-
-                    return null;
-                }
-            }
+            using (var reader = cmd.ExecuteReader(CommandBehavior.SingleRow | CommandBehavior.SingleResult))
+            if (reader.Read())
+                return GetBlobStorageContextPrivate(reader, fileId, versionId, propertyTypeId);
+            return null;
         }
         /// <summary>
         /// Returns a context object that holds MsSql-specific data for blob storage operations.
@@ -64,17 +56,10 @@ FROM  dbo.Files WHERE FileId = @FileId
         public async Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream, int versionId, int propertyTypeId)
         {
             using (var cmd = GetBlobContextProcedure(fileId, clearStream, versionId, propertyTypeId))
-            {
-                using (var reader = await cmd.ExecuteReaderAsync(CommandBehavior.SingleRow | CommandBehavior.SingleResult))
-                {
-                    if (await reader.ReadAsync())
-                    {
-                        return GetBlobStorageContextPrivate(reader, fileId, versionId, propertyTypeId);
-                    }
-
-                    return null;
-                }
-            }
+            using (var reader = await cmd.ExecuteReaderAsync(CommandBehavior.SingleRow | CommandBehavior.SingleResult))
+            if (await reader.ReadAsync())
+                return GetBlobStorageContextPrivate(reader, fileId, versionId, propertyTypeId);
+            return null;
         }
 
         private static SqlProcedure GetBlobContextProcedure(int fileId, bool clearStream, int versionId, int propertyTypeId)
@@ -347,7 +332,7 @@ SELECT @FileId
             }
             finally
             {
-                cmd?.Dispose();
+                cmd.Dispose();
             }
 
             // ReSharper disable once InvertIf

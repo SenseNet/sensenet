@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Data;
-using System.Data.SqlTypes;
 using System.IO;
 using System.Threading.Tasks;
-using SenseNet.Configuration;
 
 namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 {
@@ -14,17 +12,25 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
     /// </summary>
     public class BuiltInBlobProvider : IBlobProvider
     {
+        /// <inheritdoc />
         public object ParseData(string providerData)
         {
             return BlobStorageContext.DeserializeBlobProviderData<BuiltinBlobProviderData>(providerData);
         }
 
+        /// <summary>
+        /// Throws NotSupportedException. Our algorithms do not use this methon of this type.
+        /// </summary>
         public void Allocate(BlobStorageContext context)
         {
             // Never used in our algorithms.
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// DO NOT USE DIRECTLY THIS METHOD FROM YOUR CODE.
+        /// Writes the stream in the appropriate row of the Files table specified by the context.
+        /// </summary>
         public static void AddStream(BlobStorageContext context, Stream stream)
         {
             SqlProcedure cmd = null;
@@ -72,6 +78,10 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             }
         }
 
+        /// <summary>
+        /// DO NOT USE DIRECTLY THIS METHOD FROM YOUR CODE.
+        /// Updates the stream in the appropriate row of the Files table specified by the context.
+        /// </summary>
         public static void UpdateStream(BlobStorageContext context, Stream stream)
         {
             var fileId = context.FileId;
@@ -121,11 +131,13 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             }
         }
 
+        /// <inheritdoc />
         public Stream GetStreamForRead(BlobStorageContext context)
         {
             return new RepositoryStream(context.FileId, context.Length);
         }
 
+        /// <inheritdoc />
         public Stream CloneStream(BlobStorageContext context, Stream stream)
         {
             if (stream == null)
@@ -138,6 +150,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             throw new InvalidOperationException("Unknown stream type: " + stream.GetType().Name);
         }
 
+        /// <inheritdoc />
         public void Delete(BlobStorageContext context)
         {
             // do nothing
@@ -166,6 +179,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             return result;
         }
 
+        /// <inheritdoc />
         public void Write(BlobStorageContext context, long offset, byte[] buffer)
         {
             using (var cmd = GetWriteChunkToSqlProcedure(context, offset, buffer))
@@ -173,6 +187,8 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
                 cmd.ExecuteNonQuery();
             }
         }
+
+        /// <inheritdoc />
         public async Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer)
         {
             using (var cmd = GetWriteChunkToSqlProcedure(context, offset, buffer))
@@ -212,9 +228,9 @@ UPDATE Files SET [Stream].WRITE(@Data, @Offset, DATALENGTH(@Data)) WHERE FileId 
         }
 
         /// <summary>
-        /// THROWS NOTSUPPORTEDEXCEPTION
+        /// Throws NotSupportedException. Our algorithms do not use this methon of this type.
         /// </summary>
-        public Stream GetStreamForWrite(BlobStorageContext context) //UNDONE: Test GetStreamForWrite: it is forbidden in this provider.
+        public Stream GetStreamForWrite(BlobStorageContext context)
         {
             throw new NotSupportedException();
         }

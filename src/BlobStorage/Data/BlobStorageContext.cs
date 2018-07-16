@@ -1,5 +1,4 @@
-﻿using System;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
@@ -45,7 +44,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="providerData">Optional existing provider-specific data in text format.</param>
         public BlobStorageContext(IBlobProvider provider, string providerData = null)
         {
-            this.Provider = provider;
+            Provider = provider;
             if (providerData != null)
                 BlobProviderData = provider.ParseData(providerData);
         }

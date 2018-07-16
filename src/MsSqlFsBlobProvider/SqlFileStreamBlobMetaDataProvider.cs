@@ -3,12 +3,10 @@ using System.Data;
 using System.Data.SqlClient;
 using System.IO;
 using System.Threading.Tasks;
-using System.Transactions;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
-using SenseNet.Diagnostics;
 using SenseNet.Tools;
 using TransactionScope = SenseNet.ContentRepository.Storage.TransactionScope;
 
@@ -53,17 +51,10 @@ FROM  dbo.Files WHERE FileId = @FileId
         public BlobStorageContext GetBlobStorageContext(int fileId, bool clearStream, int versionId, int propertyTypeId)
         {
             using (var cmd = GetBlobContextProcedure(fileId, clearStream, versionId, propertyTypeId))
-            {
-                using (var reader = cmd.ExecuteReader(CommandBehavior.SingleRow | CommandBehavior.SingleResult))
-                {
-                    if (reader.Read())
-                    {
-                        return GetBlobStorageContextPrivate(reader, fileId, versionId, propertyTypeId);
-                    }
-
-                    return null;
-                }
-            }
+            using (var reader = cmd.ExecuteReader(CommandBehavior.SingleRow | CommandBehavior.SingleResult))
+            if (reader.Read())
+                return GetBlobStorageContextPrivate(reader, fileId, versionId, propertyTypeId);
+            return null;
         }
         /// <summary>
         /// Returns a context object that holds MsSql-specific data (e.g. FileStream info) for blob storage operations.
@@ -75,17 +66,10 @@ FROM  dbo.Files WHERE FileId = @FileId
         public async Task<BlobStorageContext> GetBlobStorageContextAsync(int fileId, bool clearStream, int versionId, int propertyTypeId)
         {
             using (var cmd = GetBlobContextProcedure(fileId, clearStream, versionId, propertyTypeId))
-            {
-                using (var reader = await cmd.ExecuteReaderAsync(CommandBehavior.SingleRow | CommandBehavior.SingleResult))
-                {
-                    if (await reader.ReadAsync())
-                    {
-                        return GetBlobStorageContextPrivate(reader, fileId, versionId, propertyTypeId);
-                    }
-
-                    return null;
-                }
-            }
+            using (var reader = await cmd.ExecuteReaderAsync(CommandBehavior.SingleRow | CommandBehavior.SingleResult))
+            if (await reader.ReadAsync())
+                return GetBlobStorageContextPrivate(reader, fileId, versionId, propertyTypeId);
+            return null;
         }
 
         private static SqlProcedure GetBlobContextProcedure(int fileId, bool clearStream, int versionId, int propertyTypeId)
@@ -121,13 +105,12 @@ FROM  dbo.Files WHERE FileId = @FileId
             var providerName = reader.GetSafeString(1);
             var providerData = reader.GetSafeString(2);
 
-            var useFileStream = false;
             var fsData = new SqlFileStreamData
             {
                 Path = reader.GetSafeString(3),
                 TransactionContext = reader.GetSqlBytes(4).Buffer
             };
-            useFileStream = fsData.Path != null;
+            var useFileStream = fsData.Path != null;
 
             var provider = BlobStorageBase.GetProvider(providerName);
             object blobProviderData;

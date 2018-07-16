@@ -44,53 +44,6 @@ namespace SenseNet.MsSqlFsBlobProvider
 
             WriteSqlFileStream(stream, context.FileId, fileStreamData);
         }
-        #region UpdateBinaryPropertyFileStreamScript
-        private const string UpdateBinaryPropertyFileStreamScript = @"UPDATE Files SET Stream = NULL WHERE FileId = @Id;
-    SELECT FileStream.PathName(), GET_FILESTREAM_TRANSACTION_CONTEXT() 
-    FROM Files WHERE [FileId] = @Id
-";
-        #endregion
-        private static void WriteSqlFileStream(Stream stream, int fileId, SqlFileStreamData fileStreamData = null)
-        {
-            SqlProcedure cmd = null;
-
-            try
-            {
-                // if we did not receive a path and transaction context, retrieve it now from the database
-                if (fileStreamData == null)
-                {
-                    cmd = new SqlProcedure { CommandText = UpdateBinaryPropertyFileStreamScript, CommandType = CommandType.Text };
-                    cmd.Parameters.Add("@Id", SqlDbType.Int).Value = fileId;
-
-                    string path;
-                    byte[] transactionContext;
-
-                    // Set Stream column to NULL and retrieve file path and 
-                    // transaction context for the Filestream column.
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        reader.Read();
-
-                        path = reader.GetString(0);
-                        transactionContext = reader.GetSqlBytes(1).Buffer;
-                    }
-
-                    fileStreamData = new SqlFileStreamData { Path = path, TransactionContext = transactionContext };
-                }
-
-                stream.Seek(0, SeekOrigin.Begin);
-
-                using (var fs = new SqlFileStream(fileStreamData.Path, fileStreamData.TransactionContext, FileAccess.Write))
-                {
-                    // default buffer size is 4096
-                    stream.CopyTo(fs);
-                }
-            }
-            finally
-            {
-                cmd?.Dispose();
-            }
-        }
 
         internal static void UpdateStream(BlobStorageContext context, Stream stream)
         {
@@ -144,6 +97,54 @@ namespace SenseNet.MsSqlFsBlobProvider
                     cmd.ExecuteNonQuery();
 
                     offset += bufferSize;
+                }
+            }
+            finally
+            {
+                cmd?.Dispose();
+            }
+        }
+
+        #region UpdateBinaryPropertyFileStreamScript
+        private const string UpdateBinaryPropertyFileStreamScript = @"UPDATE Files SET Stream = NULL WHERE FileId = @Id;
+    SELECT FileStream.PathName(), GET_FILESTREAM_TRANSACTION_CONTEXT() 
+    FROM Files WHERE [FileId] = @Id
+";
+        #endregion
+        private static void WriteSqlFileStream(Stream stream, int fileId, SqlFileStreamData fileStreamData = null)
+        {
+            SqlProcedure cmd = null;
+
+            try
+            {
+                // if we did not receive a path and transaction context, retrieve it now from the database
+                if (fileStreamData == null)
+                {
+                    cmd = new SqlProcedure { CommandText = UpdateBinaryPropertyFileStreamScript, CommandType = CommandType.Text };
+                    cmd.Parameters.Add("@Id", SqlDbType.Int).Value = fileId;
+
+                    string path;
+                    byte[] transactionContext;
+
+                    // Set Stream column to NULL and retrieve file path and 
+                    // transaction context for the Filestream column.
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        reader.Read();
+
+                        path = reader.GetString(0);
+                        transactionContext = reader.GetSqlBytes(1).Buffer;
+                    }
+
+                    fileStreamData = new SqlFileStreamData { Path = path, TransactionContext = transactionContext };
+                }
+
+                stream.Seek(0, SeekOrigin.Begin);
+
+                using (var fs = new SqlFileStream(fileStreamData.Path, fileStreamData.TransactionContext, FileAccess.Write))
+                {
+                    // default buffer size is 4096
+                    stream.CopyTo(fs);
                 }
             }
             finally

@@ -35,7 +35,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// </summary>
         public string GetToken()
         {
-            return $"{this.VersionId}|{this.PropertyTypeId}|{this.BinaryPropertyId}|{this.FileId}";
+            return $"{VersionId}|{PropertyTypeId}|{BinaryPropertyId}|{FileId}";
         }
 
         /// <summary>

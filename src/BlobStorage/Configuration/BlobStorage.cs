@@ -1,7 +1,4 @@
-﻿using System;
-using SenseNet.ContentRepository.Storage;
-
-// ReSharper disable once CheckNamespace
+﻿// ReSharper disable once CheckNamespace
 namespace SenseNet.Configuration
 {
     /// <summary>

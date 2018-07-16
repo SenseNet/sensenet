@@ -31,14 +31,14 @@ namespace SenseNet.MsSqlFsBlobProvider
 
         public int FileId { get; set; }
 
-        private SqlFileStreamData FileStreamData;
+        private SqlFileStreamData _fileStreamData;
 
         // ========================================================= Constructor
 
         internal SenseNetSqlFileStream(long size, int fileId, SqlFileStreamData fileStreamData = null)
         {
             Length = size;
-            FileStreamData = fileStreamData?.TransactionContext != null ? fileStreamData : null;
+            _fileStreamData = fileStreamData?.TransactionContext != null ? fileStreamData : null;
 
             FileId = fileId;
         }
@@ -108,7 +108,7 @@ namespace SenseNet.MsSqlFsBlobProvider
                 if (!TransactionScope.IsActive)
                 {
                     // make sure we do not use an obsolete value
-                    FileStreamData = null;
+                    _fileStreamData = null;
 
                     // Start a new transaction here to serve the needs of the SqlFileStream type.
                     TransactionScope.Begin();
@@ -121,14 +121,14 @@ namespace SenseNet.MsSqlFsBlobProvider
                     // than we will be able to use this data in the future if the client calls
                     // the Read method multiple times and will not have to execute SQL queries
                     // every time.
-                    var ctx = BlobStorageBase.GetBlobStorageContext(this.FileId);
+                    var ctx = BlobStorageBase.GetBlobStorageContext(FileId);
                     if (ctx != null)
                         if (ctx.Provider == BlobStorageBase.BuiltInProvider)
-                            FileStreamData = ((SqlFileStreamBlobProviderData)ctx.BlobProviderData).FileStreamData;
-                    if (FileStreamData == null)
+                            _fileStreamData = ((SqlFileStreamBlobProviderData)ctx.BlobProviderData).FileStreamData;
+                    if (_fileStreamData == null)
                         throw new InvalidOperationException("Transaction data and file path could not be retrieved for SqlFilestream");
                     
-                    using (var fs = new SqlFileStream(FileStreamData.Path, FileStreamData.TransactionContext, FileAccess.Read, FileOptions.SequentialScan, 0))
+                    using (var fs = new SqlFileStream(_fileStreamData.Path, _fileStreamData.TransactionContext, FileAccess.Read, FileOptions.SequentialScan, 0))
                     {
                         fs.Seek(Position, SeekOrigin.Begin);
 
@@ -139,7 +139,7 @@ namespace SenseNet.MsSqlFsBlobProvider
 
                         while (bytesRead < realCount)
                         {
-                            var bytesToReadInThisIteration = (int)Math.Min(this.Length - Position - bytesRead, BlobStorage.BinaryChunkSize);
+                            var bytesToReadInThisIteration = (int)Math.Min(Length - Position - bytesRead, BlobStorage.BinaryChunkSize);
                             var bytesToStoreInThisIteration = Math.Min(bytesToReadInThisIteration, realCount - bytesRead);
                             var tempBuffer = new byte[bytesToReadInThisIteration];
 
@@ -178,7 +178,7 @@ namespace SenseNet.MsSqlFsBlobProvider
 
                         // cleanup
                         isLocalTransaction = false;
-                        FileStreamData = null;
+                        _fileStreamData = null;
                     }
                     throw;
                 }
@@ -189,7 +189,7 @@ namespace SenseNet.MsSqlFsBlobProvider
                         TransactionScope.Commit();
 
                         // Set filestream data to null as this was a local transaction and we cannot use it anymore
-                        FileStreamData = null;
+                        _fileStreamData = null;
                     }
                 }
             }
