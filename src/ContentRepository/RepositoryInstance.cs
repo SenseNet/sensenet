@@ -122,7 +122,7 @@ namespace SenseNet.ContentRepository
                 LoggingSettings.SnTraceConfigurator.UpdateCategories(_settings.TraceCategories);
             else
                 LoggingSettings.SnTraceConfigurator.UpdateStartupCategories();
-            
+
             SearchManager.SetSearchEngineSupport(new SearchEngineSupport());
 
             InitializeLogger();
@@ -346,11 +346,36 @@ namespace SenseNet.ContentRepository
 
         private static void InitializeLogger()
         {
-            var logSection = ConfigurationManager.GetSection("loggingConfiguration");
-            if (logSection != null)
-                SnLog.Instance = new EntLibLoggerAdapter();
+            // look for the configured logger
+            var loggers = Providers.Instance.GetProvider<IEventLogger[]>();
+            if (loggers?.Length > 0)
+            {
+                //TODO: change this when the logger api can handle multiple loggers
+                SnLog.Instance = loggers[0];
+            }
             else
-                SnLog.Instance = new DebugWriteLoggerAdapter();
+            {
+                // fallback to the builtin logger
+                var logSection = ConfigurationManager.GetSection("loggingConfiguration");
+                if (logSection != null)
+                    SnLog.Instance = new EntLibLoggerAdapter();
+                else
+                    SnLog.Instance = new DebugWriteLoggerAdapter();
+            }
+
+            //set configured tracers
+            var tracers = Providers.Instance.GetProvider<ISnTracer[]>();
+            if (tracers?.Length > 0)
+            {
+                SnTrace.SnTracers.Clear();
+                SnTrace.SnTracers.AddRange(tracers);
+            }
+
+            SnLog.WriteInformation("Loggers and tracers initialized.", properties: new Dictionary<string, object>
+            {
+                { "Loggers", SnLog.Instance?.GetType().Name },
+                { "Tracers", string.Join(", ", SnTrace.SnTracers.Select(snt => snt?.GetType().Name)) }
+            });
         }
 
         private void RegisterAppdomainEventHandlers()
@@ -451,17 +476,16 @@ namespace SenseNet.ContentRepository
 
         public void ConsoleWrite(params string[] text)
         {
-            if (_settings.Console == null)
-                return;
             foreach (var s in text)
-                _settings.Console.Write(s);
+            {
+                SnTrace.System.Write(s);
+                _settings.Console?.Write(s);
+            }
         }
         public void ConsoleWriteLine(params string[] text)
         {
-            if (_settings.Console == null)
-                return;
             ConsoleWrite(text);
-            _settings.Console.WriteLine();
+            _settings.Console?.WriteLine();
         }
 
         internal static bool Started()

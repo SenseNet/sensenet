@@ -180,6 +180,24 @@ namespace SenseNet.ContentRepository
             this.TraceCategories = categoryNames;
             return this;
         }
+        /// <summary>
+        /// Sets logger instances.
+        /// </summary>
+        public RepositoryBuilder UseLogger(params IEventLogger[] logger)
+        {
+            // store loggers in the provider collection temporarily
+            Configuration.Providers.Instance.SetProvider(typeof(IEventLogger[]), logger);
+            return this;
+        }
+        /// <summary>
+        /// Sets tracer instances.
+        /// </summary>
+        public RepositoryBuilder UseTracer(params ISnTracer[] tracer)
+        {
+            // store tracers in the provider collection temporarily
+            Configuration.Providers.Instance.SetProvider(typeof(ISnTracer[]), tracer);
+            return this;
+        }
 
         /// <summary>
         /// General API for defining a provider instance that will be injected into and can be loaded

@@ -67,11 +67,7 @@ namespace SenseNet.ContentRepository
 
         private PerformanceCounterCategory Category { get; set; }
 
-        private SenseNetPerformanceCounter[] _counters;
-        private IEnumerable<SenseNetPerformanceCounter> Counters
-        {
-            get { return _counters; }
-        }
+        private IEnumerable<SenseNetPerformanceCounter> Counters = new SenseNetPerformanceCounter[0];
 
         // ================================================================================= Static methods
 
@@ -154,6 +150,13 @@ namespace SenseNet.ContentRepository
         {
             _cpuUsage = 0;
             _availableRAM = 0;
+            _invalidCounters = new Dictionary<string, bool>();
+
+            if (!Logging.PerformanceCountersEnabled)
+            {
+                Counters = new SenseNetPerformanceCounter[0];
+                return;
+            }
 
             try
             {
@@ -172,23 +175,15 @@ namespace SenseNet.ContentRepository
                     EventId.RepositoryLifecycle);
             }
 
-            _invalidCounters = new Dictionary<string, bool>();
-
-            if (!Logging.PerformanceCountersEnabled)
-            {
-                _counters = new SenseNetPerformanceCounter[0];
-                return;
-            }
-            
             try
             {
                 Category = CreateCategory();
-                _counters = Category.GetCounters().Select(pc => new SenseNetPerformanceCounter(pc)).ToArray();
+                Counters = Category.GetCounters().Select(pc => new SenseNetPerformanceCounter(pc)).ToArray();
             }
             catch (Exception ex)
             {
                 SnLog.WriteException(ex, "Error during performance counter initialization.");
-                _counters = new SenseNetPerformanceCounter[0];
+                Counters = new SenseNetPerformanceCounter[0];
             }
         }
 
