@@ -369,7 +369,7 @@ namespace SenseNet.BlobStorage.IntegrationTests
         private DbFile CreateFileTest(string fileContent, int sizeLimit)
         {
             using (new SystemAccount())
-            using (new SqlFileStreamSizeSwindler(this, sizeLimit))
+            using (new SizeLimitSwindler(this, sizeLimit))
             {
                 var testRoot = CreateTestRoot();
 
@@ -489,7 +489,7 @@ namespace SenseNet.BlobStorage.IntegrationTests
         private DbFile UpdateFileTest(string initialContent, string updatedContent, int sizeLimit)
         {
             using (new SystemAccount())
-            using (new SqlFileStreamSizeSwindler(this, sizeLimit))
+            using (new SizeLimitSwindler(this, sizeLimit))
             {
                 var testRoot = CreateTestRoot();
 
@@ -576,7 +576,7 @@ namespace SenseNet.BlobStorage.IntegrationTests
         private DbFile UpdateByChunksTest(string initialContent, string updatedText, int sizeLimit, int chunkSize)
         {
             using (new SystemAccount())
-            using (new SqlFileStreamSizeSwindler(this, sizeLimit))
+            using (new SizeLimitSwindler(this, sizeLimit))
             {
                 var testRoot = CreateTestRoot();
 
@@ -648,7 +648,7 @@ namespace SenseNet.BlobStorage.IntegrationTests
         private void DeleteBinaryPropertyTest(string initialContent, string updatedText, int sizeLimit, int chunkSize)
         {
             using (new SystemAccount())
-            using (new SqlFileStreamSizeSwindler(this, sizeLimit))
+            using (new SizeLimitSwindler(this, sizeLimit))
             {
                 var testRoot = CreateTestRoot();
 
@@ -736,7 +736,7 @@ namespace SenseNet.BlobStorage.IntegrationTests
         private DbFile[] CopyfileRowTest(string initialContent, string updatedText, int sizeLimit, int chunkSize)
         {
             using (new SystemAccount())
-            using (new SqlFileStreamSizeSwindler(this, sizeLimit))
+            using (new SizeLimitSwindler(this, sizeLimit))
             {
                 var testRoot = CreateTestRoot();
                 var target = new SystemFolder(testRoot) { Name = "Target" };
@@ -823,7 +823,7 @@ namespace SenseNet.BlobStorage.IntegrationTests
         private void BinaryCacheEntityTest(string fileContent, int sizeLimit)
         {
             using (new SystemAccount())
-            using (new SqlFileStreamSizeSwindler(this, sizeLimit))
+            using (new SizeLimitSwindler(this, sizeLimit))
             {
                 var testRoot = CreateTestRoot();
 
@@ -876,7 +876,7 @@ namespace SenseNet.BlobStorage.IntegrationTests
         private void DeleteTest(string fileContent, int sizeLimit)
         {
             using (new SystemAccount())
-            using (new SqlFileStreamSizeSwindler(this, sizeLimit))
+            using (new SizeLimitSwindler(this, sizeLimit))
             {
                 var propertyTypeId = PropertyType.GetByName("Binary").Id;
                 var external = NeedExternal(fileContent, sizeLimit);
@@ -1099,12 +1099,12 @@ namespace SenseNet.BlobStorage.IntegrationTests
                 return reader.ReadToEnd();
         }
 
-        protected class SqlFileStreamSizeSwindler : IDisposable
+        protected class SizeLimitSwindler : IDisposable
         {
             private readonly BlobStorageIntegrationTests _testClass;
             private readonly int _originalValue;
 
-            public SqlFileStreamSizeSwindler(BlobStorageIntegrationTests testClass, int cheat)
+            public SizeLimitSwindler(BlobStorageIntegrationTests testClass, int cheat)
             {
                 _testClass = testClass;
                 testClass.ConfigureMinimumSizeForFileStreamInBytes(cheat, out _originalValue);

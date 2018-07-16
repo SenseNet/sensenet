@@ -93,6 +93,8 @@
     <Compile Include="Implementations\LocalDiskBlobProvider.cs" />
     <Compile Include="Implementations\LocalDiskChunkBlobProvider.cs" />
     <Compile Include="BuiltInLocalDiskTests.cs" />
+    <Compile Include="BuiltInMigrationTests.cs" />
+    <Compile Include="SqlFsMigrationTests.cs" />
     <Compile Include="SqlFsLocalDiskTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SqFsTests.cs" />
