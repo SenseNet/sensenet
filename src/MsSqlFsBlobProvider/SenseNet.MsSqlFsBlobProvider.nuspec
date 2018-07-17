@@ -6,14 +6,14 @@
     <title>sensenet MsSqlFsBlobProvider</title>
     <authors>kavics,tusmester</authors>
     <owners>Sense/Net</owners>
-    <licenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</licenseUrl>
-    <projectUrl>https://github.com/SenseNet/sensenet</projectUrl>
+    <licenseUrl>https://github.com/SenseNet/sn-blob-mssqlfs/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/SenseNet/sn-blob-mssqlfs</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Blob provider for sensenet storage.</description>
+    <description>MS SQL FileStream blob provider for sensenet.</description>
     <releaseNotes>See release notes on GitHub.</releaseNotes>
     <copyright>Copyright © Sense/Net Inc.</copyright>
-    <tags>sensenet ecm ecms blob provider</tags>
+    <tags>sensenet ecm ecms filestream blob provider</tags>
     <dependencies>
       <dependency id="Newtonsoft.Json" version="11.0.2" />
       <dependency id="SenseNet.Tools" version="3.0.0" />
