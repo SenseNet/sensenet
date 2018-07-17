@@ -13,6 +13,11 @@
     <RepositoryType>git</RepositoryType>
     <PackageTags>sensenet blob storage</PackageTags>
     <PackageReleaseNotes>See release notes on GitHub.</PackageReleaseNotes>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>bin\Release\netstandard2.0\SenseNet.BlobStorage.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
