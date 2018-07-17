@@ -421,7 +421,6 @@
   <ItemGroup>
     <Content Include="Data\SqlClient\Scripts\Create_SenseNet_Azure_Database.sql" />
     <Content Include="Data\SqlClient\Scripts\Create_SenseNet_Database_Templated.sql" />
-    <Content Include="Data\SqlClient\Scripts\EnableFilestream.sql" />
     <Content Include="Data\SqlClient\Scripts\Install_Security.sql" />
     <Content Include="Data\SqlClient\Scripts\SqlWorkflowInstanceStoreLogic.sql" />
     <Content Include="Data\SqlClient\Scripts\SqlWorkflowInstanceStoreSchema.sql" />

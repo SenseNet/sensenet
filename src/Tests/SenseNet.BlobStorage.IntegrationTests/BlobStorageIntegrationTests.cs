@@ -175,7 +175,12 @@ namespace SenseNet.BlobStorage.IntegrationTests
             DataProvider.InitializeForTests();
 
             if (SqlFsEnabled)
-                ExecuteSqlScriptNative(IO.Path.Combine(scriptRootPath, @"EnableFilestream.sql"), DatabaseName);
+            {
+                ExecuteSqlScriptNative(
+                    IO.Path.Combine(IO.Path.GetFullPath(IO.Path.Combine(
+                                AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\MsSqlFsBlobProvider\Scripts")),
+                        @"EnableFilestream.sql"), DatabaseName);
+            }
         }
         private void ExecuteSqlScriptNative(string scriptPath, string databaseName)
         {
