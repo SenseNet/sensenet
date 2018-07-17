@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Text;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using SenseNet.ContentRepository.Storage.Data;
 
@@ -25,7 +25,7 @@ namespace SenseNet.BlobStorage.IntegrationTests.Implementations
             if (Directory.Exists(_rootDirectory))
             {
                 foreach (var path in Directory.GetFiles(_rootDirectory))
-                    System.IO.File.Delete(path);
+                    File.Delete(path);
             }
             else
             {
@@ -62,7 +62,7 @@ namespace SenseNet.BlobStorage.IntegrationTests.Implementations
         public Stream GetStreamForWrite(BlobStorageContext context)
         {
             var providerData = (LocalDiskChunkBlobProviderData)context.BlobProviderData;
-            return new FileSystemChunkWriterStream(providerData, context.Length, GetDirectoryPath(providerData.Id));
+            return new FileSystemChunkWriterStream(providerData, context.Length);
         }
 
         public Stream CloneStream(BlobStorageContext context, Stream stream)
@@ -82,13 +82,9 @@ namespace SenseNet.BlobStorage.IntegrationTests.Implementations
 
             var length = buffer.Length;
             var sourceOffset = 0;
-            int chunkIndex;
-            byte[] bytes;
 
-            while (GetNextChunk(originalChunkSize, buffer, ref length, ref offset, ref sourceOffset, out bytes, out chunkIndex))
-            {
+            while (GetNextChunk(originalChunkSize, buffer, ref length, ref offset, ref sourceOffset, out var bytes, out var chunkIndex))
                 WriteChunk(((LocalDiskChunkBlobProviderData)context.BlobProviderData).Id, chunkIndex, bytes);
-            }
         }
         public async System.Threading.Tasks.Task WriteAsync(BlobStorageContext context, long offset, byte[] buffer)
         {
@@ -99,13 +95,9 @@ namespace SenseNet.BlobStorage.IntegrationTests.Implementations
 
             var length = buffer.Length;
             var sourceOffset = 0;
-            int chunkIndex;
-            byte[] bytes;
 
-            while (GetNextChunk(originalChunkSize, buffer, ref length, ref offset, ref sourceOffset, out bytes, out chunkIndex))
-            {
+            while (GetNextChunk(originalChunkSize, buffer, ref length, ref offset, ref sourceOffset, out var bytes, out var chunkIndex))
                 await WriteChunkAsync(((LocalDiskChunkBlobProviderData)context.BlobProviderData).Id, chunkIndex, bytes);
-            }
         }
 
         /// <summary>
@@ -162,6 +154,8 @@ namespace SenseNet.BlobStorage.IntegrationTests.Implementations
             Directory.CreateDirectory(GetDirectoryPath(id));
         }
 
+        [SuppressMessage("ReSharper", "UnusedParameter.Local")]
+        [SuppressMessage("ReSharper", "ParameterOnlyUsedForPreconditionCheck.Local")]
         private static void AssertValidChunks(long currentBlobSize, int chunkSize, long offset, int size)
         {
             if (offset % chunkSize > 0)
@@ -171,20 +165,14 @@ namespace SenseNet.BlobStorage.IntegrationTests.Implementations
         private void DeleteFolder(Guid id)
         {
             var myPath = GetDirectoryPath(id);
+            if (!Directory.Exists(myPath))
+                return;
 
-            if (System.IO.Directory.Exists(myPath))
-            {
-                System.IO.DirectoryInfo dirinfo = new DirectoryInfo(myPath);
-
-                foreach (FileInfo file in dirinfo.GetFiles())
-                {
-                    file.Delete();
-                }
-                foreach (DirectoryInfo dir in dirinfo.GetDirectories())
-                {
-                    dir.Delete(true);
-                }
-            }
+            var dirinfo = new DirectoryInfo(myPath);
+            foreach (FileInfo file in dirinfo.GetFiles())
+                file.Delete();
+            foreach (DirectoryInfo dir in dirinfo.GetDirectories())
+                dir.Delete(true);
         }
 
         /* ---------------------------------------------------------------------------------------------------- */
@@ -196,15 +184,14 @@ namespace SenseNet.BlobStorage.IntegrationTests.Implementations
             var data = context.BlobProviderData;
             if (data == null)
                 throw new InvalidOperationException("BlobProviderData cannot be null.");
-            var specData = data as LocalDiskChunkBlobProviderData;
-            if (specData == null)
+            if (!(data is LocalDiskChunkBlobProviderData specData))
                 throw new InvalidOperationException("Unknown BlobProviderData type: " + data.GetType().FullName);
             return specData;
         }
 
         internal static string GetChunkId(int fileId, int chunkIndex)
         {
-            return String.Format("{0}_{1}", fileId, chunkIndex);
+            return $"{fileId}_{chunkIndex}";
         }
 
     }

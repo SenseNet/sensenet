@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Data;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SenseNet.ContentRepository;
-using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
 
 namespace SenseNet.BlobStorage.IntegrationTests

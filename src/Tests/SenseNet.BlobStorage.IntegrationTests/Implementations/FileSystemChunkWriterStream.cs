@@ -1,17 +1,11 @@
 ﻿using System;
-using System.CodeDom;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SenseNet.BlobStorage.IntegrationTests.Implementations
 {
     internal class FileSystemChunkWriterStream : Stream
     {
         private Guid _id;
-        private string _directoryPath;
         private readonly int _chunkSize;
 
         private int _currentChunkIndex;
@@ -19,36 +13,31 @@ namespace SenseNet.BlobStorage.IntegrationTests.Implementations
         private byte[] _buffer;
         private bool _flushIsNecessary;
         
-        public FileSystemChunkWriterStream(LocalDiskChunkBlobProvider.LocalDiskChunkBlobProviderData providerData, long fullSize, string directoryPath)
+        public FileSystemChunkWriterStream(LocalDiskChunkBlobProvider.LocalDiskChunkBlobProviderData providerData, long fullSize)
         {
-            _directoryPath = directoryPath;
-            _length = fullSize;
+            Length = fullSize;
             _chunkSize = providerData.ChunkSize;
             _id = providerData.Id;
         }
 
-        public override bool CanRead { get { return false; } }
-        public override bool CanSeek { get { return false; } }
-        public override bool CanWrite { get { return true; } }
+        public override bool CanRead => false;
+        public override bool CanSeek => false;
+        public override bool CanWrite => true;
 
-        private long _length;
-        public override long Length { get { return _length; } }
+        public override long Length { get; }
 
-        private long __position;
+        private long _position;
         public override long Position
         {
-            get { return __position; }
-            set
-            {
-                // set Position value only through the private SetPosition method
-                throw new NotSupportedException();
-            }
+            get => _position;
+            // set Position value only through the private SetPosition method
+            set => throw new NotSupportedException();
         }
         private void SetPosition(long position)
         {
             _currentChunkIndex = (position / _chunkSize).ToInt();
             _currentChunkPosition = (position % _chunkSize).ToInt();
-            __position = position;
+            _position = position;
         }
 
         public override void Flush()
@@ -154,7 +143,7 @@ namespace SenseNet.BlobStorage.IntegrationTests.Implementations
         {
             try
             {
-                this.Flush();
+                Flush();
             }
             finally
             {

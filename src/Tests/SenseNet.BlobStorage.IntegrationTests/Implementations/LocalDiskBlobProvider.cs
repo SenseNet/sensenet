@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using System.IO;
 using SenseNet.ContentRepository.Storage.Data;
 
@@ -12,7 +11,7 @@ namespace SenseNet.BlobStorage.IntegrationTests.Implementations
             public Guid Id { get; set; }
         }
 
-        private string _rootDirectory;
+        private readonly string _rootDirectory;
 
         public LocalDiskBlobProvider()
         {
@@ -20,7 +19,7 @@ namespace SenseNet.BlobStorage.IntegrationTests.Implementations
             if (Directory.Exists(_rootDirectory))
             {
                 foreach (var path in Directory.GetFiles(_rootDirectory))
-                    System.IO.File.Delete(path);
+                    File.Delete(path);
             }
             else
             {
@@ -108,15 +107,14 @@ namespace SenseNet.BlobStorage.IntegrationTests.Implementations
             var data = context.BlobProviderData;
             if (data == null)
                 throw new InvalidOperationException("BlobProviderData cannot be null.");
-            var specData = data as LocalDiskBlobProviderData;
-            if (specData == null)
+            if (!(data is LocalDiskBlobProviderData specData))
                 throw new InvalidOperationException("Unknown BlobProviderData type: " + data.GetType().FullName);
             return specData;
         }
 
         private void CreateFile(Guid id, Stream stream)
         {
-            using (var fileStream = new System.IO.FileStream(GetPath(id), FileMode.CreateNew))
+            using (var fileStream = new FileStream(GetPath(id), FileMode.CreateNew))
             {
                 if (stream != null)
                 {
@@ -129,8 +127,8 @@ namespace SenseNet.BlobStorage.IntegrationTests.Implementations
         private void DeleteFile(Guid id)
         {
             var filePath = GetPath(id);
-            if (System.IO.File.Exists(filePath))
-                System.IO.File.Delete(filePath);
+            if (File.Exists(filePath))
+                File.Delete(filePath);
         }
         private Stream GetStream(BlobStorageContext context, FileMode mode)
         {
