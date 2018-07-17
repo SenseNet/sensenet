@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Web;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Tools;
 
@@ -168,9 +169,8 @@ namespace SenseNet.ContentRepository.Schema
         public override void Delete()
         {
             // remove column from views
-            var ivm = TypeHandler.ResolveNamedType<IViewManager>("ViewManager");
-            if (ivm != null)
-                ivm.RemoveFieldFromViews(this.FieldSetting, this.ContentList);
+            var ivm = Providers.Instance.GetProvider<IViewManager>("ViewManager");
+            ivm?.RemoveFieldFromViews(this.FieldSetting, this.ContentList);
 
             this.ContentList.DeleteField(this.FieldSetting);
         }
@@ -194,14 +194,13 @@ namespace SenseNet.ContentRepository.Schema
                 throw new InvalidOperationException(HttpContext.GetGlobalResourceObject("FieldEditor", "FieldError_FieldExists") as string);
             }
 
-            var ivm = TypeHandler.ResolveNamedType<IViewManager>("ViewManager");
+            var ivm = Providers.Instance.GetProvider<IViewManager>("ViewManager");
 
             if (string.CompareOrdinal(this.FieldSetting.Name, fsName) != 0)
             {
                 // field setting was renamed, remove the old one
                 // remove column from views
-                if (ivm != null)
-                    ivm.RemoveFieldFromViews(this.FieldSetting, this.ContentList);
+                ivm?.RemoveFieldFromViews(this.FieldSetting, this.ContentList);
 
                 this.ContentList.DeleteField(this.FieldSetting);
 
@@ -214,8 +213,7 @@ namespace SenseNet.ContentRepository.Schema
                 return;
 
             // add to default view
-            if (ivm != null)
-                ivm.AddToDefaultView(this.FieldSetting, this.ContentList);
+            ivm?.AddToDefaultView(this.FieldSetting, this.ContentList);
         }
 
         /// <inheritdoc />

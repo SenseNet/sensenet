@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
@@ -178,7 +179,6 @@ namespace SenseNet.Tests
                 .UseSearchEngine(new InMemorySearchEngine())
                 .UseSecurityDataProvider(securityDataProvider)
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
-                .UseCacheProvider(new EmptyCache())
                 .StartWorkflowEngine(false)
                 .DisableNodeObservers()
                 .EnableNodeObservers(typeof(SettingsCache))
@@ -228,6 +228,44 @@ namespace SenseNet.Tests
             var populator = SearchManager.GetIndexPopulator();
             populator.NodeIndexed += (o, e) => { paths.Add(e.Path); };
             populator.ClearAndPopulateAll();
+        }
+
+        /// <summary>
+        /// Writes the content of the in memory index to disk.
+        /// The "directoryName" is expected, the "fileNameWithoutExtension" is optional.
+        /// If the fileName is not provided, the caller method name will be used.
+        /// </summary>
+        protected void SaveIndex(string directoryName, [System.Runtime.CompilerServices.CallerMemberName] string fileNameWithoutExtension = null)
+        {
+            var fname = Path.Combine(directoryName, fileNameWithoutExtension + ".txt");
+
+            if (SearchManager.SearchEngine.IndexingEngine is InMemoryIndexingEngine indexingEngine)
+                indexingEngine.Index.Save(fname);
+            else
+                throw new NotSupportedException($"Index cannot be saved if the engine is {SearchManager.SearchEngine.IndexingEngine.GetType().FullName}. Only the InMemoryIndexingEngine is allowed.");
+        }
+
+        /// <summary>
+        /// Enables to write every IndexDocument to a local disk directory.
+        /// The method is designed for trace index modifications in a whole test method.
+        /// But if the trace should be turned off, use null as the parameter value or use the method as using block:
+        /// using(SaveIndexDocuments("c:\tracedir")) { }
+        /// </summary>
+        protected IDisposable SaveIndexDocuments(string directoryName)
+        {
+            if (SearchManager.SearchEngine.IndexingEngine is InMemoryIndexingEngine indexingEngine)
+                indexingEngine.Index.IndexDocumentPath = directoryName;
+            else
+                throw new NotSupportedException($"IndexDocuments cannot be saved if the engine is {SearchManager.SearchEngine.IndexingEngine.GetType().FullName}. Only the InMemoryIndexingEngine is allowed.");
+            return new SaveIndexDocumentsBlock();
+        }
+        private class SaveIndexDocumentsBlock : IDisposable
+        {
+            public void Dispose()
+            {
+                if (SearchManager.SearchEngine.IndexingEngine is InMemoryIndexingEngine indexingEngine)
+                    indexingEngine.Index.IndexDocumentPath = null;
+            }
         }
 
         protected static ContentQuery CreateSafeContentQuery(string qtext)

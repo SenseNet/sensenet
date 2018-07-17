@@ -9,6 +9,7 @@ using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.ContentRepository.Security.ADSync;
 using System.Collections.Generic;
+using System.Diagnostics;
 using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Fields;
@@ -827,7 +828,8 @@ namespace SenseNet.ContentRepository
             set { _password = value; }
         }
 
-        private const string MEMBERSHIPEXTENSIONKEY = "ExtendedMemberships";
+        internal const string MembershipExtensionKey = "ExtendedMemberships";
+        internal const string MembershipExtensionCallingKey = "MembershipExtensionCall";
         /// <summary>
         /// Gets or sets the <see cref="SenseNet.ContentRepository.Storage.Security.MembershipExtension"/> instance
         /// that can customize the membership of this user.
@@ -836,15 +838,34 @@ namespace SenseNet.ContentRepository
         {
             get
             {
-                var extension = (MembershipExtension)base.GetCachedData(MEMBERSHIPEXTENSIONKEY);
-                if (extension == null)
+                var extension = (MembershipExtension)base.GetCachedData(MembershipExtensionKey);
+                if (extension == null || extension == MembershipExtension.Placeholder)
                 {
-                    MembershipExtenderBase.Extend(this);
-                    extension = (MembershipExtension)base.GetCachedData(MEMBERSHIPEXTENSIONKEY);
+                    var called = GetCachedData(MembershipExtensionCallingKey) != null;
+                    if (called)
+                    {
+                        SnTrace.Security.Write("MembershipExtenderRecursionGuard: recursion skipped. Path: {0}", Path);
+                        return MembershipExtension.Placeholder;
+                    }
+
+                    using (var op = SnTrace.Security.StartOperation(
+                        "MembershipExtenderRecursionGuard activation. Path: {0}", Path))
+                    {
+                        SetCachedData(MembershipExtensionCallingKey, true);
+
+                        MembershipExtenderBase.Extend(this);
+                        extension = (MembershipExtension)base.GetCachedData(MembershipExtensionKey);
+
+                        SetCachedData(MembershipExtensionCallingKey, null);
+                        op.Successful = true;
+                    }
                 }
                 return extension;
             }
-            set { base.SetCachedData(MEMBERSHIPEXTENSIONKEY, value); }
+            set
+            {
+                base.SetCachedData(MembershipExtensionKey, value);
+            }
         }
 
         // =================================================================================== 

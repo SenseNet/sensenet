@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using SenseNet.Communication.Messaging;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Events;
@@ -117,6 +118,17 @@ namespace SenseNet.ContentRepository
             return this;
         }
         /// <summary>
+        /// Sets the application cache provider.
+        /// </summary>
+        /// <param name="applicationCacheProvider">IApplicationCache instance.</param>
+        public RepositoryBuilder UseApplicationCacheProvider(IApplicationCache applicationCacheProvider)
+        {
+            Configuration.Providers.Instance.ApplicationCacheProvider = applicationCacheProvider;
+            WriteLog("ApplicationCacheProvider", applicationCacheProvider);
+
+            return this;
+        }
+        /// <summary>
         /// Sets the cluster channel provider.
         /// </summary>
         /// <param name="clusterChannelProvider">IClusterChannel instance.</param>
@@ -166,6 +178,24 @@ namespace SenseNet.ContentRepository
         public RepositoryBuilder UseTraceCategories(params string[] categoryNames)
         {
             this.TraceCategories = categoryNames;
+            return this;
+        }
+        /// <summary>
+        /// Sets logger instances.
+        /// </summary>
+        public RepositoryBuilder UseLogger(params IEventLogger[] logger)
+        {
+            // store loggers in the provider collection temporarily
+            Configuration.Providers.Instance.SetProvider(typeof(IEventLogger[]), logger);
+            return this;
+        }
+        /// <summary>
+        /// Sets tracer instances.
+        /// </summary>
+        public RepositoryBuilder UseTracer(params ISnTracer[] tracer)
+        {
+            // store tracers in the provider collection temporarily
+            Configuration.Providers.Instance.SetProvider(typeof(ISnTracer[]), tracer);
             return this;
         }
 

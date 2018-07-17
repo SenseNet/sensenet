@@ -2,7 +2,6 @@
 <configuration>
   <configSections>
     <section name="loggingConfiguration" type="Microsoft.Practices.EnterpriseLibrary.Logging.Configuration.LoggingSettings, Microsoft.Practices.EnterpriseLibrary.Logging" />
-    <section name="unity" type="Microsoft.Practices.Unity.Configuration.UnityConfigurationSection, Microsoft.Practices.Unity.Configuration" />
     <sectionGroup name="sensenet">
       <section name="webApplication" type="System.Configuration.NameValueFileSectionHandler" />
       <section name="identityManagement" type="System.Configuration.NameValueSectionHandler" />
@@ -53,26 +52,6 @@
   <connectionStrings>
     <add name="SnCrMsSql" connectionString="Data Source=.;Initial Catalog=sensenet;Integrated Security=True" providerName="System.Data.SqlClient" />
   </connectionStrings>
-  <unity>
-    <typeAliases>
-      <typeAlias alias="IApplicationCache" type="SenseNet.ContentRepository.Storage.AppModel.IApplicationCache, SenseNet.Storage" />
-      <typeAlias alias="IApplicationCacheImpl" type="SenseNet.ContentRepository.ApplicationCache, SenseNet.ContentRepository" />
-      <typeAlias alias="MembershipExtenderBase" type="SenseNet.ContentRepository.Storage.Security.MembershipExtenderBase, SenseNet.Storage" />
-      <typeAlias alias="MembershipExtender" type="SenseNet.ContentRepository.Storage.Security.DefaultMembershipExtender, SenseNet.Storage" />
-      <typeAlias alias="PurgeUrlCollector" type="SenseNet.Portal.Virtualization.PurgeUrlCollector, SenseNet.Services" />
-      <typeAlias alias="singleton" type="Microsoft.Practices.Unity.ContainerControlledLifetimeManager, Microsoft.Practices.Unity" />
-    </typeAliases>
-    <containers>
-      <container name="Providers">
-        <types>
-          <type type="IApplicationCache" mapTo="IApplicationCacheImpl" />
-          <type type="MembershipExtenderBase" mapTo="MembershipExtender">
-            <lifetime type="singleton" />
-          </type>
-       </types>
-      </container>
-    </containers>
-  </unity>
   <sensenet>
     <webApplication>
       <add key="DiskFSSupportMode" value="Prefer" />

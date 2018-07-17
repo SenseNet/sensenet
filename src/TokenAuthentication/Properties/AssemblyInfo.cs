@@ -13,6 +13,7 @@ using System.Runtime.CompilerServices;
 [assembly: AssemblyCopyright("Copyright © Sense/Net Inc.")]
 [assembly: AssemblyTrademark("Sense/Net Inc.")]
 [assembly: AssemblyCulture("")]
-[assembly: AssemblyVersion("7.1.3.0")]
-[assembly: AssemblyFileVersion("7.1.3.0")]
-[assembly: AssemblyInformationalVersion("7.1.3")]
+
+[assembly: AssemblyVersion("7.2.0.0")]
+[assembly: AssemblyFileVersion("7.2.0.0")]
+[assembly: AssemblyInformationalVersion("7.2.0")]

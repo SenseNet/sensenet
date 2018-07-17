@@ -1212,12 +1212,12 @@ namespace SenseNet.Tests.Implementations
 
         #region CREATION
 
-        // Preloade CTD bytes by name
         private static readonly Dictionary<string, byte[]> ContentTypeBytes;
+        private static readonly Dictionary<string, byte[]> ResourceBytes;
+
         static InMemoryDataProvider()
         {
-            // Preload CTD bytes from disk to avoid heavy IO charging
-
+            // Preload CTD bytes from disk
             ContentTypeBytes = new Dictionary<string, byte[]>();
             foreach (var item in ContentTypeDefinitions.ContentTypes)
             {
@@ -1235,6 +1235,25 @@ namespace SenseNet.Tests.Implementations
 
                 ContentTypeBytes.Add(Path.GetFileNameWithoutExtension(item.Key).ToLowerInvariant(), bytes);
             }
+
+            // Preload resource bytes from disk
+            ResourceBytes = new Dictionary<string, byte[]>();
+            foreach (var item in ResourceXmls.Resources)
+            {
+                byte[] bytes;
+                using (var stream = new MemoryStream())
+                using (var writer = new StreamWriter(stream, Encoding.UTF8))
+                {
+                    writer.Write(item.Value);
+                    writer.Flush();
+                    stream.Position = 0;
+                    var buffer = stream.GetBuffer();
+                    bytes = new byte[stream.Length];
+                    Array.Copy(buffer, bytes, bytes.Length);
+                }
+
+                ResourceBytes.Add(Path.GetFileNameWithoutExtension(item.Key).ToLowerInvariant(), bytes);
+            }
         }
 
         private static byte[] GetContentTypeBytes(string name)
@@ -1247,6 +1266,13 @@ namespace SenseNet.Tests.Implementations
                     return new byte[0];
             }
             return ContentTypeBytes[name];
+        }
+        private static byte[] GetResourceBytes(string name)
+        {
+            name = name.ToLowerInvariant();
+            if (!ResourceBytes.ContainsKey(name))
+                return new byte[0];
+            return ResourceBytes[name];
         }
 
         private static Database _prototype;
@@ -1364,6 +1390,8 @@ namespace SenseNet.Tests.Implementations
                     };
                 }).ToList();
         }
+
+        private static string[] ResourceFileNames = new []{ "Content", "Exceptions", "Trash" };
         private List<FileRecord> BuildInitialFiles(string tableData)
         {
             if (tableData == null)
@@ -1375,10 +1403,17 @@ namespace SenseNet.Tests.Implementations
                 .Select(l =>
                 {
                     var record = l.Split('\t');
+                    var mimeType = record[1];
                     var name = record[2];
                     var ext = record[3];
 
-                    var bytes = ext == ".ContentType" ? GetContentTypeBytes(name) : new byte[0];
+                    byte[] bytes;
+                    if (ext == ".ContentType")
+                        bytes = GetContentTypeBytes(name);
+                    else if(ext == ".xml" && mimeType == "text/xml" && (name.StartsWith("CtdResources") || ResourceFileNames.Contains(name)))
+                        bytes = GetResourceBytes(name);
+                    else
+                        bytes = new byte[0];
 
                     return new FileRecord
                     {
@@ -2354,7 +2389,7 @@ namespace SenseNet.Tests.Implementations
 
             public override string GetString(int ordinal)
             {
-                //UNDONE: Implement well
+                //TODO: Implement well
                 var record = _enumerable[_currentIndex] as Tuple<string, string>;
                 if(null == record)
                     throw new NotImplementedException();

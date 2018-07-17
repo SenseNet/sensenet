@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SenseNet.ContentRepository.Search.Querying;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository
@@ -28,7 +29,8 @@ namespace SenseNet.ContentRepository
                     lock (_sync)
                     {
                         if (__items == null)
-                            __items = Build(LoadItems());
+                            using (new SystemAccount())
+                                __items = Build(LoadItems());
                     }
                 }
                 return __items;
@@ -42,9 +44,11 @@ namespace SenseNet.ContentRepository
         protected abstract void InstanceChanged();
         protected void InvalidatePrivate()
         {
-            __items = null;
-
-            SnTrace.System.Write("{0} tree cache invalidated.", typeof(T).Name);
+            lock (_sync)
+            {
+                __items = null;
+                SnTrace.System.Write("{0} tree cache invalidated.", typeof(T).Name);
+            }
         }
 
         protected override void OnReset(object sender, EventArgs e)
