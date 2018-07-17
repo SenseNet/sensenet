@@ -33,12 +33,6 @@ namespace SenseNet.BlobStorage.IntegrationTests
         private static readonly Dictionary<Type, BlobStorageIntegrationTests> Instances =
             new Dictionary<Type, BlobStorageIntegrationTests>();
 
-        protected static BlobStorageIntegrationTests GetInstance(Type type)
-        {
-            Instances.TryGetValue(type, out var instance);
-            return instance;
-        }
-
         protected abstract string DatabaseName { get; }
         protected abstract bool SqlFsEnabled { get; }
         protected abstract bool SqlFsUsed { get; }
@@ -289,18 +283,6 @@ namespace SenseNet.BlobStorage.IntegrationTests
             populator.ClearAndPopulateAll();
         }
 
-        private void ExecuteSqlCommand(string sql)
-        {
-            var proc = DataProvider.CreateDataProcedure(sql);
-            proc.CommandType = CommandType.Text;
-            proc.ExecuteNonQuery();
-        }
-        private T ExecuteSqlScalar<T>(string sql, string databaseName)
-        {
-            var proc = DataProvider.CreateDataProcedure(sql);
-            proc.CommandType = CommandType.Text;
-            return (T)proc.ExecuteScalar();
-        }
         private DbDataReader ExecuteSqlReader(string sql)
         {
             var proc = DataProvider.CreateDataProcedure(sql);
@@ -308,10 +290,6 @@ namespace SenseNet.BlobStorage.IntegrationTests
             return proc.ExecuteReader();
         }
 
-        private bool IsBuiltInOrSqlFs(IBlobProvider provider)
-        {
-            return SqlFileStreamBlobMetaDataProvider.IsBuiltInOrSqlFileStreamProvider(provider);
-        }
         #endregion
 
         public void TestCase01_CreateFileSmall()
@@ -631,21 +609,15 @@ namespace SenseNet.BlobStorage.IntegrationTests
 
         public void TestCase09_DeleteBinaryPropertySmall()
         {
-            // 20 chars:       |------------------|
-            // 10 chars:       |--------|---------|---------|
             var initialText = "Lorem ipsum dolo sit amet..";
-            var updatedText = "Cras lobortis consequat nisi..";
-            DeleteBinaryPropertyTest(initialText, updatedText, 222, 10);
+            DeleteBinaryPropertyTest(initialText, 222);
         }
         public void TestCase10_DeleteBinaryPropertyBig()
         {
-            // 20 chars:       |------------------|
-            // 10 chars:       |--------|---------|---------|
             var initialText = "Lorem ipsum dolo sit amet..";
-            var updatedText = "Cras lobortis consequat nisi..";
-            DeleteBinaryPropertyTest(initialText, updatedText, 20, 10);
+            DeleteBinaryPropertyTest(initialText, 20);
         }
-        private void DeleteBinaryPropertyTest(string initialContent, string updatedText, int sizeLimit, int chunkSize)
+        private void DeleteBinaryPropertyTest(string fileContent, int sizeLimit)
         {
             using (new SystemAccount())
             using (new SizeLimitSwindler(this, sizeLimit))
@@ -653,7 +625,7 @@ namespace SenseNet.BlobStorage.IntegrationTests
                 var testRoot = CreateTestRoot();
 
                 var file = new File(testRoot) { Name = "File1.file" };
-                file.Binary.SetStream(RepositoryTools.GetStreamFromString(initialContent));
+                file.Binary.SetStream(RepositoryTools.GetStreamFromString(fileContent));
                 file.Save();
                 var fileId = file.Id;
 
@@ -675,7 +647,7 @@ namespace SenseNet.BlobStorage.IntegrationTests
             // 10 chars:       |--------|---------|---------|
             var initialText = "Lorem ipsum dolo sit amet..";
             var updatedText = "Cras lobortis consequat nisi..";
-            var dbFiles = CopyfileRowTest(initialText, updatedText, 222, 10);
+            var dbFiles = CopyfileRowTest(initialText, updatedText, 222);
 
             Assert.IsNull(dbFiles[0].FileStream);
             Assert.IsNotNull(dbFiles[0].Stream);
@@ -693,7 +665,7 @@ namespace SenseNet.BlobStorage.IntegrationTests
             // 10 chars:       |--------|---------|---------|
             var initialText = "Lorem ipsum dolo sit amet..";
             var updatedText = "Cras lobortis consequat nisi..";
-            var dbFiles = CopyfileRowTest(initialText, updatedText, 20, 10);
+            var dbFiles = CopyfileRowTest(initialText, updatedText, 20);
 
             if (NeedExternal())
             {
@@ -733,7 +705,7 @@ namespace SenseNet.BlobStorage.IntegrationTests
                 Assert.AreEqual(updatedText, GetStringFromBytes(dbFiles[1].Stream));
             }
         }
-        private DbFile[] CopyfileRowTest(string initialContent, string updatedText, int sizeLimit, int chunkSize)
+        private DbFile[] CopyfileRowTest(string initialContent, string updatedText, int sizeLimit)
         {
             using (new SystemAccount())
             using (new SizeLimitSwindler(this, sizeLimit))
@@ -1083,7 +1055,6 @@ namespace SenseNet.BlobStorage.IntegrationTests
                 return null;
             }
         }
-
 
         protected Node CreateTestRoot()
         {
