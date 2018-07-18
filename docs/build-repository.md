@@ -16,6 +16,8 @@ In many cases it is sufficient to use the default providers (e.g. for messaging)
 
 > An example for a case when you have to use this approach is a messaging provider that needs to be instantiated using a _service url_ parameter. Of course this depends on the design of the provider - for example this may be unnecessary if it is able to read the service url from a config file.
 
+The point is: it should be your choice how you want to initialize the system, and this is what we want to offer: **letting developers assemble their environment from code instead of writing everything into configuration files**.
+
 ## Repository life cycle
 The repository object's life cycle is simple: you start it when the application starts and shut it down when the application exits. The repository instance encapsulates all providers (e.g. database or search providers). This way you can manage all the implementations on top of the content repository. All repository-related operations (e.g. querying, loading or saving content) should happen while the repository is live.
 
@@ -34,7 +36,7 @@ The `repositoryBuilder` parameter above lets developers customize which features
 This API lets you change one or more default options or providers when starting the repository. The object has a _fluent api_ that makes it easy to change one or more features.
 
 ```csharp
-var repositoryBuilder = new RepositoryBuilder()
+repositoryBuilder
    .UseSecurityMessageProvider(new MyMessageProvider("serviceurl"))
    .UseCacheProvider(new MyCustomCacheProvider())
    .StartWorkflowEngine(false);
@@ -74,11 +76,43 @@ public class MvcApplication : SenseNet.Portal.SenseNetGlobal
         ...
     }
 
-    protected override void BuildRepository(RepositoryBuilder repositoryBuilder)
+    protected override void BuildRepository(IRepositoryBuilder repositoryBuilder)
     {
         repositoryBuilder
             .UseSecurityMessageProvider(new MyMessageProvider("serviceurl"))
             .UseProvider("myprovider", new MyCustomProvider());
     }
+}
+```
+
+This approach overrides (takes precedence over) anything you set in configuration. In fact you do not need to configure the provider in web.config, just add it in your global class the same way as you use the `IAppBuilder` interface in .Net.
+
+## Extending the repository builder API
+The advantage of this approach is that developers who publish plugins for sensenet can extend the repository builder API by **adding extension methods** to the `IRepositoryBuilder` interface. That way when somebody installs your plugin through NuGet, your custom extension methods (e.g. `UseMyCustomFeature()`) will be available during repository start.
+
+> Please note that these extension methods should always return the `IRepositoryBuilder` instance that they received as their first parameter to aid the fluent api.
+
+```csharp
+public class CustomRepoExtensions
+{
+   public static IRepositoryBuilder UseMyCustomProvider(this IRepositoryBuilder repoBuilder)
+   {
+      // construct, initialize and set a custom provider
+      var mdb = new MyCustomProvider();
+      mdb.Initialize();
+
+      repoBuilder.SetProvider(mdb);
+
+      return repoBuilder;
+   }
+
+   public static IRepositoryBuilder ConfigureMyCustomProvider(this IRepositoryBuilder repoBuilder, string url)
+   {
+      // get a previously set provider and modify it
+      var provider = repoBuilder.GetProvider<MyCustomProvider>();
+      provider.SetValue(url);
+
+      return repoBuilder;
+   }
 }
 ```
