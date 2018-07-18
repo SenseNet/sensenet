@@ -17,6 +17,10 @@ using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository
 {
+    /// <summary>
+    /// Extension methods for the IRepositoryBuilder interface to let developers
+    /// configure providers during the repository start process.
+    /// </summary>
     public static class RepositoryBuilderExtensions
     {
         /// <summary>
@@ -198,6 +202,8 @@ namespace SenseNet.ContentRepository
         /// </summary> 
         public static IRepositoryBuilder UseTraceCategories(this IRepositoryBuilder repositoryBuilder, params string[] categoryNames)
         {
+            // Old behavior: set a property on the instance that will be used
+            // by the repo start process later.
             if (repositoryBuilder is RepositoryBuilder repoBuilder)
                 repoBuilder.TraceCategories = categoryNames;
             else
@@ -262,6 +268,8 @@ namespace SenseNet.ContentRepository
         /// </remarks>
         public static IRepositoryBuilder StartIndexingEngine(this IRepositoryBuilder repositoryBuilder, bool start = true)
         {
+            // Old behavior: set a property on the instance that will be used
+            // by the repo start process later.
             if (repositoryBuilder is RepositoryBuilder repoBuilder)
                 repoBuilder.StartIndexingEngine = start;
             else
@@ -271,6 +279,8 @@ namespace SenseNet.ContentRepository
         }
         public static IRepositoryBuilder IsWebContext(this IRepositoryBuilder repositoryBuilder, bool webContext = false)
         {
+            // Old behavior: set a property on the instance that will be used
+            // by the repo start process later.
             if (repositoryBuilder is RepositoryBuilder repoBuilder)
                 repoBuilder.IsWebContext = webContext;
             else
@@ -287,6 +297,8 @@ namespace SenseNet.ContentRepository
         /// </remarks>
         public static IRepositoryBuilder StartWorkflowEngine(this IRepositoryBuilder repositoryBuilder, bool start = true)
         {
+            // Old behavior: set a property on the instance that will be used
+            // by the repo start process later.
             if (repositoryBuilder is RepositoryBuilder repoBuilder)
                 repoBuilder.StartWorkflowEngine = start;
             else
@@ -300,6 +312,8 @@ namespace SenseNet.ContentRepository
         /// </summary>
         public static IRepositoryBuilder SetPluginsPath(this IRepositoryBuilder repositoryBuilder, string path)
         {
+            // Old behavior: set a property on the instance that will be used
+            // by the repo start process later.
             if (repositoryBuilder is RepositoryBuilder repoBuilder)
                 repoBuilder.PluginsPath = path;
             else
@@ -313,6 +327,8 @@ namespace SenseNet.ContentRepository
         /// </summary>
         public static IRepositoryBuilder SetIndexPath(this IRepositoryBuilder repositoryBuilder, string path)
         {
+            // Old behavior: set a property on the instance that will be used
+            // by the repo start process later.
             if (repositoryBuilder is RepositoryBuilder repoBuilder)
                 repoBuilder.IndexPath = path;
             else
@@ -326,6 +342,8 @@ namespace SenseNet.ContentRepository
         /// </summary>
         public static IRepositoryBuilder SetConsole(this IRepositoryBuilder repositoryBuilder, System.IO.TextWriter console)
         {
+            // Old behavior: set a property on the instance that will be used
+            // by the repo start process later.
             if (repositoryBuilder is RepositoryBuilder repoBuilder)
                 repoBuilder.Console = console;
             else

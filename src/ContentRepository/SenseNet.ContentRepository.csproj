@@ -102,8 +102,8 @@
       <HintPath>..\packages\SenseNet.TaskManagement.Core.1.1.0.0\lib\net45\SenseNet.TaskManagement.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="SenseNet.Tools, Version=3.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SenseNet.Tools.3.0.0\lib\netstandard2.0\SenseNet.Tools.dll</HintPath>
+    <Reference Include="SenseNet.Tools, Version=3.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SenseNet.Tools.3.0.1\lib\netstandard2.0\SenseNet.Tools.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Activities" />
