@@ -2,6 +2,7 @@
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Configuration;
+using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository
 {
@@ -58,6 +59,11 @@ namespace SenseNet.ContentRepository
         public static RepositoryInstance Start(RepositoryBuilder builder)
         {
             return builder == null ? Start() : Start((RepositoryStartSettings) builder);
+        }
+        internal static RepositoryInstance Start(IRepositoryBuilder builder)
+        {
+            // the RepositoryBuilder class should be the only implementation of this interface
+            return Start((RepositoryBuilder)builder);
         }
 
         /// <summary>

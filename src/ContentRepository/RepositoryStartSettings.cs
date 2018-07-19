@@ -104,7 +104,7 @@ namespace SenseNet.ContentRepository
         /// Determines trace categories that should be enabled when the repository starts. This will
         /// override both startup and runtime categories.
         /// </summary>
-        public virtual string[] TraceCategories { get; protected set; }
+        public virtual string[] TraceCategories { get; protected internal set; }
 
         /// <summary>
         /// Contains type matching configurations.

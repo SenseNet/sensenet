@@ -182,7 +182,7 @@ namespace SenseNet.Tests
                 .StartWorkflowEngine(false)
                 .DisableNodeObservers()
                 .EnableNodeObservers(typeof(SettingsCache))
-                .UseTraceCategories("Test", "Event", "Custom");
+                .UseTraceCategories("Test", "Event", "Custom") as RepositoryBuilder;
         }
 
         protected static ISecurityDataProvider GetSecurityDataProvider(InMemoryDataProvider repo)
