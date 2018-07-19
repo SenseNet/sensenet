@@ -14,6 +14,6 @@ using System.Runtime.CompilerServices;
 [assembly: AssemblyTrademark("Sense/Net Inc.")]
 [assembly: AssemblyCulture("")]
 
-[assembly: AssemblyVersion("7.2.0.0")]
-[assembly: AssemblyFileVersion("7.2.0.0")]
-[assembly: AssemblyInformationalVersion("7.2.0")]
+[assembly: AssemblyVersion("7.3.0.0")]
+[assembly: AssemblyFileVersion("7.3.0.0")]
+[assembly: AssemblyInformationalVersion("7.3.0")]
