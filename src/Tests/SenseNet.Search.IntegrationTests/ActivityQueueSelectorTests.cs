@@ -206,9 +206,8 @@ namespace SenseNet.Search.IntegrationTests
                 .UseTraceCategories("ContentOperation", "Event", "Repository", "IndexQueue", "Index", "Query")
                 .DisableNodeObservers()
                 .EnableNodeObservers(typeof(SettingsCache))
-                .StartWorkflowEngine(false);
-
-            repoBuilder.Console = indxManConsole;
+                .StartWorkflowEngine(false)
+                .SetConsole(indxManConsole);
 
             using (Repository.Start(repoBuilder))
             {

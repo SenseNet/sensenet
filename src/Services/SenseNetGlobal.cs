@@ -144,9 +144,14 @@ namespace SenseNet.Services
             using (var op = SnTrace.Repository.StartOperation("Application_Start. Process: {0}, AppDomain: {1}, ",
                                 System.Diagnostics.Process.GetCurrentProcess().Id, AppDomain.CurrentDomain.Id))
             {
-                var startConfig = new RepositoryStartSettings { StartIndexingEngine = true, IsWebContext = true };
+                var repositoryBuilder = new RepositoryBuilder
+                {
+                    IsWebContext = true
+                };
 
-                Repository.Start(startConfig);
+                BuildRepository(repositoryBuilder);
+
+                Repository.Start(repositoryBuilder);
 
                 RepositoryVersionInfo.CheckComponentVersions();
 
@@ -396,6 +401,16 @@ namespace SenseNet.Services
 
                 return null;
             })));
+        }
+
+        /// <summary>
+        /// Derived classes may customize the repository by defining options and providers here. This instance
+        /// is used later when the system starts the content repository.
+        /// </summary>
+        /// <param name="repositoryBuilder">A repository builder instance with a fluent api for configuring the repository.</param>
+        protected virtual void BuildRepository(IRepositoryBuilder repositoryBuilder)
+        {
+            // do nothing
         }
 
         /*====================================================================================================================== Helpers */
