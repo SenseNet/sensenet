@@ -61,7 +61,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public static Stream GetStreamForRead(string token)
         {
             var tokenData = ChunkToken.Parse(token);
-            var context = BlobStorageBase.GetBlobStorageContext(tokenData.FileId, false, tokenData.VersionId, tokenData.PropertyTypeId);
+            var context = GetBlobStorageContext(tokenData.FileId, false, tokenData.VersionId, tokenData.PropertyTypeId);
 
             return context.Provider.GetStreamForRead(context);
         }

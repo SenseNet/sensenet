@@ -30,11 +30,6 @@ namespace SenseNet.Tests.Implementations
             _dataProvider = dataProvider;
         }
 
-        public bool IsFilestreamEnabled()
-        {
-            return false;
-        }
-
         public BlobStorageContext GetBlobStorageContext(int fileId, bool clearStream, int versionId, int propertyTypeId)
         {
             throw new NotImplementedException();
@@ -48,7 +43,7 @@ namespace SenseNet.Tests.Implementations
         public void InsertBinaryProperty(IBlobProvider blobProvider, BinaryDataValue value, int versionId, int propertyTypeId, bool isNewNode)
         {
             var streamLength = value.Stream?.Length ?? 0;
-            var ctx = new BlobStorageContext(blobProvider) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = 0, Length = streamLength, UseFileStream = false };
+            var ctx = new BlobStorageContext(blobProvider) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = 0, Length = streamLength };
 
             // blob operation
 
@@ -106,7 +101,6 @@ namespace SenseNet.Tests.Implementations
                     PropertyTypeId = 0,
                     FileId = value.FileId,
                     Length = streamLength,
-                    UseFileStream = false
                 };
 
                 blobProvider.Allocate(ctx);
@@ -117,7 +111,7 @@ namespace SenseNet.Tests.Implementations
                 value.BlobProviderData = BlobStorageContext.SerializeBlobProviderData(ctx.BlobProviderData);
             }
 
-            var isRepositoryStream = value.Stream is RepositoryStream || value.Stream is SenseNetSqlFileStream;
+            var isRepositoryStream = value.Stream is RepositoryStream;
             var hasStream = isRepositoryStream || value.Stream is MemoryStream;
             if (!hasStream)
                 // do not do any database operation if the stream is not modified
@@ -177,7 +171,6 @@ namespace SenseNet.Tests.Implementations
                 PropertyTypeId = propertyTypeId,
                 FileId = fileId,
                 Length = length,
-                UseFileStream = false
             };
 
             return new BinaryCacheEntity

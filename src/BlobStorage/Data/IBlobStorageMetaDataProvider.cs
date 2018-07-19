@@ -12,11 +12,6 @@ namespace SenseNet.ContentRepository.Storage.Data
     public interface IBlobStorageMetaDataProvider
     {
         /// <summary>
-        /// Returns whether the FileStream feature is enabled in the blob provider or not.
-        /// </summary>
-        bool IsFilestreamEnabled();
-
-        /// <summary>
         /// Returns a context object that holds provider-specific data for blob storage operations.
         /// </summary>
         /// <param name="fileId">File identifier.</param>

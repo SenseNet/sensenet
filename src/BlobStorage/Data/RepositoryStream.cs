@@ -67,7 +67,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public RepositoryStream(int fileId, long size, byte[] binary = null)
         {
             Length = size;
-            this.FileId = fileId;
+            FileId = fileId;
             if (binary != null)
                 _innerBuffer = binary;
         }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Runtime.Remoting;
 using System.Threading;
 using System.Threading.Tasks;
 #pragma warning disable 1591
@@ -120,10 +119,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         public override Task FlushAsync(CancellationToken cancellationToken)
         {
             return _underlyingStream.FlushAsync(cancellationToken);
-        }
-        public override ObjRef CreateObjRef(Type requestedType)
-        {
-            return _underlyingStream.CreateObjRef(requestedType);
         }
         public override bool Equals(object obj)
         {
