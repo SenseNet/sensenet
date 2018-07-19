@@ -186,6 +186,7 @@
     <Compile Include="Packaging\Steps\Internal\ImportCustomContent.cs" />
     <Compile Include="Packaging\Steps\Internal\UpgradeProviderConfiguration.cs" />
     <Compile Include="Packaging\Steps\SelectXmlValue.cs" />
+    <Compile Include="RepositoryBuilderExtensions.cs" />
     <Compile Include="Search\Indexing\NullPopulator.cs" />
     <Compile Include="SnComponent.cs" />
     <Compile Include="Linq\CaseInsensitiveFilterVisitor.cs" />
