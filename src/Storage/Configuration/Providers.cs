@@ -96,7 +96,13 @@ namespace SenseNet.Configuration
 
         #region private Lazy<IBlobStorageMetaDataProvider> _blobMetaDataProvider = new Lazy<IBlobStorageMetaDataProvider>
         private Lazy<IBlobStorageMetaDataProvider> _blobMetaDataProvider =
-            new Lazy<IBlobStorageMetaDataProvider>(() => new MsSqlBlobMetaDataProvider());
+            new Lazy<IBlobStorageMetaDataProvider>(() =>
+            {
+                var blobMetaClassName = BlobStorage.MetadataProviderClassName;
+                return string.IsNullOrEmpty(blobMetaClassName)
+                    ? new MsSqlBlobMetaDataProvider()
+                    : CreateProviderInstance<IBlobStorageMetaDataProvider>(blobMetaClassName, "BlobMetaDataProvider");
+            });
         public virtual IBlobStorageMetaDataProvider BlobMetaDataProvider
         {
             get { return _blobMetaDataProvider.Value; }

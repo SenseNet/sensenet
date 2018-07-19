@@ -40,5 +40,9 @@ namespace SenseNet.Configuration
         /// Class name of an optional external blob storage provider.
         /// </summary>
         public static string BlobProviderClassName { get; internal set; } = GetString(SectionName, "BlobProvider");
+        /// <summary>
+        /// Class name of an optional external metadata provider for the blob storage.
+        /// </summary>
+        public static string MetadataProviderClassName { get; internal set; } = GetString(SectionName, "MetadataProvider");
     }
 }
