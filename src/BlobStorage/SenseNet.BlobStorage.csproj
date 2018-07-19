@@ -21,7 +21,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SenseNet.Tools" Version="3.0.0" />
+    <PackageReference Include="SenseNet.Tools" Version="3.0.1" />
   </ItemGroup>
 
   <ItemGroup>
