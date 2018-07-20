@@ -410,16 +410,16 @@ SELECT @FileId
                     var providerName = reader.GetSafeString(3);
                     var providerTextData = reader.GetSafeString(4);
 
-                    byte[] rawData;
-                    if (reader.IsDBNull(5))
-                        rawData = null;
-                    else
-                        rawData = (byte[])reader.GetValue(5);
+                    byte[] rawData = null;
 
                     var provider = BlobStorageBase.GetProvider(providerName);
                     var context = new BlobStorageContext(provider, providerTextData) { VersionId = versionId, PropertyTypeId = propertyTypeId, FileId = fileId, Length = length };
                     if (provider == BlobStorageBase.BuiltInProvider)
+                    {
                         context.BlobProviderData = new BuiltinBlobProviderData();
+                        if (!reader.IsDBNull(5))
+                            rawData = (byte[])reader.GetValue(5);
+                    }
 
                     return new BinaryCacheEntity
                     {
