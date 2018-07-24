@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>SenseNet.Services</id>
-    <version>7.3.0</version>
+    <version>7.3.1</version>
     <title>sensenet Services</title>
     <authors>kavics,aniko,lajos,tusmester</authors>
     <owners>Sense/Net</owners>
@@ -22,7 +22,7 @@
       <dependency id="SenseNet.Tools" version="3.0.1" />
       <dependency id="SenseNet.Search" version="2.0.0" />
       <dependency id="SenseNet.Preview" version="7.0.0" />
-      <dependency id="SenseNet.BlobStorage" version="7.3.0" />
+      <dependency id="SenseNet.BlobStorage" version="7.3.1" />
       <dependency id="SenseNet.Common" version="7.2.0" />
       <dependency id="SenseNet.Security" version="3.0.0" />
       <dependency id="SenseNet.Security.EF6SecurityStore" version="3.0.0" />
