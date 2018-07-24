@@ -93,6 +93,7 @@ namespace SenseNet.Tests.Implementations
         public void UpdateBinaryProperty(IBlobProvider blobProvider, BinaryDataValue value)
         {
             var streamLength = value.Stream?.Length ?? 0;
+            var isExternal = false;
             if (streamLength > 0)
             {
                 var ctx = new BlobStorageContext(blobProvider, value.BlobProviderData)
@@ -104,8 +105,7 @@ namespace SenseNet.Tests.Implementations
                 };
 
                 blobProvider.Allocate(ctx);
-                using (var stream = blobProvider.GetStreamForWrite(ctx))
-                    value.Stream?.CopyTo(stream);
+                isExternal = true;
 
                 value.BlobProviderName = ctx.Provider.GetType().FullName;
                 value.BlobProviderData = BlobStorageContext.SerializeBlobProviderData(ctx.BlobProviderData);
@@ -113,7 +113,7 @@ namespace SenseNet.Tests.Implementations
 
             var isRepositoryStream = value.Stream is RepositoryStream;
             var hasStream = isRepositoryStream || value.Stream is MemoryStream;
-            if (!hasStream)
+            if (!isExternal && !hasStream)
                 // do not do any database operation if the stream is not modified
                 return;
 
@@ -136,6 +136,18 @@ namespace SenseNet.Tests.Implementations
 
             if (fileId > 0 && fileId != value.FileId)
                 value.FileId = fileId;
+
+            // update stream with a new context
+            var newCtx = new BlobStorageContext(blobProvider, value.BlobProviderData)
+            {
+                VersionId = 0,
+                PropertyTypeId = 0,
+                FileId = value.FileId,
+                Length = streamLength,
+            };
+
+            using (var stream = blobProvider.GetStreamForWrite(newCtx))
+                value.Stream?.CopyTo(stream);
         }
 
         public void DeleteBinaryProperty(int versionId, int propertyTypeId)
