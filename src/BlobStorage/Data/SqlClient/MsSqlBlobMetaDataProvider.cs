@@ -264,6 +264,7 @@ SELECT @FileId
         public void UpdateBinaryProperty(IBlobProvider blobProvider, BinaryDataValue value)
         {
             var streamLength = value.Stream?.Length ?? 0;
+            var isExternal = false;
             if (blobProvider != BlobStorageBase.BuiltInProvider && streamLength > 0)
             {
                 var ctx = new BlobStorageContext(blobProvider, value.BlobProviderData)
@@ -275,8 +276,7 @@ SELECT @FileId
                 };
 
                 blobProvider.Allocate(ctx);
-                using (var stream = blobProvider.GetStreamForWrite(ctx))
-                    value.Stream?.CopyTo(stream);
+                isExternal = true;
 
                 value.BlobProviderName = ctx.Provider.GetType().FullName;
                 value.BlobProviderData = BlobStorageContext.SerializeBlobProviderData(ctx.BlobProviderData);
@@ -296,7 +296,7 @@ SELECT @FileId
 
             var isRepositoryStream = value.Stream is RepositoryStream;
             var hasStream = isRepositoryStream || value.Stream is MemoryStream;
-            if (!hasStream)
+            if (!isExternal && !hasStream)
                 // do not do any database operation if the stream is not modified
                 return;
 
@@ -335,7 +335,6 @@ SELECT @FileId
                 cmd.Dispose();
             }
 
-            // ReSharper disable once InvertIf
             if (blobProvider == BlobStorageBase.BuiltInProvider && !isRepositoryStream && streamLength > 0)
             {
                 // Stream exists and is loaded -> write it
@@ -349,6 +348,19 @@ SELECT @FileId
                 };
 
                 BuiltInBlobProvider.UpdateStream(ctx, value.Stream);
+            }
+            else
+            {
+                var ctx = new BlobStorageContext(blobProvider, value.BlobProviderData)
+                {
+                    VersionId = 0,
+                    PropertyTypeId = 0,
+                    FileId = value.FileId,
+                    Length = streamLength,
+                };
+
+                using (var stream = blobProvider.GetStreamForWrite(ctx))
+                    value.Stream?.CopyTo(stream);
             }
         }
 
