@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.Practices.EnterpriseLibrary.Common.Configuration;
@@ -10,16 +9,14 @@ using Microsoft.Practices.EnterpriseLibrary.Logging;
 using System.Web;
 using System.Xml;
 
-namespace SenseNet.ContentRepository.Storage.Diagnostics
+// ReSharper disable once CheckNamespace
+namespace SenseNet.Diagnostics
 {
     [ConfigurationElementType(typeof(CustomFormatterData))]
     public class SnXmlFormatter : ILogFormatter
     {
-        private NameValueCollection _x;
-
         public SnXmlFormatter(NameValueCollection x)
         {
-            _x = x;
         }
 
         public string Format(LogEntry log)

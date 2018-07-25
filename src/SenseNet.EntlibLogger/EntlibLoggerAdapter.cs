@@ -1,20 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Diagnostics;
-using Microsoft.Practices.EnterpriseLibrary.Common.Configuration;
-using Microsoft.Practices.EnterpriseLibrary.Logging;
-using Microsoft.Practices.EnterpriseLibrary.Logging.Configuration;
-using Microsoft.Practices.EnterpriseLibrary.Logging.TraceListeners;
+using System.Linq;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.Diagnostics
 {
     public class EntLibLoggerAdapter : IEventLogger
     {
         public void Write(object message, ICollection<string> categories, int priority, int eventId, TraceEventType severity, string title, IDictionary<string, object> properties)
         {
-            var props = Utility.CollectAutoProperties(properties);
+            var props = properties ?? new Dictionary<string, object>();
+
             var eventTypeName = severity.ToString().ToUpper();
 
             if (SnTrace.Event.Enabled)
@@ -42,8 +39,7 @@ namespace SenseNet.Diagnostics
             }
 
             Microsoft.Practices.EnterpriseLibrary.Logging.Logger.Write(
-                message ?? String.Empty, categories ?? null, 
-                priority, eventId, severity, title ?? string.Empty, props);
+                message ?? string.Empty, categories, priority, eventId, severity, title ?? string.Empty, props);
         }
 
         public void Write<T>(object message, ICollection<string> categories, int priority, int eventId,
@@ -56,29 +52,4 @@ namespace SenseNet.Diagnostics
             Write(message, categories, priority, eventId, severity, title, properties);
         }
     }
-
-    [ConfigurationElementType(typeof(CustomTraceListenerData))]
-    public class OneLineTraceListener : CustomTraceListener
-    {
-        public override void TraceData(TraceEventCache eventCache, string source, TraceEventType eventType, int id, object data)
-        {
-            if (data is LogEntry && this.Formatter != null)
-            {
-                this.WriteLine(this.Formatter.Format(data as LogEntry));
-            }
-            else
-            {
-                this.WriteLine(data.ToString());
-            }
-        }
-        public override void Write(string message)
-        {
-            Debug.Write(message);
-        }
-        public override void WriteLine(string message)
-        {
-            Debug.WriteLine(message);
-        }
-    }
-
 }

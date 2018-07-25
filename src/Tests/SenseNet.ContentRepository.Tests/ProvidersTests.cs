@@ -1,7 +1,12 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Security;
+using SenseNet.ContentRepository.Storage;
+using SenseNet.Diagnostics;
 using SenseNet.Tests;
+using SenseNet.Tests.Implementations;
 
 namespace SenseNet.ContentRepository.Tests
 {

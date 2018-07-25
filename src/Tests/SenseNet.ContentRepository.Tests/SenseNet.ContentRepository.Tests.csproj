@@ -51,8 +51,8 @@
     <Reference Include="SenseNet.Security, Version=3.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\SenseNet.Security.3.0.0\lib\netstandard2.0\SenseNet.Security.dll</HintPath>
     </Reference>
-    <Reference Include="SenseNet.Tools, Version=3.0.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\SenseNet.Tools.3.0.1\lib\netstandard2.0\SenseNet.Tools.dll</HintPath>
+    <Reference Include="SenseNet.Tools, Version=3.0.1.2, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\SenseNet.Tools.3.0.1.2\lib\netstandard2.0\SenseNet.Tools.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -97,6 +97,7 @@
     <Compile Include="GenericContentTests.cs" />
     <Compile Include="IndexingTests.cs" />
     <Compile Include="LinqTests.cs" />
+    <Compile Include="LoggerTests.cs" />
     <Compile Include="UserTests.cs" />
     <Compile Include="NodeIdentifierTests.cs" />
     <Compile Include="PortalContextTest.cs" />
@@ -118,14 +119,16 @@
     <Compile Include="VersionNumberTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\BlobStorage\SenseNet.BlobStorage.csproj">
+      <Project>{C250C071-6ACD-42E0-9FFC-63283AFB8C6C}</Project>
+      <Name>SenseNet.BlobStorage</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Common\SenseNet.Common.csproj">
       <Project>{a453e920-29c0-45cd-984c-0d8e3631b1e3}</Project>
       <Name>SenseNet.Common</Name>
