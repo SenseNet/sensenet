@@ -27,7 +27,7 @@ namespace SenseNet.Configuration
     {
         private const string SectionName = "sensenet/providers";
 
-        public static string EventLoggerClassName { get; internal set; } = GetProvider("EventLogger", typeof(DebugWriteLoggerAdapter).FullName); //UNDONE: Check config key: "Logger"
+        public static string EventLoggerClassName { get; internal set; } = GetProvider("EventLogger", typeof(DebugWriteLoggerAdapter).FullName);
         public static string DataProviderClassName { get; internal set; } = GetProvider("DataProvider", typeof(SqlProvider).FullName);
         public static string AccessProviderClassName { get; internal set; } = GetProvider("AccessProvider",
             "SenseNet.ContentRepository.Security.UserAccessProvider");
