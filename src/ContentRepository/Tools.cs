@@ -22,9 +22,7 @@ using System.Diagnostics;
 using SenseNet.BackgroundOperations;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
-using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage.Search;
-using SenseNet.Search.Indexing;
 using SenseNet.TaskManagement.Core;
 
 namespace SenseNet.ContentRepository
@@ -342,7 +340,7 @@ namespace SenseNet.ContentRepository
             }
             return result;
         }
-        
+
         [ODataFunction]
         public static IEnumerable<Content> GetListOfAllContentTypes(Content content)
         {
@@ -382,6 +380,48 @@ namespace SenseNet.ContentRepository
             }
             return result;
         }
+
+        [ODataFunction]
+        public static Linq.ISnQueryable<Content> Children(Content content)
+        {
+            // ToDo: Remove explicit filter settings once the function will be able to resolve from URL parameter
+            // Related issue: https://github.com/SenseNet/sensenet/issues/428
+            content.ChildrenDefinition.EnableAutofilters = FilterStatus.Disabled;
+            content.ChildrenDefinition.EnableLifespanFilter = FilterStatus.Disabled;
+            return content.Children;
+        }
+
+
+        [ODataFunction]
+        public static IEnumerable<Content> Ancestors(Content content)
+        {
+            var segments = content.Path.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+            var ancestorPaths = segments.Aggregate(new List<string> { "" }, (acc, seg) =>
+                {
+                    acc.Add($"{acc.Last()}/{seg}");
+                    return acc;
+                })
+                .Where(path => path.Length > 0) // Remove empty segment before the Root
+                .OrderByDescending(path => path)
+                .Skip(1); // skip self
+            var parents = new List<Content>();
+            foreach(var path in ancestorPaths)
+            {
+                Content c = null;
+                try
+                {
+                    c = Content.LoadByIdOrPath(path);
+                } 
+                catch (SenseNetSecurityException) {}
+                if (c == null)
+                {
+                    return parents;
+                }
+                parents.Add(c);
+            }
+            return parents;
+        }
+
         [ODataAction]
         public static string CopyExplicitEntriesOfEveryoneToVisitor(Content root, string[] exceptList)
         {
@@ -460,7 +500,7 @@ namespace SenseNet.ContentRepository
             return isFolder;
         }
 
-        private static readonly char[] InvalidPathChars = Path.GetInvalidPathChars().Concat(new[] {'?', '&', '#'}).ToArray();
+        private static readonly char[] InvalidPathChars = Path.GetInvalidPathChars().Concat(new[] { '?', '&', '#' }).ToArray();
         /// <summary>
         /// Checks whether the path contains characters that are considered illegal in a file system path. 
         /// Used before mapping a virtual path to a server file system path.
@@ -530,9 +570,9 @@ namespace SenseNet.ContentRepository
                     targetUser = Node.LoadNode(userId) as User;
                 else
                     if (RepositoryPath.IsValidPath(user) == RepositoryPath.PathResult.Correct)
-                        targetUser = Node.LoadNode(user) as User;
-                    else
-                        throw new ArgumentException("The 'user' parameter cannot be recognized as a path or an Id: " + user);
+                    targetUser = Node.LoadNode(user) as User;
+                else
+                    throw new ArgumentException("The 'user' parameter cannot be recognized as a path or an Id: " + user);
                 if (targetUser == null)
                     throw new ArgumentException("User not found by the parameter: " + user);
             }
@@ -1062,7 +1102,7 @@ namespace SenseNet.ContentRepository
             AddMissingEntityToList(new SecurityEntityInfo(contentId), entityInfoList);
         }
         private void AddMissingEntityToList(SecurityEntityInfo entity, IList<SecurityEntityInfo> entityInfoList)
-        {            
+        {
             if (entity != null && !entityInfoList.Any(c => c == entity))
                 entityInfoList.Add(entity);
         }
