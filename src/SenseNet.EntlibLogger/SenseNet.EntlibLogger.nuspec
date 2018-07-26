@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>SenseNet.EntlibLogger</id>
+    <version>1.0.0</version>
+    <title>sensenet Event Logger with the Microsoft Enterprise Library</title>
+    <authors>kavics,tusmester</authors>
+    <owners>Sense/Net</owners>
+    <licenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/SenseNet/sensenet</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Event Logger plugin for sensenet that uses the Logging module of the Microsoft Enterprise Library.</description>
+    <releaseNotes>See release notes on GitHub.</releaseNotes>
+    <copyright>Copyright © Sense/Net Inc.</copyright>
+    <tags>sensenet ecm ecms logging</tags>
+    <dependencies>
+      <dependency id="SenseNet.Tools" version="3.0.1.3" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="bin\Release\Microsoft.Practices.EnterpriseLibrary.*" target="lib\net461" />
+    <file src="bin\Release\Microsoft.Practices.ServiceLocation.*" target="lib\net461" />
+    <file src="bin\Release\Microsoft.Practices.Unity.*" target="lib\net461" />
+    <file src="bin\Release\SenseNet.EntlibLogger.*" target="lib\net461" />
+  </files>
+</package>

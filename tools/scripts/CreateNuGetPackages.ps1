@@ -7,6 +7,7 @@ Remove-Item $PSScriptRoot\*.nupkg
 
 nuget pack $srcPath\Services\SenseNet.Services.nuspec -properties Configuration=Release -OutputDirectory $PSScriptRoot
 nuget pack $srcPath\Tests\SenseNet.Tests\SenseNet.Tests.nuspec -properties Configuration=Release -OutputDirectory $PSScriptRoot
+nuget pack $srcPath\SenseNet.EntlibLogger\SenseNet.EntlibLogger.nuspec -properties Configuration=Release -OutputDirectory $PSScriptRoot
 
 New-Item $srcPath\nuget\snadmin\install-services\scripts -ItemType directory -Force
 
