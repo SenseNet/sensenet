@@ -18,7 +18,7 @@ namespace SenseNet.Diagnostics
                     string.Join(", ", (
                         from item in properties select string.Concat(item.Key, ":", item.Value)).ToArray()))}";
 
-            Debug.WriteLine(msg);
+            Trace.WriteLine(msg);
         }
 
         public void Write<T>(object message, ICollection<string> categories, int priority, int eventId,
