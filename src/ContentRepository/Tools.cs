@@ -395,31 +395,20 @@ namespace SenseNet.ContentRepository
         [ODataFunction]
         public static IEnumerable<Content> Ancestors(Content content)
         {
-            var segments = content.Path.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-            var ancestorPaths = segments.Aggregate(new List<string> { "" }, (acc, seg) =>
-                {
-                    acc.Add($"{acc.Last()}/{seg}");
-                    return acc;
-                })
-                .Where(path => path.Length > 0) // Remove empty segment before the Root
-                .OrderByDescending(path => path)
-                .Skip(1); // skip self
-            var parents = new List<Content>();
-            foreach(var path in ancestorPaths)
+            var ancestors = new List<Content>();
+            try
             {
-                Content c = null;
-                try
+                var ancestor = Content.Load(content.ContentHandler.ParentId);
+                while (ancestor != null)
                 {
-                    c = Content.LoadByIdOrPath(path);
-                } 
-                catch (SenseNetSecurityException) {}
-                if (c == null)
-                {
-                    return parents;
+                    ancestors.Add(ancestor);
+                    ancestor = Content.Load(ancestor.ContentHandler.ParentId);
                 }
-                parents.Add(c);
             }
-            return parents;
+            catch (SenseNetSecurityException ex) {
+
+            }
+            return ancestors;
         }
 
         [ODataAction]
