@@ -1118,11 +1118,6 @@ namespace SenseNet.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        protected internal override AuditLogEntry[] LoadLastAuditLogEntries(int count)
-        {
-            throw new NotImplementedException();
-        }
-
         #endregion
 
         /* ====================================================================================== */
@@ -1190,6 +1185,27 @@ namespace SenseNet.Tests.Implementations
                 Message = auditEvent.Message,
                 FormattedMessage = auditEvent.FormattedMessage,
             });
+        }
+
+        protected internal override AuditLogEntry[] LoadLastAuditLogEntries(int count)
+        {
+            return _db.LogEntries
+                .OrderByDescending(e => e.LogId)
+                .Take(count)
+                .OrderBy(e => e.LogId)
+                .Select(e => new AuditLogEntry
+                {
+                    Id = e.LogId,
+                    EventId = e.EventId,
+                    Title = e.Title,
+                    ContentId = e.ContentId,
+                    ContentPath = e.ContentPath,
+                    UserName = e.UserName,
+                    LogDate = DateTime.Parse(e.LogDate),
+                    Message = e.Message,
+                    FormattedMessage = e.FormattedMessage
+                })
+                .ToArray();
         }
 
         /* ====================================================================================== Database */
