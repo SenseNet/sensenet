@@ -349,6 +349,7 @@ namespace SenseNet.ContentRepository
             // look for the configured logger
             SnLog.Instance = Providers.Instance.EventLogger ?? new DebugWriteLoggerAdapter();
             SnLog.PropertyCollector = new EventPropertyCollector();
+            SnLog.AuditEventWriter = new DatabaseAuditEventWriter();
 
             //set configured tracers
             var tracers = Providers.Instance.GetProvider<ISnTracer[]>();

@@ -174,7 +174,9 @@
     <Compile Include="Data\SqlClient\TraceSqlProvider.cs" />
     <Compile Include="Data\StorageDataReaderExtensions.cs" />
     <Compile Include="Diagnostics\AuditBlock.cs" />
+    <Compile Include="Diagnostics\AuditEventInfo.cs" />
     <Compile Include="Diagnostics\AuditLogEntry.cs" />
+    <Compile Include="Diagnostics\DatabaseAuditEventWriter.cs" />
     <Compile Include="Diagnostics\EventPropertyCollector.cs" />
     <Compile Include="DistributedApplication\Messaging\ClusterChannelMonitor.cs" />
     <Compile Include="ElevatedModificationVisibilityRule.cs" />
