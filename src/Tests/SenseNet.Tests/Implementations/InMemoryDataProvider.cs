@@ -1187,7 +1187,7 @@ namespace SenseNet.Tests.Implementations
             });
         }
 
-        protected internal override AuditLogEntry[] LoadLastAuditLogEntries(int count)
+        public override AuditLogEntry[] LoadLastAuditLogEntries(int count)
         {
             return _db.LogEntries
                 .OrderByDescending(e => e.LogId)

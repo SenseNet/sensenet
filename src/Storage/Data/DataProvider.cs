@@ -45,7 +45,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract int GetPermissionLogEntriesCountAfterMomentInternal(DateTime moment);
 
-        protected internal abstract AuditLogEntry[] LoadLastAuditLogEntries(int count);
+        public abstract AuditLogEntry[] LoadLastAuditLogEntries(int count);
 
 
         //////////////////////////////////////// Generic Datalayer Logic ////////////////////////////////////////
