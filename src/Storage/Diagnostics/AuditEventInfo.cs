@@ -16,7 +16,7 @@ namespace SenseNet.Diagnostics
         public int EventId => _auditEvent.EventId;
         public string Title => _auditEvent.Title;
         public string Message => _auditEvent.Message;
-        public string Timestamp { get; }
+        public DateTime Timestamp { get; }
         public string Severity { get; }
         public int Priority { get; }
         public string MachineName { get; }
@@ -51,7 +51,7 @@ namespace SenseNet.Diagnostics
             var thread = Thread.CurrentThread;
 
             _auditEvent = auditEvent;
-            Timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fffff");
+            Timestamp = DateTime.UtcNow;
             Severity = "Verbose";
             Priority = -1;
             MachineName = Environment.MachineName;

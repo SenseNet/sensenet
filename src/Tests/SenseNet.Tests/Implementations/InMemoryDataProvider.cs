@@ -1201,7 +1201,7 @@ namespace SenseNet.Tests.Implementations
                     ContentId = e.ContentId,
                     ContentPath = e.ContentPath,
                     UserName = e.UserName,
-                    LogDate = DateTime.Parse(e.LogDate),
+                    LogDate = new DateTime(e.LogDate.Ticks),
                     Message = e.Message,
                     FormattedMessage = e.FormattedMessage
                 })
@@ -2839,7 +2839,7 @@ namespace SenseNet.Tests.Implementations
             public int ContentId;
             public string ContentPath;
             public string UserName;
-            public string LogDate;
+            public DateTime LogDate;
             public string MachineName;
             public string AppDomainName;
             public int ProcessId;
