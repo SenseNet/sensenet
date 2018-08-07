@@ -13,6 +13,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SenseNet.Diagnostics;
 using SenseNet.Portal.OData;
+using System.Globalization;
 
 namespace SenseNet.Portal
 {
@@ -233,6 +234,9 @@ namespace SenseNet.Portal
             try
             {
                 var uri = new Uri(absUrl);
+                // this is necessary when the link is ascii-formatted because uri.Authority will be unicode formatted
+                var idnMapping = new IdnMapping();
+                var uniUrl = idnMapping.GetUnicode(url);
                 if (uri.Authority != url)
                     return false;
             }
