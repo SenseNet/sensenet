@@ -3,24 +3,18 @@
   <ContentType>GenericODataApplication</ContentType>
   <ContentName>Ancestors</ContentName>
   <Fields>
-    <ClassName>
-      <![CDATA[SenseNet.ContentRepository.RepositoryTools]]></ClassName>
+    <ClassName><![CDATA[SenseNet.ContentRepository.RepositoryTools]]></ClassName>
     <MethodName><![CDATA[Ancestors]]></MethodName>
-    <Parameters><![CDATA[]]></Parameters>
     <DisplayName><![CDATA[Ancestors]]></DisplayName>
     <ActionTypeName><![CDATA[GenericODataOperation]]></ActionTypeName>
     <Icon><![CDATA[Application]]></Icon>
-    <RequiredPermissions></RequiredPermissions>
-    <DeepPermissionCheck>false</DeepPermissionCheck>
-    <IncludeBackUrl>0</IncludeBackUrl>
-    <CacheControl>Nondefined</CacheControl>
-    <Hidden>false</Hidden>
-    <Index>0</Index>
-    <EnableLifespan>false</EnableLifespan>
   </Fields>
   <Permissions>
     <Clear />
     <Identity path="/Root/IMS/BuiltIn/Portal/Everyone">
+      <RunApplication>Allow</RunApplication>
+    </Identity>
+    <Identity path="/Root/IMS/BuiltIn/Portal/Visitor">
       <RunApplication>Allow</RunApplication>
     </Identity>
   </Permissions>

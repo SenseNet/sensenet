@@ -382,31 +382,20 @@ namespace SenseNet.ContentRepository
         }
 
         [ODataFunction]
-        public static Linq.ISnQueryable<Content> Children(Content content)
-        {
-            // ToDo: Remove explicit filter settings once the function will be able to resolve from URL parameter
-            // Related issue: https://github.com/SenseNet/sensenet/issues/428
-            content.ChildrenDefinition.EnableAutofilters = FilterStatus.Disabled;
-            content.ChildrenDefinition.EnableLifespanFilter = FilterStatus.Disabled;
-            return content.Children;
-        }
-
-
-        [ODataFunction]
         public static IEnumerable<Content> Ancestors(Content content)
         {
             var ancestors = new List<Content>();
             try
             {
-                var ancestor = Content.Load(content.ContentHandler.ParentId);
-                while (ancestor != null)
-                {
+                // parent walk
+                var ancestor = content;
+                while ((ancestor = Content.Load(ancestor.ContentHandler.ParentId)) != null)
                     ancestors.Add(ancestor);
-                    ancestor = Content.Load(ancestor.ContentHandler.ParentId);
-                }
             }
-            catch (SenseNetSecurityException ex) {
-
+            catch (SenseNetSecurityException)
+            {
+                // This is not a real error: just stop the parent walk 
+                // when a user does not have permission to an ancestor.
             }
             return ancestors;
         }
