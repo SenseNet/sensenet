@@ -106,6 +106,7 @@ namespace SenseNet.Portal.OData
                 case ACTIONSPROPERTY:
                 case ICONPROPERTY:
                 case ISFILEPROPERTY:
+                case ODataHandler.ChildrenPropertyName:
                     return true;
                 default:
                     return content.IsAllowedField(fieldName);

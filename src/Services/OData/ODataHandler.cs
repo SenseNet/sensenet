@@ -54,6 +54,7 @@ namespace SenseNet.Portal.OData
         internal static readonly DateTime BaseDate = new DateTime(1970, 1, 1);
         internal const string ModelRequestKeyName = "models";
         internal const string ActionsPropertyName = "Actions";
+        internal const string ChildrenPropertyName = "Children";
         internal const string BinaryPropertyName = "Binary";
         internal const int ExpansionLimit = int.MaxValue - 1;
 
