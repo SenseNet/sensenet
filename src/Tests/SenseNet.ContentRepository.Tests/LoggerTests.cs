@@ -28,7 +28,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                Assert.IsTrue(SnLog.Instance is DebugWriteLoggerAdapter);
+                Assert.IsTrue(SnLog.Instance is SnEventLogger);
             });
         }
         [TestMethod]
@@ -60,7 +60,7 @@ namespace SenseNet.ContentRepository.Tests
             // test of the restoration: logger instance need to be the default
             Test(() =>
             {
-                Assert.IsTrue(SnLog.Instance is DebugWriteLoggerAdapter);
+                Assert.IsTrue(SnLog.Instance is SnEventLogger);
             });
         }
         [TestMethod]

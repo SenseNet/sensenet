@@ -27,7 +27,7 @@ namespace SenseNet.Configuration
     {
         private const string SectionName = "sensenet/providers";
 
-        public static string EventLoggerClassName { get; internal set; } = GetProvider("EventLogger", typeof(DebugWriteLoggerAdapter).FullName);
+        public static string EventLoggerClassName { get; internal set; } = GetProvider("EventLogger");
         public static string DataProviderClassName { get; internal set; } = GetProvider("DataProvider", typeof(SqlProvider).FullName);
         public static string AccessProviderClassName { get; internal set; } = GetProvider("AccessProvider",
             "SenseNet.ContentRepository.Security.UserAccessProvider");
@@ -78,8 +78,11 @@ namespace SenseNet.Configuration
         //===================================================================================== Named providers
 
         #region private Lazy<IEventLogger> _eventLogger = new Lazy<IEventLogger>
-        private Lazy<IEventLogger> _eventLogger = new Lazy<IEventLogger>(() => 
-            CreateProviderInstance<IEventLogger>(EventLoggerClassName, "EventLogger"));
+
+        private Lazy<IEventLogger> _eventLogger = new Lazy<IEventLogger>(() =>
+            string.IsNullOrEmpty(EventLoggerClassName)
+                ? new SnEventLogger(Logging.EventLogName, Logging.EventLogSourceName)
+                : CreateProviderInstance<IEventLogger>(EventLoggerClassName, "EventLogger"));
         public virtual IEventLogger EventLogger
         {
             get => _eventLogger.Value;
