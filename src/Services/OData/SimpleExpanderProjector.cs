@@ -6,6 +6,8 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Fields;
 using System.Diagnostics;
+using SenseNet.Search;
+
 // ReSharper disable CheckNamespace
 // ReSharper disable RedundantBaseQualifier
 // ReSharper disable ArrangeThisQualifier
@@ -94,11 +96,21 @@ namespace SenseNet.Portal.OData
                 }
             }
 
-            var actionExpansion = GetExpansion(ACTIONSPROPERTY, expandTree);
-            if (actionExpansion == null)
-                outfields.Add(ACTIONSPROPERTY, ODataReference.Create(String.Concat(selfurl, "/", ODataHandler.ActionsPropertyName)));
-            else
-                outfields.Add(ACTIONSPROPERTY, GetActions(content));
+            AddField(content, expandTree, outfields, ACTIONSPROPERTY, GetActions);
+            AddField(content, expandTree, outfields, ODataHandler.ChildrenPropertyName, c =>
+            {
+                // disable autofilters by default the same way as in ODataFormatter.WriteChildrenCollection
+                c.ChildrenDefinition.EnableAutofilters =
+                    Request.AutofiltersEnabled != FilterStatus.Default
+                        ? Request.AutofiltersEnabled
+                        : FilterStatus.Disabled;
+
+                var expansion = GetExpansion(ODataHandler.ChildrenPropertyName, expandTree);
+
+                return ProjectMultiRefContents(
+                    c.Children.AsEnumerable().Select(cnt => cnt.ContentHandler),
+                    new List<Property>(new[] { expansion }));
+            });
 
             if (!outfields.ContainsKey(ICONPROPERTY))
                 outfields.Add(ICONPROPERTY, content.Icon ?? content.ContentType.Icon);
@@ -173,6 +185,16 @@ namespace SenseNet.Portal.OData
                     return Project(Content.Create(item), expansion);
 
             return null;
+        }
+
+        private void AddField(Content content, List<Property> expandTree, IDictionary<string, object> fields, 
+            string fieldName, Func<Content, object> getFieldValue)
+        {
+            var expansion = GetExpansion(fieldName, expandTree);
+            fields.Add(fieldName,
+                expansion == null
+                    ? ODataReference.Create(string.Concat(GetSelfUrl(content), "/", fieldName))
+                    : getFieldValue?.Invoke(content));
         }
     }
 }

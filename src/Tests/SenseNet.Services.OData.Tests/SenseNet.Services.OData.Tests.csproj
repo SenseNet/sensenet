@@ -85,6 +85,7 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ODataChildrenTests.cs" />
     <Compile Include="ODataFilterTests.cs" />
     <Compile Include="ODataGeneralTests.cs" />
     <Compile Include="ODataTestClass.cs" />
