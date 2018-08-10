@@ -149,6 +149,11 @@ namespace SenseNet.Services.OData.Tests
                 var entities = ODataGET<ODataEntities>($"/OData.svc/Root/Sites('{TestSiteName}')/Children", "?metadata=no&$select=Id,Name,Children/Id,Children/Path&$expand=Children&enableautofilters=true");
 
                 Assert.AreEqual(1, entities.Length);
+
+                // add a query filter
+                entities = ODataGET<ODataEntities>($"/OData.svc/Root/Sites('{TestSiteName}')/Children", "?metadata=no&$select=Id,Name&$filter=startswith(Name, 'SF') eq true");
+                Assert.AreEqual(1, entities.Length);
+                Assert.IsTrue(entities[0].Name.StartsWith("SF"));
             });
         }
 
