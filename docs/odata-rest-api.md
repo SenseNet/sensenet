@@ -148,6 +148,18 @@ This returns with the following response:
 
 `Document Workspaces`
 
+## The Children property
+It is possible to access the same child elements as in case of collection requests through the **Children** property. It works with either the path or id access methods:
+
+```txt
+http://www.example.com/OData.svc/Root/Sites/Default_Site('workspaces')/Children
+http://www.example.com/OData.svc/content(1234)/Children
+```
+
+The same url parameters and filters apply as in case of other collection queries.
+
+It is also possible to *expand* the Children property (see the expand feature later) to load children of children, so that you may access multiple levels of content items with a single request.
+
 ## Addressing the count of a collection
 
 Returns with the count of the requested collection. The value depends on other query string parameters ($top, $skip, $filter, query, etc.) and does not depend on the _$inlinecount_ parameter.
@@ -238,6 +250,17 @@ Part of the response:
       },
       ...
 ```
+
+## Getting ancestors of a content
+You can load all accessible **ancestors** of a content item in one request:
+
+```txt
+http://www.example.com/OData.svc/Root/Sites/Default_Site('workspaces')/Ancestors
+```
+
+The result will be similar to a collection response and it will contain content items on the parent chain of the requested content. In the example above it will contain the `Default_Site`, `Sites` and `Root` items (but not the requested content itself).
+
+> Note that the parent walk will stop at the point where the currently logged in user does not have permissions for a certain parent item.
 
 ## Addressing metadata fields of a Content List
 
