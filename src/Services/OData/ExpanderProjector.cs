@@ -6,6 +6,7 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Fields;
 using System.Diagnostics;
+using SenseNet.Search;
 // ReSharper disable CheckNamespace
 // ReSharper disable ArrangeThisQualifier
 
@@ -144,17 +145,30 @@ namespace SenseNet.Portal.OData
                     switch (propertyName)
                     {
                         case ACTIONSPROPERTY:
-                            var actionExpansion = GetPropertyFromList(ACTIONSPROPERTY, expandTree);
-                            if (actionExpansion == null)
-                                outfields.Add(ACTIONSPROPERTY, ODataReference.Create(String.Concat(selfurl, "/", ODataHandler.ActionsPropertyName)));
-                            else
-                                outfields.Add(ACTIONSPROPERTY, GetActions(content));
+                            AddField(content, expandTree, outfields, ACTIONSPROPERTY, GetActions);
                             break;
                         case ICONPROPERTY:
                             outfields.Add(ICONPROPERTY, content.Icon ?? content.ContentType.Icon);
                             break;
                         case ISFILEPROPERTY:
                             outfields.Add(ISFILEPROPERTY, content.Fields.ContainsKey(ODataHandler.BinaryPropertyName));
+                            break;
+                        case ODataHandler.ChildrenPropertyName:
+                            var expansion = GetPropertyFromList(ODataHandler.ChildrenPropertyName, expandTree);
+                            AddField(content, expansion, outfields, ODataHandler.ChildrenPropertyName,
+                                c =>
+                                {
+                                    // disable autofilters by default the same way as in ODataFormatter.WriteChildrenCollection
+                                    c.ChildrenDefinition.EnableAutofilters =
+                                        Request.AutofiltersEnabled != FilterStatus.Default
+                                            ? Request.AutofiltersEnabled
+                                            : FilterStatus.Disabled;
+
+                                    return ProjectMultiRefContents(
+                                        c.Children.AsEnumerable().Select(cnt => cnt.ContentHandler),
+                                        new List<Property>(new[] { expansion }),
+                                        property.Children);
+                                });
                             break;
                         default:
                             outfields.Add(propertyName, null);
@@ -282,5 +296,20 @@ namespace SenseNet.Portal.OData
             return null;
         }
 
+        private void AddField(Content content, List<Property> expandTree, IDictionary<string, object> fields,
+            string fieldName, Func<Content, object> getFieldValue)
+        {
+            var expansion = GetPropertyFromList(fieldName, expandTree);
+
+            AddField(content, expansion, fields, fieldName, getFieldValue);
+        }
+        private void AddField(Content content, Property expansion, IDictionary<string, object> fields,
+            string fieldName, Func<Content, object> getFieldValue)
+        {
+            fields.Add(fieldName,
+                expansion == null
+                    ? ODataReference.Create(string.Concat(GetSelfUrl(content), "/", fieldName))
+                    : getFieldValue?.Invoke(content));
+        }
     }
 }

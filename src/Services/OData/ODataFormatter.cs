@@ -312,6 +312,11 @@ namespace SenseNet.Portal.OData
                 WriteActionsProperty(portalContext, ODataTools.GetActionItems(content, req).ToArray(), rawValue);
                 return;
             }
+            if (propertyName == ODataHandler.ChildrenPropertyName)
+            {
+                WriteChildrenCollection(path, portalContext, req);
+                return;
+            }
 
             if (content.Fields.TryGetValue(propertyName, out var field))
             {

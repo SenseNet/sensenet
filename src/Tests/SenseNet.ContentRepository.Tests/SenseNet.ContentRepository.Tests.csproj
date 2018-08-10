@@ -98,6 +98,7 @@
     <Compile Include="IndexingTests.cs" />
     <Compile Include="LinqTests.cs" />
     <Compile Include="LoggerTests.cs" />
+    <Compile Include="NodeTests.cs" />
     <Compile Include="UserTests.cs" />
     <Compile Include="NodeIdentifierTests.cs" />
     <Compile Include="PortalContextTest.cs" />

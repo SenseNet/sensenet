@@ -42,8 +42,8 @@ FROM  dbo.Files WHERE FileId = @FileId
         {
             using (var cmd = GetBlobContextProcedure(fileId, clearStream, versionId, propertyTypeId))
             using (var reader = cmd.ExecuteReader(CommandBehavior.SingleRow | CommandBehavior.SingleResult))
-            if (reader.Read())
-                return GetBlobStorageContextPrivate(reader, fileId, versionId, propertyTypeId);
+                if (reader.Read())
+                    return GetBlobStorageContextPrivate(reader, fileId, versionId, propertyTypeId);
             return null;
         }
         /// <summary>
@@ -57,8 +57,8 @@ FROM  dbo.Files WHERE FileId = @FileId
         {
             using (var cmd = GetBlobContextProcedure(fileId, clearStream, versionId, propertyTypeId))
             using (var reader = await cmd.ExecuteReaderAsync(CommandBehavior.SingleRow | CommandBehavior.SingleResult))
-            if (await reader.ReadAsync())
-                return GetBlobStorageContextPrivate(reader, fileId, versionId, propertyTypeId);
+                if (await reader.ReadAsync())
+                    return GetBlobStorageContextPrivate(reader, fileId, versionId, propertyTypeId);
             return null;
         }
 
@@ -147,7 +147,7 @@ SELECT @BinPropId, @FileId, [Timestamp] FROM Files WHERE FileId = @FileId;
             // write the stream beforehand and get the generated provider data.
             // Note that the external provider does not need an existing record
             // in the Files table to work, it just stores the bytes. 
-            if (blobProvider != BlobStorageBase.BuiltInProvider && streamLength > 0)
+            if (blobProvider != BlobStorageBase.BuiltInProvider)
             {
                 blobProvider.Allocate(ctx);
 
@@ -193,7 +193,7 @@ SELECT @BinPropId, @FileId, [Timestamp] FROM Files WHERE FileId = @FileId;
             // was saved into the Files table, because simple varbinary
             // column must exist before we can write a stream into the record.
             // ReSharper disable once InvertIf
-            if (blobProvider == BlobStorageBase.BuiltInProvider && value.Stream != null && value.Stream.Length > 0)
+            if (blobProvider == BlobStorageBase.BuiltInProvider && value.Stream != null)
             {
                 ctx.FileId = value.FileId;
                 ctx.BlobProviderData = new BuiltinBlobProviderData();
@@ -265,7 +265,7 @@ SELECT @FileId
         {
             var streamLength = value.Stream?.Length ?? 0;
             var isExternal = false;
-            if (blobProvider != BlobStorageBase.BuiltInProvider && streamLength > 0)
+            if (blobProvider != BlobStorageBase.BuiltInProvider)
             {
                 var ctx = new BlobStorageContext(blobProvider, value.BlobProviderData)
                 {
@@ -335,7 +335,7 @@ SELECT @FileId
                 cmd.Dispose();
             }
 
-            if (blobProvider == BlobStorageBase.BuiltInProvider && !isRepositoryStream && streamLength > 0)
+            if (blobProvider == BlobStorageBase.BuiltInProvider)
             {
                 // Stream exists and is loaded -> write it
                 var ctx = new BlobStorageContext(blobProvider, value.BlobProviderData)
@@ -633,7 +633,7 @@ UPDATE BinaryProperties SET FileId = @FileId
                     TransactionScope.Commit();
             }
         }
-        
+
         #region CleanupFileSetIsdeletedScript
         // this is supposed to be faster than using LEFT JOIN
         private const string CleanupFileSetIsdeletedScript = @"UPDATE [Files] SET IsDeleted = 1
@@ -673,7 +673,7 @@ WHERE [Staging] IS NULL AND CreationDate < DATEADD(minute, -30, GETUTCDATE()) AN
                 throw new DataException("Error during setting deleted flag on files.", ex);
             }
         }
-        
+
         #region CleanupFileScript
         private const string CleanupFileScript = @"DELETE TOP(1) FROM Files
 OUTPUT DELETED.FileId, DELETED.Size, DELETED.BlobProvider, DELETED.BlobProviderData 

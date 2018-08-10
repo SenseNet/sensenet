@@ -103,26 +103,35 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
                 byte[] buffer = null;
                 stream.Seek(0, SeekOrigin.Begin);
 
-                // The 'while' loop is misleading here, because we write the whole
-                // stream at once. Bigger files should go to another blob provider.
-                while (offset < streamSize)
+                if (stream.Length == 0)
                 {
-                    // Buffer size may be less at the end os the stream than the limit
-                    var bufferSize = streamSize - offset;
-
-                    if (buffer == null || buffer.Length != bufferSize)
-                        buffer = new byte[bufferSize];
-
-                    // Read bytes from the source
-                    stream.Read(buffer, 0, bufferSize);
-
                     offsetParameter.Value = offset;
-                    valueParameter.Value = buffer;
-
-                    // Write full stream
+                    valueParameter.Value = new byte[0];
                     cmd.ExecuteNonQuery();
+                }
+                else
+                {
+                    // The 'while' loop is misleading here, because we write the whole
+                    // stream at once. Bigger files should go to another blob provider.
+                    while (offset < streamSize)
+                    {
+                        // Buffer size may be less at the end os the stream than the limit
+                        var bufferSize = streamSize - offset;
 
-                    offset += bufferSize;
+                        if (buffer == null || buffer.Length != bufferSize)
+                            buffer = new byte[bufferSize];
+
+                        // Read bytes from the source
+                        stream.Read(buffer, 0, bufferSize);
+
+                        offsetParameter.Value = offset;
+                        valueParameter.Value = buffer;
+
+                        // Write full stream
+                        cmd.ExecuteNonQuery();
+
+                        offset += bufferSize;
+                    }
                 }
             }
             finally

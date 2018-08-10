@@ -48,11 +48,17 @@ namespace SenseNet.Services.OData.Tests.Results
         {
             get
             {
+                string typeName = null;
                 // ((JValue)((JObject)entity.AllProperties["__metadata"])["type"]).Value
-                object meta;
-                if (!_data.TryGetValue("__metadata", out meta))
+                if (_data.TryGetValue("__metadata", out var meta))
+                    typeName = (string) ((JValue) ((JObject) meta)["type"]).Value;
+                else if (_data.TryGetValue("Type", out var typeValue))
+                    typeName = (string)typeValue;
+
+                if (string.IsNullOrEmpty(typeName))
                     return null;
-                return ContentType.GetByName((string)((JValue)((JObject)meta)["type"]).Value);
+
+                return ContentType.GetByName(typeName);
             }
         }
 
@@ -75,6 +81,27 @@ namespace SenseNet.Services.OData.Tests.Results
                 if (_manager == null)
                     _manager = GetEntity("Manager");
                 return _manager;
+            }
+        }
+
+        private ODataEntity[] _children;
+
+        public ODataEntity[] Children
+        {
+            get
+            {
+                if (_children == null)
+                {
+                    if (_data.TryGetValue("Children", out var childrenValue))
+                    {
+                        if (childrenValue is JArray childArray)
+                        {
+                            _children = childArray.Where(co => co is JObject).Select(c => Create((JObject) c)).ToArray();
+                        }
+                    }
+                }
+
+                return _children;
             }
         }
 
