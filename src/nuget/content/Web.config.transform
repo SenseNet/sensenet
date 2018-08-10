@@ -26,8 +26,6 @@
     <tokenAuthentication>
       <add key="SymmetricKeySecret" value="" />
     </tokenAuthentication>
-    <providers>
-    </providers>
   </sensenet>
   <uri>
     <idn enabled="All" />
