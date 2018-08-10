@@ -15,52 +15,8 @@ namespace SenseNet.Diagnostics
         private const string LoggedUserNameKey2 = "LoggedUserName";
         private const string SpecialUserNameKey = "SpecialUserName";
 
-        private static string thisNameSpace = typeof(Utility).Namespace;
-
-        internal static MethodInfo GetOriginalCaller(object handlerInstance)
-        {
-            // skip the last few method calls
-            var stackTrace = new System.Diagnostics.StackTrace(3);
-            MethodBase result = null;
-
-            var i=0;
-            while (true)
-            {
-                var sf = stackTrace.GetFrame(i++);
-                if (sf == null)
-                    break;
-
-                result = sf.GetMethod();
-                if (result == null)
-                    break;
-
-                // skip everything in SenseNet.Diagnostics namespace
-                if (result.DeclaringType.Namespace != thisNameSpace)
-                    break;
-            }
-            return result as MethodInfo;
-        }
-
-        internal static IDictionary<string, object> GetDefaultProperties(object target)
-        {
-            var n = target as SenseNet.ContentRepository.Storage.Node;
-            if (n != null)
-                return new Dictionary<string, object> { { "NodeId", n.Id }, { "Path", n.Path } };
-
-            var e = target as Exception;
-            if (e != null)
-            {
-                return new Dictionary<string, object>();
-            }
-
-            var t = target as Type;
-            if (t != null)
-                return new Dictionary<string, object> { { "Type", t.FullName } };
-
-            return new Dictionary<string, object> { { "Type", target.GetType().FullName }, { "Value", target.ToString() } };
-        }
-
-        internal static IDictionary<string, object> CollectAutoProperties(IDictionary<string, object> properties)
+        [Obsolete("Use PropertyCollector instance in the SnLog.", true)]
+        public static IDictionary<string, object> CollectAutoProperties(IDictionary<string, object> properties)
         {
             var props = properties;
             if (props == null)
@@ -164,48 +120,6 @@ namespace SenseNet.Diagnostics
             if ((System.Web.HttpContext.Current != null) && (System.Web.HttpContext.Current.User != null))
                 return System.Web.HttpContext.Current.User.Identity as IUser;
             return Thread.CurrentPrincipal.Identity as IUser;
-        }
-
-        [Obsolete("Use SenseNet.Tools.Utility.CollectExceptionMessages method.", true)]
-        public static string CollectExceptionMessages(Exception ex)
-        {
-            var sb = new StringBuilder();
-
-            sb.Append(ex.GetType().Name).Append(": ").AppendLine(ex.Message);
-            FormatTypeLoadError(ex as ReflectionTypeLoadException, sb);
-            sb.AppendLine(ex.StackTrace);
-            while ((ex = ex.InnerException) != null)
-            {
-                sb.AppendLine("---- Inner Exception:");
-                sb.Append(ex.GetType().Name);
-                sb.Append(": ");
-                sb.AppendLine(ex.Message);
-                FormatTypeLoadError(ex as ReflectionTypeLoadException, sb);
-                sb.AppendLine(ex.StackTrace);
-            }
-            sb.AppendLine("=====================");
-
-            return sb.ToString();
-        }
-        private static void FormatTypeLoadError(ReflectionTypeLoadException exc, StringBuilder sb)
-        {
-            if (exc == null)
-                return;
-            sb.AppendLine("LoaderExceptions:");
-            foreach (var e in exc.LoaderExceptions)
-            {
-                sb.Append("-- ");
-                sb.Append(e.GetType().FullName);
-                sb.Append(": ");
-                sb.AppendLine(e.Message);
-
-                var fileNotFoundException = e as System.IO.FileNotFoundException;
-                if (fileNotFoundException != null)
-                {
-                    sb.AppendLine("FUSION LOG:");
-                    sb.AppendLine(fileNotFoundException.FusionLog);
-                }
-            }
         }
     }
 }

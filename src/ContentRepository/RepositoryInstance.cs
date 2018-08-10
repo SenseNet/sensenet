@@ -347,21 +347,9 @@ namespace SenseNet.ContentRepository
         private static void InitializeLogger()
         {
             // look for the configured logger
-            var loggers = Providers.Instance.GetProvider<IEventLogger[]>();
-            if (loggers?.Length > 0)
-            {
-                //TODO: change this when the logger api can handle multiple loggers
-                SnLog.Instance = loggers[0];
-            }
-            else
-            {
-                // fallback to the builtin logger
-                var logSection = ConfigurationManager.GetSection("loggingConfiguration");
-                if (logSection != null)
-                    SnLog.Instance = new EntLibLoggerAdapter();
-                else
-                    SnLog.Instance = new DebugWriteLoggerAdapter();
-            }
+            SnLog.Instance = Providers.Instance.EventLogger ?? new DebugWriteLoggerAdapter();
+            SnLog.PropertyCollector = new EventPropertyCollector();
+            SnLog.AuditEventWriter = new DatabaseAuditEventWriter();
 
             //set configured tracers
             var tracers = Providers.Instance.GetProvider<ISnTracer[]>();

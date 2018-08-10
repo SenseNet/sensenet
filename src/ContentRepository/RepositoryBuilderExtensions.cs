@@ -213,12 +213,12 @@ namespace SenseNet.ContentRepository
         }
 
         /// <summary>
-        /// Sets logger instances.
+        /// Sets the logger instance.
         /// </summary>
-        public static IRepositoryBuilder UseLogger(this IRepositoryBuilder repositoryBuilder, params IEventLogger[] logger)
+        public static IRepositoryBuilder UseLogger(this IRepositoryBuilder repositoryBuilder, IEventLogger logger)
         {
-            // store loggers in the provider collection temporarily
-            Configuration.Providers.Instance.SetProvider(typeof(IEventLogger[]), logger);
+            Configuration.Providers.Instance.EventLogger = logger;
+
             return repositoryBuilder;
         }
         /// <summary>

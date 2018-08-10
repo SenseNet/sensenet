@@ -7,7 +7,6 @@ using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.ContentRepository.Storage.Events;
-using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
@@ -16,7 +15,6 @@ using SenseNet.Security.EF6SecurityStore;
 using SenseNet.Security.Messaging;
 using SenseNet.Tools;
 using System.Linq;
-using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Search.Querying;
@@ -29,6 +27,7 @@ namespace SenseNet.Configuration
     {
         private const string SectionName = "sensenet/providers";
 
+        public static string EventLoggerClassName { get; internal set; } = GetProvider("EventLogger");
         public static string DataProviderClassName { get; internal set; } = GetProvider("DataProvider", typeof(SqlProvider).FullName);
         public static string AccessProviderClassName { get; internal set; } = GetProvider("AccessProvider",
             "SenseNet.ContentRepository.Security.UserAccessProvider");
@@ -77,6 +76,19 @@ namespace SenseNet.Configuration
         public static Providers Instance { get; set; } = new Providers();
 
         //===================================================================================== Named providers
+
+        #region private Lazy<IEventLogger> _eventLogger = new Lazy<IEventLogger>
+
+        private Lazy<IEventLogger> _eventLogger = new Lazy<IEventLogger>(() =>
+            string.IsNullOrEmpty(EventLoggerClassName)
+                ? new SnEventLogger(Logging.EventLogName, Logging.EventLogSourceName)
+                : CreateProviderInstance<IEventLogger>(EventLoggerClassName, "EventLogger"));
+        public virtual IEventLogger EventLogger
+        {
+            get => _eventLogger.Value;
+            set { _eventLogger = new Lazy<IEventLogger>(() => value); }
+        }
+        #endregion
 
         #region private Lazy<DataProvider> _dataProvider = new Lazy<DataProvider>
         private Lazy<DataProvider> _dataProvider = new Lazy<DataProvider>(() =>

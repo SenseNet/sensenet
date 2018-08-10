@@ -1118,11 +1118,6 @@ namespace SenseNet.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        protected internal override AuditLogEntry[] LoadLastAuditLogEntries(int count)
-        {
-            throw new NotImplementedException();
-        }
-
         #endregion
 
         /* ====================================================================================== */
@@ -1163,6 +1158,54 @@ namespace SenseNet.Tests.Implementations
             nodeRow.LastMajorVersionId = lastMajorVersionId;
 
             nodeTimeStamp = nodeRow.NodeTimestamp;
+        }
+
+        public override void WriteAuditEvent(AuditEventInfo auditEvent)
+        {
+            var newId = _db.LogEntries.Count == 0 ? 1 : _db.LogEntries.Max(r => r.LogId) + 1;
+
+            _db.LogEntries.Add(new LogEntriesRow
+            {
+                LogId = newId,
+                EventId = auditEvent.EventId,
+                Category = auditEvent.Category,
+                Priority = auditEvent.Priority,
+                Severity = auditEvent.Severity,
+                Title = auditEvent.Title,
+                ContentId = auditEvent.ContentId,
+                ContentPath = auditEvent.ContentPath,
+                UserName = auditEvent.UserName,
+                LogDate = auditEvent.Timestamp,
+                MachineName = auditEvent.MachineName,
+                AppDomainName = auditEvent.AppDomainName,
+                ProcessId = auditEvent.ProcessId,
+                ProcessName = auditEvent.ProcessName,
+                ThreadName = auditEvent.ThreadName,
+                Win32ThreadId = auditEvent.ThreadId,
+                Message = auditEvent.Message,
+                FormattedMessage = auditEvent.FormattedMessage,
+            });
+        }
+
+        public override AuditLogEntry[] LoadLastAuditLogEntries(int count)
+        {
+            return _db.LogEntries
+                .OrderByDescending(e => e.LogId)
+                .Take(count)
+                .OrderBy(e => e.LogId)
+                .Select(e => new AuditLogEntry
+                {
+                    Id = e.LogId,
+                    EventId = e.EventId,
+                    Title = e.Title,
+                    ContentId = e.ContentId,
+                    ContentPath = e.ContentPath,
+                    UserName = e.UserName,
+                    LogDate = new DateTime(e.LogDate.Ticks),
+                    Message = e.Message,
+                    FormattedMessage = e.FormattedMessage
+                })
+                .ToArray();
         }
 
         /* ====================================================================================== Database */
@@ -1574,6 +1617,7 @@ namespace SenseNet.Tests.Implementations
             public List<ReferencePropertyRow> ReferenceProperties { get; set; }
             public List<IndexingActivityRecord> IndexingActivities { get; set; } = new List<IndexingActivityRecord>();
             public List<TreeLockRow> TreeLocks { get; set; } = new List<TreeLockRow>();
+            public List<LogEntriesRow> LogEntries { get; set; } = new List<LogEntriesRow>();
 
             public Database Clone()
             {
@@ -2781,6 +2825,52 @@ namespace SenseNet.Tests.Implementations
                     TreeLockId = TreeLockId,
                     Path = Path,
                     LockedAt = LockedAt
+                };
+            }
+        }
+        public class LogEntriesRow
+        {
+            public int LogId;
+            public int EventId;
+            public string Category;
+            public int Priority;
+            public string Severity;
+            public string Title;
+            public int ContentId;
+            public string ContentPath;
+            public string UserName;
+            public DateTime LogDate;
+            public string MachineName;
+            public string AppDomainName;
+            public int ProcessId;
+            public string ProcessName;
+            public string ThreadName;
+            public int Win32ThreadId;
+            public string Message;
+            public string FormattedMessage;
+
+            public LogEntriesRow Clone()
+            {
+                return new LogEntriesRow
+                {
+                    LogId = LogId,
+                    EventId = EventId,
+                    Category = Category,
+                    Priority = Priority,
+                    Severity = Severity,
+                    Title = Title,
+                    ContentId = ContentId,
+                    ContentPath = ContentPath,
+                    UserName = UserName,
+                    LogDate = LogDate,
+                    MachineName = MachineName,
+                    AppDomainName = AppDomainName,
+                    ProcessId = ProcessId,
+                    ProcessName = ProcessName,
+                    ThreadName = ThreadName,
+                    Win32ThreadId = Win32ThreadId,
+                    Message = Message,
+                    FormattedMessage = FormattedMessage,
                 };
             }
         }

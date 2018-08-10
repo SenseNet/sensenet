@@ -45,7 +45,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
         protected abstract int GetPermissionLogEntriesCountAfterMomentInternal(DateTime moment);
 
-        protected internal abstract AuditLogEntry[] LoadLastAuditLogEntries(int count);
+        public abstract AuditLogEntry[] LoadLastAuditLogEntries(int count);
 
 
         //////////////////////////////////////// Generic Datalayer Logic ////////////////////////////////////////
@@ -543,5 +543,9 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected internal abstract bool IsTreeLocked(string path);
         protected internal abstract void ReleaseTreeLock(int[] lockIds);
         protected internal abstract Dictionary<int, string> LoadAllTreeLocks();
+
+        // ====================================================== Audit log
+
+        public abstract void WriteAuditEvent(AuditEventInfo auditEvent);
     }
 }
