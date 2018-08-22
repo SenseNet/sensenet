@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 
 namespace SenseNet.Packaging.Steps
@@ -22,7 +19,7 @@ namespace SenseNet.Packaging.Steps
     }
 
     // preview :)
-    internal abstract class While : Step
+    public abstract class While : Step
     {
         public IEnumerable<XmlElement> Block { get; set; }
 
