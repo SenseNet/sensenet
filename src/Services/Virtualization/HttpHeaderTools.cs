@@ -166,6 +166,12 @@ namespace SenseNet.Portal.Virtualization
         public static void SetCacheControlHeaders(int cacheForSeconds, HttpCacheability httpCacheability)
         {
             HttpContext.Current.Response.Cache.SetCacheability(httpCacheability);
+            if (httpCacheability == HttpCacheability.NoCache)
+            {
+               HttpContext.Current.Response.Cache.SetNoStore();
+               HttpContext.Current.Response.Cache.SetRevalidation(HttpCacheRevalidation.AllCaches);
+               HttpContext.Current.Response.Cache.SetValidUntilExpires(false);
+            }
             HttpContext.Current.Response.Cache.SetMaxAge(new TimeSpan(0, 0, cacheForSeconds));
             HttpContext.Current.Response.Cache.SetSlidingExpiration(true);  // max-age does not appear in response header without this...
         }
