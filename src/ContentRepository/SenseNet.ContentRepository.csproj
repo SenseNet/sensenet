@@ -180,6 +180,8 @@
     <Compile Include="Packaging\Steps\EnsureConfigSection.cs" />
     <Compile Include="Packaging\Steps\Internal\CopyCustomAssemblies.cs" />
     <Compile Include="Packaging\Steps\Internal\ImportCustomContent.cs" />
+    <Compile Include="Packaging\Steps\Internal\ReindexBinaries.cs" />
+    <Compile Include="Packaging\Steps\Internal\ReindexBinariesDataHandler.cs" />
     <Compile Include="Packaging\Steps\Internal\UpgradeProviderConfiguration.cs" />
     <Compile Include="Packaging\Steps\SelectXmlValue.cs" />
     <Compile Include="RepositoryBuilderExtensions.cs" />
