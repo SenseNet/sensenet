@@ -27,7 +27,7 @@ namespace SenseNet.Packaging.Steps.Internal
                 }
             }
 
-            internal static int[] AssignTasks(int taskCount, int timeoutInMinutes)
+            internal static int[] AssignTasks(int taskCount, int timeoutInMinutes, out int remainingTasks)
             {
                 var result = new List<int>();
 
@@ -39,8 +39,14 @@ namespace SenseNet.Packaging.Steps.Internal
                     cmd.Parameters.Add(CreateParameter("@TimeOutInMinutes", timeoutInMinutes, DbType.Int32));
 
                     using (var reader = cmd.ExecuteReader())
+                    {
                         while (reader.Read())
                             result.Add(reader.GetInt32(0));
+                        reader.NextResult();
+
+                        reader.Read();
+                        remainingTasks = reader.GetInt32(0);
+                    }
                 }
 
                 return result.ToArray();
@@ -181,31 +187,33 @@ GO
             #endregion
 
             #region CreateTempTask(@VersionId int, @Rank int)
-            internal static readonly string CreateTempTask = $@"NSERT INTO {TempTableName} (VersionId, Rank) VALUES (@VersionId, @Rank)
+            internal static readonly string CreateTempTask = $@"NSERT INTO [{TempTableName}] (VersionId, Rank) VALUES (@VersionId, @Rank)
 ";
             #endregion
 
             #region CreateTasks
             internal static readonly string CreateTasks = $@"
-INSERT INTO {TaskTableName}
-	SELECT VersionId, NULL, NULL FROM {TempTableName} ORDER BY [Rank]
+INSERT INTO [{TaskTableName}]
+	SELECT VersionId, NULL, NULL FROM [{TempTableName}] ORDER BY [Rank]
 
-TRUNCATE TABLE {TempTableName}
+TRUNCATE TABLE [{TempTableName}]
 ";
             #endregion
 
             #region AssignTasks(@AssignedTaskCount int, @TimeOutInMinutes int)
             internal static readonly string AssignTasks =
-                $@"UPDATE {TaskTableName} WITH (TABLOCK) SET StartDate = GETUTCDATE()
+                $@"UPDATE [{TaskTableName}] WITH (TABLOCK) SET StartDate = GETUTCDATE()
 OUTPUT INSERTED.VersionId, INSERTED.StartDate
-WHERE VersionId IN (SELECT TOP (@AssignedTaskCount) VersionId FROM {TaskTableName}
-	WHERE EndDate IS NULL AND (StartDate IS NULL OR StartDate < DATEADD(MINUTES, -@TimeOutInMinutes, GETUTCDATE())))
+WHERE VersionId IN (SELECT TOP (@AssignedTaskCount) VersionId FROM [{TaskTableName}]
+	WHERE EndDate IS NULL AND (StartDate IS NULL OR StartDate < DATEADD(MINUTE, -@TimeOutInMinutes, GETUTCDATE())))
+
+SELECT COUNT(0) FROM [{TaskTableName}] WHERE EndDate IS NULL
 ";
             #endregion
 
             #region FinishTask(@VersionId int)
             internal static readonly string FinishTask =
-                $@"UPDATE {TaskTableName} WITH (TABLOCK) SET EndDate = GETUTCDATE()
+                $@"UPDATE [{TaskTableName}] SET EndDate = GETUTCDATE()
 WHERE VersionId = @VersionId
 ";
             #endregion

@@ -18,7 +18,9 @@ namespace SenseNet.Packaging.Steps.Internal
         {
             using (new SystemAccount())
             {
-                Parallel.ForEach(new NodeList<Node>(DataHandler.GetAllNodeIds(0)), n =>
+                Parallel.ForEach(new NodeList<Node>(DataHandler.GetAllNodeIds(0)),
+                    new ParallelOptions { MaxDegreeOfParallelism = 10 },
+                    n =>
                 {
                     foreach (var node in n.LoadVersions())
                         ReindexNode(node);
@@ -42,26 +44,40 @@ namespace SenseNet.Packaging.Steps.Internal
         private static bool _featureIsRequested;
         /// <summary>
         /// Gets some background task from the database and executes them.
-        /// Called by the SnMaintenance.
+        /// Returns true if there are no more tasks.
+        /// Triggered by the SnMaintenance via the ReindexBinariesTask.
         /// </summary>
-        public static void GetBackgroundTasksAndExecute()
+        public static bool GetBackgroundTasksAndExecute(int taskCount = 0, int timeoutInMinutes = 0)
         {
             if (_featureIsRunning)
             {
                 _featureIsRequested = true;
-                return;
+                return false;
             }
             _featureIsRunning = true;
             _featureIsRequested = false;
+
             do
             {
-                foreach (var versionId in DataHandler.AssignTasks(100, 1))
+                var versionIds = DataHandler.AssignTasks(
+                    taskCount > 0 ? taskCount : 42,
+                    timeoutInMinutes > 0 ? timeoutInMinutes : 10,
+                    out var remainingTasks);
+                if (remainingTasks == 0)
+                {
+                    _featureIsRequested = false;
+                    _featureIsRunning = false;
+                    return true;
+                }
+                foreach (var versionId in versionIds)
                 {
                     ReindexBinaryProperties(versionId);
                     DataHandler.FinishTask(versionId);
                 }
             } while (_featureIsRequested);
+
             _featureIsRunning = false;
+            return false;
         }
         private static void ReindexBinaryProperties(int versionId)
         {
@@ -71,6 +87,16 @@ namespace SenseNet.Packaging.Steps.Internal
                 var indx = SearchManager.LoadIndexDocumentByVersionId(versionId);
                 DataBackingStore.SaveIndexDocument(node, indx);
             }
+        }
+
+        public static bool IsFeatureActive()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public static void InactivateFeature()
+        {
+            throw new System.NotImplementedException();
         }
     }
 }
