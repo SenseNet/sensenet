@@ -5,13 +5,29 @@ using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
+using Retrier = SenseNet.Tools.Retrier;
 
 // ReSharper disable CheckNamespace
 namespace SenseNet.Packaging.Steps.Internal
 {
     public partial class ReindexBinaries : Step
     {
-        private static readonly string TracePrefix = "ReindexBinaries:";
+        private static readonly string TraceCategory = "REINDEX";
+
+        // ReSharper disable once InconsistentNaming
+        private static SnTrace.SnTraceCategory __tracer;
+        private static SnTrace.SnTraceCategory Tracer
+        {
+            get
+            {
+                if (__tracer == null)
+                {
+                    __tracer = SnTrace.Category(TraceCategory);
+                    __tracer.Enabled = true;
+                }
+                return __tracer;
+            }
+        }
 
         private readonly object _consoleSync = new object();
         private volatile int _reindexMetadataProgress;
@@ -20,19 +36,30 @@ namespace SenseNet.Packaging.Steps.Internal
 
         public override void Execute(ExecutionContext context)
         {
-            SnTrace.Index.Enabled = true;
-
+            Tracer.Write("Phase-0: Create background tasks.");
             DataHandler.InstallTables();
-            ReindexMetadata();
-            DataHandler.StartBackgroundTasks();
+
+            using (var op = Tracer.StartOperation("Phase-1: Reindex metadata."))
+            {
+                ReindexMetadata();
+                op.Successful = true;
+            }
+
+            using (var op = Tracer.StartOperation("Phase-2: Create background tasks."))
+            {
+                DataHandler.StartBackgroundTasks();
+                op.Successful = true;
+            }
         }
         private void ReindexMetadata()
         {
             using (new SystemAccount())
             {
+                Tracer.Write("Phase-1: Discover node ids.");
                 var nodeIds = DataHandler.GetAllNodeIds(0);
                 _nodeCount = nodeIds.Count;
 
+                Tracer.Write($"Phase-1: Start reindexing {_nodeCount} nodes.");
                 Parallel.ForEach(new NodeList<Node>(nodeIds),
                     new ParallelOptions { MaxDegreeOfParallelism = 10 },
                     n =>
@@ -57,7 +84,7 @@ namespace SenseNet.Packaging.Steps.Internal
         {
             DataHandler.CreateTempTask(node.VersionId, rank);
             _taskCount++;
-            SnTrace.Index.Write($"{TracePrefix} Task created for version #{node.VersionId} {node.Version} of node #{node.Id}: {node.Path}");
+            Tracer.Write($"Task created for version #{node.VersionId} {node.Version} of node #{node.Id}: {node.Path}");
         }
 
         /* =============================================================== */
@@ -90,6 +117,9 @@ namespace SenseNet.Packaging.Steps.Internal
                     _featureIsRunning = false;
                     return true;
                 }
+
+                Tracer.Write($"Assigned tasks: {versionIds.Length}, unfinished: {remainingTasks}");
+
                 foreach (var versionId in versionIds)
                 {
                     ReindexBinaryProperties(versionId);
@@ -102,11 +132,24 @@ namespace SenseNet.Packaging.Steps.Internal
         }
         private static void ReindexBinaryProperties(int versionId)
         {
+            Tracer.Write($"Load version #{versionId}");
+            var node = Node.LoadNodeByVersionId(versionId);
             using (new SystemAccount())
+            using (var op = Tracer.StartOperation($"Reindex version #{node.VersionId} {node.Version} of node #{node.Id}: {node.Path}"))
             {
-                var node = Node.LoadNodeByVersionId(versionId);
-                var indx = SearchManager.LoadIndexDocumentByVersionId(versionId);
-                DataBackingStore.SaveIndexDocument(node, indx);
+                try
+                {
+                    Retrier.Retry(3, 2000, typeof(Exception), () =>
+                    {
+                        var indx = SearchManager.LoadIndexDocumentByVersionId(versionId);
+                        DataBackingStore.SaveIndexDocument(node, indx);
+                    });
+                }
+                catch (Exception e)
+                {
+                    Tracer.WriteError("Error after 3 attempt: {0}", e);
+                }
+                op.Successful = true;
             }
         }
 
@@ -117,11 +160,10 @@ namespace SenseNet.Packaging.Steps.Internal
 
             return DataHandler.CheckFeature();
         }
-
         public static void InactivateFeature()
         {
             DataHandler.DropTables();
-            SnTrace.Index.Write($"{TracePrefix} Feature is inactivated.");
+            Tracer.Write("Feature is inactivated.");
         }
     }
 }
