@@ -23,6 +23,8 @@ namespace SenseNet.ContentRepository.Packaging.Steps.Internal
                 if (!_enabled.Value)
                     WaitingMinutes = 10000.0;
             }
+            if (!_enabled.Value)
+                return;
 
             using (var op = SnTrace.Index.StartOperation("GetBackgroundTasksAndExecute"))
             {

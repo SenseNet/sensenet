@@ -90,7 +90,7 @@ namespace SenseNet.Packaging.Steps.Internal
                 }
             }
 
-            public static IEnumerable<int> GetAllNodeIds(int from)
+            public static List<int> GetAllNodeIds(int from)
             {
                 var result = new List<int>();
 
@@ -107,6 +107,27 @@ namespace SenseNet.Packaging.Steps.Internal
 
                 return result;
             }
+
+            public static void DropTables()
+            {
+                // proc DropTables
+                using (var cmd = DataProvider.CreateDataProcedure(SqlScripts.DropTables))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    cmd.ExecuteNonQuery();
+                }
+            }
+
+            public static bool CheckFeature()
+            {
+                // proc DropTables
+                using (var cmd = DataProvider.CreateDataProcedure(SqlScripts.CheckFeature))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    var result = cmd.ExecuteScalar();
+                    return System.Convert.ToInt32(result) != 0;
+                }
+            }
         }
 
         private static class SqlScripts
@@ -116,41 +137,11 @@ namespace SenseNet.Packaging.Steps.Internal
 
             #region CreateTables
             internal static readonly string CreateTables =
-                $@"
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[{TempTableName}]') AND type in (N'U'))
-	DROP TABLE [dbo].[{TempTableName}]
-GO
-
+                $@"/****** Object:  Table [dbo].[{TaskTableName}] ******/
 SET ANSI_NULLS ON
-GO
 SET QUOTED_IDENTIFIER ON
-GO
-CREATE TABLE [dbo].[{TempTableName}](
-	[Id] [int] IDENTITY(1,1) NOT NULL,
-	[VersionId] [int] NOT NULL,
-	[Rank] [int] NOT NULL,
- CONSTRAINT [PK_{TempTableName}] PRIMARY KEY CLUSTERED 
-(
-	[Id] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-) ON [PRIMARY]
-GO
-CREATE NONCLUSTERED INDEX [IX_MFRTemp_Rank] ON [dbo].[{TempTableName}]
-(
-	[Rank] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-GO
-
-/*------------------------------------*/
-
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[{TaskTableName}]') AND type in (N'U'))
-	DROP TABLE [dbo].[{TaskTableName}]
-GO
-
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[{TaskTableName}]') AND type in (N'U'))
+BEGIN
 CREATE TABLE [dbo].[{TaskTableName}](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[VersionId] [int] NOT NULL,
@@ -161,22 +152,46 @@ CREATE TABLE [dbo].[{TaskTableName}](
 	[Id] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY]
-GO
-CREATE NONCLUSTERED INDEX [IX_MFRTask_EndDate] ON [dbo].[{TaskTableName}]
+END
+/****** Object:  Table [dbo].[{TempTableName}] ******/
+SET ANSI_NULLS ON
+SET QUOTED_IDENTIFIER ON
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[{TempTableName}]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [dbo].[{TempTableName}](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[VersionId] [int] NOT NULL,
+	[Rank] [int] NOT NULL,
+ CONSTRAINT [PK_{TempTableName}] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+END
+/****** Object:  Index [IX_MBRTask_EndDate] ******/
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[{TaskTableName}]') AND name = N'IX_MBRTask_EndDate')
+CREATE NONCLUSTERED INDEX [IX_MBRTask_EndDate] ON [dbo].[{TaskTableName}]
 (
 	[EndDate] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-GO
-CREATE NONCLUSTERED INDEX [IX_MFRTask_StartDate] ON [dbo].[{TaskTableName}]
+/****** Object:  Index [IX_MBRTask_StartDate] ******/
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[{TaskTableName}]') AND name = N'IX_MBRTask_StartDate')
+CREATE NONCLUSTERED INDEX [IX_MBRTask_StartDate] ON [dbo].[{TaskTableName}]
 (
 	[StartDate] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-GO
-CREATE NONCLUSTERED INDEX [IX_MFRTask_VersionId] ON [dbo].[{TaskTableName}]
+/****** Object:  Index [IX_MBRTask_VersionId] ******/
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[{TaskTableName}]') AND name = N'IX_MBRTask_VersionId')
+CREATE NONCLUSTERED INDEX [IX_MBRTask_VersionId] ON [dbo].[{TaskTableName}]
 (
 	[VersionId] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-GO
+/****** Object:  Index [IX_MBRTemp_Rank] ******/
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[{TempTableName}]') AND name = N'IX_MBRTemp_Rank')
+CREATE NONCLUSTERED INDEX [IX_MBRTemp_Rank] ON [dbo].[{TempTableName}]
+(
+	[Rank] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ";
             #endregion
 
@@ -187,7 +202,7 @@ GO
             #endregion
 
             #region CreateTempTask(@VersionId int, @Rank int)
-            internal static readonly string CreateTempTask = $@"NSERT INTO [{TempTableName}] (VersionId, Rank) VALUES (@VersionId, @Rank)
+            internal static readonly string CreateTempTask = $@"INSERT INTO [{TempTableName}] (VersionId, Rank) VALUES (@VersionId, @Rank)
 ";
             #endregion
 
@@ -218,6 +233,23 @@ WHERE VersionId = @VersionId
 ";
             #endregion
 
+            #region DropTables
+            internal static readonly string DropTables = $@"/****** Object:  Table [dbo].[{TempTableName}] ******/
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[{TempTableName}]') AND type in (N'U'))
+	DROP TABLE [dbo].[Maintenance.BinaryReindexingTemp]
+/****** Object:  Table [dbo].[Maintenance.BinaryReindexingTasks] ******/
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[{TaskTableName}]') AND type in (N'U'))
+	DROP TABLE [dbo].[{TaskTableName}]
+";
+            #endregion
+
+            #region CheckFeature
+            internal static readonly string CheckFeature = $@"IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Maintenance.BinaryReindexingTasks]') AND type in (N'U'))
+	SELECT 1
+ELSE
+	SELECT 0
+";
+            #endregion
         }
     }
 }
