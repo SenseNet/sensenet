@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using SenseNet.ContentRepository.Storage.Data;
 
@@ -128,6 +129,20 @@ namespace SenseNet.Packaging.Steps.Internal
                     return System.Convert.ToInt32(result) != 0;
                 }
             }
+
+            public static DateTime LoadTimeLimit()
+            {
+                // proc GetTimeLimit
+                using (var cmd = DataProvider.CreateDataProcedure(SqlScripts.SelectTimeLimit))
+                {
+                    cmd.CommandType = CommandType.Text;
+                    var result = cmd.ExecuteScalar();
+                    var t = Convert.ToDateTime(result);
+                    var timeLimit = Convert.ToDateTime(result).ToUniversalTime();
+                    Tracer.Write("UTC timelimit: " + timeLimit.ToString("yyyy-MM-dd HH:mm:ss"));
+                    return timeLimit;
+                }
+            }
         }
 
         private static class SqlScripts
@@ -244,10 +259,15 @@ IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[{Task
             #endregion
 
             #region CheckFeature
-            internal static readonly string CheckFeature = $@"IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Maintenance.BinaryReindexingTasks]') AND type in (N'U'))
+            internal static readonly string CheckFeature = $@"IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[{TaskTableName}]') AND type in (N'U'))
 	SELECT 1
 ELSE
 	SELECT 0
+";
+            #endregion
+
+            #region SelectTimeLimit
+            internal static readonly string SelectTimeLimit = $@"SELECT create_date FROM sys.tables WHERE name='{TaskTableName}'
 ";
             #endregion
         }

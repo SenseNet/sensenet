@@ -94,14 +94,22 @@ namespace SenseNet.Packaging.Steps.Internal
         }
 
         /* =============================================================== */
+
+        private static DateTime _featureStartedAt;
         private static bool _featureIsRunning;
         private static bool _featureIsRequested;
+
         /// <summary>
         /// Gets some background task from the database and executes them.
+        /// Task execution is skipped if the version is modified after this time.
         /// Returns true if there are no more tasks.
         /// Triggered by the SnMaintenance via the ReindexBinariesTask.
         /// </summary>
-        public static bool GetBackgroundTasksAndExecute(int taskCount = 0, int timeoutInMinutes = 0)
+        /// <param name="timeLimit">Execution is skipped if the version is modified after this time.</param>
+        /// <param name="taskCount">Default 10.</param>
+        /// <param name="timeoutInMinutes">Default 5.</param>
+        /// <returns>True if there are no more tasks.</returns>
+        public static bool GetBackgroundTasksAndExecute(DateTime timeLimit, int taskCount = 0, int timeoutInMinutes = 0)
         {
             if (_featureIsRunning)
             {
@@ -118,7 +126,7 @@ namespace SenseNet.Packaging.Steps.Internal
                 _featureIsRequested = false;
 
                 var versionIds = DataHandler.AssignTasks(
-                    taskCount > 0 ? taskCount : 10, //UNDONE: finalize tesk count and timeout
+                    taskCount > 0 ? taskCount : 10,
                     timeoutInMinutes > 0 ? timeoutInMinutes : 5,
                     out var remainingTasks);
                 if (remainingTasks == 0)
@@ -132,7 +140,7 @@ namespace SenseNet.Packaging.Steps.Internal
 
                 foreach (var versionId in versionIds)
                 {
-                    if (ReindexBinaryProperties(versionId))
+                    if (ReindexBinaryProperties(versionId, timeLimit))
                         DataHandler.FinishTask(versionId);
                 }
             } while (_featureIsRequested); // repeat if the maintenance called in the previous loop. 
@@ -140,13 +148,17 @@ namespace SenseNet.Packaging.Steps.Internal
             _featureIsRunning = false;
             return false;
         }
-        private static bool ReindexBinaryProperties(int versionId)
+        private static bool ReindexBinaryProperties(int versionId, DateTime timeLimit)
         {
             var node = Node.LoadNodeByVersionId(versionId);
             if (node == null)
                 return true;
 
-            //UNDONE: Skip if the version is modified after the reindex feature is started.
+            if (node.VersionModificationDate > timeLimit)
+            {
+                Tracer.Write($"SKIP V#{node.VersionId} {node.Version} N#{node.Id} {node.Path}");
+                return true;
+            }
 
             using (new SystemAccount())
             {
@@ -168,6 +180,10 @@ namespace SenseNet.Packaging.Steps.Internal
             }
         }
 
+        public static DateTime GetTimeLimit()
+        {
+            return DataHandler.LoadTimeLimit();
+        }
         public static bool IsFeatureActive()
         {
             if (Process.GetCurrentProcess().ProcessName.Equals("SnAdminRuntime", StringComparison.InvariantCultureIgnoreCase))
