@@ -505,8 +505,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
     }
     internal sealed class PlainTextExtractor : TextExtractor
     {
-        //UNDONE: uncomment
-        //public override bool IsSlow => false;
+        public override bool IsSlow => false;
 
         public override string Extract(Stream stream, TextExtractorContext context)
         {
