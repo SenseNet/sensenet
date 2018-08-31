@@ -17,7 +17,7 @@ namespace SenseNet.Packaging.Steps.Internal
 
         // ReSharper disable once InconsistentNaming
         private static SnTrace.SnTraceCategory __tracer;
-        private static SnTrace.SnTraceCategory Tracer
+        internal static SnTrace.SnTraceCategory Tracer
         {
             get
             {
@@ -51,6 +51,8 @@ namespace SenseNet.Packaging.Steps.Internal
                 DataHandler.StartBackgroundTasks();
                 op.Successful = true;
             }
+
+            // commit all buffered lines
             SnTrace.Flush();
             // ensure finishing the last operation of the SnTrace
             Thread.Sleep(1500);
@@ -104,13 +106,17 @@ namespace SenseNet.Packaging.Steps.Internal
             if (_featureIsRunning)
             {
                 _featureIsRequested = true;
+                Tracer.Write("Maintenance call skipped.");
                 return false;
             }
+            Tracer.Write("Maintenance call.");
             _featureIsRunning = true;
-            _featureIsRequested = false;
 
             do
             {
+                // avoid infinite loop
+                _featureIsRequested = false;
+
                 var versionIds = DataHandler.AssignTasks(
                     taskCount > 0 ? taskCount : 10, //UNDONE: finalize tesk count and timeout
                     timeoutInMinutes > 0 ? timeoutInMinutes : 10,
@@ -129,7 +135,7 @@ namespace SenseNet.Packaging.Steps.Internal
                     if (ReindexBinaryProperties(versionId))
                         DataHandler.FinishTask(versionId);
                 }
-            } while (_featureIsRequested);
+            } while (_featureIsRequested); // repeat if the maintenance called in the previous loop. 
 
             _featureIsRunning = false;
             return false;

@@ -26,16 +26,12 @@ namespace SenseNet.ContentRepository.Packaging.Steps.Internal
             if (!_enabled.Value)
                 return;
 
-            using (var op = SnTrace.Index.StartOperation("GetBackgroundTasksAndExecute"))
+            var finished = ReindexBinaries.GetBackgroundTasksAndExecute();
+            if (finished)
             {
-                var finished = ReindexBinaries.GetBackgroundTasksAndExecute();
-                if (finished)
-                {
-                    SnTrace.Index.Write("All binaries are reindexed.");
-                    ReindexBinaries.InactivateFeature();
-                    SnTrace.Index.Write("ReindexBinaries feature destroyed.");
-                }
-                op.Successful = true;
+                ReindexBinaries.Tracer.Write("All binaries are reindexed.");
+                ReindexBinaries.InactivateFeature();
+                ReindexBinaries.Tracer.Write("ReindexBinaries feature is destroyed.");
             }
         }
     }
