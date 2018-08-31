@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
@@ -37,7 +36,7 @@ namespace SenseNet.Packaging.Steps.Internal
 
         public override void Execute(ExecutionContext context)
         {
-            Tracer.Write("Phase-0: Create background tasks.");
+            Tracer.Write("Phase-0: Initializing.");
             DataHandler.InstallTables();
 
             using (var op = Tracer.StartOperation("Phase-1: Reindex metadata."))
@@ -54,15 +53,13 @@ namespace SenseNet.Packaging.Steps.Internal
 
             // commit all buffered lines
             SnTrace.Flush();
-            // ensure finishing the last operation of the SnTrace
-            Thread.Sleep(1500);
         }
         private void ReindexMetadata()
         {
             using (new SystemAccount())
             {
                 Tracer.Write("Phase-1: Discover node ids.");
-                var nodeIds = DataHandler.GetAllNodeIds(0);
+                var nodeIds = DataHandler.GetAllNodeIds();
                 _nodeCount = nodeIds.Count;
 
                 Tracer.Write($"Phase-1: Start reindexing {_nodeCount} nodes. Create background tasks");
@@ -95,7 +92,6 @@ namespace SenseNet.Packaging.Steps.Internal
 
         /* =============================================================== */
 
-        private static DateTime _featureStartedAt;
         private static bool _featureIsRunning;
         private static bool _featureIsRequested;
 
@@ -109,7 +105,7 @@ namespace SenseNet.Packaging.Steps.Internal
         /// <param name="taskCount">Default 10.</param>
         /// <param name="timeoutInMinutes">Default 5.</param>
         /// <returns>True if there are no more tasks.</returns>
-        public static bool GetBackgroundTasksAndExecute(DateTime timeLimit, int taskCount = 0, int timeoutInMinutes = 0)
+        internal static bool GetBackgroundTasksAndExecute(DateTime timeLimit, int taskCount = 0, int timeoutInMinutes = 0)
         {
             if (_featureIsRunning)
             {
@@ -122,7 +118,6 @@ namespace SenseNet.Packaging.Steps.Internal
 
             do
             {
-                // avoid infinite loop
                 _featureIsRequested = false;
 
                 var versionIds = DataHandler.AssignTasks(
@@ -150,18 +145,18 @@ namespace SenseNet.Packaging.Steps.Internal
         }
         private static bool ReindexBinaryProperties(int versionId, DateTime timeLimit)
         {
-            var node = Node.LoadNodeByVersionId(versionId);
-            if (node == null)
-                return true;
-
-            if (node.VersionModificationDate > timeLimit)
-            {
-                Tracer.Write($"SKIP V#{node.VersionId} {node.Version} N#{node.Id} {node.Path}");
-                return true;
-            }
-
             using (new SystemAccount())
             {
+                var node = Node.LoadNodeByVersionId(versionId);
+                if (node == null)
+                    return true;
+
+                if (node.VersionModificationDate > timeLimit)
+                {
+                    Tracer.Write($"SKIP V#{node.VersionId} {node.Version} N#{node.Id} {node.Path}");
+                    return true;
+                }
+
                 try
                 {
                     Retrier.Retry(3, 2000, typeof(Exception), () =>
@@ -174,24 +169,24 @@ namespace SenseNet.Packaging.Steps.Internal
                 }
                 catch (Exception e)
                 {
-                    Tracer.WriteError("Error after 3 attempt: {0}", e);
+                    Tracer.WriteError("Error after 3 attempts: {0}", e);
                     return false;
                 }
             }
         }
 
-        public static DateTime GetTimeLimit()
+        internal static DateTime GetTimeLimit()
         {
             return DataHandler.LoadTimeLimit();
         }
-        public static bool IsFeatureActive()
+        internal static bool IsFeatureActive()
         {
             if (Process.GetCurrentProcess().ProcessName.Equals("SnAdminRuntime", StringComparison.InvariantCultureIgnoreCase))
                 return false;
 
             return DataHandler.CheckFeature();
         }
-        public static void InactivateFeature()
+        internal static void InactivateFeature()
         {
             DataHandler.DropTables();
             Tracer.Write("Feature is inactivated.");

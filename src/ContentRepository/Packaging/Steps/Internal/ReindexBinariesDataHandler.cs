@@ -91,7 +91,7 @@ namespace SenseNet.Packaging.Steps.Internal
                 }
             }
 
-            public static List<int> GetAllNodeIds(int from)
+            public static List<int> GetAllNodeIds()
             {
                 var result = new List<int>();
 
@@ -99,7 +99,6 @@ namespace SenseNet.Packaging.Steps.Internal
                 using (var cmd = DataProvider.CreateDataProcedure(SqlScripts.GetAllNodeIds))
                 {
                     cmd.CommandType = CommandType.Text;
-                    cmd.Parameters.Add(CreateParameter("@From", from, DbType.Int32));
 
                     using (var reader = cmd.ExecuteReader())
                         while (reader.Read())
@@ -126,7 +125,7 @@ namespace SenseNet.Packaging.Steps.Internal
                 {
                     cmd.CommandType = CommandType.Text;
                     var result = cmd.ExecuteScalar();
-                    return System.Convert.ToInt32(result) != 0;
+                    return Convert.ToInt32(result) != 0;
                 }
             }
 
@@ -137,7 +136,6 @@ namespace SenseNet.Packaging.Steps.Internal
                 {
                     cmd.CommandType = CommandType.Text;
                     var result = cmd.ExecuteScalar();
-                    var t = Convert.ToDateTime(result);
                     var timeLimit = Convert.ToDateTime(result).ToUniversalTime();
                     Tracer.Write("UTC timelimit: " + timeLimit.ToString("yyyy-MM-dd HH:mm:ss"));
                     return timeLimit;
@@ -212,7 +210,7 @@ CREATE NONCLUSTERED INDEX [IX_MBRTemp_Rank] ON [dbo].[{TempTableName}]
 
             #region GetAllNodeIds(@From int)
             internal static readonly string GetAllNodeIds =
-                @"SELECT NodeId FROM Nodes WHERE NodeId >= @From ORDER BY NodeId
+                @"SELECT NodeId FROM Nodes
 ";
             #endregion
 

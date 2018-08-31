@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.Diagnostics;
 using SenseNet.Packaging.Steps.Internal;
 
 namespace SenseNet.ContentRepository.Packaging.Steps.Internal
