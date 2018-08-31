@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Storage;
@@ -50,6 +51,9 @@ namespace SenseNet.Packaging.Steps.Internal
                 DataHandler.StartBackgroundTasks();
                 op.Successful = true;
             }
+            SnTrace.Flush();
+            // ensure finishing the last operation of the SnTrace
+            Thread.Sleep(1500);
         }
         private void ReindexMetadata()
         {
@@ -59,7 +63,7 @@ namespace SenseNet.Packaging.Steps.Internal
                 var nodeIds = DataHandler.GetAllNodeIds(0);
                 _nodeCount = nodeIds.Count;
 
-                Tracer.Write($"Phase-1: Start reindexing {_nodeCount} nodes.");
+                Tracer.Write($"Phase-1: Start reindexing {_nodeCount} nodes. Create background tasks");
                 Parallel.ForEach(new NodeList<Node>(nodeIds),
                     new ParallelOptions { MaxDegreeOfParallelism = 10 },
                     n =>
@@ -84,7 +88,7 @@ namespace SenseNet.Packaging.Steps.Internal
         {
             DataHandler.CreateTempTask(node.VersionId, rank);
             _taskCount++;
-            Tracer.Write($"Task created for version #{node.VersionId} {node.Version} of node #{node.Id}: {node.Path}");
+            Tracer.Write($"V#{node.VersionId} {node.Version} N#{node.Id} {node.Path}");
         }
 
         /* =============================================================== */
@@ -122,20 +126,23 @@ namespace SenseNet.Packaging.Steps.Internal
 
                 foreach (var versionId in versionIds)
                 {
-                    ReindexBinaryProperties(versionId);
-                    DataHandler.FinishTask(versionId);
+                    if (ReindexBinaryProperties(versionId))
+                        DataHandler.FinishTask(versionId);
                 }
             } while (_featureIsRequested);
 
             _featureIsRunning = false;
             return false;
         }
-        private static void ReindexBinaryProperties(int versionId)
+        private static bool ReindexBinaryProperties(int versionId)
         {
-            Tracer.Write($"Load version #{versionId}");
             var node = Node.LoadNodeByVersionId(versionId);
+            if (node == null)
+                return true;
+
+            //UNDONE: Skip if the version is modified after the reindex feature is started.
+
             using (new SystemAccount())
-            using (var op = Tracer.StartOperation($"Reindex version #{node.VersionId} {node.Version} of node #{node.Id}: {node.Path}"))
             {
                 try
                 {
@@ -144,12 +151,14 @@ namespace SenseNet.Packaging.Steps.Internal
                         var indx = SearchManager.LoadIndexDocumentByVersionId(versionId);
                         DataBackingStore.SaveIndexDocument(node, indx);
                     });
+                    Tracer.Write($"V#{node.VersionId} {node.Version} N#{node.Id} {node.Path}");
+                    return true;
                 }
                 catch (Exception e)
                 {
                     Tracer.WriteError("Error after 3 attempt: {0}", e);
+                    return false;
                 }
-                op.Successful = true;
             }
         }
 
