@@ -119,7 +119,7 @@ namespace SenseNet.Packaging.Steps.Internal
 
                 var versionIds = DataHandler.AssignTasks(
                     taskCount > 0 ? taskCount : 10, //UNDONE: finalize tesk count and timeout
-                    timeoutInMinutes > 0 ? timeoutInMinutes : 10,
+                    timeoutInMinutes > 0 ? timeoutInMinutes : 5,
                     out var remainingTasks);
                 if (remainingTasks == 0)
                 {
@@ -157,7 +157,7 @@ namespace SenseNet.Packaging.Steps.Internal
                         var indx = SearchManager.LoadIndexDocumentByVersionId(versionId);
                         DataBackingStore.SaveIndexDocument(node, indx);
                     });
-                    Tracer.Write($"V#{node.VersionId} {node.Version} N#{node.Id} {node.Path}");
+                    Tracer.Write($"Save V#{node.VersionId} {node.Version} N#{node.Id} {node.Path}");
                     return true;
                 }
                 catch (Exception e)

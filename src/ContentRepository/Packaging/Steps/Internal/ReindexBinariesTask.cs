@@ -11,9 +11,10 @@ namespace SenseNet.ContentRepository.Packaging.Steps.Internal
 {
     internal class ReindexBinariesTask : IMaintenanceTask
     {
-        private bool? _enabled;
+        private static bool? _enabled;
+        private static double _waitingMinutes = 0.15;
 
-        public double WaitingMinutes { get; private set; } = 0.15;
+        public double WaitingMinutes => _waitingMinutes;
 
         public void Execute()
         {
@@ -21,7 +22,7 @@ namespace SenseNet.ContentRepository.Packaging.Steps.Internal
             {
                 _enabled = ReindexBinaries.IsFeatureActive();
                 if (!_enabled.Value)
-                    WaitingMinutes = 10000.0;
+                    _waitingMinutes = 10000.0;
             }
             if (!_enabled.Value)
                 return;
