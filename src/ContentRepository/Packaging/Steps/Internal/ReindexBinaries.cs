@@ -108,7 +108,7 @@ namespace SenseNet.Packaging.Steps.Internal
             do
             {
                 var versionIds = DataHandler.AssignTasks(
-                    taskCount > 0 ? taskCount : 5, //UNDONE: finalize tesk count and timeout
+                    taskCount > 0 ? taskCount : 10, //UNDONE: finalize tesk count and timeout
                     timeoutInMinutes > 0 ? timeoutInMinutes : 10,
                     out var remainingTasks);
                 if (remainingTasks == 0)

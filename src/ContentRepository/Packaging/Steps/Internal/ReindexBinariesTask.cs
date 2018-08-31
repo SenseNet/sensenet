@@ -13,7 +13,7 @@ namespace SenseNet.ContentRepository.Packaging.Steps.Internal
     {
         private bool? _enabled;
 
-        public double WaitingMinutes { get; private set; } = 1.0;
+        public double WaitingMinutes { get; private set; } = 0.15;
 
         public void Execute()
         {
