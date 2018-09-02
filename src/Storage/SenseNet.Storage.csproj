@@ -184,6 +184,7 @@
     <Compile Include="Events\PermissionChangedEventArgs.cs" />
     <Compile Include="Events\CancellablePermissionChangingEventArgs.cs" />
     <Compile Include="IFolder.cs" />
+    <Compile Include="IMaintenanceTask.cs" />
     <Compile Include="InvalidContentException.cs" />
     <Compile Include="IResourceManager.cs" />
     <Compile Include="ISnService.cs" />
