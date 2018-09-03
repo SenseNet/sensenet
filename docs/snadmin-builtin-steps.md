@@ -185,6 +185,29 @@ Examples:
 </Steps>
 ```
 
+### WhileDatabaseValue
+- Full name: `SenseNet.Packaging.Steps.WhileDatabaseValue`
+- Properties: `Query`
+
+Executes the provided step block in a loop while a database query returns a positive value. Make sure you execute a db script inside the block that **changes the result of the condition** - otherwise the package would run forever.
+
+> Useful for dividing a long-running database script into multiple blocks to avoid exceeding the database command timeout.
+
+- **Query**: a database query that represents the while loop's condition.
+
+Example:
+```xml
+<WhileDatabaseValue query="select count(0) from MyTable">
+  <Block>
+    <ExecuteDatabaseScript>
+      <![CDATA[
+        --SQL script that changes the db
+      ]]>
+    </ExecuteDatabaseScript>
+  </Block>
+</WhileDatabaseValue>
+```
+
 ### StartRepository
 - Full name: `SenseNet.Packaging.Steps.StartRepository`
 - Default property: -
