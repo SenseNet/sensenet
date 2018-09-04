@@ -893,11 +893,13 @@ If you want to modify the **content handler** of the content type, use this step
 - Default property: *Name*
 - Additional properties: *Delete*
 
-Deletes a content type and its usages. The execution mode depends on the value of the *Delete* property. Allowed values are:
+Deletes one or more content types and their usages. The execution mode depends on the value of the *Delete* property. Allowed values are:
 
 - No (default)
 - IfNotUsed
 - Force
+
+> If you want to delete multiple types, provide their names as a comma separated list in any order.
 
 #### No
 This is the default execution mode so the following two steps are equal:
@@ -930,7 +932,7 @@ The content type will be deleted even if there are dependencies in the repositor
 - Content templates
 - Content views
 - Allowed child types in all content type headers.
-- Allowed types in all CTD contfigurations of reference fields.
+- Allowed types in all CTD configurations of reference fields.
 - Allowed child types in all content instances.
 
 >Please make sure that a **StartRepository** step precedes this one to make sure that the repository is started.

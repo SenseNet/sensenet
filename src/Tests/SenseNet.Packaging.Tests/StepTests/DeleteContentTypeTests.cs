@@ -160,7 +160,7 @@ namespace SenseNet.Packaging.Tests.StepTests
                 Assert.AreEqual(contentTypeCount + 3, GetContentTypeCount());
 
                 // test
-                var step = new DeleteContentType {Name = "Car", Delete = DeleteContentType.Mode.Force};
+                var step = new DeleteContentType { Name = "Car", Delete = DeleteContentType.Mode.Force };
                 step.Execute(GetExecutionContext());
 
                 // check
@@ -185,7 +185,7 @@ namespace SenseNet.Packaging.Tests.StepTests
                 ContentTypeInstaller.InstallContentType(
                     string.Format(contentTypeTemplate, "Car1"),
                     string.Format(contentTypeTemplate, "Car2"));
-                var root = new SystemFolder(Repository.Root) {Name = "TestRoot"};
+                var root = new SystemFolder(Repository.Root) { Name = "TestRoot" };
                 root.Save();
                 var car0 = Content.CreateNew("Car", root, "Car0");
                 car0.Save();
@@ -196,7 +196,7 @@ namespace SenseNet.Packaging.Tests.StepTests
 
                 // test-1
                 var step = new DeleteContentType { Name = "Car", Delete = DeleteContentType.Mode.Force };
-                var dependencies = step.GetDependencies(ContentType.GetByName("Car"));
+                var dependencies = step.GetDependencies(new[] { "Car" });
 
                 Assert.AreEqual(3, dependencies.InstanceCount);
                 Assert.AreEqual(0, dependencies.PermittingContentTypes.Length);
@@ -240,7 +240,7 @@ namespace SenseNet.Packaging.Tests.StepTests
 
                 // test-1
                 var step = new DeleteContentType { Name = "Car", Delete = DeleteContentType.Mode.Force };
-                var dependencies = step.GetDependencies(ContentType.GetByName("Car"));
+                var dependencies = step.GetDependencies(new[] { "Car" });
 
                 Assert.AreEqual(0, dependencies.InstanceCount);
                 Assert.AreEqual(2, dependencies.PermittingContentTypes.Length);
@@ -258,7 +258,7 @@ namespace SenseNet.Packaging.Tests.StepTests
                 Assert.IsNull(ContentType.GetByName("Car2"));
                 Assert.AreEqual(contentTypeCount + 2, GetContentTypeCount());
 
-                var names = new[] {"Car", "Car1", "Car2"};
+                var names = new[] { "Car", "Car1", "Car2" };
 
                 var garage1 = ContentType.GetByName("Garage1");
                 Assert.IsFalse(garage1.AllowedChildTypeNames.Intersect(names).Any());
@@ -289,7 +289,7 @@ namespace SenseNet.Packaging.Tests.StepTests
 
                 // test-1
                 var step = new DeleteContentType { Name = "Car", Delete = DeleteContentType.Mode.Force };
-                var dependencies = step.GetDependencies(ContentType.GetByName("Car"));
+                var dependencies = step.GetDependencies(new[] { "Car" });
 
                 Assert.AreEqual(0, dependencies.InstanceCount);
                 Assert.AreEqual(0, dependencies.PermittingContentTypes.Length);
@@ -367,7 +367,7 @@ namespace SenseNet.Packaging.Tests.StepTests
 
                 // test-1
                 var step = new DeleteContentType { Name = "Car", Delete = DeleteContentType.Mode.Force };
-                var dependencies = step.GetDependencies(ContentType.GetByName("Car"));
+                var dependencies = step.GetDependencies(new[] { "Car" });
 
                 Assert.AreEqual(0, dependencies.InstanceCount);
                 Assert.AreEqual(0, dependencies.PermittingContentTypes.Length);
@@ -430,7 +430,7 @@ namespace SenseNet.Packaging.Tests.StepTests
 
                 // test-1
                 var step = new DeleteContentType { Name = "Car", Delete = DeleteContentType.Mode.Force };
-                var dependencies = step.GetDependencies(ContentType.GetByName("Car"));
+                var dependencies = step.GetDependencies(new[] { "Car" });
 
                 Assert.AreEqual(0, dependencies.InstanceCount); // Any instance in a content template is irrelevant.
                 Assert.AreEqual(0, dependencies.PermittingContentTypes.Length);
@@ -478,7 +478,7 @@ namespace SenseNet.Packaging.Tests.StepTests
 
                 // test-1
                 var step = new DeleteContentType { Name = "Car", Delete = DeleteContentType.Mode.Force };
-                var dependencies = step.GetDependencies(ContentType.GetByName("Car"));
+                var dependencies = step.GetDependencies(new[] { "Car" });
 
                 Assert.AreEqual(0, dependencies.InstanceCount); // Any instance in a content template is irrelevant.
                 Assert.AreEqual(0, dependencies.PermittingContentTypes.Length);
@@ -553,7 +553,7 @@ namespace SenseNet.Packaging.Tests.StepTests
 
                 // test-1
                 var step = new DeleteContentType { Name = "Car", Delete = DeleteContentType.Mode.Force };
-                var dependencies = step.GetDependencies(ContentType.GetByName("Car"));
+                var dependencies = step.GetDependencies(new[] { "Car" });
 
                 Assert.AreEqual(0, dependencies.InstanceCount); // Any instance in a content template is irrelevant.
                 Assert.AreEqual(0, dependencies.PermittingContentTypes.Length);
@@ -579,7 +579,8 @@ namespace SenseNet.Packaging.Tests.StepTests
         {
             Test(() =>
             {
-                var dependencies = new DeleteContentType.ContentTypeDependencies { ContentTypeName = "MyContentType" };
+                var dependencies =
+                    new DeleteContentType.ContentTypeDependencies { ContentTypeNames = new[] { "MyContentType" } };
                 Assert.IsFalse(dependencies.HasDependency);
 
                 // allowed types
