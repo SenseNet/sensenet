@@ -59,10 +59,9 @@ namespace SenseNet.Packaging.Steps
                 var rootTypeNamesText = string.Join(", ", rootTypeNames);
                 var plural = rootTypeNames.Length > 1;
 
-                //var currentContentType = ContentType.GetByName(name);
                 if (!rootTypeNames.Any())
                 {
-                    Logger.LogMessage("There is no any content type to delete.");
+                    Logger.LogMessage("There is no content type to delete.");
                     return;
                 }
 
@@ -431,6 +430,5 @@ WHERE p.Name = 'AllowedChildTypes' AND (
                 }
             }
         }
-
     }
 }
