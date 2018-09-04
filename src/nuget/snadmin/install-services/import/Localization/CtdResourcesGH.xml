@@ -237,6 +237,30 @@
         <data name="ModificationDate-Description" xml:space="preserve">
           <value>Content was last modified on this date.</value>
         </data>
+        <data name="VersionCreatedBy-DisplayName" xml:space="preserve">
+          <value>Version created by</value>
+        </data>
+        <data name="VersionCreatedBy-Description" xml:space="preserve">
+          <value>Version creator.</value>
+        </data>
+        <data name="VersionCreationDate-DisplayName" xml:space="preserve">
+          <value>Version creation date</value>
+        </data>
+        <data name="VersionCreationDate-Description" xml:space="preserve">
+          <value>Version creation date.</value>
+        </data>
+        <data name="VersionModifiedBy-DisplayName" xml:space="preserve">
+          <value>Version modified by</value>
+        </data>
+        <data name="VersionModifiedBy-Description" xml:space="preserve">
+          <value>Version was last modified by this user.</value>
+        </data>
+        <data name="VersionModificationDate-DisplayName" xml:space="preserve">
+          <value>Version modification date</value>
+        </data>
+        <data name="VersionModificationDate-Description" xml:space="preserve">
+          <value>Version was last modified on this date.</value>
+        </data>
         <data name="ApprovingMode-DisplayName" xml:space="preserve">
           <value>Content Approval For Current Content</value>
         </data>
@@ -637,6 +661,30 @@
         </data>
         <data name="ModificationDate-Description" xml:space="preserve">
           <value>Dátum, amikor a tartalom utoljára módosult.</value>
+        </data>
+        <data name="VersionCreatedBy-DisplayName" xml:space="preserve">
+          <value>Létrehozó</value>
+        </data>
+        <data name="VersionCreatedBy-Description" xml:space="preserve">
+          <value>A verzió létrehozója.</value>
+        </data>
+        <data name="VersionCreationDate-DisplayName" xml:space="preserve">
+          <value>Létrehozás dátuma</value>
+        </data>
+        <data name="VersionCreationDate-Description" xml:space="preserve">
+          <value>A verzió létrehozási dátuma.</value>
+        </data>
+        <data name="VersionModifiedBy-DisplayName" xml:space="preserve">
+          <value>Utolsó módosító</value>
+        </data>
+        <data name="VersionModifiedBy-Description" xml:space="preserve">
+          <value>A verziót utoljára módosította.</value>
+        </data>
+        <data name="VersionModificationDate-DisplayName" xml:space="preserve">
+          <value>A verzió módosítás dátuma</value>
+        </data>
+        <data name="VersionModificationDate-Description" xml:space="preserve">
+          <value>A verzió utolsó módosításának dátuma.</value>
         </data>
         <data name="ApprovingMode-DisplayName" xml:space="preserve">
           <value>Jóváhagyási mód</value>

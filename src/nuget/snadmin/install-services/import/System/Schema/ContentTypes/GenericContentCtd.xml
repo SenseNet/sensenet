@@ -355,9 +355,28 @@
         <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
+    <Field name="VersionCreatedBy" type="Reference">
+      <DisplayName>$Ctd-GenericContent,VersionCreatedBy-DisplayName</DisplayName>
+      <Description>$Ctd-GenericContent,VersionCreatedBy-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
     <Field name="CreationDate" type="DateTime">
       <DisplayName>$Ctd-GenericContent,CreationDate-DisplayName</DisplayName>
       <Description>$Ctd-GenericContent,CreationDate-Description</Description>
+      <Configuration>
+        <DateTimeMode>DateAndTime</DateTimeMode>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="VersionCreationDate" type="DateTime">
+      <DisplayName>$Ctd-GenericContent,VersionCreationDate-DisplayName</DisplayName>
+      <Description>$Ctd-GenericContent,VersionCreationDate-Description</Description>
       <Configuration>
         <DateTimeMode>DateAndTime</DateTimeMode>
         <VisibleBrowse>Hide</VisibleBrowse>
@@ -374,12 +393,31 @@
         <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
+    <Field name="VersionModifiedBy" type="Reference">
+      <DisplayName>$Ctd-GenericContent,VersionModifiedBy-DisplayName</DisplayName>
+      <Description>$Ctd-GenericContent,VersionModifiedBy-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
     <Field name="ModificationDate" type="DateTime">
       <DisplayName>$Ctd-GenericContent,ModificationDate-DisplayName</DisplayName>
       <Description>$Ctd-GenericContent,ModificationDate-Description</Description>
       <Indexing>
         <Store>Yes</Store>
       </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <DateTimeMode>DateAndTime</DateTimeMode>
+      </Configuration>
+    </Field>
+    <Field name="VersionModificationDate" type="DateTime">
+      <DisplayName>$Ctd-GenericContent,VersionModificationDate-DisplayName</DisplayName>
+      <Description>$Ctd-GenericContent,VersionModificationDate-Description</Description>
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
