@@ -250,18 +250,17 @@
           <value>Version creation date.</value>
         </data>
         <data name="VersionModifiedBy-DisplayName" xml:space="preserve">
-          <value>Version modified By</value>
+          <value>Version modified by</value>
         </data>
         <data name="VersionModifiedBy-Description" xml:space="preserve">
           <value>Version was last modified by this user.</value>
         </data>
         <data name="VersionModificationDate-DisplayName" xml:space="preserve">
-          <value>Version modification Date</value>
+          <value>Version modification date</value>
         </data>
         <data name="VersionModificationDate-Description" xml:space="preserve">
           <value>Version was last modified on this date.</value>
         </data>
-
         <data name="ApprovingMode-DisplayName" xml:space="preserve">
           <value>Content Approval For Current Content</value>
         </data>
@@ -682,10 +681,10 @@
           <value>A verziót utoljára módosította.</value>
         </data>
         <data name="VersionModificationDate-DisplayName" xml:space="preserve">
-          <value>A verszió módosítás dátuma</value>
+          <value>A verzió módosítás dátuma</value>
         </data>
         <data name="VersionModificationDate-Description" xml:space="preserve">
-          <value>Dátum, amikor a verzió utoljára módosult.</value>
+          <value>A verzió utolsó módosításának dátuma.</value>
         </data>
         <data name="ApprovingMode-DisplayName" xml:space="preserve">
           <value>Jóváhagyási mód</value>
