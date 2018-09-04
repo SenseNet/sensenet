@@ -22,7 +22,7 @@ namespace SenseNet.Packaging.Steps
 
         internal class ContentTypeDependencies
         {
-            public string ContentTypeName { get; set; }
+            public string[] ContentTypeNames { get; set; }
             public string[] InheritedTypeNames { get; set; } = new string[0];
             public int InstanceCount { get; set; }
             public ContentType[] PermittingContentTypes { get; set; } = new ContentType[0];
@@ -50,26 +50,31 @@ namespace SenseNet.Packaging.Steps
 
         public override void Execute(ExecutionContext context)
         {
-            var name = ResolveVariable(Name, context);
+            var names = ResolveVariable(Name, context);
+
             context.AssertRepositoryStarted();
             using (new SystemAccount())
             {
-                var currentContentType = ContentType.GetByName(name);
-                if (null == currentContentType)
+                var rootTypeNames = GetRootTypeNames(names);
+                var rootTypeNamesText = string.Join(", ", rootTypeNames);
+                var plural = rootTypeNames.Length > 1;
+
+                //var currentContentType = ContentType.GetByName(name);
+                if (!rootTypeNames.Any())
                 {
-                    Logger.LogMessage("Content type is already deleted: " + name);
+                    Logger.LogMessage("There is no any content type to delete.");
                     return;
                 }
 
-                var dependencies = GetDependencies(currentContentType);
+                var dependencies = GetDependencies(rootTypeNames);
 
-                Logger.LogMessage("DELETING CONTENT TYPE: " + name);
+                Logger.LogMessage($"DELETING CONTENT TYPE{(plural ? "S" : "")}: " + rootTypeNamesText);
 
                 PrintDependencies(dependencies);
 
                 if (Delete == Mode.No)
                 {
-                    Logger.LogMessage($"The {name} content type is not removed, this step provides only information.");
+                    Logger.LogMessage($"The content type{(plural ? "s are" : " is")} not removed, this step provides only information.");
                     return;
                 }
 
@@ -78,46 +83,69 @@ namespace SenseNet.Packaging.Steps
                     if (dependencies.HasDependency)
                     {
                         var deps = dependencies.InheritedTypeNames.Length + dependencies.InstanceCount;
-                        Logger.LogMessage($"The {name} content type was not removed because it has {deps} dependenc{(deps < 2 ? "y" : "ies")}.");
+                        Logger.LogMessage($"The content type{(plural ? "s were" : " was")} not removed because it have {deps} dependenc{(deps < 2 ? "y" : "ies")}.");
                         return;
                     }
-
-                    Logger.LogMessage($"The {name} content type has no depencencies.");
+                    Logger.LogMessage($"The content type{(plural ? "s have" : " has")} no any dependencies.");
                 }
 
                 if (dependencies.InstanceCount > 0)
-                    DeleteInstances(name);
+                    DeleteInstances(rootTypeNames);
                 DeleteRelatedItems(dependencies);
                 RemoveAllowedTypes(dependencies);
 
-                ContentTypeInstaller.RemoveContentType(name);
-                Logger.LogMessage($"The {name} content type removed successfully.");
+                foreach (var rootTypeName in rootTypeNames)
+                    ContentTypeInstaller.RemoveContentType(rootTypeName);
+
+                Logger.LogMessage($"The content type{(plural ? "s are" : " is")} successfuly removed.");
             }
         }
-
-        internal ContentTypeDependencies GetDependencies(ContentType currentContentType)
+        private string[] GetRootTypeNames(string input)
         {
-            var name = currentContentType.Name;
+            var contentTypePaths = input
+                .Trim()
+                .Split(", ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+                .Select(ContentType.GetByName)
+                .Where(t => t != null)
+                .Select(t => t.Path)
+                .ToList();
 
-            var typeSubtreeQuery = ContentQuery.CreateQuery(ContentRepository.SafeQueries.InTree,
-                QuerySettings.AdminSettings, currentContentType.Path);
-            var typeSubtreeResult = typeSubtreeQuery.Execute();
-            var typeNames = typeSubtreeResult.Nodes.Select(n => n.Name).ToArray();
-            var inheritedTypeNames = typeNames.Where(s => s != name).ToArray();
+            var rootNames = contentTypePaths
+                .Where(p => !contentTypePaths.Any(q => p.StartsWith(q + "/")))
+                .Select(RepositoryPath.GetFileName)
+                .ToArray();
+
+            return rootNames;
+        }
+
+        internal ContentTypeDependencies GetDependencies(string[] rootTypeNames)
+        {
+            var typeNames = new List<string>();
+            var inheritedTypeNames = new List<string>();
+            foreach (var rootTypeName in rootTypeNames)
+            {
+                var typeSubtreeQuery = ContentQuery.CreateQuery(ContentRepository.SafeQueries.InTree,
+                    QuerySettings.AdminSettings, ContentType.GetByName(rootTypeName).Path);
+                var typeSubtreeResult = typeSubtreeQuery.Execute();
+                typeNames.AddRange(typeSubtreeResult.Nodes.Select(n => n.Name));
+                inheritedTypeNames.AddRange(typeNames.Except(rootTypeNames));
+            }
 
             var relatedFolders = GetRelatedFolders(typeNames);
 
-            var contentInstancesCount = ContentQuery.CreateQuery(ContentRepository.SafeQueries.TypeIsCountOnly,
-                    QuerySettings.AdminSettings, name).Execute().Count
-                -
-                relatedFolders.ContentTemplates.Select(p => ContentQuery.Query(ContentRepository.SafeQueries.InTreeAndTypeIsCountOnly,
-                    QuerySettings.AdminSettings, p, typeNames).Count).Sum();
+            var contentInstancesCount = ContentQuery.CreateQuery(
+                                            ContentRepository.SafeQueries.TypeIsCountOnly,
+                                            QuerySettings.AdminSettings, new object[] { rootTypeNames }).Execute().Count
+                                        -
+                                        relatedFolders.ContentTemplates.Select(p => ContentQuery.Query(
+                                            ContentRepository.SafeQueries.InTreeAndTypeIsCountOnly,
+                                            QuerySettings.AdminSettings, p, typeNames).Count).Sum();
 
             var result = new ContentTypeDependencies
             {
-                ContentTypeName = name,
+                ContentTypeNames = rootTypeNames,
                 // +InTree:[currentContentType.Path]
-                InheritedTypeNames = inheritedTypeNames,
+                InheritedTypeNames = inheritedTypeNames.ToArray(),
                 // +TypeIs:[name]
                 InstanceCount = contentInstancesCount,
                 // ContentType/AllowedChildTypes: "Folder,File"
@@ -134,14 +162,14 @@ namespace SenseNet.Packaging.Steps
             return result;
         }
 
-        private ContentType[] GetContentTypesWhereTheyAreAllowed(string[] names)
+        private ContentType[] GetContentTypesWhereTheyAreAllowed(List<string> names)
         {
             return ContentType.GetContentTypes()
                     .Where(c => !names.Contains(c.Name))
                     .Where(c => c.AllowedChildTypeNames != null && c.AllowedChildTypeNames.Intersect(names).Any())
                     .ToArray();
         }
-        private ReferenceFieldSetting[] GetContentTypesWhereTheyAreAllowedInReferenceField(string[] names)
+        private ReferenceFieldSetting[] GetContentTypesWhereTheyAreAllowedInReferenceField(List<string> names)
         {
             return ContentType.GetContentTypes().SelectMany(t => t.FieldSettings)
                 .Where(f => f is ReferenceFieldSetting).Cast<ReferenceFieldSetting>()
@@ -149,7 +177,7 @@ namespace SenseNet.Packaging.Steps
                 .Distinct()
                 .ToArray();
         }
-        private Dictionary<string, string> GetContentPathsWhereTheyAreAllowedChildren(string[] names)
+        private Dictionary<string, string> GetContentPathsWhereTheyAreAllowedChildren(List<string> names)
         {
             var result = new Dictionary<string, string>();
 
@@ -188,7 +216,7 @@ WHERE p.Name = 'AllowedChildTypes' AND (
             return result;
         }
 
-        private RelatedSensitiveFolders GetRelatedFolders(string[] names)
+        private RelatedSensitiveFolders GetRelatedFolders(List<string> names)
         {
             var result = ContentQuery.Query(ContentRepository.SafeQueries.TypeIsAndName, QuerySettings.AdminSettings,
                 "Folder", names);
@@ -218,7 +246,7 @@ WHERE p.Name = 'AllowedChildTypes' AND (
         private void PrintDependencies(ContentTypeDependencies dependencies)
         {
             var names = dependencies.InheritedTypeNames.ToList();
-            names.Add(dependencies.ContentTypeName);
+            names.AddRange(dependencies.ContentTypeNames);
 
             var inheritedTypeNames = dependencies.InheritedTypeNames;
             Logger.LogMessage("  Dependencies: ");
@@ -284,15 +312,15 @@ WHERE p.Name = 'AllowedChildTypes' AND (
             }
         }
 
-        private void DeleteInstances(string contentTypeName)
+        private void DeleteInstances(string[] contentTypeNames)
         {
-            Logger.LogMessage($"Deleting content by content-type: {contentTypeName}");
+            var result = ContentQuery.CreateQuery(
+                    ContentRepository.SafeQueries.TypeIs, QuerySettings.AdminSettings, new object[] { contentTypeNames })
+                .Execute();
 
-            var nodes = ContentQuery.CreateQuery(
-                    ContentRepository.SafeQueries.TypeIs, QuerySettings.AdminSettings, contentTypeName)
-                .Execute().Nodes;
+            Logger.LogMessage($"Deleting {result.Count} content by matching content type{(contentTypeNames.Length > 1 ? "s" : "")}.");
 
-            foreach (var node in nodes)
+            foreach (var node in result.Nodes)
             {
                 Logger.LogMessage($"    {node.Path}");
                 node.ForceDelete();
@@ -327,7 +355,7 @@ WHERE p.Name = 'AllowedChildTypes' AND (
             Logger.LogMessage("Remove from allowed types:");
 
             var names = dependencies.InheritedTypeNames.ToList();
-            names.Add(dependencies.ContentTypeName);
+            names.AddRange(dependencies.ContentTypeNames);
             var ns = EditContentType.NamespacePrefix;
 
             if (dependencies.PermittingContentTypes.Length + dependencies.PermittingFieldSettings.Length > 0)
@@ -340,10 +368,10 @@ WHERE p.Name = 'AllowedChildTypes' AND (
                     var nsmgr = EditContentType.GetNamespaceManager(xml);
 
                     var allowedChildTypesElement =
-                        (XmlElement) xml.SelectSingleNode($"/{ns}:ContentType/{ns}:AllowedChildTypes", nsmgr);
+                        (XmlElement)xml.SelectSingleNode($"/{ns}:ContentType/{ns}:AllowedChildTypes", nsmgr);
                     if (allowedChildTypesElement != null)
                     {
-                        var oldList = allowedChildTypesElement.InnerText.Split(new[] {','},
+                        var oldList = allowedChildTypesElement.InnerText.Split(new[] { ',' },
                             StringSplitOptions.RemoveEmptyEntries);
                         var newList = oldList.Except(names).ToArray();
                         if (oldList.Length != newList.Length)
