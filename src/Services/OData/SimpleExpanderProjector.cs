@@ -107,9 +107,7 @@ namespace SenseNet.Portal.OData
 
                 var expansion = GetExpansion(ODataHandler.ChildrenPropertyName, expandTree);
 
-                return ProjectMultiRefContents(
-                    c.Children.AsEnumerable().Select(cnt => cnt.ContentHandler),
-                    new List<Property>(new[] { expansion }));
+                return ProjectMultiRefContents(c.Children.AsEnumerable().Select(cnt => cnt.ContentHandler), expansion.Children);
             });
 
             if (!outfields.ContainsKey(ICONPROPERTY))
