@@ -1,506 +1,551 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Linq;
 
 namespace SenseNet.ContentRepository.Storage
 {
 	public static class MimeTable
 	{
-		private static string[] _defaultMimeTypes;
-		private static Dictionary<string, string[]> _mimeByExtension;
-	    private static string[] _compressedTypes;
-        private static string[] _fontTypes;
+		private static readonly string[] DefaultMimeTypes;
+		private static readonly Dictionary<string, string[]> MimeByExtension;
+	    private static readonly string[] CompressedTypes;
+        private static readonly string[] FontTypes;
 
-        public static string DefaultMimeType
-        {
-            get { return _defaultMimeTypes[0]; }
-        }
+        public static string DefaultMimeType => DefaultMimeTypes[0];
 
-		static MimeTable()
+	    static MimeTable()
 		{
-			_defaultMimeTypes = new string[] { "application/octet-stream" };
-            _compressedTypes = new[] { "svgz" };
-            _fontTypes = new[] { "ttf", "woff", "eot", "svg" };
+			DefaultMimeTypes = new[] { "application/octet-stream" };
+            CompressedTypes = new[] { "svgz" };
+            FontTypes = new[] { "ttf", "woff", "eot", "svg" };
 
-			_mimeByExtension = new Dictionary<string, string[]>();
+		    MimeByExtension = new Dictionary<string, string[]>
+		    {
+		        {"content", new[] {"text/xml"}},
+		        {"contenttype", new[] {"text/xml"}},
+		        {"3dm", new[] {"x-world/x-3dmf"}},
+		        {"3dmf", new[] {"x-world/x-3dmf"}},
+		        {"a", new[] {"application/octet-stream"}},
+		        {"aab", new[] {"application/x-authorware-bin"}},
+		        {"aam", new[] {"application/x-authorware-map"}},
+		        {"aas", new[] {"application/x-authorware-seg"}},
+		        {"abc", new[] {"text/vnd.abc"}},
+		        {"acgi", new[] {"text/html"}},
+		        {"afl", new[] {"video/animaflex"}},
+		        {"ai", new[] {"application/postscript"}},
+		        {"aif", new[] {"audio/aiff", "audio/x-aiff"}},
+		        {"aifc", new[] {"audio/aiff", "audio/x-aiff"}},
+		        {"aiff", new[] {"audio/aiff", "audio/x-aiff"}},
+		        {"aim", new[] {"application/x-aim"}},
+		        {"aip", new[] {"text/x-audiosoft-intra"}},
+		        {"ani", new[] {"application/x-navi-animation"}},
+		        {"aos", new[] {"application/x-nokia-9000-communicator-add-on-software"}},
+		        {"aps", new[] {"application/mime"}},
+		        {"arc", new[] {"application/octet-stream"}},
+		        {"arj", new[] {"application/arj", "application/octet-stream"}},
+		        {"art", new[] {"image/x-jg"}},
+		        {"ascx", new[] {"text/asp"}},
+		        {"asf", new[] {"video/x-ms-asf"}},
+		        {"asm", new[] {"text/x-asm"}},
+		        {"asp", new[] {"text/asp"}},
+		        {"aspx", new[] {"text/asp"}},
+		        {"asx", new[] {"video/x-ms-asf", "video/x-ms-asf-plugin", "application/x-mplayer2"}},
+		        {"au", new[] {"audio/x-au", "audio/basic"}},
+		        {"avi", new[] {"video/avi", "video/msvideo", "video/x-msvideo", "application/x-troff-msvideo"}},
+		        {"avs", new[] {"video/avs-video"}},
+		        {"bcpio", new[] {"application/x-bcpio"}},
+		        {
+		            "bin",
+		            new[]
+		            {
+		                "application/octet-stream", "application/x-binary", "application/mac-binary", "application/macbinary",
+		                "application/x-macbinary"
+		            }
+		        },
+		        {"bm", new[] {"image/bmp"}},
+		        {"bmp", new[] {"image/bmp", "image/x-windows-bmp"}},
+		        {"boo", new[] {"application/book"}},
+		        {"book", new[] {"application/book"}},
+		        {"boz", new[] {"application/x-bzip2"}},
+		        {"bsh", new[] {"application/x-bsh"}},
+		        {"bz", new[] {"application/x-bzip"}},
+		        {"bz2", new[] {"application/x-bzip2"}},
+		        {"c", new[] {"text/x-c", "text/plain"}},
+		        {"c++", new[] {"text/plain"}},
+		        {"cat", new[] {"application/vnd.ms-pki.seccat"}},
+		        {"cc", new[] {"text/plain", "text/x-c"}},
+		        {"ccad", new[] {"application/clariscad"}},
+		        {"cco", new[] {"application/x-cocoa"}},
+		        {"cdf", new[] {"application/cdf", "application/x-cdf", "application/x-netcdf"}},
+		        {"cer", new[] {"application/pkix-cert", "application/x-x509-ca-cert"}},
+		        {"cha", new[] {"application/x-chat"}},
+		        {"chat", new[] {"application/x-chat"}},
+		        {"class", new[] {"application/java", "application/java-byte-code", "application/x-java-class"}},
+		        {"com", new[] {"text/plain", "application/octet-stream"}},
+		        {"conf", new[] {"text/plain"}},
+		        {"cpio", new[] {"application/x-cpio"}},
+		        {"cpp", new[] {"text/x-c"}},
+		        {"cpt", new[] {"application/x-cpt", "application/x-compactpro", "application/mac-compactpro"}},
+		        {"crl", new[] {"application/pkcs-crl", "application/pkix-crl"}},
+		        {"crt", new[] {"application/pkix-cert", "application/x-x509-ca-cert", "application/x-x509-user-cert"}},
+		        {"csh", new[] {"application/x-csh", "text/x-script.csh"}},
+		        {"css", new[] {"text/css", "application/x-pointplus"}},
+		        {"cxx", new[] {"text/plain"}},
+		        {"dcr", new[] {"application/x-director"}},
+		        {"deepv", new[] {"application/x-deepv"}},
+		        {"def", new[] {"text/plain"}},
+		        {"der", new[] {"application/x-x509-ca-cert"}},
+		        {"dif", new[] {"video/x-dv"}},
+		        {"dir", new[] {"application/x-director"}},
+		        {"dl", new[] {"video/dl", "video/x-dl"}},
+		        {"doc", new[] {"application/msword"}},
+		        {"docx", new[] {"application/vnd.openxmlformats-officedocument.wordprocessingml.document"}},
+		        {"dotx", new[] {"application/vnd.openxmlformats-officedocument.wordprocessingml.template"}},
+		        {"dot", new[] {"application/msword"}},
+		        {"dp", new[] {"application/commonground"}},
+		        {"drw", new[] {"application/drafting"}},
+		        {"dump", new[] {"application/octet-stream"}},
+		        {"dv", new[] {"video/x-dv"}},
+		        {"dvi", new[] {"application/x-dvi"}},
+		        {"dwf", new[] {"drawing/x-dwf", "model/vnd.dwf"}},
+		        {"dwg", new[] {"image/x-dwg", "application/acad", "image/vnd.dwg"}},
+		        {"dxf", new[] {"image/vnd.dwg", "image/x-dwg", "application/dxf"}},
+		        {"dxr", new[] {"application/x-director"}},
+		        {"el", new[] {"text/x-script.elisp"}},
+		        {"elc", new[] {"application/x-elc", "application/x-bytecode.elisp"}},
+		        {"env", new[] {"application/x-envoy"}},
+		        {"eot", new[] {"application/vnd.ms-fontobject"}},
+		        {"eps", new[] {"application/postscript"}},
+		        {"es", new[] {"application/x-esrehber"}},
+		        {"etx", new[] {"text/x-setext"}},
+		        {"evy", new[] {"application/envoy", "application/x-envoy"}},
+		        {"exe", new[] {"application/octet-stream"}},
+		        {"f", new[] {"text/plain", "text/x-fortran"}},
+		        {"f77", new[] {"text/x-fortran"}},
+		        {"f90", new[] {"text/plain", "text/x-fortran"}},
+		        {"fdf", new[] {"application/vnd.fdf"}},
+		        {"fif", new[] {"image/fif", "application/fractals"}},
+		        {"fli", new[] {"video/fli", "video/x-fli"}},
+		        {"flo", new[] {"image/florian"}},
+		        {"flx", new[] {"text/vnd.fmi.flexstor"}},
+		        {"fmf", new[] {"video/x-atomic3d-feature"}},
+		        {"for", new[] {"text/plain", "text/x-fortran"}},
+		        {"fpx", new[] {"image/vnd.fpx", "image/vnd.net-fpx"}},
+		        {"frl", new[] {"application/freeloader"}},
+		        {"funk", new[] {"audio/make"}},
+		        {"g", new[] {"text/plain"}},
+		        {"g3", new[] {"image/g3fax"}},
+		        {"gif", new[] {"image/gif"}},
+		        {"gl", new[] {"video/gl", "video/x-gl"}},
+		        {"gsd", new[] {"audio/x-gsm"}},
+		        {"gsm", new[] {"audio/x-gsm"}},
+		        {"gsp", new[] {"application/x-gsp"}},
+		        {"gss", new[] {"application/x-gss"}},
+		        {"gtar", new[] {"application/x-gtar"}},
+		        {"gz", new[] {"application/x-gzip", "application/x-compressed"}},
+		        {"gzip", new[] {"application/x-gzip", "multipart/x-gzip"}},
+		        {"h", new[] {"text/plain", "text/x-h"}},
+		        {"hdf", new[] {"application/x-hdf"}},
+		        {"help", new[] {"application/x-helpfile"}},
+		        {"hgl", new[] {"application/vnd.hp-hpgl"}},
+		        {"hh", new[] {"text/plain", "text/x-h"}},
+		        {"hlb", new[] {"text/x-script"}},
+		        {"hlp", new[] {"application/hlp", "application/x-helpfile", "application/x-winhelp"}},
+		        {"hpg", new[] {"application/vnd.hp-hpgl"}},
+		        {"hpgl", new[] {"application/vnd.hp-hpgl"}},
+		        {
+		            "hqx",
+		            new[]
+		            {
+		                "application/binhex", "application/binhex4", "application/mac-binhex", "application/mac-binhex40",
+		                "application/x-binhex40", "application/x-mac-binhex40"
+		            }
+		        },
+		        {"hta", new[] {"application/hta"}},
+		        {"htc", new[] {"text/x-component"}},
+		        {"htm", new[] {"text/html"}},
+		        {"html", new[] {"text/html"}},
+		        {"htmls", new[] {"text/html"}},
+		        {"htt", new[] {"text/webviewhtml"}},
+		        {"htx", new[] {"text/html"}},
+		        {"ice", new[] {"x-conference/x-cooltalk"}},
+		        {"ico", new[] {"image/x-icon"}},
+		        {"idc", new[] {"text/plain"}},
+		        {"ief", new[] {"image/ief"}},
+		        {"iefs", new[] {"image/ief"}},
+		        {"iges", new[] {"application/iges", "model/iges"}},
+		        {"igs", new[] {"model/iges", "application/iges"}},
+		        {"ima", new[] {"application/x-ima"}},
+		        {"imap", new[] {"application/x-httpd-imap"}},
+		        {"inf", new[] {"application/inf"}},
+		        {"ins", new[] {"application/x-internett-signup"}},
+		        {"ip", new[] {"application/x-ip2"}},
+		        {"isu", new[] {"video/x-isvideo"}},
+		        {"it", new[] {"audio/it"}},
+		        {"iv", new[] {"application/x-inventor"}},
+		        {"ivr", new[] {"i-world/i-vrml"}},
+		        {"ivy", new[] {"application/x-livescreen"}},
+		        {"jam", new[] {"audio/x-jam"}},
+		        {"jav", new[] {"text/plain", "text/x-java-source"}},
+		        {"java", new[] {"text/plain", "text/x-java-source"}},
+		        {"jcm", new[] {"application/x-java-commerce"}},
+		        {"jfif", new[] {"image/jpeg", "image/pjpeg"}},
+		        {"jfif-tbnl", new[] {"image/jpeg"}},
+		        {"jpe", new[] {"image/jpeg", "image/pjpeg"}},
+		        {"jpeg", new[] {"image/jpeg", "image/pjpeg"}},
+		        {"jpg", new[] {"image/jpeg", "image/pjpeg"}},
+		        {"jps", new[] {"image/x-jps"}},
+		        {"js", new[] {"application/x-javascript"}},
+		        {"jut", new[] {"image/jutvision"}},
+		        {"kar", new[] {"audio/midi", "music/x-karaoke"}},
+		        {"ksh", new[] {"application/x-ksh", "text/x-script.ksh"}},
+		        {"la", new[] {"audio/nspaudio", "audio/x-nspaudio"}},
+		        {"lam", new[] {"audio/x-liveaudio"}},
+		        {"latex", new[] {"application/x-latex"}},
+		        {"lha", new[] {"application/lha", "application/octet-stream", "application/x-lha"}},
+		        {"lhx", new[] {"application/octet-stream"}},
+		        {"list", new[] {"text/plain"}},
+		        {"lma", new[] {"audio/nspaudio", "audio/x-nspaudio"}},
+		        {"log", new[] {"text/plain"}},
+		        {"lsp", new[] {"application/x-lisp", "text/x-script.lisp"}},
+		        {"lst", new[] {"text/plain"}},
+		        {"lsx", new[] {"text/x-la-asf"}},
+		        {"ltx", new[] {"application/x-latex"}},
+		        {"lzh", new[] {"application/x-lzh", "application/octet-stream"}},
+		        {"lzx", new[] {"application/lzx", "application/octet-stream", "application/x-lzx"}},
+		        {"m", new[] {"text/plain", "text/x-m"}},
+		        {"m1v", new[] {"video/mpeg"}},
+		        {"m2a", new[] {"audio/mpeg"}},
+		        {"m2v", new[] {"video/mpeg"}},
+		        {"m3u", new[] {"audio/x-mpequrl"}},
+		        {"man", new[] {"application/x-troff-man"}},
+		        {"map", new[] {"application/x-navimap"}},
+		        {"mar", new[] {"text/plain"}},
+		        {"mbd", new[] {"application/mbedlet"}},
+		        {"mc$", new[] {"application/x-magic-cap-package-1.0"}},
+		        {"mcd", new[] {"application/mcad", "application/x-mathcad"}},
+		        {"mcf", new[] {"text/mcf", "image/vasa"}},
+		        {"mcp", new[] {"application/netmc"}},
+		        {"me", new[] {"application/x-troff-me"}},
+		        {"mht", new[] {"message/rfc822"}},
+		        {"mhtml", new[] {"message/rfc822"}},
+		        {
+		            "mid",
+		            new[]
+		            {
+		                "audio/midi", "application/x-midi", "audio/x-mid", "audio/x-midi", "music/crescendo", "x-music/x-midi"
+		            }
+		        },
+		        {
+		            "midi",
+		            new[]
+		            {
+		                "audio/midi", "application/x-midi", "audio/x-mid", "audio/x-midi", "music/crescendo", "x-music/x-midi"
+		            }
+		        },
+		        {"mif", new[] {"application/x-mif", "application/x-frame"}},
+		        {"mime", new[] {"www/mime", "message/rfc822"}},
+		        {"mjf", new[] {"audio/x-vnd.audioexplosion.mjuicemediafile"}},
+		        {"mjpg", new[] {"video/x-motion-jpeg"}},
+		        {"mm", new[] {"application/base64", "application/x-meme"}},
+		        {"mme", new[] {"application/base64"}},
+		        {"mod", new[] {"audio/mod", "audio/x-mod"}},
+		        {"moov", new[] {"video/quicktime"}},
+		        {"mov", new[] {"video/quicktime"}},
+		        {"movie", new[] {"video/x-sgi-movie"}},
+		        {"mp2", new[] {"audio/mpeg", "audio/x-mpeg", "video/mpeg", "video/x-mpeg", "video/x-mpeq2a"}},
+		        {"mp3", new[] {"video/mpeg", "audio/mpeg3", "audio/x-mpeg-3", "video/x-mpeg"}},
+		        {"mpa", new[] {"audio/mpeg", "video/mpeg"}},
+		        {"mpc", new[] {"application/x-project"}},
+		        {"mpe", new[] {"video/mpeg"}},
+		        {"mpeg", new[] {"video/mpeg"}},
+		        {"mpg", new[] {"video/mpeg", "audio/mpeg"}},
+		        {"mpga", new[] {"audio/mpeg"}},
+		        {"mpp", new[] {"application/vnd.ms-project"}},
+		        {"mpt", new[] {"application/x-project"}},
+		        {"mpv", new[] {"application/x-project"}},
+		        {"mpx", new[] {"application/x-project"}},
+		        {"mrc", new[] {"application/marc"}},
+		        {"ms", new[] {"application/x-troff-ms"}},
+		        {"mv", new[] {"video/x-sgi-movie"}},
+		        {"my", new[] {"audio/make"}},
+		        {"mzz", new[] {"application/x-vnd.audioexplosion.mzz"}},
+		        {"nap", new[] {"image/naplps"}},
+		        {"naplps", new[] {"image/naplps"}},
+		        {"nc", new[] {"application/x-netcdf"}},
+		        {"ncm", new[] {"application/vnd.nokia.configuration-message"}},
+		        {"nif", new[] {"image/x-niff"}},
+		        {"niff", new[] {"image/x-niff"}},
+		        {"nix", new[] {"application/x-mix-transfer"}},
+		        {"nsc", new[] {"application/x-conference"}},
+		        {"nvd", new[] {"application/x-navidoc"}},
+		        {"o", new[] {"application/octet-stream"}},
+		        {"oda", new[] {"application/oda"}},
+		        {"omc", new[] {"application/x-omc"}},
+		        {"omcd", new[] {"application/x-omcdatamaker"}},
+		        {"omcr", new[] {"application/x-omcregerator"}},
+		        {"otf", new[] {"font/opentype"}},
+		        {"p", new[] {"text/x-pascal"}},
+		        {"p10", new[] {"application/pkcs10", "application/x-pkcs10"}},
+		        {"p12", new[] {"application/pkcs-12", "application/x-pkcs12"}},
+		        {"p7a", new[] {"application/x-pkcs7-signature"}},
+		        {"p7c", new[] {"application/pkcs7-mime", "application/x-pkcs7-mime"}},
+		        {"p7m", new[] {"application/pkcs7-mime", "application/x-pkcs7-mime"}},
+		        {"p7r", new[] {"application/x-pkcs7-certreqresp"}},
+		        {"p7s", new[] {"application/pkcs7-signature"}},
+		        {"part", new[] {"application/pro_eng"}},
+		        {"pas", new[] {"text/pascal"}},
+		        {"pbm", new[] {"image/x-portable-bitmap"}},
+		        {"pcl", new[] {"application/vnd.hp-pcl", "application/x-pcl"}},
+		        {"pct", new[] {"image/x-pict"}},
+		        {"pcx", new[] {"image/x-pcx"}},
+		        {"pdb", new[] {"chemical/x-pdb"}},
+		        {"pdf", new[] {"application/pdf"}},
+		        {"pfunk", new[] {"audio/make", "audio/make.my.funk"}},
+		        {"pgm", new[] {"image/x-portable-graymap", "image/x-portable-greymap"}},
+		        {"pic", new[] {"image/pict"}},
+		        {"pict", new[] {"image/pict"}},
+		        {"pkg", new[] {"application/x-newton-compatible-pkg"}},
+		        {"pko", new[] {"application/vnd.ms-pki.pko"}},
+		        {"pl", new[] {"text/plain", "text/x-script.perl"}},
+		        {"plx", new[] {"application/x-pixclscript"}},
+		        {"pm", new[] {"image/x-xpixmap", "text/x-script.perl-module"}},
+		        {"pm4", new[] {"application/x-pagemaker"}},
+		        {"pm5", new[] {"application/x-pagemaker"}},
+		        {"png", new[] {"image/png"}},
+		        {"pnm", new[] {"application/x-portable-anymap", "image/x-portable-anymap"}},
+		        {"pot", new[] {"application/vnd.ms-powerpoint", "application/mspowerpoint"}},
+		        {"pov", new[] {"model/x-pov"}},
+		        {"ppa", new[] {"application/vnd.ms-powerpoint"}},
+		        {"ppm", new[] {"image/x-portable-pixmap"}},
+		        {"pps", new[] {"application/vnd.ms-powerpoint", "application/mspowerpoint"}},
+		        {
+		            "ppt",
+		            new[]
+		            {
+		                "application/vnd.ms-powerpoint", "application/powerpoint", "application/mspowerpoint",
+		                "application/x-mspowerpoint"
+		            }
+		        },
+		        {"pptx", new[] {"application/vnd.openxmlformats-officedocument.presentationml.presentation"}},
+		        {"ppz", new[] {"application/mspowerpoint"}},
+		        {"pre", new[] {"application/x-freelance"}},
+		        {"prt", new[] {"application/pro_eng"}},
+		        {"ps", new[] {"application/postscript"}},
+		        {"psd", new[] {"application/octet-stream"}},
+		        {"pvu", new[] {"paleovu/x-pv"}},
+		        {"pwz", new[] {"application/vnd.ms-powerpoint"}},
+		        {"py", new[] {"text/x-script.phyton"}},
+		        {"pyc", new[] {"applicaiton/x-bytecode.python"}},
+		        {"qcp", new[] {"audio/vnd.qcelp"}},
+		        {"qd3", new[] {"x-world/x-3dmf"}},
+		        {"qd3d", new[] {"x-world/x-3dmf"}},
+		        {"qif", new[] {"image/x-quicktime"}},
+		        {"qt", new[] {"video/quicktime"}},
+		        {"qtc", new[] {"video/x-qtc"}},
+		        {"qti", new[] {"image/x-quicktime"}},
+		        {"qtif", new[] {"image/x-quicktime"}},
+		        {"ra", new[] {"audio/x-pn-realaudio", "audio/x-pn-realaudio-plugin", "audio/x-realaudio"}},
+		        {"ram", new[] {"audio/x-pn-realaudio"}},
+		        {"ras", new[] {"image/cmu-raster", "image/x-cmu-raster", "application/x-cmu-raster"}},
+		        {"rast", new[] {"image/cmu-raster"}},
+		        {"rexx", new[] {"text/x-script.rexx"}},
+		        {"rf", new[] {"image/vnd.rn-realflash"}},
+		        {"rgb", new[] {"image/x-rgb"}},
+		        {"rm", new[] {"application/vnd.rn-realmedia", "audio/x-pn-realaudio"}},
+		        {"rmi", new[] {"audio/mid"}},
+		        {"rmm", new[] {"audio/x-pn-realaudio"}},
+		        {"rmp", new[] {"audio/x-pn-realaudio", "audio/x-pn-realaudio-plugin"}},
+		        {"rng", new[] {"application/vnd.nokia.ringing-tone", "application/ringing-tones"}},
+		        {"rnx", new[] {"application/vnd.rn-realplayer"}},
+		        {"roff", new[] {"application/x-troff"}},
+		        {"rp", new[] {"image/vnd.rn-realpix"}},
+		        {"rpm", new[] {"audio/x-pn-realaudio-plugin"}},
+		        {"rt", new[] {"text/richtext", "text/vnd.rn-realtext"}},
+		        {"rtf", new[] {"text/richtext", "application/rtf", "application/x-rtf"}},
+		        {"rtx", new[] {"text/richtext", "application/rtf"}},
+		        {"rv", new[] {"video/vnd.rn-realvideo"}},
+		        {"s", new[] {"text/x-asm"}},
+		        {"s3m", new[] {"audio/s3m"}},
+		        {"saveme", new[] {"application/octet-stream"}},
+		        {"sbk", new[] {"application/x-tbook"}},
+		        {
+		            "scm",
+		            new[]
+		                {"application/x-lotusscreencam", "text/x-script.guile", "text/x-script.scheme", "video/x-scm"}
+		        },
+		        {"sdml", new[] {"text/plain"}},
+		        {"sdp", new[] {"application/sdp", "application/x-sdp"}},
+		        {"sdr", new[] {"application/sounder"}},
+		        {"sea", new[] {"application/sea", "application/x-sea"}},
+		        {"set", new[] {"application/set"}},
+		        {"sgm", new[] {"text/sgml", "text/x-sgml"}},
+		        {"sgml", new[] {"text/sgml", "text/x-sgml"}},
+		        {"sh", new[] {"application/x-sh", "application/x-bsh", "application/x-shar", "text/x-script.sh"}},
+		        {"shar", new[] {"application/x-bsh", "application/x-shar"}},
+		        {"shtml", new[] {"text/html", "text/x-server-parsed-html"}},
+		        {"sid", new[] {"audio/x-psid"}},
+		        {"sit", new[] {"application/x-sit", "application/x-stuffit"}},
+		        {"skd", new[] {"application/x-koan"}},
+		        {"skm", new[] {"application/x-koan"}},
+		        {"skp", new[] {"application/x-koan"}},
+		        {"skt", new[] {"application/x-koan"}},
+		        {"sl", new[] {"application/x-seelogo"}},
+		        {"smi", new[] {"application/smil"}},
+		        {"smil", new[] {"application/smil"}},
+		        {"snd", new[] {"audio/basic", "audio/x-adpcm"}},
+		        {"sol", new[] {"application/solids"}},
+		        {"spc", new[] {"text/x-speech", "application/x-pkcs7-certificates"}},
+		        {"spl", new[] {"application/futuresplash"}},
+		        {"spr", new[] {"application/x-sprite"}},
+		        {"sprite", new[] {"application/x-sprite"}},
+		        {"src", new[] {"application/x-wais-source"}},
+		        {"ssi", new[] {"text/x-server-parsed-html"}},
+		        {"ssm", new[] {"application/streamingmedia"}},
+		        {"sst", new[] {"application/vnd.ms-pki.certstore"}},
+		        {"step", new[] {"application/step"}},
+		        {"stl", new[] {"application/vnd.ms-pki.stl", "application/sla", "application/x-navistyle"}},
+		        {"stp", new[] {"application/step"}},
+		        {"sv4cpio", new[] {"application/x-sv4cpio"}},
+		        {"sv4crc", new[] {"application/x-sv4crc"}},
+		        {"svf", new[] {"image/vnd.dwg", "image/x-dwg"}},
+		        {"svg", new[] {"image/svg+xml"}},
+		        {"svgz", new[] {"image/svg+xml"}},
+		        {"svr", new[] {"application/x-world", "x-world/x-svr"}},
+		        {"swf", new[] {"application/x-shockwave-flash"}},
+		        {"t", new[] {"application/x-troff"}},
+		        {"talk", new[] {"text/x-speech"}},
+		        {"tar", new[] {"application/x-tar"}},
+		        {"tbk", new[] {"application/toolbook", "application/x-tbook"}},
+		        {"tcl", new[] {"application/x-tcl", "text/x-script.tcl"}},
+		        {"tcsh", new[] {"text/x-script.tcsh"}},
+		        {"tex", new[] {"application/x-tex"}},
+		        {"texi", new[] {"application/x-texinfo"}},
+		        {"texinfo", new[] {"application/x-texinfo"}},
+		        {"text", new[] {"text/plain", "application/plain"}},
+		        {"tgz", new[] {"application/x-compressed", "application/gnutar"}},
+		        {"tif", new[] {"image/tiff", "image/x-tiff"}},
+		        {"tiff", new[] {"image/tiff", "image/x-tiff"}},
+		        {"tr", new[] {"application/x-troff"}},
+		        {"tsi", new[] {"audio/tsp-audio"}},
+		        {"tsp", new[] {"application/dsptype", "audio/tsplayer"}},
+		        {"tsv", new[] {"text/tab-separated-values"}},
+		        {"ttf", new[] {"application/x-font-ttf"}},
+		        {"turbot", new[] {"image/florian"}},
+		        {"txt", new[] {"text/plain"}},
+		        {"uil", new[] {"text/x-uil"}},
+		        {"uni", new[] {"text/uri-list"}},
+		        {"unis", new[] {"text/uri-list"}},
+		        {"unv", new[] {"application/i-deas"}},
+		        {"uri", new[] {"text/uri-list"}},
+		        {"uris", new[] {"text/uri-list"}},
+		        {"ustar", new[] {"multipart/x-ustar", "application/x-ustar"}},
+		        {"uu", new[] {"text/x-uuencode", "application/octet-stream"}},
+		        {"uue", new[] {"text/x-uuencode"}},
+		        {"vcd", new[] {"application/x-cdlink"}},
+		        {"vcs", new[] {"text/x-vcalendar"}},
+		        {"vda", new[] {"application/vda"}},
+		        {"vdo", new[] {"video/vdo"}},
+		        {"vew", new[] {"application/groupwise"}},
+		        {"viv", new[] {"video/vivo", "video/vnd.vivo"}},
+		        {"vivo", new[] {"video/vivo", "video/vnd.vivo"}},
+		        {"vmd", new[] {"application/vocaltec-media-desc"}},
+		        {"vmf", new[] {"application/vocaltec-media-file"}},
+		        {"voc", new[] {"audio/voc", "audio/x-voc"}},
+		        {"vos", new[] {"video/vosaic"}},
+		        {"vox", new[] {"audio/voxware"}},
+		        {"vqe", new[] {"audio/x-twinvq-plugin"}},
+		        {"vqf", new[] {"audio/x-twinvq"}},
+		        {"vql", new[] {"audio/x-twinvq-plugin"}},
+		        {"vrml", new[] {"model/vrml", "application/x-vrml", "x-world/x-vrml"}},
+		        {"vrt", new[] {"x-world/x-vrt"}},
+		        {"vsd", new[] {"application/x-visio"}},
+		        {"vst", new[] {"application/x-visio"}},
+		        {"vsw", new[] {"application/x-visio"}},
+		        {"w60", new[] {"application/wordperfect6.0"}},
+		        {"w61", new[] {"application/wordperfect6.1"}},
+		        {"w6w", new[] {"application/msword"}},
+		        {"wav", new[] {"audio/wav", "audio/x-wav"}},
+		        {"wb1", new[] {"application/x-qpro"}},
+		        {"wbmp", new[] {"image/vnd.wap.wbmp"}},
+		        {"web", new[] {"application/vnd.xara"}},
+		        {"wiz", new[] {"application/msword"}},
+		        {"wk1", new[] {"application/x-123"}},
+		        {"wmf", new[] {"windows/metafile"}},
+		        {"wml", new[] {"text/vnd.wap.wml"}},
+		        {"wmlc", new[] {"application/vnd.wap.wmlc"}},
+		        {"wmls", new[] {"text/vnd.wap.wmlscript"}},
+		        {"wmlsc", new[] {"application/vnd.wap.wmlscriptc"}},
+		        {"woff", new[] {"application/x-font-woff"}},
+		        {"word", new[] {"application/msword"}},
+		        {"wp", new[] {"application/wordperfect"}},
+		        {"wp5", new[] {"application/wordperfect"}},
+		        {"wp6", new[] {"application/wordperfect"}},
+		        {"wpd", new[] {"application/wordperfect", "application/x-wpwin"}},
+		        {"wq1", new[] {"application/x-lotus"}},
+		        {"wri", new[] {"application/mswrite", "application/x-wri"}},
+		        {"wrl", new[] {"model/vrml", "application/x-world", "x-world/x-vrml"}},
+		        {"wrz", new[] {"model/vrml", "x-world/x-vrml"}},
+		        {"wsc", new[] {"text/scriplet"}},
+		        {"wsrc", new[] {"application/x-wais-source"}},
+		        {"wtk", new[] {"application/x-wintalk"}},
+		        {"xbm", new[] {"image/xbm", "image/x-xbitmap", "image/x-xbm"}},
+		        {"xdr", new[] {"video/x-amt-demorun"}},
+		        {"xgz", new[] {"xgl/drawing"}},
+		        {"xif", new[] {"image/vnd.xiff"}},
+		        {"xl", new[] {"application/excel"}},
+		        {"xla", new[] {"application/excel", "application/x-excel", "application/x-msexcel"}},
+		        {"xlb", new[] {"application/vnd.ms-excel", "application/excel", "application/x-excel"}},
+		        {"xlc", new[] {"application/vnd.ms-excel", "application/excel", "application/x-excel"}},
+		        {"xld", new[] {"application/excel", "application/x-excel"}},
+		        {"xlk", new[] {"application/excel", "application/x-excel"}},
+		        {"xll", new[] {"application/vnd.ms-excel", "application/excel", "application/x-excel"}},
+		        {"xlm", new[] {"application/vnd.ms-excel", "application/excel", "application/x-excel"}},
+		        {
+		            "xls",
+		            new[]
+		                {"application/vnd.ms-excel", "application/excel", "application/x-excel", "application/x-msexcel"}
+		        },
+		        {"xlsx", new[] {"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}},
+		        {"xltx", new[] {"application/vnd.openxmlformats-officedocument.spreadsheetml.template"}},
+		        {"xlt", new[] {"application/excel", "application/x-excel"}},
+		        {"xlv", new[] {"application/excel", "application/x-excel"}},
+		        {
+		            "xlw",
+		            new[]
+		                {"application/vnd.ms-excel", "application/excel", "application/x-excel", "application/x-msexcel"}
+		        },
+		        {"xm", new[] {"audio/xm"}},
+		        {"xml", new[] {"text/xml", "application/xml"}},
+		        {"xmz", new[] {"xgl/movie"}},
+		        {"xpix", new[] {"application/x-vnd.ls-xpix"}},
+		        {"xpm", new[] {"image/xpm", "image/x-xpixmap"}},
+		        {"x-png", new[] {"image/png"}},
+		        {"xsr", new[] {"video/x-amt-showrun"}},
+		        {"xwd", new[] {"image/x-xwd", "image/x-xwindowdump"}},
+		        {"xyz", new[] {"chemical/x-pdb"}},
+		        {"z", new[] {"application/x-compressed", "application/x-compress"}},
+		        {
+		            "zip",
+		            new[]
+		                {"application/zip", "application/x-compressed", "application/x-zip-compressed", "multipart/x-zip"}
+		        },
+		        {"zoo", new[] {"application/octet-stream"}},
+		        {"zsh", new[] {"text/x-script.zsh"}}
+		    };
 
-			_mimeByExtension.Add("content", new string[] { "text/xml" });
-			_mimeByExtension.Add("contenttype", new string[] { "text/xml" });
 
-			_mimeByExtension.Add("3dm", new string[] { "x-world/x-3dmf" });
-			_mimeByExtension.Add("3dmf", new string[] { "x-world/x-3dmf" });
-			_mimeByExtension.Add("a", new string[] { "application/octet-stream" });
-			_mimeByExtension.Add("aab", new string[] { "application/x-authorware-bin" });
-			_mimeByExtension.Add("aam", new string[] { "application/x-authorware-map" });
-			_mimeByExtension.Add("aas", new string[] { "application/x-authorware-seg" });
-			_mimeByExtension.Add("abc", new string[] { "text/vnd.abc" });
-			_mimeByExtension.Add("acgi", new string[] { "text/html" });
-			_mimeByExtension.Add("afl", new string[] { "video/animaflex" });
-			_mimeByExtension.Add("ai", new string[] { "application/postscript" });
-			_mimeByExtension.Add("aif", new string[] { "audio/aiff", "audio/x-aiff" });
-			_mimeByExtension.Add("aifc", new string[] { "audio/aiff", "audio/x-aiff" });
-			_mimeByExtension.Add("aiff", new string[] { "audio/aiff", "audio/x-aiff" });
-			_mimeByExtension.Add("aim", new string[] { "application/x-aim" });
-			_mimeByExtension.Add("aip", new string[] { "text/x-audiosoft-intra" });
-			_mimeByExtension.Add("ani", new string[] { "application/x-navi-animation" });
-			_mimeByExtension.Add("aos", new string[] { "application/x-nokia-9000-communicator-add-on-software" });
-			_mimeByExtension.Add("aps", new string[] { "application/mime" });
-			_mimeByExtension.Add("arc", new string[] { "application/octet-stream" });
-			_mimeByExtension.Add("arj", new string[] { "application/arj", "application/octet-stream" });
-			_mimeByExtension.Add("art", new string[] { "image/x-jg" });
-			_mimeByExtension.Add("ascx", new string[] { "text/asp" });
-			_mimeByExtension.Add("asf", new string[] { "video/x-ms-asf" });
-			_mimeByExtension.Add("asm", new string[] { "text/x-asm" });
-			_mimeByExtension.Add("asp", new string[] { "text/asp" });
-			_mimeByExtension.Add("aspx", new string[] { "text/asp" });
-			_mimeByExtension.Add("asx", new string[] { "video/x-ms-asf", "video/x-ms-asf-plugin", "application/x-mplayer2" });
-			_mimeByExtension.Add("au", new string[] { "audio/x-au", "audio/basic" });
-			_mimeByExtension.Add("avi", new string[] { "video/avi", "video/msvideo", "video/x-msvideo", "application/x-troff-msvideo" });
-			_mimeByExtension.Add("avs", new string[] { "video/avs-video" });
-			_mimeByExtension.Add("bcpio", new string[] { "application/x-bcpio" });
-			_mimeByExtension.Add("bin", new string[] { "application/octet-stream", "application/x-binary", "application/mac-binary", "application/macbinary", "application/x-macbinary" });
-			_mimeByExtension.Add("bm", new string[] { "image/bmp" });
-			_mimeByExtension.Add("bmp", new string[] { "image/bmp", "image/x-windows-bmp" });
-			_mimeByExtension.Add("boo", new string[] { "application/book" });
-			_mimeByExtension.Add("book", new string[] { "application/book" });
-			_mimeByExtension.Add("boz", new string[] { "application/x-bzip2" });
-			_mimeByExtension.Add("bsh", new string[] { "application/x-bsh" });
-			_mimeByExtension.Add("bz", new string[] { "application/x-bzip" });
-			_mimeByExtension.Add("bz2", new string[] { "application/x-bzip2" });
-			_mimeByExtension.Add("c", new string[] { "text/x-c", "text/plain" });
-			_mimeByExtension.Add("c++", new string[] { "text/plain" });
-			_mimeByExtension.Add("cat", new string[] { "application/vnd.ms-pki.seccat" });
-			_mimeByExtension.Add("cc", new string[] { "text/plain", "text/x-c" });
-			_mimeByExtension.Add("ccad", new string[] { "application/clariscad" });
-			_mimeByExtension.Add("cco", new string[] { "application/x-cocoa" });
-			_mimeByExtension.Add("cdf", new string[] { "application/cdf", "application/x-cdf", "application/x-netcdf" });
-			_mimeByExtension.Add("cer", new string[] { "application/pkix-cert", "application/x-x509-ca-cert" });
-			_mimeByExtension.Add("cha", new string[] { "application/x-chat" });
-			_mimeByExtension.Add("chat", new string[] { "application/x-chat" });
-			_mimeByExtension.Add("class", new string[] { "application/java", "application/java-byte-code", "application/x-java-class" });
-			_mimeByExtension.Add("com", new string[] { "text/plain", "application/octet-stream" });
-			_mimeByExtension.Add("conf", new string[] { "text/plain" });
-			_mimeByExtension.Add("cpio", new string[] { "application/x-cpio" });
-			_mimeByExtension.Add("cpp", new string[] { "text/x-c" });
-			_mimeByExtension.Add("cpt", new string[] { "application/x-cpt", "application/x-compactpro", "application/mac-compactpro" });
-			_mimeByExtension.Add("crl", new string[] { "application/pkcs-crl", "application/pkix-crl" });
-			_mimeByExtension.Add("crt", new string[] { "application/pkix-cert", "application/x-x509-ca-cert", "application/x-x509-user-cert" });
-			_mimeByExtension.Add("csh", new string[] { "application/x-csh", "text/x-script.csh" });
-			_mimeByExtension.Add("css", new string[] { "text/css", "application/x-pointplus" });
-			_mimeByExtension.Add("cxx", new string[] { "text/plain" });
-			_mimeByExtension.Add("dcr", new string[] { "application/x-director" });
-			_mimeByExtension.Add("deepv", new string[] { "application/x-deepv" });
-			_mimeByExtension.Add("def", new string[] { "text/plain" });
-			_mimeByExtension.Add("der", new string[] { "application/x-x509-ca-cert" });
-			_mimeByExtension.Add("dif", new string[] { "video/x-dv" });
-			_mimeByExtension.Add("dir", new string[] { "application/x-director" });
-			_mimeByExtension.Add("dl", new string[] { "video/dl", "video/x-dl" });
-			_mimeByExtension.Add("doc", new string[] { "application/msword" });
-            _mimeByExtension.Add("docx", new string[] { "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
-            _mimeByExtension.Add("dotx", new string[] { "application/vnd.openxmlformats-officedocument.wordprocessingml.template" });
-			_mimeByExtension.Add("dot", new string[] { "application/msword" });
-			_mimeByExtension.Add("dp", new string[] { "application/commonground" });
-			_mimeByExtension.Add("drw", new string[] { "application/drafting" });
-			_mimeByExtension.Add("dump", new string[] { "application/octet-stream" });
-			_mimeByExtension.Add("dv", new string[] { "video/x-dv" });
-			_mimeByExtension.Add("dvi", new string[] { "application/x-dvi" });
-			_mimeByExtension.Add("dwf", new string[] { "drawing/x-dwf", "model/vnd.dwf" });
-			_mimeByExtension.Add("dwg", new string[] { "image/x-dwg", "application/acad", "image/vnd.dwg" });
-			_mimeByExtension.Add("dxf", new string[] { "image/vnd.dwg", "image/x-dwg", "application/dxf" });
-			_mimeByExtension.Add("dxr", new string[] { "application/x-director" });
-			_mimeByExtension.Add("el", new string[] { "text/x-script.elisp" });
-			_mimeByExtension.Add("elc", new string[] { "application/x-elc", "application/x-bytecode.elisp" });
-			_mimeByExtension.Add("env", new string[] { "application/x-envoy" });
-            _mimeByExtension.Add("eot", new string[] { "application/vnd.ms-fontobject" });
-			_mimeByExtension.Add("eps", new string[] { "application/postscript" });
-			_mimeByExtension.Add("es", new string[] { "application/x-esrehber" });
-			_mimeByExtension.Add("etx", new string[] { "text/x-setext" });
-			_mimeByExtension.Add("evy", new string[] { "application/envoy", "application/x-envoy" });
-			_mimeByExtension.Add("exe", new string[] { "application/octet-stream" });
-			_mimeByExtension.Add("f", new string[] { "text/plain", "text/x-fortran" });
-			_mimeByExtension.Add("f77", new string[] { "text/x-fortran" });
-			_mimeByExtension.Add("f90", new string[] { "text/plain", "text/x-fortran" });
-			_mimeByExtension.Add("fdf", new string[] { "application/vnd.fdf" });
-			_mimeByExtension.Add("fif", new string[] { "image/fif", "application/fractals" });
-			_mimeByExtension.Add("fli", new string[] { "video/fli", "video/x-fli" });
-			_mimeByExtension.Add("flo", new string[] { "image/florian" });
-			_mimeByExtension.Add("flx", new string[] { "text/vnd.fmi.flexstor" });
-			_mimeByExtension.Add("fmf", new string[] { "video/x-atomic3d-feature" });
-			_mimeByExtension.Add("for", new string[] { "text/plain", "text/x-fortran" });
-			_mimeByExtension.Add("fpx", new string[] { "image/vnd.fpx", "image/vnd.net-fpx" });
-			_mimeByExtension.Add("frl", new string[] { "application/freeloader" });
-			_mimeByExtension.Add("funk", new string[] { "audio/make" });
-			_mimeByExtension.Add("g", new string[] { "text/plain" });
-			_mimeByExtension.Add("g3", new string[] { "image/g3fax" });
-			_mimeByExtension.Add("gif", new string[] { "image/gif" });
-			_mimeByExtension.Add("gl", new string[] { "video/gl", "video/x-gl" });
-			_mimeByExtension.Add("gsd", new string[] { "audio/x-gsm" });
-			_mimeByExtension.Add("gsm", new string[] { "audio/x-gsm" });
-			_mimeByExtension.Add("gsp", new string[] { "application/x-gsp" });
-			_mimeByExtension.Add("gss", new string[] { "application/x-gss" });
-			_mimeByExtension.Add("gtar", new string[] { "application/x-gtar" });
-			_mimeByExtension.Add("gz", new string[] { "application/x-gzip", "application/x-compressed" });
-			_mimeByExtension.Add("gzip", new string[] { "application/x-gzip", "multipart/x-gzip" });
-			_mimeByExtension.Add("h", new string[] { "text/plain", "text/x-h" });
-			_mimeByExtension.Add("hdf", new string[] { "application/x-hdf" });
-			_mimeByExtension.Add("help", new string[] { "application/x-helpfile" });
-			_mimeByExtension.Add("hgl", new string[] { "application/vnd.hp-hpgl" });
-			_mimeByExtension.Add("hh", new string[] { "text/plain", "text/x-h" });
-			_mimeByExtension.Add("hlb", new string[] { "text/x-script" });
-			_mimeByExtension.Add("hlp", new string[] { "application/hlp", "application/x-helpfile", "application/x-winhelp" });
-			_mimeByExtension.Add("hpg", new string[] { "application/vnd.hp-hpgl" });
-			_mimeByExtension.Add("hpgl", new string[] { "application/vnd.hp-hpgl" });
-			_mimeByExtension.Add("hqx", new string[] { "application/binhex", "application/binhex4", "application/mac-binhex", "application/mac-binhex40", "application/x-binhex40", "application/x-mac-binhex40" });
-			_mimeByExtension.Add("hta", new string[] { "application/hta" });
-			_mimeByExtension.Add("htc", new string[] { "text/x-component" });
-			_mimeByExtension.Add("htm", new string[] { "text/html" });
-			_mimeByExtension.Add("html", new string[] { "text/html" });
-			_mimeByExtension.Add("htmls", new string[] { "text/html" });
-			_mimeByExtension.Add("htt", new string[] { "text/webviewhtml" });
-			_mimeByExtension.Add("htx", new string[] { "text/html" });
-			_mimeByExtension.Add("ice", new string[] { "x-conference/x-cooltalk" });
-			_mimeByExtension.Add("ico", new string[] { "image/x-icon" });
-			_mimeByExtension.Add("idc", new string[] { "text/plain" });
-			_mimeByExtension.Add("ief", new string[] { "image/ief" });
-			_mimeByExtension.Add("iefs", new string[] { "image/ief" });
-			_mimeByExtension.Add("iges", new string[] { "application/iges", "model/iges" });
-			_mimeByExtension.Add("igs", new string[] { "model/iges", "application/iges" });
-			_mimeByExtension.Add("ima", new string[] { "application/x-ima" });
-			_mimeByExtension.Add("imap", new string[] { "application/x-httpd-imap" });
-			_mimeByExtension.Add("inf", new string[] { "application/inf" });
-			_mimeByExtension.Add("ins", new string[] { "application/x-internett-signup" });
-			_mimeByExtension.Add("ip", new string[] { "application/x-ip2" });
-			_mimeByExtension.Add("isu", new string[] { "video/x-isvideo" });
-			_mimeByExtension.Add("it", new string[] { "audio/it" });
-			_mimeByExtension.Add("iv", new string[] { "application/x-inventor" });
-			_mimeByExtension.Add("ivr", new string[] { "i-world/i-vrml" });
-			_mimeByExtension.Add("ivy", new string[] { "application/x-livescreen" });
-			_mimeByExtension.Add("jam", new string[] { "audio/x-jam" });
-			_mimeByExtension.Add("jav", new string[] { "text/plain", "text/x-java-source" });
-			_mimeByExtension.Add("java", new string[] { "text/plain", "text/x-java-source" });
-			_mimeByExtension.Add("jcm", new string[] { "application/x-java-commerce" });
-			_mimeByExtension.Add("jfif", new string[] { "image/jpeg", "image/pjpeg" });
-			_mimeByExtension.Add("jfif-tbnl", new string[] { "image/jpeg" });
-			_mimeByExtension.Add("jpe", new string[] { "image/jpeg", "image/pjpeg" });
-			_mimeByExtension.Add("jpeg", new string[] { "image/jpeg", "image/pjpeg" });
-			_mimeByExtension.Add("jpg", new string[] { "image/jpeg", "image/pjpeg" });
-			_mimeByExtension.Add("jps", new string[] { "image/x-jps" });
-			_mimeByExtension.Add("js", new string[] { "application/x-javascript" });
-			_mimeByExtension.Add("jut", new string[] { "image/jutvision" });
-			_mimeByExtension.Add("kar", new string[] { "audio/midi", "music/x-karaoke" });
-			_mimeByExtension.Add("ksh", new string[] { "application/x-ksh", "text/x-script.ksh" });
-			_mimeByExtension.Add("la", new string[] { "audio/nspaudio", "audio/x-nspaudio" });
-			_mimeByExtension.Add("lam", new string[] { "audio/x-liveaudio" });
-			_mimeByExtension.Add("latex", new string[] { "application/x-latex" });
-			_mimeByExtension.Add("lha", new string[] { "application/lha", "application/octet-stream", "application/x-lha" });
-			_mimeByExtension.Add("lhx", new string[] { "application/octet-stream" });
-			_mimeByExtension.Add("list", new string[] { "text/plain" });
-			_mimeByExtension.Add("lma", new string[] { "audio/nspaudio", "audio/x-nspaudio" });
-			_mimeByExtension.Add("log", new string[] { "text/plain" });
-			_mimeByExtension.Add("lsp", new string[] { "application/x-lisp", "text/x-script.lisp" });
-			_mimeByExtension.Add("lst", new string[] { "text/plain" });
-			_mimeByExtension.Add("lsx", new string[] { "text/x-la-asf" });
-			_mimeByExtension.Add("ltx", new string[] { "application/x-latex" });
-			_mimeByExtension.Add("lzh", new string[] { "application/x-lzh", "application/octet-stream" });
-			_mimeByExtension.Add("lzx", new string[] { "application/lzx", "application/octet-stream", "application/x-lzx" });
-			_mimeByExtension.Add("m", new string[] { "text/plain", "text/x-m" });
-			_mimeByExtension.Add("m1v", new string[] { "video/mpeg" });
-			_mimeByExtension.Add("m2a", new string[] { "audio/mpeg" });
-			_mimeByExtension.Add("m2v", new string[] { "video/mpeg" });
-			_mimeByExtension.Add("m3u", new string[] { "audio/x-mpequrl" });
-			_mimeByExtension.Add("man", new string[] { "application/x-troff-man" });
-			_mimeByExtension.Add("map", new string[] { "application/x-navimap" });
-			_mimeByExtension.Add("mar", new string[] { "text/plain" });
-			_mimeByExtension.Add("mbd", new string[] { "application/mbedlet" });
-			_mimeByExtension.Add("mc$", new string[] { "application/x-magic-cap-package-1.0" });
-			_mimeByExtension.Add("mcd", new string[] { "application/mcad", "application/x-mathcad" });
-			_mimeByExtension.Add("mcf", new string[] { "text/mcf", "image/vasa" });
-			_mimeByExtension.Add("mcp", new string[] { "application/netmc" });
-			_mimeByExtension.Add("me", new string[] { "application/x-troff-me" });
-			_mimeByExtension.Add("mht", new string[] { "message/rfc822" });
-			_mimeByExtension.Add("mhtml", new string[] { "message/rfc822" });
-			_mimeByExtension.Add("mid", new string[] { "audio/midi", "application/x-midi", "audio/x-mid", "audio/x-midi", "music/crescendo", "x-music/x-midi" });
-			_mimeByExtension.Add("midi", new string[] { "audio/midi", "application/x-midi", "audio/x-mid", "audio/x-midi", "music/crescendo", "x-music/x-midi" });
-			_mimeByExtension.Add("mif", new string[] { "application/x-mif", "application/x-frame" });
-			_mimeByExtension.Add("mime", new string[] { "www/mime", "message/rfc822" });
-			_mimeByExtension.Add("mjf", new string[] { "audio/x-vnd.audioexplosion.mjuicemediafile" });
-			_mimeByExtension.Add("mjpg", new string[] { "video/x-motion-jpeg" });
-			_mimeByExtension.Add("mm", new string[] { "application/base64", "application/x-meme" });
-			_mimeByExtension.Add("mme", new string[] { "application/base64" });
-			_mimeByExtension.Add("mod", new string[] { "audio/mod", "audio/x-mod" });
-			_mimeByExtension.Add("moov", new string[] { "video/quicktime" });
-			_mimeByExtension.Add("mov", new string[] { "video/quicktime" });
-			_mimeByExtension.Add("movie", new string[] { "video/x-sgi-movie" });
-			_mimeByExtension.Add("mp2", new string[] { "audio/mpeg", "audio/x-mpeg", "video/mpeg", "video/x-mpeg", "video/x-mpeq2a" });
-			_mimeByExtension.Add("mp3", new string[] { "video/mpeg", "audio/mpeg3", "audio/x-mpeg-3", "video/x-mpeg" });
-			_mimeByExtension.Add("mpa", new string[] { "audio/mpeg", "video/mpeg" });
-			_mimeByExtension.Add("mpc", new string[] { "application/x-project" });
-			_mimeByExtension.Add("mpe", new string[] { "video/mpeg" });
-			_mimeByExtension.Add("mpeg", new string[] { "video/mpeg" });
-			_mimeByExtension.Add("mpg", new string[] { "video/mpeg", "audio/mpeg" });
-			_mimeByExtension.Add("mpga", new string[] { "audio/mpeg" });
-			_mimeByExtension.Add("mpp", new string[] { "application/vnd.ms-project" });
-			_mimeByExtension.Add("mpt", new string[] { "application/x-project" });
-			_mimeByExtension.Add("mpv", new string[] { "application/x-project" });
-			_mimeByExtension.Add("mpx", new string[] { "application/x-project" });
-			_mimeByExtension.Add("mrc", new string[] { "application/marc" });
-			_mimeByExtension.Add("ms", new string[] { "application/x-troff-ms" });
-			_mimeByExtension.Add("mv", new string[] { "video/x-sgi-movie" });
-			_mimeByExtension.Add("my", new string[] { "audio/make" });
-			_mimeByExtension.Add("mzz", new string[] { "application/x-vnd.audioexplosion.mzz" });
-			_mimeByExtension.Add("nap", new string[] { "image/naplps" });
-			_mimeByExtension.Add("naplps", new string[] { "image/naplps" });
-			_mimeByExtension.Add("nc", new string[] { "application/x-netcdf" });
-			_mimeByExtension.Add("ncm", new string[] { "application/vnd.nokia.configuration-message" });
-			_mimeByExtension.Add("nif", new string[] { "image/x-niff" });
-			_mimeByExtension.Add("niff", new string[] { "image/x-niff" });
-			_mimeByExtension.Add("nix", new string[] { "application/x-mix-transfer" });
-			_mimeByExtension.Add("nsc", new string[] { "application/x-conference" });
-			_mimeByExtension.Add("nvd", new string[] { "application/x-navidoc" });
-			_mimeByExtension.Add("o", new string[] { "application/octet-stream" });
-			_mimeByExtension.Add("oda", new string[] { "application/oda" });
-			_mimeByExtension.Add("omc", new string[] { "application/x-omc" });
-			_mimeByExtension.Add("omcd", new string[] { "application/x-omcdatamaker" });
-			_mimeByExtension.Add("omcr", new string[] { "application/x-omcregerator" });
-            _mimeByExtension.Add("otf", new string[] { "font/opentype" });
-			_mimeByExtension.Add("p", new string[] { "text/x-pascal" });
-			_mimeByExtension.Add("p10", new string[] { "application/pkcs10", "application/x-pkcs10" });
-			_mimeByExtension.Add("p12", new string[] { "application/pkcs-12", "application/x-pkcs12" });
-			_mimeByExtension.Add("p7a", new string[] { "application/x-pkcs7-signature" });
-			_mimeByExtension.Add("p7c", new string[] { "application/pkcs7-mime", "application/x-pkcs7-mime" });
-			_mimeByExtension.Add("p7m", new string[] { "application/pkcs7-mime", "application/x-pkcs7-mime" });
-			_mimeByExtension.Add("p7r", new string[] { "application/x-pkcs7-certreqresp" });
-			_mimeByExtension.Add("p7s", new string[] { "application/pkcs7-signature" });
-			_mimeByExtension.Add("part", new string[] { "application/pro_eng" });
-			_mimeByExtension.Add("pas", new string[] { "text/pascal" });
-			_mimeByExtension.Add("pbm", new string[] { "image/x-portable-bitmap" });
-			_mimeByExtension.Add("pcl", new string[] { "application/vnd.hp-pcl", "application/x-pcl" });
-			_mimeByExtension.Add("pct", new string[] { "image/x-pict" });
-			_mimeByExtension.Add("pcx", new string[] { "image/x-pcx" });
-			_mimeByExtension.Add("pdb", new string[] { "chemical/x-pdb" });
-			_mimeByExtension.Add("pdf", new string[] { "application/pdf" });
-			_mimeByExtension.Add("pfunk", new string[] { "audio/make", "audio/make.my.funk" });
-			_mimeByExtension.Add("pgm", new string[] { "image/x-portable-graymap", "image/x-portable-greymap" });
-			_mimeByExtension.Add("pic", new string[] { "image/pict" });
-			_mimeByExtension.Add("pict", new string[] { "image/pict" });
-			_mimeByExtension.Add("pkg", new string[] { "application/x-newton-compatible-pkg" });
-			_mimeByExtension.Add("pko", new string[] { "application/vnd.ms-pki.pko" });
-			_mimeByExtension.Add("pl", new string[] { "text/plain", "text/x-script.perl" });
-			_mimeByExtension.Add("plx", new string[] { "application/x-pixclscript" });
-			_mimeByExtension.Add("pm", new string[] { "image/x-xpixmap", "text/x-script.perl-module" });
-			_mimeByExtension.Add("pm4", new string[] { "application/x-pagemaker" });
-			_mimeByExtension.Add("pm5", new string[] { "application/x-pagemaker" });
-			_mimeByExtension.Add("png", new string[] { "image/png" });
-			_mimeByExtension.Add("pnm", new string[] { "application/x-portable-anymap", "image/x-portable-anymap" });
-		    _mimeByExtension.Add("pot", new string[] { "application/vnd.ms-powerpoint", "application/mspowerpoint" });
-			_mimeByExtension.Add("pov", new string[] { "model/x-pov" });
-			_mimeByExtension.Add("ppa", new string[] { "application/vnd.ms-powerpoint" });
-			_mimeByExtension.Add("ppm", new string[] { "image/x-portable-pixmap" });
-			_mimeByExtension.Add("pps", new string[] { "application/vnd.ms-powerpoint", "application/mspowerpoint" });
-			_mimeByExtension.Add("ppt", new string[] { "application/vnd.ms-powerpoint", "application/powerpoint", "application/mspowerpoint", "application/x-mspowerpoint" });
-            _mimeByExtension.Add("pptx", new string[] { "application/vnd.openxmlformats-officedocument.presentationml.presentation" });
-			_mimeByExtension.Add("ppz", new string[] { "application/mspowerpoint" });
-			_mimeByExtension.Add("pre", new string[] { "application/x-freelance" });
-			_mimeByExtension.Add("prt", new string[] { "application/pro_eng" });
-			_mimeByExtension.Add("ps", new string[] { "application/postscript" });
-			_mimeByExtension.Add("psd", new string[] { "application/octet-stream" });
-			_mimeByExtension.Add("pvu", new string[] { "paleovu/x-pv" });
-			_mimeByExtension.Add("pwz", new string[] { "application/vnd.ms-powerpoint" });
-			_mimeByExtension.Add("py", new string[] { "text/x-script.phyton" });
-			_mimeByExtension.Add("pyc", new string[] { "applicaiton/x-bytecode.python" });
-			_mimeByExtension.Add("qcp", new string[] { "audio/vnd.qcelp" });
-			_mimeByExtension.Add("qd3", new string[] { "x-world/x-3dmf" });
-			_mimeByExtension.Add("qd3d", new string[] { "x-world/x-3dmf" });
-			_mimeByExtension.Add("qif", new string[] { "image/x-quicktime" });
-			_mimeByExtension.Add("qt", new string[] { "video/quicktime" });
-			_mimeByExtension.Add("qtc", new string[] { "video/x-qtc" });
-			_mimeByExtension.Add("qti", new string[] { "image/x-quicktime" });
-			_mimeByExtension.Add("qtif", new string[] { "image/x-quicktime" });
-			_mimeByExtension.Add("ra", new string[] { "audio/x-pn-realaudio", "audio/x-pn-realaudio-plugin", "audio/x-realaudio" });
-			_mimeByExtension.Add("ram", new string[] { "audio/x-pn-realaudio" });
-			_mimeByExtension.Add("ras", new string[] { "image/cmu-raster", "image/x-cmu-raster", "application/x-cmu-raster" });
-			_mimeByExtension.Add("rast", new string[] { "image/cmu-raster" });
-			_mimeByExtension.Add("rexx", new string[] { "text/x-script.rexx" });
-			_mimeByExtension.Add("rf", new string[] { "image/vnd.rn-realflash" });
-			_mimeByExtension.Add("rgb", new string[] { "image/x-rgb" });
-			_mimeByExtension.Add("rm", new string[] { "application/vnd.rn-realmedia", "audio/x-pn-realaudio" });
-			_mimeByExtension.Add("rmi", new string[] { "audio/mid" });
-			_mimeByExtension.Add("rmm", new string[] { "audio/x-pn-realaudio" });
-			_mimeByExtension.Add("rmp", new string[] { "audio/x-pn-realaudio", "audio/x-pn-realaudio-plugin" });
-			_mimeByExtension.Add("rng", new string[] { "application/vnd.nokia.ringing-tone", "application/ringing-tones" });
-			_mimeByExtension.Add("rnx", new string[] { "application/vnd.rn-realplayer" });
-			_mimeByExtension.Add("roff", new string[] { "application/x-troff" });
-			_mimeByExtension.Add("rp", new string[] { "image/vnd.rn-realpix" });
-			_mimeByExtension.Add("rpm", new string[] { "audio/x-pn-realaudio-plugin" });
-			_mimeByExtension.Add("rt", new string[] { "text/richtext", "text/vnd.rn-realtext" });
-			_mimeByExtension.Add("rtf", new string[] { "text/richtext", "application/rtf", "application/x-rtf" });
-			_mimeByExtension.Add("rtx", new string[] { "text/richtext", "application/rtf" });
-			_mimeByExtension.Add("rv", new string[] { "video/vnd.rn-realvideo" });
-			_mimeByExtension.Add("s", new string[] { "text/x-asm" });
-			_mimeByExtension.Add("s3m", new string[] { "audio/s3m" });
-			_mimeByExtension.Add("saveme", new string[] { "application/octet-stream" });
-			_mimeByExtension.Add("sbk", new string[] { "application/x-tbook" });
-			_mimeByExtension.Add("scm", new string[] { "application/x-lotusscreencam", "text/x-script.guile", "text/x-script.scheme", "video/x-scm" });
-			_mimeByExtension.Add("sdml", new string[] { "text/plain" });
-			_mimeByExtension.Add("sdp", new string[] { "application/sdp", "application/x-sdp" });
-			_mimeByExtension.Add("sdr", new string[] { "application/sounder" });
-			_mimeByExtension.Add("sea", new string[] { "application/sea", "application/x-sea" });
-			_mimeByExtension.Add("set", new string[] { "application/set" });
-			_mimeByExtension.Add("sgm", new string[] { "text/sgml", "text/x-sgml" });
-			_mimeByExtension.Add("sgml", new string[] { "text/sgml", "text/x-sgml" });
-			_mimeByExtension.Add("sh", new string[] { "application/x-sh", "application/x-bsh", "application/x-shar", "text/x-script.sh" });
-			_mimeByExtension.Add("shar", new string[] { "application/x-bsh", "application/x-shar" });
-			_mimeByExtension.Add("shtml", new string[] { "text/html", "text/x-server-parsed-html" });
-			_mimeByExtension.Add("sid", new string[] { "audio/x-psid" });
-			_mimeByExtension.Add("sit", new string[] { "application/x-sit", "application/x-stuffit" });
-			_mimeByExtension.Add("skd", new string[] { "application/x-koan" });
-			_mimeByExtension.Add("skm", new string[] { "application/x-koan" });
-			_mimeByExtension.Add("skp", new string[] { "application/x-koan" });
-			_mimeByExtension.Add("skt", new string[] { "application/x-koan" });
-			_mimeByExtension.Add("sl", new string[] { "application/x-seelogo" });
-			_mimeByExtension.Add("smi", new string[] { "application/smil" });
-			_mimeByExtension.Add("smil", new string[] { "application/smil" });
-			_mimeByExtension.Add("snd", new string[] { "audio/basic", "audio/x-adpcm" });
-			_mimeByExtension.Add("sol", new string[] { "application/solids" });
-			_mimeByExtension.Add("spc", new string[] { "text/x-speech", "application/x-pkcs7-certificates" });
-			_mimeByExtension.Add("spl", new string[] { "application/futuresplash" });
-			_mimeByExtension.Add("spr", new string[] { "application/x-sprite" });
-			_mimeByExtension.Add("sprite", new string[] { "application/x-sprite" });
-			_mimeByExtension.Add("src", new string[] { "application/x-wais-source" });
-			_mimeByExtension.Add("ssi", new string[] { "text/x-server-parsed-html" });
-			_mimeByExtension.Add("ssm", new string[] { "application/streamingmedia" });
-			_mimeByExtension.Add("sst", new string[] { "application/vnd.ms-pki.certstore" });
-			_mimeByExtension.Add("step", new string[] { "application/step" });
-			_mimeByExtension.Add("stl", new string[] { "application/vnd.ms-pki.stl", "application/sla", "application/x-navistyle" });
-			_mimeByExtension.Add("stp", new string[] { "application/step" });
-			_mimeByExtension.Add("sv4cpio", new string[] { "application/x-sv4cpio" });
-			_mimeByExtension.Add("sv4crc", new string[] { "application/x-sv4crc" });
-			_mimeByExtension.Add("svf", new string[] { "image/vnd.dwg", "image/x-dwg" });
-            _mimeByExtension.Add("svg", new string[] { "image/svg+xml" });
-            _mimeByExtension.Add("svgz", new string[] { "image/svg+xml" });
-			_mimeByExtension.Add("svr", new string[] { "application/x-world", "x-world/x-svr" });
-			_mimeByExtension.Add("swf", new string[] { "application/x-shockwave-flash" });
-			_mimeByExtension.Add("t", new string[] { "application/x-troff" });
-			_mimeByExtension.Add("talk", new string[] { "text/x-speech" });
-			_mimeByExtension.Add("tar", new string[] { "application/x-tar" });
-			_mimeByExtension.Add("tbk", new string[] { "application/toolbook", "application/x-tbook" });
-			_mimeByExtension.Add("tcl", new string[] { "application/x-tcl", "text/x-script.tcl" });
-			_mimeByExtension.Add("tcsh", new string[] { "text/x-script.tcsh" });
-			_mimeByExtension.Add("tex", new string[] { "application/x-tex" });
-			_mimeByExtension.Add("texi", new string[] { "application/x-texinfo" });
-			_mimeByExtension.Add("texinfo", new string[] { "application/x-texinfo" });
-			_mimeByExtension.Add("text", new string[] { "text/plain", "application/plain" });
-			_mimeByExtension.Add("tgz", new string[] { "application/x-compressed", "application/gnutar" });
-			_mimeByExtension.Add("tif", new string[] { "image/tiff", "image/x-tiff" });
-			_mimeByExtension.Add("tiff", new string[] { "image/tiff", "image/x-tiff" });
-			_mimeByExtension.Add("tr", new string[] { "application/x-troff" });
-			_mimeByExtension.Add("tsi", new string[] { "audio/tsp-audio" });
-			_mimeByExtension.Add("tsp", new string[] { "application/dsptype", "audio/tsplayer" });
-			_mimeByExtension.Add("tsv", new string[] { "text/tab-separated-values" });
-            _mimeByExtension.Add("ttf", new string[] { "application/x-font-ttf" });
-			_mimeByExtension.Add("turbot", new string[] { "image/florian" });
-			_mimeByExtension.Add("txt", new string[] { "text/plain" });
-			_mimeByExtension.Add("uil", new string[] { "text/x-uil" });
-			_mimeByExtension.Add("uni", new string[] { "text/uri-list" });
-			_mimeByExtension.Add("unis", new string[] { "text/uri-list" });
-			_mimeByExtension.Add("unv", new string[] { "application/i-deas" });
-			_mimeByExtension.Add("uri", new string[] { "text/uri-list" });
-			_mimeByExtension.Add("uris", new string[] { "text/uri-list" });
-			_mimeByExtension.Add("ustar", new string[] { "multipart/x-ustar", "application/x-ustar" });
-			_mimeByExtension.Add("uu", new string[] { "text/x-uuencode", "application/octet-stream" });
-			_mimeByExtension.Add("uue", new string[] { "text/x-uuencode" });
-			_mimeByExtension.Add("vcd", new string[] { "application/x-cdlink" });
-			_mimeByExtension.Add("vcs", new string[] { "text/x-vcalendar" });
-			_mimeByExtension.Add("vda", new string[] { "application/vda" });
-			_mimeByExtension.Add("vdo", new string[] { "video/vdo" });
-			_mimeByExtension.Add("vew", new string[] { "application/groupwise" });
-			_mimeByExtension.Add("viv", new string[] { "video/vivo", "video/vnd.vivo" });
-			_mimeByExtension.Add("vivo", new string[] { "video/vivo", "video/vnd.vivo" });
-			_mimeByExtension.Add("vmd", new string[] { "application/vocaltec-media-desc" });
-			_mimeByExtension.Add("vmf", new string[] { "application/vocaltec-media-file" });
-			_mimeByExtension.Add("voc", new string[] { "audio/voc", "audio/x-voc" });
-			_mimeByExtension.Add("vos", new string[] { "video/vosaic" });
-			_mimeByExtension.Add("vox", new string[] { "audio/voxware" });
-			_mimeByExtension.Add("vqe", new string[] { "audio/x-twinvq-plugin" });
-			_mimeByExtension.Add("vqf", new string[] { "audio/x-twinvq" });
-			_mimeByExtension.Add("vql", new string[] { "audio/x-twinvq-plugin" });
-			_mimeByExtension.Add("vrml", new string[] { "model/vrml", "application/x-vrml", "x-world/x-vrml" });
-			_mimeByExtension.Add("vrt", new string[] { "x-world/x-vrt" });
-			_mimeByExtension.Add("vsd", new string[] { "application/x-visio" });
-			_mimeByExtension.Add("vst", new string[] { "application/x-visio" });
-			_mimeByExtension.Add("vsw", new string[] { "application/x-visio" });
-			_mimeByExtension.Add("w60", new string[] { "application/wordperfect6.0" });
-			_mimeByExtension.Add("w61", new string[] { "application/wordperfect6.1" });
-			_mimeByExtension.Add("w6w", new string[] { "application/msword" });
-			_mimeByExtension.Add("wav", new string[] { "audio/wav", "audio/x-wav" });
-			_mimeByExtension.Add("wb1", new string[] { "application/x-qpro" });
-			_mimeByExtension.Add("wbmp", new string[] { "image/vnd.wap.wbmp" });
-			_mimeByExtension.Add("web", new string[] { "application/vnd.xara" });
-			_mimeByExtension.Add("wiz", new string[] { "application/msword" });
-			_mimeByExtension.Add("wk1", new string[] { "application/x-123" });
-			_mimeByExtension.Add("wmf", new string[] { "windows/metafile" });
-			_mimeByExtension.Add("wml", new string[] { "text/vnd.wap.wml" });
-			_mimeByExtension.Add("wmlc", new string[] { "application/vnd.wap.wmlc" });
-			_mimeByExtension.Add("wmls", new string[] { "text/vnd.wap.wmlscript" });
-			_mimeByExtension.Add("wmlsc", new string[] { "application/vnd.wap.wmlscriptc" });
-            _mimeByExtension.Add("woff", new string[] { "application/x-font-woff" });
-			_mimeByExtension.Add("word", new string[] { "application/msword" });
-			_mimeByExtension.Add("wp", new string[] { "application/wordperfect" });
-			_mimeByExtension.Add("wp5", new string[] { "application/wordperfect" });
-			_mimeByExtension.Add("wp6", new string[] { "application/wordperfect" });
-			_mimeByExtension.Add("wpd", new string[] { "application/wordperfect", "application/x-wpwin" });
-			_mimeByExtension.Add("wq1", new string[] { "application/x-lotus" });
-			_mimeByExtension.Add("wri", new string[] { "application/mswrite", "application/x-wri" });
-			_mimeByExtension.Add("wrl", new string[] { "model/vrml", "application/x-world", "x-world/x-vrml" });
-			_mimeByExtension.Add("wrz", new string[] { "model/vrml", "x-world/x-vrml" });
-			_mimeByExtension.Add("wsc", new string[] { "text/scriplet" });
-			_mimeByExtension.Add("wsrc", new string[] { "application/x-wais-source" });
-			_mimeByExtension.Add("wtk", new string[] { "application/x-wintalk" });
-			_mimeByExtension.Add("xbm", new string[] { "image/xbm", "image/x-xbitmap", "image/x-xbm" });
-			_mimeByExtension.Add("xdr", new string[] { "video/x-amt-demorun" });
-			_mimeByExtension.Add("xgz", new string[] { "xgl/drawing" });
-			_mimeByExtension.Add("xif", new string[] { "image/vnd.xiff" });
-			_mimeByExtension.Add("xl", new string[] { "application/excel" });
-			_mimeByExtension.Add("xla", new string[] { "application/excel", "application/x-excel", "application/x-msexcel" });
-			_mimeByExtension.Add("xlb", new string[] { "application/vnd.ms-excel", "application/excel", "application/x-excel" });
-			_mimeByExtension.Add("xlc", new string[] { "application/vnd.ms-excel", "application/excel", "application/x-excel" });
-			_mimeByExtension.Add("xld", new string[] { "application/excel", "application/x-excel" });
-			_mimeByExtension.Add("xlk", new string[] { "application/excel", "application/x-excel" });
-			_mimeByExtension.Add("xll", new string[] { "application/vnd.ms-excel", "application/excel", "application/x-excel" });
-			_mimeByExtension.Add("xlm", new string[] { "application/vnd.ms-excel", "application/excel", "application/x-excel" });
-			_mimeByExtension.Add("xls", new string[] { "application/vnd.ms-excel", "application/excel", "application/x-excel", "application/x-msexcel" });
-            _mimeByExtension.Add("xlsx", new string[] { "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-            _mimeByExtension.Add("xltx", new string[] { "application/vnd.openxmlformats-officedocument.spreadsheetml.template" });
-			_mimeByExtension.Add("xlt", new string[] { "application/excel", "application/x-excel" });
-			_mimeByExtension.Add("xlv", new string[] { "application/excel", "application/x-excel" });
-			_mimeByExtension.Add("xlw", new string[] { "application/vnd.ms-excel", "application/excel", "application/x-excel", "application/x-msexcel" });
-			_mimeByExtension.Add("xm", new string[] { "audio/xm" });
-			_mimeByExtension.Add("xml", new string[] { "text/xml", "application/xml" });
-			_mimeByExtension.Add("xmz", new string[] { "xgl/movie" });
-			_mimeByExtension.Add("xpix", new string[] { "application/x-vnd.ls-xpix" });
-			_mimeByExtension.Add("xpm", new string[] { "image/xpm", "image/x-xpixmap" });
-			_mimeByExtension.Add("x-png", new string[] { "image/png" });
-			_mimeByExtension.Add("xsr", new string[] { "video/x-amt-showrun" });
-			_mimeByExtension.Add("xwd", new string[] { "image/x-xwd", "image/x-xwindowdump" });
-			_mimeByExtension.Add("xyz", new string[] { "chemical/x-pdb" });
-			_mimeByExtension.Add("z", new string[] { "application/x-compressed", "application/x-compress" });
-			_mimeByExtension.Add("zip", new string[] { "application/zip", "application/x-compressed", "application/x-zip-compressed", "multipart/x-zip" });
-			_mimeByExtension.Add("zoo", new string[] { "application/octet-stream" });
-			_mimeByExtension.Add("zsh", new string[] { "text/x-script.zsh" });
 		}
 
 		public static string[] GetKnownExtensions()
 		{
-			string[] keys = new string[_mimeByExtension.Count];
-			_mimeByExtension.Keys.CopyTo(keys, 0);
+			string[] keys = new string[MimeByExtension.Count];
+			MimeByExtension.Keys.CopyTo(keys, 0);
 			return keys;
 		}
         public static string[] GetMimeTypes(string fileExtension)
 		{
-			string[] mimes;
-
-            return _mimeByExtension.TryGetValue(GetPureExtension(fileExtension), out mimes) ? mimes : _defaultMimeTypes;
+		    return MimeByExtension.TryGetValue(GetPureExtension(fileExtension), out var mimes) ? mimes : DefaultMimeTypes;
 		}
         public static string GetMimeType(string fileExtension)
 		{
@@ -508,12 +553,12 @@ namespace SenseNet.ContentRepository.Storage
 		}
         public static bool IsCompressedType(string fileExtension)
         {
-            return _compressedTypes.Contains(GetPureExtension(fileExtension));
+            return CompressedTypes.Contains(GetPureExtension(fileExtension));
         }
 
         public static bool IsFontType(string fileExtension)
         {
-            return _fontTypes.Contains(GetPureExtension(fileExtension));
+            return FontTypes.Contains(GetPureExtension(fileExtension));
         }
 
         private static string GetPureExtension(string fileExtension)
