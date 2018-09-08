@@ -5,7 +5,6 @@ using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Packaging.Steps.Internal;
 using SenseNet.Packaging.Tests.Implementations;
-using SenseNet.Search;
 using SenseNet.Tests;
 
 namespace SenseNet.Packaging.Tests.StepTests
@@ -31,41 +30,30 @@ namespace SenseNet.Packaging.Tests.StepTests
         }
 
         [TestMethod]
-        public void Step_UndoChanges_All()
+        public void Step_UndoChanges_All() => Test(() =>
         {
-            Test(() =>
-            {
-                var parent = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
+            var parent = new SystemFolder(Repository.Root) { Name = Guid.NewGuid().ToString() };
+            parent.Save();
 
-                try
-                {
-                    parent.Save();
+            var file = new File(parent);
+            file.Save();
+            file.CheckOut();
 
-                    var file = new File(parent);
-                    file.Save();
-                    file.CheckOut();
-                    
-                    Assert.IsTrue(GetLockedCount() > 0);
-                    Assert.AreEqual(VersionStatus.Locked, file.Version.Status);
+            Assert.IsTrue(GetLockedCount() > 0);
+            Assert.AreEqual(VersionStatus.Locked, file.Version.Status);
 
-                    // undo all changes in the repo
-                    UndoChanges.UndoContentChanges();
+            // undo all changes in the repo
+            UndoChanges.UndoContentChanges();
 
-                    file = Node.Load<File>(file.Id);
+            file = Node.Load<File>(file.Id);
 
-                    Assert.IsTrue(GetLockedCount() == 0);
-                    Assert.AreNotEqual(VersionStatus.Locked, file.Version.Status);
-                }
-                finally 
-                {
-                    parent.ForceDelete();
-                }
-            });
-        }
+            Assert.IsTrue(GetLockedCount() == 0);
+            Assert.AreNotEqual(VersionStatus.Locked, file.Version.Status);
+        });
 
         private static int GetLockedCount()
         {
-            return ContentQuery.Query(SafeQueries.LockedContent, QuerySettings.AdminSettings).Count;
+            return CreateSafeContentQuery("+Locked:true").Execute().Count;
         }
     }
 }
