@@ -147,21 +147,14 @@ namespace SenseNet.ContentRepository
 	    {
 	        var binaryData = file.Binary;
 
-	        var mimeTypeOriginal = binaryData.ContentType;
-
 	        if (string.IsNullOrEmpty(binaryData.FileName))
+	        {
+	            var mimeTypeOriginal = binaryData.ContentType;
 	            binaryData.FileName = file.Name;
+	            if (!string.IsNullOrEmpty(mimeTypeOriginal))
+	                binaryData.ContentType = mimeTypeOriginal;
+	        }
 
-	        if (string.IsNullOrEmpty(mimeTypeOriginal))
-	        {
-	            var extension = System.IO.Path.GetExtension(file.Name);
-	            var mimeType = MimeTable.GetMimeType(extension);
-	            binaryData.ContentType = mimeType;
-	        }
-	        else
-	        {
-	            binaryData.ContentType = mimeTypeOriginal;
-	        }
         }
     }
 }
