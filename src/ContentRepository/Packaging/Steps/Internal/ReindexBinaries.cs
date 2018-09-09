@@ -181,6 +181,8 @@ namespace SenseNet.Packaging.Steps.Internal
         }
         internal static bool IsFeatureActive()
         {
+            if (Debugger.IsAttached)
+                return false;
             if (Process.GetCurrentProcess().ProcessName.Equals("SnAdminRuntime", StringComparison.InvariantCultureIgnoreCase))
                 return false;
 
