@@ -8,7 +8,7 @@ namespace SenseNet.Packaging.Steps.Internal
         /// -WorkflowInstanceGuid:"00000000-0000-0000-0000-000000000000"'</summary>
         public static string ConnectedAbortedAndCompletedWorkflows => "+TypeIs:Workflow +WorkflowStatus:(Aborted Completed) -WorkflowInstanceGuid:\"00000000-0000-0000-0000-000000000000\"";
 
-        /// <summary>Returns the following query: +TypeIs:@0 +Locked:true</summary>
-        public static string LockedContent => "+TypeIs:@0 +Locked:true";
+        /// <summary>Returns the following query: +TypeIs:@0 +InTree:@1 +Locked:true</summary>
+        public static string LockedContentByPath => "+TypeIs:@0 +InTree:@1 +Locked:true";
     }
 }
