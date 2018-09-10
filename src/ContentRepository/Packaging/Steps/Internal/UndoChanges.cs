@@ -38,6 +38,8 @@ namespace SenseNet.Packaging.Steps.Internal
             if (string.IsNullOrEmpty(path))
                 path = "/Root";
 
+            var error = false;
+
             using (new SystemAccount())
             {
                 Parallel.ForEach(ContentQuery
@@ -47,9 +49,21 @@ namespace SenseNet.Packaging.Steps.Internal
                     gc =>
                     {
                         Logger.LogMessage($"UNDO changes: {gc.Path}");
-                        gc.UndoCheckOut();
+
+                        try
+                        {
+                            gc.UndoCheckOut();
+                        }
+                        catch (Exception ex)
+                        {
+                            error = true;
+                            Logger.LogException(ex, $"Error during undo changes of {gc.Path} (v: {gc.Version})");
+                        }
                     });
             }
+
+            if (error)
+                throw new InvalidOperationException("One or more errors occured during UndoChanges, please check the log.");
         }
     }
 }
