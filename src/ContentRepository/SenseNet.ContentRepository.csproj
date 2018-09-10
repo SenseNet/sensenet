@@ -183,6 +183,7 @@
     <Compile Include="Packaging\Steps\Internal\ReindexBinaries.cs" />
     <Compile Include="Packaging\Steps\Internal\ReindexBinariesDataHandler.cs" />
     <Compile Include="Packaging\Steps\Internal\ReindexBinariesTask.cs" />
+    <Compile Include="Packaging\Steps\Internal\UndoChanges.cs" />
     <Compile Include="Packaging\Steps\Internal\UpgradeProviderConfiguration.cs" />
     <Compile Include="Packaging\Steps\SelectXmlValue.cs" />
     <Compile Include="Packaging\Steps\WhileDatabaseValue.cs" />
