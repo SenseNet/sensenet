@@ -303,7 +303,13 @@ namespace SenseNet.ContentRepository
 
         protected override void PropertyChanged([CallerMemberName] string propertyName = null)
         {
-            this.Content.PropertyChanged(propertyName);
+            if (_content == null)
+            {
+                SnTrace.Test.Write("Content.PropertyChanged SKIPPED");
+                return;
+            }
+
+            _content.PropertyChanged(propertyName);
             base.PropertyChanged(propertyName);
         }
 
