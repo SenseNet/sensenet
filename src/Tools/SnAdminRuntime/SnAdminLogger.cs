@@ -13,6 +13,7 @@ namespace SenseNet.Tools.SnAdmin
         private const int LINELENGTH = 80;
 
         protected Dictionary<char, string> _lines;
+        private readonly object _writeSync = new object();
 
         public virtual LogLevel AcceptedLevel { get { return LogLevel.File; } }
 
@@ -37,7 +38,10 @@ namespace SenseNet.Tools.SnAdmin
         }
         public void WriteMessage(string message)
         {
-            LogWriteLine(message);
+            lock (_writeSync)
+            {
+                LogWriteLine(message);
+            }
         }
 
         private string Center(string text)
