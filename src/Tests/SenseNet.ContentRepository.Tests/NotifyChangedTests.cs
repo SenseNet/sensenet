@@ -58,7 +58,7 @@ namespace SenseNet.ContentRepository.Tests
                     case nameof(CustomInt1):
                         return this.CustomInt1;
                     default:
-                        return base[name];
+                        return base.GetProperty(name);
                 }
             }
             public override void SetProperty(string name, object value)
@@ -72,7 +72,7 @@ namespace SenseNet.ContentRepository.Tests
                         this.CustomInt1 = (int)value;
                         break;
                     default:
-                        base[name] = value;
+                        base.SetProperty(name, value);
                         break;
                 }
             }
@@ -84,51 +84,62 @@ namespace SenseNet.ContentRepository.Tests
         {
             var contentName = MethodBase.GetCurrentMethod().Name;
             SnTrace.Test.Enabled = false;
-            Test(() =>
+            var tracer = new SnDebugViewTracer();
+            SnTrace.SnTracers.Add(tracer);
+            try
             {
-                SnTrace.Test.Write(">>>> START");
+                Test(() =>
+                {
+                    SnTrace.Test.Write(">>>> START");
 
-                SnTrace.Test.Write(">>>> var node = new SystemFolder(Repository.Root) {{ Name = contentName, Index = 1 }};");
-                var node = new SystemFolder(Repository.Root) { Name = contentName, Index = 1 };
-                SnTrace.Test.Write(">>>> var fieldName = nameof(node.Index);");
-                var fieldName = nameof(node.Index);
-                SnTrace.Test.Write(">>>> var content = node.Content;");
-                var content = node.Content;
-                SnTrace.Test.Write(">>>> Assert.AreEqual(1, (int)content[fieldName]);");
-                Assert.AreEqual(1, (int)content[fieldName]);
+                    SnTrace.Test.Write(
+                        ">>>> var node = new SystemFolder(Repository.Root) {{ Name = contentName, Index = 1 }};");
+                    var node = new SystemFolder(Repository.Root) {Name = contentName, Index = 1};
+                    SnTrace.Test.Write(">>>> var fieldName = nameof(node.Index);");
+                    var fieldName = nameof(node.Index);
+                    SnTrace.Test.Write(">>>> var content = node.Content;");
+                    var content = node.Content;
+                    SnTrace.Test.Write(">>>> Assert.AreEqual(1, (int)content[fieldName]);");
+                    Assert.AreEqual(1, (int) content[fieldName]);
 
-                SnTrace.Test.Write(">>>> node.Index = 2;");
-                node.Index = 2;
-                SnTrace.Test.Write(">>>> Assert.AreEqual(2, (int)content[fieldName]);");
-                Assert.AreEqual(2, (int)content[fieldName]);
+                    SnTrace.Test.Write(">>>> node.Index = 2;");
+                    node.Index = 2;
+                    SnTrace.Test.Write(">>>> Assert.AreEqual(2, (int)content[fieldName]);");
+                    Assert.AreEqual(2, (int) content[fieldName]);
 
-                SnTrace.Test.Write(">>>> node.Save();");
-                node.Save();
-                SnTrace.Test.Write(">>>> Assert.AreEqual(2, node.Index);");
-                Assert.AreEqual(2, node.Index);
-                SnTrace.Test.Write(">>>> Assert.AreEqual(2, (int)content[fieldName]);");
-                Assert.AreEqual(2, (int)content[fieldName]);
+                    SnTrace.Test.Write(">>>> node.Save();");
+                    node.Save();
+                    SnTrace.Test.Write(">>>> Assert.AreEqual(2, node.Index);");
+                    Assert.AreEqual(2, node.Index);
+                    SnTrace.Test.Write(">>>> Assert.AreEqual(2, (int)content[fieldName]);");
+                    Assert.AreEqual(2, (int) content[fieldName]);
 
-                SnTrace.Test.Write(">>>> content[fieldName] = 42;");
-                content[fieldName] = 42;
-                SnTrace.Test.Write(">>>> Assert.AreEqual(2, node.Index);");
-                Assert.AreEqual(2, node.Index);
-                SnTrace.Test.Write(">>>> Assert.AreEqual(42, (int)content[fieldName]);");
-                Assert.AreEqual(42, (int)content[fieldName]);
+                    SnTrace.Test.Write(">>>> content[fieldName] = 42;");
+                    content[fieldName] = 42;
+                    SnTrace.Test.Write(">>>> Assert.AreEqual(2, node.Index);");
+                    Assert.AreEqual(2, node.Index);
+                    SnTrace.Test.Write(">>>> Assert.AreEqual(42, (int)content[fieldName]);");
+                    Assert.AreEqual(42, (int) content[fieldName]);
 
-                SnTrace.Test.Write(">>>> node.Index = 3;");
-                node.Index = 3;
-                SnTrace.Test.Write(">>>> Assert.AreEqual(3, (int)content[fieldName]);");
-                Assert.AreEqual(3, (int)content[fieldName]);
+                    SnTrace.Test.Write(">>>> node.Index = 3;");
+                    node.Index = 3;
+                    SnTrace.Test.Write(">>>> Assert.AreEqual(3, (int)content[fieldName]);");
+                    Assert.AreEqual(3, (int) content[fieldName]);
 
-                SnTrace.Test.Write(">>>> node.Save();");
-                node.Save();
+                    SnTrace.Test.Write(">>>> node.Save();");
+                    node.Save();
 
-                SnTrace.Test.Write(">>>> CreateSafeContentQuery....");
-                Assert.IsTrue(CreateSafeContentQuery($"+{fieldName}:3 +Name:{contentName} .AUTOFILTERS:OFF").Execute().Identifiers.Any());
+                    SnTrace.Test.Write(">>>> CreateSafeContentQuery....");
+                    Assert.IsTrue(CreateSafeContentQuery($"+{fieldName}:3 +Name:{contentName} .AUTOFILTERS:OFF")
+                        .Execute().Identifiers.Any());
 
-                SnTrace.Test.Write(">>>> END");
-            });
+                    SnTrace.Test.Write(">>>> END");
+                });
+            }
+            finally
+            {
+                SnTrace.SnTracers.Remove(tracer);
+            }
         }
 
         [TestMethod]
