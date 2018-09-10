@@ -98,8 +98,12 @@ namespace SenseNet.ContentRepository.Storage
         {
             _data = nodeData;
             _data.PropertyChangedCallback = PropertyChanged;
-SnTrace.Test.Write("Node.SetNodeData");
         }
+
+        /// <summary>
+        /// This method is called when a property of the owner <see cref="Node"/> is changed.
+        /// </summary>
+        /// <param name="propertyName">Name of the changed property.</param>
         protected virtual void PropertyChanged(string propertyName)
         {
 
