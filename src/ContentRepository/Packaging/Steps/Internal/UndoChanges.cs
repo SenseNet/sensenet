@@ -26,13 +26,12 @@ namespace SenseNet.Packaging.Steps.Internal
                 typeNames = typeof(GenericContent).Name;
 
             var typeNameArray = typeNames.Split(new[] {',', ';'}, StringSplitOptions.RemoveEmptyEntries);
-
             var path = context.ResolveVariable(Path) as string;
 
             UndoContentChanges(path, typeNameArray);
         }
 
-        internal static void UndoContentChanges(string path = null, params string[] typeNameArray)
+        internal static void UndoContentChanges(string path, params string[] typeNameArray)
         {
             if (typeNameArray == null || typeNameArray.Length == 0)
                 typeNameArray = new[] {typeof(GenericContent).Name};
@@ -41,9 +40,10 @@ namespace SenseNet.Packaging.Steps.Internal
 
             using (new SystemAccount())
             {
-                Parallel.ForEach(ContentQuery.Query(SafeQueries.LockedContentByPath, QuerySettings.AdminSettings,
-                    new object[] { typeNameArray, path }).Nodes.Where(n => n is GenericContent).Cast<GenericContent>(),
-                    new ParallelOptions { MaxDegreeOfParallelism = 10 },
+                Parallel.ForEach(ContentQuery
+                        .Query(SafeQueries.LockedContentByPath, QuerySettings.AdminSettings, typeNameArray, path).Nodes
+                        .Where(n => n is GenericContent).Cast<GenericContent>(),
+                    new ParallelOptions {MaxDegreeOfParallelism = 10},
                     gc =>
                     {
                         Logger.LogMessage($"UNDO changes: {gc.Path}");

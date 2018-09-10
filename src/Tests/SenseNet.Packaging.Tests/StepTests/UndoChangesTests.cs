@@ -38,7 +38,7 @@ namespace SenseNet.Packaging.Tests.StepTests
             Assert.AreEqual(VersionStatus.Locked, file.Version.Status);
 
             // undo all changes in the repo
-            UndoChanges.UndoContentChanges();
+            UndoChanges.UndoContentChanges(null);
 
             file = Node.Load<File>(file.Id);
 
