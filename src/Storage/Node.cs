@@ -1594,6 +1594,9 @@ SnTrace.Test.Write("Node.SetNodeData");
 
         private static void AddReferences<T>(NodeList<Node> nodeList, IEnumerable<T> refNodes, bool distinct) where T : Node
         {
+            if (refNodes == null)
+                return;
+
             foreach (var node in refNodes)
                 if (!distinct || !nodeList.Contains(node))
                     nodeList.Add(node);

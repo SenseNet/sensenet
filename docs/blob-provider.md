@@ -52,7 +52,7 @@ If you are working in the context of the sensenet Content Repository, you do not
 
 ## Built-in blob provider
 
-The built-in blob provider will always be there as a fallback. Currently it supports storing files in the database either in a regular *varbinary* column or in a *FILESTREAM* column.
+The built-in blob provider will always be there as a fallback. Currently it supports storing files in the database in a regular *varbinary* column.
 
 ## Custom blob provider
 

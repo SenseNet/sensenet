@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Diagnostics;
 
+// ReSharper disable once CheckNamespace
 namespace SenseNet.Diagnostics
 {
     public class DebugWriteLoggerAdapter: IEventLogger
@@ -11,14 +11,14 @@ namespace SenseNet.Diagnostics
         public void Write(object message, ICollection<string> categories, int priority, int eventId, 
             TraceEventType severity, string title, IDictionary<string, object> properties)
         {
-            var props = Utility.CollectAutoProperties(properties);
-            string msg = string.Format(@"Message: {0}; Categories:{1}; Priority:{2}; EventId:{3}; " +
-                "Severity: {4}; Title: {5}; Properties: {6}",
-                message, string.Join(",", categories.ToArray()), priority, eventId, severity, title,
-                props == null ? "" : String.Join(", ",
-                    (from item in props select String.Concat(item.Key, ":", item.Value)).ToArray()));
+            var msg = $@"Message: {message}; Categories:{
+                    string.Join(",", categories.ToArray())
+                }; Priority:{priority}; EventId:{eventId}; " +
+                $@"Severity: {severity}; Title: {title}; Properties: {(properties == null ? "" :
+                    string.Join(", ", (
+                        from item in properties select string.Concat(item.Key, ":", item.Value)).ToArray()))}";
 
-            Debug.WriteLine(msg);
+            Trace.WriteLine(msg, "SnLog");
         }
 
         public void Write<T>(object message, ICollection<string> categories, int priority, int eventId,

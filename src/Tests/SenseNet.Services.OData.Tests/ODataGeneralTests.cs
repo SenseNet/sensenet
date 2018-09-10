@@ -245,7 +245,7 @@ namespace SenseNet.Services.OData.Tests
                 var ct = c.ContentType;
                 var fieldNames = ct.FieldSettings.Select(f => f.Name);
                 allowedFieldNames.AddRange(fieldNames);
-                allowedFieldNames.AddRange(new[] { "__metadata", "IsFile", "Actions", "IsFolder" });
+                allowedFieldNames.AddRange(new[] { "__metadata", "IsFile", "Actions", "IsFolder", "Children" });
 
                 var entityPropNames = entity.AllProperties.Select(y => y.Key).ToArray();
 

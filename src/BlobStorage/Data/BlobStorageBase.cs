@@ -58,7 +58,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <param name="clearStream">Whether the blob provider should clear the stream during assembling the context.</param>
         /// <param name="versionId">Content version id.</param>
         /// <param name="propertyTypeId">Binary property type id.</param>
-        protected internal static BlobStorageContext GetBlobStorageContext(int fileId, bool clearStream = false, int versionId = 0, int propertyTypeId = 0)
+        public static BlobStorageContext GetBlobStorageContext(int fileId, bool clearStream = false, int versionId = 0, int propertyTypeId = 0)
         {
             return BlobStorageComponents.DataProvider.GetBlobStorageContext(fileId, clearStream, versionId, propertyTypeId);
         }
@@ -150,7 +150,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 }
                 catch (Exception ex)
                 {
-                    throw new DataException("Error during saving binary chunk to filestream.", ex);
+                    throw new DataException("Error during saving binary chunk to stream.", ex);
                 }
             }
         }
@@ -181,7 +181,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 }
                 catch (Exception ex)
                 {
-                    throw new DataException("Error during saving binary chunk to filestream.", ex);
+                    throw new DataException("Error during saving binary chunk to stream.", ex);
                 }
             }
         }
@@ -222,7 +222,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 {
                     var context = GetBlobStorageContext(tokenData.FileId, true, versionId, tokenData.PropertyTypeId);
 
-                    if (context.Provider == BuiltInProvider && !UseFileStream(context.Length))
+                    if (context.Provider == BuiltInProvider)
                     {
                         // Our built-in provider does not have a special stream for the case when
                         // the binary should be saved into a regular SQL varbinary column.
@@ -240,7 +240,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
             catch (Exception e)
             {
-                throw new DataException("Error during saving binary chunk to filestream.", e);
+                throw new DataException("Error during saving binary chunk to stream.", e);
             }
         }
         /// <summary>
@@ -259,7 +259,7 @@ namespace SenseNet.ContentRepository.Storage.Data
                 {
                     var context = await GetBlobStorageContextAsync(tokenData.FileId, true, versionId, tokenData.PropertyTypeId);
 
-                    if (context.Provider == BuiltInProvider && !UseFileStream(context.Length))
+                    if (context.Provider == BuiltInProvider)
                     {
                         // Our built-in provider does not have a special stream for the case when
                         // the binary should be saved into a regular SQL varbinary column.
@@ -277,7 +277,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             }
             catch (Exception e)
             {
-                throw new DataException("Error during saving binary chunk to filestream.", e);
+                throw new DataException("Error during saving binary chunk to stream.", e);
             }
         }
         private static void CopyFromStreamByChunks(BlobStorageContext context, Stream input)
@@ -350,7 +350,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// <summary>
         /// Gets an instance of the built-in provider.
         /// </summary>
-        protected internal static IBlobProvider BuiltInProvider { get; }
+        public static IBlobProvider BuiltInProvider { get; }
         /// <summary>
         /// Gets a list of available blob storage providers in the system.
         /// </summary>
@@ -373,14 +373,14 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Gets a provider based on the binary size and the available blob providers in the system.
         /// </summary>
         /// <param name="fullSize">Full binary length.</param>
-        protected internal static IBlobProvider GetProvider(long fullSize)
+        public static IBlobProvider GetProvider(long fullSize)
         {
             return BlobStorageComponents.ProviderSelector.GetProvider(fullSize, Providers, BuiltInProvider);
         }
         /// <summary>
         /// Gets the blob provider instance with the specified name. Default is the built-in provider.
         /// </summary>
-        protected internal static IBlobProvider GetProvider(string providerName)
+        public static IBlobProvider GetProvider(string providerName)
         {
             if (providerName == null)
                 return BuiltInProvider;
@@ -388,13 +388,6 @@ namespace SenseNet.ContentRepository.Storage.Data
             if (Providers.TryGetValue(providerName, out provider))
                 return provider;
             throw new InvalidOperationException("BlobProvider not found: '" + providerName + "'.");
-        }
-        /// <summary>
-        /// Decides whether a binary with the provided length should go to a Filestream column or not.
-        /// </summary>
-        protected internal static bool UseFileStream(long fullSize)
-        {
-            return BlobStorage.FileStreamEnabled && fullSize > BlobStorage.MinimumSizeForFileStreamInBytes;
         }
     }
 }

@@ -697,49 +697,6 @@ namespace SenseNet.Tests.Implementations
         protected internal override BinaryCacheEntity LoadBinaryCacheEntity(int nodeVersionId, int propertyTypeId)
         {
             return BlobStorage.LoadBinaryCacheEntity(nodeVersionId, propertyTypeId);
-
-            // SELECT F.Size, B.BinaryPropertyId, F.FileId, F.BlobProvider, F.BlobProviderData,
-            //        CASE WHEN F.Size < 1048576 THEN F.Stream ELSE null END AS Stream
-            // FROM dbo.BinaryProperties B
-            //     JOIN Files F ON B.FileId = F.FileId
-            // WHERE B.VersionId = @VersionId AND B.PropertyTypeId = @PropertyTypeId AND F.Staging IS NULL";
-
-            var binRec = _db.BinaryProperties
-                .FirstOrDefault(r => r.VersionId == nodeVersionId && r.PropertyTypeId == propertyTypeId);
-            if (binRec == null)
-                return null;
-            var fileRec = _db.Files.FirstOrDefault(f => f.FileId == binRec.FileId);
-            if (fileRec == null)
-                return null;
-
-            var length = fileRec.Size;
-            var binaryPropertyId = binRec.BinaryPropertyId;
-            var fileId = binRec.FileId;
-
-            // To avoid accessing to blob provider, read data here, else set rawData to null
-            byte[] rawData = fileRec.Stream;
-
-            //TODO: partially implemented: IBlobProvider resolution always null.
-            IBlobProvider provider = null; //BlobStorageBase.GetProvider(null);
-            // ReSharper disable once ExpressionIsAlwaysNull
-            var context = new BlobStorageContext(provider)
-            {
-                VersionId = nodeVersionId,
-                PropertyTypeId = propertyTypeId,
-                FileId = fileId,
-                Length = length,
-                UseFileStream = false,
-                BlobProviderData = new BuiltinBlobProviderData {FileStreamData = null}
-            };
-
-            return new BinaryCacheEntity
-            {
-                Length = length,
-                RawData = rawData,
-                BinaryPropertyId = binaryPropertyId,
-                FileId = fileId,
-                Context = context
-            };
         }
 
         #region NOT IMPLEMENTED
@@ -1161,11 +1118,6 @@ namespace SenseNet.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        protected internal override AuditLogEntry[] LoadLastAuditLogEntries(int count)
-        {
-            throw new NotImplementedException();
-        }
-
         #endregion
 
         /* ====================================================================================== */
@@ -1208,16 +1160,64 @@ namespace SenseNet.Tests.Implementations
             nodeTimeStamp = nodeRow.NodeTimestamp;
         }
 
+        public override void WriteAuditEvent(AuditEventInfo auditEvent)
+        {
+            var newId = _db.LogEntries.Count == 0 ? 1 : _db.LogEntries.Max(r => r.LogId) + 1;
+
+            _db.LogEntries.Add(new LogEntriesRow
+            {
+                LogId = newId,
+                EventId = auditEvent.EventId,
+                Category = auditEvent.Category,
+                Priority = auditEvent.Priority,
+                Severity = auditEvent.Severity,
+                Title = auditEvent.Title,
+                ContentId = auditEvent.ContentId,
+                ContentPath = auditEvent.ContentPath,
+                UserName = auditEvent.UserName,
+                LogDate = auditEvent.Timestamp,
+                MachineName = auditEvent.MachineName,
+                AppDomainName = auditEvent.AppDomainName,
+                ProcessId = auditEvent.ProcessId,
+                ProcessName = auditEvent.ProcessName,
+                ThreadName = auditEvent.ThreadName,
+                Win32ThreadId = auditEvent.ThreadId,
+                Message = auditEvent.Message,
+                FormattedMessage = auditEvent.FormattedMessage,
+            });
+        }
+
+        public override AuditLogEntry[] LoadLastAuditLogEntries(int count)
+        {
+            return _db.LogEntries
+                .OrderByDescending(e => e.LogId)
+                .Take(count)
+                .OrderBy(e => e.LogId)
+                .Select(e => new AuditLogEntry
+                {
+                    Id = e.LogId,
+                    EventId = e.EventId,
+                    Title = e.Title,
+                    ContentId = e.ContentId,
+                    ContentPath = e.ContentPath,
+                    UserName = e.UserName,
+                    LogDate = new DateTime(e.LogDate.Ticks),
+                    Message = e.Message,
+                    FormattedMessage = e.FormattedMessage
+                })
+                .ToArray();
+        }
+
         /* ====================================================================================== Database */
 
         #region CREATION
 
-        // Preloade CTD bytes by name
         private static readonly Dictionary<string, byte[]> ContentTypeBytes;
+        private static readonly Dictionary<string, byte[]> ResourceBytes;
+
         static InMemoryDataProvider()
         {
-            // Preload CTD bytes from disk to avoid heavy IO charging
-
+            // Preload CTD bytes from disk
             ContentTypeBytes = new Dictionary<string, byte[]>();
             foreach (var item in ContentTypeDefinitions.ContentTypes)
             {
@@ -1235,6 +1235,25 @@ namespace SenseNet.Tests.Implementations
 
                 ContentTypeBytes.Add(Path.GetFileNameWithoutExtension(item.Key).ToLowerInvariant(), bytes);
             }
+
+            // Preload resource bytes from disk
+            ResourceBytes = new Dictionary<string, byte[]>();
+            foreach (var item in ResourceXmls.Resources)
+            {
+                byte[] bytes;
+                using (var stream = new MemoryStream())
+                using (var writer = new StreamWriter(stream, Encoding.UTF8))
+                {
+                    writer.Write(item.Value);
+                    writer.Flush();
+                    stream.Position = 0;
+                    var buffer = stream.GetBuffer();
+                    bytes = new byte[stream.Length];
+                    Array.Copy(buffer, bytes, bytes.Length);
+                }
+
+                ResourceBytes.Add(Path.GetFileNameWithoutExtension(item.Key).ToLowerInvariant(), bytes);
+            }
         }
 
         private static byte[] GetContentTypeBytes(string name)
@@ -1247,6 +1266,13 @@ namespace SenseNet.Tests.Implementations
                     return new byte[0];
             }
             return ContentTypeBytes[name];
+        }
+        private static byte[] GetResourceBytes(string name)
+        {
+            name = name.ToLowerInvariant();
+            if (!ResourceBytes.ContainsKey(name))
+                return new byte[0];
+            return ResourceBytes[name];
         }
 
         private static Database _prototype;
@@ -1364,6 +1390,8 @@ namespace SenseNet.Tests.Implementations
                     };
                 }).ToList();
         }
+
+        private static string[] ResourceFileNames = new []{ "Content", "Exceptions", "Trash" };
         private List<FileRecord> BuildInitialFiles(string tableData)
         {
             if (tableData == null)
@@ -1375,10 +1403,17 @@ namespace SenseNet.Tests.Implementations
                 .Select(l =>
                 {
                     var record = l.Split('\t');
+                    var mimeType = record[1];
                     var name = record[2];
                     var ext = record[3];
 
-                    var bytes = ext == ".ContentType" ? GetContentTypeBytes(name) : new byte[0];
+                    byte[] bytes;
+                    if (ext == ".ContentType")
+                        bytes = GetContentTypeBytes(name);
+                    else if(ext == ".xml" && mimeType == "text/xml" && (name.StartsWith("CtdResources") || ResourceFileNames.Contains(name)))
+                        bytes = GetResourceBytes(name);
+                    else
+                        bytes = new byte[0];
 
                     return new FileRecord
                     {
@@ -1582,6 +1617,7 @@ namespace SenseNet.Tests.Implementations
             public List<ReferencePropertyRow> ReferenceProperties { get; set; }
             public List<IndexingActivityRecord> IndexingActivities { get; set; } = new List<IndexingActivityRecord>();
             public List<TreeLockRow> TreeLocks { get; set; } = new List<TreeLockRow>();
+            public List<LogEntriesRow> LogEntries { get; set; } = new List<LogEntriesRow>();
 
             public Database Clone()
             {
@@ -2354,7 +2390,7 @@ namespace SenseNet.Tests.Implementations
 
             public override string GetString(int ordinal)
             {
-                //UNDONE: Implement well
+                //TODO: Implement well
                 var record = _enumerable[_currentIndex] as Tuple<string, string>;
                 if(null == record)
                     throw new NotImplementedException();
@@ -2789,6 +2825,52 @@ namespace SenseNet.Tests.Implementations
                     TreeLockId = TreeLockId,
                     Path = Path,
                     LockedAt = LockedAt
+                };
+            }
+        }
+        public class LogEntriesRow
+        {
+            public int LogId;
+            public int EventId;
+            public string Category;
+            public int Priority;
+            public string Severity;
+            public string Title;
+            public int ContentId;
+            public string ContentPath;
+            public string UserName;
+            public DateTime LogDate;
+            public string MachineName;
+            public string AppDomainName;
+            public int ProcessId;
+            public string ProcessName;
+            public string ThreadName;
+            public int Win32ThreadId;
+            public string Message;
+            public string FormattedMessage;
+
+            public LogEntriesRow Clone()
+            {
+                return new LogEntriesRow
+                {
+                    LogId = LogId,
+                    EventId = EventId,
+                    Category = Category,
+                    Priority = Priority,
+                    Severity = Severity,
+                    Title = Title,
+                    ContentId = ContentId,
+                    ContentPath = ContentPath,
+                    UserName = UserName,
+                    LogDate = LogDate,
+                    MachineName = MachineName,
+                    AppDomainName = AppDomainName,
+                    ProcessId = ProcessId,
+                    ProcessName = ProcessName,
+                    ThreadName = ThreadName,
+                    Win32ThreadId = Win32ThreadId,
+                    Message = Message,
+                    FormattedMessage = FormattedMessage,
                 };
             }
         }

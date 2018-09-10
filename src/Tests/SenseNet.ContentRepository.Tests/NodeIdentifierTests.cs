@@ -80,12 +80,6 @@ namespace SenseNet.ContentRepository.Tests
         [ExpectedException(typeof(SnNotSupportedException))]
         public void NodeIdentifier_Invalid_4()
         {
-            NodeIdentifier.Get(NodeHead.Get(1));
-        }
-        [TestMethod]
-        [ExpectedException(typeof(SnNotSupportedException))]
-        public void NodeIdentifier_Invalid_5()
-        {
             NodeIdentifier.Get(new object());
         }
         [TestMethod]

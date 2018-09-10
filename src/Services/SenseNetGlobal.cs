@@ -136,7 +136,7 @@ namespace SenseNet.Services
         }
 
         /*====================================================================================================================== Instance part */
-        internal static string RunOnceGuid = "101C50EF-24FD-441A-A15B-BD33DE431665";
+
         private static readonly int[] dontCareErrorCodes = new int[] { 401, 403, 404 };
 
         protected virtual void Application_Start(object sender, EventArgs e, HttpApplication application)
@@ -144,11 +144,14 @@ namespace SenseNet.Services
             using (var op = SnTrace.Repository.StartOperation("Application_Start. Process: {0}, AppDomain: {1}, ",
                                 System.Diagnostics.Process.GetCurrentProcess().Id, AppDomain.CurrentDomain.Id))
             {
-                var runOnceMarkerPath = application.Server.MapPath("/" + RunOnceGuid);
-                var firstRun = File.Exists(runOnceMarkerPath);
-                var startConfig = new RepositoryStartSettings { StartIndexingEngine = !firstRun, IsWebContext = true };
+                var repositoryBuilder = new RepositoryBuilder
+                {
+                    IsWebContext = true
+                };
 
-                Repository.Start(startConfig);
+                BuildRepository(repositoryBuilder);
+
+                Repository.Start(repositoryBuilder);
 
                 RepositoryVersionInfo.CheckComponentVersions();
 
@@ -398,6 +401,16 @@ namespace SenseNet.Services
 
                 return null;
             })));
+        }
+
+        /// <summary>
+        /// Derived classes may customize the repository by defining options and providers here. This instance
+        /// is used later when the system starts the content repository.
+        /// </summary>
+        /// <param name="repositoryBuilder">A repository builder instance with a fluent api for configuring the repository.</param>
+        protected virtual void BuildRepository(IRepositoryBuilder repositoryBuilder)
+        {
+            // do nothing
         }
 
         /*====================================================================================================================== Helpers */

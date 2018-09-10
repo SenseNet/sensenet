@@ -1,0 +1,412 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{B72529C8-FEB1-49F5-B08B-56055B58F296}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SenseNet.Services</RootNamespace>
+    <AssemblyName>SenseNet.Services</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <UpgradeBackupLocation />
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+    <DocumentationFile>
+    </DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Exchange.WebServices, Version=15.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\References\Microsoft.Exchange.WebServices.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="SenseNet.Security, Version=3.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SenseNet.Security.3.0.0\lib\netstandard2.0\SenseNet.Security.dll</HintPath>
+    </Reference>
+    <Reference Include="SenseNet.TaskManagement.Core, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SenseNet.TaskManagement.Core.1.1.0.0\lib\net45\SenseNet.TaskManagement.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="SenseNet.Tools, Version=3.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SenseNet.Tools.3.1.0\lib\netstandard2.0\SenseNet.Tools.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Configuration.ConfigurationManager, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Configuration.ConfigurationManager.4.5.0\lib\net461\System.Configuration.ConfigurationManager.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data.OracleClient" />
+    <Reference Include="System.Diagnostics.EventLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Diagnostics.EventLog.4.5.0\lib\net461\System.Diagnostics.EventLog.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Net" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Runtime.Serialization">
+      <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Security.AccessControl, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.AccessControl.4.5.0\lib\net461\System.Security.AccessControl.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Permissions, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Permissions.4.5.0\lib\net461\System.Security.Permissions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Principal.Windows, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Principal.Windows.4.5.0\lib\net461\System.Security.Principal.Windows.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ServiceModel">
+      <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.ServiceModel.Activation" />
+    <Reference Include="System.ServiceModel.Web">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Abstractions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Web.Extensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Web.Routing" />
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ApplicationModel\AspectActions\AddAspectsAction.cs" />
+    <Compile Include="ApplicationModel\AspectActions\AddFieldsAction.cs" />
+    <Compile Include="ApplicationModel\AspectActions\AspectActionBase.cs" />
+    <Compile Include="ApplicationModel\AspectActions\RemoveAllAspectsAction.cs" />
+    <Compile Include="ApplicationModel\AspectActions\RemoveAllFieldsAction.cs" />
+    <Compile Include="ApplicationModel\AspectActions\RemoveAspectsAction.cs" />
+    <Compile Include="ApplicationModel\AspectActions\RemoveFieldsAction.cs" />
+    <Compile Include="ApplicationModel\AspectActions\RetrieveFieldsAction.cs" />
+    <Compile Include="ApplicationModel\ClientAction.cs" />
+    <Compile Include="ApplicationModel\CopyBatchAction.cs" />
+    <Compile Include="ApplicationModel\CopyToAction.cs" />
+    <Compile Include="ApplicationModel\DeleteAction.cs" />
+    <Compile Include="ApplicationModel\DeleteBatchAction.cs" />
+    <Compile Include="ApplicationModel\DeleteFieldAction.cs" />
+    <Compile Include="ApplicationModel\EditFieldAction.cs" />
+    <Compile Include="ApplicationModel\GenericODataApplication.cs" />
+    <Compile Include="ApplicationModel\GenericODataOperation.cs" />
+    <Compile Include="ApplicationModel\GetPermissionsAction.cs" />
+    <Compile Include="Metadata\IMetadataProvider.cs" />
+    <Compile Include="Metadata\ClientMetadataProvider.cs" />
+    <Compile Include="ApplicationModel\HasPermissionAction.cs" />
+    <Compile Include="ApplicationModel\HttpAction.cs" />
+    <Compile Include="ApplicationModel\HttpActionFactory.cs" />
+    <Compile Include="ApplicationModel\HttpActionInterfaces.cs" />
+    <Compile Include="ApplicationModel\HttpActionManager.cs" />
+    <Compile Include="ApplicationModel\HttpStatusApplication.cs" />
+    <Compile Include="ApplicationModel\LogoutAction.cs" />
+    <Compile Include="ApplicationModel\MoveBatchAction.cs" />
+    <Compile Include="ApplicationModel\MoveToAction.cs" />
+    <Compile Include="ApplicationModel\ODataActionBase.cs" />
+    <Compile Include="ApplicationModel\OpenLinkAction.cs" />
+    <Compile Include="ApplicationModel\OpenPickerAction.cs" />
+    <Compile Include="ApplicationModel\PortalAction.cs" />
+    <Compile Include="ApplicationModel\RestoreAction.cs" />
+    <Compile Include="ApplicationModel\ServiceAction.cs" />
+    <Compile Include="ApplicationModel\SetPermissionsAction.cs" />
+    <Compile Include="ApplicationModel\UploadAction.cs" />
+    <Compile Include="ApplicationModel\UrlAction.cs" />
+    <Compile Include="ApplicationModel\WebdavOpenAction.cs" />
+    <Compile Include="Configuration\TokenAuthentication.cs" />
+    <Compile Include="Configuration\ErrorStatusCode.cs" />
+    <Compile Include="Configuration\WebApplication.cs" />
+    <Compile Include="Configuration\Webdav.cs" />
+    <Compile Include="ContentStore\ContentProperty.cs" />
+    <Compile Include="ContentStore\SimpleServiceContent.cs" />
+    <Compile Include="ContentStore\Content.cs" />
+    <Compile Include="CustomErrorWebHttpBinding.cs" />
+    <Compile Include="Dws\DwsHandler.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Dws\DwsHelper.cs" />
+    <Compile Include="Dws\FppHandler.cs" />
+    <Compile Include="Dws\ListsHandler.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Dws\VersionsHandler.cs" />
+    <Compile Include="Dws\WebsHandler.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="EntityReference.cs" />
+    <Compile Include="Exchange\ExchangeSubscriptionService.cs" />
+    <Compile Include="Exchange\Interfaces.cs" />
+    <Compile Include="Exchange\PushNotificationClient.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Fields\UrlListField.cs" />
+    <Compile Include="Global.cs" />
+    <Compile Include="Handlers\BinaryHandler.cs" />
+    <Compile Include="Handlers\BinaryHandlerBase.cs" />
+    <Compile Include="Handlers\DynamicJsonContent.cs" />
+    <Compile Include="Handlers\ExportToCSVApplication.cs" />
+    <Compile Include="Handlers\ExportToPdfAction.cs" />
+    <Compile Include="Handlers\GetMetadataApplication.cs" />
+    <Compile Include="Handlers\HttpHandlerApplication.cs" />
+    <Compile Include="Handlers\ODataActionHandler.cs" />
+    <Compile Include="HtmlTemplate.cs" />
+    <Compile Include="HtmlTemplateCache.cs" />
+    <Compile Include="IdentityTools.cs" />
+    <Compile Include="ImgResizeApplication.cs" />
+    <Compile Include="LoginExtender.cs" />
+    <Compile Include="LoginInfo.cs" />
+    <Compile Include="LogService.cs" />
+    <Compile Include="MultiHostServiceFactory.cs" />
+    <Compile Include="OData\Actions\ApproveAction.cs" />
+    <Compile Include="OData\Actions\CheckInAction.cs" />
+    <Compile Include="OData\Actions\CheckOutAction.cs" />
+    <Compile Include="OData\Actions\ForceUndoCheckOutAction.cs" />
+    <Compile Include="OData\Actions\PublishAction.cs" />
+    <Compile Include="OData\Actions\RejectAction.cs" />
+    <Compile Include="OData\Actions\RestoreVersionAction.cs" />
+    <Compile Include="OData\Actions\UndoCheckOutAction.cs" />
+    <Compile Include="OData\BatchActionResponse.cs" />
+    <Compile Include="OData\ErrorContent.cs" />
+    <Compile Include="OData\ExpanderProjector.cs" />
+    <Compile Include="OData\FieldConverter.cs" />
+    <Compile Include="OData\Json.cs" />
+    <Compile Include="OData\JsonFormatter.cs" />
+    <Compile Include="OData\Metadata\Association.cs" />
+    <Compile Include="OData\Metadata\AssociationEnd.cs" />
+    <Compile Include="OData\Metadata\AssociationSet.cs" />
+    <Compile Include="OData\Metadata\AssociationSetEnd.cs" />
+    <Compile Include="OData\Metadata\ComplexType.cs" />
+    <Compile Include="OData\Metadata\DataServices.cs" />
+    <Compile Include="OData\Metadata\Edmx.cs" />
+    <Compile Include="OData\Metadata\EntityContainer.cs" />
+    <Compile Include="OData\Metadata\EntitySet.cs" />
+    <Compile Include="OData\Metadata\EntityType.cs" />
+    <Compile Include="OData\Metadata\EnumOption.cs" />
+    <Compile Include="OData\Metadata\EnumType.cs" />
+    <Compile Include="OData\Metadata\FunctionImport.cs" />
+    <Compile Include="OData\Metadata\Key.cs" />
+    <Compile Include="OData\Metadata\NamedItem.cs" />
+    <Compile Include="OData\Metadata\NavigationProperty.cs" />
+    <Compile Include="OData\Metadata\Parameter.cs" />
+    <Compile Include="OData\Metadata\Property.cs" />
+    <Compile Include="OData\Metadata\PropertyRef.cs" />
+    <Compile Include="OData\Metadata\Schema.cs" />
+    <Compile Include="OData\Metadata\SchemaGenerationContext.cs" />
+    <Compile Include="OData\Metadata\SchemaItem.cs" />
+    <Compile Include="OData\MetaGenerator.cs" />
+    <Compile Include="OData\ODataException.cs" />
+    <Compile Include="OData\ODataFormatter.cs" />
+    <Compile Include="OData\ODataHandler.cs" />
+    <Compile Include="OData\ODataRequest.cs" />
+    <Compile Include="OData\ODataTools.cs" />
+    <Compile Include="OData\Parser\ExpressionBuilder.cs" />
+    <Compile Include="OData\Parser\Globals.cs" />
+    <Compile Include="OData\Parser\ODataLexer.cs" />
+    <Compile Include="OData\Parser\ODataParser.cs" />
+    <Compile Include="OData\Parser\ODataParserException.cs" />
+    <Compile Include="OData\Projector.cs" />
+    <Compile Include="OData\SimpleExpanderProjector.cs" />
+    <Compile Include="OData\SimpleProjector.cs" />
+    <Compile Include="OData\SnJsonConverter.cs" />
+    <Compile Include="OData\Typescript\Extensions.cs" />
+    <Compile Include="OData\Typescript\ResourceWriter.cs" />
+    <Compile Include="OData\Typescript\TypescriptClassesVisitor.cs" />
+    <Compile Include="OData\Typescript\TypescriptComplexTypesVisitor.cs" />
+    <Compile Include="OData\Typescript\TypescriptCtdVisitor.cs" />
+    <Compile Include="OData\Typescript\TypescriptEnumsVisitor.cs" />
+    <Compile Include="OData\Typescript\TypescriptFieldSettingsVisitor.cs" />
+    <Compile Include="OData\Typescript\TypescriptFormatter.cs" />
+    <Compile Include="OData\Typescript\TypescriptGenerationContext.cs" />
+    <Compile Include="OData\Typescript\TypescriptModuleWriter.cs" />
+    <Compile Include="OData\Typescript\TypescriptSchemaVisitor.cs" />
+    <Compile Include="OData\Typescript\TypescriptTypeCollectorVisitor.cs" />
+    <Compile Include="PermissionQuery.cs" />
+    <Compile Include="PortalSettings.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QueryBuilder.cs" />
+    <Compile Include="Resources\ResourceEditorApi.cs" />
+    <Compile Include="Resources\ResourceHandler.cs" />
+    <Compile Include="Resources\ResourceScripter.cs" />
+    <Compile Include="Routing\ODataRouteHandler.cs" />
+    <Compile Include="Routing\ProxyingRouteHandler.cs" />
+    <Compile Include="RssApplication.cs" />
+    <Compile Include="SenseNetGlobal.cs" />
+    <Compile Include="SimpleModule.cs" />
+    <Compile Include="Site.cs" />
+    <Compile Include="SkinManagerBase.cs" />
+    <Compile Include="SkinObserver.cs" />
+    <Compile Include="SnAccessControlEntry.cs" />
+    <Compile Include="SnAccessControlList.cs" />
+    <Compile Include="SnIdentity.cs" />
+    <Compile Include="SnPermission.cs" />
+    <Compile Include="SR.cs" />
+    <Compile Include="UITools.cs" />
+    <Compile Include="Virtualization\AuthenticationHelper.cs" />
+    <Compile Include="Virtualization\AuthorizationModule.cs" />
+    <Compile Include="Virtualization\DiskFSSupportMode.cs" />
+    <Compile Include="Virtualization\DocumentBinaryProvider.cs" />
+    <Compile Include="Virtualization\EmbeddedFile.cs" />
+    <Compile Include="Virtualization\GenericApi.cs" />
+    <Compile Include="Virtualization\HashCodeCombiner.cs" />
+    <Compile Include="Virtualization\HttpHeaderTools.cs" />
+    <Compile Include="Virtualization\ILogoutExecutor.cs" />
+    <Compile Include="Virtualization\OAuthManager.cs" />
+    <Compile Include="Virtualization\PortalAuthenticationModule.cs" />
+    <Compile Include="Virtualization\PortalContext.cs" />
+    <Compile Include="Virtualization\PortalContextModule.cs" />
+    <Compile Include="Virtualization\PurgeUrlCollector.cs" />
+    <Compile Include="Virtualization\RepositoryFile.cs" />
+    <Compile Include="Virtualization\RepositoryPathProvider.cs" />
+    <Compile Include="Virtualization\SenseNetStaticFileHandler.cs" />
+    <Compile Include="Virtualization\SenseNetVideoStreamerHandler.cs" />
+    <Compile Include="Virtualization\StaticVirtualizedFileHandler.cs" />
+    <Compile Include="Virtualization\StaticVirtualizedFileHandlerFactory.cs" />
+    <Compile Include="Virtualization\TokenAuthentication.cs" />
+    <Compile Include="Virtualization\LogoutExecutor.cs" />
+    <Compile Include="WebDAV\Common.cs" />
+    <Compile Include="WebDAV\Delete.cs" />
+    <Compile Include="WebDAV\Enums.cs" />
+    <Compile Include="WebDAV\Get.cs" />
+    <Compile Include="WebDAV\Head.cs" />
+    <Compile Include="WebDAV\IHTTPMethod.cs" />
+    <Compile Include="WebDAV\Lock.cs" />
+    <Compile Include="WebDAV\MkCol.cs" />
+    <Compile Include="WebDAV\Move.cs" />
+    <Compile Include="WebDAV\OffsetStream.cs" />
+    <Compile Include="WebDAV\Options.cs" />
+    <Compile Include="WebDAV\Propfind.cs" />
+    <Compile Include="WebDAV\Proppatch.cs" />
+    <Compile Include="WebDAV\Put.cs" />
+    <Compile Include="WebDAV\Trace.cs" />
+    <Compile Include="WebDAV\UnLock.cs" />
+    <Compile Include="WebDAV\WebDavHandler.cs" />
+    <Compile Include="WebDAV\WebDavProvider.cs" />
+    <Compile Include="WebDAV\XmlNameSpaces.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Common\SenseNet.Common.csproj">
+      <Project>{A453E920-29C0-45CD-984C-0D8E3631B1E3}</Project>
+      <Name>SenseNet.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Configuration\SenseNet.Configuration.csproj">
+      <Project>{a19f707c-b1c3-45c7-ae38-e7b7f30c1161}</Project>
+      <Name>SenseNet.Configuration</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ContentRepository\SenseNet.ContentRepository.csproj">
+      <Project>{786E6165-CA02-45A9-BF58-207A45D7D6DF}</Project>
+      <Name>SenseNet.ContentRepository</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Search\SenseNet.Search.csproj">
+      <Project>{0279705b-779d-485d-86b9-f7ab3dd1f2c3}</Project>
+      <Name>SenseNet.Search</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TokenAuthentication\SenseNet.TokenAuthentication.csproj">
+      <Project>{78febd73-8bc4-45b9-9b31-d512e1afad60}</Project>
+      <Name>SenseNet.TokenAuthentication</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Storage\SenseNet.Storage.csproj">
+      <Project>{5DB4DDBA-81F6-4D81-943A-18F3178B3355}</Project>
+      <Name>SenseNet.Storage</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="SenseNet.Services.Install.nuspec" />
+    <None Include="SenseNet.Services.nuspec">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+</Project>

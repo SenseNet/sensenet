@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Collections.ObjectModel;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Storage;
 
 namespace SenseNet.ContentRepository
 {
@@ -50,11 +51,6 @@ namespace SenseNet.ContentRepository
             /// override both startup and runtime categories.
             /// </summary>
             public new string[] TraceCategories { get; }
-            /// <summary>
-            /// Contains type matching configurations.
-            /// Every item can contain one or more Type for the key Type.
-            /// </summary>
-            public new ReadOnlyDictionary<Type, Type[]> Providers { get; }
 
             internal ImmutableRepositoryStartSettings(RepositoryStartSettings settings)
             {
@@ -64,19 +60,8 @@ namespace SenseNet.ContentRepository
                 Console = settings.Console;
                 PluginsPath = settings.PluginsPath;
                 IndexPath = settings.IndexPath;
-                Providers = new ReadOnlyDictionary<Type, Type[]>(settings.Providers);
 
                 TraceCategories = settings.TraceCategories;
-            }
-
-            private const string NotSupportedMessage = "This method is not supported after calling Repository.Start method.";
-            public override void AddProvider(Type key, params Type[] bricks)
-            {
-                throw new NotSupportedException(NotSupportedMessage);
-            }
-            public override void ConfigureProvider(Type key, params Type[] bricks)
-            {
-                throw new NotSupportedException(NotSupportedMessage);
             }
         }
 
@@ -119,36 +104,33 @@ namespace SenseNet.ContentRepository
         /// Determines trace categories that should be enabled when the repository starts. This will
         /// override both startup and runtime categories.
         /// </summary>
-        public virtual string[] TraceCategories { get; protected set; }
+        public virtual string[] TraceCategories { get; protected internal set; }
 
         /// <summary>
         /// Contains type matching configurations.
         /// Every item can contain one or more Type for the key Type.
         /// </summary>
+        [Obsolete("Use RepositoryBuiler class instead.", true)]
         public virtual Dictionary<Type, Type[]> Providers { get; set; } = new Dictionary<Type, Type[]>();
 
         /// <summary>
         /// Upserts (inserts or updates if exists) a provider item.
         /// Provider item: one or more Type for the key Type.
         /// </summary>
+        [Obsolete("Use RepositoryBuiler class instead.", true)]
         public virtual void ConfigureProvider(Type key, params Type[] bricks)
         {
-            Providers[key] = bricks;
+            throw new SnNotSupportedException("This method is not supported anymore.");
         }
         /// <summary>
         /// Adds a provider item.
         /// If the key exists, ArgumentException will be thrown.
         /// Provider item: one or more Type for the key Type.
         /// </summary>
+        [Obsolete("Use RepositoryBuiler class instead.", true)]
         public virtual void AddProvider(Type key, params Type[] bricks)
         {
-            Type[] value;
-            if (!Providers.TryGetValue(key, out value))
-            {
-                Providers.Add(key, bricks);
-                return;
-            }
-            ConfigureProvider(key, value.Union(bricks).ToArray());
+            throw new SnNotSupportedException("This method is not supported anymore.");
         }
     }
 }

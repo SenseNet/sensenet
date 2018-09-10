@@ -506,7 +506,7 @@ namespace SenseNet.ContentRepository.Xpath
 
         public override bool IsEmpty
         {
-            get { throw new SenseNet.ContentRepository.Storage.SnNotSupportedException(); }
+            get { throw new SnNotSupportedException(); }
         }
         public override XPathNodeType NodeType
         {

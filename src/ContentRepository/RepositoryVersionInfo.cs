@@ -127,14 +127,25 @@ namespace SenseNet.ContentRepository
 
         public static void CheckComponentVersions()
         {
-            //TODO: have a pinned list of components in the Providers class
-            // so that the instances can be replaced by tests.
-            foreach (var componentType in TypeResolver.GetTypesByInterface(typeof(ISnComponent)).Where(vct => !vct.IsAbstract))
+            var components = TypeResolver.GetTypesByInterface(typeof(ISnComponent)).Where(vct => !vct.IsAbstract)
+                .Select(t => TypeResolver.CreateInstance(t.FullName) as ISnComponent)
+                .Where(c => c != null)
+                .Select(SnComponentInfo.Create)
+                .ToArray();
+            CheckComponentVersions(components);
+        }
+        private static void CheckComponentVersions(SnComponentInfo[] components)
+        {
+#if DEBUG
+            CheckComponentVersions(components, false);
+#else
+            CheckComponentVersions(components, true);
+#endif
+        }
+        internal static void CheckComponentVersions(SnComponentInfo[] components, bool release)
+        {
+            foreach (var component in components)
             {
-                var component = TypeResolver.CreateInstance(componentType.FullName) as ISnComponent;
-                if (component == null)
-                    continue;
-
                 if (string.IsNullOrEmpty(component.ComponentId))
                 {
                     SnLog.WriteWarning($"Component class {component.GetType().FullName} is invalid, it does not provide a ComponentId.");
@@ -143,18 +154,51 @@ namespace SenseNet.ContentRepository
 
                 var componentVersion = Instance.Components.FirstOrDefault(c => c.ComponentId == component.ComponentId)?.Version;
 
-                if (component.IsComponentAllowed(componentVersion))
+                if (IsComponentAllowed(component, componentVersion))
                 {
                     SnTrace.System.Write($"Component {component.ComponentId} is allowed to run (version: {componentVersion})");
                     continue;
                 }
 
-#if DEBUG
-                SnTrace.System.Write($"Component {component.ComponentId} is allowed to run in the DEBUG version (version: {componentVersion})");
-#else
-                throw new ApplicationException($"Component and assembly version mismatch. Component {component.ComponentId} (version: {componentVersion}) is not allowed to run. Please check assembly versions and available ugrades before starting the repository.");
-#endif
+                if (release)
+                    throw new ApplicationException($"Component and assembly version mismatch. Component {component.ComponentId} is not allowed to run."
+                        + $" Installed version: {componentVersion}, expected minimal version: {component.SupportedVersion}."
+                        + " Please check assembly versions and available ugrades before starting the repository.");
+
+                SnTrace.System.Write($"Component {component.ComponentId} is allowed to run only in the DEBUG mode."
+                        + $" Installed version: {componentVersion}, expected minimal version: {component.SupportedVersion}.");
             }
         }
-    }   
+        internal static bool IsComponentAllowed(SnComponentInfo component, Version installedComponentVersion)
+        {
+            if (installedComponentVersion == null)
+                throw new InvalidOperationException($"{component.ComponentId} component is missing.");
+
+            var assemblyVersion = component.AssemblyVersion ?? TypeHandler.GetVersion(component.GetType().Assembly);
+
+            // To be able to publish code hotfixes, we allow the revision number (the 4th element) 
+            // to be higher in the assembly (in case every other part equals). This assumes 
+            // that every repository change raises at least the build number (the 3rd one) 
+            // in the component's version.
+            if (installedComponentVersion.Major != assemblyVersion.Major ||
+                installedComponentVersion.Minor != assemblyVersion.Minor ||
+                installedComponentVersion.Build != assemblyVersion.Build)
+            {
+                // Not allowed if the assembly is older than the matched component.
+                if (assemblyVersion < installedComponentVersion)
+                    return false;
+
+                // Not allowed if the component is older than the assembly can support.
+                if (installedComponentVersion < component.SupportedVersion)
+                    return false;
+            }
+
+            // Call the customized function if there is.
+            if (component.IsComponentAllowed != null)
+                return component.IsComponentAllowed.Invoke(installedComponentVersion);
+
+            // Everything is fine, assembly is runnable.
+            return true;
+        }
+    }
 }

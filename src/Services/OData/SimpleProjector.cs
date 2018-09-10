@@ -53,7 +53,7 @@ namespace SenseNet.Portal.OData
             }
 
             if (!Request.HasSelect)
-                fieldNames = fieldNames.Concat(new[] { ACTIONSPROPERTY, ISFILEPROPERTY });
+                fieldNames = fieldNames.Concat(new[] { ACTIONSPROPERTY, ISFILEPROPERTY, ODataHandler.ChildrenPropertyName });
 
             foreach (var fieldName in fieldNames)
             {
@@ -76,6 +76,8 @@ namespace SenseNet.Portal.OData
                         fields.Add(ISFILEPROPERTY, content.Fields.ContainsKey(ODataHandler.BinaryPropertyName));
                     else if (fieldName == ICONPROPERTY)
                         fields.Add(fieldName, content.Icon ?? content.ContentType.Icon);
+                    else if (fieldName == ODataHandler.ChildrenPropertyName)
+                        fields.Add(fieldName, ODataReference.Create(string.Concat(selfurl, "/", ODataHandler.ChildrenPropertyName)));
                     else
                         fields.Add(fieldName, null);
                 }

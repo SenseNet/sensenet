@@ -12,10 +12,6 @@ namespace SenseNet.ContentRepository.Storage.Data
     {
         #region SECTION: BlobStorage, data, common
 
-        [Obsolete("Use Configuration.BlobStorage.FileStreamEnabled instead.")]
-        public static bool FileStreamEnabled => Configuration.BlobStorage.FileStreamEnabled;
-        [Obsolete("Use Configuration.BlobStorage.MinimumSizeForFileStreamInBytes instead.")]
-        public static int MinimumSizeForFileStreamInBytes => Configuration.BlobStorage.MinimumSizeForFileStreamInBytes;
         [Obsolete("Use Configuration.BlobStorage.MinimumSizeForBlobProviderInBytes instead.")]
         public static int MinimumSizeForBlobProviderInBytes => Configuration.BlobStorage.MinimumSizeForBlobProviderInBytes;
 

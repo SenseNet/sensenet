@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SenseNet.BackgroundOperations;
 using SenseNet.Diagnostics;
 using SenseNet.TaskManagement.Core;
+using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
@@ -15,18 +18,27 @@ namespace SenseNet.ContentRepository.Storage.Data
     /// </summary>
     internal class SnMaintenance : ISnService
     {
-        private static readonly int TIMER_INTERVAL = 10;
+        private static readonly int TIMER_INTERVAL = 10; // in seconds
         private static Timer _maintenanceTimer;
         private static int _currentCycle;
         private const string TRACE_PREFIX = "#SnMaintenance> ";
+        private static IEnumerable<IMaintenanceTask> _maintenanceTasks = new IMaintenanceTask[0];
 
         // ========================================================================================= ISnService implementation
 
         public bool Start()
         {
             _maintenanceTimer = new Timer(MaintenanceTimerElapsed, null, TIMER_INTERVAL * 1000, TIMER_INTERVAL * 1000);
-
+            _maintenanceTasks = DiscoverMaintenanceTasks();
             return true;
+        }
+        private IEnumerable<IMaintenanceTask> DiscoverMaintenanceTasks()
+        {
+            return TypeResolver.GetTypesByInterface(typeof(IMaintenanceTask)).Select(t =>
+                {
+                    SnTrace.System.Write("MaintenanceTask found: {0}", t.FullName);
+                    return (IMaintenanceTask)Activator.CreateInstance(t);
+                });
         }
 
         public void Shutdown()
@@ -37,6 +49,11 @@ namespace SenseNet.ContentRepository.Storage.Data
             _maintenanceTimer.Change(Timeout.Infinite, Timeout.Infinite);
             _maintenanceTimer.Dispose();
             _maintenanceTimer = null;
+        }
+
+        internal static bool Running()
+        {
+            return _maintenanceTimer != null;
         }
 
         // ========================================================================================= Timer event handler
@@ -61,6 +78,10 @@ namespace SenseNet.ContentRepository.Storage.Data
             // start maintenance tasks asychronously
             Task.Run(() => CleanupFiles());
             Task.Run(() => StartADSync());
+
+            foreach(var maintenanceTask in _maintenanceTasks)
+                if(IsTaskExecutable(maintenanceTask.WaitingMinutes))
+                    Task.Run(() => maintenanceTask.Execute());
         }
 
         // ========================================================================================= Maintenance operations
@@ -200,10 +221,18 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         // ========================================================================================= Helper methods
 
+        private static bool IsTaskExecutable(double waitingMinutes)
+        {
+            return IsTaskExecutable(Convert.ToInt32(
+                (waitingMinutes < 0 ? 0 : waitingMinutes)
+                * 60 / TIMER_INTERVAL));
+        }
         private static bool IsTaskExecutable(int cycleLength)
         {
             // We are in the correct cycle if the current timer cycle is divisible
             // by the cycle length defined by the particular task.
+            if (cycleLength < 1)
+                return true;
             return _currentCycle%cycleLength == 0;
         }
     }

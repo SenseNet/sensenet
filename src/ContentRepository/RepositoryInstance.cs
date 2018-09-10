@@ -122,8 +122,6 @@ namespace SenseNet.ContentRepository
                 LoggingSettings.SnTraceConfigurator.UpdateCategories(_settings.TraceCategories);
             else
                 LoggingSettings.SnTraceConfigurator.UpdateStartupCategories();
-            
-            TypeHandler.Initialize(_settings.Providers);
 
             SearchManager.SetSearchEngineSupport(new SearchEngineSupport());
 
@@ -348,11 +346,24 @@ namespace SenseNet.ContentRepository
 
         private static void InitializeLogger()
         {
-            var logSection = ConfigurationManager.GetSection("loggingConfiguration");
-            if (logSection != null)
-                SnLog.Instance = new EntLibLoggerAdapter();
-            else
-                SnLog.Instance = new DebugWriteLoggerAdapter();
+            // look for the configured logger
+            SnLog.Instance = Providers.Instance.EventLogger ?? new DebugWriteLoggerAdapter();
+            SnLog.PropertyCollector = new EventPropertyCollector();
+            SnLog.AuditEventWriter = new DatabaseAuditEventWriter();
+
+            //set configured tracers
+            var tracers = Providers.Instance.GetProvider<ISnTracer[]>();
+            if (tracers?.Length > 0)
+            {
+                SnTrace.SnTracers.Clear();
+                SnTrace.SnTracers.AddRange(tracers);
+            }
+
+            SnLog.WriteInformation("Loggers and tracers initialized.", properties: new Dictionary<string, object>
+            {
+                { "Loggers", SnLog.Instance?.GetType().Name },
+                { "Tracers", string.Join(", ", SnTrace.SnTracers.Select(snt => snt?.GetType().Name)) }
+            });
         }
 
         private void RegisterAppdomainEventHandlers()
@@ -428,6 +439,9 @@ namespace SenseNet.ContentRepository
                 SnTrace.Repository.Write("Shutting down {0}", DistributedApplication.ClusterChannel.GetType().Name);
                 DistributedApplication.ClusterChannel.ShutDown();
 
+                SnTrace.Repository.Write("Shutting down Security.");
+                SecurityHandler.ShutDownSecurity();
+
                 SnTrace.Repository.Write("Shutting down IndexingEngine.");
                 IndexManager.ShutDown();
 
@@ -450,17 +464,16 @@ namespace SenseNet.ContentRepository
 
         public void ConsoleWrite(params string[] text)
         {
-            if (_settings.Console == null)
-                return;
             foreach (var s in text)
-                _settings.Console.Write(s);
+            {
+                SnTrace.System.Write(s);
+                _settings.Console?.Write(s);
+            }
         }
         public void ConsoleWriteLine(params string[] text)
         {
-            if (_settings.Console == null)
-                return;
             ConsoleWrite(text);
-            _settings.Console.WriteLine();
+            _settings.Console?.WriteLine();
         }
 
         internal static bool Started()

@@ -5,10 +5,7 @@ $scriptsSourcePath = "$srcPath\Storage\Data\SqlClient\Scripts"
 # delete existing packages
 Remove-Item $PSScriptRoot\*.nupkg
 
-nuget pack $srcPath\Common\Common.csproj -properties Configuration=Release -OutputDirectory $PSScriptRoot
-nuget pack $srcPath\BlobStorage\BlobStorage.csproj -properties Configuration=Release -OutputDirectory $PSScriptRoot
-nuget pack $srcPath\Services\Services.nuspec -properties Configuration=Release -OutputDirectory $PSScriptRoot
-nuget pack $srcPath\Search\Search.csproj -properties Configuration=Release -OutputDirectory $PSScriptRoot
+nuget pack $srcPath\Services\SenseNet.Services.nuspec -properties Configuration=Release -OutputDirectory $PSScriptRoot
 nuget pack $srcPath\Tests\SenseNet.Tests\SenseNet.Tests.nuspec -properties Configuration=Release -OutputDirectory $PSScriptRoot
 
 New-Item $srcPath\nuget\snadmin\install-services\scripts -ItemType directory -Force
@@ -23,4 +20,4 @@ Copy-Item $scriptsSourcePath\Install_04_Data_Phase2.sql $srcPath\nuget\snadmin\i
 
 Compress-Archive -Path "$srcPath\nuget\snadmin\install-services\*" -Force -CompressionLevel Optimal -DestinationPath $installPackagePath
 
-nuget pack $srcPath\Services\Services.Install.nuspec -properties Configuration=Release -OutputDirectory $PSScriptRoot
+nuget pack $srcPath\Services\SenseNet.Services.Install.nuspec -properties Configuration=Release -OutputDirectory $PSScriptRoot

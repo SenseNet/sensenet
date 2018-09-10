@@ -1,6 +1,4 @@
-﻿using SenseNet.ContentRepository.Storage;
-
-// ReSharper disable once CheckNamespace
+﻿// ReSharper disable once CheckNamespace
 namespace SenseNet.Configuration
 {
     /// <summary>
@@ -32,15 +30,6 @@ namespace SenseNet.Configuration
         public static int BinaryCacheSize { get; internal set; } = GetInt(SectionName, "BinaryCacheSize", 1048576, 102400, 104857600);
 
         /// <summary>
-        /// Minimum size limit (in bytes) for binary data to be stored in a SQL FileStream column. 
-        /// Files smaller or equal this size will be stored in the database. Bigger files will go
-        /// to a FileStream column if the feature is enabled in the database.
-        /// If you set this to 0, all files will go to the filestream column. 
-        /// In case of a huge value everything will remain in the db.
-        /// </summary>
-        public static int MinimumSizeForFileStreamInBytes { get; internal set; } = GetInt(SectionName, "MinimumSizeForFileStreamKB", 500) * 1024;        
-
-        /// <summary>
         /// Minimum size limit (in bytes) for binary data to be stored in the external blob storage. 
         /// Files under this size will be stored in the database. If you set this to 0, all files
         /// will go to the external storage. In case of a huge value everything will remain in the db.
@@ -48,14 +37,12 @@ namespace SenseNet.Configuration
         public static int MinimumSizeForBlobProviderInBytes { get; internal set; } = GetInt(SectionName, "MinimumSizeForBlobProviderKB", 500) * 1024;
 
         /// <summary>
-        /// Whether the FileStream feature is enabled in the system or not.
-        /// Computed property, not possible to configure.
-        /// </summary>
-        public static bool FileStreamEnabled { get; internal set; } = BlobStorageComponents.DataProvider.IsFilestreamEnabled();
-
-        /// <summary>
         /// Class name of an optional external blob storage provider.
         /// </summary>
         public static string BlobProviderClassName { get; internal set; } = GetString(SectionName, "BlobProvider");
+        /// <summary>
+        /// Class name of an optional external metadata provider for the blob storage.
+        /// </summary>
+        public static string MetadataProviderClassName { get; internal set; } = GetString(SectionName, "MetadataProvider");
     }
 }

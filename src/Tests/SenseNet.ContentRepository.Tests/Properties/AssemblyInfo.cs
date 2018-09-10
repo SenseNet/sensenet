@@ -10,9 +10,10 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyProduct("sensenet")]
 [assembly: AssemblyTrademark("Sense/Net Inc.")]
 [assembly: AssemblyCulture("")]
-[assembly: AssemblyVersion("7.1.3.0")]
-[assembly: AssemblyFileVersion("7.1.3.0")]
-[assembly: AssemblyInformationalVersion("7.1.3")]
+
+[assembly: AssemblyVersion("7.3.3.0")]
+[assembly: AssemblyFileVersion("7.3.3.0")]
+[assembly: AssemblyInformationalVersion("7.3.3")]
 
 [assembly: ComVisible(false)]
 [assembly: Guid("7de6a7e8-5738-4436-9646-9c1179f752ea")]

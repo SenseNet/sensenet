@@ -96,3 +96,23 @@ Deletes an event log along with its registered sources.
 ``` text
 SnAdmin deleteeventlog logname:"MyProject"
 ```
+
+## cleanuppreviews
+Removes preview images from the repository. The following parameters can be combined based on the actual environment and needs.
+
+Deletes all preview images in a subtree:
+``` text
+SnAdmin cleanuppreviews path:"/Root/MySite"
+```
+Deletes preview images but _preserves the first 5_ for every document version.
+``` text
+SnAdmin cleanuppreviews maxIndex:5
+```
+Deletes _all_ preview images for _old document versions_ (the ones that are not the last major or minor version) and retains only the first 3 images for the latest versions.
+``` text
+SnAdmin cleanuppreviews mode:KeepLastVersions maxIndex:3
+```
+Deletes only unnecessary empty preview folders. In this mode no image is deleted.
+``` text
+SnAdmin cleanuppreviews mode:EmptyFoldersOnly
+```

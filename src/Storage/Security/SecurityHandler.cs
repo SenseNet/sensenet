@@ -2013,5 +2013,9 @@ namespace SenseNet.ContentRepository.Storage.Security
 
         #endregion
 
-    }
+	    public static void ShutDownSecurity()
+	    {
+	        SenseNet.Security.SecurityContext.Shutdown();
+	    }
+	}
 }

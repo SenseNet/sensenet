@@ -161,7 +161,7 @@ namespace SenseNet.Portal.OData.Parser
             if (c <= Chars.Z) return CharType.Alpha;
             if (c < Chars.a) return CharType.Char;
             if (c <= Chars.z) return CharType.Alpha;
-            throw new SenseNet.ContentRepository.Storage.SnNotSupportedException("Unknown CharType");
+            throw new SnNotSupportedException("Unknown CharType");
         }
         internal void NextToken()
         {

@@ -20,6 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyProduct("sensenet")]
 [assembly: AssemblyTrademark("Sense/Net Inc.")]
 [assembly: AssemblyCulture("")]
-[assembly: AssemblyVersion("7.1.3.0")]
-[assembly: AssemblyFileVersion("7.1.3.0")]
-[assembly: AssemblyInformationalVersion("7.1.3")]
+
+[assembly: AssemblyVersion("7.3.3.0")]
+[assembly: AssemblyFileVersion("7.3.3.0")]
+[assembly: AssemblyInformationalVersion("7.3.3")]

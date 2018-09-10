@@ -38,18 +38,13 @@ namespace SenseNet.ContentRepository.Storage.Data
         public object BlobProviderData { get; set; }
 
         /// <summary>
-        /// Gets a value indicating whether this binary value is (or will be) saved into a Filestream column in SQL Server.
-        /// </summary>
-        public bool UseFileStream { get; set; }
-
-        /// <summary>
         /// Creates a new instance of the BlobStorageContext class.
         /// </summary>
         /// <param name="provider">Blob provider to work with.</param>
         /// <param name="providerData">Optional existing provider-specific data in text format.</param>
         public BlobStorageContext(IBlobProvider provider, string providerData = null)
         {
-            this.Provider = provider;
+            Provider = provider;
             if (providerData != null)
                 BlobProviderData = provider.ParseData(providerData);
         }
