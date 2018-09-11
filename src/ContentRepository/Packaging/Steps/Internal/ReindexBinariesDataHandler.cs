@@ -120,12 +120,19 @@ namespace SenseNet.Packaging.Steps.Internal
 
             public static bool CheckFeature()
             {
-                // proc DropTables
-                using (var cmd = DataProvider.CreateDataProcedure(SqlScripts.CheckFeature))
+                try
                 {
-                    cmd.CommandType = CommandType.Text;
-                    var result = cmd.ExecuteScalar();
-                    return Convert.ToInt32(result) != 0;
+                    // proc DropTables
+                    using (var cmd = DataProvider.CreateDataProcedure(SqlScripts.CheckFeature))
+                    {
+                        cmd.CommandType = CommandType.Text;
+                        var result = cmd.ExecuteScalar();
+                        return Convert.ToInt32(result) != 0;
+                    }
+                }
+                catch(NotSupportedException)
+                {
+                    return false;
                 }
             }
 

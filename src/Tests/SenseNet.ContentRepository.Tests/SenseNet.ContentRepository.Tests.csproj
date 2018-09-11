@@ -94,6 +94,7 @@
     <Compile Include="ContentTypeInheritanceTests.cs" />
     <Compile Include="ContentTypeTests.cs" />
     <Compile Include="FieldSettingTests.cs" />
+    <Compile Include="FileTests.cs" />
     <Compile Include="GenericContentTests.cs" />
     <Compile Include="IndexingTests.cs" />
     <Compile Include="LinqTests.cs" />

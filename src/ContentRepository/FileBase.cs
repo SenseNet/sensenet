@@ -61,9 +61,11 @@ namespace SenseNet.ContentRepository
 	    public override void Save(NodeSaveSettings settings)
 	    {
             // check new content here for speedup reasons
-            if (IsNew)
+	        if (IsNew)
+	        {
 	            AssertExecutableType(this);
-
+	            SetBinaryData(this);
+	        }
 	        base.Save(settings);
 	    }
 
@@ -140,5 +142,19 @@ namespace SenseNet.ContentRepository
                     throw new InvalidContentException(SR.GetString(SR.Exceptions.File.Error_ForbiddenExecutable)); 
             }
 	    }
+
+	    private static void SetBinaryData(FileBase file)
+	    {
+	        var binaryData = file.Binary;
+
+	        if (string.IsNullOrEmpty(binaryData.FileName))
+	        {
+	            var mimeTypeOriginal = binaryData.ContentType;
+	            binaryData.FileName = file.Name;
+	            if (!string.IsNullOrEmpty(mimeTypeOriginal))
+	                binaryData.ContentType = mimeTypeOriginal;
+	        }
+
+        }
     }
 }
