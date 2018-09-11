@@ -842,19 +842,9 @@ namespace SenseNet.ContentRepository
 
         internal void PropertyChanged(string propertyName)
         {
-            var found = false;
-            var changed = false;
             foreach (var field in Fields.Values)
-            {
                 if (field.FieldSetting.Bindings.Contains(propertyName))
-                {
-                    found = true;
-                    changed = field.IsChanged;
                     field.Reset();
-                }
-            }
-            var state = found ? (changed ? "CHANGED" : "not changed") : "NOT FOUND";
-            SnTrace.Test.Write("Content.PropertyChanged(\"{0}\") {1}", propertyName, state);
         }
 
         public static void Modify(Content content, Dictionary<string, string> fieldData)
