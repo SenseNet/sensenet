@@ -288,7 +288,7 @@ namespace SenseNet.ContentRepository
             this.Content.Invalidate();
             _isValidated = false;
         }
-        internal void Reset()
+        protected internal virtual void Reset()
         {
             Value = null;
             _changed = false;
