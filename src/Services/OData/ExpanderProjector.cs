@@ -165,8 +165,7 @@ namespace SenseNet.Portal.OData
                                             : FilterStatus.Disabled;
 
                                     return ProjectMultiRefContents(
-                                        c.Children.AsEnumerable().Select(cnt => cnt.ContentHandler),
-                                        new List<Property>(new[] { expansion }),
+                                        c.Children.AsEnumerable().Select(cnt => cnt.ContentHandler), expansion.Children,
                                         property.Children);
                                 });
                             break;
