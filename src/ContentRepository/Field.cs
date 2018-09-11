@@ -285,7 +285,7 @@ namespace SenseNet.ContentRepository
                 return;
             _changed = true;
             Value = value;
-            this.Content.FieldChanged();
+            this.Content.Invalidate();
             _isValidated = false;
         }
         internal void Reset()

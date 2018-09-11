@@ -917,7 +917,7 @@ namespace SenseNet.ContentRepository
 
             return _isValid;
         }
-        internal void FieldChanged()
+        internal void Invalidate()
         {
             _isValidated = false;
         }
