@@ -92,6 +92,7 @@
     <Compile Include="StepTests\EditAllowedChildTypesTests.cs" />
     <Compile Include="StepTests\EditConfigurationTests.cs" />
     <Compile Include="StepTests\PopulateIndexTests.cs" />
+    <Compile Include="StepTests\UndoChangesTests.cs" />
     <Compile Include="StepTests\UpgradeProviderConfigurationTests.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -1,19 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using SenseNet.Search;
 
 namespace SenseNet.Packaging.Steps.Internal
 {
-    internal class SafeQueries
+    internal class SafeQueries : ISafeQueryHolder
     {
         /// <summary>Returns with the following query: '+TypeIs:Workflow +WorkflowStatus:(Aborted Completed)
         /// -WorkflowInstanceGuid:"00000000-0000-0000-0000-000000000000"'</summary>
-        public static string ConnectedAbortedAndCompletedWorkflows
-        {
-            get { return "+TypeIs:Workflow +WorkflowStatus:(Aborted Completed) -WorkflowInstanceGuid:\"00000000-0000-0000-0000-000000000000\""; }
-        }
+        public static string ConnectedAbortedAndCompletedWorkflows => "+TypeIs:Workflow +WorkflowStatus:(Aborted Completed) -WorkflowInstanceGuid:\"00000000-0000-0000-0000-000000000000\"";
 
+        /// <summary>Returns the following query: +TypeIs:@0 +InTree:@1 +Locked:true</summary>
+        public static string LockedContentByPath => "+TypeIs:@0 +InTree:@1 +Locked:true";
     }
 }
