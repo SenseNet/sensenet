@@ -13,10 +13,11 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class NotifyChangedTests : TestBase
     {
+        [ContentHandler]
         private class ContentHandler1 : GenericContent
         {
-            public static readonly string CTD = @"<?xml version='1.0' encoding='utf-8'?>
-<ContentType name='ContentHandler1' parentType='GenericContent' handler='SenseNet.ContentRepository.GenericContent' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
+            public static readonly string CTD = $@"<?xml version='1.0' encoding='utf-8'?>
+<ContentType name='ContentHandler1' parentType='GenericContent' handler='{typeof(ContentHandler1).FullName}' xmlns='http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition'>
   <DisplayName>ContentHandler1</DisplayName>
   <Description>ContentHandler1</Description>
   <Fields>
@@ -78,68 +79,21 @@ namespace SenseNet.ContentRepository.Tests
             }
         }
 
-
         [TestMethod]
-        public void NotifyChanged_NodeDataStaticProperty_Traced()
+        public void NotifyChanged_ContentInstances()
         {
             var contentName = MethodBase.GetCurrentMethod().Name;
-            SnTrace.Test.Enabled = false;
-            var tracer = new SnDebugViewTracer();
-            SnTrace.SnTracers.Add(tracer);
-            try
+            Test(() =>
             {
-                Test(() =>
-                {
-                    SnTrace.Test.Write(">>>> START");
+                var content = Content.CreateNew(typeof(SystemFolder).Name, Repository.Root, contentName);
+                var node = (GenericContent)content.ContentHandler;
+                Assert.AreSame(content, node.Content);
 
-                    SnTrace.Test.Write(
-                        ">>>> var node = new SystemFolder(Repository.Root) {{ Name = contentName, Index = 1 }};");
-                    var node = new SystemFolder(Repository.Root) {Name = contentName, Index = 1};
-                    SnTrace.Test.Write(">>>> var fieldName = nameof(node.Index);");
-                    var fieldName = nameof(node.Index);
-                    SnTrace.Test.Write(">>>> var content = node.Content;");
-                    var content = node.Content;
-                    SnTrace.Test.Write(">>>> Assert.AreEqual(1, (int)content[fieldName]);");
-                    Assert.AreEqual(1, (int) content[fieldName]);
+                node.Index = 3;
+                content.Save();
 
-                    SnTrace.Test.Write(">>>> node.Index = 2;");
-                    node.Index = 2;
-                    SnTrace.Test.Write(">>>> Assert.AreEqual(2, (int)content[fieldName]);");
-                    Assert.AreEqual(2, (int) content[fieldName]);
-
-                    SnTrace.Test.Write(">>>> node.Save();");
-                    node.Save();
-                    SnTrace.Test.Write(">>>> Assert.AreEqual(2, node.Index);");
-                    Assert.AreEqual(2, node.Index);
-                    SnTrace.Test.Write(">>>> Assert.AreEqual(2, (int)content[fieldName]);");
-                    Assert.AreEqual(2, (int) content[fieldName]);
-
-                    SnTrace.Test.Write(">>>> content[fieldName] = 42;");
-                    content[fieldName] = 42;
-                    SnTrace.Test.Write(">>>> Assert.AreEqual(2, node.Index);");
-                    Assert.AreEqual(2, node.Index);
-                    SnTrace.Test.Write(">>>> Assert.AreEqual(42, (int)content[fieldName]);");
-                    Assert.AreEqual(42, (int) content[fieldName]);
-
-                    SnTrace.Test.Write(">>>> node.Index = 3;");
-                    node.Index = 3;
-                    SnTrace.Test.Write(">>>> Assert.AreEqual(3, (int)content[fieldName]);");
-                    Assert.AreEqual(3, (int) content[fieldName]);
-
-                    SnTrace.Test.Write(">>>> node.Save();");
-                    node.Save();
-
-                    SnTrace.Test.Write(">>>> CreateSafeContentQuery....");
-                    Assert.IsTrue(CreateSafeContentQuery($"+{fieldName}:3 +Name:{contentName} .AUTOFILTERS:OFF")
-                        .Execute().Identifiers.Any());
-
-                    SnTrace.Test.Write(">>>> END");
-                });
-            }
-            finally
-            {
-                SnTrace.SnTracers.Remove(tracer);
-            }
+                Assert.AreSame(content, node.Content);
+            });
         }
 
         [TestMethod]
@@ -235,7 +189,6 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(testValue, (string)content[fieldName]);
             });
         }
-
         [TestMethod]
         public void NotifyChanged_CustomProperty()
         {
@@ -265,6 +218,26 @@ namespace SenseNet.ContentRepository.Tests
                 node.Save();
                 Assert.AreSame(content, node.Content);
                 Assert.AreEqual(testValue, (int)content[fieldName]);
+            });
+        }
+        [TestMethod]
+        public void NotifyChanged_CustomFieldIndexed()
+        {
+            var contentName = MethodBase.GetCurrentMethod().Name;
+
+            Test(() =>
+            {
+                ContentTypeInstaller.InstallContentType(ContentHandler1.CTD);
+                var root = CreateTestRoot();
+                var node = new ContentHandler1(root) { Name = contentName };
+                const string fieldName = "CustomInt1";
+                var testValue = 42;
+                var content = node.Content;
+
+                content[fieldName] = testValue;
+                node.Save();
+
+                Assert.IsTrue(CreateSafeContentQuery($"+{fieldName}:42 +Name:{contentName} .AUTOFILTERS:OFF").Execute().Identifiers.Any());
             });
         }
 
