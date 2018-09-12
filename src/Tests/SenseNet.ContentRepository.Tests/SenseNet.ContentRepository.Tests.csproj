@@ -103,6 +103,7 @@
     <Compile Include="NodeTests.cs" />
     <Compile Include="UserTests.cs" />
     <Compile Include="NodeIdentifierTests.cs" />
+    <Compile Include="NotifyChangedTests.cs" />
     <Compile Include="PortalContextTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ProvidersTests.cs" />

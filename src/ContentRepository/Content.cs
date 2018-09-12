@@ -839,6 +839,14 @@ namespace SenseNet.ContentRepository
 
 
         // ========================================================================= Methods
+
+        internal void PropertyChanged(string propertyName)
+        {
+            foreach (var field in Fields.Values)
+                if (field.FieldSetting.Bindings.Contains(propertyName))
+                    field.Reset();
+        }
+
         public static void Modify(Content content, Dictionary<string, string> fieldData)
         {
             using (var op = SnTrace.ContentOperation.StartOperation("Content.Modify"))
@@ -899,7 +907,7 @@ namespace SenseNet.ContentRepository
 
             return _isValid;
         }
-        internal void FieldChanged()
+        internal void Invalidate()
         {
             _isValidated = false;
         }

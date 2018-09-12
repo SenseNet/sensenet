@@ -92,12 +92,21 @@ namespace SenseNet.ContentRepository.Storage
     public abstract class Node : IPasswordSaltProvider
     {
         private NodeData _data;
-        internal NodeData Data
+        internal NodeData Data => _data;
+
+        private void SetNodeData(NodeData nodeData)
         {
-            get
-            {
-                return _data;
-            }
+            _data = nodeData;
+            _data.PropertyChangedCallback = PropertyChanged;
+        }
+
+        /// <summary>
+        /// This method is called when a property of the owner <see cref="Node"/> is changed.
+        /// </summary>
+        /// <param name="propertyName">Name of the changed property.</param>
+        protected virtual void PropertyChanged(string propertyName)
+        {
+
         }
 
         /// <summary>
@@ -231,7 +240,7 @@ namespace SenseNet.ContentRepository.Storage
         {
             if (!_data.IsShared)
                 return;
-            _data = NodeData.CreatePrivateData(_data);
+            SetNodeData(NodeData.CreatePrivateData(_data));
         }
 
         #region // ================================================================================================= General Properties
@@ -1645,7 +1654,7 @@ namespace SenseNet.ContentRepository.Storage
             }
 
             var data = DataBackingStore.CreateNewNodeData(parent, nodeType, listType, listId);
-            this._data = data;
+            SetNodeData(data);
 
         }
         /// <summary>
@@ -2179,7 +2188,7 @@ namespace SenseNet.ContentRepository.Storage
                 throw new RegistrationException(message);
             }
 
-            node._data = token.NodeData;
+            node.SetNodeData(token.NodeData);
             node._data.IsShared = true;
         }
 
@@ -2263,7 +2272,7 @@ namespace SenseNet.ContentRepository.Storage
                 var token = DataBackingStore.GetNodeData(nodeHead, nodeHead.LastMinorVersionId);
                 var sharedData = token.NodeData;
                 sharedData.IsShared = true;
-                _data = sharedData;
+                SetNodeData(sharedData);
                 __accessors = null;
             }
 
@@ -2278,7 +2287,7 @@ namespace SenseNet.ContentRepository.Storage
             var token = DataBackingStore.GetNodeData(nodeHead, this.VersionId);
             var sharedData = token.NodeData;
             sharedData.IsShared = true;
-            _data = sharedData;
+            SetNodeData(sharedData);
             __accessors = null;
             this.IsDirty = false;
         }
@@ -3027,7 +3036,7 @@ namespace SenseNet.ContentRepository.Storage
 
                         var sharedData = DataBackingStore.GetNodeData(nodeHead, versionId);
                         var privateData = NodeData.CreatePrivateData(sharedData.NodeData);
-                        _data = privateData;
+                        SetNodeData(privateData);
                     }
                     catch (Exception e) // logged
                     {

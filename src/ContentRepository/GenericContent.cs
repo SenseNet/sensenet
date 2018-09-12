@@ -18,6 +18,7 @@ using SenseNet.Preview;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Search.Querying;
 using SenseNet.Tools;
+using System.Runtime.CompilerServices;
 // ReSharper disable ArrangeThisQualifier
 // ReSharper disable VirtualMemberCallInConstructor
 // ReSharper disable RedundantBaseQualifier
@@ -299,6 +300,15 @@ namespace SenseNet.ContentRepository
         /// Gets the wrapper <see cref="Content"/> of this instance.
         /// </summary>
         public Content Content => _content ?? (_content = Content.Create(this));
+
+        protected override void PropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            if (_content == null)
+                return;
+
+            _content.PropertyChanged(propertyName);
+            base.PropertyChanged(propertyName);
+        }
 
         /// <summary>
         /// Initializes default field values in case of a new instance that is not yet saved to the database.
@@ -1695,6 +1705,10 @@ namespace SenseNet.ContentRepository
             // if related workflows should be kept alive, update them on a separate thread
             if (_keepWorkflowsAlive)
                 System.Threading.Tasks.Task.Run(() => UpdateRelatedWorkflows());
+
+            if(_content != null)
+                foreach(var field in _content.Fields.Values)
+                    field.Reset();
         }
 
         private bool _keepWorkflowsAlive;
