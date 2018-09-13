@@ -101,7 +101,6 @@ namespace SenseNet.ContentRepository.Tests
             }
         }
 
-        //UNDONE: Bug reprsduction
         [TestMethod]
         public void Cache_DeleteParent_SubtreeRemoved()
         {
