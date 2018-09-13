@@ -360,8 +360,11 @@ namespace SenseNet.ContentRepository.Storage
                 // cache only if we know the node id
                 if (binaryCacheEntity != null && nodeId != 0)
                 {
+                    var head = NodeHead.Get(nodeId);
                     if (!RepositoryEnvironment.WorkingMode.Populating)
-                        DistributedApplication.Cache.Insert(cacheKey, binaryCacheEntity, new NodeIdDependency(nodeId));
+                        //DistributedApplication.Cache.Insert(cacheKey, binaryCacheEntity, new NodeIdDependency(nodeId));
+                        DistributedApplication.Cache.Insert(cacheKey, binaryCacheEntity,
+                            CacheDependencyFactory.CreateBinaryDataDependency(nodeId, head.Path, head.NodeTypeId));
                 }
             }
 

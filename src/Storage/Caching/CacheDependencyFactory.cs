@@ -3,12 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Web.Caching;
+using SenseNet.ContentRepository.Storage.Schema;
 
 namespace SenseNet.ContentRepository.Storage.Caching.Dependency
 {
     public static class CacheDependencyFactory
     {
+        internal static CacheDependency CreateBinaryDataDependency(int nodeId, string path, int nodeTypeId)
+        {
+            var aggregateCacheDependency = new System.Web.Caching.AggregateCacheDependency();
+            aggregateCacheDependency.Add(
+                new NodeIdDependency(nodeId),
+                new PathDependency(path),
+                new NodeTypeDependency(nodeTypeId)
+            );
 
+            return aggregateCacheDependency;
+        }
 
         internal static CacheDependency CreateNodeHeadDependency(NodeHead nodeHead)
         {
