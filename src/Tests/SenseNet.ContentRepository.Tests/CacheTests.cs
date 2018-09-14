@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
+using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Tests;
 
 namespace SenseNet.ContentRepository.Tests
@@ -40,10 +41,6 @@ namespace SenseNet.ContentRepository.Tests
 
             public override void Insert(string key, object value, CacheDependency dependencies)
             {
-                if (key == "NodeHeadCache.1239")
-                {
-                    int q = 1;
-                }
                 _cache.Insert(key, value, dependencies);
                 Log.AppendLine($"Insert: {key}, {dependencies.GetType().Name}");
             }
@@ -104,49 +101,48 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void Cache_DeleteParent_SubtreeRemoved()
         {
-            Test(() =>
-            {
-                var cache = (AspNetCache) DistributedApplication.Cache;
+            Test((builder) => { builder.UseCacheProvider(new TestCache()); },
+                () =>
+                {
+                    // create structure
+                    var root = Repository.Root;
+                    var rootHead = NodeHead.Get(root.Id);
+                    var testRoot = CreateTestRoot();
+                    var testRootHead = NodeHead.Get(testRoot.Id);
+                    var file = new File(testRoot) {Name = "file"};
+                    file.Binary.SetStream(RepositoryTools.GetStreamFromString("Lorem ipsum..."));
+                    file.Save();
+                    var fileHead = NodeHead.Get(file.Id);
+                    var binaryData = file.Binary;
 
-                // create structure
-                var root = Repository.Root;
-                var rootHead = NodeHead.Get(root.Id);
-                var testRoot = CreateTestRoot();
-                var testRootHead = NodeHead.Get(testRoot.Id);
-                var file = new File(testRoot) {Name = "file"};
-                file.Binary.SetStream(RepositoryTools.GetStreamFromString("Lorem ipsum..."));
-                file.Save();
-                var fileHead = NodeHead.Get(file.Id);
-                var binaryData = file.Binary;
+                    // reset cache
+                    DistributedApplication.Cache.Reset();
 
-                // reset cache
-                cache.Reset();
+                    root = Node.Load<PortalRoot>(root.Id);
+                    testRoot = Node.Load<SystemFolder>(testRoot.Id);
+                    file = Node.Load<File>(file.Id);
+                    var stream = file.Binary.GetStream();
 
-                root = Node.Load<PortalRoot>(root.Id);
-                testRoot = Node.Load<SystemFolder>(testRoot.Id);
-                file = Node.Load<File>(file.Id);
-                var stream = file.Binary.GetStream();
+                    Assert.IsTrue(IsInCache(root.Data));
+                    Assert.IsTrue(IsInCache(rootHead));
+                    Assert.IsTrue(IsInCache(testRoot.Data));
+                    Assert.IsTrue(IsInCache(testRootHead));
+                    Assert.IsTrue(IsInCache(file.Data));
+                    Assert.IsTrue(IsInCache(fileHead));
+                    Assert.IsTrue(IsInCache(binaryData));
 
-                Assert.IsTrue(IsInCache(root.Data));
-                Assert.IsTrue(IsInCache(rootHead));
-                Assert.IsTrue(IsInCache(testRoot.Data));
-                Assert.IsTrue(IsInCache(testRootHead));
-                Assert.IsTrue(IsInCache(file.Data));
-                Assert.IsTrue(IsInCache(fileHead));
-                Assert.IsTrue(IsInCache(binaryData));
+                    //var keysBefore = cache.WhatIsInTheCache();
 
-                //var keysBefore = cache.WhatIsInTheCache();
+                    testRoot.ForceDelete();
 
-                testRoot.ForceDelete();
-
-                Assert.IsTrue(IsInCache(root.Data));
-                Assert.IsTrue(IsInCache(rootHead));
-                Assert.IsFalse(IsInCache(testRoot.Data));
-                Assert.IsFalse(IsInCache(testRootHead));
-                Assert.IsFalse(IsInCache(file.Data));
-                Assert.IsFalse(IsInCache(fileHead));
-                Assert.IsFalse(IsInCache(binaryData));
-            });
+                    Assert.IsTrue(IsInCache(root.Data));
+                    Assert.IsTrue(IsInCache(rootHead));
+                    Assert.IsFalse(IsInCache(testRoot.Data));
+                    Assert.IsFalse(IsInCache(testRootHead));
+                    Assert.IsFalse(IsInCache(file.Data));
+                    Assert.IsFalse(IsInCache(fileHead));
+                    Assert.IsFalse(IsInCache(binaryData));
+                });
         }
 
 
@@ -258,10 +254,10 @@ namespace SenseNet.ContentRepository.Tests
 
                     var root = CreateTestFolder(Repository.Root);
                     // create node1 and cache it with it own NodeIdDependency
-                    var node1 = CreateTestFolder(Repository.Root);
+                    var node1 = CreateTestFolder(root);
                     var node11 = CreateTestFolder(node1);
                     var node12 = CreateTestFolder(node1);
-                    var node2 = CreateTestFolder(Repository.Root);
+                    var node2 = CreateTestFolder(root);
                     var node21 = CreateTestFolder(node2);
                     var node22 = CreateTestFolder(node2);
 
@@ -298,12 +294,64 @@ namespace SenseNet.ContentRepository.Tests
 
                 });
         }
-
-        private Node CreateTestFolder(Node parent)
+        [TestMethod]
+        public void Cache_TypeDependency()
         {
-            var node = new SystemFolder(parent) { Name = Guid.NewGuid().ToString() };
+            Test((builder) => { builder.UseCacheProvider(new TestCache()); },
+                () =>
+                {
+                    var cache = (TestCache)DistributedApplication.Cache;
+
+                    var root = CreateTestFolder(Repository.Root);
+                    // create node1 and cache it with it own NodeIdDependency
+                    var folder1 = CreateTestFolder(root, true);
+                    var file11 = CreateTestFile(folder1);
+                    var folder11 = CreateTestFolder(folder1);
+                    var file111 = CreateTestFile(folder11);
+
+                    cache.Reset();
+
+                    var rootKey = InsertCacheWithTypeDependency(cache, root);
+                    var folder1Key = InsertCacheWithTypeDependency(cache, folder1);
+                    var file11Key = InsertCacheWithTypeDependency(cache, file11);
+                    var folder11Key = InsertCacheWithTypeDependency(cache, folder11);
+                    var file111Key = InsertCacheWithTypeDependency(cache, file111);
+
+                    // pre-check: all nodes are in the cache
+                    Assert.IsTrue(IsInCache(rootKey));
+                    Assert.IsTrue(IsInCache(folder1Key));
+                    Assert.IsTrue(IsInCache(file11Key));
+                    Assert.IsTrue(IsInCache(folder11Key));
+                    Assert.IsTrue(IsInCache(file111Key));
+
+                    // TEST: Remove the folder type tree
+                    var before = cache.WhatIsInTheCache();
+                    foreach (var nodeType in NodeType.GetByName("Folder").GetAllTypes())
+                        NodeTypeDependency.FireChanged(nodeType.Id);
+                    var after = cache.WhatIsInTheCache();
+
+                    // check: all folders are removed
+                    Assert.IsFalse(IsInCache(rootKey));
+                    Assert.IsFalse(IsInCache(folder1Key));
+                    Assert.IsTrue(IsInCache(file11Key));
+                    Assert.IsFalse(IsInCache(folder11Key));
+                    Assert.IsTrue(IsInCache(file111Key));
+                });
+        }
+
+        private Node CreateTestFolder(Node parent, bool simpleFolder = false)
+        {
+            var node = simpleFolder ? new Folder(parent) : new SystemFolder(parent);
+            node.Name = Guid.NewGuid().ToString();
             node.Save();
             return node;
+        }
+        private Node CreateTestFile(Node parent)
+        {
+            var file = new File(parent) { Name = Guid.NewGuid().ToString() };
+            file.Binary.SetStream(RepositoryTools.GetStreamFromString(Guid.NewGuid().ToString()));
+            file.Save();
+            return file;
         }
 
         private string InsertCacheWithPathDependency(ICache cache, Node node)
@@ -311,6 +359,14 @@ namespace SenseNet.ContentRepository.Tests
             var cacheKey = "NodeData." + node.VersionId;
 
             var dependencies = new PathDependency(node.Path);
+            cache.Insert(cacheKey, node.Data, dependencies);
+            return cacheKey;
+        }
+        private string InsertCacheWithTypeDependency(ICache cache, Node node)
+        {
+            var cacheKey = "NodeData." + node.VersionId;
+
+            var dependencies = new NodeTypeDependency(node.NodeTypeId);
             cache.Insert(cacheKey, node.Data, dependencies);
             return cacheKey;
         }
