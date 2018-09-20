@@ -11,7 +11,6 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Security;
-using SenseNet.Security.EF6SecurityStore;
 using SenseNet.Security.Messaging;
 using SenseNet.Tools;
 using System.Linq;
