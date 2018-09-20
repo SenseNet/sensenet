@@ -17,6 +17,7 @@ namespace SenseNet.ContentRepository.Tests
     [TestClass]
     public class CacheTests : TestBase
     {
+        #region private class TestCache...
         private class TestCache : CacheBase
         {
             private AspNetCache _cache;
@@ -97,6 +98,7 @@ namespace SenseNet.ContentRepository.Tests
                 return sb.ToString();
             }
         }
+        #endregion
 
         [TestMethod]
         public void Cache_DeleteParent_SubtreeRemoved()
@@ -144,9 +146,6 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.IsFalse(IsInCache(binaryData));
                 });
         }
-
-
-
 
 
         [TestMethod]
@@ -339,21 +338,6 @@ namespace SenseNet.ContentRepository.Tests
                 });
         }
 
-        private Node CreateTestFolder(Node parent, bool simpleFolder = false)
-        {
-            var node = simpleFolder ? new Folder(parent) : new SystemFolder(parent);
-            node.Name = Guid.NewGuid().ToString();
-            node.Save();
-            return node;
-        }
-        private Node CreateTestFile(Node parent)
-        {
-            var file = new File(parent) { Name = Guid.NewGuid().ToString() };
-            file.Binary.SetStream(RepositoryTools.GetStreamFromString(Guid.NewGuid().ToString()));
-            file.Save();
-            return file;
-        }
-
         private string InsertCacheWithPathDependency(ICache cache, Node node)
         {
             var cacheKey = "NodeData." + node.VersionId;
@@ -371,15 +355,25 @@ namespace SenseNet.ContentRepository.Tests
             return cacheKey;
         }
 
-
-
-        private SystemFolder CreateTestRoot(string name = null)
+        private Node CreateTestRoot()
         {
-            var node = new SystemFolder(Repository.Root) { Name = name ?? Guid.NewGuid().ToString() };
+            return CreateTestFolder(Repository.Root);
+        }
+
+        private Node CreateTestFolder(Node parent, bool simpleFolder = false)
+        {
+            var node = simpleFolder ? new Folder(parent) : new SystemFolder(parent);
+            node.Name = Guid.NewGuid().ToString();
             node.Save();
             return node;
         }
-
+        private Node CreateTestFile(Node parent)
+        {
+            var file = new File(parent) { Name = Guid.NewGuid().ToString() };
+            file.Binary.SetStream(RepositoryTools.GetStreamFromString(Guid.NewGuid().ToString()));
+            file.Save();
+            return file;
+        }
 
         private bool IsInCache(object obj)
         {
