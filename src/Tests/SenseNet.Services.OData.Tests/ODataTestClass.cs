@@ -116,18 +116,22 @@ namespace SenseNet.Services.OData.Tests
         }
         protected static ODataError GetError(StringWriter output)
         {
+            if (output == null)
+                throw new ArgumentNullException(nameof(output));
+
             var json = Deserialize(output);
-            var error = json["error"] as JObject;
-            if (error == null)
+            if (json == null)
+                throw new InvalidOperationException("Deserialized output is null.");
+            if (!(json["error"] is JObject error))
                 throw new Exception("Object is not an error");
+
             var code = error["code"].Value<string>();
             var exceptiontype = error["exceptiontype"].Value<string>();
             var message = error["message"] as JObject;
             var value = message["value"].Value<string>();
             var innererror = error["innererror"] as JObject;
             var trace = innererror["trace"].Value<string>();
-            ODataExceptionCode oecode;
-            Enum.TryParse<ODataExceptionCode>(code, out oecode);
+            Enum.TryParse<ODataExceptionCode>(code, out var oecode);
             return new ODataError { Code = oecode, ExceptionType = exceptiontype, Message = value, StackTrace = trace };
         }
         protected static ODataEntity GetEntity(StringWriter output)
@@ -158,9 +162,7 @@ namespace SenseNet.Services.OData.Tests
         }
         protected static JContainer Deserialize(TextReader reader)
         {
-            string models;
-            models = reader.ReadToEnd();
-
+            var models = reader?.ReadToEnd() ?? string.Empty;
             var settings = new JsonSerializerSettings { DateFormatHandling = DateFormatHandling.IsoDateFormat };
             var serializer = JsonSerializer.Create(settings);
             var jreader = new JsonTextReader(new StringReader(models));
@@ -175,7 +177,7 @@ namespace SenseNet.Services.OData.Tests
         }
         protected static string GetStringResult(StringWriter output)
         {
-            return output.GetStringBuilder().ToString();
+            return output?.GetStringBuilder().ToString() ?? string.Empty;
         }
         protected object GetUrl(string path)
         {
