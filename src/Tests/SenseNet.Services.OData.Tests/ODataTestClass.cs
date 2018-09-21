@@ -125,12 +125,12 @@ namespace SenseNet.Services.OData.Tests
             if (!(json["error"] is JObject error))
                 throw new Exception("Object is not an error");
 
-            var code = error["code"].Value<string>();
-            var exceptiontype = error["exceptiontype"].Value<string>();
+            var code = error["code"]?.Value<string>() ?? string.Empty;
+            var exceptiontype = error["exceptiontype"]?.Value<string>() ?? string.Empty;
             var message = error["message"] as JObject;
-            var value = message["value"].Value<string>();
+            var value = message?["value"]?.Value<string>() ?? string.Empty;
             var innererror = error["innererror"] as JObject;
-            var trace = innererror["trace"].Value<string>();
+            var trace = innererror?["trace"]?.Value<string>() ?? string.Empty;
             Enum.TryParse<ODataExceptionCode>(code, out var oecode);
             return new ODataError { Code = oecode, ExceptionType = exceptiontype, Message = value, StackTrace = trace };
         }
@@ -154,7 +154,13 @@ namespace SenseNet.Services.OData.Tests
 
         protected static JContainer Deserialize(StringWriter output)
         {
+            if (output == null)
+                throw new ArgumentNullException(nameof(output));
+
             var text = GetStringResult(output);
+            if (string.IsNullOrEmpty(text))
+                return null;
+
             JContainer json;
             using (var reader = new StringReader(text))
                 json = Deserialize(reader);
@@ -165,6 +171,9 @@ namespace SenseNet.Services.OData.Tests
             var models = reader?.ReadToEnd() ?? string.Empty;
             var settings = new JsonSerializerSettings { DateFormatHandling = DateFormatHandling.IsoDateFormat };
             var serializer = JsonSerializer.Create(settings);
+            if (serializer == null)
+                throw new InvalidOperationException("Serializer could not be created from settings.");
+
             var jreader = new JsonTextReader(new StringReader(models));
             var x = (JContainer)serializer.Deserialize(jreader);
             return x;
