@@ -1,20 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web;
-using Moq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.Portal.Virtualization;
 using SenseNet.Services.Virtualization;
-using Xunit;
-using Xunit.Sdk;
 
 namespace SenseNet.Services.Tests
 {
+    [TestClass]
     public class OAuthAuthenticationTests
     {
         private abstract class TestOAuthProvider : OAuthProvider
@@ -111,7 +105,7 @@ namespace SenseNet.Services.Tests
             public MembershipExtension MembershipExtension { get; set; }
         }
 
-        [Fact]
+        [TestMethod]
         public void OAuth_ValidUser()
         {
             var oauth = new OAuthManager
@@ -122,9 +116,9 @@ namespace SenseNet.Services.Tests
 
             var user = oauth.VerifyUser(TestOAuthProvider.TestProviderName, null);
 
-            Assert.Equal(TestOAuthProvider.UserName, user.Username);
+            Assert.AreEqual(TestOAuthProvider.UserName, user.Username);
         }
-        [Fact]
+        [TestMethod]
         public void OAuth_NotVerifiedUser()
         {
             var oauth = new OAuthManager
@@ -136,9 +130,9 @@ namespace SenseNet.Services.Tests
             // this must return null (we use the OAuthProviderInvalidUser), even if the LoadOrCreateUser method is defined above
             var user = oauth.VerifyUser(TestOAuthProvider.TestProviderName, null);
 
-            Assert.Null(user);
+            Assert.IsNull(user);
         }
-        [Fact]
+        [TestMethod]
         public void OAuth_ProviderError()
         {
             var oauth = new OAuthManager
@@ -150,9 +144,10 @@ namespace SenseNet.Services.Tests
             // this must return null (we use the OAuthProviderError), even if the LoadOrCreateUser method is defined above
             var user = oauth.VerifyUser(TestOAuthProvider.TestProviderName, null);
 
-            Assert.Null(user);
+            Assert.IsNull(user);
         }
-        [Fact]
+        [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
         public void OAuth_ProviderNotFound()
         {
             var oauth = new OAuthManager
@@ -162,7 +157,7 @@ namespace SenseNet.Services.Tests
             };
 
             // this must throw an exception, because the provider is null (cannot be found)
-            Assert.Throws<InvalidOperationException>(() => oauth.VerifyUser(TestOAuthProvider.TestProviderName, null));
+            oauth.VerifyUser(TestOAuthProvider.TestProviderName, null);
         }
     }
 }

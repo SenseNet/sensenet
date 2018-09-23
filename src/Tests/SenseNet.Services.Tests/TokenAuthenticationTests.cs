@@ -2,27 +2,21 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.IO;
-using System.Net;
-using System.Net.Http;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Web;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Security;
-using SenseNet.ContentRepository.Storage;
-using SenseNet.Portal;
 using SenseNet.Portal.Virtualization;
 using SenseNet.Services.Virtualization;
-using Xunit;
 using HttpCookie = System.Web.HttpCookie;
 
 namespace SenseNet.Services.Tests
 {
+    [TestClass]
     public class TokenAuthenticationTests
     {
-
         private class Disposable : IDisposable
         {
             public void Dispose(){}
@@ -62,7 +56,7 @@ namespace SenseNet.Services.Tests
             AuthenticationHelper.GetBasicAuthHeader = () => null;
         }
 
-        [Fact]
+        [TestMethod]
         public void TokenUltimateLogoutUrlTest()
         {
             var mockRequest = new Mock<HttpRequestBase>();
@@ -135,18 +129,18 @@ namespace SenseNet.Services.Tests
 
             new TokenAuthentication(mockLogoutProvider.Object).Authenticate(application, false, false);
 
-            Assert.True(ultimateLogout);
-            Assert.NotNull(mockResponse.Object.Cookies["as"]);
-            Assert.NotNull(mockResponse.Object.Cookies["rs"]);
-            Assert.NotNull(mockResponse.Object.Cookies["ahp"]);
-            Assert.True(mockResponse.Object.Cookies["as"].Expires < DateTime.Today);
-            Assert.True(mockResponse.Object.Cookies["rs"].Expires < DateTime.Today);
-            Assert.True(mockResponse.Object.Cookies["ahp"].Expires < DateTime.Today);
-            Assert.Equal(200, responseStatus);
+            Assert.IsTrue(ultimateLogout);
+            Assert.IsNotNull(mockResponse.Object.Cookies["as"]);
+            Assert.IsNotNull(mockResponse.Object.Cookies["rs"]);
+            Assert.IsNotNull(mockResponse.Object.Cookies["ahp"]);
+            Assert.IsTrue(mockResponse.Object.Cookies["as"].Expires < DateTime.Today);
+            Assert.IsTrue(mockResponse.Object.Cookies["rs"].Expires < DateTime.Today);
+            Assert.IsTrue(mockResponse.Object.Cookies["ahp"].Expires < DateTime.Today);
+            Assert.AreEqual(200, responseStatus);
         }
 
 
-        [Fact]
+        [TestMethod]
         public void TokenUltimateLogoutTest()
         {
             var mockRequest = new Mock<HttpRequestBase>();
@@ -221,17 +215,17 @@ namespace SenseNet.Services.Tests
 
             new TokenAuthentication(mockLogoutProvider.Object).Authenticate(application, false, false);
 
-            Assert.True(ultimateLogout);
-            Assert.NotNull(mockResponse.Object.Cookies["as"]);
-            Assert.NotNull(mockResponse.Object.Cookies["rs"]);
-            Assert.NotNull(mockResponse.Object.Cookies["ahp"]);
-            Assert.True(mockResponse.Object.Cookies["as"].Expires < DateTime.Today);
-            Assert.True(mockResponse.Object.Cookies["rs"].Expires < DateTime.Today);
-            Assert.True(mockResponse.Object.Cookies["ahp"].Expires < DateTime.Today);
-            Assert.Equal(200, responseStatus);
+            Assert.IsTrue(ultimateLogout);
+            Assert.IsNotNull(mockResponse.Object.Cookies["as"]);
+            Assert.IsNotNull(mockResponse.Object.Cookies["rs"]);
+            Assert.IsNotNull(mockResponse.Object.Cookies["ahp"]);
+            Assert.IsTrue(mockResponse.Object.Cookies["as"].Expires < DateTime.Today);
+            Assert.IsTrue(mockResponse.Object.Cookies["rs"].Expires < DateTime.Today);
+            Assert.IsTrue(mockResponse.Object.Cookies["ahp"].Expires < DateTime.Today);
+            Assert.AreEqual(200, responseStatus);
         }
 
-        [Fact]
+        [TestMethod]
         public void TokenUltimateLogoutUrlWithExpiredTokenTest()
         {
             var mockRequest = new Mock<HttpRequestBase>();
@@ -301,17 +295,17 @@ namespace SenseNet.Services.Tests
 
             new TokenAuthentication(mockLogoutProvider.Object).Authenticate(application, false, false);
 
-            Assert.False(ultimateLogout);
-            Assert.NotNull(mockResponse.Object.Cookies["as"]);
-            Assert.NotNull(mockResponse.Object.Cookies["rs"]);
-            Assert.NotNull(mockResponse.Object.Cookies["ahp"]);
-            Assert.True(mockResponse.Object.Cookies["as"].Expires < DateTime.Today);
-            Assert.True(mockResponse.Object.Cookies["rs"].Expires < DateTime.Today);
-            Assert.True(mockResponse.Object.Cookies["ahp"].Expires < DateTime.Today);
-            Assert.Equal(200, responseStatus);
+            Assert.IsFalse(ultimateLogout);
+            Assert.IsNotNull(mockResponse.Object.Cookies["as"]);
+            Assert.IsNotNull(mockResponse.Object.Cookies["rs"]);
+            Assert.IsNotNull(mockResponse.Object.Cookies["ahp"]);
+            Assert.IsTrue(mockResponse.Object.Cookies["as"].Expires < DateTime.Today);
+            Assert.IsTrue(mockResponse.Object.Cookies["rs"].Expires < DateTime.Today);
+            Assert.IsTrue(mockResponse.Object.Cookies["ahp"].Expires < DateTime.Today);
+            Assert.AreEqual(200, responseStatus);
         }
 
-        [Fact]
+        [TestMethod]
         public void TokenUltimateLogoutWithExpiredTokenTest()
         {
             var mockRequest = new Mock<HttpRequestBase>();
@@ -383,18 +377,18 @@ namespace SenseNet.Services.Tests
 
             new TokenAuthentication(mockLogoutProvider.Object).Authenticate(application, false, false);
 
-            Assert.False(ultimateLogout);
-            Assert.NotNull(mockResponse.Object.Cookies["as"]);
-            Assert.NotNull(mockResponse.Object.Cookies["rs"]);
-            Assert.NotNull(mockResponse.Object.Cookies["ahp"]);
-            Assert.True(mockResponse.Object.Cookies["as"].Expires < DateTime.Today);
-            Assert.True(mockResponse.Object.Cookies["rs"].Expires < DateTime.Today);
-            Assert.True(mockResponse.Object.Cookies["ahp"].Expires < DateTime.Today);
-            Assert.Equal(200, responseStatus);
+            Assert.IsFalse(ultimateLogout);
+            Assert.IsNotNull(mockResponse.Object.Cookies["as"]);
+            Assert.IsNotNull(mockResponse.Object.Cookies["rs"]);
+            Assert.IsNotNull(mockResponse.Object.Cookies["ahp"]);
+            Assert.IsTrue(mockResponse.Object.Cookies["as"].Expires < DateTime.Today);
+            Assert.IsTrue(mockResponse.Object.Cookies["rs"].Expires < DateTime.Today);
+            Assert.IsTrue(mockResponse.Object.Cookies["ahp"].Expires < DateTime.Today);
+            Assert.AreEqual(200, responseStatus);
         }
 
 
-        [Fact]
+        [TestMethod]
         public void TokenLogoutTest()
         {
             var mockRequest = new Mock<HttpRequestBase>();
@@ -460,17 +454,17 @@ namespace SenseNet.Services.Tests
 
             new TokenAuthentication(mockLogoutProvider.Object).Authenticate(application, false, false);
 
-            Assert.False(ultimateLogout);
-            Assert.NotNull(mockResponse.Object.Cookies["as"]);
-            Assert.NotNull(mockResponse.Object.Cookies["rs"]);
-            Assert.NotNull(mockResponse.Object.Cookies["ahp"]);
-            Assert.True(mockResponse.Object.Cookies["as"].Expires < DateTime.Today);
-            Assert.True(mockResponse.Object.Cookies["rs"].Expires < DateTime.Today);
-            Assert.True(mockResponse.Object.Cookies["ahp"].Expires < DateTime.Today);
-            Assert.Equal(200, responseStatus);
+            Assert.IsFalse(ultimateLogout);
+            Assert.IsNotNull(mockResponse.Object.Cookies["as"]);
+            Assert.IsNotNull(mockResponse.Object.Cookies["rs"]);
+            Assert.IsNotNull(mockResponse.Object.Cookies["ahp"]);
+            Assert.IsTrue(mockResponse.Object.Cookies["as"].Expires < DateTime.Today);
+            Assert.IsTrue(mockResponse.Object.Cookies["rs"].Expires < DateTime.Today);
+            Assert.IsTrue(mockResponse.Object.Cookies["ahp"].Expires < DateTime.Today);
+            Assert.AreEqual(200, responseStatus);
         }
 
-        [Fact]
+        [TestMethod]
         public void TokenLogoutUrlTest()
         {
             var mockRequest = new Mock<HttpRequestBase>();
@@ -530,16 +524,16 @@ namespace SenseNet.Services.Tests
 
             new TokenAuthentication().Authenticate(application, false, false);
 
-            Assert.NotNull(mockResponse.Object.Cookies["as"]);
-            Assert.NotNull(mockResponse.Object.Cookies["rs"]);
-            Assert.NotNull(mockResponse.Object.Cookies["ahp"]);
-            Assert.True(mockResponse.Object.Cookies["as"].Expires < DateTime.Today);
-            Assert.True(mockResponse.Object.Cookies["rs"].Expires < DateTime.Today);
-            Assert.True(mockResponse.Object.Cookies["ahp"].Expires < DateTime.Today);
-            Assert.Equal(200, responseStatus);
+            Assert.IsNotNull(mockResponse.Object.Cookies["as"]);
+            Assert.IsNotNull(mockResponse.Object.Cookies["rs"]);
+            Assert.IsNotNull(mockResponse.Object.Cookies["ahp"]);
+            Assert.IsTrue(mockResponse.Object.Cookies["as"].Expires < DateTime.Today);
+            Assert.IsTrue(mockResponse.Object.Cookies["rs"].Expires < DateTime.Today);
+            Assert.IsTrue(mockResponse.Object.Cookies["ahp"].Expires < DateTime.Today);
+            Assert.AreEqual(200, responseStatus);
         }
 
-        [Fact]
+        [TestMethod]
         public void TokenLogoutWithExpiredTokenTest()
         {
             var mockRequest = new Mock<HttpRequestBase>();
@@ -599,16 +593,16 @@ namespace SenseNet.Services.Tests
 
             new TokenAuthentication().Authenticate(application, false, false);
 
-            Assert.NotNull(mockResponse.Object.Cookies["as"]);
-            Assert.NotNull(mockResponse.Object.Cookies["rs"]);
-            Assert.NotNull(mockResponse.Object.Cookies["ahp"]);
-            Assert.True(mockResponse.Object.Cookies["as"].Expires < DateTime.Today);
-            Assert.True(mockResponse.Object.Cookies["rs"].Expires < DateTime.Today);
-            Assert.True(mockResponse.Object.Cookies["ahp"].Expires < DateTime.Today);
-            Assert.Equal(200, responseStatus);
+            Assert.IsNotNull(mockResponse.Object.Cookies["as"]);
+            Assert.IsNotNull(mockResponse.Object.Cookies["rs"]);
+            Assert.IsNotNull(mockResponse.Object.Cookies["ahp"]);
+            Assert.IsTrue(mockResponse.Object.Cookies["as"].Expires < DateTime.Today);
+            Assert.IsTrue(mockResponse.Object.Cookies["rs"].Expires < DateTime.Today);
+            Assert.IsTrue(mockResponse.Object.Cookies["ahp"].Expires < DateTime.Today);
+            Assert.AreEqual(200, responseStatus);
         }
 
-        [Fact]
+        [TestMethod]
         public void TokenLogoutWithInvalidTokenTest()
         {
             var mockRequest = new Mock<HttpRequestBase>();
@@ -668,14 +662,14 @@ namespace SenseNet.Services.Tests
 
             new TokenAuthentication().Authenticate(application, false, false);
 
-            Assert.Null(mockResponse.Object.Cookies["as"]);
-            Assert.Null(mockResponse.Object.Cookies["rs"]);
-            Assert.Null(mockResponse.Object.Cookies["ahp"]);
-            Assert.Equal(401, responseStatus);
+            Assert.IsNull(mockResponse.Object.Cookies["as"]);
+            Assert.IsNull(mockResponse.Object.Cookies["rs"]);
+            Assert.IsNull(mockResponse.Object.Cookies["ahp"]);
+            Assert.AreEqual(401, responseStatus);
         }
 
 
-        [Fact]
+        [TestMethod]
         public void TokenAccessTest()
         {
             var mockRequest = new Mock<HttpRequestBase>();
@@ -737,14 +731,14 @@ namespace SenseNet.Services.Tests
 
             new TokenAuthentication().Authenticate(application, false, false);
 
-            Assert.Equal("username", mockContext.Object.User.Identity.Name);
-            Assert.Null(mockResponse.Object.Cookies["as"]);
-            Assert.Null(mockResponse.Object.Cookies["rs"]);
-            Assert.Null(mockResponse.Object.Cookies["ahp"]);
-            Assert.Equal(0, responseStatus);
+            Assert.AreEqual("username", mockContext.Object.User.Identity.Name);
+            Assert.IsNull(mockResponse.Object.Cookies["as"]);
+            Assert.IsNull(mockResponse.Object.Cookies["rs"]);
+            Assert.IsNull(mockResponse.Object.Cookies["ahp"]);
+            Assert.AreEqual(0, responseStatus);
         }
 
-        [Fact]
+        [TestMethod]
         public void TokenAccessUrlTest()
         {
             var mockRequest = new Mock<HttpRequestBase>();
@@ -801,15 +795,15 @@ namespace SenseNet.Services.Tests
 
             new TokenAuthentication().Authenticate(application, false, false);
 
-            Assert.Equal("username", user.Identity.Name);
-            Assert.Null(mockResponse.Object.Cookies["as"]);
-            Assert.Null(mockResponse.Object.Cookies["rs"]);
-            Assert.Null(mockResponse.Object.Cookies["ahp"]);
-            Assert.Equal(0, responseStatus);
+            Assert.AreEqual("username", user.Identity.Name);
+            Assert.IsNull(mockResponse.Object.Cookies["as"]);
+            Assert.IsNull(mockResponse.Object.Cookies["rs"]);
+            Assert.IsNull(mockResponse.Object.Cookies["ahp"]);
+            Assert.AreEqual(0, responseStatus);
         }
 
 
-        [Fact]
+        [TestMethod]
         public void TokenAccessWithInvalidTokenTest()
         {
             var mockRequest = new Mock<HttpRequestBase>();
@@ -866,14 +860,14 @@ namespace SenseNet.Services.Tests
 
             new TokenAuthentication().Authenticate(application, false, false);
 
-            Assert.Equal("Visitor", user.Identity.Name);
-            Assert.Null(mockResponse.Object.Cookies["as"]);
-            Assert.Null(mockResponse.Object.Cookies["rs"]);
-            Assert.Null(mockResponse.Object.Cookies["ahp"]);
-            Assert.Equal(0, responseStatus);
+            Assert.AreEqual("Visitor", user.Identity.Name);
+            Assert.IsNull(mockResponse.Object.Cookies["as"]);
+            Assert.IsNull(mockResponse.Object.Cookies["rs"]);
+            Assert.IsNull(mockResponse.Object.Cookies["ahp"]);
+            Assert.AreEqual(0, responseStatus);
         }
 
-        [Fact]
+        [TestMethod]
         public void TokenLoginTest()
         {
             var mockRequest = new Mock<HttpRequestBase>();
@@ -912,15 +906,15 @@ namespace SenseNet.Services.Tests
 
             new TokenAuthentication().Authenticate(application, true, false);
 
-            Assert.NotNull(mockResponse.Object.Cookies["as"]);
-            Assert.NotNull(mockResponse.Object.Cookies["rs"]);
-            Assert.NotNull(mockResponse.Object.Cookies["ahp"]);
-            Assert.Matches("\"access\":\".+\"", body);
-            Assert.Matches("\"refresh\":\".+\"", body);
-            Assert.Equal(200, responseStatus);
+            Assert.IsNotNull(mockResponse.Object.Cookies["as"]);
+            Assert.IsNotNull(mockResponse.Object.Cookies["rs"]);
+            Assert.IsNotNull(mockResponse.Object.Cookies["ahp"]);
+            Assert.IsTrue(body.Contains("\"access\":\""));
+            Assert.IsTrue(body.Contains("\"refresh\":\""));
+            Assert.AreEqual(200, responseStatus);
         }
 
-        [Fact]
+        [TestMethod]
         public void TokenLoginUrlTest()
         {
             var mockRequest = new Mock<HttpRequestBase>();
@@ -958,15 +952,15 @@ namespace SenseNet.Services.Tests
 
             new TokenAuthentication().Authenticate(application, true, false);
 
-            Assert.NotNull(mockResponse.Object.Cookies["as"]);
-            Assert.NotNull(mockResponse.Object.Cookies["rs"]);
-            Assert.NotNull(mockResponse.Object.Cookies["ahp"]);
-            Assert.Matches("\"access\":\".+\"", body);
-            Assert.Matches("\"refresh\":\".+\"", body);
-            Assert.Equal(200, responseStatus);
+            Assert.IsNotNull(mockResponse.Object.Cookies["as"]);
+            Assert.IsNotNull(mockResponse.Object.Cookies["rs"]);
+            Assert.IsNotNull(mockResponse.Object.Cookies["ahp"]);
+            Assert.IsTrue(body.Contains("\"access\":\""));
+            Assert.IsTrue(body.Contains("\"refresh\":\""));
+            Assert.AreEqual(200, responseStatus);
         }
 
-        [Fact]
+        [TestMethod]
         public void TokenLoginWithInvalidUserTest()
         {
             var mockRequest = new Mock<HttpRequestBase>();
@@ -1006,15 +1000,15 @@ namespace SenseNet.Services.Tests
 
             new TokenAuthentication().Authenticate(application, true, true);
 
-            Assert.Null(mockResponse.Object.Cookies["as"]);
-            Assert.Null(mockResponse.Object.Cookies["rs"]);
-            Assert.Null(mockResponse.Object.Cookies["ahp"]);
-            Assert.DoesNotContain("\"access\":", body);
-            Assert.DoesNotContain("\"refresh\":", body);
-            Assert.Equal(401, responseStatus);
+            Assert.IsNull(mockResponse.Object.Cookies["as"]);
+            Assert.IsNull(mockResponse.Object.Cookies["rs"]);
+            Assert.IsNull(mockResponse.Object.Cookies["ahp"]);
+            Assert.IsFalse(body.Contains("\"access\":"));
+            Assert.IsFalse(body.Contains("\"refresh\":"));
+            Assert.AreEqual(401, responseStatus);
         }
 
-        [Fact]
+        [TestMethod]
         public void TokenRefreshTest()
         {
             var mockRequest = new Mock<HttpRequestBase>();
@@ -1058,15 +1052,15 @@ namespace SenseNet.Services.Tests
 
             new TokenAuthentication(mockLogoutProvider.Object).Authenticate(application, false, false);
 
-            Assert.NotNull(mockResponse.Object.Cookies["as"]);
-            Assert.NotNull(mockResponse.Object.Cookies["ahp"]);
-            Assert.Null(mockResponse.Object.Cookies["rs"]);
-            Assert.Matches("\"access\":\".+\"", body);
-            Assert.DoesNotContain("\"refresh\":", body);
-            Assert.Equal(200, responseStatus);
+            Assert.IsNotNull(mockResponse.Object.Cookies["as"]);
+            Assert.IsNotNull(mockResponse.Object.Cookies["ahp"]);
+            Assert.IsNull(mockResponse.Object.Cookies["rs"]);
+            Assert.IsTrue(body.Contains("\"access\":\""));
+            Assert.IsFalse(body.Contains("\"refresh\":"));
+            Assert.AreEqual(200, responseStatus);
         }
 
-        [Fact]
+        [TestMethod]
         public void TokenRefreshUrlTest()
         {
             var mockRequest = new Mock<HttpRequestBase>();
@@ -1109,15 +1103,15 @@ namespace SenseNet.Services.Tests
 
             new TokenAuthentication(mockLogoutProvider.Object).Authenticate(application, false, false);
 
-            Assert.NotNull(mockResponse.Object.Cookies["as"]);
-            Assert.NotNull(mockResponse.Object.Cookies["ahp"]);
-            Assert.Null(mockResponse.Object.Cookies["rs"]);
-            Assert.Matches("\"access\":\".+\"", body);
-            Assert.DoesNotContain("\"refresh\":", body);
-            Assert.Equal(200, responseStatus);
+            Assert.IsNotNull(mockResponse.Object.Cookies["as"]);
+            Assert.IsNotNull(mockResponse.Object.Cookies["ahp"]);
+            Assert.IsNull(mockResponse.Object.Cookies["rs"]);
+            Assert.IsTrue(body.Contains("\"access\":\""));
+            Assert.IsFalse(body.Contains("\"refresh\":"));
+            Assert.AreEqual(200, responseStatus);
         }
 
-        [Fact]
+        [TestMethod]
         public void TokenRefreshWithInvalidTokenTest()
         {
             var mockRequest = new Mock<HttpRequestBase>();
@@ -1157,15 +1151,12 @@ namespace SenseNet.Services.Tests
 
             new TokenAuthentication().Authenticate(application, false, false);
 
-            Assert.Null(mockResponse.Object.Cookies["as"]);
-            Assert.Null(mockResponse.Object.Cookies["ahp"]);
-            Assert.Null(mockResponse.Object.Cookies["rs"]);
-            Assert.DoesNotContain("\"access\":", body);
-            Assert.DoesNotContain("\"refresh\":", body);
-            Assert.Equal(401, responseStatus);
+            Assert.IsNull(mockResponse.Object.Cookies["as"]);
+            Assert.IsNull(mockResponse.Object.Cookies["ahp"]);
+            Assert.IsNull(mockResponse.Object.Cookies["rs"]);
+            Assert.IsFalse(body.Contains("\"access\":"));
+            Assert.IsFalse(body.Contains("\"refresh\":"));
+            Assert.AreEqual(401, responseStatus);
         }
-
-
     }
-
 }
