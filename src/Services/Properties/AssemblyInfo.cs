@@ -5,7 +5,6 @@ using System.Runtime.InteropServices;
 [assembly: InternalsVisibleTo("SenseNet.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.ContentRepository.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.Services.Tests")]
-[assembly: InternalsVisibleTo("SenseNet.Authentication.Tests")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 [assembly: InternalsVisibleTo("SenseNet.Services.OData.Tests")]
 

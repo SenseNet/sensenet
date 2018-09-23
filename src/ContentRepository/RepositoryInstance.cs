@@ -101,6 +101,17 @@ namespace SenseNet.ContentRepository
                         {
                             instance.DoStart();
                         }
+                        //UNDONE: temp exception handling for tests
+                        catch (TypeInitializationException te)
+                        {                            
+                            if (te.InnerException is ReflectionTypeLoadException rtle)
+                            {
+                                var errors = string.Join(", ", rtle.LoaderExceptions?.Select(le => le.Message));
+                                throw new InvalidOperationException("Error loading one or more types: " + errors, te);
+                            }
+
+                            throw;   
+                        }
                         catch (Exception)
                         {
                             _instance = null;
