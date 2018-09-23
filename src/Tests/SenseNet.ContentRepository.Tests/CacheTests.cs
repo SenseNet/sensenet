@@ -177,7 +177,7 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.IsTrue(IsInCache(key1));
                     Assert.IsTrue(IsInCache(key2));
 
-                    // TEST#1: remove unknown node wia NodeIdDependency
+                    // TEST#1: remove unknown node via NodeIdDependency
                     NodeIdDependency.FireChanged(Math.Max(nodeId1, nodeId2) + 42);
                     Assert.IsTrue(IsInCache(key1));
                     Assert.IsTrue(IsInCache(key2));
