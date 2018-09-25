@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
+using SenseNet.ContentRepository.Storage.Caching.Legacy;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Tests;
 
@@ -17,12 +18,12 @@ namespace SenseNet.ContentRepository.Tests
     public class CacheTests : TestBase
     {
         #region private class TestCache...
-        private class TestCache : CacheBase
+        private class TestAspNetCache : CacheBase
         {
             private AspNetCache _cache;
             public StringBuilder Log { get; } = new StringBuilder();
 
-            public TestCache()
+            public TestAspNetCache()
             {
                 _cache = new AspNetCache();
             }
@@ -102,7 +103,7 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void Cache_DeleteParent_SubtreeRemoved()
         {
-            Test((builder) => { builder.UseCacheProvider(new TestCache()); },
+            Test((builder) => { builder.UseCacheProvider(new TestAspNetCache()); },
                 () =>
                 {
                     // create structure
@@ -150,10 +151,10 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void Cache_NodeIdDependency_Private()
         {
-            Test((builder) => { builder.UseCacheProvider(new TestCache()); },
+            Test((builder) => { builder.UseCacheProvider(new TestAspNetCache()); },
                 () =>
                 {
-                    var cache = (TestCache) DistributedApplication.Cache;
+                    var cache = (TestAspNetCache) DistributedApplication.Cache;
                     cache.Reset();
 
                     // create node1 and cache it with it own NodeIdDependency
@@ -199,10 +200,10 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void Cache_NodeIdDependency_Shared()
         {
-            Test((builder) => { builder.UseCacheProvider(new TestCache()); },
+            Test((builder) => { builder.UseCacheProvider(new TestAspNetCache()); },
                 () =>
                 {
-                    var cache = (TestCache)DistributedApplication.Cache;
+                    var cache = (TestAspNetCache)DistributedApplication.Cache;
                     cache.Reset();
 
                     // create node1 and cache it with a shared NodeIdDependency
@@ -245,10 +246,10 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void Cache_PathDependency()
         {
-            Test((builder) => { builder.UseCacheProvider(new TestCache()); },
+            Test((builder) => { builder.UseCacheProvider(new TestAspNetCache()); },
                 () =>
                 {
-                    var cache = (TestCache)DistributedApplication.Cache;
+                    var cache = (TestAspNetCache)DistributedApplication.Cache;
 
                     var root = CreateTestFolder(Repository.Root);
                     // create node1 and cache it with it own NodeIdDependency
@@ -295,10 +296,10 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void Cache_TypeDependency()
         {
-            Test((builder) => { builder.UseCacheProvider(new TestCache()); },
+            Test((builder) => { builder.UseCacheProvider(new TestAspNetCache()); },
                 () =>
                 {
-                    var cache = (TestCache)DistributedApplication.Cache;
+                    var cache = (TestAspNetCache)DistributedApplication.Cache;
 
                     var root = CreateTestFolder(Repository.Root);
                     // create node1 and cache it with it own NodeIdDependency
@@ -337,7 +338,7 @@ namespace SenseNet.ContentRepository.Tests
                 });
         }
 
-        private string InsertCacheWithPathDependency(ICache cache, Node node)
+        private string InsertCacheWithPathDependency(ISnCache cache, Node node)
         {
             var cacheKey = "NodeData." + node.VersionId;
 
@@ -345,7 +346,7 @@ namespace SenseNet.ContentRepository.Tests
             cache.Insert(cacheKey, node.Data, dependencies);
             return cacheKey;
         }
-        private string InsertCacheWithTypeDependency(ICache cache, Node node)
+        private string InsertCacheWithTypeDependency(ISnCache cache, Node node)
         {
             var cacheKey = "NodeData." + node.VersionId;
 

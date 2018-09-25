@@ -18,6 +18,7 @@ using System.Linq;
 using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Search.Querying;
+using SenseNet.ContentRepository.Storage.Caching.Legacy; //UNDONE: Remove "using ...Caching.Legacy;"
 
 // ReSharper disable once CheckNamespace
 // ReSharper disable RedundantTypeArgumentsOfMethod
@@ -233,12 +234,12 @@ namespace SenseNet.Configuration
         #endregion
 
         #region private Lazy<ICache> _cacheProvider = new Lazy<ICache>
-        private Lazy<ICache> _cacheProvider =
-            new Lazy<ICache>(() => CreateProviderInstance<ICache>(CacheClassName, "CacheProvider"));
-        public virtual ICache CacheProvider
+        private Lazy<ISnCache> _cacheProvider =
+            new Lazy<ISnCache>(() => CreateProviderInstance<ISnCache>(CacheClassName, "CacheProvider"));
+        public virtual ISnCache CacheProvider
         {
             get { return _cacheProvider.Value; }
-            set { _cacheProvider = new Lazy<ICache>(() => value); }
+            set { _cacheProvider = new Lazy<ISnCache>(() => value); }
         }
         #endregion
 

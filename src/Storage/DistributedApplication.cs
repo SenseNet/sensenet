@@ -6,7 +6,7 @@ namespace SenseNet.ContentRepository
 {
     public static class DistributedApplication
     {
-        public static ICache Cache => Providers.Instance.CacheProvider;
+        public static ISnCache Cache => Providers.Instance.CacheProvider;
         public static IClusterChannel ClusterChannel => Providers.Instance.ClusterChannelProvider;
     }
 }

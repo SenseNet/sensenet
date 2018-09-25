@@ -7,7 +7,7 @@ using SenseNet.ContentRepository.Storage.Caching.Dependency;
 
 namespace SenseNet.Tests.Implementations
 {
-    public class EmptyCache : ICache
+    public class EmptyCache : ISnCache
     {
         // ReSharper disable once CollectionNeverUpdated.Local
         private readonly IDictionary _emptyCache = new Dictionary<string, object>();
@@ -17,12 +17,7 @@ namespace SenseNet.Tests.Implementations
             return _emptyCache.GetEnumerator();
         }
 
-        public DateTime NoAbsoluteExpiration { get; } = DateTime.MaxValue;
-        public TimeSpan NoSlidingExpiration { get; } = TimeSpan.MaxValue;
         public int Count { get; } = 0;
-        public long EffectivePercentagePhysicalMemoryLimit { get; } = 0;
-        public long EffectivePrivateBytesLimit { get; } = 0;
-        public HttpContext CurrentHttpContext { get; set; }
 
         public object this[string key]
         {

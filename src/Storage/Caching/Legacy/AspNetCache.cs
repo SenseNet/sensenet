@@ -58,19 +58,19 @@ namespace SenseNet.ContentRepository.Storage.Caching.Legacy
             }
             if (dependencies is NodeIdDependency nodeIdDep)
             {
-                return new NodeIdDependencyImplementation(nodeIdDep.NodeId);
+                return new NodeIdDependencyImpl(nodeIdDep.NodeId);
             }
             if (dependencies is NodeTypeDependency nodeTypeDep)
             {
-                return new NodeTypeDependencyImplementation(nodeTypeDep.NodeTypeId);
+                return new NodeTypeDependencyImpl(nodeTypeDep.NodeTypeId);
             }
             if (dependencies is PathDependency pathDep)
             {
-                return new PathDependencyImplementation(pathDep.Path);
+                return new PathDependencyImpl(pathDep.Path);
             }
             if (dependencies is PortletDependency portletDep)
             {
-                return new PortletDependencyImplementation(portletDep.PortletId);
+                return new PortletDependencyImpl(portletDep.PortletId);
             }
             //UNDONE: custom CacheDependency is not supported in this cache implementation
             throw new NotImplementedException();
