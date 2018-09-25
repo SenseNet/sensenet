@@ -12,15 +12,16 @@ namespace SenseNet.ContentRepository.Storage.Caching.Legacy
             _nodeTypeId = nodeTypeId;
             try
             {
-                lock (SnCache.EventSync)
-                {
-                    SnCache.NodeTypeChanged.TheEvent += NodeTypeDependency_NodeTypeChanged;
-                }
+                NodeTypeDependency.Subscribe(NodeTypeDependency_NodeTypeChanged);
             }
             finally
             {
                 FinishInit();
             }
+        }
+        protected override void DependencyDispose()
+        {
+            NodeTypeDependency.Unsubscribe(NodeTypeDependency_NodeTypeChanged);
         }
 
         private void NodeTypeDependency_NodeTypeChanged(object sender, EventArgs<int> e)
@@ -29,14 +30,6 @@ namespace SenseNet.ContentRepository.Storage.Caching.Legacy
             {
                 NotifyDependencyChanged(this, e);
                 SnTrace.Repository.Write("Cache invalidated by nodeTypeId: " + _nodeTypeId);
-            }
-        }
-
-        protected override void DependencyDispose()
-        {
-            lock (SnCache.EventSync)
-            {
-                SnCache.NodeTypeChanged.TheEvent -= NodeTypeDependency_NodeTypeChanged;
             }
         }
     }

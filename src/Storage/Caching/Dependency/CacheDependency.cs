@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using SenseNet.Communication.Messaging;
 using SenseNet.ContentRepository.Storage.Caching.DistributedActions;
@@ -61,6 +60,17 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
                 SnCache.NodeIdChanged.Fire(null, nodeId);
             }
         }
+
+        public static void Subscribe(EventHandler<EventArgs<int>> eventHandler)
+        {
+            lock (SnCache.EventSync)
+                SnCache.NodeIdChanged.TheEvent += eventHandler;
+        }
+        public static void Unsubscribe(EventHandler<EventArgs<int>> eventHandler)
+        {
+            lock (SnCache.EventSync)
+                SnCache.NodeIdChanged.TheEvent -= eventHandler;
+        }
     }
 
     public class NodeTypeDependency : CacheDependency
@@ -100,6 +110,17 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
             {
                 SnCache.NodeTypeChanged.Fire(null, nodeTypeId);
             }
+        }
+
+        public static void Subscribe(EventHandler<EventArgs<int>> eventHandler)
+        {
+            lock (SnCache.EventSync)
+                SnCache.NodeTypeChanged.TheEvent += eventHandler;
+        }
+        public static void Unsubscribe(EventHandler<EventArgs<int>> eventHandler)
+        {
+            lock (SnCache.EventSync)
+                SnCache.NodeTypeChanged.TheEvent -= eventHandler;
         }
     }
 
@@ -141,6 +162,17 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
                 SnCache.PathChanged.Fire(null, path);
             }
         }
+
+        public static void Subscribe(EventHandler<EventArgs<string>> eventHandler)
+        {
+            lock (SnCache.EventSync)
+                SnCache.PathChanged.TheEvent += eventHandler;
+        }
+        public static void Unsubscribe(EventHandler<EventArgs<string>> eventHandler)
+        {
+            lock (SnCache.EventSync)
+                SnCache.PathChanged.TheEvent -= eventHandler;
+        }
     }
 
     /// <summary>
@@ -159,13 +191,24 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
         {
             new PortletChangedAction(portletId).Execute();
         }
-        //UNDONE: remove this method (sn-webpages uses this)
+        //UNDONE: use FireChanged pattern
         public static void FireChanged(string portletId)
         {
             lock (SnCache.EventSync)
             {
                 SnCache.PortletChanged.Fire(null, portletId);
             }
+        }
+
+        public static void Subscribe(EventHandler<EventArgs<string>> eventHandler)
+        {
+            lock (SnCache.EventSync)
+                SnCache.PortletChanged.TheEvent += eventHandler;
+        }
+        public static void Unsubscribe(EventHandler<EventArgs<string>> eventHandler)
+        {
+            lock (SnCache.EventSync)
+                SnCache.PortletChanged.TheEvent -= eventHandler;
         }
     }
 }

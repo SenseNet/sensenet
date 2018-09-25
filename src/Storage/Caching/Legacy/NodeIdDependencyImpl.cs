@@ -12,16 +12,16 @@ namespace SenseNet.ContentRepository.Storage.Caching.Legacy
             _nodeId = nodeId;
             try
             {
-                lock (SnCache.EventSync)
-                {
-                    //Changed.TheEvent += NodeIdDependency_NodeIdChanged;
-                    SnCache.NodeIdChanged.TheEvent += NodeIdDependency_NodeIdChanged;
-                }
+                NodeIdDependency.Subscribe(NodeIdDependency_NodeIdChanged);
             }
             finally
             {
                 FinishInit();
             }
+        }
+        protected override void DependencyDispose()
+        {
+            NodeIdDependency.Unsubscribe(NodeIdDependency_NodeIdChanged);
         }
 
         private void NodeIdDependency_NodeIdChanged(object sender, EventArgs<int> e)
@@ -33,12 +33,5 @@ namespace SenseNet.ContentRepository.Storage.Caching.Legacy
             }
         }
 
-        protected override void DependencyDispose()
-        {
-            lock (SnCache.EventSync)
-            {
-                SnCache.NodeIdChanged.TheEvent -= NodeIdDependency_NodeIdChanged;
-            }
-        }
     }
 }

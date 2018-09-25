@@ -16,15 +16,16 @@ namespace SenseNet.ContentRepository.Storage.Caching.Legacy
             _path = path.ToLowerInvariant();
             try
             {
-                lock (SnCache.EventSync)
-                {
-                    SnCache.PathChanged.TheEvent += PathDependency_SubtreeChanged;
-                }
+                PathDependency.Subscribe(PathDependency_SubtreeChanged);
             }
             finally
             {
                 FinishInit();
             }
+        }
+        protected override void DependencyDispose()
+        {
+            PathDependency.Unsubscribe(PathDependency_SubtreeChanged);
         }
 
         private void PathDependency_SubtreeChanged(object sender, EventArgs<string> e)
@@ -45,12 +46,5 @@ namespace SenseNet.ContentRepository.Storage.Caching.Legacy
             }
         }
 
-        protected override void DependencyDispose()
-        {
-            lock (SnCache.EventSync)
-            {
-                SnCache.PathChanged.TheEvent -= PathDependency_SubtreeChanged;
-            }
-        }
     }
 }
