@@ -30,20 +30,8 @@ namespace SenseNet.ContentRepository.Storage.Caching.Legacy
 
         private void PathDependency_SubtreeChanged(object sender, EventArgs<string> e)
         {
-            string path = e.Data.ToLowerInvariant();
-
-            // Path matches?
-            var match = _path == path;
-
-            // If does not match, path starts with?
-            if (!match)
-                match = _path.StartsWith(string.Concat(e.Data, RepositoryPath.PathSeparator), StringComparison.OrdinalIgnoreCase);
-
-            if (match)
-            {
+            if (PathDependency.IsChanged(e.Data, _path))
                 NotifyDependencyChanged(this, e);
-                SnTrace.Repository.Write("Cache invalidated by path: "+ _path);
-            }
         }
 
     }

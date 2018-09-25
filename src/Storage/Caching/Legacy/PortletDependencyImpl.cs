@@ -26,11 +26,8 @@ namespace SenseNet.ContentRepository.Storage.Caching.Legacy
 
         private void PortletDependency_Changed(object sender, EventArgs<string> e)
         {
-            if (e.Data == _portletId)
-            {
+            if(PortletDependency.IsChanged(e.Data, _portletId))
                 NotifyDependencyChanged(this, e);
-                SnTrace.Repository.Write("Cache invalidated by portletId: " + _portletId);
-            }
         }
     }
 }

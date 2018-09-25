@@ -26,12 +26,8 @@ namespace SenseNet.ContentRepository.Storage.Caching.Legacy
 
         private void NodeIdDependency_NodeIdChanged(object sender, EventArgs<int> e)
         {
-            if (_nodeId == e.Data)
-            {
+            if (NodeIdDependency.IsChanged(e.Data, _nodeId))
                 NotifyDependencyChanged(this, e);
-                SnTrace.Repository.Write("Cache invalidated by nodeId: " + _nodeId);
-            }
         }
-
     }
 }

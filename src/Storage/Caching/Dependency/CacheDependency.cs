@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using SenseNet.Communication.Messaging;
 using SenseNet.ContentRepository.Storage.Caching.DistributedActions;
+using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Storage.Caching.Dependency
 {
@@ -71,6 +72,15 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
             lock (SnCache.EventSync)
                 SnCache.NodeIdChanged.TheEvent -= eventHandler;
         }
+
+        public static bool IsChanged(int eventData, int subscriberData)
+        {
+            if (eventData != subscriberData)
+                return false;
+
+            SnTrace.Repository.Write("Cache invalidated by nodeId: " + subscriberData);
+            return true;
+        }
     }
 
     public class NodeTypeDependency : CacheDependency
@@ -121,6 +131,15 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
         {
             lock (SnCache.EventSync)
                 SnCache.NodeTypeChanged.TheEvent -= eventHandler;
+        }
+
+        public static bool IsChanged(int eventData, int subscriberData)
+        {
+            if (eventData != subscriberData)
+                return false;
+
+            SnTrace.Repository.Write("Cache invalidated by nodeTypeId: " + subscriberData);
+            return true;
         }
     }
 
@@ -173,6 +192,19 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
             lock (SnCache.EventSync)
                 SnCache.PathChanged.TheEvent -= eventHandler;
         }
+
+        public static bool IsChanged(string eventData, string subscriberData)
+        {
+            var match = subscriberData.Equals(eventData, StringComparison.OrdinalIgnoreCase);
+            if (!match)
+                match = subscriberData.StartsWith(string.Concat(eventData, RepositoryPath.PathSeparator), StringComparison.OrdinalIgnoreCase);
+
+            if (!match)
+                return false;
+
+            SnTrace.Repository.Write("Cache invalidated by path: " + subscriberData);
+            return true;
+        }
     }
 
     /// <summary>
@@ -209,6 +241,15 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
         {
             lock (SnCache.EventSync)
                 SnCache.PortletChanged.TheEvent -= eventHandler;
+        }
+
+        public static bool IsChanged(string eventData, string subscriberData)
+        {
+            if (eventData != subscriberData)
+                return false;
+
+            SnTrace.Repository.Write("Cache invalidated by portletId: " + subscriberData);
+            return true;
         }
     }
 }
