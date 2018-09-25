@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Web.Caching;
-using SenseNet.ContentRepository.Storage.Schema;
 
 namespace SenseNet.ContentRepository.Storage.Caching.Dependency
 {
@@ -24,7 +21,7 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
         internal static CacheDependency CreateNodeHeadDependency(NodeHead nodeHead)
         {
             if (nodeHead == null)
-                throw new ArgumentNullException("nodeHead", "NodeHead cannot be null.");
+                throw new ArgumentNullException(nameof(nodeHead), "NodeHead cannot be null.");
 
             var aggregateCacheDependency = new AggregateCacheDependency();
 
@@ -52,7 +49,7 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
         public static CacheDependency CreateNodeDependency(NodeHead nodeHead)
         {
             if (nodeHead == null)
-                throw new ArgumentNullException("nodeHead", "NodeHead cannot be null.");
+                throw new ArgumentNullException(nameof(nodeHead), "NodeHead cannot be null.");
 
             return CreateNodeDependency(nodeHead.Id, nodeHead.Path, nodeHead.NodeTypeId);
         }
@@ -60,7 +57,7 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
         public static CacheDependency CreateNodeDependency(Node node)
         {
             if (node == null)
-                throw new ArgumentNullException("node", "Node cannot be null.");
+                throw new ArgumentNullException(nameof(node), "Node cannot be null.");
 
             return CreateNodeDependency(node.Id, node.Path, node.NodeTypeId);
         }
@@ -70,7 +67,7 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
         internal static CacheDependency CreateNodeDataDependency(NodeData nodeData)
         {
             if (nodeData == null)
-                throw new ArgumentNullException("nodeData");
+                throw new ArgumentNullException(nameof(nodeData));
 
             var aggregateCacheDependency = new AggregateCacheDependency();
 
@@ -100,8 +97,7 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
 
         private static void AddResourceDependencyIfNeeded(AggregateCacheDependency aggregateCacheDependency, string propertyValue, ICollection<string> addedResourcePaths)
         {
-            string className, resKey;
-            if (!SR.ResourceManager.ParseResourceKey(propertyValue, out className, out resKey)) 
+            if (!SR.ResourceManager.ParseResourceKey(propertyValue, out var className, out _)) 
                 return;
 
             foreach (var resHead in SR.ResourceManager.GetResourceFilesForClass(className)
