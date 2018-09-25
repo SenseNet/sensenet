@@ -139,8 +139,13 @@
   <ItemGroup>
     <Compile Include="ActiveSchema.cs" />
     <Compile Include="BackgroundOperations\TaskManager.cs" />
+    <Compile Include="Caching\Dependency\AggregateCacheDependency.cs" />
     <Compile Include="Caching\Dependency\CacheDependency.cs" />
     <Compile Include="Caching\Dependency\EventServer.cs" />
+    <Compile Include="Caching\Dependency\NodeIdDependency.cs" />
+    <Compile Include="Caching\Dependency\NodeTypeDependency.cs" />
+    <Compile Include="Caching\Dependency\PathDependency.cs" />
+    <Compile Include="Caching\Dependency\PortletDependency.cs" />
     <Compile Include="Caching\ISnCache.cs" />
     <Compile Include="Caching\SnCache.cs" />
     <Compile Include="CannotDeleteReferredContentException.cs" />
