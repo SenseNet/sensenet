@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web.Caching;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Caching;
@@ -47,7 +46,7 @@ namespace SenseNet.ContentRepository.Tests
             }
 
             public override void Insert(string key, object value, CacheDependency dependencies, DateTime absoluteExpiration,
-                TimeSpan slidingExpiration, CacheItemPriority priority, CacheItemRemovedCallback onRemoveCallback)
+                TimeSpan slidingExpiration, CacheItemPriority priority, object onRemoveCallback)
             {
                 _cache.Insert(key, value, dependencies, absoluteExpiration, slidingExpiration, priority, onRemoveCallback);
                 Log.AppendLine($"Insert: {key}, {dependencies.GetType().Name}, ....");

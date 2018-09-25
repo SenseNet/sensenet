@@ -1,61 +1,55 @@
-using System.Web.Caching;
-using SenseNet.ContentRepository.Storage.Caching.DistributedActions;
-using Cache = SenseNet.Configuration.Cache;
+using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Storage.Caching.Dependency
 {
-    /// <summary>
-    /// Creates a dependency that is notified when the portlet changes to invalidate
-    /// the related cache item
-    /// </summary>
-    public class PortletDependency : CacheDependency
+    internal class PortletDependencyImplementation : System.Web.Caching.CacheDependency
     {
-        public static object _eventSync = new object();
-        private string _portletID;
-        private static readonly EventServer<string> Changed = new EventServer<string>(Cache.PortletDependencyEventPartitions);
+        private readonly string _portletId;
+        //private static readonly EventServer<string> Changed = new EventServer<string>(Cache.PortletDependencyEventPartitions);
 
-        public PortletDependency(string portletId)
+        public PortletDependencyImplementation(string portletId)
         {
             try
             {
-                this._portletID = portletId;
-                lock (_eventSync)
+                _portletId = portletId;
+                lock (SnCache.EventSync)
                 {
-                    Changed.TheEvent += PortletDependency_Changed;
+                    SnCache.PortletChanged.TheEvent += PortletDependency_Changed;
                 }
             }
             finally
             {
-                this.FinishInit();
+                FinishInit();
             }
         }
 
         private void PortletDependency_Changed(object sender, EventArgs<string> e)
         {
-            if (e.Data == _portletID)
+            if (e.Data == _portletId)
             {
-                this.NotifyDependencyChanged(this, e);
+                NotifyDependencyChanged(this, e);
+                SnTrace.Repository.Write("Cache invalidated by portletId: " + _portletId);
             }
         }
 
         protected override void DependencyDispose()
         {
-            lock (_eventSync)
+            lock (SnCache.EventSync)
             {
-                Changed.TheEvent -= PortletDependency_Changed;
+                SnCache.PortletChanged.TheEvent -= PortletDependency_Changed;
             }
         }
 
-        public static void NotifyChange(string portletId)
-        {
-            new PortletChangedAction(portletId).Execute();
-        }
-        public static void FireChanged(string portletId)
-        {
-            lock (_eventSync)
-            {
-                Changed.Fire(null, portletId);
-            }
-        }
+        //public static void NotifyChange(string portletId)
+        //{
+        //    new PortletChangedAction(portletId).Execute();
+        //}
+        //public static void FireChanged(string portletId)
+        //{
+        //    lock (SnCache.EventSync)
+        //    {
+        //        SnCache.PortletChanged.Fire(null, portletId);
+        //    }
+        //}
     }
 }

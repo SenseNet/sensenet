@@ -1,15 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Web;
-using System.Web.Caching;
 using System.Collections;
+using SenseNet.ContentRepository.Storage.Caching.Dependency;
 
 namespace SenseNet.ContentRepository.Storage.Caching
 {
     public abstract class CacheBase : ICache
     {
+        [Obsolete("Do not use this member anymore.", true)]
         protected HttpContext _currentContext;
 
         public abstract object Get(string key);
@@ -24,7 +22,7 @@ namespace SenseNet.ContentRepository.Storage.Caching
 
         public abstract void Insert(string key, object value, CacheDependency dependencies,
             DateTime absoluteExpiration, TimeSpan slidingExpiration, CacheItemPriority priority,
-            CacheItemRemovedCallback onRemoveCallback);
+            object onRemoveCallback);
 
         public abstract void Remove(string key);
 
@@ -32,15 +30,9 @@ namespace SenseNet.ContentRepository.Storage.Caching
 
         public abstract IEnumerator GetEnumerator();
 
-        public virtual DateTime NoAbsoluteExpiration
-        {
-            get { return System.Web.Caching.Cache.NoAbsoluteExpiration; }
-        }
+        public virtual DateTime NoAbsoluteExpiration => DateTime.MaxValue;
 
-        public virtual TimeSpan NoSlidingExpiration
-        {
-            get { return System.Web.Caching.Cache.NoSlidingExpiration; }
-        }
+        public virtual TimeSpan NoSlidingExpiration => TimeSpan.Zero;
 
         public abstract int Count
         {

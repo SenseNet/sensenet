@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Web;
-using System.Web.Caching;
 using System.Collections;
-using System.Configuration;
-using System.Globalization;
+using System.Linq;
+using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Storage.Caching
@@ -41,9 +39,41 @@ namespace SenseNet.ContentRepository.Storage.Caching
 
         public override void Insert(string key, object value, CacheDependency dependencies,
             DateTime absoluteExpiration, TimeSpan slidingExpiration, CacheItemPriority priority,
-            CacheItemRemovedCallback onRemoveCallback)
+            object onRemoveCallback)
         {
-            _cache.Insert(key, value, dependencies, absoluteExpiration, slidingExpiration, priority, onRemoveCallback);
+            if(onRemoveCallback != null) //UNDONE: discuss: onRemoveCallback is not supported
+                throw new NotSupportedException("The onRemoveCallback is not supported in this version.");
+
+            var realPriority = (System.Web.Caching.CacheItemPriority) ((int) priority);
+            var dependencyImplementations = CreateDependencies(dependencies);
+            _cache.Insert(key, value, dependencyImplementations, absoluteExpiration, slidingExpiration, realPriority, null);
+        }
+        private System.Web.Caching.CacheDependency CreateDependencies(CacheDependency dependencies)
+        {
+            if (dependencies is AggregateCacheDependency aggregateDep)
+            {
+                var result = new System.Web.Caching.AggregateCacheDependency();
+                result.Add(aggregateDep.Dependencies.Select(CreateDependencies).ToArray());
+                return result;
+            }
+            if (dependencies is NodeIdDependency nodeIdDep)
+            {
+                return new NodeIdDependencyImplementation(nodeIdDep.NodeId);
+            }
+            if (dependencies is NodeTypeDependency nodeTypeDep)
+            {
+                return new NodeTypeDependencyImplementation(nodeTypeDep.NodeTypeId);
+            }
+            if (dependencies is PathDependency pathDep)
+            {
+                return new PathDependencyImplementation(pathDep.Path);
+            }
+            if (dependencies is PortletDependency portletDep)
+            {
+                return new PortletDependencyImplementation(portletDep.PortletId);
+            }
+            //UNDONE: custom CacheDependency is not supported in this cache implementation
+            throw new NotImplementedException();
         }
 
         public override void Remove(string key)

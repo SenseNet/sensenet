@@ -7,6 +7,7 @@ using SenseNet.Communication.Messaging;
 
 namespace SenseNet.ContentRepository.Storage.Caching.DistributedActions
 {
+    //UNDONE: Embed this action into PortletDependency in the same way as in the other dependency classes
     [Serializable]
     public class PortletChangedAction : DistributedAction
     {
