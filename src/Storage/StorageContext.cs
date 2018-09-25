@@ -31,19 +31,6 @@ namespace SenseNet.ContentRepository.Storage
 
     public class StorageContext
     {
-        //TODO: well configuration resolves this problem.
-        internal void FixEfProviderServicesProblem()
-        {
-            // http://stackoverflow.com/questions/14033193/entity-framework-provider-type-could-not-be-loaded
-            // The Entity Framework provider type 'System.Data.Entity.SqlServer.SqlProviderServices, EntityFramework.SqlServer'
-            // for the 'System.Data.SqlClient' ADO.NET provider could not be loaded. 
-            // Make sure the provider assembly is available to the running application. 
-            // See http://go.microsoft.com/fwlink/?LinkId=260882 for more information.
-
-            var instance = System.Data.Entity.SqlServer.SqlProviderServices.Instance;
-        }
-
-
         private static IL2Cache _l2Cache = new NullL2Cache();
         public static IL2Cache L2Cache
         {

@@ -11,7 +11,6 @@ using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Security;
-using SenseNet.Security.EF6SecurityStore;
 using SenseNet.Security.Messaging;
 using SenseNet.Tools;
 using System.Linq;
@@ -40,7 +39,7 @@ namespace SenseNet.Configuration
         public static string SkinManagerClassName { get; internal set; } = GetProvider("SkinManager", "SenseNet.Portal.SkinManager");
         public static string DirectoryProviderClassName { get; internal set; } = GetProvider("DirectoryProvider");
         public static string SecurityDataProviderClassName { get; internal set; } = GetProvider("SecurityDataProvider",
-            typeof(EF6SecurityDataProvider).FullName);
+            "SenseNet.Security.EF6SecurityStore.EF6SecurityDataProvider");
         public static string SecurityMessageProviderClassName { get; internal set; } = GetProvider("SecurityMessageProvider", 
             typeof(DefaultMessageProvider).FullName);
         public static string DocumentPreviewProviderClassName { get; internal set; } = GetProvider("DocumentPreviewProvider",
@@ -164,9 +163,7 @@ namespace SenseNet.Configuration
 
             try
             {
-                // if other than the known implementation, create it automatically
-                if (string.Compare(SecurityDataProviderClassName, typeof(EF6SecurityDataProvider).FullName, StringComparison.Ordinal) != 0)
-                    securityDataProvider = (ISecurityDataProvider)TypeResolver.CreateInstance(SecurityDataProviderClassName);
+                securityDataProvider = (ISecurityDataProvider)TypeResolver.CreateInstance(SecurityDataProviderClassName);
             }
             catch (TypeNotFoundException)
             {
@@ -175,14 +172,6 @@ namespace SenseNet.Configuration
             catch (InvalidCastException)
             {
                 throw new ConfigurationException($"Invalid security data provider implementation: {SecurityDataProviderClassName}");
-            }
-
-            if (securityDataProvider == null)
-            {
-                // default implementation
-                securityDataProvider = new EF6SecurityDataProvider(
-                    Security.SecurityDatabaseCommandTimeoutInSeconds,
-                    ConnectionStrings.SecurityDatabaseConnectionString);
             }
 
             SnLog.WriteInformation("SecurityDataProvider created: " + securityDataProvider.GetType().FullName);
