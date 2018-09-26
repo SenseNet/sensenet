@@ -1,5 +1,6 @@
 ﻿using System;
 using SenseNet.Communication.Messaging;
+using SenseNet.Configuration;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Storage.Caching.Dependency
@@ -26,6 +27,8 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
         }
         #endregion
 
+        private static readonly EventServer<int> Changed = new EventServer<int>(Cache.NodeIdDependencyEventPartitions);
+
         public int NodeId { get; }
         public NodeIdDependency(int nodeId)
         {
@@ -37,19 +40,19 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
         }
         private static void FireChangedPrivate(int nodeId)
         {
-            lock (SnCache.EventSync)
-                SnCache.NodeIdChanged.Fire(null, nodeId);
+            lock (EventSync)
+                Changed.Fire(null, nodeId);
         }
 
         public static void Subscribe(EventHandler<EventArgs<int>> eventHandler)
         {
-            lock (SnCache.EventSync)
-                SnCache.NodeIdChanged.TheEvent += eventHandler;
+            lock (EventSync)
+                Changed.TheEvent += eventHandler;
         }
         public static void Unsubscribe(EventHandler<EventArgs<int>> eventHandler)
         {
-            lock (SnCache.EventSync)
-                SnCache.NodeIdChanged.TheEvent -= eventHandler;
+            lock (EventSync)
+                Changed.TheEvent -= eventHandler;
         }
 
         public static bool IsChanged(int eventData, int subscriberData)

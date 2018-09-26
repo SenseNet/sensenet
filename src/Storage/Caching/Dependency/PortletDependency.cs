@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Caching.DistributedActions;
 using SenseNet.Diagnostics;
 
@@ -14,6 +15,8 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
     /// </summary>
     public class PortletDependency : CacheDependency
     {
+        private static readonly EventServer<string> Changed = new EventServer<string>(Cache.PortletDependencyEventPartitions);
+
         public string PortletId { get; }
         public PortletDependency(string portletId)
         {
@@ -27,19 +30,19 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
         //UNDONE: use FireChanged pattern
         public static void FireChanged(string portletId)
         {
-            lock (SnCache.EventSync)
-                SnCache.PortletChanged.Fire(null, portletId);
+            lock (EventSync)
+                Changed.Fire(null, portletId);
         }
 
         public static void Subscribe(EventHandler<EventArgs<string>> eventHandler)
         {
-            lock (SnCache.EventSync)
-                SnCache.PortletChanged.TheEvent += eventHandler;
+            lock (EventSync)
+                Changed.TheEvent += eventHandler;
         }
         public static void Unsubscribe(EventHandler<EventArgs<string>> eventHandler)
         {
-            lock (SnCache.EventSync)
-                SnCache.PortletChanged.TheEvent -= eventHandler;
+            lock (EventSync)
+                Changed.TheEvent -= eventHandler;
         }
 
         public static bool IsChanged(string eventData, string subscriberData)

@@ -11,5 +11,6 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
     /// </summary>
     public class CacheDependency
     {
+        internal static object EventSync = new object();
     }
 }

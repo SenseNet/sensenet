@@ -1,5 +1,6 @@
 ﻿using System;
 using SenseNet.Communication.Messaging;
+using SenseNet.Configuration;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Storage.Caching.Dependency
@@ -26,6 +27,9 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
         }
         // -----------------------------------------------------------------------------------------
         #endregion
+
+        private static readonly EventServer<string> Changed = new EventServer<string>(Cache.PathDependencyEventPartitions);
+
         public string Path { get; }
         public PathDependency(string path)
         {
@@ -37,19 +41,19 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
         }
         private static void FireChangedPrivate(string path)
         {
-            lock (SnCache.EventSync)
-                SnCache.PathChanged.Fire(null, path);
+            lock (EventSync)
+                Changed.Fire(null, path);
         }
 
         public static void Subscribe(EventHandler<EventArgs<string>> eventHandler)
         {
-            lock (SnCache.EventSync)
-                SnCache.PathChanged.TheEvent += eventHandler;
+            lock (EventSync)
+                Changed.TheEvent += eventHandler;
         }
         public static void Unsubscribe(EventHandler<EventArgs<string>> eventHandler)
         {
-            lock (SnCache.EventSync)
-                SnCache.PathChanged.TheEvent -= eventHandler;
+            lock (EventSync)
+                Changed.TheEvent -= eventHandler;
         }
 
         public static bool IsChanged(string eventData, string subscriberData)
