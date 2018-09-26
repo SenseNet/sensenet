@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SenseNet.Communication.Messaging;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Caching.DistributedActions;
 using SenseNet.Diagnostics;
@@ -15,6 +16,26 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
     /// </summary>
     public class PortletDependency : CacheDependency
     {
+        #region private class FireChangedDistributedAction
+        [Serializable]
+        private class FireChangedDistributedAction : DistributedAction
+        {
+            private readonly string _portletId;
+
+            public FireChangedDistributedAction(string portletId)
+            {
+                _portletId = portletId;
+            }
+
+            public override void DoAction(bool onRemote, bool isFromMe)
+            {
+                if (onRemote && isFromMe)
+                    return;
+                FireChangedPrivate(_portletId);
+            }
+        }
+        #endregion
+
         private static readonly EventServer<string> Changed = new EventServer<string>(Cache.PortletDependencyEventPartitions);
 
         public string PortletId { get; }
@@ -22,13 +43,12 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
         {
             PortletId = portletId;
         }
-        //UNDONE: remove this method (sn-webpages uses this)
-        public static void NotifyChange(string portletId)
-        {
-            new PortletChangedAction(portletId).Execute();
-        }
-        //UNDONE: use FireChanged pattern
+
         public static void FireChanged(string portletId)
+        {
+            new FireChangedDistributedAction(portletId).Execute();
+        }
+        private static void FireChangedPrivate(string portletId)
         {
             lock (EventSync)
                 Changed.Fire(null, portletId);
@@ -53,5 +73,13 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
             SnTrace.Repository.Write("Cache invalidated by portletId: " + subscriberData);
             return true;
         }
+
+
+        [Obsolete("Use FireChanged(string) method instead.")]
+        public static void NotifyChange(string portletId)
+        {
+            FireChanged(portletId);
+        }
+
     }
 }

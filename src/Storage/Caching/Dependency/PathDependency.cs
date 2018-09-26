@@ -25,7 +25,6 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
                 FireChangedPrivate(_path);
             }
         }
-        // -----------------------------------------------------------------------------------------
         #endregion
 
         private static readonly EventServer<string> Changed = new EventServer<string>(Cache.PathDependencyEventPartitions);
