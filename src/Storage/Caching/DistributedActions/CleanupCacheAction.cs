@@ -23,8 +23,8 @@ namespace SenseNet.ContentRepository.Storage.Caching.DistributedActions
 
             int localCacheCount = DistributedApplication.Cache.Count;
 
-            foreach (DictionaryEntry entry in DistributedApplication.Cache)
-                cacheEntryKeys.Add(entry.Key.ToString());
+            foreach (var entry in DistributedApplication.Cache)
+                cacheEntryKeys.Add(entry.Key);
 
             foreach (string cacheEntryKey in cacheEntryKeys)
                 DistributedApplication.Cache.Remove(cacheEntryKey);

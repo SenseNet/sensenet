@@ -21,9 +21,9 @@ namespace SenseNet.ContentRepository.Storage.Caching.DistributedActions
 
             int localCacheCount = DistributedApplication.Cache.Count;
 
-            foreach (DictionaryEntry entry in DistributedApplication.Cache)
+            foreach (var entry in DistributedApplication.Cache)
             {
-                string key = entry.Key.ToString();
+                var key = entry.Key;
                 if (key.StartsWith("Token", StringComparison.Ordinal))
                 {
                     cacheEntryKeys.Add(key);

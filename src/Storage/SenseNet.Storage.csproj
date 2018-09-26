@@ -113,6 +113,7 @@
     <Reference Include="System.EnterpriseServices" />
     <Reference Include="System.Messaging" />
     <Reference Include="System.Net" />
+    <Reference Include="System.Runtime.Caching" />
     <Reference Include="System.Runtime.Serialization">
       <RequiredTargetFramework>3.0</RequiredTargetFramework>
     </Reference>
@@ -139,6 +140,12 @@
   <ItemGroup>
     <Compile Include="ActiveSchema.cs" />
     <Compile Include="BackgroundOperations\TaskManager.cs" />
+    <Compile Include="Caching\Builtin\ChangeMonitor.cs" />
+    <Compile Include="Caching\Builtin\NodeIdChangeMonitor.cs" />
+    <Compile Include="Caching\Builtin\NodeTypeChangeMonitor.cs" />
+    <Compile Include="Caching\Builtin\PathChangeMonitor.cs" />
+    <Compile Include="Caching\Builtin\PortleChangeMonitor.cs" />
+    <Compile Include="Caching\Builtin\SnMemoryCache.cs" />
     <Compile Include="Caching\Dependency\AggregateCacheDependency.cs" />
     <Compile Include="Caching\Dependency\CacheDependency.cs" />
     <Compile Include="Caching\Dependency\EventServer.cs" />
@@ -147,7 +154,6 @@
     <Compile Include="Caching\Dependency\PathDependency.cs" />
     <Compile Include="Caching\Dependency\PortletDependency.cs" />
     <Compile Include="Caching\ISnCache.cs" />
-    <Compile Include="Caching\SnCache.cs" />
     <Compile Include="CannotDeleteReferredContentException.cs" />
     <Compile Include="ComponentInfo.cs" />
     <Compile Include="Configuration\Cache.cs" />
@@ -418,6 +424,7 @@
       <Name>SenseNet.Search</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
