@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 
 
 namespace SenseNet.ContentRepository.Storage.Caching
 {
-    public interface ISnCache : IEnumerable
+    public interface ISnCache : IEnumerable<KeyValuePair<string, object>>
     {
         int Count { get; }
 

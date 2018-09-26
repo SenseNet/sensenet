@@ -10,11 +10,16 @@ namespace SenseNet.Tests.Implementations
     public class EmptyCache : ISnCache
     {
         // ReSharper disable once CollectionNeverUpdated.Local
-        private readonly IDictionary _emptyCache = new Dictionary<string, object>();
+        private readonly Dictionary<string, object> _emptyCache = new Dictionary<string, object>();
 
-        public IEnumerator GetEnumerator()
+        public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
         {
             return _emptyCache.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
 
         public int Count { get; } = 0;

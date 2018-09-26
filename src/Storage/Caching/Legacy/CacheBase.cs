@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Web;
 using System.Collections;
+using System.Collections.Generic;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 
 namespace SenseNet.ContentRepository.Storage.Caching.Legacy
@@ -28,7 +29,17 @@ namespace SenseNet.ContentRepository.Storage.Caching.Legacy
 
         public abstract void Reset();
 
-        public abstract IEnumerator GetEnumerator();
+        //IEnumerator<KeyValuePair<string, object>> IEnumerable<KeyValuePair<string, object>>.GetEnumerator()
+        //{
+        //    return (IEnumerator<KeyValuePair<string, object>>)GetEnumerator();
+        //}
+
+        public abstract IEnumerator<KeyValuePair<string, object>> GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
 
         public virtual DateTime NoAbsoluteExpiration => DateTime.MaxValue;
 

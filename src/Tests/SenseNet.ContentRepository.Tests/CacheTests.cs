@@ -65,7 +65,7 @@ namespace SenseNet.ContentRepository.Tests
                 Log.AppendLine("Reset");
             }
 
-            public override IEnumerator GetEnumerator()
+            public override IEnumerator<KeyValuePair<string, object>> GetEnumerator()
             {
                 return _cache.GetEnumerator();
             }
@@ -88,14 +88,6 @@ namespace SenseNet.ContentRepository.Tests
                     _cache[key] = value;
                     Log.AppendLine($"this.set: {key}");
                 }
-            }
-
-            public string WhatIsInTheCache() // for tests
-            {
-                var sb = new StringBuilder();
-                foreach (DictionaryEntry x in _cache)
-                    sb.AppendLine(x.Key.ToString());
-                return sb.ToString();
             }
         }
         #endregion
@@ -324,10 +316,10 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.IsTrue(IsInCache(file111Key));
 
                     // TEST: Remove the folder type tree
-                    var before = cache.WhatIsInTheCache();
+                    var before = WhatIsInTheCache(cache);
                     foreach (var nodeType in NodeType.GetByName("Folder").GetAllTypes())
                         NodeTypeDependency.FireChanged(nodeType.Id);
-                    var after = cache.WhatIsInTheCache();
+                    var after = WhatIsInTheCache(cache);
 
                     // check: all folders are removed
                     Assert.IsFalse(IsInCache(rootKey));
@@ -404,5 +396,14 @@ namespace SenseNet.ContentRepository.Tests
             }
             throw new NotImplementedException($"Getting cache key for a {obj.GetType().Name} is not implemented.");
         }
+
+        private string WhatIsInTheCache(ISnCache cache)
+        {
+            var sb = new StringBuilder();
+            foreach (var x in cache)
+                sb.AppendLine(x.Key);
+            return sb.ToString();
+        }
+
     }
 }

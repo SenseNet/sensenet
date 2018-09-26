@@ -113,10 +113,14 @@ namespace SenseNet.ContentRepository.Storage.Caching.Legacy
             get { return _cache.EffectivePrivateBytesLimit; }
         }
 
-        public override IEnumerator GetEnumerator()
+        public override IEnumerator<KeyValuePair<string, object>> GetEnumerator()
         {
-            return _cache.GetEnumerator();
+            return _cache
+                .Cast<DictionaryEntry>()
+                .Select(x => new KeyValuePair<string, object>(x.Key.ToString(), x.Value))
+                .GetEnumerator();
         }
+
         public override object this[string key]
         {
             get
@@ -127,14 +131,6 @@ namespace SenseNet.ContentRepository.Storage.Caching.Legacy
             {
                 _cache[key] = value;
             }
-        }
-
-        public string WhatIsInTheCache() // for tests
-        {
-            var sb = new StringBuilder();
-            foreach (DictionaryEntry x in _cache)
-                sb.AppendLine(x.Key.ToString());
-            return sb.ToString();
         }
     }
 }
