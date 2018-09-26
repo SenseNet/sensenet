@@ -14,31 +14,24 @@ namespace SenseNet.ContentRepository.Storage.Caching.Builtin
 {
     public class SnMemoryCache : MemoryCache, ISnCache
     {
+        public SnMemoryCache() : this(Guid.NewGuid().ToString("N"))
+        {
+        }
+
         public SnMemoryCache(string name, NameValueCollection config = null) : base(name, config)
         {
         }
 
-        public IEnumerator GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
-
-        public int Count { get; }
-
-        public object this[string key]
-        {
-            get { throw new NotImplementedException(); }
-            set { throw new NotImplementedException(); }
-        }
+        public int Count => (int)base.GetCount();
 
         public object Get(string key)
         {
-            throw new NotImplementedException();
+            return base.Get(key);
         }
 
         public void Insert(string key, object value)
         {
-            throw new NotImplementedException();
+            Insert(key, value, null);
         }
 
         public virtual void Insert(string key, object value, CacheDependency dependencies)
@@ -66,40 +59,54 @@ namespace SenseNet.ContentRepository.Storage.Caching.Builtin
             if (dependencies == null)
                 return;
 
-            if (dependencies is AggregateCacheDependency aggregateDep)
+            if(dependencies is AggregateCacheDependency aggregateDep)
             {
                 foreach(var item in aggregateDep.Dependencies)
                     CreateDependencies(item, policy);
             }
-            if (dependencies is NodeIdDependency nodeIdDep)
+            else if(dependencies is NodeIdDependency nodeIdDep)
             {
                 policy.ChangeMonitors.Add( new NodeIdChangeMonitor(nodeIdDep.NodeId));
             }
-            if (dependencies is NodeTypeDependency nodeTypeDep)
+            else if(dependencies is NodeTypeDependency nodeTypeDep)
             {
                 policy.ChangeMonitors.Add(new NodeTypeChangeMonitor(nodeTypeDep.NodeTypeId));
             }
-            if (dependencies is PathDependency pathDep)
+            else if(dependencies is PathDependency pathDep)
             {
                 policy.ChangeMonitors.Add(new PathChangeMonitor(pathDep.Path));
             }
-            if (dependencies is PortletDependency portletDep)
+            else if (dependencies is PortletDependency portletDep)
             {
                 policy.ChangeMonitors.Add(new PortleChangeMonitor(portletDep.PortletId));
             }
-            //UNDONE: custom CacheDependency is not supported in this cache implementation
-            throw new NotImplementedException();
+            else
+            {
+                //UNDONE: custom CacheDependency is not supported in this cache implementation
+                throw new NotImplementedException();
+            }
         }
 
 
         public void Remove(string key)
         {
-            throw new NotImplementedException();
+            base.Remove(key);
         }
 
+        private static readonly object LockObject = new object();
         public void Reset()
         {
-            throw new NotImplementedException();
+            List<string> keys = new List<string>();
+            lock (LockObject)
+            {
+                foreach (var entry in this)
+                    keys.Add(entry.Key);
+            }
+
+            foreach (var key in keys)
+            {
+                Remove(key);
+            }
         }
 
     }
