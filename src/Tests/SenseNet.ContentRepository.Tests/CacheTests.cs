@@ -330,6 +330,36 @@ namespace SenseNet.ContentRepository.Tests
                 });
         }
 
+        [TestMethod]
+        public void Cache_Legacy_PortletDependency()
+        {
+            Test((builder) => { builder.UseCacheProvider(new TestAspNetCache()); },
+                () =>
+                {
+                    var cache = DistributedApplication.Cache;
+                    cache.Reset();
+
+                    var key1 = "Key1";
+                    var value1 = "CachedValue1";
+                    var dependencies1 = new PortletDependency(key1);
+                    cache.Insert(key1, value1, dependencies1);
+
+                    var key2 = "Key2";
+                    var value2 = "CachedValue2";
+                    var dependencies2 = new PortletDependency(key2);
+                    cache.Insert(key2, value2, dependencies2);
+
+                    // pre-check: nodes are in the cache
+                    Assert.IsTrue(IsInCache(key1));
+                    Assert.IsTrue(IsInCache(key2));
+
+                    // TEST: remove unknown node wia NodeIdDependency
+                    PortletDependency.FireChanged(key1);
+                    Assert.IsFalse(IsInCache(key1));
+                    Assert.IsTrue(IsInCache(key2));
+                });
+        }
+
         /* ================================================================================= */
 
         [TestMethod]
@@ -566,6 +596,36 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.IsTrue(IsInCache(file11Key));
                     Assert.IsFalse(IsInCache(folder11Key));
                     Assert.IsTrue(IsInCache(file111Key));
+                });
+        }
+
+        [TestMethod]
+        public void Cache_Builtin_PortletDependency()
+        {
+            Test((builder) => { builder.UseCacheProvider(new SnMemoryCache()); },
+                () =>
+                {
+                    var cache = DistributedApplication.Cache;
+                    cache.Reset();
+
+                    var key1 = "Key1";
+                    var value1 = "CachedValue1";
+                    var dependencies1 = new PortletDependency(key1);
+                    cache.Insert(key1, value1, dependencies1);
+
+                    var key2 = "Key2";
+                    var value2 = "CachedValue2";
+                    var dependencies2 = new PortletDependency(key2);
+                    cache.Insert(key2, value2, dependencies2);
+
+                    // pre-check: nodes are in the cache
+                    Assert.IsTrue(IsInCache(key1));
+                    Assert.IsTrue(IsInCache(key2));
+
+                    // TEST: remove unknown node wia NodeIdDependency
+                    PortletDependency.FireChanged(key1);
+                    Assert.IsFalse(IsInCache(key1));
+                    Assert.IsTrue(IsInCache(key2));
                 });
         }
 
