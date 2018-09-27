@@ -18,7 +18,6 @@ using System.Linq;
 using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Search.Querying;
-using SenseNet.ContentRepository.Storage.Caching.Legacy; //UNDONE: Remove "using ...Caching.Legacy;"
 
 // ReSharper disable once CheckNamespace
 // ReSharper disable RedundantTypeArgumentsOfMethod
@@ -53,7 +52,7 @@ namespace SenseNet.Configuration
         public static string MembershipExtenderClassName { get; internal set; } = GetProvider("MembershipExtender",
             "SenseNet.ContentRepository.Storage.Security.DefaultMembershipExtender");
         public static string CacheClassName { get; internal set; } = GetProvider("Cache",
-            typeof(AspNetCache).FullName);
+            typeof(SnMemoryCache).FullName);
         public static string ApplicationCacheClassName { get; internal set; } = GetProvider("ApplicationCache", "SenseNet.ContentRepository.ApplicationCache");
 
         public static string ElevatedModificationVisibilityRuleProviderName { get; internal set; } =
