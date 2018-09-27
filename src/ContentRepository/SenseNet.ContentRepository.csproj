@@ -62,11 +62,6 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ICSharpCode.SharpZipLib, Version=0.84.0.0, Culture=neutral, PublicKeyToken=1b03e6acf1164f73">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\References\ICSharpCode.SharpZipLib.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="itextsharp, Version=4.1.6.0, Culture=neutral, PublicKeyToken=8354ae6d2174ddca, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\References\itextsharp.dll</HintPath>
@@ -255,7 +250,6 @@
     <Compile Include="Packaging\Steps\Terminate.cs" />
     <Compile Include="Packaging\Steps\Trace.cs" />
     <Compile Include="Packaging\Steps\XmlEditorStep.cs" />
-    <Compile Include="Packaging\ZipUnpacker.cs" />
     <Compile Include="RepositoryBuilder.cs" />
     <Compile Include="ServicesComponent.cs" />
     <Compile Include="Schema\Metadata\IMetaNode.cs" />
