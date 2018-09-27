@@ -32,7 +32,6 @@
   </metadata>
   <files>
     <file src="bin\Release\ICSharpCode.SharpZipLib.*" target="lib\net461" />
-    <file src="bin\Release\Ionic.Zip.*" target="lib\net461" />
     <file src="bin\Release\itextsharp.*" target="lib\net461" />
     <file src="bin\Release\Microsoft.Exchange.WebServices.*" target="lib\net461" />
     <file src="bin\Release\SenseNet.Configuration.*" target="lib\net461" />

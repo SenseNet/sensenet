@@ -7,11 +7,8 @@ using System.Reflection;
 using SenseNet.Packaging;
 using SenseNet.ContentRepository;
 using System.Diagnostics;
-using Ionic.Zip;
-using System.Configuration;
 using System.Security;
 using System.Xml;
-using SenseNet.ContentRepository.Storage;
 using SenseNet.Tools.SnAdmin.Testability;
 
 namespace SenseNet.Tools.SnAdmin

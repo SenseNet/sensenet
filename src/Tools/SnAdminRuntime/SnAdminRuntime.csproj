@@ -59,9 +59,6 @@
     <ApplicationIcon>sn.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Ionic.Zip">
-      <HintPath>..\..\References\Ionic.Zip.dll</HintPath>
-    </Reference>
     <Reference Include="SenseNet.Tools, Version=3.0.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\SenseNet.Tools.3.0.1\lib\netstandard2.0\SenseNet.Tools.dll</HintPath>
     </Reference>
