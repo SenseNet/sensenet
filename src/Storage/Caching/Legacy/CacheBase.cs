@@ -8,6 +8,8 @@ namespace SenseNet.ContentRepository.Storage.Caching.Legacy
 {
     public abstract class CacheBase : ICache
     {
+        public EventStore Events { get; set; }
+
         public abstract object Get(string key);
 
         public abstract void Insert(string key, object value);

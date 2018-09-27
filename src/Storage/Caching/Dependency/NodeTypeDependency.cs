@@ -27,8 +27,6 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
         }
         #endregion
 
-        private static readonly EventServer<int> Changed = new EventServer<int>(Cache.NodeTypeDependencyEventPartitions);
-
         public int NodeTypeId { get; }
         public NodeTypeDependency(int nodeTypeId)
         {
@@ -41,18 +39,18 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
         private static void FireChangedPrivate(int nodeTypeId)
         {
             lock (EventSync)
-                Changed.Fire(null, nodeTypeId);
+                Providers.Instance.CacheProvider.Events.NodeTypeChanged.Fire(null, nodeTypeId);
         }
 
         public static void Subscribe(EventHandler<EventArgs<int>> eventHandler)
         {
             lock (EventSync)
-                Changed.TheEvent += eventHandler;
+                Providers.Instance.CacheProvider.Events.NodeTypeChanged.Subscribe(eventHandler);
         }
         public static void Unsubscribe(EventHandler<EventArgs<int>> eventHandler)
         {
             lock (EventSync)
-                Changed.TheEvent -= eventHandler;
+                Providers.Instance.CacheProvider.Events.NodeTypeChanged.Unsubscribe(eventHandler);
         }
 
         public static bool IsChanged(int eventData, int subscriberData)

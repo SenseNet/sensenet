@@ -36,8 +36,6 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
         }
         #endregion
 
-        private static readonly EventServer<string> Changed = new EventServer<string>(Cache.PortletDependencyEventPartitions);
-
         public string PortletId { get; }
         public PortletDependency(string portletId)
         {
@@ -51,18 +49,18 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
         private static void FireChangedPrivate(string portletId)
         {
             lock (EventSync)
-                Changed.Fire(null, portletId);
+                Providers.Instance.CacheProvider.Events.PortletChanged.Fire(null, portletId);
         }
 
         public static void Subscribe(EventHandler<EventArgs<string>> eventHandler)
         {
             lock (EventSync)
-                Changed.TheEvent += eventHandler;
+                Providers.Instance.CacheProvider.Events.PortletChanged.Subscribe(eventHandler);
         }
         public static void Unsubscribe(EventHandler<EventArgs<string>> eventHandler)
         {
             lock (EventSync)
-                Changed.TheEvent -= eventHandler;
+                Providers.Instance.CacheProvider.Events.PortletChanged.Unsubscribe(eventHandler);
         }
 
         public static bool IsChanged(string eventData, string subscriberData)

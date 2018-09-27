@@ -234,11 +234,20 @@ namespace SenseNet.Configuration
 
         #region private Lazy<ICache> _cacheProvider = new Lazy<ICache>
         private Lazy<ISnCache> _cacheProvider =
-            new Lazy<ISnCache>(() => CreateProviderInstance<ISnCache>(CacheClassName, "CacheProvider"));
+            new Lazy<ISnCache>(() =>
+            {
+                var cache = CreateProviderInstance<ISnCache>(CacheClassName, "CacheProvider");
+                cache.Events = new EventStore();
+                return cache;
+            });
         public virtual ISnCache CacheProvider
         {
-            get { return _cacheProvider.Value; }
-            set { _cacheProvider = new Lazy<ISnCache>(() => value); }
+            get => _cacheProvider.Value;
+            set { _cacheProvider = new Lazy<ISnCache>(() =>
+            {
+                value.Events = new EventStore();
+                return value;
+            }); }
         }
         #endregion
 

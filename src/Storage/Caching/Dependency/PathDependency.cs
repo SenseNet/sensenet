@@ -27,8 +27,6 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
         }
         #endregion
 
-        private static readonly EventServer<string> Changed = new EventServer<string>(Cache.PathDependencyEventPartitions);
-
         public string Path { get; }
         public PathDependency(string path)
         {
@@ -41,18 +39,18 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
         private static void FireChangedPrivate(string path)
         {
             lock (EventSync)
-                Changed.Fire(null, path);
+                Providers.Instance.CacheProvider.Events.PathChanged.Fire(null, path);
         }
 
         public static void Subscribe(EventHandler<EventArgs<string>> eventHandler)
         {
             lock (EventSync)
-                Changed.TheEvent += eventHandler;
+                Providers.Instance.CacheProvider.Events.PathChanged.Subscribe(eventHandler);
         }
         public static void Unsubscribe(EventHandler<EventArgs<string>> eventHandler)
         {
             lock (EventSync)
-                Changed.TheEvent -= eventHandler;
+                Providers.Instance.CacheProvider.Events.PathChanged.Unsubscribe(eventHandler);
         }
 
         public static bool IsChanged(string eventData, string subscriberData)

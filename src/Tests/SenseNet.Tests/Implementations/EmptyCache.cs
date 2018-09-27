@@ -11,6 +11,8 @@ namespace SenseNet.Tests.Implementations
         // ReSharper disable once CollectionNeverUpdated.Local
         private readonly Dictionary<string, object> _emptyCache = new Dictionary<string, object>();
 
+        public EventStore Events { get; set; }
+
         public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
         {
             return _emptyCache.GetEnumerator();

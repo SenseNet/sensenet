@@ -19,6 +19,8 @@ namespace SenseNet.ContentRepository.Storage.Caching
 
         public int Count => (int)base.GetCount();
 
+        public EventStore Events { get; set; }
+
         public object Get(string key)
         {
             return base.Get(key);
