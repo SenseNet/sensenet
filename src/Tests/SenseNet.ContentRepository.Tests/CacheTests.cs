@@ -4,7 +4,6 @@ using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Caching;
-using SenseNet.ContentRepository.Storage.Caching.Builtin;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Caching.Legacy;
 using SenseNet.ContentRepository.Storage.Schema;
