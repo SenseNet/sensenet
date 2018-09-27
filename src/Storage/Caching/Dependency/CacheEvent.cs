@@ -23,5 +23,10 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
         {
             _eventServer.Fire(sender, data);
         }
+
+        public int[] GetCounts()
+        {
+            return _eventServer.GetCounts();
+        }
     }
 }

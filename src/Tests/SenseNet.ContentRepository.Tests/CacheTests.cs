@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
@@ -630,6 +631,46 @@ namespace SenseNet.ContentRepository.Tests
                     PortletDependency.FireChanged(key1);
                     Assert.IsFalse(IsInCache(key1));
                     Assert.IsTrue(IsInCache(key2));
+                });
+        }
+
+
+        [TestMethod]
+        public void Cache_DependencyCounts()
+        {
+            Test((builder) => { builder.UseCacheProvider(new SnMemoryCache()); },
+                () =>
+                {
+                    var cache = DistributedApplication.Cache;
+                    cache.Reset();
+
+                    var idArray = CreateSafeContentQuery("InTree:/Root").Execute().Nodes
+                        .Select(n => n.Id).ToArray();
+
+                    var countBefore = cache.Count;
+                    if (countBefore < 100)
+                        Assert.Inconclusive();
+                    var eventCountsBefore = cache.Events.GetCounts();
+                    var totalEventCountBefore = eventCountsBefore.Select(x => x.Value.Sum()).Sum();
+                    Assert.IsTrue(totalEventCountBefore > countBefore * 2);
+
+                    PathDependency.FireChanged("/Root/System");
+
+                    var countAfter = cache.Count;
+                    var eventCountsAfter = cache.Events.GetCounts();
+                    var totalEventCountAfter = eventCountsAfter.Select(x => x.Value.Sum()).Sum();
+                    Assert.IsTrue(0 < countAfter);
+                    Assert.IsTrue(countAfter < countBefore);
+                    Assert.IsTrue(totalEventCountAfter > countAfter * 2);
+                    Assert.IsTrue(totalEventCountAfter < totalEventCountBefore);
+
+                    PathDependency.FireChanged("/Root");
+
+                    var countFinal = cache.Count;
+                    var eventCountsFinal = cache.Events.GetCounts();
+                    var totalEventCountFinal = eventCountsFinal.Select(x => x.Value.Sum()).Sum();
+                    Assert.AreEqual(0, countFinal);
+                    Assert.AreEqual(0, totalEventCountFinal);
                 });
         }
 

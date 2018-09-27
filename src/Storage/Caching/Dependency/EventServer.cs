@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace SenseNet.ContentRepository.Storage.Caching.Dependency
 {
@@ -10,6 +11,10 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
             public void Fire(object sender, T data)
             {
                 TheEvent?.Invoke(sender, new EventArgs<T>(data));
+            }
+            public int GetCount()
+            {
+                return TheEvent?.GetInvocationList().Length ?? 0;
             }
         }
 
@@ -43,6 +48,11 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
         {
             foreach (var wrapper in _wrappers)
                 wrapper.Fire(sender, data);
+        }
+
+        public int[] GetCounts()
+        {
+            return _wrappers.Select(w => w.GetCount()).ToArray();
         }
     }
 }
