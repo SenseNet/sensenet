@@ -13,6 +13,7 @@ namespace SenseNet.ContentRepository.Storage.Caching.Legacy
     /// main features: populator (create/load/whatever the cached item)
     /// Distributed environment wireup
     /// </summary>
+    //UNDONE: Delete the whole legacy API
     public class AspNetCache : CacheBase
     {
         private static readonly object LockObject = new object();
