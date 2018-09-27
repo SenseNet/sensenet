@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Web;
 using System.Collections;
 using System.Linq;
@@ -16,11 +15,11 @@ namespace SenseNet.ContentRepository.Storage.Caching.Legacy
     /// </summary>
     public class AspNetCache : CacheBase
     {
-        private static object _lockObject = new object();
+        private static readonly object LockObject = new object();
 
         public enum TraceVerbosity { Silent, Basic, Verbose };
 
-        private System.Web.Caching.Cache _cache;
+        private readonly System.Web.Caching.Cache _cache;
 
         public AspNetCache()
         {
@@ -37,6 +36,23 @@ namespace SenseNet.ContentRepository.Storage.Caching.Legacy
             _cache.Insert(key, value);
         }
 
+        public override void Insert(string key, object value, CacheDependency dependencies,
+            DateTime absoluteExpiration, TimeSpan slidingExpiration,
+            object onRemoveCallback)
+        {
+            if (onRemoveCallback != null) //UNDONE: discuss: onRemoveCallback is not supported
+                throw new NotSupportedException("The onRemoveCallback is not supported in this version.");
+
+            _cache.Insert(
+                key,
+                value,
+                CreateDependencies(dependencies),
+                absoluteExpiration,
+                slidingExpiration,
+                System.Web.Caching.CacheItemPriority.Normal,
+                null);
+        }
+        [Obsolete("Do not use priority in the caching API. Use the expiration times instead.")]
         public override void Insert(string key, object value, CacheDependency dependencies,
             DateTime absoluteExpiration, TimeSpan slidingExpiration, CacheItemPriority priority,
             object onRemoveCallback)
@@ -83,10 +99,10 @@ namespace SenseNet.ContentRepository.Storage.Caching.Legacy
 
         public override void Reset()
         {
-            SnLog.WriteInformation("Cache Reset. StackTrace: " + System.Environment.StackTrace);
+            SnLog.WriteInformation("Cache Reset. StackTrace: " + Environment.StackTrace);
 
             List<string> keys = new List<string>();
-            lock (_lockObject)
+            lock (LockObject)
             {
                 foreach (DictionaryEntry entry in _cache)
                     keys.Add(entry.Key.ToString());
@@ -98,20 +114,11 @@ namespace SenseNet.ContentRepository.Storage.Caching.Legacy
             }
         }
 
-        public override int Count
-        {
-            get { return _cache.Count; }
-        }
+        public override int Count => _cache.Count;
 
-        public override long EffectivePercentagePhysicalMemoryLimit
-        {
-            get { return _cache.EffectivePercentagePhysicalMemoryLimit; }
-        }
+        public override long EffectivePercentagePhysicalMemoryLimit => _cache.EffectivePercentagePhysicalMemoryLimit;
 
-        public override long EffectivePrivateBytesLimit
-        {
-            get { return _cache.EffectivePrivateBytesLimit; }
-        }
+        public override long EffectivePrivateBytesLimit => _cache.EffectivePrivateBytesLimit;
 
         public override IEnumerator<KeyValuePair<string, object>> GetEnumerator()
         {
@@ -123,14 +130,8 @@ namespace SenseNet.ContentRepository.Storage.Caching.Legacy
 
         public override object this[string key]
         {
-            get
-            {
-                return _cache[key];
-            }
-            set
-            {
-                _cache[key] = value;
-            }
+            get => _cache[key];
+            set => _cache[key] = value;
         }
     }
 }

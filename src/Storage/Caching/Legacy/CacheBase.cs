@@ -8,19 +8,19 @@ namespace SenseNet.ContentRepository.Storage.Caching.Legacy
 {
     public abstract class CacheBase : ICache
     {
-        [Obsolete("Do not use this member anymore.", true)]
-        protected HttpContext _currentContext;
-
         public abstract object Get(string key);
 
         public abstract void Insert(string key, object value);
 
         public virtual void Insert(string key, object value, CacheDependency dependencies)
         {
-            Insert(key, value, dependencies, NoAbsoluteExpiration, NoSlidingExpiration, CacheItemPriority.Normal,
-                null);
+            Insert(key, value, dependencies, NoAbsoluteExpiration, NoSlidingExpiration, null);
         }
 
+        public abstract void Insert(string key, object value, CacheDependency dependencies,
+            DateTime absoluteExpiration, TimeSpan slidingExpiration,
+            object onRemoveCallback);
+        [Obsolete("Do not use priority in the caching API. Use the expiration times instead.")]
         public abstract void Insert(string key, object value, CacheDependency dependencies,
             DateTime absoluteExpiration, TimeSpan slidingExpiration, CacheItemPriority priority,
             object onRemoveCallback);
@@ -67,14 +67,12 @@ namespace SenseNet.ContentRepository.Storage.Caching.Legacy
         }
 
 
+        [Obsolete("Do not use this member anymore.", true)]
+        // ReSharper disable once InconsistentNaming
+        protected HttpContext _currentContext;
 
-        private HttpContext _currentHttpContext;
-
-        public HttpContext CurrentHttpContext
-        {
-            get { return _currentHttpContext; }
-            set { _currentHttpContext = value; }
-        }
+        [Obsolete("Do not use this member anymore.", true)]
+        public HttpContext CurrentHttpContext { get; set; }
     }
 
 }

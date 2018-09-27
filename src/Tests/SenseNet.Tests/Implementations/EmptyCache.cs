@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Web;
 using SenseNet.ContentRepository.Storage.Caching;
 using System.Collections.Generic;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
@@ -46,6 +45,12 @@ namespace SenseNet.Tests.Implementations
         {
             // do nothing
         }
+        public void Insert(string key, object value, CacheDependency dependencies, DateTime absoluteExpiration,
+            TimeSpan slidingExpiration, object onRemoveCallback)
+        {
+            // do nothing
+        }
+        [Obsolete("Do not use priority in the caching API. Use the expiration times instead.")]
         public void Insert(string key, object value, CacheDependency dependencies, DateTime absoluteExpiration,
             TimeSpan slidingExpiration, CacheItemPriority priority, object onRemoveCallback)
         {

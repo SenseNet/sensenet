@@ -1,16 +1,11 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.ComponentModel;
-using System.Linq;
 using System.Runtime.Caching;
-using System.Text;
-using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 // ReSharper disable RedundantBaseQualifier
 
-namespace SenseNet.ContentRepository.Storage.Caching.Builtin
+namespace SenseNet.ContentRepository.Storage.Caching.Builtin //UNDONE: Move to the parent
 {
     public class SnMemoryCache : MemoryCache, ISnCache
     {
@@ -36,23 +31,35 @@ namespace SenseNet.ContentRepository.Storage.Caching.Builtin
 
         public virtual void Insert(string key, object value, CacheDependency dependencies)
         {
-            Insert(key, value, dependencies, DateTime.MaxValue, NoSlidingExpiration, CacheItemPriority.Normal,
-                null);
+            var policy = new CacheItemPolicy
+            {
+                AbsoluteExpiration = DateTime.MaxValue,
+                SlidingExpiration = NoSlidingExpiration,
+                Priority = System.Runtime.Caching.CacheItemPriority.Default,
+            };
+            CreateDependencies(dependencies, policy);
+            base.Set(key, value, policy);
         }
 
+        [Obsolete("Do not use priority in the caching API. Use the expiration times instead.")]
         public void Insert(string key, object value, CacheDependency dependencies, DateTime absoluteExpiration,
-            TimeSpan slidingExpiration, CacheItemPriority priority, object onRemoveCallback)
+            TimeSpan slidingExpiration, object onRemoveCallback)
         {
             var policy = new CacheItemPolicy
             {
                 AbsoluteExpiration = absoluteExpiration,
                 SlidingExpiration = slidingExpiration,
-                Priority = priority == CacheItemPriority.NotRemovable
-                    ? System.Runtime.Caching.CacheItemPriority.NotRemovable
-                    : System.Runtime.Caching.CacheItemPriority.Default,
+                Priority = System.Runtime.Caching.CacheItemPriority.Default,
             };
             CreateDependencies(dependencies, policy);
             base.Set(key, value, policy);
+        }
+
+        [Obsolete("Do not use priority in the caching API. Use the expiration times instead.")]
+        public void Insert(string key, object value, CacheDependency dependencies, DateTime absoluteExpiration,
+            TimeSpan slidingExpiration, CacheItemPriority priority, object onRemoveCallback)
+        {
+            Insert(key, value, dependencies, absoluteExpiration, slidingExpiration, onRemoveCallback);
         }
         private void CreateDependencies(CacheDependency dependencies, CacheItemPolicy policy)
         {
@@ -99,7 +106,9 @@ namespace SenseNet.ContentRepository.Storage.Caching.Builtin
             List<string> keys = new List<string>();
             lock (LockObject)
             {
+#pragma warning disable CS0279 // Type does not implement the collection pattern; member is either static or not public
                 foreach (var entry in this)
+#pragma warning restore CS0279 // Type does not implement the collection pattern; member is either static or not public
                     keys.Add(entry.Key);
             }
 

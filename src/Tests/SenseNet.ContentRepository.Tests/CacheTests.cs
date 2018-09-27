@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Caching;
@@ -12,6 +9,7 @@ using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Caching.Legacy;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Tests;
+// ReSharper disable UnusedVariable
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -21,7 +19,7 @@ namespace SenseNet.ContentRepository.Tests
         #region private class TestAspNetCache...
         private class TestAspNetCache : CacheBase
         {
-            private AspNetCache _cache;
+            private readonly AspNetCache _cache;
             public StringBuilder Log { get; } = new StringBuilder();
 
             public TestAspNetCache()
@@ -47,6 +45,13 @@ namespace SenseNet.ContentRepository.Tests
                 Log.AppendLine($"Insert: {key}, {dependencies.GetType().Name}");
             }
 
+            public override void Insert(string key, object value, CacheDependency dependencies, DateTime absoluteExpiration,
+                TimeSpan slidingExpiration, object onRemoveCallback)
+            {
+                _cache.Insert(key, value, dependencies, absoluteExpiration, slidingExpiration, onRemoveCallback);
+                Log.AppendLine($"Insert: {key}, {dependencies.GetType().Name}, ....");
+            }
+            [Obsolete("Do not use priority in the caching API. Use the expiration times instead.")]
             public override void Insert(string key, object value, CacheDependency dependencies, DateTime absoluteExpiration,
                 TimeSpan slidingExpiration, CacheItemPriority priority, object onRemoveCallback)
             {
