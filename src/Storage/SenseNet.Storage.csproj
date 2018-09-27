@@ -140,6 +140,8 @@
   <ItemGroup>
     <Compile Include="ActiveSchema.cs" />
     <Compile Include="BackgroundOperations\TaskManager.cs" />
+    <Compile Include="Caching\Dependency\CacheEvent.cs" />
+    <Compile Include="Caching\Dependency\CacheEventStore.cs" />
     <Compile Include="Caching\ChangeMonitor.cs" />
     <Compile Include="Caching\NodeIdChangeMonitor.cs" />
     <Compile Include="Caching\NodeTypeChangeMonitor.cs" />

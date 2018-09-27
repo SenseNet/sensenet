@@ -5,38 +5,13 @@ using SenseNet.ContentRepository.Storage.Caching.Dependency;
 
 namespace SenseNet.ContentRepository.Storage.Caching
 {
-    public class CacheEvent<T>
-    {
-        private EventServer<T> _eventServer = new EventServer<T>(50);
-
-        public void Subscribe(EventHandler<EventArgs<T>> eventHandler)
-        {
-            _eventServer.TheEvent += eventHandler;
-        }
-        public void Unsubscribe(EventHandler<EventArgs<T>> eventHandler)
-        {
-            _eventServer.TheEvent -= eventHandler;
-        }
-        public void Fire(object sender, T data)
-        {
-            _eventServer.Fire(sender, data);
-        }
-    }
-    public class EventStore
-    {
-        public readonly CacheEvent<int> NodeIdChanged = new CacheEvent<int>();
-        public readonly CacheEvent<int> NodeTypeChanged = new CacheEvent<int>();
-        public readonly CacheEvent<string> PathChanged = new CacheEvent<string>();
-        public readonly CacheEvent<string> PortletChanged = new CacheEvent<string>();
-    }
-
     public interface ISnCache : IEnumerable<KeyValuePair<string, object>>
     {
         int Count { get; }
 
         object this[string key] { get; set; }
 
-        EventStore Events { get; set; }
+        CacheEventStore Events { get; set; }
 
         object Get(string key);
         void Insert(string key, object value);

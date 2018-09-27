@@ -16,6 +16,7 @@ using SenseNet.Security.Messaging;
 using SenseNet.Tools;
 using System.Linq;
 using SenseNet.ContentRepository.Storage.AppModel;
+using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Search.Querying;
 
@@ -237,7 +238,7 @@ namespace SenseNet.Configuration
             new Lazy<ISnCache>(() =>
             {
                 var cache = CreateProviderInstance<ISnCache>(CacheClassName, "CacheProvider");
-                cache.Events = new EventStore();
+                cache.Events = new CacheEventStore();
                 return cache;
             });
         public virtual ISnCache CacheProvider
@@ -245,7 +246,7 @@ namespace SenseNet.Configuration
             get => _cacheProvider.Value;
             set { _cacheProvider = new Lazy<ISnCache>(() =>
             {
-                value.Events = new EventStore();
+                value.Events = new CacheEventStore();
                 return value;
             }); }
         }
