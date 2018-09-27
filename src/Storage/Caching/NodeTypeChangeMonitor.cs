@@ -1,17 +1,17 @@
 ﻿using SenseNet.ContentRepository.Storage.Caching.Dependency;
 
-namespace SenseNet.ContentRepository.Storage.Caching.Builtin
+namespace SenseNet.ContentRepository.Storage.Caching
 {
-    internal class NodeIdChangeMonitor : ChangeMonitorBase
+    internal class NodeTypeChangeMonitor : ChangeMonitorBase
     {
-        private readonly int _nodeId;
+        private readonly int _nodeTypeId;
 
-        public NodeIdChangeMonitor(int nodeId)
+        public NodeTypeChangeMonitor(int nodeTypeId)
         {
-            _nodeId = nodeId;
+            _nodeTypeId = nodeTypeId;
             try
             {
-                NodeIdDependency.Subscribe(Changed);
+                NodeTypeDependency.Subscribe(Changed);
             }
             finally
             {
@@ -22,12 +22,12 @@ namespace SenseNet.ContentRepository.Storage.Caching.Builtin
         protected override void Dispose(bool disposing)
         {
             if (disposing)
-                NodeIdDependency.Unsubscribe(Changed);
+                NodeTypeDependency.Unsubscribe(Changed);
         }
 
         private void Changed(object sender, EventArgs<int> e)
         {
-            if (NodeIdDependency.IsChanged(e.Data, _nodeId))
+            if (NodeTypeDependency.IsChanged(e.Data, _nodeTypeId))
                 OnChanged(null);
         }
     }

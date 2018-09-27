@@ -140,12 +140,12 @@
   <ItemGroup>
     <Compile Include="ActiveSchema.cs" />
     <Compile Include="BackgroundOperations\TaskManager.cs" />
-    <Compile Include="Caching\Builtin\ChangeMonitor.cs" />
-    <Compile Include="Caching\Builtin\NodeIdChangeMonitor.cs" />
-    <Compile Include="Caching\Builtin\NodeTypeChangeMonitor.cs" />
-    <Compile Include="Caching\Builtin\PathChangeMonitor.cs" />
-    <Compile Include="Caching\Builtin\PortleChangeMonitor.cs" />
-    <Compile Include="Caching\Builtin\SnMemoryCache.cs" />
+    <Compile Include="Caching\ChangeMonitor.cs" />
+    <Compile Include="Caching\NodeIdChangeMonitor.cs" />
+    <Compile Include="Caching\NodeTypeChangeMonitor.cs" />
+    <Compile Include="Caching\PathChangeMonitor.cs" />
+    <Compile Include="Caching\PortleChangeMonitor.cs" />
+    <Compile Include="Caching\SnMemoryCache.cs" />
     <Compile Include="Caching\Dependency\AggregateCacheDependency.cs" />
     <Compile Include="Caching\Dependency\CacheDependency.cs" />
     <Compile Include="Caching\Dependency\EventServer.cs" />

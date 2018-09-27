@@ -5,7 +5,7 @@ using System.Runtime.Caching;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 // ReSharper disable RedundantBaseQualifier
 
-namespace SenseNet.ContentRepository.Storage.Caching.Builtin //UNDONE: Move to the parent
+namespace SenseNet.ContentRepository.Storage.Caching
 {
     public class SnMemoryCache : MemoryCache, ISnCache
     {
