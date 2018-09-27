@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Schema;
@@ -186,6 +187,39 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(expectedCounts, actualCounts);
             });
         }
+
+        [TestMethod, TestCategory("IR")]
+        public void Indexing_OpenXmlFile() => Test(() =>
+        {
+            var testRoot = new SystemFolder(Repository.Root) {Name = "TestRoot"};
+            testRoot.Save();
+
+            // Office file contents: sensenet1234test
+            const string fileName = "sensenettest.docx";
+            var file = new File(testRoot) {Name = fileName};
+
+            var assembly = Assembly.GetExecutingAssembly();
+            using (var fs = assembly.GetManifestResourceStream($"SenseNet.ContentRepository.Tests.TestFiles.{fileName}"))
+            {
+                var binaryData = new BinaryData {FileName = file.Name};
+                binaryData.SetStream(fs);
+                file.Binary = binaryData;
+
+                file.Save();
+            }
+
+            // Check the index with queries by well known words in the binary
+            var results = new[]
+            {
+                CreateSafeContentQuery("sensenet123test").Execute().Nodes.ToArray(),
+                CreateSafeContentQuery("sensenet1234test").Execute().Nodes.ToArray(),
+                CreateSafeContentQuery("+TypeIs:File +Name:sensenet1234test").Execute().Nodes.ToArray(),
+                CreateSafeContentQuery("+TypeIs:File +sensenet1234test").Execute().Nodes.ToArray()
+            };
+
+            var actualCounts = string.Join(", ", results.Select(r => r.Length.ToString()).ToArray());
+            Assert.AreEqual("0, 1, 0, 1", actualCounts);
+        });
         #endregion
 
         #region Choice field

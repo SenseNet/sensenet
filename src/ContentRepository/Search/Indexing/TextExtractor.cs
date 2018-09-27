@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
 using System.Text;
 using System.Web;
 using System.Xml;
 using iTextSharp.text.pdf;
-using Ionic.Zip;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
@@ -215,28 +215,37 @@ namespace SenseNet.ContentRepository.Search.Indexing
         /// </summary>
         protected string GetOpenXmlText(Stream stream, TextExtractorContext context)
         {
+            // use the XML extractor for inner entries in OpenXml files
+            var extractor = ResolveExtractor("xml");
+            if (extractor == null)
+                return string.Empty;
+
             var result = new StringBuilder();
-            using (var zip = ZipFile.Read(stream))
+
+            using (var archive = new ZipArchive(stream))
             {
-                foreach (var entry in zip)
+                foreach (var entry in archive.Entries)
                 {
-                    if (Path.GetExtension(entry.FileName.ToLower()).Trim('.') == "xml")
+                    if (!entry.FullName.Trim('.').EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    // First we have to copy the entry stream to an in-memory stream because the
+                    // built-in archive api does not let us Seek the stream during extraction.
+                    using (var memoryStream = new MemoryStream())
                     {
-                        var zipStream = new MemoryStream();
-                        entry.Extract(zipStream);
-                        zipStream.Seek(0, SeekOrigin.Begin);
-
-                        // use the XML extractor for inner entries in OpenXml files
-                        var extractor = ResolveExtractor("xml");
-                        var extractedText = extractor?.Extract(zipStream, context);
-
-                        if (string.IsNullOrEmpty(extractedText))
+                        using (var zipStream = entry.Open())
                         {
-                            zipStream.Close();
-                            continue;
+                            zipStream.CopyTo(memoryStream);
+                            memoryStream.Seek(0, SeekOrigin.Begin);
+
+                            // this line would throw an exception on the original zipStream
+                            var extractedText = extractor.Extract(memoryStream, context);
+
+                            if (string.IsNullOrEmpty(extractedText))
+                                continue;
+
+                            result.Append(extractedText);
                         }
-                        result.Append(extractedText);
-                        zipStream.Close();
                     }
                 }
             }
