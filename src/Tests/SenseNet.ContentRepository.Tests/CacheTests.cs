@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Caching;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Caching.Legacy;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
+using SenseNet.Diagnostics;
 using SenseNet.Tests;
 // ReSharper disable UnusedVariable
 
@@ -648,8 +652,7 @@ namespace SenseNet.ContentRepository.Tests
                         .Select(n => n.Id).ToArray();
 
                     var countBefore = cache.Count;
-                    if (countBefore < 100)
-                        Assert.Inconclusive();
+                    Assert.IsTrue(countBefore > idArray.Length * 2);
                     var eventCountsBefore = cache.Events.GetCounts();
                     var totalEventCountBefore = eventCountsBefore.Select(x => x.Value.Sum()).Sum();
                     Assert.IsTrue(totalEventCountBefore > countBefore * 2);
@@ -672,6 +675,87 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.AreEqual(0, countFinal);
                     Assert.AreEqual(0, totalEventCountFinal);
                 });
+        }
+
+
+        [TestMethod]
+        public void Cache_Measuring()
+        {
+            var tracer = new SnDebugViewTracer();
+            SnTrace.SnTracers.Add(tracer);
+            try
+            {
+                var partitionConfig = new[] {25, 50, 100, 200, 400, 800};
+                foreach (var partitions in partitionConfig)
+                {
+                    Cache.NodeIdDependencyEventPartitions = partitions;
+                    Cache.NodeTypeDependencyEventPartitions = partitions;
+                    Cache.PathDependencyEventPartitions = partitions;
+                    Cache.PortletDependencyEventPartitions = partitions;
+                    Test((builder) => { builder.UseCacheProvider(new SnMemoryCache()); },
+                        () =>
+                        {
+                            if (SnMaintenance.Running())
+                                new SnMaintenance().Shutdown();
+
+                            var nodes = CreateSafeContentQuery("InTree:/Root").Execute().Nodes.ToArray();
+                            var averages = new double[10];
+
+                            for (var k = 1; k < 11; k++)
+                            {
+                                var times = new TimeSpan[12];
+
+                                SnTrace.Write($"k = {k}");
+                                for (var j = 0; j < 12; j++)
+                                {
+                                    var cache = DistributedApplication.Cache;
+                                    cache.Reset();
+
+                                    foreach (var node in nodes)
+                                        for (var i = 0; i < 40 * k; i++)
+                                            cache.Insert($"ExtraEntry.{node.Id}.{i}", node.Data, new PathDependency(node.Path));
+
+                                    var countBefore = cache.Count;
+                                    var eventCountsBefore = cache.Events.GetCounts();
+                                    var totalEventCountBefore = eventCountsBefore.Select(x => x.Value.Sum()).Sum();
+
+                                    times[j] = Watch(() => { PathDependency.FireChanged("/Root/System"); });
+
+                                    var countAfter = cache.Count;
+                                    var eventCountsAfter = cache.Events.GetCounts();
+                                    var totalEventCountAfter = eventCountsAfter.Select(x => x.Value.Sum()).Sum();
+
+                                    //SnTrace.Write($"{countBefore},{totalEventCountBefore} - {countAfter},{totalEventCountAfter}: {times[j]}");
+                                }
+
+                                var avg = times
+                                    .Select(t => t.TotalSeconds)
+                                    .OrderBy(x => x)
+                                    .Skip(1)
+                                    .Take(10)
+                                    .Average(x => x);
+                                averages[k - 1] = avg;
+                            }
+
+                            SnTrace.Write($"Average times ({partitions} partitions):");
+                            foreach (var average in averages)
+                                SnTrace.Write($"Average: {average}");
+                        });
+                }
+            }
+            finally
+            {
+                SnTrace.SnTracers.Remove(tracer);
+            }
+            Assert.Inconclusive();
+        }
+
+        private TimeSpan Watch(Action action)
+        {
+            var stopper = Stopwatch.StartNew();
+            action();
+            stopper.Stop();
+            return stopper.Elapsed;
         }
 
         /* ================================================================================= */

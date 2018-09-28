@@ -23,7 +23,8 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
 
         public EventServer(int clientCount)
         {
-            _wrappers = new EventWrapper[Math.Max(clientCount, defaultClientCount)];
+            var count = clientCount < 1 ? defaultClientCount : clientCount;
+            _wrappers = new EventWrapper[count];
             for (int i = 0; i < _wrappers.Length; i++)
                 _wrappers[i] = new EventWrapper();
         }
