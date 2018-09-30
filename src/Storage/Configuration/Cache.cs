@@ -19,16 +19,16 @@ namespace SenseNet.Configuration
             GetValue(SectionName, "CacheContentAfterSaveMode", CacheContentAfterSaveOption.All);
 
         public static int NodeIdDependencyEventPartitions { get; internal set; } =
-            GetInt(SectionName, "NodeIdDependencyEventPartitions", 50);
+            GetInt(SectionName, "NodeIdDependencyEventPartitions", 400);
 
         public static int NodeTypeDependencyEventPartitions { get; internal set; } =
-            GetInt(SectionName, "NodeTypeDependencyEventPartitions", 50);
+            GetInt(SectionName, "NodeTypeDependencyEventPartitions", 400);
 
         public static int PathDependencyEventPartitions { get; internal set; } =
-            GetInt(SectionName, "PathDependencyEventPartitions", 50);
+            GetInt(SectionName, "PathDependencyEventPartitions", 400);
 
         public static int PortletDependencyEventPartitions { get; internal set; } =
-            GetInt(SectionName, "PortletDependencyEventPartitions", 50);
+            GetInt(SectionName, "PortletDependencyEventPartitions", 400);
 
         public static double SlidingExpirationSeconds { get; internal set; } =
             GetDouble(SectionName, "SlidingExpirationSeconds", 0);
