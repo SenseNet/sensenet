@@ -91,8 +91,9 @@ namespace SenseNet.ContentRepository.Storage.Caching
             }
             else
             {
-                //UNDONE: custom CacheDependency is not supported in this cache implementation
-                throw new NotImplementedException();
+                throw new SnNotSupportedException(
+                    "Unknown cache dependency is not supported in this version. Type: " + 
+                    dependencies.GetType().FullName);
             }
         }
 
