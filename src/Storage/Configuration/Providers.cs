@@ -15,6 +15,7 @@ using SenseNet.Security.Messaging;
 using SenseNet.Tools;
 using System.Linq;
 using SenseNet.ContentRepository.Storage.AppModel;
+using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Search.Querying;
 
@@ -51,7 +52,7 @@ namespace SenseNet.Configuration
         public static string MembershipExtenderClassName { get; internal set; } = GetProvider("MembershipExtender",
             "SenseNet.ContentRepository.Storage.Security.DefaultMembershipExtender");
         public static string CacheClassName { get; internal set; } = GetProvider("Cache",
-            typeof(AspNetCache).FullName);
+            typeof(SnMemoryCache).FullName);
         public static string ApplicationCacheClassName { get; internal set; } = GetProvider("ApplicationCache", "SenseNet.ContentRepository.ApplicationCache");
 
         public static string ElevatedModificationVisibilityRuleProviderName { get; internal set; } =
@@ -222,12 +223,21 @@ namespace SenseNet.Configuration
         #endregion
 
         #region private Lazy<ICache> _cacheProvider = new Lazy<ICache>
-        private Lazy<ICache> _cacheProvider =
-            new Lazy<ICache>(() => CreateProviderInstance<ICache>(CacheClassName, "CacheProvider"));
-        public virtual ICache CacheProvider
+        private Lazy<ISnCache> _cacheProvider =
+            new Lazy<ISnCache>(() =>
+            {
+                var cache = CreateProviderInstance<ISnCache>(CacheClassName, "CacheProvider");
+                cache.Events = new CacheEventStore();
+                return cache;
+            });
+        public virtual ISnCache CacheProvider
         {
-            get { return _cacheProvider.Value; }
-            set { _cacheProvider = new Lazy<ICache>(() => value); }
+            get => _cacheProvider.Value;
+            set { _cacheProvider = new Lazy<ISnCache>(() =>
+            {
+                value.Events = new CacheEventStore();
+                return value;
+            }); }
         }
         #endregion
 

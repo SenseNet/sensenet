@@ -125,7 +125,7 @@ namespace SenseNet.ContentRepository
         /// </summary>
         /// <param name="repositoryBuilder"></param>
         /// <param name="cacheProvider">ICache instance.</param>
-        public static IRepositoryBuilder UseCacheProvider(this IRepositoryBuilder repositoryBuilder, ICache cacheProvider)
+        public static IRepositoryBuilder UseCacheProvider(this IRepositoryBuilder repositoryBuilder, ISnCache cacheProvider)
         {
             Configuration.Providers.Instance.CacheProvider = cacheProvider;
             WriteLog("CacheProvider", cacheProvider);

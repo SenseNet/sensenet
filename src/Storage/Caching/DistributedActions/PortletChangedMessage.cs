@@ -5,6 +5,7 @@ using SenseNet.Communication.Messaging;
 
 namespace SenseNet.ContentRepository.Storage.Caching.DistributedActions
 {
+    [Obsolete("Do not use this class anymore.")]
     [Serializable]
     public class PortletChangedMessage : ClusterMessage
     {

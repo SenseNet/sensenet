@@ -1,19 +1,22 @@
 ﻿using System;
-using System.Web.Caching;
 using SenseNet.Communication.Messaging;
-using Cache = SenseNet.Configuration.Cache;
+using SenseNet.Configuration;
+using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Storage.Caching.Dependency
 {
+    /// <summary>
+    /// Represents a cache dependency that is triggered by a type change.
+    /// </summary>
     public class NodeTypeDependency : CacheDependency
     {
         #region private class FireChangedDistributedAction
         [Serializable]
         private class FireChangedDistributedAction : DistributedAction
         {
-            private int _nodeTypeId;
+            private readonly int _nodeTypeId;
 
-            private FireChangedDistributedAction(int nodeTypeId)
+            public FireChangedDistributedAction(int nodeTypeId)
             {
                 _nodeTypeId = nodeTypeId;
             }
@@ -24,58 +27,63 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
                     return;
                 FireChangedPrivate(_nodeTypeId);
             }
-
-            internal static void Trigger(int nodeTypeId)
-            {
-                new FireChangedDistributedAction(nodeTypeId).Execute();
-            }
         }
-        // -----------------------------------------------------------------------------------------
         #endregion
 
-        private int _nodeTypeId;
-        private static readonly EventServer<int> Changed = new EventServer<int>(Cache.NodeTypeDependencyEventPartitions);
-
+        /// <summary>
+        /// Gets the id of the changed node type.
+        /// </summary>
+        public int NodeTypeId { get; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NodeTypeDependency"/> class.
+        /// </summary>
+        /// <param name="nodeTypeId">The id of the changed node type.</param>
         public NodeTypeDependency(int nodeTypeId)
         {
-            _nodeTypeId = nodeTypeId;
-            try
-            {
-                lock (PortletDependency._eventSync)
-                {
-                    Changed.TheEvent += NodeTypeDependency_NodeTypeChanged;
-                }
-            }
-            finally
-            {
-                this.FinishInit();
-            }
+            NodeTypeId = nodeTypeId;
         }
-
-        private void NodeTypeDependency_NodeTypeChanged(object sender, EventArgs<int> e)
-        {
-            if (e.Data == _nodeTypeId)
-                NotifyDependencyChanged(this, e);
-        }
-
-        protected override void DependencyDispose()
-        {
-            lock (PortletDependency._eventSync)
-            {
-                Changed.TheEvent -= NodeTypeDependency_NodeTypeChanged;
-            }
-        }
-
+        /// <summary>
+        /// Fires a distributed action for a node type change.
+        /// </summary>
         public static void FireChanged(int nodeTypeId)
         {
-            FireChangedDistributedAction.Trigger(nodeTypeId);
+            new FireChangedDistributedAction(nodeTypeId).Execute();
         }
         private static void FireChangedPrivate(int nodeTypeId)
         {
-            lock (PortletDependency._eventSync)
-            {
-                Changed.Fire(null, nodeTypeId);
-            }
+            lock (EventSync)
+                Providers.Instance.CacheProvider.Events.NodeTypeChanged.Fire(null, nodeTypeId);
+        }
+
+        /// <summary>
+        /// Subscribe to a NodeTypeChanged event.
+        /// </summary>
+        /// <param name="eventHandler">Event handler for a node type change.</param>
+        public static void Subscribe(EventHandler<EventArgs<int>> eventHandler)
+        {
+            lock (EventSync)
+                Providers.Instance.CacheProvider.Events.NodeTypeChanged.Subscribe(eventHandler);
+        }
+        /// <summary>
+        /// Unsubscribe from the NodeTypeChanged event.
+        /// </summary>
+        public static void Unsubscribe(EventHandler<EventArgs<int>> eventHandler)
+        {
+            lock (EventSync)
+                Providers.Instance.CacheProvider.Events.NodeTypeChanged.Unsubscribe(eventHandler);
+        }
+
+        /// <summary>
+        /// Determines whether the changed node type (represented by the <see cref="eventData"/> 
+        /// node type id parameter) should invalidate the <see cref="subscriberData"/> cached object.
+        /// </summary>
+        public static bool IsChanged(int eventData, int subscriberData)
+        {
+            if (eventData != subscriberData)
+                return false;
+
+            SnTrace.Repository.Write("Cache invalidated by nodeTypeId: " + subscriberData);
+            return true;
         }
     }
 }

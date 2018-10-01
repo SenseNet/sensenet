@@ -1,21 +1,22 @@
 ﻿using System;
-using System.Web.Caching;
 using SenseNet.Communication.Messaging;
-using System.Threading;
-using SenseNet.ContentRepository.Storage.Data;
-using Cache = SenseNet.Configuration.Cache;
+using SenseNet.Configuration;
+using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Storage.Caching.Dependency
 {
+    /// <summary>
+    /// Represents a cache dependency based on a node id that is triggered by a node change.
+    /// </summary>
     public class NodeIdDependency : CacheDependency
     {
         #region private class FireChangedDistributedAction
         [Serializable]
         private class FireChangedDistributedAction : DistributedAction
         {
-            private int _nodeId;
+            private readonly int _nodeId;
 
-            private FireChangedDistributedAction(int nodeId)
+            public FireChangedDistributedAction(int nodeId)
             {
                 _nodeId = nodeId;
             }
@@ -26,57 +27,63 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
                     return;
                 FireChangedPrivate(_nodeId);
             }
-
-            internal static void Trigger(int nodeId)
-            {
-                new FireChangedDistributedAction(nodeId).Execute();
-            }
         }
         #endregion
 
-        private int _nodeId;
-        private static readonly EventServer<int> Changed = new EventServer<int>(Cache.NodeIdDependencyEventPartitions);
-
+        /// <summary>
+        /// Gets the id of the changed node.
+        /// </summary>
+        public int NodeId { get; }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NodeIdDependency"/> class.
+        /// </summary>
+        /// <param name="nodeId">The id of the changed node.</param>
         public NodeIdDependency(int nodeId)
         {
-            _nodeId = nodeId;
-            try
-            {
-                lock (PortletDependency._eventSync)
-                {
-                    Changed.TheEvent += NodeIdDependency_NodeIdChanged;
-                }
-            }
-            finally
-            {
-                this.FinishInit();
-            }
+            NodeId = nodeId;
         }
-
-        private void NodeIdDependency_NodeIdChanged(object sender, EventArgs<int> e)
-        {
-            if (_nodeId == e.Data)
-                NotifyDependencyChanged(this, e);
-        }
-
-        protected override void DependencyDispose()
-        {
-            lock (PortletDependency._eventSync)
-            {
-                Changed.TheEvent -= NodeIdDependency_NodeIdChanged;
-            }
-        }
-
+        /// <summary>
+        /// Fires a distributed action for a node change.
+        /// </summary>
         public static void FireChanged(int nodeId)
         {
-            FireChangedDistributedAction.Trigger(nodeId);
+            new FireChangedDistributedAction(nodeId).Execute();
         }
         private static void FireChangedPrivate(int nodeId)
         {
-            lock (PortletDependency._eventSync)
-            {
-                Changed.Fire(null, nodeId);
-            }
+            lock (EventSync)
+                Providers.Instance.CacheProvider.Events.NodeIdChanged.Fire(null, nodeId);
+        }
+
+        /// <summary>
+        /// Subscribe to a NodeIdChanged event.
+        /// </summary>
+        /// <param name="eventHandler">Event handler for a node change.</param>
+        public static void Subscribe(EventHandler<EventArgs<int>> eventHandler)
+        {
+            lock (EventSync)
+                Providers.Instance.CacheProvider.Events.NodeIdChanged.Subscribe(eventHandler);
+        }
+        /// <summary>
+        /// Unsubscribe from the NodeIdChanged event.
+        /// </summary>
+        public static void Unsubscribe(EventHandler<EventArgs<int>> eventHandler)
+        {
+            lock (EventSync)
+                Providers.Instance.CacheProvider.Events.NodeIdChanged.Unsubscribe(eventHandler);
+        }
+
+        /// <summary>
+        /// Determines whether the changed node (represented by the <see cref="eventData"/> node id parameter)
+        /// should invalidate the <see cref="subscriberData"/> cached object.
+        /// </summary>
+        public static bool IsChanged(int eventData, int subscriberData)
+        {
+            if (eventData != subscriberData)
+                return false;
+
+            SnTrace.Repository.Write("Cache invalidated by nodeId: " + subscriberData);
+            return true;
         }
     }
 }

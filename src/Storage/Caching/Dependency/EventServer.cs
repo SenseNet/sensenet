@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Diagnostics;
 
 namespace SenseNet.ContentRepository.Storage.Caching.Dependency
 {
@@ -13,42 +10,50 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
             public event EventHandler<EventArgs<T>> TheEvent;
             public void Fire(object sender, T data)
             {
-                var theEvent = TheEvent;
-                if (theEvent != null)
-                    theEvent(sender, new EventArgs<T>(data));
+                TheEvent?.Invoke(sender, new EventArgs<T>(data));
+            }
+            public int GetCount()
+            {
+                return TheEvent?.GetInvocationList().Length ?? 0;
             }
         }
 
         private static int defaultClientCount = 50;
-        private EventWrapper[] wrappers;
+        private readonly EventWrapper[] _wrappers;
 
         public EventServer(int clientCount)
         {
-            wrappers = new EventWrapper[Math.Max(clientCount, defaultClientCount)];
-            for (int i = 0; i < wrappers.Length; i++)
-                wrappers[i] = new EventWrapper();
+            var count = clientCount < 1 ? defaultClientCount : clientCount;
+            _wrappers = new EventWrapper[count];
+            for (int i = 0; i < _wrappers.Length; i++)
+                _wrappers[i] = new EventWrapper();
         }
 
         public event EventHandler<EventArgs<T>> TheEvent
         {
             add
             {
-                var slot = value.Target.GetHashCode() % wrappers.Length;
-                var wrapper = wrappers[slot];
+                var slot = value.Target.GetHashCode() % _wrappers.Length;
+                var wrapper = _wrappers[slot];
                 wrapper.TheEvent += value;
             }
             remove
             {
-                var slot = value.Target.GetHashCode() % wrappers.Length;
-                var wrapper = wrappers[slot];
+                var slot = value.Target.GetHashCode() % _wrappers.Length;
+                var wrapper = _wrappers[slot];
                 wrapper.TheEvent -= value;
             }
         }
 
         public void Fire(object sender, T data)
         {
-            foreach (var wrapper in wrappers)
+            foreach (var wrapper in _wrappers)
                 wrapper.Fire(sender, data);
+        }
+
+        public int[] GetCounts()
+        {
+            return _wrappers.Select(w => w.GetCount()).ToArray();
         }
     }
 }

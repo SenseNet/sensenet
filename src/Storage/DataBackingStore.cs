@@ -361,7 +361,11 @@ namespace SenseNet.ContentRepository.Storage
                 if (binaryCacheEntity != null && nodeId != 0)
                 {
                     if (!RepositoryEnvironment.WorkingMode.Populating)
-                        DistributedApplication.Cache.Insert(cacheKey, binaryCacheEntity, new NodeIdDependency(nodeId));
+                    {
+                        var head = NodeHead.Get(nodeId);
+                        DistributedApplication.Cache.Insert(cacheKey, binaryCacheEntity,
+                            CacheDependencyFactory.CreateBinaryDataDependency(nodeId, head.Path, head.NodeTypeId));
+                    }
                 }
             }
 

@@ -1,28 +1,29 @@
 ﻿using System;
 using System.Collections;
-using System.Web;
-using System.Web.Caching;
 using SenseNet.ContentRepository.Storage.Caching;
 using System.Collections.Generic;
+using SenseNet.ContentRepository.Storage.Caching.Dependency;
 
 namespace SenseNet.Tests.Implementations
 {
-    public class EmptyCache : ICache
+    public class EmptyCache : ISnCache
     {
         // ReSharper disable once CollectionNeverUpdated.Local
-        private readonly IDictionary _emptyCache = new Dictionary<string, object>();
+        private readonly Dictionary<string, object> _emptyCache = new Dictionary<string, object>();
 
-        public IEnumerator GetEnumerator()
+        public CacheEventStore Events { get; set; }
+
+        public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
         {
             return _emptyCache.GetEnumerator();
         }
 
-        public DateTime NoAbsoluteExpiration { get; } = DateTime.MaxValue;
-        public TimeSpan NoSlidingExpiration { get; } = TimeSpan.MaxValue;
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
         public int Count { get; } = 0;
-        public long EffectivePercentagePhysicalMemoryLimit { get; } = 0;
-        public long EffectivePrivateBytesLimit { get; } = 0;
-        public HttpContext CurrentHttpContext { get; set; }
 
         public object this[string key]
         {
@@ -47,7 +48,13 @@ namespace SenseNet.Tests.Implementations
             // do nothing
         }
         public void Insert(string key, object value, CacheDependency dependencies, DateTime absoluteExpiration,
-            TimeSpan slidingExpiration, CacheItemPriority priority, CacheItemRemovedCallback onRemoveCallback)
+            TimeSpan slidingExpiration, object onRemoveCallback)
+        {
+            // do nothing
+        }
+        [Obsolete("Do not use priority in the caching API. Use the expiration times instead.")]
+        public void Insert(string key, object value, CacheDependency dependencies, DateTime absoluteExpiration,
+            TimeSpan slidingExpiration, CacheItemPriority priority, object onRemoveCallback)
         {
             // do nothing
         }
