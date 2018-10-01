@@ -107,9 +107,17 @@ namespace SenseNet.ContentRepository
                             if (te.InnerException is ReflectionTypeLoadException rtle)
                             {
                                 var errors = string.Join(", ", rtle.LoaderExceptions?.Select(le => le.Message) ?? new string[0]);
-                                var assemblies = string.Join(", ",
-                                    TypeResolver.GetAssemblies().Select(a => a.FullName).OrderBy(an => an));
-                                throw new InvalidOperationException($"Error loading one or more types: {errors}. ASSEMBLIES: {assemblies}", te);
+                                var assemblies = string.Join(", ", TypeResolver.GetAssemblies()
+                                    .Select(a => a.FullName)
+                                    .Where(af => af.StartsWith("System."))
+                                    .OrderBy(an => an));
+                                var files = string.Join(", ",
+                                    Directory.GetFiles(Assembly.GetExecutingAssembly().Location)
+                                    .Select(Path.GetFileName)
+                                    .Where(fn => fn.StartsWith("System."))
+                                    .OrderBy(fn => fn));
+
+                                throw new InvalidOperationException($"Error loading one or more types: {errors}. Files: {files}", te);
                             }
 
                             throw;   
