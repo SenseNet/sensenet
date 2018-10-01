@@ -112,7 +112,7 @@ namespace SenseNet.ContentRepository
                                     .Where(af => af.StartsWith("System."))
                                     .OrderBy(an => an));
                                 var files = string.Join(", ",
-                                    Directory.GetFiles(Assembly.GetExecutingAssembly().Location)
+                                    Directory.GetFiles(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location))
                                     .Select(Path.GetFileName)
                                     .Where(fn => fn.StartsWith("System."))
                                     .OrderBy(fn => fn));
