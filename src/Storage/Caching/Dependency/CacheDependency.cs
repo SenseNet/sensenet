@@ -1,7 +1,7 @@
 ﻿namespace SenseNet.ContentRepository.Storage.Caching.Dependency
 {
     /// <summary>
-    /// Base class of the object that declares various, implementation-independent cache dependency value.
+    /// Base class for various implementation-independent cache dependency types.
     /// </summary>
     public class CacheDependency
     {

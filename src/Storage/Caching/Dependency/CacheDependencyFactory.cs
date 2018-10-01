@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace SenseNet.ContentRepository.Storage.Caching.Dependency
 {
+    /// <summary>
+    /// Factory class for creating cache dependencies.
+    /// </summary>
     public static class CacheDependencyFactory
     {
         internal static CacheDependency CreateBinaryDataDependency(int nodeId, string path, int nodeTypeId)
@@ -46,6 +49,9 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
             return aggregateCacheDependency;
         }
 
+        /// <summary>
+        /// Creates a cache dependency based on a node head.
+        /// </summary>
         public static CacheDependency CreateNodeDependency(NodeHead nodeHead)
         {
             if (nodeHead == null)
@@ -54,6 +60,9 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
             return CreateNodeDependency(nodeHead.Id, nodeHead.Path, nodeHead.NodeTypeId);
         }
 
+        /// <summary>
+        /// Creates a cache dependency based on a node.
+        /// </summary>
         public static CacheDependency CreateNodeDependency(Node node)
         {
             if (node == null)
@@ -113,5 +122,4 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
             }
         }
     }
-
 }

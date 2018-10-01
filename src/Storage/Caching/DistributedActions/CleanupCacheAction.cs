@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Diagnostics;
-using System.Collections;
-using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.Communication.Messaging;
-using System.Globalization;
 
 namespace SenseNet.ContentRepository.Storage.Caching.DistributedActions
 {
@@ -16,17 +10,13 @@ namespace SenseNet.ContentRepository.Storage.Caching.DistributedActions
 
         public override void DoAction(bool onRemote, bool isFromMe)
         {
-            // only run on 
-            if (onRemote && isFromMe) return;
+            // Local echo of my action: return without doing anything.
+            if (onRemote && isFromMe)
+                return;
 
-            List<string> cacheEntryKeys = new List<string>();
+            var cacheEntryKeys = DistributedApplication.Cache.Select(entry => entry.Key).ToList();
 
-            int localCacheCount = DistributedApplication.Cache.Count;
-
-            foreach (var entry in DistributedApplication.Cache)
-                cacheEntryKeys.Add(entry.Key);
-
-            foreach (string cacheEntryKey in cacheEntryKeys)
+            foreach (var cacheEntryKey in cacheEntryKeys)
                 DistributedApplication.Cache.Remove(cacheEntryKey);
         }
     }

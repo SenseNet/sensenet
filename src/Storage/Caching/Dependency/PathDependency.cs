@@ -5,6 +5,9 @@ using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Storage.Caching.Dependency
 {
+    /// <summary>
+    /// Represents a cache dependency based on a node path that is triggered by a node change.
+    /// </summary>
     public class PathDependency : CacheDependency
     {
         #region private class FireChangedDistributedAction
@@ -32,6 +35,9 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
         {
             Path = path;
         }
+        /// <summary>
+        /// Fires a distributed action for a node change.
+        /// </summary>
         public static void FireChanged(string path)
         {
             new FireChangedDistributedAction(path).Execute();
@@ -42,17 +48,28 @@ namespace SenseNet.ContentRepository.Storage.Caching.Dependency
                 Providers.Instance.CacheProvider.Events.PathChanged.Fire(null, path);
         }
 
+        /// <summary>
+        /// Subscribe to a PathChanged event.
+        /// </summary>
+        /// <param name="eventHandler">Event handler for a node change.</param>
         public static void Subscribe(EventHandler<EventArgs<string>> eventHandler)
         {
             lock (EventSync)
                 Providers.Instance.CacheProvider.Events.PathChanged.Subscribe(eventHandler);
         }
+        /// <summary>
+        /// Unsubscribe from the PathChanged event.
+        /// </summary>
         public static void Unsubscribe(EventHandler<EventArgs<string>> eventHandler)
         {
             lock (EventSync)
                 Providers.Instance.CacheProvider.Events.PathChanged.Unsubscribe(eventHandler);
         }
 
+        /// <summary>
+        /// Determines whether the changed node (represented by the <see cref="eventData"/> path parameter)
+        /// should invalidate the <see cref="subscriberData"/> cached object.
+        /// </summary>
         public static bool IsChanged(string eventData, string subscriberData)
         {
             var match = subscriberData.Equals(eventData, StringComparison.OrdinalIgnoreCase);

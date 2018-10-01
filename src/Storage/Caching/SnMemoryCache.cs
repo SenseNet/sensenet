@@ -7,30 +7,43 @@ using SenseNet.ContentRepository.Storage.Caching.Dependency;
 
 namespace SenseNet.ContentRepository.Storage.Caching
 {
+    /// <summary>
+    /// Built-in memory cache implementation of the <see cref="ISnCache"/> interface.
+    /// </summary>
     public class SnMemoryCache : MemoryCache, ISnCache
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SnMemoryCache"/> class.
+        /// </summary>
         public SnMemoryCache() : this(Guid.NewGuid().ToString("N"))
         {
         }
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SnMemoryCache"/> class.
+        /// </summary>
         public SnMemoryCache(string name, NameValueCollection config = null) : base(name, config)
         {
         }
 
+        /// <inheritdoc />
         public int Count => (int)base.GetCount();
 
+        /// <inheritdoc />
         public CacheEventStore Events { get; set; }
 
+        /// <inheritdoc />
         public object Get(string key)
         {
             return base.Get(key);
         }
 
+        /// <inheritdoc />
         public void Insert(string key, object value)
         {
             Insert(key, value, null);
         }
-
+        
+        /// <inheritdoc />
         public virtual void Insert(string key, object value, CacheDependency dependencies)
         {
             var policy = new CacheItemPolicy
@@ -97,16 +110,17 @@ namespace SenseNet.ContentRepository.Storage.Caching
             }
         }
 
-
+        /// <inheritdoc />
         public void Remove(string key)
         {
             base.Remove(key);
         }
 
         private static readonly object LockObject = new object();
+        /// <inheritdoc />
         public void Reset()
         {
-            List<string> keys = new List<string>();
+            var keys = new List<string>();
             lock (LockObject)
             {
 #pragma warning disable CS0279 // Type does not implement the collection pattern; member is either static or not public
@@ -120,6 +134,5 @@ namespace SenseNet.ContentRepository.Storage.Caching
                 Remove(key);
             }
         }
-
     }
 }

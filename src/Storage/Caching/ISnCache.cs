@@ -5,17 +5,42 @@ using SenseNet.ContentRepository.Storage.Caching.Dependency;
 
 namespace SenseNet.ContentRepository.Storage.Caching
 {
+    /// <summary>
+    /// Defines properties and methods for a general cache implementation.
+    /// </summary>
     public interface ISnCache : IEnumerable<KeyValuePair<string, object>>
     {
+        /// <summary>
+        /// Gets the total number of entries in the cache.
+        /// </summary>
         int Count { get; }
 
+        /// <summary>
+        /// Gets or sets a cache entry.
+        /// </summary>
         object this[string key] { get; set; }
 
+        /// <summary>
+        /// Gets or sets an event subscription store for specific types of events.
+        /// Cache implementations do not have to set this property, it is governed by the system.
+        /// </summary>
         CacheEventStore Events { get; set; }
 
+        /// <summary>
+        /// Returns an entry from the cache.
+        /// </summary>
         object Get(string key);
+        /// <summary>
+        /// Inserts a cache entry into the cache.
+        /// </summary>
         void Insert(string key, object value);
+        /// <summary>
+        /// Inserts a cache entry into the cache.
+        /// </summary>
         void Insert(string key, object value, CacheDependency dependencies);
+        /// <summary>
+        /// Inserts a cache entry into the cache.
+        /// </summary>
         void Insert(string key, object value, CacheDependency dependencies,
             DateTime absoluteExpiration, TimeSpan slidingExpiration,
             object onRemoveCallback);
@@ -23,8 +48,14 @@ namespace SenseNet.ContentRepository.Storage.Caching
         void Insert(string key, object value, CacheDependency dependencies,
             DateTime absoluteExpiration, TimeSpan slidingExpiration, CacheItemPriority priority,
             object onRemoveCallback);
+        /// <summary>
+        /// Removes a cache entry from the cache.
+        /// </summary>
         void Remove(string key);
 
+        /// <summary>
+        /// Removes all entries from the cache.
+        /// </summary>
         void Reset();
     }
 
