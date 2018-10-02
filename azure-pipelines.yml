@@ -28,7 +28,7 @@ steps:
 - task: DotNetCoreCLI@2
   displayName: 'dotnet build'
   inputs:
-    # projects: '**/*.csproj'
+    projects: '$(solution)'
     arguments: '-c Release'
  
 - task: VSTest@2
