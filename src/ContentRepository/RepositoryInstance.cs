@@ -111,13 +111,14 @@ namespace SenseNet.ContentRepository
                                     .Select(a => a.FullName)
                                     .Where(af => af.StartsWith("System."))
                                     .OrderBy(an => an));
+                                var folder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                                 var files = string.Join(", ",
-                                    Directory.GetFiles(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location))
+                                    Directory.GetFiles(folder)
                                     .Select(Path.GetFileName)
                                     .Where(fn => fn.StartsWith("System."))
                                     .OrderBy(fn => fn));
 
-                                throw new InvalidOperationException($"Error loading one or more types: {errors}. Files: {files}", te);
+                                throw new InvalidOperationException($"Error loading one or more types: {errors}. Folder: {folder}. Files: {files}", te);
                             }
 
                             throw;   
