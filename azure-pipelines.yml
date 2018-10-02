@@ -30,6 +30,12 @@ steps:
   inputs:
     projects: '$(solution)'
     arguments: '-c Release'
+
+# This is a workaround to force copy a missing dll to the target folder
+- task: CopyFiles@2
+  inputs:
+    contents: '**/src/packages/System.Data.SqlClient.4.5.1/lib/net461/System.Data.SqlClient.dll' 
+    targetFolder: '$(Build.SourcesDirectory)/src/Tests/SenseNet.Tests/bin/Release'
  
 - task: VSTest@2
   inputs:
