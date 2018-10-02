@@ -34,9 +34,10 @@ steps:
 # This is a workaround to force copy a missing dll to the target folder
 - task: CopyFiles@2
   inputs:
-    contents: '$(Build.SourcesDirectory)/src/packages/System.Data.SqlClient.4.5.1/lib/net461/System.Data.SqlClient.dll' 
-    targetFolder: '$(Build.SourcesDirectory)/src/Tests/SenseNet.Tests/bin/Release/System.Data.SqlClient.dll'
+    contents: '**/packages/System.Data.SqlClient.4.5.1/lib/net461/System.Data.SqlClient.dll' 
+    targetFolder: '$(Build.SourcesDirectory)/src/Tests/SenseNet.Tests/bin/Release/'
     overWrite: true
+    flattenFolders: true
  
 - task: VSTest@2
   inputs:
