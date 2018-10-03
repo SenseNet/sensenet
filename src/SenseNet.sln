@@ -330,6 +330,7 @@ Global
 		{C250C071-6ACD-42E0-9FFC-63283AFB8C6C}.Release|x64.ActiveCfg = Release|Any CPU
 		{C250C071-6ACD-42E0-9FFC-63283AFB8C6C}.Release|x64.Build.0 = Release|Any CPU
 		{C250C071-6ACD-42E0-9FFC-63283AFB8C6C}.Release|x86.ActiveCfg = Release|Any CPU
+		{C250C071-6ACD-42E0-9FFC-63283AFB8C6C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
