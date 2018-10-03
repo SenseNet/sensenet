@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using SenseNet.ContentRepository.Security;
 using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.Services.Tests

@@ -116,18 +116,22 @@ namespace SenseNet.Services.OData.Tests
         }
         protected static ODataError GetError(StringWriter output)
         {
+            if (output == null)
+                throw new ArgumentNullException(nameof(output));
+
             var json = Deserialize(output);
-            var error = json["error"] as JObject;
-            if (error == null)
+            if (json == null)
+                throw new InvalidOperationException("Deserialized output is null.");
+            if (!(json["error"] is JObject error))
                 throw new Exception("Object is not an error");
-            var code = error["code"].Value<string>();
-            var exceptiontype = error["exceptiontype"].Value<string>();
+
+            var code = error["code"]?.Value<string>() ?? string.Empty;
+            var exceptiontype = error["exceptiontype"]?.Value<string>() ?? string.Empty;
             var message = error["message"] as JObject;
-            var value = message["value"].Value<string>();
+            var value = message?["value"]?.Value<string>() ?? string.Empty;
             var innererror = error["innererror"] as JObject;
-            var trace = innererror["trace"].Value<string>();
-            ODataExceptionCode oecode;
-            Enum.TryParse<ODataExceptionCode>(code, out oecode);
+            var trace = innererror?["trace"]?.Value<string>() ?? string.Empty;
+            Enum.TryParse<ODataExceptionCode>(code, out var oecode);
             return new ODataError { Code = oecode, ExceptionType = exceptiontype, Message = value, StackTrace = trace };
         }
         protected static ODataEntity GetEntity(StringWriter output)
@@ -150,7 +154,13 @@ namespace SenseNet.Services.OData.Tests
 
         protected static JContainer Deserialize(StringWriter output)
         {
+            if (output == null)
+                throw new ArgumentNullException(nameof(output));
+
             var text = GetStringResult(output);
+            if (string.IsNullOrEmpty(text))
+                return null;
+
             JContainer json;
             using (var reader = new StringReader(text))
                 json = Deserialize(reader);
@@ -158,11 +168,12 @@ namespace SenseNet.Services.OData.Tests
         }
         protected static JContainer Deserialize(TextReader reader)
         {
-            string models;
-            models = reader.ReadToEnd();
-
+            var models = reader?.ReadToEnd() ?? string.Empty;
             var settings = new JsonSerializerSettings { DateFormatHandling = DateFormatHandling.IsoDateFormat };
             var serializer = JsonSerializer.Create(settings);
+            if (serializer == null)
+                throw new InvalidOperationException("Serializer could not be created from settings.");
+
             var jreader = new JsonTextReader(new StringReader(models));
             var x = (JContainer)serializer.Deserialize(jreader);
             return x;
@@ -175,7 +186,7 @@ namespace SenseNet.Services.OData.Tests
         }
         protected static string GetStringResult(StringWriter output)
         {
-            return output.GetStringBuilder().ToString();
+            return output?.GetStringBuilder().ToString() ?? string.Empty;
         }
         protected object GetUrl(string path)
         {

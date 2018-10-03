@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics;
 using SenseNet.Search;
 
 namespace SenseNet.Packaging.Steps.Internal
@@ -57,13 +58,15 @@ namespace SenseNet.Packaging.Steps.Internal
                         catch (Exception ex)
                         {
                             error = true;
-                            Logger.LogException(ex, $"Error during undo changes of {gc.Path} (v: {gc.Version})");
+                            var msg = $"Error during undo changes of {gc.Path} (v: {gc.Version}): {ex.Message}";
+                            SnLog.WriteException(ex, msg);
+                            Logger.LogException(ex, msg);
                         }
                     });
             }
 
             if (error)
-                throw new InvalidOperationException("One or more errors occured during UndoChanges, please check the log.");
+                throw new InvalidOperationException("One or more errors occurred during UndoChanges, please check the log.");
         }
     }
 }
