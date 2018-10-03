@@ -101,28 +101,6 @@ namespace SenseNet.ContentRepository
                         {
                             instance.DoStart();
                         }
-                        //UNDONE: temp exception handling for tests
-                        catch (TypeInitializationException te)
-                        {                            
-                            if (te.InnerException is ReflectionTypeLoadException rtle)
-                            {
-                                var errors = string.Join(", ", rtle.LoaderExceptions?.Select(le => le.Message) ?? new string[0]);
-                                var assemblies = string.Join(", ", TypeResolver.GetAssemblies()
-                                    .Select(a => a.FullName)
-                                    .Where(af => af.StartsWith("System."))
-                                    .OrderBy(an => an));
-                                var folder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                                var files = string.Join(", ",
-                                    Directory.GetFiles(folder)
-                                    .Select(Path.GetFileName)
-                                    .Where(fn => fn.StartsWith("System."))
-                                    .OrderBy(fn => fn));
-
-                                throw new InvalidOperationException($"Error loading one or more types: {errors}. Folder: {folder}. Files: {files}", te);
-                            }
-
-                            throw;   
-                        }
                         catch (Exception)
                         {
                             _instance = null;

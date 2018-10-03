@@ -24,8 +24,6 @@ namespace SenseNet.Tests
     [TestClass]
     public class TestBase
     {
-        // This line is here only to have a reference to the SqlCLient library.
-        private static readonly object unused = new System.Data.SqlClient.SqlParameter();
 
         private static volatile bool _prototypesCreated;
         private static readonly object PrototypeSync = new object();
