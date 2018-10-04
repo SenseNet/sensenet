@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Web;
@@ -160,9 +162,44 @@ namespace SenseNet.Services.Virtualization
             if (!string.IsNullOrEmpty(userData.Email))
                 userContent["Email"] = userData.Email;
 
+            MemoryStream imageStream = null;
+
+            // set user avatar if provided by the oauth provider
+            if (!string.IsNullOrEmpty(userData.AvatarUrl))
+            {
+                var imageData = DownloadImage(userData.AvatarUrl);
+                if (imageData != null && imageData.Length > 0)
+                {
+                    imageStream = new MemoryStream(imageData);
+
+                    var imageName = GetImageName(imageStream);
+
+                    // make sure the stream is set back to its start
+                    imageStream.Seek(0, SeekOrigin.Begin);
+
+                    var binaryData = new BinaryData { FileName = imageName };
+                    binaryData.SetStream(imageStream);
+
+                    // clear the reference field to make sure this new image will be used as the avatar
+                    userContent["ImageRef"] = null;
+                    userContent["ImageData"] = binaryData;
+                }
+                else
+                {
+                    SnTrace.Repository.WriteError($"OAuth manager: could not set avatar of user {userData.Username}: empty image.");
+                }
+            }
+
             // If a user with the same name already exists, this will throw an exception
             // so that the caller knows that the registration could not be completed.
-            userContent.Save();
+            try
+            {
+                userContent.Save();
+            }
+            finally
+            {
+                imageStream?.Dispose();
+            }
 
             return userContent.ContentHandler as User;
         }
@@ -178,6 +215,53 @@ namespace SenseNet.Services.Virtualization
                          RepositoryTools.CreateStructure(orgUnitPath, "OrganizationalUnit")?.ContentHandler;
 
             return orgUnit;
+        }
+        
+        private static string GetImageName(Stream imageStream)
+        {
+            if (imageStream == null)
+                return string.Empty;
+
+            var imageName = "avatar.";
+
+            try
+            {
+                using (var image = System.Drawing.Image.FromStream(imageStream))
+                {
+                    if (Equals(image.RawFormat, ImageFormat.Jpeg))
+                        imageName += "jpg";
+                    else if (Equals(image.RawFormat, ImageFormat.Png))
+                        imageName += "png";
+                    else if (Equals(image.RawFormat, ImageFormat.Bmp))
+                        imageName += "bmp";
+                    else if (Equals(image.RawFormat, ImageFormat.Icon))
+                        imageName += "ico";
+                    else if (Equals(image.RawFormat, ImageFormat.Tiff))
+                        imageName += "tiff";
+                }
+            }
+            catch (Exception ex)
+            {
+                SnTrace.Repository.WriteError($"OAuth manager: error during resolving image type. {ex.Message}");
+            }
+
+            return imageName;
+        }
+        private static byte[] DownloadImage(string url)
+        {
+            try
+            {
+                using (var webClient = new WebClient())
+                {
+                    return webClient.DownloadData(url);
+                }
+            }
+            catch (Exception ex)
+            {
+                SnTrace.Repository.WriteError($"OAuth manager: error accessing user avatar. {ex.Message}. Url: {url}");
+            }
+
+            return null;
         }
     }
 }

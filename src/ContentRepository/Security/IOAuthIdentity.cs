@@ -21,6 +21,10 @@
         /// Email address of the user. Optional.
         /// </summary>
         string Email { get; }
+        /// <summary>
+        /// Profile image url. Optional.
+        /// </summary>
+        string AvatarUrl { get; }
     }
 
     /// <summary>
@@ -29,21 +33,15 @@
     /// </summary>
     public class OAuthIdentity : IOAuthIdentity
     {
-        /// <summary>
-        /// Full name of the user, may contain any unicode character.
-        /// </summary>
+        /// <inheritdoc />
         public string FullName { get; set; }
-        /// <summary>
-        /// User name of the synchronized identity. Will become the name of the User content.
-        /// </summary>
+        /// <inheritdoc />
         public string Username { get; set; }
-        /// <summary>
-        /// Unique identifier of the user provided by the external OAuth service.
-        /// </summary>
+        /// <inheritdoc />
         public string Identifier { get; set; }
-        /// <summary>
-        /// Email address of the user. Optional.
-        /// </summary>
+        /// <inheritdoc />
         public string Email { get; set; }
+        /// <inheritdoc />
+        public string AvatarUrl { get; set; }
     }
 }
