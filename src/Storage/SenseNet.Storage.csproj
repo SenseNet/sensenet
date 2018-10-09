@@ -162,7 +162,6 @@
     <Compile Include="Configuration\IdentityManagement.cs" />
     <Compile Include="Configuration\RepositoryEnvironment.cs" />
     <Compile Include="ContentNotFoundException.cs" />
-    <Compile Include="CounterManager.cs" />
     <Compile Include="Data\BlobStorage.cs" />
     <Compile Include="Data\IndexDocumentData.cs" />
     <Compile Include="Data\IndexIntegrityCheckerItem.cs" />
@@ -292,7 +291,6 @@
     <Compile Include="Security\StartupUser.cs" />
     <Compile Include="Security\SystemAccount.cs" />
     <Compile Include="Security\SnAclEditor.cs" />
-    <Compile Include="SenseNetPerformanceCounter.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="StorageContext.cs" />
     <Compile Include="TransactionParticipant.cs" />

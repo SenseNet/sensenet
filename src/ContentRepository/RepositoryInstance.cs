@@ -127,8 +127,6 @@ namespace SenseNet.ContentRepository
 
             InitializeLogger();
 
-            CounterManager.Start();
-
             RegisterAppdomainEventHandlers();
 
             if (_settings.IndexPath != null)

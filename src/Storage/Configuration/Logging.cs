@@ -9,16 +9,6 @@ namespace SenseNet.Configuration
     {
         private const string SectionName = "sensenet/logging";
 
-        public static bool PerformanceCountersEnabled { get; internal set; } = GetValue<bool>(SectionName, "PerformanceCountersEnabled");
-
-        public static CounterCreationDataCollection CustomPerformanceCounters { get; } =
-            new CounterCreationDataCollection(GetListOrEmpty<string>(SectionName, "CustomPerformanceCounters").Distinct()
-                .Select(cn => new CounterCreationData
-                {
-                    CounterType = PerformanceCounterType.NumberOfItems32,
-                    CounterName = cn
-                }).ToArray());
-
         public static bool DownloadCounterEnabled { get; internal set; } = GetValue<bool>(SectionName, "DownloadCounterEnabled");
         public static bool AuditEnabled { get; internal set; } = GetValue<bool>(SectionName, "AuditEnabled", true);
         public static string EventLogName { get; internal set; } = GetValue(SectionName, "EventLogName", "SenseNet");

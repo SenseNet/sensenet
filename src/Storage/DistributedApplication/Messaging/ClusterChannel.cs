@@ -50,9 +50,7 @@ namespace SenseNet.Communication.Messaging
         public ClusterChannel(IClusterMessageFormatter formatter, ClusterMemberInfo clusterMemberInfo)
         {
             _incomingMessages = new List<ClusterMessage>();
-            CounterManager.Reset("IncomingMessages");
-            CounterManager.Reset("TotalMessagesToProcess");
-
+            
             m_formatter = formatter;
             m_clusterMemberInfo = clusterMemberInfo;
 
@@ -211,9 +209,9 @@ namespace SenseNet.Communication.Messaging
             lock (_messageListSwitchSync)
             {
                 _incomingMessages.Add(message);
-                CounterManager.SetRawValue("IncomingMessages", Convert.ToInt64(_incomingMessages.Count));
-                var totalMessages = _incomingMessages.Count + _messagesCount;
-                CounterManager.SetRawValue("TotalMessagesToProcess", Convert.ToInt64(totalMessages));
+
+                //TODO: trace incoming and total message count
+                // var totalMessages = _incomingMessages.Count + _messagesCount;
             }
         }
 

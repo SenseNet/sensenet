@@ -69,12 +69,6 @@ namespace SenseNet.ContentRepository.Storage.Data
             if (_currentCycle > 100000)
                 _currentCycle = 0;
 
-            if (SnTrace.System.Enabled)
-                SnTrace.System.Write("CPU: {0}%, RAM: {1} KBytes available (working set: {2} bytes)",
-                    CounterManager.GetCPUUsage(),
-                    CounterManager.GetAvailableRAM(), 
-                    Environment.WorkingSet);
-
             // start maintenance tasks asychronously
             Task.Run(() => CleanupFiles());
             Task.Run(() => StartADSync());

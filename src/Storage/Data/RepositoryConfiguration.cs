@@ -1,13 +1,15 @@
 using System;
 using System.Collections.Specialized;
 using System.Configuration;
-using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using SenseNet.Configuration;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
     [Obsolete("Look for the values in the SenseNet.Configuration namespace instead.")]
+    [SuppressMessage("ReSharper", "UnassignedGetOnlyAutoProperty")]
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     public static class RepositoryConfiguration
     {
         #region SECTION: BlobStorage, data, common
@@ -147,8 +149,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         #region SECTION: Logging MOVED
 
-        public static bool PerformanceCountersEnabled => Logging.PerformanceCountersEnabled;
-        public static CounterCreationDataCollection CustomPerformanceCounters => Logging.CustomPerformanceCounters;
+        public static bool PerformanceCountersEnabled => false;
 
         #endregion
 
