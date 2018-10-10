@@ -82,8 +82,8 @@
     <Reference Include="SenseNet.Preview, Version=7.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\SenseNet.Preview.7.0.0\lib\net451\SenseNet.Preview.dll</HintPath>
     </Reference>
-    <Reference Include="SenseNet.Security, Version=3.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SenseNet.Security.3.0.0\lib\netstandard2.0\SenseNet.Security.dll</HintPath>
+    <Reference Include="SenseNet.Security, Version=3.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SenseNet.Security.3.0.1\lib\netstandard2.0\SenseNet.Security.dll</HintPath>
     </Reference>
     <Reference Include="SenseNet.TaskManagement.Core, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\SenseNet.TaskManagement.Core.1.1.0.0\lib\net45\SenseNet.TaskManagement.Core.dll</HintPath>
