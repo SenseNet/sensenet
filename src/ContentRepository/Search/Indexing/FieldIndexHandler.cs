@@ -1088,6 +1088,56 @@ namespace SenseNet.Search.Indexing
         }
     }
 
+    //UNDONE: implement SharingInfoIndexHandler
+
+    /// <summary>
+    /// IndexFieldHandler for handling SharingInfo value of a <see cref="Field"/>.
+    /// </summary>
+    public class SharingInfoIndexHandler : FieldIndexHandler, IIndexValueConverter<string>, IIndexValueConverter
+    {
+        /// <inheritdoc />
+        public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
+        {
+            textExtract = string.Empty;
+
+            if (!(snField is Field field))
+                return new IndexField[0];
+
+            if (!(field.Content?.ContentHandler is GenericContent gc))
+                return new IndexField[0];
+
+            var sharingInfo = gc.SharingInfo;
+            
+            throw new NotImplementedException();
+        }
+        /// <inheritdoc />
+        public override IndexValue Parse(string text)
+        {
+            throw new NotImplementedException();
+        }
+        /// <inheritdoc />
+        public override IndexValue ConvertToTermValue(object value)
+        {
+            throw new NotImplementedException();
+        }
+        /// <inheritdoc cref="IIndexValueConverter&lt;T&gt;.GetBack(string)" />
+        public string GetBack(string indexFieldValue)
+        {
+            throw new NotImplementedException();
+        }
+        /// <inheritdoc cref="IIndexValueConverter.GetBack(string)" />
+        object IIndexValueConverter.GetBack(string indexFieldValue)
+        {
+            return GetBack(indexFieldValue);
+        }
+
+        /// <inheritdoc />
+        public override IEnumerable<string> GetParsableValues(IIndexableField snField)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     // Not finalized feature. After finalizing make public.
     internal class SystemContentIndexHandler : BooleanIndexHandler
     {

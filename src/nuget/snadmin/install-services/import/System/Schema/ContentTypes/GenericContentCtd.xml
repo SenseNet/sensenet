@@ -688,5 +688,17 @@
         <ReadOnly>true</ReadOnly>
       </Configuration>
     </Field>
+    <Field name="SharingInfo" type="SharingInfo">
+      <DisplayName>$Ctd-GenericContent,SharingInfo-DisplayName</DisplayName>
+      <Description>$Ctd-GenericContent,SharingInfo-Description</Description>
+      <Indexing>
+        <IndexHandler>SenseNet.Search.Indexing.SharingInfoIndexHandler</IndexHandler>
+      </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
   </Fields>
 </ContentType>

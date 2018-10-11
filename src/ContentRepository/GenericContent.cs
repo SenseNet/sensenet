@@ -744,6 +744,34 @@ namespace SenseNet.ContentRepository
         /// </summary>
         protected override bool IsIndexingEnabled => this.ContentType.IndexingEnabled;
 
+        //UNDONE: finalize SharingInfo: custom object or collection?
+
+        /// <summary>
+        /// Gets or sets the collection of <see cref="Sharing.SharingData"/>.
+        /// </summary>
+        [RepositoryProperty(nameof(SharingInfo), RepositoryDataType.Text)]
+        public virtual IEnumerable<Sharing.SharingData> SharingInfo
+        {
+            get
+            {
+                var value = this.GetProperty<string>(nameof(SharingInfo));
+
+                //UNDONE: sharinginfo deserialization
+
+                //if (string.IsNullOrEmpty(value))
+                //    return xxxx;
+                //var sharingInfo = value.Split(ContentType.XmlListSeparators, StringSplitOptions.RemoveEmptyEntries);
+
+                return new List<Sharing.SharingData>();
+            }
+            set
+            {
+                //UNDONE: sharinginfo serialization
+                var sharingInfo = string.Empty;
+                this[nameof(SharingInfo)] = sharingInfo;
+            }
+        }
+
         /// <summary>
         /// Returns a property value by name. Well-known and dynamic properties can also be accessed here.
         /// In derived content handlers this should be overridden and in case of local strongly typed

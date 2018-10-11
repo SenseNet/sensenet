@@ -166,6 +166,7 @@
     <Compile Include="Configuration\RepositoryStructure.cs" />
     <Compile Include="Configuration\Services.cs" />
     <Compile Include="Configuration\Versioning.cs" />
+    <Compile Include="Fields\SharingInfoField.cs" />
     <Compile Include="ISnComponent.cs" />
     <Compile Include="Packaging\Steps\DeleteContentType.cs" />
     <Compile Include="Packaging\Steps\EditConfiguration.cs" />
@@ -181,6 +182,7 @@
     <Compile Include="Packaging\Steps\WhileDatabaseValue.cs" />
     <Compile Include="RepositoryBuilderExtensions.cs" />
     <Compile Include="Search\Indexing\NullPopulator.cs" />
+    <Compile Include="Sharing\SharingData.cs" />
     <Compile Include="SnComponent.cs" />
     <Compile Include="Linq\CaseInsensitiveFilterVisitor.cs" />
     <Compile Include="Packaging\Dependency.cs" />
