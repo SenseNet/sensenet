@@ -9,6 +9,7 @@ using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
+using SenseNet.ContentRepository.Sharing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Storage.Security;
@@ -1093,7 +1094,7 @@ namespace SenseNet.Search.Indexing
     /// <summary>
     /// IndexFieldHandler for handling SharingInfo value of a <see cref="Field"/>.
     /// </summary>
-    public class SharingInfoIndexHandler : FieldIndexHandler, IIndexValueConverter<string>, IIndexValueConverter
+    public class SharingInfoIndexHandler : FieldIndexHandler //, IIndexValueConverter<string>, IIndexValueConverter
     {
         /// <inheritdoc />
         public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
@@ -1106,13 +1107,24 @@ namespace SenseNet.Search.Indexing
             if (!(field.Content?.ContentHandler is GenericContent gc))
                 return new IndexField[0];
 
-            var sharingInfo = gc.SharingInfo;
-            
-            throw new NotImplementedException();
+            return GetIndexFields(gc.Sharing.Items);
         }
+
+        internal IEnumerable<IndexField> GetIndexFields(IEnumerable<SharingData> sharingItems)
+        {
+            //UNDONE: determine sharing index field names
+            return sharingItems.SelectMany(si => CreateField("Sharing", si.Token)
+                .Concat(CreateField("Sharing", si.Identity))
+                .Concat(CreateField("Sharing", si.Level))
+                .Concat(CreateField("Sharing", si.Mode))
+                .Concat(CreateField("Sharing", si.ShareDate))
+                .Concat(CreateField("Sharing", si.CreatorId)));
+        }
+
         /// <inheritdoc />
         public override IndexValue Parse(string text)
         {
+            //UNDONE: Parse sharin query terms
             throw new NotImplementedException();
         }
         /// <inheritdoc />
@@ -1120,20 +1132,11 @@ namespace SenseNet.Search.Indexing
         {
             throw new NotImplementedException();
         }
-        /// <inheritdoc cref="IIndexValueConverter&lt;T&gt;.GetBack(string)" />
-        public string GetBack(string indexFieldValue)
-        {
-            throw new NotImplementedException();
-        }
-        /// <inheritdoc cref="IIndexValueConverter.GetBack(string)" />
-        object IIndexValueConverter.GetBack(string indexFieldValue)
-        {
-            return GetBack(indexFieldValue);
-        }
 
         /// <inheritdoc />
         public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
+            //UNDONE: do we need GetParsableValues implementation?
             throw new NotImplementedException();
         }
     }

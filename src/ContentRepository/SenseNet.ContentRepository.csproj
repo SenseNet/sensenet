@@ -183,6 +183,7 @@
     <Compile Include="RepositoryBuilderExtensions.cs" />
     <Compile Include="Search\Indexing\NullPopulator.cs" />
     <Compile Include="Sharing\SharingData.cs" />
+    <Compile Include="Sharing\SharingHandler.cs" />
     <Compile Include="SnComponent.cs" />
     <Compile Include="Linq\CaseInsensitiveFilterVisitor.cs" />
     <Compile Include="Packaging\Dependency.cs" />

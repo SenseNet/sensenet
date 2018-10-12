@@ -7,15 +7,15 @@ namespace SenseNet.ContentRepository.Sharing
     /// <summary>
     /// Storage model of sharing information.
     /// </summary>
-    public class SharingData
+    internal class SharingData
     {
-        public string Token { get; set; }
-        public int Identity { get; set; }
-        public string Mode { get; set; } //(public/authorized/private)
+        public string Token { get; internal set; }
+        public int Identity { get; internal set; }
+        //UNDONE: convert sharing move to enum
+        public string Mode { get; internal set; } //(public/authorized/private)
         //UNDONE: convert sharing level to enum
-        public string Level { get; set; } //(open/edit/...)
-        //UNDONE: maybe sharer should be a User
-        public int SharerId { get; set; }
-        public DateTime ShareDate { get; set; }
+        public string Level { get; internal set; } //(open/edit/...)
+        public int CreatorId { get; internal set; }
+        public DateTime ShareDate { get; internal set; }
     }
 }

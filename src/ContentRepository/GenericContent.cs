@@ -19,6 +19,8 @@ using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Search.Querying;
 using SenseNet.Tools;
 using System.Runtime.CompilerServices;
+using SenseNet.ContentRepository.Sharing;
+
 // ReSharper disable ArrangeThisQualifier
 // ReSharper disable VirtualMemberCallInConstructor
 // ReSharper disable RedundantBaseQualifier
@@ -744,32 +746,22 @@ namespace SenseNet.ContentRepository
         /// </summary>
         protected override bool IsIndexingEnabled => this.ContentType.IndexingEnabled;
 
-        //UNDONE: finalize SharingInfo: custom object or collection?
-
-        /// <summary>
-        /// Gets or sets the collection of <see cref="Sharing.SharingData"/>.
-        /// </summary>
-        [RepositoryProperty(nameof(SharingInfo), RepositoryDataType.Text)]
-        public virtual IEnumerable<Sharing.SharingData> SharingInfo
+        //UNDONE: finalize SharingHandler property
+        private readonly Lazy<SharingHandler> _sharingHandler = new Lazy<SharingHandler>(() => new SharingHandler(null));
+        public SharingHandler Sharing
         {
             get
             {
-                var value = this.GetProperty<string>(nameof(SharingInfo));
-
-                //UNDONE: sharinginfo deserialization
-
-                //if (string.IsNullOrEmpty(value))
-                //    return xxxx;
-                //var sharingInfo = value.Split(ContentType.XmlListSeparators, StringSplitOptions.RemoveEmptyEntries);
-
-                return new List<Sharing.SharingData>();
+                var value = this.GetProperty<string>(nameof(Sharing));
+                return _sharingHandler.Value;
             }
-            set
-            {
-                //UNDONE: sharinginfo serialization
-                var sharingInfo = string.Empty;
-                this[nameof(SharingInfo)] = sharingInfo;
-            }
+        }
+
+        [RepositoryProperty(nameof(SharingData), RepositoryDataType.Text)]
+        internal string SharingData
+        {
+            get => this.GetProperty<string>(nameof(SharingData));
+            set => this.SetProperty(nameof(SharingData), value);
         }
 
         /// <summary>
