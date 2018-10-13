@@ -178,13 +178,13 @@ namespace SenseNet.ContentRepository.Storage
                 {
                     if (sharedValue == null)
                     {
-                        Reset(index);
+                        Reset(slot);
                         return;
                     }
                 }
                 else if (value.CompareTo(sharedValue) == 0)
                 {
-                    Reset(index);
+                    Reset(slot);
                     return;
                 }
             }
@@ -217,12 +217,14 @@ namespace SenseNet.ContentRepository.Storage
             staticDataIsModified[index] = true;
             PropertyChanged(slot.ToString());
         }
-        private void Reset(int index)
+        private void Reset(StaticDataSlot slot)
         {
             if (IsShared)
                 throw Exception_SharedIsReadOnly();
+            var index = (int)slot;
             staticData[index] = null;
             staticDataIsModified[index] = false;
+            PropertyChanged(slot.ToString());
         }
 
         internal int Id

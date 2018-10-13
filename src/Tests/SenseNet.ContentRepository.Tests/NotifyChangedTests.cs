@@ -128,6 +128,33 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
         [TestMethod]
+        public void NotifyChanged_NodeDataStaticProperty_ChangeAndBack()
+        {
+            var contentName = MethodBase.GetCurrentMethod().Name;
+            SnTrace.Test.Enabled = false;
+            Test(() =>
+            {
+                var node = new SystemFolder(Repository.Root) { Name = contentName, Index = 1 };
+                var fieldName = nameof(node.Index);
+                var content = node.Content;
+                Assert.AreEqual(1, (int)content[fieldName]);
+                node.Save();
+
+                // change
+                node.Index = 42;
+                Assert.AreEqual(42, (int)content[fieldName]);
+
+                // take back
+                node.Index = 1;
+
+                // check
+                Assert.AreEqual(1, (int)content[fieldName]);
+
+                node.Save();
+                Assert.IsTrue(CreateSafeContentQuery($"+{fieldName}:1 +Name:{contentName} .AUTOFILTERS:OFF").Execute().Identifiers.Any());
+            });
+        }
+        [TestMethod]
         public void NotifyChanged_NodeDataDynamicProperty()
         {
             var contentName = MethodBase.GetCurrentMethod().Name;
@@ -156,6 +183,32 @@ namespace SenseNet.ContentRepository.Tests
                 node.Save();
 
                 Assert.IsTrue(CreateSafeContentQuery($"+{fieldName}:Desc3 +Name:{contentName} .AUTOFILTERS:OFF").Execute().Identifiers.Any());
+            });
+        }
+        [TestMethod]
+        public void NotifyChanged_NodeDataDynamicProperty_ChangeAndBack()
+        {
+            var contentName = MethodBase.GetCurrentMethod().Name;
+
+            Test(() =>
+            {
+                var originalValue = "Original";
+                var node = new SystemFolder(Repository.Root) { Name = contentName, Description = originalValue };
+                var fieldName = nameof(node.Description);
+                var content = node.Content;
+                node.Save();
+                Assert.AreEqual(originalValue, node.Description);
+                Assert.AreEqual(originalValue, (string)content[fieldName]);
+
+                node.Description = "Changed";
+                Assert.AreEqual("Changed", (string)content[fieldName]);
+
+                node.Description = originalValue;
+                Assert.AreEqual(originalValue, (string)content[fieldName]);
+
+                node.Save();
+
+                Assert.IsTrue(CreateSafeContentQuery($"+{fieldName}:{originalValue} +Name:{contentName} .AUTOFILTERS:OFF").Execute().Identifiers.Any());
             });
         }
         [TestMethod]
