@@ -556,8 +556,8 @@ namespace SenseNet.Packaging.Steps
                 var aclEd = SecurityHandler.CreateAclEditor();
 
                 // Break the permission inheritance on several content
-                aclEd.BreakInheritance(SystemFolderContentTypeId)
-                    .BreakInheritance(ExecutableFileContentTypeId)
+                aclEd.BreakInheritance(SystemFolderContentTypeId, new[] { EntryType.Normal })
+                    .BreakInheritance(ExecutableFileContentTypeId, new[] { EntryType.Normal })
 
                      // Allow all currently used permissions (all permissions except unused and custom ones) on SystemFolder for Administrators
                     .Allow(SystemFolderContentTypeId, AdministratorGroupNodeId, false, PermissionType.BuiltInPermissionTypes)

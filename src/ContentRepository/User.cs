@@ -22,6 +22,7 @@ using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Setting;
 using SenseNet.Search.Querying;
+using SenseNet.Security;
 using SenseNet.Tools;
 using Retrier = SenseNet.ContentRepository.Storage.Retrier;
 
@@ -677,7 +678,7 @@ namespace SenseNet.ContentRepository
                     pc.Save();
 
                     var aclEditor = SecurityHandler.CreateAclEditor();
-                    aclEditor.BreakInheritance(pc.Id)
+                    aclEditor.BreakInheritance(pc.Id, new[] {EntryType.Normal})
                         // ReSharper disable once CoVariantArrayConversion
                         .Allow(pc.Id, Identifiers.AdministratorsGroupId, false, PermissionType.PermissionTypes)
                         // ReSharper disable once CoVariantArrayConversion

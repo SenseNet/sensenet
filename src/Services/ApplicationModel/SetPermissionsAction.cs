@@ -4,6 +4,7 @@ using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Security;
 
 namespace SenseNet.Portal.ApplicationModel
 {
@@ -111,10 +112,10 @@ namespace SenseNet.Portal.ApplicationModel
                 default:
                     throw new ArgumentException("The value of the 'inheritance' must be 'break' or 'unbreak'.");
                 case "break":
-                    editor.BreakInheritance(content.Id);
+                    editor.BreakInheritance(content.Id, new[] { EntryType.Normal });
                     break;
                 case "unbreak":
-                    editor.UnbreakInheritance(content.Id);
+                    editor.UnbreakInheritance(content.Id, new[] { EntryType.Normal });
                     break;
             }
         }

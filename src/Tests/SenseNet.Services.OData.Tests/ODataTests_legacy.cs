@@ -19,6 +19,7 @@ using System.Web;
 using System.Xml;
 using SenseNet.Configuration;
 using SenseNet.Portal.Exchange;
+using SenseNet.Security;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable ArrangeThisQualifier
@@ -4030,7 +4031,7 @@ namespace SenseNet.Services.OData.Tests
                 node.Save();
 
                 SecurityHandler.CreateAclEditor()
-                    .BreakInheritance(root.Id)
+                    .BreakInheritance(root.Id, new[] { EntryType.Normal })
                     .ClearPermission(root.Id, User.Visitor.Id, false, PermissionType.See)
                     .Allow(node.Id, User.Visitor.Id, false, PermissionType.Save)
                     .Apply();
