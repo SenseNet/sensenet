@@ -29,20 +29,30 @@ namespace SenseNet.ContentRepository.Tests
                 ShareDate = DateTime.UtcNow.AddHours(-1),
                 CreatorId = 1
             };
+            var sd2 = new SharingData
+            {
+                Token = "abc2@example.com",
+                Identity = 42,
+                Level = "Edit",
+                Mode = "Private",
+                ShareDate = DateTime.UtcNow.AddHours(-1),
+                CreatorId = 2
+            };
 
-            var sharingItems = new List<SharingData> { sd1 };
+            var sharingItems = new List<SharingData> { sd1, sd2 };
 
             // ACTION
-            var ih = new SharingInfoIndexHandler { OwnerIndexingInfo = new PerFieldIndexingInfo() };
-            var indexFields = ih.GetIndexFields(sharingItems).ToArray();
+            var ih = new SharingIndexHandler { OwnerIndexingInfo = new PerFieldIndexingInfo() };
+            var fieldsSharedWith = ih.GetIndexFields("SharedWith", sharingItems).ToArray();
 
             // ASSERT
-            Assert.IsNotNull(indexFields.FirstOrDefault(f => f.StringValue == sd1.Token),
+            Assert.IsNotNull(fieldsSharedWith.SingleOrDefault(f => f.StringValue == sd1.Token),
                 "Sharing data indexfield not found by email.");
-            Assert.IsNotNull(indexFields.FirstOrDefault(f => f.IntegerValue == sd1.Identity),
+            Assert.IsNotNull(fieldsSharedWith.SingleOrDefault(f => f.IntegerValue == sd1.Identity),
                 "Sharing data indexfield not found by identity.");
-            Assert.IsNotNull(indexFields.FirstOrDefault(f => f.IntegerValue == sd1.CreatorId),
-                "Sharing data indexfield not found by creator.");
+
+            Assert.IsNull(fieldsSharedWith.FirstOrDefault(f => f.IntegerValue == sd1.CreatorId),
+                "Sharing data indexfield incorrectly found for creator.");
         }
     }
 }

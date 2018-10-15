@@ -688,16 +688,76 @@
         <ReadOnly>true</ReadOnly>
       </Configuration>
     </Field>
-    <Field name="SharingInfo" type="SharingInfo">
-      <DisplayName>$Ctd-GenericContent,SharingInfo-DisplayName</DisplayName>
-      <Description>$Ctd-GenericContent,SharingInfo-Description</Description>
+    <Field name="Sharing" type="Sharing">
+      <DisplayName>$Ctd-GenericContent,Sharing-DisplayName</DisplayName>
+      <Description>$Ctd-GenericContent,Sharing-Description</Description>
       <Indexing>
-        <IndexHandler>SenseNet.Search.Indexing.SharingInfoIndexHandler</IndexHandler>
+        <Mode>No</Mode>
       </Indexing>
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name="SharedWith" type="Sharing">
+      <Bind property="Sharing"></Bind>
+      <Indexing>
+        <IndexHandler>SenseNet.Search.Indexing.SharingIndexHandler</IndexHandler>
+      </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
+    <Field name="SharedBy" type="Sharing">
+      <Bind property="Sharing"></Bind>
+      <Indexing>
+        <IndexHandler>SenseNet.Search.Indexing.SharingIndexHandler</IndexHandler>
+      </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
+    <Field name="SharingDate" type="Sharing">
+      <Bind property="Sharing"></Bind>
+      <Indexing>
+        <IndexHandler>SenseNet.Search.Indexing.SharingIndexHandler</IndexHandler>
+      </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
+    <Field name="SharingMode" type="Sharing">
+      <Bind property="Sharing"></Bind>
+      <Indexing>
+        <IndexHandler>SenseNet.Search.Indexing.SharingIndexHandler</IndexHandler>
+      </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
+    <Field name="SharingLevel" type="Sharing">
+      <Bind property="Sharing"></Bind>
+      <Indexing>
+        <IndexHandler>SenseNet.Search.Indexing.SharingIndexHandler</IndexHandler>
+      </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
       </Configuration>
     </Field>
   </Fields>

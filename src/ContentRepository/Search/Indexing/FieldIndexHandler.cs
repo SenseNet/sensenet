@@ -1089,12 +1089,12 @@ namespace SenseNet.Search.Indexing
         }
     }
 
-    //UNDONE: implement SharingInfoIndexHandler
+    //UNDONE: implement SharingIndexHandler
 
     /// <summary>
     /// IndexFieldHandler for handling SharingInfo value of a <see cref="Field"/>.
     /// </summary>
-    public class SharingInfoIndexHandler : FieldIndexHandler //, IIndexValueConverter<string>, IIndexValueConverter
+    public class SharingIndexHandler : FieldIndexHandler //, IIndexValueConverter<string>, IIndexValueConverter
     {
         /// <inheritdoc />
         public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
@@ -1107,18 +1107,37 @@ namespace SenseNet.Search.Indexing
             if (!(field.Content?.ContentHandler is GenericContent gc))
                 return new IndexField[0];
 
-            return GetIndexFields(gc.Sharing.Items);
+            return GetIndexFields(field.Name, gc.Sharing.Items);
         }
 
-        internal IEnumerable<IndexField> GetIndexFields(IEnumerable<SharingData> sharingItems)
+        internal IEnumerable<IndexField> GetIndexFields(string fieldName, IEnumerable<SharingData> sharingItems)
         {
-            //UNDONE: determine sharing index field names
-            return sharingItems.SelectMany(si => CreateField("Sharing", si.Token)
-                .Concat(CreateField("Sharing", si.Identity))
-                .Concat(CreateField("Sharing", si.Level))
-                .Concat(CreateField("Sharing", si.Mode))
-                .Concat(CreateField("Sharing", si.ShareDate))
-                .Concat(CreateField("Sharing", si.CreatorId)));
+            //UNDONE: Sharing field name constants
+            switch (fieldName)
+            {
+                case "SharedWith":
+                    return sharingItems.SelectMany(si =>
+                    {
+                        var indexFields = new List<IndexField>();
+                        if (!string.IsNullOrEmpty(si.Token))
+                            indexFields.AddRange(CreateField("SharedWith", si.Token));
+                        //UNDONE: possibly add index field for empty token for searchability
+
+                        indexFields.AddRange(CreateField("SharedWith", si.Identity));
+
+                        return indexFields;
+                    });
+                case "SharedBy":
+                    return sharingItems.Where(si => si.CreatorId > 0).SelectMany(si => CreateField("SharedBy", si.CreatorId));
+                case "SharingDate":
+                    return sharingItems.SelectMany(si => CreateField("SharingDate", si.ShareDate));
+                case "SharingMode":
+                    return sharingItems.Where(si => !string.IsNullOrEmpty(si.Mode)).SelectMany(si => CreateField("SharingMode", si.Mode));
+                case "SharingLevel":
+                    return sharingItems.Where(si => !string.IsNullOrEmpty(si.Level)).SelectMany(si => CreateField("SharingLevel", si.Level));
+            }
+
+            throw new NotImplementedException($"Unknown sharing field: {fieldName}");
         }
 
         /// <inheritdoc />
