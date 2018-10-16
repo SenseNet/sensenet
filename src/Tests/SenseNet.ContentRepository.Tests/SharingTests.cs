@@ -123,8 +123,8 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void Sharing_Searchability()
         {
-            var levels = new[] { SharingLevel.Open, SharingLevel.Edit };
-            var modes = new[] { SharingMode.Public, SharingMode.Authenticated, SharingMode.Private };
+            var levels = Enum.GetValues(typeof(SharingLevel)).Cast<SharingLevel>().ToArray();
+            var modes = Enum.GetValues(typeof(SharingMode)).Cast<SharingMode>().ToArray();
 
             var sd = new SharingData[4];
             for (var i = 0; i < sd.Length; i++)
