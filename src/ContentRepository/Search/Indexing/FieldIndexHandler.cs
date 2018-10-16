@@ -1129,10 +1129,6 @@ namespace SenseNet.Search.Indexing
                     return CreateField("SharedBy", sharingItems
                         .Select(si => si.CreatorId.ToString())
                         .ToArray());
-                case "SharingDate":
-                    return CreateField("ShareDate", sharingItems
-                        .Select(si => si.ShareDate.Ticks.ToString())
-                        .ToArray());
                 case "SharingMode":
                     return CreateField("SharingMode", sharingItems
                         .Select(si => si.Mode.ToString())

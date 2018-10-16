@@ -724,18 +724,6 @@
         <ReadOnly>true</ReadOnly>
       </Configuration>
     </Field>
-    <Field name="SharingDate" type="Sharing">
-      <Bind property="Sharing"></Bind>
-      <Indexing>
-        <IndexHandler>SenseNet.Search.Indexing.SharingIndexHandler</IndexHandler>
-      </Indexing>
-      <Configuration>
-        <VisibleBrowse>Hide</VisibleBrowse>
-        <VisibleEdit>Hide</VisibleEdit>
-        <VisibleNew>Hide</VisibleNew>
-        <ReadOnly>true</ReadOnly>
-      </Configuration>
-    </Field>
     <Field name="SharingMode" type="Sharing">
       <Bind property="Sharing"></Bind>
       <Indexing>

@@ -49,7 +49,6 @@ namespace SenseNet.ContentRepository.Tests
             var fieldsSharedBy = indexHandler.GetIndexFields("SharedBy", sharingItems).ToArray();
             var fieldsSharingMode = indexHandler.GetIndexFields("SharingMode", sharingItems).ToArray();
             var fieldsSharingLevel = indexHandler.GetIndexFields("SharingLevel", sharingItems).ToArray();
-            var fieldsSharingDate = indexHandler.GetIndexFields("SharingDate", sharingItems).ToArray();
 
             // ASSERT
             var values = string.Join(", ", fieldsSharedWith.Single().StringArrayValue.OrderBy(x => x));
@@ -60,8 +59,6 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual("Private, Public", values);
             values = string.Join(", ", fieldsSharingLevel.Single().StringArrayValue.OrderBy(x => x));
             Assert.AreEqual("Edit, Open", values);
-
-            Assert.Inconclusive("Dates are not checked.");
         }
 
         [TestMethod]
@@ -150,8 +147,18 @@ namespace SenseNet.ContentRepository.Tests
                 };
             }
 
+            /*
+              	        level	mode	content
+                sd1	    O		Pu		c1
+                sd2	    E		A		c1
+                sd3	    O		Pr		c2
+                sd4	    E		Pu		c2
+             */
+
             Test(() =>
             {
+                //UNDONE: update genericcontent CTD in the test structure
+                // ...so we do not have to update it here manually
                 ReInstallGenericContentCtd();
                 var root = CreateTestRoot();
 
@@ -167,11 +174,16 @@ namespace SenseNet.ContentRepository.Tests
                 content.Save();
                 var id2 = content.Id;
 
-                SaveIndex(@"D:\_index");
+                //SaveIndex(@"D:\_index");
 
                 // TESTS
                 Assert.AreEqual($"{id1}, {id2}", GetQueryResult($"+InTree:{root.Path} +SharingMode:{modes[0]}"));
                 Assert.AreEqual($"{id1}"/*   */, GetQueryResult($"+InTree:{root.Path} +SharingMode:{modes[1]}"));
+                Assert.AreEqual($"{id2}"/*   */, GetQueryResult($"+InTree:{root.Path} +SharingMode:{modes[2]}"));
+
+                Assert.AreEqual($"{id1}, {id2}", GetQueryResult($"+InTree:{root.Path} +SharingLevel:{levels[0]}"));
+                Assert.AreEqual($"{id1}, {id2}", GetQueryResult($"+InTree:{root.Path} +SharingLevel:{levels[1]}"));
+
             });
         }
 
