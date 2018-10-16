@@ -165,7 +165,7 @@ namespace SenseNet.ContentRepository.Tests
                 content.Save();
                 var id2 = content.Id;
 
-                SaveIndex(@"D:\_index");
+                //SaveIndex(@"D:\_index");
 
                 // TESTS
                 Assert.AreEqual($"{id1}, {id2}", GetQueryResult($"+InTree:{root.Path} +SharingMode:{modes[0]}"));
