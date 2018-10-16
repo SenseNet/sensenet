@@ -141,11 +141,11 @@ namespace SenseNet.ContentRepository.Tests
             }
 
             /*
-              	        level	mode	content
-                sd1	    O		Pu		c1
-                sd2	    E		A		c1
-                sd3	    O		Pr		c2
-                sd4	    E		Pu		c2
+              	        level	mode	content identity
+                sd1	    O		Pu		c1      0
+                sd2	    E		A		c1      1
+                sd3	    O		Pr		c2      2
+                sd4	    E		Pu		c2      3
              */
 
             Test(() =>
@@ -177,6 +177,8 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual($"{id1}, {id2}", GetQueryResult($"+InTree:{root.Path} +SharingLevel:{levels[0]}"));
                 Assert.AreEqual($"{id1}, {id2}", GetQueryResult($"+InTree:{root.Path} +SharingLevel:{levels[1]}"));
 
+                //FAIL!!!!!!!!!!!!!!!!
+                Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +SharingMode:{modes[0]} +SharingLevel:{levels[0]}"));
             });
         }
 
