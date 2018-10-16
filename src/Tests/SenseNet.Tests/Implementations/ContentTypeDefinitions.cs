@@ -1828,9 +1828,28 @@ namespace SenseNet.Tests.Implementations
         <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
+    <Field name=""VersionCreatedBy"" type=""Reference"">
+      <DisplayName>$Ctd-GenericContent,VersionCreatedBy-DisplayName</DisplayName>
+      <Description>$Ctd-GenericContent,VersionCreatedBy-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
     <Field name=""CreationDate"" type=""DateTime"">
       <DisplayName>$Ctd-GenericContent,CreationDate-DisplayName</DisplayName>
       <Description>$Ctd-GenericContent,CreationDate-Description</Description>
+      <Configuration>
+        <DateTimeMode>DateAndTime</DateTimeMode>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name=""VersionCreationDate"" type=""DateTime"">
+      <DisplayName>$Ctd-GenericContent,VersionCreationDate-DisplayName</DisplayName>
+      <Description>$Ctd-GenericContent,VersionCreationDate-Description</Description>
       <Configuration>
         <DateTimeMode>DateAndTime</DateTimeMode>
         <VisibleBrowse>Hide</VisibleBrowse>
@@ -1847,12 +1866,31 @@ namespace SenseNet.Tests.Implementations
         <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
+    <Field name=""VersionModifiedBy"" type=""Reference"">
+      <DisplayName>$Ctd-GenericContent,VersionModifiedBy-DisplayName</DisplayName>
+      <Description>$Ctd-GenericContent,VersionModifiedBy-Description</Description>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
     <Field name=""ModificationDate"" type=""DateTime"">
       <DisplayName>$Ctd-GenericContent,ModificationDate-DisplayName</DisplayName>
       <Description>$Ctd-GenericContent,ModificationDate-Description</Description>
       <Indexing>
         <Store>Yes</Store>
       </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <DateTimeMode>DateAndTime</DateTimeMode>
+      </Configuration>
+    </Field>
+    <Field name=""VersionModificationDate"" type=""DateTime"">
+      <DisplayName>$Ctd-GenericContent,VersionModificationDate-DisplayName</DisplayName>
+      <Description>$Ctd-GenericContent,VersionModificationDate-Description</Description>
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
@@ -2115,6 +2153,66 @@ namespace SenseNet.Tests.Implementations
       <Description>$Ctd-GenericContent,BrowseUrl-Description</Description>
       <Indexing>
         <Mode>No</Mode>
+      </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
+    <Field name=""Sharing"" type=""Sharing"">
+      <DisplayName>$Ctd-GenericContent,Sharing-DisplayName</DisplayName>
+      <Description>$Ctd-GenericContent,Sharing-Description</Description>
+      <Indexing>
+        <Mode>No</Mode>
+      </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name=""SharedWith"" type=""Sharing"">
+      <Bind property=""Sharing""></Bind>
+      <Indexing>
+        <IndexHandler>SenseNet.Search.Indexing.SharingIndexHandler</IndexHandler>
+      </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
+    <Field name=""SharedBy"" type=""Sharing"">
+      <Bind property=""Sharing""></Bind>
+      <Indexing>
+        <IndexHandler>SenseNet.Search.Indexing.SharingIndexHandler</IndexHandler>
+      </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
+    <Field name=""SharingMode"" type=""Sharing"">
+      <Bind property=""Sharing""></Bind>
+      <Indexing>
+        <IndexHandler>SenseNet.Search.Indexing.SharingIndexHandler</IndexHandler>
+      </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+        <ReadOnly>true</ReadOnly>
+      </Configuration>
+    </Field>
+    <Field name=""SharingLevel"" type=""Sharing"">
+      <Bind property=""Sharing""></Bind>
+      <Indexing>
+        <IndexHandler>SenseNet.Search.Indexing.SharingIndexHandler</IndexHandler>
       </Indexing>
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>

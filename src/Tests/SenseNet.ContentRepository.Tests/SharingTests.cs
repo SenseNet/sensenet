@@ -150,8 +150,6 @@ namespace SenseNet.ContentRepository.Tests
 
             Test(() =>
             {
-                //UNDONE: update genericcontent CTD in the test structure
-                // ...so we do not have to update it here manually
                 ReInstallGenericContentCtd();
                 var root = CreateTestRoot();
 
@@ -187,8 +185,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                //UNDONE: update genericcontent CTD in the test structure
-                // ...so we do not have to update it here manually
                 ReInstallGenericContentCtd();
                 var root = CreateTestRoot();
 
@@ -211,8 +207,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                //UNDONE: update genericcontent CTD in the test structure
-                // ...so we do not have to update it here manually
                 ReInstallGenericContentCtd();
                 var root = CreateTestRoot();
 
@@ -235,8 +229,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                //UNDONE: update genericcontent CTD in the test structure
-                // ...so we do not have to update it here manually
                 ReInstallGenericContentCtd();
                 var root = CreateTestRoot();
 
@@ -260,6 +252,9 @@ namespace SenseNet.ContentRepository.Tests
 
         private void ReInstallGenericContentCtd()
         {
+            //UNDONE: update genericcontent CTD in the test structure and delete this method.
+            // ...so we do not have to update it here manually
+
             var path = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                 @"..\..\..\..\nuget\snadmin\install-services\import\System\Schema\ContentTypes\GenericContentCtd.xml"));
             using (var stream = new FileStream(path, FileMode.Open))
