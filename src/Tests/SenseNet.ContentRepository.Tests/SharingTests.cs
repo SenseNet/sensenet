@@ -2,14 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Sharing;
-using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Tests;
 
@@ -26,8 +22,8 @@ namespace SenseNet.ContentRepository.Tests
             {
                 Token = "abc1@example.com",
                 Identity = 0,
-                Level = "Open",
-                Mode = "Public",
+                Level = SharingLevel.Open,
+                Mode = SharingMode.Public,
                 ShareDate = DateTime.UtcNow.AddHours(-1),
                 CreatorId = 1
             };
@@ -35,8 +31,8 @@ namespace SenseNet.ContentRepository.Tests
             {
                 Token = "abc2@example.com",
                 Identity = 42,
-                Level = "Edit",
-                Mode = "Private",
+                Level = SharingLevel.Edit,
+                Mode = SharingMode.Private,
                 ShareDate = DateTime.UtcNow.AddHours(-1),
                 CreatorId = 2
             };
@@ -56,9 +52,9 @@ namespace SenseNet.ContentRepository.Tests
             values = string.Join(", ", fieldsSharedBy.Single().StringArrayValue.OrderBy(x => x));
             Assert.AreEqual("1, 2", values);
             values = string.Join(", ", fieldsSharingMode.Single().StringArrayValue.OrderBy(x => x));
-            Assert.AreEqual("Private, Public", values);
+            Assert.AreEqual("private, public", values);
             values = string.Join(", ", fieldsSharingLevel.Single().StringArrayValue.OrderBy(x => x));
-            Assert.AreEqual("Edit, Open", values);
+            Assert.AreEqual("edit, open", values);
         }
 
         [TestMethod]
@@ -68,8 +64,8 @@ namespace SenseNet.ContentRepository.Tests
             {
                 Token = "abc1@example.com",
                 Identity = 0,
-                Level = "Open",
-                Mode = "Public",
+                Level = SharingLevel.Open,
+                Mode = SharingMode.Public,
                 ShareDate = new DateTime(2018, 10, 16, 0, 40, 15, DateTimeKind.Utc),
                 CreatorId = 1
             };
@@ -77,8 +73,8 @@ namespace SenseNet.ContentRepository.Tests
             {
                 Token = "abc2@example.com",
                 Identity = 42,
-                Level = "Edit",
-                Mode = "Private",
+                Level = SharingLevel.Edit,
+                Mode = SharingMode.Private,
                 ShareDate = new DateTime(2018, 10, 16, 0, 40, 16, DateTimeKind.Utc),
                 CreatorId = 2
             };
@@ -130,8 +126,8 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void Sharing_Searchability()
         {
-            var levels = new[] { "Open", "Edit" };
-            var modes = new[] { "Public", "Authenticated", "Private" };
+            var levels = new[] { SharingLevel.Open, SharingLevel.Edit };
+            var modes = new[] { SharingMode.Public, SharingMode.Authenticated, SharingMode.Private };
 
             var sd = new SharingData[4];
             for (var i = 0; i < sd.Length; i++)

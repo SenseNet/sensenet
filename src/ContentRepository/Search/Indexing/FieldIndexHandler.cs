@@ -1120,7 +1120,7 @@ namespace SenseNet.Search.Indexing
                     foreach (var item in sharingItems)
                     {
                         if (!string.IsNullOrEmpty(item.Token))
-                            terms.Add(item.Token);
+                            terms.Add(item.Token.ToLowerInvariant());
                         terms.Add(item.Identity.ToString());
                     }
                     var result = CreateField("SharedWith", terms.Distinct().ToArray());
@@ -1131,11 +1131,11 @@ namespace SenseNet.Search.Indexing
                         .ToArray());
                 case "SharingMode":
                     return CreateField("SharingMode", sharingItems
-                        .Select(si => si.Mode.ToString())
+                        .Select(si => si.Mode.ToString().ToLowerInvariant())
                         .ToArray());
                 case "SharingLevel":
                     return CreateField("SharingLevel", sharingItems
-                        .Select(si => si.Level.ToString())
+                        .Select(si => si.Level.ToString().ToLowerInvariant())
                         .ToArray());
             }
 
