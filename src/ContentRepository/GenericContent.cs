@@ -746,14 +746,17 @@ namespace SenseNet.ContentRepository
         /// </summary>
         protected override bool IsIndexingEnabled => this.ContentType.IndexingEnabled;
 
-        //UNDONE: finalize SharingHandler property
-        private readonly Lazy<SharingHandler> _sharingHandler = new Lazy<SharingHandler>(() => new SharingHandler(null));
+        private readonly object _sharingHandlerSync = new object();
+        private SharingHandler _sharingHandler;
         public SharingHandler Sharing
         {
             get
             {
-                var value = this.GetProperty<string>(nameof(Sharing));
-                return _sharingHandler.Value;
+                if (_sharingHandler == null)
+                    lock (_sharingHandlerSync)
+                        if (_sharingHandler == null)
+                            _sharingHandler = new SharingHandler(this);
+                return _sharingHandler;
             }
         }
 
@@ -761,7 +764,11 @@ namespace SenseNet.ContentRepository
         internal string SharingData
         {
             get => this.GetProperty<string>(nameof(SharingData));
-            set => this.SetProperty(nameof(SharingData), value);
+            set
+            {
+                this.SetProperty(nameof(SharingData), value);
+                this.Sharing.ItemsChanged();
+            }
         }
 
         /// <summary>

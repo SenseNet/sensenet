@@ -1,15 +1,16 @@
 using System;
 using System.Xml;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Sharing;
 
 namespace SenseNet.ContentRepository.Fields
 {
     //UNDONE: implement SharingInfo field
 
-    [ShortName("SharingInfo")]
-    [DataSlot(0, RepositoryDataType.String, typeof(string))]
+    [ShortName("Sharing")]
+    [DataSlot(0, RepositoryDataType.Text, typeof(SharingHandler))]
     [DefaultFieldSetting(typeof(NullFieldSetting))]
-    public class SharingInfoField : Field
+    public class SharingField : Field
     {
         protected override bool HasExportData => true;
 

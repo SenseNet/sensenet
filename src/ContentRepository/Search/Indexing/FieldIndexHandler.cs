@@ -1116,25 +1116,31 @@ namespace SenseNet.Search.Indexing
             switch (fieldName)
             {
                 case "SharedWith":
-                    return sharingItems.SelectMany(si =>
+                    var terms = new List<string>();
+                    foreach (var item in sharingItems)
                     {
-                        var indexFields = new List<IndexField>();
-                        if (!string.IsNullOrEmpty(si.Token))
-                            indexFields.AddRange(CreateField("SharedWith", si.Token));
-                        //UNDONE: possibly add index field for empty token for searchability
-
-                        indexFields.AddRange(CreateField("SharedWith", si.Identity));
-
-                        return indexFields;
-                    });
+                        if (!string.IsNullOrEmpty(item.Token))
+                            terms.Add(item.Token);
+                        terms.Add(item.Identity.ToString());
+                    }
+                    var result = CreateField("SharedWith", terms.Distinct().ToArray());
+                    return result;
                 case "SharedBy":
-                    return sharingItems.Where(si => si.CreatorId > 0).SelectMany(si => CreateField("SharedBy", si.CreatorId));
+                    return CreateField("SharedBy", sharingItems
+                        .Select(si => si.CreatorId.ToString())
+                        .ToArray());
                 case "SharingDate":
-                    return sharingItems.SelectMany(si => CreateField("SharingDate", si.ShareDate));
+                    return CreateField("ShareDate", sharingItems
+                        .Select(si => si.ShareDate.Ticks.ToString())
+                        .ToArray());
                 case "SharingMode":
-                    return sharingItems.Where(si => !string.IsNullOrEmpty(si.Mode)).SelectMany(si => CreateField("SharingMode", si.Mode));
+                    return CreateField("SharingMode", sharingItems
+                        .Select(si => si.Mode.ToString())
+                        .ToArray());
                 case "SharingLevel":
-                    return sharingItems.Where(si => !string.IsNullOrEmpty(si.Level)).SelectMany(si => CreateField("SharingLevel", si.Level));
+                    return CreateField("SharingLevel", sharingItems
+                        .Select(si => si.Level.ToString())
+                        .ToArray());
             }
 
             throw new NotImplementedException($"Unknown sharing field: {fieldName}");
@@ -1143,8 +1149,9 @@ namespace SenseNet.Search.Indexing
         /// <inheritdoc />
         public override IndexValue Parse(string text)
         {
-            //UNDONE: Parse sharin query terms
-            throw new NotImplementedException();
+            return DateTime.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTimeValue)
+                ? new IndexValue(dateTimeValue)
+                : new IndexValue(text.ToLowerInvariant());
         }
         /// <inheritdoc />
         public override IndexValue ConvertToTermValue(object value)
