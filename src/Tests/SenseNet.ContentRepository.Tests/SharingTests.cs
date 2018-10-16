@@ -116,7 +116,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(2, items.Length);
             for (var i = 0; i < items.Length; i++)
             {
-                AssertSharingData(sharingItems[i], items[i]);
+                AssertSharingDataAreEqual(sharingItems[i], items[i]);
             }
         }
 
@@ -142,8 +142,8 @@ namespace SenseNet.ContentRepository.Tests
 
             /*
               	        level	mode	content identity
-                sd1	    O		Pu		c1      0
-                sd2	    E		A		c1      1
+                expected	    O		Pu		c1      0
+                actual	    E		A		c1      1
                 sd3	    O		Pr		c2      2
                 sd4	    E		Pu		c2      3
              */
@@ -253,8 +253,8 @@ namespace SenseNet.ContentRepository.Tests
 
                 Assert.AreEqual(2, items.Length);
 
-                AssertSharingData(sd1, items[0]);
-                AssertSharingData(sd2, items[1]);
+                AssertSharingDataAreEqual(sd1, items[0]);
+                AssertSharingDataAreEqual(sd2, items[1]);
             });
         }
 
@@ -277,15 +277,15 @@ namespace SenseNet.ContentRepository.Tests
             return result;
         }
 
-        private static void AssertSharingData(SharingData sd1, SharingData sd2)
+        private static void AssertSharingDataAreEqual(SharingData expected, SharingData actual)
         {
-            Assert.AreEqual(sd1.Id, sd2.Id);
-            Assert.AreEqual(sd1.Token, sd2.Token);
-            Assert.AreEqual(sd1.Identity, sd2.Identity);
-            Assert.AreEqual(sd1.CreatorId, sd2.CreatorId);
-            Assert.AreEqual(sd1.Level, sd2.Level);
-            Assert.AreEqual(sd1.Mode, sd2.Mode);
-            Assert.AreEqual(sd1.ShareDate, sd2.ShareDate);
+            Assert.AreEqual(expected.Id, actual.Id);
+            Assert.AreEqual(expected.Token, actual.Token);
+            Assert.AreEqual(expected.Identity, actual.Identity);
+            Assert.AreEqual(expected.CreatorId, actual.CreatorId);
+            Assert.AreEqual(expected.Level, actual.Level);
+            Assert.AreEqual(expected.Mode, actual.Mode);
+            Assert.AreEqual(expected.ShareDate, actual.ShareDate);
         }
 
         #region /* ================================================================================================ Tools */
