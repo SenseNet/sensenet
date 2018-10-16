@@ -21,6 +21,7 @@ namespace SenseNet.ContentRepository.Sharing
     /// </summary>
     internal class SharingData
     {
+        public string Id { get; set; } = Guid.NewGuid().ToString();
         public string Token { get; set; }
         public int Identity { get; set; }
         [JsonConverter(typeof(StringEnumConverter))] //UNDONE: json converter attribute may be moved to serializer settings

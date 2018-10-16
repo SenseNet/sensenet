@@ -79,7 +79,7 @@ namespace SenseNet.ContentRepository.Sharing
 
         /* ================================================================================== Public API */
 
-        public void Share(string email)
+        public void Share(string token, SharingLevel level, SharingMode mode)
         {
             //UNDONE: finalize sharing public API
 

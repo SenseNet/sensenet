@@ -87,6 +87,7 @@ namespace SenseNet.ContentRepository.Tests
             // ASSERT-1
             var expected = @"[
   {
+    ""Id"": """ + sd1.Id + @""",
     ""Token"": ""abc1@example.com"",
     ""Identity"": 0,
     ""Mode"": ""Public"",
@@ -95,6 +96,7 @@ namespace SenseNet.ContentRepository.Tests
     ""ShareDate"": ""2018-10-16T00:40:15Z""
   },
   {
+    ""Id"": """ + sd2.Id + @""",
     ""Token"": ""abc2@example.com"",
     ""Identity"": 42,
     ""Mode"": ""Private"",
@@ -114,6 +116,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(2, items.Length);
             for (int i = 0; i < items.Length; i++)
             {
+                Assert.AreEqual(sharingItems[i].Id, items[i].Id);
                 Assert.AreEqual(sharingItems[i].Token, items[i].Token);
                 Assert.AreEqual(sharingItems[i].Identity, items[i].Identity);
                 Assert.AreEqual(sharingItems[i].Mode, items[i].Mode);
