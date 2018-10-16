@@ -1,19 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
+using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.ContentRepository.Sharing
 {
     public class SharingHandler
     {
+        private const string SharingItemsCacheKey = "SharingItems";
+
         // internal! getonly!
         //UNDONE: individual items should be immutable too
         private readonly object _itemsSync = new object();
-        private IEnumerable<SharingData> _items;
-        internal IEnumerable<SharingData> Items {
+        private List<SharingData> _items;
+        internal IEnumerable<SharingData> Items
+        {
             get
             {
                 //UNDONE: <? only for tests
@@ -25,8 +27,12 @@ namespace SenseNet.ContentRepository.Sharing
                         {
                             var src = _owner.SharingData;
                             if (string.IsNullOrEmpty(src))
-                                _items = new SharingData[0];
+                                _items = new List<SharingData>();
+
                             _items = Deserialize(src);
+
+                            //UNDONE: should we cache sharing items here?
+                            _owner.SetCachedData(SharingItemsCacheKey, _items);
                         }
                     }
                 }
@@ -44,11 +50,8 @@ namespace SenseNet.ContentRepository.Sharing
         {
             _owner = owner;
 
-            //UNDONE: sharing deserialization
-            var sharingData = _owner.SharingData;
-
-            // store deserialized item list in cached node data?
-            //_owner.SetCachedData() ?
+            // load deserialized item list from cached node data
+            _items = _owner.GetCachedData(SharingItemsCacheKey) as List<SharingData>;
         }
 
         /* ================================================================================== Serialization */
@@ -68,34 +71,61 @@ namespace SenseNet.ContentRepository.Sharing
             return result;
         }
 
-        internal static IEnumerable<SharingData> Deserialize(string source)
+        internal static List<SharingData> Deserialize(string source)
         {
             if(string.IsNullOrEmpty(source))
-                return new SharingData[0];
-            var result = (IEnumerable<SharingData>)JsonConvert.DeserializeObject(source, 
-                typeof(IEnumerable<SharingData>), SerializerSettings);
-            return result;
+                return new List<SharingData>();
+
+            return (List<SharingData>) JsonConvert.DeserializeObject(source, typeof(List<SharingData>),
+                SerializerSettings);
         }
 
         /* ================================================================================== Public API */
 
-        public void Share(string token, SharingLevel level, SharingMode mode)
+        public SharingData Share(string token, SharingLevel level, SharingMode mode)
         {
             //UNDONE: finalize sharing public API
 
-            // 1. add sharing record to Items
-            // 2. serialize items
-            // 3. set sharingdata property and save the content
+            //UNDONE: set sharing identity if found
+            var sharingData = new SharingData
+            {
+                Token = token,
+                Level = level,
+                Mode = mode,
+                CreatorId = (AccessProvider.Current.GetOriginalUser() as User)?.Id ?? 0,
+                ShareDate = DateTime.UtcNow,
+                //Identity = 
+            };
 
-            //_owner.SetCachedData(); ?
+            _items.Add(sharingData);
 
-            throw new NotImplementedException();
+            UpdateOwnerNode();
+
+            return sharingData;
         }
 
-        public void RemoveSharing(string email)
+        public bool RemoveSharing(string id)
         {
-            //UNDONE: finalize sharing public API
-            throw new NotImplementedException();
+            var sharingData = _items?.FirstOrDefault(sd => sd.Id == id);
+            if (sharingData == null)
+                return false;
+
+            _items.Remove(sharingData);
+
+            UpdateOwnerNode();
+
+            return true;
+        }
+
+        private void UpdateOwnerNode()
+        {
+            //UNDONE: sharing items: should we set null or _items?
+            // ...because the _items list may be cleared below!
+            _owner.SetCachedData(SharingItemsCacheKey, null);
+
+            //UNDONE: this property setter resets the _items list unnecessarily!
+            _owner.SharingData = Serialize(_items);
+            _owner.Save(SavingMode.KeepVersion);
         }
     }
 }

@@ -114,15 +114,9 @@ namespace SenseNet.ContentRepository.Tests
             // ASSERT-2
             var items = deserialized.OrderBy(x => x.Token).ToArray();
             Assert.AreEqual(2, items.Length);
-            for (int i = 0; i < items.Length; i++)
+            for (var i = 0; i < items.Length; i++)
             {
-                Assert.AreEqual(sharingItems[i].Id, items[i].Id);
-                Assert.AreEqual(sharingItems[i].Token, items[i].Token);
-                Assert.AreEqual(sharingItems[i].Identity, items[i].Identity);
-                Assert.AreEqual(sharingItems[i].Mode, items[i].Mode);
-                Assert.AreEqual(sharingItems[i].Level, items[i].Level);
-                Assert.AreEqual(sharingItems[i].CreatorId, items[i].CreatorId);
-                Assert.AreEqual(sharingItems[i].ShareDate, items[i].ShareDate);
+                AssertSharingData(sharingItems[i], items[i]);
             }
         }
 
@@ -186,6 +180,82 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
+        [TestMethod]
+        public void Sharing_AddSharing()
+        {
+            Test(() =>
+            {
+                //UNDONE: update genericcontent CTD in the test structure
+                // ...so we do not have to update it here manually
+                ReInstallGenericContentCtd();
+                var root = CreateTestRoot();
+
+                var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
+                content.Save();
+
+                var gc = (GenericContent)content.ContentHandler;
+
+                gc.Sharing.Share("abc1@example.com", SharingLevel.Open, SharingMode.Public);
+                gc.Sharing.Share("abc2@example.com", SharingLevel.Edit, SharingMode.Private);
+
+                var id1 = content.Id;
+
+                Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +SharedWith:abc1@example.com"));
+                Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +SharedWith:abc2@example.com"));
+            });
+        }
+        [TestMethod]
+        public void Sharing_RemoveSharing()
+        {
+            Test(() =>
+            {
+                //UNDONE: update genericcontent CTD in the test structure
+                // ...so we do not have to update it here manually
+                ReInstallGenericContentCtd();
+                var root = CreateTestRoot();
+
+                var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
+                content.Save();
+
+                var gc = (GenericContent)content.ContentHandler;
+
+                var sd1 = gc.Sharing.Share("abc1@example.com", SharingLevel.Open, SharingMode.Public);
+
+                Assert.AreEqual($"{content.Id}", GetQueryResult($"+InTree:{root.Path} +SharedWith:abc1@example.com"));
+
+                gc.Sharing.RemoveSharing(sd1.Id);
+
+                Assert.AreEqual(string.Empty, GetQueryResult($"+InTree:{root.Path} +SharedWith:abc1@example.com"));
+            });
+        }
+        [TestMethod]
+        public void Sharing_GetSharing()
+        {
+            Test(() =>
+            {
+                //UNDONE: update genericcontent CTD in the test structure
+                // ...so we do not have to update it here manually
+                ReInstallGenericContentCtd();
+                var root = CreateTestRoot();
+
+                var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
+                content.Save();
+
+                var gc = (GenericContent)content.ContentHandler;
+
+                var sd1 = gc.Sharing.Share("abc1@example.com", SharingLevel.Open, SharingMode.Public);
+                var sd2 = gc.Sharing.Share("abc2@example.com", SharingLevel.Edit, SharingMode.Private);
+
+                // order items to make asserts simpler
+                var items = gc.Sharing.Items.OrderBy(sd => sd.Token).ToArray();
+
+                Assert.AreEqual(2, items.Length);
+
+                AssertSharingData(sd1, items[0]);
+                AssertSharingData(sd2, items[1]);
+            });
+        }
+
         private void ReInstallGenericContentCtd()
         {
             var path = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
@@ -205,6 +275,16 @@ namespace SenseNet.ContentRepository.Tests
             return result;
         }
 
+        private static void AssertSharingData(SharingData sd1, SharingData sd2)
+        {
+            Assert.AreEqual(sd1.Id, sd2.Id);
+            Assert.AreEqual(sd1.Token, sd2.Token);
+            Assert.AreEqual(sd1.Identity, sd2.Identity);
+            Assert.AreEqual(sd1.CreatorId, sd2.CreatorId);
+            Assert.AreEqual(sd1.Level, sd2.Level);
+            Assert.AreEqual(sd1.Mode, sd2.Mode);
+            Assert.AreEqual(sd1.ShareDate, sd2.ShareDate);
+        }
 
         #region /* ================================================================================================ Tools */
 

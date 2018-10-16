@@ -19,7 +19,7 @@ namespace SenseNet.ContentRepository.Sharing
     /// <summary>
     /// Storage model of content sharing information.
     /// </summary>
-    internal class SharingData
+    public class SharingData
     {
         public string Id { get; set; } = Guid.NewGuid().ToString();
         public string Token { get; set; }
