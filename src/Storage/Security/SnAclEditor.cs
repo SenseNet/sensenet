@@ -147,7 +147,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="localOnly">Determines whether the edited entry is inheritable or not.</param>
         /// <param name="allowBits">Aggregated bitmask. Every bit means a permission. The bit number is derived from the Index of the PermissionTypeBase.
         /// In the bitmask the 1 means the permission that must be cleared in the allowed set.</param>
-        /// <param name="allowBits">Aggregated bitmask. Every bit means a permission. The bit number is derived from the Index of the PermissionTypeBase.
+        /// <param name="denyBits">Aggregated bitmask. Every bit means a permission. The bit number is derived from the Index of the PermissionTypeBase.
         /// In the bitmask the 1 means the permission that must be cleared in the denied set.</param>
         /// <returns>A reference to this instance for calling more operations.</returns>
         public SnAclEditor Reset(int entityId, int identityId, bool localOnly, ulong allowBits, ulong denyBits)
