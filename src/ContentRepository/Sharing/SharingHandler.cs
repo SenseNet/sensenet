@@ -135,7 +135,16 @@ namespace SenseNet.ContentRepository.Sharing
         }
         private void UpdatePermissions(int identityId, SharingData[] remainData)
         {
-            throw new NotImplementedException(); //UNDONE: UpdatePermissions is not implemented.
+            if (identityId <= 0)
+                return;
+
+            var mask = remainData.Aggregate(0ul, (current, item) => current | GetEffectiveBitmask(item.Level));
+
+            SnSecurityContext.Create().CreateAclEditor(EntryType.Sharing)
+                .Reset(_owner.Id, identityId, false, ulong.MaxValue, 0ul)
+                .Set(_owner.Id, identityId, false, mask, 0ul)
+                .Apply();
+
         }
 
         private int GetSharingIdentityByToken(string token)
@@ -153,7 +162,6 @@ namespace SenseNet.ContentRepository.Sharing
             // make sure te list is loaded
             var _ = Items;
 
-            //UNDONE: check/assert permission
             var sharingToDelete = _items?.FirstOrDefault(sd => sd.Id == id);
             if (sharingToDelete == null)
                 return false;

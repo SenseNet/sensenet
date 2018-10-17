@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Sharing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Portal.OData.Metadata;
 using SenseNet.Search.Indexing;
 using SenseNet.Security;
 using SenseNet.Tests;
@@ -334,22 +336,82 @@ namespace SenseNet.ContentRepository.Tests
             Test(true, () =>
             {
                 PrepareForPermissionTest(out var gc, out var user1);
-                var sh1Id = gc.Sharing.Share(user1.Email, SharingLevel.Edit, SharingMode.Private).Id;
-                var sh2Id = gc.Sharing.Share(user1.Email, SharingLevel.Open, SharingMode.Private).Id;
+                var sharing = new[]
+                {
+                    gc.Sharing.Share(user1.Email, SharingLevel.Open, SharingMode.Private), // 0
+                    gc.Sharing.Share("user2@example.com", SharingLevel.Open, SharingMode.Authenticated), // 1
+                    gc.Sharing.Share("user3@example.com", SharingLevel.Open, SharingMode.Authenticated), // 2
+                    gc.Sharing.Share("user4@example.com", SharingLevel.Edit, SharingMode.Authenticated), // 3
+                    gc.Sharing.Share("user5@example.com", SharingLevel.Edit, SharingMode.Authenticated), // 4
+                };
 
-                // ACTION
-                gc.Sharing.RemoveSharing(sh1Id);
+                // ------------------------------------ ACTION-1
+                gc.Sharing.RemoveSharing(sharing[4].Id);
 
-                // ASSERT
-                var shData = gc.Sharing.Items.Single();
-                Assert.AreEqual(sh2Id, shData.Id);
+                // ASSERT-1 everyone's entry allows edit
+                AssertSequenceEqual(
+                    sharing.Take(4).Select(x => x.Token),
+                    gc.Sharing.Items.OrderBy(x => x.Token).Select(x => x.Token));
 
-                var entries = gc.Security.GetExplicitEntries(EntryType.Sharing);
-                Assert.AreEqual(1, entries.Count);
-                var entry = entries.Single();
-                Assert.AreEqual(SharingHandler.GetEffectiveBitmask(SharingLevel.Open), entry.AllowBits);
+                var entries = gc.Security.GetExplicitEntries(EntryType.Sharing).OrderBy(e => e.IdentityId).ToArray();
+                Assert.AreEqual(2, entries.Length);
+                // everyone group
+                Assert.AreEqual(Identifiers.EveryoneGroupId, entries[0].IdentityId);
+                Assert.AreEqual(SharingHandler.GetEffectiveBitmask(SharingLevel.Edit), entries[0].AllowBits);
+                // user
+                Assert.AreEqual(user1.Id, entries[1].IdentityId);
+                Assert.AreEqual(SharingHandler.GetEffectiveBitmask(SharingLevel.Open), entries[1].AllowBits);
+
+                // ------------------------------------ ACTION-2
+                gc.Sharing.RemoveSharing(sharing[3].Id);
+
+                // ASSERT-2 everyone's entry allows open
+                AssertSequenceEqual(
+                    sharing.Take(3).Select(x => x.Token),
+                    gc.Sharing.Items.OrderBy(x => x.Token).Select(x => x.Token));
+
+                entries = gc.Security.GetExplicitEntries(EntryType.Sharing).OrderBy(e => e.IdentityId).ToArray();
+                Assert.AreEqual(2, entries.Length);
+                // everyone group
+                Assert.AreEqual(Identifiers.EveryoneGroupId, entries[0].IdentityId);
+                Assert.AreEqual(SharingHandler.GetEffectiveBitmask(SharingLevel.Open), entries[0].AllowBits);
+                // user
+                Assert.AreEqual(user1.Id, entries[1].IdentityId);
+                Assert.AreEqual(SharingHandler.GetEffectiveBitmask(SharingLevel.Open), entries[1].AllowBits);
+
+                // ------------------------------------ ACTION-3
+                gc.Sharing.RemoveSharing(sharing[2].Id);
+
+                // ASSERT-3 everyone's entry allows open
+                AssertSequenceEqual(
+                    sharing.Take(2).Select(x => x.Token),
+                    gc.Sharing.Items.OrderBy(x => x.Token).Select(x => x.Token));
+
+                entries = gc.Security.GetExplicitEntries(EntryType.Sharing).OrderBy(e => e.IdentityId).ToArray();
+                Assert.AreEqual(2, entries.Length);
+                // everyone group
+                Assert.AreEqual(Identifiers.EveryoneGroupId, entries[0].IdentityId);
+                Assert.AreEqual(SharingHandler.GetEffectiveBitmask(SharingLevel.Open), entries[0].AllowBits);
+                // user
+                Assert.AreEqual(user1.Id, entries[1].IdentityId);
+                Assert.AreEqual(SharingHandler.GetEffectiveBitmask(SharingLevel.Open), entries[1].AllowBits);
+
+                // ------------------------------------ ACTION-4
+                gc.Sharing.RemoveSharing(sharing[1].Id);
+
+                // ASSERT-4 everyone's entry removed
+                AssertSequenceEqual(
+                    sharing.Take(1).Select(x => x.Token),
+                    gc.Sharing.Items.OrderBy(x => x.Token).Select(x => x.Token));
+
+                entries = gc.Security.GetExplicitEntries(EntryType.Sharing).ToArray();
+                Assert.AreEqual(1, entries.Length);
+                // user
+                Assert.AreEqual(user1.Id, entries[0].IdentityId);
+                Assert.AreEqual(SharingHandler.GetEffectiveBitmask(SharingLevel.Open), entries[0].AllowBits);
             });
         }
+
         private void PrepareForPermissionTest(out GenericContent gc, out User user)
         {
             using (new SystemAccount())
@@ -362,7 +424,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 Name = "User-1",
                 Enabled = true,
-                Email = "abc3@example.com"
+                Email = "user1@example.com"
             };
             user.Save();
 
