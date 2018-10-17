@@ -97,11 +97,14 @@ namespace SenseNet.ContentRepository.Sharing
 
             //UNDONE: check/assert permission
 
-            //UNDONE: set sharing identity and token well
+            var identity = mode == SharingMode.Authenticated
+                ? Group.Everyone.Id
+                : GetSharingIdentityByToken(token);
+
             var sharingData = new SharingData
             {
                 Token = token,
-                Identity = GetSharingIdentity(token),
+                Identity = identity,
                 Level = level,
                 Mode = mode,
                 CreatorId = (AccessProvider.Current.GetOriginalUser() as User)?.Id ?? 0,
@@ -118,17 +121,20 @@ namespace SenseNet.ContentRepository.Sharing
 
         private void SetPermissions(SharingData sharingData)
         {
-            var identityId = sharingData.Mode == SharingMode.Authenticated ? Group.Everyone.Id : sharingData.Identity;
-            if (identityId <= 0)
+            if (sharingData.Identity <= 0)
                 return;
 
             var mask = GetEffectiveBitmask(sharingData.Level);
             SnSecurityContext.Create().CreateAclEditor(EntryType.Sharing)
-                .Set(_owner.Id, identityId, false, mask, 0ul)
+                .Set(_owner.Id, sharingData.Identity, false, mask, 0ul)
                 .Apply();
         }
+        private void UpdatePermissions(int identityId, SharingData[] remainData)
+        {
+            throw new NotImplementedException(); //UNDONE: UpdatePermissions is not implemented.
+        }
 
-        private int GetSharingIdentity(string token)
+        private int GetSharingIdentityByToken(string token)
         {
             //UNDONE: get sharing identity: email, username, groupname, special tokens etc.
 
@@ -141,13 +147,20 @@ namespace SenseNet.ContentRepository.Sharing
         public bool RemoveSharing(string id)
         {
             //UNDONE: check/assert permission
-            var sharingData = _items?.FirstOrDefault(sd => sd.Id == id);
-            if (sharingData == null)
+            var sharingToDelete = _items?.FirstOrDefault(sd => sd.Id == id);
+            if (sharingToDelete == null)
                 return false;
 
-            _items.Remove(sharingData);
+            _items.Remove(sharingToDelete);
 
             UpdateOwnerNode();
+
+            var identityId = sharingToDelete.Identity;
+            if (identityId > 0)
+            {
+                var remainData = _items.Where(x => x.Identity == sharingToDelete.Identity).ToArray();
+                UpdatePermissions(identityId, remainData);
+            }
 
             return true;
         }

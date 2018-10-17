@@ -269,26 +269,7 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(true, () =>
             {
-                using (new SystemAccount())
-                    SnSecurityContext.Create().CreateAclEditor()
-                        .Allow(2, 1, false, PermissionType.BuiltInPermissionTypes)
-                        .Apply();
-
-                ReInstallGenericContentCtd();
-                var user1Email = "abc3@example.com";
-                var user1 = new User(Node.LoadNode("/Root/IMS/BuiltIn/Portal"))
-                {
-                    Name = "User-1",
-                    Enabled = true,
-                    Email = user1Email
-                };
-                user1.Save();
-
-                var root = CreateTestRoot();
-
-                var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
-                content.Save();
-                var gc = (GenericContent)content.ContentHandler;
+                PrepareForPermissionTest(out var gc, out var user1);
 
                 // ACTION
                 gc.Sharing.Share("abc1@example.com", SharingLevel.Open, SharingMode.Public);
@@ -297,7 +278,7 @@ namespace SenseNet.ContentRepository.Tests
                 gc.Sharing.Share("abc2@example.com", SharingLevel.Open, SharingMode.Authenticated);
                 var entries2 = gc.Security.GetExplicitEntries(EntryType.Sharing);
 
-                gc.Sharing.Share(user1Email, SharingLevel.Edit, SharingMode.Private);
+                gc.Sharing.Share(user1.Email, SharingLevel.Edit, SharingMode.Private);
                 var entries3 = gc.Security.GetExplicitEntries(EntryType.Sharing).OrderBy(e => e.IdentityId).ToList();
 
                 // ASSERT
@@ -317,6 +298,79 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(SharingHandler.GetEffectiveBitmask(SharingLevel.Edit), entry.AllowBits);
                 Assert.AreEqual(0ul, entry.DenyBits);
             });
+        }
+        [TestMethod]
+        public void Sharing_Permissions_MoreSharing()
+        {
+            Test(true, () =>
+            {
+                PrepareForPermissionTest(out var gc, out var user1);
+
+                // ACTION
+                gc.Sharing.Share(user1.Email, SharingLevel.Open, SharingMode.Private);
+                var entries1 = gc.Security.GetExplicitEntries(EntryType.Sharing).OrderBy(e => e.IdentityId).ToList();
+                gc.Sharing.Share(user1.Email, SharingLevel.Edit, SharingMode.Private);
+                var entries2 = gc.Security.GetExplicitEntries(EntryType.Sharing).OrderBy(e => e.IdentityId).ToList();
+
+                // ASSERT
+                Assert.AreEqual(1, entries1.Count);
+                var entry = entries1.Single();
+                Assert.AreEqual(EntryType.Sharing, entry.EntryType);
+                Assert.AreEqual(user1.Id, entry.IdentityId);
+                Assert.AreEqual(SharingHandler.GetEffectiveBitmask(SharingLevel.Open), entry.AllowBits);
+                Assert.AreEqual(0ul, entry.DenyBits);
+
+                Assert.AreEqual(1, entries2.Count);
+                entry = entries2.Single();
+                Assert.AreEqual(EntryType.Sharing, entry.EntryType);
+                Assert.AreEqual(user1.Id, entry.IdentityId);
+                Assert.AreEqual(SharingHandler.GetEffectiveBitmask(SharingLevel.Edit), entry.AllowBits);
+                Assert.AreEqual(0ul, entry.DenyBits);
+            });
+        }
+        [TestMethod]
+        public void Sharing_Permissions_DeleteSharing()
+        {
+            Test(true, () =>
+            {
+                PrepareForPermissionTest(out var gc, out var user1);
+                var sh1Id = gc.Sharing.Share(user1.Email, SharingLevel.Edit, SharingMode.Private).Id;
+                var sh2Id = gc.Sharing.Share(user1.Email, SharingLevel.Open, SharingMode.Private).Id;
+
+                // ACTION
+                gc.Sharing.RemoveSharing(sh1Id);
+
+                // ASSERT
+                var shData = gc.Sharing.Items.Single();
+                Assert.AreEqual(sh2Id, shData.Id);
+
+                var entries = gc.Security.GetExplicitEntries(EntryType.Sharing);
+                Assert.AreEqual(1, entries.Count);
+                var entry = entries.Single();
+                Assert.AreEqual(SharingHandler.GetEffectiveBitmask(SharingLevel.Open), entry.AllowBits);
+            });
+        }
+        private void PrepareForPermissionTest(out GenericContent gc, out User user)
+        {
+            using (new SystemAccount())
+                SnSecurityContext.Create().CreateAclEditor()
+                    .Allow(2, 1, false, PermissionType.BuiltInPermissionTypes)
+                    .Apply();
+
+            ReInstallGenericContentCtd();
+            user = new User(Node.LoadNode("/Root/IMS/BuiltIn/Portal"))
+            {
+                Name = "User-1",
+                Enabled = true,
+                Email = "abc3@example.com"
+            };
+            user.Save();
+
+            var root = CreateTestRoot();
+
+            var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
+            content.Save();
+            gc = (GenericContent)content.ContentHandler;
         }
 
         private void ReInstallGenericContentCtd()
