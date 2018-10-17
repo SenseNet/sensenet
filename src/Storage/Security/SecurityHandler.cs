@@ -781,31 +781,37 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Return with the current content's explicit entries. Current user must have SeePermissions permission.
         /// </summary>
-        public List<AceInfo> GetExplicitEntries()
+        public List<AceInfo> GetExplicitEntries(EntryType entryType = EntryType.Normal)
         {
-            return GetExplicitEntries(_node.Id);
+            return GetExplicitEntries(_node.Id, null, entryType);
         }
         /// <summary>
         /// Return with the passed content's explicit entries. Current user must have SeePermissions permission.
         /// </summary>
         /// <param name="contentId">Id of the content.</param>
         /// <param name="relatedIdentities">If not passed, the current user's related identities is focused.</param>
-        public static List<AceInfo> GetExplicitEntries(int contentId, IEnumerable<int> relatedIdentities = null)
+        /// <param name="entryType">Entry type filter. Default: Normal</param>
+        public static List<AceInfo> GetExplicitEntries(int contentId, IEnumerable<int> relatedIdentities = null,
+            EntryType entryType = EntryType.Normal)
         {
             SecurityContext.AssertPermission(contentId, PermissionType.SeePermissions);
-            return GetExplicitEntriesAsSystemUser(contentId, relatedIdentities);
+            return GetExplicitEntriesAsSystemUser(contentId, relatedIdentities, entryType);
         }
+
         /// <summary>
         /// Return with the passed content's explicit entries. There is permission check so you must call this method from a safe block.
         /// </summary>
         /// <param name="contentId">Id of the content.</param>
         /// <param name="relatedIdentities">If not passed, the current user's related identities is focused.</param>
-        public static List<AceInfo> GetExplicitEntriesAsSystemUser(int contentId, IEnumerable<int> relatedIdentities = null)
-        {
-            return SecurityContext.GetExplicitEntries(contentId, relatedIdentities);
-        }
+        /// <param name="entryType">Entry type filter. Default: Normal</param>
+	    public static List<AceInfo> GetExplicitEntriesAsSystemUser(int contentId,
+	        IEnumerable<int> relatedIdentities = null,
+	        EntryType entryType = EntryType.Normal)
+	    {
+	        return SecurityContext.GetExplicitEntries(contentId, relatedIdentities, entryType);
+	    }
 
-        /// <summary>
+	    /// <summary>
         /// Return with the current content's effective entries. Current user must have SeePermissions permission.
         /// </summary>
         public List<AceInfo> GetEffectiveEntries()

@@ -6,7 +6,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Sharing;
+using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Search.Indexing;
+using SenseNet.Security;
 using SenseNet.Tests;
 
 namespace SenseNet.ContentRepository.Tests
@@ -261,55 +264,60 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(0x1Ful, bitmasks[SharingLevel.Open]);
             Assert.AreEqual(0x7Ful, bitmasks[SharingLevel.Edit]);
         }
-        //[TestMethod]
-        //public void Sharing_Permissions_AddSharing()
-        //{
-        //    Test(() =>
-        //    {
-        //        ReInstallGenericContentCtd();
-        //        var user1Email = "abc3@example.com";
-        //        var user1 = new User(Node.LoadNode("/Root/IMS/BuiltIn/Portal"))
-        //        {
-        //            Name = "User-1",
-        //            Enabled = true,
-        //            Email = user1Email
-        //        };
-        //        user1.Save();
-                
-        //        var root = CreateTestRoot();
+        [TestMethod]
+        public void Sharing_Permissions_AddSharing()
+        {
+            Test(true, () =>
+            {
+                using (new SystemAccount())
+                    SnSecurityContext.Create().CreateAclEditor()
+                        .Allow(2, 1, false, PermissionType.BuiltInPermissionTypes)
+                        .Apply();
 
-        //        var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
-        //        content.Save();
-        //        var gc = (GenericContent)content.ContentHandler;
+                ReInstallGenericContentCtd();
+                var user1Email = "abc3@example.com";
+                var user1 = new User(Node.LoadNode("/Root/IMS/BuiltIn/Portal"))
+                {
+                    Name = "User-1",
+                    Enabled = true,
+                    Email = user1Email
+                };
+                user1.Save();
 
-        //        // ACTION
-        //        gc.Sharing.Share("abc1@example.com", SharingLevel.Open, SharingMode.Public);
-        //        var entries1 = gc.Security.GetExplicitEntries(EntryType.Sharing);
+                var root = CreateTestRoot();
 
-        //        gc.Sharing.Share("abc2@example.com", SharingLevel.Open, SharingMode.Authenticated);
-        //        var entries2 = gc.Security.GetExplicitEntries(EntryType.Sharing);
+                var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
+                content.Save();
+                var gc = (GenericContent)content.ContentHandler;
 
-        //        gc.Sharing.Share(user1Email, SharingLevel.Edit, SharingMode.Private);
-        //        var entries3 = gc.Security.GetExplicitEntries(EntryType.Sharing).OrderBy(e=>e.IdentityId).ToList();
+                // ACTION
+                gc.Sharing.Share("abc1@example.com", SharingLevel.Open, SharingMode.Public);
+                var entries1 = gc.Security.GetExplicitEntries(EntryType.Sharing);
 
-        //        // ASSERT
-        //        Assert.AreEqual(0, entries1.Count);
+                gc.Sharing.Share("abc2@example.com", SharingLevel.Open, SharingMode.Authenticated);
+                var entries2 = gc.Security.GetExplicitEntries(EntryType.Sharing);
 
-        //        Assert.AreEqual(1, entries2.Count);
-        //        var entry = entries2.Single();
-        //        Assert.AreEqual(EntryType.Sharing, entry.EntryType);
-        //        Assert.AreEqual(Group.Everyone.Id, entry.IdentityId);
-        //        Assert.AreEqual(SharingHandler.GetEffectiveBitmask(SharingLevel.Open), entry.AllowBits);
-        //        Assert.AreEqual(0ul, entry.DenyBits);
+                gc.Sharing.Share(user1Email, SharingLevel.Edit, SharingMode.Private);
+                var entries3 = gc.Security.GetExplicitEntries(EntryType.Sharing).OrderBy(e => e.IdentityId).ToList();
 
-        //        Assert.AreEqual(2, entries3.Count);
-        //        entry = entries3[1];
-        //        Assert.AreEqual(EntryType.Sharing, entry.EntryType);
-        //        Assert.AreEqual(user1.Id, entry.IdentityId);
-        //        Assert.AreEqual(SharingHandler.GetEffectiveBitmask(SharingLevel.Edit), entry.AllowBits);
-        //        Assert.AreEqual(0ul, entry.DenyBits);
-        //    });
-        //}
+                // ASSERT
+                Assert.AreEqual(0, entries1.Count);
+
+                Assert.AreEqual(1, entries2.Count);
+                var entry = entries2.Single();
+                Assert.AreEqual(EntryType.Sharing, entry.EntryType);
+                Assert.AreEqual(Group.Everyone.Id, entry.IdentityId);
+                Assert.AreEqual(SharingHandler.GetEffectiveBitmask(SharingLevel.Open), entry.AllowBits);
+                Assert.AreEqual(0ul, entry.DenyBits);
+
+                Assert.AreEqual(2, entries3.Count);
+                entry = entries3[1];
+                Assert.AreEqual(EntryType.Sharing, entry.EntryType);
+                Assert.AreEqual(user1.Id, entry.IdentityId);
+                Assert.AreEqual(SharingHandler.GetEffectiveBitmask(SharingLevel.Edit), entry.AllowBits);
+                Assert.AreEqual(0ul, entry.DenyBits);
+            });
+        }
 
         private void ReInstallGenericContentCtd()
         {

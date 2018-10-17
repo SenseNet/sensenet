@@ -116,8 +116,8 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="localOnly">Determines whether the edited entry is inheritable or not.</param>
         /// <param name="allowBits">Aggregated bitmask. Every bit means a permission. The bit number is derived from the Index of the PermissionTypeBase.
         /// In the bitmask the 1 means the permission that must be allowed.</param>
-        /// <param name="allowBits">Aggregated bitmask. Every bit means a permission. The bit number is derived from the Index of the PermissionTypeBase.
-        /// In the bitmask the 1 means the permission that must be allowed. Deny bits override the allow bits</param>
+        /// <param name="denyBits">Aggregated bitmask. Every bit means a permission. The bit number is derived from the Index of the PermissionTypeBase.
+        /// In the bitmask the 1 means the permission that must be denied. Deny bits override the allow bits</param>
         /// <returns>A reference to this instance for calling more operations.</returns>
         public SnAclEditor Set(int entityId, int identityId, bool localOnly, ulong allowBits, ulong denyBits)
         {

@@ -3,10 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Packaging.Steps;
+using SenseNet.Search;
 using SenseNet.Security;
 
 namespace SenseNet.ContentRepository.Sharing
 {
+    public class SharingQueries : ISafeQueryHolder
+    {
+        /// <summary>Returns the following query: +TypeIs:User +Email:@0</summary>
+        public static string UsersByEmail => "+TypeIs:User +Email:@0";
+    }
+
     public class SharingHandler
     {
         private const string SharingItemsCacheKey = "SharingItems";
@@ -87,26 +95,52 @@ namespace SenseNet.ContentRepository.Sharing
         {
             //UNDONE: finalize sharing public API
 
-            //UNDONE: set sharing identity if found
+            //UNDONE: check/assert permission
+
+            //UNDONE: set sharing identity and token well
             var sharingData = new SharingData
             {
                 Token = token,
+                Identity = GetSharingIdentity(token),
                 Level = level,
                 Mode = mode,
                 CreatorId = (AccessProvider.Current.GetOriginalUser() as User)?.Id ?? 0,
-                ShareDate = DateTime.UtcNow,
-                //Identity = 
+                ShareDate = DateTime.UtcNow
             };
 
             _items.Add(sharingData);
 
             UpdateOwnerNode();
+            SetPermissions(sharingData);
 
             return sharingData;
         }
 
+        private void SetPermissions(SharingData sharingData)
+        {
+            var identityId = sharingData.Mode == SharingMode.Authenticated ? Group.Everyone.Id : sharingData.Identity;
+            if (identityId <= 0)
+                return;
+
+            var mask = GetEffectiveBitmask(sharingData.Level);
+            SnSecurityContext.Create().CreateAclEditor(EntryType.Sharing)
+                .Set(_owner.Id, identityId, false, mask, 0ul)
+                .Apply();
+        }
+
+        private int GetSharingIdentity(string token)
+        {
+            //UNDONE: get sharing identity: email, username, groupname, special tokens etc.
+
+            // returns the id of user by email or 0.
+            var userId = ContentQuery.Query(SharingQueries.UsersByEmail, QuerySettings.AdminSettings, token)
+                .Identifiers.FirstOrDefault();
+            return userId;
+        }
+        
         public bool RemoveSharing(string id)
         {
+            //UNDONE: check/assert permission
             var sharingData = _items?.FirstOrDefault(sd => sd.Id == id);
             if (sharingData == null)
                 return false;
