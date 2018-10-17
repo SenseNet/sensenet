@@ -5,11 +5,12 @@ using SenseNet.ContentRepository.Sharing;
 
 namespace SenseNet.ContentRepository.Fields
 {
-    //UNDONE: implement SharingInfo field
+    //UNDONE: implement Sharing field
 
     [ShortName("Sharing")]
     [DataSlot(0, RepositoryDataType.Text, typeof(SharingHandler))]
     [DefaultFieldSetting(typeof(NullFieldSetting))]
+    [DefaultFieldControl("SenseNet.Portal.UI.Controls.ShortText")]
     public class SharingField : Field
     {
         protected override bool HasExportData => true;

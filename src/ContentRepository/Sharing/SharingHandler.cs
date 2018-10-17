@@ -9,7 +9,7 @@ using SenseNet.Security;
 
 namespace SenseNet.ContentRepository.Sharing
 {
-    public class SharingQueries : ISafeQueryHolder
+    internal class SharingQueries : ISafeQueryHolder
     {
         /// <summary>Returns the following query: +TypeIs:User +Email:@0</summary>
         public static string UsersByEmail => "+TypeIs:User +Email:@0";
@@ -40,7 +40,6 @@ namespace SenseNet.ContentRepository.Sharing
 
                             _items = Deserialize(src);
 
-                            //UNDONE: should we cache sharing items here?
                             _owner.SetCachedData(SharingItemsCacheKey, _items);
                         }
                     }
@@ -111,10 +110,15 @@ namespace SenseNet.ContentRepository.Sharing
                 ShareDate = DateTime.UtcNow
             };
 
+            // make sure te list is loaded
+            var _ = Items;
+
             _items.Add(sharingData);
 
             UpdateOwnerNode();
             SetPermissions(sharingData);
+
+            //UNDONE: send notification email to the target identity
 
             return sharingData;
         }
@@ -146,6 +150,9 @@ namespace SenseNet.ContentRepository.Sharing
         
         public bool RemoveSharing(string id)
         {
+            // make sure te list is loaded
+            var _ = Items;
+
             //UNDONE: check/assert permission
             var sharingToDelete = _items?.FirstOrDefault(sd => sd.Id == id);
             if (sharingToDelete == null)
@@ -167,18 +174,16 @@ namespace SenseNet.ContentRepository.Sharing
 
         private void UpdateOwnerNode()
         {
-            //UNDONE: sharing items: should we set null or _items?
-            // ...because the _items list may be cleared below!
-            _owner.SetCachedData(SharingItemsCacheKey, null);
-
-            //UNDONE: this property setter resets the _items list unnecessarily!
-            _owner.SharingData = Serialize(_items);
+            // do not reset the item list because we already have it up-todate
+            _owner.SetSharingData(Serialize(_items), false);
             _owner.Save(SavingMode.KeepVersion);
+
+            _owner.SetCachedData(SharingItemsCacheKey, _items);
         }
 
         /* ================================================================================== Permissions */
 
-        private static readonly Lazy<Dictionary<SharingLevel, ulong>> _effectiveBitmasks =
+        private static readonly Lazy<Dictionary<SharingLevel, ulong>> EffectiveBitmasks =
             new Lazy<Dictionary<SharingLevel, ulong>>(() =>
             {
                 return Enum.GetValues(typeof(SharingLevel))
@@ -188,7 +193,7 @@ namespace SenseNet.ContentRepository.Sharing
 
         internal static ulong GetEffectiveBitmask(SharingLevel level)
         {
-            return _effectiveBitmasks.Value[level];
+            return EffectiveBitmasks.Value[level];
         }
         private static ulong CalculateEffectiveBitmask(SharingLevel level)
         {

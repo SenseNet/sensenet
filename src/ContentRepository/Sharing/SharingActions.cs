@@ -1,0 +1,65 @@
+﻿using System;
+using SenseNet.ApplicationModel;
+
+namespace SenseNet.ContentRepository.Sharing
+{
+    /// <summary>
+    /// Contains sharing-related OData actions.
+    /// </summary>
+    public static class SharingActions
+    {
+        /// <summary>
+        /// Gets a list of all sharing records on a content.
+        /// </summary>
+        [ODataFunction]
+        public static object GetSharing(Content content)
+        {
+            var gc = EnsureContent(content);
+
+            return gc.Sharing.Items;
+        }
+        /// <summary>
+        /// Shares a content with somebody.
+        /// </summary>
+        /// <param name="content"></param>
+        /// <param name="token">An identifier token: an email address, a username or a user or group id.</param>
+        /// <param name="level"></param>
+        /// <param name="mode"></param>
+        /// <returns>A sharing record representing the new share.</returns>
+        [ODataAction]
+        public static object Share(Content content, string token, SharingLevel level, SharingMode mode)
+        {
+            var gc = EnsureContent(content);
+
+            return gc.Sharing.Share(token, level, mode);
+        }
+        /// <summary>
+        /// Remove a sharing record from a content.
+        /// </summary>
+        /// <param name="content"></param>
+        /// <param name="id">Identifier of a sharing record.</param>
+        /// <returns>Returns true if the system has found and removed the sharing record.</returns>
+        [ODataAction]
+        public static object RemoveSharing(Content content, string id)
+        {
+            var gc = EnsureContent(content);
+
+            return gc.Sharing.RemoveSharing(id);
+        }
+
+        private static GenericContent EnsureContent(Content content)
+        {
+            // This method makes sure that the content exists and it can be shared.
+            // Authorization is done on the application content (RequiredPermissions).
+
+            if (content == null)
+                throw new ArgumentNullException(nameof(content));
+
+            if (!(content.ContentHandler is GenericContent gc))
+                throw new InvalidOperationException(
+                    $"Sharing works only on generic content not on {content.ContentType.Name}. Path: {content.Path}");
+
+            return gc;
+        }
+    }
+}

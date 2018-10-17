@@ -764,11 +764,15 @@ namespace SenseNet.ContentRepository
         internal string SharingData
         {
             get => this.GetProperty<string>(nameof(SharingData));
-            set
-            {
-                this.SetProperty(nameof(SharingData), value);
+            set => SetSharingData(value);
+        }
+
+        internal void SetSharingData(string data, bool resetItems = true)
+        {
+            this.SetProperty(nameof(SharingData), data);
+
+            if (resetItems)
                 this.Sharing.ItemsChanged();
-            }
         }
 
         /// <summary>
@@ -834,6 +838,8 @@ namespace SenseNet.ContentRepository
                     return this.IsFolder;
                 case "BrowseUrl":
                     return this.BrowseUrl;
+                case "Sharing":
+                    return null;
                 default:
                     return base[name];
             }
@@ -888,6 +894,7 @@ namespace SenseNet.ContentRepository
                 case "Publishable":
                 case "Versions":
                 case "CheckedOutTo":
+                case "Sharing":
                     // do nothing, these props are readonly
                     break;
                 default:

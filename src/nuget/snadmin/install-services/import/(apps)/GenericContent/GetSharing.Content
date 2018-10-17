@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>GenericODataApplication</ContentType>
+  <ContentName>GetSharing</ContentName>
+  <Fields>
+    <ClassName><![CDATA[SenseNet.ContentRepository.Sharing.SharingActions]]></ClassName>
+    <MethodName><![CDATA[GetSharing]]></MethodName>
+    <DisplayName><![CDATA[GetSharing]]></DisplayName>
+    <ActionTypeName><![CDATA[GenericODataOperation]]></ActionTypeName>
+    <Icon><![CDATA[Application]]></Icon>
+    <RequiredPermissions>Save,SetPermissions</RequiredPermissions>
+  </Fields>
+  <Permissions>
+    <Clear />
+    <Identity path="/Root/IMS/BuiltIn/Portal/Everyone">
+      <RunApplication>Allow</RunApplication>
+    </Identity>
+  </Permissions>
+</ContentMetaData>
