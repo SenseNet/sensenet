@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Security;
 
 namespace SenseNet.ContentRepository.Sharing
 {
@@ -126,6 +127,47 @@ namespace SenseNet.ContentRepository.Sharing
             //UNDONE: this property setter resets the _items list unnecessarily!
             _owner.SharingData = Serialize(_items);
             _owner.Save(SavingMode.KeepVersion);
+        }
+
+        /* ================================================================================== Permissions */
+
+        private static readonly Lazy<Dictionary<SharingLevel, ulong>> _effectiveBitmasks =
+            new Lazy<Dictionary<SharingLevel, ulong>>(() =>
+            {
+                return Enum.GetValues(typeof(SharingLevel))
+                    .Cast<SharingLevel>()
+                    .ToDictionary(x => x, CalculateEffectiveBitmask);
+            });
+
+        internal static ulong GetEffectiveBitmask(SharingLevel level)
+        {
+            return _effectiveBitmasks.Value[level];
+        }
+        private static ulong CalculateEffectiveBitmask(SharingLevel level)
+        {
+            PermissionTypeBase[] permissions;
+            switch (level)
+            {
+                case SharingLevel.Open:
+                    permissions = new[] {PermissionType.Open};
+                    break;
+                case SharingLevel.Edit:
+                    permissions = new[] { PermissionType.Save };
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(level), level, null);
+            }
+
+            var allPerms = permissions.ToList();
+            var index = -1;
+            while (++index < allPerms.Count)
+                allPerms.AddRange(allPerms[index].Allows ?? Enumerable.Empty<PermissionTypeBase>());
+
+            var bits = 0ul;
+            foreach (var perm in allPerms)
+                bits |= perm.Mask;
+
+            return bits;
         }
     }
 }
