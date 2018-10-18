@@ -872,6 +872,10 @@ new StackInfo
                             // we handle "True", "true" and "1" as boolean true values
                             values[i] = JsonConvert.DeserializeObject(valStr.ToLower(), type);
                         }
+                        else if (type.IsEnum)
+                        {
+                            values[i] = Enum.Parse(type, valStr, true);
+                        }
                         else
                         {
                             values[i] = JsonConvert.DeserializeObject(valStr, type);
