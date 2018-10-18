@@ -275,13 +275,13 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ACTION
                 gc.Sharing.Share("abc1@example.com", SharingLevel.Open, SharingMode.Public);
-                var entries1 = gc.Security.GetExplicitEntries(EntryType.Sharing);
+                var entries1 = gc.Sharing.GetExplicitEntries();
 
                 gc.Sharing.Share("abc2@example.com", SharingLevel.Open, SharingMode.Authenticated);
-                var entries2 = gc.Security.GetExplicitEntries(EntryType.Sharing);
+                var entries2 = gc.Sharing.GetExplicitEntries();
 
                 gc.Sharing.Share(user1.Email, SharingLevel.Edit, SharingMode.Private);
-                var entries3 = gc.Security.GetExplicitEntries(EntryType.Sharing).OrderBy(e => e.IdentityId).ToList();
+                var entries3 = gc.Sharing.GetExplicitEntries().OrderBy(e => e.IdentityId).ToList();
 
                 // ASSERT
                 Assert.AreEqual(0, entries1.Count);
@@ -310,9 +310,9 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ACTION
                 gc.Sharing.Share(user1.Email, SharingLevel.Open, SharingMode.Private);
-                var entries1 = gc.Security.GetExplicitEntries(EntryType.Sharing).OrderBy(e => e.IdentityId).ToList();
+                var entries1 = gc.Sharing.GetExplicitEntries().OrderBy(e => e.IdentityId).ToList();
                 gc.Sharing.Share(user1.Email, SharingLevel.Edit, SharingMode.Private);
-                var entries2 = gc.Security.GetExplicitEntries(EntryType.Sharing).OrderBy(e => e.IdentityId).ToList();
+                var entries2 = gc.Sharing.GetExplicitEntries().OrderBy(e => e.IdentityId).ToList();
 
                 // ASSERT
                 Assert.AreEqual(1, entries1.Count);
@@ -353,7 +353,7 @@ namespace SenseNet.ContentRepository.Tests
                     sharing.Take(4).Select(x => x.Token),
                     gc.Sharing.Items.OrderBy(x => x.Token).Select(x => x.Token));
 
-                var entries = gc.Security.GetExplicitEntries(EntryType.Sharing).OrderBy(e => e.IdentityId).ToArray();
+                var entries = gc.Sharing.GetExplicitEntries().OrderBy(e => e.IdentityId).ToArray();
                 Assert.AreEqual(2, entries.Length);
                 // everyone group
                 Assert.AreEqual(Identifiers.EveryoneGroupId, entries[0].IdentityId);
@@ -370,7 +370,7 @@ namespace SenseNet.ContentRepository.Tests
                     sharing.Take(3).Select(x => x.Token),
                     gc.Sharing.Items.OrderBy(x => x.Token).Select(x => x.Token));
 
-                entries = gc.Security.GetExplicitEntries(EntryType.Sharing).OrderBy(e => e.IdentityId).ToArray();
+                entries = gc.Sharing.GetExplicitEntries().OrderBy(e => e.IdentityId).ToArray();
                 Assert.AreEqual(2, entries.Length);
                 // everyone group
                 Assert.AreEqual(Identifiers.EveryoneGroupId, entries[0].IdentityId);
@@ -387,7 +387,7 @@ namespace SenseNet.ContentRepository.Tests
                     sharing.Take(2).Select(x => x.Token),
                     gc.Sharing.Items.OrderBy(x => x.Token).Select(x => x.Token));
 
-                entries = gc.Security.GetExplicitEntries(EntryType.Sharing).OrderBy(e => e.IdentityId).ToArray();
+                entries = gc.Sharing.GetExplicitEntries().OrderBy(e => e.IdentityId).ToArray();
                 Assert.AreEqual(2, entries.Length);
                 // everyone group
                 Assert.AreEqual(Identifiers.EveryoneGroupId, entries[0].IdentityId);
@@ -404,11 +404,88 @@ namespace SenseNet.ContentRepository.Tests
                     sharing.Take(1).Select(x => x.Token),
                     gc.Sharing.Items.OrderBy(x => x.Token).Select(x => x.Token));
 
-                entries = gc.Security.GetExplicitEntries(EntryType.Sharing).ToArray();
+                entries = gc.Sharing.GetExplicitEntries().ToArray();
                 Assert.AreEqual(1, entries.Length);
                 // user
                 Assert.AreEqual(user1.Id, entries[0].IdentityId);
                 Assert.AreEqual(SharingHandler.GetEffectiveBitmask(SharingLevel.Open), entries[0].AllowBits);
+            });
+        }
+
+        [TestMethod]
+        public void Sharing_Permissions_Explicit()
+        {
+            Test(() => {
+                PrepareForPermissionTest(out var gc, out var user1);
+
+                // set some security entries on focused document
+                SnSecurityContext.Create().CreateAclEditor()
+                    .Allow(gc.Id, user1.Id, false, PermissionType.Preview)
+                    .Allow(gc.Id, Group.Everyone.Id, false, PermissionType.Preview)
+                    .Apply();
+
+                // create some sharing
+                var sharing = new[]
+                {
+                    gc.Sharing.Share(user1.Email, SharingLevel.Open, SharingMode.Private),
+                    gc.Sharing.Share("user2@example.com", SharingLevel.Open, SharingMode.Authenticated),
+                    gc.Sharing.Share("user3@example.com", SharingLevel.Edit, SharingMode.Authenticated)
+                };
+
+                // ACTION
+                var securityEntries = gc.Security.GetExplicitEntries().OrderBy(e=>e.IdentityId).Select(e => e.ToString());
+                var sharingEntries = gc.Sharing.GetExplicitEntries().OrderBy(e => e.IdentityId).Select(e => e.ToString());
+
+                // ASSERT
+                AssertSequenceEqual(new[]
+                {
+                    "Normal|+(8):______________________________________________________________++",
+                    "Normal|+(1239):______________________________________________________________++"
+                }, securityEntries);
+                AssertSequenceEqual(new[]
+                {
+                    "Sharing|+(8):_________________________________________________________+++++++",
+                    "Sharing|+(1239):___________________________________________________________+++++"
+                }, sharingEntries);
+            });
+        }
+        [TestMethod]
+        public void Sharing_Permissions_Effective()
+        {
+            Test(() =>
+            {
+                PrepareForPermissionTest(out var gc, out var user1);
+
+                // set some security entries on the parent chain
+                SnSecurityContext.Create().CreateAclEditor()
+                    .Allow(Identifiers.PortalRootId, user1.Id, false, PermissionType.Preview)
+                    .Allow(gc.ParentId, Group.Everyone.Id, false, PermissionType.Preview)
+                    .Apply();
+
+                // create some sharing
+                var sharing = new[]
+                {
+                    gc.Sharing.Share(user1.Email, SharingLevel.Open, SharingMode.Private), // 0
+                    gc.Sharing.Share("user2@example.com", SharingLevel.Open, SharingMode.Authenticated),
+                    gc.Sharing.Share("user3@example.com", SharingLevel.Edit, SharingMode.Authenticated)
+                };
+
+                // ACTION
+                var securityEntries = gc.Security.GetEffectiveEntries().OrderBy(e => e.IdentityId).Select(e=>e.ToString());
+                var sharingEntries = gc.Sharing.GetEffectiveEntries().OrderBy(e => e.IdentityId).Select(e => e.ToString());
+
+                // ASSERT
+                AssertSequenceEqual(new[]
+                {
+                    "Normal|+(1):_____________________________________________+++++++++++++++++++",
+                    "Normal|+(8):______________________________________________________________++",
+                    "Normal|+(1239):______________________________________________________________++"
+                }, securityEntries);
+                AssertSequenceEqual(new[]
+                {
+                    "Sharing|+(8):_________________________________________________________+++++++",
+                    "Sharing|+(1239):___________________________________________________________+++++"
+                }, sharingEntries);
             });
         }
 

@@ -229,5 +229,33 @@ namespace SenseNet.ContentRepository.Sharing
 
             return bits;
         }
+
+        internal List<AceInfo> GetExplicitEntries()
+        {
+            return GetExplicitEntries(_owner.Id);
+        }
+        internal static List<AceInfo> GetExplicitEntries(int contentId, IEnumerable<int> relatedIdentities = null)
+        {
+            SecurityHandler.SecurityContext.AssertPermission(contentId, PermissionType.SeePermissions);
+            return GetExplicitEntriesAsSystemUser(contentId, relatedIdentities);
+        }
+        internal static List<AceInfo> GetExplicitEntriesAsSystemUser(int contentId, IEnumerable<int> relatedIdentities = null)
+        {
+            return SecurityHandler.SecurityContext.GetExplicitEntries(contentId, relatedIdentities, EntryType.Sharing);
+        }
+
+        internal List<AceInfo> GetEffectiveEntries()
+        {
+            return GetEffectiveEntries(_owner.Id);
+        }
+        internal static List<AceInfo> GetEffectiveEntries(int contentId, IEnumerable<int> relatedIdentities = null)
+        {
+            SecurityHandler.SecurityContext.AssertPermission(contentId, PermissionType.SeePermissions);
+            return GetEffectiveEntriesAsSystemUser(contentId, relatedIdentities);
+        }
+        internal static List<AceInfo> GetEffectiveEntriesAsSystemUser(int contentId, IEnumerable<int> relatedIdentities = null)
+        {
+            return SecurityHandler.SecurityContext.GetEffectiveEntries(contentId, relatedIdentities, EntryType.Sharing);
+        }
     }
 }

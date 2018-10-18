@@ -781,21 +781,19 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Return with the current content's explicit entries. Current user must have SeePermissions permission.
         /// </summary>
-        public List<AceInfo> GetExplicitEntries(EntryType entryType = EntryType.Normal)
+        public List<AceInfo> GetExplicitEntries()
         {
-            return GetExplicitEntries(_node.Id, null, entryType);
+            return GetExplicitEntries(_node.Id);
         }
         /// <summary>
         /// Return with the passed content's explicit entries. Current user must have SeePermissions permission.
         /// </summary>
         /// <param name="contentId">Id of the content.</param>
         /// <param name="relatedIdentities">If not passed, the current user's related identities is focused.</param>
-        /// <param name="entryType">Entry type filter. Default: Normal</param>
-        public static List<AceInfo> GetExplicitEntries(int contentId, IEnumerable<int> relatedIdentities = null,
-            EntryType entryType = EntryType.Normal)
+        public static List<AceInfo> GetExplicitEntries(int contentId, IEnumerable<int> relatedIdentities = null)
         {
             SecurityContext.AssertPermission(contentId, PermissionType.SeePermissions);
-            return GetExplicitEntriesAsSystemUser(contentId, relatedIdentities, entryType);
+            return GetExplicitEntriesAsSystemUser(contentId, relatedIdentities);
         }
 
         /// <summary>
@@ -803,12 +801,9 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="contentId">Id of the content.</param>
         /// <param name="relatedIdentities">If not passed, the current user's related identities is focused.</param>
-        /// <param name="entryType">Entry type filter. Default: Normal</param>
-	    public static List<AceInfo> GetExplicitEntriesAsSystemUser(int contentId,
-	        IEnumerable<int> relatedIdentities = null,
-	        EntryType entryType = EntryType.Normal)
+	    public static List<AceInfo> GetExplicitEntriesAsSystemUser(int contentId, IEnumerable<int> relatedIdentities = null)
 	    {
-	        return SecurityContext.GetExplicitEntries(contentId, relatedIdentities, entryType);
+	        return SecurityContext.GetExplicitEntries(contentId, relatedIdentities, EntryType.Normal);
 	    }
 
 	    /// <summary>
@@ -835,7 +830,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="relatedIdentities">If not passed, the current user's related identities is focused.</param>
         public static List<AceInfo> GetEffectiveEntriesAsSystemUser(int contentId, IEnumerable<int> relatedIdentities = null)
         {
-            return SecurityContext.GetEffectiveEntries(contentId, relatedIdentities);
+            return SecurityContext.GetEffectiveEntries(contentId, relatedIdentities, EntryType.Normal);
         }
         #endregion
 
@@ -865,10 +860,9 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Returns a new AclEditor instance.
         /// </summary>
         /// <param name="context">If passed, the method uses that and does not create a new context instance.</param>
-        /// <param name="entryType">If passed, the method uses only the defined entry category. Default category: Normal.</param>
-        public static SnAclEditor CreateAclEditor(SnSecurityContext context = null, EntryType entryType = EntryType.Normal)
+        public static SnAclEditor CreateAclEditor(SnSecurityContext context = null)
         {
-            return new SnAclEditor(context, entryType);
+            return new SnAclEditor(context);
         }
 
         /// <summary>
@@ -1033,15 +1027,6 @@ namespace SenseNet.ContentRepository.Storage.Security
         {
             BreakInheritance(this._node, convertToExplicit);
         }
-	    /// <summary>
-	    /// Clears the permission inheritance on the passed content.
-	    /// </summary>
-	    /// <param name="categoriesToCopy">After the break operation, all previous effective permissions will be
-	    /// copied explicitly that are matched any of the given entry types.</param>
-	    public void BreakInheritance(EntryType[] categoriesToCopy)
-	    {
-	        BreakInheritance(this._node, categoriesToCopy);
-        }
         /// <summary>
         /// Clears the permission inheritance on the passed content.
         /// </summary>
@@ -1049,23 +1034,13 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="convertToExplicit">If true (default), all effective permissions will be copied explicitly.</param>
         public static void BreakInheritance(Node content, bool convertToExplicit = true)
         {
-            BreakInheritance(content, convertToExplicit ? new[] { EntryType.Normal } : new EntryType[0]);
+            var contentId = content.Id;
+            if (!IsEntityInherited(contentId))
+                return;
+            SecurityContext.CreateAclEditor()
+                .BreakInheritance(contentId, convertToExplicit ? new[] { EntryType.Normal } : new EntryType[0])
+                .Apply();
         }
-        /// <summary>
-        /// Clears the permission inheritance on the passed content.
-        /// </summary>
-        /// <param name="content">The content.</param>
-        /// <param name="categoriesToCopy">After the break operation, all previous effective permissions will be
-        /// copied explicitly that are matched any of the given entry types.</param>
-        public static void BreakInheritance(Node content, EntryType[] categoriesToCopy)
-	    {
-	        var contentId = content.Id;
-	        if (!IsEntityInherited(contentId))
-	            return;
-	        SecurityContext.CreateAclEditor()
-                .BreakInheritance(contentId, categoriesToCopy)
-	            .Apply();
-	    }
         /// <summary>
         /// Restores the permission inheritance on the current content.
         /// </summary>
@@ -1075,14 +1050,6 @@ namespace SenseNet.ContentRepository.Storage.Security
         {
             UnbreakInheritance(this._node, normalize);
         }
-        /// <summary>
-        /// Restores the permission inheritance on the current content.
-        /// </summary>
-        /// <param name="categoriesToNormalize">Unnecessary explicit entries that match the categories will be removed.</param>
-	    public void RemoveBreakInheritance(EntryType[] categoriesToNormalize)
-	    {
-	        UnbreakInheritance(this._node, categoriesToNormalize);
-	    }
         /// <summary>
         /// Restores the permission inheritance on the passed content.
         /// </summary>
@@ -1098,20 +1065,6 @@ namespace SenseNet.ContentRepository.Storage.Security
                     normalize ? new[] { EntryType.Normal } : new EntryType[0])
                 .Apply();
         }
-        /// <summary>
-        /// Restores the permission inheritance on the passed content.
-        /// </summary>
-        /// <param name="content">The content.</param>
-        /// <param name="categoriesToNormalize">Unnecessary explicit entries that match the categories will be removed.</param>
-	    public static void UnbreakInheritance(Node content, EntryType[] categoriesToNormalize)
-	    {
-	        var contentId = content.Id;
-	        if (IsEntityInherited(contentId))
-	            return;
-	        SecurityContext.CreateAclEditor()
-                .UnbreakInheritance(contentId, categoriesToNormalize)
-	            .Apply();
-	    }
 
         #endregion
 
