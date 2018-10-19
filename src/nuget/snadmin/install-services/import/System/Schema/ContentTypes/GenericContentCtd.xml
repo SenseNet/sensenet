@@ -692,7 +692,8 @@
       <DisplayName>$Ctd-GenericContent,Sharing-DisplayName</DisplayName>
       <Description>$Ctd-GenericContent,Sharing-Description</Description>
       <Indexing>
-        <Mode>No</Mode>
+        <Analyzer>Keyword</Analyzer>
+        <IndexHandler>SenseNet.Search.Indexing.SharingIndexHandler</IndexHandler>
       </Indexing>
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>

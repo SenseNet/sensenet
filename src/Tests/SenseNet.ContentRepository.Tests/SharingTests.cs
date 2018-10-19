@@ -132,6 +132,47 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
+        public void Sharing_Indexing_CheckByRawQuery()
+        {
+            var sd1 = new SharingData
+            {
+                Token = "abc1@example.com",
+                Identity = 0,
+                Mode = SharingMode.Public,
+                Level = SharingLevel.Edit,
+                ShareDate = DateTime.UtcNow.AddHours(-1),
+                CreatorId = 1
+            };
+
+            var sharingItems = new List<SharingData> { sd1 };
+
+            Test(() =>
+            {
+                ReInstallGenericContentCtd();
+                var root = CreateTestRoot();
+
+                var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
+                var gc = (GenericContent)content.ContentHandler;
+                gc.SharingData = SharingHandler.Serialize(new[] { sd1 });
+                content.Save();
+                var id1 = content.Id;
+
+                // TESTS
+                Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:Tabc1@example.com"));
+                Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:I0"));
+                Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:C1"));
+                Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:M0"));
+                Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:L1"));
+
+                Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:tabc1@example.com,i0"));
+                Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:tabc1@example.com,i0,c1"));
+                Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:tabc1@example.com,i0,c1,m0"));
+                Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +Sharing:tabc1@example.com,i0,c1,m0,l1"));
+            });
+
+        }
+
+        [TestMethod]
         public void Sharing_Serialization()
         {
             var sd1 = new SharingData
