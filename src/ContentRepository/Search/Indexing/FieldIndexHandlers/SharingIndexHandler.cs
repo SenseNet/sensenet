@@ -10,7 +10,55 @@ using SenseNet.Search.Indexing;
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Search.Indexing
 {
-    //UNDONE: implement SharingIndexHandler
+    internal class SharingDataTokenizer
+    {
+        public static SharingDataTokenizer Tokenize(SharingData data)
+        {
+            return new SharingDataTokenizer(data);
+        }
+
+        public string Token { get; }
+        public string Identity { get; }
+        public string CreatorId { get; }
+        public string Mode { get; }
+        public string Level { get; }
+
+        private SharingDataTokenizer(SharingData data)
+        {
+            Token = "T" + data.Token.ToLowerInvariant();
+            Identity = "I" + data.Identity.ToString("X");
+            CreatorId = "C" + data.CreatorId.ToString("X");
+            Mode = "M" + (int)data.Mode;
+            Level = "L" + (int)data.Level;
+        }
+
+        public string[] GetCombinations()
+        {
+            var a = Token;
+            var b = Identity;
+            var c = CreatorId;
+            var d = Mode;
+            var e = Level;
+
+            return new[]
+            {
+                a, b, c, d, e,
+
+                $"{a},{b}", $"{a},{c}", $"{a},{d}", $"{a},{e}",
+                $"{b},{c}", $"{b},{d}", $"{b},{e}",
+                $"{c},{d}", $"{c},{e}",
+                $"{d},{e}",
+
+                $"{a},{b},{c}",$"{a},{b},{d}",$"{a},{b},{e}",$"{a},{c},{d}",$"{a},{c},{e}",$"{a},{d},{e}",
+                $"{b},{c},{d}",$"{b},{c},{e}",$"{b},{d},{e}",
+                $"{c},{d},{e}",
+
+                $"{a},{b},{c},{d}",$"{a},{b},{c},{e}",$"{a},{b},{d},{e}",$"{a},{c},{d},{e}",$"{b},{c},{d},{e}",
+
+                $"{a},{b},{c},{d},{e}"
+            };
+        }
+    }
 
     /// <summary>
     /// IndexFieldHandler for handling SharingInfo value of a <see cref="Field"/>.
@@ -25,61 +73,41 @@ namespace SenseNet.Search.Indexing
             if (!(snField is Field field))
                 return new IndexField[0];
 
+            if (field.Name != "Sharing")
+                return new IndexField[0];
+
             if (!(field.Content?.ContentHandler is GenericContent gc))
                 return new IndexField[0];
 
             return GetIndexFields(field.Name, gc.Sharing.Items);
         }
-
         internal IEnumerable<IndexField> GetIndexFields(string fieldName, IEnumerable<SharingData> sharingItems)
         {
-            //UNDONE: Sharing field name constants
-            switch (fieldName)
+            var values = new List<string>();
+            foreach (var item in sharingItems)
             {
-                case "SharedWith":
-                    var terms = new List<string>();
-                    foreach (var item in sharingItems)
-                    {
-                        if (!string.IsNullOrEmpty(item.Token))
-                            terms.Add(item.Token.ToLowerInvariant());
-                        terms.Add(item.Identity.ToString());
-                    }
-                    var result = CreateField("SharedWith", terms.Distinct().ToArray());
-                    return result;
-                case "SharedBy":
-                    return CreateField("SharedBy", sharingItems
-                        .Select(si => si.CreatorId.ToString())
-                        .ToArray());
-                case "SharingMode":
-                    return CreateField("SharingMode", sharingItems
-                        .Select(si => si.Mode.ToString().ToLowerInvariant())
-                        .ToArray());
-                case "SharingLevel":
-                    return CreateField("SharingLevel", sharingItems
-                        .Select(si => si.Level.ToString().ToLowerInvariant())
-                        .ToArray());
+                var tokenizer = SharingDataTokenizer.Tokenize(item);
+                values.AddRange(tokenizer.GetCombinations());
             }
-
-            throw new NotImplementedException($"Unknown sharing field: {fieldName}");
+            return CreateField(fieldName, values);
         }
 
         /// <inheritdoc />
         public override IndexValue Parse(string text)
         {
-            return DateTime.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTimeValue)
-                ? new IndexValue(dateTimeValue)
-                : new IndexValue(text.ToLowerInvariant());
+            return new IndexValue(text);
         }
         /// <inheritdoc />
         public override IndexValue ConvertToTermValue(object value)
         {
+            //UNDONE: implement ConvertToTermValue
             throw new NotImplementedException();
         }
 
         /// <inheritdoc />
         public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
-            //UNDONE: do we need GetParsableValues implementation?
+            //UNDONE: do we need GetParsableValues implementation? If not, convert to NotSupportedException.
             throw new NotImplementedException();
         }
     }

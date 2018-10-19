@@ -20,7 +20,52 @@ namespace SenseNet.ContentRepository.Tests
     public class SharingTests : TestBase
     {
         [TestMethod]
-        public void Sharing_IndexFields()
+        public void Sharing_Indexing_Tokenizer()
+        {
+            var data = new SharingData
+            {
+                Token = "ABC1@eXample.com",
+                Identity = 0,
+                CreatorId = 1,
+                Level = SharingLevel.Edit,
+                Mode = SharingMode.Public,
+                ShareDate = DateTime.UtcNow.AddHours(-1),
+            };
+
+            // ACTION
+            var tokenizer = SharingDataTokenizer.Tokenize(data);
+
+            // ASSERT
+            Assert.AreEqual("Tabc1@example.com", tokenizer.Token);
+            Assert.AreEqual("I0", tokenizer.Identity);
+            Assert.AreEqual("C1", tokenizer.CreatorId);
+            Assert.AreEqual("L1", tokenizer.Level);
+            Assert.AreEqual("M0", tokenizer.Mode);
+        }
+        [TestMethod]
+        public void Sharing_Indexing_Combinator()
+        {
+            var data = new SharingData
+            {
+                Token = "ABC1@eXample.com",
+                Identity = 0,
+                CreatorId = 1,
+                Level = SharingLevel.Edit,
+                Mode = SharingMode.Public,
+                ShareDate = DateTime.UtcNow.AddHours(-1),
+            };
+            var tokenizer = SharingDataTokenizer.Tokenize(data);
+
+            // ACTION
+            var cmbinations = tokenizer.GetCombinations();
+
+            var expected = GetAvailableCombinations(data).OrderBy(x => x);
+            var actual = cmbinations.OrderBy(x => x);
+            AssertSequenceEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void Sharing_Indexing_IndexFields()
         {
             // ARRANGE
             var sd1 = new SharingData
@@ -36,30 +81,54 @@ namespace SenseNet.ContentRepository.Tests
             {
                 Token = "abc2@example.com",
                 Identity = 42,
+                CreatorId = 2,
                 Level = SharingLevel.Edit,
                 Mode = SharingMode.Private,
                 ShareDate = DateTime.UtcNow.AddHours(-1),
-                CreatorId = 2
             };
 
             var sharingItems = new List<SharingData> { sd1, sd2 };
             var indexHandler = new SharingIndexHandler { OwnerIndexingInfo = new PerFieldIndexingInfo() };
 
             // ACTION
-            var fieldsSharedWith = indexHandler.GetIndexFields("SharedWith", sharingItems).ToArray();
-            var fieldsSharedBy = indexHandler.GetIndexFields("SharedBy", sharingItems).ToArray();
-            var fieldsSharingMode = indexHandler.GetIndexFields("SharingMode", sharingItems).ToArray();
-            var fieldsSharingLevel = indexHandler.GetIndexFields("SharingLevel", sharingItems).ToArray();
+            var indexFields = indexHandler.GetIndexFields("Sharing", sharingItems);
 
             // ASSERT
-            var values = string.Join(", ", fieldsSharedWith.Single().StringArrayValue.OrderBy(x => x));
-            Assert.AreEqual("0, 42, abc1@example.com, abc2@example.com", values);
-            values = string.Join(", ", fieldsSharedBy.Single().StringArrayValue.OrderBy(x => x));
-            Assert.AreEqual("1, 2", values);
-            values = string.Join(", ", fieldsSharingMode.Single().StringArrayValue.OrderBy(x => x));
-            Assert.AreEqual("private, public", values);
-            values = string.Join(", ", fieldsSharingLevel.Single().StringArrayValue.OrderBy(x => x));
-            Assert.AreEqual("edit, open", values);
+            var indexField = indexFields.Single();
+            Assert.AreEqual("Sharing", indexField.Name);
+
+            var expected = GetAvailableCombinations(sd1)
+                .Union(GetAvailableCombinations(sd2)).OrderBy(x => x);
+            var values = indexField.StringArrayValue.OrderBy(x => x);
+            AssertSequenceEqual(expected, values);
+        }
+        private string[] GetAvailableCombinations(SharingData data)
+        {
+            var tokenizer = SharingDataTokenizer.Tokenize(data);
+
+            var a = tokenizer.Token;
+            var b = tokenizer.Identity;
+            var c = tokenizer.CreatorId;
+            var d = tokenizer.Mode;
+            var e = tokenizer.Level;
+
+            return new[]
+            {
+                a, b, c, d, e,
+
+                $"{a},{b}", $"{a},{c}", $"{a},{d}", $"{a},{e}",
+                $"{b},{c}", $"{b},{d}", $"{b},{e}",
+                $"{c},{d}", $"{c},{e}",
+                $"{d},{e}",
+
+                $"{a},{b},{c}",$"{a},{b},{d}",$"{a},{b},{e}",$"{a},{c},{d}",$"{a},{c},{e}",$"{a},{d},{e}",
+                $"{b},{c},{d}",$"{b},{c},{e}",$"{b},{d},{e}",
+                $"{c},{d},{e}",
+
+                $"{a},{b},{c},{d}",$"{a},{b},{c},{e}",$"{a},{b},{d},{e}",$"{a},{c},{d},{e}",$"{b},{c},{d},{e}",
+
+                $"{a},{b},{c},{d},{e}"
+            };
         }
 
         [TestMethod]
@@ -151,7 +220,7 @@ namespace SenseNet.ContentRepository.Tests
                 sd2	    E		A		c1      1
                 sd3	    O		Pr		c2      2
                 sd4	    E		Pu		c2      3
-             */
+            */
 
             Test(() =>
             {
