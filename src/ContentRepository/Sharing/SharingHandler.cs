@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository.Storage.Security;
@@ -14,6 +15,9 @@ namespace SenseNet.ContentRepository.Sharing
         public static string UsersByEmail => "+TypeIs:User +Email:@0";
     }
 
+    /// <summary>
+    /// Central API entry point for managing content sharing.
+    /// </summary>
     public class SharingHandler
     {
         private const string SharingItemsCacheKey = "SharingItems";
@@ -22,6 +26,10 @@ namespace SenseNet.ContentRepository.Sharing
         //UNDONE: individual items should be immutable too
         private readonly object _itemsSync = new object();
         private List<SharingData> _items;
+
+        /// <summary>
+        /// Internal readonly list of all sharing records on a content.
+        /// </summary>
         internal IEnumerable<SharingData> Items
         {
             get
@@ -47,6 +55,9 @@ namespace SenseNet.ContentRepository.Sharing
             }
         }
 
+        /// <summary>
+        /// Resets the pinned item list of sharing records.
+        /// </summary>
         internal void ItemsChanged()
         {
             _items = null;
@@ -69,7 +80,6 @@ namespace SenseNet.ContentRepository.Sharing
             MissingMemberHandling = MissingMemberHandling.Ignore,
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
             DateFormatHandling = DateFormatHandling.IsoDateFormat,
-            //TypeNameHandling = TypeNameHandling.None,
             Formatting = Formatting.Indented
         };
         internal static string Serialize(IEnumerable<SharingData> items)
@@ -89,11 +99,25 @@ namespace SenseNet.ContentRepository.Sharing
 
         /* ================================================================================== Public API */
 
+        /// <summary>
+        /// Readonly list of all sharing records on a content.
+        /// </summary>
+        public IEnumerable<SharingData> GetSharingItems()
+        {
+            return new ReadOnlyCollection<SharingData>(Items.ToList());
+        }
+        /// <summary>
+        /// Share a content with an internal or external identity.
+        /// </summary>
+        /// <param name="token">Represents an identity. It can be an email address, username, user or group id.</param>
+        /// <param name="level">Level of sharing.</param>
+        /// <param name="mode">Sharing mode. Publicly shared content will be available for everyone.
+        /// Authenticated mode means the content will be accessible by all logged in users in the system.
+        /// Private sharing gives access only to the user defined in the token.</param>
+        /// <returns>The newly created sharing record.</returns>
         public SharingData Share(string token, SharingLevel level, SharingMode mode)
         {
-            //UNDONE: finalize sharing public API
-
-            //UNDONE: check/assert permission
+            AssertSharingPermissions();
 
             var identity = mode == SharingMode.Authenticated
                 ? Group.Everyone.Id
@@ -121,6 +145,37 @@ namespace SenseNet.ContentRepository.Sharing
 
             return sharingData;
         }
+        /// <summary>
+        /// Removes sharing from a content.
+        /// </summary>
+        /// <param name="id">Identifies a sharing record.</param>
+        /// <returns>True if an existing sharing record has been successfully deleted.</returns>
+        public bool RemoveSharing(string id)
+        {
+            AssertSharingPermissions();
+
+            // make sure te list is loaded
+            var _ = Items;
+
+            var sharingToDelete = _items?.FirstOrDefault(sd => sd.Id == id);
+            if (sharingToDelete == null)
+                return false;
+
+            _items.Remove(sharingToDelete);
+
+            UpdateOwnerNode();
+
+            var identityId = sharingToDelete.Identity;
+            if (identityId > 0)
+            {
+                var remainData = _items.Where(x => x.Identity == sharingToDelete.Identity).ToArray();
+                UpdatePermissions(identityId, remainData);
+            }
+
+            return true;
+        }
+
+        /* ================================================================================== Helper methods */
 
         private void SetPermissions(SharingData sharingData)
         {
@@ -145,6 +200,10 @@ namespace SenseNet.ContentRepository.Sharing
                 .Apply();
 
         }
+        private void AssertSharingPermissions()
+        {
+            _owner?.Security.Assert(PermissionType.SetPermissions);
+        }
 
         private int GetSharingIdentityByToken(string token)
         {
@@ -156,29 +215,6 @@ namespace SenseNet.ContentRepository.Sharing
             return userId;
         }
         
-        public bool RemoveSharing(string id)
-        {
-            // make sure te list is loaded
-            var _ = Items;
-
-            var sharingToDelete = _items?.FirstOrDefault(sd => sd.Id == id);
-            if (sharingToDelete == null)
-                return false;
-
-            _items.Remove(sharingToDelete);
-
-            UpdateOwnerNode();
-
-            var identityId = sharingToDelete.Identity;
-            if (identityId > 0)
-            {
-                var remainData = _items.Where(x => x.Identity == sharingToDelete.Identity).ToArray();
-                UpdatePermissions(identityId, remainData);
-            }
-
-            return true;
-        }
-
         private void UpdateOwnerNode()
         {
             // do not reset the item list because we already have it up-todate
