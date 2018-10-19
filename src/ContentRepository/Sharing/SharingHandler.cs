@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.Packaging.Steps;
 using SenseNet.Search;
 using SenseNet.Security;
 
