@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+using System.Net.Mail;
+using System.Web;
 using Newtonsoft.Json;
 using SenseNet.ContentRepository.Storage.Security;
-using SenseNet.Packaging.Steps;
+using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Security;
 
@@ -15,6 +18,9 @@ namespace SenseNet.ContentRepository.Sharing
         public static string UsersByEmail => "+TypeIs:User +Email:@0";
     }
 
+    /// <summary>
+    /// Central API entry point for managing content sharing.
+    /// </summary>
     public class SharingHandler
     {
         private const string SharingItemsCacheKey = "SharingItems";
@@ -23,6 +29,10 @@ namespace SenseNet.ContentRepository.Sharing
         //UNDONE: individual items should be immutable too
         private readonly object _itemsSync = new object();
         private List<SharingData> _items;
+
+        /// <summary>
+        /// Internal readonly list of all sharing records on a content.
+        /// </summary>
         internal IEnumerable<SharingData> Items
         {
             get
@@ -48,6 +58,9 @@ namespace SenseNet.ContentRepository.Sharing
             }
         }
 
+        /// <summary>
+        /// Resets the pinned item list of sharing records.
+        /// </summary>
         internal void ItemsChanged()
         {
             _items = null;
@@ -70,7 +83,6 @@ namespace SenseNet.ContentRepository.Sharing
             MissingMemberHandling = MissingMemberHandling.Ignore,
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
             DateFormatHandling = DateFormatHandling.IsoDateFormat,
-            //TypeNameHandling = TypeNameHandling.None,
             Formatting = Formatting.Indented
         };
         internal static string Serialize(IEnumerable<SharingData> items)
@@ -90,11 +102,27 @@ namespace SenseNet.ContentRepository.Sharing
 
         /* ================================================================================== Public API */
 
-        public SharingData Share(string token, SharingLevel level, SharingMode mode)
+        /// <summary>
+        /// Readonly list of all sharing records on a content.
+        /// </summary>
+        public IEnumerable<SharingData> GetSharingItems()
         {
-            //UNDONE: finalize sharing public API
+            return new ReadOnlyCollection<SharingData>(Items.ToList());
+        }
 
-            //UNDONE: check/assert permission
+        /// <summary>
+        /// Share a content with an internal or external identity.
+        /// </summary>
+        /// <param name="token">Represents an identity. It can be an email address, username, user or group id.</param>
+        /// <param name="level">Level of sharing.</param>
+        /// <param name="mode">Sharing mode. Publicly shared content will be available for everyone.
+        /// Authenticated mode means the content will be accessible by all logged in users in the system.
+        /// Private sharing gives access only to the user defined in the token.</param>
+        /// <param name="sendNotification">Whether to send a notification email to target user(s).</param>
+        /// <returns>The newly created sharing record.</returns>
+        public SharingData Share(string token, SharingLevel level, SharingMode mode, bool sendNotification = true)
+        {
+            AssertSharingPermissions();
 
             var identity = mode == SharingMode.Authenticated
                 ? Group.Everyone.Id
@@ -110,7 +138,7 @@ namespace SenseNet.ContentRepository.Sharing
                 ShareDate = DateTime.UtcNow
             };
 
-            // make sure te list is loaded
+            // make sure the list is loaded
             var _ = Items;
 
             _items.Add(sharingData);
@@ -118,10 +146,42 @@ namespace SenseNet.ContentRepository.Sharing
             UpdateOwnerNode();
             SetPermissions(sharingData);
 
-            //UNDONE: send notification email to the target identity
+            if (sendNotification)
+                NotifyTarget(sharingData);
 
             return sharingData;
         }
+        /// <summary>
+        /// Removes sharing from a content.
+        /// </summary>
+        /// <param name="id">Identifies a sharing record.</param>
+        /// <returns>True if an existing sharing record has been successfully deleted.</returns>
+        public bool RemoveSharing(string id)
+        {
+            AssertSharingPermissions();
+
+            // make sure te list is loaded
+            var _ = Items;
+
+            var sharingToDelete = _items?.FirstOrDefault(sd => sd.Id == id);
+            if (sharingToDelete == null)
+                return false;
+
+            _items.Remove(sharingToDelete);
+
+            UpdateOwnerNode();
+
+            var identityId = sharingToDelete.Identity;
+            if (identityId > 0)
+            {
+                var remainData = _items.Where(x => x.Identity == sharingToDelete.Identity).ToArray();
+                UpdatePermissions(identityId, remainData);
+            }
+
+            return true;
+        }
+
+        /* ================================================================================== Helper methods */
 
         private void SetPermissions(SharingData sharingData)
         {
@@ -146,6 +206,10 @@ namespace SenseNet.ContentRepository.Sharing
                 .Apply();
 
         }
+        private void AssertSharingPermissions()
+        {
+            _owner?.Security.Assert(PermissionType.SetPermissions);
+        }
 
         private int GetSharingIdentityByToken(string token)
         {
@@ -157,29 +221,6 @@ namespace SenseNet.ContentRepository.Sharing
             return userId;
         }
         
-        public bool RemoveSharing(string id)
-        {
-            // make sure te list is loaded
-            var _ = Items;
-
-            var sharingToDelete = _items?.FirstOrDefault(sd => sd.Id == id);
-            if (sharingToDelete == null)
-                return false;
-
-            _items.Remove(sharingToDelete);
-
-            UpdateOwnerNode();
-
-            var identityId = sharingToDelete.Identity;
-            if (identityId > 0)
-            {
-                var remainData = _items.Where(x => x.Identity == sharingToDelete.Identity).ToArray();
-                UpdatePermissions(identityId, remainData);
-            }
-
-            return true;
-        }
-
         private void UpdateOwnerNode()
         {
             // do not reset the item list because we already have it up-todate
@@ -256,6 +297,61 @@ namespace SenseNet.ContentRepository.Sharing
         internal static List<AceInfo> GetEffectiveEntriesAsSystemUser(int contentId, IEnumerable<int> relatedIdentities = null)
         {
             return SecurityHandler.SecurityContext.GetEffectiveEntries(contentId, relatedIdentities, EntryType.Sharing);
+        }
+
+        /* ================================================================================== Notifications */
+
+        private const string SharingSettingsName = "Sharing";
+
+        private void NotifyTarget(SharingData sharingData)
+        {
+            if (_owner == null || string.IsNullOrEmpty(sharingData?.Token))
+                return;
+            if (!Settings.GetValue(SharingSettingsName, "NotificationEnabled", _owner.Path, false))
+                return;
+
+            //TODO: prepare for recognizing other types of identities: user or group
+
+            // Not an email: currently do nothing.
+            if (!sharingData.Token.Contains("@"))
+                return;
+
+            var siteUrl = HttpContext.Current?.Request.Url
+                          .GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped) ??
+                          "http://example.com";
+
+            System.Threading.Tasks.Task.Run(() => NotifyTarget(sharingData.Token, sharingData.Id, siteUrl));
+        }
+        private void NotifyTarget(string email, string guid, string siteUrl)
+        {
+            var senderAddress = Settings.GetValue(SharingSettingsName, "NotificationSender", _owner.Path, "info@example.com");
+            var mailSubjectKey = Settings.GetValue(SharingSettingsName, "NotificationMailSubjectKey", _owner.Path, "NotificationMailSubject");
+            var mailBodyKey = Settings.GetValue(SharingSettingsName, "NotificationMailBodyKey", _owner.Path, "NotificationMailBody");
+
+            //TODO: send a site-relative path
+            // Alternative: send an absolute path, but when a request arrives
+            // containing a share guid, redirect to the more compact and readable path.
+            var url = $"{siteUrl?.TrimEnd('/')}{_owner.Path}?share={guid}";
+
+            var mailSubject = SR.GetString(SharingSettingsName, mailSubjectKey);
+            var mailBody = string.Format(SR.GetString(SharingSettingsName, mailBodyKey), url);
+
+            var mailMessage = new MailMessage(senderAddress, email)
+            {
+                Subject = mailSubject,
+                IsBodyHtml = true,
+                Body = mailBody
+            };
+
+            try
+            {
+                using (var smtpClient = new SmtpClient())
+                    smtpClient.Send(mailMessage);
+            }
+            catch (Exception ex) // logged
+            {
+                SnLog.WriteException(ex);
+            }
         }
     }
 }

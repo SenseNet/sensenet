@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentMetaData>
+  <ContentType>Settings</ContentType>
+  <ContentName>Sharing.settings</ContentName>
+  <Fields>
+    <Binary attachment="Sharing.settings" />
+  </Fields>
+  <Permissions>
+    <Clear />
+  </Permissions>
+</ContentMetaData>

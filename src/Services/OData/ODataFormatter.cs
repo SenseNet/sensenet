@@ -749,10 +749,14 @@ new StackInfo
                         {
                             values[i] = valStr;
                         }
-                        else if (type == typeof(Boolean))
+                        else if (type == typeof(bool))
                         {
                             // we handle "True", "true" and "1" as boolean true values
                             values[i] = JsonConvert.DeserializeObject(valStr.ToLower(), type);
+                        }
+                        else if (type.IsEnum)
+                        {
+                            values[i] = Enum.Parse(type, valStr, true);
                         }
                         else if (type == typeof(string[]))
                         {

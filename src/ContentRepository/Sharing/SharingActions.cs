@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Newtonsoft.Json;
 using SenseNet.ApplicationModel;
 
 namespace SenseNet.ContentRepository.Sharing
@@ -16,7 +19,10 @@ namespace SenseNet.ContentRepository.Sharing
         {
             var gc = EnsureContent(content);
 
-            return gc.Sharing.Items;
+            //UNDONE: create a strongly typed result instead of double serialization
+            return gc.Sharing.Items.Select(shi => (Dictionary<string, object>) JsonConvert.DeserializeObject(
+                JsonConvert.SerializeObject(shi),
+                typeof(Dictionary<string, object>))).ToList();
         }
         /// <summary>
         /// Shares a content with somebody.
