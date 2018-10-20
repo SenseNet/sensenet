@@ -117,14 +117,14 @@ namespace SenseNet.Search.Indexing
         /// <inheritdoc />
         public override IndexValue ConvertToTermValue(object value)
         {
-            //UNDONE: implement ConvertToTermValue
+            //UNDONE:<? implement ConvertToTermValue
             throw new NotImplementedException();
         }
 
         /// <inheritdoc />
         public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
-            //UNDONE: do we need GetParsableValues implementation? If not, convert to NotSupportedException.
+            //UNDONE:<? do we need GetParsableValues implementation? If not, convert to NotSupportedException.
             throw new NotImplementedException();
         }
     }
@@ -173,14 +173,14 @@ namespace SenseNet.Search.Indexing
         /// <inheritdoc />
         public override IndexValue ConvertToTermValue(object value)
         {
-            //UNDONE: implement ConvertToTermValue
+            //UNDONE:<? implement ConvertToTermValue
             throw new NotImplementedException();
         }
 
         /// <inheritdoc />
         public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
-            //UNDONE: do we need GetParsableValues implementation? If not, convert to NotSupportedException.
+            //UNDONE:<? do we need GetParsableValues implementation? If not, convert to NotSupportedException.
             throw new NotImplementedException();
         }
     }
@@ -229,14 +229,14 @@ namespace SenseNet.Search.Indexing
         /// <inheritdoc />
         public override IndexValue ConvertToTermValue(object value)
         {
-            //UNDONE: implement ConvertToTermValue
+            //UNDONE:<? implement ConvertToTermValue
             throw new NotImplementedException();
         }
 
         /// <inheritdoc />
         public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
-            //UNDONE: do we need GetParsableValues implementation? If not, convert to NotSupportedException.
+            //UNDONE:<? do we need GetParsableValues implementation? If not, convert to NotSupportedException.
             throw new NotImplementedException();
         }
     }
@@ -259,14 +259,14 @@ namespace SenseNet.Search.Indexing
         /// <inheritdoc />
         public override IndexValue ConvertToTermValue(object value)
         {
-            //UNDONE: implement ConvertToTermValue
+            //UNDONE:<? implement ConvertToTermValue
             throw new NotImplementedException();
         }
 
         /// <inheritdoc />
         public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
-            //UNDONE: do we need GetParsableValues implementation? If not, convert to NotSupportedException.
+            //UNDONE:<? do we need GetParsableValues implementation? If not, convert to NotSupportedException.
             throw new NotImplementedException();
         }
     }
@@ -289,14 +289,14 @@ namespace SenseNet.Search.Indexing
         /// <inheritdoc />
         public override IndexValue ConvertToTermValue(object value)
         {
-            //UNDONE: implement ConvertToTermValue
+            //UNDONE:<? implement ConvertToTermValue
             throw new NotImplementedException();
         }
 
         /// <inheritdoc />
         public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
-            //UNDONE: do we need GetParsableValues implementation? If not, convert to NotSupportedException.
+            //UNDONE:<? do we need GetParsableValues implementation? If not, convert to NotSupportedException.
             throw new NotImplementedException();
         }
     }

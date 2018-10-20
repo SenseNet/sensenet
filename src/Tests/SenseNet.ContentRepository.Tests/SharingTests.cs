@@ -21,62 +21,6 @@ using SenseNet.Tests;
 
 namespace SenseNet.ContentRepository.Tests
 {
-    internal class SharingVisitor : SnQueryVisitor
-    {
-        //UNDONE:<? SharingVisitor
-
-        public override SnQueryPredicate VisitLogicalPredicate(LogicalPredicate logic)
-        {
-            var visited =  (LogicalPredicate)base.VisitLogicalPredicate(logic);
-
-            var sharingRelatedClauses = visited.Clauses
-                .Where(x =>
-                {
-                    if (x.Predicate is SimplePredicate pred) //UNDONE: Only SimplePredicates are rewritten
-                        if (pred.FieldName == "Sharing")
-                            return true;
-                    return false;
-                })
-                .ToArray();
-
-            if(sharingRelatedClauses.Length < 2)
-                return visited;
-
-            var newClauses = visited.Clauses.ToList();
-            foreach (var clause in sharingRelatedClauses)
-                newClauses.Remove(clause);
-
-            var shouldClauses = sharingRelatedClauses.Where(x => x.Occur == Occurence.Should).ToArray();
-            var mustClauses = sharingRelatedClauses.Where(x => x.Occur == Occurence.Must).ToArray();
-            var mustNotClauses = sharingRelatedClauses.Where(x => x.Occur == Occurence.MustNot).ToArray();
-
-            if (mustNotClauses.Length + shouldClauses.Length > 0)
-                throw new NotImplementedException(); //UNDONE: Rewriting for "Should" and "NustNot" clauses are not implemented.
-
-            // Get values from the clauses in right order.
-            var values = mustClauses
-                .Select(x => ((SimplePredicate) x.Predicate).Value.StringValue)
-                .OrderBy(x => "TICML".IndexOf(x[0]))
-                .ToArray();
-
-            newClauses.Add(
-                new LogicalClause(
-                    new SimplePredicate("Sharing", 
-                        new IndexValue(string.Join(",", values))), Occurence.Must));
-
-            return new LogicalPredicate(newClauses);
-        }
-
-        public override SnQueryPredicate VisitSimplePredicate(SimplePredicate simplePredicate)
-        {
-            var visited = (SimplePredicate)base.VisitSimplePredicate(simplePredicate);
-            if (visited.FieldName == "SharedWith" || visited.FieldName == "SharedBy" ||
-                visited.FieldName == "SharingMode" || visited.FieldName == "SharingLevel")
-                return new SimplePredicate("Sharing", visited.Value);
-            return visited;
-        }
-    }
-
     [TestClass]
     public class SharingTests : TestBase
     {
@@ -410,7 +354,7 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public void Sharing_Searchability()
+        public void Sharing_Query_Searchability()
         {
             var levels = Enum.GetValues(typeof(SharingLevel)).Cast<SharingLevel>().ToArray();
             var modes = Enum.GetValues(typeof(SharingMode)).Cast<SharingMode>().ToArray();
@@ -464,9 +408,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual($"{id1}, {id2}", GetQueryResult($"+InTree:{root.Path} +SharingLevel:{levels[0]}"));
                 Assert.AreEqual($"{id1}, {id2}", GetQueryResult($"+InTree:{root.Path} +SharingLevel:{levels[1]}"));
 
-                Assert.Inconclusive();
 
-                // FAIL!!!!!!!!!!!!!!!!
                 Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +SharingMode:{modes[0]} +SharingLevel:{levels[0]}"));
             });
         }
