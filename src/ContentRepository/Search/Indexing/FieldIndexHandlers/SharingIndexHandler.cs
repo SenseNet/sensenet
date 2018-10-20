@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Sharing;
-using SenseNet.Search;
-using SenseNet.Search.Indexing;
+using SenseNet.ContentRepository.Storage;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Search.Indexing
@@ -16,6 +13,26 @@ namespace SenseNet.Search.Indexing
         {
             return new SharingDataTokenizer(data);
         }
+        internal static string TokenizeSharingToken(string token)
+        {
+            return "T" + token.ToLowerInvariant();
+        }
+        internal static string TokenizeIdentity(int identity)
+        {
+            return "I" + identity.ToString("X");
+        }
+        internal static string TokenizeCreatorId(int creatorId)
+        {
+            return "C" + creatorId.ToString("X");
+        }
+        internal static string TokenizeSharingMode(SharingMode mode)
+        {
+            return "M" + (int)mode;
+        }
+        internal static string TokenizeSharingLevel(SharingLevel level)
+        {
+            return "L" + (int)level;
+        }
 
         public string Token { get; }
         public string Identity { get; }
@@ -25,11 +42,11 @@ namespace SenseNet.Search.Indexing
 
         private SharingDataTokenizer(SharingData data)
         {
-            Token = "T" + data.Token.ToLowerInvariant();
-            Identity = "I" + data.Identity.ToString("X");
-            CreatorId = "C" + data.CreatorId.ToString("X");
-            Mode = "M" + (int)data.Mode;
-            Level = "L" + (int)data.Level;
+            Token = TokenizeSharingToken(data.Token);
+            Identity = TokenizeIdentity(data.Identity);
+            CreatorId = TokenizeCreatorId(data.CreatorId);
+            Mode = TokenizeSharingMode(data.Mode);
+            Level =TokenizeSharingLevel(data.Level);
         }
 
         public string[] GetCombinations()
@@ -96,6 +113,178 @@ namespace SenseNet.Search.Indexing
         public override IndexValue Parse(string text)
         {
             return new IndexValue(text);
+        }
+        /// <inheritdoc />
+        public override IndexValue ConvertToTermValue(object value)
+        {
+            //UNDONE: implement ConvertToTermValue
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public override IEnumerable<string> GetParsableValues(IIndexableField snField)
+        {
+            //UNDONE: do we need GetParsableValues implementation? If not, convert to NotSupportedException.
+            throw new NotImplementedException();
+        }
+    }
+    public class SharedWithIndexHandler : FieldIndexHandler
+    {
+        /// <inheritdoc />
+        public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
+        {
+            textExtract = string.Empty;
+            return new IndexField[0];
+        }
+        
+        /// <inheritdoc />
+        public override IndexValue Parse(string text)
+        {
+            // UserId
+            if (int.TryParse(text, out int id))
+                return new IndexValue(SharingDataTokenizer.TokenizeIdentity(id));
+
+            // User by path
+            try
+            {
+                var user = NodeHead.Get(text);
+                if (user != null)
+                    return new IndexValue(SharingDataTokenizer.TokenizeIdentity(user.Id));
+            }
+            catch
+            {
+                // ignored
+            }
+
+            // User by username
+            try
+            {
+                var user = User.Load(text);
+                if (user != null)
+                    return new IndexValue(SharingDataTokenizer.TokenizeIdentity(user.Id));
+            }
+            catch
+            {
+                // ignored
+            }
+
+            return new IndexValue(SharingDataTokenizer.TokenizeSharingToken(text));
+        }
+        /// <inheritdoc />
+        public override IndexValue ConvertToTermValue(object value)
+        {
+            //UNDONE: implement ConvertToTermValue
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public override IEnumerable<string> GetParsableValues(IIndexableField snField)
+        {
+            //UNDONE: do we need GetParsableValues implementation? If not, convert to NotSupportedException.
+            throw new NotImplementedException();
+        }
+    }
+    public class SharedByIndexHandler : FieldIndexHandler
+    {
+        /// <inheritdoc />
+        public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
+        {
+            textExtract = string.Empty;
+            return new IndexField[0];
+        }
+
+        /// <inheritdoc />
+        public override IndexValue Parse(string text)
+        {
+            // UserId
+            if (int.TryParse(text, out int id))
+                return new IndexValue(SharingDataTokenizer.TokenizeCreatorId(id));
+
+            // User by path
+            try
+            {
+                var user = NodeHead.Get(text);
+                if (user != null)
+                    return new IndexValue(SharingDataTokenizer.TokenizeCreatorId(user.Id));
+            }
+            catch
+            {
+                // ignored
+            }
+
+            // User by username
+            try
+            {
+                var user = User.Load(text);
+                if (user != null)
+                    return new IndexValue(SharingDataTokenizer.TokenizeCreatorId(user.Id));
+            }
+            catch
+            {
+                // ignored
+            }
+
+            return new IndexValue(text);
+        }
+        /// <inheritdoc />
+        public override IndexValue ConvertToTermValue(object value)
+        {
+            //UNDONE: implement ConvertToTermValue
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public override IEnumerable<string> GetParsableValues(IIndexableField snField)
+        {
+            //UNDONE: do we need GetParsableValues implementation? If not, convert to NotSupportedException.
+            throw new NotImplementedException();
+        }
+    }
+    public class SharingModeIndexHandler : FieldIndexHandler
+    {
+        /// <inheritdoc />
+        public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
+        {
+            textExtract = string.Empty;
+            return new IndexField[0];
+        }
+
+        /// <inheritdoc />
+        public override IndexValue Parse(string text)
+        {
+            return Enum.TryParse(text, true, out SharingMode mode)
+                ? new IndexValue(SharingDataTokenizer.TokenizeSharingMode(mode))
+                : new IndexValue(text);
+        }
+        /// <inheritdoc />
+        public override IndexValue ConvertToTermValue(object value)
+        {
+            //UNDONE: implement ConvertToTermValue
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public override IEnumerable<string> GetParsableValues(IIndexableField snField)
+        {
+            //UNDONE: do we need GetParsableValues implementation? If not, convert to NotSupportedException.
+            throw new NotImplementedException();
+        }
+    }
+    public class SharingLevelIndexHandler : FieldIndexHandler
+    {
+        /// <inheritdoc />
+        public override IEnumerable<IndexField> GetIndexFields(IIndexableField snField, out string textExtract)
+        {
+            textExtract = string.Empty;
+            return new IndexField[0];
+        }
+
+        /// <inheritdoc />
+        public override IndexValue Parse(string text)
+        {
+            return Enum.TryParse(text, true, out SharingLevel level)
+                ? new IndexValue(SharingDataTokenizer.TokenizeSharingLevel(level))
+                : new IndexValue(text);
         }
         /// <inheritdoc />
         public override IndexValue ConvertToTermValue(object value)

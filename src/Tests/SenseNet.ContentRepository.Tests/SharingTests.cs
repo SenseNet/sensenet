@@ -2,20 +2,81 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Linq;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Sharing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Portal.OData.Metadata;
+using SenseNet.Search;
 using SenseNet.Search.Indexing;
+using SenseNet.Search.Querying;
+using SenseNet.Search.Querying.Parser.Predicates;
 using SenseNet.Security;
 using SenseNet.Tests;
 
 namespace SenseNet.ContentRepository.Tests
 {
+    internal class SharingVisitor : SnQueryVisitor
+    {
+        //UNDONE:<? SharingVisitor
+
+        public override SnQueryPredicate VisitLogicalPredicate(LogicalPredicate logic)
+        {
+            var visited =  (LogicalPredicate)base.VisitLogicalPredicate(logic);
+
+            var sharingRelatedClauses = visited.Clauses
+                .Where(x =>
+                {
+                    if (x.Predicate is SimplePredicate pred) //UNDONE: Only SimplePredicates are rewritten
+                        if (pred.FieldName == "Sharing")
+                            return true;
+                    return false;
+                })
+                .ToArray();
+
+            if(sharingRelatedClauses.Length < 2)
+                return visited;
+
+            var newClauses = visited.Clauses.ToList();
+            foreach (var clause in sharingRelatedClauses)
+                newClauses.Remove(clause);
+
+            var shouldClauses = sharingRelatedClauses.Where(x => x.Occur == Occurence.Should).ToArray();
+            var mustClauses = sharingRelatedClauses.Where(x => x.Occur == Occurence.Must).ToArray();
+            var mustNotClauses = sharingRelatedClauses.Where(x => x.Occur == Occurence.MustNot).ToArray();
+
+            if (mustNotClauses.Length + shouldClauses.Length > 0)
+                throw new NotImplementedException(); //UNDONE: Rewriting for "Should" and "NustNot" clauses are not implemented.
+
+            // Get values from the clauses in right order.
+            var values = mustClauses
+                .Select(x => ((SimplePredicate) x.Predicate).Value.StringValue)
+                .OrderBy(x => "TICML".IndexOf(x[0]))
+                .ToArray();
+
+            newClauses.Add(
+                new LogicalClause(
+                    new SimplePredicate("Sharing", 
+                        new IndexValue(string.Join(",", values))), Occurence.Must));
+
+            return new LogicalPredicate(newClauses);
+        }
+
+        public override SnQueryPredicate VisitSimplePredicate(SimplePredicate simplePredicate)
+        {
+            var visited = (SimplePredicate)base.VisitSimplePredicate(simplePredicate);
+            if (visited.FieldName == "SharedWith" || visited.FieldName == "SharedBy" ||
+                visited.FieldName == "SharingMode" || visited.FieldName == "SharingLevel")
+                return new SimplePredicate("Sharing", visited.Value);
+            return visited;
+        }
+    }
+
     [TestClass]
     public class SharingTests : TestBase
     {
@@ -63,7 +124,6 @@ namespace SenseNet.ContentRepository.Tests
             var actual = cmbinations.OrderBy(x => x);
             AssertSequenceEqual(expected, actual);
         }
-
         [TestMethod]
         public void Sharing_Indexing_IndexFields()
         {
@@ -130,7 +190,6 @@ namespace SenseNet.ContentRepository.Tests
                 $"{a},{b},{c},{d},{e}"
             };
         }
-
         [TestMethod]
         public void Sharing_Indexing_CheckByRawQuery()
         {
@@ -171,6 +230,121 @@ namespace SenseNet.ContentRepository.Tests
             });
 
         }
+
+        [TestMethod]
+        public void Sharing_Query_Tokenize()
+        {
+            Test(() =>
+            {
+                ReInstallGenericContentCtd();
+
+                var user = new User(Node.LoadNode("/Root/IMS/BuiltIn/Portal"))
+                {
+                    Name = "User-1",
+                    Enabled = true,
+                    Email = "user1@example.com"
+                };
+                user.Save();
+                var qctx = new SnQueryContext(QuerySettings.Default, User.Current.Id);
+
+                var queries = new[]
+                {
+                    SnQuery.Parse("+SharedWith:user1@example.com", qctx),
+                    SnQuery.Parse($"+SharedWith:{user.Id}", qctx),
+                    SnQuery.Parse("+SharedBy:admin", qctx),
+                    SnQuery.Parse("+SharingMode:Private", qctx),
+                    SnQuery.Parse("+SharingLevel:Edit", qctx),
+                };
+                var expected = new []
+                {
+                    "+SharedWith:Tuser1@example.com",
+                    $"+SharedWith:{SharingDataTokenizer.TokenizeIdentity(user.Id)}",
+                    "+SharedBy:C1",
+                    "+SharingMode:M2",
+                    "+SharingLevel:L1"
+                };
+
+                for (var i = 0; i < queries.Length; i++)
+                    Assert.AreEqual(expected[i], queries[i].ToString());
+
+
+                //var visitor = new SharingVisitor();
+                //var rewritten = SnQuery.Create(visitor.Visit(snQuery.QueryTree));
+                //Assert.AreEqual("+Sharing:M2,L1", rewritten.ToString());
+            });
+        }
+        [TestMethod]
+        public void Sharing_Query_RewriteOne()
+        {
+            Test(() =>
+            {
+                ReInstallGenericContentCtd();
+
+                var user = new User(Node.LoadNode("/Root/IMS/BuiltIn/Portal"))
+                {
+                    Name = "User-1",
+                    Enabled = true,
+                    Email = "user1@example.com"
+                };
+                user.Save();
+
+                RewritingTest("+SharedWith:user1@example.com", "+Sharing:Tuser1@example.com");
+                RewritingTest($"+SharedWith:{user.Id}", $"+Sharing:{SharingDataTokenizer.TokenizeIdentity(user.Id)}");
+                RewritingTest("+SharedBy:admin", "+Sharing:C1");
+                RewritingTest("+SharingMode:Private", "+Sharing:M2");
+                RewritingTest("+SharingLevel:Edit", "+Sharing:L1");
+            });
+        }
+        [TestMethod]
+        public void Sharing_Query_RewriteOnlyOneLevelMust()
+        {
+            Test(() =>
+            {
+                ReInstallGenericContentCtd();
+
+                var user = new User(Node.LoadNode("/Root/IMS/BuiltIn/Portal"))
+                {
+                    Name = "User-1",
+                    Enabled = true,
+                    Email = "user1@example.com"
+                };
+                user.Save();
+
+                var qA = "SharedWith:user1@example.com";
+                var qB = $"SharedWith:{user.Id}";
+                var qC = "SharedBy:admin";
+                var qD = "SharingMode:Private";
+                var qE = "SharingLevel:Edit";
+
+                var tA = "Tuser1@example.com";
+                var tB = SharingDataTokenizer.TokenizeIdentity(user.Id);
+                var tC = "C1";
+                var tD = "M2";
+                var tE = "L1";
+
+                RewritingTest($"+TypeIs:file +{qA} +{qB}", $"+TypeIs:file +Sharing:{tA},{tB}");
+
+                RewritingTest($"+{qA} +{qB}", $"+Sharing:{tA},{tB}");
+                RewritingTest($"+{qA} +{qC}", $"+Sharing:{tA},{tC}");
+                RewritingTest($"+{qA} +{qD}", $"+Sharing:{tA},{tD}");
+                RewritingTest($"+{qA} +{qE}", $"+Sharing:{tA},{tE}");
+                RewritingTest($"+{qB} +{qC}", $"+Sharing:{tB},{tC}");
+                RewritingTest($"+{qB} +{qD}", $"+Sharing:{tB},{tD}");
+                RewritingTest($"+{qB} +{qE}", $"+Sharing:{tB},{tE}");
+                RewritingTest($"+{qC} +{qD}", $"+Sharing:{tC},{tD}");
+                RewritingTest($"+{qC} +{qE}", $"+Sharing:{tC},{tE}");
+                RewritingTest($"+{qD} +{qE}", $"+Sharing:{tD},{tE}");
+            });
+        }
+        private void RewritingTest(string queryText, string expectedRewritten)
+        {
+            var qctx = new SnQueryContext(QuerySettings.Default, User.Current.Id);
+            var query = SnQuery.Parse(queryText, qctx);
+            var visitor = new SharingVisitor();
+            var rewritten = SnQuery.Create(visitor.Visit(query.QueryTree));
+            Assert.AreEqual(expectedRewritten, rewritten.ToString());
+        }
+
 
         [TestMethod]
         public void Sharing_Serialization()
