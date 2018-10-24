@@ -5,8 +5,10 @@
   <Fields>
     <ClassName><![CDATA[SenseNet.ContentRepository.Sharing.SharingActions]]></ClassName>
     <MethodName><![CDATA[Share]]></MethodName>
-	<Parameters><![CDATA[
-      string token, SenseNet.ContentRepository.Sharing.SharingLevel level, SenseNet.ContentRepository.Sharing.SharingMode mode
+	<Parameters>
+        <![CDATA[
+      string token, SenseNet.ContentRepository.Sharing.SharingLevel level, 
+      SenseNet.ContentRepository.Sharing.SharingMode mode, bool sendNotification
     ]]></Parameters>
     <ActionTypeName><![CDATA[GenericODataOperation]]></ActionTypeName>
     <Icon><![CDATA[Application]]></Icon>

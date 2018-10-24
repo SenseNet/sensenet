@@ -24,20 +24,22 @@ namespace SenseNet.ContentRepository.Sharing
                 JsonConvert.SerializeObject(shi),
                 typeof(Dictionary<string, object>))).ToList();
         }
+
         /// <summary>
         /// Shares a content with somebody.
         /// </summary>
         /// <param name="content"></param>
         /// <param name="token">An identifier token: an email address, a username or a user or group id.</param>
-        /// <param name="level"></param>
-        /// <param name="mode"></param>
+        /// <param name="level">What permissions will the user get for the content.</param>
+        /// <param name="mode">Whether the content will be accessible for other users.</param>
+        /// <param name="sendNotification">Whether a notification email should be sent to the target user.</param>
         /// <returns>A sharing record representing the new share.</returns>
         [ODataAction]
-        public static object Share(Content content, string token, SharingLevel level, SharingMode mode)
+        public static object Share(Content content, string token, SharingLevel level, SharingMode mode, bool sendNotification)
         {
             var gc = EnsureContent(content);
 
-            return gc.Sharing.Share(token, level, mode);
+            return gc.Sharing.Share(token, level, mode, sendNotification);
         }
         /// <summary>
         /// Remove a sharing record from a content.

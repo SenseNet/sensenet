@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Mail;
 using System.Web;
 using Newtonsoft.Json;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
@@ -64,6 +65,41 @@ namespace SenseNet.ContentRepository.Sharing
         internal void ItemsChanged()
         {
             _items = null;
+        }
+
+        private const string SharingNotificationFormatterKey = "SharingNotificationFormatter";
+        private static readonly object FormatterSync = new object();
+
+        /// <summary>
+        /// Gets or sets the provider responsible for formatting sharing notification
+        /// email subject and body. Developers may customize the values and variables
+        /// available in these texts.
+        /// </summary>
+        internal static ISharingNotificationFormatter NotificationFormatter
+        {
+            get
+            {
+                ISharingNotificationFormatter formatter;
+
+                // ReSharper disable once InconsistentlySynchronizedField
+                if ((formatter = Providers.Instance.GetProvider<ISharingNotificationFormatter>(
+                        SharingNotificationFormatterKey)) != null)
+                    return formatter;
+
+                lock (FormatterSync)
+                {
+                    if ((formatter = Providers.Instance.GetProvider<ISharingNotificationFormatter>(
+                            SharingNotificationFormatterKey)) != null)
+                        return formatter;
+
+                    // default implementation
+                    formatter = new DefaultSharingNotificationFormatter();
+                    Providers.Instance.SetProvider(SharingNotificationFormatterKey, formatter);
+                }
+
+                return formatter;
+            }
+            set => Providers.Instance.SetProvider(SharingNotificationFormatterKey, value);
         }
 
         private readonly GenericContent _owner;
@@ -320,21 +356,25 @@ namespace SenseNet.ContentRepository.Sharing
                           .GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped) ??
                           "http://example.com";
 
-            System.Threading.Tasks.Task.Run(() => NotifyTarget(sharingData.Token, sharingData.Id, siteUrl));
+            System.Threading.Tasks.Task.Run(() => NotifyTarget(sharingData.Token, sharingData, siteUrl));
         }
-        private void NotifyTarget(string email, string guid, string siteUrl)
+        private void NotifyTarget(string email, SharingData sharingData, string siteUrl)
         {
+            // Settings makes possible to customize notification values based on subtree
+            // (e.g. different letters under different sites or workspaces).
             var senderAddress = Settings.GetValue(SharingSettingsName, "NotificationSender", _owner.Path, "info@example.com");
             var mailSubjectKey = Settings.GetValue(SharingSettingsName, "NotificationMailSubjectKey", _owner.Path, "NotificationMailSubject");
             var mailBodyKey = Settings.GetValue(SharingSettingsName, "NotificationMailBodyKey", _owner.Path, "NotificationMailBody");
 
-            //TODO: send a site-relative path
-            // Alternative: send an absolute path, but when a request arrives
-            // containing a share guid, redirect to the more compact and readable path.
-            var url = $"{siteUrl?.TrimEnd('/')}{_owner.Path}?share={guid}";
-
             var mailSubject = SR.GetString(SharingSettingsName, mailSubjectKey);
-            var mailBody = string.Format(SR.GetString(SharingSettingsName, mailBodyKey), url);
+            var mailBody = SR.GetString(SharingSettingsName, mailBodyKey);
+
+            var formatter = NotificationFormatter;
+            if (formatter != null)
+            {
+                mailSubject = formatter.FormatSubject(_owner, sharingData, mailSubject);
+                mailBody = formatter.FormatBody(_owner, sharingData, siteUrl, mailBody);
+            }
 
             var mailMessage = new MailMessage(senderAddress, email)
             {

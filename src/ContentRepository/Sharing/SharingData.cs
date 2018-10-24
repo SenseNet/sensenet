@@ -4,7 +4,6 @@ using Newtonsoft.Json.Converters;
 
 namespace SenseNet.ContentRepository.Sharing
 {
-    //UNDONE: implement SharingData
     public enum SharingLevel
     {
         Open,

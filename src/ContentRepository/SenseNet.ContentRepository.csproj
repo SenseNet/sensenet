@@ -183,6 +183,8 @@
     <Compile Include="RepositoryBuilderExtensions.cs" />
     <Compile Include="Search\Indexing\FieldIndexHandlers\SharingIndexHandler.cs" />
     <Compile Include="Search\Indexing\NullPopulator.cs" />
+    <Compile Include="Sharing\DefaultSharingNotificationFormatter.cs" />
+    <Compile Include="Sharing\ISharingNotificationFormatter.cs" />
     <Compile Include="Sharing\SharingActions.cs" />
     <Compile Include="Sharing\SharingData.cs" />
     <Compile Include="Sharing\SharingHandler.cs" />

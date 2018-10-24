@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using SenseNet.Communication.Messaging;
+using SenseNet.ContentRepository.Sharing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage.Caching;
@@ -228,6 +229,18 @@ namespace SenseNet.ContentRepository
         {
             // store tracers in the provider collection temporarily
             Configuration.Providers.Instance.SetProvider(typeof(ISnTracer[]), tracer);
+            return repositoryBuilder;
+        }
+
+        /// <summary>
+        /// Gets or sets the provider responsible for formatting sharing notification
+        /// email subject and body. Developers may customize the values and variables
+        /// available in these texts.
+        /// </summary>
+        public static IRepositoryBuilder UseSharingNotificationFormatter(this IRepositoryBuilder repositoryBuilder, ISharingNotificationFormatter formatter)
+        {
+            SharingHandler.NotificationFormatter = formatter;
+
             return repositoryBuilder;
         }
 
