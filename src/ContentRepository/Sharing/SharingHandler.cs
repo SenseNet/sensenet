@@ -20,8 +20,10 @@ namespace SenseNet.ContentRepository.Sharing
     {
         /// <summary>Returns the following query: +TypeIs:User +Email:@0</summary>
         public static string UsersByEmail => "+TypeIs:User +Email:@0";
-        /// <summary>Returns the following query: +TypeIs:User +Email:@0</summary>
+        /// <summary>Returns the following query: +SharedWith:@0</summary>
         public static string ContentBySharedWith => "+SharedWith:@0";
+        /// <summary>Returns the following query: +SharedWith:@0 +SharedWith:0</summary>
+        public static string ContentBySharedEmail => "+SharedWith:@0 +SharedWith:0";
     }
 
     /// <summary>
@@ -407,6 +409,8 @@ namespace SenseNet.ContentRepository.Sharing
 
         /* ================================================================================== Event handlers */
 
+        //UNDONE: execute event handler code in a Task asynchronously.
+
         internal static void OnContentDeleted(Node node)
         {
             if (node == null)
@@ -431,6 +435,63 @@ namespace SenseNet.ContentRepository.Sharing
             }
         }
 
+        internal static void OnUserCreated(User user)
+        {
+            if (string.IsNullOrEmpty(user?.Email))
+                return;
+
+            using (new SystemAccount())
+            {
+                UpdateIdentity(user);
+            }
+        }
+
+        private static void UpdateIdentity(User user)
+        {
+            // Collect all content that has been shared with the email of this user.
+            var results = ContentQuery.Query(SharingQueries.ContentBySharedEmail,
+                QuerySettings.AdminSettings, user.Email);
+
+            Parallel.ForEach(results.Nodes.Where(n => n is GenericContent).Cast<GenericContent>(),
+                new ParallelOptions { MaxDegreeOfParallelism = 5 },
+                gc =>
+                {
+                    // retry a few times to update sharing
+                    Retrier.Retry(3, 300, () =>
+                        {
+                            var content = Node.Load<GenericContent>(gc.Id);
+
+                            var newItems = content.Sharing.Items.Select(sd =>
+                            {
+                                if (sd.Token != user.Email || sd.Identity != 0)
+                                    return sd;
+
+                                sd.Identity = user.Id;
+                                return sd;
+                            });
+
+                            //UNDONE: set permissions for the user
+                            // Maybe use the built-in API.
+
+                            content.SharingData = Serialize(newItems);
+                            content.Save(SavingMode.KeepVersion);
+                        },
+                        (i, e) =>
+                        {
+                            if (e == null)
+                                return true;
+
+                            // we should retry
+                            if (e is NodeIsOutOfDateException)
+                                return false;
+
+                            // log and leave
+                            SnLog.WriteException(e);
+                            return true;
+                        });
+                });
+        }
+
         private static void RemoveIdentities(IEnumerable<Node> identities)
         {
             var ids = new List<object>();
@@ -452,7 +513,7 @@ namespace SenseNet.ContentRepository.Sharing
                 new ParallelOptions { MaxDegreeOfParallelism = 5 },
                 gc =>
                 {
-                    // collect all sjaring records that belong to the provided identities
+                    // collect all sharing records that belong to the provided identities
                     var recordsToRemove =
                         gc.Sharing.Items.Where(sd => ids.Contains(sd.Identity) || emails.Contains(sd.Token));
 

@@ -486,6 +486,43 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
+        public void Sharing_Create_User()
+        {
+            // we need the sharing observer for this feature
+            Test(builder => { builder.EnableNodeObservers(typeof(SharingNodeObserver)); }, () =>
+            {
+                ReInstallGenericContentCtd();
+                var root = CreateTestRoot();
+                
+                // external user
+                root.Sharing.Share("user1@example.com", SharingLevel.Open, SharingMode.Public, false); 
+
+                var items = root.Sharing.Items.ToArray();
+
+                Assert.AreEqual(1, items.Length);
+                Assert.IsNotNull(items.Single(sd => sd.Token == "user1@example.com" && sd.Identity == 0));
+
+                // ACTION: create a new user with the previous email
+                var user = new User(Node.LoadNode("/Root/IMS/BuiltIn/Portal"))
+                {
+                    Name = "User-1",
+                    Enabled = true,
+                    Email = "user1@example.com"
+                };
+                user.Save();
+
+                // reload the shared content to refresh the sharing list
+                root = Node.Load<GenericContent>(root.Id);
+                items = root.Sharing.Items.ToArray();
+
+                // sharing record should be updated with the new identity
+                Assert.AreEqual(1, items.Length);
+                Assert.IsNotNull(items.Single(sd => sd.Token == "user1@example.com" && sd.Identity == user.Id));
+
+                //UNDONE: check for new permissions too
+            });
+        }
+        [TestMethod]
         public void Sharing_Delete_User()
         {
             // we need the sharing observer for this feature

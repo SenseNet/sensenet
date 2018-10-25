@@ -10,5 +10,15 @@ namespace SenseNet.ContentRepository.Sharing
 
             SharingHandler.OnContentDeleted(e?.SourceNode);
         }
+
+        protected override void OnNodeCreated(object sender, NodeEventArgs e)
+        {
+            base.OnNodeCreated(sender, e);
+
+            if (e?.SourceNode is User user)
+            {
+                SharingHandler.OnUserCreated(user);
+            }
+        }
     }
 }
