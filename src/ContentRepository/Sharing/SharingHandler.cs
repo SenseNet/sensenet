@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.Mail;
+using System.Threading.Tasks;
 using System.Web;
 using Newtonsoft.Json;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Security;
+using Retrier = SenseNet.Tools.Retrier;
 
 namespace SenseNet.ContentRepository.Sharing
 {
@@ -17,6 +20,8 @@ namespace SenseNet.ContentRepository.Sharing
     {
         /// <summary>Returns the following query: +TypeIs:User +Email:@0</summary>
         public static string UsersByEmail => "+TypeIs:User +Email:@0";
+        /// <summary>Returns the following query: +TypeIs:User +Email:@0</summary>
+        public static string ContentBySharedWith => "+SharedWith:@0";
     }
 
     /// <summary>
@@ -190,27 +195,33 @@ namespace SenseNet.ContentRepository.Sharing
         /// <summary>
         /// Removes sharing from a content.
         /// </summary>
-        /// <param name="id">Identifies a sharing record.</param>
+        /// <param name="ids">Identifiers of one or more sharing records.</param>
         /// <returns>True if an existing sharing record has been successfully deleted.</returns>
-        public bool RemoveSharing(string id)
+        public bool RemoveSharing(params string[] ids)
         {
             AssertSharingPermissions();
 
             // make sure te list is loaded
             var _ = Items;
 
-            var sharingToDelete = _items?.FirstOrDefault(sd => sd.Id == id);
-            if (sharingToDelete == null)
+            var sharingsToDelete = _items?.Where(sd => ids.Contains(sd.Id)).ToArray();
+            if (sharingsToDelete == null)
                 return false;
 
-            _items.Remove(sharingToDelete);
+            var removedCount = _items.RemoveAll(sharingsToDelete.Contains);
+            if (removedCount == 0)
+                return false;
 
             UpdateOwnerNode();
 
-            var identityId = sharingToDelete.Identity;
-            if (identityId > 0)
+            var identities = sharingsToDelete
+                .Where(sd => sd.Identity > 0)
+                .Select(sd => sd.Identity).Distinct();
+
+            foreach (var identityId in identities)
             {
-                var remainData = _items.Where(x => x.Identity == sharingToDelete.Identity).ToArray();
+                // collect remaining sharing entries for this identity
+                var remainData = _items.Where(x => x.Identity == identityId).ToArray();
                 UpdatePermissions(identityId, remainData);
             }
 
@@ -392,6 +403,79 @@ namespace SenseNet.ContentRepository.Sharing
             {
                 SnLog.WriteException(ex);
             }
+        }
+
+        /* ================================================================================== Event handlers */
+
+        internal static void OnContentDeleted(Node node)
+        {
+            if (node == null)
+                return;
+
+            using (new SystemAccount())
+            {
+                switch (node)
+                {
+                    case User _:
+                    case Group _:
+                        RemoveIdentities(new[] { node });
+                        break;
+                    default:
+                        var identities = Content.All.DisableAutofilters().Where(c =>
+                            c.InTree(node.Path) &&
+                            (c.TypeIs("User") || c.TypeIs("Group"))).Select(c => c.ContentHandler);
+
+                        RemoveIdentities(identities);
+                        break;
+                }
+            }
+        }
+
+        private static void RemoveIdentities(IEnumerable<Node> identities)
+        {
+            var ids = new List<object>();
+            var emails = new List<object>();
+
+            // collect all user/group ids and emails related to these identities
+            foreach (var identity in identities)
+            {
+                ids.Add(identity.Id);
+                if (identity is User user && !string.IsNullOrEmpty(user.Email))
+                    emails.Add(user.Email);
+            }
+
+            // collect all content that has been shared with these identities
+            var results = ContentQuery.Query(SharingQueries.ContentBySharedWith,
+                QuerySettings.AdminSettings, ids.Concat(emails).ToArray());
+
+            Parallel.ForEach(results.Nodes.Where(n => n is GenericContent).Cast<GenericContent>(),
+                new ParallelOptions { MaxDegreeOfParallelism = 5 },
+                gc =>
+                {
+                    // collect all sjaring records that belong to the provided identities
+                    var recordsToRemove =
+                        gc.Sharing.Items.Where(sd => ids.Contains(sd.Identity) || emails.Contains(sd.Token));
+
+                    // retry a few times to remove sharing
+                    Retrier.Retry(3, 300, () =>
+                        {
+                            var content = Node.Load<GenericContent>(gc.Id);
+                            content.Sharing.RemoveSharing(recordsToRemove.Select(sd => sd.Id).ToArray());
+                        },
+                        (i, e) =>
+                        {
+                            if (e == null)
+                                return true;
+
+                            // we should retry
+                            if (e is NodeIsOutOfDateException)
+                                return false;
+
+                            // log and leave
+                            SnLog.WriteException(e);
+                            return true;
+                        });
+                });
         }
     }
 }

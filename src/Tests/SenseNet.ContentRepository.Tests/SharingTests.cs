@@ -407,9 +407,11 @@ namespace SenseNet.ContentRepository.Tests
 
                 Assert.AreEqual($"{id1}, {id2}", GetQueryResult($"+InTree:{root.Path} +SharingLevel:{levels[0]}"));
                 Assert.AreEqual($"{id1}, {id2}", GetQueryResult($"+InTree:{root.Path} +SharingLevel:{levels[1]}"));
-
-
+                
                 Assert.AreEqual($"{id1}", GetQueryResult($"+InTree:{root.Path} +SharingMode:{modes[0]} +SharingLevel:{levels[0]}"));
+
+                Assert.AreEqual($"{id1}"/*   */, GetQueryResult($"+InTree:{root.Path} +SharedWith:{sd[0].Identity}"));
+                Assert.AreEqual($"{id2}"/*   */, GetQueryResult($"+InTree:{root.Path} +SharedWith:{sd[2].Identity}"));
             });
         }
 
@@ -480,6 +482,110 @@ namespace SenseNet.ContentRepository.Tests
 
                 AssertSharingDataAreEqual(sd1, items[0]);
                 AssertSharingDataAreEqual(sd2, items[1]);
+            });
+        }
+
+        [TestMethod]
+        public void Sharing_Delete_User()
+        {
+            // we need the sharing observer for this feature
+            Test(builder => { builder.EnableNodeObservers(typeof(SharingNodeObserver)); }, () =>
+            {
+                ReInstallGenericContentCtd();
+                var root = CreateTestRoot();
+
+                var user = new User(Node.LoadNode("/Root/IMS/BuiltIn/Portal"))
+                {
+                    Name = "User-1",
+                    Enabled = true,
+                    Email = "user1@example.com"
+                };
+                user.Save();
+
+                root.Sharing.Share("user1@example.com", SharingLevel.Open, SharingMode.Private, false);
+                root.Sharing.Share("user2@example.com", SharingLevel.Open, SharingMode.Public, false); // external user
+
+                var items = root.Sharing.Items.ToArray();
+
+                Assert.AreEqual(2, items.Length);
+                // internal user
+                Assert.IsNotNull(items.Single(sd => sd.Token == "user1@example.com" && sd.Identity == user.Id));
+                // external user
+                Assert.IsNotNull(items.Single(sd => sd.Token == "user2@example.com" && sd.Identity == 0));
+
+                // ACTION: sharing records that belong to the deleted identity should be removed.
+                user.ForceDelete();
+
+                // reload the shared content to refresh the sharing list
+                root = Node.Load<GenericContent>(root.Id);
+                items = root.Sharing.Items.ToArray();
+
+                Assert.AreEqual(1, items.Length);
+                // internal user
+                Assert.IsNull(items.FirstOrDefault(sd => sd.Token == "user1@example.com" || sd.Identity == user.Id));
+                // external user
+                Assert.IsNotNull(items.Single(sd => sd.Token == "user2@example.com" && sd.Identity == 0));
+            });
+        }
+        [TestMethod]
+        public void Sharing_Delete_Group()
+        {
+            // we need the sharing observer for this feature
+            Test(builder => { builder.EnableNodeObservers(typeof(SharingNodeObserver)); }, () =>
+            {
+                ReInstallGenericContentCtd();
+                var root = CreateTestRoot();
+
+                var user = new User(Node.LoadNode("/Root/IMS/BuiltIn/Portal"))
+                {
+                    Name = "User-1",
+                    Enabled = true,
+                    Email = "user1@example.com"
+                };
+                user.Save();
+                var group = new Group(Node.LoadNode("/Root/IMS/BuiltIn/Portal"))
+                {
+                    Name = "Group-1"
+                };
+                group.Save();
+
+                // add user sharing the official way
+                root.Sharing.Share("user1@example.com", SharingLevel.Open, SharingMode.Private, false);
+
+                // add group sharing manually, because the current api does not support group sharing
+                var items = new List<SharingData>(root.Sharing.Items)
+                {
+                    new SharingData
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Token = string.Empty,
+                        Identity = group.Id,
+                        Level = SharingLevel.Edit,
+                        Mode = SharingMode.Authenticated,
+                        CreatorId = 1
+                    }
+                };
+
+                root.SharingData = SharingHandler.Serialize(items);
+                root.Save(SavingMode.KeepVersion);
+
+                items = root.Sharing.Items.ToList();
+
+                Assert.AreEqual(2, items.Count);
+                Assert.IsNotNull(items.Single(sd => sd.Identity == user.Id));
+                Assert.IsNotNull(items.Single(sd => sd.Identity == group.Id));
+
+                // ACTION: sharing records that belong to the deleted identity should be removed.
+                group.ForceDelete();
+
+                // reload the shared content to refresh the sharing list
+                root = Node.Load<GenericContent>(root.Id);
+                items = root.Sharing.Items.ToList();
+
+                // user record still exists, the group record should be deleted
+                Assert.AreEqual(1, items.Count);
+                Assert.IsNotNull(items.Single(sd => sd.Identity == user.Id));
+                Assert.IsNull(items.FirstOrDefault(sd => sd.Identity == group.Id));
             });
         }
 
