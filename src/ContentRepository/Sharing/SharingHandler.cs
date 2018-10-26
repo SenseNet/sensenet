@@ -242,7 +242,12 @@ namespace SenseNet.ContentRepository.Sharing
                 .Set(_owner.Id, sharingData.Identity, false, mask, 0ul)
                 .Apply();
         }
+
         private void UpdatePermissions(int identityId, SharingData[] remainData)
+        {
+            UpdatePermissions(_owner.Id, identityId, remainData);
+        }
+        private static void UpdatePermissions(int nodeId, int identityId, SharingData[] remainData)
         {
             if (identityId <= 0)
                 return;
@@ -250,8 +255,8 @@ namespace SenseNet.ContentRepository.Sharing
             var mask = remainData.Aggregate(0ul, (current, item) => current | GetEffectiveBitmask(item.Level));
 
             SnSecurityContext.Create().CreateAclEditor(EntryType.Sharing)
-                .Reset(_owner.Id, identityId, false, ulong.MaxValue, 0ul)
-                .Set(_owner.Id, identityId, false, mask, 0ul)
+                .Reset(nodeId, identityId, false, ulong.MaxValue, 0ul)
+                .Set(nodeId, identityId, false, mask, 0ul)
                 .Apply();
 
         }
@@ -434,7 +439,6 @@ namespace SenseNet.ContentRepository.Sharing
                 }
             }
         }
-
         internal static void OnUserCreated(User user)
         {
             if (string.IsNullOrEmpty(user?.Email))
@@ -445,55 +449,63 @@ namespace SenseNet.ContentRepository.Sharing
                 UpdateIdentity(user);
             }
         }
+        internal static void OnUserChanged(User user, string oldEmail)
+        {
+            if (string.IsNullOrEmpty(user.Email))
+            {
+                // Email address was removed from the user's profile.
+                // Do nothing: shared content will still be accessible
+                // to the user, because their identity is still valid.
+                // The email will remain on the record as a historical info.
+            }
+
+            // The user got an email address: connect to sharing records created for this email.
+            // The previous email will remain on the record as a historical info.
+            using (new SystemAccount())
+            {
+                UpdateIdentity(user);
+            }
+        }
 
         private static void UpdateIdentity(User user)
         {
+            if (string.IsNullOrEmpty(user.Email))
+                return;
+
+            // A new user has been created or an existing user got an email address: 
+            // Iterate through existing sharing records for this email 
+            // and add user id and set permissions for this user on the content.
+
             // Collect all content that has been shared with the email of this user.
             var results = ContentQuery.Query(SharingQueries.ContentBySharedEmail,
                 QuerySettings.AdminSettings, user.Email);
 
-            Parallel.ForEach(results.Nodes.Where(n => n is GenericContent).Cast<GenericContent>(),
-                new ParallelOptions { MaxDegreeOfParallelism = 5 },
-                gc =>
+            ProcessContentWithRetry(results.Nodes, gc =>
+            {
+                var content = Node.Load<GenericContent>(gc.Id);
+
+                var newItems = content.Sharing.Items.Select(sd =>
                 {
-                    // retry a few times to update sharing
-                    Retrier.Retry(3, 300, () =>
-                        {
-                            var content = Node.Load<GenericContent>(gc.Id);
+                    if (sd.Token != user.Email || sd.Identity != 0)
+                        return sd;
 
-                            var newItems = content.Sharing.Items.Select(sd =>
-                            {
-                                if (sd.Token != user.Email || sd.Identity != 0)
-                                    return sd;
-
-                                sd.Identity = user.Id;
-                                return sd;
-                            });
-
-                            //UNDONE: set permissions for the user
-                            // Maybe use the built-in API.
-
-                            content.SharingData = Serialize(newItems);
-                            content.Save(SavingMode.KeepVersion);
-                        },
-                        (i, e) =>
-                        {
-                            if (e == null)
-                                return true;
-
-                            // we should retry
-                            if (e is NodeIsOutOfDateException)
-                                return false;
-
-                            // log and leave
-                            SnLog.WriteException(e);
-                            return true;
-                        });
+                    sd.Identity = user.Id;
+                    return sd;
                 });
-        }
 
+                content.SharingData = Serialize(newItems);
+                content.Save(SavingMode.KeepVersion);
+
+                // set permissions for the user
+                UpdatePermissions(content.Id, user.Id,
+                    content.Sharing.Items.Where(sd => sd.Identity == user.Id).ToArray());
+            });
+        }
         private static void RemoveIdentities(IEnumerable<Node> identities)
         {
+            // Identities can be users or groups. This method removes all sharing records
+            // that belong to any of the user/group ids or user emails.
+
             var ids = new List<object>();
             var emails = new List<object>();
 
@@ -509,34 +521,54 @@ namespace SenseNet.ContentRepository.Sharing
             var results = ContentQuery.Query(SharingQueries.ContentBySharedWith,
                 QuerySettings.AdminSettings, ids.Concat(emails).ToArray());
 
-            Parallel.ForEach(results.Nodes.Where(n => n is GenericContent).Cast<GenericContent>(),
-                new ParallelOptions { MaxDegreeOfParallelism = 5 },
+            ProcessContentWithRetry(results.Nodes,
                 gc =>
                 {
                     // collect all sharing records that belong to the provided identities
-                    var recordsToRemove =
-                        gc.Sharing.Items.Where(sd => ids.Contains(sd.Identity) || emails.Contains(sd.Token));
-
-                    // retry a few times to remove sharing
-                    Retrier.Retry(3, 300, () =>
-                        {
-                            var content = Node.Load<GenericContent>(gc.Id);
-                            content.Sharing.RemoveSharing(recordsToRemove.Select(sd => sd.Id).ToArray());
-                        },
-                        (i, e) =>
-                        {
-                            if (e == null)
-                                return true;
-
-                            // we should retry
-                            if (e is NodeIsOutOfDateException)
-                                return false;
-
-                            // log and leave
-                            SnLog.WriteException(e);
-                            return true;
-                        });
+                    return gc.Sharing.Items.Where(sd => ids.Contains(sd.Identity) || emails.Contains(sd.Token));
+                },
+                (gc, recordsToRemove) =>
+                {
+                    // reload node and remove sharing
+                    var content = Node.Load<GenericContent>(gc.Id);
+                    content.Sharing.RemoveSharing(recordsToRemove.Select(sd => sd.Id).ToArray());
                 });
+        }
+
+        private static void ProcessContentWithRetry(IEnumerable<Node> nodes, Action<GenericContent> action)
+        {
+            Parallel.ForEach(nodes.Where(n => n is GenericContent).Cast<GenericContent>(),
+                new ParallelOptions { MaxDegreeOfParallelism = 5 },
+                gc =>
+                {
+                    Retrier.Retry(3, 300, () => { action(gc); }, HandleRetryCondition);
+                });
+        }
+        private static void ProcessContentWithRetry(IEnumerable<Node> nodes, 
+            Func<GenericContent, IEnumerable<SharingData>> collectSharingData, 
+            Action<GenericContent, IEnumerable<SharingData>> action)
+        {
+            Parallel.ForEach(nodes.Where(n => n is GenericContent).Cast<GenericContent>(),
+                new ParallelOptions { MaxDegreeOfParallelism = 5 },
+                gc =>
+                {
+                    var sharingDataList = collectSharingData(gc);
+
+                    Retrier.Retry(3, 300, () => { action(gc, sharingDataList); }, HandleRetryCondition);
+                });
+        }
+        private static bool HandleRetryCondition(int iteration, Exception ex)
+        {
+            if (ex == null)
+                return true;
+
+            // we should retry
+            if (ex is NodeIsOutOfDateException)
+                return false;
+
+            // log and leave
+            SnLog.WriteException(ex);
+            return true;
         }
     }
 }

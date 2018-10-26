@@ -1,4 +1,5 @@
-﻿using SenseNet.ContentRepository.Storage.Events;
+﻿using System.Linq;
+using SenseNet.ContentRepository.Storage.Events;
 
 namespace SenseNet.ContentRepository.Sharing
 {
@@ -19,6 +20,20 @@ namespace SenseNet.ContentRepository.Sharing
             {
                 SharingHandler.OnUserCreated(user);
             }
+        }
+
+        protected override void OnNodeModified(object sender, NodeEventArgs e)
+        {
+            base.OnNodeModified(sender, e);
+
+            if (!(e.SourceNode is User user))
+                return;
+
+            var emailChange = e.ChangedData.FirstOrDefault(cd => cd.Name == "Email");
+            if (emailChange == null)
+                return;
+            
+            SharingHandler.OnUserChanged(user, (string)emailChange.Original);
         }
     }
 }

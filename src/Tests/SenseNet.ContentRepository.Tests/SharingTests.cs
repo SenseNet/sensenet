@@ -519,7 +519,79 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(1, items.Length);
                 Assert.IsNotNull(items.Single(sd => sd.Token == "user1@example.com" && sd.Identity == user.Id));
 
-                //UNDONE: check for new permissions too
+                // check for new permissions too
+                Assert.IsTrue(root.Security.HasPermission((IUser)user, PermissionType.Open), "The user did not get the necessary permission.");
+            });
+        }
+        [TestMethod]
+        public void Sharing_Change_Email()
+        {
+            // we need the sharing observer for this feature
+            Test(builder => { builder.EnableNodeObservers(typeof(SharingNodeObserver)); }, () =>
+            {
+                ReInstallGenericContentCtd();
+                var root = CreateTestRoot();
+
+                var user = new User(Node.LoadNode("/Root/IMS/BuiltIn/Portal"))
+                {
+                    Name = "User-1",
+                    Enabled = true,
+                    Email = "user1@example.com"
+                };
+                user.Save();
+
+                // internal user
+                root.Sharing.Share("user1@example.com", SharingLevel.Open, SharingMode.Public, false);
+                // external user
+                root.Sharing.Share("user2@example.com", SharingLevel.Edit, SharingMode.Public, false);
+
+                var items = root.Sharing.Items.ToArray();
+
+                void AssertSharingData()
+                {
+                    Assert.AreEqual(2, items.Length);
+                    Assert.IsNotNull(items.Single(sd => sd.Token == "user1@example.com" && sd.Identity == user.Id));
+                    Assert.IsNotNull(items.Single(sd => sd.Token == "user2@example.com" && sd.Identity == 0));
+
+                    // check for new permissions too
+                    Assert.IsTrue(root.Security.HasPermission((IUser)user, PermissionType.Open));
+                }
+                void Reload()
+                {
+                    // reload the shared content to refresh the sharing list
+                    root = Node.Load<GenericContent>(root.Id);
+                    items = root.Sharing.Items.ToArray();
+                }
+
+                AssertSharingData();
+
+                // ACTION: change email
+                user.Email = "user3@example.com";
+                user.Save(SavingMode.KeepVersion);
+
+                // sharing record should remain the same
+                Reload();
+                AssertSharingData();
+
+                // ACTION: clear email
+                user.Email = string.Empty;
+                user.Save(SavingMode.KeepVersion);
+
+                // sharing record should remain the same
+                Reload();
+                AssertSharingData();
+
+                // ACTION: change to an existing external email
+                user.Email = "user2@example.com";
+                user.Save(SavingMode.KeepVersion);
+
+                Reload();
+
+                Assert.IsNotNull(items.Single(sd => sd.Token == "user1@example.com" && sd.Identity == user.Id));
+                Assert.IsNotNull(items.Single(sd => sd.Token == "user2@example.com" && sd.Identity == user.Id));
+
+                // the user got the additional permissions for the previously external email
+                Assert.IsTrue(root.Security.HasPermission((IUser)user, PermissionType.Save));
             });
         }
         [TestMethod]
@@ -550,6 +622,8 @@ namespace SenseNet.ContentRepository.Tests
                 // external user
                 Assert.IsNotNull(items.Single(sd => sd.Token == "user2@example.com" && sd.Identity == 0));
 
+                Assert.IsTrue(SecurityHandler.HasPermission(user, root, PermissionType.Open));
+
                 // ACTION: sharing records that belong to the deleted identity should be removed.
                 user.ForceDelete();
 
@@ -562,6 +636,8 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsNull(items.FirstOrDefault(sd => sd.Token == "user1@example.com" || sd.Identity == user.Id));
                 // external user
                 Assert.IsNotNull(items.Single(sd => sd.Token == "user2@example.com" && sd.Identity == 0));
+
+                Assert.IsFalse(SecurityHandler.HasPermission(user, root, PermissionType.Open));
             });
         }
         [TestMethod]
