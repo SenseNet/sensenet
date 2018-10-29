@@ -19,11 +19,11 @@ namespace SenseNet.Search.Indexing
         }
         internal static string TokenizeIdentity(int identity)
         {
-            return "I" + identity.ToString("X");
+            return "I" + identity.ToString(); //.ToString("X");
         }
         internal static string TokenizeCreatorId(int creatorId)
         {
-            return "C" + creatorId.ToString("X");
+            return "C" + creatorId.ToString(); //.ToString("X");
         }
         internal static string TokenizeSharingMode(SharingMode mode)
         {

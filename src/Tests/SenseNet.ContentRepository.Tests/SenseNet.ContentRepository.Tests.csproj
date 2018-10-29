@@ -104,6 +104,7 @@
     <Compile Include="MaintenanceTests.cs" />
     <Compile Include="NodeTests.cs" />
     <Compile Include="SharingTests.cs" />
+    <Compile Include="SharingVisitorTests.cs" />
     <Compile Include="UserTests.cs" />
     <Compile Include="NodeIdentifierTests.cs" />
     <Compile Include="NotifyChangedTests.cs" />
