@@ -215,6 +215,7 @@ namespace SenseNet.ContentRepository.Tests
             var qB2 = 143;
             var qC1 = 151;
             var qC2 = 152;
+            var qC3 = 153;
             var qD1 = SharingMode.Private;
             var qD2 = SharingMode.Authenticated;
             var qE1 = SharingLevel.Open;
@@ -228,6 +229,7 @@ namespace SenseNet.ContentRepository.Tests
             var tB2 = SharingDataTokenizer.TokenizeIdentity(qB2);
             var tC1 = SharingDataTokenizer.TokenizeCreatorId(qC1);
             var tC2 = SharingDataTokenizer.TokenizeCreatorId(qC2);
+            var tC3 = SharingDataTokenizer.TokenizeCreatorId(qC3);
             var tD1 = SharingDataTokenizer.TokenizeSharingMode(qD1);
             var tD2 = SharingDataTokenizer.TokenizeSharingMode(qD2);
             var tE1 = SharingDataTokenizer.TokenizeSharingLevel(qE1);
@@ -247,9 +249,13 @@ namespace SenseNet.ContentRepository.Tests
             RewritingTest($"+TypeIs:(File Folder) +{b}:({qB1} {qB2})",
                           $"+(TypeIs:file TypeIs:folder) +({s}:{tB1} {s}:{tB2})");
 
-            // ... +d +b:(_ _) --> combine --> ... +s:b1,d +s:b2,d
+            // ... +d +b:(_ _) --> combine --> ... +(s:b1,d s:b2,d)
             RewritingTest($"+{qX1} +{d}:{qD1} +{b}:({qB1} {qB2})",
                           $"+{tX1} +({s}:{tB1},{tD1} {s}:{tB2},{tD1})");
+
+            // ... +a +b:(_ _) +c:(_ _ _) --> combine --> ... +(s:a,b1,c1 s:a,b1,c2 s:a,b1,c3 s:a,b2,c1 s:a,b2,c2 s:a,b2,c3)
+            RewritingTest($"+{qX1} +{a}:{qA1} +{b}:({qB1} {qB2}) +{c}:({qC1} {qC2} {qC3})",
+                          $"+{tX1} +({s}:{tA1},{tB1},{tC1} {s}:{tA1},{tB2},{tC1} {s}:{tA1},{tB1},{tC2} {s}:{tA1},{tB2},{tC2} {s}:{tA1},{tB1},{tC3} {s}:{tA1},{tB2},{tC3})");
         }
         private void RewritingTest(string inputQuery, string expectedQuery)
         {
