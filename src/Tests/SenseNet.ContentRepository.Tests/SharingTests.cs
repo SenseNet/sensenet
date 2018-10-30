@@ -703,6 +703,53 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
+        public void Sharing_Public_CreateGroup()
+        {
+            Test(() =>
+            {
+                ReInstallGenericContentCtd();
+                var root = CreateTestRoot();
+
+                var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
+                content.Save();
+
+                var gc = (GenericContent)content.ContentHandler;
+
+                gc.Sharing.Share("abc1@example.com", SharingLevel.Open, SharingMode.Public, false);
+                gc.Sharing.Share("abc2@example.com", SharingLevel.Edit, SharingMode.Public, false);
+
+                // look for the new sharing groups in the global container
+                var groups = Content.All.DisableAutofilters()
+                    .Where(c => 
+                        c.TypeIs("SharingGroup") &&
+                        c.InTree("/Root/IMS/Sharing") &&
+                        (Node)c["SharedContent"] == content.ContentHandler)
+                    .OrderBy(c => c.Id)
+                    .ToList();
+
+                content = Content.Load(content.Id);
+
+                Assert.AreEqual(2, groups.Count, "Sharing group was not created.");
+
+                var g1 = groups[0]; // open
+                var g2 = groups[1]; // edit
+
+                var acei1 = content.Sharing.GetExplicitEntries().Single(acei => acei.IdentityId == g1.Id);
+                var acei2 = content.Sharing.GetExplicitEntries().Single(acei => acei.IdentityId == g2.Id);
+
+                // group1: Open
+                Assert.AreEqual("Open", (string)g1["SharingLevelValue"]);
+                Assert.AreEqual((ulong)0x10, acei1.AllowBits & 0x10);      // open
+                Assert.AreNotEqual((ulong)0x40, acei1.AllowBits & 0x40);   // save: not granted
+
+                // group2: Edit
+                Assert.AreEqual("Edit", (string)g2["SharingLevelValue"]);
+                Assert.AreEqual((ulong)0x10, acei2.AllowBits & 0x10);      // open
+                Assert.AreEqual((ulong)0x40, acei2.AllowBits & 0x40);      // save
+            });
+        }
+
+        [TestMethod]
         public void Sharing_Permissions_OpenBitmasks()
         {
             var levels = Enum.GetValues(typeof(SharingLevel)).Cast<SharingLevel>().ToArray();
@@ -964,6 +1011,12 @@ namespace SenseNet.ContentRepository.Tests
 
             var path = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                 @"..\..\..\..\nuget\snadmin\install-services\import\System\Schema\ContentTypes\GenericContentCtd.xml"));
+            using (var stream = new FileStream(path, FileMode.Open))
+                ContentTypeInstaller.InstallContentType(stream);
+
+            // install sharing group CTD
+            path = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                @"..\..\..\..\nuget\snadmin\install-services\import\System\Schema\ContentTypes\SharingGroupCtd.xml"));
             using (var stream = new FileStream(path, FileMode.Open))
                 ContentTypeInstaller.InstallContentType(stream);
         }

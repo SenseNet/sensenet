@@ -289,8 +289,7 @@ namespace SenseNet.Search.Indexing
         /// <inheritdoc />
         public override IndexValue ConvertToTermValue(object value)
         {
-            //UNDONE:<? implement ConvertToTermValue
-            throw new NotImplementedException();
+            return !(value is string text) ? new IndexValue(string.Empty) : Parse(text);
         }
 
         /// <inheritdoc />

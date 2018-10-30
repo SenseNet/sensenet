@@ -8,7 +8,9 @@ using System.Web;
 using Newtonsoft.Json;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.ContentRepository.Workspaces;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Security;
@@ -167,14 +169,10 @@ namespace SenseNet.ContentRepository.Sharing
         {
             AssertSharingPermissions();
 
-            var identity = mode == SharingMode.Authenticated
-                ? Group.Everyone.Id
-                : GetSharingIdentityByToken(token);
-
             var sharingData = new SharingData
             {
                 Token = token,
-                Identity = identity,
+                Identity = GetSharingIdentity(token, level, mode),
                 Level = level,
                 Mode = mode,
                 CreatorId = (AccessProvider.Current.GetOriginalUser() as User)?.Id ?? 0,
@@ -265,6 +263,22 @@ namespace SenseNet.ContentRepository.Sharing
             _owner?.Security.Assert(PermissionType.SetPermissions);
         }
 
+        private int GetSharingIdentity(string token, SharingLevel level, SharingMode mode)
+        {
+            switch (mode)
+            {
+                case SharingMode.Public:
+                    // Public sharing: create a local or global group for every
+                    // content+level combination
+                    var group = LoadOrCreateGroup(level);
+
+                    return group.Id;
+                case SharingMode.Authenticated:
+                    return Group.Everyone.Id;
+            }
+
+            return GetSharingIdentityByToken(token);
+        }
         private int GetSharingIdentityByToken(string token)
         {
             //UNDONE: get sharing identity: email, username, groupname, special tokens etc.
@@ -273,6 +287,91 @@ namespace SenseNet.ContentRepository.Sharing
             var userId = ContentQuery.Query(SharingQueries.UsersByEmail, QuerySettings.AdminSettings, token)
                 .Identifiers.FirstOrDefault();
             return userId;
+        }
+
+        private Group LoadOrCreateGroup(SharingLevel level)
+        {
+            var ws = _owner.Workspace;
+
+            // Look for the sharing group among local groups in the workspace
+            // or (if there is no workspace) in the global folder under 
+            // a dedicated domain.
+            var parent = ws == null 
+                ? LoadOrCreateContainer(RepositoryStructure.ImsFolderPath, "Sharing", "Domain") 
+                : LoadOrCreateContainer(ws.Path, Workspace.LocalGroupsFolderName, "SystemFolder");
+
+            if (parent is Domain domain && !domain.IsAllowedChildType("SharingGroup"))
+            {
+                domain.AllowChildType("SharingGroup", save:true);
+            }
+
+            var group = Content.All.DisableAutofilters().FirstOrDefault(c =>
+                c.InTree(parent) &&
+                c.TypeIs("SharingGroup") &&
+                (Node)c["SharedContent"] == _owner &&
+                (string)c["SharingLevelValue"] == level.ToString());
+
+            if (group == null)
+            {
+                // Sharing groups have special names for a reason: we need to have one and 
+                // only one group per content per sharing level, so we cannot have a random 
+                // name because that would allow the creation of multiple sharing groups for 
+                // the same purpose on multiple threads.
+                var groupName = $"G{_owner.Id}-{level.ToString().ToLowerInvariant()}";
+
+                // create a new sharing group
+                Retrier.Retry(3, 300, () =>
+                {
+                    group = Content.CreateNew("SharingGroup", parent, groupName);
+                    group["SharedContent"] = _owner;
+                    group["SharingLevelValue"] = level.ToString();
+                    group.Save();
+                }, (i, e) =>
+                {
+                    switch (e)
+                    {
+                        case null:
+                            return true;
+                        case NodeAlreadyExistsException _:
+                            // created on another thread: reload by name
+                            group = Content.Load($"{parent.Path}/{groupName}");
+                            return true;
+                    }
+
+                    return false;
+                });
+            }
+
+            return group.ContentHandler as Group;
+        }
+        private static Node LoadOrCreateContainer(string parentPath, string name, string contentTypeName)
+        {
+            var containerPath = $"{parentPath}/{name}";
+            var container = Node.LoadNode(containerPath);
+            if (container == null)
+            {
+                Retrier.Retry(3, 300, () =>
+                {
+                    var content = Content.CreateNew(contentTypeName, Node.LoadNode(parentPath), name);
+                    content.Save();
+                    container = content.ContentHandler;
+                }, (i, ex) =>
+                {
+                    switch (ex)
+                    {
+                        case null:
+                            return true;
+                        case NodeAlreadyExistsException _:
+                            // reload by name
+                            container = Node.LoadNode(containerPath);
+                            return true;
+                    }
+
+                    return false;
+                });
+            }
+
+            return container;
         }
         
         private void UpdateOwnerNode()
