@@ -130,37 +130,128 @@ namespace SenseNet.ContentRepository.Tests
         #endregion
 
         [TestMethod]
+        public void Sharing_Query_Rewriting_CombineValues1()
+        {
+            var input1 = new List<List<string>>
+            {
+                new List<string> { "a" }
+            };
+            var input2 = new List<List<string>>
+            {
+                new List<string> { "b" },
+                new List<string> { "c" }
+            };
+
+            // ACTION
+            var sharingVisitorAcc = new PrivateType(typeof(SharingVisitor));
+            var result = (List<List<string>>)sharingVisitorAcc.InvokeStatic("CombineValues", input1, input2);
+
+            // ASSERT
+            var actual = string.Join(" ", result.Select(x => string.Join("", x)));
+            Assert.AreEqual("ab ac", actual);
+        }
+        [TestMethod]
+        public void Sharing_Query_Rewriting_CombineValues2()
+        {
+            var input1 = new List<List<string>>
+            {
+                new List<string> { "a" },
+                new List<string> { "b" },
+            };
+            var input2 = new List<List<string>>
+            {
+                new List<string> { "c" },
+                new List<string> { "d" },
+                new List<string> { "e" },
+            };
+
+            // ACTION
+            var sharingVisitorAcc = new PrivateType(typeof(SharingVisitor));
+            var result = (List<List<string>>)sharingVisitorAcc.InvokeStatic("CombineValues", input1, input2);
+
+            // ASSERT
+            var actual = string.Join(" ", result.Select(x => string.Join("", x)));
+            Assert.AreEqual("ac ad ae bc bd be", actual);
+        }
+        [TestMethod]
+        public void Sharing_Query_Rewriting_CombineValues3()
+        {
+            var input1 = new List<List<string>>
+            {
+                new List<string> { "a", "b" },
+                new List<string> { "c" }
+            };
+            var input2 = new List<List<string>>
+            {
+                new List<string> { "d", "e", "f" },
+                new List<string> { "g" },
+                new List<string> { "e", "h", "i" }
+            };
+
+            // ACTION
+            var sharingVisitorAcc = new PrivateType(typeof(SharingVisitor));
+            var result = (List<List<string>>)sharingVisitorAcc.InvokeStatic("CombineValues", input1, input2);
+
+            // ASSERT
+            var actual = string.Join(" ", result.Select(x => string.Join("", x)));
+            Assert.AreEqual("abdef abg abehi cdef cg cehi", actual);
+        }
+
+        [TestMethod]
         public void Sharing_Query_Rewriting()
         {
-            // subqueries
-            var qA1 = "SharedWith:user1@example.com";
-            var qA2 = "SharedWith:user2@example.com";
-            var qB1 = "SharedWith:142";
-            var qB2 = "SharedWith:143";
-            var qC1 = "SharedBy:151";
-            var qC2 = "SharedBy:152";
-            var qD1 = "SharingMode:" + SharingMode.Private;
-            var qD2 = "SharingMode:" + SharingMode.Authenticated;
-            var qE1 = "SharingLevel:" + SharingLevel.Open;
-            var qE2 = "SharingLevel:" + SharingLevel.Edit;
+            // term names
+            var a = "SharedWith";
+            var b = "SharedWith";
+            var c = "SharedBy";
+            var d = "SharingMode";
+            var e = "SharingLevel";
+            var s = "Sharing";
+
+            // input terms
+            var qA1 = "user1@example.com";
+            var qA2 = "user2@example.com";
+            var qB1 = 142;
+            var qB2 = 143;
+            var qC1 = 151;
+            var qC2 = 152;
+            var qD1 = SharingMode.Private;
+            var qD2 = SharingMode.Authenticated;
+            var qE1 = SharingLevel.Open;
+            var qE2 = SharingLevel.Edit;
+            var qX1 = "TypeIs:File";
 
             // expected terms
-            var tA1 = SharingDataTokenizer.TokenizeSharingToken("user1@example.com");
-            var tA2 = SharingDataTokenizer.TokenizeSharingToken("user2@example.com");
-            var tB1 = SharingDataTokenizer.TokenizeIdentity(142);
-            var tB2 = SharingDataTokenizer.TokenizeIdentity(143);
-            var tC1 = SharingDataTokenizer.TokenizeCreatorId(151);
-            var tC2 = SharingDataTokenizer.TokenizeCreatorId(152);
-            var tD1 = SharingDataTokenizer.TokenizeSharingMode(SharingMode.Private);
-            var tD2 = SharingDataTokenizer.TokenizeSharingMode(SharingMode.Authenticated);
-            var tE1 = SharingDataTokenizer.TokenizeSharingLevel(SharingLevel.Open);
-            var tE2 = SharingDataTokenizer.TokenizeSharingLevel(SharingLevel.Edit);
+            var tA1 = SharingDataTokenizer.TokenizeSharingToken(qA1);
+            var tA2 = SharingDataTokenizer.TokenizeSharingToken(qA2);
+            var tB1 = SharingDataTokenizer.TokenizeIdentity(qB1);
+            var tB2 = SharingDataTokenizer.TokenizeIdentity(qB2);
+            var tC1 = SharingDataTokenizer.TokenizeCreatorId(qC1);
+            var tC2 = SharingDataTokenizer.TokenizeCreatorId(qC2);
+            var tD1 = SharingDataTokenizer.TokenizeSharingMode(qD1);
+            var tD2 = SharingDataTokenizer.TokenizeSharingMode(qD2);
+            var tE1 = SharingDataTokenizer.TokenizeSharingLevel(qE1);
+            var tE2 = SharingDataTokenizer.TokenizeSharingLevel(qE2);
+            var tX1 = "TypeIs:file";
 
-            QueryRewritingTest($"+TypeIs:File +{qB1}", $"+TypeIs:file +Sharing:{tB1}");
-            QueryRewritingTest($"+TypeIs:File +{qB1} +{qE1}", $"+TypeIs:file +Sharing:{tB1},{tE1}");
-            QueryRewritingTest($"+TypeIs:File +{qC1} +{qB1} +{qE1}", $"+TypeIs:file +Sharing:{tB1},{tC1},{tE1}");
+            // one level "must" only
+            RewritingTest($"+{qX1} +{b}:{qB1}", $"+{tX1} +{s}:{tB1}");
+            RewritingTest($"+{qX1} +{b}:{qB1} +{e}:{qE1}", $"+{tX1} +{s}:{tB1},{tE1}");
+            RewritingTest($"+{qX1} +{e}:{qE1} +{b}:{qB1} +{c}:{qC1}", $"+{tX1} +{s}:{tB1},{tC1},{tE1}");
+            RewritingTest($"+{qX1} +{c}:{qC1} +{b}:{qB1} +{e}:{qE1}", $"+{tX1} +{s}:{tB1},{tC1},{tE1}");
+
+            // one level "should" only
+            RewritingTest($"{b}:{qB1} {b}:{qB2} {d}:{qD1}", $"{s}:{tB1} {s}:{tB2} {s}:{tD1}");
+
+            // +x:(_ _) +b:(_ _)
+            RewritingTest($"+TypeIs:(File Folder) +{b}:({qB1} {qB2})",
+                          $"+(TypeIs:file TypeIs:folder) +({s}:{tB1} {s}:{tB2})");
+
+            // ... +d +b:(_ _) --> combine --> ... +s:b1,d +s:b2,d
+            RewritingTest($"+{qX1} +{d}:{qD1} +{b}:({qB1} {qB2})",
+                          $"+{tX1} +({s}:{tB1},{tD1} {s}:{tB2},{tD1})");
         }
-        private void QueryRewritingTest(string inputQuery, string expectedQuery)
+        private void RewritingTest(string inputQuery, string expectedQuery)
         {
             //var intResults = new Dictionary<string, QueryResult<int>> { { "asdf", new QueryResult<int>(new[] { 1, 2, 3 }, 4) } };
             var context = new TestQueryContext(QuerySettings.AdminSettings, 0, _indexingInfo, new TestQueryEngine(null, null));
