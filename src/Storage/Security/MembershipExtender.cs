@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using SenseNet.Configuration;
+using SenseNet.Diagnostics;
+using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Storage.Security
 {
@@ -10,7 +13,7 @@ namespace SenseNet.ContentRepository.Storage.Security
     /// </summary>
     public class MembershipExtension
     {
-        public static readonly MembershipExtension Placeholder = new MembershipExtension(null);
+        public static readonly MembershipExtension Placeholder = new MembershipExtension((IEnumerable<int>)null);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MembershipExtension"/>.
@@ -20,11 +23,23 @@ namespace SenseNet.ContentRepository.Storage.Security
         {
             ExtensionIds = extension?.Select(x => x.Id).ToArray() ?? new int[0];
         }
+        public MembershipExtension(IEnumerable<int> identities)
+        {
+            ExtensionIds = identities?.ToArray() ?? new int[0];
+        }
+
+        internal void AddIdentities(params int[] identities)
+        {
+            if (!(identities?.Any() ?? false))
+                return;
+
+            ExtensionIds = ExtensionIds.Union(identities).ToArray();
+        }
 
         /// <summary>
         /// Gets the collection of group ids that extends the membership of a user.
         /// </summary>
-        public IEnumerable<int> ExtensionIds { get; }
+        public IEnumerable<int> ExtensionIds { get; private set; }
     }
 
     /// <summary>
@@ -39,6 +54,29 @@ namespace SenseNet.ContentRepository.Storage.Security
         public static readonly MembershipExtension EmptyExtension = new MembershipExtension(new ISecurityContainer[0]);
         private static MembershipExtenderBase Instance => Providers.Instance.MembershipExtender;
 
+        private static readonly string[] InternalMembershipExtenderTypeNames = 
+        {
+            "SenseNet.ContentRepository.Sharing.SharingMembershipExtender"
+        };
+        private static readonly Lazy<MembershipExtenderBase[]> InternalExtenders = new Lazy<MembershipExtenderBase[]>(() =>
+            {
+                return InternalMembershipExtenderTypeNames.Select(tn =>
+                    {
+                        try
+                        {
+                            return TypeResolver.CreateInstance<MembershipExtenderBase>(tn);
+                        }
+                        catch (Exception ex)
+                        {
+                            SnLog.WriteException(ex, $"Error loading internal membership extender: {tn}");
+                        }
+
+                        return null;
+                    }).Where(me => me != null).ToArray();
+            });
+
+        private static MembershipExtenderBase[] InternalInstances => InternalExtenders.Value;
+
         static MembershipExtenderBase()
         {
         }
@@ -50,6 +88,16 @@ namespace SenseNet.ContentRepository.Storage.Security
         public static void Extend(IUser user)
         {
             Instance?.ExtendPrivate(user);
+
+            // Enumerate all internal extenders and collect additional
+            // identities to add them to the user's membership list.
+            var internalIds = InternalInstances.SelectMany(ime => ime.GetExtension(user).ExtensionIds);
+
+            // create the initial extender or add ids to the existing one
+            if (user.MembershipExtension == null)
+                user.MembershipExtension = new MembershipExtension(internalIds);
+            else
+                user.MembershipExtension.AddIdentities(internalIds.ToArray());
         }
         private void ExtendPrivate(IUser user)
         {

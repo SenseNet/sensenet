@@ -188,6 +188,7 @@
     <Compile Include="Sharing\SharingActions.cs" />
     <Compile Include="Sharing\SharingData.cs" />
     <Compile Include="Sharing\SharingHandler.cs" />
+    <Compile Include="Sharing\SharingMembershipExtender.cs" />
     <Compile Include="Sharing\SharingNodeObserver.cs" />
     <Compile Include="SnComponent.cs" />
     <Compile Include="Linq\CaseInsensitiveFilterVisitor.cs" />

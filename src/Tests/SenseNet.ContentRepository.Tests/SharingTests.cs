@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Runtime.Remoting.Metadata.W3cXsd2001;
+using System.Web;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Linq;
@@ -21,6 +23,17 @@ using SenseNet.Tests;
 
 namespace SenseNet.ContentRepository.Tests
 {
+    public class MockHttpSession : HttpSessionStateBase
+    {
+        private readonly Dictionary<string, object> _sessionStorage = new Dictionary<string, object>();
+
+        public override object this[string name]
+        {
+            get => _sessionStorage.TryGetValue(name, out var sessionValue) ? sessionValue : null;
+            set => _sessionStorage[name] = value;
+        }
+    }
+
     [TestClass]
     public class SharingTests : TestBase
     {
@@ -500,7 +513,7 @@ namespace SenseNet.ContentRepository.Tests
                 var items = root.Sharing.Items.ToArray();
 
                 Assert.AreEqual(1, items.Length);
-                Assert.IsNotNull(items.Single(sd => sd.Token == "user1@example.com" && sd.Identity == 0));
+                AssertPublicSharingData(items, "user1@example.com");
 
                 // ACTION: create a new user with the previous email
                 var user = new User(Node.LoadNode("/Root/IMS/BuiltIn/Portal"))
@@ -515,12 +528,12 @@ namespace SenseNet.ContentRepository.Tests
                 root = Node.Load<GenericContent>(root.Id);
                 items = root.Sharing.Items.ToArray();
 
-                // sharing record should be updated with the new identity
+                // sharing record should NOT be updated with the new identity
                 Assert.AreEqual(1, items.Length);
-                Assert.IsNotNull(items.Single(sd => sd.Token == "user1@example.com" && sd.Identity == user.Id));
+                AssertPublicSharingData(items, "user1@example.com");
 
                 // check for new permissions too
-                Assert.IsTrue(root.Security.HasPermission((IUser)user, PermissionType.Open), "The user did not get the necessary permission.");
+                //Assert.IsTrue(root.Security.HasPermission((IUser)user, PermissionType.Open), "The user did not get the necessary permission.");
             });
         }
         [TestMethod]
@@ -550,11 +563,8 @@ namespace SenseNet.ContentRepository.Tests
                 void AssertSharingData()
                 {
                     Assert.AreEqual(2, items.Length);
-                    Assert.IsNotNull(items.Single(sd => sd.Token == "user1@example.com" && sd.Identity == user.Id));
-                    Assert.IsNotNull(items.Single(sd => sd.Token == "user2@example.com" && sd.Identity == 0));
-
-                    // check for new permissions too
-                    Assert.IsTrue(root.Security.HasPermission((IUser)user, PermissionType.Open));
+                    AssertPublicSharingData(items, "user1@example.com");
+                    AssertPublicSharingData(items, "user2@example.com");
                 }
                 void Reload()
                 {
@@ -586,12 +596,12 @@ namespace SenseNet.ContentRepository.Tests
                 user.Save(SavingMode.KeepVersion);
 
                 Reload();
-
-                Assert.IsNotNull(items.Single(sd => sd.Token == "user1@example.com" && sd.Identity == user.Id));
-                Assert.IsNotNull(items.Single(sd => sd.Token == "user2@example.com" && sd.Identity == user.Id));
+                AssertSharingData();
+                //Assert.IsNotNull(items.Single(sd => sd.Token == "user1@example.com"));
+                //Assert.IsNotNull(items.Single(sd => sd.Token == "user2@example.com"));
 
                 // the user got the additional permissions for the previously external email
-                Assert.IsTrue(root.Security.HasPermission((IUser)user, PermissionType.Save));
+                //Assert.IsTrue(root.Security.HasPermission((IUser)user, PermissionType.Save));
             });
         }
         [TestMethod]
@@ -620,7 +630,7 @@ namespace SenseNet.ContentRepository.Tests
                 // internal user
                 Assert.IsNotNull(items.Single(sd => sd.Token == "user1@example.com" && sd.Identity == user.Id));
                 // external user
-                Assert.IsNotNull(items.Single(sd => sd.Token == "user2@example.com" && sd.Identity == 0));
+                AssertPublicSharingData(items, "user2@example.com");
 
                 Assert.IsTrue(SecurityHandler.HasPermission(user, root, PermissionType.Open));
 
@@ -634,8 +644,8 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(1, items.Length);
                 // internal user
                 Assert.IsNull(items.FirstOrDefault(sd => sd.Token == "user1@example.com" || sd.Identity == user.Id));
-                // external user
-                Assert.IsNotNull(items.Single(sd => sd.Token == "user2@example.com" && sd.Identity == 0));
+                // external user and a sharing group
+                AssertPublicSharingData(items, "user2@example.com");
 
                 Assert.IsFalse(SecurityHandler.HasPermission(user, root, PermissionType.Open));
             });
@@ -708,24 +718,29 @@ namespace SenseNet.ContentRepository.Tests
             Test(() =>
             {
                 ReInstallGenericContentCtd();
-                var root = CreateTestRoot();
 
+                var root = CreateTestRoot();
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
                 content.Save();
 
                 var gc = (GenericContent)content.ContentHandler;
 
-                gc.Sharing.Share("abc1@example.com", SharingLevel.Open, SharingMode.Public, false);
-                gc.Sharing.Share("abc2@example.com", SharingLevel.Edit, SharingMode.Public, false);
+                var sd1 = gc.Sharing.Share("abc1@example.com", SharingLevel.Open, SharingMode.Public, false);
+                var sd2 = gc.Sharing.Share("abc2@example.com", SharingLevel.Edit, SharingMode.Public, false);
+
+                List<Content> LoadSharingGroups()
+                {
+                    return Content.All.DisableAutofilters()
+                        .Where(c =>
+                            c.TypeIs(Constants.SharingGroupTypeName) &&
+                            c.InTree("/Root/IMS/Sharing") &&
+                            (Node)c[Constants.SharedContentFieldName] == content.ContentHandler)
+                        .OrderBy(c => c.Id)
+                        .ToList();
+                }
 
                 // look for the new sharing groups in the global container
-                var groups = Content.All.DisableAutofilters()
-                    .Where(c => 
-                        c.TypeIs("SharingGroup") &&
-                        c.InTree("/Root/IMS/Sharing") &&
-                        (Node)c["SharedContent"] == content.ContentHandler)
-                    .OrderBy(c => c.Id)
-                    .ToList();
+                var groups = LoadSharingGroups();
 
                 content = Content.Load(content.Id);
 
@@ -746,6 +761,70 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual("Edit", (string)g2["SharingLevelValue"]);
                 Assert.AreEqual((ulong)0x10, acei2.AllowBits & 0x10);      // open
                 Assert.AreEqual((ulong)0x40, acei2.AllowBits & 0x40);      // save
+
+                // find groups by sharing id
+                var queryG1 = SharingHandler.GetSharingGroupBySharingId(sd1.Id);
+                var queryG2 = SharingHandler.GetSharingGroupBySharingId(sd2.Id);
+
+                Assert.AreEqual(g1.Id, queryG1.Id);
+                Assert.AreEqual(g2.Id, queryG2.Id);
+
+                // ACTION: share it again, same level
+                var sd3 = gc.Sharing.Share("abc3@example.com", SharingLevel.Edit, SharingMode.Public, false);
+
+                // load groups again
+                groups = LoadSharingGroups();
+
+                //SaveIndex(@"D:\_index");
+
+                // there should still be 2
+                Assert.AreEqual(2, groups.Count);
+
+                // This does not work yet when we use the in-mem query engine, because
+                // it requires the analyzer infrastructure to be in place.
+                // var queryG3 = SharingHandler.GetSharingGroupBySharingId(sd3.Id);
+
+                Assert.AreEqual(g1.Id, groups[0].Id);
+                Assert.AreEqual(g2.Id, groups[1].Id);
+
+                // make sure the group has been updated with the new id
+                var ids = (string) groups[1][Constants.SharingIdsFieldName];
+                Assert.IsTrue(ids.Contains(sd3.Id.Replace("-", string.Empty)));
+            });
+        }
+        [TestMethod]
+        public void Sharing_Public_MembershipExtender()
+        {
+            Test(() =>
+            {
+                ReInstallGenericContentCtd();
+
+                var root = CreateTestRoot();
+                var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
+                content.Save();
+
+                var gc = (GenericContent)content.ContentHandler;
+                var sd1 = gc.Sharing.Share("abc1@example.com", SharingLevel.Open, SharingMode.Public, false);
+                var group = Content.All.DisableAutofilters().FirstOrDefault(c =>
+                    c.TypeIs(Constants.SharingGroupTypeName) &&
+                    (Node) c[Constants.SharedContentFieldName] == content.ContentHandler);
+
+                Assert.AreEqual(sd1.Id.Replace("-", string.Empty), (string)group[Constants.SharingIdsFieldName]);
+
+                // provide the new sharing guid as a parameter
+                var parameters = new NameValueCollection {{Constants.SharingUrlParameterName, sd1.Id}};
+                var session = new MockHttpSession();
+
+                var extension = SharingMembershipExtender.GetSharingExtension(parameters, session);
+
+                Assert.IsTrue(extension.ExtensionIds.Contains(group.Id));
+                Assert.IsTrue((int)session[Constants.SharingSessionKey] == group.Id);
+
+                // repeat with filled session
+                extension = SharingMembershipExtender.GetSharingExtension(parameters, session);
+
+                Assert.IsTrue(extension.ExtensionIds.Contains(group.Id));
+                Assert.IsTrue((int)session[Constants.SharingSessionKey] == group.Id);
             });
         }
 
@@ -770,23 +849,32 @@ namespace SenseNet.ContentRepository.Tests
                 var entries1 = gc.Sharing.GetExplicitEntries();
 
                 gc.Sharing.Share("abc2@example.com", SharingLevel.Open, SharingMode.Authenticated);
-                var entries2 = gc.Sharing.GetExplicitEntries();
+                var entries2 = gc.Sharing.GetExplicitEntries().OrderBy(e => e.IdentityId).ToList();
 
                 gc.Sharing.Share(user1.Email, SharingLevel.Edit, SharingMode.Private);
                 var entries3 = gc.Sharing.GetExplicitEntries().OrderBy(e => e.IdentityId).ToList();
 
                 // ASSERT
-                Assert.AreEqual(0, entries1.Count);
+                Assert.AreEqual(1, entries1.Count);
+                Assert.AreEqual(2, entries2.Count);
+                Assert.AreEqual(3, entries3.Count);
 
-                Assert.AreEqual(1, entries2.Count);
-                var entry = entries2.Single();
+                var entry = entries1[0];
+                var group = Content.Load(entry.IdentityId);
+                var relatedContent = ((IEnumerable<Node>) group["SharedContent"]).Single();
+                Assert.AreEqual(EntryType.Sharing, entry.EntryType);
+                Assert.IsTrue(group.ContentType.IsInstaceOfOrDerivedFrom("SharingGroup"));
+                Assert.AreEqual(gc.Id, relatedContent.Id);
+                Assert.AreEqual(SharingHandler.GetEffectiveBitmask(SharingLevel.Open), entry.AllowBits);
+                Assert.AreEqual(0ul, entry.DenyBits);
+
+                entry = entries2[0];
                 Assert.AreEqual(EntryType.Sharing, entry.EntryType);
                 Assert.AreEqual(Group.Everyone.Id, entry.IdentityId);
                 Assert.AreEqual(SharingHandler.GetEffectiveBitmask(SharingLevel.Open), entry.AllowBits);
                 Assert.AreEqual(0ul, entry.DenyBits);
-
-                Assert.AreEqual(2, entries3.Count);
-                entry = entries3[1];
+                
+                entry = entries3[1]; // user entry is in the middle
                 Assert.AreEqual(EntryType.Sharing, entry.EntryType);
                 Assert.AreEqual(user1.Id, entry.IdentityId);
                 Assert.AreEqual(SharingHandler.GetEffectiveBitmask(SharingLevel.Edit), entry.AllowBits);
@@ -932,12 +1020,12 @@ namespace SenseNet.ContentRepository.Tests
                 AssertSequenceEqual(new[]
                 {
                     "Normal|+(8):______________________________________________________________++",
-                    "Normal|+(1239):______________________________________________________________++"
+                    $"Normal|+({user1.Id}):______________________________________________________________++"
                 }, securityEntries);
                 AssertSequenceEqual(new[]
                 {
                     "Sharing|+(8):_________________________________________________________+++++++",
-                    "Sharing|+(1239):___________________________________________________________+++++"
+                    $"Sharing|+({user1.Id}):___________________________________________________________+++++"
                 }, sharingEntries);
             });
         }
@@ -971,12 +1059,12 @@ namespace SenseNet.ContentRepository.Tests
                 {
                     "Normal|+(1):_____________________________________________+++++++++++++++++++",
                     "Normal|+(8):______________________________________________________________++",
-                    "Normal|+(1239):______________________________________________________________++"
+                    $"Normal|+({user1.Id}):______________________________________________________________++"
                 }, securityEntries);
                 AssertSequenceEqual(new[]
                 {
                     "Sharing|+(8):_________________________________________________________+++++++",
-                    "Sharing|+(1239):___________________________________________________________+++++"
+                    $"Sharing|+({user1.Id}):___________________________________________________________+++++"
                 }, sharingEntries);
             });
         }
@@ -1041,6 +1129,12 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(expected.Level, actual.Level);
             Assert.AreEqual(expected.Mode, actual.Mode);
             Assert.AreEqual(expected.ShareDate, actual.ShareDate);
+        }
+
+        private static void AssertPublicSharingData(IEnumerable<SharingData> items, string email)
+        {
+            var item = items.Single(sd => sd.Token == email);
+            Assert.IsTrue(Content.Load(item.Identity).ContentType.IsInstaceOfOrDerivedFrom(Constants.SharingGroupTypeName));
         }
 
         #region /* ================================================================================================ Tools */

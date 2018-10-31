@@ -4,13 +4,16 @@
   <Icon>Group</Icon>
   <Fields>
     <Field name="SharingIds" type="LongText">
+      <Indexing>
+        <Analyzer>Standard</Analyzer>
+      </Indexing>
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Hide</VisibleNew>
       </Configuration>
     </Field>
-	<Field name="SharingLevelValue" type="ShortText">
+    <Field name="SharingLevelValue" type="ShortText">
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
@@ -19,7 +22,7 @@
     </Field>
     <Field name="SharedContent" type="Reference">
       <Configuration>
-		<AllowMultiple>false</AllowMultiple>
+        <AllowMultiple>false</AllowMultiple>
         <VisibleBrowse>Hide</VisibleBrowse>
         <VisibleEdit>Hide</VisibleEdit>
         <VisibleNew>Hide</VisibleNew>
