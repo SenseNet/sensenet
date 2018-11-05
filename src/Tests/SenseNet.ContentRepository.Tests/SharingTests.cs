@@ -507,33 +507,54 @@ namespace SenseNet.ContentRepository.Tests
                 ReInstallGenericContentCtd();
                 var root = CreateTestRoot();
                 
-                // external user
+                // external users
                 root.Sharing.Share("user1@example.com", SharingLevel.Open, SharingMode.Public, false); 
+                root.Sharing.Share("user2@example.com", SharingLevel.Open, SharingMode.Authenticated, false); 
+                root.Sharing.Share("user3@example.com", SharingLevel.Open, SharingMode.Private, false); 
 
                 var items = root.Sharing.Items.ToArray();
 
-                Assert.AreEqual(1, items.Length);
+                Assert.AreEqual(3, items.Length);
                 AssertPublicSharingData(items, "user1@example.com");
 
-                // ACTION: create a new user with the previous email
-                var user = new User(Node.LoadNode("/Root/IMS/BuiltIn/Portal"))
+                // ACTION: create new users with the previous emails
+                User CreateUser(string email)
                 {
-                    Name = "User-1",
-                    Enabled = true,
-                    Email = "user1@example.com"
-                };
-                user.Save();
+                    var user = new User(Node.LoadNode("/Root/IMS/BuiltIn/Portal"))
+                    {
+                        Name = Guid.NewGuid().ToString(),
+                        Enabled = true,
+                        Email = email
+                    };
+                    user.Save();
+                    return user;
+                }
+
+                var user1 = CreateUser("user1@example.com");
+                var user2 = CreateUser("user2@example.com");
+                var user3 = CreateUser("user3@example.com");
 
                 // reload the shared content to refresh the sharing list
                 root = Node.Load<GenericContent>(root.Id);
                 items = root.Sharing.Items.ToArray();
 
-                // sharing record should NOT be updated with the new identity
-                Assert.AreEqual(1, items.Length);
+                Assert.AreEqual(3, items.Length);
+
+                var sd2 = items.Single(sd => sd.Token == "user2@example.com");
+                var sd3 = items.Single(sd => sd.Token == "user3@example.com");
+
+                // sharing1 identity: sharing group (public)
+                // sharing2 identity: everyone group (auth)
+                // sharing3 identity: the new user (private)
                 AssertPublicSharingData(items, "user1@example.com");
+                Assert.AreEqual(Identifiers.EveryoneGroupId, sd2.Identity);
+                Assert.AreEqual(user3.Id, sd3.Identity);
 
                 // check for new permissions too
-                //Assert.IsTrue(root.Security.HasPermission((IUser)user, PermissionType.Open), "The user did not get the necessary permission.");
+                var aceList = root.Sharing.GetExplicitEntries();
+                Assert.IsNull(aceList.SingleOrDefault(ace => ace.IdentityId == user1.Id), "The user got unnecessary permissions.");
+                Assert.IsNull(aceList.SingleOrDefault(ace => ace.IdentityId == user2.Id), "The user got unnecessary permissions.");
+                Assert.IsNotNull(aceList.SingleOrDefault(ace => ace.IdentityId == user3.Id), "The user did not get the necessary permission.");
             });
         }
         [TestMethod]
@@ -555,16 +576,24 @@ namespace SenseNet.ContentRepository.Tests
 
                 // internal user
                 root.Sharing.Share("user1@example.com", SharingLevel.Open, SharingMode.Public, false);
-                // external user
+                // external user, 3 modes
                 root.Sharing.Share("user2@example.com", SharingLevel.Edit, SharingMode.Public, false);
+                root.Sharing.Share("user2@example.com", SharingLevel.Edit, SharingMode.Authenticated, false);
+                root.Sharing.Share("user2@example.com", SharingLevel.Edit, SharingMode.Private, false);
 
                 var items = root.Sharing.Items.ToArray();
 
-                void AssertSharingData()
+                void AssertSharingData(int privateId)
                 {
-                    Assert.AreEqual(2, items.Length);
+                    Assert.AreEqual(4, items.Length);
                     AssertPublicSharingData(items, "user1@example.com");
                     AssertPublicSharingData(items, "user2@example.com");
+
+                    var sd3 = items.Single(sd => sd.Token == "user2@example.com" && sd.Mode == SharingMode.Authenticated);
+                    var sd4 = items.Single(sd => sd.Token == "user2@example.com" && sd.Mode == SharingMode.Private);
+
+                    Assert.AreEqual(Identifiers.EveryoneGroupId, sd3.Identity);
+                    Assert.AreEqual(privateId, sd4.Identity);
                 }
                 void Reload()
                 {
@@ -573,7 +602,7 @@ namespace SenseNet.ContentRepository.Tests
                     items = root.Sharing.Items.ToArray();
                 }
 
-                AssertSharingData();
+                AssertSharingData(0);
 
                 // ACTION: change email
                 user.Email = "user3@example.com";
@@ -581,7 +610,7 @@ namespace SenseNet.ContentRepository.Tests
 
                 // sharing record should remain the same
                 Reload();
-                AssertSharingData();
+                AssertSharingData(0);
 
                 // ACTION: clear email
                 user.Email = string.Empty;
@@ -589,19 +618,17 @@ namespace SenseNet.ContentRepository.Tests
 
                 // sharing record should remain the same
                 Reload();
-                AssertSharingData();
+                AssertSharingData(0);
 
                 // ACTION: change to an existing external email
                 user.Email = "user2@example.com";
                 user.Save(SavingMode.KeepVersion);
 
                 Reload();
-                AssertSharingData();
-                //Assert.IsNotNull(items.Single(sd => sd.Token == "user1@example.com"));
-                //Assert.IsNotNull(items.Single(sd => sd.Token == "user2@example.com"));
+                AssertSharingData(user.Id);
 
                 // the user got the additional permissions for the previously external email
-                //Assert.IsTrue(root.Security.HasPermission((IUser)user, PermissionType.Save));
+                Assert.IsTrue(root.Security.HasPermission((IUser)user, PermissionType.Save));
             });
         }
         [TestMethod]
@@ -1133,7 +1160,7 @@ namespace SenseNet.ContentRepository.Tests
 
         private static void AssertPublicSharingData(IEnumerable<SharingData> items, string email)
         {
-            var item = items.Single(sd => sd.Token == email);
+            var item = items.Single(sd => sd.Token == email && sd.Mode == SharingMode.Public);
             Assert.IsTrue(Content.Load(item.Identity).ContentType.IsInstaceOfOrDerivedFrom(Constants.SharingGroupTypeName));
         }
 

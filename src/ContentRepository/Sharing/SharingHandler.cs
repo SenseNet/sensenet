@@ -26,7 +26,7 @@ namespace SenseNet.ContentRepository.Sharing
         /// <summary>Returns the following query: +SharedWith:@0</summary>
         public static string ContentBySharedWith => "+SharedWith:@0";
         /// <summary>Returns the following query: +SharedWith:@0 +SharedWith:0</summary>
-        public static string ContentBySharedEmail => "+SharedWith:@0 +SharedWith:0";
+        public static string PrivatelySharedWithNoIdentityByEmail => "+SharedWith:@0 +SharedWith:0 +SharingMode:Private";
     }
 
     internal static class Constants
@@ -601,19 +601,22 @@ namespace SenseNet.ContentRepository.Sharing
             // and add user id and set permissions for this user on the content.
 
             // Collect all content that has been shared with the email of this user.
-            var results = ContentQuery.Query(SharingQueries.ContentBySharedEmail,
+            var results = ContentQuery.Query(SharingQueries.PrivatelySharedWithNoIdentityByEmail,
                 QuerySettings.AdminSettings, user.Email);
 
             ProcessContentWithRetry(results.Nodes, gc =>
             {
                 var content = Node.Load<GenericContent>(gc.Id);
+                var changed = false;
 
                 var newItems = content.Sharing.Items.Select(sd =>
                 {
-                    if (sd.Token != user.Email || sd.Identity != 0)
+                    if (sd.Token != user.Email || sd.Identity != 0 || sd.Mode != SharingMode.Private)
                         return sd;
-
+                    
                     sd.Identity = user.Id;
+                    changed = true;
+
                     return sd;
                 });
 
@@ -621,8 +624,11 @@ namespace SenseNet.ContentRepository.Sharing
                 content.Save(SavingMode.KeepVersion);
 
                 // set permissions for the user
-                UpdatePermissions(content.Id, user.Id,
-                    content.Sharing.Items.Where(sd => sd.Identity == user.Id).ToArray());
+                if (changed)
+                {
+                    UpdatePermissions(content.Id, user.Id,
+                        content.Sharing.Items.Where(sd => sd.Identity == user.Id).ToArray());
+                }
             });
         }
         private static void RemoveIdentities(IEnumerable<Node> identities)
