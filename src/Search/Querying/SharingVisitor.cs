@@ -18,7 +18,7 @@ namespace SenseNet.Search.Querying
             public List<LogicalPredicate> LogicalMustNot { get; } = new List<LogicalPredicate>();
         }
 
-        private class SharingRelatedPredicateFinderVisitor : SnQueryVisitor
+        internal class SharingRelatedPredicateFinderVisitor : SnQueryVisitor
         {
             public List<SimplePredicate> SharingRelatedPredicates { get; } = new List<SimplePredicate>();
 
@@ -27,6 +27,73 @@ namespace SenseNet.Search.Querying
                 var visited = (SimplePredicate)base.VisitSimplePredicate(simplePredicate);
                 if (simplePredicate.FieldName == "Sharing")
                     SharingRelatedPredicates.Add(visited);
+                return visited;
+            }
+        }
+
+        internal class SharingScannerVisitor : SnQueryVisitor
+        {
+            private static readonly string[] SharingRelatedFieldNames =
+                {"Sharing", "SharedWith", "SharedBy", "SharingMode", "SharingLevel"};
+
+            public bool HasSharingTerm { get; private set; }
+            public bool HasMixedOccurences { get; private set; }
+            public bool HasUnnecessaryParentheses { get; private set; }
+            public bool HasNegativeTerm { get; private set; }
+
+            public bool NeedToBeNormalized => HasSharingTerm && (HasMixedOccurences || HasUnnecessaryParentheses);
+
+            public override SnQueryPredicate VisitSimplePredicate(SimplePredicate simplePredicate)
+            {
+                var visited = (SimplePredicate) base.VisitSimplePredicate(simplePredicate);
+                if (SharingRelatedFieldNames.Contains(simplePredicate.FieldName))
+                    HasSharingTerm = true;
+                return visited;
+            }
+
+            public override LogicalClause VisitLogicalClause(LogicalClause clause)
+            {
+                var visited = (LogicalClause) base.VisitLogicalClause(clause);
+
+                var must = 0;
+                var mustNot = 0;
+                var should = 0;
+
+                // Negative clause is skipped in this level
+                if (visited.Occur == Occurence.MustNot)
+                {
+                    HasNegativeTerm = true;
+                    return visited;
+                }
+
+                if (!(visited.Predicate is LogicalPredicate logical))
+                    return visited;
+
+                // Count the occurences of the sub-clauses
+                foreach (var subClause in logical.Clauses)
+                {
+                    switch (subClause.Occur)
+                    {
+                        case Occurence.Default:
+                        case Occurence.Should: should++; break;
+                        case Occurence.Must: must++; break;
+                        case Occurence.MustNot: mustNot++; break;
+                        default: throw new ArgumentOutOfRangeException();
+                    }
+                }
+
+                if (mustNot > 0)
+                    HasNegativeTerm = true;
+
+                if (must * should != 0)
+                    HasMixedOccurences = true;
+
+                // If the own occurence and occurences of the sub-level are equal, the sub level be combined
+                var thisOccurence = visited.Occur == Occurence.Default || visited.Occur == Occurence.Should ? Occurence.Should : Occurence.Must;
+                var subOccurence = should > 0 ? Occurence.Should : Occurence.Must;
+                if (thisOccurence == subOccurence)
+                    HasUnnecessaryParentheses = true;
+
                 return visited;
             }
         }
@@ -98,7 +165,7 @@ namespace SenseNet.Search.Querying
                 var newClauses = assortedLevel.GeneralClauses.ToList();
 
                 var values = assortedLevel.SimpleMust
-                    .Select(x => x.Value.StringValue)
+                    .Select(x => x.Value.StringValue) //UNDONE:<? what about combined values?
                     .OrderBy(x => "TICML".IndexOf(x[0]))
                     .ToArray();
 
@@ -265,6 +332,5 @@ namespace SenseNet.Search.Querying
             }
             return new LogicalPredicate(clauses);
         }
-
     }
 }

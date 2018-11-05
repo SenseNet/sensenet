@@ -78,7 +78,13 @@ namespace SenseNet.ContentRepository.Tests
             { "SharedWith", new TestPerfieldIndexingInfoSharedWith() },
             { "SharedBy", new TestPerfieldIndexingInfoSharedBy() },
             { "SharingMode", new TestPerfieldIndexingInfoSharingMode() },
-            { "SharingLevel", new TestPerfieldIndexingInfoSharingLevel() }
+            { "SharingLevel", new TestPerfieldIndexingInfoSharingLevel() },
+
+            {"a", new TestPerfieldIndexingInfoString()},
+            {"b", new TestPerfieldIndexingInfoString()},
+            {"c", new TestPerfieldIndexingInfoString()},
+            {"d", new TestPerfieldIndexingInfoString()},
+            {"e", new TestPerfieldIndexingInfoString()},
         };
 
         private class TestQueryContext : IQueryContext
@@ -128,6 +134,39 @@ namespace SenseNet.ContentRepository.Tests
             }
         }
         #endregion
+
+        [TestMethod]
+        public void Sharing_Query_Rewriting_SharingScanner()
+        {
+            // -------------- ( query,                         norm, hasNot, sharing, mixed, simplify )
+            SharingScannerTest("+a:a0 +(b:b1 b:b2)"           , false, false, false, false, false);
+            SharingScannerTest("+a:a0 +(b:b1 b:b2) -d:d0"     , false, true,  false, false, false);
+            SharingScannerTest("+a:a0 +(b:b1 b:b2 -d:d0)"     , false, true,  false, false, false);
+            SharingScannerTest("+a:a0 +(b:b0 +c:c0)"          , false, false, false, true,  false);
+            SharingScannerTest("+a:a0 +(+b:b0 +c:c0)"         , false, false, false, false, true);
+            SharingScannerTest("+a:a0 +(b:b0 (+c0 +(+d0 e0)))", false, false, false, false, true);
+        }
+
+        private void SharingScannerTest(string inputQuery, bool needToBeNormalized, bool hasNegativeTerm,
+            bool hasSharingTerm, bool hasMixedOccurences, bool hasUnnecessaryParentheses)
+        {
+            var context = new TestQueryContext(QuerySettings.AdminSettings, 0, _indexingInfo, new TestQueryEngine(null, null));
+            using (SenseNet.Tests.Tools.Swindle(typeof(SnQuery), "_permissionFilterFactory", new EverythingAllowedPermissionFilterFactory()))
+            {
+                var queryIn = SnQuery.Parse(inputQuery, context);
+                var snQueryAcc = new PrivateType(typeof(SnQuery));
+                snQueryAcc.InvokeStatic("PrepareQuery", queryIn, context);
+
+                var visitor = new SharingVisitor.SharingScannerVisitor();
+                visitor.Visit(queryIn.QueryTree);
+
+                Assert.AreEqual(needToBeNormalized, visitor.NeedToBeNormalized);
+                Assert.AreEqual(hasNegativeTerm, visitor.HasNegativeTerm);
+                Assert.AreEqual(hasSharingTerm, visitor.HasSharingTerm);
+                Assert.AreEqual(hasMixedOccurences, visitor.HasMixedOccurences);
+                Assert.AreEqual(hasUnnecessaryParentheses, visitor.HasUnnecessaryParentheses);
+            }
+        }
 
         [TestMethod]
         public void Sharing_Query_Rewriting_CombineValues1()
@@ -272,5 +311,58 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(expected, queryOut.ToString());
             }
         }
+
+
+        [TestMethod]
+        public void Sharing_Query_RewritingInvalid() //UNDONE:<? These tests are not invalid.
+        {
+            // term names
+            var a = "SharedWith";
+            var b = "SharedWith";
+            var c = "SharedBy";
+            var d = "SharingMode";
+            var e = "SharingLevel";
+            var s = "Sharing";
+
+            // input terms
+            var qA1 = "user1@example.com";
+            var qA2 = "user2@example.com";
+            var qB1 = 142;
+            var qB2 = 143;
+            var qC1 = 151;
+            var qC2 = 152;
+            var qC3 = 153;
+            var qD1 = SharingMode.Private;
+            var qD2 = SharingMode.Authenticated;
+            var qE1 = SharingLevel.Open;
+            var qE2 = SharingLevel.Edit;
+            var qX1 = "TypeIs:File";
+
+            //// Mixed occurence in the sub-level
+            //RewritingInvalidTest($"+{qX1} +({a}:{qA1} {b}:{qB1} +{d}:{qD1})");
+
+            // Not-sharing term in the SHOULD sharing-related sequence
+            RewritingInvalidTest($"+{qX1} +({a}:{qA1} {b}:{qB1} InTree:/root/folder1)");
+        }
+        private void RewritingInvalidTest(string inputQuery)
+        {
+            var context = new TestQueryContext(QuerySettings.AdminSettings, 0, _indexingInfo, new TestQueryEngine(null, null));
+            using (SenseNet.Tests.Tools.Swindle(typeof(SnQuery), "_permissionFilterFactory", new EverythingAllowedPermissionFilterFactory()))
+            {
+                var queryIn = SnQuery.Parse(inputQuery, context);
+                var snQueryAcc = new PrivateType(typeof(SnQuery));
+                snQueryAcc.InvokeStatic("PrepareQuery", queryIn, context);
+                try
+                {
+                    var result = snQueryAcc.InvokeStatic("ApplyVisitors", queryIn);
+                    Assert.Fail("NotSupportedException was not thrown.");
+                }
+                catch (NotSupportedException)
+                {
+                    
+                }
+            }
+        }
+
     }
 }
