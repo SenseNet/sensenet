@@ -25,14 +25,20 @@ namespace SenseNet.ContentRepository.Sharing
         public static string UsersByEmail => "+TypeIs:User +Email:@0";
         /// <summary>Returns the following query: +SharedWith:@0</summary>
         public static string ContentBySharedWith => "+SharedWith:@0";
-        /// <summary>Returns the following query: +SharedWith:@0 +SharedWith:0</summary>
+        /// <summary>Returns the following query: +SharedWith:@0 +SharedWith:0 +SharingMode:Private</summary>
         public static string PrivatelySharedWithNoIdentityByEmail => "+SharedWith:@0 +SharedWith:0 +SharingMode:Private";
+        /// <summary>Returns the following query: +InTree:@0 +SharingMode:Public</summary>
+        public static string PubliclySharedInTree => "+InTree:@0 +SharingMode:Public";
+        /// <summary>Returns the following query: +TypeIs:SharingGroup +SharedContent:@0</summary>
+        public static string SharingGroupsBySharedContent => "+TypeIs:SharingGroup +SharedContent:@0";
     }
 
     internal static class Constants
     {
         public const string SharingSessionKey = "SharingIdentity";
         public const string SharingGroupTypeName = "SharingGroup";
+        public const string SharedWithFieldName = "SharedWith";
+        public const string SharingModeFieldName = "SharingMode";
         public const string SharingIdsFieldName = "SharingIds";
         public const string SharedContentFieldName = "SharedContent";
         public const string SharingLevelValueFieldName = "SharingLevelValue";
@@ -238,6 +244,20 @@ namespace SenseNet.ContentRepository.Sharing
                 // collect remaining sharing entries for this identity
                 var remainData = _items.Where(x => x.Identity == identityId).ToArray();
                 UpdatePermissions(identityId, remainData);
+            }
+
+            // in case of public sharing: delete the sharing group too
+            if (sharingsToDelete.Any(sd => sd.Mode == SharingMode.Public))
+            {
+                using (new SystemAccount())
+                {
+                    foreach (var sharingData in sharingsToDelete.Where(sd => sd.Mode == SharingMode.Public))
+                    {
+                        var sharingGroup = Node.LoadNode(sharingData.Identity) as Group;
+                        if (sharingGroup?.NodeType.IsInstaceOfOrDerivedFrom(Constants.SharingGroupTypeName) ?? false)
+                            sharingGroup.ForceDelete();
+                    }
+                }
             }
 
             return true;
@@ -551,7 +571,7 @@ namespace SenseNet.ContentRepository.Sharing
                     default:
                         var identities = Content.All.DisableAutofilters().Where(c =>
                             c.InTree(node.Path) &&
-                            (c.TypeIs("User") || c.TypeIs("Group"))).Select(c => c.ContentHandler);
+                            (c.TypeIs("User") || c.TypeIs("Group"))).AsEnumerable().Select(c => c.ContentHandler);
 
                         RemoveIdentities(identities);
                         break;
@@ -663,6 +683,23 @@ namespace SenseNet.ContentRepository.Sharing
                     var content = Node.Load<GenericContent>(gc.Id);
                     content.Sharing.RemoveSharing(recordsToRemove.Select(sd => sd.Id).ToArray());
                 });
+        }
+
+        internal static int[] GetSharingGroupIds(Node sharedContent)
+        {
+            if (sharedContent == null)
+                return new int[0];
+
+            // collect all content ids that were shared publicly in this subtree
+            var publicSharedIds = ContentQuery.Query(SharingQueries.PubliclySharedInTree, 
+                    QuerySettings.AdminSettings, sharedContent.Path).Identifiers.ToArray();
+
+            if (!publicSharedIds.Any())
+                return new int[0];
+
+            // collect all group ids that will become orphanes
+            return ContentQuery.Query(SharingQueries.SharingGroupsBySharedContent,
+                QuerySettings.AdminSettings, publicSharedIds).Identifiers.ToArray();
         }
 
         /* ================================================================================== Helper methods */

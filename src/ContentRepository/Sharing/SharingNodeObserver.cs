@@ -5,6 +5,14 @@ namespace SenseNet.ContentRepository.Sharing
 {
     internal class SharingNodeObserver : NodeObserver
     {
+        protected override void OnNodeDeletingPhysically(object sender, CancellableNodeEventArgs e)
+        {
+            base.OnNodeDeletingPhysically(sender, e);
+
+            //UNDONE: collect publicly shared ids in the subtree to delete sharing groups later
+            
+        }
+
         protected override void OnNodeDeletedPhysically(object sender, NodeEventArgs e)
         {
             base.OnNodeDeletedPhysically(sender, e);

@@ -4,6 +4,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Runtime.Remoting.Metadata.W3cXsd2001;
+using System.Threading;
 using System.Web;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Configuration;
@@ -754,20 +755,9 @@ namespace SenseNet.ContentRepository.Tests
 
                 var sd1 = gc.Sharing.Share("abc1@example.com", SharingLevel.Open, SharingMode.Public, false);
                 var sd2 = gc.Sharing.Share("abc2@example.com", SharingLevel.Edit, SharingMode.Public, false);
-
-                List<Content> LoadSharingGroups()
-                {
-                    return Content.All.DisableAutofilters()
-                        .Where(c =>
-                            c.TypeIs(Constants.SharingGroupTypeName) &&
-                            c.InTree("/Root/IMS/Sharing") &&
-                            (Node)c[Constants.SharedContentFieldName] == content.ContentHandler)
-                        .OrderBy(c => c.Id)
-                        .ToList();
-                }
-
+                
                 // look for the new sharing groups in the global container
-                var groups = LoadSharingGroups();
+                var groups = LoadSharingGroups(content.ContentHandler);
 
                 content = Content.Load(content.Id);
 
@@ -800,7 +790,7 @@ namespace SenseNet.ContentRepository.Tests
                 var sd3 = gc.Sharing.Share("abc3@example.com", SharingLevel.Edit, SharingMode.Public, false);
 
                 // load groups again
-                groups = LoadSharingGroups();
+                groups = LoadSharingGroups(content.ContentHandler);
 
                 //SaveIndex(@"D:\_index");
 
@@ -819,6 +809,88 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsTrue(ids.Contains(sd3.Id.Replace("-", string.Empty)));
             });
         }
+
+        [TestMethod]
+        public void Sharing_Public_RemoveSharing()
+        {
+            Test(() =>
+            {
+                ReInstallGenericContentCtd();
+
+                var root = CreateTestRoot();
+                var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
+                content.Save();
+
+                var gc = (GenericContent)content.ContentHandler;
+
+                var sd1 = gc.Sharing.Share("abc1@example.com", SharingLevel.Open, SharingMode.Public, false);
+
+                // look for the new sharing groups in the global container
+                var groups = LoadSharingGroups(content.ContentHandler);
+
+                AssertSharingGroup(groups[0].ContentHandler, gc, true);
+
+                // ACTION: remove public sharing --> the group and its permissions should be deleted
+                gc.Sharing.RemoveSharing(sd1.Id);
+
+                AssertSharingGroup(groups[0].ContentHandler, gc, false);
+            });
+        }
+        [TestMethod]
+        public void Sharing_Public_DeleteContent()
+        {
+            // we need the sharing observer for this feature
+            Test(builder => { builder.EnableNodeObservers(typeof(SharingNodeObserver)); }, () =>
+            {
+                ReInstallGenericContentCtd();
+
+                var root = CreateTestRoot();
+                var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
+                content.Save();
+
+                var gc = (GenericContent)content.ContentHandler;
+
+                var sd1 = gc.Sharing.Share("abc1@example.com", SharingLevel.Open, SharingMode.Public, false);
+                var group = LoadSharingGroups(content.ContentHandler).First().ContentHandler as Group;
+
+                AssertSharingGroup(group, gc, true);
+
+                // ACTION: delete content --> the group and its permissions should be deleted
+                gc.ForceDelete();
+
+                // wait for the background task
+                Thread.Sleep(500);
+
+                AssertSharingGroup(group, gc, false);
+            });
+        }
+        [TestMethod]
+        public void Sharing_Public_DeleteTree()
+        {
+            // we need the sharing observer for this feature
+            Test(builder => { builder.EnableNodeObservers(typeof(SharingNodeObserver)); }, () =>
+            {
+                ReInstallGenericContentCtd();
+
+                var root = CreateTestRoot();
+                var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
+                content.Save();
+
+                var gc = (GenericContent)content.ContentHandler;
+
+                var sd1 = gc.Sharing.Share("abc1@example.com", SharingLevel.Open, SharingMode.Public, false);
+                var groups = LoadSharingGroups(content.ContentHandler);
+
+                // ACTION: delete parent
+                root.ForceDelete();
+
+                // wait for the background task
+                Thread.Sleep(500);
+
+                AssertSharingGroup(groups[0].ContentHandler, gc, false);
+            });
+        }
+
         [TestMethod]
         public void Sharing_Public_MembershipExtender()
         {
@@ -1164,6 +1236,33 @@ namespace SenseNet.ContentRepository.Tests
             Assert.IsTrue(Content.Load(item.Identity).ContentType.IsInstaceOfOrDerivedFrom(Constants.SharingGroupTypeName));
         }
 
+        private static void AssertSharingGroup(Node group, GenericContent content, bool expectedExistence)
+        {
+            var e1 = Node.Exists(group.Path);
+            bool e2;
+
+            try
+            {
+                e2 = content.Sharing.GetExplicitEntries().Any(ace => ace.IdentityId == group.Id);
+            }
+            catch (SenseNet.Security.EntityNotFoundException)
+            {
+                // entity is not there, this is expected
+                e2 = false;
+            }
+
+            if (expectedExistence)
+            {
+                Assert.IsTrue(e1, "Sharing group should exist.");
+                Assert.IsTrue(e2, "Sharing group permission should exist.");
+            }
+            else
+            {
+                Assert.IsFalse(e1, "Sharing group should NOT exist.");
+                Assert.IsFalse(e2, "Sharing group permission should NOT exist.");
+            }
+        }
+
         #region /* ================================================================================================ Tools */
 
         private GenericContent CreateTestRoot()
@@ -1171,6 +1270,17 @@ namespace SenseNet.ContentRepository.Tests
             var node = new SystemFolder(Repository.Root) { Name = "TestRoot" };
             node.Save();
             return node;
+        }
+
+        private List<Content> LoadSharingGroups(Node sharedNode)
+        {
+            return Content.All.DisableAutofilters()
+                .Where(c =>
+                    c.TypeIs(Constants.SharingGroupTypeName) &&
+                    c.InTree("/Root/IMS/Sharing") &&
+                    (Node)c[Constants.SharedContentFieldName] == sharedNode)
+                .OrderBy(c => c.Id)
+                .ToList();
         }
 
         #endregion
