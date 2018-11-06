@@ -132,5 +132,38 @@ namespace SenseNet.Search.Querying
 
             return base.VisitLogicalClause(clause);
         }
+
+        /* ================================================================= STATIC PART */
+
+        public static string ToString(SimplePredicate predicate)
+        {
+            var visitor = new SnQueryToStringVisitor();
+            visitor.VisitSimplePredicate(predicate);
+            return visitor.Output;
+        }
+        public static string ToString(RangePredicate predicate)
+        {
+            var visitor = new SnQueryToStringVisitor();
+            visitor.VisitRangePredicate(predicate);
+            return visitor.Output;
+        }
+        public static string ToString(LogicalPredicate predicate)
+        {
+            var visitor = new SnQueryToStringVisitor();
+            visitor.VisitLogicalPredicate(predicate);
+            return visitor.Output;
+        }
+        public static string ToString(List<LogicalClause> clauses)
+        {
+            var visitor = new SnQueryToStringVisitor();
+            visitor.VisitLogicalClauses(clauses);
+            return visitor.Output;
+        }
+        public static string ToString(LogicalClause clause)
+        {
+            var visitor = new SnQueryToStringVisitor();
+            visitor.VisitLogicalClause(clause);
+            return visitor.Output;
+        }
     }
 }

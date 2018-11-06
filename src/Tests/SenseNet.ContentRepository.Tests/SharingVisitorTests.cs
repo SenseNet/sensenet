@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SenseNet.Search.Querying.Parser.Predicates;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -138,15 +139,21 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void Sharing_Query_Rewriting_SharingScanner()
         {
+            var s = new[] { "Sharing", "SharedWith", "SharedBy", "SharingMode", "SharingLevel" };
+
             // -------------- ( query,                         norm, hasNot, sharing, mixed, simplify )
             SharingScannerTest("+a:a0 +(b:b1 b:b2)"           , false, false, false, false, false);
-            SharingScannerTest("+a:a0 +(b:b1 b:b2) -d:d0"     , false, true,  false, false, false);
-            SharingScannerTest("+a:a0 +(b:b1 b:b2 -d:d0)"     , false, true,  false, false, false);
-            SharingScannerTest("+a:a0 +(b:b0 +c:c0)"          , false, false, false, true,  false);
-            SharingScannerTest("+a:a0 +(+b:b0 +c:c0)"         , false, false, false, false, true);
-            SharingScannerTest("+a:a0 +(b:b0 (+c0 +(+d0 e0)))", false, false, false, false, true);
+            SharingScannerTest("+a:a0 +(b:b1 b:b2) -d:d0"     , false, true , false, false, false);
+            SharingScannerTest("+a:a0 +(b:b1 b:b2 -d:d0)"     , false, true , false, false, false);
+            SharingScannerTest("+a:a0 +(b:b0 +c:c0)"          , false, false, false, true , false);
+            SharingScannerTest("+a:a0 +(+b:b0 +c:c0)"         , false, false, false, false, true );
+            SharingScannerTest("+a:a0 +(b:b0 (+c0 +(+d0 e0)))", false, false, false, true , false);
+            SharingScannerTest($"+{s[0]}:s0 +(b:b1 b:b2)"     , false, false, true , false, false);
+            SharingScannerTest($"+{s[1]}:s0 +(b:b1 -b:b2)"    , false, true , true , false, false);
+            SharingScannerTest($"+{s[2]}:s0 +(b:b1 +b:b2)"    , true , false, true , true , false);
+            SharingScannerTest($"+{s[3]}:s0 +(+b:b1 +b:b2)"   , true , false, true , false, true );
+            SharingScannerTest($"+{s[4]}:s0 +(b:b1 b:b2)"     , false, false, true , false, false);
         }
-
         private void SharingScannerTest(string inputQuery, bool needToBeNormalized, bool hasNegativeTerm,
             bool hasSharingTerm, bool hasMixedOccurences, bool hasUnnecessaryParentheses)
         {
@@ -167,6 +174,94 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(hasUnnecessaryParentheses, visitor.HasUnnecessaryParentheses);
             }
         }
+
+        [TestMethod]
+        public void Sharing_Query_Rewriting_Normalize()
+        {
+            const string s0 = "Sharing:s0";
+            const string s1 = "Sharing:s1";
+            const string s2 = "Sharing:s2";
+
+            LogicalPredicate GetPredicate(Occurence outer, Occurence inner)
+            {
+                return new LogicalPredicate(new[]
+                {
+                    new LogicalClause(new SimplePredicate("Sharing", new IndexValue("s0")), outer),
+                    new LogicalClause(new LogicalPredicate(new[]
+                    {
+                        new LogicalClause(new SimplePredicate("Sharing", new IndexValue("s1")), inner),
+                    }), outer),
+                });
+            }
+
+            // inhomogeneous level --> irrelevant terms
+            NormalizerVisitorTest($"+{s0} +({s1} +{s2})", $"+{s0} +{s2}");
+            NormalizerVisitorTest($"+{s0} (+{s1} {s2})", $"+{s0}");
+
+            // parentheses with one clause
+            var twoShould = $"{s0} {s1}";
+            var twoMust = $"+{s0} +{s1}";
+            NormalizerVisitorTest(GetPredicate(Occurence.Default, Occurence.Default), twoShould);
+            NormalizerVisitorTest(GetPredicate(Occurence.Default, Occurence.Should), twoShould);
+            NormalizerVisitorTest(GetPredicate(Occurence.Default, Occurence.Must), twoShould);
+            NormalizerVisitorTest(GetPredicate(Occurence.Should, Occurence.Default), twoShould);
+            NormalizerVisitorTest(GetPredicate(Occurence.Should, Occurence.Should), twoShould);
+            NormalizerVisitorTest(GetPredicate(Occurence.Should, Occurence.Must), twoShould);
+            NormalizerVisitorTest(GetPredicate(Occurence.Must, Occurence.Default), twoMust);
+            NormalizerVisitorTest(GetPredicate(Occurence.Must, Occurence.Should), twoMust);
+            NormalizerVisitorTest(GetPredicate(Occurence.Must, Occurence.Must), twoMust);
+
+            // unnecessary parentheses
+            NormalizerVisitorTest($"{s0} ({s1} a:a0)", $"{s0} {s1} a:a0");
+            NormalizerVisitorTest($"+{s0} +(+{s1} +a:a0)", $"+{s0} +{s1} +a:a0");
+            NormalizerVisitorTest($"+{s0} +(+{s1} +(a:a0 (b:b1 b:b2)))", $"+{s0} +{s1} +(a:a0 b:b1 b:b2)");
+        }
+        private void NormalizerVisitorTest(string inputQuery, string expectedQuery)
+        {
+            var context = new TestQueryContext(QuerySettings.AdminSettings, 0, _indexingInfo, new TestQueryEngine(null, null));
+            using (SenseNet.Tests.Tools.Swindle(typeof(SnQuery), "_permissionFilterFactory", new EverythingAllowedPermissionFilterFactory()))
+            {
+                var queryIn = SnQuery.Parse(inputQuery, context);
+                var snQueryAcc = new PrivateType(typeof(SnQuery));
+                snQueryAcc.InvokeStatic("PrepareQuery", queryIn, context);
+
+                var scaner = new SharingVisitor.SharingScannerVisitor();
+                var scanned = scaner.Visit(queryIn.QueryTree);
+                Assert.IsTrue(scaner.NeedToBeNormalized);
+
+                var normalizer = new SharingVisitor.NormalizerVisitor();
+                var normalized = normalizer.Visit(queryIn.QueryTree);
+
+                var newQuery = SnQuery.Create(normalized);
+
+                Assert.AreEqual(expectedQuery, newQuery.ToString());
+            }
+        }
+        private void NormalizerVisitorTest(SnQueryPredicate inputPredicate, string expectedQuery)
+        {
+            var context = new TestQueryContext(QuerySettings.AdminSettings, 0, _indexingInfo, new TestQueryEngine(null, null));
+            using (SenseNet.Tests.Tools.Swindle(typeof(SnQuery), "_permissionFilterFactory", new EverythingAllowedPermissionFilterFactory()))
+            {
+                var queryIn = SnQuery.Create(inputPredicate);
+                queryIn.EnableAutofilters = FilterStatus.Disabled;
+                queryIn.EnableLifespanFilter = FilterStatus.Disabled;
+
+                var snQueryAcc = new PrivateType(typeof(SnQuery));
+                snQueryAcc.InvokeStatic("PrepareQuery", queryIn, context);
+
+                var scaner = new SharingVisitor.SharingScannerVisitor();
+                var scanned = scaner.Visit(queryIn.QueryTree);
+                Assert.IsTrue(scaner.NeedToBeNormalized);
+
+                var normalizer = new SharingVisitor.NormalizerVisitor();
+                var normalized = normalizer.Visit(queryIn.QueryTree);
+
+                var newQuery = SnQuery.Create(normalized);
+
+                Assert.AreEqual(expectedQuery, newQuery.ToString());
+            }
+        }
+
 
         [TestMethod]
         public void Sharing_Query_Rewriting_CombineValues1()
@@ -313,7 +408,7 @@ namespace SenseNet.ContentRepository.Tests
         }
 
 
-        [TestMethod]
+        //[TestMethod]
         public void Sharing_Query_RewritingInvalid() //UNDONE:<? These tests are not invalid.
         {
             // term names
