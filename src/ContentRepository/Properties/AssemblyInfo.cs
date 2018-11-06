@@ -25,6 +25,6 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTrademark("Sense/Net Inc.")]
 [assembly: AssemblyCulture("")]
 
-[assembly: AssemblyVersion("7.4.0.0")]
-[assembly: AssemblyFileVersion("7.4.0.0")]
-[assembly: AssemblyInformationalVersion("7.4.0")]
+[assembly: AssemblyVersion("7.4.1.0")]
+[assembly: AssemblyFileVersion("7.4.1.0")]
+[assembly: AssemblyInformationalVersion("7.4.1")]

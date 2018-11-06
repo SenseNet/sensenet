@@ -48,7 +48,7 @@ namespace SenseNet.ContentRepository.Storage.Caching
         {
             var policy = new CacheItemPolicy
             {
-                AbsoluteExpiration = DateTime.MaxValue,
+                AbsoluteExpiration = DateTimeOffset.MaxValue,
                 SlidingExpiration = NoSlidingExpiration,
                 Priority = System.Runtime.Caching.CacheItemPriority.Default,
             };
