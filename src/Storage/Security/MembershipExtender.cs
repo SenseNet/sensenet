@@ -91,7 +91,9 @@ namespace SenseNet.ContentRepository.Storage.Security
 
             // Enumerate all internal extenders and collect additional
             // identities to add them to the user's membership list.
-            var internalIds = InternalInstances.SelectMany(ime => ime.GetExtension(user).ExtensionIds);
+            var internalIds = InternalInstances.SelectMany(ime => ime.GetExtension(user).ExtensionIds).ToArray();
+            if (!internalIds.Any())
+                return;
 
             // create the initial extender or add ids to the existing one
             if (user.MembershipExtension == null)

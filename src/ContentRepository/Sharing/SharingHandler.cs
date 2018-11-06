@@ -611,11 +611,6 @@ namespace SenseNet.ContentRepository.Sharing
             if (string.IsNullOrEmpty(user.Email))
                 return;
 
-            //UNDONE: review the identity update algorithm!!!!!!!!!
-            // Currently ONLY PERMISSIONS CHANGE in this method because all previous
-            // records for the email contain the identity for the sharing group,
-            // NOT 0. This means that NO SHARING RECORD WILL BE UPDATED.
-
             // A new user has been created or an existing user got an email address: 
             // Iterate through existing sharing records for this email 
             // and add user id and set permissions for this user on the content.
