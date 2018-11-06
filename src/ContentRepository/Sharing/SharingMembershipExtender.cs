@@ -14,8 +14,10 @@ namespace SenseNet.ContentRepository.Sharing
             var context = HttpContext.Current;
             if (context != null && user != null)
             {
-                return SystemAccount.Execute(() => GetSharingExtension(context.Request.Params, 
-                    new HttpSessionStateWrapper(context.Session)));
+                return SystemAccount.Execute(() => GetSharingExtension(context.Request.Params,
+                    context.Session != null 
+                        ? new HttpSessionStateWrapper(context.Session)
+                        : null));
             }
 
             return base.GetExtension(user);

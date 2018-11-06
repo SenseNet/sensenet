@@ -12,14 +12,24 @@ namespace SenseNet.ContentRepository.Storage.Events
 		public NodeEvent EventType { get; private set; }
         public string OriginalSourcePath { get; private set; }
         public IEnumerable<ChangedData> ChangedData { get; private set; }
-        public object CustomData { get; private set; }
 
+	    [Obsolete("Use the GetCustomData method instead.")]
+        public object CustomData => GetCustomData(CancellableNodeEventArgs.CustomDataKey);
 
-		internal NodeEventArgs(Node node, NodeEvent eventType, object customData) : this(node, eventType, customData, node.Path) { }
+	    private readonly IDictionary<string, object> _customData;
+	    /// <summary>
+	    /// Gets a previously stored custom data during node life cycle events.
+	    /// </summary>
+	    public object GetCustomData(string key)
+	    {
+	        return _customData.TryGetValue(key, out var value) ? value : null;
+	    }
 
-        internal NodeEventArgs(Node node, NodeEvent eventType, object customData, string originalSourcePath) : this(node, eventType, customData, originalSourcePath, null) { }
+        internal NodeEventArgs(Node node, NodeEvent eventType, IDictionary<string, object> customData) : this(node, eventType, customData, node.Path) { }
 
-        internal NodeEventArgs(Node node, NodeEvent eventType, object customData, string originalSourcePath, IEnumerable<ChangedData> changedData)
+        internal NodeEventArgs(Node node, NodeEvent eventType, IDictionary<string, object> customData, string originalSourcePath) : this(node, eventType, customData, originalSourcePath, null) { }
+
+        internal NodeEventArgs(Node node, NodeEvent eventType, IDictionary<string, object> customData, string originalSourcePath, IEnumerable<ChangedData> changedData)
         {
             this.SourceNode = node;
             this.User = AccessProvider.Current.GetCurrentUser();
@@ -27,7 +37,8 @@ namespace SenseNet.ContentRepository.Storage.Events
             this.EventType = eventType;
             this.OriginalSourcePath = originalSourcePath;
             this.ChangedData = changedData;
-            this.CustomData = customData;
+
+            _customData = customData ?? new Dictionary<string, object>();
         }
     }
 }
