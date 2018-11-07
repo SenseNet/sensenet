@@ -753,6 +753,8 @@ namespace SenseNet.ContentRepository.Sharing
         public static Content GetSharingGroupFromUrl(NameValueCollection parameters)
         {
             var sharingGuid = GetSharingGuidFromUrl(parameters);
+            if (string.IsNullOrEmpty(sharingGuid))
+                return null;
 
             return GetSharingGroupBySharingId(sharingGuid);
         }

@@ -922,6 +922,69 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsTrue((int)session[Constants.SharingSessionKey] == group.Id);
             });
         }
+        [TestMethod]
+        public void Sharing_Public_MembershipExtender_Deleted()
+        {
+            Test(() =>
+            {
+                ReInstallGenericContentCtd();
+
+                var root = CreateTestRoot();
+                var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
+                content.Save();
+
+                var gc = (GenericContent)content.ContentHandler;
+                var sd1 = gc.Sharing.Share("abc1@example.com", SharingLevel.Open, SharingMode.Public, false);
+                var group = Content.All.DisableAutofilters().First(c =>
+                    c.TypeIs(Constants.SharingGroupTypeName) &&
+                    (Node)c[Constants.SharedContentFieldName] == content.ContentHandler);
+
+                Assert.AreEqual(sd1.Id.Replace("-", string.Empty), (string)group[Constants.SharingIdsFieldName]);
+
+                // provide the new sharing guid as a parameter
+                var parameters = new NameValueCollection { { Constants.SharingUrlParameterName, sd1.Id } };
+                var session = new MockHttpSession();
+
+                var extension = SharingMembershipExtender.GetSharingExtension(parameters, session);
+
+                Assert.IsTrue(extension.ExtensionIds.Contains(group.Id));
+                Assert.IsTrue((int)session[Constants.SharingSessionKey] == group.Id);
+
+                // make sure that the trash is available
+                var trash = TrashBin.Instance;
+                if (!trash.IsActive)
+                {
+                    trash.IsActive = true;
+                    trash.Save(SavingMode.KeepVersion);
+                }
+
+                // move to the trash
+                content.Delete(false);
+                content = Content.Load(content.Id);
+
+                extension = SharingMembershipExtender.GetSharingExtension(parameters, session);
+
+                Assert.IsFalse(extension.ExtensionIds.Contains(group.Id));
+                Assert.IsTrue((int)session[Constants.SharingSessionKey] == 0); // group id is replaced by 0
+
+                // restore the content
+                var bag = Node.Load<TrashBag>(content.ContentHandler.ParentId);
+                TrashBin.Restore(bag);
+                content = Content.Load(content.Id);
+
+                extension = SharingMembershipExtender.GetSharingExtension(parameters, session);
+
+                Assert.IsTrue(extension.ExtensionIds.Contains(group.Id));
+                Assert.IsTrue((int)session[Constants.SharingSessionKey] == group.Id);
+
+                content.ForceDelete();
+
+                extension = SharingMembershipExtender.GetSharingExtension(parameters, session);
+
+                Assert.IsFalse(extension.ExtensionIds.Contains(group.Id));
+                Assert.IsTrue((int)session[Constants.SharingSessionKey] == 0); // group id is replaced by 0
+            });
+        }
 
         [TestMethod]
         public void Sharing_Permissions_OpenBitmasks()

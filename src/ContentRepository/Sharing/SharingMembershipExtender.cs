@@ -36,30 +36,38 @@ namespace SenseNet.ContentRepository.Sharing
             else
             {
                 // check the url
-                var groupContent = SharingHandler.GetSharingGroupFromUrl(parameters);
+                sharingGroup = SharingHandler.GetSharingGroupFromUrl(parameters)?.ContentHandler as Group;
 
-                sharingGroup = groupContent?.ContentHandler as Group;
-                if (sharingGroup != null)
-                {
-                    // Check if the related shared content exists.
-                    if (!(groupContent[Constants.SharedContentFieldName] is IEnumerable<Node> relatedContent) 
-                        || !relatedContent.Any())
-                    {
-                        // Invalid sharing group: no related content. Delete the group and move on.
-                        sharingGroup.ForceDelete();
-                        sharingGroup = null;
-                    }
+                // Found a sharing group for the id: put it into the session 
+                // and add it to the list of extensions of the user.
+                if (sharingGroup != null && session != null)
+                    session[Constants.SharingSessionKey] = sharingGroup.Id;
+            }
+            
+            if (sharingGroup == null)
+                return EmptyExtension;
 
-                    // Found a sharing group for the id: put it into the session 
-                    // and add it to the list of extensions of the user.
-                    if (sharingGroup != null && session != null)
-                        session[Constants.SharingSessionKey] = sharingGroup.Id;
-                }
+            var sharedNode = sharingGroup.GetReference<GenericContent>(Constants.SharedContentFieldName);
+
+            // Check if the related shared content exists.
+            if (sharedNode == null)
+            {
+                // Invalid sharing group: no related content. Delete the group and move on.
+                sharingGroup.ForceDelete();
+                sharingGroup = null;
             }
 
-            // if found, return a new extension collection containing the sharing group
-            if (sharingGroup?.ContentType.IsInstaceOfOrDerivedFrom(Constants.SharingGroupTypeName) ?? false)
+            // If found and the content is not in the Trash, return a new extension collection 
+            // containing the sharing group.
+            if ((sharingGroup?.ContentType.IsInstaceOfOrDerivedFrom(Constants.SharingGroupTypeName) ?? false) &&
+                !TrashBin.IsInTrash(sharedNode))
+            {
                 return new MembershipExtension(new[] { sharingGroup.Id });
+            }
+
+            // invalid group or content
+            if (session != null)
+                session[Constants.SharingSessionKey] = 0;
 
             return EmptyExtension;
         }
