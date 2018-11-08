@@ -448,6 +448,28 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
         [TestMethod]
+        public void Sharing_AddSharing_SpecialTokens()
+        {
+            Test(() =>
+            {
+                ReInstallGenericContentCtd();
+                var root = CreateTestRoot();
+
+                var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
+                content.Save();
+
+                var gc = (GenericContent)content.ContentHandler;
+
+                var user1 = CreateUser("user1@example.com", "user1");
+
+                var sd1 = gc.Sharing.Share(user1.Id.ToString(), SharingLevel.Open, SharingMode.Private);
+                var sd2 = gc.Sharing.Share($"{user1.Username}", SharingLevel.Open, SharingMode.Private);
+
+                Assert.AreEqual(user1.Id, sd1.Identity);
+                Assert.AreEqual(user1.Id, sd2.Identity);
+            });
+        }
+        [TestMethod]
         public void Sharing_RemoveSharing()
         {
             Test(() =>
@@ -515,18 +537,6 @@ namespace SenseNet.ContentRepository.Tests
                 AssertPublicSharingData(items, "user1@example.com");
 
                 // ACTION: create new users with the previous emails
-                User CreateUser(string email)
-                {
-                    var user = new User(Node.LoadNode("/Root/IMS/BuiltIn/Portal"))
-                    {
-                        Name = Guid.NewGuid().ToString(),
-                        Enabled = true,
-                        Email = email
-                    };
-                    user.Save();
-                    return user;
-                }
-
                 var user1 = CreateUser("user1@example.com");
                 var user2 = CreateUser("user2@example.com");
                 var user3 = CreateUser("user3@example.com");
@@ -1340,6 +1350,18 @@ namespace SenseNet.ContentRepository.Tests
                     (Node)c[Constants.SharedContentFieldName] == sharedNode)
                 .OrderBy(c => c.Id)
                 .ToList();
+        }
+
+        private User CreateUser(string email, string username = null)
+        {
+            var user = new User(Node.LoadNode("/Root/IMS/BuiltIn/Portal"))
+            {
+                Name = username ?? Guid.NewGuid().ToString(),
+                Enabled = true,
+                Email = email
+            };
+            user.Save();
+            return user;
         }
 
         #endregion

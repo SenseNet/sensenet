@@ -314,14 +314,42 @@ namespace SenseNet.ContentRepository.Sharing
 
             return GetSharingIdentityByToken(token);
         }
-        private int GetSharingIdentityByToken(string token)
+        private static int GetSharingIdentityByToken(string token)
         {
-            //UNDONE: get sharing identity: email, username, groupname, special tokens etc.
+            if (string.IsNullOrEmpty(token))
+                return 0;
 
-            // returns the id of user by email or 0.
-            var userId = ContentQuery.Query(SharingQueries.UsersByEmail, QuerySettings.AdminSettings, token)
-                .Identifiers.FirstOrDefault();
-            return userId;
+            // Currently we can recognize the following tokens:
+            // - email address
+            // - user or group id
+            // - domain\username
+
+            if (int.TryParse(token, out var id))
+            {
+                var node = Node.LoadNode(id);
+                if (node != null && (node is User || node is Group))
+                    return node.Id;
+
+                // not found or not accessible
+                return 0;
+            }
+            
+            // Search for email address in elevated mode, because in case of
+            // an email token the caller does not have to know about the user.
+            if (token.Contains("@"))
+            {
+                var userId = SystemAccount.Execute(() =>
+                    ContentQuery.Query(SharingQueries.UsersByEmail, QuerySettings.AdminSettings, token).Identifiers
+                        .FirstOrDefault());
+
+                if (userId > 0)
+                    return userId;
+            }
+            
+            // try for a username
+            var user = User.Load(token);
+
+            return user?.Id ?? 0;
         }
 
         private Group LoadOrCreateGroup(string id, SharingLevel level)

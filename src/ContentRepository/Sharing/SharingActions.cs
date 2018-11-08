@@ -19,6 +19,7 @@ namespace SenseNet.ContentRepository.Sharing
         {
             var gc = EnsureContent(content);
 
+            //UNDONE: security: make sure the client does not get info without permission (e.g. user/group ids)
             //UNDONE: create a strongly typed result instead of double serialization
             return gc.Sharing.Items.Select(shi => (Dictionary<string, object>) JsonConvert.DeserializeObject(
                 JsonConvert.SerializeObject(shi),
@@ -39,6 +40,7 @@ namespace SenseNet.ContentRepository.Sharing
         {
             var gc = EnsureContent(content);
 
+            //UNDONE: security: make sure the client does not get info without permission (e.g. user/group ids)
             return gc.Sharing.Share(token, level, mode, sendNotification);
         }
         /// <summary>
