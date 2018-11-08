@@ -6,9 +6,9 @@ using SenseNet.ContentRepository.Fields;
 using SenseNet.Preview;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
 using System.Collections.Generic;
+using SenseNet.ContentRepository.Storage.Events;
 
 
 namespace SenseNet.ContentRepository
@@ -203,7 +203,7 @@ namespace SenseNet.ContentRepository
             base.OnCreated(sender, e);
 
             // refresh image width/height than save the content again
-            if (MustRefreshDimensions(image, e.CustomData))
+            if (MustRefreshDimensions(image, e))
             {
                 image.Save(SavingMode.KeepVersion);
             }
@@ -228,7 +228,7 @@ namespace SenseNet.ContentRepository
                 else
                 {
                     // postpone dimension setting because the content is not yet finalized
-                    e.CustomData = new Dictionary<string, object>() { { SETDIMENSION_KEYNAME, true } };
+                    e.SetCustomData(SETDIMENSION_KEYNAME, true);
                 }
             }
         }
@@ -245,7 +245,7 @@ namespace SenseNet.ContentRepository
                 return;
 
             // refresh image width/height than save the content again
-            if (MustRefreshDimensions(image, e.CustomData))
+            if (MustRefreshDimensions(image, e))
             {
                 image.Save(SavingMode.KeepVersion);
             }
@@ -270,7 +270,7 @@ namespace SenseNet.ContentRepository
                 else
                 {
                     // postpone dimension setting because the content is not yet finalized
-                    e.CustomData = new Dictionary<string, object>() { { SETDIMENSION_KEYNAME, true } };
+                    e.SetCustomData(SETDIMENSION_KEYNAME, true);
                 }
             }
         }
@@ -353,12 +353,13 @@ namespace SenseNet.ContentRepository
             return true;
         }
 
-        private static bool MustRefreshDimensions(Image image, object customData)
-        { 
-            var dict = customData as Dictionary<string, object>;
+        private static bool MustRefreshDimensions(Image image, NodeEventArgs e)
+        {
+            var setDimensions = e.GetCustomData(SETDIMENSION_KEYNAME);
+            if (setDimensions == null)
+                return false;
 
-            return dict != null && 
-                dict.ContainsKey(SETDIMENSION_KEYNAME) && 
+            return Convert.ToBoolean(setDimensions) && 
                 image.SavingState == ContentSavingState.Finalized &&
                 SetDimension(image);
         }

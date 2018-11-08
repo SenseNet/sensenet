@@ -1,15 +1,57 @@
 ﻿using System.Linq;
+using System.Threading.Tasks;
+using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Events;
+using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Sharing
 {
     internal class SharingNodeObserver : NodeObserver
     {
+        private const string SharingGroupIdsCustomDataKey = "SnSharingGroupIds";
+
+        protected override void OnNodeDeletingPhysically(object sender, CancellableNodeEventArgs e)
+        {
+            base.OnNodeDeletingPhysically(sender, e);
+
+            // Collect sharing group ids for publicly shared content 
+            // in the subtree to delete them later in the background.
+            var sharingGroupIds = SharingHandler.GetSharingGroupIds(e.SourceNode);
+            if (sharingGroupIds?.Any() ?? false)
+                e.SetCustomData(SharingGroupIdsCustomDataKey, sharingGroupIds);
+        }
+
         protected override void OnNodeDeletedPhysically(object sender, NodeEventArgs e)
         {
             base.OnNodeDeletedPhysically(sender, e);
 
             SharingHandler.OnContentDeleted(e?.SourceNode);
+
+            // if there are sharing groups that should be deleted
+            var sharingGroupIds = e?.GetCustomData(SharingGroupIdsCustomDataKey) as int[];
+            if (sharingGroupIds?.Any() ?? false)
+            {
+                //TODO: if the list is too big, postpone deleting the groups
+                // using a local task management API.
+
+                System.Threading.Tasks.Task.Run(() =>
+                    {
+                        try
+                        {
+                            using (new SystemAccount())
+                            {
+                                Parallel.ForEach(sharingGroupIds.Select(Node.LoadNode).Where(n => n != null),
+                                    new ParallelOptions { MaxDegreeOfParallelism = 4 },
+                                    group => group.ForceDelete());
+                            }
+                        }
+                        catch (System.Exception ex)
+                        {
+                            SnLog.WriteException(ex, "Error during deleting sharing groups.");
+                        }
+                    });
+            }
         }
 
         protected override void OnNodeCreated(object sender, NodeEventArgs e)

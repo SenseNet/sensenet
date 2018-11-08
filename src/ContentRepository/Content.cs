@@ -29,6 +29,7 @@ using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.Search.Querying;
 using SenseNet.Tools;
+using SenseNet.ContentRepository.Sharing;
 
 namespace SenseNet.ContentRepository
 {
@@ -214,6 +215,8 @@ namespace SenseNet.ContentRepository
         {
             get { return _contentHandler.Security; }
         }
+        public SharingHandler Sharing => _contentHandler is GenericContent gc ? gc.Sharing : null;
+
         /// <summary>
         /// Gets the field <see cref="System.Collections.Generic.Dictionary(string, Field)">Dictionary</see> of the instance.
         /// </summary>

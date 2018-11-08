@@ -302,7 +302,7 @@ namespace SenseNet.ContentRepository.Storage.Security
                         op1.Successful = true;
                     }
 
-                    var customData = args1.CustomData;
+                    var customData = args1.GetCustomData();
 
                     // main operation
                     base.Apply();

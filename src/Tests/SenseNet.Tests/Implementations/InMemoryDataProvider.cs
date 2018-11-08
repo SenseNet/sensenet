@@ -751,7 +751,37 @@ namespace SenseNet.Tests.Implementations
 
         protected internal override IEnumerable<NodeType> LoadChildTypesToAllow(int sourceNodeId)
         {
-            throw new NotImplementedException();
+            var sourceNode = _db.Nodes.FirstOrDefault(n => n.NodeId == sourceNodeId);
+            if (sourceNode == null)
+                throw new DataException("Source node does not exist.");
+
+            var typesToAllow = new List<int> { sourceNode.NodeTypeId };
+            var folderTypeId = NodeTypeManager.Current.NodeTypes["Folder"]?.Id ?? 0;
+            var pageTypeId = NodeTypeManager.Current.NodeTypes["Page"]?.Id ?? 0;
+
+            // Recursive method for collecting child types in a subtree. Only calls itself
+            // on children if the child is a Folder or a Page, because those types are
+            // irrelevant in terms of the allowed child types feature.
+            void AddChildTypes(NodeRecord node, List<int> typeIds)
+            {
+                var children = _db.Nodes.Where(n => n.ParentNodeId == node.NodeId);
+
+                foreach (var childNode in children)
+                {
+                    if (!typeIds.Contains(childNode.NodeTypeId))
+                        typeIds.Add(childNode.NodeTypeId);
+
+                    // recursion: in case of folders and pages continue with the children
+                    if (childNode.NodeTypeId == folderTypeId || childNode.NodeTypeId == pageTypeId)
+                    {
+                        AddChildTypes(childNode, typeIds);
+                    }
+                }
+            }
+
+            AddChildTypes(sourceNode, typesToAllow);
+
+            return typesToAllow.Distinct().Select(ntid => NodeTypeManager.Current.NodeTypes.Single(nt => nt.Id == ntid)).ToArray();
         }
         #endregion
 
@@ -969,7 +999,30 @@ namespace SenseNet.Tests.Implementations
 
         protected internal override DataOperationResult MoveNodeTree(int sourceNodeId, int targetNodeId, long sourceTimestamp = 0, long targetTimestamp = 0)
         {
-            throw new NotImplementedException();
+            var sourceNode = _db.Nodes.FirstOrDefault(n => n.NodeId == sourceNodeId);
+            if (sourceNode == null)
+                throw new DataException("Cannot move node, it does not exist.");
+
+            var targetNode = _db.Nodes.FirstOrDefault(n => n.NodeId == targetNodeId);
+            if (targetNode == null)
+                throw new DataException("Cannot move node, target does not exist.");
+
+            sourceNode.ParentNodeId = targetNodeId;
+
+            var path = sourceNode.Path;
+            var nodes = _db.Nodes
+                .Where(n => n.NodeId == sourceNode.NodeId || 
+                            n.Path.StartsWith(path + RepositoryPath.PathSeparator, StringComparison.InvariantCultureIgnoreCase))
+                .ToArray();
+
+            var sourceParentPath = RepositoryPath.GetParentPath(sourceNode.Path);
+
+            foreach (var node in nodes)
+            {
+                node.Path = node.Path.Replace(sourceParentPath, targetNode.Path);
+            }
+
+            return DataOperationResult.Successful;
         }
         #endregion 
 

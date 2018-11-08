@@ -10,7 +10,7 @@ namespace SenseNet.ContentRepository.Storage.Events
     {
         public NodeHead[] RelatedNodeHeads { get; private set; }
 
-        public PermissionChangedEventArgs(Node node, object customData, IEnumerable<ChangedData> changedData)
+        internal PermissionChangedEventArgs(Node node, IDictionary<string, object> customData, IEnumerable<ChangedData> changedData)
             : base(node, NodeEvent.PermissionChanged, customData, null, changedData)
         {
             RelatedNodeHeads = node == null
@@ -18,7 +18,7 @@ namespace SenseNet.ContentRepository.Storage.Events
                 : new[] {NodeHead.Get(node.Id)};
         }
 
-        public PermissionChangedEventArgs(NodeHead[] relatedNodeHeads, object customData, IEnumerable<ChangedData> changedData)
+        internal PermissionChangedEventArgs(NodeHead[] relatedNodeHeads, IDictionary<string, object> customData, IEnumerable<ChangedData> changedData)
             : base(null, NodeEvent.PermissionChanged, customData, null, changedData)
         {
             RelatedNodeHeads = relatedNodeHeads ?? new NodeHead[0];
