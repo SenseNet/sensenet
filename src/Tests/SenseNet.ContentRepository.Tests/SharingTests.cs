@@ -1255,6 +1255,67 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
 
+        [TestMethod]
+        public void Sharing_OData_SafeIdentities()
+        {
+            Test(() =>
+            {
+                ReInstallGenericContentCtd();
+                var root = CreateTestRoot();
+
+                var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
+                content.Save();
+
+                var user1 = CreateUser("abc1@example.com");
+                var user2 = CreateUser("abc2@example.com");
+                var userCaller = CreateUser("abc3@example.com");
+
+                // the caller user will have permissions for user1 but NOT for user2
+                SnSecurityContext.Create().CreateAclEditor()
+                    .Allow(user1.Id, userCaller.Id, false, PermissionType.Open)
+                    .Apply();
+                
+                var sd1 = content.Sharing.Share("abc1@example.com", SharingLevel.Open, SharingMode.Private);
+                var sd2 = content.Sharing.Share("abc2@example.com", SharingLevel.Edit, SharingMode.Private);
+
+                // make sure that the admin (in this test environment) has access to the ids
+                Assert.AreEqual(user1.Id, sd1.Identity);
+                Assert.AreEqual(user2.Id, sd2.Identity);
+                Assert.AreEqual(Identifiers.AdministratorUserId, sd2.CreatorId);
+
+                var original = AccessProvider.Current.GetCurrentUser();
+
+                try
+                {
+                    // set the caller user temporarily
+                    AccessProvider.Current.SetCurrentUser(userCaller);
+
+                    //UNDONE: convert result to a strongly typed object
+                    var items = ((IEnumerable<Dictionary<string, object>>)SharingActions.GetSharing(content)).ToArray();
+
+                    // The result should contain the Somebody user id when the caller
+                    // does not have enough permissions for the identity.
+                    var usd1 = items.Single(sd =>
+                        (string) sd["Token"] == "abc1@example.com" && 
+                        (long) sd["Identity"] == user1.Id &&
+                        (long)sd["CreatorId"] == Identifiers.SomebodyUserId);
+                    var usd2 = items.Single(sd =>
+                        (string)sd["Token"] == "abc2@example.com" &&
+                        (long)sd["Identity"] == Identifiers.SomebodyUserId &&
+                        (long)sd["CreatorId"] == Identifiers.SomebodyUserId);
+
+                    Assert.IsNotNull(usd1);
+                    Assert.IsNotNull(usd2);
+                }
+                finally 
+                {
+                    AccessProvider.Current.SetCurrentUser(original);
+                }
+            });
+        }
+
+        #region /* ================================================================================================ Tools */
+
         private void PrepareForPermissionTest(out GenericContent gc, out User user)
         {
             using (new SystemAccount())
@@ -1349,9 +1410,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.IsFalse(e2, "Sharing group permission should NOT exist.");
             }
         }
-
-        #region /* ================================================================================================ Tools */
-
+        
         private GenericContent CreateTestRoot()
         {
             var node = new SystemFolder(Repository.Root) { Name = "TestRoot" };
