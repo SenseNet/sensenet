@@ -541,6 +541,9 @@ namespace SenseNet.ContentRepository.Tests
                 var user2 = CreateUser("user2@example.com");
                 var user3 = CreateUser("user3@example.com");
 
+                // wait for the background tasks
+                Thread.Sleep(200);
+
                 // reload the shared content to refresh the sharing list
                 root = Node.Load<GenericContent>(root.Id);
                 items = root.Sharing.Items.ToArray();
@@ -615,6 +618,9 @@ namespace SenseNet.ContentRepository.Tests
                 user.Email = "user3@example.com";
                 user.Save(SavingMode.KeepVersion);
 
+                // wait for the background tasks
+                Thread.Sleep(200);
+
                 // sharing record should remain the same
                 Reload();
                 AssertSharingData(0);
@@ -623,6 +629,9 @@ namespace SenseNet.ContentRepository.Tests
                 user.Email = string.Empty;
                 user.Save(SavingMode.KeepVersion);
 
+                // wait for the background tasks
+                Thread.Sleep(200);
+
                 // sharing record should remain the same
                 Reload();
                 AssertSharingData(0);
@@ -630,6 +639,9 @@ namespace SenseNet.ContentRepository.Tests
                 // ACTION: change to an existing external email
                 user.Email = "user2@example.com";
                 user.Save(SavingMode.KeepVersion);
+
+                // wait for the background tasks
+                Thread.Sleep(200);
 
                 Reload();
                 AssertSharingData(user.Id);
@@ -670,6 +682,9 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ACTION: sharing records that belong to the deleted identity should be removed.
                 user.ForceDelete();
+
+                // wait for the background tasks
+                Thread.Sleep(200);
 
                 // reload the shared content to refresh the sharing list
                 root = Node.Load<GenericContent>(root.Id);
@@ -734,6 +749,9 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ACTION: sharing records that belong to the deleted identity should be removed.
                 group.ForceDelete();
+
+                // wait for the background tasks
+                Thread.Sleep(200);
 
                 // reload the shared content to refresh the sharing list
                 root = Node.Load<GenericContent>(root.Id);

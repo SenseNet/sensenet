@@ -581,29 +581,24 @@ namespace SenseNet.ContentRepository.Sharing
 
         /* ================================================================================== Event handlers */
 
-        //UNDONE: execute event handler code in a Task asynchronously.
-
         internal static void OnContentDeleted(Node node)
         {
             if (node == null)
                 return;
 
-            using (new SystemAccount())
+            switch (node)
             {
-                switch (node)
-                {
-                    case User _:
-                    case Group _:
-                        RemoveIdentities(new[] { node });
-                        break;
-                    default:
-                        var identities = Content.All.DisableAutofilters().Where(c =>
-                            c.InTree(node.Path) &&
-                            (c.TypeIs("User") || c.TypeIs("Group"))).AsEnumerable().Select(c => c.ContentHandler);
+                case User _:
+                case Group _:
+                    System.Threading.Tasks.Task.Run(() => RemoveIdentities(new[] { node }));
+                    break;
+                default:
+                    var identities = SystemAccount.Execute(() => Content.All.DisableAutofilters().Where(c =>
+                        c.InTree(node.Path) &&
+                        (c.TypeIs("User") || c.TypeIs("Group"))).AsEnumerable().Select(c => c.ContentHandler));
 
-                        RemoveIdentities(identities);
-                        break;
-                }
+                    System.Threading.Tasks.Task.Run(() => RemoveIdentities(identities));
+                    break;
             }
         }
         internal static void OnUserCreated(User user)
@@ -611,10 +606,13 @@ namespace SenseNet.ContentRepository.Sharing
             if (string.IsNullOrEmpty(user?.Email))
                 return;
 
-            using (new SystemAccount())
+            System.Threading.Tasks.Task.Run(() =>
             {
-                UpdateIdentity(user);
-            }
+                using (new SystemAccount())
+                {
+                    UpdateIdentity(user);
+                }
+            });
         }
         internal static void OnUserChanged(User user, string oldEmail)
         {
@@ -628,10 +626,13 @@ namespace SenseNet.ContentRepository.Sharing
 
             // The user got an email address: connect to sharing records created for this email.
             // The previous email will remain on the record as a historical info.
-            using (new SystemAccount())
+            System.Threading.Tasks.Task.Run(() =>
             {
-                UpdateIdentity(user);
-            }
+                using (new SystemAccount())
+                {
+                    UpdateIdentity(user);
+                }
+            });
         }
 
         private static void UpdateIdentity(User user)
@@ -690,22 +691,25 @@ namespace SenseNet.ContentRepository.Sharing
                     emails.Add(user.Email);
             }
 
-            // collect all content that has been shared with these identities
-            var results = ContentQuery.Query(SharingQueries.ContentBySharedWith,
-                QuerySettings.AdminSettings, ids.Concat(emails).ToArray());
+            using (new SystemAccount())
+            {
+                // collect all content that has been shared with these identities
+                var results = ContentQuery.Query(SharingQueries.ContentBySharedWith,
+                    QuerySettings.AdminSettings, ids.Concat(emails).ToArray());
 
-            ProcessContentWithRetry(results.Nodes,
-                gc =>
-                {
-                    // collect all sharing records that belong to the provided identities
-                    return gc.Sharing.Items.Where(sd => ids.Contains(sd.Identity) || emails.Contains(sd.Token));
-                },
-                (gc, recordsToRemove) =>
-                {
-                    // reload node and remove sharing
-                    var content = Node.Load<GenericContent>(gc.Id);
-                    content.Sharing.RemoveSharing(recordsToRemove.Select(sd => sd.Id).ToArray());
-                });
+                ProcessContentWithRetry(results.Nodes,
+                    gc =>
+                    {
+                        // collect all sharing records that belong to the provided identities
+                        return gc.Sharing.Items.Where(sd => ids.Contains(sd.Identity) || emails.Contains(sd.Token));
+                    },
+                    (gc, recordsToRemove) =>
+                    {
+                        // reload node and remove sharing
+                        var content = Node.Load<GenericContent>(gc.Id);
+                        content.Sharing.RemoveSharing(recordsToRemove.Select(sd => sd.Id).ToArray());
+                    });
+            }
         }
 
         internal static int[] GetSharingGroupIds(Node sharedContent)
