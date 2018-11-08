@@ -71,6 +71,7 @@ namespace SenseNet.ContentRepository.Tests
             //{"_Text", new TestPerfieldIndexingInfoString()},
             {"Name", new TestPerfieldIndexingInfoString()},
             {"Id", new TestPerfieldIndexingInfoInt()},
+            {"Description", new TestPerfieldIndexingInfoString()},
 
             { "TypeIs", new TestPerfieldIndexingInfoTypeIs() },
             { "InTree", new TestPerfieldIndexingInfoInTree() },
@@ -355,6 +356,9 @@ namespace SenseNet.ContentRepository.Tests
             var qE1 = SharingLevel.Open;
             var qE2 = SharingLevel.Edit;
             var qX1 = "TypeIs:File";
+            var qX2 = "InTree:/root/folder1";
+            var qX3 = "Description:value1";
+            var qX4 = "Description:value2";
 
             // expected terms
             var tA1 = SharingDataTokenizer.TokenizeSharingToken(qA1);
@@ -369,7 +373,11 @@ namespace SenseNet.ContentRepository.Tests
             var tE1 = SharingDataTokenizer.TokenizeSharingLevel(qE1);
             var tE2 = SharingDataTokenizer.TokenizeSharingLevel(qE2);
             var tX1 = "TypeIs:file";
+            var tX2 = "InTree:/root/folder1";
+            var tX3 = "Description:value1";
+            var tX4 = "Description:value2";
 
+            /*
             // one level "must" only
             RewritingTest($"+{qX1} +{b}:{qB1}", $"+{tX1} +{s}:{tB1}");
             RewritingTest($"+{qX1} +{b}:{qB1} +{e}:{qE1}", $"+{tX1} +{s}:{tB1},{tE1}");
@@ -390,10 +398,19 @@ namespace SenseNet.ContentRepository.Tests
             // ... +a +b:(_ _) +c:(_ _ _) --> combine --> ... +(s:a,b1,c1 s:a,b1,c2 s:a,b1,c3 s:a,b2,c1 s:a,b2,c2 s:a,b2,c3)
             RewritingTest($"+{qX1} +{a}:{qA1} +{b}:({qB1} {qB2}) +{c}:({qC1} {qC2} {qC3})",
                           $"+{tX1} +({s}:{tA1},{tB1},{tC1} {s}:{tA1},{tB2},{tC1} {s}:{tA1},{tB1},{tC2} {s}:{tA1},{tB2},{tC2} {s}:{tA1},{tB1},{tC3} {s}:{tA1},{tB2},{tC3})");
+
+            // +x +(a b x)  (no changes)
+            RewritingTest($"+{qX1} +({a}:{qA1} {b}:{qB1} {qX2}", $"+{tX1} +({a}:{tA1} {b}:{tB1} {tX2}");
+            */
+
+            // +X1 +a +(_X2 _b _(+X3 +c +(_d _X4)))  -->  +X1 +(_(+X2 +a) _ab _(+X3 +(_acd _(+X4 +ac)))
+            RewritingTest($"+{qX1} +{a}:{qA1} +({qX2} {b}:{qB1} (+{qX3} +{c}:{qC1} +({d}:{qD1} {qX4})))",
+                          $"+{tX1} +((+{tX2} +{s}:{tA1}) {s}:{tA1},{tB1} (+{tX3} +({s}:{tA1},{tC1},{tD1} (+{tX4} +{s}:{tA1},{tC1})))");
+
+
         }
         private void RewritingTest(string inputQuery, string expectedQuery)
         {
-            //var intResults = new Dictionary<string, QueryResult<int>> { { "asdf", new QueryResult<int>(new[] { 1, 2, 3 }, 4) } };
             var context = new TestQueryContext(QuerySettings.AdminSettings, 0, _indexingInfo, new TestQueryEngine(null, null));
             using (SenseNet.Tests.Tools.Swindle(typeof(SnQuery), "_permissionFilterFactory", new EverythingAllowedPermissionFilterFactory()))
             {
@@ -406,58 +423,5 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(expected, queryOut.ToString());
             }
         }
-
-
-        //[TestMethod]
-        public void Sharing_Query_RewritingInvalid() //UNDONE:<? These tests are not invalid.
-        {
-            // term names
-            var a = "SharedWith";
-            var b = "SharedWith";
-            var c = "SharedBy";
-            var d = "SharingMode";
-            var e = "SharingLevel";
-            var s = "Sharing";
-
-            // input terms
-            var qA1 = "user1@example.com";
-            var qA2 = "user2@example.com";
-            var qB1 = 142;
-            var qB2 = 143;
-            var qC1 = 151;
-            var qC2 = 152;
-            var qC3 = 153;
-            var qD1 = SharingMode.Private;
-            var qD2 = SharingMode.Authenticated;
-            var qE1 = SharingLevel.Open;
-            var qE2 = SharingLevel.Edit;
-            var qX1 = "TypeIs:File";
-
-            //// Mixed occurence in the sub-level
-            //RewritingInvalidTest($"+{qX1} +({a}:{qA1} {b}:{qB1} +{d}:{qD1})");
-
-            // Not-sharing term in the SHOULD sharing-related sequence
-            RewritingInvalidTest($"+{qX1} +({a}:{qA1} {b}:{qB1} InTree:/root/folder1)");
-        }
-        private void RewritingInvalidTest(string inputQuery)
-        {
-            var context = new TestQueryContext(QuerySettings.AdminSettings, 0, _indexingInfo, new TestQueryEngine(null, null));
-            using (SenseNet.Tests.Tools.Swindle(typeof(SnQuery), "_permissionFilterFactory", new EverythingAllowedPermissionFilterFactory()))
-            {
-                var queryIn = SnQuery.Parse(inputQuery, context);
-                var snQueryAcc = new PrivateType(typeof(SnQuery));
-                snQueryAcc.InvokeStatic("PrepareQuery", queryIn, context);
-                try
-                {
-                    var result = snQueryAcc.InvokeStatic("ApplyVisitors", queryIn);
-                    Assert.Fail("NotSupportedException was not thrown.");
-                }
-                catch (NotSupportedException)
-                {
-                    
-                }
-            }
-        }
-
     }
 }

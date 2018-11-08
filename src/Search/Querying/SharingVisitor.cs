@@ -12,10 +12,8 @@ namespace SenseNet.Search.Querying
             public List<LogicalClause> GeneralClauses { get; } = new List<LogicalClause>();
             public List<SimplePredicate>   SimpleShould { get; } = new List<SimplePredicate>();
             public List<SimplePredicate>   SimpleMust { get; } = new List<SimplePredicate>();
-            public List<SimplePredicate>   SimpleMustNot { get; } = new List<SimplePredicate>();
             public List<LogicalPredicate> LogicalShould { get; } = new List<LogicalPredicate>();
             public List<LogicalPredicate> LogicalMust { get; } = new List<LogicalPredicate>();
-            public List<LogicalPredicate> LogicalMustNot { get; } = new List<LogicalPredicate>();
         }
 
         internal class SharingRelatedPredicateFinderVisitor : SnQueryVisitor
@@ -141,7 +139,7 @@ namespace SenseNet.Search.Querying
                         case Occurence.Default:
                         case Occurence.Should: should++; break;
                         case Occurence.Must: must++; break;
-                        case Occurence.MustNot: throw new ArgumentOutOfRangeException(); //UNDONE:<? write human readable exception message.
+                        case Occurence.MustNot: throw new InvalidOperationException(); //UNDONE:<? write human readable exception message.
                         default: throw new ArgumentOutOfRangeException();
                     }
                 }
@@ -204,53 +202,18 @@ namespace SenseNet.Search.Querying
             var visited = (LogicalPredicate)base.VisitLogicalPredicate(logic);
 
             var assortedLevel = AssortPredicates(visited);
+            var shouldClauseCount = assortedLevel.SimpleShould.Count + assortedLevel.LogicalShould.Count;
+            var mustClauseCount = assortedLevel.SimpleMust.Count + assortedLevel.LogicalMust.Count;
 
-            // if there are only "SHOULD" clauses, it is not necessary to do any transformation
-            if (/*assortedLevel.GeneralClauses.Count == 0 &&*/
-                assortedLevel.SimpleMust.Count == 0 &&
-                assortedLevel.SimpleMustNot.Count == 0 &&
-                /*assortedLevel.SimpleShould.Count > 0 &&*/
-                assortedLevel.LogicalMust.Count == 0 &&
-                assortedLevel.LogicalMustNot.Count == 0 //&&
-                /*assortedLevel.LogicalShould.Count == 0*/)
-            {
+            // 1 - If there are only "SHOULD" clauses or there is only one "MUST" clause, it is not necessary to do any transformation.
+            // Note that the query tree is normalized that means "MUST" clause existence excludes any "SHOULD" clause
+            // so "SHOULD" clause can only exist if the count of "MUST" clauses is 0.
+            if (mustClauseCount < 2)
                 return visited;
-            }
 
-            // if there is only one "MUST" simple clause, it is not necessary to do any transformation
-            if (/*assortedLevel.GeneralClauses.Count == 0 &&*/
-                assortedLevel.SimpleMust.Count == 1 &&
-                assortedLevel.SimpleMustNot.Count == 0 &&
-                assortedLevel.SimpleShould.Count == 0 &&
-                assortedLevel.LogicalMust.Count == 0 &&
-                assortedLevel.LogicalMustNot.Count == 0 &&
-                assortedLevel.LogicalShould.Count == 0
-                )
-            {
-                return visited;
-            }
-
-            // if there is only one "MUST" logical clause, it is not necessary to do any transformation
-            if (/*assortedLevel.GeneralClauses.Count == 0 &&*/
-                assortedLevel.SimpleMust.Count == 0 &&
-                assortedLevel.SimpleMustNot.Count == 0 &&
-                assortedLevel.SimpleShould.Count == 0 &&
-                assortedLevel.LogicalMust.Count == 1 &&
-                assortedLevel.LogicalMustNot.Count == 0 &&
-                assortedLevel.LogicalShould.Count == 0
-                )
-            {
-                return visited;
-            }
-
-            // if there are only "MUST" simple clauses but two or more: combine them
-            if (/*assortedLevel.GeneralClauses.Count == 0 &&*/
-                assortedLevel.SimpleMust.Count >= 2 &&
-                assortedLevel.SimpleMustNot.Count == 0 &&
-                assortedLevel.SimpleShould.Count == 0 &&
-                assortedLevel.LogicalMust.Count == 0 &&
-                assortedLevel.LogicalMustNot.Count == 0 &&
-                assortedLevel.LogicalShould.Count == 0)
+            // 2 - If there are only "MUST" simple clauses but two or more: combine them and not sharing clauses be unchanged
+            // Consider that the values may already be combined.
+            if (assortedLevel.SimpleMust.Count >= 2 && assortedLevel.LogicalMust.Count == 0)
             {
                 var newClauses = assortedLevel.GeneralClauses.ToList();
 
@@ -267,18 +230,15 @@ namespace SenseNet.Search.Querying
                 return new LogicalPredicate(newClauses);
             }
 
-            // if there are any "MUST" simple clauses and any "MUST" logical clauses: combine them
-            if (/*assortedLevel.GeneralClauses.Count == 0 &&*/
-                assortedLevel.SimpleMust.Count >= 0 &&
-                assortedLevel.SimpleMustNot.Count == 0 &&
-                assortedLevel.SimpleShould.Count == 0 &&
-                assortedLevel.LogicalMust.Count >= 0 &&
-                assortedLevel.LogicalMustNot.Count == 0 &&
-                assortedLevel.LogicalShould.Count == 0)
+            // 3 - if there are any "MUST" simple clauses and logical clauses: combine everything
+            if (assortedLevel.SimpleMust.Count >= 0 && assortedLevel.LogicalMust.Count >= 0)
             {
+throw new NotImplementedException();
                 // Combine all clauses for example: +a +b +(c d) +(e f) --> +(abce abcf abde abdf)
                 // In the temporary storage the inner collection stores the items of the combined values and the
                 //    outer collection contains the future terms (List<List<string>>).
+
+                //UNDONE:<? NOT SHARING TERMS
 
                 // 1 - Combine all simple values (with breaking the already combined values)
                 var combinedSimpleValues = assortedLevel.SimpleMust
@@ -342,8 +302,7 @@ namespace SenseNet.Search.Querying
                                 result.SimpleMust.Add(simplePredicate);
                                 break;
                             case Occurence.MustNot:
-                                result.SimpleMustNot.Add(simplePredicate);
-                                break;
+                                throw new InvalidOperationException(); //UNDONE:<? write human readable exception message.
                             default:
                                 throw new SnNotSupportedException("Unknown occurence: " + clause.Occur);
                         }
@@ -367,8 +326,7 @@ namespace SenseNet.Search.Querying
                                 result.LogicalMust.Add(logicalPredicate);
                                 break;
                             case Occurence.MustNot:
-                                result.LogicalMustNot.Add(logicalPredicate);
-                                break;
+                                throw new InvalidOperationException(); //UNDONE:<? write human readable exception message.
                             default:
                                 throw new SnNotSupportedException("Unknown occurence: " + clause.Occur);
                         }
