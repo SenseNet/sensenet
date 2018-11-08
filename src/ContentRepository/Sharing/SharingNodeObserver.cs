@@ -17,7 +17,7 @@ namespace SenseNet.ContentRepository.Sharing
 
             // Collect sharing group ids for publicly shared content 
             // in the subtree to delete them later in the background.
-            var sharingGroupIds = SharingHandler.GetSharingGroupIds(e.SourceNode);
+            var sharingGroupIds = SharingHandler.GetSharingGroupIdsForSubtree(e.SourceNode);
             if (sharingGroupIds?.Any() ?? false)
                 e.SetCustomData(SharingGroupIdsCustomDataKey, sharingGroupIds);
         }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.Mail;
 using System.Threading.Tasks;
@@ -52,9 +53,7 @@ namespace SenseNet.ContentRepository.Sharing
     public class SharingHandler
     {
         private const string SharingItemsCacheKey = "SharingItems";
-
-        // internal! getonly!
-        //UNDONE: individual items should be immutable too
+        
         private readonly object _itemsSync = new object();
         private List<SharingData> _items;
 
@@ -65,7 +64,6 @@ namespace SenseNet.ContentRepository.Sharing
         {
             get
             {
-                //UNDONE: <? only for tests
                 if (_items == null)
                 {
                     lock (_itemsSync)
@@ -138,7 +136,7 @@ namespace SenseNet.ContentRepository.Sharing
             _items = _owner.GetCachedData(SharingItemsCacheKey) as List<SharingData>;
         }
 
-        /* ================================================================================== Serialization */
+        /* ================================================================================== Serialization and Save */
 
         private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
         {
@@ -163,13 +161,23 @@ namespace SenseNet.ContentRepository.Sharing
                 SerializerSettings);
         }
 
-        /* ================================================================================== Public API */
+        private void UpdateOwnerNode()
+        {
+            // do not reset the item list because we already have it up-todate
+            _owner.SetSharingData(Serialize(_items), false);
+            _owner.Save(SavingMode.KeepVersion);
+
+            _owner.SetCachedData(SharingItemsCacheKey, _items);
+        }
+
+        /* ================================================================================== Public instance API */
 
         /// <summary>
         /// Readonly list of all sharing records on a content.
         /// </summary>
         public IEnumerable<SharingData> GetSharingItems()
         {
+            //UNDONE: individual items should be immutable too
             return new ReadOnlyCollection<SharingData>(Items.ToList());
         }
 
@@ -263,41 +271,8 @@ namespace SenseNet.ContentRepository.Sharing
             return true;
         }
 
-        /* ================================================================================== Helper methods */
-
-        private void SetPermissions(SharingData sharingData)
-        {
-            if (sharingData.Identity <= 0)
-                return;
-
-            var mask = GetEffectiveBitmask(sharingData.Level);
-            SnSecurityContext.Create().CreateAclEditor(EntryType.Sharing)
-                .Set(_owner.Id, sharingData.Identity, false, mask, 0ul)
-                .Apply();
-        }
-
-        private void UpdatePermissions(int identityId, SharingData[] remainData)
-        {
-            UpdatePermissions(_owner.Id, identityId, remainData);
-        }
-        private static void UpdatePermissions(int nodeId, int identityId, SharingData[] remainData)
-        {
-            if (identityId <= 0)
-                return;
-
-            var mask = remainData.Aggregate(0ul, (current, item) => current | GetEffectiveBitmask(item.Level));
-
-            SnSecurityContext.Create().CreateAclEditor(EntryType.Sharing)
-                .Reset(nodeId, identityId, false, ulong.MaxValue, 0ul)
-                .Set(nodeId, identityId, false, mask, 0ul)
-                .Apply();
-
-        }
-        private void AssertSharingPermissions()
-        {
-            _owner?.Security.Assert(PermissionType.SetPermissions);
-        }
-
+        /* ================================================================================== Identities */
+        
         private int GetSharingIdentity(string id, string token, SharingLevel level, SharingMode mode)
         {
             switch (mode)
@@ -408,7 +383,7 @@ namespace SenseNet.ContentRepository.Sharing
             else
             {
                 // set sharing id on the group if it is not there yet
-                group[Constants.SharingIdsFieldName] = AddSharingId((string)group[Constants.SharingIdsFieldName], id);
+                group[Constants.SharingIdsFieldName] = AddSharingIdToText((string)group[Constants.SharingIdsFieldName], id);
                 group.SaveSameVersion();
             }
 
@@ -444,16 +419,41 @@ namespace SenseNet.ContentRepository.Sharing
             return container;
         }
         
-        private void UpdateOwnerNode()
-        {
-            // do not reset the item list because we already have it up-todate
-            _owner.SetSharingData(Serialize(_items), false);
-            _owner.Save(SavingMode.KeepVersion);
+        /* ================================================================================== Permissions */
 
-            _owner.SetCachedData(SharingItemsCacheKey, _items);
+        private void SetPermissions(SharingData sharingData)
+        {
+            if (sharingData.Identity <= 0)
+                return;
+
+            var mask = GetEffectiveBitmask(sharingData.Level);
+            SnSecurityContext.Create().CreateAclEditor(EntryType.Sharing)
+                .Set(_owner.Id, sharingData.Identity, false, mask, 0ul)
+                .Apply();
         }
 
-        /* ================================================================================== Permissions */
+        private void UpdatePermissions(int identityId, SharingData[] remainData)
+        {
+            UpdatePermissions(_owner.Id, identityId, remainData);
+        }
+        private static void UpdatePermissions(int nodeId, int identityId, SharingData[] remainData)
+        {
+            if (identityId <= 0)
+                return;
+
+            var mask = remainData.Aggregate(0ul, (current, item) => current | GetEffectiveBitmask(item.Level));
+
+            SnSecurityContext.Create().CreateAclEditor(EntryType.Sharing)
+                .Reset(nodeId, identityId, false, ulong.MaxValue, 0ul)
+                .Set(nodeId, identityId, false, mask, 0ul)
+                .Apply();
+
+        }
+
+        private void AssertSharingPermissions()
+        {
+            _owner?.Security.Assert(PermissionType.SetPermissions);
+        }
 
         private static readonly Lazy<Dictionary<SharingLevel, ulong>> EffectiveBitmasks =
             new Lazy<Dictionary<SharingLevel, ulong>>(() =>
@@ -467,9 +467,11 @@ namespace SenseNet.ContentRepository.Sharing
         {
             return EffectiveBitmasks.Value[level];
         }
+        [SuppressMessage("ReSharper", "CoVariantArrayConversion")]
         private static ulong CalculateEffectiveBitmask(SharingLevel level)
         {
             PermissionTypeBase[] permissions;
+
             switch (level)
             {
                 case SharingLevel.Open:
@@ -712,14 +714,14 @@ namespace SenseNet.ContentRepository.Sharing
             }
         }
 
-        internal static int[] GetSharingGroupIds(Node sharedContent)
+        internal static int[] GetSharingGroupIdsForSubtree(Node rootContent)
         {
-            if (sharedContent == null)
+            if (rootContent == null)
                 return new int[0];
 
             // collect all content ids that were shared publicly in this subtree
             var publicSharedIds = ContentQuery.Query(SharingQueries.PubliclySharedInTree, 
-                    QuerySettings.AdminSettings, sharedContent.Path).Identifiers.ToArray();
+                    QuerySettings.AdminSettings, rootContent.Path).Identifiers.ToArray();
 
             if (!publicSharedIds.Any())
                 return new int[0];
@@ -767,13 +769,13 @@ namespace SenseNet.ContentRepository.Sharing
             return true;
         }
 
-        private static string AddSharingId(string original, string id)
+        private static string AddSharingIdToText(string original, string id)
         {
             if (string.IsNullOrEmpty(id))
                 return original;
 
             var newId = id.Replace("-", string.Empty);
-            var sharingIds = original?.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries).ToList() ??
+            var sharingIds = original?.Split(new[] {' ', ',', ';'}, StringSplitOptions.RemoveEmptyEntries).ToList() ??
                               new List<string>();
 
             if (!sharingIds.Contains(newId))
@@ -781,19 +783,7 @@ namespace SenseNet.ContentRepository.Sharing
 
             return string.Join(" ", sharingIds);
         }
-
-        public static Content GetSharingGroupFromUrl(NameValueCollection parameters)
-        {
-            var sharingGuid = GetSharingGuidFromUrl(parameters);
-            if (string.IsNullOrEmpty(sharingGuid))
-                return null;
-
-            return GetSharingGroupBySharingId(sharingGuid);
-        }
-        public static string GetSharingGuidFromUrl(NameValueCollection parameters)
-        {
-            return parameters?[Constants.SharingUrlParameterName];
-        }
+        
         internal static SharingData GetSharingDataBySharingId(string sharingId)
         {
             var sharingGroup = GetSharingGroupBySharingId(sharingId);
@@ -801,6 +791,14 @@ namespace SenseNet.ContentRepository.Sharing
                 return null;
 
             return target.Sharing.Items.FirstOrDefault(sd => sd.Id == sharingId);
+        }
+        internal static Content GetSharingGroupByUrlParameter(NameValueCollection parameters)
+        {
+            var sharingGuid = parameters?[Constants.SharingUrlParameterName];
+
+            return string.IsNullOrEmpty(sharingGuid)
+                ? null
+                : GetSharingGroupBySharingId(sharingGuid);
         }
         internal static Content GetSharingGroupBySharingId(string sharingGuid)
         {

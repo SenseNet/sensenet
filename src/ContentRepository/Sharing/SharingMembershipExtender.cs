@@ -36,7 +36,7 @@ namespace SenseNet.ContentRepository.Sharing
             else
             {
                 // check the url
-                sharingGroup = SharingHandler.GetSharingGroupFromUrl(parameters)?.ContentHandler as Group;
+                sharingGroup = SharingHandler.GetSharingGroupByUrlParameter(parameters)?.ContentHandler as Group;
 
                 // Found a sharing group for the id: put it into the session 
                 // and add it to the list of extensions of the user.
