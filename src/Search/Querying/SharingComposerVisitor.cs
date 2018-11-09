@@ -218,7 +218,7 @@ namespace SenseNet.Search.Querying
         }
         internal static SimplePredicate CreateSharingSimplePredicate(string[] values)
         {
-            return new SimplePredicate(SharingVisitor.Sharing, new IndexValue(values.Distinct().OrderBy(x => "TICML".IndexOf(x[0])).ToArray()));
+            return new SimplePredicate(SharingVisitor.Sharing, new IndexValue(values));
         }
     }
 }

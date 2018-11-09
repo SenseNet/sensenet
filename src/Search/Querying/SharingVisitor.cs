@@ -24,7 +24,11 @@ namespace SenseNet.Search.Querying
             var composer = new SharingComposerVisitor();
             var composition = (LogicalPredicate)composer.Visit(normalizedSharingPredicate); //UNDONE:<? can be simple predicate?
 
-            var allClauses = scanner.TopLevelGeneralClauses.Union(composition.Clauses);
+            var finalizer = new SharingFinalizerVisitor();
+            var finalTree = (LogicalPredicate)finalizer.Visit(composition);
+
+
+            var allClauses = scanner.TopLevelGeneralClauses.Union(finalTree.Clauses);
             return new LogicalPredicate(allClauses);
         }
     }
