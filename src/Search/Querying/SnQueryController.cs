@@ -127,17 +127,8 @@ namespace SenseNet.Search.Querying
         {
             var queryTree = query.QueryTree;
 
-            var scanner = new SharingVisitor.SharingScannerVisitor();
-            queryTree = scanner.Visit(queryTree);
-            if (scanner.HasNegativeTerm)
-                throw new InvalidOperationException(); //UNDONE:<? write human readable exception message.
-
-            if (scanner.NeedToBeNormalized)
-                queryTree = new SharingVisitor.NormalizerVisitor().Visit(queryTree);
-
-            queryTree = new SharingVisitor().Visit(queryTree);
-
-            if (ReferenceEquals(query.QueryTree, queryTree))
+            var visitedTree = new SharingVisitor().Visit(queryTree);
+            if (ReferenceEquals(visitedTree, queryTree))
                 return query;
 
             var newQuery = Create(queryTree);
