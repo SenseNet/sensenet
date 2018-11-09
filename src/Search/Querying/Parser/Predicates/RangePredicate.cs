@@ -49,5 +49,30 @@ namespace SenseNet.Search.Querying.Parser.Predicates
             MinExclusive = minExclusive;
             MaxExclusive = maxExclusive;
         }
+
+        /// <summary>Returns a string that represents the current object.</summary>
+        public override string ToString()
+        {
+            string oneTerm = null;
+
+            string op = null;
+            if (Min == null)
+            {
+                op = !MaxExclusive ? "<=" : "<";
+                oneTerm = Max.ValueAsString;
+            }
+            if (Max == null)
+            {
+                op = !MinExclusive ? ">=" : ">";
+                oneTerm = Min.ValueAsString;
+            }
+
+            if (op != null)
+                return $"{FieldName}:{op}{oneTerm}";
+
+            var start = !MinExclusive ? '[' : '{';
+            var end = !MaxExclusive ? ']' : '}';
+            return $"{FieldName}:{start}{Min} TO {Max}{end}";
+        }
     }
 }
