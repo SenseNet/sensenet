@@ -64,7 +64,7 @@ namespace SenseNet.Search.Querying.Parser.Predicates
             if (Max == null)
             {
                 op = !MinExclusive ? ">=" : ">";
-                oneTerm = Min.ValueAsString;
+                oneTerm = Min?.ValueAsString;
             }
 
             if (op != null)

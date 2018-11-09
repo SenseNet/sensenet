@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using SenseNet.Search.Querying.Parser.Predicates;
 
 namespace SenseNet.Search.Querying
@@ -11,9 +10,7 @@ namespace SenseNet.Search.Querying
         private class AssortedPredicates
         {
             public List<LogicalClause> GeneralClauses { get; } = new List<LogicalClause>();
-            public List<SimplePredicate> SimpleShould { get; } = new List<SimplePredicate>();
             public List<SimplePredicate> SimpleMust { get; } = new List<SimplePredicate>();
-            public List<LogicalPredicate> LogicalShould { get; } = new List<LogicalPredicate>();
             public List<LogicalPredicate> LogicalMust { get; } = new List<LogicalPredicate>();
         }
 
@@ -25,7 +22,7 @@ namespace SenseNet.Search.Querying
             {
                 var visited = (SimplePredicate)base.VisitSimplePredicate(simplePredicate);
                 if (simplePredicate.FieldName == SharingVisitor.Sharing)
-                    SharingRelatedPredicates.Add((SimplePredicate)visited);
+                    SharingRelatedPredicates.Add(visited);
                 return visited;
             }
         }
@@ -40,8 +37,8 @@ namespace SenseNet.Search.Querying
 
 
             var assortedLevel = AssortPredicates(visited);
-            var shouldClauseCount = assortedLevel.SimpleShould.Count + assortedLevel.LogicalShould.Count;
             var mustClauseCount = assortedLevel.SimpleMust.Count + assortedLevel.LogicalMust.Count;
+            List<LogicalClause> newClauses;
 
             // 1 - If there are only "SHOULD" clauses or there is only one "MUST" clause, it is not necessary to do any transformation.
             //     Note that the query tree is normalized that means "MUST" clause existence excludes any "SHOULD" clause
@@ -53,7 +50,7 @@ namespace SenseNet.Search.Querying
             //     Consider that the values may already be combined.
             if (assortedLevel.SimpleMust.Count >= 2 && assortedLevel.LogicalMust.Count == 0)
             {
-                var newClauses = assortedLevel.GeneralClauses.ToList();
+                newClauses = assortedLevel.GeneralClauses.ToList();
 
                 var values = assortedLevel.SimpleMust
                     .SelectMany(x => x.Value.StringArrayValue)
@@ -67,48 +64,41 @@ namespace SenseNet.Search.Querying
                 return new LogicalPredicate(newClauses);
             }
 
-            // 3 - if there are any "MUST" simple clauses and logical clauses: combine everything
-            if (assortedLevel.SimpleMust.Count >= 0 && assortedLevel.LogicalMust.Count >= 0)
+            // 3 - If there are any "MUST" simple clauses and logical clauses: combine everything
+            //     Combine all clauses for example: +a +b +(c d) +(e f) --> +(abce abcf abde abdf)
+            //     In the temporary storage the inner collection stores the items of the combined values and the
+            //     outer collection contains the future terms (List<List<string>>).
+
+            // 3.1 - Combine all simple values (with breaking the already combined values)
+            var combinedSimpleValues = assortedLevel.SimpleMust
+                .SelectMany(x => x.Value.StringArrayValue).ToList();
+
+            // 3.2 - create a temporary storage from the combined simple values.
+            var combinedValues = new List<List<string>> { combinedSimpleValues };
+
+            // 3.3 - Combine the current list with each values of each logical predicate
+            foreach (var logical in assortedLevel.LogicalMust)
             {
-                // Combine all clauses for example: +a +b +(c d) +(e f) --> +(abce abcf abde abdf)
-                // In the temporary storage the inner collection stores the items of the combined values and the
-                //    outer collection contains the future terms (List<List<string>>).
+                var values = logical.Clauses
+                    .Where(x => x.Predicate is SimplePredicate)
+                    .Select(x => (SimplePredicate)x.Predicate)
+                    .Where(x => x.FieldName == SharingVisitor.Sharing)
+                    .Select(x => x.Value.StringArrayValue.ToList())
+                    .ToList();
 
-                //UNDONE:<? NOT SHARING TERMS
-
-                // 1 - Combine all simple values (with breaking the already combined values)
-                var combinedSimpleValues = assortedLevel.SimpleMust
-                    .SelectMany(x => x.Value.StringArrayValue).ToList();
-
-                // 2 - create a temporary storage from the combined simple values.
-                var combinedValues = new List<List<string>> { combinedSimpleValues };
-
-                // 3 - Combine the current list with each values of each logical predicate
-                foreach (var logical in assortedLevel.LogicalMust)
-                {
-                    var values = logical.Clauses
-                        .Where(x => x.Predicate is SimplePredicate)
-                        .Select(x => (SimplePredicate)x.Predicate)
-                        .Where(x => x.FieldName == SharingVisitor.Sharing)
-                        .Select(x => x.Value.StringArrayValue.ToList())
-                        .ToList();
-
-                    combinedValues = CombineValues(values, combinedValues);
-                }
-
-                // 4 - Create a new logical clause from the combined values
-                var newPredicate = CreateSharingLogicalPredicate(combinedValues);
-                var finalSharingClause = new LogicalClause(newPredicate, Occurence.Must);
-
-                // 5 - Create a list of output logical clauses.
-                var newClauses = assortedLevel.GeneralClauses.ToList();
-                newClauses.Add(finalSharingClause);
-
-                // 6 - Return with the rewritten level
-                return new LogicalPredicate(newClauses);
+                combinedValues = CombineValues(values, combinedValues);
             }
 
-            throw new NotImplementedException(); //UNDONE:<? Rewriting for "Should" and "NustNot" clauses are not implemented.
+            // 3.4 - Create a new logical clause from the combined values
+            var newPredicate = CreateSharingLogicalPredicate(combinedValues);
+            var finalSharingClause = new LogicalClause(newPredicate, Occurence.Must);
+
+            // 3.5 - Create a list of output logical clauses.
+            newClauses = assortedLevel.GeneralClauses.ToList();
+            newClauses.Add(finalSharingClause);
+
+            // 3.6 - Return with the rewritten level
+            return new LogicalPredicate(newClauses);
         }
 
         private static AssortedPredicates AssortPredicates(LogicalPredicate visited)
@@ -123,22 +113,16 @@ namespace SenseNet.Search.Querying
                     {
                         switch (clause.Occur)
                         {
-                            case Occurence.Default:
-                            case Occurence.Should:
-                                result.SimpleShould.Add(simplePredicate);
-                                break;
                             case Occurence.Must:
                                 result.SimpleMust.Add(simplePredicate);
                                 break;
                             case Occurence.MustNot:
                                 throw new InvalidOperationException(); //UNDONE:<? write human readable exception message.
-                            default:
-                                throw new SnNotSupportedException("Unknown occurence: " + clause.Occur);
                         }
                     }
                     else
                     {
-                        result.GeneralClauses.Add((LogicalClause)clause);
+                        result.GeneralClauses.Add(clause);
                     }
                 }
                 else if (clause.Predicate is LogicalPredicate logicalPredicate)
@@ -147,27 +131,21 @@ namespace SenseNet.Search.Querying
                     {
                         switch (clause.Occur)
                         {
-                            case Occurence.Default:
-                            case Occurence.Should:
-                                result.LogicalShould.Add(logicalPredicate);
-                                break;
                             case Occurence.Must:
                                 result.LogicalMust.Add(logicalPredicate);
                                 break;
                             case Occurence.MustNot:
                                 throw new InvalidOperationException(); //UNDONE:<? write human readable exception message.
-                            default:
-                                throw new SnNotSupportedException("Unknown occurence: " + clause.Occur);
                         }
                     }
                     else
                     {
-                        result.GeneralClauses.Add((LogicalClause)clause);
+                        result.GeneralClauses.Add(clause);
                     }
                 }
                 else
                 {
-                    result.GeneralClauses.Add((LogicalClause)clause); //UNDONE:<? What about rangepredicates?
+                    result.GeneralClauses.Add(clause); //UNDONE:<? What about rangepredicates?
                 }
             }
 

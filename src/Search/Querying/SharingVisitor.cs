@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using SenseNet.Search.Querying.Parser.Predicates;
 
 namespace SenseNet.Search.Querying
@@ -14,7 +12,7 @@ namespace SenseNet.Search.Querying
             var scanner = new SharingScannerVisitor();
             var scanned = scanner.Visit(predicate);
 
-            if (object.ReferenceEquals(scanned, predicate))
+            if (ReferenceEquals(scanned, predicate))
                 return predicate;
 
             var normalizedClauses = scanner.TopLevelSharingClauses

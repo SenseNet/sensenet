@@ -9,9 +9,8 @@ using SenseNet.Tests.Implementations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SenseNet.Search.Querying.Parser.Predicates;
+// ReSharper disable UnusedVariable
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -146,7 +145,7 @@ namespace SenseNet.ContentRepository.Tests
             var s = new[] { "Sharing", "SharedWith", "SharedBy", "SharingMode", "SharingLevel" };
 
             // -------------- ( query,              valid, general, sharing )
-            SharingScannerTest($"-a:a", true, 1, 0);
+            SharingScannerTest("-a:a", true, 1, 0);
             SharingScannerTest($"+{s[0]}:s0", true, 0, 1);
             SharingScannerTest($"-a:a +{s[0]}:s0", true, 1, 1);
             SharingScannerTest($"+{s[0]}:s0 +({s[1]}:s1 {s[1]}:s1)", true, 0, 2);
@@ -172,8 +171,8 @@ namespace SenseNet.ContentRepository.Tests
         [TestMethod]
         public void Sharing_Query_Rewriting_SharingScanner_FieldNames()
         {
-            var inputQuery = $"-a:a Sharing:s0 SharedWith:123 SharedBy:s2 SharingMode:s3 SharingLevel:s4";
-            var expectedQuery = $"-a:a Sharing:s0 Sharing:I123 Sharing:s2 Sharing:s3 Sharing:s4";
+            var inputQuery = "-a:a Sharing:s0 SharedWith:123 SharedBy:s2 SharingMode:s3 SharingLevel:s4";
+            var expectedQuery = "-a:a Sharing:s0 Sharing:I123 Sharing:s2 Sharing:s3 Sharing:s4";
             string actualQuery;
 
             var context = new TestQueryContext(QuerySettings.AdminSettings, 0, _indexingInfo, new TestQueryEngine(null, null));
@@ -387,37 +386,25 @@ namespace SenseNet.ContentRepository.Tests
 
             // input terms
             var qA1 = "user1@example.com";
-            var qA2 = "user2@example.com";
             var qB1 = 142;
             var qB2 = 143;
             var qC1 = 151;
             var qC2 = 152;
             var qC3 = 153;
             var qD1 = SharingMode.Private;
-            var qD2 = SharingMode.Authenticated;
             var qE1 = SharingLevel.Open;
-            var qE2 = SharingLevel.Edit;
             var qX1 = "TypeIs:File";
-            var qX2 = "InTree:/root/folder1";
-            var qX3 = "Description:value1";
-            var qX4 = "Description:value2";
 
             // expected terms
             var tA1 = SharingDataTokenizer.TokenizeSharingToken(qA1);
-            var tA2 = SharingDataTokenizer.TokenizeSharingToken(qA2);
             var tB1 = SharingDataTokenizer.TokenizeIdentity(qB1);
             var tB2 = SharingDataTokenizer.TokenizeIdentity(qB2);
             var tC1 = SharingDataTokenizer.TokenizeCreatorId(qC1);
             var tC2 = SharingDataTokenizer.TokenizeCreatorId(qC2);
             var tC3 = SharingDataTokenizer.TokenizeCreatorId(qC3);
             var tD1 = SharingDataTokenizer.TokenizeSharingMode(qD1);
-            var tD2 = SharingDataTokenizer.TokenizeSharingMode(qD2);
             var tE1 = SharingDataTokenizer.TokenizeSharingLevel(qE1);
-            var tE2 = SharingDataTokenizer.TokenizeSharingLevel(qE2);
             var tX1 = "TypeIs:file";
-            var tX2 = "InTree:/root/folder1";
-            var tX3 = "Description:value1";
-            var tX4 = "Description:value2";
 
             // one level "must" only
             RewritingTest($"+{qX1} +{b}:{qB1}", $"+{tX1} +{s}:{tB1}");
