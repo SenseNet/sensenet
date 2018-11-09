@@ -3,15 +3,20 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Web;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SenseNet.Configuration;
+using SenseNet.ContentRepository.OData;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Sharing;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Portal.OData;
 using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
@@ -1290,19 +1295,19 @@ namespace SenseNet.ContentRepository.Tests
                     // set the caller user temporarily
                     AccessProvider.Current.SetCurrentUser(userCaller);
 
-                    //UNDONE: convert result to a strongly typed object
-                    var items = ((IEnumerable<Dictionary<string, object>>)SharingActions.GetSharing(content)).ToArray();
+                    var items = ((IEnumerable<ODataCustomContent>) SharingActions.GetSharing(content))
+                        .Select(occ => occ.Data as SharingData).ToArray();
 
                     // The result should contain the Somebody user id when the caller
                     // does not have enough permissions for the identity.
                     var usd1 = items.Single(sd =>
-                        (string) sd["Token"] == "abc1@example.com" && 
-                        (long) sd["Identity"] == user1.Id &&
-                        (long)sd["CreatorId"] == Identifiers.SomebodyUserId);
+                        sd.Token == "abc1@example.com" && 
+                        sd.Identity == user1.Id &&
+                        sd.CreatorId == Identifiers.SomebodyUserId);
                     var usd2 = items.Single(sd =>
-                        (string)sd["Token"] == "abc2@example.com" &&
-                        (long)sd["Identity"] == Identifiers.SomebodyUserId &&
-                        (long)sd["CreatorId"] == Identifiers.SomebodyUserId);
+                        sd.Token == "abc2@example.com" &&
+                        sd.Identity == Identifiers.SomebodyUserId &&
+                        sd.CreatorId == Identifiers.SomebodyUserId);
 
                     Assert.IsNotNull(usd1);
                     Assert.IsNotNull(usd2);
@@ -1311,6 +1316,54 @@ namespace SenseNet.ContentRepository.Tests
                 {
                     AccessProvider.Current.SetCurrentUser(original);
                 }
+            });
+        }
+
+        [TestMethod]
+        public void Sharing_OData_ResponseFormat()
+        {
+            JObject ConvertResult(object response)
+            {
+                var settings = new JsonSerializerSettings
+                {
+                    DateFormatHandling = DateFormatHandling.IsoDateFormat,
+                    Formatting = Formatting.Indented,
+                    Converters = ODataHandler.JsonConverters
+                };
+                var serializer = JsonSerializer.Create(settings);
+                var sb = new StringBuilder();
+                using (var sw = new StringWriter(sb))
+                {
+                    serializer.Serialize(sw, response);
+                }
+
+                return JsonConvert.DeserializeObject(sb.ToString()) as JObject;
+            }
+
+            Test(() =>
+            {
+                ReInstallGenericContentCtd();
+                var root = CreateTestRoot();
+
+                var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
+                content.Save();
+
+                var sd1 = content.Sharing.Share("abc1@example.com", SharingLevel.Open, SharingMode.Private);
+                var sd2 = content.Sharing.Share("abc2@example.com", SharingLevel.Edit, SharingMode.Authenticated);
+                var sd3 = content.Sharing.Share("abc3@example.com", SharingLevel.Open, SharingMode.Public);
+
+                var items = SharingActions.GetSharing(content) as IEnumerable<ODataCustomContent>;
+
+                var response = ODataMultipleContent.Create(items, 0);
+                var responseObject = ConvertResult(response);
+
+                var count = responseObject["d"]["__count"].Value<int>();
+                var results = (JArray)responseObject["d"]["results"];
+
+                Assert.AreEqual(3, count);
+                AssertSharingDataAreEqual(sd1, results[0] as JObject);
+                AssertSharingDataAreEqual(sd2, results[1] as JObject);
+                AssertSharingDataAreEqual(sd3, results[2] as JObject);
             });
         }
 
@@ -1376,6 +1429,16 @@ namespace SenseNet.ContentRepository.Tests
             Assert.AreEqual(expected.Level, actual.Level);
             Assert.AreEqual(expected.Mode, actual.Mode);
             Assert.AreEqual(expected.ShareDate, actual.ShareDate);
+        }
+        private static void AssertSharingDataAreEqual(SharingData expected, JObject actual)
+        {
+            Assert.AreEqual(expected.Id, actual["Id"].Value<string>());
+            Assert.AreEqual(expected.Token, actual["Token"].Value<string>());
+            Assert.AreEqual(expected.Identity, actual["Identity"].Value<int>());
+            Assert.AreEqual(expected.CreatorId, actual["CreatorId"].Value<int>());
+            Assert.AreEqual(expected.Level, Enum.Parse(typeof(SharingLevel), actual["Level"].Value<string>()));
+            Assert.AreEqual(expected.Mode, Enum.Parse(typeof(SharingMode), actual["Mode"].Value<string>()));
+            Assert.AreEqual(expected.ShareDate, actual["ShareDate"].Value<DateTime>());
         }
 
         private static void AssertPublicSharingData(IEnumerable<SharingData> items, string email)
