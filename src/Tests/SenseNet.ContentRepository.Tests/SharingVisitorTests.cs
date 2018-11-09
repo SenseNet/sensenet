@@ -320,7 +320,7 @@ namespace SenseNet.ContentRepository.Tests
             };
 
             // ACTION
-            var sharingVisitorAcc = new PrivateType(typeof(SharingVisitor));
+            var sharingVisitorAcc = new PrivateType(typeof(SharingComposerVisitor));
             var result = (List<List<string>>)sharingVisitorAcc.InvokeStatic("CombineValues", input1, input2);
 
             // ASSERT
@@ -343,7 +343,7 @@ namespace SenseNet.ContentRepository.Tests
             };
 
             // ACTION
-            var sharingVisitorAcc = new PrivateType(typeof(SharingVisitor));
+            var sharingVisitorAcc = new PrivateType(typeof(SharingComposerVisitor));
             var result = (List<List<string>>)sharingVisitorAcc.InvokeStatic("CombineValues", input1, input2);
 
             // ASSERT
@@ -366,7 +366,7 @@ namespace SenseNet.ContentRepository.Tests
             };
 
             // ACTION
-            var sharingVisitorAcc = new PrivateType(typeof(SharingVisitor));
+            var sharingVisitorAcc = new PrivateType(typeof(SharingComposerVisitor));
             var result = (List<List<string>>)sharingVisitorAcc.InvokeStatic("CombineValues", input1, input2);
 
             // ASSERT
@@ -419,7 +419,6 @@ namespace SenseNet.ContentRepository.Tests
             var tX3 = "Description:value1";
             var tX4 = "Description:value2";
 
-            /*
             // one level "must" only
             RewritingTest($"+{qX1} +{b}:{qB1}", $"+{tX1} +{s}:{tB1}");
             RewritingTest($"+{qX1} +{b}:{qB1} +{e}:{qE1}", $"+{tX1} +{s}:{tB1},{tE1}");
@@ -440,16 +439,6 @@ namespace SenseNet.ContentRepository.Tests
             // ... +a +b:(_ _) +c:(_ _ _) --> combine --> ... +(s:a,b1,c1 s:a,b1,c2 s:a,b1,c3 s:a,b2,c1 s:a,b2,c2 s:a,b2,c3)
             RewritingTest($"+{qX1} +{a}:{qA1} +{b}:({qB1} {qB2}) +{c}:({qC1} {qC2} {qC3})",
                           $"+{tX1} +({s}:{tA1},{tB1},{tC1} {s}:{tA1},{tB2},{tC1} {s}:{tA1},{tB1},{tC2} {s}:{tA1},{tB2},{tC2} {s}:{tA1},{tB1},{tC3} {s}:{tA1},{tB2},{tC3})");
-
-            // +x +(a b x)  (no changes)
-            RewritingTest($"+{qX1} +({a}:{qA1} {b}:{qB1} {qX2})", $"+{tX1} +({s}:{tA1} {s}:{tB1} {tX2})");
-            */
-
-            // +X1 +a +(_X2 _b _(+X3 +c +(_d _X4)))  -->  +X1 +(_(+X2 +a) _ab _(+X3 +(_acd _(+X4 +ac)))
-            RewritingTest($"+{qX1} +{a}:{qA1} +({qX2} {b}:{qB1} (+{qX3} +{c}:{qC1} +({d}:{qD1} {qX4})))",
-                          $"+{tX1} +((+{tX2} +{s}:{tA1}) {s}:{tA1},{tB1} (+{tX3} +({s}:{tA1},{tC1},{tD1} (+{tX4} +{s}:{tA1},{tC1})))");
-
-
         }
         private void RewritingTest(string inputQuery, string expectedQuery)
         {

@@ -131,7 +131,7 @@ namespace SenseNet.Search.Querying
             if (ReferenceEquals(visitedTree, queryTree))
                 return query;
 
-            var newQuery = Create(queryTree);
+            var newQuery = Create(visitedTree);
 
             newQuery.Querytext = query.Querytext;
             newQuery.Projection = query.Projection;

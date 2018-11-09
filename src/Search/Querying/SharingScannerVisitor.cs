@@ -7,8 +7,7 @@ using SenseNet.Tools;
 
 namespace SenseNet.Search.Querying
 {
-    //UNDONE:<? Move SharingVisitor to ContentRepository (?)
-    internal class SharingScannerVisitor : SnQueryVisitor
+    internal class SharingScannerVisitor : SnQueryVisitor //UNDONE:<? Move to ContentRepository (?)
     {
         private LogicalPredicate _topLevelLogicalPredicate;
 
@@ -41,7 +40,7 @@ namespace SenseNet.Search.Querying
                 return simplePredicate;
             }
             _isSharingStack.Push(true);
-            return SharingVisitor.CreateSharingSimplePredicate(simplePredicate.Value);
+            return SharingComposerVisitor.CreateSharingSimplePredicate(simplePredicate.Value);
         }
         public override SnQueryPredicate VisitRangePredicate(RangePredicate range)
         {
