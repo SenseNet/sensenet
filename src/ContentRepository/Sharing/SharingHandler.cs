@@ -177,7 +177,6 @@ namespace SenseNet.ContentRepository.Sharing
         /// </summary>
         public IEnumerable<SharingData> GetSharingItems()
         {
-            //UNDONE: individual items should be immutable too
             return new ReadOnlyCollection<SharingData>(Items.ToList());
         }
 

@@ -17,19 +17,29 @@ namespace SenseNet.ContentRepository.Sharing
         Private
     }
     /// <summary>
-    /// Storage model of content sharing information.
+    /// Represents a content sharing record.
     /// </summary>
     public class SharingData
     {
-        public string Id { get; set; } = Guid.NewGuid().ToString();
-        public string Token { get; set; }
-        public int Identity { get; set; }
+        // The JsonProperty attribute is necessary here to let 
+        // JSON.Net deserialize SharingData objects.
+
+        [JsonProperty]
+        public string Id { get; internal set; } = Guid.NewGuid().ToString();
+        [JsonProperty]
+        public string Token { get; internal set; }
+        [JsonProperty]
+        public int Identity { get; internal set; }
         [JsonConverter(typeof(StringEnumConverter))]
-        public SharingMode Mode { get; set; }
+        [JsonProperty]
+        public SharingMode Mode { get; internal set; }
         [JsonConverter(typeof(StringEnumConverter))]
-        public SharingLevel Level { get; set; }
-        public int CreatorId { get; set; }
-        public DateTime ShareDate { get; set; }
+        [JsonProperty]
+        public SharingLevel Level { get; internal set; }
+        [JsonProperty]
+        public int CreatorId { get; internal set; }
+        [JsonProperty]
+        public DateTime ShareDate { get; internal set; }
     }
 
     internal class SafeSharingData : SharingData
