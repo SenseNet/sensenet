@@ -206,7 +206,7 @@ namespace SenseNet.ContentRepository.Tests
                 {
                     visitor.Visit(queryIn.QueryTree);
                 }
-                catch (NotSupportedException)
+                catch (InvalidContentSharingQueryException)
                 {
                     hasError = true;
                 }
