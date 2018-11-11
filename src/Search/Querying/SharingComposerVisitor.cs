@@ -117,7 +117,7 @@ namespace SenseNet.Search.Querying
                                 result.SimpleMust.Add(simplePredicate);
                                 break;
                             case Occurence.MustNot:
-                                throw new InvalidOperationException(); //UNDONE:<? write human readable exception message.
+                                throw new InvalidContentSharingQueryException("Sharing related query clause cannot be negation.");
                         }
                     }
                     else
@@ -135,7 +135,7 @@ namespace SenseNet.Search.Querying
                                 result.LogicalMust.Add(logicalPredicate);
                                 break;
                             case Occurence.MustNot:
-                                throw new InvalidOperationException(); //UNDONE:<? write human readable exception message.
+                                throw new InvalidContentSharingQueryException("Sharing related query clause cannot be negation.");
                         }
                     }
                     else

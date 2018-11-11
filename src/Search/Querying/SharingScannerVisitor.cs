@@ -47,7 +47,7 @@ namespace SenseNet.Search.Querying
                 _isSharingStack.Push(false);
                 return range;
             }
-            throw new NotSupportedException(); //UNDONE:<? exception message: sharing range
+            throw new InvalidContentSharingQueryException("Range query cannot be used in a sharing related query clause.");
         }
 
         public override SnQueryPredicate VisitLogicalPredicate(LogicalPredicate logic)
@@ -65,11 +65,11 @@ namespace SenseNet.Search.Querying
             for (var i = 0; i < clauseCount; i++)
             {
                 if (isSharing[i] && visited.Clauses[i].Occur == Occurence.MustNot)
-                    throw new NotSupportedException(); //UNDONE:<? exception message: must not of sharing
+                    throw new InvalidContentSharingQueryException("Sharing related query clause cannot be negation.");
                 if (i == 0 || isTopLevel)
                     continue;
                 if (isSharing[0] != isSharing[i])
-                    throw new NotSupportedException(); //UNDONE:<? exception message: inhomogeneous
+                    throw new InvalidContentSharingQueryException("One parenthesis level should not contain sharing related and not-sharing related clauses.");
             }
 
             if (isTopLevel)

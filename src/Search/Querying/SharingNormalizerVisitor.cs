@@ -41,7 +41,7 @@ namespace SenseNet.Search.Querying
                     case Occurence.Default:
                     case Occurence.Should: should++; break;
                     case Occurence.Must: must++; break;
-                    case Occurence.MustNot: throw new InvalidOperationException(); //UNDONE:<? write human readable exception message.
+                    case Occurence.MustNot: throw new InvalidContentSharingQueryException("Sharing related query clause cannot be negation.");
                     default: throw new ArgumentOutOfRangeException();
                 }
             }
