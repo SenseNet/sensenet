@@ -6,7 +6,7 @@ using System.Text;
 namespace SenseNet.Search.Querying
 {
     [Serializable]
-    public class InvalidContentSharingQueryException : Exception
+    public class InvalidContentSharingQueryException : Exception //UNDONE:<? Move to ContentRepository (?)
     {
         public InvalidContentSharingQueryException()
         {

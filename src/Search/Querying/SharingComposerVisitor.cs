@@ -145,7 +145,7 @@ namespace SenseNet.Search.Querying
                 }
                 else
                 {
-                    result.GeneralClauses.Add(clause); //UNDONE:<? What about rangepredicates?
+                    result.GeneralClauses.Add(clause);
                 }
             }
 
