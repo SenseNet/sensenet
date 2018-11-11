@@ -232,6 +232,8 @@ namespace SenseNet.ContentRepository.Tests
                 };
                 user.Save();
 
+                RewritingTest("SharedWith:user1@example.com", "Sharing:Tuser1@example.com");
+
                 RewritingTest("+SharedWith:user1@example.com", "+Sharing:Tuser1@example.com");
                 RewritingTest($"+SharedWith:{user.Id}", $"+Sharing:{SharingDataTokenizer.TokenizeIdentity(user.Id)}");
                 RewritingTest("+SharedBy:admin", "+Sharing:C1");

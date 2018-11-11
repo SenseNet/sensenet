@@ -7,6 +7,7 @@ namespace SenseNet.Search.Querying
 {
     internal class SharingScannerVisitor : SnQueryVisitor //UNDONE:<? Move to ContentRepository (?)
     {
+        private bool _initialized;
         private LogicalPredicate _topLevelLogicalPredicate;
 
         public List<LogicalClause> TopLevelGeneralClauses { get; } = new List<LogicalClause>();
@@ -19,15 +20,12 @@ namespace SenseNet.Search.Querying
 
         public override SnQueryPredicate Visit(SnQueryPredicate predicate)
         {
-            if (_topLevelLogicalPredicate == null)
-                if (IsFinished(predicate))
-                    return predicate;
+            if (!_initialized)
+            {
+                _topLevelLogicalPredicate = predicate as LogicalPredicate;
+                _initialized = true;
+            }
             return base.Visit(predicate);
-        }
-        private bool IsFinished(SnQueryPredicate topLevelPredicate)
-        {
-            _topLevelLogicalPredicate = topLevelPredicate as LogicalPredicate;
-            return _topLevelLogicalPredicate == null;
         }
 
         public override SnQueryPredicate VisitSimplePredicate(SimplePredicate simplePredicate)

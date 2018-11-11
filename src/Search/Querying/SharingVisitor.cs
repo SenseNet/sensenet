@@ -15,6 +15,11 @@ namespace SenseNet.Search.Querying
             if (ReferenceEquals(scanned, predicate))
                 return predicate;
 
+            // handle simple rewritten predicates
+            if (!(scanned is LogicalPredicate))
+                return scanned;
+
+            // handle logical predicates
             var normalizedClauses = scanner.TopLevelSharingClauses
                 .Select(x => new SharingNormalizerVisitor().VisitLogicalClause(x));
             var normalizedSharingPredicate = new LogicalPredicate(normalizedClauses);
