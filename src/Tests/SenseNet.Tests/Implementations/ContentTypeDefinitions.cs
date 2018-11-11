@@ -2165,7 +2165,8 @@ namespace SenseNet.Tests.Implementations
       <DisplayName>$Ctd-GenericContent,Sharing-DisplayName</DisplayName>
       <Description>$Ctd-GenericContent,Sharing-Description</Description>
       <Indexing>
-        <Mode>No</Mode>
+        <Analyzer>Keyword</Analyzer>
+        <IndexHandler>SenseNet.Search.Indexing.SharingIndexHandler</IndexHandler>
       </Indexing>
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
@@ -2176,7 +2177,7 @@ namespace SenseNet.Tests.Implementations
     <Field name=""SharedWith"" type=""Sharing"">
       <Bind property=""Sharing""></Bind>
       <Indexing>
-        <IndexHandler>SenseNet.Search.Indexing.SharingIndexHandler</IndexHandler>
+        <IndexHandler>SenseNet.Search.Indexing.SharedWithIndexHandler</IndexHandler>
       </Indexing>
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
@@ -2188,7 +2189,7 @@ namespace SenseNet.Tests.Implementations
     <Field name=""SharedBy"" type=""Sharing"">
       <Bind property=""Sharing""></Bind>
       <Indexing>
-        <IndexHandler>SenseNet.Search.Indexing.SharingIndexHandler</IndexHandler>
+        <IndexHandler>SenseNet.Search.Indexing.SharedByIndexHandler</IndexHandler>
       </Indexing>
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
@@ -2200,7 +2201,7 @@ namespace SenseNet.Tests.Implementations
     <Field name=""SharingMode"" type=""Sharing"">
       <Bind property=""Sharing""></Bind>
       <Indexing>
-        <IndexHandler>SenseNet.Search.Indexing.SharingIndexHandler</IndexHandler>
+        <IndexHandler>SenseNet.Search.Indexing.SharingModeIndexHandler</IndexHandler>
       </Indexing>
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
@@ -2212,7 +2213,7 @@ namespace SenseNet.Tests.Implementations
     <Field name=""SharingLevel"" type=""Sharing"">
       <Bind property=""Sharing""></Bind>
       <Indexing>
-        <IndexHandler>SenseNet.Search.Indexing.SharingIndexHandler</IndexHandler>
+        <IndexHandler>SenseNet.Search.Indexing.SharingLevelIndexHandler</IndexHandler>
       </Indexing>
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
