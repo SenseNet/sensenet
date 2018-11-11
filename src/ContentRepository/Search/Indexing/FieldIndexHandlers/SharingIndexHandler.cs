@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Sharing;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Security;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Search.Indexing
@@ -124,8 +125,7 @@ namespace SenseNet.Search.Indexing
         /// <inheritdoc />
         public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
-            //UNDONE:<? do we need GetParsableValues implementation? If not, convert to NotSupportedException.
-            throw new NotImplementedException();
+            throw new SnNotSupportedException();
         }
     }
     public class SharedWithIndexHandler : FieldIndexHandler
@@ -173,15 +173,47 @@ namespace SenseNet.Search.Indexing
         /// <inheritdoc />
         public override IndexValue ConvertToTermValue(object value)
         {
-            //UNDONE:<? implement ConvertToTermValue
-            throw new NotImplementedException();
+            if (value is NodeHead nodeHead)
+                return new IndexValue(nodeHead.Id);
+            if (value is Node node)
+                return new IndexValue(node.Id);
+            if (value is int id)
+                return new IndexValue(id);
+            if (value is string text)
+            {
+                // User by path
+                try
+                {
+                    var head = NodeHead.Get(text);
+                    if (head != null)
+                        return new IndexValue(head.Id);
+                }
+                catch
+                {
+                    // ignored
+                }
+
+                // User by username
+                try
+                {
+                    var userByName = User.Load(text);
+                    if (userByName != null)
+                        return new IndexValue(userByName.Id);
+                }
+                catch
+                {
+                    // ignored
+                }
+
+                return new IndexValue(text);
+            }
+            throw new ApplicationException("Cannot parse the 'SharedBy' expression.");
         }
 
         /// <inheritdoc />
         public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
-            //UNDONE:<? do we need GetParsableValues implementation? If not, convert to NotSupportedException.
-            throw new NotImplementedException();
+            throw new SnNotSupportedException();
         }
     }
     public class SharedByIndexHandler : FieldIndexHandler
@@ -229,15 +261,45 @@ namespace SenseNet.Search.Indexing
         /// <inheritdoc />
         public override IndexValue ConvertToTermValue(object value)
         {
-            //UNDONE:<? implement ConvertToTermValue
-            throw new NotImplementedException();
+            if (value is NodeHead nodeHead)
+                return new IndexValue(nodeHead.Id);
+            if (value is Node node)
+                return new IndexValue(node.Id);
+            if (value is int id)
+                return new IndexValue(id);
+            if (value is string text)
+            {
+                // User by path
+                try
+                {
+                    var head = NodeHead.Get(text);
+                    if (head != null)
+                        return new IndexValue(head.Id);
+                }
+                catch
+                {
+                    // ignored
+                }
+
+                // User by username
+                try
+                {
+                    var userByName = User.Load(text);
+                    if (userByName != null)
+                        return new IndexValue(userByName.Id);
+                }
+                catch
+                {
+                    // ignored
+                }
+            }
+            throw new ApplicationException("Cannot parse the 'SharedWith' expression.");
         }
 
         /// <inheritdoc />
         public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
-            //UNDONE:<? do we need GetParsableValues implementation? If not, convert to NotSupportedException.
-            throw new NotImplementedException();
+            throw new SnNotSupportedException();
         }
     }
     public class SharingModeIndexHandler : FieldIndexHandler
@@ -259,15 +321,32 @@ namespace SenseNet.Search.Indexing
         /// <inheritdoc />
         public override IndexValue ConvertToTermValue(object value)
         {
-            //UNDONE:<? implement ConvertToTermValue
-            throw new NotImplementedException();
+            if(value is string stringValue)
+                return new IndexValue(stringValue);
+
+            if (value is SharingMode mode)
+                return new IndexValue(mode.ToString());
+
+            if (value is int intValue)
+            {
+                try
+                {
+                    var name = Enum.GetName(typeof(SharingMode), intValue);
+                    return new IndexValue(name);
+                }
+                catch (Exception)
+                {
+                    throw new ApplicationException("Invalid value in the 'SharingMode' expression: " + intValue);
+                }
+            }
+
+            throw new ApplicationException("Cannot parse the 'SharingMode' expression.");
         }
 
         /// <inheritdoc />
         public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
-            //UNDONE:<? do we need GetParsableValues implementation? If not, convert to NotSupportedException.
-            throw new NotImplementedException();
+            throw new SnNotSupportedException();
         }
     }
     public class SharingLevelIndexHandler : FieldIndexHandler
@@ -289,15 +368,32 @@ namespace SenseNet.Search.Indexing
         /// <inheritdoc />
         public override IndexValue ConvertToTermValue(object value)
         {
-            //UNDONE:<? implement ConvertToTermValue
-            throw new NotImplementedException();
+            if (value is string stringValue)
+                return new IndexValue(stringValue);
+
+            if (value is SharingLevel level)
+                return new IndexValue(level.ToString());
+
+            if (value is int intValue)
+            {
+                try
+                {
+                    var name = Enum.GetName(typeof(SharingLevel), intValue);
+                    return new IndexValue(name);
+                }
+                catch (Exception)
+                {
+                    throw new ApplicationException("Invalid value in the 'SharingLevel' expression: " + intValue);
+                }
+            }
+
+            throw new ApplicationException("Cannot parse the 'SharingLevel' expression.");
         }
 
         /// <inheritdoc />
         public override IEnumerable<string> GetParsableValues(IIndexableField snField)
         {
-            //UNDONE:<? do we need GetParsableValues implementation? If not, convert to NotSupportedException.
-            throw new NotImplementedException();
+            throw new SnNotSupportedException();
         }
     }
 }

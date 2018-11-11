@@ -414,6 +414,39 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual($"{id2}"/*   */, GetQueryResult($"+InTree:{root.Path} +SharedWith:{sd[2].Identity}"));
             });
         }
+        [TestMethod]
+        public void Sharing_Query_Linq()
+        {
+            Test(() =>
+            {
+                LinqTests(Content.All.Where(c => (Node)c["SharedWith"] == User.Administrator), "SharedWith:1");
+                LinqTests(Content.All.Where(c => (User)c["SharedWith"] == User.Administrator), "SharedWith:1");
+                LinqTests(Content.All.Where(c => (NodeHead)c["SharedWith"] == NodeHead.Get(Identifiers.AdministratorUserId)), "SharedWith:1");
+                LinqTests(Content.All.Where(c => (int)c["SharedWith"] == User.Administrator.Id), "SharedWith:1");
+                LinqTests(Content.All.Where(c => (string)c["SharedWith"] == User.Administrator.Username), "SharedWith:1");
+                LinqTests(Content.All.Where(c => (string)c["SharedWith"] == "user1@example.com"), "SharedWith:user1@example.com");
+
+                LinqTests(Content.All.Where(c => (Node)c["SharedBy"] == User.Administrator), "SharedBy:1");
+                LinqTests(Content.All.Where(c => (User)c["SharedBy"] == User.Administrator), "SharedBy:1");
+                LinqTests(Content.All.Where(c => (NodeHead)c["SharedBy"] == NodeHead.Get(Identifiers.AdministratorUserId)), "SharedBy:1");
+                LinqTests(Content.All.Where(c => (int)c["SharedBy"] == User.Administrator.Id), "SharedBy:1");
+                LinqTests(Content.All.Where(c => (string)c["SharedBy"] == User.Administrator.Username), $"SharedBy:1");
+
+                //LinqTests(Content.All.Where(c => (SharingMode)c["SharingMode"] == SharingMode.Public), "SharingMode:Public");
+                LinqTests(Content.All.Where(c => (string)c["SharingMode"] == "Public"), "SharingMode:Public");
+                LinqTests(Content.All.Where(c => (int)c["SharingMode"] == (int)SharingMode.Private), "SharingMode:Private");
+                LinqTests(Content.All.Where(c => (int)c["SharingMode"] == (int)SharingMode.Authenticated), "SharingMode:Authenticated");
+
+                //LinqTests(Content.All.Where(c => (SharingLevel)c["SharingLevel"] == SharingLevel.Open), "SharingLevel:Open");
+                LinqTests(Content.All.Where(c => (string)c["SharingLevel"] == "Open"), "SharingLevel:Open");
+                LinqTests(Content.All.Where(c => (int)c["SharingLevel"] == (int)SharingLevel.Edit), "SharingLevel:Edit");
+            });
+        }
+        private void LinqTests(IQueryable<Content> queryable, string expected)
+        {
+            var actual = SnExpression.BuildQuery(queryable.Expression, typeof(Content), null, QuerySettings.Default).ToString();
+            Assert.AreEqual(expected, actual);
+        }
 
         [TestMethod]
         public void Sharing_AddSharing()
