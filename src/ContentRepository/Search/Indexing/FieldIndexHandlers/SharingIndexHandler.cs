@@ -118,8 +118,9 @@ namespace SenseNet.Search.Indexing
         /// <inheritdoc />
         public override IndexValue ConvertToTermValue(object value)
         {
-            //UNDONE:<? implement ConvertToTermValue
-            throw new NotImplementedException();
+            if(value is string text)
+                return new IndexValue(text);
+            throw new ApplicationException("Cannot parse the 'Sharing' expression. Only string value can be used.");
         }
 
         /// <inheritdoc />
