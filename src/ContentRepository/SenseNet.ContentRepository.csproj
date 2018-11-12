@@ -168,7 +168,7 @@
     <Compile Include="Configuration\Versioning.cs" />
     <Compile Include="Fields\SharingField.cs" />
     <Compile Include="ISnComponent.cs" />
-    <Compile Include="OData\ODataCustomContent.cs" />
+    <Compile Include="OData\ODataObject.cs" />
     <Compile Include="Packaging\Steps\DeleteContentType.cs" />
     <Compile Include="Packaging\Steps\EditConfiguration.cs" />
     <Compile Include="Packaging\Steps\EnsureConfigSection.cs" />

@@ -98,7 +98,7 @@ namespace SenseNet.Portal.OData
                 Write(ODataMultipleContent.Create(dictionaryList, allCount ?? dictionaryList.Count), portalContext);
                 return;
             }
-            if (result is IEnumerable<ODataCustomContent> customContentList)
+            if (result is IEnumerable<ODataObject> customContentList)
             {
                 Write(ODataMultipleContent.Create(customContentList, allCount ?? 0), portalContext);
                 return;

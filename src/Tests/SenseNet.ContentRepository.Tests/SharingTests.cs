@@ -1295,7 +1295,7 @@ namespace SenseNet.ContentRepository.Tests
                     // set the caller user temporarily
                     AccessProvider.Current.SetCurrentUser(userCaller);
 
-                    var items = ((IEnumerable<ODataCustomContent>) SharingActions.GetSharing(content))
+                    var items = ((IEnumerable<ODataObject>) SharingActions.GetSharing(content))
                         .Select(occ => occ.Data as SharingData).ToArray();
 
                     // The result should contain the Somebody user id when the caller
@@ -1352,7 +1352,7 @@ namespace SenseNet.ContentRepository.Tests
                 var sd2 = content.Sharing.Share("abc2@example.com", SharingLevel.Edit, SharingMode.Authenticated);
                 var sd3 = content.Sharing.Share("abc3@example.com", SharingLevel.Open, SharingMode.Public);
 
-                var items = SharingActions.GetSharing(content) as IEnumerable<ODataCustomContent>;
+                var items = SharingActions.GetSharing(content) as IEnumerable<ODataObject>;
 
                 var response = ODataMultipleContent.Create(items, 0);
                 var responseObject = ConvertResult(response);

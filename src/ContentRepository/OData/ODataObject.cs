@@ -1,14 +1,14 @@
 ﻿namespace SenseNet.ContentRepository.OData
 {
-    public class ODataCustomContent
+    public class ODataObject
     {
         public object Data { get; private set; }
 
-        private ODataCustomContent() { }
+        private ODataObject() { }
 
-        public static ODataCustomContent Create(object data)
+        public static ODataObject Create(object data)
         {
-            return new ODataCustomContent
+            return new ODataObject
             {
                 Data = data
             };

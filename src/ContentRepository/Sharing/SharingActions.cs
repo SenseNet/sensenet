@@ -18,7 +18,7 @@ namespace SenseNet.ContentRepository.Sharing
         {
             var gc = EnsureContent(content);
 
-            return gc.Sharing.Items.Select(sd => ODataCustomContent.Create(SafeSharingData.Create(sd)));
+            return gc.Sharing.Items.Select(sd => ODataObject.Create(SafeSharingData.Create(sd)));
         }
 
         /// <summary>

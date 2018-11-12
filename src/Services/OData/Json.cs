@@ -59,7 +59,7 @@ namespace SenseNet.Portal.OData
             // ReSharper disable once CoVariantArrayConversion
             return CreateFromArray(array, count);
         }
-        public static ODataMultipleContent Create(IEnumerable<ODataCustomContent> data, int count)
+        public static ODataMultipleContent Create(IEnumerable<ODataObject> data, int count)
         {
             var array = data?.Select(odc => odc.Data).ToArray() ?? new object[0];
 
