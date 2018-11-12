@@ -144,29 +144,31 @@ namespace SenseNet.ContentRepository.Tests
         {
             var s = new[] { "Sharing", "SharedWith", "SharedBy", "SharingMode", "SharingLevel" };
 
-            // -------------- ( query,              valid, general, sharing )
-            SharingScannerTest("-a:a", true, 1, 0);
-            SharingScannerTest($"+{s[0]}:s0", true, 0, 1);
-            SharingScannerTest($"-a:a +{s[0]}:s0", true, 1, 1);
-            SharingScannerTest($"+{s[0]}:s0 +({s[1]}:s1 {s[1]}:s1)", true, 0, 2);
+            SharingScannerTest("-a:a", true, "-a:a");
+            SharingScannerTest($"+{s[0]}:s0", true, $"+{s[0]}:s0");
+            SharingScannerTest($"-a:a +{s[0]}:s0", true, $"-a:a +{s[0]}:s0");
+            SharingScannerTest($"+{s[0]}:Is0 +({s[1]}:s1 {s[1]}:s2)", true, $"+({s[0]}:Ts1,Is0 {s[0]}:Ts2,Is0)");
 
-            SharingScannerTest("+a:a0 +(b:b1 b:b2)", true, 2, 0);
-            SharingScannerTest("+a:a0 +(b:b1 b:b2) -d:d0", true, 3, 0);
-            SharingScannerTest("+a:a0 +(b:b1 b:b2 -d:d0)", true, 2, 0);
+            SharingScannerTest("+a:a0 +(b:b1 b:b2)", true, "+a:a0 +(b:b1 b:b2)");
+            SharingScannerTest("+a:a0 +(b:b1 b:b2) -d:d0", true, "+a:a0 +(b:b1 b:b2) -d:d0");
+            SharingScannerTest("+a:a0 +(b:b1 b:b2 -d:d0)", true, "+a:a0 +(b:b1 b:b2 -d:d0)");
 
-            SharingScannerTest($"Id:<10 +{s[0]}:s0", true, 1, 1);
-            SharingScannerTest("Id:<10 +SharedWith:<123", false);
+            // ranges
+            SharingScannerTest($"Id:<10 +{s[0]}:s0", true, $"Id:<10 +{s[0]}:s0");
+            SharingScannerTest("Id:<10 +SharedWith:<123", false, null);
 
-            SharingScannerTest($"-a:a +b:b +c:c +{s[0]}:s0 +d:d", true, 4, 1);
-            SharingScannerTest($"+a:a -b:b +c:c +{s[0]}:s0 +d:d", true, 4, 1);
-            SharingScannerTest($"+a:a +b:b -c:c +{s[0]}:s0 +d:d", true, 4, 1);
-            SharingScannerTest($"+a:a +b:b +c:c -{s[0]}:s0 +d:d", false);
-            SharingScannerTest($"+a:a +b:b +c:c +{s[0]}:s0 -d:d", true, 4, 1);
+            // negation
+            SharingScannerTest($"-a:a +b:b +c:c +{s[0]}:s0 +d:d", true, $"-a:a +b:b +c:c +d:d +{s[0]}:s0");
+            SharingScannerTest($"+a:a -b:b +c:c +{s[0]}:s0 +d:d", true, $"+a:a -b:b +c:c +d:d +{s[0]}:s0");
+            SharingScannerTest($"+a:a +b:b -c:c +{s[0]}:s0 +d:d", true, $"+a:a +b:b -c:c +d:d +{s[0]}:s0");
+            SharingScannerTest($"+a:a +b:b +c:c -{s[0]}:s0 +d:d", false, null);
+            SharingScannerTest($"+a:a +b:b +c:c +{s[0]}:s0 -d:d", true, $"+a:a +b:b +c:c -d:d +{s[0]}:s0");
 
-            SharingScannerTest($"+a:a0 +(b:b1 b:b2) +({s[0]}:s0 {s[0]}:s1) -d:d0", true, 3, 1);
-            SharingScannerTest($"+a:a0 +(b:b1 b:b2) +({s[0]}:s0 +({s[1]}:s2 {s[1]}:s3)) -d:d0", true, 3, 1);
-            SharingScannerTest($"+a:a0 +(b:b1 b:b2) +({s[0]}:s0 +({s[1]}:s2 {s[1]}:s3 X:x)) -d:d0", false);
-            SharingScannerTest($"+a:a0 +(b:b1 b:b2) +({s[0]}:s0 +({s[1]}:s2 {s[1]}:s3) + X:x) -d:d0", false);
+            // mixed level
+            SharingScannerTest($"+a:a0 +(b:b1 b:b2) +({s[0]}:s0 {s[0]}:s1)", true, $"+a:a0 +(b:b1 b:b2) +({s[0]}:s0 {s[0]}:s1)");
+            SharingScannerTest($"+a:a0 +(b:b1 b:b2) +({s[0]}:s0 (+{s[1]}:1 +{s[2]}:42))", true, $"+a:a0 +(b:b1 b:b2) +({s[0]}:s0 {s[0]}:I1,C42)");
+            SharingScannerTest($"+a:a0 +(b:b1 b:b2) +({s[0]}:s0 (+{s[1]}:s1 +{s[1]}:s2 +X:x))", false, null);
+            SharingScannerTest($"+a:a0 +(b:b1 b:b2) +({s[0]}:s0 (+{s[1]}:1 +{s[2]}:42) c:c1)", true, $"+a:a0 +(b:b1 b:b2) +(c:c1 {s[0]}:s0 {s[0]}:I1,C42)");
         }
         [TestMethod]
         public void Sharing_Query_Rewriting_SharingScanner_FieldNames()
@@ -191,7 +193,7 @@ namespace SenseNet.ContentRepository.Tests
 
             Assert.AreEqual(expectedQuery, actualQuery);
         }
-        private void SharingScannerTest(string inputQuery, bool isValid, int generalClauses = -1, int sharingClauses = -1)
+        private void SharingScannerTest(string inputQuery, bool isValid, string expected)
         {
             var context = new TestQueryContext(QuerySettings.AdminSettings, 0, _indexingInfo, new TestQueryEngine(null, null));
             using (SenseNet.Tests.Tools.Swindle(typeof(SnQuery), "_permissionFilterFactory", new EverythingAllowedPermissionFilterFactory()))
@@ -202,9 +204,10 @@ namespace SenseNet.ContentRepository.Tests
 
                 var hasError = false;
                 var visitor = new SharingScannerVisitor();
+                SnQuery queryOut = null;
                 try
                 {
-                    visitor.Visit(queryIn.QueryTree);
+                    queryOut = SnQuery.Create(visitor.Visit(queryIn.QueryTree));
                 }
                 catch (InvalidContentSharingQueryException)
                 {
@@ -212,11 +215,8 @@ namespace SenseNet.ContentRepository.Tests
                 }
 
                 Assert.AreNotEqual(isValid, hasError);
-                if (isValid)
-                {
-                    Assert.AreEqual(generalClauses, visitor.TopLevelGeneralClauses.Count);
-                    Assert.AreEqual(sharingClauses, visitor.TopLevelSharingClauses.Count);
-                }
+                if(!hasError)
+                    Assert.AreEqual(expected, queryOut.ToString());
             }
         }
 

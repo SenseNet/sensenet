@@ -5,10 +5,11 @@ using SenseNet.Search.Querying.Parser.Predicates;
 
 namespace SenseNet.Search.Querying
 {
-    internal class SharingScannerVisitor : SnQueryVisitor //UNDONE:<? Move to ContentRepository (?)
+    internal class SharingScannerVisitor : SnQueryVisitor //UNDONE:<? Move all functionality to the SharingVisitor
     {
-        private bool _initialized;
         private LogicalPredicate _topLevelLogicalPredicate;
+        private bool _initialized;
+        private bool _isSharinglDisabled;
 
         public List<LogicalClause> TopLevelGeneralClauses { get; } = new List<LogicalClause>();
         public List<LogicalClause> TopLevelSharingClauses { get; } = new List<LogicalClause>();
@@ -48,6 +49,14 @@ namespace SenseNet.Search.Querying
             throw new InvalidContentSharingQueryException("Range query cannot be used in a sharing related query clause.");
         }
 
+        public override LogicalClause VisitLogicalClause(LogicalClause clause)
+        {
+            var visited = base.VisitLogicalClause(clause);
+            if(_isSharingStack.Peek() && visited.Occur == Occurence.MustNot)
+                throw new InvalidContentSharingQueryException("Sharing related query clause cannot be negation.");
+            return visited;
+        }
+
         public override SnQueryPredicate VisitLogicalPredicate(LogicalPredicate logic)
         {
             var isTopLevel = _topLevelLogicalPredicate == logic;
@@ -55,36 +64,64 @@ namespace SenseNet.Search.Querying
             var visited = (LogicalPredicate)base.VisitLogicalPredicate(logic);
             var clauseCount = visited.Clauses.Count;
 
-            // Get all sub-item tyőes in righr order
-            var isSharing = new bool[clauseCount];
+            // Get all sub-item types in righr order
+            var isSharingFlags = new bool[clauseCount];
             for (var i = 0; i < clauseCount; i++)
-                isSharing[clauseCount - i - 1] = _isSharingStack.Pop();
+                isSharingFlags[clauseCount - i - 1] = _isSharingStack.Pop();
 
-            for (var i = 0; i < clauseCount; i++)
+            var isSharing = isSharingFlags.Any(x => x);
+            var isMixed = isSharingFlags.Any(x => x == !isSharingFlags[0]);
+            if (isSharing && _isSharinglDisabled)
+                throw new InvalidContentSharingQueryException("Only one parenthesis can contain sharing related and not-sharing related clauses.");
+
+            if (!isMixed && !(isSharing && isTopLevel))
             {
-                if (isSharing[i] && visited.Clauses[i].Occur == Occurence.MustNot)
-                    throw new InvalidContentSharingQueryException("Sharing related query clause cannot be negation.");
-                if (i == 0 || isTopLevel)
-                    continue;
-                if (isSharing[0] != isSharing[i])
-                    throw new InvalidContentSharingQueryException("One parenthesis level should not contain sharing related and not-sharing related clauses.");
+                _isSharingStack.Push(isSharingFlags[0]);
+                return visited;
             }
 
-            if (isTopLevel)
+            var visitedSharing = VisitTopLevelSharingPredicate(visited, isSharingFlags);
+            _isSharinglDisabled = true;
+            // push false to avoid "mixed" rank in any higher level
+            _isSharingStack.Push(false);
+
+            return visitedSharing;
+        }
+
+        private LogicalPredicate VisitTopLevelSharingPredicate(LogicalPredicate logic, bool[] isSharingFlags)
+        {
+            var generalClauses = new List<LogicalClause>();
+            var sharingClauses = new List<LogicalClause>();
+            for (int i = 0; i < logic.Clauses.Count; i++)
             {
-                for (int i = 0; i < clauseCount; i++)
-                {
-                    if(isSharing[i])
-                        TopLevelSharingClauses.Add(visited.Clauses[i]);
-                    else
-                        TopLevelGeneralClauses.Add(visited.Clauses[i]);
-                }
+                if (isSharingFlags[i])
+                    sharingClauses.Add(logic.Clauses[i]);
+                else
+                    generalClauses.Add(logic.Clauses[i]);
             }
-            else
-            {
-                _isSharingStack.Push(isSharing[0]);
-            }
-            return visited;
+
+            // ---------------------------------------------------
+
+
+            // Handle logical predicates
+            var sharingPredicate = new LogicalPredicate(sharingClauses);
+            var normalizer = new SharingNormalizerVisitor();
+            var normalizedSharingPredicate = normalizer.Visit(sharingPredicate);
+
+            // Make combinations
+            var composer = new SharingComposerVisitor();
+            var composition = (LogicalPredicate)composer.Visit(normalizedSharingPredicate);
+
+            // Last normalization
+            var normalizedComposition = new SharingNormalizerVisitor().Visit(composition);
+
+            // Convert sharing combined values from string array to one comma separated string
+            var finalizer = new SharingFinalizerVisitor();
+            var finalTree = (LogicalPredicate)finalizer.Visit(normalizedComposition);
+
+            // Return the final product
+            var allClauses = generalClauses.Union(finalTree.Clauses);
+            return new LogicalPredicate(allClauses);
         }
     }
 }
