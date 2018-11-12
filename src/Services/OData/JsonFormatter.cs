@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using Newtonsoft.Json;
+using SenseNet.ContentRepository.OData;
 using SenseNet.Portal.Virtualization;
-using SenseNet.ContentRepository.Storage;
 // ReSharper disable CheckNamespace
 
 namespace SenseNet.Portal.OData
@@ -98,6 +98,12 @@ namespace SenseNet.Portal.OData
                 Write(ODataMultipleContent.Create(dictionaryList, allCount ?? dictionaryList.Count), portalContext);
                 return;
             }
+            if (result is IEnumerable<ODataObject> customContentList)
+            {
+                Write(ODataMultipleContent.Create(customContentList, allCount ?? 0), portalContext);
+                return;
+            }
+
             Write(result, portalContext);
         }
         /// <inheritdoc />
