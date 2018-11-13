@@ -123,7 +123,7 @@ namespace SenseNet.Search.Querying
             query.FiltersPrepared = true;
         }
 
-        internal static SnQuery ApplyVisitors(SnQuery query) //UNDONE:<? New extensibility pont: query rewriter can be a plugin.
+        internal static SnQuery ApplyVisitors(SnQuery query)
         {
             var queryTree = query.QueryTree;
             foreach (var visitorType in SnQueryVisitor.VisitorExtensionTypes)
