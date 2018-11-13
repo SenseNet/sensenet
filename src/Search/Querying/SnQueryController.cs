@@ -126,6 +126,11 @@ namespace SenseNet.Search.Querying
         internal static SnQuery ApplyVisitors(SnQuery query)
         {
             var queryTree = query.QueryTree;
+
+            var visitorTypes = SnQueryVisitor.VisitorExtensionTypes;
+            if (visitorTypes == null || visitorTypes.Length == 0)
+                return query;
+
             foreach (var visitorType in SnQueryVisitor.VisitorExtensionTypes)
             {
                 var visitor = (SnQueryVisitor)Activator.CreateInstance(visitorType);

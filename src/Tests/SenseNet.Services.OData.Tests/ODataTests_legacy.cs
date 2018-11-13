@@ -3332,10 +3332,10 @@ namespace SenseNet.Services.OData.Tests
                         handler.ProcessRequest(pc.OwnerHttpContext, "POST", MemoryStream.Null);
                         entities = GetEntities(output);
                     }
-                    var ids = String.Join(", ", entities.Select(e => e.Id));
+                    var ids = String.Join(", ", entities.Select(e => e.Id).OrderBy(x => x).Select(x => x.ToString()));
                     var expids = String.Join(", ",
                         CreateSafeContentQuery("+InFolder:/Root/IMS/BuiltIn/Portal +TypeIs:User .AUTOFILTERS:OFF")
-                            .Execute().Identifiers);
+                            .Execute().Identifiers.OrderBy(x => x).Select(x => x.ToString()));
                     // 6, 1
                     Assert.AreEqual(expids, ids);
 
@@ -3347,10 +3347,10 @@ namespace SenseNet.Services.OData.Tests
                         handler.ProcessRequest(pc.OwnerHttpContext, "POST", MemoryStream.Null);
                         entities = GetEntities(output);
                     }
-                    ids = String.Join(", ", entities.Select(e => e.Id));
+                    ids = String.Join(", ", entities.Select(e => e.Id).OrderBy(x => x).Select(x => x.ToString()));
                     expids = String.Join(", ",
                         CreateSafeContentQuery("+InFolder:/Root/IMS/BuiltIn/Portal -TypeIs:User .AUTOFILTERS:OFF")
-                            .Execute().Identifiers);
+                            .Execute().Identifiers.OrderBy(x => x).Select(x => x.ToString()));
                     // 8, 9, 7
                     Assert.AreEqual(expids, ids);
 
