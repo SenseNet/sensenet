@@ -125,30 +125,33 @@ namespace SenseNet.Search.Querying
 
         internal static SnQuery ApplyVisitors(SnQuery query) //UNDONE:<? New extensibility pont: query rewriter can be a plugin.
         {
-throw new NotImplementedException();
-            //var queryTree = query.QueryTree;
+            var queryTree = query.QueryTree;
+            foreach (var visitorType in SnQueryVisitor.VisitorExtensionTypes)
+            {
+                var visitor = (SnQueryVisitor)Activator.CreateInstance(visitorType);
+                queryTree = visitor.Visit(queryTree);
+            }
 
-            //var visitedTree = new SharingVisitor().Visit(queryTree);
-            //if (ReferenceEquals(visitedTree, queryTree))
-            //    return query;
+            if (ReferenceEquals(queryTree, query.QueryTree))
+                return query;
 
-            //var newQuery = Create(visitedTree);
+            var newQuery = Create(queryTree);
 
-            //newQuery.Querytext = query.Querytext;
-            //newQuery.Projection = query.Projection;
-            //newQuery.Top = query.Top;
-            //newQuery.Skip = query.Skip;
-            //newQuery.Sort = query.Sort;
-            //newQuery.EnableAutofilters = query.EnableAutofilters;
-            //newQuery.EnableLifespanFilter = query.EnableLifespanFilter;
-            //newQuery.CountOnly = query.CountOnly;
-            //newQuery.QueryExecutionMode = query.QueryExecutionMode;
-            //newQuery.AllVersions = query.AllVersions;
-            //newQuery.CountAllPages = query.CountAllPages;
-            //newQuery.ThrowIfEmpty = query.ThrowIfEmpty;
-            //newQuery.ExistenceOnly = query.ExistenceOnly;
+            newQuery.Querytext = query.Querytext;
+            newQuery.Projection = query.Projection;
+            newQuery.Top = query.Top;
+            newQuery.Skip = query.Skip;
+            newQuery.Sort = query.Sort;
+            newQuery.EnableAutofilters = query.EnableAutofilters;
+            newQuery.EnableLifespanFilter = query.EnableLifespanFilter;
+            newQuery.CountOnly = query.CountOnly;
+            newQuery.QueryExecutionMode = query.QueryExecutionMode;
+            newQuery.AllVersions = query.AllVersions;
+            newQuery.CountAllPages = query.CountAllPages;
+            newQuery.ThrowIfEmpty = query.ThrowIfEmpty;
+            newQuery.ExistenceOnly = query.ExistenceOnly;
 
-            //return newQuery;
+            return newQuery;
         }
 
         private static bool IsAutofilterEnabled(FilterStatus value)

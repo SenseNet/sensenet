@@ -176,6 +176,14 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
+        public void Sharing_Query_VisitorExtensions()
+        {
+            Test(() =>
+            {
+                Assert.IsTrue(SnQueryVisitor.VisitorExtensionTypes.Contains(typeof(SharingVisitor)));
+            });
+        }
+        [TestMethod]
         public void Sharing_Query_Tokenize()
         {
             Test(() =>
