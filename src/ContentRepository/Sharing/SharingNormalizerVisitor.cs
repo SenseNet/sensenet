@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using SenseNet.Search.Querying;
 using SenseNet.Search.Querying.Parser.Predicates;
 
-namespace SenseNet.Search.Querying
+namespace SenseNet.ContentRepository.Sharing
 {
     /// <summary>
     /// Normalizes the predicate tree. Removes irrelevant terma and unnecessary parentheses.
     /// Only works correctly if the predicate tree does not contain negative logical clause.
     /// </summary>
-    internal class SharingNormalizerVisitor : SnQueryVisitor //UNDONE:<? Move to ContentRepository (?)
+    internal class SharingNormalizerVisitor : SnQueryVisitor
     {
         public override LogicalClause VisitLogicalClause(LogicalClause clause)
         {

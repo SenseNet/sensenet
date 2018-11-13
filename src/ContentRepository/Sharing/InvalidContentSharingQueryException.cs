@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.Serialization;
-using System.Text;
 
-namespace SenseNet.Search.Querying
+namespace SenseNet.ContentRepository.Sharing
 {
     [Serializable]
-    public class InvalidContentSharingQueryException : Exception //UNDONE:<? Move to ContentRepository (?)
+    public class InvalidContentSharingQueryException : Exception
     {
         public InvalidContentSharingQueryException()
         {

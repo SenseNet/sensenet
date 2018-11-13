@@ -1,7 +1,9 @@
 ﻿using System.Linq;
+using SenseNet.Search;
+using SenseNet.Search.Querying;
 using SenseNet.Search.Querying.Parser.Predicates;
 
-namespace SenseNet.Search.Querying
+namespace SenseNet.ContentRepository.Sharing
 {
     internal class SharingFinalizerVisitor : SnQueryVisitor
     {

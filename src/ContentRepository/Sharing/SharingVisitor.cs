@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using SenseNet.Search.Querying;
 using SenseNet.Search.Querying.Parser.Predicates;
 
-namespace SenseNet.Search.Querying
+namespace SenseNet.ContentRepository.Sharing
 {
-    internal class SharingVisitor : SnQueryVisitor //UNDONE:<? Move to ContentRepository (?)
+    internal class SharingVisitor : SnQueryVisitor
     {
         internal static readonly string Sharing = "Sharing";
 

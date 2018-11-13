@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using SenseNet.Search;
+using SenseNet.Search.Querying;
 using SenseNet.Search.Querying.Parser.Predicates;
 
-namespace SenseNet.Search.Querying
+namespace SenseNet.ContentRepository.Sharing
 {
-    internal class SharingComposerVisitor : SnQueryVisitor //UNDONE:<? Move to ContentRepository (?)
+    internal class SharingComposerVisitor : SnQueryVisitor
     {
         private class AssortedPredicates
         {

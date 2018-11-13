@@ -184,11 +184,16 @@
     <Compile Include="Search\Indexing\FieldIndexHandlers\SharingIndexHandler.cs" />
     <Compile Include="Search\Indexing\NullPopulator.cs" />
     <Compile Include="Sharing\DefaultSharingNotificationFormatter.cs" />
+    <Compile Include="Sharing\InvalidContentSharingQueryException.cs" />
     <Compile Include="Sharing\ISharingNotificationFormatter.cs" />
     <Compile Include="Sharing\SharingActions.cs" />
+    <Compile Include="Sharing\SharingComposerVisitor.cs" />
     <Compile Include="Sharing\SharingData.cs" />
+    <Compile Include="Sharing\SharingFinalizerVisitor.cs" />
     <Compile Include="Sharing\SharingHandler.cs" />
     <Compile Include="Sharing\SharingNodeObserver.cs" />
+    <Compile Include="Sharing\SharingNormalizerVisitor.cs" />
+    <Compile Include="Sharing\SharingVisitor.cs" />
     <Compile Include="SnComponent.cs" />
     <Compile Include="Linq\CaseInsensitiveFilterVisitor.cs" />
     <Compile Include="Packaging\Dependency.cs" />
