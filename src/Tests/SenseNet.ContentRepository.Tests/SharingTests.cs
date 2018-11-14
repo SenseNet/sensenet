@@ -167,7 +167,6 @@ namespace SenseNet.ContentRepository.Tests
 
             Test(() =>
             {
-                ReInstallGenericContentCtd();
                 var root = CreateTestRoot();
 
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
@@ -204,7 +203,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                ReInstallGenericContentCtd();
 
                 var user = new User(Node.LoadNode("/Root/IMS/BuiltIn/Portal"))
                 {
@@ -246,7 +244,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                ReInstallGenericContentCtd();
 
                 var user = new User(Node.LoadNode("/Root/IMS/BuiltIn/Portal"))
                 {
@@ -270,7 +267,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                ReInstallGenericContentCtd();
 
                 var user = new User(Node.LoadNode("/Root/IMS/BuiltIn/Portal"))
                 {
@@ -409,7 +405,6 @@ namespace SenseNet.ContentRepository.Tests
 
             Test(() =>
             {
-                ReInstallGenericContentCtd();
                 var root = CreateTestRoot();
 
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
@@ -479,7 +474,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                ReInstallGenericContentCtd();
                 var root = CreateTestRoot();
 
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
@@ -501,7 +495,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                ReInstallGenericContentCtd();
                 var root = CreateTestRoot();
 
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
@@ -523,7 +516,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                ReInstallGenericContentCtd();
                 var root = CreateTestRoot();
 
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
@@ -545,7 +537,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                ReInstallGenericContentCtd();
                 var root = CreateTestRoot();
 
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
@@ -572,7 +563,6 @@ namespace SenseNet.ContentRepository.Tests
             // we need the sharing observer for this feature
             Test(builder => { builder.EnableNodeObservers(typeof(SharingNodeObserver)); }, () =>
             {
-                ReInstallGenericContentCtd();
                 var root = CreateTestRoot();
                 
                 // external users
@@ -622,7 +612,6 @@ namespace SenseNet.ContentRepository.Tests
             // we need the sharing observer for this feature
             Test(builder => { builder.EnableNodeObservers(typeof(SharingNodeObserver)); }, () =>
             {
-                ReInstallGenericContentCtd();
                 var root = CreateTestRoot();
 
                 var user = new User(Node.LoadNode("/Root/IMS/BuiltIn/Portal"))
@@ -705,7 +694,6 @@ namespace SenseNet.ContentRepository.Tests
             // we need the sharing observer for this feature
             Test(builder => { builder.EnableNodeObservers(typeof(SharingNodeObserver)); }, () =>
             {
-                ReInstallGenericContentCtd();
                 var root = CreateTestRoot();
 
                 var user = new User(Node.LoadNode("/Root/IMS/BuiltIn/Portal"))
@@ -754,7 +742,6 @@ namespace SenseNet.ContentRepository.Tests
             // we need the sharing observer for this feature
             Test(builder => { builder.EnableNodeObservers(typeof(SharingNodeObserver)); }, () =>
             {
-                ReInstallGenericContentCtd();
                 var root = CreateTestRoot();
 
                 var user = new User(Node.LoadNode("/Root/IMS/BuiltIn/Portal"))
@@ -818,7 +805,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                ReInstallGenericContentCtd();
 
                 var root = CreateTestRoot();
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
@@ -888,7 +874,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                ReInstallGenericContentCtd();
 
                 var root = CreateTestRoot();
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
@@ -915,7 +900,6 @@ namespace SenseNet.ContentRepository.Tests
             // we need the sharing observer for this feature
             Test(builder => { builder.EnableNodeObservers(typeof(SharingNodeObserver)); }, () =>
             {
-                ReInstallGenericContentCtd();
 
                 var root = CreateTestRoot();
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
@@ -943,7 +927,6 @@ namespace SenseNet.ContentRepository.Tests
             // we need the sharing observer for this feature
             Test(builder => { builder.EnableNodeObservers(typeof(SharingNodeObserver)); }, () =>
             {
-                ReInstallGenericContentCtd();
 
                 var root = CreateTestRoot();
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
@@ -969,7 +952,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                ReInstallGenericContentCtd();
 
                 var root = CreateTestRoot();
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
@@ -1004,7 +986,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                ReInstallGenericContentCtd();
 
                 var root = CreateTestRoot();
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
@@ -1309,7 +1290,6 @@ namespace SenseNet.ContentRepository.Tests
         {
             Test(() =>
             {
-                ReInstallGenericContentCtd();
                 var root = CreateTestRoot();
 
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
@@ -1386,7 +1366,6 @@ namespace SenseNet.ContentRepository.Tests
 
             Test(() =>
             {
-                ReInstallGenericContentCtd();
                 var root = CreateTestRoot();
 
                 var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
@@ -1420,7 +1399,6 @@ namespace SenseNet.ContentRepository.Tests
                     .Allow(2, 1, false, PermissionType.BuiltInPermissionTypes)
                     .Apply();
 
-            ReInstallGenericContentCtd();
             user = new User(Node.LoadNode("/Root/IMS/BuiltIn/Portal"))
             {
                 Name = "User-1",
@@ -1436,22 +1414,6 @@ namespace SenseNet.ContentRepository.Tests
             gc = (GenericContent)content.ContentHandler;
         }
 
-        private void ReInstallGenericContentCtd()
-        {
-            //UNDONE: update genericcontent CTD in the test structure and delete this method.
-            // ...so we do not have to update it here manually
-
-            var path = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                @"..\..\..\..\nuget\snadmin\install-services\import\System\Schema\ContentTypes\GenericContentCtd.xml"));
-            using (var stream = new FileStream(path, FileMode.Open))
-                ContentTypeInstaller.InstallContentType(stream);
-
-            // install sharing group CTD
-            path = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                @"..\..\..\..\nuget\snadmin\install-services\import\System\Schema\ContentTypes\SharingGroupCtd.xml"));
-            using (var stream = new FileStream(path, FileMode.Open))
-                ContentTypeInstaller.InstallContentType(stream);
-        }
 
         private string GetQueryResult(string cql)
         {
