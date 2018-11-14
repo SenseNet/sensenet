@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Sharing;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Security;
 
 // ReSharper disable once CheckNamespace
 namespace SenseNet.Search.Indexing
@@ -79,7 +78,7 @@ namespace SenseNet.Search.Indexing
     }
 
     /// <summary>
-    /// IndexFieldHandler for handling SharingInfo value of a <see cref="Field"/>.
+    /// FieldIndexHandler for handling Sharing information on a content.
     /// </summary>
     public class SharingIndexHandler : FieldIndexHandler
     {
@@ -129,6 +128,9 @@ namespace SenseNet.Search.Indexing
             throw new SnNotSupportedException();
         }
     }
+    /// <summary>
+    /// FieldIndexHandler responsible for converting SharedWith query expressions.
+    /// </summary>
     public class SharedWithIndexHandler : FieldIndexHandler
     {
         /// <inheritdoc />
@@ -217,6 +219,9 @@ namespace SenseNet.Search.Indexing
             throw new SnNotSupportedException();
         }
     }
+    /// <summary>
+    /// FieldIndexHandler responsible for converting SharedBy query expressions.
+    /// </summary>
     public class SharedByIndexHandler : FieldIndexHandler
     {
         /// <inheritdoc />
@@ -303,6 +308,9 @@ namespace SenseNet.Search.Indexing
             throw new SnNotSupportedException();
         }
     }
+    /// <summary>
+    /// FieldIndexHandler responsible for converting SharingMode query expressions.
+    /// </summary>
     public class SharingModeIndexHandler : FieldIndexHandler
     {
         /// <inheritdoc />
@@ -350,6 +358,9 @@ namespace SenseNet.Search.Indexing
             throw new SnNotSupportedException();
         }
     }
+    /// <summary>
+    /// FieldIndexHandler responsible for converting SharingLevel query expressions.
+    /// </summary>
     public class SharingLevelIndexHandler : FieldIndexHandler
     {
         /// <inheritdoc />

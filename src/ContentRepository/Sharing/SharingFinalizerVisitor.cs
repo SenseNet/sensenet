@@ -5,6 +5,11 @@ using SenseNet.Search.Querying.Parser.Predicates;
 
 namespace SenseNet.ContentRepository.Sharing
 {
+    /// <summary>
+    /// Rearranges sharing term values to match the order stored in the index
+    /// and combines them into a single index value. It does not modify other
+    /// types of values.
+    /// </summary>
     internal class SharingFinalizerVisitor : SnQueryVisitor
     {
         public override SnQueryPredicate VisitSimplePredicate(SimplePredicate simplePredicate)

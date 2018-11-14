@@ -7,8 +7,8 @@ using SenseNet.Search.Querying.Parser.Predicates;
 namespace SenseNet.ContentRepository.Sharing
 {
     /// <summary>
-    /// Normalizes the predicate tree. Removes irrelevant terma and unnecessary parentheses.
-    /// Only works correctly if the predicate tree does not contain negative logical clause.
+    /// Normalizes the predicate tree. Removes irrelevant terms and unnecessary parentheses.
+    /// Only works correctly if the predicate tree does not contain a negative logical clause.
     /// </summary>
     internal class SharingNormalizerVisitor : SnQueryVisitor
     {

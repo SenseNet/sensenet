@@ -5,6 +5,10 @@ using SenseNet.Search.Querying.Parser.Predicates;
 
 namespace SenseNet.ContentRepository.Sharing
 {
+    /// <summary>
+    /// Main sharing visitor that encapsulates all sharing visitors. This type 
+    /// is set as one of the visitor extensions when the repository starts.
+    /// </summary>
     internal class SharingVisitor : SnQueryVisitor
     {
         internal static readonly string Sharing = "Sharing";
@@ -17,7 +21,7 @@ namespace SenseNet.ContentRepository.Sharing
         public List<LogicalClause> TopLevelSharingClauses { get; } = new List<LogicalClause>();
 
         private static readonly string[] SharingRelatedFieldNames =
-            {SharingVisitor.Sharing, "SharedWith", "SharedBy", "SharingMode", "SharingLevel" };
+            {Sharing, "SharedWith", "SharedBy", "SharingMode", "SharingLevel" };
 
         private readonly Stack<bool> _isSharingStack = new Stack<bool>();
 
