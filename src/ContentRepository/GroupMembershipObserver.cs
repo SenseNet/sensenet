@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Search.Querying;
 using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.ContentRepository.Storage.Search;
 using SenseNet.Search;
-using SenseNet.Security;
 
 namespace SenseNet.ContentRepository.Storage.Security
 {
     public class GroupMembershipObserver : NodeObserver
     {
+        private const string IdentitiesCustomDataKey = "SnMembershipSecurityIdentities";
+
         protected override void OnNodeMoved(object sender, NodeOperationEventArgs e)
         {
             // We do not have to deal with content outside of the IMS folder, because
@@ -85,15 +85,14 @@ namespace SenseNet.ContentRepository.Storage.Security
 
             // Memorize user, orgunit and group ids that should be removed from the security 
             // component after the delete operation succeeded.
-            e.CustomData = GetSecurityIdentityIds(e.SourceNode);
+            e.SetCustomData(IdentitiesCustomDataKey, GetSecurityIdentityIds(e.SourceNode));
         }
 
         protected override void OnNodeDeletedPhysically(object sender, NodeEventArgs e)
         {
             base.OnNodeDeletedPhysically(sender, e);
 
-            var ids = e.CustomData as List<int>;
-            if (ids != null)
+            if (e.GetCustomData(IdentitiesCustomDataKey) is List<int> ids)
                 SecurityHandler.DeleteIdentities(ids);
         }
 

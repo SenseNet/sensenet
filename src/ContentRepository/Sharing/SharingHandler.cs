@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.Mail;
 using System.Threading.Tasks;
@@ -8,7 +10,9 @@ using System.Web;
 using Newtonsoft.Json;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.ContentRepository.Workspaces;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Security;
@@ -22,8 +26,25 @@ namespace SenseNet.ContentRepository.Sharing
         public static string UsersByEmail => "+TypeIs:User +Email:@0";
         /// <summary>Returns the following query: +SharedWith:@0</summary>
         public static string ContentBySharedWith => "+SharedWith:@0";
-        /// <summary>Returns the following query: +SharedWith:@0 +SharedWith:0</summary>
-        public static string ContentBySharedEmail => "+SharedWith:@0 +SharedWith:0";
+        /// <summary>Returns the following query: +SharedWith:@0 +SharedWith:0 +SharingMode:Private</summary>
+        public static string PrivatelySharedWithNoIdentityByEmail => "+SharedWith:@0 +SharedWith:0 +SharingMode:Private";
+        /// <summary>Returns the following query: +InTree:@0 +SharingMode:Public</summary>
+        public static string PubliclySharedInTree => "+InTree:@0 +SharingMode:Public";
+        /// <summary>Returns the following query: +TypeIs:SharingGroup +SharedContent:@0</summary>
+        public static string SharingGroupsBySharedContent => "+TypeIs:SharingGroup +SharedContent:@0";
+    }
+
+    internal static class Constants
+    {
+        public const string SharingSessionKey = "SharingIdentity";
+        public const string SharingGroupTypeName = "SharingGroup";
+        public const string SharedWithFieldName = "SharedWith";
+        public const string SharingModeFieldName = "SharingMode";
+        public const string SharingIdsFieldName = "SharingIds";
+        public const string SharedContentFieldName = "SharedContent";
+        public const string SharingLevelValueFieldName = "SharingLevelValue";
+        public const string SharingUrlParameterName = "share";
+        public const string SharingSettingsName = "Sharing";
     }
 
     /// <summary>
@@ -32,9 +53,7 @@ namespace SenseNet.ContentRepository.Sharing
     public class SharingHandler
     {
         private const string SharingItemsCacheKey = "SharingItems";
-
-        // internal! getonly!
-        //UNDONE: individual items should be immutable too
+        
         private readonly object _itemsSync = new object();
         private List<SharingData> _items;
 
@@ -45,7 +64,6 @@ namespace SenseNet.ContentRepository.Sharing
         {
             get
             {
-                //UNDONE: <? only for tests
                 if (_items == null)
                 {
                     lock (_itemsSync)
@@ -118,7 +136,7 @@ namespace SenseNet.ContentRepository.Sharing
             _items = _owner.GetCachedData(SharingItemsCacheKey) as List<SharingData>;
         }
 
-        /* ================================================================================== Serialization */
+        /* ================================================================================== Serialization and Save */
 
         private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
         {
@@ -143,7 +161,16 @@ namespace SenseNet.ContentRepository.Sharing
                 SerializerSettings);
         }
 
-        /* ================================================================================== Public API */
+        private void UpdateOwnerNode()
+        {
+            // do not reset the item list because we already have it up-todate
+            _owner.SetSharingData(Serialize(_items), false);
+            _owner.Save(SavingMode.KeepVersion);
+
+            _owner.SetCachedData(SharingItemsCacheKey, _items);
+        }
+
+        /* ================================================================================== Public instance API */
 
         /// <summary>
         /// Readonly list of all sharing records on a content.
@@ -167,19 +194,18 @@ namespace SenseNet.ContentRepository.Sharing
         {
             AssertSharingPermissions();
 
-            var identity = mode == SharingMode.Authenticated
-                ? Group.Everyone.Id
-                : GetSharingIdentityByToken(token);
-
             var sharingData = new SharingData
             {
                 Token = token,
-                Identity = identity,
                 Level = level,
                 Mode = mode,
                 CreatorId = (AccessProvider.Current.GetOriginalUser() as User)?.Id ?? 0,
                 ShareDate = DateTime.UtcNow
             };
+
+            // Get the identity using the id of the newly created sharing data object.
+            // The id will be registered on the sharing group if the record is public.
+            sharingData.Identity = GetSharingIdentity(sharingData.Id, token, level, mode);
 
             // make sure the list is loaded
             var _ = Items;
@@ -227,10 +253,172 @@ namespace SenseNet.ContentRepository.Sharing
                 UpdatePermissions(identityId, remainData);
             }
 
+            // in case of public sharing: delete the sharing group too
+            if (sharingsToDelete.Any(sd => sd.Mode == SharingMode.Public))
+            {
+                using (new SystemAccount())
+                {
+                    foreach (var sharingData in sharingsToDelete.Where(sd => sd.Mode == SharingMode.Public))
+                    {
+                        var sharingGroup = Node.LoadNode(sharingData.Identity) as Group;
+                        if (sharingGroup?.NodeType.IsInstaceOfOrDerivedFrom(Constants.SharingGroupTypeName) ?? false)
+                            sharingGroup.ForceDelete();
+                    }
+                }
+            }
+
             return true;
         }
 
-        /* ================================================================================== Helper methods */
+        /* ================================================================================== Identities */
+        
+        private int GetSharingIdentity(string id, string token, SharingLevel level, SharingMode mode)
+        {
+            switch (mode)
+            {
+                case SharingMode.Public:
+                    // Public sharing: create a local or global group for every
+                    // content+level combination
+                    var group = LoadOrCreateGroup(id, level);
+
+                    return group.Id;
+                case SharingMode.Authenticated:
+                    return Group.Everyone.Id;
+            }
+
+            return GetSharingIdentityByToken(token);
+        }
+        private static int GetSharingIdentityByToken(string token)
+        {
+            if (string.IsNullOrEmpty(token))
+                return 0;
+
+            // Currently we can recognize the following tokens:
+            // - email address
+            // - user or group id
+            // - domain\username
+
+            if (int.TryParse(token, out var id))
+            {
+                var node = Node.LoadNode(id);
+                if (node != null && (node is User || node is Group))
+                    return node.Id;
+
+                // not found or not accessible
+                return 0;
+            }
+            
+            // Search for email address in elevated mode, because in case of
+            // an email token the caller does not have to know about the user.
+            if (token.Contains("@"))
+            {
+                var userId = SystemAccount.Execute(() =>
+                    ContentQuery.Query(SharingQueries.UsersByEmail, QuerySettings.AdminSettings, token).Identifiers
+                        .FirstOrDefault());
+
+                if (userId > 0)
+                    return userId;
+            }
+            
+            // try for a username
+            var user = User.Load(token);
+
+            return user?.Id ?? 0;
+        }
+
+        private Group LoadOrCreateGroup(string id, SharingLevel level)
+        {
+            var ws = _owner.Workspace;
+
+            // Look for the sharing group among local groups in the workspace
+            // or (if there is no workspace) in the global folder under 
+            // a dedicated domain.
+            var parent = ws == null 
+                ? LoadOrCreateContainer(RepositoryStructure.ImsFolderPath, "Sharing", "Domain") 
+                : LoadOrCreateContainer(ws.Path, Workspace.LocalGroupsFolderName, "SystemFolder");
+
+            if (parent is Domain domain && !domain.IsAllowedChildType(Constants.SharingGroupTypeName))
+            {
+                domain.AllowChildType(Constants.SharingGroupTypeName, save:true);
+            }
+
+            var group = Content.All.DisableAutofilters().FirstOrDefault(c =>
+                c.InTree(parent) &&
+                c.TypeIs(Constants.SharingGroupTypeName) &&
+                (Node)c[Constants.SharedContentFieldName] == _owner &&
+                (string)c[Constants.SharingLevelValueFieldName] == level.ToString());
+
+            if (group == null)
+            {
+                // Sharing groups have special names for a reason: we need to have one and 
+                // only one group per content per sharing level, so we cannot have a random 
+                // name because that would allow the creation of multiple sharing groups for 
+                // the same purpose on multiple threads.
+                var groupName = $"G{_owner.Id}-{level.ToString().ToLowerInvariant()}";
+
+                // create a new sharing group
+                Retrier.Retry(3, 300, () =>
+                {
+                    group = Content.CreateNew(Constants.SharingGroupTypeName, parent, groupName);
+                    group[Constants.SharingIdsFieldName] = id?.Replace("-", string.Empty);
+                    group[Constants.SharedContentFieldName] = _owner;
+                    group[Constants.SharingLevelValueFieldName] = level.ToString();
+                    group.Save();
+                }, (i, e) =>
+                {
+                    switch (e)
+                    {
+                        case null:
+                            return true;
+                        case NodeAlreadyExistsException _:
+                            // created on another thread: reload by name
+                            group = Content.Load($"{parent.Path}/{groupName}");
+                            return true;
+                    }
+
+                    return false;
+                });
+            }
+            else
+            {
+                // set sharing id on the group if it is not there yet
+                group[Constants.SharingIdsFieldName] = AddSharingIdToText((string)group[Constants.SharingIdsFieldName], id);
+                group.SaveSameVersion();
+            }
+
+            return group.ContentHandler as Group;
+        }
+        private static Node LoadOrCreateContainer(string parentPath, string name, string contentTypeName)
+        {
+            var containerPath = $"{parentPath}/{name}";
+            var container = Node.LoadNode(containerPath);
+            if (container == null)
+            {
+                Retrier.Retry(3, 300, () =>
+                {
+                    var content = Content.CreateNew(contentTypeName, Node.LoadNode(parentPath), name);
+                    content.Save();
+                    container = content.ContentHandler;
+                }, (i, ex) =>
+                {
+                    switch (ex)
+                    {
+                        case null:
+                            return true;
+                        case NodeAlreadyExistsException _:
+                            // reload by name
+                            container = Node.LoadNode(containerPath);
+                            return true;
+                    }
+
+                    return false;
+                });
+            }
+
+            return container;
+        }
+        
+        /* ================================================================================== Permissions */
 
         private void SetPermissions(SharingData sharingData)
         {
@@ -260,31 +448,11 @@ namespace SenseNet.ContentRepository.Sharing
                 .Apply();
 
         }
+
         private void AssertSharingPermissions()
         {
             _owner?.Security.Assert(PermissionType.SetPermissions);
         }
-
-        private int GetSharingIdentityByToken(string token)
-        {
-            //UNDONE: get sharing identity: email, username, groupname, special tokens etc.
-
-            // returns the id of user by email or 0.
-            var userId = ContentQuery.Query(SharingQueries.UsersByEmail, QuerySettings.AdminSettings, token)
-                .Identifiers.FirstOrDefault();
-            return userId;
-        }
-        
-        private void UpdateOwnerNode()
-        {
-            // do not reset the item list because we already have it up-todate
-            _owner.SetSharingData(Serialize(_items), false);
-            _owner.Save(SavingMode.KeepVersion);
-
-            _owner.SetCachedData(SharingItemsCacheKey, _items);
-        }
-
-        /* ================================================================================== Permissions */
 
         private static readonly Lazy<Dictionary<SharingLevel, ulong>> EffectiveBitmasks =
             new Lazy<Dictionary<SharingLevel, ulong>>(() =>
@@ -298,9 +466,11 @@ namespace SenseNet.ContentRepository.Sharing
         {
             return EffectiveBitmasks.Value[level];
         }
+        [SuppressMessage("ReSharper", "CoVariantArrayConversion")]
         private static ulong CalculateEffectiveBitmask(SharingLevel level)
         {
             PermissionTypeBase[] permissions;
+
             switch (level)
             {
                 case SharingLevel.Open:
@@ -355,13 +525,11 @@ namespace SenseNet.ContentRepository.Sharing
 
         /* ================================================================================== Notifications */
 
-        private const string SharingSettingsName = "Sharing";
-
         private void NotifyTarget(SharingData sharingData)
         {
             if (_owner == null || string.IsNullOrEmpty(sharingData?.Token))
                 return;
-            if (!Settings.GetValue(SharingSettingsName, "NotificationEnabled", _owner.Path, false))
+            if (!Settings.GetValue(Constants.SharingSettingsName, "NotificationEnabled", _owner.Path, false))
                 return;
 
             //TODO: prepare for recognizing other types of identities: user or group
@@ -380,12 +548,12 @@ namespace SenseNet.ContentRepository.Sharing
         {
             // Settings makes possible to customize notification values based on subtree
             // (e.g. different letters under different sites or workspaces).
-            var senderAddress = Settings.GetValue(SharingSettingsName, "NotificationSender", _owner.Path, "info@example.com");
-            var mailSubjectKey = Settings.GetValue(SharingSettingsName, "NotificationMailSubjectKey", _owner.Path, "NotificationMailSubject");
-            var mailBodyKey = Settings.GetValue(SharingSettingsName, "NotificationMailBodyKey", _owner.Path, "NotificationMailBody");
+            var senderAddress = Settings.GetValue(Constants.SharingSettingsName, "NotificationSender", _owner.Path, "info@example.com");
+            var mailSubjectKey = Settings.GetValue(Constants.SharingSettingsName, "NotificationMailSubjectKey", _owner.Path, "NotificationMailSubject");
+            var mailBodyKey = Settings.GetValue(Constants.SharingSettingsName, "NotificationMailBodyKey", _owner.Path, "NotificationMailBody");
 
-            var mailSubject = SR.GetString(SharingSettingsName, mailSubjectKey);
-            var mailBody = SR.GetString(SharingSettingsName, mailBodyKey);
+            var mailSubject = SR.GetString(Constants.SharingSettingsName, mailSubjectKey);
+            var mailBody = SR.GetString(Constants.SharingSettingsName, mailBodyKey);
 
             var formatter = NotificationFormatter;
             if (formatter != null)
@@ -414,29 +582,24 @@ namespace SenseNet.ContentRepository.Sharing
 
         /* ================================================================================== Event handlers */
 
-        //UNDONE: execute event handler code in a Task asynchronously.
-
         internal static void OnContentDeleted(Node node)
         {
             if (node == null)
                 return;
 
-            using (new SystemAccount())
+            switch (node)
             {
-                switch (node)
-                {
-                    case User _:
-                    case Group _:
-                        RemoveIdentities(new[] { node });
-                        break;
-                    default:
-                        var identities = Content.All.DisableAutofilters().Where(c =>
-                            c.InTree(node.Path) &&
-                            (c.TypeIs("User") || c.TypeIs("Group"))).Select(c => c.ContentHandler);
+                case User _:
+                case Group _:
+                    System.Threading.Tasks.Task.Run(() => RemoveIdentities(new[] { node }));
+                    break;
+                default:
+                    var identities = SystemAccount.Execute(() => Content.All.DisableAutofilters().Where(c =>
+                        c.InTree(node.Path) &&
+                        (c.TypeIs("User") || c.TypeIs("Group"))).AsEnumerable().Select(c => c.ContentHandler));
 
-                        RemoveIdentities(identities);
-                        break;
-                }
+                    System.Threading.Tasks.Task.Run(() => RemoveIdentities(identities));
+                    break;
             }
         }
         internal static void OnUserCreated(User user)
@@ -444,10 +607,13 @@ namespace SenseNet.ContentRepository.Sharing
             if (string.IsNullOrEmpty(user?.Email))
                 return;
 
-            using (new SystemAccount())
+            System.Threading.Tasks.Task.Run(() =>
             {
-                UpdateIdentity(user);
-            }
+                using (new SystemAccount())
+                {
+                    UpdateIdentity(user);
+                }
+            });
         }
         internal static void OnUserChanged(User user, string oldEmail)
         {
@@ -461,10 +627,13 @@ namespace SenseNet.ContentRepository.Sharing
 
             // The user got an email address: connect to sharing records created for this email.
             // The previous email will remain on the record as a historical info.
-            using (new SystemAccount())
+            System.Threading.Tasks.Task.Run(() =>
             {
-                UpdateIdentity(user);
-            }
+                using (new SystemAccount())
+                {
+                    UpdateIdentity(user);
+                }
+            });
         }
 
         private static void UpdateIdentity(User user)
@@ -477,19 +646,22 @@ namespace SenseNet.ContentRepository.Sharing
             // and add user id and set permissions for this user on the content.
 
             // Collect all content that has been shared with the email of this user.
-            var results = ContentQuery.Query(SharingQueries.ContentBySharedEmail,
+            var results = ContentQuery.Query(SharingQueries.PrivatelySharedWithNoIdentityByEmail,
                 QuerySettings.AdminSettings, user.Email);
 
             ProcessContentWithRetry(results.Nodes, gc =>
             {
                 var content = Node.Load<GenericContent>(gc.Id);
+                var changed = false;
 
                 var newItems = content.Sharing.Items.Select(sd =>
                 {
-                    if (sd.Token != user.Email || sd.Identity != 0)
+                    if (sd.Token != user.Email || sd.Identity != 0 || sd.Mode != SharingMode.Private)
                         return sd;
-
+                    
                     sd.Identity = user.Id;
+                    changed = true;
+
                     return sd;
                 });
 
@@ -497,8 +669,11 @@ namespace SenseNet.ContentRepository.Sharing
                 content.Save(SavingMode.KeepVersion);
 
                 // set permissions for the user
-                UpdatePermissions(content.Id, user.Id,
-                    content.Sharing.Items.Where(sd => sd.Identity == user.Id).ToArray());
+                if (changed)
+                {
+                    UpdatePermissions(content.Id, user.Id,
+                        content.Sharing.Items.Where(sd => sd.Identity == user.Id).ToArray());
+                }
             });
         }
         private static void RemoveIdentities(IEnumerable<Node> identities)
@@ -517,23 +692,45 @@ namespace SenseNet.ContentRepository.Sharing
                     emails.Add(user.Email);
             }
 
-            // collect all content that has been shared with these identities
-            var results = ContentQuery.Query(SharingQueries.ContentBySharedWith,
-                QuerySettings.AdminSettings, ids.Concat(emails).ToArray());
+            using (new SystemAccount())
+            {
+                // collect all content that has been shared with these identities
+                var results = ContentQuery.Query(SharingQueries.ContentBySharedWith,
+                    QuerySettings.AdminSettings, ids.Concat(emails).ToArray());
 
-            ProcessContentWithRetry(results.Nodes,
-                gc =>
-                {
-                    // collect all sharing records that belong to the provided identities
-                    return gc.Sharing.Items.Where(sd => ids.Contains(sd.Identity) || emails.Contains(sd.Token));
-                },
-                (gc, recordsToRemove) =>
-                {
-                    // reload node and remove sharing
-                    var content = Node.Load<GenericContent>(gc.Id);
-                    content.Sharing.RemoveSharing(recordsToRemove.Select(sd => sd.Id).ToArray());
-                });
+                ProcessContentWithRetry(results.Nodes,
+                    gc =>
+                    {
+                        // collect all sharing records that belong to the provided identities
+                        return gc.Sharing.Items.Where(sd => ids.Contains(sd.Identity) || emails.Contains(sd.Token));
+                    },
+                    (gc, recordsToRemove) =>
+                    {
+                        // reload node and remove sharing
+                        var content = Node.Load<GenericContent>(gc.Id);
+                        content.Sharing.RemoveSharing(recordsToRemove.Select(sd => sd.Id).ToArray());
+                    });
+            }
         }
+
+        internal static int[] GetSharingGroupIdsForSubtree(Node rootContent)
+        {
+            if (rootContent == null)
+                return new int[0];
+
+            // collect all content ids that were shared publicly in this subtree
+            var publicSharedIds = ContentQuery.Query(SharingQueries.PubliclySharedInTree, 
+                    QuerySettings.AdminSettings, rootContent.Path).Identifiers.ToArray();
+
+            if (!publicSharedIds.Any())
+                return new int[0];
+
+            // collect all group ids that will become orphanes
+            return ContentQuery.Query(SharingQueries.SharingGroupsBySharedContent,
+                QuerySettings.AdminSettings, publicSharedIds).Identifiers.ToArray();
+        }
+
+        /* ================================================================================== Helper methods */
 
         private static void ProcessContentWithRetry(IEnumerable<Node> nodes, Action<GenericContent> action)
         {
@@ -569,6 +766,50 @@ namespace SenseNet.ContentRepository.Sharing
             // log and leave
             SnLog.WriteException(ex);
             return true;
+        }
+
+        private static string AddSharingIdToText(string original, string id)
+        {
+            if (string.IsNullOrEmpty(id))
+                return original;
+
+            var newId = id.Replace("-", string.Empty);
+            var sharingIds = original?.Split(new[] {' ', ',', ';'}, StringSplitOptions.RemoveEmptyEntries).ToList() ??
+                              new List<string>();
+
+            if (!sharingIds.Contains(newId))
+                sharingIds.Add(newId);
+
+            return string.Join(" ", sharingIds);
+        }
+        
+        internal static SharingData GetSharingDataBySharingId(string sharingId)
+        {
+            var sharingGroup = GetSharingGroupBySharingId(sharingId);
+            if (!(sharingGroup?[Constants.SharedContentFieldName] is GenericContent target))
+                return null;
+
+            return target.Sharing.Items.FirstOrDefault(sd => sd.Id == sharingId);
+        }
+        internal static Content GetSharingGroupByUrlParameter(NameValueCollection parameters)
+        {
+            var sharingGuid = parameters?[Constants.SharingUrlParameterName];
+
+            return string.IsNullOrEmpty(sharingGuid)
+                ? null
+                : GetSharingGroupBySharingId(sharingGuid);
+        }
+        internal static Content GetSharingGroupBySharingId(string sharingGuid)
+        {
+            if (!string.IsNullOrEmpty(sharingGuid))
+            {
+                return Content.All.DisableAutofilters()
+                    .Where(c => c.TypeIs(Constants.SharingGroupTypeName))
+                    .FirstOrDefault(c =>
+                        (string) c[Constants.SharingIdsFieldName] == sharingGuid.Replace("-", string.Empty));
+            }
+
+            return null;
         }
     }
 }

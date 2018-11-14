@@ -168,6 +168,7 @@
     <Compile Include="Configuration\Versioning.cs" />
     <Compile Include="Fields\SharingField.cs" />
     <Compile Include="ISnComponent.cs" />
+    <Compile Include="OData\ODataObject.cs" />
     <Compile Include="Packaging\Steps\DeleteContentType.cs" />
     <Compile Include="Packaging\Steps\EditConfiguration.cs" />
     <Compile Include="Packaging\Steps\EnsureConfigSection.cs" />
@@ -191,6 +192,7 @@
     <Compile Include="Sharing\SharingData.cs" />
     <Compile Include="Sharing\SharingFinalizerVisitor.cs" />
     <Compile Include="Sharing\SharingHandler.cs" />
+    <Compile Include="Sharing\SharingMembershipExtender.cs" />
     <Compile Include="Sharing\SharingNodeObserver.cs" />
     <Compile Include="Sharing\SharingNormalizerVisitor.cs" />
     <Compile Include="Sharing\SharingVisitor.cs" />

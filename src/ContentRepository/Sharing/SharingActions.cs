@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json;
 using SenseNet.ApplicationModel;
+using SenseNet.ContentRepository.OData;
 
 namespace SenseNet.ContentRepository.Sharing
 {
@@ -19,10 +18,7 @@ namespace SenseNet.ContentRepository.Sharing
         {
             var gc = EnsureContent(content);
 
-            //UNDONE: create a strongly typed result instead of double serialization
-            return gc.Sharing.Items.Select(shi => (Dictionary<string, object>) JsonConvert.DeserializeObject(
-                JsonConvert.SerializeObject(shi),
-                typeof(Dictionary<string, object>))).ToList();
+            return gc.Sharing.Items.Select(sd => ODataObject.Create(SafeSharingData.Create(sd)));
         }
 
         /// <summary>
@@ -39,7 +35,7 @@ namespace SenseNet.ContentRepository.Sharing
         {
             var gc = EnsureContent(content);
 
-            return gc.Sharing.Share(token, level, mode, sendNotification);
+            return SafeSharingData.Create(gc.Sharing.Share(token, level, mode, sendNotification));
         }
         /// <summary>
         /// Remove a sharing record from a content.

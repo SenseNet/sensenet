@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Newtonsoft.Json;
+using SenseNet.ContentRepository.OData;
 
 //TODO: Rename Json.cs to more generalized name
 namespace SenseNet.Portal.OData
@@ -56,6 +55,19 @@ namespace SenseNet.Portal.OData
         public static ODataMultipleContent Create(IEnumerable<Dictionary<string, object>> data, int count)
         {
             var array = data.ToArray();
+
+            // ReSharper disable once CoVariantArrayConversion
+            return CreateFromArray(array, count);
+        }
+        public static ODataMultipleContent Create(IEnumerable<ODataObject> data, int count)
+        {
+            var array = data?.Select(odc => odc.Data).ToArray() ?? new object[0];
+
+            return CreateFromArray(array, count);
+        }
+
+        private static ODataMultipleContent CreateFromArray(object[] array, int count)
+        {
             var dict = new Dictionary<string, object>
             {
                 {"__count", count == 0 ? array.Length : count},
@@ -64,7 +76,7 @@ namespace SenseNet.Portal.OData
             return new ODataMultipleContent { Contents = dict };
         }
     }
-
+    
     internal class ODataReference
     {
         [JsonProperty(PropertyName = "__deferred", Order = 1)]
