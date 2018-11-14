@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
 
 namespace SenseNet.Search.Querying.Parser.Predicates
@@ -26,6 +27,12 @@ namespace SenseNet.Search.Querying.Parser.Predicates
         public LogicalPredicate(IEnumerable<LogicalClause> clauses)
         {
             Clauses.AddRange(clauses);
+        }
+
+        /// <summary>Returns a string that represents the current object.</summary>
+        public override string ToString()
+        {
+            return $"({string.Join(" ", Clauses.Select(x => x.ToString()))})";
         }
     }
 }

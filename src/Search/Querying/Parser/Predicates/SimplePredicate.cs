@@ -38,5 +38,11 @@ namespace SenseNet.Search.Querying.Parser.Predicates
             Value = value;
             FuzzyValue = fuzzyValue;
         }
+
+        /// <summary>Returns a string that represents the current object.</summary>
+        public override string ToString()
+        {
+            return $"{FieldName}:{Value.ValueAsString}";
+        }
     }
 }

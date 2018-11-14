@@ -53,5 +53,11 @@ namespace SenseNet.Search.Querying.Parser.Predicates
             Predicate = predicate;
             Occur = occur;
         }
+
+        /// <summary>Returns a string that represents the current object.</summary>
+        public override string ToString()
+        {
+            return $"{(Occur == Occurence.Must ? "+" : "")}{Predicate}";
+        }
     }
 }

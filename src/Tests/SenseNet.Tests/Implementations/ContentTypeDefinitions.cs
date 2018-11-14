@@ -2165,7 +2165,8 @@ namespace SenseNet.Tests.Implementations
       <DisplayName>$Ctd-GenericContent,Sharing-DisplayName</DisplayName>
       <Description>$Ctd-GenericContent,Sharing-Description</Description>
       <Indexing>
-        <Mode>No</Mode>
+        <Analyzer>Keyword</Analyzer>
+        <IndexHandler>SenseNet.Search.Indexing.SharingIndexHandler</IndexHandler>
       </Indexing>
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
@@ -2176,7 +2177,7 @@ namespace SenseNet.Tests.Implementations
     <Field name=""SharedWith"" type=""Sharing"">
       <Bind property=""Sharing""></Bind>
       <Indexing>
-        <IndexHandler>SenseNet.Search.Indexing.SharingIndexHandler</IndexHandler>
+        <IndexHandler>SenseNet.Search.Indexing.SharedWithIndexHandler</IndexHandler>
       </Indexing>
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
@@ -2188,7 +2189,7 @@ namespace SenseNet.Tests.Implementations
     <Field name=""SharedBy"" type=""Sharing"">
       <Bind property=""Sharing""></Bind>
       <Indexing>
-        <IndexHandler>SenseNet.Search.Indexing.SharingIndexHandler</IndexHandler>
+        <IndexHandler>SenseNet.Search.Indexing.SharedByIndexHandler</IndexHandler>
       </Indexing>
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
@@ -2200,7 +2201,7 @@ namespace SenseNet.Tests.Implementations
     <Field name=""SharingMode"" type=""Sharing"">
       <Bind property=""Sharing""></Bind>
       <Indexing>
-        <IndexHandler>SenseNet.Search.Indexing.SharingIndexHandler</IndexHandler>
+        <IndexHandler>SenseNet.Search.Indexing.SharingModeIndexHandler</IndexHandler>
       </Indexing>
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
@@ -2212,7 +2213,7 @@ namespace SenseNet.Tests.Implementations
     <Field name=""SharingLevel"" type=""Sharing"">
       <Bind property=""Sharing""></Bind>
       <Indexing>
-        <IndexHandler>SenseNet.Search.Indexing.SharingIndexHandler</IndexHandler>
+        <IndexHandler>SenseNet.Search.Indexing.SharingLevelIndexHandler</IndexHandler>
       </Indexing>
       <Configuration>
         <VisibleBrowse>Hide</VisibleBrowse>
@@ -3143,7 +3144,41 @@ namespace SenseNet.Tests.Implementations
 </ContentType>
 " },
 			#endregion
-			#region  61. ShortTextFieldSettingCtd.xml
+			#region  61. SharingGroupCtd.xml
+			{ "SharingGroupCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
+<ContentType name=""SharingGroup"" parentType=""Group"" handler=""SenseNet.ContentRepository.Group"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
+  <DisplayName>SharingGroup</DisplayName>
+  <Icon>Group</Icon>
+  <Fields>
+    <Field name=""SharingIds"" type=""LongText"">
+      <Indexing>
+        <Analyzer>Standard</Analyzer>
+      </Indexing>
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name=""SharingLevelValue"" type=""ShortText"">
+      <Configuration>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+    <Field name=""SharedContent"" type=""Reference"">
+      <Configuration>
+        <AllowMultiple>false</AllowMultiple>
+        <VisibleBrowse>Hide</VisibleBrowse>
+        <VisibleEdit>Hide</VisibleEdit>
+        <VisibleNew>Hide</VisibleNew>
+      </Configuration>
+    </Field>
+  </Fields>
+</ContentType>" },
+			#endregion
+			#region  62. ShortTextFieldSettingCtd.xml
 			{ "ShortTextFieldSettingCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""ShortTextFieldSetting"" parentType=""TextFieldSetting"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-ShortTextFieldSetting,DisplayName</DisplayName>
@@ -3151,7 +3186,7 @@ namespace SenseNet.Tests.Implementations
   <Fields />
 </ContentType>" },
 			#endregion
-			#region  62. SiteCtd.xml
+			#region  63. SiteCtd.xml
 			{ "SiteCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Site"" parentType=""Workspace"" handler=""SenseNet.Portal.Site"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Site,DisplayName</DisplayName>
@@ -3315,7 +3350,7 @@ namespace SenseNet.Tests.Implementations
 </ContentType>
 " },
 			#endregion
-			#region  63. SitesCtd.xml
+			#region  64. SitesCtd.xml
 			{ "SitesCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Sites"" parentType=""Folder"" handler=""SenseNet.ContentRepository.Folder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Sites,DisplayName</DisplayName>
@@ -3327,7 +3362,7 @@ namespace SenseNet.Tests.Implementations
   <Fields></Fields>
 </ContentType>" },
 			#endregion
-			#region  64. SmartFolderCtd.xml
+			#region  65. SmartFolderCtd.xml
 			{ "SmartFolderCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""SmartFolder"" parentType=""Folder"" handler=""SenseNet.ContentRepository.SmartFolder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-SmartFolder,DisplayName</DisplayName>
@@ -3369,7 +3404,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  65. SystemFileCtd.xml
+			#region  66. SystemFileCtd.xml
 			{ "SystemFileCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""SystemFile"" parentType=""File"" handler=""SenseNet.ContentRepository.File"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-SystemFile,DisplayName</DisplayName>
@@ -3386,7 +3421,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  66. SystemFolderCtd.xml
+			#region  67. SystemFolderCtd.xml
 			{ "SystemFolderCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""SystemFolder"" parentType=""Folder"" handler=""SenseNet.ContentRepository.SystemFolder"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-SystemFolder,DisplayName</DisplayName>
@@ -3400,7 +3435,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  67. TaskCtd.xml
+			#region  68. TaskCtd.xml
 			{ "TaskCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Task"" parentType=""ListItem"" handler=""SenseNet.ContentRepository.Task"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Task,DisplayName</DisplayName>
@@ -3515,7 +3550,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  68. TaskList.xml
+			#region  69. TaskList.xml
 			{ "TaskList.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""TaskList"" parentType=""ItemList"" handler=""SenseNet.ContentRepository.ContentList"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-TaskList,DisplayName</DisplayName>
@@ -3527,7 +3562,7 @@ namespace SenseNet.Tests.Implementations
   <Fields></Fields>
 </ContentType>" },
 			#endregion
-			#region  69. TextFieldSettingCtd.xml
+			#region  70. TextFieldSettingCtd.xml
 			{ "TextFieldSettingCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""TextFieldSetting"" parentType=""FieldSettingContent"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-TextFieldSetting,DisplayName</DisplayName>
@@ -3535,7 +3570,7 @@ namespace SenseNet.Tests.Implementations
   <Fields />
 </ContentType>" },
 			#endregion
-			#region  70. TrashBagCtd.xml
+			#region  71. TrashBagCtd.xml
 			{ "TrashBagCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""TrashBag"" parentType=""Folder"" handler=""SenseNet.ContentRepository.TrashBag"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-TrashBag,DisplayName</DisplayName>
@@ -3599,7 +3634,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  71. TrashBinCtd.xml
+			#region  72. TrashBinCtd.xml
 			{ "TrashBinCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""TrashBin"" parentType=""Workspace"" handler=""SenseNet.ContentRepository.TrashBin"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-TrashBin,DisplayName</DisplayName>
@@ -3730,7 +3765,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  72. UserCtd.xml
+			#region  73. UserCtd.xml
 			{ "UserCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""User"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.User"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-User,DisplayName</DisplayName>
@@ -4067,7 +4102,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  73. UserProfileCtd.xml
+			#region  74. UserProfileCtd.xml
 			{ "UserProfileCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""UserProfile"" parentType=""Workspace"" handler=""SenseNet.ContentRepository.UserProfile"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-UserProfile,DisplayName</DisplayName>
@@ -4128,10 +4163,10 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  74. WebServiceApplicationCtd.xml
+			#region  75. WebServiceApplicationCtd.xml
 			{ "WebServiceApplicationCtd.xml", @"<ContentType name=""WebServiceApplication"" parentType=""Application"" handler=""SenseNet.ApplicationModel.Application"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition""><DisplayName>$Ctd-WebServiceApplication,DisplayName</DisplayName><Description>$Ctd-WebServiceApplication,Description</Description><Icon>File</Icon><Fields><Field name=""Binary"" type=""Binary""><DisplayName>$Ctd-WebServiceApplication,Binary-DisplayName</DisplayName><Description>$Ctd-WebServiceApplication,Binary-Description</Description><Configuration><IsText>true</IsText></Configuration></Field></Fields></ContentType>" },
 			#endregion
-			#region  75. WorkspaceCtd.xml
+			#region  76. WorkspaceCtd.xml
 			{ "WorkspaceCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""Workspace"" parentType=""Folder"" handler=""SenseNet.ContentRepository.Workspaces.Workspace"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-Workspace,DisplayName</DisplayName>
@@ -4240,7 +4275,7 @@ namespace SenseNet.Tests.Implementations
   </Fields>
 </ContentType>" },
 			#endregion
-			#region  76. XmlFieldSettingCtd.xml
+			#region  77. XmlFieldSettingCtd.xml
 			{ "XmlFieldSettingCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""XmlFieldSetting"" parentType=""FieldSettingContent"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-XmlFieldSetting,DisplayName</DisplayName>
@@ -4248,7 +4283,7 @@ namespace SenseNet.Tests.Implementations
   <Fields />
 </ContentType>" },
 			#endregion
-			#region  77. YesNoFieldSettingCtd.xml
+			#region  78. YesNoFieldSettingCtd.xml
 			{ "YesNoFieldSettingCtd.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""YesNoFieldSetting"" parentType=""ChoiceFieldSetting"" handler=""SenseNet.ContentRepository.Schema.FieldSettingContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>$Ctd-YesNoFieldSetting,DisplayName</DisplayName>

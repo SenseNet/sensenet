@@ -123,21 +123,21 @@ namespace SenseNet.Search.Querying
             query.FiltersPrepared = true;
         }
 
-        internal static SnQuery ApplyVisitors(SnQuery query) //UNDONE:<? New extensibility pont: query rewriter can be a plugin.
+        internal static SnQuery ApplyVisitors(SnQuery query)
         {
             var queryTree = query.QueryTree;
 
-            var scanner = new SharingVisitor.SharingScannerVisitor();
-            queryTree = scanner.Visit(queryTree);
-            if (scanner.HasNegativeTerm)
-                throw new InvalidOperationException(); //UNDONE:<? write human readable exception message.
+            var visitorTypes = SnQueryVisitor.VisitorExtensionTypes;
+            if (visitorTypes == null || visitorTypes.Length == 0)
+                return query;
 
-            if (scanner.NeedToBeNormalized)
-                queryTree = new SharingVisitor.NormalizerVisitor().Visit(queryTree);
+            foreach (var visitorType in SnQueryVisitor.VisitorExtensionTypes)
+            {
+                var visitor = (SnQueryVisitor)Activator.CreateInstance(visitorType);
+                queryTree = visitor.Visit(queryTree);
+            }
 
-            queryTree = new SharingVisitor().Visit(queryTree);
-
-            if (ReferenceEquals(query.QueryTree, queryTree))
+            if (ReferenceEquals(queryTree, query.QueryTree))
                 return query;
 
             var newQuery = Create(queryTree);

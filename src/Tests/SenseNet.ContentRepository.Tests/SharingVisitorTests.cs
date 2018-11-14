@@ -9,9 +9,8 @@ using SenseNet.Tests.Implementations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SenseNet.Search.Querying.Parser.Predicates;
+// ReSharper disable UnusedVariable
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -87,6 +86,9 @@ namespace SenseNet.ContentRepository.Tests
             {"c", new TestPerfieldIndexingInfoString()},
             {"d", new TestPerfieldIndexingInfoString()},
             {"e", new TestPerfieldIndexingInfoString()},
+            {"X", new TestPerfieldIndexingInfoString()},
+            {"Y", new TestPerfieldIndexingInfoString()},
+            {"Z", new TestPerfieldIndexingInfoString()},
         };
 
         private class TestQueryContext : IQueryContext
@@ -138,25 +140,91 @@ namespace SenseNet.ContentRepository.Tests
         #endregion
 
         [TestMethod]
-        public void Sharing_Query_Rewriting_SharingScanner()
+        public void Sharing_Query_Rewriting1()
+        {
+            // term names
+            var a = "SharedWith";
+            var b = "SharedWith";
+            var c = "SharedBy";
+            var d = "SharingMode";
+            var e = "SharingLevel";
+            var s = "Sharing";
+
+            // input terms
+            var qA1 = "user1@example.com";
+            var qB1 = 142;
+            var qB2 = 143;
+            var qC1 = 151;
+            var qC2 = 152;
+            var qC3 = 153;
+            var qD1 = SharingMode.Private;
+            var qE1 = SharingLevel.Open;
+            var qX1 = "TypeIs:File";
+
+            // expected terms
+            var tA1 = SharingDataTokenizer.TokenizeSharingToken(qA1);
+            var tB1 = SharingDataTokenizer.TokenizeIdentity(qB1);
+            var tB2 = SharingDataTokenizer.TokenizeIdentity(qB2);
+            var tC1 = SharingDataTokenizer.TokenizeCreatorId(qC1);
+            var tC2 = SharingDataTokenizer.TokenizeCreatorId(qC2);
+            var tC3 = SharingDataTokenizer.TokenizeCreatorId(qC3);
+            var tD1 = SharingDataTokenizer.TokenizeSharingMode(qD1);
+            var tE1 = SharingDataTokenizer.TokenizeSharingLevel(qE1);
+            var tX1 = "TypeIs:file";
+
+            // one level "must" only
+            RewritingTest($"+{qX1} +{b}:{qB1}", true, $"+{tX1} +{s}:{tB1}");
+            RewritingTest($"+{qX1} +{b}:{qB1} +{e}:{qE1}", true, $"+{tX1} +{s}:{tB1},{tE1}");
+            RewritingTest($"+{qX1} +{e}:{qE1} +{b}:{qB1} +{c}:{qC1}", true, $"+{tX1} +{s}:{tB1},{tC1},{tE1}");
+            RewritingTest($"+{qX1} +{c}:{qC1} +{b}:{qB1} +{e}:{qE1}", true, $"+{tX1} +{s}:{tB1},{tC1},{tE1}");
+
+            // one level "should" only
+            RewritingTest($"{b}:{qB1} {b}:{qB2} {d}:{qD1}", true, $"{s}:{tB1} {s}:{tB2} {s}:{tD1}");
+
+            // +x:(_ _) +b:(_ _)
+            RewritingTest($"+TypeIs:(File Folder) +{b}:({qB1} {qB2})", true,
+                          $"+(TypeIs:file TypeIs:folder) +({s}:{tB1} {s}:{tB2})");
+
+            // ... +d +b:(_ _) --> combine --> ... +(s:b1,d s:b2,d)
+            RewritingTest($"+{qX1} +{d}:{qD1} +{b}:({qB1} {qB2})", true,
+                          $"+{tX1} +({s}:{tB1},{tD1} {s}:{tB2},{tD1})");
+
+            // ... +a +b:(_ _) +c:(_ _ _) --> combine --> ... +(s:a,b1,c1 s:a,b1,c2 s:a,b1,c3 s:a,b2,c1 s:a,b2,c2 s:a,b2,c3)
+            RewritingTest($"+{qX1} +{a}:{qA1} +{b}:({qB1} {qB2}) +{c}:({qC1} {qC2} {qC3})", true,
+                          $"+{tX1} +({s}:{tA1},{tB1},{tC1} {s}:{tA1},{tB2},{tC1} {s}:{tA1},{tB1},{tC2} {s}:{tA1},{tB2},{tC2} {s}:{tA1},{tB1},{tC3} {s}:{tA1},{tB2},{tC3})");
+        }
+        [TestMethod]
+        public void Sharing_Query_Rewriting2()
         {
             var s = new[] { "Sharing", "SharedWith", "SharedBy", "SharingMode", "SharingLevel" };
 
-            // -------------- ( query,                         norm, hasNot, sharing, mixed, simplify )
-            SharingScannerTest("+a:a0 +(b:b1 b:b2)"           , false, false, false, false, false);
-            SharingScannerTest("+a:a0 +(b:b1 b:b2) -d:d0"     , false, true , false, false, false);
-            SharingScannerTest("+a:a0 +(b:b1 b:b2 -d:d0)"     , false, true , false, false, false);
-            SharingScannerTest("+a:a0 +(b:b0 +c:c0)"          , false, false, false, true , false);
-            SharingScannerTest("+a:a0 +(+b:b0 +c:c0)"         , false, false, false, false, true );
-            SharingScannerTest("+a:a0 +(b:b0 (+c0 +(+d0 e0)))", false, false, false, true , false);
-            SharingScannerTest($"+{s[0]}:s0 +(b:b1 b:b2)"     , false, false, true , false, false);
-            SharingScannerTest($"+{s[1]}:s0 +(b:b1 -b:b2)"    , false, true , true , false, false);
-            SharingScannerTest($"+{s[2]}:s0 +(b:b1 +b:b2)"    , true , false, true , true , false);
-            SharingScannerTest($"+{s[3]}:s0 +(+b:b1 +b:b2)"   , true , false, true , false, true );
-            SharingScannerTest($"+{s[4]}:s0 +(b:b1 b:b2)"     , false, false, true , false, false);
+            RewritingTest("-a:a", true, "-a:a");
+            RewritingTest($"+{s[0]}:s0", true, $"+{s[0]}:s0");
+            RewritingTest($"-a:a +{s[0]}:s0", true, $"-a:a +{s[0]}:s0");
+            RewritingTest($"+{s[0]}:Is0 +({s[1]}:s1 {s[1]}:s2)", true, $"+({s[0]}:Ts1,Is0 {s[0]}:Ts2,Is0)");
+
+            RewritingTest("+a:a0 +(b:b1 b:b2)", true, "+a:a0 +(b:b1 b:b2)");
+            RewritingTest("+a:a0 +(b:b1 b:b2) -d:d0", true, "+a:a0 +(b:b1 b:b2) -d:d0");
+            RewritingTest("+a:a0 +(b:b1 b:b2 -d:d0)", true, "+a:a0 +(b:b1 b:b2 -d:d0)");
+
+            // ranges
+            RewritingTest($"Id:<10 +{s[0]}:s0", true, $"Id:<10 +{s[0]}:s0");
+            RewritingTest("Id:<10 +SharedWith:<123", false, null);
+
+            // negation
+            RewritingTest($"-a:a +b:b +c:c +{s[0]}:s0 +d:d", true, $"-a:a +b:b +c:c +d:d +{s[0]}:s0");
+            RewritingTest($"+a:a -b:b +c:c +{s[0]}:s0 +d:d", true, $"+a:a -b:b +c:c +d:d +{s[0]}:s0");
+            RewritingTest($"+a:a +b:b -c:c +{s[0]}:s0 +d:d", true, $"+a:a +b:b -c:c +d:d +{s[0]}:s0");
+            RewritingTest($"+a:a +b:b +c:c -{s[0]}:s0 +d:d", false, null);
+            RewritingTest($"+a:a +b:b +c:c +{s[0]}:s0 -d:d", true, $"+a:a +b:b +c:c -d:d +{s[0]}:s0");
+
+            // mixed level
+            RewritingTest($"+a:a0 +(b:b1 b:b2) +({s[0]}:s0 {s[0]}:s1)", true, $"+a:a0 +(b:b1 b:b2) +({s[0]}:s0 {s[0]}:s1)");
+            RewritingTest($"+a:a0 +(b:b1 b:b2) +({s[0]}:s0 (+{s[1]}:1 +{s[2]}:42))", true, $"+a:a0 +(b:b1 b:b2) +({s[0]}:s0 {s[0]}:I1,C42)");
+            RewritingTest($"+a:a0 +(b:b1 b:b2) +({s[0]}:s0 (+{s[1]}:s1 +{s[1]}:s2 +X:x))", false, null);
+            RewritingTest($"+a:a0 +(b:b1 b:b2) +({s[0]}:s0 (+{s[1]}:1 +{s[2]}:42) c:c1)", true, $"+a:a0 +(b:b1 b:b2) +(c:c1 {s[0]}:s0 {s[0]}:I1,C42)");
         }
-        private void SharingScannerTest(string inputQuery, bool needToBeNormalized, bool hasNegativeTerm,
-            bool hasSharingTerm, bool hasMixedOccurences, bool hasUnnecessaryParentheses)
+        private void RewritingTest(string inputQuery, bool isValid, string expected)
         {
             var context = new TestQueryContext(QuerySettings.AdminSettings, 0, _indexingInfo, new TestQueryEngine(null, null));
             using (SenseNet.Tests.Tools.Swindle(typeof(SnQuery), "_permissionFilterFactory", new EverythingAllowedPermissionFilterFactory()))
@@ -165,16 +233,48 @@ namespace SenseNet.ContentRepository.Tests
                 var snQueryAcc = new PrivateType(typeof(SnQuery));
                 snQueryAcc.InvokeStatic("PrepareQuery", queryIn, context);
 
-                var visitor = new SharingVisitor.SharingScannerVisitor();
-                visitor.Visit(queryIn.QueryTree);
+                var hasError = false;
+                var visitor = new SharingVisitor();
+                SnQuery queryOut = null;
+                try
+                {
+                    queryOut = SnQuery.Create(visitor.Visit(queryIn.QueryTree));
+                }
+                catch (InvalidContentSharingQueryException)
+                {
+                    hasError = true;
+                }
 
-                Assert.AreEqual(needToBeNormalized, visitor.NeedToBeNormalized);
-                Assert.AreEqual(hasNegativeTerm, visitor.HasNegativeTerm);
-                Assert.AreEqual(hasSharingTerm, visitor.HasSharingTerm);
-                Assert.AreEqual(hasMixedOccurences, visitor.HasMixedOccurences);
-                Assert.AreEqual(hasUnnecessaryParentheses, visitor.HasUnnecessaryParentheses);
+                Assert.AreNotEqual(isValid, hasError);
+                if (!hasError)
+                    Assert.AreEqual(expected, queryOut.ToString());
             }
         }
+
+        [TestMethod]
+        public void Sharing_Query_Rewriting_FieldNames()
+        {
+            var inputQuery = "-a:a Sharing:s0 SharedWith:123 SharedBy:s2 SharingMode:s3 SharingLevel:s4";
+            var expectedQuery = "-a:a Sharing:s0 Sharing:I123 Sharing:s2 Sharing:s3 Sharing:s4";
+            string actualQuery;
+
+            var context = new TestQueryContext(QuerySettings.AdminSettings, 0, _indexingInfo, new TestQueryEngine(null, null));
+            using (SenseNet.Tests.Tools.Swindle(typeof(SnQuery), "_permissionFilterFactory", new EverythingAllowedPermissionFilterFactory()))
+            {
+                var queryIn = SnQuery.Parse(inputQuery, context);
+                var snQueryAcc = new PrivateType(typeof(SnQuery));
+                snQueryAcc.InvokeStatic("PrepareQuery", queryIn, context);
+
+                var visitor = new SharingVisitor();
+                var newTree = visitor.Visit(queryIn.QueryTree);
+
+                var snQuery = SnQuery.Create(newTree);
+                actualQuery = snQuery.ToString();
+            }
+
+            Assert.AreEqual(expectedQuery, actualQuery);
+        }
+
 
         [TestMethod]
         public void Sharing_Query_Rewriting_Normalize()
@@ -182,6 +282,8 @@ namespace SenseNet.ContentRepository.Tests
             const string s0 = "Sharing:s0";
             const string s1 = "Sharing:s1";
             const string s2 = "Sharing:s2";
+            const string s3 = "Sharing:s3";
+            const string s4 = "Sharing:s4";
 
             LogicalPredicate GetPredicate(Occurence outer, Occurence inner)
             {
@@ -198,6 +300,8 @@ namespace SenseNet.ContentRepository.Tests
             // inhomogeneous level --> irrelevant terms
             NormalizerVisitorTest($"+{s0} +({s1} +{s2})", $"+{s0} +{s2}");
             NormalizerVisitorTest($"+{s0} (+{s1} {s2})", $"+{s0}");
+            NormalizerVisitorTest($"+X:x +{s0} +({s1} +{s2})", $"+X:x +{s0} +{s2}");
+            NormalizerVisitorTest($"+X:x +{s0} (+{s1} {s2})", $"+X:x +{s0}");
 
             // parentheses with one clause
             var twoShould = $"{s0} {s1}";
@@ -213,29 +317,18 @@ namespace SenseNet.ContentRepository.Tests
             NormalizerVisitorTest(GetPredicate(Occurence.Must, Occurence.Must), twoMust);
 
             // unnecessary parentheses
-            NormalizerVisitorTest($"{s0} ({s1} a:a0)", $"{s0} {s1} a:a0");
-            NormalizerVisitorTest($"+{s0} +(+{s1} +a:a0)", $"+{s0} +{s1} +a:a0");
-            NormalizerVisitorTest($"+{s0} +(+{s1} +(a:a0 (b:b1 b:b2)))", $"+{s0} +{s1} +(a:a0 b:b1 b:b2)");
+            NormalizerVisitorTest($"{s0} ({s1} {s2})", $"{s0} {s1} {s2}");
+            NormalizerVisitorTest($"+{s0} +(+{s1} +{s2})", $"+{s0} +{s1} +{s2}");
+            NormalizerVisitorTest($"+{s0} +(+{s1} +({s2} ({s3} {s4})))", $"+{s0} +{s1} +({s2} {s3} {s4})");
         }
         private void NormalizerVisitorTest(string inputQuery, string expectedQuery)
         {
             var context = new TestQueryContext(QuerySettings.AdminSettings, 0, _indexingInfo, new TestQueryEngine(null, null));
-            using (SenseNet.Tests.Tools.Swindle(typeof(SnQuery), "_permissionFilterFactory", new EverythingAllowedPermissionFilterFactory()))
+            using (SenseNet.Tests.Tools.Swindle(typeof(SnQuery), "_permissionFilterFactory",
+                new EverythingAllowedPermissionFilterFactory()))
             {
                 var queryIn = SnQuery.Parse(inputQuery, context);
-                var snQueryAcc = new PrivateType(typeof(SnQuery));
-                snQueryAcc.InvokeStatic("PrepareQuery", queryIn, context);
-
-                var scaner = new SharingVisitor.SharingScannerVisitor();
-                var scanned = scaner.Visit(queryIn.QueryTree);
-                Assert.IsTrue(scaner.NeedToBeNormalized);
-
-                var normalizer = new SharingVisitor.NormalizerVisitor();
-                var normalized = normalizer.Visit(queryIn.QueryTree);
-
-                var newQuery = SnQuery.Create(normalized);
-
-                Assert.AreEqual(expectedQuery, newQuery.ToString());
+                NormalizerVisitorTest(queryIn, context, expectedQuery);
             }
         }
         private void NormalizerVisitorTest(SnQueryPredicate inputPredicate, string expectedQuery)
@@ -244,23 +337,23 @@ namespace SenseNet.ContentRepository.Tests
             using (SenseNet.Tests.Tools.Swindle(typeof(SnQuery), "_permissionFilterFactory", new EverythingAllowedPermissionFilterFactory()))
             {
                 var queryIn = SnQuery.Create(inputPredicate);
-                queryIn.EnableAutofilters = FilterStatus.Disabled;
-                queryIn.EnableLifespanFilter = FilterStatus.Disabled;
-
-                var snQueryAcc = new PrivateType(typeof(SnQuery));
-                snQueryAcc.InvokeStatic("PrepareQuery", queryIn, context);
-
-                var scaner = new SharingVisitor.SharingScannerVisitor();
-                var scanned = scaner.Visit(queryIn.QueryTree);
-                Assert.IsTrue(scaner.NeedToBeNormalized);
-
-                var normalizer = new SharingVisitor.NormalizerVisitor();
-                var normalized = normalizer.Visit(queryIn.QueryTree);
-
-                var newQuery = SnQuery.Create(normalized);
-
-                Assert.AreEqual(expectedQuery, newQuery.ToString());
+                NormalizerVisitorTest(queryIn, context, expectedQuery);
             }
+        }
+        private void NormalizerVisitorTest(SnQuery query, TestQueryContext context, string expectedQuery)
+        {
+            query.EnableAutofilters = FilterStatus.Disabled;
+            query.EnableLifespanFilter = FilterStatus.Disabled;
+
+            var snQueryAcc = new PrivateType(typeof(SnQuery));
+            snQueryAcc.InvokeStatic("PrepareQuery", query, context);
+
+            var normalizer = new SharingNormalizerVisitor();
+            var normalized = normalizer.Visit(query.QueryTree);
+
+            var newQuery = SnQuery.Create(normalized);
+
+            Assert.AreEqual(expectedQuery, newQuery.ToString());
         }
 
 
@@ -278,8 +371,8 @@ namespace SenseNet.ContentRepository.Tests
             };
 
             // ACTION
-            var sharingVisitorAcc = new PrivateType(typeof(SharingVisitor));
-            var result = (List<List<string>>)sharingVisitorAcc.InvokeStatic("CombineValues", input1, input2);
+            var visitorAcc = new PrivateType(typeof(SharingComposerVisitor));
+            var result = (List<List<string>>)visitorAcc.InvokeStatic("CombineValues", input1, input2);
 
             // ASSERT
             var actual = string.Join(" ", result.Select(x => string.Join("", x)));
@@ -301,8 +394,8 @@ namespace SenseNet.ContentRepository.Tests
             };
 
             // ACTION
-            var sharingVisitorAcc = new PrivateType(typeof(SharingVisitor));
-            var result = (List<List<string>>)sharingVisitorAcc.InvokeStatic("CombineValues", input1, input2);
+            var visitorAcc = new PrivateType(typeof(SharingComposerVisitor));
+            var result = (List<List<string>>)visitorAcc.InvokeStatic("CombineValues", input1, input2);
 
             // ASSERT
             var actual = string.Join(" ", result.Select(x => string.Join("", x)));
@@ -324,104 +417,13 @@ namespace SenseNet.ContentRepository.Tests
             };
 
             // ACTION
-            var sharingVisitorAcc = new PrivateType(typeof(SharingVisitor));
-            var result = (List<List<string>>)sharingVisitorAcc.InvokeStatic("CombineValues", input1, input2);
+            var visitorAcc = new PrivateType(typeof(SharingComposerVisitor));
+            var result = (List<List<string>>)visitorAcc.InvokeStatic("CombineValues", input1, input2);
 
             // ASSERT
             var actual = string.Join(" ", result.Select(x => string.Join("", x)));
             Assert.AreEqual("abdef abg abehi cdef cg cehi", actual);
         }
 
-        [TestMethod]
-        public void Sharing_Query_Rewriting()
-        {
-            // term names
-            var a = "SharedWith";
-            var b = "SharedWith";
-            var c = "SharedBy";
-            var d = "SharingMode";
-            var e = "SharingLevel";
-            var s = "Sharing";
-
-            // input terms
-            var qA1 = "user1@example.com";
-            var qA2 = "user2@example.com";
-            var qB1 = 142;
-            var qB2 = 143;
-            var qC1 = 151;
-            var qC2 = 152;
-            var qC3 = 153;
-            var qD1 = SharingMode.Private;
-            var qD2 = SharingMode.Authenticated;
-            var qE1 = SharingLevel.Open;
-            var qE2 = SharingLevel.Edit;
-            var qX1 = "TypeIs:File";
-            var qX2 = "InTree:/root/folder1";
-            var qX3 = "Description:value1";
-            var qX4 = "Description:value2";
-
-            // expected terms
-            var tA1 = SharingDataTokenizer.TokenizeSharingToken(qA1);
-            var tA2 = SharingDataTokenizer.TokenizeSharingToken(qA2);
-            var tB1 = SharingDataTokenizer.TokenizeIdentity(qB1);
-            var tB2 = SharingDataTokenizer.TokenizeIdentity(qB2);
-            var tC1 = SharingDataTokenizer.TokenizeCreatorId(qC1);
-            var tC2 = SharingDataTokenizer.TokenizeCreatorId(qC2);
-            var tC3 = SharingDataTokenizer.TokenizeCreatorId(qC3);
-            var tD1 = SharingDataTokenizer.TokenizeSharingMode(qD1);
-            var tD2 = SharingDataTokenizer.TokenizeSharingMode(qD2);
-            var tE1 = SharingDataTokenizer.TokenizeSharingLevel(qE1);
-            var tE2 = SharingDataTokenizer.TokenizeSharingLevel(qE2);
-            var tX1 = "TypeIs:file";
-            var tX2 = "InTree:/root/folder1";
-            var tX3 = "Description:value1";
-            var tX4 = "Description:value2";
-
-            /*
-            // one level "must" only
-            RewritingTest($"+{qX1} +{b}:{qB1}", $"+{tX1} +{s}:{tB1}");
-            RewritingTest($"+{qX1} +{b}:{qB1} +{e}:{qE1}", $"+{tX1} +{s}:{tB1},{tE1}");
-            RewritingTest($"+{qX1} +{e}:{qE1} +{b}:{qB1} +{c}:{qC1}", $"+{tX1} +{s}:{tB1},{tC1},{tE1}");
-            RewritingTest($"+{qX1} +{c}:{qC1} +{b}:{qB1} +{e}:{qE1}", $"+{tX1} +{s}:{tB1},{tC1},{tE1}");
-
-            // one level "should" only
-            RewritingTest($"{b}:{qB1} {b}:{qB2} {d}:{qD1}", $"{s}:{tB1} {s}:{tB2} {s}:{tD1}");
-
-            // +x:(_ _) +b:(_ _)
-            RewritingTest($"+TypeIs:(File Folder) +{b}:({qB1} {qB2})",
-                          $"+(TypeIs:file TypeIs:folder) +({s}:{tB1} {s}:{tB2})");
-
-            // ... +d +b:(_ _) --> combine --> ... +(s:b1,d s:b2,d)
-            RewritingTest($"+{qX1} +{d}:{qD1} +{b}:({qB1} {qB2})",
-                          $"+{tX1} +({s}:{tB1},{tD1} {s}:{tB2},{tD1})");
-
-            // ... +a +b:(_ _) +c:(_ _ _) --> combine --> ... +(s:a,b1,c1 s:a,b1,c2 s:a,b1,c3 s:a,b2,c1 s:a,b2,c2 s:a,b2,c3)
-            RewritingTest($"+{qX1} +{a}:{qA1} +{b}:({qB1} {qB2}) +{c}:({qC1} {qC2} {qC3})",
-                          $"+{tX1} +({s}:{tA1},{tB1},{tC1} {s}:{tA1},{tB2},{tC1} {s}:{tA1},{tB1},{tC2} {s}:{tA1},{tB2},{tC2} {s}:{tA1},{tB1},{tC3} {s}:{tA1},{tB2},{tC3})");
-
-            // +x +(a b x)  (no changes)
-            RewritingTest($"+{qX1} +({a}:{qA1} {b}:{qB1} {qX2}", $"+{tX1} +({a}:{tA1} {b}:{tB1} {tX2}");
-            */
-
-            // +X1 +a +(_X2 _b _(+X3 +c +(_d _X4)))  -->  +X1 +(_(+X2 +a) _ab _(+X3 +(_acd _(+X4 +ac)))
-            RewritingTest($"+{qX1} +{a}:{qA1} +({qX2} {b}:{qB1} (+{qX3} +{c}:{qC1} +({d}:{qD1} {qX4})))",
-                          $"+{tX1} +((+{tX2} +{s}:{tA1}) {s}:{tA1},{tB1} (+{tX3} +({s}:{tA1},{tC1},{tD1} (+{tX4} +{s}:{tA1},{tC1})))");
-
-
-        }
-        private void RewritingTest(string inputQuery, string expectedQuery)
-        {
-            var context = new TestQueryContext(QuerySettings.AdminSettings, 0, _indexingInfo, new TestQueryEngine(null, null));
-            using (SenseNet.Tests.Tools.Swindle(typeof(SnQuery), "_permissionFilterFactory", new EverythingAllowedPermissionFilterFactory()))
-            {
-                var queryIn = SnQuery.Parse(inputQuery, context);
-                var snQueryAcc = new PrivateType(typeof(SnQuery));
-                snQueryAcc.InvokeStatic("PrepareQuery", queryIn, context);
-                var queryOut = snQueryAcc.InvokeStatic("ApplyVisitors", queryIn);
-
-                var expected = expectedQuery.EndsWith(".AUTOFILTERS:OFF") ? expectedQuery : $"{expectedQuery} .AUTOFILTERS:OFF";
-                Assert.AreEqual(expected, queryOut.ToString());
-            }
-        }
     }
 }
