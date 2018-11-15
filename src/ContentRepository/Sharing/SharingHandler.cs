@@ -431,6 +431,31 @@ namespace SenseNet.ContentRepository.Sharing
                 .Apply();
         }
 
+        /// <summary>
+        /// Resets and updates all sharing permission entries on this node.
+        /// </summary>
+        internal void UpdatePermissions()
+        {
+            var aclEditor = SnSecurityContext.Create().CreateAclEditor(EntryType.Sharing);
+            var currentEntries = GetExplicitEntries();
+
+            // first remove all existing entries
+            foreach (var currentEntry in currentEntries)
+            {
+                aclEditor.Reset(_owner.Id, currentEntry.IdentityId, false, ulong.MaxValue, 0ul);
+            }
+
+            // set all entries again
+            foreach (var identity in Items.Select(sd => sd.Identity).Where(idnt => idnt != 0))
+            {
+                var mask = Items.Where(sd => sd.Identity == identity)
+                    .Aggregate(0ul, (current, item) => current | GetEffectiveBitmask(item.Level));
+
+                aclEditor.Set(_owner.Id, identity, false, mask, 0ul);
+            }
+
+            aclEditor.Apply();
+        }
         private void UpdatePermissions(int identityId, SharingData[] remainData)
         {
             UpdatePermissions(_owner.Id, identityId, remainData);

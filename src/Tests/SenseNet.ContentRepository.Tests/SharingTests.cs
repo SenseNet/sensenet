@@ -470,7 +470,7 @@ namespace SenseNet.ContentRepository.Tests
     ""Token"": ""abc1@example.com"",
     ""Identity"": " + user.Id + @",
     ""Mode"": ""Private"",
-    ""Level"": ""Open"",
+    ""Level"": ""Edit"",
     ""CreatorId"":""" + user.Path + @""",
     ""ShareDate"": ""2018-10-16T00:40:15Z""
     },
@@ -478,6 +478,15 @@ namespace SenseNet.ContentRepository.Tests
         ""Id"": """ + Guid.NewGuid() + @""",
     ""Token"": ""abc3@example.com"",
     ""Identity"": ""/Root/IMS/NOBODY"",
+    ""Mode"": ""Authenticated"",
+    ""Level"": ""Open"",
+    ""CreatorId"": 1,
+    ""ShareDate"": ""2018-10-16T00:40:15Z""
+    },
+{
+        ""Id"": """ + Guid.NewGuid() + @""",
+    ""Token"": ""allusers"",
+    ""Identity"": " + Identifiers.EveryoneGroupId + @",
     ""Mode"": ""Authenticated"",
     ""Level"": ""Open"",
     ""CreatorId"": 1,
@@ -500,12 +509,16 @@ namespace SenseNet.ContentRepository.Tests
                 try
                 {
                     Assert.AreEqual(0, content.Sharing.Items.Count());
+                    Assert.AreEqual(0, content.Sharing.GetExplicitEntries().Count);
 
                     var xDoc = new XmlDocument();
                     xDoc.LoadXml(importData1);
 
                     content.Fields["Sharing"].Import(xDoc.DocumentElement);
                     content.Save();
+
+                    // this is to simulate postponed sharing permission setting during import
+                    content.Sharing.UpdatePermissions();
 
                     // make sure the value is preserved after save
                     content = Content.Load(content.Id);
@@ -527,6 +540,15 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.AreEqual("abc3@example.com", sd3.Token);
                     Assert.AreEqual(0, sd3.Identity);
                     Assert.AreEqual(SharingMode.Authenticated, sd3.Mode);
+
+                    var permEntries = content.Sharing.GetExplicitEntries();
+                    var userEntry = permEntries.Single(pe => pe.IdentityId == user.Id);
+                    var everyoneEntry = permEntries.Single(pe => pe.IdentityId == Identifiers.EveryoneGroupId);
+
+                    Assert.IsTrue(userEntry.GetPermissionValues()[6] == PermissionValue.Allowed);
+                    Assert.IsTrue(everyoneEntry.GetPermissionValues()[4] == PermissionValue.Allowed);
+                    Assert.IsFalse(everyoneEntry.GetPermissionValues()[5] == PermissionValue.Allowed);
+                    Assert.IsFalse(everyoneEntry.GetPermissionValues()[6] == PermissionValue.Allowed);
                 }
                 finally
                 {

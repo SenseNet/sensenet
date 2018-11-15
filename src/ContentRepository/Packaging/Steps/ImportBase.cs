@@ -113,6 +113,7 @@ namespace SenseNet.Packaging.Steps
             public bool HasPermissions { get; private set; }
             public bool HasBreakPermissions { get; private set; }
             public bool HasAspect { get; private set; }
+            public bool HasSharing { get; }
             public bool ClearPermissions { get; private set; }
             public bool FileIsHidden { get; private set; }
             public bool ContentTypeIsInferredFolder { get; private set; }
@@ -155,6 +156,7 @@ namespace SenseNet.Packaging.Steps
                             HasBreakPermissions = _xmlDoc.SelectSingleNode("/ContentMetaData/Permissions/Break") != null;
                             HasPermissions = _xmlDoc.SelectNodes("/ContentMetaData/Permissions/Identity").Count > 0;
                             HasAspect = _xmlDoc.SelectNodes("ContentMetaData/Fields/Aspects").Count > 0;
+                            HasSharing = !string.IsNullOrEmpty(_xmlDoc.SelectSingleNode("ContentMetaData/Fields/Sharing")?.InnerText);
 
                             // /ContentMetaData/Properties/*/@attachment
                             foreach (XmlAttribute attachmentAttr in _xmlDoc.SelectNodes("/ContentMetaData/Fields/*/@attachment"))
@@ -258,10 +260,19 @@ namespace SenseNet.Packaging.Steps
 
                 if (!content.ImportFieldData(_transferringContext))
                     return false;
-                if (!HasPermissions && !HasBreakPermissions)
-                    return true;
-                var permissionsNode = _xmlDoc.SelectSingleNode("/ContentMetaData/Permissions");
-                content.ContentHandler.Security.ImportPermissions(permissionsNode, this._metaDataPath);
+
+                if (HasPermissions || HasBreakPermissions)
+                {
+                    var permissionsNode = _xmlDoc.SelectSingleNode("/ContentMetaData/Permissions");
+                    content.ContentHandler.Security.ImportPermissions(permissionsNode, this._metaDataPath);
+                }
+
+                if (HasSharing)
+                {
+                    // No need to load sharing data again, it is already imported to the repository.
+                    // Here we only need to update sharing permissions.
+                    content.Sharing.UpdatePermissions();
+                }
 
                 return true;
             }
@@ -898,7 +909,8 @@ namespace SenseNet.Packaging.Steps
                                 content.ContentHandler.Security.RemoveBreakInheritance();
                             }
                         }
-                        if (contentInfo.HasReference || contentInfo.HasPermissions || contentInfo.HasBreakPermissions || contentInfo.HasAspect)
+                        if (contentInfo.HasReference || contentInfo.HasPermissions || contentInfo.HasBreakPermissions || 
+                            contentInfo.HasAspect || contentInfo.HasSharing)
                         {
                             LogWriteReference(contentInfo);
                             HasReference = true;
