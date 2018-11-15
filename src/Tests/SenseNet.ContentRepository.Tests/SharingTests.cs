@@ -6,13 +6,13 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Web;
+using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Linq;
 using SenseNet.ContentRepository.OData;
-using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Sharing;
 using SenseNet.ContentRepository.Storage;
@@ -23,6 +23,7 @@ using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 using SenseNet.Security;
 using SenseNet.Tests;
+using Formatting = Newtonsoft.Json.Formatting;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -373,6 +374,165 @@ namespace SenseNet.ContentRepository.Tests
             {
                 AssertSharingDataAreEqual(sharingItems[i], items[i]);
             }
+        }
+        [TestMethod]
+        public void Sharing_Export()
+        {
+            JArray GetSharingItemsFromFieldXml(Content content)
+            {
+                var sb = new StringBuilder();
+                using (var writer = new XmlTextWriter(new StringWriter(sb)))
+                {
+                    content.Fields["Sharing"].Export(writer, null);
+                }
+
+                var sharingFieldXml = sb.ToString();
+                if (string.IsNullOrEmpty(sharingFieldXml))
+                    return null;
+
+                var xDoc = new XmlDocument();
+                xDoc.LoadXml(sharingFieldXml);
+
+                var sharingData = xDoc.DocumentElement?.InnerText;
+                if (string.IsNullOrEmpty(sharingData))
+                    return null;
+
+                return (JArray)JsonConvert.DeserializeObject(sharingData);
+            }
+
+            Test(() =>
+            {
+                var root = CreateTestRoot();
+
+                var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
+                content.Save();
+
+                var user = CreateUser("abc1@example.com");
+                
+                var originalFlags = RepositoryEnvironment.WorkingMode;
+
+                // switch to Exporting mode
+                RepositoryEnvironment.WorkingMode = new RepositoryEnvironment.WorkingModeFlags
+                {
+                    Exporting = true,
+                    Importing = false,
+                    Populating = false,
+                    SnAdmin = false
+                };
+
+                try
+                {
+                    // empty sharing field
+                    var items = GetSharingItemsFromFieldXml(content);
+                    Assert.AreEqual(null, items);
+
+                    var sd1 = content.Sharing.Share("abc1@example.com", SharingLevel.Open, SharingMode.Private);
+
+                    // load sharing again: 1 item
+                    items = GetSharingItemsFromFieldXml(content);
+
+                    Assert.AreEqual(1, items.Count);
+                    Assert.AreEqual(sd1.Id, items[0]["Id"].Value<string>());
+                    Assert.AreEqual(sd1.Token, items[0]["Token"].Value<string>());
+                    Assert.AreEqual(user.Path, items[0]["Identity"].Value<string>());
+                    Assert.AreEqual(User.Administrator.Path, items[0]["CreatorId"].Value<string>());
+                }
+                finally
+                {
+                    RepositoryEnvironment.WorkingMode = originalFlags;
+                }
+            });
+        }
+        [TestMethod]
+        public void Sharing_Import()
+        {
+            Test(() =>
+            {
+                var root = CreateTestRoot();
+
+                var content = Content.CreateNew(nameof(GenericContent), root, "Document-1");
+                content.Save();
+
+                var user = CreateUser("abc1@example.com");
+                var importData1 = @"<Sharing>
+[
+    {
+        ""Id"": """ + Guid.NewGuid() + @""",
+    ""Token"": ""abc1@example.com"",
+    ""Identity"": """ + user.Path + @""",
+    ""Mode"": ""Private"",
+    ""Level"": ""Open"",
+    ""CreatorId"": 1,
+    ""ShareDate"": ""2018-10-16T00:40:15Z""
+    },
+{
+        ""Id"": """ + Guid.NewGuid() + @""",
+    ""Token"": ""abc1@example.com"",
+    ""Identity"": " + user.Id + @",
+    ""Mode"": ""Private"",
+    ""Level"": ""Open"",
+    ""CreatorId"":""" + user.Path + @""",
+    ""ShareDate"": ""2018-10-16T00:40:15Z""
+    },
+{
+        ""Id"": """ + Guid.NewGuid() + @""",
+    ""Token"": ""abc3@example.com"",
+    ""Identity"": ""/Root/IMS/NOBODY"",
+    ""Mode"": ""Authenticated"",
+    ""Level"": ""Open"",
+    ""CreatorId"": 1,
+    ""ShareDate"": ""2018-10-16T00:40:15Z""
+    }
+]
+</Sharing>";
+
+                var originalFlags = RepositoryEnvironment.WorkingMode;
+
+                // switch to Exporting mode
+                RepositoryEnvironment.WorkingMode = new RepositoryEnvironment.WorkingModeFlags
+                {
+                    Exporting = true,
+                    Importing = false,
+                    Populating = false,
+                    SnAdmin = false
+                };
+
+                try
+                {
+                    Assert.AreEqual(0, content.Sharing.Items.Count());
+
+                    var xDoc = new XmlDocument();
+                    xDoc.LoadXml(importData1);
+
+                    content.Fields["Sharing"].Import(xDoc.DocumentElement);
+                    content.Save();
+
+                    // make sure the value is preserved after save
+                    content = Content.Load(content.Id);
+
+                    var items = content.Sharing.Items.ToArray();
+                    var sd1 = items[0];
+                    var sd2 = items[1];
+                    var sd3 = items[2];
+
+                    Assert.AreEqual(user.Email, sd1.Token);
+                    Assert.AreEqual(user.Id, sd1.Identity);
+                    Assert.AreEqual(1, sd1.CreatorId);
+
+                    Assert.AreEqual(user.Email, sd2.Token);
+                    Assert.AreEqual(user.Id, sd2.Identity);
+                    Assert.AreEqual(user.Id, sd2.CreatorId);
+
+                    // unknown identity
+                    Assert.AreEqual("abc3@example.com", sd3.Token);
+                    Assert.AreEqual(0, sd3.Identity);
+                    Assert.AreEqual(SharingMode.Authenticated, sd3.Mode);
+                }
+                finally
+                {
+                    RepositoryEnvironment.WorkingMode = originalFlags;
+                }
+            });
         }
 
         [TestMethod]
