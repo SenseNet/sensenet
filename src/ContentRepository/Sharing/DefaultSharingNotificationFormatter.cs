@@ -2,6 +2,11 @@
 
 namespace SenseNet.ContentRepository.Sharing
 {
+    /// <summary>
+    /// Default implementation of the ISharingNotificationFormatter interface.
+    /// Provides a static unchanged subject and inserts the sharing level and 
+    /// the content url with the sharing identifier to the body.
+    /// </summary>
     public class DefaultSharingNotificationFormatter : ISharingNotificationFormatter
     {
         public string FormatSubject(Node node, SharingData sharingData, string subject)

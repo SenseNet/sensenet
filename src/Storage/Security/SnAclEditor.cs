@@ -178,7 +178,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="entityId">The requested entity.</param>
         /// <param name="convertToExplicit">If true (default), all effective permissions will be copied explicitly.</param>
         /// <returns>A reference to this instance for calling more operations.</returns>
-        [Obsolete("Use the BreakInheritance(int entityId, EntryType[] categoriesToCopy) method instead")]
+        [Obsolete("Use the BreakInheritance(int entityId, EntryType[] categoriesToCopy) method instead.")]
         public new SnAclEditor BreakInheritance(int entityId, bool convertToExplicit = true)
         {
             base.BreakInheritance(entityId, convertToExplicit);
@@ -189,7 +189,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="entityId">The requested entity.</param>
         /// <param name="categoriesToCopy">After the break operation, all previous effective permissions will be
-        /// copied explicitly that are matched any of the given entry types.</param>
+        /// copied explicitly that match any of the given entry types.</param>
         /// <returns>A reference to this instance for calling more operations.</returns>
         public new AclEditor BreakInheritance(int entityId, EntryType[] categoriesToCopy)
         {
@@ -203,7 +203,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="entityId">The requested entity.</param>
         /// <param name="normalize">If true (default is false), the unnecessary explicit entries will be removed.</param>
         /// <returns>A reference to this instance for calling more operations.</returns>
-        [Obsolete("Use the UnbreakInheritance(int entityId, EntryType[] categoriesToNormalize) method instead")]
+        [Obsolete("Use the UnbreakInheritance(int entityId, EntryType[] categoriesToNormalize) method instead.")]
         public new SnAclEditor UnbreakInheritance(int entityId, bool normalize = false)
         {
             base.UnbreakInheritance(entityId, normalize);
@@ -213,7 +213,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// Restores the permission inheritance on the requested entity.
         /// </summary>
         /// <param name="entityId">The requested entity.</param>
-        /// <param name="categoriesToNormalize">Unnecessary explicit entries that match the categories will be removed.</param>
+        /// <param name="categoriesToNormalize">Unnecessary explicit entries that match the provided categories will be removed.</param>
         /// <returns>A reference to this instance for calling more operations.</returns>
         public new AclEditor UnbreakInheritance(int entityId, EntryType[] categoriesToNormalize)
         {

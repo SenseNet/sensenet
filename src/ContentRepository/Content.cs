@@ -215,6 +215,9 @@ namespace SenseNet.ContentRepository
         {
             get { return _contentHandler.Security; }
         }
+        /// <summary>
+        /// Gets the API entry point for managing content sharing.
+        /// </summary>
         public SharingHandler Sharing => _contentHandler is GenericContent gc ? gc.Sharing : null;
 
         /// <summary>

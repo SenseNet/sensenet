@@ -748,6 +748,10 @@ namespace SenseNet.ContentRepository
 
         private readonly object _sharingHandlerSync = new object();
         private SharingHandler _sharingHandler;
+
+        /// <summary>
+        /// Gets the API entry point for managing content sharing.
+        /// </summary>
         public SharingHandler Sharing
         {
             get

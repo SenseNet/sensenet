@@ -30,8 +30,6 @@ namespace SenseNet.Portal.Virtualization
         // ============================================================================================ IHttpModule
         public void Init(HttpApplication context)
         {
-            CounterManager.Reset("DelayingRequests");
-
             context.BeginRequest += OnEnter;
             context.EndRequest += OnEndRequest;
             context.AuthenticateRequest += OnAuthenticate;
@@ -504,7 +502,6 @@ namespace SenseNet.Portal.Virtualization
                 delayingRequestsNecessary = false;
             }
 
-            CounterManager.SetRawValue("DelayingRequests", delayingRequestsNecessary ? 1 : 0);
             return delayingRequestsNecessary;
         }
 

@@ -5,17 +5,6 @@ using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.ContentRepository.Sharing
 {
-    public enum SharingLevel
-    {
-        Open,
-        Edit
-    }
-    public enum SharingMode
-    {
-        Public,
-        Authenticated,
-        Private
-    }
     /// <summary>
     /// Represents a content sharing record.
     /// </summary>
@@ -42,6 +31,11 @@ namespace SenseNet.ContentRepository.Sharing
         public DateTime ShareDate { get; internal set; }
     }
 
+    /// <summary>
+    /// A special sharing data where the identity properties (Identity and CreatorId)
+    /// contain the original content id only if the current user has permission for them.
+    /// If not, the value will contain the id of the Somebody user.
+    /// </summary>
     internal class SafeSharingData : SharingData
     {
         private SafeSharingData() {}

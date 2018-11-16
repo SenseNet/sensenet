@@ -192,7 +192,9 @@
     <Compile Include="Sharing\SharingData.cs" />
     <Compile Include="Sharing\SharingFinalizerVisitor.cs" />
     <Compile Include="Sharing\SharingHandler.cs" />
+    <Compile Include="Sharing\SharingLevel.cs" />
     <Compile Include="Sharing\SharingMembershipExtender.cs" />
+    <Compile Include="Sharing\SharingMode.cs" />
     <Compile Include="Sharing\SharingNodeObserver.cs" />
     <Compile Include="Sharing\SharingNormalizerVisitor.cs" />
     <Compile Include="Sharing\SharingVisitor.cs" />
