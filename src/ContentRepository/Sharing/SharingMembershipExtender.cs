@@ -1,12 +1,18 @@
-﻿using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Linq;
+﻿using System.Collections.Specialized;
 using System.Web;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.ContentRepository.Sharing
 {
+    /// <summary>
+    /// A built-in membership extender for handlin sharing requests. When a request contains
+    /// a sharing identifier, this extender looks for the content that was shared using this id.
+    /// If the content is found and the sharing group that represents this sharing id exists,
+    /// this extender adds it to the extended identity list of the user and inserts it
+    /// into the session. Subsequent requests do not have to contain the sharing id, the one
+    /// in the session will take precedence.
+    /// </summary>
     internal class SharingMembershipExtender : MembershipExtenderBase
     {
         public override MembershipExtension GetExtension(IUser user)

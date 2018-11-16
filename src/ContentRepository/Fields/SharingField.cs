@@ -77,7 +77,7 @@ namespace SenseNet.ContentRepository.Fields
             else
                 writer.WriteString(sharingData);
         }
-        private void ExportDataPath(XmlWriter writer, string sharingData)
+        private static void ExportDataPath(XmlWriter writer, string sharingData)
         {
             // Convert all ids to path in case of identity properties
             // to let other repository instances import sharing data.
@@ -111,7 +111,7 @@ namespace SenseNet.ContentRepository.Fields
             gc.SharingData = DeserializeAndConvertPathToId(sharingData);
         }
 
-        private string DeserializeAndConvertPathToId(string sharingData)
+        private static string DeserializeAndConvertPathToId(string sharingData)
         {
             if (string.IsNullOrEmpty(sharingData))
                 return sharingData;
@@ -145,6 +145,7 @@ namespace SenseNet.ContentRepository.Fields
 
             var modified = false;
             var sharingArray = (JArray)JsonConvert.DeserializeObject(sharingData);
+
             foreach (var sharingObject in sharingArray)
             {
                 modified |= ConvertPathToId((JObject)sharingObject, "Identity");
