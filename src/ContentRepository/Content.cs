@@ -1632,6 +1632,15 @@ namespace SenseNet.ContentRepository
                             }
                         }
                     }
+                    else if (field.Name == "Sharing" && !string.IsNullOrEmpty(fieldNode?.InnerText) && 
+                             this.Sharing.Items.Any(sd => sd.Identity == 0))
+                    {
+                        // If this is the Sharing field and there are items with an unknown 
+                        // identity, update the value here, because all necessary content 
+                        // (sharing groups/users) should exist by now.
+                        field.Import(fieldNode, context);
+                        changed = true;
+                    }
                 }
             }
 
