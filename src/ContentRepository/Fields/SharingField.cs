@@ -107,7 +107,6 @@ namespace SenseNet.ContentRepository.Fields
 
             var sharingData = fieldNode?.InnerText.Trim();
 
-            //UNDONE: set sharing permissions too and handle nonexisting sharing groups
             gc.SharingData = DeserializeAndConvertPathToId(sharingData);
         }
 
