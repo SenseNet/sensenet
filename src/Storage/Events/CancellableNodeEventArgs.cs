@@ -18,7 +18,36 @@ namespace SenseNet.ContentRepository.Storage.Events
 		public DateTime Time { get { return _time; } }
 		public CancellableNodeEvent EventType { get { return _eventType; } }
         public IEnumerable<ChangedData> ChangedData { get; private set; }
-        public object CustomData { get; set; }
+
+	    internal const string CustomDataKey = "SnCustomEventData";
+
+        [Obsolete("Use the Get/SetCustomData methods instead.")]
+        public object CustomData
+	    {
+            get => GetCustomData(CustomDataKey);
+            set => SetCustomData(CustomDataKey, value);
+        }
+
+	    private readonly Dictionary<string, object> _customData = new Dictionary<string, object>();
+
+	    /// <summary>
+        /// Gets a previously stored custom data during node life cycle events.
+        /// </summary>
+	    public object GetCustomData(string key)
+	    {
+	        return _customData.TryGetValue(key, out var value) ? value : null;
+	    }
+	    internal IDictionary<string, object> GetCustomData()
+	    {
+	        return _customData;
+	    }
+        /// <summary>
+        /// Stores a custom object that will be accessible in later events.
+        /// </summary>
+	    public void SetCustomData(string key, object value)
+	    {
+	        _customData[key] = value;
+	    }
 
 		public string CancelMessage
 		{

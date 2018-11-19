@@ -207,6 +207,13 @@ namespace SenseNet.Tests
             });
         }
 
+        protected void AssertSequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual)
+        {
+            var e = string.Join(", ", expected.Select(x => x.ToString()));
+            var a = string.Join(", ", actual.Select(x => x.ToString()));
+            Assert.AreEqual(e, a);
+        }
+
         protected void SaveInitialIndexDocuments()
         {
             var idSet = DataProvider.LoadIdsOfNodesThatDoNotHaveIndexDocument(0, 11000);

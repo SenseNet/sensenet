@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Resources>
+  <ResourceClass name="Sharing">
+    <Languages>
+      <Language cultureName="en">
+        <data name="NotificationMailSubject" xml:space="preserve">
+          <value>Shared content</value>
+        </data>
+        <data name="NotificationMailBody" xml:space="preserve">
+          <value><p><h2>Shared content</h2><div>Click on the following link to open it.</div><div>{0}</div></p><p><div>Sharing level: <strong>{1}</strong></div></p></value>
+        </data>
+        <data name="SharingLevel_Open" xml:space="preserve">
+          <value>Open the content</value>
+        </data>
+        <data name="SharingLevel_Edit" xml:space="preserve">
+          <value>Edit the content</value>
+        </data>
+      </Language>
+      <Language cultureName="hu">
+        <data name="NotificationMailSubject" xml:space="preserve">
+          <value>Megosztott tartalom</value>
+        </data>
+        <data name="NotificationMailBody" xml:space="preserve">
+          <value><p><h2>Megosztott tartalom</h2><div>Kattintson a linkre a megnyitáshoz.</div><div>{0}</div></p><p><div>Megosztás módja: <strong>{1}</strong></div></p></value>
+        </data>
+        <data name="SharingLevel_Open" xml:space="preserve">
+          <value>Megnyithatja a tartalmat</value>
+        </data>
+        <data name="SharingLevel_Edit" xml:space="preserve">
+          <value>Szerkesztheti a tartalmat</value>
+        </data>
+      </Language>
+    </Languages>
+  </ResourceClass>
+</Resources>

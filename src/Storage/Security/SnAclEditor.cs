@@ -3,8 +3,7 @@ using SenseNet.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using SenseNet.Security;
 
 namespace SenseNet.ContentRepository.Storage.Security
 {
@@ -19,20 +18,21 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Gets the current SnSecurityContext
         /// </summary>
-        public new SnSecurityContext Context { get { return (SnSecurityContext)base.Context; } }
+        public new SnSecurityContext Context => (SnSecurityContext)base.Context;
 
-        internal SnAclEditor(SnSecurityContext context) : base(context ?? SecurityHandler.SecurityContext) { }
+        internal SnAclEditor(SnSecurityContext context, EntryType entryType = EntryType.Normal)
+            : base(context ?? SecurityHandler.SecurityContext, entryType) { }
 
-        private static new SenseNet.Security.AclEditor Create(SenseNet.Security.SecurityContext context)
+        private new static SenseNet.Security.AclEditor Create(SenseNet.Security.SecurityContext context, EntryType entryType = EntryType.Normal)
         {
             throw new NotSupportedException();
         }
         /// <summary>
         /// Returns with a new instance of the SnAclEditor with a SecurityContext as the current context.
         /// </summary>
-        public static SnAclEditor Create(SnSecurityContext context)
+        public static SnAclEditor Create(SnSecurityContext context, EntryType entryType = EntryType.Normal)
         {
-            return new SnAclEditor(context);
+            return new SnAclEditor(context, entryType);
         }
 
         /*=========================================================================================== method for backward compatibility */
@@ -116,8 +116,8 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="localOnly">Determines whether the edited entry is inheritable or not.</param>
         /// <param name="allowBits">Aggregated bitmask. Every bit means a permission. The bit number is derived from the Index of the PermissionTypeBase.
         /// In the bitmask the 1 means the permission that must be allowed.</param>
-        /// <param name="allowBits">Aggregated bitmask. Every bit means a permission. The bit number is derived from the Index of the PermissionTypeBase.
-        /// In the bitmask the 1 means the permission that must be allowed. Deny bits override the allow bits</param>
+        /// <param name="denyBits">Aggregated bitmask. Every bit means a permission. The bit number is derived from the Index of the PermissionTypeBase.
+        /// In the bitmask the 1 means the permission that must be denied. Deny bits override the allow bits</param>
         /// <returns>A reference to this instance for calling more operations.</returns>
         public SnAclEditor Set(int entityId, int identityId, bool localOnly, ulong allowBits, ulong denyBits)
         {
@@ -147,7 +147,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="localOnly">Determines whether the edited entry is inheritable or not.</param>
         /// <param name="allowBits">Aggregated bitmask. Every bit means a permission. The bit number is derived from the Index of the PermissionTypeBase.
         /// In the bitmask the 1 means the permission that must be cleared in the allowed set.</param>
-        /// <param name="allowBits">Aggregated bitmask. Every bit means a permission. The bit number is derived from the Index of the PermissionTypeBase.
+        /// <param name="denyBits">Aggregated bitmask. Every bit means a permission. The bit number is derived from the Index of the PermissionTypeBase.
         /// In the bitmask the 1 means the permission that must be cleared in the denied set.</param>
         /// <returns>A reference to this instance for calling more operations.</returns>
         public SnAclEditor Reset(int entityId, int identityId, bool localOnly, ulong allowBits, ulong denyBits)
@@ -178,20 +178,46 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="entityId">The requested entity.</param>
         /// <param name="convertToExplicit">If true (default), all effective permissions will be copied explicitly.</param>
         /// <returns>A reference to this instance for calling more operations.</returns>
+        [Obsolete("Use the BreakInheritance(int entityId, EntryType[] categoriesToCopy) method instead.")]
         public new SnAclEditor BreakInheritance(int entityId, bool convertToExplicit = true)
         {
             base.BreakInheritance(entityId, convertToExplicit);
             return this;
         }
         /// <summary>
+        /// Cancels the permission inheritance on the requested entity.
+        /// </summary>
+        /// <param name="entityId">The requested entity.</param>
+        /// <param name="categoriesToCopy">After the break operation, all previous effective permissions will be
+        /// copied explicitly that match any of the given entry types.</param>
+        /// <returns>A reference to this instance for calling more operations.</returns>
+        public new AclEditor BreakInheritance(int entityId, EntryType[] categoriesToCopy)
+        {
+            base.BreakInheritance(entityId, categoriesToCopy);
+            return this;
+        }
+
+        /// <summary>
         /// Restores the permission inheritance on the requested entity.
         /// </summary>
         /// <param name="entityId">The requested entity.</param>
         /// <param name="normalize">If true (default is false), the unnecessary explicit entries will be removed.</param>
         /// <returns>A reference to this instance for calling more operations.</returns>
+        [Obsolete("Use the UnbreakInheritance(int entityId, EntryType[] categoriesToNormalize) method instead.")]
         public new SnAclEditor UnbreakInheritance(int entityId, bool normalize = false)
         {
             base.UnbreakInheritance(entityId, normalize);
+            return this;
+        }
+        /// <summary>
+        /// Restores the permission inheritance on the requested entity.
+        /// </summary>
+        /// <param name="entityId">The requested entity.</param>
+        /// <param name="categoriesToNormalize">Unnecessary explicit entries that match the provided categories will be removed.</param>
+        /// <returns>A reference to this instance for calling more operations.</returns>
+        public new AclEditor UnbreakInheritance(int entityId, EntryType[] categoriesToNormalize)
+        {
+            base.UnbreakInheritance(entityId, categoriesToNormalize);
             return this;
         }
 
@@ -276,7 +302,7 @@ namespace SenseNet.ContentRepository.Storage.Security
                         op1.Successful = true;
                     }
 
-                    var customData = args1.CustomData;
+                    var customData = args1.GetCustomData();
 
                     // main operation
                     base.Apply();
@@ -346,27 +372,30 @@ namespace SenseNet.ContentRepository.Storage.Security
 
         /// <summary>
         /// Copies all effective entries of the source entity to the target entity as explicite entries.
+        /// Only the AclEditor's EntryType category is affected.
         /// </summary>
         /// <param name="sourceEntityId">Id of the source entity.</param>
         /// <param name="targetEntityId">Id of the target entity.</param>
         /// <returns>A reference to this instance for calling more operations.</returns>
         public SnAclEditor CopyEffectivePermissions(int sourceEntityId, int targetEntityId)
         {
-            var aces = this.Context.GetEffectiveEntries(sourceEntityId);
+            var aces = this.Context.GetEffectiveEntries(sourceEntityId, null, this.EntryType);
             foreach (var ace in aces)
                 Set(targetEntityId, ace.IdentityId, ace.LocalOnly, ace.AllowBits, ace.DenyBits);
 
             return this;
         }
         /// <summary>
-        /// Resets all explicite permission settings on the requested entity.
+        /// Resets all explicit permission settings on the requested entity.
+        /// Only the given entry type is affected.
         /// Permission inheritance is not changed.
         /// </summary>
         /// <param name="entityId">Id of the requested entity.</param>
+        /// <param name="entryType">Affected entry type. Default is Normal.</param>
         /// <returns>A reference to this instance for calling more operations.</returns>
-        public SnAclEditor RemoveExplicitEntries(int entityId)
+        public SnAclEditor RemoveExplicitEntries(int entityId, EntryType entryType = EntryType.Normal)
         {
-            var aces = this.Context.GetExplicitEntries(entityId);
+            var aces = this.Context.GetExplicitEntries(entityId, null, entryType);
             foreach (var ace in aces)
                 Reset(entityId, ace.IdentityId, ace.LocalOnly, ace.AllowBits, ace.DenyBits);
             return this;

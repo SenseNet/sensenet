@@ -795,17 +795,18 @@ namespace SenseNet.ContentRepository.Storage.Security
             SecurityContext.AssertPermission(contentId, PermissionType.SeePermissions);
             return GetExplicitEntriesAsSystemUser(contentId, relatedIdentities);
         }
+
         /// <summary>
         /// Return with the passed content's explicit entries. There is permission check so you must call this method from a safe block.
         /// </summary>
         /// <param name="contentId">Id of the content.</param>
         /// <param name="relatedIdentities">If not passed, the current user's related identities is focused.</param>
-        public static List<AceInfo> GetExplicitEntriesAsSystemUser(int contentId, IEnumerable<int> relatedIdentities = null)
-        {
-            return SecurityContext.GetExplicitEntries(contentId, relatedIdentities);
-        }
+	    public static List<AceInfo> GetExplicitEntriesAsSystemUser(int contentId, IEnumerable<int> relatedIdentities = null)
+	    {
+	        return SecurityContext.GetExplicitEntries(contentId, relatedIdentities, EntryType.Normal);
+	    }
 
-        /// <summary>
+	    /// <summary>
         /// Return with the current content's effective entries. Current user must have SeePermissions permission.
         /// </summary>
         public List<AceInfo> GetEffectiveEntries()
@@ -829,7 +830,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="relatedIdentities">If not passed, the current user's related identities is focused.</param>
         public static List<AceInfo> GetEffectiveEntriesAsSystemUser(int contentId, IEnumerable<int> relatedIdentities = null)
         {
-            return SecurityContext.GetEffectiveEntries(contentId, relatedIdentities);
+            return SecurityContext.GetEffectiveEntries(contentId, relatedIdentities, EntryType.Normal);
         }
         #endregion
 
@@ -837,6 +838,7 @@ namespace SenseNet.ContentRepository.Storage.Security
 
         /// <summary>
         /// Returns the AccessControlList of the current content.
+        /// The result contains only Normal entries.
         /// </summary>
         public AccessControlList GetAcl()
         {
@@ -845,6 +847,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Returns the AccessControlList of the requested content.
         /// Required permission: SeePermissions
+        /// The result contains only Normal entries.
         /// </summary>
         public static AccessControlList GetAcl(int nodeId)
         {
@@ -870,9 +873,16 @@ namespace SenseNet.ContentRepository.Storage.Security
         public void RemoveExplicitEntries(SnAclEditor aclEditor = null)
         {
             if (aclEditor == null)
-                CreateAclEditor().RemoveExplicitEntries(_node.Id).Apply();
-            else
-                aclEditor.RemoveExplicitEntries(_node.Id);
+            {
+                CreateAclEditor()
+                    .RemoveExplicitEntries(_node.Id)
+                    .Apply();
+                return;
+            }
+            if (aclEditor.EntryType != EntryType.Normal)
+                throw new InvalidOperationException(
+                    "EntryType mismatch int the passed AclEditor. Only the EntryType.Normal category is allowed in this context.");
+            aclEditor.RemoveExplicitEntries(_node.Id);
         }
 
         #endregion
@@ -1027,7 +1037,9 @@ namespace SenseNet.ContentRepository.Storage.Security
             var contentId = content.Id;
             if (!IsEntityInherited(contentId))
                 return;
-            SecurityContext.CreateAclEditor().BreakInheritance(contentId, convertToExplicit).Apply();
+            SecurityContext.CreateAclEditor()
+                .BreakInheritance(contentId, convertToExplicit ? new[] { EntryType.Normal } : new EntryType[0])
+                .Apply();
         }
         /// <summary>
         /// Restores the permission inheritance on the current content.
@@ -1048,7 +1060,10 @@ namespace SenseNet.ContentRepository.Storage.Security
             var contentId = content.Id;
             if (IsEntityInherited(contentId))
                 return;
-            SecurityContext.CreateAclEditor().UnbreakInheritance(contentId, normalize).Apply();
+            SecurityContext.CreateAclEditor()
+                .UnbreakInheritance(contentId,
+                    normalize ? new[] { EntryType.Normal } : new EntryType[0])
+                .Apply();
         }
 
         #endregion
@@ -1735,11 +1750,11 @@ namespace SenseNet.ContentRepository.Storage.Security
             if (breakNode != null)
             {
                 var convertToExplicit = clearNode == null;
-                aclEditor.BreakInheritance(_node.Id, convertToExplicit);
+                aclEditor.BreakInheritance(_node.Id, convertToExplicit ? new[] {EntryType.Normal} : new EntryType[0]);
             }
             else
             {
-                aclEditor.UnbreakInheritance(_node.Id);
+                aclEditor.UnbreakInheritance(_node.Id, new[] { EntryType.Normal });
             }
             // executing 'Clear'
             if (clearNode != null)
@@ -1878,7 +1893,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             }
             var aclEd = CreateAclEditor();
             if (@break)
-                aclEd.BreakInheritance(targetId, false);
+                aclEd.BreakInheritance(targetId, new EntryType[0]);
             if (@clear)
                 aclEd.RemoveExplicitEntries(targetId);
             aclEd.CopyEffectivePermissions(sourceId, targetId);

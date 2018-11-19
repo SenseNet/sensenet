@@ -136,6 +136,8 @@ namespace SenseNet.ContentRepository
 
             SecurityHandler.StartSecurity(_settings.IsWebContext);
 
+            SnQueryVisitor.VisitorExtensionTypes = new[] {typeof(Sharing.SharingVisitor)};
+
             using (new SystemAccount())
                 StartManagers();
 

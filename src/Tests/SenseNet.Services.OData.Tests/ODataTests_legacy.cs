@@ -19,6 +19,7 @@ using System.Web;
 using System.Xml;
 using SenseNet.Configuration;
 using SenseNet.Portal.Exchange;
+using SenseNet.Security;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable ArrangeThisQualifier
@@ -3331,10 +3332,10 @@ namespace SenseNet.Services.OData.Tests
                         handler.ProcessRequest(pc.OwnerHttpContext, "POST", MemoryStream.Null);
                         entities = GetEntities(output);
                     }
-                    var ids = String.Join(", ", entities.Select(e => e.Id));
+                    var ids = String.Join(", ", entities.Select(e => e.Id).OrderBy(x => x).Select(x => x.ToString()));
                     var expids = String.Join(", ",
                         CreateSafeContentQuery("+InFolder:/Root/IMS/BuiltIn/Portal +TypeIs:User .AUTOFILTERS:OFF")
-                            .Execute().Identifiers);
+                            .Execute().Identifiers.OrderBy(x => x).Select(x => x.ToString()));
                     // 6, 1
                     Assert.AreEqual(expids, ids);
 
@@ -3346,10 +3347,10 @@ namespace SenseNet.Services.OData.Tests
                         handler.ProcessRequest(pc.OwnerHttpContext, "POST", MemoryStream.Null);
                         entities = GetEntities(output);
                     }
-                    ids = String.Join(", ", entities.Select(e => e.Id));
+                    ids = String.Join(", ", entities.Select(e => e.Id).OrderBy(x => x).Select(x => x.ToString()));
                     expids = String.Join(", ",
                         CreateSafeContentQuery("+InFolder:/Root/IMS/BuiltIn/Portal -TypeIs:User .AUTOFILTERS:OFF")
-                            .Execute().Identifiers);
+                            .Execute().Identifiers.OrderBy(x => x).Select(x => x.ToString()));
                     // 8, 9, 7
                     Assert.AreEqual(expids, ids);
 
@@ -4030,7 +4031,7 @@ namespace SenseNet.Services.OData.Tests
                 node.Save();
 
                 SecurityHandler.CreateAclEditor()
-                    .BreakInheritance(root.Id)
+                    .BreakInheritance(root.Id, new[] { EntryType.Normal })
                     .ClearPermission(root.Id, User.Visitor.Id, false, PermissionType.See)
                     .Allow(node.Id, User.Visitor.Id, false, PermissionType.Save)
                     .Apply();

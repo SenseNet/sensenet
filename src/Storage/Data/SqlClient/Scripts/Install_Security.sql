@@ -19,6 +19,7 @@ IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[EF
 BEGIN
 CREATE TABLE [dbo].[EFEntries](
 	[EFEntityId] [int] NOT NULL,
+	[EntryType] [int] NOT NULL,
 	[IdentityId] [int] NOT NULL,
 	[LocalOnly] [bit] NOT NULL,
 	[AllowBits] [bigint] NOT NULL,
@@ -26,7 +27,8 @@ CREATE TABLE [dbo].[EFEntries](
  CONSTRAINT [PK_dbo.EFEntries] PRIMARY KEY CLUSTERED 
 (
 	[EFEntityId] ASC,
-	[IdentityId] ASC,
+    [EntryType] ASC,
+    [IdentityId] ASC,
 	[LocalOnly] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY]

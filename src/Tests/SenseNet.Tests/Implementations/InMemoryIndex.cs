@@ -348,7 +348,11 @@ namespace SenseNet.Tests.Implementations
                 var list = new List<string>();
                 data.Add(item.Key, list);
                 foreach (var term in item.Value)
-                    list.Add(term.Key);
+                    list.Add(term.Key + ": " + string.Join(", ",
+                                 term.Value
+                                 .OrderBy(x => x)
+                                 .Select(x => x.ToString())
+                                 .ToArray()));
             }
 
             using (var writer = new StreamWriter(fileName, false))

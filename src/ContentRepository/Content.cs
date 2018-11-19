@@ -29,6 +29,7 @@ using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.Search.Querying;
 using SenseNet.Tools;
+using SenseNet.ContentRepository.Sharing;
 
 namespace SenseNet.ContentRepository
 {
@@ -214,6 +215,11 @@ namespace SenseNet.ContentRepository
         {
             get { return _contentHandler.Security; }
         }
+        /// <summary>
+        /// Gets the API entry point for managing content sharing.
+        /// </summary>
+        public SharingHandler Sharing => _contentHandler is GenericContent gc ? gc.Sharing : null;
+
         /// <summary>
         /// Gets the field <see cref="System.Collections.Generic.Dictionary(string, Field)">Dictionary</see> of the instance.
         /// </summary>
@@ -1628,6 +1634,15 @@ namespace SenseNet.ContentRepository
                                 throw;
                             }
                         }
+                    }
+                    else if (field.Name == "Sharing" && !string.IsNullOrEmpty(fieldNode?.InnerText) && 
+                             this.Sharing.Items.Any(sd => sd.Identity == 0))
+                    {
+                        // If this is the Sharing field and there are items with an unknown 
+                        // identity, update the value here, because all necessary content 
+                        // (sharing groups/users) should exist by now.
+                        field.Import(fieldNode, context);
+                        changed = true;
                     }
                 }
             }

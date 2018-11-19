@@ -18,6 +18,7 @@
       <dependency id="SenseNet.Services" version="7.4.1" />
       <dependency id="SenseNet.SnAdmin" version="1.4.4" />
       <dependency id="SenseNet.Search.Lucene29.Local" version="7.2.1" />
+      <dependency id="SenseNet.Security.EF6SecurityStore" version="4.0.0" />
     </dependencies>
   </metadata>
   <files>

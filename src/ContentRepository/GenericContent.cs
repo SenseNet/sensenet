@@ -19,6 +19,8 @@ using SenseNet.ContentRepository.Storage.Events;
 using SenseNet.Search.Querying;
 using SenseNet.Tools;
 using System.Runtime.CompilerServices;
+using SenseNet.ContentRepository.Sharing;
+
 // ReSharper disable ArrangeThisQualifier
 // ReSharper disable VirtualMemberCallInConstructor
 // ReSharper disable RedundantBaseQualifier
@@ -744,6 +746,39 @@ namespace SenseNet.ContentRepository
         /// </summary>
         protected override bool IsIndexingEnabled => this.ContentType.IndexingEnabled;
 
+        private readonly object _sharingHandlerSync = new object();
+        private SharingHandler _sharingHandler;
+
+        /// <summary>
+        /// Gets the API entry point for managing content sharing.
+        /// </summary>
+        public SharingHandler Sharing
+        {
+            get
+            {
+                if (_sharingHandler == null)
+                    lock (_sharingHandlerSync)
+                        if (_sharingHandler == null)
+                            _sharingHandler = new SharingHandler(this);
+                return _sharingHandler;
+            }
+        }
+
+        [RepositoryProperty(nameof(SharingData), RepositoryDataType.Text)]
+        internal string SharingData
+        {
+            get => this.GetProperty<string>(nameof(SharingData));
+            set => SetSharingData(value);
+        }
+
+        internal void SetSharingData(string data, bool resetItems = true)
+        {
+            this.SetProperty(nameof(SharingData), data);
+
+            if (resetItems)
+                this.Sharing.ItemsChanged();
+        }
+
         /// <summary>
         /// Returns a property value by name. Well-known and dynamic properties can also be accessed here.
         /// In derived content handlers this should be overridden and in case of local strongly typed
@@ -807,6 +842,8 @@ namespace SenseNet.ContentRepository
                     return this.IsFolder;
                 case "BrowseUrl":
                     return this.BrowseUrl;
+                case "Sharing":
+                    return null;
                 default:
                     return base[name];
             }
@@ -861,6 +898,7 @@ namespace SenseNet.ContentRepository
                 case "Publishable":
                 case "Versions":
                 case "CheckedOutTo":
+                case "Sharing":
                     // do nothing, these props are readonly
                     break;
                 default:

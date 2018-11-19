@@ -82,8 +82,8 @@
     <Reference Include="SenseNet.Preview, Version=7.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\SenseNet.Preview.7.0.0\lib\net451\SenseNet.Preview.dll</HintPath>
     </Reference>
-    <Reference Include="SenseNet.Security, Version=3.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SenseNet.Security.3.0.0\lib\netstandard2.0\SenseNet.Security.dll</HintPath>
+    <Reference Include="SenseNet.Security, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SenseNet.Security.4.0.0\lib\netstandard2.0\SenseNet.Security.dll</HintPath>
     </Reference>
     <Reference Include="SenseNet.TaskManagement.Core, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\SenseNet.TaskManagement.Core.1.1.0.0\lib\net45\SenseNet.TaskManagement.Core.dll</HintPath>
@@ -166,7 +166,9 @@
     <Compile Include="Configuration\RepositoryStructure.cs" />
     <Compile Include="Configuration\Services.cs" />
     <Compile Include="Configuration\Versioning.cs" />
+    <Compile Include="Fields\SharingField.cs" />
     <Compile Include="ISnComponent.cs" />
+    <Compile Include="OData\ODataObject.cs" />
     <Compile Include="Packaging\Steps\DeleteContentType.cs" />
     <Compile Include="Packaging\Steps\EditConfiguration.cs" />
     <Compile Include="Packaging\Steps\EnsureConfigSection.cs" />
@@ -180,7 +182,22 @@
     <Compile Include="Packaging\Steps\SelectXmlValue.cs" />
     <Compile Include="Packaging\Steps\WhileDatabaseValue.cs" />
     <Compile Include="RepositoryBuilderExtensions.cs" />
+    <Compile Include="Search\Indexing\FieldIndexHandlers\SharingIndexHandler.cs" />
     <Compile Include="Search\Indexing\NullPopulator.cs" />
+    <Compile Include="Sharing\DefaultSharingNotificationFormatter.cs" />
+    <Compile Include="Sharing\InvalidContentSharingQueryException.cs" />
+    <Compile Include="Sharing\ISharingNotificationFormatter.cs" />
+    <Compile Include="Sharing\SharingActions.cs" />
+    <Compile Include="Sharing\SharingComposerVisitor.cs" />
+    <Compile Include="Sharing\SharingData.cs" />
+    <Compile Include="Sharing\SharingFinalizerVisitor.cs" />
+    <Compile Include="Sharing\SharingHandler.cs" />
+    <Compile Include="Sharing\SharingLevel.cs" />
+    <Compile Include="Sharing\SharingMembershipExtender.cs" />
+    <Compile Include="Sharing\SharingMode.cs" />
+    <Compile Include="Sharing\SharingNodeObserver.cs" />
+    <Compile Include="Sharing\SharingNormalizerVisitor.cs" />
+    <Compile Include="Sharing\SharingVisitor.cs" />
     <Compile Include="SnComponent.cs" />
     <Compile Include="Linq\CaseInsensitiveFilterVisitor.cs" />
     <Compile Include="Packaging\Dependency.cs" />

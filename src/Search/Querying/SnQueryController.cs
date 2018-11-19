@@ -40,9 +40,10 @@ namespace SenseNet.Search.Querying
         {
             var permissionFilter = _permissionFilterFactory.Create(this, context);
             PrepareQuery(this, context);
+            var query = ApplyVisitors(this);
             //TODO: Part of 'CQL to SQL compiler' for future use.
-            return TryExecuteQuery(this, permissionFilter, context)
-                   ?? context.QueryEngine.ExecuteQuery(this, permissionFilter, context);
+            return TryExecuteQuery(query, permissionFilter, context)
+                   ?? context.QueryEngine.ExecuteQuery(query, permissionFilter, context);
         }
 
         /// <summary>
@@ -60,9 +61,10 @@ namespace SenseNet.Search.Querying
         {
             var permissionFilter = _permissionFilterFactory.Create(this, context);
             PrepareQuery(this, context);
+            var query = ApplyVisitors(this);
             //TODO: Part of 'CQL to SQL compiler' for future use.
-            return TryExecuteQueryAndProject(this, permissionFilter, context)
-                   ?? context.QueryEngine.ExecuteQueryAndProject(this, permissionFilter, context);
+            return TryExecuteQueryAndProject(query, permissionFilter, context)
+                   ?? context.QueryEngine.ExecuteQueryAndProject(query, permissionFilter, context);
         }
 
         /// <summary>
@@ -119,6 +121,42 @@ namespace SenseNet.Search.Querying
             }
 
             query.FiltersPrepared = true;
+        }
+
+        internal static SnQuery ApplyVisitors(SnQuery query)
+        {
+            var queryTree = query.QueryTree;
+
+            var visitorTypes = SnQueryVisitor.VisitorExtensionTypes;
+            if (visitorTypes == null || visitorTypes.Length == 0)
+                return query;
+
+            foreach (var visitorType in SnQueryVisitor.VisitorExtensionTypes)
+            {
+                var visitor = (SnQueryVisitor)Activator.CreateInstance(visitorType);
+                queryTree = visitor.Visit(queryTree);
+            }
+
+            if (ReferenceEquals(queryTree, query.QueryTree))
+                return query;
+
+            var newQuery = Create(queryTree);
+
+            newQuery.Querytext = query.Querytext;
+            newQuery.Projection = query.Projection;
+            newQuery.Top = query.Top;
+            newQuery.Skip = query.Skip;
+            newQuery.Sort = query.Sort;
+            newQuery.EnableAutofilters = query.EnableAutofilters;
+            newQuery.EnableLifespanFilter = query.EnableLifespanFilter;
+            newQuery.CountOnly = query.CountOnly;
+            newQuery.QueryExecutionMode = query.QueryExecutionMode;
+            newQuery.AllVersions = query.AllVersions;
+            newQuery.CountAllPages = query.CountAllPages;
+            newQuery.ThrowIfEmpty = query.ThrowIfEmpty;
+            newQuery.ExistenceOnly = query.ExistenceOnly;
+
+            return newQuery;
         }
 
         private static bool IsAutofilterEnabled(FilterStatus value)

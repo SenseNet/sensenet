@@ -2622,7 +2622,7 @@ namespace SenseNet.ContentRepository.Storage
                         this.ChangedData = null;
                     }
 
-                    object customData = null;
+                    IDictionary<string, object> customData = null;
                     if (!lockBefore)
                     {
                         CancellableNodeEventArgs args = null;
@@ -2640,7 +2640,7 @@ namespace SenseNet.ContentRepository.Storage
                         {
                             throw new CancelNodeEventException(args.CancelMessage, args.EventType, this);
                         }
-                        customData = args.CustomData;
+                        customData = args.GetCustomData();
                     }
 
                     BenchmarkCounter.IncrementBy(BenchmarkCounter.CounterName.BeforeSaveToDb, _data != null ? _data.SavingTimer.ElapsedTicks : 0);
@@ -2989,17 +2989,17 @@ namespace SenseNet.ContentRepository.Storage
             if (Node.Exists(targetPath))
                 throw new NodeAlreadyExistsException(String.Concat("Cannot move the content because the target folder already contains a content named '", this.Name, "'."));
 
-            object customData = null;
             using (var audit = new AuditBlock(AuditEvent.ContentMoved, "Trying to move content.", new Dictionary<string, object>
             {                { "Id", Id }, {"Path", Path }, {"Target", targetPath }            }))
             {
+                IDictionary<string, object> customData;
                 using (var treeLock = TreeLock.Acquire(this.Path, RepositoryPath.Combine(target.Path, this.Name)))
                 {
                     var args = new CancellableNodeOperationEventArgs(this, target, CancellableNodeEvent.Moving);
                     FireOnMoving(args);
                     if (args.Cancel)
                         throw new CancelNodeEventException(args.CancelMessage, args.EventType, this);
-                    customData = args.CustomData;
+                    customData = args.GetCustomData();
 
                     var pathToInvalidate = String.Concat(this.Path, "/");
 
@@ -3175,14 +3175,14 @@ namespace SenseNet.ContentRepository.Storage
                 targetNode.AssertLock();
 
                 // fire copying and cancel events
-                var customDataDictionary = new Dictionary<int, object>();
+                var customDataDictionary = new Dictionary<int, IDictionary<string, object>>();
                 foreach (var node in col2)
                 {
                     var args = new CancellableNodeOperationEventArgs(node, targetNode, CancellableNodeEvent.Copying);
                     node.FireOnCopying(args);
                     if (!args.Cancel)
                     {
-                        customDataDictionary.Add(node.Id, args.CustomData);
+                        customDataDictionary.Add(node.Id, args.GetCustomData());
                         continue;
                     }
                     errors.Add(new CancelNodeEventException(args.CancelMessage, args.EventType, node));
@@ -3292,7 +3292,7 @@ namespace SenseNet.ContentRepository.Storage
                 {
                     throw new CancelNodeEventException(args.CancelMessage, args.EventType, this);
                 }
-                var customData = args.CustomData;
+                var customData = args.GetCustomData();
                 var targetName = newName;
                 int i = 0;
                 var nodeList = target.GetChildren();
@@ -3549,7 +3549,7 @@ namespace SenseNet.ContentRepository.Storage
                     FireOnDeletingPhysically(args);
                     if (args.Cancel)
                         throw new CancelNodeEventException(args.CancelMessage, args.EventType, this);
-                    var customData = args.CustomData;
+                    var customData = args.GetCustomData();
 
                     var contentListTypesInTree = (this is IContentList) ?
                         new List<ContentListType>(new[] { this.ContentListType }) :
@@ -3727,7 +3727,7 @@ namespace SenseNet.ContentRepository.Storage
                 col2.Add(node);
             }
 
-            var customDataDictionary = new Dictionary<int, object>();
+            var customDataDictionary = new Dictionary<int, IDictionary<string, object>>();
             foreach (var nodeRef in col2)
             {
                 var internalError = false;
@@ -3737,7 +3737,7 @@ namespace SenseNet.ContentRepository.Storage
                 nodeRef.FireOnDeletingPhysically(args);
                 if (args.Cancel)
                     throw new CancelNodeEventException(args.CancelMessage, args.EventType, nodeRef);
-                customDataDictionary.Add(nodeRef.Id, args.CustomData);
+                customDataDictionary.Add(nodeRef.Id, args.GetCustomData());
 
                 try
                 {
@@ -3916,7 +3916,7 @@ namespace SenseNet.ContentRepository.Storage
                 return;
             NodeObserver.FireOnNodeCreating(Creating, this, e, _disabledObservers);
         }
-        private void FireOnCreated(object customData)
+        private void FireOnCreated(IDictionary<string, object> customData)
         {
             NodeEventArgs e = new NodeEventArgs(this, NodeEvent.Created, customData);
             OnCreated(this, e);
@@ -3929,7 +3929,7 @@ namespace SenseNet.ContentRepository.Storage
                 return;
             NodeObserver.FireOnNodeModifying(Modifying, this, e, _disabledObservers);
         }
-        private void FireOnModified(string originalSourcePath, object customData, IEnumerable<ChangedData> changedData)
+        private void FireOnModified(string originalSourcePath, IDictionary<string, object> customData, IEnumerable<ChangedData> changedData)
         {
             NodeEventArgs e = new NodeEventArgs(this, NodeEvent.Modified, customData, originalSourcePath, changedData);
             OnModified(this, e);
@@ -3942,7 +3942,7 @@ namespace SenseNet.ContentRepository.Storage
                 return;
             NodeObserver.FireOnNodeDeleting(Deleting, this, e, _disabledObservers);
         }
-        private void FireOnDeleted(object customData)
+        private void FireOnDeleted(IDictionary<string, object> customData)
         {
             NodeEventArgs e = new NodeEventArgs(this, NodeEvent.Deleted, customData);
             OnDeleted(this, e);
@@ -3955,7 +3955,7 @@ namespace SenseNet.ContentRepository.Storage
                 return;
             NodeObserver.FireOnNodeDeletingPhysically(DeletingPhysically, this, e, _disabledObservers);
         }
-        private void FireOnDeletedPhysically(object customData)
+        private void FireOnDeletedPhysically(IDictionary<string, object> customData)
         {
             NodeEventArgs e = new NodeEventArgs(this, NodeEvent.DeletedPhysically, customData);
             OnDeletedPhysically(this, e);
@@ -3968,7 +3968,7 @@ namespace SenseNet.ContentRepository.Storage
                 return;
             NodeObserver.FireOnNodeMoving(Moving, this, e, _disabledObservers);
         }
-        private void FireOnMoved(Node targetNode, object customData, string originalSourcePath)
+        private void FireOnMoved(Node targetNode, IDictionary<string, object> customData, string originalSourcePath)
         {
             NodeOperationEventArgs e = new NodeOperationEventArgs(this, targetNode, NodeEvent.Moved, customData, originalSourcePath);
             OnMoved(this, e);
@@ -3981,7 +3981,7 @@ namespace SenseNet.ContentRepository.Storage
                 return;
             NodeObserver.FireOnNodeCopying(Copying, this, e, _disabledObservers);
         }
-        private void FireOnCopied(Node targetNode, object customData)
+        private void FireOnCopied(Node targetNode, IDictionary<string, object> customData)
         {
             NodeOperationEventArgs e = new NodeOperationEventArgs(this, targetNode, NodeEvent.Copied, customData);
             OnCopied(this, e);

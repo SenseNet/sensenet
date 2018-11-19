@@ -88,19 +88,19 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Creates a new instance of the SnAclEditor class for modifying permissions. 
         /// </summary>
-        public new SnAclEditor CreateAclEditor()
+        public new SnAclEditor CreateAclEditor(EntryType entryType = EntryType.Normal)
         {
-            return SnAclEditor.Create(this);
+            return SnAclEditor.Create(this, entryType);
         }
         /// <summary>
         /// Returns the AccessControlList of the passed content to help building a rich GUI for modifications.
         /// The current user must have SeePermissions permission on the requested content.
         /// The content must exist.
         /// </summary>
-        public new AccessControlList GetAcl(int contentId)
+        public new AccessControlList GetAcl(int contentId, EntryType entryType = EntryType.Normal)
         {
             this.AssertPermission(contentId, PermissionType.SeePermissions);
-            return base.GetAcl(contentId);
+            return base.GetAcl(contentId, entryType);
         }
 
         /// <summary>
@@ -110,12 +110,14 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="contentId">Id of the content.</param>
         /// <param name="relatedIdentities">Optional, can be null.
-        /// If it is provided, the output will be filtered for the related identities.
+        /// If it is provided, the output will be filtered for the related identities or entry type.
         /// Empty collection means: nobody so in case of passing empty,
         /// the method will return with an empty list.</param>
-        public new List<AceInfo> GetEffectiveEntries(int contentId, IEnumerable<int> relatedIdentities = null)
+        /// <param name="entryType">Optional filter parameter.
+        /// If it is provided, the output contains only the matched entries.</param>
+        public new List<AceInfo> GetEffectiveEntries(int contentId, IEnumerable<int> relatedIdentities = null, EntryType? entryType = null)
         {
-            return base.GetEffectiveEntries(contentId, relatedIdentities);
+            return base.GetEffectiveEntries(contentId, relatedIdentities, entryType);
         }
         /// <summary>
         /// Returns an aggregated effective entries of the requested content.
@@ -127,9 +129,11 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// If it is provided, the output will be filtered for the related identities.
         /// Empty collection means: nobody so in case of passing empty,
         /// the method will return with empty list.</param>
-        public new List<AceInfo> GetExplicitEntries(int contentId, IEnumerable<int> relatedIdentities = null)
+        /// <param name="entryType">Optional filter parameter.
+        /// If it is provided, the output contains only the matched entries.</param>
+        public new List<AceInfo> GetExplicitEntries(int contentId, IEnumerable<int> relatedIdentities = null, EntryType? entryType = null)
         {
-            return base.GetExplicitEntries(contentId, relatedIdentities);
+            return base.GetExplicitEntries(contentId, relatedIdentities, entryType);
         }
 
         /*********************** Evaluator API **********************/

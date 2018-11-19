@@ -9,6 +9,8 @@ namespace SenseNet.Search.Querying
     /// </summary>
     public abstract class SnQueryVisitor
     {
+        public static Type[] VisitorExtensionTypes { get; set; }
+
         /// <summary>
         /// Dispatches the predicate to one of the more specialized visit methods in this class.
         /// </summary>
