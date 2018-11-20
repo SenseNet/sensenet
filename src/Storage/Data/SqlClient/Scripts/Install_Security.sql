@@ -1,3 +1,27 @@
+IF  EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo].[FK_dbo.EFEntries_dbo.EFEntities_EFEntityId]') AND parent_object_id = OBJECT_ID(N'[dbo].[EFEntries]'))
+ALTER TABLE [dbo].[EFEntries] DROP CONSTRAINT [FK_dbo.EFEntries_dbo.EFEntities_EFEntityId]
+GO
+IF  EXISTS (SELECT * FROM sys.foreign_keys WHERE object_id = OBJECT_ID(N'[dbo].[FK_dbo.EFEntities_dbo.EFEntities_ParentId]') AND parent_object_id = OBJECT_ID(N'[dbo].[EFEntities]'))
+ALTER TABLE [dbo].[EFEntities] DROP CONSTRAINT [FK_dbo.EFEntities_dbo.EFEntities_ParentId]
+GO
+/****** Object:  Table [dbo].[EFMessages]    Script Date: 2018. 11. 20. 8:25:04 ******/
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[EFMessages]') AND type in (N'U'))
+DROP TABLE [dbo].[EFMessages]
+GO
+/****** Object:  Table [dbo].[EFMemberships]    Script Date: 2018. 11. 20. 8:25:04 ******/
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[EFMemberships]') AND type in (N'U'))
+DROP TABLE [dbo].[EFMemberships]
+GO
+/****** Object:  Table [dbo].[EFEntries]    Script Date: 2018. 11. 20. 8:25:04 ******/
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[EFEntries]') AND type in (N'U'))
+DROP TABLE [dbo].[EFEntries]
+GO
+/****** Object:  Table [dbo].[EFEntities]    Script Date: 2018. 11. 20. 8:25:04 ******/
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[EFEntities]') AND type in (N'U'))
+DROP TABLE [dbo].[EFEntities]
+GO
+
+
 /****** Object:  Table [dbo].[EFEntities]    Script Date: 10/9/2015 11:57:27 AM ******/
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[EFEntities]') AND type in (N'U'))
 BEGIN
