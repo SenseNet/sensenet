@@ -1263,7 +1263,8 @@ namespace SenseNet.ContentRepository
                         throw GetCannotAllowContentTypeException();
                     return;
                 default:
-                    SetAllowedChildTypes(contentTypes, save); 
+                    var effectiveList = GetAllowedChildTypes().Union(contentTypes).Distinct();
+                    SetAllowedChildTypes(effectiveList, save); 
                     return;
             }
         }
@@ -1306,9 +1307,7 @@ namespace SenseNet.ContentRepository
             if (!(content.ContentHandler is GenericContent gc))
                 return string.Empty;
 
-            foreach (var contentTypeName in contentTypes)
-                gc.AllowChildType(contentTypeName);
-            gc.Save();
+            gc.AllowChildTypes(contentTypes, false, true, true);
 
             return string.Empty;
         }
