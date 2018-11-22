@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Schema;
@@ -251,28 +252,23 @@ namespace SenseNet.ContentRepository.Tests
             });
         }
         [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
         public void AllowedChildTypes_Folder_NoLocalItems_ODataActionAdd()
         {
             Test(() =>
             {
                 var ts = CreateTestStructure();
-                var namesBefore = ts.Folder1.GetAllowedChildTypeNames().OrderBy(x => x).ToArray();
-                var localNamesBefore = ts.Folder1.AllowedChildTypes.Select(x => x.Name).OrderBy(x => x).ToArray();
                 var additionalNames = new[] { "Car", "File", "Memo" };
 
                 // ACTION
                 var content = Content.Create(ts.Folder1);
                 GenericContent.AddAllowedChildTypes(content, additionalNames);
 
-                // ASSERT
-                ts.Folder1 = Node.Load<Folder>(ts.Folder1.Id);
-                var namesAfter = ts.Folder1.GetAllowedChildTypeNames().OrderBy(x => x);
-                var localNamesAfter = ts.Folder1.AllowedChildTypes.Select(x => x.Name).OrderBy(x => x).ToArray();
-                var expected = namesBefore.Union(additionalNames).Distinct().OrderBy(x => x);
-                Assert.AreEqual(string.Join(", ", expected), string.Join(", ", namesAfter));
+                // An InvalidOperationException need to be thrown here
             });
         }
         [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
         public void AllowedChildTypes_Folder_LocalItems_ODataActionAdd()
         {
             Test(() =>
@@ -283,24 +279,17 @@ namespace SenseNet.ContentRepository.Tests
                     .Select(ContentType.GetByName).ToArray();
                 ts.Folder1.Save();
 
-                var namesBefore = ts.Folder1.GetAllowedChildTypeNames().OrderBy(x => x).ToArray();
-                var localNamesBefore = ts.Folder1.AllowedChildTypes.Select(x => x.Name).OrderBy(x => x).ToArray();
                 var additionalNames = new[] { "Car", "File", "Memo" };
 
                 // ACTION
                 var content = Content.Create(ts.Folder1);
                 GenericContent.AddAllowedChildTypes(content, additionalNames);
 
-                // ASSERT
-                ts.Folder1 = Node.Load<Folder>(ts.Folder1.Id);
-                var namesAfter = ts.Folder1.GetAllowedChildTypeNames().OrderBy(x => x);
-                var localNamesAfter = ts.Folder1.AllowedChildTypes.Select(x => x.Name).OrderBy(x => x).ToArray();
-                var expected = namesBefore.Union(additionalNames).Distinct().OrderBy(x => x);
-                Assert.AreEqual(string.Join(", ", expected), string.Join(", ", namesAfter));
+                // An InvalidOperationException need to be thrown here
             });
         }
 
-
+        /* ---------------------------------------------------------------------------------- */
 
         [TestMethod]
         public void AllowedChildTypes_Workspace_NoLocalItems_ODataActionRemove()

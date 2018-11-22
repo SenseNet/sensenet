@@ -1307,7 +1307,7 @@ namespace SenseNet.ContentRepository
             if (!(content.ContentHandler is GenericContent gc))
                 return string.Empty;
 
-            gc.AllowChildTypes(contentTypes, true, true, true);
+            gc.AllowChildTypes(contentTypes, false, true, true);
 
             return string.Empty;
         }
