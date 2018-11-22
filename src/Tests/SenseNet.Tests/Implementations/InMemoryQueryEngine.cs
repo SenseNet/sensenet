@@ -147,8 +147,8 @@ namespace SenseNet.Tests.Implementations
                 if (projection != null)
                     hit.ValueForProject = GetFieldValueAsString(storedFields.FirstOrDefault(f => f.Name == projection));
 
-                if (sort != null)
-                    hit.ValuesForSort = sort.Select(s => FindSortFieldValue(versionId, s.FieldName)).ToArray();
+                var storedFieldName = projection ?? "Id";
+                hit.ValueForProject = GetFieldValueAsString(storedFields.FirstOrDefault(f => f.Name == storedFieldName));
 
                 return hit;
             }
