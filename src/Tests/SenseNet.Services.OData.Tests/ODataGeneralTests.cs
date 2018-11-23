@@ -359,6 +359,52 @@ namespace SenseNet.Services.OData.Tests
                 Assert.AreEqual(realLocal, expectedLocal);
             });
         }
+        [TestMethod]
+        public void OData_ContentQuery_Nested()
+        {
+            Test(() =>
+            {
+                var managers = new User[3];
+                var resources = new User[9];
+                var container = Node.LoadNode("/Root/IMS/BuiltIn/Portal");
+                for (int i = 0; i < managers.Length; i++)
+                {
+                    managers[i] = new User(container)
+                    {
+                        Name = $"Manager{i}",
+                        Enabled = true,
+                        Email = $"manager{i}@example.com"
+                    };
+                    managers[i].Save();
+                }
+                for (int i = 0; i < resources.Length; i++)
+                {
+                    resources[i] = new User(container)
+                    {
+                        Name = $"User{i}",
+                        Enabled = true,
+                        Email = $"user{i}@example.com",
+                    };
+                    var content = Content.Create(resources[i]);
+                    content["Manager"] = managers[i % 3];
+                    content.Save();
+                }
+                var site = CreateTestSite();
+
+                var queryText = "Manager:{{Name:Manager1}} .SORT:Name .AUTOFILTERS:OFF";
+                var odataQueryText = queryText.Replace(":", "%3a").Replace(" ", "+");
+
+                var resultNamesCql = CreateSafeContentQuery(queryText).Execute().Nodes.Select(x => x.Name).ToArray();
+                Assert.AreEqual("User1, User4, User7", string.Join(", ", resultNamesCql));
+
+                // ACTION
+                var entities = ODataGET<ODataEntities>("/OData.svc/Root", "$select=Name&query=" + odataQueryText);
+
+                // ASSERT
+                var resultNamesOData = entities.Select(x => x.Name).ToArray();
+                Assert.AreEqual("User1, User4, User7", string.Join(", ", resultNamesOData));
+            });
+        }
 
         [TestMethod]
         public void OData_Getting_Collection_OrderTopSkipCount()
