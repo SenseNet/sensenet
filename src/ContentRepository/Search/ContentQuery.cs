@@ -383,10 +383,10 @@ namespace SenseNet.Search
             using (var op = SnTrace.Query.StartOperation("ContentQuery: {0} | Top:{1} Skip:{2} Sort:{3} Mode:{4} AllVersions:{5}", queryText, _settings.Top, _settings.Skip, _settings.Sort, _settings.QueryExecutionMode, _settings.AllVersions))
             {
                 var query = TemplateManager.Replace(typeof(ContentQueryTemplateReplacer), queryText);
+                if (query.Contains("}}"))
+                    query = RecursiveExecutor.ResolveInnerQueries(query, Settings, userId);
 
-                result = query.Contains("}}")
-                    ? RecursiveExecutor.ExecuteRecursive(query, Settings, userId)
-                    : Execute(query, new SnQueryContext(Settings, userId));
+                result = Execute(query, new SnQueryContext(Settings, userId));
 
                 op.Successful = true;
             }
@@ -421,10 +421,66 @@ namespace SenseNet.Search
             }
         }
 
+        public static string ResolveInnerQueries(string queryText, QuerySettings querySettings)
+        {
+            return RecursiveExecutor.ResolveInnerQueries(queryText, querySettings,
+                AccessProvider.Current.GetCurrentUser().Id);
+        }
+
         // ================================================================== Recursive executor class
 
         private static class RecursiveExecutor
         {
+            public static string ResolveInnerQueries(string queryText, QuerySettings querySettings, int userId)
+            {
+                var src = queryText;
+                var control = GetControlString(src);
+
+                var recursiveQuerySettings = new QuerySettings
+                {
+                    Skip = 0,
+                    Top = 0,
+                    Sort = querySettings.Sort,
+                    EnableAutofilters = querySettings.EnableAutofilters,
+                    EnableLifespanFilter = querySettings.EnableLifespanFilter,
+                    QueryExecutionMode = querySettings.QueryExecutionMode,
+                    // AllVersions be always false in the inner queries
+                };
+                var recursiveQueryContext = new SnQueryContext(recursiveQuerySettings, userId);
+
+                while (true)
+                {
+                    var innerScript = GetInnerScript(src, control, out var start);
+                    if (innerScript == string.Empty)
+                        break;
+
+                    src = src.Remove(start, innerScript.Length);
+                    control = control.Remove(start, innerScript.Length);
+
+                    // execute inner query
+                    var subQuery = innerScript.Substring(2, innerScript.Length - 4);
+                    var innerResult = ExecuteAndProject(subQuery, recursiveQueryContext);
+
+                    // process inner query result
+                    switch (innerResult.Length)
+                    {
+                        case 0:
+                            innerScript = SnQuery.EmptyInnerQueryText;
+                            break;
+                        case 1:
+                            innerScript = innerResult[0];
+                            break;
+                        default:
+                            innerScript = string.Join(" ", innerResult);
+                            innerScript = "(" + innerScript + ")";
+                            break;
+                    }
+                    src = src.Insert(start, innerScript);
+                    control = control.Insert(start, innerScript);
+                }
+                return src;
+            }
+
             public static QueryResult ExecuteRecursive(string queryText, QuerySettings querySettings, int userId)
             {
                 QueryResult result;

@@ -964,6 +964,45 @@ namespace SenseNet.Tests.SelfTest
             Assert.AreEqual("+F4:(v2a v2b v2c) +F5:(v3a v3b v3c)", log[3]);
         }
 
+        [TestMethod, TestCategory("IR")]
+        public void InMemSearch_Query_Recursive_Resolve()
+        {
+            var qtext = "+F4:{{F2:{{F1:v1 .SELECT:P1}} F3:v4 .SELECT:P2}} +F5:{{F6:v6 .SELECT:P6}}";
+            var expected = "+F4:(v2a v2b v2c) +F5:(v3a v3b v3c)";
+
+            var mock = new Dictionary<string, string[]>
+            {
+                {"F1:v1 .SELECT:P1", new [] {"v1a", "v1b", "v1c"}},
+                {"F2:(v1a v1b v1c) F3:v4 .SELECT:P2", new [] {"v2a", "v2b", "v2c"}},
+                {"F6:v6 .SELECT:P6", new [] {"v3a", "v3b", "v3c"}}
+            };
+            var indexingInfo = new Dictionary<string, IPerFieldIndexingInfo>
+            {
+                //{"_Text", new TestPerfieldIndexingInfoString()},
+                {"F1", new TestPerfieldIndexingInfoString()},
+                {"F2", new TestPerfieldIndexingInfoString()},
+                {"F3", new TestPerfieldIndexingInfoString()},
+                {"F4", new TestPerfieldIndexingInfoString()},
+                {"F5", new TestPerfieldIndexingInfoString()},
+                {"F6", new TestPerfieldIndexingInfoString()},
+            };
+
+            var log = new List<string>();
+            string resolved = null;
+            Test(builder => { builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log)); }, () =>
+            {
+                using (Tools.Swindle(typeof(SearchManager), "_searchEngineSupport", new TestSearchEngineSupport(indexingInfo)))
+                    resolved = ContentQuery.ResolveInnerQueries(qtext, QuerySettings.AdminSettings);
+            });
+
+            Assert.AreEqual(expected, resolved);
+
+            Assert.AreEqual(3, log.Count);
+            Assert.AreEqual("F1:v1 .SELECT:P1", log[0]);
+            Assert.AreEqual("F2:(v1a v1b v1c) F3:v4 .SELECT:P2", log[1]);
+            Assert.AreEqual("F6:v6 .SELECT:P6", log[2]);
+        }
+
         /* ============================================================================ */
 
         [TestMethod, TestCategory("IR")]
