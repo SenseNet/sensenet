@@ -546,10 +546,22 @@ new StackInfo
         }
         private List<Dictionary<string, object>> ProcessOperationQueryResponse(ChildrenDefinition qdef, ODataRequest req, out int count)
         {
+            var queryText = qdef.ContentQuery;
+            if (queryText.Contains("}}"))
+            {
+                queryText = ContentQuery.ResolveInnerQueries(qdef.ContentQuery, new QuerySettings
+                {
+                    EnableAutofilters = qdef.EnableAutofilters,
+                    EnableLifespanFilter = qdef.EnableLifespanFilter,
+                    QueryExecutionMode = qdef.QueryExecutionMode,
+                    Sort = qdef.Sort
+                });
+            }
+
             var cdef = new ChildrenDefinition
             {
                 PathUsage = qdef.PathUsage,
-                ContentQuery = qdef.ContentQuery,
+                ContentQuery = queryText,
                 Top = req.Top > 0 ? req.Top : qdef.Top,
                 Skip = req.Skip > 0 ? req.Skip : qdef.Skip,
                 Sort = req.Sort != null && req.Sort.Any() ? req.Sort : qdef.Sort,
