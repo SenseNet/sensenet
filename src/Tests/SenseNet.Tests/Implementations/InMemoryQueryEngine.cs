@@ -144,11 +144,11 @@ namespace SenseNet.Tests.Implementations
                     IsLastPublic = storedFields.First(f => f.Name == IndexFieldName.IsLastPublic).BooleanValue,
                 };
 
-                if (projection != null)
-                    hit.ValueForProject = GetFieldValueAsString(storedFields.FirstOrDefault(f => f.Name == projection));
-
                 var storedFieldName = projection ?? "Id";
                 hit.ValueForProject = GetFieldValueAsString(storedFields.FirstOrDefault(f => f.Name == storedFieldName));
+
+                if (sort != null)
+                    hit.ValuesForSort = sort.Select(s => FindSortFieldValue(versionId, s.FieldName)).ToArray();
 
                 return hit;
             }
