@@ -480,66 +480,6 @@ namespace SenseNet.Search
                 }
                 return src;
             }
-
-            public static QueryResult ExecuteRecursive(string queryText, QuerySettings querySettings, int userId)
-            {
-                QueryResult result;
-
-                var src = queryText;
-                var control = GetControlString(src);
-
-                var recursiveQuerySettings = new QuerySettings
-                {
-                    Skip = 0,
-                    Top = 0,
-                    Sort = querySettings.Sort,
-                    EnableAutofilters = querySettings.EnableAutofilters,
-                    EnableLifespanFilter = querySettings.EnableLifespanFilter,
-                    QueryExecutionMode = querySettings.QueryExecutionMode,
-                    // AllVersions be always false in the inner queries
-                };
-                var recursiveQueryContext = new SnQueryContext(recursiveQuerySettings, userId);
-
-                while (true)
-                {
-                    var innerScript = GetInnerScript(src, control, out var start);
-                    var end = innerScript == string.Empty;
-
-                    if (!end)
-                    {
-                        src = src.Remove(start, innerScript.Length);
-                        control = control.Remove(start, innerScript.Length);
-
-                        // execute inner query
-                        var subQuery = innerScript.Substring(2, innerScript.Length - 4);
-                        var innerResult = ExecuteAndProject(subQuery, recursiveQueryContext);
-
-                        // process inner query result
-                        switch (innerResult.Length)
-                        {
-                            case 0:
-                                innerScript = SnQuery.EmptyInnerQueryText;
-                                break;
-                            case 1:
-                                innerScript = innerResult[0];
-                                break;
-                            default:
-                                innerScript = string.Join(" ", innerResult);
-                                innerScript = "(" + innerScript + ")";
-                                break;
-                        }
-                        src = src.Insert(start, innerScript);
-                        control = control.Insert(start, innerScript);
-                    }
-                    else
-                    {
-                        // execute and process top level query
-                        result = Execute(src, new SnQueryContext(querySettings, userId));
-                        break;
-                    }
-                }
-                return result;
-            }
             private static string GetControlString(string src)
             {
                 var s = src.Replace("\\'", "__").Replace("\\\"", "__");
