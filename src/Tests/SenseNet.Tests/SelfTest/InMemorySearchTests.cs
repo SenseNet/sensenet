@@ -900,24 +900,16 @@ namespace SenseNet.Tests.SelfTest
                 {"Name:'MyDocument.doc' .SELECT:OwnerId", new [] {"1", "3", "7"}}
             };
             var log = new List<string>();
-            QueryResult result;
+            QueryResult result = null;
 
-            // ReSharper disable once RedundantNameQualifier
-            Configuration.Indexing.IsOuterSearchEngineEnabled = true;
-            using (Repository.Start(new RepositoryBuilder()
-                .UseDataProvider(new InMemoryDataProvider())
-                .UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log))
-                .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
-                .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
-                .StartWorkflowEngine(false)))
-            using (new SystemAccount())
+            Test(builder => { builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log)); }, () =>
             {
                 var qtext = "Id:{{Name:'MyDocument.doc' .SELECT:OwnerId}}";
                 var cquery = ContentQuery.CreateQuery(qtext, QuerySettings.AdminSettings);
                 var cqueryAcc = new PrivateObject(cquery);
                 cqueryAcc.SetFieldOrProperty("IsSafe", true);
                 result = cquery.Execute();
-            }
+            });
 
             Assert.AreEqual(42, result.Identifiers.First());
             Assert.AreEqual(42, result.Count);
@@ -949,25 +941,18 @@ namespace SenseNet.Tests.SelfTest
             };
 
             var log = new List<string>();
-            QueryResult result;
+            QueryResult result = null;
 
-            // ReSharper disable once RedundantNameQualifier
-            Configuration.Indexing.IsOuterSearchEngineEnabled = true;
-            using (Repository.Start(new RepositoryBuilder()
-                .UseDataProvider(new InMemoryDataProvider())
-                .UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log))
-                .UseSecurityDataProvider(new MemoryDataProvider(DatabaseStorage.CreateEmpty()))
-                .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())
-                .StartWorkflowEngine(false)))
-            //using (new ContentRepository.Tests.Tools.RepositorySupportSwindler(new TestSearchEngineSupport(indexingInfo)))
-            using (Tools.Swindle(typeof(SearchManager), "_searchEngineSupport", new TestSearchEngineSupport(indexingInfo)))
-            using (new SystemAccount())
+            Test(builder => { builder.UseSearchEngine(new SearchEngineForNestedQueryTests(mock, log)); }, () =>
             {
-                var cquery = ContentQuery.CreateQuery(qtext, QuerySettings.AdminSettings);
-                var cqueryAcc = new PrivateObject(cquery);
-                cqueryAcc.SetFieldOrProperty("IsSafe", true);
-                result = cquery.Execute();
-            }
+                using (Tools.Swindle(typeof(SearchManager), "_searchEngineSupport", new TestSearchEngineSupport(indexingInfo)))
+                {
+                    var cquery = ContentQuery.CreateQuery(qtext, QuerySettings.AdminSettings);
+                    var cqueryAcc = new PrivateObject(cquery);
+                    cqueryAcc.SetFieldOrProperty("IsSafe", true);
+                    result = cquery.Execute();
+                }
+            });
 
             Assert.AreEqual(42, result.Identifiers.First());
             Assert.AreEqual(42, result.Count);
