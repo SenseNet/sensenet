@@ -1,6 +1,8 @@
 ﻿using System.Linq;
+using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.Packaging.Steps;
+using SenseNet.Packaging.Tests.Implementations;
 using SenseNet.Tests;
 
 namespace SenseNet.Packaging.Tests.StepTests
@@ -8,6 +10,17 @@ namespace SenseNet.Packaging.Tests.StepTests
     [TestClass]
     public class EditAllowedChildTypesTests : TestBase
     {
+        private static StringBuilder _log;
+        [TestInitialize]
+        public void PrepareTest()
+        {
+            // preparing logger
+            _log = new StringBuilder();
+            var loggers = new[] { new PackagingTestLogger(_log) };
+            var loggerAcc = new PrivateType(typeof(Logger));
+            loggerAcc.SetStaticField("_loggers", loggers);
+        }
+
         [TestMethod]
         public void Step_EditAllowedChildTypes_0Orig_0New_0Old()
         {
