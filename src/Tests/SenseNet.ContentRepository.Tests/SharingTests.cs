@@ -1194,7 +1194,7 @@ namespace SenseNet.ContentRepository.Tests
                 root.ForceDelete();
 
                 // wait for the background task
-                Thread.Sleep(500);
+                Thread.Sleep(1500);
 
                 AssertSharingGroup(groups[0].ContentHandler, gc, false);
             });
