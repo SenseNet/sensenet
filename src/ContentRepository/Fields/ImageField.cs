@@ -61,6 +61,18 @@ namespace SenseNet.ContentRepository.Fields
                 if (Node.LoadNode(intValue) is Image refImage)
                     data = new ImageFieldData(this, refImage, null);
             }
+            else if (value is string stringValue)
+            {
+                try
+                {
+                    if (Node.LoadNode(stringValue) is Image refImage)
+                        data = new ImageFieldData(this, refImage, null);
+                }
+                catch
+                {
+                    // ignored
+                }
+            }
             else if (value is long longValue)
             {
                 try
@@ -69,7 +81,7 @@ namespace SenseNet.ContentRepository.Fields
                     if (Node.LoadNode(id) is Image refImage)
                         data = new ImageFieldData(this, refImage, null);
                 }
-                catch (Exception e)
+                catch
                 {
                     // ignored
                 }
@@ -80,7 +92,7 @@ namespace SenseNet.ContentRepository.Fields
             }
 
             if (data == null)
-                throw new NotSupportedException("Field value is null or not a valid ImageFieldData or an Int32. FieldName: " + this.Name);
+                throw new NotSupportedException("Field value is null or not a valid ImageFieldData or content id or path. FieldName: " + this.Name);
             _data = data;
 
             var result = new object[2];
