@@ -196,6 +196,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         {"Gaps", IndexingActivityStatus.GapsToString(gaps, 100, 3)}
                     });
 
+                IndexingActivityBase.NotIndexableContentCollection.Clear();
                 DependencyManager.Start();
 
                 var count = 0;
@@ -243,6 +244,27 @@ namespace SenseNet.ContentRepository.Search.Indexing
                 if (lastDatabaseId != 0 || lastExecutedId != 0 || gaps.Any())
                     while (IsWorking())
                         Thread.Sleep(200);
+
+                if (IndexingActivityBase.NotIndexableContentCollection.Any())
+                {
+                    const int maxWrittenCount = 100;
+
+                    // Collect the first n ContentId, VersionId pairs into one message
+                    // (key: version id, value: content id).
+                    var data = string.Join("; ", IndexingActivityBase.NotIndexableContentCollection.Take(maxWrittenCount)
+                        .OrderBy(x => x.Value)
+                        .Select(x => $"{x.Value},{x.Key}"));
+                    var firstN = IndexingActivityBase.NotIndexableContentCollection.Count > maxWrittenCount
+                        ? $" first {maxWrittenCount}"
+                        : string.Empty;
+
+                    // Write one aggregated message
+                    SnLog.WriteWarning($"Cannot index {IndexingActivityBase.NotIndexableContentCollection.Count}" +
+                                       $" content. The{firstN} related ContentId, VersionId pairs: {data}");
+
+                    // Do not keep memory for unnecessary data
+                    IndexingActivityBase.NotIndexableContentCollection.Clear();
+                }
 
                 // At this point we know for sure that the original gap is not there anymore.
                 // In case there is a false gap (e.g. because there are missing activity ids 
@@ -592,7 +614,6 @@ namespace SenseNet.ContentRepository.Search.Indexing
                     }
                     catch (Exception e)
                     {
-                        //TODO: WARNING Do not fill the event log with repetitive messages.
                         SnLog.WriteException(e, $"Indexing activity execution error. Activity: #{activity.Id} ({activity.ActivityType})");
                         SnTrace.Index.WriteError("IAQ: A{0} EXECUTION ERROR: {1}", activity.Id, e);
                         IndexingActivityHistory.Error(activity.Id, e);
