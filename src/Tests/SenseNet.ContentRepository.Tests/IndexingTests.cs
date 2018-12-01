@@ -503,6 +503,7 @@ namespace SenseNet.ContentRepository.Tests
 
             // ACTION
             // Restart the repository with the known provider instances.
+            var originalLogger = Configuration.Providers.Instance.EventLogger;
             var logger = new TestEventLoggerForIndexing_ExecuteUnprocessed_FaultTolerance();
             try
             {
@@ -520,6 +521,10 @@ namespace SenseNet.ContentRepository.Tests
             catch (Exception e)
             {
                 Assert.Fail("Restart failed: " + e.Message);
+            }
+            finally
+            {
+                Configuration.Providers.Instance.EventLogger = originalLogger;
             }
 
             // ASSERT
@@ -542,7 +547,7 @@ namespace SenseNet.ContentRepository.Tests
             Assert.IsNotNull(relevatEvent);
 
             var expectedIds = $"{ids[1].Item1},{ids[1].Item2}; {ids[2].Item1},{ids[2].Item2}";
-            Assert.IsTrue(relevatEvent.Contains(expectedIds));
+            Assert.IsTrue(relevatEvent.Contains(expectedIds), $"Expected Ids: {expectedIds}, Event src: {relevatEvent}");
         }
 
 
