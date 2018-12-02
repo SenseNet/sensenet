@@ -1,15 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.i18n;
 using SenseNet.ContentRepository.Schema;
+using SenseNet.ContentRepository.Search;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.Diagnostics;
 using SenseNet.Search;
+using SenseNet.Search.Indexing;
 using SenseNet.Tests;
+using SenseNet.Tests.Implementations;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -443,6 +449,107 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         #endregion
+
+        private class TestEventLoggerForIndexing_ExecuteUnprocessed_FaultTolerance : IEventLogger
+        {
+            public List<string> Events { get; } = new List<string>();
+            public void Write(object message, ICollection<string> categories, int priority, int eventId, TraceEventType severity, string title,
+                IDictionary<string, object> properties)
+            {
+                Events.Add($"{severity}: {message}");
+            }
+        }
+
+        [TestMethod, TestCategory("IR")]
+        public void Indexing_ExecuteUnprocessed_FaultTolerance()
+        {
+            // Temporary storages for manage repository's restart.
+            InMemoryDataProvider dataProvider = null;
+            InMemorySearchEngine searchProvider = null;
+
+            // Storage for new contents' ids and version ids
+            var ids = new Tuple<int, int>[4];
+
+            // Regular start.
+            Test(() =>
+            {
+                // Memorize instances.
+                dataProvider = (InMemoryDataProvider)DataProvider.Current;
+                searchProvider = (InMemorySearchEngine)SearchManager.SearchEngine;
+
+                // Create 8 activities.
+                for (int i = 0; i < 4; i++)
+                {
+                    // "Add" activity (1, 3, 5, 7).
+                    var content = Content.CreateNew("SystemFolder", Repository.Root, $"Folder{i}");
+                    content.Save();
+                    ids[i] = new Tuple<int, int>(content.Id, content.ContentHandler.VersionId);
+                    // "Update" activity (2, 4, 6, 8).
+                    content.Index++;
+                    content.Save();
+                }
+            });
+
+            // Error simulation: remove the index document of the "Folder2", "Folder3".
+            var versions = dataProvider.DB.Versions
+                .Where(v => v.VersionId == ids[1].Item2 || v.VersionId == ids[2].Item2);
+            foreach(var version in versions)
+                version.IndexDocument = new byte[0];
+
+            // Roll back the time. Expected unprocessed sequence when next restart:
+            //   Update "Folder2" (error), Add "Folder3", Update "Folder3", ...
+            ((InMemoryIndexingEngine)searchProvider.IndexingEngine)
+                .WriteActivityStatusToIndex(new IndexingActivityStatus{LastActivityId = 3});
+
+            // ACTION
+            // Restart the repository with the known provider instances.
+            var originalLogger = Configuration.Providers.Instance.EventLogger;
+            var logger = new TestEventLoggerForIndexing_ExecuteUnprocessed_FaultTolerance();
+            try
+            {
+                Test(builder =>
+                {
+                    builder
+                        .UseLogger(logger)
+                        .UseDataProvider(dataProvider)
+                        .UseSearchEngine(searchProvider);
+                }, () =>
+                {
+                    // Do nothing but started successfully
+                });
+            }
+            catch (Exception e)
+            {
+                Assert.Fail("Restart failed: " + e.Message);
+            }
+            finally
+            {
+                Configuration.Providers.Instance.EventLogger = originalLogger;
+            }
+
+            // ASSERT
+            // 1 - Check the indexing status
+            // Before fix the last activity id was ok but the status had 3 gaps
+            // After fix all activities need to be executed.
+            var status = ((InMemoryIndexingEngine)searchProvider.IndexingEngine)
+                .ReadActivityStatusFromIndex();
+            Assert.AreEqual(8, status.LastActivityId);
+            Assert.AreEqual(0, status.Gaps.Length);
+
+            // 2 - Check the existing warning in the log.
+            // The original version (before fix) contained three unwanted lines:
+            // Error: Indexing activity execution error. Activity: #5 (AddDocument)\r\nAttempting to deserialize an empty stream.
+            // Error: Indexing activity execution error. Activity: #4 (UpdateDocument)\r\nAttempting to deserialize an empty stream.
+            // Error: Indexing activity execution error. Activity: #6 (UpdateDocument)\r\nAttempting to deserialize an empty stream.
+            // After fix only one warning is expected with the list of the problematic versionIds
+            var relevatEvent = logger.Events
+                .FirstOrDefault(e => e.StartsWith("Warning: Cannot index"));
+            Assert.IsNotNull(relevatEvent);
+
+            var expectedIds = $"{ids[1].Item1},{ids[1].Item2}; {ids[2].Item1},{ids[2].Item2}";
+            Assert.IsTrue(relevatEvent.Contains(expectedIds), $"Expected Ids: {expectedIds}, Event src: {relevatEvent}");
+        }
+
 
         private GenericContent CreateTestRoot()
         {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 // ReSharper disable ArrangeThisQualifier
@@ -11,7 +12,7 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
     /// Defines a base class of the indexing activities for storage layer.
     /// </summary>
     [Serializable]
-    public abstract class IndexingActivityBase : DistributedIndexingActivity, IIndexingActivity, System.Runtime.Serialization.IDeserializationCallback
+    public abstract class IndexingActivityBase : DistributedIndexingActivity, IIndexingActivity, IDeserializationCallback
     {
         /* ====================================================== stored properties */
 
@@ -111,7 +112,25 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
             }
             SnTrace.Index.Write($"LM: {this}. ActivityId:{Id}, ExecutingUnprocessedActivities:{IsUnprocessedActivity}");
 
-            if (ProtectedExecute())
+            bool successful;
+            try
+            {
+                successful = ProtectedExecute();
+            }
+            catch (SerializationException)
+            {
+                if (IsUnprocessedActivity && this is DocumentIndexingActivity docActivity)
+                {
+                    SetNotIndexableContent(docActivity);
+                    successful = true;
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            if(successful)
                 _executed = true;
 
             // ActivityFinished must be called after executing an activity, even if index is not changed
@@ -233,6 +252,17 @@ namespace SenseNet.ContentRepository.Search.Indexing.Activities
         internal bool IsInTree(IndexingActivityBase newerActivity)
         {
             return Path.StartsWith(newerActivity.Path, StringComparison.OrdinalIgnoreCase);
+        }
+
+        /*  ========================================================= Not serializable collection support */
+
+        // (key: version id, value: content id).
+        internal static readonly Dictionary<int, int> NotIndexableContentCollection = new Dictionary<int, int>();
+        private static readonly object NotIndexableContentCollectionSync = new object();
+        private static void SetNotIndexableContent(DocumentIndexingActivity activity)
+        {
+            lock (NotIndexableContentCollectionSync)
+                NotIndexableContentCollection[activity.VersionId] = activity.NodeId;
         }
     }
 }
