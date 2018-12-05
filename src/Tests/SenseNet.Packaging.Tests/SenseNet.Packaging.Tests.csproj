@@ -113,6 +113,10 @@
       <Project>{0279705B-779D-485D-86B9-F7AB3DD1F2C3}</Project>
       <Name>SenseNet.Search</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Services\SenseNet.Services.csproj">
+      <Project>{b72529c8-feb1-49f5-b08b-56055b58f296}</Project>
+      <Name>SenseNet.Services</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Storage\SenseNet.Storage.csproj">
       <Project>{5db4ddba-81f6-4d81-943a-18f3178b3355}</Project>
       <Name>SenseNet.Storage</Name>
