@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
+using System.Security.Policy;
 using System.Text;
 using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.Diagnostics;
 using SenseNet.Packaging.Tests.Implementations;
 using SenseNet.Tests;
 
@@ -13,6 +16,13 @@ namespace SenseNet.Packaging.Tests
     [TestClass]
     public abstract class PackagingTestBase : TestBase
     {
+        [AssemblyInitialize]
+        public static void InitializeAssembly(TestContext context)
+        {
+            //TODO: Find a correct solution to avoid assembly duplications and remove this line
+            var dummy = typeof(SenseNet.Portal.OData.ODataHandler).Name;
+        }
+
         protected static StringBuilder _log;
         private IPackageStorageProviderFactory _packageStorageProviderFactoryBackup;
         [TestInitialize]
