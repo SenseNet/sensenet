@@ -27,7 +27,7 @@
       <ManageListsAndWorkspaces>Allow</ManageListsAndWorkspaces>
       <TakeOwnership>Allow</TakeOwnership>
     </Identity>
-    <Identity path="/Root/IMS/BuiltIn/Portal/IdentifiedUsers">
+    <Identity path="/Root/IMS/BuiltIn/Portal/Everyone">
       <See>Allow</See>
       <Open>Allow</Open>
       <RunApplication>Allow</RunApplication>

@@ -546,7 +546,6 @@ namespace SenseNet.Packaging.Steps
                 var EveryoneGroupId = Identifiers.EveryoneGroupId;
 
                 var DevelopersGroupId = Node.LoadNode("/Root/IMS/BuiltIn/Portal/Developers")?.Id ?? 0;
-                var IdentifiedUsersGroupId = Node.LoadNode("/Root/IMS/BuiltIn/Portal/IdentifiedUsers")?.Id ?? 0;
                 var contentExplorersGroup = Node.LoadNode("/Root/IMS/BuiltIn/Portal/ContentExplorers");
 
                 // Set initial memberships: these relations must be set here manually because
@@ -613,14 +612,14 @@ namespace SenseNet.Packaging.Steps
                         .Allow(SystemFolderContentTypeId, DevelopersGroupId, false, PermissionType.See, PermissionType.Open, PermissionType.RunApplication);
                 }
 
-                if (IdentifiedUsersGroupId != 0)
+                if (EveryoneGroupId != 0)
                 {
-                    // Allow See on common content types for Identified users (workspace, list, file, listitem)
-                    aclEd.Allow(WorkspaceContentTypeId, IdentifiedUsersGroupId, false, PermissionType.See)
-                        .Allow(ContentListContentTypeId, IdentifiedUsersGroupId, false, PermissionType.See)
-                        .Allow(FileContentTypeId, IdentifiedUsersGroupId, false, PermissionType.See)
-                        .Allow(FolderContentTypeId, IdentifiedUsersGroupId, false, PermissionType.See)
-                        .Allow(ListItemContentTypeId, IdentifiedUsersGroupId, false, PermissionType.See);
+                    // Allow local only See on common content types for everyone (workspace, list, file, listitem)
+                    aclEd.Allow(WorkspaceContentTypeId, EveryoneGroupId, true, PermissionType.See)
+                        .Allow(ContentListContentTypeId, EveryoneGroupId, true, PermissionType.See)
+                        .Allow(FileContentTypeId, EveryoneGroupId, true, PermissionType.See)
+                        .Allow(FolderContentTypeId, EveryoneGroupId, true, PermissionType.See)
+                        .Allow(ListItemContentTypeId, EveryoneGroupId, true, PermissionType.See);
                 }
                 if (contentExplorersGroup != null)
                 {
