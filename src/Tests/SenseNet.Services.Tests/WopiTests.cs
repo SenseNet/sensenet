@@ -22,6 +22,162 @@ namespace SenseNet.Services.Tests
     public class WopiTests : TestBase
     {
         [TestMethod]
+        public void Wopi_Req_GetLock()
+        {
+            Test(() =>
+            {
+                CreateTestSite();
+                using (var output = new StringWriter())
+                {
+                    var pc = CreatePortalContext("POST", "/wopi/files/123", DefaultAccessTokenParameter,
+                        output,
+                        new[]
+                        {
+                            new[] {"X-WOPI-Override", "GET_LOCK"},
+                        });
+                    var req = CheckAndGetRequest<GetLockRequest>(pc, WopiRequestType.GetLock);
+                    Assert.AreEqual("123", req.FileId);
+                }
+            });
+        }
+        [TestMethod]
+        [ExpectedException(typeof(InvalidWopiRequestException))]
+        public void Wopi_Req_GetLock_BadMethod()
+        {
+            Test(() =>
+            {
+                CreateTestSite();
+                using (var output = new StringWriter())
+                {
+                    var pc = CreatePortalContext("GET", "/wopi/files/123", DefaultAccessTokenParameter,
+                        output,
+                        new[]
+                        {
+                            new[] {"X-WOPI-Override", "GET_LOCK"},
+                        });
+                }
+            });
+        }
+
+        [TestMethod]
+        public void Wopi_Req_Lock()
+        {
+            Test(() =>
+            {
+                CreateTestSite();
+                using (var output = new StringWriter())
+                {
+                    var pc = CreatePortalContext("POST", "/wopi/files/123", DefaultAccessTokenParameter,
+                        output,
+                        new[]
+                        {
+                            new[] {"X-WOPI-Override", "LOCK"},
+                            new[] {"X-WOPI-Lock", "LCK-42"},
+                        });
+                    var req = CheckAndGetRequest<LockRequest>(pc, WopiRequestType.Lock);
+                    Assert.AreEqual("123", req.FileId);
+                    Assert.AreEqual("LCK-42", req.Lock);
+                }
+            });
+        }
+        [TestMethod]
+        [ExpectedException(typeof(InvalidWopiRequestException))]
+        public void Wopi_Req_Lock_BadMethod()
+        {
+            Test(() =>
+            {
+                CreateTestSite();
+                using (var output = new StringWriter())
+                {
+                    var pc = CreatePortalContext("GET", "/wopi/files/123", DefaultAccessTokenParameter,
+                        output,
+                        new[]
+                        {
+                            new[] {"X-WOPI-Override", "LOCK"},
+                            new[] {"X-WOPI-Lock", "LCK-42"},
+                        });
+                }
+            });
+        }
+        [TestMethod]
+        [ExpectedException(typeof(InvalidWopiRequestException))]
+        public void Wopi_Req_Lock_MissingParam()
+        {
+            Test(() =>
+            {
+                CreateTestSite();
+                using (var output = new StringWriter())
+                {
+                    var pc = CreatePortalContext("POST", "/wopi/files/123", DefaultAccessTokenParameter,
+                        output,
+                        new[]
+                        {
+                            new[] {"X-WOPI-Override", "LOCK"},
+                        });
+                }
+            });
+        }
+
+        [TestMethod]
+        public void Wopi_Req_RefreshLock()
+        {
+            Test(() =>
+            {
+                CreateTestSite();
+                using (var output = new StringWriter())
+                {
+                    var pc = CreatePortalContext("POST", "/wopi/files/123", DefaultAccessTokenParameter,
+                        output,
+                        new[]
+                        {
+                            new[] {"X-WOPI-Override", "REFRESH_LOCK"},
+                            new[] {"X-WOPI-Lock", "LCK-42"},
+                        });
+                    var req = CheckAndGetRequest<RefreshLockRequest>(pc, WopiRequestType.RefreshLock);
+                    Assert.AreEqual("123", req.FileId);
+                    Assert.AreEqual("LCK-42", req.Lock);
+                }
+            });
+        }
+        [TestMethod]
+        [ExpectedException(typeof(InvalidWopiRequestException))]
+        public void Wopi_Req_RefreshLock_BadMethod()
+        {
+            Test(() =>
+            {
+                CreateTestSite();
+                using (var output = new StringWriter())
+                {
+                    var pc = CreatePortalContext("GET", "/wopi/files/123", DefaultAccessTokenParameter,
+                        output,
+                        new[]
+                        {
+                            new[] {"X-WOPI-Override", "REFRESH_LOCK"},
+                            new[] {"X-WOPI-Lock", "LCK-42"},
+                        });
+                }
+            });
+        }
+        [TestMethod]
+        [ExpectedException(typeof(InvalidWopiRequestException))]
+        public void Wopi_Req_RefreshLock_MissingParam()
+        {
+            Test(() =>
+            {
+                CreateTestSite();
+                using (var output = new StringWriter())
+                {
+                    var pc = CreatePortalContext("POST", "/wopi/files/123", DefaultAccessTokenParameter,
+                        output,
+                        new[]
+                        {
+                            new[] {"X-WOPI-Override", "REFRESH_LOCK"},
+                        });
+                }
+            });
+        }
+
+        [TestMethod]
         public void Wopi_Req_GetFileRequest()
         {
             Test(() =>
@@ -32,26 +188,20 @@ namespace SenseNet.Services.Tests
                     var pc = CreatePortalContext("GET", "/wopi/files/123/contents", DefaultAccessTokenParameter, output,
                         new[]
                         {
-                            new[] { "X-WOPI-MaxExpectedSize", "9999"},
+                            new[] {"X-WOPI-MaxExpectedSize", "9999"},
                         });
-                    Assert.IsTrue(pc.IsWopiRequest);
-                    var wopiReq = pc.WopiRequest;
-                    Assert.IsNotNull(wopiReq);
-                    Assert.AreEqual(WopiRequestType.GetFile, wopiReq.RequestType);
-                    var getFileRequest = wopiReq as GetFileRequest;
-                    Assert.IsNotNull(getFileRequest);
-                    Assert.AreEqual("123", getFileRequest.FileId);
-                    Assert.AreEqual(9999, getFileRequest.MaxExpectedSize);
+                    var req = CheckAndGetRequest<GetFileRequest>(pc, WopiRequestType.GetFile);
+                    Assert.AreEqual("123", req.FileId);
+                    Assert.AreEqual(9999, req.MaxExpectedSize);
 
                     // TEST: without MaxExpectedSize
                     pc = CreatePortalContext("GET", "/wopi/files/123/contents", DefaultAccessTokenParameter, output,
                         new[]
                         {
-                            new[] { "Header1", "value1"},
+                            new[] {"Header1", "value1"},
                         });
-                    getFileRequest = pc.WopiRequest as GetFileRequest;
-                    Assert.IsNotNull(getFileRequest);
-                    Assert.IsNull(getFileRequest.MaxExpectedSize);
+                    req = CheckAndGetRequest<GetFileRequest>(pc, WopiRequestType.GetFile);
+                    Assert.IsNull(req.MaxExpectedSize);
                 }
             });
         }
@@ -67,7 +217,7 @@ namespace SenseNet.Services.Tests
                     CreatePortalContext("POST", "/wopi/files/123/contents", DefaultAccessTokenParameter, output,
                         new[]
                         {
-                            new[] { "X-WOPI-MaxExpectedSize", "9999"},
+                            new[] {"X-WOPI-MaxExpectedSize", "9999"},
                         });
                 }
             });
@@ -84,17 +234,57 @@ namespace SenseNet.Services.Tests
                     CreatePortalContext("GET", "/wopi/files/123/contents", DefaultAccessTokenParameter, output,
                         new[]
                         {
-                            new[] { "X-WOPI-MaxExpectedSize", "nine-tausend"},
+                            new[] {"X-WOPI-MaxExpectedSize", "nine-tausend"},
                         });
                 }
             });
         }
 
 
+        [TestMethod]
+        public void Wopi_Req_PutFileRequest()
+        {
+            Test(() =>
+            {
+                CreateTestSite();
+                using (var output = new StringWriter())
+                {
+                    var pc = CreatePortalContext("POST", "/wopi/files/123/contents", DefaultAccessTokenParameter,
+                        output,
+                        new[]
+                        {
+                            new[] {"X-WOPI-Override", "PUT"},
+                            new[] {"X-WOPI-Lock", "LCK-42"},
+                        });
+                    var req = CheckAndGetRequest<PutFileRequest>(pc, WopiRequestType.PutFile);
+                    Assert.AreEqual("123", req.FileId);
+                    Assert.AreEqual("LCK-42", req.Lock);
+                }
+            });
+        }
+        [TestMethod]
+        [ExpectedException(typeof(InvalidWopiRequestException))]
+        public void Wopi_Req_PutFileRequest_BadMethod()
+        {
+            Test(() =>
+            {
+                CreateTestSite();
+                using (var output = new StringWriter())
+                {
+                    var pc = CreatePortalContext("GET", "/wopi/files/123/contents", DefaultAccessTokenParameter, output,
+                        new[]
+                        {
+                            new[] {"X-WOPI-Override", "PUT"},
+                            new[] {"X-WOPI-Lock ", "LCK-42"},
+                        });
+                }
+            });
+        }
+
         /* ======================================================================================= */
 
         [TestMethod]
-        public void Wopi_Handler_GetFile()
+        public void Wopi_Proc_GetFile()
         {
             Test(() =>
             {
@@ -111,7 +301,7 @@ namespace SenseNet.Services.Tests
             });
         }
         [TestMethod]
-        public void Wopi_Handler_GetFile_NotFound()
+        public void Wopi_Proc_GetFile_NotFound()
         {
             Test(() =>
             {
@@ -126,7 +316,7 @@ namespace SenseNet.Services.Tests
             });
         }
         [TestMethod]
-        public void Wopi_Handler_GetFile_TooBig()
+        public void Wopi_Proc_GetFile_TooBig()
         {
             Test(() =>
             {
@@ -141,6 +331,7 @@ namespace SenseNet.Services.Tests
                 Assert.AreEqual(HttpStatusCode.PreconditionFailed, response.Status);
             });
         }
+
 
         /* ======================================================================================= */
 
@@ -190,6 +381,16 @@ namespace SenseNet.Services.Tests
             HttpContext.Current = simulatedHttpContext;
             var portalContext = PortalContext.Create(simulatedHttpContext);
             return portalContext;
+        }
+
+        private T CheckAndGetRequest<T>(PortalContext pc, WopiRequestType requestType) where T : WopiRequest
+        {
+            Assert.IsTrue(pc.IsWopiRequest);
+            var wopiReq = pc.WopiRequest;
+            Assert.IsNotNull(wopiReq);
+            Assert.AreEqual(requestType, wopiReq.RequestType);
+            Assert.IsInstanceOfType(wopiReq, typeof(T));
+            return (T)wopiReq;
         }
 
     }

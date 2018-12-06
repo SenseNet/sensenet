@@ -292,6 +292,7 @@
     <Compile Include="Security\SystemAccount.cs" />
     <Compile Include="Security\SnAclEditor.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="SharedLock.cs" />
     <Compile Include="StorageContext.cs" />
     <Compile Include="TransactionParticipant.cs" />
     <Compile Include="TreeLock.cs" />

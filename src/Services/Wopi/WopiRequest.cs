@@ -15,6 +15,7 @@ namespace SenseNet.Services.Wopi
     {
         CheckFileInfo,
         PutRelativeFile,
+        GetLock,
         Lock,
         Unlock,
         RefreshLock,
@@ -38,9 +39,9 @@ namespace SenseNet.Services.Wopi
     }
     public abstract class WopiRequest
     {
-        public WopiRequestType RequestType { get; }
+        internal WopiRequestType RequestType { get; }
 
-        protected WopiRequest(WopiRequestType requestType)
+        protected internal WopiRequest(WopiRequestType requestType)
         {
             RequestType = requestType;
         }
@@ -134,8 +135,10 @@ namespace SenseNet.Services.Wopi
                             throw new InvalidWopiRequestException($"Unknown {WopiHeader.Override} header: " + xWopiOverride); //UNDONE: more informative message
                         case "PUT_RELATIVE":
                             return ParsePutRelativeFile(httpMethod, fileId, headers);
+                        case "GET_LOCK":
+                            return ParseGetLock(httpMethod, fileId, headers);
                         case "LOCK":
-                            if(headers[WopiHeader.OldLock] != null)
+                            if (headers[WopiHeader.OldLock] != null)
                                 return ParseUnlockAndRelock(httpMethod, fileId, headers);
                             return ParseLock(httpMethod, fileId, headers);
                         case "UNLOCK":
@@ -156,12 +159,15 @@ namespace SenseNet.Services.Wopi
         }
         private static WopiRequest ParsePutFile(string httpMethod, string fileId, NameValueCollection headers)
         {
-            throw new NotImplementedException(); //UNDONE: not implemented: ParsePutFile
+            if (httpMethod != POST)
+                throw new InvalidWopiRequestException("The request need to be HTTP_POST"); //UNDONE: more informative message
+            var @lock = headers[WopiHeader.Lock];
+            return new PutFileRequest(fileId, @lock);
         }
         private static WopiRequest ParseGetFile(string httpMethod, string fileId, NameValueCollection headers)
         {
             if (httpMethod != GET)
-                throw new InvalidWopiRequestException("The FileRequest need to be HTTP_GET"); //UNDONE: more informative message
+                throw new InvalidWopiRequestException("The request need to be HTTP_GET"); //UNDONE: more informative message
             var maxExpectedSize = GetIntOrNullFromHeader(headers, WopiHeader.MaxExpectedSize, true);
             return new GetFileRequest(fileId, maxExpectedSize);
         }
@@ -170,9 +176,20 @@ namespace SenseNet.Services.Wopi
         {
             throw new NotImplementedException(); //UNDONE: not implemented: ParsePutRelativeFile
         }
+        private static WopiRequest ParseGetLock(string httpMethod, string fileId, NameValueCollection headers)
+        {
+            if (httpMethod != POST)
+                throw new InvalidWopiRequestException("The request need to be HTTP_POST"); //UNDONE: more informative message
+            return new GetLockRequest(fileId);
+        }
         private static WopiRequest ParseLock(string httpMethod, string fileId, NameValueCollection headers)
         {
-            throw new NotImplementedException(); //UNDONE: not implemented: ParseLock
+            if (httpMethod != POST)
+                throw new InvalidWopiRequestException("The request need to be HTTP_POST"); //UNDONE: more informative message
+            var @lock = headers[WopiHeader.Lock];
+            if(@lock == null)
+                throw new InvalidWopiRequestException($"Missing {WopiHeader.Lock} header."); //UNDONE: more informative message
+            return new LockRequest(fileId, @lock);
         }
         private static WopiRequest ParseUnlockAndRelock(string httpMethod, string fileId, NameValueCollection headers)
         {
@@ -184,7 +201,12 @@ namespace SenseNet.Services.Wopi
         }
         private static WopiRequest ParseRefreshLock(string httpMethod, string fileId, NameValueCollection headers)
         {
-            throw new NotImplementedException(); //UNDONE: not implemented: ParseRefreshLock
+            if (httpMethod != POST)
+                throw new InvalidWopiRequestException("The request need to be HTTP_POST"); //UNDONE: more informative message
+            var @lock = headers[WopiHeader.Lock];
+            if (@lock == null)
+                throw new InvalidWopiRequestException($"Missing {WopiHeader.Lock} header."); //UNDONE: more informative message
+            return new RefreshLockRequest(fileId, @lock);
         }
         private static WopiRequest ParseDeleteFile(string httpMethod, string fileId, NameValueCollection headers)
         {
