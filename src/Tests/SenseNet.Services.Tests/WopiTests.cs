@@ -20,14 +20,14 @@ namespace SenseNet.Services.Tests
     public class WopiTests : TestBase
     {
         [TestMethod]
-        public void Wopi_Req_()
+        public void Wopi_Req_GetFileRequest()
         {
             Test(() =>
             {
                 CreateTestSite();
                 using (var output = new StringWriter())
                 {
-                    var pc = CreatePortalContext("/wopi/files/123/contents", DefaultAccessTokenParameter, output,
+                    var pc = CreatePortalContext("GET", "/wopi/files/123/contents", DefaultAccessTokenParameter, output,
                         new[]
                         {
                             new[] { "X-WOPI-MaxExpectedSize", "9999"},
@@ -35,6 +35,11 @@ namespace SenseNet.Services.Tests
                     Assert.IsTrue(pc.IsWopiRequest);
                     var wopiReq = pc.WopiRequest;
                     Assert.IsNotNull(wopiReq);
+                    Assert.AreEqual(WopiRequestType.GetFile, wopiReq.RequestType);
+                    var getFileRequest = wopiReq as GetFileRequest;
+                    Assert.IsNotNull(getFileRequest);
+                    Assert.AreEqual("123", getFileRequest.FileId);
+                    Assert.AreEqual(9999, getFileRequest.MaxExpectedSize);
                 }
             });
         }
@@ -56,7 +61,7 @@ namespace SenseNet.Services.Tests
         {
             using (var output = new System.IO.StringWriter())
                 return new WopiHandler().ProcessRequest(
-                   CreatePortalContext(resource, queryString, output, headers).OwnerHttpContext,  httpMethod, requestStream);
+                   CreatePortalContext(httpMethod, resource, queryString, output, headers).OwnerHttpContext, requestStream);
         }
 
         private const string TestSiteName = "WopiTestSite";
@@ -72,9 +77,9 @@ namespace SenseNet.Services.Tests
             return site;
         }
 
-        private static PortalContext CreatePortalContext(string pagePath, string queryString, System.IO.TextWriter output, string[][] headers)
+        private static PortalContext CreatePortalContext(string httpMethod, string pagePath, string queryString, System.IO.TextWriter output, string[][] headers)
         {
-            var simulatedWorkerRequest = new SimulatedHttpRequest(@"\", @"C:\Inetpub\wwwroot", pagePath, queryString, output, "localhost");
+            var simulatedWorkerRequest = new SimulatedHttpRequest(@"\", @"C:\Inetpub\wwwroot", pagePath, queryString, output, "localhost", headers, httpMethod);
             var simulatedHttpContext = new HttpContext(simulatedWorkerRequest);
             HttpContext.Current = simulatedHttpContext;
             var portalContext = PortalContext.Create(simulatedHttpContext);
