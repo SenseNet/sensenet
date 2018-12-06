@@ -9,8 +9,8 @@ namespace SenseNet.Services.Wopi
     public class GetFileRequest : WopiRequest
     {
         public string FileId { get; }
-        public int MaxExpectedSize { get; }
-        public GetFileRequest(string fileId, int maxExpectedSize) : base(WopiRequestType.GetFile)
+        public int? MaxExpectedSize { get; }
+        public GetFileRequest(string fileId, int? maxExpectedSize) : base(WopiRequestType.GetFile)
         {
             FileId = fileId;
             MaxExpectedSize = maxExpectedSize;

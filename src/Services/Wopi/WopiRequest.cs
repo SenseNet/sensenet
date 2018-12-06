@@ -162,7 +162,7 @@ namespace SenseNet.Services.Wopi
         {
             if (httpMethod != GET)
                 throw new InvalidWopiRequestException("The FileRequest need to be HTTP_GET"); //UNDONE: more informative message
-            var maxExpectedSize = GetIntFromHeader(headers, WopiHeader.MaxExpectedSize, true);
+            var maxExpectedSize = GetIntOrNullFromHeader(headers, WopiHeader.MaxExpectedSize, true);
             return new GetFileRequest(fileId, maxExpectedSize);
         }
 
@@ -239,7 +239,18 @@ namespace SenseNet.Services.Wopi
                 return intValue;
             if (!throwOnError)
                 return 0;
-            throw new InvalidWopiRequestException("Invalid: MaxExpectedSize: " + value); //UNDONE: more informative message
+            throw new InvalidWopiRequestException($"Invalid '{name}': {value}"); //UNDONE: more informative message
+        }
+        private static int? GetIntOrNullFromHeader(NameValueCollection headers, string name, bool throwOnError)
+        {
+            var value = headers[name];
+            if (string.IsNullOrEmpty(value))
+                return null;
+            if (int.TryParse(value, out var intValue))
+                return intValue;
+            if (!throwOnError)
+                return null;
+            throw new InvalidWopiRequestException($"Invalid '{name}': {value}"); //UNDONE: more informative message
         }
 
     }

@@ -40,9 +40,54 @@ namespace SenseNet.Services.Tests
                     Assert.IsNotNull(getFileRequest);
                     Assert.AreEqual("123", getFileRequest.FileId);
                     Assert.AreEqual(9999, getFileRequest.MaxExpectedSize);
+
+                    // TEST: without MaxExpectedSize
+                    pc = CreatePortalContext("GET", "/wopi/files/123/contents", DefaultAccessTokenParameter, output,
+                        new[]
+                        {
+                            new[] { "Header1", "value1"},
+                        });
+                    getFileRequest = pc.WopiRequest as GetFileRequest;
+                    Assert.IsNotNull(getFileRequest);
+                    Assert.IsNull(getFileRequest.MaxExpectedSize);
                 }
             });
         }
+        [TestMethod]
+        [ExpectedException(typeof(InvalidWopiRequestException))]
+        public void Wopi_Req_GetFileRequest_BadMethod()
+        {
+            Test(() =>
+            {
+                CreateTestSite();
+                using (var output = new StringWriter())
+                {
+                    CreatePortalContext("POST", "/wopi/files/123/contents", DefaultAccessTokenParameter, output,
+                        new[]
+                        {
+                            new[] { "X-WOPI-MaxExpectedSize", "9999"},
+                        });
+                }
+            });
+        }
+        [TestMethod]
+        [ExpectedException(typeof(InvalidWopiRequestException))]
+        public void Wopi_Req_GetFileRequest_InvalidMaxSize()
+        {
+            Test(() =>
+            {
+                CreateTestSite();
+                using (var output = new StringWriter())
+                {
+                    CreatePortalContext("GET", "/wopi/files/123/contents", DefaultAccessTokenParameter, output,
+                        new[]
+                        {
+                            new[] { "X-WOPI-MaxExpectedSize", "nine-tausend"},
+                        });
+                }
+            });
+        }
+
 
         /* ======================================================================================= */
 
