@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
@@ -13,6 +14,7 @@ using SenseNet.Portal;
 using SenseNet.Portal.Virtualization;
 using SenseNet.Services.Wopi;
 using SenseNet.Tests;
+using File = SenseNet.ContentRepository.File;
 
 namespace SenseNet.Services.Tests
 {
@@ -91,6 +93,57 @@ namespace SenseNet.Services.Tests
 
         /* ======================================================================================= */
 
+        [TestMethod]
+        public void Wopi_Handler_GetFile()
+        {
+            Test(() =>
+            {
+                var site = CreateTestSite();
+                var file = CreateTestFile(site, "File1.txt", "filecontent1");
+
+                var response = WopiGet($"/wopi/files/{file.Id}/contents", DefaultAccessTokenParameter, new[]
+                {
+                    new[] {"X-WOPI-MaxExpectedSize", "9999"},
+                });
+
+                Assert.AreEqual(HttpStatusCode.OK, response.Status);
+                Assert.AreEqual("filecontent1", RepositoryTools.GetStreamString(response.GetResponseStream()));
+            });
+        }
+        [TestMethod]
+        public void Wopi_Handler_GetFile_NotFound()
+        {
+            Test(() =>
+            {
+                var site = CreateTestSite();
+
+                var response = WopiGet($"/wopi/files/{site.Id}/contents", DefaultAccessTokenParameter, new[]
+                {
+                    new[] {"X-WOPI-MaxExpectedSize", "9999"},
+                });
+
+                Assert.AreEqual(HttpStatusCode.NotFound, response.Status);
+            });
+        }
+        [TestMethod]
+        public void Wopi_Handler_GetFile_TooBig()
+        {
+            Test(() =>
+            {
+                var site = CreateTestSite();
+                var file = CreateTestFile(site, "File1.txt", "filecontent1");
+
+                var response = WopiGet($"/wopi/files/{file.Id}/contents", DefaultAccessTokenParameter, new[]
+                {
+                    new[] {"X-WOPI-MaxExpectedSize", "3"}, // shorter than file content
+                });
+
+                Assert.AreEqual(HttpStatusCode.PreconditionFailed, response.Status);
+            });
+        }
+
+        /* ======================================================================================= */
+
         private static readonly string DefaultAccessToken = "__DefaultAccessToken__";
         private static readonly string DefaultAccessTokenParameter = "access_token=" + DefaultAccessToken;
 
@@ -105,8 +158,8 @@ namespace SenseNet.Services.Tests
         private WopiResponse GetWopiResponse(string httpMethod, string resource, string queryString, string[][] headers, Stream requestStream)
         {
             using (var output = new System.IO.StringWriter())
-                return new WopiHandler().ProcessRequest(
-                   CreatePortalContext(httpMethod, resource, queryString, output, headers).OwnerHttpContext, requestStream);
+                return new WopiHandler().GetResponse(
+                   CreatePortalContext(httpMethod, resource, queryString, output, headers));
         }
 
         private const string TestSiteName = "WopiTestSite";
@@ -117,9 +170,17 @@ namespace SenseNet.Services.Tests
             sites.Save();
 
             var site = new Site(sites) { Name = TestSiteName, UrlList = new Dictionary<string, string> { { "localhost", "None" } } };
+            site.AllowChildType("File");
             site.Save();
 
             return site;
+        }
+        private File CreateTestFile(Node parent, string name, string fileContent)
+        {
+            var file = new File(parent) { Name = name ?? Guid.NewGuid().ToString() };
+            file.Binary.SetStream(RepositoryTools.GetStreamFromString(fileContent ?? Guid.NewGuid().ToString()));
+            file.Save();
+            return file;
         }
 
         private static PortalContext CreatePortalContext(string httpMethod, string pagePath, string queryString, System.IO.TextWriter output, string[][] headers)
