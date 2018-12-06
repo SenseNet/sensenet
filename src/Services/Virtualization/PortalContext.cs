@@ -21,6 +21,7 @@ using SenseNet.Diagnostics;
 using SenseNet.Portal.AppModel;
 using SenseNet.Portal.OData;
 using SenseNet.Search;
+using SenseNet.Services.Wopi;
 using SenseNet.Tools;
 
 namespace SenseNet.Portal.Virtualization
@@ -93,6 +94,7 @@ namespace SenseNet.Portal.Virtualization
     internal class PortalContextInitInfo
     {
         public Uri RequestUri;
+        public bool IsWopiRequest;
         public bool IsWebdavRequest;
         public bool IsOfficeProtocolRequest;
         public bool IsOdataRequest;
@@ -165,6 +167,9 @@ namespace SenseNet.Portal.Virtualization
 
         public bool IsOdataRequest { get; private set; }
         public ODataRequest ODataRequest { get; private set; }
+
+        public bool IsWopiRequest { get; private set; }
+        public WopiRequest WopiRequest { get; private set; }
 
         private string _basicAuthHeaders;
         public string BasicAuthHeaders
@@ -294,6 +299,13 @@ namespace SenseNet.Portal.Virtualization
                     requestedSite = Sites[siteUrl];
                     break;
                 }
+            }
+
+            // STEP 1.9 WOPI
+            var isWopiRequest = false;
+            if (requestUri.AbsolutePath.StartsWith("/wopi", StringComparison.OrdinalIgnoreCase))
+            {
+                isWopiRequest = true;
             }
 
             // STEP 2: WebDav
@@ -470,6 +482,7 @@ namespace SenseNet.Portal.Virtualization
             return new PortalContextInitInfo()
             {
                 RequestUri = requestUri,
+                IsWopiRequest = isWopiRequest,
                 IsWebdavRequest = isWebdavRequest,
                 IsOfficeProtocolRequest = isOfficeProtocolRequest,
                 IsOdataRequest = isOdataRequest,
@@ -1538,6 +1551,7 @@ namespace SenseNet.Portal.Virtualization
             _ownerHttpContext = context;
             // use absolute uri to clone. requesturi.tostring messes up encoded parts, like backurl
             _originalUri = new Uri(initInfo.RequestUri.AbsoluteUri.ToString()); // clone
+            IsWopiRequest = initInfo.IsWopiRequest;
             _isWebdavRequest = initInfo.IsWebdavRequest;
             _isOfficeProtocolRequest = initInfo.IsOfficeProtocolRequest;
             IsOdataRequest = initInfo.IsOdataRequest;
@@ -1579,6 +1593,13 @@ namespace SenseNet.Portal.Virtualization
 
             BinaryHandlerRequestedNodeHead = initInfo.BinaryHandlerRequestedNodeHead;
             ModificationDateForClient = initInfo.ModificationDateForClient;
+
+            if (IsWopiRequest)
+            {
+                this.WopiRequest = WopiRequest.Parse(
+                    this.RequestedUri.GetComponents(UriComponents.Path, UriFormat.Unescaped),
+                    this);
+            }
 
             if (IsOdataRequest)
             {
