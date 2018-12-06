@@ -14,6 +14,7 @@ namespace SenseNet.Tests
 	{
 	    private string _host;
 	    private string[][] _headers;
+	    private string _httpMethod;
 
         /// <summary>
         /// Creates a new <see cref="SimulatedHttpRequest"/> instance.
@@ -37,6 +38,12 @@ namespace SenseNet.Tests
 	        : this(appVirtualDir, appPhysicalDir, page, query, output, host)
 	    {
 	        _headers = headers;
+	    }
+	    public SimulatedHttpRequest(string appVirtualDir, string appPhysicalDir, string page, string query, TextWriter output, string host, string[][] headers, string httpMethod)
+	        : this(appVirtualDir, appPhysicalDir, page, query, output, host)
+	    {
+	        _headers = headers;
+	        _httpMethod = httpMethod;
 	    }
 
         /// <summary>
@@ -64,10 +71,14 @@ namespace SenseNet.Tests
 	        var item = _headers.FirstOrDefault(x => name.Equals(x[0], StringComparison.OrdinalIgnoreCase));
 	        return item?[1];
 	    }
-
 	    public override string[][] GetUnknownRequestHeaders()
 	    {
 	        return _headers;
+	    }
+
+	    public override string GetHttpVerbName()
+	    {
+	        return _httpMethod ?? "GET";
 	    }
 	}
 }
