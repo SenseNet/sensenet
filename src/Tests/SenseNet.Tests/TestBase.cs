@@ -166,7 +166,7 @@ namespace SenseNet.Tests
         }
 
 
-        protected RepositoryBuilder CreateRepositoryBuilderForTest()
+        protected static RepositoryBuilder CreateRepositoryBuilderForTest()
         {
             var dataProvider = new InMemoryDataProvider();
             var securityDataProvider = GetSecurityDataProvider(dataProvider);

@@ -8,8 +8,12 @@ using System.Threading.Tasks;
 using System.Web;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Win32.SafeHandles;
+using SenseNet.Configuration;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics;
 using SenseNet.Portal;
 using SenseNet.Portal.Virtualization;
 using SenseNet.Services.Wopi;
@@ -24,9 +28,8 @@ namespace SenseNet.Services.Tests
         [TestMethod]
         public void Wopi_Req_GetLock()
         {
-            Test(() =>
+            WopiTest(() =>
             {
-                CreateTestSite();
                 using (var output = new StringWriter())
                 {
                     var pc = CreatePortalContext("POST", "/wopi/files/123", DefaultAccessTokenParameter,
@@ -44,9 +47,8 @@ namespace SenseNet.Services.Tests
         [ExpectedException(typeof(InvalidWopiRequestException))]
         public void Wopi_Req_GetLock_BadMethod()
         {
-            Test(() =>
+            WopiTest(() =>
             {
-                CreateTestSite();
                 using (var output = new StringWriter())
                 {
                     var pc = CreatePortalContext("GET", "/wopi/files/123", DefaultAccessTokenParameter,
@@ -62,9 +64,8 @@ namespace SenseNet.Services.Tests
         [TestMethod]
         public void Wopi_Req_Lock()
         {
-            Test(() =>
+            WopiTest(() =>
             {
-                CreateTestSite();
                 using (var output = new StringWriter())
                 {
                     var pc = CreatePortalContext("POST", "/wopi/files/123", DefaultAccessTokenParameter,
@@ -84,9 +85,8 @@ namespace SenseNet.Services.Tests
         [ExpectedException(typeof(InvalidWopiRequestException))]
         public void Wopi_Req_Lock_BadMethod()
         {
-            Test(() =>
+            WopiTest(() =>
             {
-                CreateTestSite();
                 using (var output = new StringWriter())
                 {
                     var pc = CreatePortalContext("GET", "/wopi/files/123", DefaultAccessTokenParameter,
@@ -103,9 +103,8 @@ namespace SenseNet.Services.Tests
         [ExpectedException(typeof(InvalidWopiRequestException))]
         public void Wopi_Req_Lock_MissingParam()
         {
-            Test(() =>
+            WopiTest(() =>
             {
-                CreateTestSite();
                 using (var output = new StringWriter())
                 {
                     var pc = CreatePortalContext("POST", "/wopi/files/123", DefaultAccessTokenParameter,
@@ -121,9 +120,8 @@ namespace SenseNet.Services.Tests
         [TestMethod]
         public void Wopi_Req_RefreshLock()
         {
-            Test(() =>
+            WopiTest(() =>
             {
-                CreateTestSite();
                 using (var output = new StringWriter())
                 {
                     var pc = CreatePortalContext("POST", "/wopi/files/123", DefaultAccessTokenParameter,
@@ -143,9 +141,8 @@ namespace SenseNet.Services.Tests
         [ExpectedException(typeof(InvalidWopiRequestException))]
         public void Wopi_Req_RefreshLock_BadMethod()
         {
-            Test(() =>
+            WopiTest(() =>
             {
-                CreateTestSite();
                 using (var output = new StringWriter())
                 {
                     var pc = CreatePortalContext("GET", "/wopi/files/123", DefaultAccessTokenParameter,
@@ -162,9 +159,8 @@ namespace SenseNet.Services.Tests
         [ExpectedException(typeof(InvalidWopiRequestException))]
         public void Wopi_Req_RefreshLock_MissingParam()
         {
-            Test(() =>
+            WopiTest(() =>
             {
-                CreateTestSite();
                 using (var output = new StringWriter())
                 {
                     var pc = CreatePortalContext("POST", "/wopi/files/123", DefaultAccessTokenParameter,
@@ -180,9 +176,8 @@ namespace SenseNet.Services.Tests
         [TestMethod]
         public void Wopi_Req_GetFileRequest()
         {
-            Test(() =>
+            WopiTest(() =>
             {
-                CreateTestSite();
                 using (var output = new StringWriter())
                 {
                     var pc = CreatePortalContext("GET", "/wopi/files/123/contents", DefaultAccessTokenParameter, output,
@@ -209,9 +204,8 @@ namespace SenseNet.Services.Tests
         [ExpectedException(typeof(InvalidWopiRequestException))]
         public void Wopi_Req_GetFileRequest_BadMethod()
         {
-            Test(() =>
+            WopiTest(() =>
             {
-                CreateTestSite();
                 using (var output = new StringWriter())
                 {
                     CreatePortalContext("POST", "/wopi/files/123/contents", DefaultAccessTokenParameter, output,
@@ -226,9 +220,8 @@ namespace SenseNet.Services.Tests
         [ExpectedException(typeof(InvalidWopiRequestException))]
         public void Wopi_Req_GetFileRequest_InvalidMaxSize()
         {
-            Test(() =>
+            WopiTest(() =>
             {
-                CreateTestSite();
                 using (var output = new StringWriter())
                 {
                     CreatePortalContext("GET", "/wopi/files/123/contents", DefaultAccessTokenParameter, output,
@@ -244,9 +237,8 @@ namespace SenseNet.Services.Tests
         [TestMethod]
         public void Wopi_Req_PutFileRequest()
         {
-            Test(() =>
+            WopiTest(() =>
             {
-                CreateTestSite();
                 using (var output = new StringWriter())
                 {
                     var pc = CreatePortalContext("POST", "/wopi/files/123/contents", DefaultAccessTokenParameter,
@@ -266,9 +258,8 @@ namespace SenseNet.Services.Tests
         [ExpectedException(typeof(InvalidWopiRequestException))]
         public void Wopi_Req_PutFileRequest_BadMethod()
         {
-            Test(() =>
+            WopiTest(() =>
             {
-                CreateTestSite();
                 using (var output = new StringWriter())
                 {
                     var pc = CreatePortalContext("GET", "/wopi/files/123/contents", DefaultAccessTokenParameter, output,
@@ -286,9 +277,8 @@ namespace SenseNet.Services.Tests
         [TestMethod]
         public void Wopi_Proc_GetFile()
         {
-            Test(() =>
+            WopiTest(site =>
             {
-                var site = CreateTestSite();
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
 
                 var response = WopiGet($"/wopi/files/{file.Id}/contents", DefaultAccessTokenParameter, new[]
@@ -303,10 +293,8 @@ namespace SenseNet.Services.Tests
         [TestMethod]
         public void Wopi_Proc_GetFile_NotFound()
         {
-            Test(() =>
+            WopiTest(site =>
             {
-                var site = CreateTestSite();
-
                 var response = WopiGet($"/wopi/files/{site.Id}/contents", DefaultAccessTokenParameter, new[]
                 {
                     new[] {"X-WOPI-MaxExpectedSize", "9999"},
@@ -318,9 +306,8 @@ namespace SenseNet.Services.Tests
         [TestMethod]
         public void Wopi_Proc_GetFile_TooBig()
         {
-            Test(() =>
+            WopiTest(site =>
             {
-                var site = CreateTestSite();
                 var file = CreateTestFile(site, "File1.txt", "filecontent1");
 
                 var response = WopiGet($"/wopi/files/{file.Id}/contents", DefaultAccessTokenParameter, new[]
@@ -357,8 +344,12 @@ namespace SenseNet.Services.Tests
         private static string TestSitePath => RepositoryPath.Combine("/Root/Sites", TestSiteName);
         private static Site CreateTestSite()
         {
-            var sites = new Folder(Repository.Root, "Sites") { Name = "Sites" };
-            sites.Save();
+            var sites = Node.Load<Folder>("/Root/Sites");
+            if (sites == null)
+            {
+                sites = new Folder(Repository.Root, "Sites") {Name = "Sites"};
+                sites.Save();
+            }
 
             var site = new Site(sites) { Name = TestSiteName, UrlList = new Dictionary<string, string> { { "localhost", "None" } } };
             site.AllowChildType("File");
@@ -393,5 +384,54 @@ namespace SenseNet.Services.Tests
             return (T)wopiReq;
         }
 
+        /* =================================================== */
+
+        private static RepositoryInstance _repository;
+
+        [ClassInitialize]
+        public static void InitializeRepositoryInstance(TestContext context)
+        {
+            DistributedApplication.Cache.Reset();
+            ContentTypeManager.Reset();
+            var portalContextAcc = new PrivateType(typeof(PortalContext));
+            portalContextAcc.SetStaticField("_sites", new Dictionary<string, Site>());
+
+            var builder = CreateRepositoryBuilderForTest();
+
+            Indexing.IsOuterSearchEngineEnabled = true;
+
+            _repository = Repository.Start(builder);
+        }
+        [ClassCleanup]
+        public static void ShutDownRepository()
+        {
+            _repository?.Dispose();
+        }
+
+        private void WopiTest(Action callback)
+        {
+            WopiTestPrivate(callback, null);
+        }
+        private void WopiTest(Action<Site> callback)
+        {
+            WopiTestPrivate(null, callback);
+        }
+
+        private void WopiTestPrivate(Action callback1, Action<Site> callback2)
+        {
+            using (new SystemAccount())
+            {
+                var site = CreateTestSite();
+                try
+                {
+                    callback1?.Invoke();
+                    callback2?.Invoke(site);
+                }
+                finally
+                {
+                    site.ForceDelete();
+                }
+            }
+        }
     }
 }
