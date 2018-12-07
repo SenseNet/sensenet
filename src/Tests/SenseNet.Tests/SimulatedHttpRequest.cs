@@ -37,13 +37,24 @@ namespace SenseNet.Tests
 	    public SimulatedHttpRequest(string appVirtualDir, string appPhysicalDir, string page, string query, TextWriter output, string host, string[][] headers)
 	        : this(appVirtualDir, appPhysicalDir, page, query, output, host)
 	    {
-	        _headers = headers;
+	        _headers = AggregateHeaders(headers);
 	    }
 	    public SimulatedHttpRequest(string appVirtualDir, string appPhysicalDir, string page, string query, TextWriter output, string host, string[][] headers, string httpMethod)
 	        : this(appVirtualDir, appPhysicalDir, page, query, output, host)
 	    {
-	        _headers = headers;
-	        _httpMethod = httpMethod;
+	        _headers = AggregateHeaders(headers);
+            _httpMethod = httpMethod;
+	    }
+
+	    private string[][] AggregateHeaders(string[][] headers)
+	    {
+	        var list = new NameValueCollection();
+	        foreach (var item in headers)
+                list.Add(item[0], item[1]);
+	        var result = new string[list.Count][];
+	        for (int i = 0; i < list.Count; i++)
+	            result[i] = new[] {list.AllKeys[i], list[i]};
+	        return result;
 	    }
 
         /// <summary>
@@ -68,6 +79,9 @@ namespace SenseNet.Tests
 
 	    public override string GetUnknownRequestHeader(string name)
 	    {
+	        var items = _headers.Where(x => name.Equals(x[0], StringComparison.OrdinalIgnoreCase))
+	            .Select(x => x[1]).ToArray();
+	        return string.Join(", ", items);
 	        var item = _headers.FirstOrDefault(x => name.Equals(x[0], StringComparison.OrdinalIgnoreCase));
 	        return item?[1];
 	    }
