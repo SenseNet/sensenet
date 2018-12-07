@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -92,7 +93,8 @@ namespace SenseNet.Services.Wopi
             switch (segments[0])
             {
                 default:
-                    throw new InvalidWopiRequestException("Unknown first segment: " + segments[0]); //UNDONE: more informative message
+                    throw new InvalidWopiRequestException(HttpStatusCode.BadRequest,
+                        "Unknown first segment: " + segments[0]); //UNDONE: more informative message
                 case "wopibootstrapper":
                     return ParseWopiBootstrapper(httpMethod, headers);
                 case "wopi":
@@ -100,7 +102,8 @@ namespace SenseNet.Services.Wopi
                     switch (segments[1])
                     {
                         default:
-                            throw new InvalidWopiRequestException("Unknown second segment: " + segments[1]); //UNDONE: more informative message
+                            throw new InvalidWopiRequestException(HttpStatusCode.BadRequest,
+                                "Unknown second segment: " + segments[1]); //UNDONE: more informative message
                         case "files":
                             var fileId = GetIdAndAction(segments, out action, out rest);
                             return ParseFiles(httpMethod, fileId, action, xWopiOverride, headers);
@@ -121,7 +124,8 @@ namespace SenseNet.Services.Wopi
             switch (action)
             {
                 default:
-                    throw new InvalidWopiRequestException("Unknown 4th segment: " + action); //UNDONE: more informative message
+                    throw new InvalidWopiRequestException(HttpStatusCode.BadRequest, 
+                        "Unknown 4th segment: " + action); //UNDONE: more informative message
                 case "ancestry":
                     return ParseEnumerateAncestors(httpMethod, fileId, headers);
                 case "contents":
@@ -132,7 +136,8 @@ namespace SenseNet.Services.Wopi
                     switch (xWopiOverride)
                     {
                         default:
-                            throw new InvalidWopiRequestException($"Unknown {WopiHeader.Override} header: " + xWopiOverride); //UNDONE: more informative message
+                            throw new InvalidWopiRequestException(HttpStatusCode.BadRequest, 
+                                $"Unknown {WopiHeader.Override} header: " + xWopiOverride); //UNDONE: more informative message
                         case "PUT_RELATIVE":
                             return ParsePutRelativeFile(httpMethod, fileId, headers);
                         case "GET_LOCK":
@@ -149,8 +154,18 @@ namespace SenseNet.Services.Wopi
                             return ParseDeleteFile(httpMethod, fileId, headers);
                         case "RENAME_FILE":
                             return ParseRenameFile(httpMethod, fileId, headers);
+                        case null:
+                            return ParseCheckFileInfo(httpMethod, fileId, headers);
                     }
             }
+        }
+
+        private static WopiRequest ParseCheckFileInfo(string httpMethod, string fileId, NameValueCollection headers)
+        {
+            if (httpMethod != GET)
+                throw new InvalidWopiRequestException(HttpStatusCode.MethodNotAllowed, "The request need to be HTTP_GET"); //UNDONE: more informative message
+            var sessionContext = headers[WopiHeader.SessionContext];
+            return new CheckFileInfoRequest(fileId, sessionContext);
         }
 
         private static WopiRequest ParseEnumerateAncestors(string httpMethod, string fileId, NameValueCollection headers)
@@ -160,61 +175,92 @@ namespace SenseNet.Services.Wopi
         private static WopiRequest ParsePutFile(string httpMethod, string fileId, NameValueCollection headers)
         {
             if (httpMethod != POST)
-                throw new InvalidWopiRequestException("The request need to be HTTP_POST"); //UNDONE: more informative message
+                throw new InvalidWopiRequestException(HttpStatusCode.MethodNotAllowed, "The request need to be HTTP_POST"); //UNDONE: more informative message
             var @lock = headers[WopiHeader.Lock];
             return new PutFileRequest(fileId, @lock);
         }
         private static WopiRequest ParseGetFile(string httpMethod, string fileId, NameValueCollection headers)
         {
             if (httpMethod != GET)
-                throw new InvalidWopiRequestException("The request need to be HTTP_GET"); //UNDONE: more informative message
+                throw new InvalidWopiRequestException(HttpStatusCode.MethodNotAllowed, "The request need to be HTTP_GET"); //UNDONE: more informative message
             var maxExpectedSize = GetIntOrNullFromHeader(headers, WopiHeader.MaxExpectedSize, true);
             return new GetFileRequest(fileId, maxExpectedSize);
         }
 
         private static WopiRequest ParsePutRelativeFile(string httpMethod, string fileId, NameValueCollection headers)
         {
-            throw new NotImplementedException(); //UNDONE: not implemented: ParsePutRelativeFile
+            if (httpMethod != POST)
+                throw new InvalidWopiRequestException(HttpStatusCode.MethodNotAllowed, "The request need to be HTTP_POST"); //UNDONE: more informative message
+            var suggestedTarget = headers[WopiHeader.SuggestedTarget];
+            var relativeTarget = headers[WopiHeader.RelativeTarget];
+            if(suggestedTarget!=null&&relativeTarget!=null)
+                throw new InvalidWopiRequestException(HttpStatusCode.BadRequest,
+                    "The 'X-WOPI-SuggestedTarget' and 'X-WOPI-RelativeTarget' headers are mutually exclusive."); //UNDONE: more informative message
+            var overwriteRelativeTarget = GetBoolFromHeader(headers, WopiHeader.OverwriteRelativeTarget, false);
+            var size = GetIntFromHeader(headers, WopiHeader.Size, false);
+            var fileConversion = headers[WopiHeader.FileConversion];
+
+            return new PutRelativeFileRequest(fileId,
+                suggestedTarget, relativeTarget, overwriteRelativeTarget, size, fileConversion);
         }
         private static WopiRequest ParseGetLock(string httpMethod, string fileId, NameValueCollection headers)
         {
             if (httpMethod != POST)
-                throw new InvalidWopiRequestException("The request need to be HTTP_POST"); //UNDONE: more informative message
+                throw new InvalidWopiRequestException(HttpStatusCode.MethodNotAllowed, "The request need to be HTTP_POST"); //UNDONE: more informative message
             return new GetLockRequest(fileId);
         }
         private static WopiRequest ParseLock(string httpMethod, string fileId, NameValueCollection headers)
         {
             if (httpMethod != POST)
-                throw new InvalidWopiRequestException("The request need to be HTTP_POST"); //UNDONE: more informative message
+                throw new InvalidWopiRequestException(HttpStatusCode.MethodNotAllowed, "The request need to be HTTP_POST"); //UNDONE: more informative message
             var @lock = headers[WopiHeader.Lock];
             if(@lock == null)
-                throw new InvalidWopiRequestException($"Missing {WopiHeader.Lock} header."); //UNDONE: more informative message
+                throw new InvalidWopiRequestException(HttpStatusCode.BadRequest, $"Missing {WopiHeader.Lock} header."); //UNDONE: more informative message
             return new LockRequest(fileId, @lock);
         }
         private static WopiRequest ParseUnlockAndRelock(string httpMethod, string fileId, NameValueCollection headers)
         {
-            throw new NotImplementedException(); //UNDONE: not implemented: ParseUnlockAndRelock
+            if (httpMethod != POST)
+                throw new InvalidWopiRequestException(HttpStatusCode.MethodNotAllowed, "The request need to be HTTP_POST"); //UNDONE: more informative message
+            var @lock = headers[WopiHeader.Lock];
+            if (@lock == null)
+                throw new InvalidWopiRequestException(HttpStatusCode.BadRequest, $"Missing {WopiHeader.Lock} header."); //UNDONE: more informative message
+            var oldLock = headers[WopiHeader.OldLock];
+            return new UnlockAndRelockRequest(fileId, @lock, oldLock);
         }
         private static WopiRequest ParseUnlock(string httpMethod, string fileId, NameValueCollection headers)
         {
-            throw new NotImplementedException(); //UNDONE: not implemented: ParseUnlock
+            if (httpMethod != POST)
+                throw new InvalidWopiRequestException(HttpStatusCode.MethodNotAllowed, "The request need to be HTTP_POST"); //UNDONE: more informative message
+            var @lock = headers[WopiHeader.Lock];
+            if (@lock == null)
+                throw new InvalidWopiRequestException(HttpStatusCode.BadRequest, $"Missing {WopiHeader.Lock} header."); //UNDONE: more informative message
+            return new UnlockRequest(fileId, @lock);
         }
         private static WopiRequest ParseRefreshLock(string httpMethod, string fileId, NameValueCollection headers)
         {
             if (httpMethod != POST)
-                throw new InvalidWopiRequestException("The request need to be HTTP_POST"); //UNDONE: more informative message
+                throw new InvalidWopiRequestException(HttpStatusCode.MethodNotAllowed, "The request need to be HTTP_POST"); //UNDONE: more informative message
             var @lock = headers[WopiHeader.Lock];
             if (@lock == null)
-                throw new InvalidWopiRequestException($"Missing {WopiHeader.Lock} header."); //UNDONE: more informative message
+                throw new InvalidWopiRequestException(HttpStatusCode.BadRequest, $"Missing {WopiHeader.Lock} header."); //UNDONE: more informative message
             return new RefreshLockRequest(fileId, @lock);
         }
         private static WopiRequest ParseDeleteFile(string httpMethod, string fileId, NameValueCollection headers)
         {
-            throw new NotImplementedException(); //UNDONE: not implemented: ParseDeleteFile
+            if (httpMethod != POST)
+                throw new InvalidWopiRequestException(HttpStatusCode.MethodNotAllowed, "The request need to be HTTP_POST"); //UNDONE: more informative message
+            return new DeleteFileRequest(fileId);
         }
         private static WopiRequest ParseRenameFile(string httpMethod, string fileId, NameValueCollection headers)
         {
-            throw new NotImplementedException(); //UNDONE: not implemented: ParseRenameFile
+            if (httpMethod != POST)
+                throw new InvalidWopiRequestException(HttpStatusCode.MethodNotAllowed, "The request need to be HTTP_POST"); //UNDONE: more informative message
+            var @lock = headers[WopiHeader.Lock];
+            if (@lock == null)
+                throw new InvalidWopiRequestException(HttpStatusCode.BadRequest, $"Missing {WopiHeader.Lock} header."); //UNDONE: more informative message
+            var requestedName = headers[WopiHeader.RequestedName];
+            return new RenameFileRequest(fileId, @lock, requestedName);
         }
 
 
@@ -261,7 +307,7 @@ namespace SenseNet.Services.Wopi
                 return intValue;
             if (!throwOnError)
                 return 0;
-            throw new InvalidWopiRequestException($"Invalid '{name}': {value}"); //UNDONE: more informative message
+            throw new InvalidWopiRequestException(HttpStatusCode.BadRequest, $"Invalid '{name}': {value}"); //UNDONE: more informative message
         }
         private static int? GetIntOrNullFromHeader(NameValueCollection headers, string name, bool throwOnError)
         {
@@ -272,7 +318,18 @@ namespace SenseNet.Services.Wopi
                 return intValue;
             if (!throwOnError)
                 return null;
-            throw new InvalidWopiRequestException($"Invalid '{name}': {value}"); //UNDONE: more informative message
+            throw new InvalidWopiRequestException(HttpStatusCode.BadRequest, $"Invalid '{name}': {value}"); //UNDONE: more informative message
+        }
+        private static bool GetBoolFromHeader(NameValueCollection headers, string name, bool throwOnError)
+        {
+            var value = headers[name];
+            if (string.IsNullOrEmpty(value))
+                return false;
+            if (bool.TryParse(value, out var boolValue))
+                return boolValue;
+            if (!throwOnError)
+                return false;
+            throw new InvalidWopiRequestException(HttpStatusCode.BadRequest, $"Invalid '{name}': {value}"); //UNDONE: more informative message
         }
 
     }
