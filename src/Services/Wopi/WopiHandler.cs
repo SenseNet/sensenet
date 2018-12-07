@@ -46,7 +46,9 @@ namespace SenseNet.Services.Wopi
                 case WopiRequestType.Lock:
                     return ProcessLockRequest((LockRequest)wopiReq, portalContext);
                 case WopiRequestType.Unlock:
+                    throw new NotImplementedException(); //UNDONE: not implemented: GetResponse #3
                 case WopiRequestType.RefreshLock:
+                    return ProcessRefreshLockRequest((RefreshLockRequest)wopiReq, portalContext);
                 case WopiRequestType.UnlockAndRelock:
                 case WopiRequestType.DeleteFile:
                 case WopiRequestType.RenameFile:
@@ -84,6 +86,39 @@ namespace SenseNet.Services.Wopi
             {
                 SharedLock.Lock(file.Id, wopiReq.Lock);
                 return new WopiResponse { Status = HttpStatusCode.OK };
+            }
+            if (existingLock != wopiReq.Lock)
+            {
+                return new WopiResponse
+                {
+                    Status = HttpStatusCode.Conflict,
+                    Headers = new Dictionary<string, string>
+                    {
+                        {WopiHeader.Lock, existingLock}
+                    }
+                };
+            }
+            SharedLock.RefreshLock(contentId, existingLock);
+            return new WopiResponse { Status = HttpStatusCode.OK };
+        }
+        private WopiResponse ProcessRefreshLockRequest(RefreshLockRequest wopiReq, PortalContext portalContext)
+        {
+            if (!int.TryParse(wopiReq.FileId, out var contentId))
+                return new WopiResponse { Status = HttpStatusCode.NotFound };
+            if (!(Node.LoadNode(contentId) is File file))
+                return new WopiResponse { Status = HttpStatusCode.NotFound };
+
+            var existingLock = SharedLock.GetLock(file.Id);
+            if (existingLock == null)
+            {
+                return new WopiResponse
+                {
+                    Status = HttpStatusCode.Conflict,
+                    Headers = new Dictionary<string, string>
+                    {
+                        {WopiHeader.Lock, ""}
+                    }
+                };
             }
             if (existingLock != wopiReq.Lock)
             {

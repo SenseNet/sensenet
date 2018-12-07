@@ -12,12 +12,14 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Portal;
 using SenseNet.Portal.Virtualization;
 using SenseNet.Services.Wopi;
 using SenseNet.Tests;
+using SenseNet.Tests.Implementations;
 using File = SenseNet.ContentRepository.File;
 
 namespace SenseNet.Services.Tests
@@ -569,7 +571,7 @@ namespace SenseNet.Services.Tests
         /* --------------------------------------------------------- Lock */
 
         [TestMethod]
-        public void Wopi_Proc_LockFile()
+        public void Wopi_Proc_Lock()
         {
             WopiTest(site =>
             {
@@ -587,8 +589,33 @@ namespace SenseNet.Services.Tests
                 Assert.AreEqual(expectedLock, actualLock);
             });
         }
+        //UNDONE: Missing test: Lock errors
 
         /* --------------------------------------------------------- RefreshLock */
+
+        [TestMethod]
+        public void Wopi_Proc_RefreshLock()
+        {
+            WopiTest(site =>
+            {
+                var file = CreateTestFile(site, "File1.txt", "filecontent1");
+                var expectedLock = "LCK_" + Guid.NewGuid();
+                SharedLock.Lock(file.Id, expectedLock);
+                var dataProvider = (InMemoryDataProvider) DataProvider.Current;
+                var sharedLockRow = dataProvider.DB.SharedLocks.First(x => x.ContentId == file.Id);
+                sharedLockRow.CreationDate = DateTime.UtcNow.AddMinutes(-10.0d);
+
+                var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "REFRESH_LOCK"},
+                    new[] { "X-WOPI-Lock", expectedLock},
+                }, null);
+
+                Assert.AreEqual(HttpStatusCode.OK, response.Status);
+                Assert.IsTrue((DateTime.UtcNow - sharedLockRow.CreationDate).TotalSeconds < 1);
+            });
+        }
+        //UNDONE: Missing test: RefreshLock errors
 
         /* --------------------------------------------------------- Unlock */
 

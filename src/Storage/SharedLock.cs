@@ -14,7 +14,7 @@ namespace SenseNet.ContentRepository.Storage
             DataProvider.Current.DeleteAllSharedLocks();
         }
 
-        public static void Lock(int contentId, string @lock, TimeSpan? timeout = null)
+        public static void Lock(int contentId, string @lock)
         {
             DataProvider.Current.CreateSharedLock(contentId, @lock);
         }

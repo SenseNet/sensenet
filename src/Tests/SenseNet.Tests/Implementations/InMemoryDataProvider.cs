@@ -469,7 +469,11 @@ namespace SenseNet.Tests.Implementations
 
         public override string RefreshSharedLock(int contentId, string @lock)
         {
-            throw new NotImplementedException(); //UNDONE not implemented RefreshSharedLock
+            var row = _db.SharedLocks.FirstOrDefault(x => x.ContentId == contentId);
+            if (row == null)
+                throw new Exception("Content is unlocked"); //UNDONE: Right exception type and message
+            row.CreationDate = DateTime.UtcNow;
+            return row.Lock;
         }
 
         public override string ModifySharedLock(int contentId, string @lock, string newLock)
