@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SenseNet.ContentRepository.Storage.Data;
 
 namespace SenseNet.ContentRepository.Storage
 {
@@ -10,25 +11,30 @@ namespace SenseNet.ContentRepository.Storage
     {
         private static readonly TimeSpan DefaultTimeout = TimeSpan.FromMinutes(20d);
 
-        public static void AssociateLock(int contentId, string @lock, TimeSpan? timeout = null)
+        public static void RemoveAllLocks()
         {
-            throw new NotImplementedException(); //UNDONE: not implemented: AssociateLock
+            DataProvider.Current.DeleteAllSharedLocks();
+        }
+
+        public static void Lock(int contentId, string @lock, TimeSpan? timeout = null)
+        {
+            DataProvider.Current.CreateSharedLock(contentId, @lock, timeout ?? DefaultTimeout);
         }
         public static string RefreshLock(int contentId, string @lock)
         {
-            throw new NotImplementedException(); //UNDONE: not implemented: RefreshLock
+            return DataProvider.Current.RefreshSharedLock(contentId, @lock);
         }
         public static string ModifyLock(int contentId, string @lock, string newLock)
         {
-            throw new NotImplementedException(); //UNDONE: not implemented: RefreshLock
+            return DataProvider.Current.ModifySharedLock(contentId, @lock, newLock);
         }
         public static string GetLock(int contentId)
         {
-            throw new NotImplementedException(); //UNDONE: not implemented: GetLock
+            return DataProvider.Current.GetSharedLock(contentId);
         }
         public static string Unlock(int contentId, string @lock)
         {
-            throw new NotImplementedException(); //UNDONE: not implemented: Unlock
+            return DataProvider.Current.DeleteSharedLock(contentId, @lock);
         }
     }
 }
