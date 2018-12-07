@@ -446,6 +446,49 @@ namespace SenseNet.Tests.Implementations
 
         #endregion
 
+        #region // ====================================================== Shared lock
+
+        private static readonly TimeSpan SharedLockTimeout = TimeSpan.FromMinutes(30d);
+
+        public override void DeleteAllSharedLocks()
+        {
+            _db.SharedLocks.Clear();
+        }
+
+        public override void CreateSharedLock(int contentId, string @lock)
+        {
+            var newSharedLockId = _db.SharedLocks.Count == 0 ? 1 : _db.SharedLocks.Max(t => t.SharedLockId) + 1;
+            _db.SharedLocks.Add(new SharedLockRow
+            {
+                SharedLockId = newSharedLockId,
+                ContentId = contentId,
+                Lock = @lock,
+                CreationDate = DateTime.UtcNow
+            });
+        }
+
+        public override string RefreshSharedLock(int contentId, string @lock)
+        {
+            throw new NotImplementedException(); //UNDONE not implemented RefreshSharedLock
+        }
+
+        public override string ModifySharedLock(int contentId, string @lock, string newLock)
+        {
+            throw new NotImplementedException(); //UNDONE not implemented ModifySharedLock
+        }
+
+        public override string GetSharedLock(int contentId)
+        {
+            var timeLimit = DateTime.UtcNow.AddTicks(-SharedLockTimeout.Ticks);
+            return _db.SharedLocks.FirstOrDefault(x => x.ContentId == contentId && x.CreationDate >= timeLimit)?.Lock;
+        }
+
+        public override string DeleteSharedLock(int contentId, string @lock)
+        {
+            throw new NotImplementedException(); //UNDONE not implemented DeleteSharedLock
+        }
+
+        #endregion
 
         #region NOT IMPLEMENTED
 
@@ -1670,6 +1713,7 @@ namespace SenseNet.Tests.Implementations
             public List<ReferencePropertyRow> ReferenceProperties { get; set; }
             public List<IndexingActivityRecord> IndexingActivities { get; set; } = new List<IndexingActivityRecord>();
             public List<TreeLockRow> TreeLocks { get; set; } = new List<TreeLockRow>();
+            public List<SharedLockRow> SharedLocks { get; set; } = new List<SharedLockRow>();
             public List<LogEntriesRow> LogEntries { get; set; } = new List<LogEntriesRow>();
 
             public Database Clone()
@@ -2878,6 +2922,24 @@ namespace SenseNet.Tests.Implementations
                     TreeLockId = TreeLockId,
                     Path = Path,
                     LockedAt = LockedAt
+                };
+            }
+        }
+        public class SharedLockRow
+        {
+            public int SharedLockId;
+            public int ContentId;
+            public string Lock;
+            public DateTime CreationDate;
+
+            public SharedLockRow Clone()
+            {
+                return new SharedLockRow
+                {
+                    SharedLockId = SharedLockId,
+                    ContentId = ContentId,
+                    Lock = Lock,
+                    CreationDate = CreationDate
                 };
             }
         }
