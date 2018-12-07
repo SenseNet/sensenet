@@ -436,7 +436,7 @@ namespace SenseNet.Services.Tests
             });
         }
 
-        /* --------------------------------------------------------- PutFile */
+        /* --------------------------------------------------------- PutRelativeFile */
 
         [TestMethod]
         public void Wopi_Req_PutRelativeFile()
@@ -564,6 +564,40 @@ namespace SenseNet.Services.Tests
 
         /* ======================================================================================= */
 
+        /* --------------------------------------------------------- GetLock */
+
+        /* --------------------------------------------------------- Lock */
+
+        [TestMethod]
+        public void Wopi_Proc_LockFile()
+        {
+            WopiTest(site =>
+            {
+                var file = CreateTestFile(site, "File1.txt", "filecontent1");
+                var expectedLock = "LCK_" + Guid.NewGuid();
+
+                var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "LOCK"},
+                    new[] { "X-WOPI-Lock", expectedLock},
+                }, null);
+
+                Assert.AreEqual(HttpStatusCode.OK, response.Status);
+                var actualLock = SharedLock.GetLock(file.Id);
+                Assert.AreEqual(expectedLock, actualLock);
+            });
+        }
+
+        /* --------------------------------------------------------- RefreshLock */
+
+        /* --------------------------------------------------------- Unlock */
+
+        /* --------------------------------------------------------- UnlockAndRelock */
+
+        /* --------------------------------------------------------- CheckFileInfo */
+
+        /* --------------------------------------------------------- GetFile */
+
         [TestMethod]
         public void Wopi_Proc_GetFile()
         {
@@ -609,6 +643,11 @@ namespace SenseNet.Services.Tests
             });
         }
 
+        /* --------------------------------------------------------- PutFile */
+
+        /* --------------------------------------------------------- PutRelativeFile */
+
+        /* --------------------------------------------------------- DeleteFile */
 
         /* ======================================================================================= */
 
@@ -621,7 +660,7 @@ namespace SenseNet.Services.Tests
         }
         private WopiResponse WopiPost(string resource, string queryString, string[][] headers, Stream requestStream)
         {
-            return GetWopiResponse("GET", resource, queryString, headers, requestStream);
+            return GetWopiResponse("POST", resource, queryString, headers, requestStream);
         }
         private WopiResponse GetWopiResponse(string httpMethod, string resource, string queryString, string[][] headers, Stream requestStream)
         {
@@ -724,6 +763,7 @@ namespace SenseNet.Services.Tests
         {
             using (new SystemAccount())
             {
+                SharedLock.RemoveAllLocks();
                 var site = CreateTestSite();
                 try
                 {

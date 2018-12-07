@@ -11,7 +11,8 @@ namespace SenseNet.Services.Wopi
 {
     internal class WopiResponse
     {
-        public HttpStatusCode Status { get; set; }
+        public HttpStatusCode Status { get; internal set; }
+        public IDictionary<string, string> Headers { get; internal set; }
         internal File File { get; set; }
 
         public Stream GetResponseStream()
