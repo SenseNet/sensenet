@@ -9,8 +9,6 @@ namespace SenseNet.ContentRepository.Storage
 {
     public class SharedLock
     {
-        private static readonly TimeSpan DefaultTimeout = TimeSpan.FromMinutes(20d);
-
         public static void RemoveAllLocks()
         {
             DataProvider.Current.DeleteAllSharedLocks();
@@ -18,7 +16,7 @@ namespace SenseNet.ContentRepository.Storage
 
         public static void Lock(int contentId, string @lock, TimeSpan? timeout = null)
         {
-            DataProvider.Current.CreateSharedLock(contentId, @lock, timeout ?? DefaultTimeout);
+            DataProvider.Current.CreateSharedLock(contentId, @lock);
         }
         public static string RefreshLock(int contentId, string @lock)
         {

@@ -547,7 +547,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         // ====================================================== Tree lock
 
         public abstract void DeleteAllSharedLocks();
-        public abstract void CreateSharedLock(int contentId, string @lock, TimeSpan timeSpan);
+        public abstract void CreateSharedLock(int contentId, string @lock);
         public abstract string RefreshSharedLock(int contentId, string @lock);
         public abstract string ModifySharedLock(int contentId, string @lock, string newLock);
         public abstract string GetSharedLock(int contentId);
