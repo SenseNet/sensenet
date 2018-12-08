@@ -842,7 +842,129 @@ namespace SenseNet.Services.Tests
 
         /* --------------------------------------------------------- Unlock */
 
+        [TestMethod]
+        public void Wopi_Proc_Unlock()
+        {
+            WopiTest(site =>
+            {
+                var file = CreateTestFile(site, "File1.txt", "filecontent1");
+                var existingLock = "LCK_" + Guid.NewGuid();
+                SharedLock.Lock(file.Id, existingLock);
+
+                var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "UNLOCK"},
+                    new[] { "X-WOPI-Lock", existingLock},
+                }, null);
+
+                Assert.AreEqual(HttpStatusCode.OK, response.Status);
+                var actualLock = SharedLock.GetLock(file.Id);
+                Assert.IsNull(actualLock);
+            });
+        }
+        [TestMethod]
+        public void Wopi_Proc_Unlock_Unlocked()
+        {
+            WopiTest(site =>
+            {
+                var file = CreateTestFile(site, "File1.txt", "filecontent1");
+
+                var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "UNLOCK"},
+                    new[] { "X-WOPI-Lock", "LCK-42"},
+                }, null);
+
+                Assert.AreEqual(HttpStatusCode.Conflict, response.Status);
+                AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "Unlocked");
+                AssertHeader(response.Headers, "X-WOPI-Lock", string.Empty);
+                var actualLock = SharedLock.GetLock(file.Id);
+                Assert.IsNull(actualLock);
+            });
+        }
+        [TestMethod]
+        public void Wopi_Proc_Unlock_ExistingDifferent()
+        {
+            WopiTest(site =>
+            {
+                var file = CreateTestFile(site, "File1.txt", "filecontent1");
+                var expectedLock = "LCK_" + Guid.NewGuid();
+                var existingLock = "LCK_" + Guid.NewGuid();
+                Assert.AreNotEqual(existingLock, expectedLock);
+                SharedLock.Lock(file.Id, existingLock);
+
+                var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "UNLOCK"},
+                    new[] { "X-WOPI-Lock", expectedLock},
+                }, null);
+
+                Assert.AreEqual(HttpStatusCode.Conflict, response.Status);
+                AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "LockedByAnother");
+                AssertHeader(response.Headers, "X-WOPI-Lock", existingLock);
+                var actualLock = SharedLock.GetLock(file.Id);
+                Assert.AreEqual(actualLock, existingLock);
+            });
+        }
+        [TestMethod]
+        public void Wopi_Proc_Unlock_InvalidId()
+        {
+            WopiTest(site =>
+            {
+                var response = WopiPost($"/wopi/files/abc-123", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "UNLOCK"},
+                    new[] { "X-WOPI-Lock", "LCK-42"},
+                }, null);
+
+                Assert.AreEqual(HttpStatusCode.NotFound, response.Status);
+            });
+        }
+        [TestMethod]
+        public void Wopi_Proc_Unlock_NotFound()
+        {
+            WopiTest(site =>
+            {
+                var response = WopiPost($"/wopi/files/{site.Id}", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "UNLOCK"},
+                    new[] { "X-WOPI-Lock", "LCK-42"},
+                }, null);
+
+                Assert.AreEqual(HttpStatusCode.NotFound, response.Status);
+            });
+        }
+        [TestMethod]
+        public void Wopi_Proc_Unlock_ExclusivelyLocked()
+        {
+            //UNDONE: Test Unlock operation with a checked-out file
+            Assert.Inconclusive();
+        }
+
         /* --------------------------------------------------------- UnlockAndRelock */
+
+        [TestMethod]
+        public void Wopi_Proc_UnlockAndRelock()
+        {
+            WopiTest(site =>
+            {
+                var file = CreateTestFile(site, "File1.txt", "filecontent1");
+                var expectedLock = "LCK_" + Guid.NewGuid();
+                var existingLock = "LCK_" + Guid.NewGuid();
+                SharedLock.Lock(file.Id, existingLock);
+
+                var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "UNLOCK"},
+                    new[] { "X-WOPI-Lock", expectedLock},
+                    new[] { "X-WOPI-OldLock", existingLock},
+                }, null);
+
+                Assert.AreEqual(HttpStatusCode.OK, response.Status);
+                var actualLock = SharedLock.GetLock(file.Id);
+                Assert.AreEqual(expectedLock, actualLock);
+            });
+        }
 
         /* --------------------------------------------------------- CheckFileInfo */
 

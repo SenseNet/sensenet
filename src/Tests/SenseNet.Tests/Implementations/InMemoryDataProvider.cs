@@ -489,7 +489,14 @@ namespace SenseNet.Tests.Implementations
 
         public override string DeleteSharedLock(int contentId, string @lock)
         {
-            throw new NotImplementedException(); //UNDONE not implemented DeleteSharedLock
+            var existingItem = _db.SharedLocks.FirstOrDefault(x => x.ContentId == contentId && x.Lock == @lock);
+            if (existingItem != null)
+            {
+                _db.SharedLocks.Remove(existingItem);
+                return null;
+            }
+            var existingLock = _db.SharedLocks.FirstOrDefault(x => x.ContentId == contentId)?.Lock;
+            return existingLock;
         }
 
         #endregion
