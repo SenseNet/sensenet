@@ -41,6 +41,8 @@ namespace SenseNet.Services.Wopi
                 case WopiRequestType.CheckFileInfo:
                 case WopiRequestType.PutRelativeFile:
                     throw new NotImplementedException(); //UNDONE: not implemented: GetResponse #3
+                case WopiRequestType.GetLock:
+                    return ProcessGetLockRequest((GetLockRequest)wopiReq, portalContext);
                 case WopiRequestType.Lock:
                     return ProcessLockRequest((LockRequest)wopiReq, portalContext);
                 case WopiRequestType.Unlock:
@@ -70,6 +72,25 @@ namespace SenseNet.Services.Wopi
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+        }
+
+        private WopiResponse ProcessGetLockRequest(GetLockRequest wopiReq, PortalContext portalContext)
+        {
+            if (!int.TryParse(wopiReq.FileId, out var contentId))
+                return new WopiResponse {Status = HttpStatusCode.NotFound};
+            if (!(Node.LoadNode(contentId) is File file))
+                return new WopiResponse {Status = HttpStatusCode.NotFound};
+
+            var existingLock = SharedLock.GetLock(file.Id) ?? string.Empty;
+
+            return new WopiResponse
+            {
+                Status = HttpStatusCode.OK,
+                Headers = new Dictionary<string, string>
+                {
+                    {WopiHeader.Lock, existingLock},
+                }
+            };
         }
 
         private WopiResponse ProcessLockRequest(LockRequest wopiReq, PortalContext portalContext)

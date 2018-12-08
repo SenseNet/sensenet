@@ -568,6 +568,77 @@ namespace SenseNet.Services.Tests
 
         /* --------------------------------------------------------- GetLock */
 
+        [TestMethod]
+        public void Wopi_Proc_GetLock()
+        {
+            WopiTest(site =>
+            {
+                var file = CreateTestFile(site, "File1.txt", "filecontent1");
+                var existingLock = "LCK_" + Guid.NewGuid();
+                SharedLock.Lock(file.Id, existingLock);
+
+                var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "GET_LOCK"},
+                }, null);
+
+                Assert.AreEqual(HttpStatusCode.OK, response.Status);
+                AssertHeader(response.Headers, "X-WOPI-Lock", existingLock);
+                var actualLock = SharedLock.GetLock(file.Id);
+                Assert.AreEqual(existingLock, actualLock);
+            });
+        }
+        [TestMethod]
+        public void Wopi_Proc_GetLock_Unlocked()
+        {
+            WopiTest(site =>
+            {
+                var file = CreateTestFile(site, "File1.txt", "filecontent1");
+
+                var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "GET_LOCK"},
+                }, null);
+
+                Assert.AreEqual(HttpStatusCode.OK, response.Status);
+                AssertHeader(response.Headers, "X-WOPI-Lock", string.Empty);
+                var actualLock = SharedLock.GetLock(file.Id);
+                Assert.IsNull(actualLock);
+            });
+        }
+        [TestMethod]
+        public void Wopi_Proc_GetLock_InvalidId()
+        {
+            WopiTest(site =>
+            {
+                var response = WopiPost($"/wopi/files/abc-123", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "GET_LOCK"},
+                }, null);
+
+                Assert.AreEqual(HttpStatusCode.NotFound, response.Status);
+            });
+        }
+        [TestMethod]
+        public void Wopi_Proc_GetLock_NotFound()
+        {
+            WopiTest(site =>
+            {
+                var response = WopiPost($"/wopi/files/{site.Id}", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "GET_LOCK"},
+                }, null);
+
+                Assert.AreEqual(HttpStatusCode.NotFound, response.Status);
+            });
+        }
+        [TestMethod]
+        public void Wopi_Proc_GetLock_ExclusivelyLocked()
+        {
+            //UNDONE: Test GetLock operation with a checked-out file
+            Assert.Inconclusive();
+        }
+
         /* --------------------------------------------------------- Lock */
 
         [TestMethod]
@@ -634,7 +705,7 @@ namespace SenseNet.Services.Tests
             });
         }
         [TestMethod]
-        public void Wopi_Proc_LockInvalidId()
+        public void Wopi_Proc_Lock_InvalidId()
         {
             WopiTest(site =>
             {
@@ -648,7 +719,7 @@ namespace SenseNet.Services.Tests
             });
         }
         [TestMethod]
-        public void Wopi_Proc_LockNotFound()
+        public void Wopi_Proc_Lock_NotFound()
         {
             WopiTest(site =>
             {
@@ -660,6 +731,12 @@ namespace SenseNet.Services.Tests
 
                 Assert.AreEqual(HttpStatusCode.NotFound, response.Status);
             });
+        }
+        [TestMethod]
+        public void Wopi_Proc_Lock_ExclusivelyLocked()
+        {
+            //UNDONE: Test Lock operation with a checked-out file
+            Assert.Inconclusive();
         }
 
         /* --------------------------------------------------------- RefreshLock */
@@ -755,6 +832,12 @@ namespace SenseNet.Services.Tests
 
                 Assert.AreEqual(HttpStatusCode.NotFound, response.Status);
             });
+        }
+        [TestMethod]
+        public void Wopi_Proc_RefreshLock_ExclusivelyLocked()
+        {
+            //UNDONE: Test RefreshLock operation with a checked-out file
+            Assert.Inconclusive();
         }
 
         /* --------------------------------------------------------- Unlock */
