@@ -478,7 +478,14 @@ namespace SenseNet.Tests.Implementations
 
         public override string ModifySharedLock(int contentId, string @lock, string newLock)
         {
-            throw new NotImplementedException(); //UNDONE not implemented ModifySharedLock
+            var existingItem = _db.SharedLocks.FirstOrDefault(x => x.ContentId == contentId && x.Lock == @lock);
+            if (existingItem != null)
+            {
+                existingItem.Lock = newLock;
+                return null;
+            }
+            var existingLock = _db.SharedLocks.FirstOrDefault(x => x.ContentId == contentId)?.Lock;
+            return existingLock;
         }
 
         public override string GetSharedLock(int contentId)

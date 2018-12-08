@@ -955,7 +955,7 @@ namespace SenseNet.Services.Tests
 
                 var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
                 {
-                    new[] { "X-WOPI-Override", "UNLOCK"},
+                    new[] { "X-WOPI-Override", "LOCK"},
                     new[] { "X-WOPI-Lock", expectedLock},
                     new[] { "X-WOPI-OldLock", existingLock},
                 }, null);
@@ -964,6 +964,90 @@ namespace SenseNet.Services.Tests
                 var actualLock = SharedLock.GetLock(file.Id);
                 Assert.AreEqual(expectedLock, actualLock);
             });
+        }
+
+        [TestMethod]
+        public void Wopi_Proc_UnlockAndRelock_Unlocked()
+        {
+            WopiTest(site =>
+            {
+                var file = CreateTestFile(site, "File1.txt", "filecontent1");
+                var expectedLock = "LCK_" + Guid.NewGuid();
+
+                var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "LOCK"},
+                    new[] { "X-WOPI-Lock", expectedLock},
+                    new[] { "X-WOPI-OldLock", "LCK-42"},
+                }, null);
+
+                Assert.AreEqual(HttpStatusCode.Conflict, response.Status);
+                AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "Unlocked");
+                AssertHeader(response.Headers, "X-WOPI-Lock", string.Empty);
+                var actualLock = SharedLock.GetLock(file.Id);
+                Assert.IsNull(actualLock);
+            });
+        }
+        [TestMethod]
+        public void Wopi_Proc_UnlockAndRelock_ExistingDifferent()
+        {
+            WopiTest(site =>
+            {
+                var file = CreateTestFile(site, "File1.txt", "filecontent1");
+                var expectedLock = "LCK_" + Guid.NewGuid();
+                var existingLock = "LCK_" + Guid.NewGuid();
+                SharedLock.Lock(file.Id, existingLock);
+
+                var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "LOCK"},
+                    new[] { "X-WOPI-Lock", expectedLock},
+                    new[] { "X-WOPI-OldLock", "LCK-42"},
+                }, null);
+
+                Assert.AreEqual(HttpStatusCode.Conflict, response.Status);
+                AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "LockedByAnother");
+                AssertHeader(response.Headers, "X-WOPI-Lock", existingLock);
+                var actualLock = SharedLock.GetLock(file.Id);
+                Assert.AreEqual(actualLock, existingLock);
+            });
+        }
+
+        [TestMethod]
+        public void Wopi_Proc_UnlockAndRelock_InvalidId()
+        {
+            WopiTest(site =>
+            {
+                var response = WopiPost($"/wopi/files/abd-123", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "LOCK"},
+                    new[] { "X-WOPI-Lock", "LCK-42"},
+                    new[] { "X-WOPI-OldLock", "LCK-43"},
+                }, null);
+
+                Assert.AreEqual(HttpStatusCode.NotFound, response.Status);
+            });
+        }
+        [TestMethod]
+        public void Wopi_Proc_UnlockAndRelock_NotFound()
+        {
+            WopiTest(site =>
+            {
+                var response = WopiPost($"/wopi/files/{site.Id}", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "LOCK"},
+                    new[] { "X-WOPI-Lock", "LCK-42"},
+                    new[] { "X-WOPI-OldLock", "LCK-43"},
+                }, null);
+
+                Assert.AreEqual(HttpStatusCode.NotFound, response.Status);
+            });
+        }
+        [TestMethod]
+        public void Wopi_Proc_UnlockAndRelock_ExclusivelyLocked()
+        {
+            //UNDONE: Test UnlockAndRelock operation with a checked-out file
+            Assert.Inconclusive();
         }
 
         /* --------------------------------------------------------- CheckFileInfo */

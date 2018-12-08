@@ -19,9 +19,9 @@ namespace SenseNet.Services.Wopi
             public static readonly string LockFailureReason = "X-WOPI-LockFailureReason";
     }
 
-    /// <inheritdoc select="summary" />
-    /// <remarks>Returns with false in this implementation.</remarks>
-    public bool IsReusable => false;
+        /// <inheritdoc select="summary" />
+        /// <remarks>Returns with false in this implementation.</remarks>
+        public bool IsReusable => false;
 
         /// <inheritdoc />
         /// <remarks>Processes the WOPI web request.</remarks>
@@ -192,7 +192,38 @@ namespace SenseNet.Services.Wopi
         }
         private WopiResponse ProcessUnlockAndRelockRequest(UnlockAndRelockRequest wopiReq, PortalContext portalContext)
         {
-            throw new NotImplementedException(); //UNDONE: not implemented: ProcessUnlockAndRelockRequest
+            if (!int.TryParse(wopiReq.FileId, out var contentId))
+                return new WopiResponse { Status = HttpStatusCode.NotFound };
+            if (!(Node.LoadNode(contentId) is File file))
+                return new WopiResponse { Status = HttpStatusCode.NotFound };
+
+            var existingLock = SharedLock.GetLock(file.Id);
+            if (existingLock == null)
+            {
+                return new WopiResponse
+                {
+                    Status = HttpStatusCode.Conflict,
+                    Headers = new Dictionary<string, string>
+                    {
+                        {WopiHeader.Lock, string.Empty},
+                        {WopiHeader.LockFailureReason, "Unlocked"}
+                    }
+                };
+            }
+            if (existingLock != wopiReq.OldLock)
+            {
+                return new WopiResponse
+                {
+                    Status = HttpStatusCode.Conflict,
+                    Headers = new Dictionary<string, string>
+                    {
+                        {WopiHeader.Lock, existingLock},
+                        {WopiHeader.LockFailureReason, "LockedByAnother"}
+                    }
+                };
+            }
+            SharedLock.ModifyLock(contentId, existingLock, wopiReq.Lock);
+            return new WopiResponse { Status = HttpStatusCode.OK };
         }
 
         private WopiResponse ProcessGetFileRequest(GetFileRequest wopiReq, PortalContext portalContext)
