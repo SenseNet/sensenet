@@ -589,7 +589,78 @@ namespace SenseNet.Services.Tests
                 Assert.AreEqual(expectedLock, actualLock);
             });
         }
-        //UNDONE: Missing test: Lock errors
+        [TestMethod]
+        public void Wopi_Proc_Lock_ExistingSame()
+        {
+            WopiTest(site =>
+            {
+                var file = CreateTestFile(site, "File1.txt", "filecontent1");
+                var expectedLock = "LCK_" + Guid.NewGuid();
+                SharedLock.Lock(file.Id, expectedLock);
+
+                var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "LOCK"},
+                    new[] { "X-WOPI-Lock", expectedLock},
+                }, null);
+
+                Assert.AreEqual(HttpStatusCode.OK, response.Status);
+                var actualLock = SharedLock.GetLock(file.Id);
+                Assert.AreEqual(expectedLock, actualLock);
+            });
+        }
+        [TestMethod]
+        public void Wopi_Proc_Lock_ExistingDifferent()
+        {
+            WopiTest(site =>
+            {
+                var file = CreateTestFile(site, "File1.txt", "filecontent1");
+                var expectedLock = "LCK_" + Guid.NewGuid();
+                var existingLock = "LCK_" + Guid.NewGuid();
+                Assert.AreNotEqual(existingLock, expectedLock);
+                SharedLock.Lock(file.Id, existingLock);
+
+                var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "LOCK"},
+                    new[] { "X-WOPI-Lock", expectedLock},
+                }, null);
+
+                Assert.AreEqual(HttpStatusCode.Conflict, response.Status);
+                AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "LockedByAnother");
+                AssertHeader(response.Headers, "X-WOPI-Lock", existingLock);
+                var actualLock = SharedLock.GetLock(file.Id);
+                Assert.AreEqual(existingLock, actualLock);
+            });
+        }
+        [TestMethod]
+        public void Wopi_Proc_LockInvalidId()
+        {
+            WopiTest(site =>
+            {
+                var response = WopiPost($"/wopi/files/abc-123", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "LOCK"},
+                    new[] { "X-WOPI-Lock", "LCK-42"},
+                }, null);
+
+                Assert.AreEqual(HttpStatusCode.NotFound, response.Status);
+            });
+        }
+        [TestMethod]
+        public void Wopi_Proc_LockNotFound()
+        {
+            WopiTest(site =>
+            {
+                var response = WopiPost($"/wopi/files/{site.Id}", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "LOCK"},
+                    new[] { "X-WOPI-Lock", "LCK-42"},
+                }, null);
+
+                Assert.AreEqual(HttpStatusCode.NotFound, response.Status);
+            });
+        }
 
         /* --------------------------------------------------------- RefreshLock */
 
@@ -615,7 +686,76 @@ namespace SenseNet.Services.Tests
                 Assert.IsTrue((DateTime.UtcNow - sharedLockRow.CreationDate).TotalSeconds < 1);
             });
         }
-        //UNDONE: Missing test: RefreshLock errors
+        [TestMethod]
+        public void Wopi_Proc_RefreshLock_MissingLock()
+        {
+            WopiTest(site =>
+            {
+                var file = CreateTestFile(site, "File1.txt", "filecontent1");
+
+                var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "REFRESH_LOCK"},
+                    new[] { "X-WOPI-Lock", "LCK-42"},
+                }, null);
+
+                Assert.AreEqual(HttpStatusCode.Conflict, response.Status);
+                AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "Unlocked");
+                AssertHeader(response.Headers, "X-WOPI-Lock", string.Empty);
+            });
+        }
+        [TestMethod]
+        public void Wopi_Proc_RefreshLock_ExistingDifferent()
+        {
+            WopiTest(site =>
+            {
+                var file = CreateTestFile(site, "File1.txt", "filecontent1");
+                var expectedLock = "LCK_" + Guid.NewGuid();
+                var existingLock = "LCK_" + Guid.NewGuid();
+                Assert.AreNotEqual(existingLock, expectedLock);
+                SharedLock.Lock(file.Id, existingLock);
+
+                var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "REFRESH_LOCK"},
+                    new[] { "X-WOPI-Lock", expectedLock},
+                }, null);
+
+                Assert.AreEqual(HttpStatusCode.Conflict, response.Status);
+                AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "LockedByAnother");
+                AssertHeader(response.Headers, "X-WOPI-Lock", existingLock);
+                var actualLock = SharedLock.GetLock(file.Id);
+                Assert.AreEqual(existingLock, actualLock);
+            });
+        }
+        [TestMethod]
+        public void Wopi_Proc_RefreshLock_InvalidId()
+        {
+            WopiTest(site =>
+            {
+                var response = WopiPost($"/wopi/files/abc-123", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "REFRESH_LOCK"},
+                    new[] { "X-WOPI-Lock", "LCK-42"},
+                }, null);
+
+                Assert.AreEqual(HttpStatusCode.NotFound, response.Status);
+            });
+        }
+        [TestMethod]
+        public void Wopi_Proc_RefreshLock_NotFound()
+        {
+            WopiTest(site =>
+            {
+                var response = WopiPost($"/wopi/files/{site.Id}", DefaultAccessTokenParameter, new[]
+                {
+                    new[] { "X-WOPI-Override", "REFRESH_LOCK"},
+                    new[] { "X-WOPI-Lock", "LCK-42"},
+                }, null);
+
+                Assert.AreEqual(HttpStatusCode.NotFound, response.Status);
+            });
+        }
 
         /* --------------------------------------------------------- Unlock */
 
@@ -639,6 +779,35 @@ namespace SenseNet.Services.Tests
 
                 Assert.AreEqual(HttpStatusCode.OK, response.Status);
                 Assert.AreEqual("filecontent1", RepositoryTools.GetStreamString(response.GetResponseStream()));
+            });
+        }
+        [TestMethod]
+        public void Wopi_Proc_GetFile_WithoutPrecondition()
+        {
+            WopiTest(site =>
+            {
+                var file = CreateTestFile(site, "File1.txt", "filecontent1");
+
+                var response = WopiGet($"/wopi/files/{file.Id}/contents", DefaultAccessTokenParameter, new[]
+                {
+                    new[] {"Header1", "Value-1"}
+                });
+
+                Assert.AreEqual(HttpStatusCode.OK, response.Status);
+                Assert.AreEqual("filecontent1", RepositoryTools.GetStreamString(response.GetResponseStream()));
+            });
+        }
+        [TestMethod]
+        public void Wopi_Proc_GetFile_InvalidId()
+        {
+            WopiTest(site =>
+            {
+                var response = WopiGet($"/wopi/files/abc-123/contents", DefaultAccessTokenParameter, new[]
+                {
+                    new[] {"X-WOPI-MaxExpectedSize", "9999"},
+                });
+
+                Assert.AreEqual(HttpStatusCode.NotFound, response.Status);
             });
         }
         [TestMethod]
@@ -666,6 +835,30 @@ namespace SenseNet.Services.Tests
                     new[] {"X-WOPI-MaxExpectedSize", "3"}, // shorter than file content
                 });
 
+                Assert.AreEqual(HttpStatusCode.PreconditionFailed, response.Status);
+            });
+        }
+        [TestMethod]
+        public void Wopi_Proc_GetFile_GreaterThan2GB()
+        {
+            WopiTest(site =>
+            {
+                var size3GB = 3L * 1024L * 1024L * 1024L;
+                var file = CreateTestFile(site, "File1.txt", "filecontent1");
+                var binaryAcc = new PrivateObject(file.Binary);
+                binaryAcc.SetProperty("Size", size3GB);
+                file.Save();
+                file = Node.Load<File>(file.Id);
+                // check prerequisit
+                Assert.AreEqual(size3GB, file.Binary.Size);
+
+                // ACTION
+                var response = WopiGet($"/wopi/files/{file.Id}/contents", DefaultAccessTokenParameter, new[]
+                {
+                    new[] {"X-WOPI-MaxExpectedSize", int.MaxValue.ToString()}, 
+                });
+
+                // ASSERT
                 Assert.AreEqual(HttpStatusCode.PreconditionFailed, response.Status);
             });
         }
@@ -776,7 +969,6 @@ namespace SenseNet.Services.Tests
                 Assert.AreEqual(expectedStatusCode, e.StatusCode);
             }
         }
-
         private void WopiTest(Action callback)
         {
             WopiTestPrivate(callback, null);
@@ -785,7 +977,6 @@ namespace SenseNet.Services.Tests
         {
             WopiTestPrivate(null, callback);
         }
-
         private void WopiTestPrivate(Action callback1, Action<Site> callback2)
         {
             using (new SystemAccount())
@@ -802,6 +993,13 @@ namespace SenseNet.Services.Tests
                     site.ForceDelete();
                 }
             }
+        }
+
+        private void AssertHeader(IDictionary<string, string> headers, string headerName, string expectedValue)
+        {
+            if (!headers.TryGetValue(headerName, out var actualValue))
+                Assert.Fail("Header was not found: " + headerName);
+            Assert.AreEqual(expectedValue, actualValue);
         }
     }
 }

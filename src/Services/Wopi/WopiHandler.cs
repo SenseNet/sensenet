@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
@@ -19,11 +16,12 @@ namespace SenseNet.Services.Wopi
         private static class WopiHeader
         {
             public static readonly string Lock = "X-WOPI-Lock";
-        }
+            public static readonly string LockFailureReason = "X-WOPI-LockFailureReason";
+    }
 
-        /// <inheritdoc select="summary" />
-        /// <remarks>Returns with false in this implementation.</remarks>
-        public bool IsReusable => false;
+    /// <inheritdoc select="summary" />
+    /// <remarks>Returns with false in this implementation.</remarks>
+    public bool IsReusable => false;
 
         /// <inheritdoc />
         /// <remarks>Processes the WOPI web request.</remarks>
@@ -94,7 +92,8 @@ namespace SenseNet.Services.Wopi
                     Status = HttpStatusCode.Conflict,
                     Headers = new Dictionary<string, string>
                     {
-                        {WopiHeader.Lock, existingLock}
+                        {WopiHeader.Lock, existingLock},
+                        {WopiHeader.LockFailureReason, "LockedByAnother"}
                     }
                 };
             }
@@ -116,7 +115,8 @@ namespace SenseNet.Services.Wopi
                     Status = HttpStatusCode.Conflict,
                     Headers = new Dictionary<string, string>
                     {
-                        {WopiHeader.Lock, ""}
+                        {WopiHeader.Lock, ""},
+                        {WopiHeader.LockFailureReason, "Unlocked"}
                     }
                 };
             }
@@ -127,7 +127,8 @@ namespace SenseNet.Services.Wopi
                     Status = HttpStatusCode.Conflict,
                     Headers = new Dictionary<string, string>
                     {
-                        {WopiHeader.Lock, existingLock}
+                        {WopiHeader.Lock, existingLock},
+                        {WopiHeader.LockFailureReason, "LockedByAnother"}
                     }
                 };
             }
