@@ -5,21 +5,17 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using File = SenseNet.ContentRepository.File;
+using Newtonsoft.Json;
 
 namespace SenseNet.Services.Wopi
 {
-    internal class WopiResponse
+    [JsonObject(MemberSerialization.OptOut)]
+    public class WopiResponse
     {
+        [JsonIgnore]
         public HttpStatusCode Status { get; internal set; }
-        public IDictionary<string, string> Headers { get; internal set; }
-        internal File File { get; set; }
 
-        public Stream GetResponseStream()
-        {
-            if (File == null)
-                return null;
-            return File.Binary.GetStream();
-        }
+        [JsonIgnore]
+        public IDictionary<string, string> Headers { get; internal set; } = new Dictionary<string, string>();
     }
 }

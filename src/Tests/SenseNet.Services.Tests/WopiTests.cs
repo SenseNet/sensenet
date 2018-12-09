@@ -1059,15 +1059,19 @@ namespace SenseNet.Services.Tests
         {
             WopiTest(site =>
             {
-                var file = CreateTestFile(site, "File1.txt", "filecontent1");
+                var mimeType = "text/plain";
+                var file = CreateTestFile(site, "File1.txt", "filecontent1", mimeType);
 
                 var response = WopiGet($"/wopi/files/{file.Id}/contents", DefaultAccessTokenParameter, new[]
                 {
                     new[] {"X-WOPI-MaxExpectedSize", "9999"},
                 });
 
-                Assert.AreEqual(HttpStatusCode.OK, response.Status);
-                Assert.AreEqual("filecontent1", RepositoryTools.GetStreamString(response.GetResponseStream()));
+                var getFileResponse = response as GetFileResponse;
+                Assert.IsNotNull(getFileResponse);
+                Assert.AreEqual(HttpStatusCode.OK, getFileResponse.Status);
+                AssertHeader(getFileResponse.Headers, "ContentType", mimeType);
+                Assert.AreEqual("filecontent1", RepositoryTools.GetStreamString(getFileResponse.GetResponseStream()));
             });
         }
         [TestMethod]
@@ -1082,8 +1086,10 @@ namespace SenseNet.Services.Tests
                     new[] {"Header1", "Value-1"}
                 });
 
-                Assert.AreEqual(HttpStatusCode.OK, response.Status);
-                Assert.AreEqual("filecontent1", RepositoryTools.GetStreamString(response.GetResponseStream()));
+                var getFileResponse = response as GetFileResponse;
+                Assert.IsNotNull(getFileResponse);
+                Assert.AreEqual(HttpStatusCode.OK, getFileResponse.Status);
+                Assert.AreEqual("filecontent1", RepositoryTools.GetStreamString(getFileResponse.GetResponseStream()));
             });
         }
         [TestMethod]
@@ -1195,9 +1201,10 @@ namespace SenseNet.Services.Tests
 
             return site;
         }
-        private File CreateTestFile(Node parent, string name, string fileContent)
+        private File CreateTestFile(Node parent, string name, string fileContent, string mimeType = "text/plain")
         {
             var file = new File(parent) { Name = name ?? Guid.NewGuid().ToString() };
+            file.Binary.ContentType = mimeType;
             file.Binary.SetStream(RepositoryTools.GetStreamFromString(fileContent ?? Guid.NewGuid().ToString()));
             file.Save();
             return file;
