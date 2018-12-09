@@ -1052,6 +1052,29 @@ namespace SenseNet.Services.Tests
 
         /* --------------------------------------------------------- CheckFileInfo */
 
+        [TestMethod]
+        public void Wopi_Proc_CheckFileInfo()
+        {
+            WopiTestWithAdmin(site =>
+            {
+                var mimeType = "text/plain";
+                var file = CreateTestFile(site, "File1.txt", "filecontent1", mimeType);
+
+                var response = WopiGet($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
+                {
+                    new[] {"Header1", "Value1"},
+                }) as CheckFileInfoResponse;
+
+                Assert.IsNotNull(response);
+                Assert.AreEqual(HttpStatusCode.OK, response.Status);
+                AssertHeader(response.Headers, "ContentType", "application/json");
+
+                Assert.AreEqual("File1.txt", response.BaseFileName);
+                Assert.AreEqual(".txt", response.FileExtension);
+                //UNDONE: Check all properties
+            });
+        }
+
         /* --------------------------------------------------------- GetFile */
 
         [TestMethod]
@@ -1065,13 +1088,12 @@ namespace SenseNet.Services.Tests
                 var response = WopiGet($"/wopi/files/{file.Id}/contents", DefaultAccessTokenParameter, new[]
                 {
                     new[] {"X-WOPI-MaxExpectedSize", "9999"},
-                });
+                }) as GetFileResponse;
 
-                var getFileResponse = response as GetFileResponse;
-                Assert.IsNotNull(getFileResponse);
-                Assert.AreEqual(HttpStatusCode.OK, getFileResponse.Status);
-                AssertHeader(getFileResponse.Headers, "ContentType", mimeType);
-                Assert.AreEqual("filecontent1", RepositoryTools.GetStreamString(getFileResponse.GetResponseStream()));
+                Assert.IsNotNull(response);
+                Assert.AreEqual(HttpStatusCode.OK, response.Status);
+                AssertHeader(response.Headers, "ContentType", mimeType);
+                Assert.AreEqual("filecontent1", RepositoryTools.GetStreamString(response.GetResponseStream()));
             });
         }
         [TestMethod]
@@ -1246,6 +1268,14 @@ namespace SenseNet.Services.Tests
             Indexing.IsOuterSearchEngineEnabled = true;
 
             _repository = Repository.Start(builder);
+
+            using (new SystemAccount())
+            {
+                SecurityHandler.CreateAclEditor()
+                    .Allow(Identifiers.PortalRootId, Identifiers.AdministratorsGroupId, false, PermissionType.BuiltInPermissionTypes)
+                    .Allow(Identifiers.PortalRootId, Identifiers.AdministratorUserId, false, PermissionType.BuiltInPermissionTypes)
+                    .Apply();
+            }
         }
         [ClassCleanup]
         public static void ShutDownRepository()
@@ -1267,27 +1297,30 @@ namespace SenseNet.Services.Tests
         }
         private void WopiTest(Action callback)
         {
-            WopiTestPrivate(callback, null);
+            using(new SystemAccount())
+                WopiTestPrivate(callback, null);
         }
         private void WopiTest(Action<Site> callback)
+        {
+            using (new SystemAccount())
+                WopiTestPrivate(null, callback);
+        }
+        private void WopiTestWithAdmin(Action<Site> callback)
         {
             WopiTestPrivate(null, callback);
         }
         private void WopiTestPrivate(Action callback1, Action<Site> callback2)
         {
-            using (new SystemAccount())
+            SharedLock.RemoveAllLocks();
+            var site = CreateTestSite();
+            try
             {
-                SharedLock.RemoveAllLocks();
-                var site = CreateTestSite();
-                try
-                {
-                    callback1?.Invoke();
-                    callback2?.Invoke(site);
-                }
-                finally
-                {
-                    site.ForceDelete();
-                }
+                callback1?.Invoke();
+                callback2?.Invoke(site);
+            }
+            finally
+            {
+                site.ForceDelete();
             }
         }
 

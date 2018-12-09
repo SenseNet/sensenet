@@ -343,6 +343,7 @@
     <Compile Include="WebDAV\WebDavHandler.cs" />
     <Compile Include="WebDAV\WebDavProvider.cs" />
     <Compile Include="WebDAV\XmlNameSpaces.cs" />
+    <Compile Include="Wopi\CheckFileInfoResponse.cs" />
     <Compile Include="Wopi\GetFileResponse.cs" />
     <Compile Include="Wopi\InvalidWopiRequestException.cs" />
     <Compile Include="Wopi\WopiHandler.cs" />

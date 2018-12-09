@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Web;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Portal.Virtualization;
+using File = SenseNet.ContentRepository.File;
 
 namespace SenseNet.Services.Wopi
 {
@@ -41,7 +45,7 @@ namespace SenseNet.Services.Wopi
             switch (wopiReq.RequestType)
             {
                 case WopiRequestType.CheckFileInfo:
-                    throw new NotImplementedException(); //UNDONE: not implemented: GetResponse #3
+                    return ProcessCheckFileInfoRequest((CheckFileInfoRequest)wopiReq, portalContext);
                 case WopiRequestType.GetLock:
                     return ProcessGetLockRequest((GetLockRequest)wopiReq, portalContext);
                 case WopiRequestType.Lock:
@@ -76,6 +80,71 @@ namespace SenseNet.Services.Wopi
             }
         }
 
+        private WopiResponse ProcessCheckFileInfoRequest(CheckFileInfoRequest wopiReq, PortalContext portalContext)
+        {
+            if (!int.TryParse(wopiReq.FileId, out var contentId))
+                return new WopiResponse { Status = HttpStatusCode.NotFound };
+            if (!(Node.LoadNode(contentId) is File file))
+                return new WopiResponse { Status = HttpStatusCode.NotFound };
+
+            var user = User.Current;
+            var userCanWrite = file.Security.HasPermission(PermissionType.Save);
+
+            return new CheckFileInfoResponse
+            {
+                Status = HttpStatusCode.OK,
+                Headers = new Dictionary<string, string>
+                {
+                    {WopiHeader.ContentType, "application/json"},
+                },
+
+                // Base properties
+                BaseFileName = file.Name,
+                Size = file.Binary.Size,
+                UserId = user.Name,
+                Version = null, //UNDONE: set real property value
+
+                // User metadata properties
+                IsAnonymousUser = !user.IsAuthenticated,
+                IsEduUser = false, //UNDONE: set real property value
+                LicenseCheckForEditIsEnabled = false, //UNDONE: set real property value
+                UserFriendlyName = user.FullName,
+                UserInfo = null, //UNDONE: set real property value
+
+                // User permissions properties
+                ReadOnly = !userCanWrite,
+                RestrictedWebViewOnly = !file.Security.HasPermission(PermissionType.OpenMinor),
+                UserCanAttend = false, //UNDONE: set real property value
+                UserCanNotWriteRelative = !file.Parent?.Security.HasPermission(PermissionType.AddNew) ?? false,
+                UserCanPresent = false, //UNDONE: set real property value
+                UserCanRename = false, //UNDONE: set real property value
+                UserCanWrite = userCanWrite,
+
+                // File URL properties
+                CloseUrl = null, //UNDONE: set real property value
+                DownloadUrl = null, //UNDONE: set real property value
+                FileSharingUrl = null, //UNDONE: set real property value
+                FileUrl = null, //UNDONE: set real property value
+                FileVersionUrl = null, //UNDONE: set real property value
+                HostEditUrl = null, //UNDONE: set real property value
+                HostEmbeddedViewUrl = null, //UNDONE: set real property value
+                HostViewUrl = null, //UNDONE: set real property value
+                SignoutUrl = null, //UNDONE: set real property value
+
+                // Breadcrumb properties
+                BreadcrumbBrandName = null, //UNDONE: set real property value
+                BreadcrumbBrandUrl = null, //UNDONE: set real property value
+                BreadcrumbDocName = null, //UNDONE: set real property value
+                BreadcrumbFolderName = null, //UNDONE: set real property value
+                BreadcrumbFolderUrl = null, //UNDONE: set real property value
+
+                // Other miscellaneous properties
+                FileExtension = Path.GetExtension(file.Name),
+                LastModifiedTime = file.ModificationDate.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ"),
+                SHA256 = null, //UNDONE: set real property value
+                UniqueContentId = null, //UNDONE: set real property value
+            };
+        }
         private WopiResponse ProcessGetLockRequest(GetLockRequest wopiReq, PortalContext portalContext)
         {
             if (!int.TryParse(wopiReq.FileId, out var contentId))
