@@ -683,6 +683,7 @@ namespace SenseNet.ContentRepository
                         .Allow(pc.Id, Identifiers.AdministratorsGroupId, false, PermissionType.PermissionTypes)
                         // ReSharper disable once CoVariantArrayConversion
                         .Allow(pc.Id, Identifiers.OwnersGroupId, false, PermissionType.PermissionTypes)
+                        .Allow(pc.Id, Identifiers.EveryoneGroupId, true, PermissionType.Open)
                         .Apply();
 
                     profiles = pc.ContentHandler;
