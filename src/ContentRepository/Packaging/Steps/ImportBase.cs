@@ -614,12 +614,13 @@ namespace SenseNet.Packaging.Steps
 
                 if (EveryoneGroupId != 0)
                 {
-                    // Allow local only See on common content types for everyone (workspace, list, file, listitem)
-                    aclEd.Allow(WorkspaceContentTypeId, EveryoneGroupId, true, PermissionType.See)
-                        .Allow(ContentListContentTypeId, EveryoneGroupId, true, PermissionType.See)
-                        .Allow(FileContentTypeId, EveryoneGroupId, true, PermissionType.See)
-                        .Allow(FolderContentTypeId, EveryoneGroupId, true, PermissionType.See)
-                        .Allow(ListItemContentTypeId, EveryoneGroupId, true, PermissionType.See);
+                    // Allow See on common content types for everyone (workspace, list, file, listitem)
+                    aclEd.Allow(WorkspaceContentTypeId, EveryoneGroupId, true, PermissionType.See)              // LOCAL only
+                        .Allow(ContentListContentTypeId, EveryoneGroupId, false, PermissionType.See)
+                        .Allow(FileContentTypeId, EveryoneGroupId, true, PermissionType.See)                    // LOCAL only
+                        .Allow(ContentType.GetByName("Image").Id, EveryoneGroupId, false, PermissionType.See)
+                        .Allow(FolderContentTypeId, EveryoneGroupId, true, PermissionType.See)                  // LOCAL only
+                        .Allow(ListItemContentTypeId, EveryoneGroupId, false, PermissionType.See);
                 }
                 if (contentExplorersGroup != null)
                 {
