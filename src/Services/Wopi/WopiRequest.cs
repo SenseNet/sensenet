@@ -15,6 +15,7 @@ namespace SenseNet.Services.Wopi
 {
     public enum WopiRequestType
     {
+        NotDefined,
         CheckFileInfo,
         PutRelativeFile,
         GetLock,
@@ -87,7 +88,14 @@ namespace SenseNet.Services.Wopi
             var xWopiOverride = headers[WopiHeader.Override];
             var requestStream = webRequest.InputStream;
 
-            return Parse(segments, httpMethod, xWopiOverride, headers, requestStream);
+            try
+            {
+                return Parse(segments, httpMethod, xWopiOverride, headers, requestStream);
+            }
+            catch (Exception e)
+            {
+                return new BadRequest(e);
+            }
         }
         private static WopiRequest Parse(string[] segments, string httpMethod, string xWopiOverride, NameValueCollection headers, Stream requestStream)
         {
@@ -172,7 +180,7 @@ namespace SenseNet.Services.Wopi
 
         private static WopiRequest ParseEnumerateAncestors(string httpMethod, string fileId, NameValueCollection headers)
         {
-            throw new NotImplementedException(); //UNDONE: not implemented: ParseEnumerateAncestors
+            throw new SnNotSupportedException();
         }
         private static WopiRequest ParsePutFile(string httpMethod, string fileId, NameValueCollection headers, Stream requestStream)
         {
@@ -250,33 +258,25 @@ namespace SenseNet.Services.Wopi
         }
         private static WopiRequest ParseDeleteFile(string httpMethod, string fileId, NameValueCollection headers)
         {
-            if (httpMethod != POST)
-                throw new InvalidWopiRequestException(HttpStatusCode.MethodNotAllowed, "The request need to be HTTP_POST"); //UNDONE: more informative message
-            return new DeleteFileRequest(fileId);
+            throw new SnNotSupportedException();
         }
         private static WopiRequest ParseRenameFile(string httpMethod, string fileId, NameValueCollection headers)
         {
-            if (httpMethod != POST)
-                throw new InvalidWopiRequestException(HttpStatusCode.MethodNotAllowed, "The request need to be HTTP_POST"); //UNDONE: more informative message
-            var @lock = headers[WopiHeader.Lock];
-            if (@lock == null)
-                throw new InvalidWopiRequestException(HttpStatusCode.BadRequest, $"Missing {WopiHeader.Lock} header."); //UNDONE: more informative message
-            var requestedName = headers[WopiHeader.RequestedName];
-            return new RenameFileRequest(fileId, @lock, requestedName);
+            throw new SnNotSupportedException();
         }
 
 
         private static WopiRequest ParseContainers(string httpMethod, string containerId, string action, string xWopiOverride, NameValueCollection headers)
         {
-            throw new NotImplementedException(); //UNDONE: not implemented: ParseContainers
+            throw new SnNotSupportedException();
         }
         private static WopiRequest ParseEcosystem(string httpMethod, NameValueCollection headers)
         {
-            throw new NotImplementedException(); //UNDONE: not implemented: ParseEcosystem
+            throw new SnNotSupportedException();
         }
         private static WopiRequest ParseWopiBootstrapper(string httpMethod, NameValueCollection headers)
         {
-            throw new NotImplementedException(); //UNDONE: not implemented: ParseWopiBootstrapper
+            throw new SnNotSupportedException();
         }
 
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -145,6 +146,29 @@ namespace SenseNet.Services.Wopi
         {
             Lock = @lock;
             RequestedName = requestedName;
+        }
+    }
+
+    internal class BadRequest : WopiRequest
+    {
+        public HttpStatusCode StatusCode { get; }
+        public Exception Exception { get; }
+        internal BadRequest(Exception e) : base(WopiRequestType.NotDefined)
+        {
+            Exception = e;
+            switch (e)
+            {
+                case InvalidWopiRequestException we:
+                    StatusCode = we.StatusCode;
+                    break;
+                case SnNotSupportedException _:
+                case NotSupportedException _:
+                    StatusCode = HttpStatusCode.NotImplemented;
+                    break;
+                default:
+                    StatusCode = HttpStatusCode.InternalServerError;
+                    break;
+            }
         }
     }
 }

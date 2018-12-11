@@ -13,7 +13,7 @@ namespace SenseNet.Services.Wopi
     public class WopiResponse
     {
         [JsonIgnore]
-        public HttpStatusCode Status { get; internal set; }
+        public HttpStatusCode StatusCode { get; internal set; }
 
         [JsonIgnore]
         public IDictionary<string, string> Headers { get; internal set; } = new Dictionary<string, string>();

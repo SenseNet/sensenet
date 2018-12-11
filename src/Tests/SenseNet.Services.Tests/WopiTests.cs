@@ -54,7 +54,7 @@ namespace SenseNet.Services.Tests
             {
                 using (var output = new StringWriter())
                 {
-                    var pc = CreatePortalContext("GET", "/wopi/files/123", DefaultAccessTokenParameter,
+                    return CreatePortalContext("GET", "/wopi/files/123", DefaultAccessTokenParameter,
                         output,
                         new[]
                         {
@@ -93,7 +93,7 @@ namespace SenseNet.Services.Tests
             {
                 using (var output = new StringWriter())
                 {
-                    var pc = CreatePortalContext("GET", "/wopi/files/123", DefaultAccessTokenParameter,
+                    return CreatePortalContext("GET", "/wopi/files/123", DefaultAccessTokenParameter,
                         output,
                         new[]
                         {
@@ -110,7 +110,7 @@ namespace SenseNet.Services.Tests
             {
                 using (var output = new StringWriter())
                 {
-                    var pc = CreatePortalContext("POST", "/wopi/files/123", DefaultAccessTokenParameter,
+                    return CreatePortalContext("POST", "/wopi/files/123", DefaultAccessTokenParameter,
                         output,
                         new[]
                         {
@@ -149,7 +149,7 @@ namespace SenseNet.Services.Tests
             {
                 using (var output = new StringWriter())
                 {
-                    var pc = CreatePortalContext("GET", "/wopi/files/123", DefaultAccessTokenParameter,
+                    return CreatePortalContext("GET", "/wopi/files/123", DefaultAccessTokenParameter,
                         output,
                         new[]
                         {
@@ -166,7 +166,7 @@ namespace SenseNet.Services.Tests
             {
                 using (var output = new StringWriter())
                 {
-                    var pc = CreatePortalContext("POST", "/wopi/files/123", DefaultAccessTokenParameter,
+                    return CreatePortalContext("POST", "/wopi/files/123", DefaultAccessTokenParameter,
                         output,
                         new[]
                         {
@@ -205,7 +205,7 @@ namespace SenseNet.Services.Tests
             {
                 using (var output = new StringWriter())
                 {
-                    var pc = CreatePortalContext("GET", "/wopi/files/123", DefaultAccessTokenParameter,
+                    return CreatePortalContext("GET", "/wopi/files/123", DefaultAccessTokenParameter,
                         output,
                         new[]
                         {
@@ -222,7 +222,7 @@ namespace SenseNet.Services.Tests
             {
                 using (var output = new StringWriter())
                 {
-                    var pc = CreatePortalContext("POST", "/wopi/files/123", DefaultAccessTokenParameter,
+                    return CreatePortalContext("POST", "/wopi/files/123", DefaultAccessTokenParameter,
                         output,
                         new[]
                         {
@@ -264,7 +264,7 @@ namespace SenseNet.Services.Tests
             {
                 using (var output = new StringWriter())
                 {
-                    var pc = CreatePortalContext("GET", "/wopi/files/123", DefaultAccessTokenParameter,
+                    return CreatePortalContext("GET", "/wopi/files/123", DefaultAccessTokenParameter,
                         output,
                         new[]
                         {
@@ -282,7 +282,7 @@ namespace SenseNet.Services.Tests
             {
                 using (var output = new StringWriter())
                 {
-                    var pc = CreatePortalContext("POST", "/wopi/files/123", DefaultAccessTokenParameter,
+                    return CreatePortalContext("POST", "/wopi/files/123", DefaultAccessTokenParameter,
                         output,
                         new[]
                         {
@@ -330,7 +330,7 @@ namespace SenseNet.Services.Tests
             {
                 using (var output = new StringWriter())
                 {
-                    var pc = CreatePortalContext("POST", "/wopi/files/123", DefaultAccessTokenParameter, output,
+                    return CreatePortalContext("POST", "/wopi/files/123", DefaultAccessTokenParameter, output,
                         new[]
                         {
                             new[] { "X-WOPI-SessionContext", "SessionContext-1"},
@@ -375,7 +375,7 @@ namespace SenseNet.Services.Tests
             {
                 using (var output = new StringWriter())
                 {
-                    CreatePortalContext("POST", "/wopi/files/123/contents", DefaultAccessTokenParameter, output,
+                    return CreatePortalContext("POST", "/wopi/files/123/contents", DefaultAccessTokenParameter, output,
                         new[]
                         {
                             new[] {"X-WOPI-MaxExpectedSize", "9999"},
@@ -390,7 +390,7 @@ namespace SenseNet.Services.Tests
             {
                 using (var output = new StringWriter())
                 {
-                    CreatePortalContext("GET", "/wopi/files/123/contents", DefaultAccessTokenParameter, output,
+                    return CreatePortalContext("GET", "/wopi/files/123/contents", DefaultAccessTokenParameter, output,
                         new[]
                         {
                             new[] {"X-WOPI-MaxExpectedSize", "nine-tausend"},
@@ -428,7 +428,7 @@ namespace SenseNet.Services.Tests
             {
                 using (var output = new StringWriter())
                 {
-                    var pc = CreatePortalContext("GET", "/wopi/files/123/contents", DefaultAccessTokenParameter, output,
+                    return CreatePortalContext("GET", "/wopi/files/123/contents", DefaultAccessTokenParameter, output,
                         new[]
                         {
                             new[] {"X-WOPI-Override", "PUT"},
@@ -490,7 +490,7 @@ namespace SenseNet.Services.Tests
             {
                 using (var output = new StringWriter())
                 {
-                    var pc = CreatePortalContext("GET", "/wopi/files/123", DefaultAccessTokenParameter,
+                    return CreatePortalContext("GET", "/wopi/files/123", DefaultAccessTokenParameter,
                         output,
                         new[]
                         {
@@ -511,8 +511,7 @@ namespace SenseNet.Services.Tests
             {
                 using (var output = new StringWriter())
                 {
-                    // suggested target
-                    var pc = CreatePortalContext("POST", "/wopi/files/123", DefaultAccessTokenParameter,
+                    return CreatePortalContext("POST", "/wopi/files/123", DefaultAccessTokenParameter,
                         output,
                         new[]
                         {
@@ -532,34 +531,40 @@ namespace SenseNet.Services.Tests
         [TestMethod]
         public void Wopi_Req_DeleteFile()
         {
+            WopiErrorTest(HttpStatusCode.NotImplemented, () =>
+            {
+                using (var output = new StringWriter())
+                    return CreatePortalContext("POST", "/wopi/files/123", DefaultAccessTokenParameter,
+                        output,
+                        new[] {new[] {"X-WOPI-Override", "DELETE"}});
+            });
             WopiTest(() =>
             {
                 using (var output = new StringWriter())
                 {
                     var pc = CreatePortalContext("POST", "/wopi/files/123", DefaultAccessTokenParameter,
                         output,
-                        new[]
-                        {
-                            new[] {"X-WOPI-Override", "DELETE"},
-                        });
-                    var req = CheckAndGetRequest<DeleteFileRequest>(pc, WopiRequestType.DeleteFile);
-                    Assert.AreEqual("123", req.FileId);
+                        new[] { new[] { "X-WOPI-Override", "DELETE" } });
+
+                    var req = CheckAndGetRequest<BadRequest>(pc, WopiRequestType.NotDefined);
+                    Assert.IsTrue(req.Exception is SnNotSupportedException);
+                    Assert.AreEqual(HttpStatusCode.NotImplemented, req.StatusCode);
                 }
             });
         }
         [TestMethod]
-        public void Wopi_Req_DeleteFile_BadMethod()
+        public void Wopi_Req_RenameFile()
         {
-            WopiErrorTest(HttpStatusCode.MethodNotAllowed, () =>
+            WopiTest(() =>
             {
                 using (var output = new StringWriter())
                 {
-                    var pc = CreatePortalContext("GET", "/wopi/files/123", DefaultAccessTokenParameter,
+                    var pc = CreatePortalContext("POST", "/wopi/files/123", DefaultAccessTokenParameter,
                         output,
-                        new[]
-                        {
-                            new[] {"X-WOPI-Override", "DELETE"},
-                        });
+                        new[] { new[] { "X-WOPI-Override", "RENAME_FILE" } });
+
+                    var req = CheckAndGetRequest<BadRequest>(pc, WopiRequestType.NotDefined);
+                    Assert.IsTrue(req.Exception is SnNotSupportedException);
                 }
             });
         }
@@ -582,7 +587,7 @@ namespace SenseNet.Services.Tests
                     new[] { "X-WOPI-Override", "GET_LOCK"},
                 }, null);
 
-                Assert.AreEqual(HttpStatusCode.OK, response.Status);
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-Lock", existingLock);
                 var actualLock = SharedLock.GetLock(file.Id);
                 Assert.AreEqual(existingLock, actualLock);
@@ -600,7 +605,7 @@ namespace SenseNet.Services.Tests
                     new[] { "X-WOPI-Override", "GET_LOCK"},
                 }, null);
 
-                Assert.AreEqual(HttpStatusCode.OK, response.Status);
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-Lock", string.Empty);
                 var actualLock = SharedLock.GetLock(file.Id);
                 Assert.IsNull(actualLock);
@@ -616,7 +621,7 @@ namespace SenseNet.Services.Tests
                     new[] { "X-WOPI-Override", "GET_LOCK"},
                 }, null);
 
-                Assert.AreEqual(HttpStatusCode.NotFound, response.Status);
+                Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
             });
         }
         [TestMethod]
@@ -629,13 +634,13 @@ namespace SenseNet.Services.Tests
                     new[] { "X-WOPI-Override", "GET_LOCK"},
                 }, null);
 
-                Assert.AreEqual(HttpStatusCode.NotFound, response.Status);
+                Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
             });
         }
         [TestMethod]
         public void Wopi_Proc_GetLock_ExclusivelyLocked()
         {
-            //UNDONE: Test GetLock operation with a checked-out file
+            //UNDONE:? Test GetLock operation with a checked-out file
             Assert.Inconclusive();
         }
 
@@ -655,7 +660,7 @@ namespace SenseNet.Services.Tests
                     new[] { "X-WOPI-Lock", expectedLock},
                 }, null);
 
-                Assert.AreEqual(HttpStatusCode.OK, response.Status);
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
                 var actualLock = SharedLock.GetLock(file.Id);
                 Assert.AreEqual(expectedLock, actualLock);
             });
@@ -675,7 +680,7 @@ namespace SenseNet.Services.Tests
                     new[] { "X-WOPI-Lock", expectedLock},
                 }, null);
 
-                Assert.AreEqual(HttpStatusCode.OK, response.Status);
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
                 var actualLock = SharedLock.GetLock(file.Id);
                 Assert.AreEqual(expectedLock, actualLock);
             });
@@ -697,7 +702,7 @@ namespace SenseNet.Services.Tests
                     new[] { "X-WOPI-Lock", expectedLock},
                 }, null);
 
-                Assert.AreEqual(HttpStatusCode.Conflict, response.Status);
+                Assert.AreEqual(HttpStatusCode.Conflict, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "LockedByAnother");
                 AssertHeader(response.Headers, "X-WOPI-Lock", existingLock);
                 var actualLock = SharedLock.GetLock(file.Id);
@@ -715,7 +720,7 @@ namespace SenseNet.Services.Tests
                     new[] { "X-WOPI-Lock", "LCK-42"},
                 }, null);
 
-                Assert.AreEqual(HttpStatusCode.NotFound, response.Status);
+                Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
             });
         }
         [TestMethod]
@@ -729,13 +734,13 @@ namespace SenseNet.Services.Tests
                     new[] { "X-WOPI-Lock", "LCK-42"},
                 }, null);
 
-                Assert.AreEqual(HttpStatusCode.NotFound, response.Status);
+                Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
             });
         }
         [TestMethod]
         public void Wopi_Proc_Lock_ExclusivelyLocked()
         {
-            //UNDONE: Test Lock operation with a checked-out file
+            //UNDONE:? Test Lock operation with a checked-out file
             Assert.Inconclusive();
         }
 
@@ -759,7 +764,7 @@ namespace SenseNet.Services.Tests
                     new[] { "X-WOPI-Lock", expectedLock},
                 }, null);
 
-                Assert.AreEqual(HttpStatusCode.OK, response.Status);
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
                 Assert.IsTrue((DateTime.UtcNow - sharedLockRow.CreationDate).TotalSeconds < 1);
             });
         }
@@ -776,7 +781,7 @@ namespace SenseNet.Services.Tests
                     new[] { "X-WOPI-Lock", "LCK-42"},
                 }, null);
 
-                Assert.AreEqual(HttpStatusCode.Conflict, response.Status);
+                Assert.AreEqual(HttpStatusCode.Conflict, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "Unlocked");
                 AssertHeader(response.Headers, "X-WOPI-Lock", string.Empty);
             });
@@ -798,7 +803,7 @@ namespace SenseNet.Services.Tests
                     new[] { "X-WOPI-Lock", expectedLock},
                 }, null);
 
-                Assert.AreEqual(HttpStatusCode.Conflict, response.Status);
+                Assert.AreEqual(HttpStatusCode.Conflict, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "LockedByAnother");
                 AssertHeader(response.Headers, "X-WOPI-Lock", existingLock);
                 var actualLock = SharedLock.GetLock(file.Id);
@@ -816,7 +821,7 @@ namespace SenseNet.Services.Tests
                     new[] { "X-WOPI-Lock", "LCK-42"},
                 }, null);
 
-                Assert.AreEqual(HttpStatusCode.NotFound, response.Status);
+                Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
             });
         }
         [TestMethod]
@@ -830,13 +835,13 @@ namespace SenseNet.Services.Tests
                     new[] { "X-WOPI-Lock", "LCK-42"},
                 }, null);
 
-                Assert.AreEqual(HttpStatusCode.NotFound, response.Status);
+                Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
             });
         }
         [TestMethod]
         public void Wopi_Proc_RefreshLock_ExclusivelyLocked()
         {
-            //UNDONE: Test RefreshLock operation with a checked-out file
+            //UNDONE:? Test RefreshLock operation with a checked-out file
             Assert.Inconclusive();
         }
 
@@ -857,7 +862,7 @@ namespace SenseNet.Services.Tests
                     new[] { "X-WOPI-Lock", existingLock},
                 }, null);
 
-                Assert.AreEqual(HttpStatusCode.OK, response.Status);
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
                 var actualLock = SharedLock.GetLock(file.Id);
                 Assert.IsNull(actualLock);
             });
@@ -875,7 +880,7 @@ namespace SenseNet.Services.Tests
                     new[] { "X-WOPI-Lock", "LCK-42"},
                 }, null);
 
-                Assert.AreEqual(HttpStatusCode.Conflict, response.Status);
+                Assert.AreEqual(HttpStatusCode.Conflict, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "Unlocked");
                 AssertHeader(response.Headers, "X-WOPI-Lock", string.Empty);
                 var actualLock = SharedLock.GetLock(file.Id);
@@ -899,7 +904,7 @@ namespace SenseNet.Services.Tests
                     new[] { "X-WOPI-Lock", expectedLock},
                 }, null);
 
-                Assert.AreEqual(HttpStatusCode.Conflict, response.Status);
+                Assert.AreEqual(HttpStatusCode.Conflict, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "LockedByAnother");
                 AssertHeader(response.Headers, "X-WOPI-Lock", existingLock);
                 var actualLock = SharedLock.GetLock(file.Id);
@@ -917,7 +922,7 @@ namespace SenseNet.Services.Tests
                     new[] { "X-WOPI-Lock", "LCK-42"},
                 }, null);
 
-                Assert.AreEqual(HttpStatusCode.NotFound, response.Status);
+                Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
             });
         }
         [TestMethod]
@@ -931,13 +936,13 @@ namespace SenseNet.Services.Tests
                     new[] { "X-WOPI-Lock", "LCK-42"},
                 }, null);
 
-                Assert.AreEqual(HttpStatusCode.NotFound, response.Status);
+                Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
             });
         }
         [TestMethod]
         public void Wopi_Proc_Unlock_ExclusivelyLocked()
         {
-            //UNDONE: Test Unlock operation with a checked-out file
+            //UNDONE:? Test Unlock operation with a checked-out file
             Assert.Inconclusive();
         }
 
@@ -960,7 +965,7 @@ namespace SenseNet.Services.Tests
                     new[] { "X-WOPI-OldLock", existingLock},
                 }, null);
 
-                Assert.AreEqual(HttpStatusCode.OK, response.Status);
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
                 var actualLock = SharedLock.GetLock(file.Id);
                 Assert.AreEqual(expectedLock, actualLock);
             });
@@ -981,7 +986,7 @@ namespace SenseNet.Services.Tests
                     new[] { "X-WOPI-OldLock", "LCK-42"},
                 }, null);
 
-                Assert.AreEqual(HttpStatusCode.Conflict, response.Status);
+                Assert.AreEqual(HttpStatusCode.Conflict, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "Unlocked");
                 AssertHeader(response.Headers, "X-WOPI-Lock", string.Empty);
                 var actualLock = SharedLock.GetLock(file.Id);
@@ -1005,7 +1010,7 @@ namespace SenseNet.Services.Tests
                     new[] { "X-WOPI-OldLock", "LCK-42"},
                 }, null);
 
-                Assert.AreEqual(HttpStatusCode.Conflict, response.Status);
+                Assert.AreEqual(HttpStatusCode.Conflict, response.StatusCode);
                 AssertHeader(response.Headers, "X-WOPI-LockFailureReason", "LockedByAnother");
                 AssertHeader(response.Headers, "X-WOPI-Lock", existingLock);
                 var actualLock = SharedLock.GetLock(file.Id);
@@ -1025,7 +1030,7 @@ namespace SenseNet.Services.Tests
                     new[] { "X-WOPI-OldLock", "LCK-43"},
                 }, null);
 
-                Assert.AreEqual(HttpStatusCode.NotFound, response.Status);
+                Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
             });
         }
         [TestMethod]
@@ -1040,13 +1045,13 @@ namespace SenseNet.Services.Tests
                     new[] { "X-WOPI-OldLock", "LCK-43"},
                 }, null);
 
-                Assert.AreEqual(HttpStatusCode.NotFound, response.Status);
+                Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
             });
         }
         [TestMethod]
         public void Wopi_Proc_UnlockAndRelock_ExclusivelyLocked()
         {
-            //UNDONE: Test UnlockAndRelock operation with a checked-out file
+            //UNDONE:? Test UnlockAndRelock operation with a checked-out file
             Assert.Inconclusive();
         }
 
@@ -1066,12 +1071,12 @@ namespace SenseNet.Services.Tests
                 }) as CheckFileInfoResponse;
 
                 Assert.IsNotNull(response);
-                Assert.AreEqual(HttpStatusCode.OK, response.Status);
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
                 AssertHeader(response.Headers, "ContentType", "application/json");
 
                 Assert.AreEqual("File1.txt", response.BaseFileName);
                 Assert.AreEqual(".txt", response.FileExtension);
-                //UNDONE: Check all properties
+                //UNDONE:!! Check all properties
             });
         }
 
@@ -1091,7 +1096,7 @@ namespace SenseNet.Services.Tests
                 }) as GetFileResponse;
 
                 Assert.IsNotNull(response);
-                Assert.AreEqual(HttpStatusCode.OK, response.Status);
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
                 AssertHeader(response.Headers, "ContentType", mimeType);
                 Assert.AreEqual("filecontent1", RepositoryTools.GetStreamString(response.GetResponseStream()));
             });
@@ -1110,7 +1115,7 @@ namespace SenseNet.Services.Tests
 
                 var getFileResponse = response as GetFileResponse;
                 Assert.IsNotNull(getFileResponse);
-                Assert.AreEqual(HttpStatusCode.OK, getFileResponse.Status);
+                Assert.AreEqual(HttpStatusCode.OK, getFileResponse.StatusCode);
                 Assert.AreEqual("filecontent1", RepositoryTools.GetStreamString(getFileResponse.GetResponseStream()));
             });
         }
@@ -1124,7 +1129,7 @@ namespace SenseNet.Services.Tests
                     new[] {"X-WOPI-MaxExpectedSize", "9999"},
                 });
 
-                Assert.AreEqual(HttpStatusCode.NotFound, response.Status);
+                Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
             });
         }
         [TestMethod]
@@ -1137,7 +1142,7 @@ namespace SenseNet.Services.Tests
                     new[] {"X-WOPI-MaxExpectedSize", "9999"},
                 });
 
-                Assert.AreEqual(HttpStatusCode.NotFound, response.Status);
+                Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
             });
         }
         [TestMethod]
@@ -1152,7 +1157,7 @@ namespace SenseNet.Services.Tests
                     new[] {"X-WOPI-MaxExpectedSize", "3"}, // shorter than file content
                 });
 
-                Assert.AreEqual(HttpStatusCode.PreconditionFailed, response.Status);
+                Assert.AreEqual(HttpStatusCode.PreconditionFailed, response.StatusCode);
             });
         }
         [TestMethod]
@@ -1176,7 +1181,7 @@ namespace SenseNet.Services.Tests
                 });
 
                 // ASSERT
-                Assert.AreEqual(HttpStatusCode.PreconditionFailed, response.Status);
+                Assert.AreEqual(HttpStatusCode.PreconditionFailed, response.StatusCode);
             });
         }
 
@@ -1199,9 +1204,9 @@ namespace SenseNet.Services.Tests
                 }, RepositoryTools.GetStreamFromString(newContent));
 
                 Assert.IsNotNull(response);
-                Assert.AreEqual(HttpStatusCode.OK, response.Status);
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
                 file = Node.Load<File>(file.Id);
-                //UNDONE: Test X-WOPI-ItemVersion header: AssertHeader("X-WOPI-ItemVersion", ???);
+                //UNDONE:! Test X-WOPI-ItemVersion header: AssertHeader("X-WOPI-ItemVersion", ???);
                 Assert.AreEqual(newContent, RepositoryTools.GetStreamString(file.Binary.GetStream()));
             });
         }
@@ -1227,7 +1232,7 @@ namespace SenseNet.Services.Tests
                 }, RepositoryTools.GetStreamFromString(newContent)) as PutRelativeFileResponse;
 
                 Assert.IsNotNull(response);
-                Assert.AreEqual(HttpStatusCode.OK, response.Status);
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             });
         }
 
@@ -1328,17 +1333,14 @@ namespace SenseNet.Services.Tests
             _repository?.Dispose();
         }
 
-        private void WopiErrorTest(HttpStatusCode expectedStatusCode, Action callback)
+        private void WopiErrorTest(HttpStatusCode expectedStatusCode, Func<PortalContext> callback)
         {
-            try
+            WopiTest(() =>
             {
-                WopiTest(callback);
-                Assert.Fail("The expected exception was not thrown.");
-            }
-            catch (InvalidWopiRequestException e)
-            {
-                Assert.AreEqual(expectedStatusCode, e.StatusCode);
-            }
+                var pc = callback();
+                var req = CheckAndGetRequest<BadRequest>(pc, WopiRequestType.NotDefined);
+                Assert.AreEqual(expectedStatusCode, req.StatusCode);
+            });
         }
         private void WopiTest(Action callback)
         {
