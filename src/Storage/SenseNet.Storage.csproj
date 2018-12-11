@@ -209,7 +209,6 @@
     <Compile Include="Caching\Dependency\CacheDependencyFactory.cs" />
     <Compile Include="Caching\Dependency\EventArgsGeneric.cs" />
     <Compile Include="Diagnostics\TimeboxedActivity.cs" />
-    <Compile Include="DistributedApplication\Messaging\MsmqChannel.cs" />
     <Compile Include="DataBackingStore.cs" />
     <Compile Include="Data\ConfigurationException.cs" />
     <Compile Include="Data\INodeWriter.cs" />
