@@ -16,6 +16,8 @@ namespace SenseNet.Services.Wopi
         public HttpStatusCode StatusCode { get; internal set; }
 
         [JsonIgnore]
+        public string ContentType { get; internal set; }
+        [JsonIgnore]
         public IDictionary<string, string> Headers { get; internal set; } = new Dictionary<string, string>();
     }
 }

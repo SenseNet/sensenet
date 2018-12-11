@@ -19,8 +19,6 @@ namespace SenseNet.Services.Wopi
     {
         private static class WopiHeader
         {
-            public static readonly string ContentType = "ContentType";
-
             public static readonly string Lock = "X-WOPI-Lock";
             public static readonly string LockFailureReason = "X-WOPI-LockFailureReason";
         }
@@ -95,11 +93,8 @@ namespace SenseNet.Services.Wopi
             return new CheckFileInfoResponse
             {
                 StatusCode = HttpStatusCode.OK,
-                Headers = new Dictionary<string, string>
-                {
-                    {WopiHeader.ContentType, "application/json"},
-                },
-
+                ContentType = "application/json",
+                
                 // Base properties
                 BaseFileName = file.Name,
                 Size = file.Binary.Size,
@@ -359,10 +354,7 @@ namespace SenseNet.Services.Wopi
             {
                 StatusCode = HttpStatusCode.OK,
                 File = file,
-                Headers = new Dictionary<string, string>
-                {
-                    {WopiHeader.ContentType,  file.Binary.ContentType},
-                }
+                ContentType = file.Binary.ContentType
             };
         }
         private bool IsPreconditionOk(GetFileRequest wopiReq, File file)
