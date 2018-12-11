@@ -55,16 +55,50 @@ namespace SenseNet.ContentRepository.Fields
         }
         protected override object[] ConvertFrom(object value)
         {
-            _data = value as ImageFieldData;
+            ImageFieldData data = null;
+            if (value is int intValue)
+            {
+                if (Node.LoadNode(intValue) is Image refImage)
+                    data = new ImageFieldData(this, refImage, null);
+            }
+            else if (value is string stringValue)
+            {
+                try
+                {
+                    if (Node.LoadNode(stringValue) is Image refImage)
+                        data = new ImageFieldData(this, refImage, null);
+                }
+                catch
+                {
+                    // ignored
+                }
+            }
+            else if (value is long longValue)
+            {
+                try
+                {
+                    var id = Convert.ToInt32(longValue);
+                    if (Node.LoadNode(id) is Image refImage)
+                        data = new ImageFieldData(this, refImage, null);
+                }
+                catch
+                {
+                    // ignored
+                }
+            }
+            else
+            {
+                data = value as ImageFieldData;
+            }
 
-            var data = value as ImageFieldData;
             if (data == null)
-                throw new NotSupportedException("Field value is null or not a ImageFieldData. FieldName: " + this.Name);
+                throw new NotSupportedException("Field value is null or not a valid ImageFieldData or content id or path. FieldName: " + this.Name);
+            _data = data;
 
-            object[] result = new object[2];
+            var result = new object[2];
 
             result[0] = data.ImgRef == null ? new List<Node>() : new List<Node>() { data.ImgRef };
-            result[1] = data.ImgData == null ? new BinaryData() : data.ImgData;
+            result[1] = data.ImgData ?? new BinaryData();
 
             return result;
         }
