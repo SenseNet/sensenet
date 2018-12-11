@@ -15,6 +15,8 @@ namespace SenseNet.Tests
 	    private string _host;
 	    private string[][] _headers;
 	    private string _httpMethod;
+	    private Stream _inputStream;
+	    private byte[] _inputBuffer;
 
         /// <summary>
         /// Creates a new <see cref="SimulatedHttpRequest"/> instance.
@@ -45,8 +47,15 @@ namespace SenseNet.Tests
 	        _headers = AggregateHeaders(headers);
             _httpMethod = httpMethod;
 	    }
+	    public SimulatedHttpRequest(string appVirtualDir, string appPhysicalDir, string page, string query, TextWriter output, string host, string[][] headers, string httpMethod, Stream inputStream)
+	        : this(appVirtualDir, appPhysicalDir, page, query, output, host)
+	    {
+	        _headers = AggregateHeaders(headers);
+	        _httpMethod = httpMethod;
+	        _inputStream = inputStream;
+	    }
 
-	    private string[][] AggregateHeaders(string[][] headers)
+        private string[][] AggregateHeaders(string[][] headers)
 	    {
 	        var list = new NameValueCollection();
 	        foreach (var item in headers)
@@ -94,5 +103,22 @@ namespace SenseNet.Tests
 	    {
 	        return _httpMethod ?? "GET";
 	    }
+
+
+	    public override byte[] GetPreloadedEntityBody()
+	    {
+	        if (_inputStream == null)
+	            return null;
+
+	        if (_inputBuffer == null)
+	        {
+	            var length = Convert.ToInt32(_inputStream.Length);
+	            var buffer = new byte[length];
+	            _inputStream.Read(buffer, 0, length);
+	            _inputBuffer = buffer;
+	        }
+            return _inputBuffer;
+	    }
+
 	}
 }
