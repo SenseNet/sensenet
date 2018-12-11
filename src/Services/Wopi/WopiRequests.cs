@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,6 +16,17 @@ namespace SenseNet.Services.Wopi
             FileId = fileId;
         }
     }
+
+    internal abstract class UploadRequest : FilesRequest
+    {
+        public Stream RequestStream { get; }
+
+        protected UploadRequest(WopiRequestType requestType, string fileId, Stream requestStream) : base(requestType, fileId)
+        {
+            RequestStream = requestStream;
+        }
+    }
+
 
     internal class CheckFileInfoRequest : FilesRequest
     {
@@ -86,13 +98,33 @@ namespace SenseNet.Services.Wopi
         }
     }
 
-    internal class PutFileRequest : FilesRequest
+    internal class PutFileRequest : UploadRequest
     {
         public string Lock { get; }
 
-        public PutFileRequest(string fileId, string @lock) : base(WopiRequestType.PutFile, fileId)
+        public PutFileRequest(string fileId, string @lock, Stream requestStream) : base(WopiRequestType.PutFile, fileId, requestStream)
         {
             Lock = @lock;
+        }
+    }
+
+    internal class PutRelativeFileRequest : UploadRequest
+    {
+        public string SuggestedTarget { get; }
+        public string RelativeTarget { get; }
+        public bool OverwriteRelativeTarget { get; }
+        public int Size { get; }
+        public string FileConversion { get; }
+
+        public PutRelativeFileRequest(string fileId, string suggestedTarget, string relativeTarget,
+            bool overwriteRelativeTarget, int size, string fileConversion, Stream requestStream)
+            : base(WopiRequestType.PutRelativeFile, fileId, requestStream)
+        {
+            SuggestedTarget = suggestedTarget;
+            RelativeTarget = relativeTarget;
+            OverwriteRelativeTarget = overwriteRelativeTarget;
+            Size = size;
+            FileConversion = fileConversion;
         }
     }
 
@@ -113,26 +145,6 @@ namespace SenseNet.Services.Wopi
         {
             Lock = @lock;
             RequestedName = requestedName;
-        }
-    }
-
-    internal class PutRelativeFileRequest : FilesRequest
-    {
-        public string SuggestedTarget { get; }
-        public string RelativeTarget { get; }
-        public bool OverwriteRelativeTarget { get; }
-        public int Size { get; }
-        public string FileConversion { get; }
-
-        public PutRelativeFileRequest(string fileId, string suggestedTarget, string relativeTarget,
-            bool overwriteRelativeTarget, int size, string fileConversion)
-            : base(WopiRequestType.PutRelativeFile, fileId)
-        {
-            SuggestedTarget = suggestedTarget;
-            RelativeTarget = relativeTarget;
-            OverwriteRelativeTarget = overwriteRelativeTarget;
-            Size = size;
-            FileConversion = fileConversion;
         }
     }
 }

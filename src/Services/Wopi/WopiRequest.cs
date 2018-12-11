@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -84,10 +85,11 @@ namespace SenseNet.Services.Wopi
             var headers = webRequest.Headers;
             var httpMethod = webRequest.HttpMethod;
             var xWopiOverride = headers[WopiHeader.Override];
+            var requestStream = webRequest.InputStream;
 
-            return Parse(segments, httpMethod, xWopiOverride, headers);
+            return Parse(segments, httpMethod, xWopiOverride, headers, requestStream);
         }
-        private static WopiRequest Parse(string[] segments, string httpMethod, string xWopiOverride, NameValueCollection headers)
+        private static WopiRequest Parse(string[] segments, string httpMethod, string xWopiOverride, NameValueCollection headers, Stream requestStream)
         {
             string[] rest;
             switch (segments[0])
@@ -106,7 +108,7 @@ namespace SenseNet.Services.Wopi
                                 "Unknown second segment: " + segments[1]); //UNDONE: more informative message
                         case "files":
                             var fileId = GetIdAndAction(segments, out action, out rest);
-                            return ParseFiles(httpMethod, fileId, action, xWopiOverride, headers);
+                            return ParseFiles(httpMethod, fileId, action, xWopiOverride, headers, requestStream);
                         case "containers":
                             var containerId = GetIdAndAction(segments, out action, out rest);
                             return ParseContainers(httpMethod, containerId, action, xWopiOverride, headers);
@@ -119,7 +121,7 @@ namespace SenseNet.Services.Wopi
 
 
 
-        private static WopiRequest ParseFiles(string httpMethod, string fileId, string action, string xWopiOverride, NameValueCollection headers)
+        private static WopiRequest ParseFiles(string httpMethod, string fileId, string action, string xWopiOverride, NameValueCollection headers, Stream requestStream)
         {
             switch (action)
             {
@@ -130,7 +132,7 @@ namespace SenseNet.Services.Wopi
                     return ParseEnumerateAncestors(httpMethod, fileId, headers);
                 case "contents":
                     if (xWopiOverride == "PUT")
-                        return ParsePutFile(httpMethod, fileId, headers);
+                        return ParsePutFile(httpMethod, fileId, headers, requestStream);
                     return ParseGetFile(httpMethod, fileId, headers);
                 case null:
                     switch (xWopiOverride)
@@ -139,7 +141,7 @@ namespace SenseNet.Services.Wopi
                             throw new InvalidWopiRequestException(HttpStatusCode.BadRequest, 
                                 $"Unknown {WopiHeader.Override} header: " + xWopiOverride); //UNDONE: more informative message
                         case "PUT_RELATIVE":
-                            return ParsePutRelativeFile(httpMethod, fileId, headers);
+                            return ParsePutRelativeFile(httpMethod, fileId, headers, requestStream);
                         case "GET_LOCK":
                             return ParseGetLock(httpMethod, fileId, headers);
                         case "LOCK":
@@ -172,12 +174,12 @@ namespace SenseNet.Services.Wopi
         {
             throw new NotImplementedException(); //UNDONE: not implemented: ParseEnumerateAncestors
         }
-        private static WopiRequest ParsePutFile(string httpMethod, string fileId, NameValueCollection headers)
+        private static WopiRequest ParsePutFile(string httpMethod, string fileId, NameValueCollection headers, Stream requestStream)
         {
             if (httpMethod != POST)
                 throw new InvalidWopiRequestException(HttpStatusCode.MethodNotAllowed, "The request need to be HTTP_POST"); //UNDONE: more informative message
             var @lock = headers[WopiHeader.Lock];
-            return new PutFileRequest(fileId, @lock);
+            return new PutFileRequest(fileId, @lock, requestStream);
         }
         private static WopiRequest ParseGetFile(string httpMethod, string fileId, NameValueCollection headers)
         {
@@ -187,7 +189,7 @@ namespace SenseNet.Services.Wopi
             return new GetFileRequest(fileId, maxExpectedSize);
         }
 
-        private static WopiRequest ParsePutRelativeFile(string httpMethod, string fileId, NameValueCollection headers)
+        private static WopiRequest ParsePutRelativeFile(string httpMethod, string fileId, NameValueCollection headers, Stream requestStream)
         {
             if (httpMethod != POST)
                 throw new InvalidWopiRequestException(HttpStatusCode.MethodNotAllowed, "The request need to be HTTP_POST"); //UNDONE: more informative message
@@ -201,7 +203,7 @@ namespace SenseNet.Services.Wopi
             var fileConversion = headers[WopiHeader.FileConversion];
 
             return new PutRelativeFileRequest(fileId,
-                suggestedTarget, relativeTarget, overwriteRelativeTarget, size, fileConversion);
+                suggestedTarget, relativeTarget, overwriteRelativeTarget, size, fileConversion, requestStream);
         }
         private static WopiRequest ParseGetLock(string httpMethod, string fileId, NameValueCollection headers)
         {

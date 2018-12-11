@@ -59,7 +59,9 @@ namespace SenseNet.Services.Wopi
                 case WopiRequestType.GetFile:
                     return ProcessGetFileRequest((GetFileRequest)wopiReq, portalContext);
                 case WopiRequestType.PutFile:
+                    return ProcessPutFileRequest((PutFileRequest)wopiReq, portalContext);
                 case WopiRequestType.PutRelativeFile:
+                    return ProcessPutRelativeFileRequest((PutRelativeFileRequest)wopiReq, portalContext);
                 case WopiRequestType.DeleteFile:
                 case WopiRequestType.RenameFile:
                 case WopiRequestType.CheckContainerInfo:
@@ -74,7 +76,7 @@ namespace SenseNet.Services.Wopi
                 case WopiRequestType.GetRootContainer:
                 case WopiRequestType.Bootstrap:
                 case WopiRequestType.GetNewAccessToken:
-                    throw new NotImplementedException(); //UNDONE: not implemented: GetResponse #2
+                    return new WopiResponse {Status = HttpStatusCode.NotImplemented};
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -143,6 +145,54 @@ namespace SenseNet.Services.Wopi
                 LastModifiedTime = file.ModificationDate.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ"),
                 SHA256 = null, //UNDONE: set real property value
                 UniqueContentId = null, //UNDONE: set real property value
+            };
+        }
+        private WopiResponse ProcessPutRelativeFileRequest(PutRelativeFileRequest wopiReq, PortalContext portalContext)
+        {
+            if (!int.TryParse(wopiReq.FileId, out var contentId))
+                return new WopiResponse { Status = HttpStatusCode.NotFound };
+            if (!(Node.LoadNode(contentId) is File file))
+                return new WopiResponse { Status = HttpStatusCode.NotFound };
+
+            var allowIncrementalNaming = wopiReq.SuggestedTarget != null;
+            var allowOverwrite = wopiReq.OverwriteRelativeTarget;
+            var targetName = wopiReq.SuggestedTarget ?? wopiReq.RelativeTarget;
+            if (targetName.StartsWith("."))
+                targetName = Path.GetFileNameWithoutExtension(file.Name) + targetName;
+
+            File targetFile = null;
+            if (!allowIncrementalNaming)
+            {
+                var targetPath = $"{file.ParentPath}/{targetName}";
+                var node = Node.LoadNode(targetPath);
+                if (node != null)
+                {
+                    if (!allowOverwrite || !(node is File loadedFile))
+                        return new PutRelativeFileResponse {Status = HttpStatusCode.NotImplemented};
+                    targetFile = loadedFile;
+                }
+            }
+
+            if (targetFile == null)
+            {
+                targetFile = new File(file.Parent) {Name = targetName};
+                targetFile.AllowIncrementalNaming = allowIncrementalNaming;
+            }
+            else
+            {
+                throw new NotImplementedException(); //UNDONE: Check lock
+            }
+
+            targetFile.Binary.FileName = targetName;
+            targetFile.Binary.SetStream(wopiReq.RequestStream);
+            targetFile.Save();
+
+            var url = "__notimplemented__"; //UNDONE: Generate correct URL
+            return new PutRelativeFileResponse
+            {
+                Status = HttpStatusCode.OK,
+                Name = targetFile.Name,
+                Url = url,
             };
         }
         private WopiResponse ProcessGetLockRequest(GetLockRequest wopiReq, PortalContext portalContext)
@@ -326,6 +376,38 @@ namespace SenseNet.Services.Wopi
 
             var length = Convert.ToInt32(bigLength);
             return wopiReq.MaxExpectedSize.Value >= length;
+        }
+
+        private WopiResponse ProcessPutFileRequest(PutFileRequest wopiReq, PortalContext portalContext)
+        {
+            if (!int.TryParse(wopiReq.FileId, out var contentId))
+                return new WopiResponse { Status = HttpStatusCode.NotFound };
+            if (!(Node.LoadNode(contentId) is File file))
+                return new WopiResponse { Status = HttpStatusCode.NotFound };
+
+            var existingLock = SharedLock.GetLock(file.Id);
+            if (existingLock == null)
+            {
+                if (file.Binary.Size != 0)
+                    return new WopiResponse { Status = HttpStatusCode.Conflict };
+            }
+            if (existingLock != wopiReq.Lock)
+            {
+                return new WopiResponse
+                {
+                    Status = HttpStatusCode.Conflict,
+                    Headers = new Dictionary<string, string>
+                    {
+                        {WopiHeader.Lock, existingLock},
+                        {WopiHeader.LockFailureReason, "LockedByAnother"}
+                    }
+                };
+            }
+
+            file.Binary.SetStream(wopiReq.RequestStream);
+            file.Save();
+            //UNDONE: Set X-WOPI-ItemVersion header if needed.
+            return new WopiResponse { Status = HttpStatusCode.OK };
         }
     }
 }

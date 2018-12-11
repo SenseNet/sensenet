@@ -1182,9 +1182,54 @@ namespace SenseNet.Services.Tests
 
         /* --------------------------------------------------------- PutFile */
 
+        [TestMethod]
+        public void Wopi_Proc_PutFile()
+        {
+            WopiTest(site =>
+            {
+                var file = CreateTestFile(site, "File1.txt", "filecontent1");
+                var existingLock = "LCK_" + Guid.NewGuid();
+                SharedLock.Lock(file.Id, existingLock);
+                var newContent = "new filecontent2";
+
+                var response = WopiPost($"/wopi/files/{file.Id}/contents", DefaultAccessTokenParameter, new[]
+                {
+                    new[] {"X-WOPI-Override", "PUT"},
+                    new[] {"X-WOPI-Lock", existingLock},
+                }, RepositoryTools.GetStreamFromString(newContent));
+
+                Assert.IsNotNull(response);
+                Assert.AreEqual(HttpStatusCode.OK, response.Status);
+                file = Node.Load<File>(file.Id);
+                //UNDONE: Test X-WOPI-ItemVersion header: AssertHeader("X-WOPI-ItemVersion", ???);
+                Assert.AreEqual(newContent, RepositoryTools.GetStreamString(file.Binary.GetStream()));
+            });
+        }
+
         /* --------------------------------------------------------- PutRelativeFile */
 
-        /* --------------------------------------------------------- DeleteFile */
+        [TestMethod]
+        public void Wopi_Proc_PutRelativeFile_SuggestedFullname()
+        {
+            Assert.Inconclusive();
+
+            WopiTest(site =>
+            {
+                var file = CreateTestFile(site, "File1.txt", "filecontent1");
+                var newContent = "new filecontent2";
+
+                var response = WopiPost($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
+                {
+                    new[] {"X-WOPI-Override", "PUT_RELATIVE"},
+                    new[] {"X-WOPI-SuggestedTarget", "File2.txt"},
+                    new[] {"X-WOPI-Size", newContent.Length.ToString()},
+                    new[] {"X-WOPI-FileConversion", ""},
+                }, RepositoryTools.GetStreamFromString(newContent)) as PutRelativeFileResponse;
+
+                Assert.IsNotNull(response);
+                Assert.AreEqual(HttpStatusCode.OK, response.Status);
+            });
+        }
 
         /* ======================================================================================= */
 
@@ -1195,15 +1240,15 @@ namespace SenseNet.Services.Tests
         {
             return GetWopiResponse("GET", resource, queryString, headers, null);
         }
-        private WopiResponse WopiPost(string resource, string queryString, string[][] headers, Stream requestStream)
+        private WopiResponse WopiPost(string resource, string queryString, string[][] headers, Stream inputStream)
         {
-            return GetWopiResponse("POST", resource, queryString, headers, requestStream);
+            return GetWopiResponse("POST", resource, queryString, headers, inputStream);
         }
-        private WopiResponse GetWopiResponse(string httpMethod, string resource, string queryString, string[][] headers, Stream requestStream)
+        private WopiResponse GetWopiResponse(string httpMethod, string resource, string queryString, string[][] headers, Stream inputStream)
         {
             using (var output = new System.IO.StringWriter())
                 return new WopiHandler().GetResponse(
-                   CreatePortalContext(httpMethod, resource, queryString, output, headers));
+                   CreatePortalContext(httpMethod, resource, queryString, output, headers, inputStream));
         }
 
         private const string TestSiteName = "WopiTestSite";
@@ -1232,9 +1277,9 @@ namespace SenseNet.Services.Tests
             return file;
         }
 
-        private static PortalContext CreatePortalContext(string httpMethod, string pagePath, string queryString, System.IO.TextWriter output, string[][] headers)
+        private static PortalContext CreatePortalContext(string httpMethod, string pagePath, string queryString, System.IO.TextWriter output, string[][] headers, Stream inputStream = null)
         {
-            var simulatedWorkerRequest = new SimulatedHttpRequest(@"\", @"C:\Inetpub\wwwroot", pagePath, queryString, output, "localhost", headers, httpMethod);
+            var simulatedWorkerRequest = new SimulatedHttpRequest(@"\", @"C:\Inetpub\wwwroot", pagePath, queryString, output, "localhost", headers, httpMethod, inputStream);
             var simulatedHttpContext = new HttpContext(simulatedWorkerRequest);
             HttpContext.Current = simulatedHttpContext;
             var portalContext = PortalContext.Create(simulatedHttpContext);

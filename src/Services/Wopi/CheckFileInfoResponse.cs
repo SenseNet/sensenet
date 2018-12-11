@@ -84,7 +84,8 @@ namespace SenseNet.Services.Wopi
         public bool DisableTranslation => false;
         public string FileExtension { get; internal set; }
         public int FileNameMaxLength => 0;
-        public string LastModifiedTime { get; internal set; } // "2009-06-15T13:45:30.0000000Z"
+        public string LastModifiedTime { get; internal set; }
+        // ReSharper disable once InconsistentNaming
         public string SHA256 { get; internal set; }
         public string UniqueContentId { get; internal set; }
     }
