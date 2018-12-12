@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Web;
 using System.Reflection;
 
 namespace SenseNet.Services.Instrumentation
@@ -17,6 +16,7 @@ namespace SenseNet.Services.Instrumentation
     /// <summary>
     /// TraceFrame
     /// </summary>
+    [Obsolete("Use SnTrace instead.")]
     public sealed class TraceFrame : IDisposable
     {
         internal string Message { get; private set; }
@@ -41,15 +41,8 @@ namespace SenseNet.Services.Instrumentation
                 try
                 {
                     _rootTraceFrameAccessorLock.EnterReadLock();
-                    HttpContext currentHttpContext = HttpContext.Current;
-                    if (currentHttpContext != null)
-                    {
-                        return currentHttpContext.Items["RootTraceFrame"] as TraceFrame;
-                    }
-                    else
-                    {
-                        return _rootTraceFrame;
-                    }
+
+                    return _rootTraceFrame;
                 }
                 finally
                 {
@@ -61,15 +54,7 @@ namespace SenseNet.Services.Instrumentation
                 try
                 {
                     _rootTraceFrameAccessorLock.EnterWriteLock();
-                    HttpContext currentHttpContext = HttpContext.Current;
-                    if (currentHttpContext != null)
-                    {
-                        currentHttpContext.Items["RootTraceFrame"] = value;
-                    }
-                    else
-                    {
-                        _rootTraceFrame = value;
-                    }
+                    _rootTraceFrame = value;
                 }
                 finally
                 {

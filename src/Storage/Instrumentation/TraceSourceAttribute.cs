@@ -5,6 +5,7 @@ using System.Text;
 
 namespace SenseNet.Services.Instrumentation
 {
+    [Obsolete("Use SnTrace instead.")]
     [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Class | AttributeTargets.Constructor | AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
     public sealed class TraceSourceNameAttribute : Attribute
     {
