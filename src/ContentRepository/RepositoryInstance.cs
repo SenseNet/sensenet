@@ -138,6 +138,10 @@ namespace SenseNet.ContentRepository
 
             SnQueryVisitor.VisitorExtensionTypes = new[] {typeof(Sharing.SharingVisitor)};
 
+            // We have to log the access provider here because it cannot be logged 
+            // during creation as it would lead to a circular reference.
+            SnLog.WriteInformation($"AccessProvider created: {AccessProvider.Current?.GetType().FullName}");
+
             using (new SystemAccount())
                 StartManagers();
 
@@ -348,7 +352,7 @@ namespace SenseNet.ContentRepository
         {
             // look for the configured logger
             SnLog.Instance = Providers.Instance.EventLogger ?? new DebugWriteLoggerAdapter();
-            SnLog.PropertyCollector = new EventPropertyCollector();
+            SnLog.PropertyCollector = Providers.Instance.PropertyCollector ?? new EventPropertyCollector();
             SnLog.AuditEventWriter = new DatabaseAuditEventWriter();
 
             //set configured tracers
