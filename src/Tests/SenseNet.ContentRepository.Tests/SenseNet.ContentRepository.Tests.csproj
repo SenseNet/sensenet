@@ -89,6 +89,7 @@
     <Compile Include="Accessors.cs" />
     <Compile Include="AllowedChildTypesTests.cs" />
     <Compile Include="AspectTests.cs" />
+    <Compile Include="AuditLogTests.cs" />
     <Compile Include="AutoNamingTests.cs" />
     <Compile Include="CacheTests.cs" />
     <Compile Include="ClientMetadataProviderTests.cs" />

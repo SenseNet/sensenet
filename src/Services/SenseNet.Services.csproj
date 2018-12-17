@@ -153,6 +153,7 @@
     <Compile Include="ApplicationModel\GenericODataApplication.cs" />
     <Compile Include="ApplicationModel\GenericODataOperation.cs" />
     <Compile Include="ApplicationModel\GetPermissionsAction.cs" />
+    <Compile Include="Diagnostics\ContextEventPropertyCollector.cs" />
     <Compile Include="Configuration\FormsADAuth\AuthSettingElement.cs" />
     <Compile Include="Configuration\FormsADAuth\AuthSettingElementCollection.cs" />
     <Compile Include="Configuration\FormsADAuth\FormsAuthenticationFromADSection.cs" />
