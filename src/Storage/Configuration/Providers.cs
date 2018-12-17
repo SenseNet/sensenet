@@ -18,6 +18,7 @@ using SenseNet.ContentRepository.Storage.AppModel;
 using SenseNet.ContentRepository.Storage.Caching.Dependency;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Search.Querying;
+using SenseNet.Tools.Diagnostics;
 
 // ReSharper disable once CheckNamespace
 // ReSharper disable RedundantTypeArgumentsOfMethod
@@ -28,6 +29,8 @@ namespace SenseNet.Configuration
         private const string SectionName = "sensenet/providers";
 
         public static string EventLoggerClassName { get; internal set; } = GetProvider("EventLogger");
+        public static string PropertyCollectorClassName { get; internal set; } = GetProvider("PropertyCollector",
+            "SenseNet.Diagnostics.ContextEventPropertyCollector");
         public static string DataProviderClassName { get; internal set; } = GetProvider("DataProvider", typeof(SqlProvider).FullName);
         public static string AccessProviderClassName { get; internal set; } = GetProvider("AccessProvider",
             "SenseNet.ContentRepository.Security.UserAccessProvider");
@@ -90,6 +93,19 @@ namespace SenseNet.Configuration
         }
         #endregion
 
+        #region private Lazy<IEventPropertyCollector> _propertyCollector = new Lazy<IEventPropertyCollector>
+
+        private Lazy<IEventPropertyCollector> _propertyCollector = new Lazy<IEventPropertyCollector>(() =>
+            string.IsNullOrEmpty(PropertyCollectorClassName)
+                ? new EventPropertyCollector()
+                : CreateProviderInstance<IEventPropertyCollector>(PropertyCollectorClassName, "PropertyCollector"));
+        public virtual IEventPropertyCollector PropertyCollector
+        {
+            get => _propertyCollector.Value;
+            set { _propertyCollector = new Lazy<IEventPropertyCollector>(() => value); }
+        }
+        #endregion
+
         #region private Lazy<DataProvider> _dataProvider = new Lazy<DataProvider>
         private Lazy<DataProvider> _dataProvider = new Lazy<DataProvider>(() =>
         {
@@ -145,14 +161,17 @@ namespace SenseNet.Configuration
         #region private Lazy<AccessProvider> _accessProvider = new Lazy<AccessProvider>
         private Lazy<AccessProvider> _accessProvider = new Lazy<AccessProvider>(() =>
         {
-            var provider = CreateProviderInstance<AccessProvider>(AccessProviderClassName, "AccessProvider");
+            // We have to skip logging the creation of this provider, because the logger
+            // itself tries to use the access provider when collecting event properties,
+            // which would lead to a circular reference.
+            var provider = CreateProviderInstance<AccessProvider>(AccessProviderClassName, "AccessProvider", true);
             provider.InitializeInternal();
 
             return provider;
         });
         public virtual AccessProvider AccessProvider
         {
-            get { return _accessProvider.Value; }
+            get => _accessProvider.Value;
             set { _accessProvider = new Lazy<AccessProvider>(() => value); }
         }
         #endregion
@@ -377,7 +396,7 @@ namespace SenseNet.Configuration
             _providersByType[providerType] = provider;
         }
 
-        private static T CreateProviderInstance<T>(string className, string providerName)
+        private static T CreateProviderInstance<T>(string className, string providerName, bool skipLog = false)
         {
             T provider;
 
@@ -394,7 +413,11 @@ namespace SenseNet.Configuration
                 throw new ConfigurationException($"Invalid {providerName} implementation: {className}");
             }
 
-            SnLog.WriteInformation($"{providerName} created: {className}");
+            // in some cases the logger is not available yet
+            if (skipLog)
+                SnTrace.System.Write($"{providerName} created: {className}");
+            else
+                SnLog.WriteInformation($"{providerName} created: {className}");
 
             return provider;
         }

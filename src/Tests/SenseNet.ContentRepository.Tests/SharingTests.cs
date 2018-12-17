@@ -24,6 +24,7 @@ using SenseNet.Search.Querying;
 using SenseNet.Security;
 using SenseNet.Tests;
 using Formatting = Newtonsoft.Json.Formatting;
+using Retrier = SenseNet.Tools.Retrier;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -976,17 +977,23 @@ namespace SenseNet.ContentRepository.Tests
                 // wait for the background tasks
                 Thread.Sleep(200);
 
-                // reload the shared content to refresh the sharing list
-                root = Node.Load<GenericContent>(root.Id);
-                items = root.Sharing.Items.ToArray();
+                Retrier.Retry(10, 200, typeof(AssertFailedException), () =>
+                {
+                    // reload the shared content to refresh the sharing list
+                    root = Node.Load<GenericContent>(root.Id);
+                    items = root.Sharing.Items.ToArray();
 
-                Assert.AreEqual(1, items.Length);
-                // internal user
-                Assert.IsNull(items.FirstOrDefault(sd => sd.Token == "user1@example.com" || sd.Identity == user.Id));
-                // external user and a sharing group
-                AssertPublicSharingData(items, "user2@example.com");
+                    Assert.AreEqual(1, items.Length);
+                    // internal user
+                    Assert.IsNull(items.FirstOrDefault(sd => sd.Token == "user1@example.com" || sd.Identity == user.Id),
+                        "Sharing data is still on the content.");
 
-                Assert.IsFalse(SecurityHandler.HasPermission(user, root, PermissionType.Open));
+                    // external user and a sharing group
+                    AssertPublicSharingData(items, "user2@example.com");
+
+                    Assert.IsFalse(SecurityHandler.HasPermission(user, root, PermissionType.Open),
+                        "User permissions are still on the content.");
+                });
             });
         }
         [TestMethod]
@@ -1169,9 +1176,12 @@ namespace SenseNet.ContentRepository.Tests
                 gc.ForceDelete();
 
                 // wait for the background task
-                Thread.Sleep(500);
-
-                AssertSharingGroup(group, gc, false);
+                Thread.Sleep(100);
+                
+                Retrier.Retry(10, 200, typeof(AssertFailedException), () =>
+                {
+                    AssertSharingGroup(group, gc, false);
+                });
             });
         }
         [TestMethod]
@@ -1715,7 +1725,7 @@ namespace SenseNet.ContentRepository.Tests
             {
                 e2 = content.Sharing.GetExplicitEntries().Any(ace => ace.IdentityId == group.Id);
             }
-            catch (SenseNet.Security.EntityNotFoundException)
+            catch (EntityNotFoundException)
             {
                 // entity is not there, this is expected
                 e2 = false;

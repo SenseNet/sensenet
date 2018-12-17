@@ -12,6 +12,7 @@ namespace SenseNet.Services.Instrumentation
     /// <summary>
     /// The TraceHelper is a static class provides several methods to help you trace your application.
     /// </summary>
+    [Obsolete("Use SnTrace instead.")]
     public static class TraceHelper
     {
 
