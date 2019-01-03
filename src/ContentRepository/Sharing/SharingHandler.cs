@@ -36,7 +36,7 @@ namespace SenseNet.ContentRepository.Sharing
 
     internal static class Constants
     {
-        public const string SharingSessionKey = "SharingIdentity";
+        public const string SharingTokenKey = "SnSharingToken";
         public const string SharingGroupTypeName = "SharingGroup";
         public const string SharedWithFieldName = "SharedWith";
         public const string SharingModeFieldName = "SharingMode";

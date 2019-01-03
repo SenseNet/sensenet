@@ -1,7 +1,9 @@
-﻿using System.Collections.Specialized;
+﻿using System;
+using System.Collections.Specialized;
+using System.Linq;
 using System.Web;
-using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Diagnostics;
 
 namespace SenseNet.ContentRepository.Sharing
 {
@@ -20,35 +22,54 @@ namespace SenseNet.ContentRepository.Sharing
             var context = HttpContext.Current;
             if (context != null && user != null)
             {
-                return SystemAccount.Execute(() => GetSharingExtension(context.Request.Params,
-                    context.Session != null 
-                        ? new HttpSessionStateWrapper(context.Session)
-                        : null));
+                //TODO: handle multiple group ids in context
+                var cookieValue = context.Request.Cookies[Constants.SharingTokenKey]?.Value;
+
+                var extension = SystemAccount.Execute(() => GetSharingExtension(context.Request.Params, cookieValue));
+                var extensionGroupId = extension.ExtensionIds.FirstOrDefault();
+                if (extensionGroupId > 0)
+                {
+                    // the url value takes precedence
+                    var currentValue = context.Request.Params[Constants.SharingUrlParameterName];
+                    if (string.IsNullOrEmpty(currentValue))
+                        currentValue = cookieValue;
+
+                    // set cookie only if it is different from the current value
+                    if (currentValue != cookieValue)
+                    {
+                        SnTrace.Security.Write($"SharingMembershipExtender: setting sharing cookie containing group id {extensionGroupId}.");
+
+                        //UNDONE: set cookie expiration by config?
+                        context.Response.Cookies.Set(new HttpCookie(Constants.SharingTokenKey, currentValue)
+                        {
+                            Expires = DateTime.UtcNow.AddDays(1)
+                        });
+                    }
+                }
+                else if (cookieValue != null)
+                {
+                    // No sharing group or invalid group or content: clear cookie
+                    // (only if there was a cookie before).
+                    context.Response.Cookies.Set(new HttpCookie(Constants.SharingTokenKey, string.Empty)
+                    {
+                        Expires = DateTime.UtcNow.AddDays(-1)
+                    });
+                }
+
+                return extension;
             }
 
             return base.GetExtension(user);
         }
 
-        internal static MembershipExtension GetSharingExtension(NameValueCollection parameters, HttpSessionStateBase session)
+        internal static MembershipExtension GetSharingExtension(NameValueCollection parameters, string contextValue = null)
         {
-            Group sharingGroup;
+            // check the url first
+            var sharingGroup = SharingHandler.GetSharingGroupByUrlParameter(parameters)?.ContentHandler as Group;
 
-            var sharingIdentity = (int)(session?[Constants.SharingSessionKey] ?? 0);
-            if (sharingIdentity != 0)
-            {
-                // found a sharing group in the session
-                sharingGroup = Node.Load<Group>(sharingIdentity);
-            }
-            else
-            {
-                // check the url
-                sharingGroup = SharingHandler.GetSharingGroupByUrlParameter(parameters)?.ContentHandler as Group;
-
-                // Found a sharing group for the id: put it into the session 
-                // and add it to the list of extensions of the user.
-                if (sharingGroup != null && session != null)
-                    session[Constants.SharingSessionKey] = sharingGroup.Id;
-            }
+            // check the context param next
+            if (sharingGroup == null && contextValue != null)
+                sharingGroup = SharingHandler.GetSharingGroupBySharingId(contextValue)?.ContentHandler as Group;
             
             if (sharingGroup == null)
                 return EmptyExtension;
@@ -59,6 +80,8 @@ namespace SenseNet.ContentRepository.Sharing
             if (sharedNode == null)
             {
                 // Invalid sharing group: no related content. Delete the group and move on.
+                SnTrace.Security.Write($"SharingMembershipExtender: Deleting orphaned sharing group {sharingGroup.Id} ({sharingGroup.Path}).");
+
                 sharingGroup.ForceDelete();
                 sharingGroup = null;
             }
@@ -70,10 +93,6 @@ namespace SenseNet.ContentRepository.Sharing
             {
                 return new MembershipExtension(new[] { sharingGroup.Id });
             }
-
-            // invalid group or content
-            if (session != null)
-                session[Constants.SharingSessionKey] = 0;
 
             return EmptyExtension;
         }

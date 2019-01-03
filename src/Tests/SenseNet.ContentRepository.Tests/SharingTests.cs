@@ -28,17 +28,6 @@ using Retrier = SenseNet.Tools.Retrier;
 
 namespace SenseNet.ContentRepository.Tests
 {
-    public class MockHttpSession : HttpSessionStateBase
-    {
-        private readonly Dictionary<string, object> _sessionStorage = new Dictionary<string, object>();
-
-        public override object this[string name]
-        {
-            get => _sessionStorage.TryGetValue(name, out var sessionValue) ? sessionValue : null;
-            set => _sessionStorage[name] = value;
-        }
-    }
-
     [TestClass]
     public class SharingTests : TestBase
     {
@@ -1230,18 +1219,15 @@ namespace SenseNet.ContentRepository.Tests
 
                 // provide the new sharing guid as a parameter
                 var parameters = new NameValueCollection {{Constants.SharingUrlParameterName, sd1.Id}};
-                var session = new MockHttpSession();
 
-                var extension = SharingMembershipExtender.GetSharingExtension(parameters, session);
-
-                Assert.IsTrue(extension.ExtensionIds.Contains(group.Id));
-                Assert.IsTrue((int)session[Constants.SharingSessionKey] == group.Id);
-
-                // repeat with filled session
-                extension = SharingMembershipExtender.GetSharingExtension(parameters, session);
+                var extension = SharingMembershipExtender.GetSharingExtension(parameters);
 
                 Assert.IsTrue(extension.ExtensionIds.Contains(group.Id));
-                Assert.IsTrue((int)session[Constants.SharingSessionKey] == group.Id);
+
+                // repeat with filled context
+                extension = SharingMembershipExtender.GetSharingExtension(parameters, sd1.Id);
+
+                Assert.IsTrue(extension.ExtensionIds.Contains(group.Id));
             });
         }
         [TestMethod]
@@ -1264,12 +1250,10 @@ namespace SenseNet.ContentRepository.Tests
 
                 // provide the new sharing guid as a parameter
                 var parameters = new NameValueCollection { { Constants.SharingUrlParameterName, sd1.Id } };
-                var session = new MockHttpSession();
 
-                var extension = SharingMembershipExtender.GetSharingExtension(parameters, session);
+                var extension = SharingMembershipExtender.GetSharingExtension(parameters);
 
                 Assert.IsTrue(extension.ExtensionIds.Contains(group.Id));
-                Assert.IsTrue((int)session[Constants.SharingSessionKey] == group.Id);
 
                 // make sure that the trash is available
                 var trash = TrashBin.Instance;
@@ -1283,27 +1267,24 @@ namespace SenseNet.ContentRepository.Tests
                 content.Delete(false);
                 content = Content.Load(content.Id);
 
-                extension = SharingMembershipExtender.GetSharingExtension(parameters, session);
+                extension = SharingMembershipExtender.GetSharingExtension(parameters, sd1.Id);
 
                 Assert.IsFalse(extension.ExtensionIds.Contains(group.Id));
-                Assert.IsTrue((int)session[Constants.SharingSessionKey] == 0); // group id is replaced by 0
 
                 // restore the content
                 var bag = Node.Load<TrashBag>(content.ContentHandler.ParentId);
                 TrashBin.Restore(bag);
                 content = Content.Load(content.Id);
 
-                extension = SharingMembershipExtender.GetSharingExtension(parameters, session);
+                extension = SharingMembershipExtender.GetSharingExtension(parameters);
 
                 Assert.IsTrue(extension.ExtensionIds.Contains(group.Id));
-                Assert.IsTrue((int)session[Constants.SharingSessionKey] == group.Id);
 
                 content.ForceDelete();
 
-                extension = SharingMembershipExtender.GetSharingExtension(parameters, session);
+                extension = SharingMembershipExtender.GetSharingExtension(parameters, sd1.Id);
 
                 Assert.IsFalse(extension.ExtensionIds.Contains(group.Id));
-                Assert.IsTrue((int)session[Constants.SharingSessionKey] == 0); // group id is replaced by 0
             });
         }
 

@@ -33,6 +33,12 @@ namespace SenseNet.ContentRepository.Storage.Security
             if (!(identities?.Any() ?? false))
                 return;
 
+            if (this == MembershipExtenderBase.EmptyExtension || this == Placeholder)
+            {
+                // cannot add ids to the pinned empty extension object
+                return;
+            }
+
             ExtensionIds = ExtensionIds.Union(identities).ToArray();
         }
 
@@ -54,25 +60,27 @@ namespace SenseNet.ContentRepository.Storage.Security
         public static readonly MembershipExtension EmptyExtension = new MembershipExtension(new ISecurityContainer[0]);
         private static MembershipExtenderBase Instance => Providers.Instance.MembershipExtender;
 
-        private static readonly string[] InternalMembershipExtenderTypeNames = 
+        private static readonly string[] InternalMembershipExtenderTypeNames =
         {
             "SenseNet.ContentRepository.Sharing.SharingMembershipExtender"
         };
-        private static readonly Lazy<MembershipExtenderBase[]> InternalExtenders = new Lazy<MembershipExtenderBase[]>(() =>
+
+        private static readonly Lazy<MembershipExtenderBase[]> InternalExtenders = new Lazy<MembershipExtenderBase[]>(
+            () =>
             {
                 return InternalMembershipExtenderTypeNames.Select(tn =>
+                {
+                    try
                     {
-                        try
-                        {
-                            return TypeResolver.CreateInstance<MembershipExtenderBase>(tn);
-                        }
-                        catch (Exception ex)
-                        {
-                            SnLog.WriteException(ex, $"Error loading internal membership extender: {tn}");
-                        }
+                        return TypeResolver.CreateInstance<MembershipExtenderBase>(tn);
+                    }
+                    catch (Exception ex)
+                    {
+                        SnLog.WriteException(ex, $"Error loading internal membership extender: {tn}");
+                    }
 
-                        return null;
-                    }).Where(me => me != null).ToArray();
+                    return null;
+                }).Where(me => me != null).ToArray();
             });
 
         private static MembershipExtenderBase[] InternalInstances => InternalExtenders.Value;
@@ -96,10 +104,7 @@ namespace SenseNet.ContentRepository.Storage.Security
                 return;
 
             // create the initial extender or add ids to the existing one
-            if (user.MembershipExtension == null)
-                user.MembershipExtension = new MembershipExtension(internalIds);
-            else
-                user.MembershipExtension.AddIdentities(internalIds.ToArray());
+            user.AddMembershipIdentities(internalIds);
         }
         private void ExtendPrivate(IUser user)
         {
@@ -129,6 +134,33 @@ namespace SenseNet.ContentRepository.Storage.Security
         public override MembershipExtension GetExtension(IUser user)
         {
             return EmptyExtension;
+        }
+    }
+
+    internal static class MembershipUserExtensions
+    {
+        /// <summary>
+        /// Adds identities to the extended membership list of the user. If the current
+        /// list is the pinned empty or placeholder object, this method replaces it
+        /// with a new one, containing the additional identities.
+        /// </summary>
+        public static void AddMembershipIdentities(this IUser user, params int[] identities)
+        {
+            if (user == null || !(identities?.Any() ?? false))
+                return;
+
+            var currentExtension = user.MembershipExtension;
+
+            if (currentExtension == null || 
+                currentExtension == MembershipExtenderBase.EmptyExtension || 
+                currentExtension == MembershipExtension.Placeholder)
+            {
+                // Pinned empty extension object found, creating a new one.
+                user.MembershipExtension = new MembershipExtension(identities);
+                return;
+            }
+            
+            user.MembershipExtension.AddIdentities(identities);
         }
     }
 }
