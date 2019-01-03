@@ -250,6 +250,8 @@ namespace SenseNet.ContentRepository
             // copy permissions from the source content, without reseting the permission system
             SecurityHandler.CopyPermissionsFrom(source.Id, target.Id, CopyPermissionMode.BreakAndClear);
 
+            //UNDONE: do we need to deal with Sharing permissions here, or just Normal?
+
             // If there were any permission settings for the Creators group on the source content, we 
             // need to place an explicite entry with the same permissions onto the target for the creator 
             // user, as the creator of the trashbag (the user who deletes the content) may be different 

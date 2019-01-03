@@ -758,7 +758,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             if (identities.First() == Identifiers.SystemUserId)
                 return PermittedLevel.All;
 
-            var aces = GetEffectiveEntriesAsSystemUser(nodeId, identities);
+            var aces = SecurityContext.GetEffectiveEntries(nodeId, identities);
 
             if (aces.Count == 0)
                 return PermittedLevel.None;
@@ -821,7 +821,8 @@ namespace SenseNet.ContentRepository.Storage.Security
         public static List<AceInfo> GetEffectiveEntries(int contentId, IEnumerable<int> relatedIdentities = null)
         {
             SecurityContext.AssertPermission(contentId, PermissionType.SeePermissions);
-            return GetEffectiveEntriesAsSystemUser(contentId, relatedIdentities);
+            //return GetEffectiveEntriesAsSystemUser(contentId, relatedIdentities);
+            return SecurityContext.GetEffectiveEntries(contentId, relatedIdentities);
         }
         /// <summary>
         /// Return with the passed content's effective entries. There is permission check so you must call this method from a safe block.
@@ -832,6 +833,12 @@ namespace SenseNet.ContentRepository.Storage.Security
         {
             return SecurityContext.GetEffectiveEntries(contentId, relatedIdentities, EntryType.Normal);
         }
+
+	    public static List<AceInfo> GetAllEffectiveEntries(int contentId, IEnumerable<int> relatedIdentities = null)
+	    {
+	        SecurityContext.AssertPermission(contentId, PermissionType.SeePermissions);
+            return SecurityContext.GetEffectiveEntries(contentId, relatedIdentities);
+	    }
         #endregion
 
         #region /*========================================================== ACL */

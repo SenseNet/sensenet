@@ -152,7 +152,7 @@ namespace SenseNet.Search.Querying
             try
             {
                 using (new SystemAccount())
-                    entries = SecurityHandler.GetEffectiveEntries(nodeId);
+                    entries = SecurityHandler.GetAllEffectiveEntries(nodeId);
             }
             catch (Exception ex) // LOGGED
             {
