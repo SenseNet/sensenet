@@ -35,7 +35,19 @@ namespace SenseNet.ContentRepository.Storage
             return String.Format(resMan.GetString(fullResourceKey), args);
         }
 
-		internal static class Exceptions
+	    internal static string GetStringOrDefault(string fullResourceKey, string resourceKeyFragment, string defaultValue)
+	    {
+	        var msg = GetString(fullResourceKey);
+
+	        // If the resource does not exist, resource manager returns a class-key pair. 
+	        // We want to return a human readable default value instead.
+	        if (string.IsNullOrEmpty(msg) || msg.Contains(resourceKeyFragment))
+	            return defaultValue;
+
+	        return msg;
+	    }
+
+        internal static class Exceptions
 		{
 			internal static class General
 			{
@@ -64,7 +76,16 @@ namespace SenseNet.ContentRepository.Storage
                 internal static string Error_Preview_BinaryAccess_2 = "$Error_Storage:Preview_BinaryAccess_2";
                 internal static string Error_PathTooLong_1 = "$Error_Storage:PathTooLong_1";
                 internal static string Error_AccessToNotFinalizedBinary_2 = "$Error_Storage:AccessToNotFinalizedBinary_2";
-			}
+
+			    internal static string Error_PathTooLong_MaxValue_1 = "$Portal:PathTooLongMessage";
+			    internal static string Error_EmptyNameMessage = "$Portal:EmptyNameMessage";
+			    internal static string Error_InvalidPathMessage = "$Portal:InvalidPathMessage";
+			    internal static string Error_InvalidNameMessage = "$Portal:InvalidNameMessage";
+			    internal static string Error_NameStartsWithWhitespaceMessage = "$Portal:NameStartsWithWhitespaceMessage";
+			    internal static string Error_NameEndsWithWhitespaceMessage = "$Portal:NameEndsWithWhitespaceMessage";
+			    internal static string Error_PathFirstCharMessage = "$Portal:PathFirstCharMessage";
+			    internal static string Error_PathEndsWithDotMessage = "$Portal:PathEndsWithDotMessage";
+            }
             internal static class Operations
             {
                 internal static string CopyFailed_SouceDoesNotExistWithPath_1 = "$Error_Storage:CopyFailed_SouceDoesNotExistWithPath_1";

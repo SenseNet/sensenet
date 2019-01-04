@@ -1,6 +1,5 @@
 using System;
 using System.Text;
-using System.Web;
 using System.Text.RegularExpressions;
 using SenseNet.Configuration;
 
@@ -295,72 +294,24 @@ namespace SenseNet.ContentRepository.Storage
         }
 
         /* ========================================================================== Messages */
-        private static string EmptyNameMessage
-        {
-            get
-            {
-                var msg = HttpContext.GetGlobalResourceObject("Portal", "EmptyNameMessage");
-                return msg == null ? "Name cannot be empty." : msg.ToString();
-            }
-        }
-        private static string PathTooLongMessage
-        {
-            get
-            {
-                var msg = HttpContext.GetGlobalResourceObject("Portal", "PathTooLongMessage");
-                return msg == null ? "Path too long. Max length is {0}." : msg.ToString();
-            }
-        }
-        private static string InvalidPathMessage
-        {
-            get
-            {
-                var msg = HttpContext.GetGlobalResourceObject("Portal", "InvalidPathMessage");
-                return msg == null ? "Content path may only contain alphanumeric characters or '.', '(', ')', '[', ']', '-', '_', ' ', '/' !" : msg.ToString();
-            }
-        }
-        private static string InvalidNameMessage
-        {
-            get
-            {
-                var msg = HttpContext.GetGlobalResourceObject("Portal", "InvalidNameMessage");
-                return msg == null ? "Content name may only contain alphanumeric characters or '.', '(', ')', '[', '], '-', '_', ' ' !" : msg.ToString();
-            }
-        }
-        private static string NameStartsWithWhitespaceMessage
-        {
-            get
-            {
-                var msg = HttpContext.GetGlobalResourceObject("Portal", "NameStartsWithWhitespaceMessage");
-                return msg == null ? "Name cannot start with whitespace." : msg.ToString();
-            }
-        }
-        private static string NameEndsWithWhitespaceMessage
-        {
-            get
-            {
-                var msg = HttpContext.GetGlobalResourceObject("Portal", "NameEndsWithWhitespaceMessage");
-                return msg == null ? "Name cannot end with whitespace." : msg.ToString();
-            }
-        }
-        private static string PathFirstCharMessage
-        {
-            get
-            {
-                var msg = HttpContext.GetGlobalResourceObject("Portal", "PathFirstCharMessage");
-                return msg == null ? "Path must start with '/' character." : msg.ToString();
-            }
-        }
-        private static string PathEndsWithDotMessage
-        {
-            get
-            {
-                var msg = HttpContext.GetGlobalResourceObject("Portal", "PathEndsWithDotMessage");
-                return msg == null ? "Path cannot end with '.' character." : msg.ToString();
-            }
-        }
 
-
+        private static string EmptyNameMessage => SR.GetStringOrDefault(SR.Exceptions.General.Error_EmptyNameMessage,
+            "EmptyNameMessage", "Name cannot be empty.");
+        private static string PathTooLongMessage => SR.GetStringOrDefault(SR.Exceptions.General.Error_PathTooLong_MaxValue_1,
+            "PathTooLongMessage", "Path too long. Max length is {0}.");
+        private static string InvalidPathMessage => SR.GetStringOrDefault(SR.Exceptions.General.Error_InvalidPathMessage,
+            "InvalidPathMessage", "Content path may only contain alphanumeric characters or '.', '(', ')', '[', ']', '-', '_', ' ', '/' !");
+        private static string InvalidNameMessage => SR.GetStringOrDefault(SR.Exceptions.General.Error_InvalidNameMessage,
+            "InvalidNameMessage", "Content name may only contain alphanumeric characters or '.', '(', ')', '[', '], '-', '_', ' ' !");
+        private static string NameStartsWithWhitespaceMessage => SR.GetStringOrDefault(SR.Exceptions.General.Error_NameStartsWithWhitespaceMessage,
+            "NameStartsWithWhitespaceMessage", "Name cannot start with whitespace.");
+        private static string NameEndsWithWhitespaceMessage => SR.GetStringOrDefault(SR.Exceptions.General.Error_NameEndsWithWhitespaceMessage,
+            "NameEndsWithWhitespaceMessage", "Name cannot end with whitespace.");
+        private static string PathFirstCharMessage => SR.GetStringOrDefault(SR.Exceptions.General.Error_PathFirstCharMessage,
+            "PathFirstCharMessage", "Path must start with '/' character.");
+        private static string PathEndsWithDotMessage => SR.GetStringOrDefault(SR.Exceptions.General.Error_PathEndsWithDotMessage,
+            "PathEndsWithDotMessage", "Path cannot end with '.' character.");
+        
         /* ========================================================================== Helper methods */
         public static bool IsInvalidNameChar(char c)
         {
