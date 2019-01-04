@@ -361,8 +361,6 @@ namespace SenseNet.ContentRepository
         [ODataFunction]
         public static IEnumerable<string> MissingExplicitEntriesOfVisitorComparedToEveryone(Content root)
         {
-            var visitorId = User.Visitor.Id;
-            var everyoneId = Group.Everyone.Id;
             var result = new List<string>();
             foreach (var node in NodeEnumerator.GetNodes(root.Path))
             {
@@ -370,9 +368,9 @@ namespace SenseNet.ContentRepository
                 var hasVisitorEntry = false;
                 foreach (var entry in node.Security.GetExplicitEntries())
                 {
-                    if (entry.IdentityId == everyoneId)
+                    if (entry.IdentityId == Identifiers.EveryoneGroupId)
                         hasEveryoneEntry = true;
-                    if (entry.IdentityId == visitorId)
+                    if (entry.IdentityId == Identifiers.VisitorUserId)
                         hasVisitorEntry = true;
                 }
                 if (hasEveryoneEntry && !hasVisitorEntry)
