@@ -223,22 +223,9 @@ namespace SenseNet.ApplicationModel
 
         protected BinaryData CreateBinaryData(HttpPostedFile file, bool setStream = true)
         {
-            var result = new BinaryData();
-            var fileName = UseChunk ? GetFileName(file) : file.FileName;
+            var fileName = UseChunk ? GetFileName(file) : file?.FileName;
 
-            if (file.FileName.LastIndexOf("\\") > -1)
-                fileName = file.FileName.Substring(file.FileName.LastIndexOf("\\") + 1);
-
-            result.FileName = new BinaryFileName(fileName);
-
-            // set content type only if we were unable to recognise it
-            if (string.IsNullOrEmpty(result.ContentType))
-                result.ContentType = file.ContentType;
-
-            if (setStream)
-                result.SetStream(file.InputStream);
-
-            return result;
+            return UploadHelper.CreateBinaryData(fileName, setStream ? file?.InputStream : null, file?.ContentType);
         }
 
         // ======================================================================== Virtual methods
