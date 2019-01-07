@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Web;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Win32.SafeHandles;
+using Newtonsoft.Json;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Schema;
@@ -1241,9 +1242,10 @@ namespace SenseNet.Services.Tests
         [TestMethod]
         public void Wopi_Resp_CheckFileInfo()
         {
-            WopiTest((site) =>
+            WopiTestWithAdmin((site) =>
             {
-                var file = CreateTestFile(site, "File1.txt", "filecontent1", "test/plain");
+                var fileContent = "filecontent1";
+                var file = CreateTestFile(site, "File1.txt", fileContent, "test/plain");
 
                 using (var output = new StringWriter())
                 {
@@ -1257,7 +1259,13 @@ namespace SenseNet.Services.Tests
                     handler.ProcessRequest(pc.OwnerHttpContext);
 
                     output.Flush();
-                    var result = output.GetStringBuilder().ToString();
+                    var resultstring = output.GetStringBuilder().ToString();
+
+                    Assert.IsNotNull(resultstring);
+                    var result = CheckFileInfoResponse.Parse(resultstring);
+                    Assert.AreEqual("File1.txt", result.BaseFileName);
+                    Assert.AreEqual(".txt", result.FileExtension);
+                    Assert.AreEqual(fileContent.Length + 3, result.Size); // +UTF-8 BOM: 0xEF 0xBB 0xBF
                 }
             });
         }

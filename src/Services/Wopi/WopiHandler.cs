@@ -71,6 +71,7 @@ var xxx = xx.GetStringBuilder().ToString();
 
 
                 serializer.Serialize(webResponse.Output, wopiResponse);
+                webResponse.Flush();
             }
         }
 
