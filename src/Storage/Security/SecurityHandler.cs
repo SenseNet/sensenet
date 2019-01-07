@@ -758,7 +758,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             if (identities.First() == Identifiers.SystemUserId)
                 return PermittedLevel.All;
 
-            var aces = SecurityContext.GetEffectiveEntries(nodeId, identities);
+            var aces = GetEffectiveEntriesAsSystemUser(nodeId, identities);
 
             if (aces.Count == 0)
                 return PermittedLevel.None;
