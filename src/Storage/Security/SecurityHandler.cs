@@ -779,12 +779,11 @@ namespace SenseNet.ContentRepository.Storage.Security
         }
 
         /// <summary>
-        /// Return with the current content's explicit entries. Current user must have SeePermissions permission.
+        /// Returns the current content's explicit normal entries. Current user must have SeePermissions permission.
         /// </summary>
-        /// <param name="entryType">Security entry type. Default: all entries.</param>
-        public List<AceInfo> GetExplicitEntries(EntryType? entryType = null)
+        public List<AceInfo> GetExplicitEntries()
         {
-            return GetExplicitEntries(_node.Id, null, entryType);
+            return GetExplicitEntries(_node.Id, null, EntryType.Normal);
         }
         /// <summary>
         /// Return with the passed content's explicit entries. Current user must have SeePermissions permission.
@@ -809,12 +808,11 @@ namespace SenseNet.ContentRepository.Storage.Security
 	    }
 
         /// <summary>
-        /// Return with the current content's effective entries. Current user must have SeePermissions permission.
+        /// Returns the current content's effective normal entries. Current user must have SeePermissions permission.
         /// </summary>
-        /// <param name="entryType">Security entry type. Default: all entries.</param>
-        public List<AceInfo> GetEffectiveEntries(EntryType? entryType = null)
+        public List<AceInfo> GetEffectiveEntries()
         {
-            return GetEffectiveEntries(_node.Id, null, entryType);
+            return GetEffectiveEntries(_node.Id, null, EntryType.Normal);
         }
         /// <summary>
         /// Return with the passed content's effective entries. Current user must have SeePermissions permission.
