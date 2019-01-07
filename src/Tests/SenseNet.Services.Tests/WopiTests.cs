@@ -1238,6 +1238,32 @@ namespace SenseNet.Services.Tests
 
         /* ======================================================================================= */
 
+        [TestMethod]
+        public void Wopi_Resp_CheckFileInfo()
+        {
+            WopiTest((site) =>
+            {
+                var file = CreateTestFile(site, "File1.txt", "filecontent1", "test/plain");
+
+                using (var output = new StringWriter())
+                {
+                    var pc = CreatePortalContext("GET", $"/wopi/files/{file.Id}", DefaultAccessTokenParameter, output,
+                        new[]
+                        {
+                            new[] { "X-WOPI-SessionContext", "SessionContext-1"},
+                        });
+
+                    var handler = new WopiHandler();
+                    handler.ProcessRequest(pc.OwnerHttpContext);
+
+                    output.Flush();
+                    var result = output.GetStringBuilder().ToString();
+                }
+            });
+        }
+
+        /* ======================================================================================= */
+
         private static readonly string DefaultAccessToken = "__DefaultAccessToken__";
         private static readonly string DefaultAccessTokenParameter = "access_token=" + DefaultAccessToken;
 

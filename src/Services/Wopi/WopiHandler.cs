@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Web;
+using Newtonsoft.Json;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
@@ -25,16 +26,52 @@ namespace SenseNet.Services.Wopi
 
         /// <inheritdoc select="summary" />
         /// <remarks>Returns with false in this implementation.</remarks>
-        public bool IsReusable => false;
+        public bool IsReusable => true;
 
         /// <inheritdoc />
         /// <remarks>Processes the WOPI web request.</remarks>
         public void ProcessRequest(HttpContext context)
         {
+            // Get actors.
+            var webResponse = context.Response;
             var portalContext = (PortalContext)context.Items[PortalContext.CONTEXT_ITEM_KEY];
-            var response = GetResponse(portalContext);
+            var wopiResponse = GetResponse(portalContext);
 
-            throw new NotImplementedException(); //UNDONE: not implemented: ProcessRequest
+            // Set content type if it is known.
+            if (!string.IsNullOrEmpty(wopiResponse.ContentType))
+                webResponse.ContentType = wopiResponse.ContentType;
+
+            // Set response headers if any.
+            foreach (var item in wopiResponse.Headers)
+                webResponse.Headers.Add(item.Key, item.Value);
+
+            // Set HTTP Status code.
+            webResponse.StatusCode = (int)wopiResponse.StatusCode;
+
+            // Write binary content
+            if (wopiResponse is IWopiBinaryResponse wopiBinaryResponse)
+            {
+                HttpHeaderTools.SetContentDispositionHeader(wopiBinaryResponse.FileName);
+                var stream = wopiBinaryResponse.GetResponseStream();
+                context.Response.AppendHeader("Content-Length", stream.Length.ToString());
+                stream.CopyTo(context.Response.OutputStream);
+                return;
+            }
+
+            // Write JSON body
+            if (wopiResponse is IWopiObjectResponse)
+            {
+                var settings = new JsonSerializerSettings {Formatting = Formatting.Indented};
+                var serializer = JsonSerializer.Create(settings);
+
+var xx = new StringWriter(); //UNDONE: Delete this
+serializer.Serialize(xx, wopiResponse);
+xx.Flush();
+var xxx = xx.GetStringBuilder().ToString();
+
+
+                serializer.Serialize(webResponse.Output, wopiResponse);
+            }
         }
 
         internal WopiResponse GetResponse(PortalContext portalContext)

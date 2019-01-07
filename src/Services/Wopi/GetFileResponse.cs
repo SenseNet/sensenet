@@ -9,16 +9,16 @@ using File = SenseNet.ContentRepository.File;
 
 namespace SenseNet.Services.Wopi
 {
-    public class GetFileResponse : WopiResponse
+    public class GetFileResponse : WopiResponse, IWopiBinaryResponse
     {
         [JsonIgnore]
         internal File File { get; set; }
 
+        public string FileName => File.Name;
+
         public Stream GetResponseStream()
         {
-            if (File == null)
-                return null;
-            return File.Binary.GetStream();
+            return File?.Binary.GetStream();
         }
     }
 }
