@@ -39,7 +39,6 @@ namespace SenseNet.ContentRepository.Sharing
                     {
                         SnTrace.Security.Write($"SharingMembershipExtender: setting sharing cookie containing group id {extensionGroupId}.");
 
-                        //UNDONE: set cookie expiration by config?
                         context.Response.Cookies.Set(new HttpCookie(Constants.SharingTokenKey, currentValue)
                         {
                             Expires = DateTime.UtcNow.AddDays(1)
