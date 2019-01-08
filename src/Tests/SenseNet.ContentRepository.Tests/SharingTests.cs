@@ -499,7 +499,7 @@ namespace SenseNet.ContentRepository.Tests
                 try
                 {
                     Assert.AreEqual(0, content.Sharing.Items.Count());
-                    Assert.AreEqual(0, content.Sharing.GetExplicitEntries().Count);
+                    Assert.AreEqual(0, content.Sharing.GetExplicitSharingEntries().Count);
 
                     var xDoc = new XmlDocument();
                     xDoc.LoadXml(importData1);
@@ -531,7 +531,7 @@ namespace SenseNet.ContentRepository.Tests
                     Assert.AreEqual(0, sd3.Identity);
                     Assert.AreEqual(SharingMode.Authenticated, sd3.Mode);
 
-                    var permEntries = content.Sharing.GetExplicitEntries();
+                    var permEntries = content.Sharing.GetExplicitSharingEntries();
                     var userEntry = permEntries.Single(pe => pe.IdentityId == user.Id);
                     var everyoneEntry = permEntries.Single(pe => pe.IdentityId == Identifiers.EveryoneGroupId);
 
@@ -570,7 +570,7 @@ namespace SenseNet.ContentRepository.Tests
 </Sharing></Fields>";
 
                 Assert.AreEqual(0, content.Sharing.Items.Count());
-                Assert.AreEqual(0, content.Sharing.GetExplicitEntries().Count);
+                Assert.AreEqual(0, content.Sharing.GetExplicitSharingEntries().Count);
 
                 var xDoc = new XmlDocument();
                 xDoc.LoadXml(importData1);
@@ -588,7 +588,7 @@ namespace SenseNet.ContentRepository.Tests
                 // unknown identity in the import xml
                 Assert.AreEqual(0, sd1.Identity);
 
-                var permEntries = content.Sharing.GetExplicitEntries();
+                var permEntries = content.Sharing.GetExplicitSharingEntries();
 
                 Assert.AreEqual(0, permEntries.Count);
 
@@ -611,7 +611,7 @@ namespace SenseNet.ContentRepository.Tests
                 
                 Assert.AreEqual(user.Id, sd1.Identity);
 
-                permEntries = content.Sharing.GetExplicitEntries();
+                permEntries = content.Sharing.GetExplicitSharingEntries();
                 var userEntry = permEntries.Single(pe => pe.IdentityId == user.Id);
 
                 Assert.IsTrue(userEntry.GetPermissionValues()[4] == PermissionValue.Allowed);
@@ -843,7 +843,7 @@ namespace SenseNet.ContentRepository.Tests
                 Assert.AreEqual(user3.Id, sd3.Identity);
 
                 // check for new permissions too
-                var aceList = root.Sharing.GetExplicitEntries();
+                var aceList = root.Sharing.GetExplicitSharingEntries();
                 Assert.IsNull(aceList.SingleOrDefault(ace => ace.IdentityId == user1.Id), "The user got unnecessary permissions.");
                 Assert.IsNull(aceList.SingleOrDefault(ace => ace.IdentityId == user2.Id), "The user got unnecessary permissions.");
                 Assert.IsNotNull(aceList.SingleOrDefault(ace => ace.IdentityId == user3.Id), "The user did not get the necessary permission.");
@@ -1074,8 +1074,8 @@ namespace SenseNet.ContentRepository.Tests
                 var g1 = groups[0]; // open
                 var g2 = groups[1]; // edit
 
-                var acei1 = content.Sharing.GetExplicitEntries().Single(acei => acei.IdentityId == g1.Id);
-                var acei2 = content.Sharing.GetExplicitEntries().Single(acei => acei.IdentityId == g2.Id);
+                var acei1 = content.Sharing.GetExplicitSharingEntries().Single(acei => acei.IdentityId == g1.Id);
+                var acei2 = content.Sharing.GetExplicitSharingEntries().Single(acei => acei.IdentityId == g2.Id);
 
                 // group1: Open
                 Assert.AreEqual("Open", (string)g1["SharingLevelValue"]);
@@ -1306,13 +1306,13 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ACTION
                 gc.Sharing.Share("abc1@example.com", SharingLevel.Open, SharingMode.Public);
-                var entries1 = gc.Sharing.GetExplicitEntries();
+                var entries1 = gc.Sharing.GetExplicitSharingEntries();
 
                 gc.Sharing.Share("abc2@example.com", SharingLevel.Open, SharingMode.Authenticated);
-                var entries2 = gc.Sharing.GetExplicitEntries().OrderBy(e => e.IdentityId).ToList();
+                var entries2 = gc.Sharing.GetExplicitSharingEntries().OrderBy(e => e.IdentityId).ToList();
 
                 gc.Sharing.Share(user1.Email, SharingLevel.Edit, SharingMode.Private);
-                var entries3 = gc.Sharing.GetExplicitEntries().OrderBy(e => e.IdentityId).ToList();
+                var entries3 = gc.Sharing.GetExplicitSharingEntries().OrderBy(e => e.IdentityId).ToList();
 
                 // ASSERT
                 Assert.AreEqual(1, entries1.Count);
@@ -1350,9 +1350,9 @@ namespace SenseNet.ContentRepository.Tests
 
                 // ACTION
                 gc.Sharing.Share(user1.Email, SharingLevel.Open, SharingMode.Private);
-                var entries1 = gc.Sharing.GetExplicitEntries().OrderBy(e => e.IdentityId).ToList();
+                var entries1 = gc.Sharing.GetExplicitSharingEntries().OrderBy(e => e.IdentityId).ToList();
                 gc.Sharing.Share(user1.Email, SharingLevel.Edit, SharingMode.Private);
-                var entries2 = gc.Sharing.GetExplicitEntries().OrderBy(e => e.IdentityId).ToList();
+                var entries2 = gc.Sharing.GetExplicitSharingEntries().OrderBy(e => e.IdentityId).ToList();
 
                 // ASSERT
                 Assert.AreEqual(1, entries1.Count);
@@ -1393,7 +1393,7 @@ namespace SenseNet.ContentRepository.Tests
                     sharing.Take(4).Select(x => x.Token),
                     gc.Sharing.Items.OrderBy(x => x.Token).Select(x => x.Token));
 
-                var entries = gc.Sharing.GetExplicitEntries().OrderBy(e => e.IdentityId).ToArray();
+                var entries = gc.Sharing.GetExplicitSharingEntries().OrderBy(e => e.IdentityId).ToArray();
                 Assert.AreEqual(2, entries.Length);
                 // everyone group
                 Assert.AreEqual(Identifiers.EveryoneGroupId, entries[0].IdentityId);
@@ -1410,7 +1410,7 @@ namespace SenseNet.ContentRepository.Tests
                     sharing.Take(3).Select(x => x.Token),
                     gc.Sharing.Items.OrderBy(x => x.Token).Select(x => x.Token));
 
-                entries = gc.Sharing.GetExplicitEntries().OrderBy(e => e.IdentityId).ToArray();
+                entries = gc.Sharing.GetExplicitSharingEntries().OrderBy(e => e.IdentityId).ToArray();
                 Assert.AreEqual(2, entries.Length);
                 // everyone group
                 Assert.AreEqual(Identifiers.EveryoneGroupId, entries[0].IdentityId);
@@ -1427,7 +1427,7 @@ namespace SenseNet.ContentRepository.Tests
                     sharing.Take(2).Select(x => x.Token),
                     gc.Sharing.Items.OrderBy(x => x.Token).Select(x => x.Token));
 
-                entries = gc.Sharing.GetExplicitEntries().OrderBy(e => e.IdentityId).ToArray();
+                entries = gc.Sharing.GetExplicitSharingEntries().OrderBy(e => e.IdentityId).ToArray();
                 Assert.AreEqual(2, entries.Length);
                 // everyone group
                 Assert.AreEqual(Identifiers.EveryoneGroupId, entries[0].IdentityId);
@@ -1444,7 +1444,7 @@ namespace SenseNet.ContentRepository.Tests
                     sharing.Take(1).Select(x => x.Token),
                     gc.Sharing.Items.OrderBy(x => x.Token).Select(x => x.Token));
 
-                entries = gc.Sharing.GetExplicitEntries().ToArray();
+                entries = gc.Sharing.GetExplicitSharingEntries().ToArray();
                 Assert.AreEqual(1, entries.Length);
                 // user
                 Assert.AreEqual(user1.Id, entries[0].IdentityId);
@@ -1473,8 +1473,8 @@ namespace SenseNet.ContentRepository.Tests
                 };
 
                 // ACTION
-                var securityEntries = gc.Security.GetExplicitEntries().OrderBy(e=>e.IdentityId).Select(e => e.ToString());
-                var sharingEntries = gc.Sharing.GetExplicitEntries().OrderBy(e => e.IdentityId).Select(e => e.ToString());
+                var securityEntries = gc.Security.GetExplicitEntries(EntryType.Normal).OrderBy(e=>e.IdentityId).Select(e => e.ToString());
+                var sharingEntries = gc.Sharing.GetExplicitSharingEntries().OrderBy(e => e.IdentityId).Select(e => e.ToString());
 
                 // ASSERT
                 AssertSequenceEqual(new[]
@@ -1511,8 +1511,8 @@ namespace SenseNet.ContentRepository.Tests
                 };
 
                 // ACTION
-                var securityEntries = gc.Security.GetEffectiveEntries().OrderBy(e => e.IdentityId).Select(e=>e.ToString());
-                var sharingEntries = gc.Sharing.GetEffectiveEntries().OrderBy(e => e.IdentityId).Select(e => e.ToString());
+                var securityEntries = gc.Security.GetEffectiveEntries(EntryType.Normal).OrderBy(e => e.IdentityId).Select(e=>e.ToString());
+                var sharingEntries = gc.Sharing.GetEffectiveSharingEntries().OrderBy(e => e.IdentityId).Select(e => e.ToString());
 
                 // ASSERT
                 AssertSequenceEqual(new[]
@@ -1704,7 +1704,7 @@ namespace SenseNet.ContentRepository.Tests
 
             try
             {
-                e2 = content.Sharing.GetExplicitEntries().Any(ace => ace.IdentityId == group.Id);
+                e2 = content.Sharing.GetExplicitSharingEntries().Any(ace => ace.IdentityId == group.Id);
             }
             catch (EntityNotFoundException)
             {

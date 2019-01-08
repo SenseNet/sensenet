@@ -227,7 +227,7 @@ namespace SenseNet.ContentRepository.Security
             var parent = singleContent ? content.ContentHandler.Parent : content.ContentHandler;
             var effectiveParentEntries = parent == null || !parent.Security.HasPermission(PermissionType.SeePermissions) 
                 ? new AceInfo[0]
-                : parent.Security.GetEffectiveEntries().Where(e => identities.Contains(e.IdentityId) && !e.LocalOnly).ToArray();
+                : parent.Security.GetEffectiveEntries(EntryType.Normal).Where(e => identities.Contains(e.IdentityId) && !e.LocalOnly).ToArray();
 
             var permissionsTypes = PermissionType.BuiltInPermissionTypes.Select(p => new PermissionInfo { Index = p.Index, Name = p.Name }).ToArray();
 
@@ -279,7 +279,7 @@ namespace SenseNet.ContentRepository.Security
             // If the current user (who browses the permission overview page) has no SeePermission
             // permission for the content, simply use an empty array.
             var explicitPermissions = canSeePermissions
-                ? content.Security.GetExplicitEntries().Where(e => identities.Contains(e.IdentityId)).ToArray()
+                ? content.Security.GetExplicitEntries(EntryType.Normal).Where(e => identities.Contains(e.IdentityId)).ToArray()
                 : new AceInfo[0];
             var explicitLocalOnlyPermissions = explicitPermissions.Where(ace => ace.LocalOnly).ToArray();
 
