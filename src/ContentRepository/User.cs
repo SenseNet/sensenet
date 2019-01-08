@@ -53,32 +53,10 @@ namespace SenseNet.ContentRepository
             }
         }
 
-        private static User _visitor;
-        private static object _visitorLock = new object();
         /// <summary>
         /// Gets the Visitor user.
         /// </summary>
-        public static User Visitor
-        {
-            get
-            {
-                if (_visitor == null)
-                {
-                    lock (_visitorLock)
-                    {
-                        if (_visitor == null)
-                        {
-                            using (new SystemAccount())
-                            {
-                                var visitor = Node.LoadNode(Identifiers.VisitorUserId);
-                                _visitor = visitor as User;
-                            }
-                        }
-                    }
-                }
-                return _visitor;
-            }
-        }
+        public static User Visitor => SystemAccount.Execute(() => Load<User>(Identifiers.VisitorUserId));
 
         private static User _somebody;
         private static object _somebodyLock = new object();
@@ -582,7 +560,6 @@ namespace SenseNet.ContentRepository
         [Obsolete("Do not use this method anymore.")]
         public static void Reset()
         {
-            _visitor = null;
             _somebody = null;
         }
 
@@ -830,48 +807,43 @@ namespace SenseNet.ContentRepository
             set { _password = value; }
         }
 
-        internal const string MembershipExtensionKey = "ExtendedMemberships";
-        internal const string MembershipExtensionCallingKey = "MembershipExtensionCall";
+        private bool _extensionCalled;
+        private MembershipExtension _membershipExtension;
+
         /// <summary>
-        /// Gets or sets the <see cref="SenseNet.ContentRepository.Storage.Security.MembershipExtension"/> instance
+        /// Gets or sets the <see cref="Storage.Security.MembershipExtension"/> instance
         /// that can customize the membership of this user.
         /// </summary>
         public MembershipExtension MembershipExtension
         {
             get
             {
-                var extension = (MembershipExtension)base.GetCachedData(MembershipExtensionKey);
-                if (extension == null || extension == MembershipExtension.Placeholder)
+                if (_membershipExtension == null || _membershipExtension == MembershipExtension.Placeholder)
                 {
-                    var called = GetCachedData(MembershipExtensionCallingKey) != null;
-                    if (called)
+                    if (_extensionCalled)
                     {
                         SnTrace.Security.Write("MembershipExtenderRecursionGuard: recursion skipped. Path: {0}", Path);
                         return MembershipExtension.Placeholder;
                     }
 
-                    using (var op = SnTrace.Security.StartOperation(
-                        "MembershipExtenderRecursionGuard activation. Path: {0}", Path))
+                    using (var op = SnTrace.Security.StartOperation("MembershipExtenderRecursionGuard activation. Path: {0}", Path))
                     {
-                        SetCachedData(MembershipExtensionCallingKey, true);
+                        _extensionCalled = true;
 
+                        // this method calls the setter of this property, filling the member variable
                         MembershipExtenderBase.Extend(this);
-                        extension = (MembershipExtension)base.GetCachedData(MembershipExtensionKey);
 
-                        SetCachedData(MembershipExtensionCallingKey, null);
+                        _extensionCalled = false;
+
                         op.Successful = true;
                     }
                 }
-                return extension;
+
+                return _membershipExtension;
             }
-            set
-            {
-                base.SetCachedData(MembershipExtensionKey, value);
-            }
+            set => _membershipExtension = value;
         }
-
-        // =================================================================================== 
-
+        
         /// <summary>
         /// This method is obsolete. Use GetGroups() instead.
         /// </summary>
@@ -903,14 +875,8 @@ namespace SenseNet.ContentRepository
         {
             get { return "Portal"; }
         }
-        bool System.Security.Principal.IIdentity.IsAuthenticated
-        {
-            get
-            {
-                if (this.Id == Visitor.Id || this.Id == 0) return false;
-                return true;
-            }
-        }
+        bool System.Security.Principal.IIdentity.IsAuthenticated => Id != Identifiers.VisitorUserId && Id != 0;
+
         string System.Security.Principal.IIdentity.Name
         {
             get
