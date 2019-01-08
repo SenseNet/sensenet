@@ -1256,9 +1256,8 @@ namespace SenseNet.Services.Tests
                         });
 
                     var handler = new WopiHandler();
-                    handler.ProcessRequest(pc.OwnerHttpContext);
+                    handler.ProcessRequest(pc.OwnerHttpContext, true);
 
-                    output.Flush();
                     var resultstring = output.GetStringBuilder().ToString();
 
                     Assert.IsNotNull(resultstring);

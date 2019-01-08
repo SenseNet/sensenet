@@ -32,6 +32,10 @@ namespace SenseNet.Services.Wopi
         /// <remarks>Processes the WOPI web request.</remarks>
         public void ProcessRequest(HttpContext context)
         {
+            ProcessRequest(context, false);
+        }
+        internal void ProcessRequest(HttpContext context, bool calledFromTest)
+        {
             // Get actors.
             var webResponse = context.Response;
             var portalContext = (PortalContext)context.Items[PortalContext.CONTEXT_ITEM_KEY];
@@ -41,9 +45,10 @@ namespace SenseNet.Services.Wopi
             if (!string.IsNullOrEmpty(wopiResponse.ContentType))
                 webResponse.ContentType = wopiResponse.ContentType;
 
-            // Set response headers if any.
-            foreach (var item in wopiResponse.Headers)
-                webResponse.Headers.Add(item.Key, item.Value);
+            // Set response headers if any (works well only in IIS evironment).
+            if(!calledFromTest)
+                foreach (var item in wopiResponse.Headers)
+                    webResponse.Headers.Add(item.Key, item.Value);
 
             // Set HTTP Status code.
             webResponse.StatusCode = (int)wopiResponse.StatusCode;
@@ -51,9 +56,12 @@ namespace SenseNet.Services.Wopi
             // Write binary content
             if (wopiResponse is IWopiBinaryResponse wopiBinaryResponse)
             {
-                HttpHeaderTools.SetContentDispositionHeader(wopiBinaryResponse.FileName);
                 var stream = wopiBinaryResponse.GetResponseStream();
-                context.Response.AppendHeader("Content-Length", stream.Length.ToString());
+                if (!calledFromTest)
+                {
+                    HttpHeaderTools.SetContentDispositionHeader(wopiBinaryResponse.FileName);
+                    context.Response.AppendHeader("Content-Length", stream.Length.ToString());
+                }
                 stream.CopyTo(context.Response.OutputStream);
                 return;
             }
