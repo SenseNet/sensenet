@@ -779,7 +779,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         }
 
         /// <summary>
-        /// Returns the current content's explicit normal entries. Current user must have SeePermissions permission.
+        /// Returns the current content's explicit entries. Current user must have SeePermissions permission.
         /// </summary>
         /// <param name="entryType">Security entry type. Default: all entries.</param>
         public List<AceInfo> GetExplicitEntries(EntryType? entryType = null)
@@ -787,7 +787,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             return GetExplicitEntries(_node.Id, null, entryType);
         }
         /// <summary>
-        /// Return with the passed content's explicit entries. Current user must have SeePermissions permission.
+        /// Return the passed content's explicit entries. Current user must have SeePermissions permission.
         /// </summary>
         /// <param name="contentId">Id of the content.</param>
         /// <param name="relatedIdentities">If not passed, the current user's related identities is focused.</param>
@@ -798,7 +798,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             return GetExplicitEntriesAsSystemUser(contentId, relatedIdentities, entryType);
         }
 	    /// <summary>
-	    /// Return with the passed content's explicit entries. There is permission check so you must call this method from a safe block.
+	    /// Return the passed content's explicit entries. There is permission check so you must call this method from a safe block.
 	    /// </summary>
 	    /// <param name="contentId">Id of the content.</param>
 	    /// <param name="relatedIdentities">If not passed, the current user's related identities is focused.</param>
@@ -809,7 +809,7 @@ namespace SenseNet.ContentRepository.Storage.Security
 	    }
 
         /// <summary>
-        /// Returns the current content's effective normal entries. Current user must have SeePermissions permission.
+        /// Returns the current content's effective entries. Current user must have SeePermissions permission.
         /// </summary>
         /// <param name="entryType">Security entry type. Default: all entries.</param>
         public List<AceInfo> GetEffectiveEntries(EntryType? entryType = null)
@@ -817,7 +817,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             return GetEffectiveEntries(_node.Id, null, entryType);
         }
         /// <summary>
-        /// Return with the passed content's effective entries. Current user must have SeePermissions permission.
+        /// Return the passed content's effective entries. Current user must have SeePermissions permission.
         /// </summary>
         /// <param name="contentId">Id of the content.</param>
         /// <param name="relatedIdentities">If not passed, the current user's related identities is focused.</param>
@@ -828,7 +828,7 @@ namespace SenseNet.ContentRepository.Storage.Security
             return SecurityContext.GetEffectiveEntries(contentId, relatedIdentities, entryType);
         }
         /// <summary>
-        /// Return with the passed content's effective entries. There is permission check so you must call this method from a safe block.
+        /// Return the passed content's effective entries. There is permission check so you must call this method from a safe block.
         /// </summary>
         /// <param name="contentId">Id of the content.</param>
         /// <param name="relatedIdentities">If not passed, the current user's related identities is focused.</param>
