@@ -1,6 +1,6 @@
 ﻿namespace SenseNet.Services.Wopi
 {
-    public interface IWopiObjectResponse
+    internal interface IWopiObjectResponse
     {
         // No members, only a marker
     }

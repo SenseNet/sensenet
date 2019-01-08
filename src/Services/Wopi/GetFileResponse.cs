@@ -9,7 +9,7 @@ using File = SenseNet.ContentRepository.File;
 
 namespace SenseNet.Services.Wopi
 {
-    public class GetFileResponse : WopiResponse, IWopiBinaryResponse
+    internal class GetFileResponse : WopiResponse, IWopiBinaryResponse
     {
         [JsonIgnore]
         internal File File { get; set; }

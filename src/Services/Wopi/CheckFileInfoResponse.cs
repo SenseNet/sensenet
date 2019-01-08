@@ -5,7 +5,7 @@ namespace SenseNet.Services.Wopi
     // See https://wopi.readthedocs.io/projects/wopirest/en/latest/files/CheckFileInfo.html
 
     [JsonObject(MemberSerialization.OptOut)]
-    public class CheckFileInfoResponse : WopiResponse, IWopiObjectResponse
+    internal class CheckFileInfoResponse : WopiResponse, IWopiObjectResponse
     {
         /* Base properties */
 

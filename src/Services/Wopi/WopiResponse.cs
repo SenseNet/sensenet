@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 namespace SenseNet.Services.Wopi
 {
     [JsonObject(MemberSerialization.OptOut)]
-    public class WopiResponse //UNDONE: internal.
+    internal class WopiResponse
     {
         [JsonIgnore]
         public HttpStatusCode StatusCode { get; internal set; }

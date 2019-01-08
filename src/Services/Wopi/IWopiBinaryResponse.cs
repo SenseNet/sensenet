@@ -2,7 +2,7 @@
 
 namespace SenseNet.Services.Wopi
 {
-    public interface IWopiBinaryResponse
+    internal interface IWopiBinaryResponse
     {
         string FileName { get; }
         Stream GetResponseStream();
