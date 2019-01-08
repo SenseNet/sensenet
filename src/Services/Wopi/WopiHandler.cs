@@ -130,64 +130,110 @@ var xxx = xx.GetStringBuilder().ToString();
         {
             if (!int.TryParse(wopiReq.FileId, out var contentId))
                 return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
-            if (!(Node.LoadNode(contentId) is File file))
-                return new WopiResponse { StatusCode = HttpStatusCode.NotFound };
 
             var user = User.Current;
-            var userCanWrite = file.Security.HasPermission(PermissionType.Save);
 
-            return new CheckFileInfoResponse
+            using (new SystemAccount())
             {
-                StatusCode = HttpStatusCode.OK,
-                ContentType = "application/json",
-                
-                // Base properties
-                BaseFileName = file.Name,
-                Size = file.Binary.Size,
-                UserId = user.Name,
-                Version = null, //UNDONE:!! set real property value
+                if (!(Node.LoadNode(contentId) is File file))
+                    return new WopiResponse {StatusCode = HttpStatusCode.NotFound};
 
-                // User metadata properties
-                IsAnonymousUser = !user.IsAuthenticated,
-                IsEduUser = false, //UNDONE:!! set real property value
-                LicenseCheckForEditIsEnabled = false, //UNDONE:!! set real property value
-                UserFriendlyName = user.FullName,
-                UserInfo = null, //UNDONE:!! set real property value
+                var userPermissions = GetUserPermissions(file, user);
+                var isBusinessUser = user.IsAuthenticated; //UNDONE:?? isBusinessUser = user.IsAuthenticated ??
 
-                // User permissions properties
-                ReadOnly = !userCanWrite,
-                RestrictedWebViewOnly = !file.Security.HasPermission(PermissionType.OpenMinor),
-                UserCanAttend = false, //UNDONE:!! set real property value
-                UserCanNotWriteRelative = !file.Parent?.Security.HasPermission(PermissionType.AddNew) ?? false,
-                UserCanPresent = false, //UNDONE:!! set real property value
-                UserCanRename = false, //UNDONE:!! set real property value
-                UserCanWrite = userCanWrite,
+                return new CheckFileInfoResponse
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    ContentType = "application/json",
 
-                // File URL properties
-                CloseUrl = null, //UNDONE:!! set real property value
-                DownloadUrl = null, //UNDONE:!! set real property value
-                FileSharingUrl = null, //UNDONE:!! set real property value
-                FileUrl = null, //UNDONE:!! set real property value
-                FileVersionUrl = null, //UNDONE:!! set real property value
-                HostEditUrl = null, //UNDONE:!! set real property value
-                HostEmbeddedViewUrl = null, //UNDONE:!! set real property value
-                HostViewUrl = null, //UNDONE:!! set real property value
-                SignoutUrl = null, //UNDONE:!! set real property value
+                    // Base properties
+                    BaseFileName = file.Name,
+                    Size = file.Binary.Size,
+                    UserId = user.Name,
+                    Version = null, //UNDONE:!! set real property value
 
-                // Breadcrumb properties
-                BreadcrumbBrandName = null, //UNDONE:!! set real property value
-                BreadcrumbBrandUrl = null, //UNDONE:!! set real property value
-                BreadcrumbDocName = null, //UNDONE:!! set real property value
-                BreadcrumbFolderName = null, //UNDONE:!! set real property value
-                BreadcrumbFolderUrl = null, //UNDONE:!! set real property value
+                    // User metadata properties
+                    IsAnonymousUser = !user.IsAuthenticated,
+                    IsEduUser = false,
+                    LicenseCheckForEditIsEnabled = isBusinessUser,
+                    UserFriendlyName = user.FullName,
+                    UserInfo = null,
 
-                // Other miscellaneous properties
-                FileExtension = Path.GetExtension(file.Name),
-                LastModifiedTime = file.ModificationDate.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ"),
-                SHA256 = null, //UNDONE:!! set real property value
-                UniqueContentId = null, //UNDONE:!! set real property value
+                    // User permissions properties
+                    ReadOnly = userPermissions.ReadOnly,
+                    RestrictedWebViewOnly = userPermissions.RestrictedViewOnly,
+                    UserCanAttend = userPermissions.AttendBroadcast,
+                    UserCanNotWriteRelative = !userPermissions.Create,
+                    UserCanPresent = userPermissions.PresentBroadcast,
+                    UserCanRename = userPermissions.Rename,
+                    UserCanWrite = userPermissions.Write,
+
+                    // File URL properties
+                    CloseUrl = null, //UNDONE:!! set real property value
+                    DownloadUrl = null, //UNDONE:!! set real property value
+                    FileSharingUrl = null, //UNDONE:!! set real property value
+                    FileUrl = null, //UNDONE:!! set real property value
+                    FileVersionUrl = null, //UNDONE:!! set real property value
+                    HostEditUrl = null, //UNDONE:!! set real property value
+                    HostEmbeddedViewUrl = null, //UNDONE:!! set real property value
+                    HostViewUrl = null, //UNDONE:!! set real property value
+                    SignoutUrl = null, //UNDONE:!! set real property value
+
+                    // Breadcrumb properties
+                    BreadcrumbBrandName = null, //UNDONE:!! set real property value
+                    BreadcrumbBrandUrl = null, //UNDONE:!! set real property value
+                    BreadcrumbDocName = null, //UNDONE:!! set real property value
+                    BreadcrumbFolderName = null, //UNDONE:!! set real property value
+                    BreadcrumbFolderUrl = null, //UNDONE:!! set real property value
+
+                    // Other miscellaneous properties
+                    FileExtension = Path.GetExtension(file.Name),
+                    LastModifiedTime = file.ModificationDate.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ"),
+                    SHA256 = null, //UNDONE:!! set real property value
+                    UniqueContentId = null, //UNDONE:!! set real property value
+                };
+            }
+        }
+
+        private class UserPermissions
+        {
+            public bool Write { get; set; }
+            public bool RestrictedViewOnly { get; set; }
+
+            public bool ReadOnly => !Write;
+            public bool Rename => Write;
+            public bool Create { get; set; }
+            public bool AttendBroadcast => !RestrictedViewOnly;
+            public bool PresentBroadcast => !RestrictedViewOnly;
+        }
+        private UserPermissions GetUserPermissions(File file, IUser user)
+        {
+            var entries = file.Security.GetEffectiveEntries();
+
+            var userId = user.Id;
+            var allowBits = 0UL;
+            var denyBits = 0UL;
+            foreach (var entry in entries)
+            {
+                if (userId == entry.IdentityId)
+                {
+                    allowBits |= entry.AllowBits;
+                    denyBits |= entry.DenyBits;
+                }
+            }
+            allowBits = allowBits & ~denyBits;
+
+            return new UserPermissions
+            {
+                Write = (allowBits & PermissionType.Save.Mask) > 0,
+                RestrictedViewOnly = 0 == (allowBits & PermissionType.Open.Mask) &&
+                                     0 != (allowBits & (PermissionType.Preview.Mask +
+                                                        PermissionType.PreviewWithoutWatermark.Mask +
+                                                        PermissionType.PreviewWithoutRedaction.Mask)),
+                Create = !file.Parent?.Security.HasPermission(user, PermissionType.AddNew) ?? false,
             };
         }
+
         private WopiResponse ProcessPutRelativeFileRequest(PutRelativeFileRequest wopiReq, PortalContext portalContext)
         {
             if (!int.TryParse(wopiReq.FileId, out var contentId))
