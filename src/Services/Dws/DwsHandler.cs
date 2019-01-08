@@ -17,6 +17,7 @@ using SenseNet.Search;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Workspaces;
 using SenseNet.Configuration;
+using SenseNet.Security;
 
 namespace SenseNet.Portal.Dws
 {
@@ -697,7 +698,7 @@ namespace SenseNet.Portal.Dws
             {
                 try
                 {
-                    foreach (var member in this.RequestedNode.Security.GetEffectiveEntries().Select(entry => entry.IdentityId).Distinct()
+                    foreach (var member in this.RequestedNode.Security.GetEffectiveEntries(EntryType.Normal).Select(entry => entry.IdentityId).Distinct()
                             .Select(Node.LoadNode).Where(node => node != null))
                     {
                         var user = member as User;

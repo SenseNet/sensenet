@@ -781,9 +781,10 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Returns the current content's explicit normal entries. Current user must have SeePermissions permission.
         /// </summary>
-        public List<AceInfo> GetExplicitEntries()
+        /// <param name="entryType">Security entry type. Default: all entries.</param>
+        public List<AceInfo> GetExplicitEntries(EntryType? entryType = null)
         {
-            return GetExplicitEntries(_node.Id, null, EntryType.Normal);
+            return GetExplicitEntries(_node.Id, null, entryType);
         }
         /// <summary>
         /// Return with the passed content's explicit entries. Current user must have SeePermissions permission.
@@ -810,9 +811,10 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Returns the current content's effective normal entries. Current user must have SeePermissions permission.
         /// </summary>
-        public List<AceInfo> GetEffectiveEntries()
+        /// <param name="entryType">Security entry type. Default: all entries.</param>
+        public List<AceInfo> GetEffectiveEntries(EntryType? entryType = null)
         {
-            return GetEffectiveEntries(_node.Id, null, EntryType.Normal);
+            return GetEffectiveEntries(_node.Id, null, entryType);
         }
         /// <summary>
         /// Return with the passed content's effective entries. Current user must have SeePermissions permission.
@@ -1822,7 +1824,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         {
             if (!_node.IsInherited)
                 writer.WriteElementString("Break", null);
-            var entries = _node.Security.GetExplicitEntries();
+            var entries = _node.Security.GetExplicitEntries(EntryType.Normal);
             foreach (var entry in entries)
                 entry.Export(writer);
         }

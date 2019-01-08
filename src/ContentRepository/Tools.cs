@@ -368,7 +368,7 @@ namespace SenseNet.ContentRepository
             {
                 var hasEveryoneEntry = false;
                 var hasVisitorEntry = false;
-                foreach (var entry in node.Security.GetExplicitEntries())
+                foreach (var entry in node.Security.GetExplicitEntries(EntryType.Normal))
                 {
                     if (entry.IdentityId == everyoneId)
                         hasEveryoneEntry = true;
