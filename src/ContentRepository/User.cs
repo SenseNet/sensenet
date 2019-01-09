@@ -807,8 +807,8 @@ namespace SenseNet.ContentRepository
             set { _password = value; }
         }
 
-        private bool _extensionCalled;
         private MembershipExtension _membershipExtension;
+        internal const string MembershipExtensionCallingKey = "MembershipExtensionCall";
 
         /// <summary>
         /// Gets or sets the <see cref="Storage.Security.MembershipExtension"/> instance
@@ -820,7 +820,8 @@ namespace SenseNet.ContentRepository
             {
                 if (_membershipExtension == null || _membershipExtension == MembershipExtension.Placeholder)
                 {
-                    if (_extensionCalled)
+                    var called = GetCachedData(MembershipExtensionCallingKey) != null;
+                    if (called)
                     {
                         SnTrace.Security.Write("MembershipExtenderRecursionGuard: recursion skipped. Path: {0}", Path);
                         return MembershipExtension.Placeholder;
@@ -828,13 +829,12 @@ namespace SenseNet.ContentRepository
 
                     using (var op = SnTrace.Security.StartOperation("MembershipExtenderRecursionGuard activation. Path: {0}", Path))
                     {
-                        _extensionCalled = true;
+                        SetCachedData(MembershipExtensionCallingKey, true);
 
                         // this method calls the setter of this property, filling the member variable
                         MembershipExtenderBase.Extend(this);
 
-                        _extensionCalled = false;
-
+                        SetCachedData(MembershipExtensionCallingKey, null);
                         op.Successful = true;
                     }
                 }
