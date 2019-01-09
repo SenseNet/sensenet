@@ -428,5 +428,66 @@ namespace SenseNet.ContentRepository
 
             imageStream.Close();
         }
+
+        public Stream GetImageStream(string propertyName, IDictionary<string, object> parameters, out string contentType)
+        {
+            Stream imageStream;
+
+            var widthParam = parameters?["width"];
+            var heightParam = parameters?["height"];
+
+            var binaryData = !string.IsNullOrEmpty(propertyName) ? GetBinary(propertyName) : Binary;
+
+            contentType = binaryData?.ContentType ?? string.Empty;
+
+            if (DocumentPreviewProvider.Current != null && DocumentPreviewProvider.Current.IsPreviewOrThumbnailImage(NodeHead.Get(Id)))
+            {
+                // get preview image with watermark or redaction if necessary
+                imageStream = DocumentPreviewProvider.Current.GetRestrictedImage(this,
+                    new PreviewImageOptions {BinaryFieldName = propertyName});
+            }
+            else
+            {
+                imageStream = binaryData?.GetStream();
+            }
+
+            if (imageStream == null)
+                return new MemoryStream();
+
+            imageStream.Position = 0;
+
+            int ConvertImageParameter(object param)
+            {
+                if (param != null)
+                {
+                    // we recognize int and string values as well
+                    switch (param)
+                    {
+                        case int i:
+                            return i;
+                        case string s when int.TryParse(s, out var pint):
+                            return pint;
+                    }
+                }
+
+                return 200;
+            }
+
+            // no resize parameters: return the original stream
+            if (widthParam == null || heightParam == null)
+                return imageStream;
+
+            var width = ConvertImageParameter(widthParam);
+            var height = ConvertImageParameter(heightParam);
+
+            // compute a new, resized stream on-the-fly
+            var resizedStream = ImageResizer.CreateResizedImageFile(imageStream, width, height, 80, getImageFormat(contentType));
+                
+            // in case the method created a new stream, we have to close the original to prevent memory leak
+            if (resizedStream != imageStream)
+                imageStream.Close();
+
+            return resizedStream;
+        }
     }
 }
