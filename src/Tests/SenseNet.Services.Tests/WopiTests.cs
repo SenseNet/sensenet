@@ -1133,9 +1133,6 @@ namespace SenseNet.Services.Tests
                     file.ModificationDate.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ"));
                 Assert.IsNull(response.SHA256);
                 Assert.AreEqual(response.Version, response.UniqueContentId);
-
-                //UNDONE:!! Check all properties
-
             });
         }
 

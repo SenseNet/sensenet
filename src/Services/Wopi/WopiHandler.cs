@@ -72,13 +72,6 @@ namespace SenseNet.Services.Wopi
             {
                 var settings = new JsonSerializerSettings {Formatting = Formatting.Indented};
                 var serializer = JsonSerializer.Create(settings);
-
-var xx = new StringWriter(); //UNDONE: Delete this
-serializer.Serialize(xx, wopiResponse);
-xx.Flush();
-var xxx = xx.GetStringBuilder().ToString();
-
-
                 serializer.Serialize(webResponse.Output, wopiResponse);
                 webResponse.Flush();
             }
