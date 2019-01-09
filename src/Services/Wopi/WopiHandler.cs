@@ -139,7 +139,6 @@ var xxx = xx.GetStringBuilder().ToString();
                     return new WopiResponse {StatusCode = HttpStatusCode.NotFound};
 
                 var userPermissions = GetUserPermissions(file, user);
-                var isBusinessUser = user.IsAuthenticated; //UNDONE:?? isBusinessUser = user.IsAuthenticated ??
 
                 return new CheckFileInfoResponse
                 {
@@ -155,7 +154,7 @@ var xxx = xx.GetStringBuilder().ToString();
                     // User metadata properties
                     IsAnonymousUser = !user.IsAuthenticated,
                     IsEduUser = false,
-                    LicenseCheckForEditIsEnabled = isBusinessUser,
+                    LicenseCheckForEditIsEnabled = false,
                     UserFriendlyName = user.FullName,
                     UserInfo = null,
 
