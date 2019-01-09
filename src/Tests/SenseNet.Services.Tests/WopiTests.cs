@@ -1083,8 +1083,6 @@ namespace SenseNet.Services.Tests
                 Assert.AreEqual(0, response.SupportedShareUrlTypes.Length);
                 Assert.IsFalse(response.SupportsCobalt);
                 Assert.IsFalse(response.SupportsContainers);
-                Assert.IsFalse(response.SupportsCobalt);
-                Assert.IsFalse(response.SupportsContainers);
                 Assert.IsFalse(response.SupportsDeleteFile);
                 Assert.IsFalse(response.SupportsEcosystem);
                 Assert.IsFalse(response.SupportsExtendedLockLength);
