@@ -461,7 +461,6 @@
     <Compile Include="UploadHelper.cs" />
     <Compile Include="UserProfile.cs" />
     <Compile Include="Versioning\VersioningType.cs" />
-    <Compile Include="HttpEndpointDemoContent.cs" />
     <Compile Include="ICustomSingleNode.cs" />
     <Compile Include="Image.cs" />
     <Compile Include="CryptoApi.cs" />
