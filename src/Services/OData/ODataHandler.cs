@@ -241,7 +241,7 @@ namespace SenseNet.Portal.OData
                 // a simple 404 instead to provide exactly the same response as the regular 404, where the content 
                 // really does not exist. But do this only if the visitor really does not have permission for the
                 // requested content (because security exception could be thrown by an action or something else too).
-                if (odataReq != null && User.Current.Id == User.Visitor.Id)
+                if (odataReq != null && User.Current.Id == Identifiers.VisitorUserId)
                 {
                     var head = NodeHead.Get(odataReq.RepositoryPath);
                     if (head != null && !SecurityHandler.HasPermission(head, PermissionType.Open))

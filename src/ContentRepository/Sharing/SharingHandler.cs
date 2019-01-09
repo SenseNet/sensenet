@@ -36,7 +36,7 @@ namespace SenseNet.ContentRepository.Sharing
 
     internal static class Constants
     {
-        public const string SharingSessionKey = "SharingIdentity";
+        public const string SharingTokenKey = "SnSharingToken";
         public const string SharingGroupTypeName = "SharingGroup";
         public const string SharedWithFieldName = "SharedWith";
         public const string SharingModeFieldName = "SharingMode";
@@ -437,7 +437,7 @@ namespace SenseNet.ContentRepository.Sharing
         internal void UpdatePermissions()
         {
             var aclEditor = SnSecurityContext.Create().CreateAclEditor(EntryType.Sharing);
-            var currentEntries = GetExplicitEntries();
+            var currentEntries = GetExplicitSharingEntries();
 
             // first remove all existing entries
             foreach (var currentEntry in currentEntries)
@@ -520,32 +520,16 @@ namespace SenseNet.ContentRepository.Sharing
             return bits;
         }
 
-        internal List<AceInfo> GetExplicitEntries()
+        internal List<AceInfo> GetExplicitSharingEntries()
         {
-            return GetExplicitEntries(_owner.Id);
-        }
-        internal static List<AceInfo> GetExplicitEntries(int contentId, IEnumerable<int> relatedIdentities = null)
-        {
-            SecurityHandler.SecurityContext.AssertPermission(contentId, PermissionType.SeePermissions);
-            return GetExplicitEntriesAsSystemUser(contentId, relatedIdentities);
-        }
-        internal static List<AceInfo> GetExplicitEntriesAsSystemUser(int contentId, IEnumerable<int> relatedIdentities = null)
-        {
-            return SecurityHandler.SecurityContext.GetExplicitEntries(contentId, relatedIdentities, EntryType.Sharing);
+            SecurityHandler.SecurityContext.AssertPermission(_owner.Id, PermissionType.SeePermissions);
+            return SecurityHandler.SecurityContext.GetExplicitEntries(_owner.Id, null, EntryType.Sharing);
         }
 
-        internal List<AceInfo> GetEffectiveEntries()
+        internal List<AceInfo> GetEffectiveSharingEntries()
         {
-            return GetEffectiveEntries(_owner.Id);
-        }
-        internal static List<AceInfo> GetEffectiveEntries(int contentId, IEnumerable<int> relatedIdentities = null)
-        {
-            SecurityHandler.SecurityContext.AssertPermission(contentId, PermissionType.SeePermissions);
-            return GetEffectiveEntriesAsSystemUser(contentId, relatedIdentities);
-        }
-        internal static List<AceInfo> GetEffectiveEntriesAsSystemUser(int contentId, IEnumerable<int> relatedIdentities = null)
-        {
-            return SecurityHandler.SecurityContext.GetEffectiveEntries(contentId, relatedIdentities, EntryType.Sharing);
+            SecurityHandler.SecurityContext.AssertPermission(_owner.Id, PermissionType.SeePermissions);
+            return SecurityHandler.SecurityContext.GetEffectiveEntries(_owner.Id, null, EntryType.Sharing);
         }
 
         /* ================================================================================== Notifications */
