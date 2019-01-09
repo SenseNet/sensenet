@@ -7,16 +7,19 @@ namespace SenseNet.Services.Wopi
     [JsonObject(MemberSerialization.OptOut)]
     internal class CheckFileInfoResponse : WopiResponse, IWopiObjectResponse
     {
+        private static readonly string[] _emptyArray = new string[0];
+
         /* Base properties */
 
         [JsonProperty] public string BaseFileName { get; internal set; }
+        [JsonProperty] public string OwnerId { get; internal set; }
         [JsonProperty] public long Size { get; internal set; }
         [JsonProperty] public string UserId { get; internal set; }
         [JsonProperty] public string Version { get; internal set; }
 
         /* WOPI host capabilities properties */
 
-        //public string[] SupportedShareUrlTypes
+        public string[] SupportedShareUrlTypes => _emptyArray;
         public bool SupportsCobalt => false;
         public bool SupportsContainers => false;
         public bool SupportsDeleteFile => false;

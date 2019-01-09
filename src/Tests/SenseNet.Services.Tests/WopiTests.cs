@@ -1057,14 +1057,14 @@ namespace SenseNet.Services.Tests
         }
 
         /* --------------------------------------------------------- CheckFileInfo */
-
         [TestMethod]
         public void Wopi_Proc_CheckFileInfo()
         {
             WopiTestWithAdmin(site =>
             {
                 var mimeType = "text/plain";
-                var file = CreateTestFile(site, "File1.txt", "filecontent1", mimeType);
+                var fileContent = "filecontent1";
+                var file = CreateTestFile(site, "File1.txt", fileContent, mimeType);
 
                 var response = WopiGet($"/wopi/files/{file.Id}", DefaultAccessTokenParameter, new[]
                 {
@@ -1076,8 +1076,66 @@ namespace SenseNet.Services.Tests
                 AssertHeader(response.Headers, "ContentType", "application/json");
 
                 Assert.AreEqual("File1.txt", response.BaseFileName);
+                Assert.AreEqual("BuiltIn_Admin", response.OwnerId);
+                Assert.AreEqual(fileContent.Length + 3, response.Size); // +UTF-8 BOM: 0xEF 0xBB 0xBF
+                Assert.AreEqual("BuiltIn_Admin", response.UserId);
+                Assert.AreEqual($"{file.Version}.{file.Binary.FileId}", response.Version);
+                Assert.AreEqual(0, response.SupportedShareUrlTypes.Length);
+                Assert.IsFalse(response.SupportsCobalt);
+                Assert.IsFalse(response.SupportsContainers);
+                Assert.IsFalse(response.SupportsCobalt);
+                Assert.IsFalse(response.SupportsContainers);
+                Assert.IsFalse(response.SupportsDeleteFile);
+                Assert.IsFalse(response.SupportsEcosystem);
+                Assert.IsFalse(response.SupportsExtendedLockLength);
+                Assert.IsFalse(response.SupportsFolders);
+                Assert.IsFalse(response.SupportsGetFileWopiSrc);
+                Assert.IsTrue(response.SupportsGetLock);
+                Assert.IsTrue(response.SupportsLocks);
+                Assert.IsFalse(response.SupportsRename);
+                Assert.IsTrue(response.SupportsUpdate);
+                Assert.IsFalse(response.SupportsUserInfo);
+                Assert.IsFalse(response.IsAnonymousUser);
+                Assert.IsFalse(response.IsEduUser);
+                Assert.IsFalse(response.LicenseCheckForEditIsEnabled);
+                Assert.AreEqual("Admin", response.UserFriendlyName);
+                Assert.IsNull(response.UserInfo);
+                Assert.IsFalse(response.ReadOnly);
+                Assert.IsFalse(response.RestrictedWebViewOnly);
+                Assert.IsTrue(response.UserCanAttend);
+                Assert.IsTrue(response.UserCanNotWriteRelative);
+                Assert.IsTrue(response.UserCanPresent);
+                Assert.IsFalse(response.UserCanRename);
+                Assert.IsTrue(response.UserCanWrite);
+                Assert.IsNull(response.CloseUrl);
+                Assert.IsNull(response.DownloadUrl);
+                Assert.IsNull(response.FileSharingUrl);
+                Assert.IsNull(response.FileUrl);
+                Assert.IsNull(response.FileVersionUrl);
+                Assert.IsNull(response.HostEditUrl);
+                Assert.IsNull(response.HostEmbeddedViewUrl);
+                Assert.IsNull(response.HostViewUrl);
+                Assert.IsNull(response.SignoutUrl);
+                Assert.IsNull(response.BreadcrumbBrandName);
+                Assert.IsNull(response.BreadcrumbBrandUrl);
+                Assert.IsNull(response.BreadcrumbDocName);
+                Assert.IsNull(response.BreadcrumbFolderName);
+                Assert.IsNull(response.BreadcrumbFolderUrl);
+                Assert.IsFalse(response.AllowAdditionalMicrosoftServices);
+                Assert.IsFalse(response.AllowErrorReportPrompt);
+                Assert.IsFalse(response.AllowExternalMarketplace);
+                Assert.IsFalse(response.CloseButtonClosesWindow);
+                Assert.IsFalse(response.DisablePrint);
+                Assert.IsFalse(response.DisableTranslation);
                 Assert.AreEqual(".txt", response.FileExtension);
+                Assert.AreEqual(0, response.FileNameMaxLength);
+                Assert.AreEqual(response.LastModifiedTime,
+                    file.ModificationDate.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ"));
+                Assert.IsNull(response.SHA256);
+                Assert.AreEqual(response.Version, response.UniqueContentId);
+
                 //UNDONE:!! Check all properties
+
             });
         }
 
@@ -1259,12 +1317,28 @@ namespace SenseNet.Services.Tests
                     handler.ProcessRequest(pc.OwnerHttpContext, true);
 
                     var resultstring = output.GetStringBuilder().ToString();
-
                     Assert.IsNotNull(resultstring);
-                    var result = CheckFileInfoResponse.Parse(resultstring);
-                    Assert.AreEqual("File1.txt", result.BaseFileName);
-                    Assert.AreEqual(".txt", result.FileExtension);
-                    Assert.AreEqual(fileContent.Length + 3, result.Size); // +UTF-8 BOM: 0xEF 0xBB 0xBF
+
+                    var propertyNames = new[]
+                    {
+                        "BaseFileName", "OwnerId", "Size", "UserId", "Version", "SupportedShareUrlTypes",
+                        "SupportsCobalt", "SupportsContainers", "SupportsDeleteFile", "SupportsEcosystem",
+                        "SupportsExtendedLockLength", "SupportsFolders", "SupportsGetFileWopiSrc", "SupportsGetLock",
+                        "SupportsLocks", "SupportsRename", "SupportsUpdate", "SupportsUserInfo", "IsAnonymousUser",
+                        "IsEduUser", "LicenseCheckForEditIsEnabled", "UserFriendlyName", "UserInfo", "ReadOnly",
+                        "RestrictedWebViewOnly", "UserCanAttend", "UserCanNotWriteRelative", "UserCanPresent",
+                        "UserCanRename", "UserCanWrite", "CloseUrl", "DownloadUrl", "FileSharingUrl", "FileUrl",
+                        "FileVersionUrl", "HostEditUrl", "HostEmbeddedViewUrl", "HostViewUrl", "SignoutUrl",
+                        "BreadcrumbBrandName", "BreadcrumbBrandUrl", "BreadcrumbDocName", "BreadcrumbFolderName",
+                        "BreadcrumbFolderUrl", "AllowAdditionalMicrosoftServices", "AllowErrorReportPrompt",
+                        "AllowExternalMarketplace", "CloseButtonClosesWindow", "DisablePrint", "DisableTranslation",
+                        "FileExtension", "FileNameMaxLength", "LastModifiedTime", "SHA256", "UniqueContentId",
+                    };
+
+                    foreach (var name in propertyNames)
+                        if (!resultstring.Contains($"\"{name}\":"))
+                            Assert.Fail($"Response does not contain \"{name}\" property.");
+
                 }
             });
         }
