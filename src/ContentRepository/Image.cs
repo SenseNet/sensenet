@@ -18,7 +18,7 @@ namespace SenseNet.ContentRepository
     /// The image is stored in the Binary property as a blob.
     /// </summary>
     [ContentHandler]
-    public class Image : File, IHttpHandler
+    public class Image : File
     {
         private static readonly string SETDIMENSION_KEYNAME = "SetDimension";
 
@@ -363,82 +363,23 @@ namespace SenseNet.ContentRepository
                 image.SavingState == ContentSavingState.Finalized &&
                 SetDimension(image);
         }
-
-        // ================================================================================= IHttpHandler members
-        bool IHttpHandler.IsReusable
-        {
-            get { return false; }
-        }
-        void IHttpHandler.ProcessRequest(HttpContext context)
-        {
-            Stream imageStream;
-            BinaryData binaryData;
-            var propNameParam = context.Request.QueryString["NodeProperty"];
-            var propertyName = string.Empty;
-            var widthParam = context.Request.QueryString["width"];
-            var heightParam = context.Request.QueryString["height"];
-
-            if (!string.IsNullOrEmpty(propNameParam))
-            {
-                propertyName = propNameParam.Replace("$", "#");
-                binaryData = this.GetBinary(propertyName);
-            }
-            else
-            {
-                binaryData = this.Binary;
-            }
-
-            if (DocumentPreviewProvider.Current != null && DocumentPreviewProvider.Current.IsPreviewOrThumbnailImage(NodeHead.Get(this.Id)))
-            {
-                // get preview image with watermark or redaction if necessary
-                imageStream = DocumentPreviewProvider.Current.GetRestrictedImage(this, new PreviewImageOptions() { BinaryFieldName = propertyName });
-            }
-            else
-            {
-                imageStream = binaryData.GetStream();
-            }
-
-            // set compressed encoding if necessary
-            if (MimeTable.IsCompressedType(this.Extension))
-                context.Response.Headers.Add("Content-Encoding", "gzip");
-
-            context.Response.ContentType = binaryData.ContentType;
-
-            imageStream.Position = 0;
-
-            if (!string.IsNullOrEmpty(widthParam) && !string.IsNullOrEmpty(heightParam))
-            {
-                int width;
-                int height;
-                if (!int.TryParse(widthParam, out width))
-                    width = 200;
-                if (!int.TryParse(heightParam, out height))
-                    height = 200;
-
-                // compute a new, resized stream on-the-fly
-                using (var resizedStream = ImageResizer.CreateResizedImageFile(imageStream, width, height, 80, getImageFormat(binaryData.ContentType)))
-                {
-                    resizedStream.CopyTo(context.Response.OutputStream);
-                }
-            }
-            else
-            {
-                imageStream.CopyTo(context.Response.OutputStream);
-            }
-
-            imageStream.Close();
-        }
-
-        public Stream GetImageStream(string propertyName, IDictionary<string, object> parameters, out string contentType)
+        
+        public Stream GetImageStream(string propertyName, IDictionary<string, object> parameters, out string contentType, out BinaryFileName fileName)
         {
             Stream imageStream;
 
-            var widthParam = parameters?["width"];
-            var heightParam = parameters?["height"];
+            object widthParam = null;
+            object heightParam = null;
+
+            parameters?.TryGetValue("width", out widthParam);
+            parameters?.TryGetValue("height", out heightParam);
 
             var binaryData = !string.IsNullOrEmpty(propertyName) ? GetBinary(propertyName) : Binary;
 
             contentType = binaryData?.ContentType ?? string.Empty;
+            fileName = string.IsNullOrEmpty(propertyName) || string.CompareOrdinal(propertyName, "Binary") == 0
+                ? new BinaryFileName(Name) 
+                : binaryData?.FileName ?? string.Empty;
 
             if (DocumentPreviewProvider.Current != null && DocumentPreviewProvider.Current.IsPreviewOrThumbnailImage(NodeHead.Get(Id)))
             {
@@ -484,8 +425,8 @@ namespace SenseNet.ContentRepository
             var resizedStream = ImageResizer.CreateResizedImageFile(imageStream, width, height, 80, getImageFormat(contentType));
                 
             // in case the method created a new stream, we have to close the original to prevent memory leak
-            if (resizedStream != imageStream)
-                imageStream.Close();
+            if (!ReferenceEquals(resizedStream, imageStream))
+                imageStream.Dispose();
 
             return resizedStream;
         }
