@@ -139,6 +139,9 @@ namespace SenseNet.Portal.Virtualization
                     string contentType;
                     BinaryFileName fileName;
 
+                    // Images need to be handled differently, because of these reasons:
+                    // - dimensions may be changed dynamically, based on request parameters
+                    // - preview images may be restricted (redacted) based on permissions
                     if (_node is Image img)
                     {
                         var parameters = HttpContext.Current?.Request.QueryString;

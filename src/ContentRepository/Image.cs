@@ -364,6 +364,16 @@ namespace SenseNet.ContentRepository
                 SetDimension(image);
         }
         
+        /// <summary>
+        /// Gets a stream containing the image binary in the specified property (or the default Binary field). 
+        /// Image dimensions can be determined by providing the width and height values among the parameters.
+        /// The image is also redacted if the user does not have enough permissions to see the full image
+        /// in case of preview images, only restricted ones.
+        /// </summary>
+        /// <param name="propertyName">Name of the binary property to serve, default is Binary.</param>
+        /// <param name="parameters">Optional parameters that may include image width and height.</param>
+        /// <param name="contentType">Out parameter, filled with the binary content type to be served to the client.</param>
+        /// <param name="fileName">Out parameter, filled with the file name to serve to the client.</param>
         public Stream GetImageStream(string propertyName, IDictionary<string, object> parameters, out string contentType, out BinaryFileName fileName)
         {
             Stream imageStream;
