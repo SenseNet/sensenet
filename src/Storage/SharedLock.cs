@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.ContentRepository.Storage
 {
@@ -16,6 +17,12 @@ namespace SenseNet.ContentRepository.Storage
 
         public static void Lock(int contentId, string @lock)
         {
+            var node = Node.LoadNode(contentId);
+            if(node == null)
+                throw new ContentNotFoundException(contentId.ToString());
+            if(node.Locked)
+                throw new LockedNodeException(node.Lock);
+
             DataProvider.Current.CreateSharedLock(contentId, @lock);
         }
         public static string RefreshLock(int contentId, string @lock)

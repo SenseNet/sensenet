@@ -15,6 +15,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.ContentRepository.Storage.Schema;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Querying;
 using SenseNet.Security;
@@ -457,21 +458,38 @@ namespace SenseNet.Tests.Implementations
 
         public override void CreateSharedLock(int contentId, string @lock)
         {
-            var newSharedLockId = _db.SharedLocks.Count == 0 ? 1 : _db.SharedLocks.Max(t => t.SharedLockId) + 1;
-            _db.SharedLocks.Add(new SharedLockRow
+            var timeLimit = DateTime.UtcNow.AddTicks(-SharedLockTimeout.Ticks);
+            var row = _db.SharedLocks.FirstOrDefault(x => x.ContentId == contentId);
+            if (row != null && row.CreationDate < timeLimit)
             {
-                SharedLockId = newSharedLockId,
-                ContentId = contentId,
-                Lock = @lock,
-                CreationDate = DateTime.UtcNow
-            });
+                _db.SharedLocks.Remove(row);
+                row = null;
+            }
+
+            if (row == null)
+            {
+                var newSharedLockId = _db.SharedLocks.Count == 0 ? 1 : _db.SharedLocks.Max(t => t.SharedLockId) + 1;
+                _db.SharedLocks.Add(new SharedLockRow
+                {
+                    SharedLockId = newSharedLockId,
+                    ContentId = contentId,
+                    Lock = @lock,
+                    CreationDate = DateTime.UtcNow
+                });
+                return;
+            }
+
+            if (row.Lock != @lock)
+                throw new LockedNodeException(null, $"The node (#{contentId}) is locked by another shared lock.");
+
+            row.CreationDate = DateTime.UtcNow;
         }
 
         public override string RefreshSharedLock(int contentId, string @lock)
         {
             var row = _db.SharedLocks.FirstOrDefault(x => x.ContentId == contentId);
             if (row == null)
-                throw new Exception("Content is unlocked"); //UNDONE: Right exception type and message
+                throw new SharedLockNotFoundException("Content is unlocked");
             row.CreationDate = DateTime.UtcNow;
             return row.Lock;
         }
@@ -485,6 +503,8 @@ namespace SenseNet.Tests.Implementations
                 return null;
             }
             var existingLock = _db.SharedLocks.FirstOrDefault(x => x.ContentId == contentId)?.Lock;
+            if (existingLock == null)
+                throw new SharedLockNotFoundException("Content is unlocked");
             return existingLock;
         }
 
@@ -503,6 +523,8 @@ namespace SenseNet.Tests.Implementations
                 return null;
             }
             var existingLock = _db.SharedLocks.FirstOrDefault(x => x.ContentId == contentId)?.Lock;
+            if (existingLock == null)
+                throw new SharedLockNotFoundException("Content is unlocked");
             return existingLock;
         }
 
