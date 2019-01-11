@@ -7,6 +7,7 @@ using System.Data.Common;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Schema;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search;
 using SenseNet.Search.Querying;
@@ -335,6 +336,16 @@ namespace SenseNet.ContentRepository.Storage.Data
         /////////////// Security
 
         protected internal abstract void InstallDefaultSecurityStructure();
+
+        // ====================================================== AccessToken support
+
+        public abstract void DeleteAllAccessTokens();
+        public abstract void SaveAccessToken(AccessToken token);
+        public abstract AccessToken LoadAccessTokenById(int accessTokenId);
+        public abstract AccessToken LoadAccessToken(string tokenValue, int contentId, string feature);
+        public abstract AccessToken[] LoadAccessTokens(int userId);
+        public abstract void DeleteAccessToken(AccessToken token);
+        public abstract void DeleteAccessTokens(int userId);
 
         // ====================================================== AppModel script generator
 
