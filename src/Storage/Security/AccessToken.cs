@@ -13,7 +13,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         public string Feature { get; internal set; }
 
         public DateTime CreationDate { get; internal set; }
-        public DateTime ExpirationDate { get; internal set; }
+        public DateTime ExpirationDate { get; set; }
 
         public override string ToString()
         {

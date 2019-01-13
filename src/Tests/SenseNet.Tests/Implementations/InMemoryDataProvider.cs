@@ -740,6 +740,14 @@ namespace SenseNet.Tests.Implementations
                 .ToArray();
         }
 
+        public override void UpdateAccessToken(string tokenValue, DateTime newExpirationDate)
+        {
+            var row = _db.AccessTokens.FirstOrDefault(x => x.Value == tokenValue && x.ExpirationDate > DateTime.UtcNow);
+            if(row == null)
+                throw new InvalidAccessTokenException("Token not found or it is expired.");
+            row.ExpirationDate = newExpirationDate;
+        }
+
         public override void DeleteAccessToken(string tokenValue)
         {
             var rows = _db.AccessTokens.Where(x => x.Value == tokenValue).ToArray();

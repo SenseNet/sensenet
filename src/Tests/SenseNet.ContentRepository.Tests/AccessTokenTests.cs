@@ -302,6 +302,41 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
+        public void Token_Update()
+        {
+            var userId = 42;
+            var timeout = TimeSpan.FromMinutes(10.0d);
+            var savedToken = AccessTokenVault.CreateToken(userId, timeout);
+            Assert.IsTrue(savedToken.ExpirationDate < DateTime.UtcNow.AddMinutes(20.0d));
+
+            // ACTION
+            AccessTokenVault.UpdateToken(savedToken.Value, DateTime.UtcNow.AddMinutes(30.0d));
+
+            // ASSERT
+            var loadedToken = AccessTokenVault.GetToken(savedToken.Value);
+            Assert.IsNotNull(loadedToken);
+            Assert.IsTrue(loadedToken.ExpirationDate > DateTime.UtcNow.AddMinutes(20.0d));
+        }
+        [TestMethod]
+        [ExpectedException(typeof(InvalidAccessTokenException))]
+        public void Token_UpdateMissing()
+        {
+            AccessTokenVault.UpdateToken("asdf", DateTime.UtcNow.AddMinutes(30.0d));
+        }
+        [TestMethod]
+        [ExpectedException(typeof(InvalidAccessTokenException))]
+        public void Token_UpdateExpired()
+        {
+            var userId = 42;
+            var timeout = TimeSpan.FromMilliseconds(1);
+            var savedToken = AccessTokenVault.CreateToken(userId, timeout);
+
+            // ACTION
+            Thread.Sleep(1100);
+            AccessTokenVault.UpdateToken(savedToken.Value, DateTime.UtcNow.AddMinutes(30.0d));
+        }
+
+        [TestMethod]
         public void Token_Delete_Token()
         {
             var userId1 = 42;

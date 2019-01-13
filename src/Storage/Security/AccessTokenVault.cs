@@ -56,6 +56,11 @@ namespace SenseNet.ContentRepository.Storage.Security
                 throw new InvalidAccessTokenException("Token not found or it is expired.");
         }
 
+        public static void UpdateToken(string tokenValue, DateTime expirationDate)
+        {
+            DataProvider.Current.UpdateAccessToken(tokenValue, expirationDate);
+        }
+
         public static void DeleteToken(string tokenValue)
         {
             DataProvider.Current.DeleteAccessToken(tokenValue);
@@ -68,7 +73,6 @@ namespace SenseNet.ContentRepository.Storage.Security
         {
             DataProvider.Current.DeleteAccessTokensByContent(contentId);
         }
-
 
         /* =========================================================================================== Token value generator */
 
@@ -87,5 +91,6 @@ namespace SenseNet.ContentRepository.Storage.Security
 
             return new string(chars);
         }
+
     }
 }
