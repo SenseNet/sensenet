@@ -302,7 +302,7 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestMethod]
-        public void Token_Delete()
+        public void Token_Delete_Token()
         {
             var userId1 = 42;
             var userId2 = 43;
@@ -318,8 +318,8 @@ namespace SenseNet.ContentRepository.Tests
 
             // ACTION
             Thread.Sleep(1100);
-            AccessTokenVault.DeleteToken(savedTokens[0]);
-            AccessTokenVault.DeleteToken(savedTokens[3]);
+            AccessTokenVault.DeleteToken(savedTokens[0].Value);
+            AccessTokenVault.DeleteToken(savedTokens[3].Value);
 
             // ASSERT
             Assert.IsNull(AccessTokenVault.GetTokenById(savedTokens[0].Id));
@@ -344,12 +344,39 @@ namespace SenseNet.ContentRepository.Tests
 
             // ACTION
             Thread.Sleep(1100);
-            AccessTokenVault.DeleteTokens(userId1);
+            AccessTokenVault.DeleteTokensByUser(userId1);
 
             // ASSERT
             Assert.IsNull(AccessTokenVault.GetTokenById(savedTokens[0].Id));
             Assert.IsNull(AccessTokenVault.GetTokenById(savedTokens[1].Id));
             Assert.IsNotNull(AccessTokenVault.GetTokenById(savedTokens[2].Id));
+            Assert.IsNotNull(AccessTokenVault.GetTokenById(savedTokens[3].Id));
+        }
+        [TestMethod]
+        public void Token_Delete_ByContent()
+        {
+            var userId1 = 42;
+            var userId2 = 43;
+            var contentId1 = 142;
+            var contentId2 = 143;
+            var timeout = TimeSpan.FromMinutes(10);
+            var shortTimeout = TimeSpan.FromSeconds(1);
+            var savedTokens = new[]
+            {
+                AccessTokenVault.CreateToken(userId1, timeout, contentId1),
+                AccessTokenVault.CreateToken(userId1, shortTimeout, contentId2),
+                AccessTokenVault.CreateToken(userId2, timeout, contentId1),
+                AccessTokenVault.CreateToken(userId2, shortTimeout, contentId2),
+            };
+
+            // ACTION
+            Thread.Sleep(1100);
+            AccessTokenVault.DeleteTokensByContent(contentId1);
+
+            // ASSERT
+            Assert.IsNull(AccessTokenVault.GetTokenById(savedTokens[0].Id));
+            Assert.IsNotNull(AccessTokenVault.GetTokenById(savedTokens[1].Id));
+            Assert.IsNull(AccessTokenVault.GetTokenById(savedTokens[2].Id));
             Assert.IsNotNull(AccessTokenVault.GetTokenById(savedTokens[3].Id));
         }
 

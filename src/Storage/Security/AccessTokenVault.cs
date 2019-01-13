@@ -56,13 +56,17 @@ namespace SenseNet.ContentRepository.Storage.Security
                 throw new InvalidAccessTokenException("Token not found or it is expired.");
         }
 
-        public static void DeleteToken(AccessToken token)
+        public static void DeleteToken(string tokenValue)
         {
-            DataProvider.Current.DeleteAccessToken(token);
+            DataProvider.Current.DeleteAccessToken(tokenValue);
         }
-        public static void DeleteTokens(int userId)
+        public static void DeleteTokensByUser(int userId)
         {
-            DataProvider.Current.DeleteAccessTokens(userId);
+            DataProvider.Current.DeleteAccessTokensByUser(userId);
+        }
+        public static void DeleteTokensByContent(int contentId)
+        {
+            DataProvider.Current.DeleteAccessTokensByContent(contentId);
         }
 
 

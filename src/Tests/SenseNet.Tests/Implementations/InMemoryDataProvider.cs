@@ -740,18 +740,27 @@ namespace SenseNet.Tests.Implementations
                 .ToArray();
         }
 
-        public override void DeleteAccessToken(AccessToken token)
+        public override void DeleteAccessToken(string tokenValue)
         {
-            var row = _db.AccessTokens.FirstOrDefault(x => x.AccessTokenRowId == token.Id);
-            if (row != null)
+            var rows = _db.AccessTokens.Where(x => x.Value == tokenValue).ToArray();
+            foreach (var row in rows)
                 _db.AccessTokens.Remove(row);
         }
-        public override void DeleteAccessTokens(int userId)
+
+        public override void DeleteAccessTokensByUser(int userId)
         {
-            var tokens = _db.AccessTokens.Where(x => x.UserId == userId).ToArray();
-            foreach (var token in tokens)
-                _db.AccessTokens.Remove(token);
+            var rows = _db.AccessTokens.Where(x => x.UserId == userId).ToArray();
+            foreach (var row in rows)
+                _db.AccessTokens.Remove(row);
         }
+
+        public override void DeleteAccessTokensByContent(int contentId)
+        {
+            var rows = _db.AccessTokens.Where(x => x.ContentId == contentId).ToArray();
+            foreach (var row in rows)
+                _db.AccessTokens.Remove(row);
+        }
+
 
         private AccessToken CreateAccessTokenFromRow(AccessTokenRow row)
         {
