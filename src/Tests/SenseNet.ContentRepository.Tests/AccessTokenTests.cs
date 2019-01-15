@@ -446,7 +446,7 @@ namespace SenseNet.ContentRepository.Tests
         }
 
         [TestInitialize]
-        public void RemoveAllLocks()
+        public void DeleteAllAccessTokens()
         {
             AccessTokenVault.DeleteAllAccessTokens();
         }
