@@ -105,6 +105,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>ResourceXmls.tt</DependentUpon>
     </Compile>
+    <Compile Include="Implementations\TestingSqlDataProvider.cs" />
     <Compile Include="Implementations\TestIndexFieldHandler.cs" />
     <Compile Include="Implementations\TestPerfieldIndexingInfo.cs" />
     <Compile Include="Implementations\TestSearchEngineSupport.cs" />

@@ -16,6 +16,28 @@ namespace SenseNet.ContentRepository.Storage.Data
 {
     public abstract class DataProvider : ITransactionFactory, IPackageStorageProvider
     {
+        public static DataProvider Instance()
+        {
+            return Providers.Instance.DataProvider;
+        }
+        public static T Instance<T>() where T : class
+        {
+            return Providers.Instance.DataProvider.GetInstance<T>();
+        }
+
+        private readonly Dictionary<Type, object> _dataProvidersByType = new Dictionary<Type, object>();
+        public virtual T GetInstance<T>() where T : class
+        {
+            object provider;
+            if (_dataProvidersByType.TryGetValue(typeof(T), out provider))
+                return provider as T;
+
+            return null;
+        }
+        public virtual void SetProvider(Type providerType, object provider)
+        {
+            _dataProvidersByType[providerType] = provider;
+        }
 
         //////////////////////////////////////// Static Access ////////////////////////////////////////
 
