@@ -1,10 +1,8 @@
 using System;
-using System.CodeDom;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using SenseNet.ContentRepository.Storage;
-using System.Web;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.ContentRepository.Versioning;
@@ -74,14 +72,14 @@ namespace SenseNet.ContentRepository
             string extraText = string.Empty;
             switch (node.Version.Status)
             {
-                case VersionStatus.Pending: extraText = HttpContext.GetGlobalResourceObject("Portal", "Approving") as string; break;
-                case VersionStatus.Draft: extraText = HttpContext.GetGlobalResourceObject("Portal", "Draft") as string; break;
+                case VersionStatus.Pending: extraText = SR.GetString("Portal", "Approving"); break;
+                case VersionStatus.Draft: extraText = SR.GetString("Portal", "Draft"); break;
                 case VersionStatus.Locked:
                     var lockedByName = node.Lock.LockedBy == null ? "" : node.Lock.LockedBy.Name;
-                    extraText = string.Concat(HttpContext.GetGlobalResourceObject("Portal", "CheckedOutBy") as string, " ", lockedByName);
+                    extraText = string.Concat(SR.GetString("Portal", "CheckedOutBy"), " ", lockedByName);
                     break;
-                case VersionStatus.Approved: extraText = HttpContext.GetGlobalResourceObject("Portal", "Public") as string; break;
-                case VersionStatus.Rejected: extraText = HttpContext.GetGlobalResourceObject("Portal", "Reject") as string; break;
+                case VersionStatus.Approved: extraText = SR.GetString("Portal", "Public"); break;
+                case VersionStatus.Rejected: extraText = SR.GetString("Portal", "Reject"); break;
             }
 
             var content = node as GenericContent;
@@ -223,20 +221,10 @@ namespace SenseNet.ContentRepository
                 throw new ArgumentNullException(name);
         }
 
+        [Obsolete("Use ServiceTools.GetClientIpAddress instead.")]
         public static string GetClientIpAddress()
         {
-            if (HttpContext.Current == null)
-                return string.Empty;
-
-            var clientIpAddress = HttpContext.Current.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
-            if (!string.IsNullOrEmpty(clientIpAddress))
-                return clientIpAddress;
-
-            clientIpAddress = HttpContext.Current.Request.ServerVariables["REMOTE_ADDR"];
-            if (!string.IsNullOrEmpty(clientIpAddress))
-                return clientIpAddress;
-
-            return HttpContext.Current.Request.UserHostAddress ?? string.Empty;
+            return string.Empty;
         }
 
         // Structure building ==================================================================
