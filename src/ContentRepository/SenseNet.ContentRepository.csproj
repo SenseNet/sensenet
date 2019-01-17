@@ -493,7 +493,6 @@
     <Compile Include="ContentRotator.cs" />
     <Compile Include="SR.cs" />
     <Compile Include="Tools.cs" />
-    <Compile Include="Security\UserAccessProvider.cs" />
     <Compile Include="Group.cs" />
     <Compile Include="IFile.cs" />
     <Compile Include="OrganizationalUnit.cs" />

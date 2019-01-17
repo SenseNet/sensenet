@@ -293,6 +293,7 @@
     <Compile Include="PermissionQuery.cs" />
     <Compile Include="PortalSettings.cs" />
     <Compile Include="Preview\WatermarkServicesTemplateReplacer.cs" />
+    <Compile Include="Security\UserAccessProvider.cs" />
     <Compile Include="ServiceTools.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueryBuilder.cs" />
