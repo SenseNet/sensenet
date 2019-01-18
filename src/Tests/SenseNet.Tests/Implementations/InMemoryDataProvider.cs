@@ -1193,24 +1193,32 @@ namespace SenseNet.Tests.Implementations
 
         private static void SetLastVersionSlots(Database db, int nodeId, out int lastMajorVersionId, out int lastMinorVersionId, out long nodeTimeStamp)
         {
+            var innerLastMinorVersionId = 0;
+            var innerLastMajorVersionId = 0;
+            var innerNodeTimeStamp = 0L;
             // proc_Node_SetLastVersion
+            Retrier.Retry(3, 1, typeof(InvalidOperationException), () =>
+            {
+                var nodeRow = db.Nodes.First(n => n.NodeId == nodeId);
+                innerLastMinorVersionId = db.Versions
+                    .Where(v => v.NodeId == nodeId)
+                    .OrderByDescending(v => v.Version)
+                    .First()
+                    .VersionId;
+                nodeRow.LastMinorVersionId = innerLastMinorVersionId;
 
-            var nodeRow = db.Nodes.First(n => n.NodeId == nodeId);
-            lastMinorVersionId = db.Versions
-                .Where(v => v.NodeId == nodeId)
-                .OrderByDescending(v => v.Version)
-                .First()
-                .VersionId;
-            nodeRow.LastMinorVersionId = lastMinorVersionId;
+                innerLastMajorVersionId = db.Versions
+                                         .Where(v => v.NodeId == nodeId && v.Version.Status == VersionStatus.Approved)
+                                         .OrderByDescending(v => v.Version)
+                                         .FirstOrDefault()?
+                                         .VersionId ?? 0;
+                nodeRow.LastMajorVersionId = innerLastMajorVersionId;
 
-            lastMajorVersionId = db.Versions
-                                     .Where(v => v.NodeId == nodeId && v.Version.Status == VersionStatus.Approved)
-                                     .OrderByDescending(v => v.Version)
-                                     .FirstOrDefault()?
-                                     .VersionId ?? 0;
-            nodeRow.LastMajorVersionId = lastMajorVersionId;
-
-            nodeTimeStamp = nodeRow.NodeTimestamp;
+                innerNodeTimeStamp = nodeRow.NodeTimestamp;
+            });
+            lastMajorVersionId = innerLastMajorVersionId;
+            lastMinorVersionId = innerLastMinorVersionId;
+            nodeTimeStamp = innerNodeTimeStamp;
         }
 
         public override void WriteAuditEvent(AuditEventInfo auditEvent)
