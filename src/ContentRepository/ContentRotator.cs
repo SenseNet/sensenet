@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Storage.Data;
-using  SenseNet.ContentRepository.Schema;
-using SenseNet.ContentRepository.Storage.Search;
-using System.Web;
+using SenseNet.ContentRepository.Schema;
 using System.Linq;
 
 namespace SenseNet.ContentRepository
@@ -42,16 +38,10 @@ namespace SenseNet.ContentRepository
 
         // ===================================================================================== Properties
 
-        public DateTime CurrentDate
-        {
-            get
-            {
-                string dateString = HttpContext.Current.Request.QueryString["CurrentDate"];
-                return string.IsNullOrEmpty(dateString) ? DateTime.UtcNow : DateTime.Parse(dateString);
-            }
-        }
+        [Obsolete]
+        public DateTime CurrentDate => DateTime.UtcNow;
 
-		[RepositoryProperty("SelectionMode", RepositoryDataType.String)]
+        [RepositoryProperty("SelectionMode", RepositoryDataType.String)]
 		public string SelectionMode
 		{
 			get { return this.GetProperty<string>("SelectionMode"); }
@@ -92,25 +82,25 @@ namespace SenseNet.ContentRepository
 			return true;
         }
 
-        public IEnumerable<Node> GetValidItems(IEnumerable<Node> items)
+        public IEnumerable<Node> GetValidItems(IEnumerable<Node> items, DateTime? currentDate = null)
         {
             foreach (Node node in items)
             {
-                DateTime validFrom;
-                DateTime validTill;
-
                 // not published
                 if (node.Version.Status != VersionStatus.Approved)
                     continue;
 
                 // not valid by date
-                if (!GetNodeDateProperty(node, "ValidFrom", out validFrom))
+                if (!GetNodeDateProperty(node, "ValidFrom", out var validFrom))
                     continue;
 
-                if (!GetNodeDateProperty(node, "ValidTill", out validTill))
+                if (!GetNodeDateProperty(node, "ValidTill", out var validTill))
                     continue;
 
-                if ((validFrom < CurrentDate) && (validTill > CurrentDate))
+                if (!currentDate.HasValue)
+                    currentDate = DateTime.UtcNow;
+
+                if (validFrom < currentDate && validTill > currentDate)
                     yield return node;
             }
         }

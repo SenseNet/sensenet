@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Linq;
-using System.Web;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Storage;
-using SenseNet.ContentRepository.Fields;
 using SenseNet.Search;
 
 namespace SenseNet.ContentRepository
