@@ -304,6 +304,7 @@
     <Compile Include="Routing\ProxyingRouteHandler.cs" />
     <Compile Include="RssApplication.cs" />
     <Compile Include="SenseNetGlobal.cs" />
+    <Compile Include="Sharing\SharingMembershipExtender.cs" />
     <Compile Include="SimpleModule.cs" />
     <Compile Include="Site.cs" />
     <Compile Include="SkinManagerBase.cs" />
