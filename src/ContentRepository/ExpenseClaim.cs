@@ -1,11 +1,8 @@
-using System.Collections.Generic;
+using System;
 using System.Linq;
-using System.Web;
-using Microsoft.JScript;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Schema;
 using SenseNet.ContentRepository.Search;
-using SenseNet.ContentRepository.Versioning;
 using SenseNet.Search;
 
 namespace SenseNet.ContentRepository
@@ -17,25 +14,10 @@ namespace SenseNet.ContentRepository
         public ExpenseClaim(Node parent, string nodeTypeName) : base(parent, nodeTypeName) { }
         protected ExpenseClaim(NodeToken nt) : base(nt) { }
 
-        private Node GetAssociatedWorkflow()
-        {
-            if (HttpContext.Current != null && HttpContext.Current.Request.QueryString.AllKeys.Contains("ContentTypeName"))
-            {
-                var contentTypeName = HttpContext.Current.Request["ContentTypeName"];
-
-                return string.IsNullOrEmpty(contentTypeName)
-                           ? null
-                           : Node.LoadNode(contentTypeName);
-            }
-
-            return null;
-        }
-
+        [Obsolete("Use GetApprover(budgetLimit, CEO) instead.", true)]
         public User GetApprover()
         {
-            var workflow = this.GetAssociatedWorkflow();
-            
-            return this.GetApprover(workflow.GetProperty<int>("BudgetLimit"), workflow.GetReference<User>("CEO"));
+            return null;
         }
 
         public User GetApprover(int budgetLimit, User CEO)
