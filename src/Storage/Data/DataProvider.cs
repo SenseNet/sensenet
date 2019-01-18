@@ -16,31 +16,46 @@ namespace SenseNet.ContentRepository.Storage.Data
 {
     public abstract class DataProvider : ITransactionFactory, IPackageStorageProvider
     {
+        /// <summary>
+        /// Returns the DataProvider instance that is a singleton
+        /// instantiated by the sensenet's infrastructure at system startup
+        /// based on the configuration.
+        /// </summary>
         public static DataProvider Instance()
         {
             return Providers.Instance.DataProvider;
         }
+        /// <summary>
+        /// Returns the DataProvider extension instance by it's registered type.
+        /// </summary>
+        /// <typeparam name="T">The type that describes and identifies the extension instance.</typeparam>
         public static T Instance<T>() where T : class
         {
             return Providers.Instance.DataProvider.GetInstance<T>();
         }
 
-        private readonly Dictionary<Type, object> _dataProvidersByType = new Dictionary<Type, object>();
-        public virtual T GetInstance<T>() where T : class
-        {
-            object provider;
-            if (_dataProvidersByType.TryGetValue(typeof(T), out provider))
-                return provider as T;
-
-            return null;
-        }
-        public virtual void SetProvider(Type providerType, object provider)
+        private readonly Dictionary<Type, IDataProvider> _dataProvidersByType = new Dictionary<Type, IDataProvider>();
+        /// <summary>
+        /// Registers a DataProvider extension instance.
+        /// </summary>
+        /// <param name="providerType">The type that describes and identifies the extension instance.</param>
+        /// <param name="provider">The provider instance that will be used in the whole appdomain's lifecycle.</param>
+        public virtual void SetProvider(Type providerType, IDataProvider provider)
         {
             _dataProvidersByType[providerType] = provider;
+            provider.MetadataProvider = this;
+        }
+
+        private T GetInstance<T>() where T : class
+        {
+            if (_dataProvidersByType.TryGetValue(typeof(T), out var provider))
+                return provider as T;
+            return null;
         }
 
         //////////////////////////////////////// Static Access ////////////////////////////////////////
 
+        //UNDONE: Refactor: Obsolete
         public static DataProvider Current => Providers.Instance.DataProvider;
 
         // ====================================================== Query support
@@ -49,6 +64,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         //////////////////////////////////////// For tests ////////////////////////////////////////
 
+        //UNDONE: Refactor: remove/make obsolete the internal static methods.
         internal static void InitializeForTests()
         {
             Current.InitializeForTestsPrivate();

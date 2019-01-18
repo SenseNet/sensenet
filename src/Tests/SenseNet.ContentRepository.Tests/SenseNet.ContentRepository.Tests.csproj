@@ -127,7 +127,7 @@
     <Compile Include="VersionExistenceTests.cs" />
     <Compile Include="VersionHistoryTests.cs" />
     <Compile Include="VersionNumberTests.cs" />
-    <Compile Include="_DataProviderPilotTests.cs" />
+    <Compile Include="DataProviderExtensionTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
