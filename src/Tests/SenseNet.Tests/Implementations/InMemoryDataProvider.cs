@@ -633,18 +633,7 @@ namespace SenseNet.Tests.Implementations
         }
 
         #region NOT IMPLEMENTED
-
-        protected override int GetPermissionLogEntriesCountAfterMomentInternal(DateTime moment)
-        {
-            throw new NotImplementedException();
-        }
-
         protected override PropertyMapping GetPropertyMappingInternal(PropertyType propType)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override string GetSecurityControlStringForTestsInternal()
         {
             throw new NotImplementedException();
         }
@@ -669,11 +658,6 @@ namespace SenseNet.Tests.Implementations
         #region NOT IMPLEMENTED
 
         protected internal override bool HasChild(int nodeId)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override void InitializeForTestsPrivate()
         {
             throw new NotImplementedException();
         }

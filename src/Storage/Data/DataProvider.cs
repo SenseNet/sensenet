@@ -64,27 +64,22 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         //////////////////////////////////////// For tests ////////////////////////////////////////
 
-        //UNDONE: Refactor: remove/make obsolete the internal static methods.
-        internal static void InitializeForTests()
-        {
-            Current.InitializeForTestsPrivate();
-        }
-        protected abstract void InitializeForTestsPrivate();
-
+        [Obsolete("This method is not supported anymore. Use the following call instead: " +
+                  "DataProvider.Instance<ITestingDataProvider>().GetSecurityControlStringForTests();", true)]
         public static string GetSecurityControlStringForTests()
         {
-            return Current.GetSecurityControlStringForTestsInternal();
+            throw new SnNotSupportedException("This method is not supported anymore. Use the following call instead: " +
+                "DataProvider.Instance<ITestingDataProvider>().GetSecurityControlStringForTests();");
         }
-        protected abstract string GetSecurityControlStringForTestsInternal();
-
+        [Obsolete("This method is not supported anymore. Use the following call instead: " +
+                  "DataProvider.Instance<ITestingDataProvider>().GetPermissionLogEntriesCountAfterMoment();", true)]
         public static int GetPermissionLogEntriesCountAfterMoment(DateTime moment)
         {
-            return Current.GetPermissionLogEntriesCountAfterMomentInternal(moment);
+            throw new SnNotSupportedException("This method is not supported anymore. Use the following call instead: " +
+                "DataProvider.Instance<ITestingDataProvider>().GetPermissionLogEntriesCountAfterMoment();");
         }
-        protected abstract int GetPermissionLogEntriesCountAfterMomentInternal(DateTime moment);
 
         public abstract AuditLogEntry[] LoadLastAuditLogEntries(int count);
-
 
         //////////////////////////////////////// Generic Datalayer Logic ////////////////////////////////////////
 

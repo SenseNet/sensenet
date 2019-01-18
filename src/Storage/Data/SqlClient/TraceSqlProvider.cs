@@ -309,11 +309,6 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             WriteLog(MethodBase.GetCurrentMethod());
             base.DeleteAllPackages();
         }
-        protected override void InitializeForTestsPrivate()
-        {
-            WriteLog(MethodBase.GetCurrentMethod());
-            base.InitializeForTestsPrivate();
-        }
         protected internal override bool IsFilestreamEnabled()
         {
             WriteLog(MethodBase.GetCurrentMethod());
