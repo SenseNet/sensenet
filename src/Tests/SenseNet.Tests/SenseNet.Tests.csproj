@@ -102,6 +102,7 @@
     <Compile Include="Implementations\InMemorySearchEngine.cs" />
     <Compile Include="Implementations\InMemoryTestingDataProvider.cs" />
     <Compile Include="Implementations\ITestingDataProvider.cs" />
+    <Compile Include="Implementations\RepositoryBuilderExtensions.cs" />
     <Compile Include="Implementations\ResourceXmls.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

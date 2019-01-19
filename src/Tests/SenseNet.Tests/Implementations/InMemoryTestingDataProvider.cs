@@ -51,7 +51,7 @@ namespace SenseNet.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        public string TestMethodThatIsNotInterfaceMember(string input)
+        public virtual string TestMethodThatIsNotInterfaceMember(string input)
         {
             return input + input;
         }
