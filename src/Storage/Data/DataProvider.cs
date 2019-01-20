@@ -395,12 +395,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected internal abstract IDataProcedure CreateDataProcedureInternal(string commandText, ConnectionInfo connectionInfo);
         protected abstract IDbDataParameter CreateParameterInternal();
 
-        public static void CheckScript(string commandText)
-        {
-            Current.CheckScriptInternal(commandText);
-        }
-        protected internal abstract void CheckScriptInternal(string commandText);
-
         // ====================================================== Tools
 
         protected void ReadNodeTokens(DbDataReader reader, List<NodeToken> targetList)

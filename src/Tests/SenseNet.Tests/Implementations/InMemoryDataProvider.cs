@@ -449,11 +449,6 @@ namespace SenseNet.Tests.Implementations
 
         #region NOT IMPLEMENTED
 
-        protected internal override void CheckScriptInternal(string commandText)
-        {
-            throw new NotImplementedException();
-        }
-
         protected internal override void CommitChunk(int versionId, int propertyTypeId, string token, long fullSize, BinaryDataValue source = null)
         {
             throw new NotImplementedException();
