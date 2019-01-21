@@ -14,7 +14,7 @@ using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
-    public abstract class DataProvider : ITransactionFactory, IPackageStorageProvider
+    public abstract class DataProvider : ITransactionFactory
     {
         /// <summary>
         /// Returns the DataProvider instance that is a singleton
@@ -379,21 +379,27 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         // ====================================================== Custom database script support
 
+        //UNDONE: Delete static CreateDataProcedure
         public static IDataProcedure CreateDataProcedure(string commandText, string connectionName = null, InitialCatalog initialCatalog = InitialCatalog.Initial)
         {
             return Current.CreateDataProcedureInternal(commandText, connectionName, initialCatalog);
         }
+        //UNDONE: Delete static CreateDataProcedure
         public static IDataProcedure CreateDataProcedure(string commandText, ConnectionInfo connectionInfo)
         {
             return Current.CreateDataProcedureInternal(commandText, connectionInfo);
         }
+        //UNDONE: Delete static CreateParameter
         public static IDbDataParameter CreateParameter()
         {
             return Current.CreateParameterInternal();
         }
-        protected internal abstract IDataProcedure CreateDataProcedureInternal(string commandText, string connectionName = null, InitialCatalog initialCatalog = InitialCatalog.Initial);
-        protected internal abstract IDataProcedure CreateDataProcedureInternal(string commandText, ConnectionInfo connectionInfo);
-        protected abstract IDbDataParameter CreateParameterInternal();
+        //UNDONE: Rename to CreateDataProcedure after delete old static method
+        public abstract IDataProcedure CreateDataProcedureInternal(string commandText, string connectionName = null, InitialCatalog initialCatalog = InitialCatalog.Initial);
+        //UNDONE: Rename to CreateDataProcedure after delete old static method
+        public abstract IDataProcedure CreateDataProcedureInternal(string commandText, ConnectionInfo connectionInfo);
+        //UNDONE: Rename to CreateParameter after delete old static method
+        public abstract IDbDataParameter CreateParameterInternal();
 
         // ====================================================== Tools
 
@@ -550,19 +556,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected internal abstract IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name);
         protected internal abstract IEnumerable<int> QueryNodesByTypeAndPathAndProperty(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties);
         protected internal abstract IEnumerable<int> QueryNodesByReferenceAndType(string referenceName, int referredNodeId, int[] allowedTypeIds);
-
-        // ====================================================== Packaging: IPackageStorageProvider
-
-        public abstract IDataProcedureFactory DataProcedureFactory { get; set; }
-
-        public abstract IEnumerable<ComponentInfo> LoadInstalledComponents();
-        public abstract IEnumerable<Package> LoadInstalledPackages();
-        public abstract void SavePackage(Package package);
-        public abstract void UpdatePackage(Package package);
-        public abstract bool IsPackageExist(string componentId, PackageType packageType, Version version);
-        public abstract void DeletePackage(Package package);
-        public abstract void DeleteAllPackages();
-        public abstract void LoadManifest(Package package);
 
         // ====================================================== Tree lock
 

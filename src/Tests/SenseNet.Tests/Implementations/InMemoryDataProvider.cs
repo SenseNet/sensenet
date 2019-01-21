@@ -41,12 +41,6 @@ namespace SenseNet.Tests.Implementations
 
         public override string DatabaseName => throw new NotImplementedException();
 
-        public override IDataProcedureFactory DataProcedureFactory
-        {
-            get => throw new NotImplementedException();
-            set => throw new NotImplementedException();
-        }
-
         #endregion
 
         public override DateTime DateTimeMaxValue => DateTime.MaxValue;
@@ -80,20 +74,6 @@ namespace SenseNet.Tests.Implementations
                 _db.IndexingActivities.Clear();
             }
         }
-
-        #region NOT IMPLEMENTED
-
-        public override void DeleteAllPackages()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void DeletePackage(Package package)
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
 
         public override int GetLastIndexingActivityId()
         {
@@ -176,11 +156,6 @@ namespace SenseNet.Tests.Implementations
 
         #region NOT IMPLEMENTED
 
-        public override bool IsPackageExist(string componentId, PackageType packageType, Version version)
-        {
-            throw new NotImplementedException();
-        }
-
         public override IIndexingActivity[] LoadIndexingActivities(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
         {
             var result = new List<IIndexingActivity>();
@@ -214,25 +189,6 @@ namespace SenseNet.Tests.Implementations
             }
             return result.ToArray();
         }
-
-        #region NOT IMPLEMENTED
-
-        public override IEnumerable<ComponentInfo> LoadInstalledComponents()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IEnumerable<Package> LoadInstalledPackages()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void LoadManifest(Package package)
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
 
         public override void RegisterIndexingActivity(IIndexingActivity activity)
         {
@@ -379,20 +335,6 @@ namespace SenseNet.Tests.Implementations
             return new DateTime(d.Ticks / 100000 * 100000);
         }
 
-        #region NOT IMPLEMENTED
-
-        public override void SavePackage(Package package)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void UpdatePackage(Package package)
-        {
-            throw new NotImplementedException();
-        }
-        #endregion
-
-
         #region // ====================================================== Tree lock
 
         protected internal override int AcquireTreeLock(string path)
@@ -459,12 +401,12 @@ namespace SenseNet.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        protected internal override IDataProcedure CreateDataProcedureInternal(string commandText, ConnectionInfo connectionInfo)
+        public override IDataProcedure CreateDataProcedureInternal(string commandText, ConnectionInfo connectionInfo)
         {
             throw new NotImplementedException();
         }
 
-        protected internal override IDataProcedure CreateDataProcedureInternal(string commandText, string connectionName = null, InitialCatalog initialCatalog = 0)
+        public override IDataProcedure CreateDataProcedureInternal(string commandText, string connectionName = null, InitialCatalog initialCatalog = 0)
         {
             const string getContentPathsWhereTheyAreAllowedChildren = "-- GetContentPathsWhereTheyAreAllowedChildren: [";
             if (commandText.StartsWith(getContentPathsWhereTheyAreAllowedChildren))
@@ -496,7 +438,7 @@ namespace SenseNet.Tests.Implementations
             return new InMemoryNodeWriter(_db);
         }
 
-        protected override IDbDataParameter CreateParameterInternal()
+        public override IDbDataParameter CreateParameterInternal()
         {
             throw new NotImplementedException();
         }
