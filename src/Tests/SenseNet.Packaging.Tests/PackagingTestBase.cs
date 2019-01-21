@@ -7,6 +7,7 @@ using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
+using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Diagnostics;
 using SenseNet.Packaging.Tests.Implementations;
 using SenseNet.Tests;
@@ -24,7 +25,6 @@ namespace SenseNet.Packaging.Tests
         }
 
         protected static StringBuilder _log;
-        private IPackageStorageProviderFactory _packageStorageProviderFactoryBackup;
         [TestInitialize]
         public void PrepareTest()
         {
@@ -34,16 +34,16 @@ namespace SenseNet.Packaging.Tests
             var loggerAcc = new PrivateType(typeof(Logger));
             loggerAcc.SetStaticField("_loggers", loggers);
 
-            var storage = new TestPackageStorageProvider();
-            _packageStorageProviderFactoryBackup = PackageManager.StorageFactory;
-            PackageManager.StorageFactory = new TestPackageStorageProviderFactory(storage);
+            var builder = CreateRepositoryBuilderForTest();
+            builder.UsePackagingDataProvider(new TestPackageStorageProvider());
 
             RepositoryVersionInfo.Reset();
         }
         [TestCleanup]
         public void AfterTest()
         {
-            PackageManager.StorageFactory = _packageStorageProviderFactoryBackup;
+            //UNDONE: Delete this method
+            // do nothing
         }
 
         /*================================================= tools */

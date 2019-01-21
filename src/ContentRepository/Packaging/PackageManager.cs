@@ -17,10 +17,7 @@ namespace SenseNet.Packaging
     {
         public const string SANDBOXDIRECTORYNAME = "run";
 
-        internal static IPackageStorageProviderFactory StorageFactory { get; set; } =
-            new BuiltinPackageStorageProviderFactory();
-
-        internal static IPackageStorageProvider Storage => StorageFactory.CreateProvider();
+        internal static IPackagingDataProvider Storage => DataProvider.Instance<IPackagingDataProvider>();
 
         public static PackagingResult Execute(string packagePath, string targetPath, int currentPhase, string[] parameters, TextWriter console)
         {

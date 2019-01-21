@@ -1,17 +1,17 @@
-﻿using SenseNet.ContentRepository.Storage.Data;
+﻿//using SenseNet.ContentRepository.Storage.Data;
+//UNDONE: Delete this file
+//namespace SenseNet.Packaging
+//{
+//    internal interface IPackageStorageProviderFactory
+//    {
+//        IPackageStorageProvider CreateProvider();
+//    }
 
-namespace SenseNet.Packaging
-{
-    internal interface IPackageStorageProviderFactory
-    {
-        IPackageStorageProvider CreateProvider();
-    }
-
-    internal class BuiltinPackageStorageProviderFactory : IPackageStorageProviderFactory
-    {
-        public IPackageStorageProvider CreateProvider()
-        {
-            return DataProvider.Current;
-        }
-    }
-}
+//    internal class BuiltinPackageStorageProviderFactory : IPackageStorageProviderFactory
+//    {
+//        public IPackageStorageProvider CreateProvider()
+//        {
+//            return DataProvider.Current;
+//        }
+//    }
+//}
