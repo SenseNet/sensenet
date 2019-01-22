@@ -379,27 +379,9 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         // ====================================================== Custom database script support
 
-        //UNDONE: Delete static CreateDataProcedure
-        public static IDataProcedure CreateDataProcedure(string commandText, string connectionName = null, InitialCatalog initialCatalog = InitialCatalog.Initial)
-        {
-            return Current.CreateDataProcedureInternal(commandText, connectionName, initialCatalog);
-        }
-        //UNDONE: Delete static CreateDataProcedure
-        public static IDataProcedure CreateDataProcedure(string commandText, ConnectionInfo connectionInfo)
-        {
-            return Current.CreateDataProcedureInternal(commandText, connectionInfo);
-        }
-        //UNDONE: Delete static CreateParameter
-        public static IDbDataParameter CreateParameter()
-        {
-            return Current.CreateParameterInternal();
-        }
-        //UNDONE: Rename to CreateDataProcedure after delete old static method
-        public abstract IDataProcedure CreateDataProcedureInternal(string commandText, string connectionName = null, InitialCatalog initialCatalog = InitialCatalog.Initial);
-        //UNDONE: Rename to CreateDataProcedure after delete old static method
-        public abstract IDataProcedure CreateDataProcedureInternal(string commandText, ConnectionInfo connectionInfo);
-        //UNDONE: Rename to CreateParameter after delete old static method
-        public abstract IDbDataParameter CreateParameterInternal();
+        public abstract IDataProcedure CreateDataProcedure(string commandText, string connectionName = null, InitialCatalog initialCatalog = InitialCatalog.Initial);
+        public abstract IDataProcedure CreateDataProcedure(string commandText, ConnectionInfo connectionInfo);
+        public abstract IDbDataParameter CreateParameter();
 
         // ====================================================== Tools
 

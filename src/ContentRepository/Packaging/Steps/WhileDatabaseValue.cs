@@ -27,7 +27,7 @@ namespace SenseNet.Packaging.Steps
 
         internal static bool ExecuteSql(string script)
         {
-            using (var proc = DataProvider.CreateDataProcedure(script))
+            using (var proc = DataProvider.Instance().CreateDataProcedure(script))
             {
                 proc.CommandType = CommandType.Text;
                 object result;

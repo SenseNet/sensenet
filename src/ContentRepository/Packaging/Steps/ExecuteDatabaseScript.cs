@@ -144,7 +144,7 @@ namespace SenseNet.Packaging.Steps
 
         private IDataProcedure CreateDataProcedure(string script, ExecutionContext context)
         {
-            return DataProvider.CreateDataProcedure(script, new ConnectionInfo
+            return DataProvider.Instance().CreateDataProcedure(script, new ConnectionInfo
             {
                 ConnectionName = (string)context.ResolveVariable(ConnectionName),
                 DataSource = (string)context.ResolveVariable(DataSource),

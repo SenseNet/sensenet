@@ -401,12 +401,12 @@ namespace SenseNet.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        public override IDataProcedure CreateDataProcedureInternal(string commandText, ConnectionInfo connectionInfo)
+        public override IDataProcedure CreateDataProcedure(string commandText, ConnectionInfo connectionInfo)
         {
             throw new NotImplementedException();
         }
 
-        public override IDataProcedure CreateDataProcedureInternal(string commandText, string connectionName = null, InitialCatalog initialCatalog = 0)
+        public override IDataProcedure CreateDataProcedure(string commandText, string connectionName = null, InitialCatalog initialCatalog = 0)
         {
             const string getContentPathsWhereTheyAreAllowedChildren = "-- GetContentPathsWhereTheyAreAllowedChildren: [";
             if (commandText.StartsWith(getContentPathsWhereTheyAreAllowedChildren))
@@ -438,7 +438,7 @@ namespace SenseNet.Tests.Implementations
             return new InMemoryNodeWriter(_db);
         }
 
-        public override IDbDataParameter CreateParameterInternal()
+        public override IDbDataParameter CreateParameter()
         {
             throw new NotImplementedException();
         }

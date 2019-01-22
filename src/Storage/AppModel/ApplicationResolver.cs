@@ -150,7 +150,7 @@ namespace SenseNet.ContentRepository.Storage.AppModel
 
             var script = DataProvider.GetAppModelScript(paths, false, false);
 
-            using (var proc = DataProvider.CreateDataProcedure(script))
+            using (var proc = DataProvider.Instance().CreateDataProcedure(script))
             {
                 proc.CommandType = System.Data.CommandType.Text;
 
@@ -182,7 +182,7 @@ namespace SenseNet.ContentRepository.Storage.AppModel
             var pathIndexer = paths.ToList();
 
             List<NodeHead>[] resultSorter;
-            using (var proc = DataProvider.CreateDataProcedure(script))
+            using (var proc = DataProvider.Instance().CreateDataProcedure(script))
             {
                 proc.CommandType = System.Data.CommandType.Text;
 
