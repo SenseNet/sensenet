@@ -13,7 +13,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         }
     }
 
-    //UNDONE: Write to new file or rename.
     public interface IPackagingDataProvider : IDataProvider
     {
         IEnumerable<ComponentInfo> LoadInstalledComponents();

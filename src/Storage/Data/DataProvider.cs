@@ -55,7 +55,7 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         //////////////////////////////////////// Static Access ////////////////////////////////////////
 
-        //UNDONE: Refactor: Obsolete
+        //TODO: [Obsolete("Use Instance() method instead.")]
         public static DataProvider Current => Providers.Instance.DataProvider;
 
         // ====================================================== Query support

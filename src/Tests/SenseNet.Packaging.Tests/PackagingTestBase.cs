@@ -42,7 +42,6 @@ namespace SenseNet.Packaging.Tests
         [TestCleanup]
         public void AfterTest()
         {
-            //UNDONE: Delete this method
             // do nothing
         }
 

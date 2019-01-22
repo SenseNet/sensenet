@@ -165,7 +165,7 @@
     <Compile Include="Data\IDataProvider.cs" />
     <Compile Include="Data\IndexDocumentData.cs" />
     <Compile Include="Data\IndexIntegrityCheckerItem.cs" />
-    <Compile Include="Data\IPackageStorageProvider.cs" />
+    <Compile Include="Data\IPackagingDataProvider.cs" />
     <Compile Include="Data\QueryPropertyData.cs" />
     <Compile Include="Data\SnMaintenance.cs" />
     <Compile Include="Data\RepositoryPathTooLongException.cs" />
