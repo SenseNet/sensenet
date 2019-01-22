@@ -12,7 +12,7 @@ using SenseNet.Tests;
 
 namespace SenseNet.Packaging.Tests
 {
-    //UNDONE: Rewrite or delete these 10 tests
+    //TODO: Rewrite or delete these 10 tests
 
 //    [TestClass]
 //    public class PackagingStorageTests : TestBase
