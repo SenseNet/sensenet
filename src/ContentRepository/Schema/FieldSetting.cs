@@ -1593,7 +1593,7 @@ namespace SenseNet.ContentRepository.Schema
 
         protected string GetString(string resName)
         {
-            return HttpContext.GetGlobalResourceObject("FieldEditor", resName) as string;
+            return SR.GetString("FieldEditor", resName);
         }
 
         [IgnoreDataMember]

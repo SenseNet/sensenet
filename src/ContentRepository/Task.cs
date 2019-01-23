@@ -43,14 +43,14 @@ namespace SenseNet.ContentRepository
                 {
                     var dueDate = this.GetProperty<DateTime>("DueDate").Date;
 
-                    if (dueDate < DateTime.Today) return HttpContext.GetGlobalResourceObject("Portal", "DaysOverdue") as string;
+                    if (dueDate < DateTime.Today) return SR.GetString("Portal", "DaysOverdue");
                 }
                 catch (Exception ex)
                 {
                     SnLog.WriteException(ex);
                 }
 
-                return HttpContext.GetGlobalResourceObject("Portal", "DaysLeft") as string;
+                return SR.GetString("Portal", "DaysLeft");
             }
         }
 

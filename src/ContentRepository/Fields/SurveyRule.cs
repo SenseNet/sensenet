@@ -63,7 +63,7 @@ namespace SenseNet.ContentRepository.Fields
 
         public static string GetExtraValueText()
         {
-            return HttpContext.GetGlobalResourceObject("Survey", "ExtraValueText") as string;
+            return SR.GetString("Survey", "ExtraValueText");
         }
     }
 }

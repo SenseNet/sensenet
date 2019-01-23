@@ -191,7 +191,7 @@ namespace SenseNet.ContentRepository.Schema
             if (this._isNew && this.ContentList.FieldSettings.Any(fs => fs.Name.CompareTo(fsName) == 0))
             {
                 // field already exists with this name
-                throw new InvalidOperationException(HttpContext.GetGlobalResourceObject("FieldEditor", "FieldError_FieldExists") as string);
+                throw new InvalidOperationException(SR.GetString("FieldEditor", "FieldError_FieldExists"));
             }
 
             var ivm = Providers.Instance.GetProvider<IViewManager>("ViewManager");
