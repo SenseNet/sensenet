@@ -1,6 +1,9 @@
 ﻿namespace SenseNet.ContentRepository.Storage.Data
 {
-    public interface IDataProvider
+    /// <summary>
+    /// Defines a base interface for the DataProvider extensions
+    /// </summary>
+    public interface IDataProviderExtension
     {
         /// <summary>
         /// Gets or sets the backreference of the extension provider to the base data provider.

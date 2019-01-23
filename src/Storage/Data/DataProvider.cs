@@ -21,32 +21,30 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// instantiated by the sensenet's infrastructure at system startup
         /// based on the configuration.
         /// </summary>
-        public static DataProvider Instance()
-        {
-            return Providers.Instance.DataProvider;
-        }
+        public static DataProvider Instance => Providers.Instance.DataProvider;
+
         /// <summary>
         /// Returns the DataProvider extension instance by it's registered type.
         /// </summary>
         /// <typeparam name="T">The type that describes and identifies the extension instance.</typeparam>
-        public static T Instance<T>() where T : class, IDataProvider
+        public static T GetExtension<T>() where T : class, IDataProviderExtension
         {
-            return Providers.Instance.DataProvider.GetInstance<T>();
+            return Instance.GetExtensionInstance<T>();
         }
 
-        private readonly Dictionary<Type, IDataProvider> _dataProvidersByType = new Dictionary<Type, IDataProvider>();
+        private readonly Dictionary<Type, IDataProviderExtension> _dataProvidersByType = new Dictionary<Type, IDataProviderExtension>();
         /// <summary>
         /// Registers a DataProvider extension instance.
         /// </summary>
         /// <param name="providerType">The type that describes and identifies the extension instance.</param>
         /// <param name="provider">The provider instance that will be used in the whole appdomain's lifecycle.</param>
-        public virtual void SetProvider(Type providerType, IDataProvider provider)
+        public virtual void SetExtension(Type providerType, IDataProviderExtension provider)
         {
             _dataProvidersByType[providerType] = provider;
             provider.MetadataProvider = this;
         }
 
-        private T GetInstance<T>() where T : class, IDataProvider
+        private T GetExtensionInstance<T>() where T : class, IDataProviderExtension
         {
             if (_dataProvidersByType.TryGetValue(typeof(T), out var provider))
                 return provider as T;
@@ -56,7 +54,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         //////////////////////////////////////// Static Access ////////////////////////////////////////
 
         //TODO: [Obsolete("Use Instance() method instead.")]
-        public static DataProvider Current => Providers.Instance.DataProvider;
+        public static DataProvider Current => Instance;
 
         // ====================================================== Query support
 

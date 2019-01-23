@@ -21,7 +21,7 @@ namespace SenseNet.ContentRepository.Tests
             // ARRANGE
             var dp = new InMemoryTestingDataProvider();
             var builder = CreateRepositoryBuilderForTest();
-            builder.UseTestingDataProvider(dp);
+            builder.UseTestingDataProviderExtension(dp);
             dp.DB.LogEntries.AddRange(new[]
             {
                 new InMemoryDataProvider.LogEntriesRow{Title = "ContentUpdated",    LogDate = DateTime.UtcNow.AddDays(-2.1d)},
@@ -32,7 +32,7 @@ namespace SenseNet.ContentRepository.Tests
                 new InMemoryDataProvider.LogEntriesRow{Title = "PermissionChanged", LogDate = DateTime.UtcNow.AddDays(-0.1d)},
             });
 
-            var testingDataProvider = DataProvider.Instance<ITestingDataProvider>();
+            var testingDataProvider = DataProvider.GetExtension<ITestingDataProviderExtension>();
             testingDataProvider.InitializeForTests();
 
             // ACTION
@@ -46,11 +46,11 @@ namespace SenseNet.ContentRepository.Tests
         public void DataProviderExtension__CallingNotInterfaceMethod()
         {
             var builder = CreateRepositoryBuilderForTest();
-            builder.UseTestingDataProvider(new InMemoryTestingDataProvider());
+            builder.UseTestingDataProviderExtension(new InMemoryTestingDataProvider());
 
             // ACTION
             // Call a not interface method
-            var actual = ((InMemoryTestingDataProvider)DataProvider.Instance<ITestingDataProvider>())
+            var actual = ((InMemoryTestingDataProvider)DataProvider.GetExtension<ITestingDataProviderExtension>())
                 .TestMethodThatIsNotInterfaceMember("asdf");
 
             // ASSERT

@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace SenseNet.Packaging.Tests.Implementations
 {
-    public class TestPackageStorageProvider : IPackagingDataProvider
+    public class TestPackageStorageProvider : IPackagingDataProviderExtension
     {
         public DataProvider MetadataProvider { get; set; }
 

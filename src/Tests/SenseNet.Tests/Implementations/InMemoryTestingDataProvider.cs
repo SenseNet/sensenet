@@ -8,7 +8,7 @@ using SenseNet.Diagnostics;
 
 namespace SenseNet.Tests.Implementations
 {
-    public class InMemoryTestingDataProvider : ITestingDataProvider
+    public class InMemoryTestingDataProvider : ITestingDataProviderExtension
     {
         public DataProvider MetadataProvider { get; set; }
 

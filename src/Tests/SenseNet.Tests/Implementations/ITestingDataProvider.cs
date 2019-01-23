@@ -8,7 +8,7 @@ using SenseNet.Diagnostics;
 
 namespace SenseNet.Tests.Implementations
 {
-    public interface ITestingDataProvider : IDataProvider
+    public interface ITestingDataProviderExtension : IDataProviderExtension
     {
         void InitializeForTests();
         string GetSecurityControlStringForTests();

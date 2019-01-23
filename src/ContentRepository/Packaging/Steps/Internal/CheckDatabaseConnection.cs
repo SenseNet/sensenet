@@ -76,7 +76,7 @@ END
         }
         private IDataProcedure CreateDataProcedure(string script, ExecutionContext context)
         {
-            return DataProvider.Instance().CreateDataProcedure(script, new ConnectionInfo
+            return DataProvider.Instance.CreateDataProcedure(script, new ConnectionInfo
             {
                 ConnectionName = null,
                 DataSource = (string)context.ResolveVariable(DataSource),

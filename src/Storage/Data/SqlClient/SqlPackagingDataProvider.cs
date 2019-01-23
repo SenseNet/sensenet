@@ -10,7 +10,7 @@ using Newtonsoft.Json;
 
 namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 {
-    public class SqlPackagingDataProvider : IPackagingDataProvider
+    public class SqlPackagingDataProvider : IPackagingDataProviderExtension
     {
         public DataProvider MetadataProvider { get; set; }
 

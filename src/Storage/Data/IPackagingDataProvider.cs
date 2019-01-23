@@ -6,14 +6,14 @@ namespace SenseNet.ContentRepository.Storage.Data
 {
     public static class Extensions
     {
-        public static IRepositoryBuilder UsePackagingDataProvider(this IRepositoryBuilder builder, IPackagingDataProvider provider)
+        public static IRepositoryBuilder UsePackagingDataProviderExtension(this IRepositoryBuilder builder, IPackagingDataProviderExtension provider)
         {
-            DataProvider.Instance().SetProvider(typeof(IPackagingDataProvider), provider);
+            DataProvider.Instance.SetExtension(typeof(IPackagingDataProviderExtension), provider);
             return builder;
         }
     }
 
-    public interface IPackagingDataProvider : IDataProvider
+    public interface IPackagingDataProviderExtension : IDataProviderExtension
     {
         IEnumerable<ComponentInfo> LoadInstalledComponents();
         IEnumerable<Package> LoadInstalledPackages();
