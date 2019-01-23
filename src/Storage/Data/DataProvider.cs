@@ -29,7 +29,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         /// Returns the DataProvider extension instance by it's registered type.
         /// </summary>
         /// <typeparam name="T">The type that describes and identifies the extension instance.</typeparam>
-        public static T Instance<T>() where T : class
+        public static T Instance<T>() where T : class, IDataProvider
         {
             return Providers.Instance.DataProvider.GetInstance<T>();
         }
@@ -46,7 +46,7 @@ namespace SenseNet.ContentRepository.Storage.Data
             provider.MetadataProvider = this;
         }
 
-        private T GetInstance<T>() where T : class
+        private T GetInstance<T>() where T : class, IDataProvider
         {
             if (_dataProvidersByType.TryGetValue(typeof(T), out var provider))
                 return provider as T;
