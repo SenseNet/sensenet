@@ -279,6 +279,16 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
                 return result;
             }
         }
+
+        /// <summary>
+        /// Returns a new SqlParameter instance.
+        /// </summary>
+        /// <returns></returns>
+        public IDataParameter CreateParameter()
+        {
+            return new SqlParameter();
+        }
+
         /// <summary>
         /// An asynchronous version of ExecuteNonQuery that executes a Transact-SQL statement 
         /// against the connection and returns the number of rows affected.

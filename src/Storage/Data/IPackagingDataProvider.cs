@@ -4,7 +4,7 @@ using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
-    public static class Extensions
+    public static class PackagingDataProviderExtensions
     {
         public static IRepositoryBuilder UsePackagingDataProviderExtension(this IRepositoryBuilder builder, IPackagingDataProviderExtension provider)
         {

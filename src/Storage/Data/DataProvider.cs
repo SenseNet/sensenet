@@ -382,7 +382,6 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         public abstract IDataProcedure CreateDataProcedure(string commandText, string connectionName = null, InitialCatalog initialCatalog = InitialCatalog.Initial);
         public abstract IDataProcedure CreateDataProcedure(string commandText, ConnectionInfo connectionInfo);
-        public abstract IDbDataParameter CreateParameter();
 
         // ====================================================== Tools
 

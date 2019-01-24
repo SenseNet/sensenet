@@ -406,6 +406,7 @@ namespace SenseNet.Tests.Implementations
             throw new NotImplementedException();
         }
 
+        public static readonly string MagicCommandText = "Select something from anywhere";
         public override IDataProcedure CreateDataProcedure(string commandText, string connectionName = null, InitialCatalog initialCatalog = 0)
         {
             const string getContentPathsWhereTheyAreAllowedChildren = "-- GetContentPathsWhereTheyAreAllowedChildren: [";
@@ -430,17 +431,18 @@ namespace SenseNet.Tests.Implementations
                     return versionsAndValues;
                 });
             }
+
+            if (commandText == MagicCommandText)
+            {
+                return new InMemoryDataProcedure<string>(() => new string[0]);
+            }
+
             throw new SnNotSupportedException();
         }
 
         protected internal override INodeWriter CreateNodeWriter()
         {
             return new InMemoryNodeWriter(_db);
-        }
-
-        public override IDbDataParameter CreateParameter()
-        {
-            throw new NotImplementedException();
         }
 
         protected internal override SchemaWriter CreateSchemaWriter()
@@ -2187,12 +2189,37 @@ namespace SenseNet.Tests.Implementations
             {
                 throw new NotImplementedException();
             }
+
+            public IDataParameter CreateParameter()
+            {
+                return new InMemoryDbParameter();
+            }
         }
-        private class InMemoryDbParameterCollection : DbParameterCollection
+        public class InMemoryDbParameter : DbParameter
         {
-            public override int Add(object value)
+            public override void ResetDbType()
             {
                 throw new NotImplementedException();
+            }
+
+            public override DbType DbType { get; set; }
+            public override ParameterDirection Direction { get; set; }
+            public override bool IsNullable { get; set; }
+            public override string ParameterName { get; set; }
+            public override string SourceColumn { get; set; }
+            public override object Value { get; set; }
+            public override bool SourceColumnNullMapping { get; set; }
+            public override int Size { get; set; }
+        }
+
+        private class InMemoryDbParameterCollection : DbParameterCollection
+        {
+            private readonly List<InMemoryDbParameter> _parameters = new List<InMemoryDbParameter>();
+
+            public override int Add(object value)
+            {
+                _parameters.Add((InMemoryDbParameter)value);
+                return _parameters.Count - 1;
             }
             public override bool Contains(object value)
             {
@@ -2230,7 +2257,8 @@ namespace SenseNet.Tests.Implementations
             {
                 throw new NotImplementedException();
             }
-            public override int Count { get; }
+
+            public override int Count => _parameters.Count;
             public override object SyncRoot { get; }
             public override int IndexOf(string parameterName)
             {
@@ -2242,11 +2270,11 @@ namespace SenseNet.Tests.Implementations
             }
             protected override DbParameter GetParameter(int index)
             {
-                throw new NotImplementedException();
+                return _parameters[index];
             }
             protected override DbParameter GetParameter(string parameterName)
             {
-                throw new NotImplementedException();
+                return _parameters.First(p => p.ParameterName == parameterName);
             }
             public override bool Contains(string value)
             {

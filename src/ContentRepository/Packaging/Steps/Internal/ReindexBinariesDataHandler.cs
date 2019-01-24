@@ -33,12 +33,11 @@ namespace SenseNet.Packaging.Steps.Internal
                 var result = new List<int>();
 
                 // proc AssignTasks(@AssignedTaskCount int, @TimeOutInMinutes int)
-                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.AssignTasks))
+                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.AssignTasks)
+                    .AddParameter("@AssignedTaskCount", taskCount)
+                    .AddParameter("@TimeOutInMinutes", timeoutInMinutes))
                 {
                     cmd.CommandType = CommandType.Text;
-                    cmd.Parameters.Add(CreateParameter("@AssignedTaskCount", taskCount, DbType.Int32));
-                    cmd.Parameters.Add(CreateParameter("@TimeOutInMinutes", timeoutInMinutes, DbType.Int32));
-
                     using (var reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
@@ -56,24 +55,12 @@ namespace SenseNet.Packaging.Steps.Internal
             internal static void FinishTask(int versionId)
             {
                 // proc FinishTask(@VersionId int)
-                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.FinishTask))
+                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.FinishTask)
+                    .AddParameter("@VersionId", versionId))
                 {
                     cmd.CommandType = CommandType.Text;
-                    cmd.Parameters.Add(CreateParameter("@VersionId", versionId, DbType.Int32));
-
                     cmd.ExecuteNonQuery();
                 }
-            }
-
-            /* ========================================================================================= */
-
-            private static IDbDataParameter CreateParameter(string name, object value, DbType dbType)
-            {
-                var prm = DataProvider.Instance.CreateParameter();
-                prm.ParameterName = name;
-                prm.DbType = dbType;
-                prm.Value = value;
-                return prm;
             }
 
             /* ========================================================================================= */
@@ -81,12 +68,11 @@ namespace SenseNet.Packaging.Steps.Internal
             public static void CreateTempTask(int versionId, int rank)
             {
                 // proc CreateTempTask(@VersionId int, @Rank int)
-                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.CreateTempTask))
+                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.CreateTempTask)
+                    .AddParameter("@VersionId", versionId)
+                    .AddParameter("@Rank", rank))
                 {
                     cmd.CommandType = CommandType.Text;
-                    cmd.Parameters.Add(CreateParameter("@VersionId", versionId, DbType.Int32));
-                    cmd.Parameters.Add(CreateParameter("@Rank", rank, DbType.Int32));
-
                     cmd.ExecuteNonQuery();
                 }
             }
