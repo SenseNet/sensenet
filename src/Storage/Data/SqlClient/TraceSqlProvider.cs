@@ -299,55 +299,15 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             WriteLog(MethodBase.GetCurrentMethod(), versionId, propertyTypeId, token, fullSize, source);
             base.CommitChunk(versionId, propertyTypeId, token, fullSize, source);
         }
-        public override void DeletePackage(Package package)
-        {
-            WriteLog(MethodBase.GetCurrentMethod(), package);
-            base.DeletePackage(package);
-        }
-        public override void DeleteAllPackages()
-        {
-            WriteLog(MethodBase.GetCurrentMethod());
-            base.DeleteAllPackages();
-        }
-        protected override void InitializeForTestsPrivate()
-        {
-            WriteLog(MethodBase.GetCurrentMethod());
-            base.InitializeForTestsPrivate();
-        }
         protected internal override bool IsFilestreamEnabled()
         {
             WriteLog(MethodBase.GetCurrentMethod());
             return base.IsFilestreamEnabled();
         }
-        public override bool IsPackageExist(string componentId, PackageType packageType, Version version)
-        {
-            WriteLog(MethodBase.GetCurrentMethod(), componentId, packageType, version);
-            return base.IsPackageExist(componentId, packageType, version);
-        }
-        public override IEnumerable<ComponentInfo> LoadInstalledComponents()
-        {
-            WriteLog(MethodBase.GetCurrentMethod());
-            return base.LoadInstalledComponents();
-        }
-        public override IEnumerable<Package> LoadInstalledPackages()
-        {
-            WriteLog(MethodBase.GetCurrentMethod());
-            return base.LoadInstalledPackages();
-        }
-        public override void SavePackage(Package package)
-        {
-            WriteLog(MethodBase.GetCurrentMethod(), package);
-            base.SavePackage(package);
-        }
         protected internal override string StartChunk(int versionId, int propertyTypeId, long fullSize)
         {
             WriteLog(MethodBase.GetCurrentMethod(), versionId, propertyTypeId);
             return base.StartChunk(versionId, propertyTypeId, fullSize);
-        }
-        public override void UpdatePackage(Package package)
-        {
-            WriteLog(MethodBase.GetCurrentMethod(), package);
-            base.UpdatePackage(package);
         }
         protected internal override void WriteChunk(int versionId, string token, byte[] buffer, long offset, long fullSize)
         {

@@ -17,11 +17,14 @@
     <PackageIconUrl>https://raw.githubusercontent.com/SenseNet/sn-resources/master/images/sn-icon/sensenet-icon-64.png</PackageIconUrl>
     <PackageProjectUrl>https://github.com/SenseNet/sensenet</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/SenseNet/sensenet/blob/master/LICENSE</PackageLicenseUrl>
+    <AssemblyVersion>7.2.0.0</AssemblyVersion>
+    <RepositoryUrl>https://github.com/SenseNet/sensenet.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-    <PackageReference Include="SenseNet.Tools" Version="3.0.0" />
+    <PackageReference Include="SenseNet.Tools" Version="3.1.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.5.1" />
   </ItemGroup>
 

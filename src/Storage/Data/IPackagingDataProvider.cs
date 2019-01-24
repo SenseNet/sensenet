@@ -1,17 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
-    public interface IDataProcedureFactory
+    public static class PackagingDataProviderExtensions
     {
-        IDataProcedure CreateProcedure();
+        public static IRepositoryBuilder UsePackagingDataProviderExtension(this IRepositoryBuilder builder, IPackagingDataProviderExtension provider)
+        {
+            DataProvider.Instance.SetExtension(typeof(IPackagingDataProviderExtension), provider);
+            return builder;
+        }
     }
 
-    public interface IPackageStorageProvider
+    public interface IPackagingDataProviderExtension : IDataProviderExtension
     {
-        IDataProcedureFactory DataProcedureFactory { get; set; }
-
         IEnumerable<ComponentInfo> LoadInstalledComponents();
         IEnumerable<Package> LoadInstalledPackages();
         void SavePackage(Package package);
