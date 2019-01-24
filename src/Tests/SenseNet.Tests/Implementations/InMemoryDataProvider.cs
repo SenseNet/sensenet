@@ -41,12 +41,6 @@ namespace SenseNet.Tests.Implementations
 
         public override string DatabaseName => throw new NotImplementedException();
 
-        public override IDataProcedureFactory DataProcedureFactory
-        {
-            get => throw new NotImplementedException();
-            set => throw new NotImplementedException();
-        }
-
         #endregion
 
         public override DateTime DateTimeMaxValue => DateTime.MaxValue;
@@ -80,20 +74,6 @@ namespace SenseNet.Tests.Implementations
                 _db.IndexingActivities.Clear();
             }
         }
-
-        #region NOT IMPLEMENTED
-
-        public override void DeleteAllPackages()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void DeletePackage(Package package)
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
 
         public override int GetLastIndexingActivityId()
         {
@@ -176,11 +156,6 @@ namespace SenseNet.Tests.Implementations
 
         #region NOT IMPLEMENTED
 
-        public override bool IsPackageExist(string componentId, PackageType packageType, Version version)
-        {
-            throw new NotImplementedException();
-        }
-
         public override IIndexingActivity[] LoadIndexingActivities(int[] gaps, bool executingUnprocessedActivities, IIndexingActivityFactory activityFactory)
         {
             var result = new List<IIndexingActivity>();
@@ -214,25 +189,6 @@ namespace SenseNet.Tests.Implementations
             }
             return result.ToArray();
         }
-
-        #region NOT IMPLEMENTED
-
-        public override IEnumerable<ComponentInfo> LoadInstalledComponents()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IEnumerable<Package> LoadInstalledPackages()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void LoadManifest(Package package)
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
 
         public override void RegisterIndexingActivity(IIndexingActivity activity)
         {
@@ -379,20 +335,6 @@ namespace SenseNet.Tests.Implementations
             return new DateTime(d.Ticks / 100000 * 100000);
         }
 
-        #region NOT IMPLEMENTED
-
-        public override void SavePackage(Package package)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void UpdatePackage(Package package)
-        {
-            throw new NotImplementedException();
-        }
-        #endregion
-
-
         #region // ====================================================== Tree lock
 
         protected internal override int AcquireTreeLock(string path)
@@ -449,11 +391,6 @@ namespace SenseNet.Tests.Implementations
 
         #region NOT IMPLEMENTED
 
-        protected internal override void CheckScriptInternal(string commandText)
-        {
-            throw new NotImplementedException();
-        }
-
         protected internal override void CommitChunk(int versionId, int propertyTypeId, string token, long fullSize, BinaryDataValue source = null)
         {
             throw new NotImplementedException();
@@ -464,12 +401,13 @@ namespace SenseNet.Tests.Implementations
             throw new NotImplementedException();
         }
 
-        protected internal override IDataProcedure CreateDataProcedureInternal(string commandText, ConnectionInfo connectionInfo)
+        public override IDataProcedure CreateDataProcedure(string commandText, ConnectionInfo connectionInfo)
         {
             throw new NotImplementedException();
         }
 
-        protected internal override IDataProcedure CreateDataProcedureInternal(string commandText, string connectionName = null, InitialCatalog initialCatalog = 0)
+        public static readonly string MagicCommandText = "Select something from anywhere";
+        public override IDataProcedure CreateDataProcedure(string commandText, string connectionName = null, InitialCatalog initialCatalog = 0)
         {
             const string getContentPathsWhereTheyAreAllowedChildren = "-- GetContentPathsWhereTheyAreAllowedChildren: [";
             if (commandText.StartsWith(getContentPathsWhereTheyAreAllowedChildren))
@@ -493,17 +431,18 @@ namespace SenseNet.Tests.Implementations
                     return versionsAndValues;
                 });
             }
+
+            if (commandText == MagicCommandText)
+            {
+                return new InMemoryDataProcedure<string>(() => new string[0]);
+            }
+
             throw new SnNotSupportedException();
         }
 
         protected internal override INodeWriter CreateNodeWriter()
         {
             return new InMemoryNodeWriter(_db);
-        }
-
-        protected override IDbDataParameter CreateParameterInternal()
-        {
-            throw new NotImplementedException();
         }
 
         protected internal override SchemaWriter CreateSchemaWriter()
@@ -633,18 +572,7 @@ namespace SenseNet.Tests.Implementations
         }
 
         #region NOT IMPLEMENTED
-
-        protected override int GetPermissionLogEntriesCountAfterMomentInternal(DateTime moment)
-        {
-            throw new NotImplementedException();
-        }
-
         protected override PropertyMapping GetPropertyMappingInternal(PropertyType propType)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override string GetSecurityControlStringForTestsInternal()
         {
             throw new NotImplementedException();
         }
@@ -669,11 +597,6 @@ namespace SenseNet.Tests.Implementations
         #region NOT IMPLEMENTED
 
         protected internal override bool HasChild(int nodeId)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override void InitializeForTestsPrivate()
         {
             throw new NotImplementedException();
         }
@@ -1193,24 +1116,32 @@ namespace SenseNet.Tests.Implementations
 
         private static void SetLastVersionSlots(Database db, int nodeId, out int lastMajorVersionId, out int lastMinorVersionId, out long nodeTimeStamp)
         {
+            var innerLastMinorVersionId = 0;
+            var innerLastMajorVersionId = 0;
+            var innerNodeTimeStamp = 0L;
             // proc_Node_SetLastVersion
+            Retrier.Retry(3, 1, typeof(InvalidOperationException), () =>
+            {
+                var nodeRow = db.Nodes.First(n => n.NodeId == nodeId);
+                innerLastMinorVersionId = db.Versions
+                    .Where(v => v.NodeId == nodeId)
+                    .OrderByDescending(v => v.Version)
+                    .First()
+                    .VersionId;
+                nodeRow.LastMinorVersionId = innerLastMinorVersionId;
 
-            var nodeRow = db.Nodes.First(n => n.NodeId == nodeId);
-            lastMinorVersionId = db.Versions
-                .Where(v => v.NodeId == nodeId)
-                .OrderByDescending(v => v.Version)
-                .First()
-                .VersionId;
-            nodeRow.LastMinorVersionId = lastMinorVersionId;
+                innerLastMajorVersionId = db.Versions
+                                         .Where(v => v.NodeId == nodeId && v.Version.Status == VersionStatus.Approved)
+                                         .OrderByDescending(v => v.Version)
+                                         .FirstOrDefault()?
+                                         .VersionId ?? 0;
+                nodeRow.LastMajorVersionId = innerLastMajorVersionId;
 
-            lastMajorVersionId = db.Versions
-                                     .Where(v => v.NodeId == nodeId && v.Version.Status == VersionStatus.Approved)
-                                     .OrderByDescending(v => v.Version)
-                                     .FirstOrDefault()?
-                                     .VersionId ?? 0;
-            nodeRow.LastMajorVersionId = lastMajorVersionId;
-
-            nodeTimeStamp = nodeRow.NodeTimestamp;
+                innerNodeTimeStamp = nodeRow.NodeTimestamp;
+            });
+            lastMajorVersionId = innerLastMajorVersionId;
+            lastMinorVersionId = innerLastMinorVersionId;
+            nodeTimeStamp = innerNodeTimeStamp;
         }
 
         public override void WriteAuditEvent(AuditEventInfo auditEvent)
@@ -2234,10 +2165,6 @@ namespace SenseNet.Tests.Implementations
             public CommandType CommandType { get; set; }
             public string CommandText { get; set; }
             public DbParameterCollection Parameters { get; } = new InMemoryDbParameterCollection();
-            public void DeriveParameters()
-            {
-                throw new NotImplementedException();
-            }
 
             public DbDataReader ExecuteReader()
             {
@@ -2258,12 +2185,37 @@ namespace SenseNet.Tests.Implementations
             {
                 throw new NotImplementedException();
             }
+
+            public IDataParameter CreateParameter()
+            {
+                return new InMemoryDbParameter();
+            }
         }
-        private class InMemoryDbParameterCollection : DbParameterCollection
+        public class InMemoryDbParameter : DbParameter
         {
-            public override int Add(object value)
+            public override void ResetDbType()
             {
                 throw new NotImplementedException();
+            }
+
+            public override DbType DbType { get; set; }
+            public override ParameterDirection Direction { get; set; }
+            public override bool IsNullable { get; set; }
+            public override string ParameterName { get; set; }
+            public override string SourceColumn { get; set; }
+            public override object Value { get; set; }
+            public override bool SourceColumnNullMapping { get; set; }
+            public override int Size { get; set; }
+        }
+
+        private class InMemoryDbParameterCollection : DbParameterCollection
+        {
+            private readonly List<InMemoryDbParameter> _parameters = new List<InMemoryDbParameter>();
+
+            public override int Add(object value)
+            {
+                _parameters.Add((InMemoryDbParameter)value);
+                return _parameters.Count - 1;
             }
             public override bool Contains(object value)
             {
@@ -2301,7 +2253,8 @@ namespace SenseNet.Tests.Implementations
             {
                 throw new NotImplementedException();
             }
-            public override int Count { get; }
+
+            public override int Count => _parameters.Count;
             public override object SyncRoot { get; }
             public override int IndexOf(string parameterName)
             {
@@ -2313,11 +2266,11 @@ namespace SenseNet.Tests.Implementations
             }
             protected override DbParameter GetParameter(int index)
             {
-                throw new NotImplementedException();
+                return _parameters[index];
             }
             protected override DbParameter GetParameter(string parameterName)
             {
-                throw new NotImplementedException();
+                return _parameters.First(p => p.ParameterName == parameterName);
             }
             public override bool Contains(string value)
             {
