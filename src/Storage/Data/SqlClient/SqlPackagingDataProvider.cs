@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace SenseNet.ContentRepository.Storage.Data.SqlClient
@@ -162,8 +159,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
             }
             return count > 0;
         }
-
-
+        
         public void DeletePackage(Package package)
         {
             if (package.Id < 1)

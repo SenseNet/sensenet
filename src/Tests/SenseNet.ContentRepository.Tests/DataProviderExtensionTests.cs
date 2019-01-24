@@ -1,15 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.Tests;
 using SenseNet.Tests.Implementations;
-using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Tests
 {
@@ -72,7 +66,7 @@ namespace SenseNet.ContentRepository.Tests
             // ASSERT
             Assert.AreEqual(1, proc.Parameters.Count);
             var paramByIndex = proc.Parameters[0];
-            var paramByName = proc.Parameters[0];
+            var paramByName = proc.Parameters[paramName];
             Assert.AreSame(paramByName, paramByIndex);
         }
 

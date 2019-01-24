@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Data.Common;
 using System.Data;
 
@@ -26,7 +23,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         DbParameterCollection Parameters { get; }
 
         /// <summary>
-        /// Not implemented yet. Maybe it will never be finished.
+        /// Not implemented yet.
         /// </summary>
         void DeriveParameters();
 

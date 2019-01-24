@@ -8,9 +8,7 @@ using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
-using SenseNet.Search;
 using SenseNet.Search.Querying;
-using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
@@ -18,7 +16,7 @@ namespace SenseNet.ContentRepository.Storage.Data
     {
         /// <summary>
         /// Returns the DataProvider instance that is a singleton
-        /// instantiated by the sensenet's infrastructure at system startup
+        /// instantiated by the sensenet infrastructure at system startup
         /// based on the configuration.
         /// </summary>
         public static DataProvider Instance => Providers.Instance.DataProvider;

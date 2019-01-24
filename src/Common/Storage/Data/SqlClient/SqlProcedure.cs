@@ -283,7 +283,6 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         /// <summary>
         /// Returns a new SqlParameter instance.
         /// </summary>
-        /// <returns></returns>
         public IDataParameter CreateParameter()
         {
             return new SqlParameter();
