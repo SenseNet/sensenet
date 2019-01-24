@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>7.3.2</Version>
+    <Version>7.3.2.1</Version>
     <Authors>kavics,tusmester</Authors>
     <Company>Sense/Net Inc.</Company>
     <Copyright>Copyright © Sense/Net Inc.</Copyright>
@@ -14,7 +14,7 @@
     <PackageTags>sensenet blob storage</PackageTags>
     <PackageReleaseNotes>See release notes on GitHub.</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>7.3.2.0</AssemblyVersion>
+    <AssemblyVersion>7.3.2.1</AssemblyVersion>
     <Product>sensenet BlobStorage</Product>
     <Description>Binary data storage for the sensenet platform.</Description>
   </PropertyGroup>
