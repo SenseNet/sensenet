@@ -62,19 +62,22 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         //////////////////////////////////////// For tests ////////////////////////////////////////
 
-        [Obsolete("This method is not supported anymore. Use the following call instead: " +
-                  "DataProvider.Instance<ITestingDataProvider>().GetSecurityControlStringForTests();", true)]
+        private const string ObsoleteMessage1 =
+            "This method is not supported anymore. Use the following call instead: " +
+            "DataProvider.GetExtension<ITestingDataProviderExtension>().GetSecurityControlStringForTests()";
+        [Obsolete(ObsoleteMessage1, true)]
         public static string GetSecurityControlStringForTests()
         {
-            throw new SnNotSupportedException("This method is not supported anymore. Use the following call instead: " +
-                "DataProvider.Instance<ITestingDataProvider>().GetSecurityControlStringForTests();");
+            throw new SnNotSupportedException(ObsoleteMessage1);
         }
-        [Obsolete("This method is not supported anymore. Use the following call instead: " +
-                  "DataProvider.Instance<ITestingDataProvider>().GetPermissionLogEntriesCountAfterMoment();", true)]
+
+        private const string ObsoleteMessage2 =
+            "This method is not supported anymore. Use the following call instead: " +
+            "DataProvider.GetExtension<ITestingDataProviderExtension>().GetPermissionLogEntriesCountAfterMoment();";
+        [Obsolete(ObsoleteMessage2, true)]
         public static int GetPermissionLogEntriesCountAfterMoment(DateTime moment)
         {
-            throw new SnNotSupportedException("This method is not supported anymore. Use the following call instead: " +
-                "DataProvider.Instance<ITestingDataProvider>().GetPermissionLogEntriesCountAfterMoment();");
+            throw new SnNotSupportedException(ObsoleteMessage2);
         }
 
         public abstract AuditLogEntry[] LoadLastAuditLogEntries(int count);
