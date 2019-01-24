@@ -23,11 +23,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         DbParameterCollection Parameters { get; }
 
         /// <summary>
-        /// Not implemented yet.
-        /// </summary>
-        void DeriveParameters();
-
-        /// <summary>
         /// Executes the CommandText and builds an IDataReader.
         /// </summary>
         DbDataReader ExecuteReader();

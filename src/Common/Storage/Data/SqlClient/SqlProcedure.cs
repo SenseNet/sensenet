@@ -178,15 +178,6 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         }
 
         /// <summary>
-        /// Retrieves parameter information from the stored procedure specified in the command 
-        /// and populates the Parameters collection.
-        /// </summary>
-        public void DeriveParameters()
-        {
-            StartConnection();
-            SqlCommandBuilder.DeriveParameters(_cmd);
-        }
-        /// <summary>
         /// Sends the CommandText to the connection and builds a SqlDataReader.
         /// </summary>
         public virtual SqlDataReader ExecuteReader()
@@ -373,11 +364,6 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             get { return this.Parameters; }
         }
 
-
-        void IDataProcedure.DeriveParameters()
-        {
-            DeriveParameters();
-        }
         System.Data.Common.DbDataReader IDataProcedure.ExecuteReader()
         {
             return ExecuteReader();

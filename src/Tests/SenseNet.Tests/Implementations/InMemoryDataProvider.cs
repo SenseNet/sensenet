@@ -2165,10 +2165,6 @@ namespace SenseNet.Tests.Implementations
             public CommandType CommandType { get; set; }
             public string CommandText { get; set; }
             public DbParameterCollection Parameters { get; } = new InMemoryDbParameterCollection();
-            public void DeriveParameters()
-            {
-                throw new NotImplementedException();
-            }
 
             public DbDataReader ExecuteReader()
             {
