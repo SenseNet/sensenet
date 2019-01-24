@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Hosting;
+using SenseNet.ApplicationModel;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using File = SenseNet.ContentRepository.File;
@@ -94,6 +95,16 @@ namespace SenseNet.Services
         private static string GetVirtualPath(string physicalPath)
         {
             return physicalPath.Replace(HostingEnvironment.ApplicationPhysicalPath, HostingEnvironment.ApplicationVirtualPath).Replace(@"\", "/");
+        }
+
+        // ========================================================================== Extension methods
+        public static HttpCacheability? GetCacheControlEnumValue(this Application application)
+        {
+            var strprop = application?.CacheControl;
+            if (string.IsNullOrEmpty(strprop) || strprop == "Nondefined")
+                return null;
+
+            return (HttpCacheability)Enum.Parse(typeof(HttpCacheability), strprop, true);
         }
     }
 }
