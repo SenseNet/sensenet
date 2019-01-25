@@ -369,18 +369,6 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         protected internal abstract void InstallDefaultSecurityStructure();
 
-        // ====================================================== AccessToken support
-
-        public abstract void DeleteAllAccessTokens();
-        public abstract void SaveAccessToken(AccessToken token);
-        public abstract AccessToken LoadAccessTokenById(int accessTokenId);
-        public abstract AccessToken LoadAccessToken(string tokenValue, int contentId, string feature);
-        public abstract AccessToken[] LoadAccessTokens(int userId);
-        public abstract void UpdateAccessToken(string tokenValue, DateTime newExpirationDate);
-        public abstract void DeleteAccessToken(string tokenValue);
-        public abstract void DeleteAccessTokensByUser(int userId);
-        public abstract void DeleteAccessTokensByContent(int contentId);
-
         // ====================================================== AppModel script generator
 
         public static string GetAppModelScript(IEnumerable<string> paths, bool resolveAll, bool resolveChildren)

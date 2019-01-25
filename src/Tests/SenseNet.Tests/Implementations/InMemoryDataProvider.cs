@@ -608,105 +608,7 @@ namespace SenseNet.Tests.Implementations
         }
 
         #endregion
-
-        public override void DeleteAllAccessTokens()
-        {
-            _db.AccessTokens.Clear();
-        }
-        public override void SaveAccessToken(AccessToken token)
-        {
-            AccessTokenRow existing = null;
-            if (token.Id != 0)
-                existing = _db.AccessTokens.FirstOrDefault(x => x.AccessTokenRowId == token.Id);
-
-            if (existing != null)
-            {
-                existing.ExpirationDate = token.ExpirationDate;
-                return;
-            }
-
-            var newAccessTokenRowId = _db.AccessTokens.Count == 0 ? 1 : _db.AccessTokens.Max(t => t.AccessTokenRowId) + 1;
-            _db.AccessTokens.Add(new AccessTokenRow
-            {
-                AccessTokenRowId = newAccessTokenRowId,
-                Value = token.Value,
-                UserId = token.UserId,
-                ContentId = token.ContentId == 0 ? (int?)null : token.ContentId,
-                Feature = token.Feature,
-                CreationDate = token.CreationDate,
-                ExpirationDate = token.ExpirationDate
-            });
-
-            token.Id = newAccessTokenRowId;
-        }
-
-        public override AccessToken LoadAccessTokenById(int accessTokenId)
-        {
-            var existing = _db.AccessTokens.FirstOrDefault(x => x.AccessTokenRowId == accessTokenId);
-            return existing == null ? null : CreateAccessTokenFromRow(existing);
-        }
-
-        public override AccessToken LoadAccessToken(string tokenValue, int contentId, string feature)
-        {
-            var contentIdValue = contentId == 0 ? (int?) null : contentId;
-            var existing = _db.AccessTokens.FirstOrDefault(x => x.Value == tokenValue &&
-                                                           x.ContentId == contentIdValue &&
-                                                           x.Feature == feature && 
-                                                           x.ExpirationDate > DateTime.UtcNow);
-            return existing == null ? null : CreateAccessTokenFromRow(existing);
-        }
-        public override AccessToken[] LoadAccessTokens(int userId)
-        {
-            return _db.AccessTokens
-                .Where(x => x.UserId == userId && x.ExpirationDate > DateTime.UtcNow)
-                .Select(CreateAccessTokenFromRow)
-                .ToArray();
-        }
-
-        public override void UpdateAccessToken(string tokenValue, DateTime newExpirationDate)
-        {
-            var row = _db.AccessTokens.FirstOrDefault(x => x.Value == tokenValue && x.ExpirationDate > DateTime.UtcNow);
-            if(row == null)
-                throw new InvalidAccessTokenException("Token not found or it is expired.");
-            row.ExpirationDate = newExpirationDate;
-        }
-
-        public override void DeleteAccessToken(string tokenValue)
-        {
-            var rows = _db.AccessTokens.Where(x => x.Value == tokenValue).ToArray();
-            foreach (var row in rows)
-                _db.AccessTokens.Remove(row);
-        }
-
-        public override void DeleteAccessTokensByUser(int userId)
-        {
-            var rows = _db.AccessTokens.Where(x => x.UserId == userId).ToArray();
-            foreach (var row in rows)
-                _db.AccessTokens.Remove(row);
-        }
-
-        public override void DeleteAccessTokensByContent(int contentId)
-        {
-            var rows = _db.AccessTokens.Where(x => x.ContentId == contentId).ToArray();
-            foreach (var row in rows)
-                _db.AccessTokens.Remove(row);
-        }
-
-
-        private AccessToken CreateAccessTokenFromRow(AccessTokenRow row)
-        {
-            return new AccessToken
-            {
-                Id = row.AccessTokenRowId,
-                Value = row.Value,
-                UserId = row.UserId,
-                ContentId = row.ContentId ?? 0,
-                Feature = row.Feature,
-                CreationDate = row.CreationDate,
-                ExpirationDate = row.ExpirationDate
-            };
-        }
-
+        
         protected internal override int InstanceCount(int[] nodeTypeIds)
         {
             return _db.Nodes.Count(n => nodeTypeIds.Contains(n.NodeTypeId));
@@ -1700,7 +1602,6 @@ namespace SenseNet.Tests.Implementations
             public List<FlatPropertyRow> FlatProperties { get; set; }
             public List<ReferencePropertyRow> ReferenceProperties { get; set; }
             public List<IndexingActivityRecord> IndexingActivities { get; set; } = new List<IndexingActivityRecord>();
-            public List<AccessTokenRow> AccessTokens { get; set; } = new List<AccessTokenRow>();
             public List<TreeLockRow> TreeLocks { get; set; } = new List<TreeLockRow>();
             public List<LogEntriesRow> LogEntries { get; set; } = new List<LogEntriesRow>();
 
@@ -2919,30 +2820,7 @@ namespace SenseNet.Tests.Implementations
                 };
             }
         }
-        public class AccessTokenRow
-        {
-            public int AccessTokenRowId;
-            public string Value;
-            public int UserId;
-            public int? ContentId;
-            public string Feature;
-            public DateTime CreationDate;
-            public DateTime ExpirationDate;
-
-            public AccessTokenRow Clone()
-            {
-                return new AccessTokenRow
-                {
-                    AccessTokenRowId = AccessTokenRowId,
-                    Value = Value,
-                    UserId = UserId,
-                    ContentId = ContentId,
-                    Feature = Feature,
-                    CreationDate = CreationDate,
-                    ExpirationDate = ExpirationDate
-                };
-            }
-        }
+        
         public class TreeLockRow
         {
             public int TreeLockId;

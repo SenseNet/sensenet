@@ -9,12 +9,14 @@ namespace SenseNet.ContentRepository.Storage.Security
     /// </summary>
     public class AccessTokenVault
     {
+        private static IAccessTokenDataProviderExtension Storage => DataProvider.GetExtension<IAccessTokenDataProviderExtension>();
+
         /// <summary>
         /// Deletes all AccessToken even if it is out of date.
         /// </summary>
         public static void DeleteAllAccessTokens()
         {
-            DataProvider.Instance.DeleteAllAccessTokens();
+            Storage.DeleteAllAccessTokens();
         }
 
         /// <summary>
@@ -38,7 +40,7 @@ namespace SenseNet.ContentRepository.Storage.Security
                 CreationDate = now,
                 ExpirationDate = now.Add(timeout)
             };
-            DataProvider.Instance.SaveAccessToken(token);
+            Storage.SaveAccessToken(token);
             return token;
         }
 
@@ -49,7 +51,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         internal static AccessToken GetTokenById(int accessTokenId)
         {
-            return DataProvider.Instance.LoadAccessTokenById(accessTokenId);
+            return Storage.LoadAccessTokenById(accessTokenId);
         }
 
         /// <summary>
@@ -62,7 +64,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <returns>Existing AccessToken or null.</returns>
         public static AccessToken GetToken(string tokenValue, int contentId = 0, string feature = null)
         {
-            return DataProvider.Instance.LoadAccessToken(tokenValue, contentId, feature);
+            return Storage.LoadAccessToken(tokenValue, contentId, feature);
         }
 
         /// <summary>
@@ -72,7 +74,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <returns>An AccessToken array</returns>
         public static AccessToken[] GetTokens(int userId)
         {
-            return DataProvider.Instance.LoadAccessTokens(userId);
+            return Storage.LoadAccessTokens(userId);
         }
 
         /// <summary>
@@ -109,7 +111,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="expirationDate">The new expiration date.</param>
         public static void UpdateToken(string tokenValue, DateTime expirationDate)
         {
-            DataProvider.Instance.UpdateAccessToken(tokenValue, expirationDate);
+            Storage.UpdateAccessToken(tokenValue, expirationDate);
         }
 
         /// <summary>
@@ -118,7 +120,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="tokenValue">The value of the original token.</param>
         public static void DeleteToken(string tokenValue)
         {
-            DataProvider.Instance.DeleteAccessToken(tokenValue);
+            Storage.DeleteAccessToken(tokenValue);
         }
 
         /// <summary>
@@ -127,7 +129,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="userId">The token owner ID</param>
         public static void DeleteTokensByUser(int userId)
         {
-            DataProvider.Instance.DeleteAccessTokensByUser(userId);
+            Storage.DeleteAccessTokensByUser(userId);
         }
 
         /// <summary>
@@ -136,7 +138,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <param name="contentId">The associated content id</param>
         public static void DeleteTokensByContent(int contentId)
         {
-            DataProvider.Instance.DeleteAccessTokensByContent(contentId);
+            Storage.DeleteAccessTokensByContent(contentId);
         }
 
         /* =========================================================================================== Token value generator */

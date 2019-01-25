@@ -91,6 +91,54 @@ namespace SenseNet.ContentRepository.Tests
                 throw new NotImplementedException();
             }
         }
+        private class TestAccessTokenDataProvider : IAccessTokenDataProviderExtension
+        {
+            public DataProvider MetadataProvider { get; set; }
+            public void DeleteAllAccessTokens()
+            {
+                throw new NotImplementedException();
+            }
+
+            public void SaveAccessToken(AccessToken token)
+            {
+                throw new NotImplementedException();
+            }
+
+            public AccessToken LoadAccessTokenById(int accessTokenId)
+            {
+                throw new NotImplementedException();
+            }
+
+            public AccessToken LoadAccessToken(string tokenValue, int contentId, string feature)
+            {
+                throw new NotImplementedException();
+            }
+
+            public AccessToken[] LoadAccessTokens(int userId)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void UpdateAccessToken(string tokenValue, DateTime newExpirationDate)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void DeleteAccessToken(string tokenValue)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void DeleteAccessTokensByUser(int userId)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void DeleteAccessTokensByContent(int contentId)
+            {
+                throw new NotImplementedException();
+            }
+        }
         #endregion
 
         [TestMethod]
@@ -340,6 +388,7 @@ namespace SenseNet.ContentRepository.Tests
             using (Repository.Start(repoBuilder))
             {
                 Assert.AreEqual(typeof(SqlPackagingDataProvider), DataProvider.GetExtension<IPackagingDataProviderExtension>().GetType());
+                Assert.AreEqual(typeof(SqlAccessTokenDataProvider), DataProvider.GetExtension<IAccessTokenDataProviderExtension>().GetType());
             }
         }
 
@@ -359,7 +408,8 @@ namespace SenseNet.ContentRepository.Tests
                 .UseDataProvider(dbProvider)
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dbProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
-                .UsePackagingDataProviderExtension(new TestPackagingDataProvider())     // ACTION: set test provider
+                .UsePackagingDataProviderExtension(new TestPackagingDataProvider())         // ACTION: set test provider
+                .UseAccessTokenDataProviderExtension(new TestAccessTokenDataProvider())     // ACTION: set test provider
                 .UseSecurityDataProvider(securityDbProvider)
                 .UseSearchEngine(searchEngine)
                 .UseAccessProvider(accessProvider)
@@ -371,6 +421,7 @@ namespace SenseNet.ContentRepository.Tests
             using (Repository.Start(repoBuilder))
             {
                 Assert.AreEqual(typeof(TestPackagingDataProvider), DataProvider.GetExtension<IPackagingDataProviderExtension>().GetType());
+                Assert.AreEqual(typeof(TestAccessTokenDataProvider), DataProvider.GetExtension<IAccessTokenDataProviderExtension>().GetType());
             }
         }
     }
