@@ -4,13 +4,28 @@ using SenseNet.ContentRepository.Storage.Data;
 
 namespace SenseNet.ContentRepository.Storage.Security
 {
+    /// <summary>
+    /// Supports AccessToken operations.
+    /// </summary>
     public class AccessTokenVault
     {
+        /// <summary>
+        /// Deletes all AccessToken even if it is out of date.
+        /// </summary>
         public static void DeleteAllAccessTokens()
         {
-            DataProvider.Current.DeleteAllAccessTokens();
+            DataProvider.Instance.DeleteAllAccessTokens();
         }
 
+        /// <summary>
+        /// Creates a new token for the given user with the specified timeout.
+        /// The token can be bound a content or any specified feature name.
+        /// </summary>
+        /// <param name="userId">The ID of the User that is the owner of the token.</param>
+        /// <param name="timeout">The timeout od the token.</param>
+        /// <param name="contentId">An ID of a Content that is associated to the token.</param>
+        /// <param name="feature">Any word that identifies the token.</param>
+        /// <returns>The new AccessToken instance.</returns>
         public static AccessToken CreateToken(int userId, TimeSpan timeout, int contentId = 0, string feature = null)
         {
             var now = DateTime.UtcNow;
@@ -23,7 +38,7 @@ namespace SenseNet.ContentRepository.Storage.Security
                 CreationDate = now,
                 ExpirationDate = now.Add(timeout)
             };
-            DataProvider.Current.SaveAccessToken(token);
+            DataProvider.Instance.SaveAccessToken(token);
             return token;
         }
 
@@ -34,44 +49,94 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         internal static AccessToken GetTokenById(int accessTokenId)
         {
-            return DataProvider.Current.LoadAccessTokenById(accessTokenId);
-        }
-        public static AccessToken GetToken(string tokenValue, int contentId = 0, string feature = null)
-        {
-            return DataProvider.Current.LoadAccessToken(tokenValue, contentId, feature);
-        }
-        public static AccessToken[] GetTokens(int userId)
-        {
-            return DataProvider.Current.LoadAccessTokens(userId);
+            return DataProvider.Instance.LoadAccessTokenById(accessTokenId);
         }
 
+        /// <summary>
+        /// Returns the the token by the specified value and the given filters if there is any.
+        /// The 'contentId' or a 'feature' parameters are necessary if the original token is emitted by these.
+        /// </summary>
+        /// <param name="tokenValue">The token value.</param>
+        /// <param name="contentId">An ID of a Content that is associated to the token.</param>
+        /// <param name="feature">Any word that identifies the token.</param>
+        /// <returns>Existing AccessToken or null.</returns>
+        public static AccessToken GetToken(string tokenValue, int contentId = 0, string feature = null)
+        {
+            return DataProvider.Instance.LoadAccessToken(tokenValue, contentId, feature);
+        }
+
+        /// <summary>
+        /// Returs all tokens of the given User.
+        /// </summary>
+        /// <param name="userId">The token owner ID</param>
+        /// <returns>An AccessToken array</returns>
+        public static AccessToken[] GetTokens(int userId)
+        {
+            return DataProvider.Instance.LoadAccessTokens(userId);
+        }
+
+        /// <summary>
+        /// Returns true if the specified token value is exists and has not yet expired.
+        /// The 'contentId' or a 'feature' parameters are necessary if the original token is emitted by these.
+        /// </summary>
+        /// <param name="tokenValue">The token value.</param>
+        /// <param name="contentId">An ID of a Content that is associated to the token.</param>
+        /// <param name="feature">Any word that identifies the token.</param>
+        /// <returns>true or false</returns>
         public static bool TokenExists(string tokenValue, int contentId = 0, string feature = null)
         {
             return GetToken(tokenValue, contentId, feature) != null;
         }
 
+        /// <summary>
+        /// Assumes the token value existence. Missing or expired token causes InvalidAccessTokenException.
+        /// The 'contentId' or a 'feature' parameters are necessary if the original token is emitted by these.
+        /// </summary>
+        /// <param name="tokenValue">The token value.</param>
+        /// <param name="contentId">An ID of a Content that is associated to the token.</param>
+        /// <param name="feature">Any word that identifies the token.</param>
         public static void AssertTokenExists(string tokenValue, int contentId = 0, string feature = null)
         {
             if (!TokenExists(tokenValue, contentId, feature))
                 throw new InvalidAccessTokenException("Token not found or it is expired.");
         }
 
+        /// <summary>
+        /// Updates the expiration date of the specified token value.
+        /// Missing or expired token causes InvalidAccessTokenException.
+        /// </summary>
+        /// <param name="tokenValue">The value of the original token.</param>
+        /// <param name="expirationDate">The new expiration date.</param>
         public static void UpdateToken(string tokenValue, DateTime expirationDate)
         {
-            DataProvider.Current.UpdateAccessToken(tokenValue, expirationDate);
+            DataProvider.Instance.UpdateAccessToken(tokenValue, expirationDate);
         }
 
+        /// <summary>
+        /// Deletes the specified token regardless of expiration date.
+        /// </summary>
+        /// <param name="tokenValue">The value of the original token.</param>
         public static void DeleteToken(string tokenValue)
         {
-            DataProvider.Current.DeleteAccessToken(tokenValue);
+            DataProvider.Instance.DeleteAccessToken(tokenValue);
         }
+
+        /// <summary>
+        /// Deletes all tokens of the given user regardless of expiration date.
+        /// </summary>
+        /// <param name="userId">The token owner ID</param>
         public static void DeleteTokensByUser(int userId)
         {
-            DataProvider.Current.DeleteAccessTokensByUser(userId);
+            DataProvider.Instance.DeleteAccessTokensByUser(userId);
         }
+
+        /// <summary>
+        /// Deletes the tokens associated by the specified contentId regardless of expiration date.
+        /// </summary>
+        /// <param name="contentId">The associated content id</param>
         public static void DeleteTokensByContent(int contentId)
         {
-            DataProvider.Current.DeleteAccessTokensByContent(contentId);
+            DataProvider.Instance.DeleteAccessTokensByContent(contentId);
         }
 
         /* =========================================================================================== Token value generator */
