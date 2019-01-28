@@ -98,17 +98,22 @@ namespace SenseNet.Tests.SelfTest
                 // ARRANGE
                 var propertyName = "Education";
                 var testValue = "High school 46";
-                var admin = Node.Load<User>(Identifiers.AdministratorUserId);
-                Assert.AreEqual(DataType.Text, PropertyType.GetByName(propertyName).DataType);
-                Assert.AreNotEqual(testValue, admin.GetProperty<string>(propertyName));
 
-                // ACTION
-                admin.SetProperty(propertyName, testValue);
-                admin.Save();
+                Retrier.Retry(3, 200, typeof(NodeIsOutOfDateException), () =>
+                {
+                    var admin = Node.Load<User>(Identifiers.AdministratorUserId);
 
-                // ASSERT
-                admin = Node.Load<User>(Identifiers.AdministratorUserId);
-                Assert.AreEqual(testValue, admin.GetProperty<string>(propertyName));
+                    Assert.AreEqual(DataType.Text, PropertyType.GetByName(propertyName).DataType);
+                    Assert.AreNotEqual(testValue, admin.GetProperty<string>(propertyName));
+
+                    // ACTION
+                    admin.SetProperty(propertyName, testValue);
+                    admin.Save();
+
+                    // ASSERT
+                    admin = Node.Load<User>(Identifiers.AdministratorUserId);
+                    Assert.AreEqual(testValue, admin.GetProperty<string>(propertyName));
+                });
 
                 return 0;
             });

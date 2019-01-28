@@ -136,8 +136,7 @@ namespace SenseNet.ContentRepository.Search.Indexing
                         var act = new TimeboxedActivity
                         {
                             InArgument = stream,
-                            Activity = TimeboxedFunctionCall,
-                            Context = HttpContext.Current
+                            Activity = TimeboxedFunctionCall
                         };
 
                         var finishedWithinTime = act.ExecuteAndWait(Configuration.Indexing.TextExtractTimeout * 1000);

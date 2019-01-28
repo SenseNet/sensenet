@@ -7,19 +7,53 @@ using System.Data.Common;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Schema;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
-using SenseNet.Search;
 using SenseNet.Search.Querying;
-using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository.Storage.Data
 {
-    public abstract class DataProvider : ITransactionFactory, IPackageStorageProvider
+    public abstract class DataProvider : ITransactionFactory
     {
+        /// <summary>
+        /// Returns the DataProvider instance that is a singleton
+        /// instantiated by the sensenet infrastructure at system startup
+        /// based on the configuration.
+        /// </summary>
+        public static DataProvider Instance => Providers.Instance.DataProvider;
+
+        /// <summary>
+        /// Returns the DataProvider extension instance by it's registered type.
+        /// </summary>
+        /// <typeparam name="T">The type that describes and identifies the extension instance.</typeparam>
+        public static T GetExtension<T>() where T : class, IDataProviderExtension
+        {
+            return Instance.GetExtensionInstance<T>();
+        }
+
+        private readonly Dictionary<Type, IDataProviderExtension> _dataProvidersByType = new Dictionary<Type, IDataProviderExtension>();
+        /// <summary>
+        /// Registers a DataProvider extension instance.
+        /// </summary>
+        /// <param name="providerType">The type that describes and identifies the extension instance.</param>
+        /// <param name="provider">The provider instance that will be used in the whole appdomain's lifecycle.</param>
+        public virtual void SetExtension(Type providerType, IDataProviderExtension provider)
+        {
+            _dataProvidersByType[providerType] = provider;
+            provider.MainProvider = this;
+        }
+
+        private T GetExtensionInstance<T>() where T : class, IDataProviderExtension
+        {
+            if (_dataProvidersByType.TryGetValue(typeof(T), out var provider))
+                return provider as T;
+            return null;
+        }
 
         //////////////////////////////////////// Static Access ////////////////////////////////////////
 
-        public static DataProvider Current => Providers.Instance.DataProvider;
+        //TODO: [Obsolete("Use Instance() method instead.")]
+        public static DataProvider Current => Instance;
 
         // ====================================================== Query support
 
@@ -27,26 +61,25 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         //////////////////////////////////////// For tests ////////////////////////////////////////
 
-        internal static void InitializeForTests()
-        {
-            Current.InitializeForTestsPrivate();
-        }
-        protected abstract void InitializeForTestsPrivate();
-
+        private const string ObsoleteMessage1 =
+            "This method is not supported anymore. Use the following call instead: " +
+            "DataProvider.GetExtension<ITestingDataProviderExtension>().GetSecurityControlStringForTests()";
+        [Obsolete(ObsoleteMessage1, true)]
         public static string GetSecurityControlStringForTests()
         {
-            return Current.GetSecurityControlStringForTestsInternal();
+            throw new SnNotSupportedException(ObsoleteMessage1);
         }
-        protected abstract string GetSecurityControlStringForTestsInternal();
 
+        private const string ObsoleteMessage2 =
+            "This method is not supported anymore. Use the following call instead: " +
+            "DataProvider.GetExtension<ITestingDataProviderExtension>().GetPermissionLogEntriesCountAfterMoment();";
+        [Obsolete(ObsoleteMessage2, true)]
         public static int GetPermissionLogEntriesCountAfterMoment(DateTime moment)
         {
-            return Current.GetPermissionLogEntriesCountAfterMomentInternal(moment);
+            throw new SnNotSupportedException(ObsoleteMessage2);
         }
-        protected abstract int GetPermissionLogEntriesCountAfterMomentInternal(DateTime moment);
 
         public abstract AuditLogEntry[] LoadLastAuditLogEntries(int count);
-
 
         //////////////////////////////////////// Generic Datalayer Logic ////////////////////////////////////////
 
@@ -346,27 +379,8 @@ namespace SenseNet.ContentRepository.Storage.Data
 
         // ====================================================== Custom database script support
 
-        public static IDataProcedure CreateDataProcedure(string commandText, string connectionName = null, InitialCatalog initialCatalog = InitialCatalog.Initial)
-        {
-            return Current.CreateDataProcedureInternal(commandText, connectionName, initialCatalog);
-        }
-        public static IDataProcedure CreateDataProcedure(string commandText, ConnectionInfo connectionInfo)
-        {
-            return Current.CreateDataProcedureInternal(commandText, connectionInfo);
-        }
-        public static IDbDataParameter CreateParameter()
-        {
-            return Current.CreateParameterInternal();
-        }
-        protected internal abstract IDataProcedure CreateDataProcedureInternal(string commandText, string connectionName = null, InitialCatalog initialCatalog = InitialCatalog.Initial);
-        protected internal abstract IDataProcedure CreateDataProcedureInternal(string commandText, ConnectionInfo connectionInfo);
-        protected abstract IDbDataParameter CreateParameterInternal();
-
-        public static void CheckScript(string commandText)
-        {
-            Current.CheckScriptInternal(commandText);
-        }
-        protected internal abstract void CheckScriptInternal(string commandText);
+        public abstract IDataProcedure CreateDataProcedure(string commandText, string connectionName = null, InitialCatalog initialCatalog = InitialCatalog.Initial);
+        public abstract IDataProcedure CreateDataProcedure(string commandText, ConnectionInfo connectionInfo);
 
         // ====================================================== Tools
 
@@ -523,19 +537,6 @@ namespace SenseNet.ContentRepository.Storage.Data
         protected internal abstract IEnumerable<int> QueryNodesByTypeAndPathAndName(int[] nodeTypeIds, string[] pathStart, bool orderByPath, string name);
         protected internal abstract IEnumerable<int> QueryNodesByTypeAndPathAndProperty(int[] nodeTypeIds, string pathStart, bool orderByPath, List<QueryPropertyData> properties);
         protected internal abstract IEnumerable<int> QueryNodesByReferenceAndType(string referenceName, int referredNodeId, int[] allowedTypeIds);
-
-        // ====================================================== Packaging: IPackageStorageProvider
-
-        public abstract IDataProcedureFactory DataProcedureFactory { get; set; }
-
-        public abstract IEnumerable<ComponentInfo> LoadInstalledComponents();
-        public abstract IEnumerable<Package> LoadInstalledPackages();
-        public abstract void SavePackage(Package package);
-        public abstract void UpdatePackage(Package package);
-        public abstract bool IsPackageExist(string componentId, PackageType packageType, Version version);
-        public abstract void DeletePackage(Package package);
-        public abstract void DeleteAllPackages();
-        public abstract void LoadManifest(Package package);
 
         // ====================================================== Tree lock
 

@@ -9,6 +9,7 @@ using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Schema;
 using SenseNet.Diagnostics;
 using SenseNet.ContentRepository.Storage.Security;
+using SenseNet.Security;
 
 namespace SenseNet.ContentRepository
 {
@@ -254,9 +255,13 @@ namespace SenseNet.ContentRepository
             // need to place an explicite entry with the same permissions onto the target for the creator 
             // user, as the creator of the trashbag (the user who deletes the content) may be different 
             // than the creator of the original document.
-            var aces = SecurityHandler.GetEffectiveEntriesAsSystemUser(source.Id, new[] { Identifiers.OwnersGroupId });
+            var aces = SecurityHandler.GetEffectiveEntriesAsSystemUser(source.Id, new[] { Identifiers.OwnersGroupId }, EntryType.Normal);
             foreach (var ace in aces)
                 SecurityHandler.CreateAclEditor().Set(target.Id, ace.IdentityId, ace.LocalOnly, ace.AllowBits, ace.DenyBits);
+
+            aces = SecurityHandler.GetEffectiveEntriesAsSystemUser(source.Id, new[] { Identifiers.OwnersGroupId }, EntryType.Sharing);
+            foreach (var ace in aces)
+                SnAclEditor.Create(SecurityHandler.SecurityContext, EntryType.Sharing).Set(target.Id, ace.IdentityId, ace.LocalOnly, ace.AllowBits, ace.DenyBits);
         }
 
 

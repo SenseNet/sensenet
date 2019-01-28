@@ -13,7 +13,7 @@ namespace SenseNet.Packaging.Steps.Internal
             internal static void InstallTables()
             {
                 // proc CreateTable
-                using (var cmd = DataProvider.CreateDataProcedure(SqlScripts.CreateTables))
+                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.CreateTables))
                 {
                     cmd.CommandType = CommandType.Text;
                     cmd.ExecuteNonQuery();
@@ -21,7 +21,7 @@ namespace SenseNet.Packaging.Steps.Internal
             }
             internal static void StartBackgroundTasks()
             {
-                using (var cmd = DataProvider.CreateDataProcedure(SqlScripts.CreateTasks))
+                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.CreateTasks))
                 {
                     cmd.CommandType = CommandType.Text;
                     cmd.ExecuteNonQuery();
@@ -33,12 +33,11 @@ namespace SenseNet.Packaging.Steps.Internal
                 var result = new List<int>();
 
                 // proc AssignTasks(@AssignedTaskCount int, @TimeOutInMinutes int)
-                using (var cmd = DataProvider.CreateDataProcedure(SqlScripts.AssignTasks))
+                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.AssignTasks)
+                    .AddParameter("@AssignedTaskCount", taskCount)
+                    .AddParameter("@TimeOutInMinutes", timeoutInMinutes))
                 {
                     cmd.CommandType = CommandType.Text;
-                    cmd.Parameters.Add(CreateParameter("@AssignedTaskCount", taskCount, DbType.Int32));
-                    cmd.Parameters.Add(CreateParameter("@TimeOutInMinutes", timeoutInMinutes, DbType.Int32));
-
                     using (var reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
@@ -56,24 +55,12 @@ namespace SenseNet.Packaging.Steps.Internal
             internal static void FinishTask(int versionId)
             {
                 // proc FinishTask(@VersionId int)
-                using (var cmd = DataProvider.CreateDataProcedure(SqlScripts.FinishTask))
+                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.FinishTask)
+                    .AddParameter("@VersionId", versionId))
                 {
                     cmd.CommandType = CommandType.Text;
-                    cmd.Parameters.Add(CreateParameter("@VersionId", versionId, DbType.Int32));
-
                     cmd.ExecuteNonQuery();
                 }
-            }
-
-            /* ========================================================================================= */
-
-            private static IDbDataParameter CreateParameter(string name, object value, DbType dbType)
-            {
-                var prm = DataProvider.CreateParameter();
-                prm.ParameterName = name;
-                prm.DbType = dbType;
-                prm.Value = value;
-                return prm;
             }
 
             /* ========================================================================================= */
@@ -81,12 +68,11 @@ namespace SenseNet.Packaging.Steps.Internal
             public static void CreateTempTask(int versionId, int rank)
             {
                 // proc CreateTempTask(@VersionId int, @Rank int)
-                using (var cmd = DataProvider.CreateDataProcedure(SqlScripts.CreateTempTask))
+                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.CreateTempTask)
+                    .AddParameter("@VersionId", versionId)
+                    .AddParameter("@Rank", rank))
                 {
                     cmd.CommandType = CommandType.Text;
-                    cmd.Parameters.Add(CreateParameter("@VersionId", versionId, DbType.Int32));
-                    cmd.Parameters.Add(CreateParameter("@Rank", rank, DbType.Int32));
-
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -96,7 +82,7 @@ namespace SenseNet.Packaging.Steps.Internal
                 var result = new List<int>();
 
                 // proc GetAllNodeIds(@From int)
-                using (var cmd = DataProvider.CreateDataProcedure(SqlScripts.GetAllNodeIds))
+                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.GetAllNodeIds))
                 {
                     cmd.CommandType = CommandType.Text;
 
@@ -111,7 +97,7 @@ namespace SenseNet.Packaging.Steps.Internal
             public static void DropTables()
             {
                 // proc DropTables
-                using (var cmd = DataProvider.CreateDataProcedure(SqlScripts.DropTables))
+                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.DropTables))
                 {
                     cmd.CommandType = CommandType.Text;
                     cmd.ExecuteNonQuery();
@@ -123,7 +109,7 @@ namespace SenseNet.Packaging.Steps.Internal
                 try
                 {
                     // proc DropTables
-                    using (var cmd = DataProvider.CreateDataProcedure(SqlScripts.CheckFeature))
+                    using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.CheckFeature))
                     {
                         cmd.CommandType = CommandType.Text;
                         var result = cmd.ExecuteScalar();
@@ -139,7 +125,7 @@ namespace SenseNet.Packaging.Steps.Internal
             public static DateTime LoadTimeLimit()
             {
                 // proc GetTimeLimit
-                using (var cmd = DataProvider.CreateDataProcedure(SqlScripts.SelectTimeLimit))
+                using (var cmd = DataProvider.Instance.CreateDataProcedure(SqlScripts.SelectTimeLimit))
                 {
                     cmd.CommandType = CommandType.Text;
                     var result = cmd.ExecuteScalar();

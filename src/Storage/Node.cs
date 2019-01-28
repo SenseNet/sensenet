@@ -3389,7 +3389,7 @@ namespace SenseNet.ContentRepository.Storage
             AccessProvider.ChangeToSystemAccount();
             try
             {
-                var entriesToCopy = SecurityHandler.GetExplicitEntriesAsSystemUser(sourceNode.Id);
+                var entriesToCopy = SecurityHandler.GetExplicitEntriesAsSystemUser(sourceNode.Id, null, EntryType.Normal);
                 if (entriesToCopy.Count == 0)
                     return;
 

@@ -779,59 +779,65 @@ namespace SenseNet.ContentRepository.Storage.Security
         }
 
         /// <summary>
-        /// Return with the current content's explicit entries. Current user must have SeePermissions permission.
+        /// Returns the current content's explicit entries. Current user must have SeePermissions permission.
         /// </summary>
-        public List<AceInfo> GetExplicitEntries()
+        /// <param name="entryType">Security entry type. Default: all entries.</param>
+        public List<AceInfo> GetExplicitEntries(EntryType? entryType = null)
         {
-            return GetExplicitEntries(_node.Id);
+            return GetExplicitEntries(_node.Id, null, entryType);
         }
         /// <summary>
-        /// Return with the passed content's explicit entries. Current user must have SeePermissions permission.
+        /// Return the passed content's explicit entries. Current user must have SeePermissions permission.
         /// </summary>
         /// <param name="contentId">Id of the content.</param>
         /// <param name="relatedIdentities">If not passed, the current user's related identities is focused.</param>
-        public static List<AceInfo> GetExplicitEntries(int contentId, IEnumerable<int> relatedIdentities = null)
+        /// <param name="entryType">Security entry type. Default: all entries.</param>
+        public static List<AceInfo> GetExplicitEntries(int contentId, IEnumerable<int> relatedIdentities = null, EntryType? entryType = null)
         {
             SecurityContext.AssertPermission(contentId, PermissionType.SeePermissions);
-            return GetExplicitEntriesAsSystemUser(contentId, relatedIdentities);
+            return GetExplicitEntriesAsSystemUser(contentId, relatedIdentities, entryType);
         }
-
-        /// <summary>
-        /// Return with the passed content's explicit entries. There is permission check so you must call this method from a safe block.
-        /// </summary>
-        /// <param name="contentId">Id of the content.</param>
-        /// <param name="relatedIdentities">If not passed, the current user's related identities is focused.</param>
-	    public static List<AceInfo> GetExplicitEntriesAsSystemUser(int contentId, IEnumerable<int> relatedIdentities = null)
+	    /// <summary>
+	    /// Return the passed content's explicit entries. There is permission check so you must call this method from a safe block.
+	    /// </summary>
+	    /// <param name="contentId">Id of the content.</param>
+	    /// <param name="relatedIdentities">If not passed, the current user's related identities is focused.</param>
+	    /// <param name="entryType">Security entry type. Default: all entries.</param>
+	    public static List<AceInfo> GetExplicitEntriesAsSystemUser(int contentId, IEnumerable<int> relatedIdentities = null, EntryType? entryType = null)
 	    {
-	        return SecurityContext.GetExplicitEntries(contentId, relatedIdentities, EntryType.Normal);
+	        return SecurityContext.GetExplicitEntries(contentId, relatedIdentities, entryType);
 	    }
 
-	    /// <summary>
-        /// Return with the current content's effective entries. Current user must have SeePermissions permission.
+        /// <summary>
+        /// Returns the current content's effective entries. Current user must have SeePermissions permission.
         /// </summary>
-        public List<AceInfo> GetEffectiveEntries()
+        /// <param name="entryType">Security entry type. Default: all entries.</param>
+        public List<AceInfo> GetEffectiveEntries(EntryType? entryType = null)
         {
-            return GetEffectiveEntries(_node.Id);
+            return GetEffectiveEntries(_node.Id, null, entryType);
         }
         /// <summary>
-        /// Return with the passed content's effective entries. Current user must have SeePermissions permission.
+        /// Return the passed content's effective entries. Current user must have SeePermissions permission.
         /// </summary>
         /// <param name="contentId">Id of the content.</param>
         /// <param name="relatedIdentities">If not passed, the current user's related identities is focused.</param>
-        public static List<AceInfo> GetEffectiveEntries(int contentId, IEnumerable<int> relatedIdentities = null)
+        /// <param name="entryType">Security entry type. Default: all entries.</param>
+        public static List<AceInfo> GetEffectiveEntries(int contentId, IEnumerable<int> relatedIdentities = null, EntryType? entryType = null)
         {
             SecurityContext.AssertPermission(contentId, PermissionType.SeePermissions);
-            return GetEffectiveEntriesAsSystemUser(contentId, relatedIdentities);
+            return SecurityContext.GetEffectiveEntries(contentId, relatedIdentities, entryType);
         }
         /// <summary>
-        /// Return with the passed content's effective entries. There is permission check so you must call this method from a safe block.
+        /// Return the passed content's effective entries. There is permission check so you must call this method from a safe block.
         /// </summary>
         /// <param name="contentId">Id of the content.</param>
         /// <param name="relatedIdentities">If not passed, the current user's related identities is focused.</param>
-        public static List<AceInfo> GetEffectiveEntriesAsSystemUser(int contentId, IEnumerable<int> relatedIdentities = null)
+        /// <param name="entryType">Security entry type. Default: all entries.</param>
+        public static List<AceInfo> GetEffectiveEntriesAsSystemUser(int contentId, IEnumerable<int> relatedIdentities = null, EntryType? entryType = null)
         {
-            return SecurityContext.GetEffectiveEntries(contentId, relatedIdentities, EntryType.Normal);
+            return SecurityContext.GetEffectiveEntries(contentId, relatedIdentities, entryType);
         }
+
         #endregion
 
         #region /*========================================================== ACL */
@@ -1818,7 +1824,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         {
             if (!_node.IsInherited)
                 writer.WriteElementString("Break", null);
-            var entries = _node.Security.GetExplicitEntries();
+            var entries = _node.Security.GetExplicitEntries(EntryType.Normal);
             foreach (var entry in entries)
                 entry.Export(writer);
         }

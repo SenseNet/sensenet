@@ -93,6 +93,7 @@
     </Compile>
     <Compile Include="Implementations\EmptyCache.cs" />
     <Compile Include="Implementations\EverythingAllowedPermissionFilter.cs" />
+    <Compile Include="Implementations\InMemoryAccessTokenDataProvider.cs" />
     <Compile Include="Implementations\InMemoryBlobProvider.cs" />
     <Compile Include="Implementations\InMemoryDataProvider.cs" />
     <Compile Include="Implementations\InMemoryDataProviderData.cs" />
@@ -100,6 +101,9 @@
     <Compile Include="Implementations\InMemoryIndexingEngine.cs" />
     <Compile Include="Implementations\InMemoryQueryEngine.cs" />
     <Compile Include="Implementations\InMemorySearchEngine.cs" />
+    <Compile Include="Implementations\InMemoryTestingDataProvider.cs" />
+    <Compile Include="Implementations\ITestingDataProvider.cs" />
+    <Compile Include="Implementations\RepositoryBuilderExtensions.cs" />
     <Compile Include="Implementations\ResourceXmls.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

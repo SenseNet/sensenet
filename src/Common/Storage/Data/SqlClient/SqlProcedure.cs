@@ -178,15 +178,6 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
         }
 
         /// <summary>
-        /// Retrieves parameter information from the stored procedure specified in the command 
-        /// and populates the Parameters collection.
-        /// </summary>
-        public void DeriveParameters()
-        {
-            StartConnection();
-            SqlCommandBuilder.DeriveParameters(_cmd);
-        }
-        /// <summary>
         /// Sends the CommandText to the connection and builds a SqlDataReader.
         /// </summary>
         public virtual SqlDataReader ExecuteReader()
@@ -279,6 +270,15 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
                 return result;
             }
         }
+
+        /// <summary>
+        /// Returns a new SqlParameter instance.
+        /// </summary>
+        public IDataParameter CreateParameter()
+        {
+            return new SqlParameter();
+        }
+
         /// <summary>
         /// An asynchronous version of ExecuteNonQuery that executes a Transact-SQL statement 
         /// against the connection and returns the number of rows affected.
@@ -364,11 +364,6 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             get { return this.Parameters; }
         }
 
-
-        void IDataProcedure.DeriveParameters()
-        {
-            DeriveParameters();
-        }
         System.Data.Common.DbDataReader IDataProcedure.ExecuteReader()
         {
             return ExecuteReader();

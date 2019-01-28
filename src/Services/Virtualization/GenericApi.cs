@@ -8,8 +8,8 @@ namespace SenseNet.Portal.Virtualization
     {
         protected static void AssertPermission(string placeholderPath)
         {
-            var permissionContent = Node.LoadNode(placeholderPath);
-            if (permissionContent == null || !permissionContent.Security.HasPermission(PermissionType.RunApplication))
+            var permissionContent = NodeHead.Get(placeholderPath);
+            if (permissionContent == null || !SecurityHandler.HasPermission(permissionContent.Id, PermissionType.RunApplication))
             {
                 throw new SenseNetSecurityException("Access denied for " + placeholderPath);
             }

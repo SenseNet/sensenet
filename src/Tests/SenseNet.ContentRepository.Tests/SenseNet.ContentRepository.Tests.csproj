@@ -87,8 +87,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Accessors.cs" />
+    <Compile Include="AccessTokenTests.cs" />
     <Compile Include="AllowedChildTypesTests.cs" />
     <Compile Include="AspectTests.cs" />
+    <Compile Include="AuditLogTests.cs" />
     <Compile Include="AutoNamingTests.cs" />
     <Compile Include="CacheTests.cs" />
     <Compile Include="ClientMetadataProviderTests.cs" />
@@ -127,6 +129,7 @@
     <Compile Include="VersionExistenceTests.cs" />
     <Compile Include="VersionHistoryTests.cs" />
     <Compile Include="VersionNumberTests.cs" />
+    <Compile Include="DataProviderExtensionTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -143,10 +146,6 @@
     <ProjectReference Include="..\..\Common\SenseNet.Common.csproj">
       <Project>{a453e920-29c0-45cd-984c-0d8e3631b1e3}</Project>
       <Name>SenseNet.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Configuration\SenseNet.Configuration.csproj">
-      <Project>{a19f707c-b1c3-45c7-ae38-e7b7f30c1161}</Project>
-      <Name>SenseNet.Configuration</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\ContentRepository\SenseNet.ContentRepository.csproj">
       <Project>{786e6165-ca02-45a9-bf58-207a45d7d6df}</Project>

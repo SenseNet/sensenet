@@ -153,6 +153,15 @@
     <Compile Include="ApplicationModel\GenericODataApplication.cs" />
     <Compile Include="ApplicationModel\GenericODataOperation.cs" />
     <Compile Include="ApplicationModel\GetPermissionsAction.cs" />
+    <Compile Include="Diagnostics\ContextEventPropertyCollector.cs" />
+    <Compile Include="Configuration\FormsADAuth\AuthSettingElement.cs" />
+    <Compile Include="Configuration\FormsADAuth\AuthSettingElementCollection.cs" />
+    <Compile Include="Configuration\FormsADAuth\FormsAuthenticationFromADSection.cs" />
+    <Compile Include="Configuration\UrlList\SiteElement.cs" />
+    <Compile Include="Configuration\UrlList\SiteElementCollection.cs" />
+    <Compile Include="Configuration\UrlList\UrlElement.cs" />
+    <Compile Include="Configuration\UrlList\UrlElementCollection.cs" />
+    <Compile Include="Configuration\UrlList\UrlListSection.cs" />
     <Compile Include="Metadata\IMetadataProvider.cs" />
     <Compile Include="Metadata\ClientMetadataProvider.cs" />
     <Compile Include="ApplicationModel\HasPermissionAction.cs" />
@@ -358,10 +367,6 @@
     <ProjectReference Include="..\Common\SenseNet.Common.csproj">
       <Project>{A453E920-29C0-45CD-984C-0D8E3631B1E3}</Project>
       <Name>SenseNet.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Configuration\SenseNet.Configuration.csproj">
-      <Project>{a19f707c-b1c3-45c7-ae38-e7b7f30c1161}</Project>
-      <Name>SenseNet.Configuration</Name>
     </ProjectReference>
     <ProjectReference Include="..\ContentRepository\SenseNet.ContentRepository.csproj">
       <Project>{786E6165-CA02-45A9-BF58-207A45D7D6DF}</Project>

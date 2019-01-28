@@ -21,6 +21,7 @@ namespace SenseNet.Services.OData.Tests
 {
     public abstract class ODataTestClass : TestBase
     {
+        // ReSharper disable once InconsistentNaming
         internal static T ODataGET<T>(string resource, string queryString) where T : IODataResult
         {
             using (var output = new System.IO.StringWriter())
@@ -32,6 +33,26 @@ namespace SenseNet.Services.OData.Tests
                 return (T)GetResult<T>(output);
             }
         }
+
+        // ReSharper disable once InconsistentNaming
+        internal static IODataResult ODataPATCH<T>(string resource, string queryString, string requestData) where T : IODataResult
+        {
+            using (var requestStream = RepositoryTools.GetStreamFromString(requestData))
+                return ODataPATCH<T>(resource, queryString, requestStream);
+        }
+        // ReSharper disable once InconsistentNaming
+        internal static IODataResult ODataPATCH<T>(string resource, string queryString, Stream requestStream) where T : IODataResult
+        {
+            using (var output = new System.IO.StringWriter())
+            {
+                var pc = CreatePortalContext(resource, queryString, output);
+                var handler = new ODataHandler();
+                handler.ProcessRequest(pc.OwnerHttpContext, "PATCH", requestStream);
+                output.Flush();
+                return (T)GetResult<T>(output);
+            }
+        }
+
         internal static IODataResult GetResult<T>(System.IO.StringWriter output) where T : IODataResult
         {
             if (typeof(T) == typeof(ODataEntity))
@@ -54,7 +75,6 @@ namespace SenseNet.Services.OData.Tests
             }
             throw new NotImplementedException();
         }
-
 
         protected const string TestSiteName = "ODataTestSite";
         protected static string TestSitePath => RepositoryPath.Combine("/Root/Sites", TestSiteName);
