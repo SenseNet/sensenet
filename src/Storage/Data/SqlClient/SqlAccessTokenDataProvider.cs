@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using SenseNet.ContentRepository.Storage.Security;
 
 namespace SenseNet.ContentRepository.Storage.Data.SqlClient
@@ -17,11 +16,11 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             {
                 if (_accessTokenValueCollationName == null)
                 {
-                    using (var proc = new SqlProcedure())
+                    using (var proc = MetadataProvider.CreateDataProcedure("SELECT c.collation_name, c.* " +
+                                                                           "FROM sys.columns c " +
+                                                                           "  JOIN sys.tables t ON t.object_id = c.object_id " +
+                                                                           "WHERE t.name = 'AccessTokens' AND c.name = N'Value'"))
                     {
-                        proc.CommandText = "SELECT c.collation_name, c.* FROM sys.columns c JOIN sys.tables t ON t.object_id = c.object_id " +
-                                           "WHERE t.name = 'AccessTokens' AND c.name = N'Value'";
-
                         proc.CommandType = CommandType.Text;
 
                         var result = proc.ExecuteScalar();
@@ -33,7 +32,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
             }
         }
 
-        private AccessToken GetAccessTokenFromReader(SqlDataReader reader)
+        private AccessToken GetAccessTokenFromReader(IDataReader reader)
         {
             return new AccessToken
             {
@@ -49,9 +48,8 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 
         public void DeleteAllAccessTokens()
         {
-            using (var proc = new SqlProcedure())
+            using (var proc = MetadataProvider.CreateDataProcedure("TRUNCATE TABLE AccessTokens"))
             {
-                proc.CommandText = "TRUNCATE TABLE AccessTokens";
                 proc.CommandType = CommandType.Text;
                 proc.ExecuteNonQuery();
             }
@@ -59,20 +57,19 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 
         public void SaveAccessToken(AccessToken token)
         {
-            using (var proc = new SqlProcedure())
+            using (var proc = MetadataProvider.CreateDataProcedure(
+                "INSERT INTO [dbo].[AccessTokens] " +
+                "([Value],[UserId],[ContentId],[Feature],[CreationDate],[ExpirationDate]) VALUES " +
+                "(@Value, @UserId, @ContentId, @Feature, @CreationDate, @ExpirationDate)" +
+                "SELECT @@IDENTITY")
+                .AddParameter("@Value", token.Value, DbType.String, 1000)
+                .AddParameter("@UserId", token.UserId)
+                .AddParameter("@ContentId", token.ContentId != 0 ? (object)token.ContentId : DBNull.Value, DbType.Int32)
+                .AddParameter("@Feature", token.Feature != null ? (object)token.Feature : DBNull.Value, DbType.String, 1000)
+                .AddParameter("@CreationDate", token.CreationDate)
+                .AddParameter("@ExpirationDate", token.ExpirationDate))
             {
-                proc.CommandText = "INSERT INTO [dbo].[AccessTokens] " +
-                                   "([Value],[UserId],[ContentId],[Feature],[CreationDate],[ExpirationDate]) VALUES " +
-                                   "(@Value, @UserId, @ContentId, @Feature, @CreationDate, @ExpirationDate)" +
-                                   "SELECT @@IDENTITY";
-
                 proc.CommandType = CommandType.Text;
-                proc.Parameters.Add("@Value", SqlDbType.NVarChar, 1000).Value = token.Value;
-                proc.Parameters.Add("@UserId", SqlDbType.Int).Value = token.UserId;
-                proc.Parameters.Add("@ContentId", SqlDbType.Int).Value = token.ContentId != 0 ? (object)token.ContentId : DBNull.Value;
-                proc.Parameters.Add("@Feature", SqlDbType.NVarChar, 1000).Value = token.Feature != null ? (object)token.Feature : DBNull.Value;
-                proc.Parameters.Add("@CreationDate", SqlDbType.DateTime).Value = token.CreationDate;
-                proc.Parameters.Add("@ExpirationDate", SqlDbType.DateTime).Value = token.ExpirationDate;
 
                 var result = proc.ExecuteScalar();
                 token.Id = Convert.ToInt32(result);
@@ -81,13 +78,10 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 
         public AccessToken LoadAccessTokenById(int accessTokenId)
         {
-            using (var proc = new SqlProcedure())
+            using (var proc = MetadataProvider.CreateDataProcedure("SELECT TOP 1 * FROM [dbo].[AccessTokens] WHERE [AccessTokenId] = @Id")
+                .AddParameter("@Id", accessTokenId))
             {
-                var sql = $"SELECT TOP 1 * FROM [dbo].[AccessTokens] WHERE [AccessTokenId] = @Id";
-
-                proc.CommandText = sql;
                 proc.CommandType = CommandType.Text;
-                proc.Parameters.Add("@Id", SqlDbType.Int).Value = accessTokenId;
 
                 using (var reader = proc.ExecuteReader())
                     return reader.Read() ? GetAccessTokenFromReader(reader) : null;
@@ -96,17 +90,15 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 
         public AccessToken LoadAccessToken(string tokenValue, int contentId, string feature)
         {
-            using (var proc = new SqlProcedure())
-            {
-                var sql = "SELECT TOP 1 * FROM [dbo].[AccessTokens] " +
-                          $"WHERE [Value] = @Value COLLATE {AccessTokenValueCollationName} AND [ExpirationDate] > @Now AND " +
-                          (contentId != 0 ? $"ContentId = {contentId} AND " : "ContentId IS NULL AND ") +
-                          (feature != null ? $"Feature = '{feature}'" : "Feature IS NULL");
+            var sql = "SELECT TOP 1 * FROM [dbo].[AccessTokens] " +
+                      $"WHERE [Value] = @Value COLLATE {AccessTokenValueCollationName} AND [ExpirationDate] > GETUTCDATE() AND " +
+                      (contentId != 0 ? $"ContentId = {contentId} AND " : "ContentId IS NULL AND ") +
+                      (feature != null ? $"Feature = '{feature}'" : "Feature IS NULL");
 
-                proc.CommandText = sql;
+            using (var proc = MetadataProvider.CreateDataProcedure(sql)
+                .AddParameter("@Value", tokenValue))
+            {
                 proc.CommandType = CommandType.Text;
-                proc.Parameters.Add("@Value", SqlDbType.NVarChar, 1000).Value = tokenValue;
-                proc.Parameters.Add("@Now", SqlDbType.DateTime).Value = DateTime.UtcNow;
 
                 using (var reader = proc.ExecuteReader())
                     return reader.Read() ? GetAccessTokenFromReader(reader) : null;
@@ -115,14 +107,11 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 
         public AccessToken[] LoadAccessTokens(int userId)
         {
-            using (var proc = new SqlProcedure())
+            using (var proc = MetadataProvider.CreateDataProcedure("SELECT * FROM [dbo].[AccessTokens] " +
+                                                                   "WHERE [UserId] = @UserId AND [ExpirationDate] > GETUTCDATE()")
+                .AddParameter("@UserId", userId))
             {
-                var sql = "SELECT * FROM [dbo].[AccessTokens] WHERE [UserId] = @UserId AND [ExpirationDate] > @Now";
-
-                proc.CommandText = sql;
                 proc.CommandType = CommandType.Text;
-                proc.Parameters.Add("@UserId", SqlDbType.Int).Value = userId;
-                proc.Parameters.Add("@Now", SqlDbType.DateTime).Value = DateTime.UtcNow;
 
                 var tokens = new List<AccessToken>();
                 using (var reader = proc.ExecuteReader())
@@ -135,15 +124,15 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 
         public void UpdateAccessToken(string tokenValue, DateTime newExpirationDate)
         {
-            using (var proc = new SqlProcedure())
+            using (var proc = MetadataProvider.CreateDataProcedure("UPDATE [AccessTokens] " +
+                                                                   "SET [ExpirationDate] = @NewExpirationDate " +
+                                                                   "   OUTPUT INSERTED.AccessTokenId" +
+                                                                   " WHERE [Value] = @Value " +
+                                                                   $" COLLATE {AccessTokenValueCollationName} AND [ExpirationDate] > GETUTCDATE()")
+                .AddParameter("@Value", tokenValue)
+                .AddParameter("@NewExpirationDate", newExpirationDate))
             {
-                proc.CommandText = "UPDATE [AccessTokens] SET [ExpirationDate] = @NewExpirationDate OUTPUT INSERTED.AccessTokenId" +
-                                   $" WHERE [Value] = @Value COLLATE {AccessTokenValueCollationName} AND [ExpirationDate] > @Now";
-
                 proc.CommandType = CommandType.Text;
-                proc.Parameters.Add("@Value", SqlDbType.NVarChar, 1000).Value = tokenValue;
-                proc.Parameters.Add("@Now", SqlDbType.DateTime).Value = DateTime.UtcNow;
-                proc.Parameters.Add("@NewExpirationDate", SqlDbType.DateTime).Value = newExpirationDate;
 
                 var result = proc.ExecuteScalar();
                 if (result == null || result == DBNull.Value)
@@ -154,10 +143,10 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 
         public void DeleteAccessToken(string tokenValue)
         {
-            using (var proc = new SqlProcedure())
+            using (var proc = MetadataProvider.CreateDataProcedure("DELETE FROM [dbo].[AccessTokens] " +
+                                                                   $"WHERE [Value] = @Value COLLATE {AccessTokenValueCollationName}")
+                .AddParameter("@Value", tokenValue))
             {
-                proc.CommandText = $"DELETE FROM [dbo].[AccessTokens] WHERE [Value] = @Value COLLATE {AccessTokenValueCollationName}";
-                proc.Parameters.Add("@Value", SqlDbType.NVarChar, 1000).Value = tokenValue;
                 proc.CommandType = CommandType.Text;
                 proc.ExecuteNonQuery();
             }
@@ -165,10 +154,9 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 
         public void DeleteAccessTokensByUser(int userId)
         {
-            using (var proc = new SqlProcedure())
+            using (var proc = MetadataProvider.CreateDataProcedure("DELETE FROM [dbo].[AccessTokens] WHERE [UserId] = @UserId")
+                .AddParameter("@UserId", userId))
             {
-                proc.CommandText = $"DELETE FROM [dbo].[AccessTokens] WHERE [UserId] = @UserId";
-                proc.Parameters.Add("@UserId", SqlDbType.Int).Value = userId;
                 proc.CommandType = CommandType.Text;
                 proc.ExecuteNonQuery();
             }
@@ -176,10 +164,9 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 
         public void DeleteAccessTokensByContent(int contentId)
         {
-            using (var proc = new SqlProcedure())
+            using (var proc = MetadataProvider.CreateDataProcedure("DELETE FROM [dbo].[AccessTokens] WHERE [ContentId] = @ContentId")
+                .AddParameter("@ContentId", contentId))
             {
-                proc.CommandText = $"DELETE FROM [dbo].[AccessTokens] WHERE [ContentId] = @ContentId";
-                proc.Parameters.Add("@ContentId", SqlDbType.Int).Value = contentId;
                 proc.CommandType = CommandType.Text;
                 proc.ExecuteNonQuery();
             }
