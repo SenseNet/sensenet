@@ -29,25 +29,24 @@ namespace SenseNet.ContentRepository.Storage.Security
         public int ContentId { get; internal set; }
 
         /// <summary>
-        /// Gets the associated feature name if there is.
+        /// Gets the associated feature name if there is one.
         /// Default value is null.
         /// </summary>
         public string Feature { get; internal set; }
 
         /// <summary>
-        /// Gets the cretion date.
+        /// Gets the cretion date of the token.
         /// </summary>
         public DateTime CreationDate { get; internal set; }
 
         /// <summary>
-        /// Gets or sets the expiration date.
+        /// Gets or sets the expiration date of the token.
         /// </summary>
         public DateTime ExpirationDate { get; set; }
 
         /// <summary>
         /// Returns the string representation of the token.
         /// </summary>
-        /// <returns></returns>
         public override string ToString()
         {
             return Value;

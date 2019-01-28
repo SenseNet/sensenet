@@ -5,7 +5,9 @@ using SenseNet.ContentRepository.Storage.Data;
 namespace SenseNet.ContentRepository.Storage.Security
 {
     /// <summary>
-    /// Supports AccessToken operations.
+    /// Supports AccessToken operations. Developers may use this API for securing access to a feature.
+    /// Token storage is handled through a configurable dataprovider extension that implements
+    /// the <see cref="IAccessTokenDataProviderExtension"/> interface.
     /// </summary>
     public class AccessTokenVault
     {
@@ -21,12 +23,12 @@ namespace SenseNet.ContentRepository.Storage.Security
 
         /// <summary>
         /// Creates a new token for the given user with the specified timeout.
-        /// The token can be bound a content or any specified feature name.
+        /// The token can be bound to a content or any specified feature name.
         /// </summary>
         /// <param name="userId">The ID of the User that is the owner of the token.</param>
-        /// <param name="timeout">The timeout od the token.</param>
-        /// <param name="contentId">An ID of a Content that is associated to the token.</param>
-        /// <param name="feature">Any word that identifies the token.</param>
+        /// <param name="timeout">The timeout of the token.</param>
+        /// <param name="contentId">An ID of a Content that is associated with the token.</param>
+        /// <param name="feature">Any word that identifies the feature.</param>
         /// <returns>The new AccessToken instance.</returns>
         public static AccessToken CreateToken(int userId, TimeSpan timeout, int contentId = 0, string feature = null)
         {
@@ -56,11 +58,11 @@ namespace SenseNet.ContentRepository.Storage.Security
 
         /// <summary>
         /// Returns the the token by the specified value and the given filters if there is any.
-        /// The 'contentId' or a 'feature' parameters are necessary if the original token is emitted by these.
+        /// The 'contentId' or 'feature' parameters are necessary if the original token is emitted by these.
         /// </summary>
         /// <param name="tokenValue">The token value.</param>
-        /// <param name="contentId">An ID of a Content that is associated to the token.</param>
-        /// <param name="feature">Any word that identifies the token.</param>
+        /// <param name="contentId">An ID of a Content that is associated with the token.</param>
+        /// <param name="feature">Any word that identifies the feature.</param>
         /// <returns>Existing AccessToken or null.</returns>
         public static AccessToken GetToken(string tokenValue, int contentId = 0, string feature = null)
         {
@@ -70,20 +72,20 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Returs all tokens of the given User.
         /// </summary>
-        /// <param name="userId">The token owner ID</param>
-        /// <returns>An AccessToken array</returns>
+        /// <param name="userId">The token owner ID.</param>
+        /// <returns>An AccessToken array.</returns>
         public static AccessToken[] GetTokens(int userId)
         {
             return Storage.LoadAccessTokens(userId);
         }
 
         /// <summary>
-        /// Returns true if the specified token value is exists and has not yet expired.
-        /// The 'contentId' or a 'feature' parameters are necessary if the original token is emitted by these.
+        /// Returns true if the specified token value exists and has not yet expired.
+        /// The 'contentId' or 'feature' parameters are necessary if the original token is emitted by these.
         /// </summary>
         /// <param name="tokenValue">The token value.</param>
-        /// <param name="contentId">An ID of a Content that is associated to the token.</param>
-        /// <param name="feature">Any word that identifies the token.</param>
+        /// <param name="contentId">An ID of a Content that is associated with the token.</param>
+        /// <param name="feature">Any word that identifies the feature.</param>
         /// <returns>true or false</returns>
         public static bool TokenExists(string tokenValue, int contentId = 0, string feature = null)
         {
@@ -92,11 +94,12 @@ namespace SenseNet.ContentRepository.Storage.Security
 
         /// <summary>
         /// Assumes the token value existence. Missing or expired token causes InvalidAccessTokenException.
-        /// The 'contentId' or a 'feature' parameters are necessary if the original token is emitted by these.
+        /// The 'contentId' or 'feature' parameters are necessary if the original token is emitted by these.
         /// </summary>
         /// <param name="tokenValue">The token value.</param>
-        /// <param name="contentId">An ID of a Content that is associated to the token.</param>
-        /// <param name="feature">Any word that identifies the token.</param>
+        /// <param name="contentId">An ID of a Content that is associated with the token.</param>
+        /// <param name="feature">Any word that identifies the feature.</param>
+        /// <exception cref="InvalidAccessTokenException"></exception>
         public static void AssertTokenExists(string tokenValue, int contentId = 0, string feature = null)
         {
             if (!TokenExists(tokenValue, contentId, feature))
@@ -109,6 +112,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// </summary>
         /// <param name="tokenValue">The value of the original token.</param>
         /// <param name="expirationDate">The new expiration date.</param>
+        /// <exception cref="InvalidAccessTokenException"></exception>
         public static void UpdateToken(string tokenValue, DateTime expirationDate)
         {
             Storage.UpdateAccessToken(tokenValue, expirationDate);
@@ -126,7 +130,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Deletes all tokens of the given user regardless of expiration date.
         /// </summary>
-        /// <param name="userId">The token owner ID</param>
+        /// <param name="userId">The token owner ID.</param>
         public static void DeleteTokensByUser(int userId)
         {
             Storage.DeleteAccessTokensByUser(userId);
@@ -135,7 +139,7 @@ namespace SenseNet.ContentRepository.Storage.Security
         /// <summary>
         /// Deletes the tokens associated by the specified contentId regardless of expiration date.
         /// </summary>
-        /// <param name="contentId">The associated content id</param>
+        /// <param name="contentId">The associated content id.</param>
         public static void DeleteTokensByContent(int contentId)
         {
             Storage.DeleteAccessTokensByContent(contentId);
