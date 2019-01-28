@@ -50,7 +50,7 @@ namespace SenseNet.ContentRepository.Tests
 
         private class TestPackagingDataProvider : IPackagingDataProviderExtension
         {
-            public DataProvider MetadataProvider { get; set; }
+            public DataProvider MainProvider { get; set; }
             public IEnumerable<ComponentInfo> LoadInstalledComponents()
             {
                 throw new NotImplementedException();
@@ -93,7 +93,7 @@ namespace SenseNet.ContentRepository.Tests
         }
         private class TestAccessTokenDataProvider : IAccessTokenDataProviderExtension
         {
-            public DataProvider MetadataProvider { get; set; }
+            public DataProvider MainProvider { get; set; }
             public void DeleteAllAccessTokens()
             {
                 throw new NotImplementedException();

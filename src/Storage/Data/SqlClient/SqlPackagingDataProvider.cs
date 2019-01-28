@@ -9,7 +9,7 @@ namespace SenseNet.ContentRepository.Storage.Data.SqlClient
 {
     public class SqlPackagingDataProvider : IPackagingDataProviderExtension
     {
-        public DataProvider MetadataProvider { get; set; }
+        public DataProvider MainProvider { get; set; }
 
         #region SQL InstalledComponentsScript
         private static readonly string InstalledComponentsScript = @"SELECT P2.Description, P1.ComponentId, P1.ComponentVersion, P1a.ComponentVersion AcceptableVersion
@@ -26,7 +26,7 @@ ON P1.ComponentId = P2.ComponentId";
         public IEnumerable<ComponentInfo> LoadInstalledComponents()
         {
             var components = new List<ComponentInfo>();
-            using (var cmd = MetadataProvider.CreateDataProcedure(InstalledComponentsScript))
+            using (var cmd = MainProvider.CreateDataProcedure(InstalledComponentsScript))
             {
                 cmd.CommandType = CommandType.Text;
                 using (var reader = cmd.ExecuteReader())
@@ -48,7 +48,7 @@ ON P1.ComponentId = P2.ComponentId";
         public IEnumerable<Package> LoadInstalledPackages()
         {
             var packages = new List<Package>();
-            using (var cmd = MetadataProvider.CreateDataProcedure("SELECT * FROM Packages"))
+            using (var cmd = MainProvider.CreateDataProcedure("SELECT * FROM Packages"))
             {
                 cmd.CommandType = CommandType.Text;
                 using (var reader = cmd.ExecuteReader())
@@ -88,7 +88,7 @@ SELECT @@IDENTITY";
         #endregion
         public void SavePackage(Package package)
         {
-            using (var cmd = MetadataProvider.CreateDataProcedure(SavePackageScript))
+            using (var cmd = MainProvider.CreateDataProcedure(SavePackageScript))
             {
                 cmd.CommandType = CommandType.Text;
 
@@ -122,7 +122,7 @@ WHERE Id = @Id
         #endregion
         public void UpdatePackage(Package package)
         {
-            using (var cmd = MetadataProvider.CreateDataProcedure(UpdatePackageScript))
+            using (var cmd = MainProvider.CreateDataProcedure(UpdatePackageScript))
             {
                 cmd.CommandType = CommandType.Text;
 
@@ -148,7 +148,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
         public bool IsPackageExist(string componentId, PackageType packageType, Version version)
         {
             int count;
-            using (var cmd = MetadataProvider.CreateDataProcedure(PackageExistenceScript))
+            using (var cmd = MainProvider.CreateDataProcedure(PackageExistenceScript))
             {
                 cmd.CommandType = CommandType.Text;
 
@@ -165,7 +165,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
             if (package.Id < 1)
                 throw new ApplicationException("Cannot delete unsaved package");
 
-            using (var cmd = MetadataProvider.CreateDataProcedure("DELETE FROM Packages WHERE Id = @Id"))
+            using (var cmd = MainProvider.CreateDataProcedure("DELETE FROM Packages WHERE Id = @Id"))
             {
                 cmd.CommandType = CommandType.Text;
 
@@ -176,7 +176,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
 
         public void DeleteAllPackages()
         {
-            using (var cmd = MetadataProvider.CreateDataProcedure("TRUNCATE TABLE Packages"))
+            using (var cmd = MainProvider.CreateDataProcedure("TRUNCATE TABLE Packages"))
             {
                 cmd.CommandType = CommandType.Text;
                 cmd.ExecuteNonQuery();
@@ -188,7 +188,7 @@ WHERE ComponentId = @ComponentId AND PackageType = @PackageType AND ComponentVer
         #endregion
         public void LoadManifest(Package package)
         {
-            using (var cmd = MetadataProvider.CreateDataProcedure(LoadManifestScript))
+            using (var cmd = MainProvider.CreateDataProcedure(LoadManifestScript))
             {
                 cmd.CommandType = CommandType.Text;
 

@@ -9,7 +9,7 @@ namespace SenseNet.Packaging.Tests.Implementations
 {
     public class TestPackageStorageProvider : IPackagingDataProviderExtension
     {
-        public DataProvider MetadataProvider { get; set; }
+        public DataProvider MainProvider { get; set; }
 
 
         private int _id;

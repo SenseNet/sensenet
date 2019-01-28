@@ -164,7 +164,7 @@
     <Compile Include="Data\BlobStorage.cs" />
     <Compile Include="Data\DataProviderExtensions.cs" />
     <Compile Include="Data\IAccessTokenDataProviderExtension.cs" />
-    <Compile Include="Data\IDataProvider.cs" />
+    <Compile Include="Data\IDataProviderExtension.cs" />
     <Compile Include="Data\IndexDocumentData.cs" />
     <Compile Include="Data\IndexIntegrityCheckerItem.cs" />
     <Compile Include="Data\IPackagingDataProvider.cs" />

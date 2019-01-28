@@ -40,7 +40,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public virtual void SetExtension(Type providerType, IDataProviderExtension provider)
         {
             _dataProvidersByType[providerType] = provider;
-            provider.MetadataProvider = this;
+            provider.MainProvider = this;
         }
 
         private T GetExtensionInstance<T>() where T : class, IDataProviderExtension
