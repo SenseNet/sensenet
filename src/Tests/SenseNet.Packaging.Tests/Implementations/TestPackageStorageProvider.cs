@@ -7,22 +7,11 @@ using System.Linq;
 
 namespace SenseNet.Packaging.Tests.Implementations
 {
-    internal class TestPackageStorageProviderFactory : IPackageStorageProviderFactory
+    public class TestPackageStorageProvider : IPackagingDataProviderExtension
     {
-        // An idea: to parallelize test execution, need to store the provider instance in the thread context.
-        private readonly IPackageStorageProvider _provider;
-        public TestPackageStorageProviderFactory(IPackageStorageProvider provider)
-        {
-            _provider = provider;
-        }
-        public IPackageStorageProvider CreateProvider()
-        {
-            return _provider;
-        }
-    }
+        public DataProvider MainProvider { get; set; }
 
-    public class TestPackageStorageProvider : IPackageStorageProvider
-    {
+
         private int _id;
 
         private List<Package> Storage { get; } = new List<Package>();
@@ -46,12 +35,6 @@ namespace SenseNet.Packaging.Tests.Implementations
             target.ExecutionError = source.ExecutionError;
             if (withManifest)
                 target.Manifest = source.Manifest;
-        }
-
-        public IDataProcedureFactory DataProcedureFactory
-        {
-            get { throw new NotSupportedException(); }
-            set { /* do nothing */ }
         }
 
         /* ================================================================================================= IPackageStorageProvider */
@@ -154,5 +137,6 @@ namespace SenseNet.Packaging.Tests.Implementations
         {
             return Storage.Count;
         }
+
     }
 }

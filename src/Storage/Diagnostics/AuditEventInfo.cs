@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading;
-using System.Web;
 using System.Xml;
 
 // ReSharper disable once CheckNamespace
@@ -44,7 +44,7 @@ namespace SenseNet.Diagnostics
                 var s = obj as string ?? obj.ToString();
                 var mustEscape = s.Any(c => c == '<' || c == '>' || c == '&' || c == '"' || c == '\'');
 
-                return mustEscape ? HttpUtility.HtmlEncode(s) : s;
+                return mustEscape ? WebUtility.HtmlEncode(s) : s;
             });
 
             var process = Process.GetCurrentProcess();

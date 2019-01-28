@@ -1,8 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Globalization;
-using System.Web;
 
 namespace SenseNet.ContentRepository.Storage
 {
@@ -216,11 +213,7 @@ namespace SenseNet.ContentRepository.Storage
 
         public string ToDisplayText()
         {
-            var statusText = HttpContext.GetGlobalResourceObject("Portal", Status.ToString()) as string;
-            if (string.IsNullOrEmpty(statusText))
-                statusText = Status.ToString();
-
-            return string.Format("{0}.{1} {2}", Major, Minor, statusText);
+            return $"{Major}.{Minor} {SR.GetStringOrDefault($"$Portal:{Status.ToString()}", "Portal", Status.ToString())}";
         }
 
         // --------------------------------------------------------------------------- IComparable Members

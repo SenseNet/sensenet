@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using SenseNet.ContentRepository.Storage.Security;
 using System.Web;
+using SenseNet.ContentRepository;
 using SenseNet.Diagnostics;
 
 namespace SenseNet.Portal.Virtualization
@@ -137,7 +138,23 @@ namespace SenseNet.Portal.Virtualization
                 case DataType.Binary:
                     string contentType;
                     BinaryFileName fileName;
-                    stream = DocumentBinaryProvider.Current.GetStream(_node, propertyName, out contentType, out fileName);
+
+                    // Images need to be handled differently, because of these reasons:
+                    // - dimensions may be changed dynamically, based on request parameters
+                    // - preview images may be restricted (redacted) based on permissions
+                    if (_node is Image img)
+                    {
+                        var parameters = HttpContext.Current?.Request.QueryString;
+
+                        stream = img.GetImageStream(propertyName,
+                            parameters?.AllKeys.ToDictionary(k => k ?? string.Empty, k => (object)parameters[k]),
+                            out contentType, 
+                            out fileName);
+                    }
+                    else
+                    {
+                        stream = DocumentBinaryProvider.Current.GetStream(_node, propertyName, out contentType, out fileName);
+                    }
 
                     if (stream == null)
                         throw new ApplicationException(string.Format("BinaryProperty.Value.GetStream() returned null. RepositoryPath={0}, OriginalUri={1}, AppDomainFriendlyName={2} ", this._repositoryPath, ((PortalContext.Current != null) ? PortalContext.Current.RequestedUri.ToString() : "PortalContext.Current is null"), AppDomain.CurrentDomain.FriendlyName));

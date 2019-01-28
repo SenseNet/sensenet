@@ -13,9 +13,9 @@ namespace SenseNet.Configuration
         public static int MessageRetentionTime { get; internal set; } = GetInt(SectionName, "MessageRetentionTime", 10, 2);
 
         /// <summary>
-        /// MsmqReconnectDelay defines the time interval between reconnect attempts (in seconds).  Default value: 1 sec.
+        /// Defines the time interval between reconnect attempts (in seconds).  Default value: 1 sec.
         /// </summary>
-        internal static int MsmqReconnectDelay { get; set; } = GetInt(SectionName, "MsmqReconnectDelay", 1);
+        public static int ReconnectDelay { get; internal set; } = GetInt(SectionName, "ReconnectDelay", 1);
 
         /// <summary>
         /// Number of clusterchannel message processor threads. Default is 5.

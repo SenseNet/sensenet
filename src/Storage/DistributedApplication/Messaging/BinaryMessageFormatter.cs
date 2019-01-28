@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Runtime.Serialization.Formatters.Binary;
+﻿using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
-using System.Runtime.Remoting.Messaging;
 using System.Runtime.Serialization;
 using SenseNet.Diagnostics;
 
@@ -13,10 +9,11 @@ namespace SenseNet.Communication.Messaging
     {
         #region IMessageFormatter Members
 
-        public ClusterMessage Deserialize(System.IO.Stream data)
+        public ClusterMessage Deserialize(Stream data)
         {
-            BinaryFormatter bf = new BinaryFormatter();
-            ClusterMessage message = null;
+            var bf = new BinaryFormatter();
+            ClusterMessage message;
+
             try
             {
                 message = (ClusterMessage)bf.Deserialize(data);
@@ -26,19 +23,17 @@ namespace SenseNet.Communication.Messaging
                 SnLog.WriteException(e);
                 message = new UnknownMessageType(data);
             }
+
             return message;
         }
 
-        public object InternalHeaderHandler(Header[] headers)
+        public Stream Serialize(ClusterMessage message)
         {
-            object o = headers;
-            return o;
-        }
-        public System.IO.Stream Serialize(ClusterMessage message)
-        {
-            MemoryStream ms = new MemoryStream();
-            BinaryFormatter bf = new BinaryFormatter();
+            var ms = new MemoryStream();
+            var bf = new BinaryFormatter();
+
             bf.Serialize(ms, message); ms.Flush(); ms.Position = 0;
+
             return ms;
         }
 

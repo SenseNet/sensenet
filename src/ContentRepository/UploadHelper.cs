@@ -1,8 +1,8 @@
-﻿using System.Collections.Specialized;
+﻿using System;
+using System.Collections.Specialized;
 using SenseNet.ContentRepository;
 using SenseNet.ContentRepository.Storage;
 using System.IO;
-using System.Web;
 
 namespace SenseNet.Portal.Handlers
 {
@@ -70,40 +70,28 @@ namespace SenseNet.Portal.Handlers
         }
 
         /// <summary>
-        /// Creates BinaryData from filename and stream
+        /// Creates BinaryData from filename and stream.
         /// </summary>
-        /// <param name="fileName"></param>
-        /// <param name="stream"></param>
-        /// <returns></returns>
-        public static BinaryData CreateBinaryData(string fileName, Stream stream)
-        {
-            var binaryData = new BinaryData();
-            binaryData.FileName = fileName;
-            binaryData.SetStream(stream);
-            return binaryData;
-        }
-
-        /// <summary>
-        /// Creates BinaryData from HttpPostedFile
-        /// </summary>
-        /// <param name="file"></param>
-        /// <returns></returns>
-        public static BinaryData CreateBinaryData(HttpPostedFile file, bool setStream = true)
+        /// <param name="fileName">Binary file name.</param>
+        /// <param name="stream">Binary stream or null.</param>
+        /// <param name="contentType">Binary content type. This value is used only if the content type
+        /// could not be computed from the file extension.</param>
+        public static BinaryData CreateBinaryData(string fileName, Stream stream, string contentType = null)
         {
             var result = new BinaryData();
 
-            string fileName = file.FileName;
-            if (file.FileName.LastIndexOf("\\") > -1)
-                fileName = file.FileName.Substring(file.FileName.LastIndexOf("\\") + 1);
+            // use only the file name
+            var slashIndex = fileName.LastIndexOf("\\", StringComparison.Ordinal);
+            if (slashIndex > -1)
+                fileName = fileName.Substring(slashIndex + 1);
 
             result.FileName = new BinaryFileName(fileName);
 
             // set content type only if we were unable to recognise it
-            if (string.IsNullOrEmpty(result.ContentType))
-                result.ContentType = file.ContentType;
+            if (string.IsNullOrEmpty(result.ContentType) && !string.IsNullOrEmpty(contentType))
+                result.ContentType = contentType;
 
-            if (setStream)
-                result.SetStream(file.InputStream);
+            result.SetStream(stream);
 
             return result;
         }
@@ -115,7 +103,7 @@ namespace SenseNet.Portal.Handlers
         /// <param name="stream"></param>
         public static void ModifyNode(Node node, Stream stream)
         {
-            node.SetBinary("Binary", UploadHelper.CreateBinaryData(node.Name, stream));
+            node.SetBinary("Binary", CreateBinaryData(node.Name, stream));
             node.Save();
         }
     }

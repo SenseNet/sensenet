@@ -65,7 +65,7 @@ namespace SenseNet.Portal.OData
                 throw new ODataException(SNSR.GetString(SNSR.Exceptions.OData.CannotConvertToJSON_2, typeof(ImageField.ImageFieldData).FullName, value.GetType().FullName), ODataExceptionCode.CannotConvertToJSON);
             writer.WriteStartObject();
             var url = imgData.Field == null ? "#" : ((ImageField)imgData.Field).ImageUrl;
-            writer.WritePropertyName("_deferred");
+            writer.WritePropertyName("Url");
             writer.WriteValue(url);
             writer.WriteEnd();
         }

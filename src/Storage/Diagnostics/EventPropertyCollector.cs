@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using SenseNet.Configuration;
 using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Tools.Diagnostics;
 
@@ -22,16 +20,26 @@ namespace SenseNet.Diagnostics
                 props = new Dictionary<string, object>(props);
 
             CollectUserProperties(props);
-            CollectContextProperties(props);
+            CollectProperties(props);
 
             foreach (var key in props.Keys.Where(key => props[key] == null).ToList())
                 props[key] = string.Empty;
 
             return props;
         }
+
+        /// <summary>
+        /// Collects additional properties.
+        /// Derived classes may add custom properties by overriding this method.
+        /// </summary>
+        protected virtual void CollectProperties(IDictionary<string, object> props)
+        {
+            // empty base method
+        }
+
         private static void CollectUserProperties(IDictionary<string, object> properties)
         {
-            IUser loggedUser = GetCurrentUser();
+            IUser loggedUser = AccessProvider.Current.GetCurrentUser();
 
             if (loggedUser == null)
                 return;
@@ -73,47 +81,6 @@ namespace SenseNet.Diagnostics
                 else
                     properties.Add(SpecialUserNameKey, specialUser.Username ?? String.Empty);
             }
-        }
-        private static void CollectContextProperties(IDictionary<string, object> properties)
-        {
-            if (!properties.ContainsKey("WorkingMode"))
-                properties.Add("WorkingMode", RepositoryEnvironment.WorkingMode.RawValue);
-
-            if (!properties.ContainsKey("IsHttpContext"))
-            {
-                var ctx = System.Web.HttpContext.Current;
-                properties.Add("IsHttpContext", ctx == null ? "no" : "yes");
-                if (ctx != null)
-                {
-                    System.Web.HttpRequest req = null;
-                    try
-                    {
-                        req = ctx.Request;
-                    }
-                    catch
-                    {
-                        // ignored
-                    }
-                    if (req != null)
-                    {
-                        if (!properties.ContainsKey("Url"))
-                            properties.Add("Url", ctx.Request.Url);
-                        if (!properties.ContainsKey("Referrer"))
-                            properties.Add("Referrer", ctx.Request.UrlReferrer);
-                    }
-                    else
-                    {
-                        if (!properties.ContainsKey("Url"))
-                            properties.Add("Url", "// not available //");
-                    }
-                }
-            }
-        }
-        private static IUser GetCurrentUser()
-        {
-            if ((System.Web.HttpContext.Current != null) && (System.Web.HttpContext.Current.User != null))
-                return System.Web.HttpContext.Current.User.Identity as IUser;
-            return Thread.CurrentPrincipal.Identity as IUser;
         }
     }
 }

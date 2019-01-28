@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SenseNet.ContentRepository;
+using SenseNet.ContentRepository.Fields;
 using SenseNet.Services.OData.Tests.Results;
 
 namespace SenseNet.Services.OData.Tests
@@ -648,5 +649,230 @@ namespace SenseNet.Services.OData.Tests
             });
         }
 
+        [TestMethod]
+        public void OData_UserAvatarByRef()
+        {
+            Test(() =>
+            {
+                var testDomain = new Domain(Repository.ImsFolder) { Name = "Domain1" };
+                testDomain.Save();
+
+                var testUser = new User(testDomain) { Name = "User1" };
+                testUser.Save();
+
+                var testSite = CreateTestSite();
+
+                var testAvatars = new Folder(testSite) { Name = "demoavatars" };
+                testAvatars.Save();
+
+                var testAvatar = new Image(testAvatars) { Name = "user1.jpg" };
+                testAvatar.Binary = new BinaryData { FileName = "user1.jpg" };
+                testAvatar.Binary.SetStream(RepositoryTools.GetStreamFromString("abcdefgh"));
+                testAvatar.Save();
+
+                // set avatar of User1
+                var userContent = Content.Load(testUser.Id);
+                var avatarContent = Content.Load(testAvatar.Id);
+                var avatarData = new ImageField.ImageFieldData(null, (Image)avatarContent.ContentHandler, null);
+                userContent["Avatar"] = avatarData;
+                userContent.Save();
+
+                // ACTION
+                var entity = ODataGET<ODataEntity>($"/OData.svc/Root/IMS/{testDomain.Name}('{testUser.Name}')",
+                    "metadata=no&$select=Avatar");
+
+                // ASSERT
+                var avatarString = entity.AllProperties["Avatar"].ToString();
+                Assert.IsTrue(avatarString.Contains("Url"));
+                Assert.IsTrue(avatarString.Contains(testAvatar.Path));
+            });
+        }
+        [TestMethod]
+        public void OData_UserAvatarUpdateRef()
+        {
+            Test(() =>
+            {
+                var testDomain = new Domain(Repository.ImsFolder) { Name = "Domain1" };
+                testDomain.Save();
+
+                var testUser = new User(testDomain) { Name = "User1" };
+                testUser.Save();
+
+                var testSite = CreateTestSite();
+
+                var testAvatars = new Folder(testSite) { Name = "demoavatars" };
+                testAvatars.Save();
+
+                var testAvatar1 = new Image(testAvatars) { Name = "user1.jpg" };
+                testAvatar1.Binary = new BinaryData { FileName = "user1.jpg" };
+                testAvatar1.Binary.SetStream(RepositoryTools.GetStreamFromString("abcdefgh"));
+                testAvatar1.Save();
+
+                var testAvatar2 = new Image(testAvatars) { Name = "user2.jpg" };
+                testAvatar2.Binary = new BinaryData { FileName = "user2.jpg" };
+                testAvatar2.Binary.SetStream(RepositoryTools.GetStreamFromString("ijklmnop"));
+                testAvatar2.Save();
+
+                // set avatar of User1
+                var userContent = Content.Load(testUser.Id);
+                var avatarContent = Content.Load(testAvatar1.Id);
+                var avatarData = new ImageField.ImageFieldData(null, (Image)avatarContent.ContentHandler, null);
+                userContent["Avatar"] = avatarData;
+                userContent.Save();
+
+                // ACTION
+                var result = ODataPATCH<ODataEntity>($"/OData.svc/Root/IMS/{testDomain.Name}('{testUser.Name}')",
+                    "metadata=no&$select=Avatar,ImageRef,ImageData",
+                    $"(models=[{{\"Avatar\": {testAvatar2.Id}}}])");
+
+                // ASSERT
+                if (result is ODataError error)
+                    Assert.AreEqual("", error.Message);
+                var entity = result as ODataEntity;
+                if (entity == null)
+                    Assert.Fail($"Result is {result.GetType().Name} but ODataEntity is expected.");
+
+                var avatarString = entity.AllProperties["Avatar"].ToString();
+                Assert.IsTrue(avatarString.Contains("Url"));
+                Assert.IsTrue(avatarString.Contains(testAvatar2.Path));
+            });
+        }
+        [TestMethod]
+        public void OData_UserAvatarUpdateRefByPath()
+        {
+            Test(() =>
+            {
+                var testDomain = new Domain(Repository.ImsFolder) { Name = "Domain1" };
+                testDomain.Save();
+
+                var testUser = new User(testDomain) { Name = "User1" };
+                testUser.Save();
+
+                var testSite = CreateTestSite();
+
+                var testAvatars = new Folder(testSite) { Name = "demoavatars" };
+                testAvatars.Save();
+
+                var testAvatar1 = new Image(testAvatars) { Name = "user1.jpg" };
+                testAvatar1.Binary = new BinaryData { FileName = "user1.jpg" };
+                testAvatar1.Binary.SetStream(RepositoryTools.GetStreamFromString("abcdefgh"));
+                testAvatar1.Save();
+
+                var testAvatar2 = new Image(testAvatars) { Name = "user2.jpg" };
+                testAvatar2.Binary = new BinaryData { FileName = "user2.jpg" };
+                testAvatar2.Binary.SetStream(RepositoryTools.GetStreamFromString("ijklmnop"));
+                testAvatar2.Save();
+
+                // set avatar of User1
+                var userContent = Content.Load(testUser.Id);
+                var avatarContent = Content.Load(testAvatar1.Id);
+                var avatarData = new ImageField.ImageFieldData(null, (Image)avatarContent.ContentHandler, null);
+                userContent["Avatar"] = avatarData;
+                userContent.Save();
+
+                // ACTION
+                var result = ODataPATCH<ODataEntity>($"/OData.svc/Root/IMS/{testDomain.Name}('{testUser.Name}')",
+                    "metadata=no&$select=Avatar,ImageRef,ImageData",
+                    $"(models=[{{\"Avatar\": \"{testAvatar2.Path}\"}}])");
+
+                // ASSERT
+                if (result is ODataError error)
+                    Assert.AreEqual("", error.Message);
+                var entity = result as ODataEntity;
+                if (entity == null)
+                    Assert.Fail($"Result is {result.GetType().Name} but ODataEntity is expected.");
+
+                var avatarString = entity.AllProperties["Avatar"].ToString();
+                Assert.IsTrue(avatarString.Contains("Url"));
+                Assert.IsTrue(avatarString.Contains(testAvatar2.Path));
+            });
+        }
+        [TestMethod]
+        public void OData_UserAvatarByInnerData()
+        {
+            Test(() =>
+            {
+                var testDomain = new Domain(Repository.ImsFolder) { Name = "Domain1" };
+                testDomain.Save();
+
+                var testUser = new User(testDomain) { Name = "User1" };
+                testUser.Save();
+
+                var testSite = CreateTestSite();
+
+                var testAvatars = new Folder(testSite) { Name = "demoavatars" };
+                testAvatars.Save();
+
+                var testAvatar = new Image(testAvatars) { Name = "user1.jpg" };
+                testAvatar.Binary = new BinaryData { FileName = "user1.jpg" };
+                testAvatar.Binary.SetStream(RepositoryTools.GetStreamFromString("abcdefgh"));
+                testAvatar.Save();
+
+                var avatarBinaryData = new BinaryData { FileName = "user2.jpg" };
+                avatarBinaryData.SetStream(RepositoryTools.GetStreamFromString("ijklmnop"));
+
+                // set avatar of User1
+                var userContent = Content.Load(testUser.Id);
+                var avatarData = new ImageField.ImageFieldData(null, null, avatarBinaryData);
+                userContent["Avatar"] = avatarData;
+                userContent.Save();
+
+                // ACTION
+                var entity = ODataGET<ODataEntity>($"/OData.svc/Root/IMS/{testDomain.Name}('{testUser.Name}')",
+                    "metadata=no&$select=Avatar,ImageRef,ImageData");
+
+                // ASSERT
+                var avatarString = entity.AllProperties["Avatar"].ToString();
+                Assert.IsTrue(avatarString.Contains("Url"));
+                Assert.IsTrue(avatarString.Contains($"/binaryhandler.ashx?nodeid={testUser.Id}&propertyname=ImageData"));
+            });
+        }
+        [TestMethod]
+        public void OData_UserAvatarUpdateInnerDataToRef()
+        {
+            Test(() =>
+            {
+                var testDomain = new Domain(Repository.ImsFolder) { Name = "Domain1" };
+                testDomain.Save();
+
+                var testUser = new User(testDomain) { Name = "User1" };
+                testUser.Save();
+
+                var testSite = CreateTestSite();
+
+                var testAvatars = new Folder(testSite) { Name = "demoavatars" };
+                testAvatars.Save();
+
+                var testAvatar = new Image(testAvatars) { Name = "user1.jpg" };
+                testAvatar.Binary = new BinaryData { FileName = "user1.jpg" };
+                testAvatar.Binary.SetStream(RepositoryTools.GetStreamFromString("abcdefgh"));
+                testAvatar.Save();
+
+                var avatarBinaryData = new BinaryData { FileName = "user2.jpg" };
+                avatarBinaryData.SetStream(RepositoryTools.GetStreamFromString("ijklmnop"));
+
+                // set avatar of User1
+                var userContent = Content.Load(testUser.Id);
+                var avatarData = new ImageField.ImageFieldData(null, null, avatarBinaryData);
+                userContent["Avatar"] = avatarData;
+                userContent.Save();
+
+                // ACTION
+                var result = ODataPATCH<ODataEntity>($"/OData.svc/Root/IMS/{testDomain.Name}('{testUser.Name}')",
+                    "metadata=no&$select=Avatar,ImageRef,ImageData",
+                    $"(models=[{{\"Avatar\": {testAvatar.Id}}}])");
+
+                // ASSERT
+                if(result is ODataError error)
+                    Assert.AreEqual("", error.Message);
+                var entity = result as ODataEntity;
+                if (entity == null)
+                    Assert.Fail($"Result is {result.GetType().Name} but ODataEntity is expected.");
+
+                var avatarString = entity.AllProperties["Avatar"].ToString();
+                Assert.IsTrue(avatarString.Contains("Url"));
+                Assert.IsTrue(avatarString.Contains(testAvatar.Path));
+            });
+        }
     }
 }

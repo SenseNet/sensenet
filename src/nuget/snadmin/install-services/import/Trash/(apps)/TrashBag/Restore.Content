@@ -9,32 +9,4 @@
     <RequiredPermissions>Save</RequiredPermissions>
     <Scenario><![CDATA[ListItem;ExploreToolbar]]></Scenario>
   </Fields>
-  <Permissions>
-    <Clear />
-    <Break />
-    <Identity path="/Root/IMS/BuiltIn/Portal/Administrators">
-      <See>Allow</See>
-      <Preview>Allow</Preview>
-      <PreviewWithoutWatermark>Allow</PreviewWithoutWatermark>
-      <PreviewWithoutRedaction>Allow</PreviewWithoutRedaction>
-      <Open>Allow</Open>
-      <OpenMinor>Allow</OpenMinor>
-      <Save>Allow</Save>
-      <Publish>Allow</Publish>
-      <ForceCheckin>Allow</ForceCheckin>
-      <AddNew>Allow</AddNew>
-      <Approve>Allow</Approve>
-      <Delete>Allow</Delete>
-      <RecallOldVersion>Allow</RecallOldVersion>
-      <DeleteOldVersion>Allow</DeleteOldVersion>
-      <SeePermissions>Allow</SeePermissions>
-      <SetPermissions>Allow</SetPermissions>
-      <RunApplication>Allow</RunApplication>
-      <ManageListsAndWorkspaces>Allow</ManageListsAndWorkspaces>
-      <TakeOwnership>Allow</TakeOwnership>
-    </Identity>
-    <Identity path="/Root/IMS/BuiltIn/Portal/IdentifiedUsers">
-      <RunApplication>Allow</RunApplication>
-    </Identity>
-  </Permissions>
 </ContentMetaData>

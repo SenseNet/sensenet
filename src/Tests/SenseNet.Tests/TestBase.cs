@@ -176,6 +176,7 @@ namespace SenseNet.Tests
                 .UseDataProvider(dataProvider)
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
+                .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UseSearchEngine(new InMemorySearchEngine())
                 .UseSecurityDataProvider(securityDataProvider)
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())

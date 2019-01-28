@@ -357,7 +357,7 @@ namespace SenseNet.ContentRepository
             // inherit explicit permissions from template
             using (new SystemAccount())
             {
-                var entries = SecurityHandler.GetExplicitEntriesAsSystemUser(sourceNode.Id);
+                var entries = SecurityHandler.GetExplicitEntriesAsSystemUser(sourceNode.Id, null, EntryType.Normal);
                 if (entries.Count > 0)
                 {
                     var aclEdit = SecurityHandler.CreateAclEditor();

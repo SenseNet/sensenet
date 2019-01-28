@@ -21,6 +21,8 @@ using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 using SenseNet.ContentRepository.Security;
+using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository
@@ -134,9 +136,15 @@ namespace SenseNet.ContentRepository
 
             LoadAssemblies();
 
+            InitializeDataProviderExtensions();
+
             SecurityHandler.StartSecurity(_settings.IsWebContext);
 
             SnQueryVisitor.VisitorExtensionTypes = new[] {typeof(Sharing.SharingVisitor)};
+
+            // We have to log the access provider here because it cannot be logged 
+            // during creation as it would lead to a circular reference.
+            SnLog.WriteInformation($"AccessProvider created: {AccessProvider.Current?.GetType().FullName}");
 
             using (new SystemAccount())
                 StartManagers();
@@ -312,6 +320,17 @@ namespace SenseNet.ContentRepository
 
         private List<ISnService> serviceInstances;
 
+        private static void InitializeDataProviderExtensions()
+        {
+            // set default value of well-known data provider extensions
+
+            if (DataProvider.GetExtension<IPackagingDataProviderExtension>() == null)
+                DataProvider.Instance.SetExtension(typeof(IPackagingDataProviderExtension), new SqlPackagingDataProvider());
+
+            if (DataProvider.GetExtension<IAccessTokenDataProviderExtension>() == null)
+                DataProvider.Instance.SetExtension(typeof(IAccessTokenDataProviderExtension), new SqlAccessTokenDataProvider());
+        }
+
         private static void InitializeOAuthProviders()
         {
             var providerTypeNames = new List<string>();
@@ -348,7 +367,7 @@ namespace SenseNet.ContentRepository
         {
             // look for the configured logger
             SnLog.Instance = Providers.Instance.EventLogger ?? new DebugWriteLoggerAdapter();
-            SnLog.PropertyCollector = new EventPropertyCollector();
+            SnLog.PropertyCollector = Providers.Instance.PropertyCollector ?? new EventPropertyCollector();
             SnLog.AuditEventWriter = new DatabaseAuditEventWriter();
 
             //set configured tracers
