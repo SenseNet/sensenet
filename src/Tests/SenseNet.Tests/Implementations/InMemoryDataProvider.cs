@@ -15,6 +15,7 @@ using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
 using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.ContentRepository.Storage.Schema;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Querying;
 using SenseNet.Security;
@@ -605,8 +606,9 @@ namespace SenseNet.Tests.Implementations
         {
             throw new NotImplementedException();
         }
-        #endregion
 
+        #endregion
+        
         protected internal override int InstanceCount(int[] nodeTypeIds)
         {
             return _db.Nodes.Count(n => nodeTypeIds.Contains(n.NodeTypeId));
@@ -2818,6 +2820,7 @@ namespace SenseNet.Tests.Implementations
                 };
             }
         }
+        
         public class TreeLockRow
         {
             public int TreeLockId;

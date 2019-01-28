@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 
 [assembly: InternalsVisibleTo("SenseNet.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.BlobStorage.IntegrationTests")]
+[assembly: InternalsVisibleTo("SenseNet.ContentRepository.IntegrationTests")]
 [assembly: InternalsVisibleTo("SenseNet.Packaging.Tests")]
 [assembly: InternalsVisibleTo("SenseNet.Packaging.IntegrationTests")]
 
