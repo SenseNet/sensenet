@@ -198,6 +198,8 @@ namespace SenseNet.Services.Wopi
         }
 
         private static readonly char[] DisabledUserIdChars = "<>\"#{}^[]`\\/".ToCharArray();
+        public static readonly string AccessTokenFeatureName = "Wopi";
+
         private string GetUserId(IUser user)
         {
             return DisabledUserIdChars.Aggregate(user.Name, (current, c) => current.Replace(c, '_'));
