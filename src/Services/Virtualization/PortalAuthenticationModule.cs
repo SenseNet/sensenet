@@ -18,6 +18,7 @@ using SenseNet.Configuration;
 using SenseNet.Search;
 using SenseNet.Search.Querying;
 using SenseNet.Services.Virtualization;
+using SenseNet.Services.Wopi;
 using SenseNet.TokenAuthentication;
 
 namespace SenseNet.Portal.Virtualization
@@ -121,6 +122,28 @@ namespace SenseNet.Portal.Virtualization
             if (string.IsNullOrEmpty(authenticationType))
                 throw new ApplicationException(
                     "The engine could not determine the authentication mode for this request. This request does not belong to a site, and there was no default authentication mode set in the web.config.");
+
+            if (currentPortalContext.IsWopiRequest)
+            {
+                var wopiRequest = currentPortalContext.WopiRequest;
+                var tokenValue = wopiRequest.AccessTokenValue;
+                var contentId = wopiRequest is FilesRequest fileRequest ? int.Parse(fileRequest.FileId) : 0;
+                var token = AccessTokenVault.GetToken(tokenValue, contentId, WopiHandler.AccessTokenFeatureName);
+                if (token == null)
+                    throw new UnauthorizedAccessException(); // 404
+
+                using (new SystemAccount())
+                {
+                    if (Node.LoadNode(token.UserId) is IUser user)
+                    {
+                        // Authenticate user
+                        application.Context.User = new PortalPrincipal(user);
+                        SetApplicationUser(application, authenticationType);
+                    }
+                }
+
+                return;
+            }
 
             switch (authenticationType)
             {

@@ -299,6 +299,7 @@
     <Compile Include="Resources\ResourceScripter.cs" />
     <Compile Include="Routing\ODataRouteHandler.cs" />
     <Compile Include="Routing\ProxyingRouteHandler.cs" />
+    <Compile Include="Routing\WopiRouteHandler.cs" />
     <Compile Include="RssApplication.cs" />
     <Compile Include="SenseNetGlobal.cs" />
     <Compile Include="SimpleModule.cs" />

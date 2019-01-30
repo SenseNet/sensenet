@@ -361,6 +361,7 @@ namespace SenseNet.Services
         protected virtual void RegisterRoutes(RouteCollection routes, HttpApplication application)
         {
             routes.Add("SnODataRoute", new Route("odata.svc/{*path}", new ODataRouteHandler()));
+            routes.Add("SnWopiRoute", new Route("wopi/{*path}", new WopiRouteHandler()));
 
             var resourceHandler = new ResourceHandler();
             routes.Add("SnResourceRoute", new Route(ResourceHandler.UrlPart + "/{*anything}", new ProxyingRouteHandler(ctx => resourceHandler)));
