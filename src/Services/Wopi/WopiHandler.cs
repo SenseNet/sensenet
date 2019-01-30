@@ -235,14 +235,25 @@ namespace SenseNet.Services.Wopi
                 }
                 allowBits = allowBits & ~denyBits;
 
+                //UNDONE: Uncomment this instruction to allow document editing
+                //return new UserPermissions
+                //{
+                //    Write = (allowBits & PermissionType.Save.Mask) > 0,
+                //    RestrictedViewOnly = 0 == (allowBits & PermissionType.Open.Mask) &&
+                //                         0 != (allowBits & (PermissionType.Preview.Mask +
+                //                                            PermissionType.PreviewWithoutWatermark.Mask +
+                //                                            PermissionType.PreviewWithoutRedaction.Mask)),
+                //    Create = !file.Parent?.Security.HasPermission(user, PermissionType.AddNew) ?? false,
+                //};
+                //UNDONE: Delete this instruction to allow document editing
                 return new UserPermissions
                 {
-                    Write = (allowBits & PermissionType.Save.Mask) > 0,
+                    Write = false,
                     RestrictedViewOnly = 0 == (allowBits & PermissionType.Open.Mask) &&
                                          0 != (allowBits & (PermissionType.Preview.Mask +
                                                             PermissionType.PreviewWithoutWatermark.Mask +
                                                             PermissionType.PreviewWithoutRedaction.Mask)),
-                    Create = !file.Parent?.Security.HasPermission(user, PermissionType.AddNew) ?? false,
+                    Create = false,
                 };
             }
         }
