@@ -166,7 +166,7 @@ namespace SenseNet.Tests
         }
 
 
-        protected RepositoryBuilder CreateRepositoryBuilderForTest()
+        protected static RepositoryBuilder CreateRepositoryBuilderForTest()
         {
             var dataProvider = new InMemoryDataProvider();
             var securityDataProvider = GetSecurityDataProvider(dataProvider);
@@ -176,6 +176,7 @@ namespace SenseNet.Tests
                 .UseDataProvider(dataProvider)
                 .UseBlobMetaDataProvider(new InMemoryBlobStorageMetaDataProvider(dataProvider))
                 .UseBlobProviderSelector(new InMemoryBlobProviderSelector())
+                .UseAccessTokenDataProviderExtension(new InMemoryAccessTokenDataProvider())
                 .UseSearchEngine(new InMemorySearchEngine())
                 .UseSecurityDataProvider(securityDataProvider)
                 .UseElevatedModificationVisibilityRuleProvider(new ElevatedModificationVisibilityRule())

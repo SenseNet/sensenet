@@ -9,6 +9,7 @@ using SenseNet.ContentRepository;
 using System.Reflection;
 using SenseNet.ContentRepository.Storage;
 using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.Packaging.Steps;
 
 namespace SenseNet.Packaging
@@ -21,6 +22,12 @@ namespace SenseNet.Packaging
 
         public static PackagingResult Execute(string packagePath, string targetPath, int currentPhase, string[] parameters, TextWriter console)
         {
+            // Workaround for setting the packaging db provider: in normal cases this happens
+            // when the repository starts, but in case of package execution the repository 
+            // is not yet started sometimes.
+            if (null == DataProvider.GetExtension<IPackagingDataProviderExtension>())
+                DataProvider.Instance.SetExtension(typeof(IPackagingDataProviderExtension), new SqlPackagingDataProvider());
+
             var packageParameters = parameters?.Select(PackageParameter.Parse).ToArray() ?? new PackageParameter[0];
             var forcedReinstall = "true" == (packageParameters
                 .FirstOrDefault(p => p.PropertyName.ToLowerInvariant() == "forcedreinstall")?
