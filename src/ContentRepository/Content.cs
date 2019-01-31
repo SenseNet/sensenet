@@ -59,10 +59,7 @@ namespace SenseNet.ContentRepository
 
         public virtual string GetHash()
         {
-            var site = HttpContext.Current != null && HttpContext.Current.Request != null
-                ? HttpContext.Current.Request.Url.Host
-                : UNKNOWN_SITE;
-
+            var site = Providers.Instance.CompatibilitySupport.Request_Url?.Host ?? UNKNOWN_SITE;
 
             var keyText = string.Join("#",
                 Fields,

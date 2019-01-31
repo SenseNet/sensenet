@@ -1391,8 +1391,8 @@ namespace SenseNet.Preview
             var maxPreviewCount = Settings.GetValue(DOCUMENTPREVIEW_SETTINGS, MAXPREVIEWCOUNT, relatedContent.Path, 10);
             var roundedStartIndex = startIndex - startIndex % maxPreviewCount;
             var communicationUrl = Settings.GetValue(SnTaskManager.Settings.SETTINGSNAME, SnTaskManager.Settings.TASKMANAGEMENTAPPLICATIONURL,
-                relatedContent.Path, 
-                HttpContext.Current != null ? HttpContext.Current.Request.Url.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped) : string.Empty);
+                relatedContent.Path,
+                Providers.Instance.CompatibilitySupport.Request_Url?.GetComponents(UriComponents.SchemeAndServer, UriFormat.Unescaped) ?? string.Empty);
 
             // serialize data for preview generator task (json format)
             var serializer = new JsonSerializer();
