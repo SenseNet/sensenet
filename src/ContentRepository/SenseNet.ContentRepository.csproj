@@ -133,7 +133,6 @@
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Web" />
-    <Reference Include="System.Web.ApplicationServices" />
     <Reference Include="System.Web.Extensions">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
@@ -475,7 +474,6 @@
     <Compile Include="PortalRoot.cs" />
     <Compile Include="ReferenceNotFoundException.cs" />
     <Compile Include="Security\PortalPrincipal.cs" />
-    <Compile Include="Security\SenseNetMembershipProvider.cs" />
     <Compile Include="i18n\Resource.cs" />
     <Compile Include="Schema\ContentHandlerAttribute.cs" />
     <Compile Include="Schema\ContentRegistrationException.cs" />
