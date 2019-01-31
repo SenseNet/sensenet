@@ -10,6 +10,6 @@
         /// This property is written by the sensenet infrastructure.
         /// Do not write this property from client code.
         /// </summary>
-        DataProvider MetadataProvider { get; set; }
+        DataProvider MainProvider { get; set; }
     }
 }

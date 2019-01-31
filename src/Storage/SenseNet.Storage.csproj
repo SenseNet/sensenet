@@ -163,7 +163,8 @@
     <Compile Include="ContentNotFoundException.cs" />
     <Compile Include="Data\BlobStorage.cs" />
     <Compile Include="Data\DataProviderExtensions.cs" />
-    <Compile Include="Data\IDataProvider.cs" />
+    <Compile Include="Data\IAccessTokenDataProviderExtension.cs" />
+    <Compile Include="Data\IDataProviderExtension.cs" />
     <Compile Include="Data\IndexDocumentData.cs" />
     <Compile Include="Data\IndexIntegrityCheckerItem.cs" />
     <Compile Include="Data\IPackagingDataProvider.cs" />
@@ -172,6 +173,7 @@
     <Compile Include="Data\RepositoryPathTooLongException.cs" />
     <Compile Include="Data\SqlClient\DataReaderExtensions.cs" />
     <Compile Include="Data\SqlClient\SnLucToSqlCompiler.cs" />
+    <Compile Include="Data\SqlClient\SqlAccessTokenDataProvider.cs" />
     <Compile Include="Data\SqlClient\SqlPackagingDataProvider.cs" />
     <Compile Include="Data\SqlClient\SqlQueryEngine.cs" />
     <Compile Include="Data\SqlClient\SqlQueryExecutor.cs" />
@@ -278,8 +280,11 @@
     <Compile Include="Search\ISearchEngineSupport.cs" />
     <Compile Include="Search\PermissionFilter.cs" />
     <Compile Include="Search\PermissionFilterFactory.cs" />
+    <Compile Include="Security\AccessToken.cs" />
+    <Compile Include="Security\AccessTokenVault.cs" />
     <Compile Include="Security\BCrypt.cs" />
     <Compile Include="Security\Extensions.cs" />
+    <Compile Include="Security\InvalidAccessTokenException.cs" />
     <Compile Include="Security\PermissionType.cs" />
     <Compile Include="Security\SecurityContextFactory.cs" />
     <Compile Include="Security\SenseNetPasswordHashProvider.cs" />

@@ -87,6 +87,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Accessors.cs" />
+    <Compile Include="AccessTokenTests.cs" />
     <Compile Include="AllowedChildTypesTests.cs" />
     <Compile Include="AspectTests.cs" />
     <Compile Include="AuditLogTests.cs" />

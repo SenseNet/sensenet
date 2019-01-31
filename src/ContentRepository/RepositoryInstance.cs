@@ -21,6 +21,8 @@ using SenseNet.Search;
 using SenseNet.Search.Indexing;
 using SenseNet.Search.Querying;
 using SenseNet.ContentRepository.Security;
+using SenseNet.ContentRepository.Storage.Data;
+using SenseNet.ContentRepository.Storage.Data.SqlClient;
 using SenseNet.Tools;
 
 namespace SenseNet.ContentRepository
@@ -133,6 +135,8 @@ namespace SenseNet.ContentRepository
                 SearchManager.SetIndexDirectoryPath(_settings.IndexPath);
 
             LoadAssemblies();
+
+            InitializeDataProviderExtensions();
 
             SecurityHandler.StartSecurity(_settings.IsWebContext);
 
@@ -315,6 +319,17 @@ namespace SenseNet.ContentRepository
         }
 
         private List<ISnService> serviceInstances;
+
+        private static void InitializeDataProviderExtensions()
+        {
+            // set default value of well-known data provider extensions
+
+            if (DataProvider.GetExtension<IPackagingDataProviderExtension>() == null)
+                DataProvider.Instance.SetExtension(typeof(IPackagingDataProviderExtension), new SqlPackagingDataProvider());
+
+            if (DataProvider.GetExtension<IAccessTokenDataProviderExtension>() == null)
+                DataProvider.Instance.SetExtension(typeof(IAccessTokenDataProviderExtension), new SqlAccessTokenDataProvider());
+        }
 
         private static void InitializeOAuthProviders()
         {

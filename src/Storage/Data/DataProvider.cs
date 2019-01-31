@@ -7,6 +7,7 @@ using System.Data.Common;
 using SenseNet.Configuration;
 using SenseNet.ContentRepository.Search.Indexing;
 using SenseNet.ContentRepository.Storage.Schema;
+using SenseNet.ContentRepository.Storage.Security;
 using SenseNet.Diagnostics;
 using SenseNet.Search.Querying;
 
@@ -39,7 +40,7 @@ namespace SenseNet.ContentRepository.Storage.Data
         public virtual void SetExtension(Type providerType, IDataProviderExtension provider)
         {
             _dataProvidersByType[providerType] = provider;
-            provider.MetadataProvider = this;
+            provider.MainProvider = this;
         }
 
         private T GetExtensionInstance<T>() where T : class, IDataProviderExtension
